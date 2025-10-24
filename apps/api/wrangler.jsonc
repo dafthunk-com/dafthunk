@@ -67,6 +67,10 @@
     {
       "binding": "COMPUTE",
       "dataset": "dafthunk-compute-development"
+    },
+    {
+      "binding": "EXECUTIONS",
+      "dataset": "dafthunk-executions-development"
     }
   ],
   "durable_objects": {
@@ -172,6 +176,10 @@
         {
           "binding": "COMPUTE",
           "dataset": "dafthunk-compute-production"
+        },
+        {
+          "binding": "EXECUTIONS",
+          "dataset": "dafthunk-executions-production"
         }
       ],
       "durable_objects": {

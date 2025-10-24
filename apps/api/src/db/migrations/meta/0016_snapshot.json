@@ -1,0 +1,1085 @@
+{
+  "version": "6",
+  "dialect": "sqlite",
+  "id": "7074793e-564a-47dc-b043-39e1a9ab86db",
+  "prevId": "7df31391-9721-4db4-8118-9e2178e86425",
+  "tables": {
+    "api_keys": {
+      "name": "api_keys",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "key": {
+          "name": "key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "api_keys_key_unique": {
+          "name": "api_keys_key_unique",
+          "columns": ["key"],
+          "isUnique": true
+        },
+        "api_keys_name_idx": {
+          "name": "api_keys_name_idx",
+          "columns": ["name"],
+          "isUnique": false
+        },
+        "api_keys_organization_id_idx": {
+          "name": "api_keys_organization_id_idx",
+          "columns": ["organization_id"],
+          "isUnique": false
+        },
+        "api_keys_created_at_idx": {
+          "name": "api_keys_created_at_idx",
+          "columns": ["created_at"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "api_keys_organization_id_organizations_id_fk": {
+          "name": "api_keys_organization_id_organizations_id_fk",
+          "tableFrom": "api_keys",
+          "tableTo": "organizations",
+          "columnsFrom": ["organization_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "cron_triggers": {
+      "name": "cron_triggers",
+      "columns": {
+        "workflow_id": {
+          "name": "workflow_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "cron_expression": {
+          "name": "cron_expression",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "version_alias": {
+          "name": "version_alias",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'dev'"
+        },
+        "version_number": {
+          "name": "version_number",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "active": {
+          "name": "active",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": true
+        },
+        "last_run": {
+          "name": "last_run",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "next_run_at": {
+          "name": "next_run_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "cron_triggers_workflow_id_idx": {
+          "name": "cron_triggers_workflow_id_idx",
+          "columns": ["workflow_id"],
+          "isUnique": false
+        },
+        "cron_triggers_version_alias_idx": {
+          "name": "cron_triggers_version_alias_idx",
+          "columns": ["version_alias"],
+          "isUnique": false
+        },
+        "cron_triggers_version_number_idx": {
+          "name": "cron_triggers_version_number_idx",
+          "columns": ["version_number"],
+          "isUnique": false
+        },
+        "cron_triggers_active_idx": {
+          "name": "cron_triggers_active_idx",
+          "columns": ["active"],
+          "isUnique": false
+        },
+        "cron_triggers_last_run_idx": {
+          "name": "cron_triggers_last_run_idx",
+          "columns": ["last_run"],
+          "isUnique": false
+        },
+        "cron_triggers_next_run_at_idx": {
+          "name": "cron_triggers_next_run_at_idx",
+          "columns": ["next_run_at"],
+          "isUnique": false
+        },
+        "cron_triggers_created_at_idx": {
+          "name": "cron_triggers_created_at_idx",
+          "columns": ["created_at"],
+          "isUnique": false
+        },
+        "cron_triggers_updated_at_idx": {
+          "name": "cron_triggers_updated_at_idx",
+          "columns": ["updated_at"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "cron_triggers_workflow_id_workflows_id_fk": {
+          "name": "cron_triggers_workflow_id_workflows_id_fk",
+          "tableFrom": "cron_triggers",
+          "tableTo": "workflows",
+          "columnsFrom": ["workflow_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "datasets": {
+      "name": "datasets",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "handle": {
+          "name": "handle",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "datasets_name_idx": {
+          "name": "datasets_name_idx",
+          "columns": ["name"],
+          "isUnique": false
+        },
+        "datasets_handle_idx": {
+          "name": "datasets_handle_idx",
+          "columns": ["handle"],
+          "isUnique": false
+        },
+        "datasets_organization_id_idx": {
+          "name": "datasets_organization_id_idx",
+          "columns": ["organization_id"],
+          "isUnique": false
+        },
+        "datasets_created_at_idx": {
+          "name": "datasets_created_at_idx",
+          "columns": ["created_at"],
+          "isUnique": false
+        },
+        "datasets_organization_id_handle_unique_idx": {
+          "name": "datasets_organization_id_handle_unique_idx",
+          "columns": ["organization_id", "handle"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "datasets_organization_id_organizations_id_fk": {
+          "name": "datasets_organization_id_organizations_id_fk",
+          "tableFrom": "datasets",
+          "tableTo": "organizations",
+          "columnsFrom": ["organization_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "deployments": {
+      "name": "deployments",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "workflow_id": {
+          "name": "workflow_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "version": {
+          "name": "version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "deployments_organization_id_idx": {
+          "name": "deployments_organization_id_idx",
+          "columns": ["organization_id"],
+          "isUnique": false
+        },
+        "deployments_workflow_id_idx": {
+          "name": "deployments_workflow_id_idx",
+          "columns": ["workflow_id"],
+          "isUnique": false
+        },
+        "deployments_version_idx": {
+          "name": "deployments_version_idx",
+          "columns": ["version"],
+          "isUnique": false
+        },
+        "deployments_created_at_idx": {
+          "name": "deployments_created_at_idx",
+          "columns": ["created_at"],
+          "isUnique": false
+        },
+        "deployments_workflow_id_version_idx": {
+          "name": "deployments_workflow_id_version_idx",
+          "columns": ["workflow_id", "version"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "deployments_organization_id_organizations_id_fk": {
+          "name": "deployments_organization_id_organizations_id_fk",
+          "tableFrom": "deployments",
+          "tableTo": "organizations",
+          "columnsFrom": ["organization_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "deployments_workflow_id_workflows_id_fk": {
+          "name": "deployments_workflow_id_workflows_id_fk",
+          "tableFrom": "deployments",
+          "tableTo": "workflows",
+          "columnsFrom": ["workflow_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "integrations": {
+      "name": "integrations",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "provider": {
+          "name": "provider",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'active'"
+        },
+        "encrypted_token": {
+          "name": "encrypted_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "encrypted_refresh_token": {
+          "name": "encrypted_refresh_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "token_expires_at": {
+          "name": "token_expires_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "metadata": {
+          "name": "metadata",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "integrations_name_idx": {
+          "name": "integrations_name_idx",
+          "columns": ["name"],
+          "isUnique": false
+        },
+        "integrations_provider_idx": {
+          "name": "integrations_provider_idx",
+          "columns": ["provider"],
+          "isUnique": false
+        },
+        "integrations_status_idx": {
+          "name": "integrations_status_idx",
+          "columns": ["status"],
+          "isUnique": false
+        },
+        "integrations_organization_id_idx": {
+          "name": "integrations_organization_id_idx",
+          "columns": ["organization_id"],
+          "isUnique": false
+        },
+        "integrations_created_at_idx": {
+          "name": "integrations_created_at_idx",
+          "columns": ["created_at"],
+          "isUnique": false
+        },
+        "integrations_organization_id_name_unique_idx": {
+          "name": "integrations_organization_id_name_unique_idx",
+          "columns": ["organization_id", "name"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "integrations_organization_id_organizations_id_fk": {
+          "name": "integrations_organization_id_organizations_id_fk",
+          "tableFrom": "integrations",
+          "tableTo": "organizations",
+          "columnsFrom": ["organization_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "memberships": {
+      "name": "memberships",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "role": {
+          "name": "role",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'member'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "memberships_role_idx": {
+          "name": "memberships_role_idx",
+          "columns": ["role"],
+          "isUnique": false
+        },
+        "memberships_user_id_idx": {
+          "name": "memberships_user_id_idx",
+          "columns": ["user_id"],
+          "isUnique": false
+        },
+        "memberships_organization_id_idx": {
+          "name": "memberships_organization_id_idx",
+          "columns": ["organization_id"],
+          "isUnique": false
+        },
+        "memberships_created_at_idx": {
+          "name": "memberships_created_at_idx",
+          "columns": ["created_at"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "memberships_user_id_users_id_fk": {
+          "name": "memberships_user_id_users_id_fk",
+          "tableFrom": "memberships",
+          "tableTo": "users",
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "memberships_organization_id_organizations_id_fk": {
+          "name": "memberships_organization_id_organizations_id_fk",
+          "tableFrom": "memberships",
+          "tableTo": "organizations",
+          "columnsFrom": ["organization_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "memberships_user_id_organization_id_pk": {
+          "columns": ["user_id", "organization_id"],
+          "name": "memberships_user_id_organization_id_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "organizations": {
+      "name": "organizations",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "handle": {
+          "name": "handle",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "compute_credits": {
+          "name": "compute_credits",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 1000
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "organizations_handle_unique": {
+          "name": "organizations_handle_unique",
+          "columns": ["handle"],
+          "isUnique": true
+        },
+        "organizations_name_idx": {
+          "name": "organizations_name_idx",
+          "columns": ["name"],
+          "isUnique": false
+        },
+        "organizations_handle_idx": {
+          "name": "organizations_handle_idx",
+          "columns": ["handle"],
+          "isUnique": false
+        },
+        "organizations_created_at_idx": {
+          "name": "organizations_created_at_idx",
+          "columns": ["created_at"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "secrets": {
+      "name": "secrets",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "encrypted_value": {
+          "name": "encrypted_value",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "secrets_name_idx": {
+          "name": "secrets_name_idx",
+          "columns": ["name"],
+          "isUnique": false
+        },
+        "secrets_organization_id_idx": {
+          "name": "secrets_organization_id_idx",
+          "columns": ["organization_id"],
+          "isUnique": false
+        },
+        "secrets_created_at_idx": {
+          "name": "secrets_created_at_idx",
+          "columns": ["created_at"],
+          "isUnique": false
+        },
+        "secrets_organization_id_name_unique_idx": {
+          "name": "secrets_organization_id_name_unique_idx",
+          "columns": ["organization_id", "name"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "secrets_organization_id_organizations_id_fk": {
+          "name": "secrets_organization_id_organizations_id_fk",
+          "tableFrom": "secrets",
+          "tableTo": "organizations",
+          "columnsFrom": ["organization_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "users": {
+      "name": "users",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "github_id": {
+          "name": "github_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "google_id": {
+          "name": "google_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "avatar_url": {
+          "name": "avatar_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "plan": {
+          "name": "plan",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'trial'"
+        },
+        "role": {
+          "name": "role",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'user'"
+        },
+        "developer_mode": {
+          "name": "developer_mode",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "users_email_unique": {
+          "name": "users_email_unique",
+          "columns": ["email"],
+          "isUnique": true
+        },
+        "users_github_id_unique": {
+          "name": "users_github_id_unique",
+          "columns": ["github_id"],
+          "isUnique": true
+        },
+        "users_google_id_unique": {
+          "name": "users_google_id_unique",
+          "columns": ["google_id"],
+          "isUnique": true
+        },
+        "users_github_id_idx": {
+          "name": "users_github_id_idx",
+          "columns": ["github_id"],
+          "isUnique": false
+        },
+        "users_google_id_idx": {
+          "name": "users_google_id_idx",
+          "columns": ["google_id"],
+          "isUnique": false
+        },
+        "users_organization_id_idx": {
+          "name": "users_organization_id_idx",
+          "columns": ["organization_id"],
+          "isUnique": false
+        },
+        "users_email_idx": {
+          "name": "users_email_idx",
+          "columns": ["email"],
+          "isUnique": false
+        },
+        "users_name_idx": {
+          "name": "users_name_idx",
+          "columns": ["name"],
+          "isUnique": false
+        },
+        "users_plan_idx": {
+          "name": "users_plan_idx",
+          "columns": ["plan"],
+          "isUnique": false
+        },
+        "users_role_idx": {
+          "name": "users_role_idx",
+          "columns": ["role"],
+          "isUnique": false
+        },
+        "users_developer_mode_idx": {
+          "name": "users_developer_mode_idx",
+          "columns": ["developer_mode"],
+          "isUnique": false
+        },
+        "users_created_at_idx": {
+          "name": "users_created_at_idx",
+          "columns": ["created_at"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "users_organization_id_organizations_id_fk": {
+          "name": "users_organization_id_organizations_id_fk",
+          "tableFrom": "users",
+          "tableTo": "organizations",
+          "columnsFrom": ["organization_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "workflows": {
+      "name": "workflows",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "handle": {
+          "name": "handle",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'manual'"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "workflows_name_idx": {
+          "name": "workflows_name_idx",
+          "columns": ["name"],
+          "isUnique": false
+        },
+        "workflows_type_idx": {
+          "name": "workflows_type_idx",
+          "columns": ["type"],
+          "isUnique": false
+        },
+        "workflows_organization_id_idx": {
+          "name": "workflows_organization_id_idx",
+          "columns": ["organization_id"],
+          "isUnique": false
+        },
+        "workflows_created_at_idx": {
+          "name": "workflows_created_at_idx",
+          "columns": ["created_at"],
+          "isUnique": false
+        },
+        "workflows_updated_at_idx": {
+          "name": "workflows_updated_at_idx",
+          "columns": ["updated_at"],
+          "isUnique": false
+        },
+        "workflows_organization_id_handle_unique_idx": {
+          "name": "workflows_organization_id_handle_unique_idx",
+          "columns": ["organization_id", "handle"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "workflows_organization_id_organizations_id_fk": {
+          "name": "workflows_organization_id_organizations_id_fk",
+          "tableFrom": "workflows",
+          "tableTo": "organizations",
+          "columnsFrom": ["organization_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    }
+  },
+  "views": {},
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "indexes": {}
+  }
+}

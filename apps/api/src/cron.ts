@@ -1,8 +1,12 @@
-import { Node, Workflow as WorkflowType } from "@dafthunk/types";
+import {
+  ExecutionStatusType,
+  Node,
+  Workflow as WorkflowType,
+} from "@dafthunk/types";
 import CronParser from "cron-parser";
 
 import { Bindings } from "./context";
-import { createDatabase, ExecutionStatusType } from "./db";
+import { createDatabase } from "./db";
 import {
   getDueCronTriggers,
   getOrganizationComputeCredits,
@@ -95,7 +99,7 @@ export async function handleCronTriggers(
 ): Promise<void> {
   console.log(`Cron event triggered at: ${new Date(event.scheduledTime)}`);
   const db = createDatabase(env.DB);
-  const executionStore = new ExecutionStore(env.DB, env.RESSOURCES);
+  const executionStore = new ExecutionStore(env);
   const workflowStore = new WorkflowStore(env.DB, env.RESSOURCES);
   const deploymentStore = new DeploymentStore(env.DB, env.RESSOURCES);
   const now = new Date();
