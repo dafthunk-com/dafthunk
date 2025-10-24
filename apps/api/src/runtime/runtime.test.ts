@@ -6,7 +6,7 @@ import { ExecutionEngine } from "./execution-engine";
 import { ErrorHandler } from "./error-handler";
 import { ExecutionMonitoring } from "./execution-monitoring";
 import { ResourceProvider } from "./resource-provider";
-import { SkipHandler } from "./skip-handler";
+import { getExecutionStatus } from "./status-utils";
 import type { ExecutionState, WorkflowExecutionContext } from "./types";
 import { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
 
@@ -49,7 +49,6 @@ describe("Runtime Integration", () => {
     executedNodes: new Set(),
     skippedNodes: new Set(),
     nodeErrors: new Map(),
-    status: "executing",
   });
 
   // Helper to execute a workflow sequentially and track monitoring updates
@@ -61,27 +60,24 @@ describe("Runtime Integration", () => {
     updates: WorkflowExecution[];
   }> => {
     const nodeRegistry = new TestNodeRegistry(testEnv, true);
-    const resourceProvider = new ResourceProvider(testEnv);
     const errorHandler = new ErrorHandler(true);
-    const skipHandler = new SkipHandler(nodeRegistry);
     const monitoring = createMonitoring();
 
-    // Create tool registry
+    // Create tool registry with factory function
+    let resourceProvider: ResourceProvider;
     const toolRegistry = new CloudflareToolRegistry(
       nodeRegistry,
       (nodeId: string, inputs: Record<string, any>) =>
         resourceProvider.createToolContext(nodeId, inputs)
     );
-    resourceProvider.setToolRegistry(toolRegistry);
+    resourceProvider = new ResourceProvider(testEnv, toolRegistry);
 
     const executionEngine = new ExecutionEngine(
       testEnv,
       nodeRegistry,
       resourceProvider,
-      skipHandler,
       errorHandler
     );
-    skipHandler.setExecutionEngine(executionEngine);
 
     const context = createContext(workflow);
     let state = createState();
@@ -108,7 +104,7 @@ describe("Runtime Integration", () => {
       await monitoring.sendUpdate({
         id: executionId,
         workflowId: workflow.id,
-        status: state.status,
+        status: getExecutionStatus(context, state),
         nodeExecutions: Array.from(state.executedNodes).map((nodeId) => ({
           nodeId,
           status: state.nodeErrors.has(nodeId) ? "error" : "completed",
@@ -118,14 +114,14 @@ describe("Runtime Integration", () => {
       } as WorkflowExecution);
     }
 
-    // Update final status based on execution results
-    state = errorHandler.updateStatus(context, state);
+    // Log final status transition
+    errorHandler.logStatusTransition(context, state);
 
     // Send final update
     await monitoring.sendUpdate({
       id: executionId,
       workflowId: workflow.id,
-      status: state.status,
+      status: getExecutionStatus(context, state),
       nodeExecutions: Array.from(context.workflow.nodes).map((node) => ({
         nodeId: node.id,
         status: state.nodeErrors.has(node.id)
@@ -218,7 +214,8 @@ describe("Runtime Integration", () => {
       const { state, updates } = await executeWorkflow(workflow);
 
       // Verify execution state
-      expect(state.status).toBe("completed");
+      const context = createContext(workflow);
+      expect(getExecutionStatus(context, state)).toBe("completed");
       expect(state.executedNodes.size).toBe(4);
       expect(state.nodeErrors.size).toBe(0);
       expect(state.nodeOutputs.get("add")?.result).toBe(8); // 5 + 3
@@ -359,7 +356,8 @@ describe("Runtime Integration", () => {
 
       const { state } = await executeWorkflow(workflow);
 
-      expect(state.status).toBe("completed");
+      const context = createContext(workflow);
+      expect(getExecutionStatus(context, state)).toBe("completed");
       expect(state.executedNodes.size).toBe(7);
       expect(state.nodeErrors.size).toBe(0);
       expect(state.nodeOutputs.get("add1")?.result).toBe(15); // 10 + 5
@@ -454,7 +452,8 @@ describe("Runtime Integration", () => {
 
       const { state } = await executeWorkflow(workflow);
 
-      expect(state.status).toBe("completed");
+      const context = createContext(workflow);
+      expect(getExecutionStatus(context, state)).toBe("completed");
       expect(state.executedNodes.size).toBe(5);
       expect(state.nodeErrors.size).toBe(0);
       // num1=2, num2=3, add=5, mult=20, sub=19
@@ -519,7 +518,8 @@ describe("Runtime Integration", () => {
       const { state, updates } = await executeWorkflow(workflow);
 
       // Verify execution state
-      expect(state.status).toBe("error");
+      const context = createContext(workflow);
+      expect(getExecutionStatus(context, state)).toBe("error");
       expect(state.executedNodes.size).toBe(2); // Only num1 and num2 succeeded
       expect(state.nodeErrors.size).toBe(1);
       expect(state.nodeErrors.get("div")).toContain("Division by zero");
@@ -584,7 +584,8 @@ describe("Runtime Integration", () => {
 
       const { state } = await executeWorkflow(workflow);
 
-      expect(state.status).toBe("error");
+      const context = createContext(workflow);
+      expect(getExecutionStatus(context, state)).toBe("error");
       expect(state.executedNodes.size).toBe(1); // Only num1 succeeded
       expect(state.nodeErrors.size).toBe(1);
       expect(state.nodeErrors.get("add")).toContain("Required input 'b' missing");
@@ -660,7 +661,8 @@ describe("Runtime Integration", () => {
 
       const { state } = await executeWorkflow(workflow);
 
-      expect(state.status).toBe("error");
+      const context = createContext(workflow);
+      expect(getExecutionStatus(context, state)).toBe("error");
       expect(state.executedNodes.size).toBe(2); // Only num1 and num2
       expect(state.nodeErrors.size).toBe(2); // div failed, add failed due to missing input
       expect(state.nodeErrors.get("div")).toContain("Division by zero");
@@ -730,7 +732,8 @@ describe("Runtime Integration", () => {
       const { state, updates } = await executeWorkflow(workflow);
 
       // Verify execution state
-      expect(state.status).toBe("error"); // Should be error, NOT executing
+      const context = createContext(workflow);
+      expect(getExecutionStatus(context, state)).toBe("error"); // Should be error, NOT executing
       expect(state.executedNodes.size).toBe(1); // Only addition completed
       expect(state.nodeErrors.size).toBe(2); // Both subtraction and multiplication failed
 

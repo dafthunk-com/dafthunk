@@ -70,6 +70,10 @@ export interface WorkflowExecutionContext {
  * Mutable execution state.
  * Tracks node outputs, execution status, and errors.
  * Updated throughout execution using immutable updates.
+ *
+ * Note: Status is computed on-demand using getExecutionStatus() utility.
+ * This eliminates the possibility of inconsistent state between status
+ * and the underlying execution tracking (executedNodes, skippedNodes, nodeErrors).
  */
 export interface ExecutionState {
   /** Outputs from executed nodes */
@@ -80,8 +84,6 @@ export interface ExecutionState {
   skippedNodes: Set<string>;
   /** Map of node IDs to error messages */
   nodeErrors: Map<string, string>;
-  /** Current workflow execution status */
-  status: WorkflowExecutionStatus;
 }
 
 /**

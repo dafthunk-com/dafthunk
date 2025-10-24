@@ -2,18 +2,14 @@ import type { WorkflowExecutionStatus } from "@dafthunk/types";
 
 import { NodeExecutionError, WorkflowValidationError } from "./types";
 import type { ExecutionState, WorkflowExecutionContext } from "./types";
-import { StateTransitions } from "./transitions";
+import { getExecutionStatus } from "./status-utils";
 
 /**
  * Unified error handling for workflow runtime.
  * Provides single source of truth for error classification, recording, and status determination.
  */
 export class ErrorHandler {
-  private transitions: StateTransitions;
-
-  constructor(isDevelopment: boolean = false) {
-    this.transitions = new StateTransitions(isDevelopment);
-  }
+  constructor(private isDevelopment: boolean = false) {}
 
   /**
    * Records a node execution error.
@@ -49,50 +45,23 @@ export class ErrorHandler {
   }
 
   /**
-   * Determines the final workflow status based on execution state.
-   * This is the single source of truth for status calculation.
-   *
-   * Note: Returns status value but does not mutate state.
-   * Use updateStatus() to apply transitions.
+   * Logs the final workflow status transition based on execution state.
+   * Status is computed on-demand, this just logs the transition for debugging.
    */
-  determineWorkflowStatus(
+  logStatusTransition(
     context: WorkflowExecutionContext,
     state: ExecutionState
-  ): WorkflowExecutionStatus {
-    const { orderedNodeIds } = context;
-    const { executedNodes, skippedNodes, nodeErrors } = state;
+  ): void {
+    const status = getExecutionStatus(context, state);
 
-    // Check if all nodes have been visited (executed, skipped, or errored)
-    const allNodesVisited = orderedNodeIds.every((nodeId) =>
-      executedNodes.has(nodeId) ||
-      skippedNodes.has(nodeId) ||
-      nodeErrors.has(nodeId)
-    );
-
-    if (!allNodesVisited) {
-      return "executing";
+    // Log transition in development mode
+    if (this.isDevelopment) {
+      if (status === "completed") {
+        console.log("[State Transition] executing → completed");
+      } else if (status === "error") {
+        console.log("[State Transition] executing → error");
+      }
     }
-
-    // All nodes visited - determine success or failure
-    return nodeErrors.size === 0 ? "completed" : "error";
-  }
-
-  /**
-   * Updates the runtime state status based on current execution state.
-   * Uses state transitions to ensure proper logging and validation.
-   */
-  updateStatus(
-    context: WorkflowExecutionContext,
-    state: ExecutionState
-  ): ExecutionState {
-    const status = this.determineWorkflowStatus(context, state);
-
-    // Use transitions to apply status change
-    if (status === state.status) {
-      return state; // No transition needed
-    }
-
-    return this.transitions.toStatus(state, status);
   }
 
   /**
