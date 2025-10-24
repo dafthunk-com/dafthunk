@@ -70,7 +70,7 @@
     },
     {
       "binding": "EXECUTIONS",
-      "dataset": "dafthunk-executions-development"
+      "dataset": "dafthunk_executions_development"
     }
   ],
   "durable_objects": {
@@ -179,7 +179,7 @@
         },
         {
           "binding": "EXECUTIONS",
-          "dataset": "dafthunk-executions-production"
+          "dataset": "dafthunk_executions_production"
         }
       ],
       "durable_objects": {

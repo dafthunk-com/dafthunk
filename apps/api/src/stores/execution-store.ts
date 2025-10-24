@@ -76,7 +76,7 @@ export class ExecutionStore {
     };
 
     // Save metadata to Analytics Engine
-    await this.writeToAnalytics(record);
+    this.writeToAnalytics(record);
 
     // Save full data to R2
     await this.writeToR2(executionData);
@@ -203,8 +203,8 @@ export class ExecutionStore {
   private getDatasetName(): string {
     const env = this.env.CLOUDFLARE_ENV || "development";
     return env === "production"
-      ? "dafthunk-executions-production"
-      : "dafthunk-executions-development";
+      ? "dafthunk_executions_production"
+      : "dafthunk_executions_development";
   }
 
   /**
@@ -220,17 +220,10 @@ export class ExecutionStore {
       const dataset = this.getDatasetName();
 
       const sql = `
-        SELECT
-          index2 as id,
-          index1 as organizationId,
-          blob1 as workflowId,
-          blob2 as deploymentId,
-          blob3 as status,
-          blob4 as error,
-          timestamp
+        SELECT *
         FROM ${dataset}
-        WHERE index2 = '${id}'
-          AND index1 = '${organizationId}'
+        WHERE index1 = '${organizationId}'
+          AND index2 = '${id}'
         ORDER BY timestamp DESC
         LIMIT 1
       `;
@@ -248,12 +241,12 @@ export class ExecutionStore {
       console.log(`ExecutionStore.readFromAnalytics: Success for ${id}`);
 
       return {
-        id: row.id,
-        workflowId: row.workflowId,
-        deploymentId: row.deploymentId || null,
-        organizationId: row.organizationId,
-        status: row.status as ExecutionStatusType,
-        error: row.error || null,
+        id: row.index2,
+        workflowId: row.blob1,
+        deploymentId: row.blob2 || null,
+        organizationId: row.index1,
+        status: row.blob3 as ExecutionStatusType,
+        error: row.blob4 || null,
         startedAt: timestamp,
         endedAt: timestamp,
         createdAt: timestamp,
@@ -296,14 +289,7 @@ export class ExecutionStore {
       const offset = options?.offset ?? 0;
 
       const sql = `
-        SELECT
-          index2 as id,
-          index1 as organizationId,
-          blob1 as workflowId,
-          blob2 as deploymentId,
-          blob3 as status,
-          blob4 as error,
-          timestamp
+        SELECT *
         FROM ${dataset}
         WHERE ${whereConditions.join(" AND ")}
         ORDER BY timestamp DESC
@@ -319,12 +305,12 @@ export class ExecutionStore {
       return rows.map((row) => {
         const timestamp = new Date(row.timestamp);
         return {
-          id: row.id,
-          workflowId: row.workflowId,
-          deploymentId: row.deploymentId || null,
-          organizationId: row.organizationId,
-          status: row.status as ExecutionStatusType,
-          error: row.error || null,
+          id: row.index2,
+          workflowId: row.blob1,
+          deploymentId: row.blob2 || null,
+          organizationId: row.index1,
+          status: row.blob3 as ExecutionStatusType,
+          error: row.blob4 || null,
           startedAt: timestamp,
           endedAt: timestamp,
           createdAt: timestamp,
