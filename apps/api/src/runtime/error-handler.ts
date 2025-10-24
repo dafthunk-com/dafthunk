@@ -59,15 +59,14 @@ export class ErrorHandler {
     context: WorkflowExecutionContext,
     state: ExecutionState
   ): WorkflowExecutionStatus {
-    const { executionPlan } = context;
+    const { orderedNodeIds } = context;
     const { executedNodes, skippedNodes, nodeErrors } = state;
 
     // Check if all nodes have been visited (executed, skipped, or errored)
-    const allNodesVisited = this.areAllNodesVisited(
-      executionPlan,
-      executedNodes,
-      skippedNodes,
-      nodeErrors
+    const allNodesVisited = orderedNodeIds.every((nodeId) =>
+      executedNodes.has(nodeId) ||
+      skippedNodes.has(nodeId) ||
+      nodeErrors.has(nodeId)
     );
 
     if (!allNodesVisited) {
@@ -76,26 +75,6 @@ export class ErrorHandler {
 
     // All nodes visited - determine success or failure
     return nodeErrors.size === 0 ? "completed" : "error";
-  }
-
-  /**
-   * Checks if all nodes in the execution plan have been visited.
-   * Simplified: all execution units are individual nodes now.
-   */
-  private areAllNodesVisited(
-    executionPlan: WorkflowExecutionContext["executionPlan"],
-    executedNodes: Set<string>,
-    skippedNodes: Set<string>,
-    nodeErrors: Map<string, string>
-  ): boolean {
-    return executionPlan.every((unit) => {
-      // All units are individual nodes now (no inline groups)
-      return (
-        executedNodes.has(unit.nodeId) ||
-        skippedNodes.has(unit.nodeId) ||
-        nodeErrors.has(unit.nodeId)
-      );
-    });
   }
 
   /**

@@ -22,7 +22,7 @@ import type {
  * Deep module that hides complexity of input/output transformation, resource resolution, and node execution.
  *
  * Combines responsibilities of:
- * - NodeExecutor: executing nodes and inline groups
+ * - NodeExecutor: executing individual nodes
  * - InputCollector: gathering inputs from workflow graph
  * - InputTransformer: converting runtime values to node parameters
  * - OutputTransformer: converting node outputs to runtime values
@@ -35,78 +35,6 @@ export class ExecutionEngine {
     private skipHandler: SkipHandler,
     private errorHandler: ErrorHandler
   ) {}
-
-  /**
-   * Executes a group of inlinable nodes sequentially in a single step.
-   */
-  async executeInlineGroup(
-    context: WorkflowExecutionContext,
-    state: ExecutionState,
-    nodeIds: readonly string[],
-    httpRequest?: HttpRequest,
-    emailMessage?: EmailMessage
-  ): Promise<ExecutionState> {
-    let currentState = state;
-    const groupStartTime = Date.now();
-    const executedNodesInGroup: string[] = [];
-
-    console.log(`Starting inline group execution: [${nodeIds.join(", ")}]`);
-
-    // Execute each node in the group sequentially
-    for (const nodeId of nodeIds) {
-      // Skip nodes that were already marked as failed or skipped
-      if (this.errorHandler.shouldSkipNode(currentState, nodeId)) {
-        console.log(
-          `Skipping node ${nodeId} in inline group (already failed/skipped)`
-        );
-        continue;
-      }
-
-      try {
-        const nodeStartTime = Date.now();
-
-        currentState = await this.executeNode(
-          context,
-          currentState,
-          nodeId,
-          httpRequest,
-          emailMessage
-        );
-
-        const nodeExecutionTime = Date.now() - nodeStartTime;
-
-        // If execution failed, break the inline group execution
-        if (currentState.nodeErrors.has(nodeId)) {
-          console.log(
-            `Node ${nodeId} failed in inline group after ${nodeExecutionTime}ms, stopping group execution`
-          );
-          break;
-        }
-
-        executedNodesInGroup.push(nodeId);
-        console.log(
-          `Node ${nodeId} completed in inline group (${nodeExecutionTime}ms)`
-        );
-      } catch (error) {
-        // Handle errors at the group level
-        currentState = this.errorHandler.recordNodeError(
-          currentState,
-          nodeId,
-          error instanceof Error ? error : new Error(String(error))
-        );
-        const message = error instanceof Error ? error.message : String(error);
-        console.log(`Error in node ${nodeId} within inline group: ${message}`);
-        break;
-      }
-    }
-
-    const totalGroupTime = Date.now() - groupStartTime;
-    console.log(
-      `Inline group completed: executed ${executedNodesInGroup.length}/${nodeIds.length} nodes in ${totalGroupTime}ms`
-    );
-
-    return currentState;
-  }
 
   /**
    * Executes a single node and stores its outputs.

@@ -50,14 +50,14 @@ export type WorkflowRuntimeState = Map<string, NodeRuntimeValues>;
 
 /**
  * Immutable execution context.
- * Contains workflow definition and execution plan that never change during execution.
+ * Contains workflow definition and ordered node IDs that never change during execution.
  * Created once at initialization, passed by reference throughout execution.
  */
 export interface WorkflowExecutionContext {
   /** The workflow definition being executed (immutable) */
   readonly workflow: Workflow;
-  /** The execution plan (computed once, never modified) */
-  readonly executionPlan: ExecutionPlan;
+  /** Ordered list of node IDs to execute (computed once, never modified) */
+  readonly orderedNodeIds: readonly string[];
   /** Workflow ID for reference */
   readonly workflowId: string;
   /** Organization ID for scoping */
@@ -83,28 +83,6 @@ export interface ExecutionState {
   /** Current workflow execution status */
   status: WorkflowExecutionStatus;
 }
-
-/**
- * Execution plan types - defines how nodes are grouped for execution.
- */
-
-/** A group of inlinable nodes executed together in a single step */
-export interface InlineGroup {
-  readonly type: "inline";
-  readonly nodeIds: readonly string[];
-}
-
-/** A single node executed as an individual step */
-export interface IndividualNode {
-  readonly type: "individual";
-  readonly nodeId: string;
-}
-
-/** A unit of execution - either a single node or a group of inlinable nodes */
-export type ExecutionUnit = InlineGroup | IndividualNode;
-
-/** The complete execution plan for a workflow - ordered list of execution units */
-export type ExecutionPlan = ExecutionUnit[];
 
 /**
  * Integration data structure available at runtime.
