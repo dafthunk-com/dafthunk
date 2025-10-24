@@ -4,7 +4,7 @@ import type { Bindings } from "../context";
 import { type ExecutionStatusType } from "../db";
 import { ExecutionStore } from "../stores/execution-store";
 import type { ErrorHandler } from "./error-handler";
-import { getExecutionStatus } from "./status-utils";
+import { getExecutionStatus } from "./types";
 import type { ExecutionState, WorkflowExecutionContext } from "./types";
 
 /**

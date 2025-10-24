@@ -1,8 +1,7 @@
 import type { WorkflowExecutionStatus } from "@dafthunk/types";
 
-import { NodeExecutionError, WorkflowValidationError } from "./types";
+import { NodeExecutionError, WorkflowValidationError, getExecutionStatus } from "./types";
 import type { ExecutionState, WorkflowExecutionContext } from "./types";
-import { getExecutionStatus } from "./status-utils";
 
 /**
  * Unified error handling for workflow runtime.

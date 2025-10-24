@@ -6,7 +6,7 @@ import { ExecutionEngine } from "./execution-engine";
 import { ErrorHandler } from "./error-handler";
 import { ExecutionMonitoring } from "./execution-monitoring";
 import { ResourceProvider } from "./resource-provider";
-import { getExecutionStatus } from "./status-utils";
+import { getExecutionStatus } from "./types";
 import type { ExecutionState, WorkflowExecutionContext } from "./types";
 import { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
 
