@@ -3,7 +3,6 @@ import { describe, expect, it, vi } from "vitest";
 
 import { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
 import { TestNodeRegistry } from "../nodes/test-node-registry";
-import { ExecutionMonitoring } from "./execution-monitoring";
 import { ResourceProvider } from "./resource-provider";
 import type { ExecutionState, WorkflowExecutionContext } from "./types";
 import { getExecutionStatus } from "./types";
@@ -22,13 +21,13 @@ describe("Runtime Integration", () => {
 
   // Mock execution monitoring
   let monitoringSendUpdate: ReturnType<typeof vi.fn>;
-  let monitoring: ExecutionMonitoring;
+  let monitoring: { sendUpdate: typeof monitoringSendUpdate };
 
   const createMonitoring = () => {
     monitoringSendUpdate = vi.fn().mockResolvedValue(undefined);
     monitoring = {
       sendUpdate: monitoringSendUpdate,
-    } as any;
+    };
     return monitoring;
   };
 
