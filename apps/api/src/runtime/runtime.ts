@@ -3,6 +3,7 @@ import type {
   WorkflowExecution,
   WorkflowExecutionStatus,
 } from "@dafthunk/types";
+import type { Node } from "@dafthunk/types";
 import {
   WorkflowEntrypoint,
   WorkflowEvent,
@@ -20,12 +21,13 @@ import {
 } from "../nodes/parameter-mapper";
 import { HttpRequest } from "../nodes/types";
 import { EmailMessage } from "../nodes/types";
+import { ExecutionStore } from "../stores/execution-store";
 import { ObjectStore } from "../stores/object-store";
-import { updateOrganizationComputeUsage } from "../utils/credits";
+import {
+  getOrganizationComputeUsage,
+  updateOrganizationComputeUsage,
+} from "../utils/credits";
 import { validateWorkflow } from "../utils/workflows";
-import { CreditManager } from "./credit-manager";
-import { ExecutionMonitoring } from "./execution-monitoring";
-import { ExecutionPersistence } from "./execution-persistence";
 import { ResourceProvider } from "./resource-provider";
 import type {
   ExecutionState,
@@ -70,8 +72,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
 
   private nodeRegistry: CloudflareNodeRegistry;
   private resourceProvider: ResourceProvider;
-  private creditManager: CreditManager;
-  private persistence: ExecutionPersistence;
+  private executionStore: ExecutionStore;
   private isDevelopment: boolean;
 
   constructor(ctx: ExecutionContext, env: Bindings) {
@@ -95,8 +96,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     );
 
     // Initialize other components
-    this.creditManager = new CreditManager(env, this.nodeRegistry);
-    this.persistence = new ExecutionPersistence(env, this);
+    this.executionStore = new ExecutionStore(env.DB, env.RESSOURCES);
   }
 
   /**
@@ -120,9 +120,6 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     } = event.payload;
     const instanceId = event.instanceId;
 
-    // Use monitoring instance with session ID for this execution
-    const monitoring = new ExecutionMonitoring(this.env, workflowSessionId);
-
     // Initialise state and execution records.
     let executionState: ExecutionState = {
       nodeOutputs: new Map(),
@@ -143,13 +140,13 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     } as WorkflowExecution;
 
     // Send initial state update
-    await monitoring.sendUpdate(executionRecord);
+    await this.sendMonitoringUpdate(workflowSessionId, executionRecord);
 
     if (
-      !(await this.creditManager.hasEnoughComputeCredits(
+      !(await this.hasEnoughComputeCredits(
         organizationId,
         computeCredits,
-        this.creditManager.getNodesComputeCost(workflow.nodes)
+        this.getNodesComputeCost(workflow.nodes)
       ))
     ) {
       // Create a minimal context for status computation (before full initialization)
@@ -169,20 +166,25 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         "persist exhausted execution state",
         Runtime.defaultStepConfig,
         async () =>
-          this.persistence.saveExecutionState(
+          this.executionStore.save({
+            id: instanceId,
+            workflowId: workflow.id,
             userId,
             organizationId,
-            workflow,
-            minimalContext,
-            instanceId,
-            executionState,
-            new Date(),
-            new Date()
-          )
+            status: "exhausted" as any,
+            nodeExecutions: this.buildNodeExecutions(
+              workflow,
+              minimalContext,
+              executionState
+            ),
+            error: this.createErrorReport(executionState),
+            startedAt: new Date(),
+            endedAt: new Date(),
+          })
       );
 
       // Send exhausted state update
-      await monitoring.sendUpdate(executionRecord);
+      await this.sendMonitoringUpdate(workflowSessionId, executionRecord);
       return executionRecord;
     }
 
@@ -220,7 +222,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       );
 
       // Send executing state update
-      await monitoring.sendUpdate(executionRecord);
+      await this.sendMonitoringUpdate(workflowSessionId, executionRecord);
 
       // Execute nodes sequentially
       for (const nodeId of executionContext.orderedNodeIds) {
@@ -245,14 +247,14 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         executionRecord = {
           ...executionRecord,
           status: getExecutionStatus(executionContext, executionState),
-          nodeExecutions: this.persistence.buildNodeExecutions(
+          nodeExecutions: this.buildNodeExecutions(
             executionContext.workflow,
             executionContext,
             executionState
           ),
         };
 
-        await monitoring.sendUpdate(executionRecord);
+        await this.sendMonitoringUpdate(workflowSessionId, executionRecord);
       }
     } catch (error) {
       // Capture unexpected failure - log transition
@@ -271,7 +273,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       };
 
       // Send error state update immediately
-      await monitoring.sendUpdate(executionRecord);
+      await this.sendMonitoringUpdate(workflowSessionId, executionRecord);
     } finally {
       // Set endedAt timestamp when execution finishes (success or error)
       executionRecord.endedAt = new Date();
@@ -292,28 +294,36 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
               this.env.KV,
               organizationId,
               // Update organization compute credits for executed nodes
-              this.creditManager.getNodesComputeCost(
+              this.getNodesComputeCost(
                 workflow.nodes.filter((node) =>
                   executionState.executedNodes.has(node.id)
                 )
               )
             );
           }
-          return this.persistence.saveExecutionState(
+          return this.executionStore.save({
+            id: instanceId,
+            workflowId: workflow.id,
             userId,
             organizationId,
-            workflow,
-            executionContext!,
-            instanceId,
-            executionState,
-            executionRecord.startedAt,
-            executionRecord.endedAt
-          );
+            status: getExecutionStatus(
+              executionContext!,
+              executionState
+            ) as any,
+            nodeExecutions: this.buildNodeExecutions(
+              workflow,
+              executionContext!,
+              executionState
+            ),
+            error: this.createErrorReport(executionState),
+            startedAt: executionRecord.startedAt,
+            endedAt: executionRecord.endedAt,
+          });
         }
       );
 
       // Send final update
-      await monitoring.sendUpdate(executionRecord);
+      await this.sendMonitoringUpdate(workflowSessionId, executionRecord);
     }
 
     return executionRecord;
@@ -712,7 +722,77 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
   }
 
   // ==========================================================================
-  // ERROR HANDLING (from ErrorHandler)
+  // EXECUTION MONITORING
+  // ==========================================================================
+
+  /**
+   * Sends execution update to the workflow session Durable Object.
+   * No-op if no session ID is provided.
+   */
+  private async sendMonitoringUpdate(
+    sessionId: string | undefined,
+    execution: WorkflowExecution
+  ): Promise<void> {
+    if (!sessionId) {
+      return;
+    }
+
+    try {
+      const id = this.env.WORKFLOW_SESSION.idFromName(sessionId);
+      const stub = this.env.WORKFLOW_SESSION.get(id);
+
+      await stub.fetch(`https://workflow-session/execution`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(execution),
+      });
+    } catch (error) {
+      console.error(
+        `Failed to send execution update to session ${sessionId}:`,
+        error
+      );
+    }
+  }
+
+  // ==========================================================================
+  // CREDIT MANAGEMENT
+  // ==========================================================================
+
+  /**
+   * Checks if the organization has enough compute credits to execute a workflow.
+   * Credit limits are not enforced in development mode.
+   */
+  private async hasEnoughComputeCredits(
+    organizationId: string,
+    computeCredits: number,
+    computeCost: number
+  ): Promise<boolean> {
+    // Skip credit limit enforcement in development mode
+    if (this.isDevelopment) {
+      return true;
+    }
+
+    const computeUsage = await getOrganizationComputeUsage(
+      this.env.KV,
+      organizationId
+    );
+    return computeUsage + computeCost <= computeCredits;
+  }
+
+  /**
+   * Returns the compute cost of a list of nodes.
+   */
+  private getNodesComputeCost(nodes: Node[]): number {
+    return nodes.reduce((acc, node) => {
+      const nodeType = this.nodeRegistry.getNodeType(node.type);
+      return acc + (nodeType.computeCost ?? 1);
+    }, 0);
+  }
+
+  // ==========================================================================
+  // ERROR HANDLING
   // ==========================================================================
 
   recordNodeError(
@@ -734,6 +814,53 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
 
   shouldSkipNode(state: ExecutionState, nodeId: string): boolean {
     return state.nodeErrors.has(nodeId) || state.skippedNodes.has(nodeId);
+  }
+
+  // ==========================================================================
+  // NODE EXECUTION LIST BUILDER
+  // ==========================================================================
+
+  /**
+   * Builds node execution list from execution state.
+   * Maps workflow nodes to their execution status for persistence and monitoring.
+   */
+  private buildNodeExecutions(
+    workflow: Workflow,
+    context: WorkflowExecutionContext,
+    state: ExecutionState
+  ) {
+    // Determine if workflow is still running
+    const isStillRunning = getExecutionStatus(context, state) === "executing";
+
+    return workflow.nodes.map((node) => {
+      if (state.executedNodes.has(node.id)) {
+        return {
+          nodeId: node.id,
+          status: "completed" as const,
+          outputs: state.nodeOutputs.get(node.id) || {},
+        };
+      }
+      if (state.nodeErrors.has(node.id)) {
+        return {
+          nodeId: node.id,
+          status: "error" as const,
+          error: state.nodeErrors.get(node.id),
+        };
+      }
+      if (state.skippedNodes.has(node.id)) {
+        return {
+          nodeId: node.id,
+          status: "skipped" as const,
+        };
+      }
+      // If node hasn't been processed yet:
+      // - If workflow is still running, mark as "executing"
+      // - If workflow has completed/errored, mark as "idle" (never reached)
+      return {
+        nodeId: node.id,
+        status: isStillRunning ? ("executing" as const) : ("idle" as const),
+      };
+    });
   }
 
   private logStatusTransition(
