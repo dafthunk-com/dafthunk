@@ -17,7 +17,7 @@ const executionRoutes = new Hono<ApiContext>();
 executionRoutes.get("/:id", apiKeyOrJwtMiddleware, async (c) => {
   const organizationId = c.get("organizationId")!;
   const id = c.req.param("id");
-  const executionStore = new ExecutionStore(c.env.DB, c.env.RESSOURCES);
+  const executionStore = new ExecutionStore(c.env);
 
   try {
     const execution = await executionStore.getWithData(id, organizationId);
@@ -27,7 +27,7 @@ executionRoutes.get("/:id", apiKeyOrJwtMiddleware, async (c) => {
     }
 
     // Get workflow name
-    const workflowStore = new WorkflowStore(c.env.DB, c.env.RESSOURCES);
+    const workflowStore = new WorkflowStore(c.env);
     const workflowName = await workflowStore.getName(
       execution.workflowId,
       organizationId
@@ -54,8 +54,8 @@ executionRoutes.get("/:id", apiKeyOrJwtMiddleware, async (c) => {
 });
 
 executionRoutes.get("/", jwtMiddleware, async (c) => {
-  const executionStore = new ExecutionStore(c.env.DB, c.env.RESSOURCES);
-  const workflowStore = new WorkflowStore(c.env.DB, c.env.RESSOURCES);
+  const executionStore = new ExecutionStore(c.env);
+  const workflowStore = new WorkflowStore(c.env);
   const { workflowId, deploymentId, limit, offset } = c.req.query();
 
   const organizationId = c.get("organizationId")!;

@@ -17,6 +17,7 @@ export interface Bindings {
   AI: Ai;
   BROWSER?: Fetcher;
   COMPUTE: AnalyticsEngineDataset;
+  EXECUTIONS: AnalyticsEngineDataset;
   WEB_HOST: string;
   EMAIL_DOMAIN: string;
   JWT_SECRET: string;
