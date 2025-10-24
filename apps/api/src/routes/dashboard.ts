@@ -26,8 +26,8 @@ dashboard.get("/", async (c) => {
   const organizationId = c.get("organizationId")!;
 
   const executionStore = new ExecutionStore(c.env);
-  const workflowStore = new WorkflowStore(c.env.DB, c.env.RESSOURCES);
-  const deploymentStore = new DeploymentStore(c.env.DB, c.env.RESSOURCES);
+  const workflowStore = new WorkflowStore(c.env);
+  const deploymentStore = new DeploymentStore(c.env);
 
   try {
     // Workflows count

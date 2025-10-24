@@ -100,8 +100,8 @@ export async function handleCronTriggers(
   console.log(`Cron event triggered at: ${new Date(event.scheduledTime)}`);
   const db = createDatabase(env.DB);
   const executionStore = new ExecutionStore(env);
-  const workflowStore = new WorkflowStore(env.DB, env.RESSOURCES);
-  const deploymentStore = new DeploymentStore(env.DB, env.RESSOURCES);
+  const workflowStore = new WorkflowStore(env);
+  const deploymentStore = new DeploymentStore(env);
   const now = new Date();
 
   try {

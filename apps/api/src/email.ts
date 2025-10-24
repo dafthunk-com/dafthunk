@@ -72,8 +72,8 @@ export async function handleIncomingEmail(
 
   const db = createDatabase(env.DB);
   const executionStore = new ExecutionStore(env);
-  const workflowStore = new WorkflowStore(env.DB, env.RESSOURCES);
-  const deploymentStore = new DeploymentStore(env.DB, env.RESSOURCES);
+  const workflowStore = new WorkflowStore(env);
+  const deploymentStore = new DeploymentStore(env);
 
   // Get workflow data either from deployment or directly from workflow
   let workflowData: WorkflowType;
