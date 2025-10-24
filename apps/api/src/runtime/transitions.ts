@@ -14,6 +14,19 @@ import type { ExecutionState } from "./types";
  *                  ↓
  *                error [TERMINAL]
  *
+ * Valid Transitions:
+ * - idle → submitted (initialization)
+ * - submitted → exhausted (insufficient credits)
+ * - submitted → executing (credits ok, validation passed)
+ * - executing → completed (all nodes done, no errors)
+ * - executing → error (node errors or exception)
+ *
+ * Invalid Transitions (prevented by design):
+ * - exhausted → * (terminal state)
+ * - completed → * (terminal state)
+ * - error → * (terminal state)
+ * - executing → submitted (no backwards)
+ *
  * All transitions log in development mode for debugging.
  */
 export class StateTransitions {

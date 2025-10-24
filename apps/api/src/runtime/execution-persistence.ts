@@ -24,6 +24,9 @@ export class ExecutionPersistence {
    * Builds node execution list from execution state
    */
   buildNodeExecutions(workflow: Workflow, state: ExecutionState) {
+    // Determine if workflow is still running
+    const isStillRunning = state.status === "executing";
+
     return workflow.nodes.map((node) => {
       if (state.executedNodes.has(node.id)) {
         return {
@@ -45,9 +48,12 @@ export class ExecutionPersistence {
           status: "skipped" as const,
         };
       }
+      // If node hasn't been processed yet:
+      // - If workflow is still running, mark as "executing"
+      // - If workflow has completed/errored, mark as "idle" (never reached)
       return {
         nodeId: node.id,
-        status: "executing" as const,
+        status: isStillRunning ? ("executing" as const) : ("idle" as const),
       };
     });
   }

@@ -6,6 +6,7 @@ import { MaxNode } from "./math/max-node";
 import { MedianNode } from "./math/median-node";
 import { MinNode } from "./math/min-node";
 import { MultiplicationNode } from "./math/multiplication-node";
+import { NumberInputNode } from "./math/number-input-node";
 import { SubtractionNode } from "./math/subtraction-node";
 import { SumNode } from "./math/sum-node";
 
@@ -18,6 +19,7 @@ export class TestNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(SubtractionNode);
     this.registerImplementation(MultiplicationNode);
     this.registerImplementation(DivisionNode);
+    this.registerImplementation(NumberInputNode);
     this.registerImplementation(SumNode);
     this.registerImplementation(MaxNode);
     this.registerImplementation(MinNode);
