@@ -73,11 +73,9 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
   private nodeRegistry: CloudflareNodeRegistry;
   private resourceProvider: ResourceProvider;
   private executionStore: ExecutionStore;
-  private isDevelopment: boolean;
 
   constructor(ctx: ExecutionContext, env: Bindings) {
     super(ctx, env);
-    this.isDevelopment = env.CLOUDFLARE_ENV === "development";
     this.nodeRegistry = new CloudflareNodeRegistry(env, true);
 
     // Create tool registry with a factory function for tool contexts
@@ -206,7 +204,6 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       executionRecord.endedAt = new Date();
 
       if (executionContext) {
-        this.logStatusTransition(executionContext, executionState);
         executionRecord = await this.persistFinalState(
           step,
           executionContext,
@@ -312,15 +309,13 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
   }
 
   /**
-   * Logs state transitions in development mode for debugging.
+   * Logs state transitions (currently disabled for minimal logging).
    */
   private logTransition(
-    from: WorkflowExecutionStatus | "idle",
-    to: WorkflowExecutionStatus | "idle"
+    _from: WorkflowExecutionStatus | "idle",
+    _to: WorkflowExecutionStatus | "idle"
   ): void {
-    if (this.isDevelopment && from !== to) {
-      console.log(`[State Transition] ${from} → ${to}`);
-    }
+    // Logging disabled for minimal output
   }
 
   /**
@@ -348,7 +343,6 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     if (!node) {
       const error = new NodeNotFoundError(nodeId);
       state = this.recordNodeError(state, nodeId, error);
-      this.logStatusTransition(context, state);
       return state;
     }
 
@@ -363,7 +357,6 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     if (!executable) {
       const error = new NodeTypeNotImplementedError(nodeId, node.type);
       state = this.recordNodeError(state, nodeId, error);
-      this.logStatusTransition(context, state);
       return state;
     }
 
@@ -418,7 +411,6 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         state = this.recordNodeError(state, nodeId, failureMessage);
       }
 
-      this.logStatusTransition(context, state);
       return state;
     } catch (error) {
       state = this.recordNodeError(
@@ -426,7 +418,6 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         nodeId,
         error instanceof Error ? error : new Error(String(error))
       );
-      this.logStatusTransition(context, state);
       return state;
     }
   }
@@ -738,7 +729,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     computeCost: number
   ): Promise<boolean> {
     // Skip credit limit enforcement in development mode
-    if (this.isDevelopment) {
+    if (this.env.CLOUDFLARE_ENV === "development") {
       return true;
     }
 
@@ -941,11 +932,4 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     });
   }
 
-  private logStatusTransition(
-    context: WorkflowExecutionContext,
-    state: ExecutionState
-  ): void {
-    const status = getExecutionStatus(context, state);
-    this.logTransition("executing", status);
-  }
 }
