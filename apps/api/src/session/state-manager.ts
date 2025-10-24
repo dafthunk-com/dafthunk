@@ -50,7 +50,7 @@ export class StateManager {
    * 3. Initialize in-memory state
    */
   async loadState(workflowId: string, userId: string): Promise<void> {
-    const workflowStore = new WorkflowStore(this.env.DB, this.env.RESSOURCES);
+    const workflowStore = new WorkflowStore(this.env);
     const result = await workflowStore.getWithUserAccess(workflowId, userId);
 
     if (!result) {
@@ -176,7 +176,7 @@ export class StateManager {
     }
 
     try {
-      const workflowStore = new WorkflowStore(this.env.DB, this.env.RESSOURCES);
+      const workflowStore = new WorkflowStore(this.env);
 
       const workflowData = {
         id: this.state.id,

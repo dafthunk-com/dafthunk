@@ -2,6 +2,7 @@ import type { Deployment, Workflow as WorkflowType } from "@dafthunk/types";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
 
+import type { Bindings } from "../context";
 import type { DeploymentInsert, DeploymentRow } from "../db";
 import { createDatabase, Database } from "../db";
 import { deployments, organizations, workflows } from "../db";
@@ -11,14 +12,11 @@ import { getOrganizationCondition, getWorkflowCondition } from "../db/queries";
  * Manages deployment metadata in D1 and workflow snapshots in R2.
  */
 export class DeploymentStore {
-  constructor(
-    d1: D1Database,
-    private bucket: R2Bucket
-  ) {
-    this.db = createDatabase(d1);
-  }
-
   private db: Database;
+
+  constructor(private env: Bindings) {
+    this.db = createDatabase(env.DB);
+  }
 
   /** Create a deployment metadata record */
   async create(newDeployment: DeploymentInsert): Promise<DeploymentRow> {
@@ -239,17 +237,21 @@ export class DeploymentStore {
     workflow: WorkflowType
   ): Promise<void> {
     const key = `deployments/${deploymentId}/workflow.json`;
-    const result = await this.bucket.put(key, JSON.stringify(workflow), {
-      httpMetadata: {
-        contentType: "application/json",
-        cacheControl: "public, max-age=31536000",
-      },
-      customMetadata: {
-        deploymentId,
-        workflowId: (workflow as any).id,
-        createdAt: new Date().toISOString(),
-      },
-    });
+    const result = await this.env.RESSOURCES.put(
+      key,
+      JSON.stringify(workflow),
+      {
+        httpMetadata: {
+          contentType: "application/json",
+          cacheControl: "public, max-age=31536000",
+        },
+        customMetadata: {
+          deploymentId,
+          workflowId: (workflow as any).id,
+          createdAt: new Date().toISOString(),
+        },
+      }
+    );
     if (!result) {
       throw new Error("Failed to write deployment snapshot to R2");
     }
@@ -258,7 +260,7 @@ export class DeploymentStore {
   /** Read workflow snapshot by deployment id */
   async readWorkflowSnapshot(deploymentId: string): Promise<WorkflowType> {
     const key = `deployments/${deploymentId}/workflow.json`;
-    const object = await this.bucket.get(key);
+    const object = await this.env.RESSOURCES.get(key);
     if (!object) {
       throw new Error(`Workflow not found for deployment: ${deploymentId}`);
     }
@@ -269,7 +271,7 @@ export class DeploymentStore {
   /** Delete workflow snapshot by deployment id */
   async deleteWorkflowSnapshot(deploymentId: string): Promise<void> {
     const key = `deployments/${deploymentId}/workflow.json`;
-    await this.bucket.delete(key);
+    await this.env.RESSOURCES.delete(key);
   }
 
   /** Fetch deployment metadata and attach workflow snapshot */

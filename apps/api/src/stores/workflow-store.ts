@@ -1,6 +1,7 @@
 import type { Workflow as WorkflowType } from "@dafthunk/types";
 import { and, eq, inArray } from "drizzle-orm";
 
+import type { Bindings } from "../context";
 import { createDatabase, Database } from "../db";
 import { getOrganizationCondition, getWorkflowCondition } from "../db/queries";
 import type { WorkflowRow } from "../db/schema";
@@ -27,14 +28,11 @@ export interface SaveWorkflowRecord {
  * Provides a unified interface for workflow persistence operations.
  */
 export class WorkflowStore {
-  constructor(
-    d1: D1Database,
-    private bucket: R2Bucket
-  ) {
-    this.db = createDatabase(d1);
-  }
-
   private db: Database;
+
+  constructor(private env: Bindings) {
+    this.db = createDatabase(env.DB);
+  }
 
   /**
    * Save workflow metadata to D1 and full data to R2
@@ -462,23 +460,27 @@ export class WorkflowStore {
     try {
       console.log(`WorkflowStore.writeToR2: Writing workflow ${workflow.id}`);
 
-      if (!this.bucket) {
+      if (!this.env.RESSOURCES) {
         throw new Error("R2 bucket is not initialized");
       }
 
       const key = `workflows/${workflow.id}.json`;
-      const result = await this.bucket.put(key, JSON.stringify(workflow), {
-        httpMetadata: {
-          contentType: "application/json",
-          cacheControl: "no-cache",
-        },
-        customMetadata: {
-          workflowId: workflow.id,
-          name: workflow.name,
-          type: workflow.type,
-          updatedAt: new Date().toISOString(),
-        },
-      });
+      const result = await this.env.RESSOURCES.put(
+        key,
+        JSON.stringify(workflow),
+        {
+          httpMetadata: {
+            contentType: "application/json",
+            cacheControl: "no-cache",
+          },
+          customMetadata: {
+            workflowId: workflow.id,
+            name: workflow.name,
+            type: workflow.type,
+            updatedAt: new Date().toISOString(),
+          },
+        }
+      );
 
       console.log(
         `WorkflowStore.writeToR2: Success for ${workflow.id}, etag: ${result?.etag || "unknown"}`
@@ -499,12 +501,12 @@ export class WorkflowStore {
     try {
       console.log(`WorkflowStore.readFromR2: Reading workflow ${workflowId}`);
 
-      if (!this.bucket) {
+      if (!this.env.RESSOURCES) {
         throw new Error("R2 bucket is not initialized");
       }
 
       const key = `workflows/${workflowId}.json`;
-      const object = await this.bucket.get(key);
+      const object = await this.env.RESSOURCES.get(key);
 
       if (!object) {
         throw new Error(`Workflow not found: ${workflowId}`);
@@ -533,12 +535,12 @@ export class WorkflowStore {
         `WorkflowStore.deleteFromR2: Deleting workflow ${workflowId}`
       );
 
-      if (!this.bucket) {
+      if (!this.env.RESSOURCES) {
         throw new Error("R2 bucket is not initialized");
       }
 
       const key = `workflows/${workflowId}.json`;
-      await this.bucket.delete(key);
+      await this.env.RESSOURCES.delete(key);
 
       console.log(
         `WorkflowStore.deleteFromR2: Successfully deleted ${workflowId}`

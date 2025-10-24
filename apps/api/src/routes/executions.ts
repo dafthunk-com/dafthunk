@@ -27,7 +27,7 @@ executionRoutes.get("/:id", apiKeyOrJwtMiddleware, async (c) => {
     }
 
     // Get workflow name
-    const workflowStore = new WorkflowStore(c.env.DB, c.env.RESSOURCES);
+    const workflowStore = new WorkflowStore(c.env);
     const workflowName = await workflowStore.getName(
       execution.workflowId,
       organizationId
@@ -55,7 +55,7 @@ executionRoutes.get("/:id", apiKeyOrJwtMiddleware, async (c) => {
 
 executionRoutes.get("/", jwtMiddleware, async (c) => {
   const executionStore = new ExecutionStore(c.env);
-  const workflowStore = new WorkflowStore(c.env.DB, c.env.RESSOURCES);
+  const workflowStore = new WorkflowStore(c.env);
   const { workflowId, deploymentId, limit, offset } = c.req.query();
 
   const organizationId = c.get("organizationId")!;

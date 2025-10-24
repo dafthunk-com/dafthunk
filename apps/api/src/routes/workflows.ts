@@ -57,7 +57,7 @@ const workflowRoutes = new Hono<ExtendedApiContext>();
  * List all workflows for the current organization
  */
 workflowRoutes.get("/", jwtMiddleware, async (c) => {
-  const workflowStore = new WorkflowStore(c.env.DB, c.env.RESSOURCES);
+  const workflowStore = new WorkflowStore(c.env);
 
   const organizationId = c.get("organizationId")!;
 
@@ -123,7 +123,7 @@ workflowRoutes.post(
     }
 
     // Save workflow to both D1 and R2
-    const workflowStore = new WorkflowStore(c.env.DB, c.env.RESSOURCES);
+    const workflowStore = new WorkflowStore(c.env);
 
     const savedWorkflow = await workflowStore.save({
       id: workflowData.id,
@@ -166,7 +166,7 @@ workflowRoutes.get("/:id", jwtMiddleware, async (c) => {
     return c.json({ error: "Unauthorized" }, 401);
   }
 
-  const workflowStore = new WorkflowStore(c.env.DB, c.env.RESSOURCES);
+  const workflowStore = new WorkflowStore(c.env);
 
   try {
     const workflow = await workflowStore.getWithData(id, organizationId);
@@ -212,7 +212,7 @@ workflowRoutes.put(
   ),
   async (c) => {
     const id = c.req.param("id");
-    const workflowStore = new WorkflowStore(c.env.DB, c.env.RESSOURCES);
+    const workflowStore = new WorkflowStore(c.env);
 
     const organizationId = c.get("organizationId")!;
 
@@ -311,7 +311,7 @@ workflowRoutes.put(
  */
 workflowRoutes.delete("/:id", jwtMiddleware, async (c) => {
   const id = c.req.param("id");
-  const workflowStore = new WorkflowStore(c.env.DB, c.env.RESSOURCES);
+  const workflowStore = new WorkflowStore(c.env);
 
   const organizationId = c.get("organizationId")!;
 
@@ -331,7 +331,7 @@ workflowRoutes.delete("/:id", jwtMiddleware, async (c) => {
 workflowRoutes.get("/:workflowIdOrHandle/cron", jwtMiddleware, async (c) => {
   const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
   const organizationId = c.get("organizationId")!;
-  const workflowStore = new WorkflowStore(c.env.DB, c.env.RESSOURCES);
+  const workflowStore = new WorkflowStore(c.env);
   const db = createDatabase(c.env.DB);
 
   const workflow = await workflowStore.get(workflowIdOrHandle, organizationId);
@@ -379,7 +379,7 @@ workflowRoutes.put(
     const organizationId = c.get("organizationId")!;
     const data = c.req.valid("json");
     const db = createDatabase(c.env.DB);
-    const workflowStore = new WorkflowStore(c.env.DB, c.env.RESSOURCES);
+    const workflowStore = new WorkflowStore(c.env);
 
     const workflow = await workflowStore.get(
       workflowIdOrHandle,
@@ -486,8 +486,8 @@ workflowRoutes.post(
     let workflowData: any;
     let workflow: any;
     let deploymentId: string | undefined;
-    const workflowStore = new WorkflowStore(c.env.DB, c.env.RESSOURCES);
-    const deploymentStore = new DeploymentStore(c.env.DB, c.env.RESSOURCES);
+    const workflowStore = new WorkflowStore(c.env);
+    const deploymentStore = new DeploymentStore(c.env);
 
     if (version === "dev") {
       // Load workflow with data from database and R2
