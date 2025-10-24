@@ -5,48 +5,22 @@
  * Deep module design: exposes minimal public API while hiding implementation complexity.
  *
  * Public API:
- * - Runtime: Main workflow execution entrypoint
- * - RuntimeParams: Configuration for workflow execution
- * - Types: Core data structures for workflow execution
- * - Utilities: Status computation and input collection
+ * - Runtime: Main workflow execution class (the only thing most code needs)
+ * - RuntimeParams: Configuration type for workflow execution
+ *
+ * Everything else is an implementation detail and should not be imported directly.
  */
 
-// Main runtime class and parameters (only public API for workflow execution)
+// Main runtime class and parameters - this is all you need!
 export type { RuntimeParams } from "./runtime";
 export { Runtime } from "./runtime";
 
-// Utilities
-export { getExecutionStatus } from "./status-utils";
-
-// Essential types used by external modules
-export type {
-  ExecutionPlan,
-  ExecutionState,
-  ExecutionUnit,
-  IndividualNode,
-  InlineGroup,
-  IntegrationData,
-  NodeRuntimeValues,
-  RuntimeValue,
-  WorkflowExecutionContext,
-  WorkflowRuntimeState,
-} from "./types";
-export {
-  getNodeType,
-  isRuntimeValue,
-  // Error types
-  WorkflowError,
-  WorkflowValidationError,
-  CyclicGraphError,
-  NodeExecutionError,
-  NodeNotFoundError,
-  NodeTypeNotImplementedError,
-  SystemError,
-  InsufficientCreditsError,
-} from "./types";
-
 // Internal components are NOT exported - they are implementation details:
-// - ExecutionEngine: combines NodeExecutor, InputCollector, InputTransformer, OutputTransformer
-// - ResourceProvider: combines SecretManager, IntegrationManager
-// - ErrorHandler, SkipHandler, CreditManager, etc.: supporting utilities
+// - ExecutionEngine: node execution, skip logic, input collection
+// - ExecutionPersistence: database storage
+// - ExecutionMonitoring: real-time updates
+// - ResourceProvider: secrets, integrations, OAuth
+// - ErrorHandler: error classification and handling
+// - CreditManager: compute credit tracking
+// - types.ts: internal type definitions
 // All complexity is pushed down into these deep modules with simple interfaces

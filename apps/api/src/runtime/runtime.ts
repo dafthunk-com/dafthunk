@@ -23,7 +23,7 @@ import { ExecutionMonitoring } from "./execution-monitoring";
 import { ExecutionPersistence } from "./execution-persistence";
 import { ExecutionEngine } from "./execution-engine";
 import { ResourceProvider } from "./resource-provider";
-import { getExecutionStatus } from "./status-utils";
+import { getExecutionStatus } from "./types";
 import type {
   ExecutionState,
   WorkflowExecutionContext,
@@ -401,8 +401,8 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
    * Logs state transitions in development mode for debugging.
    */
   private logTransition(
-    from: "idle" | "submitted" | "executing" | "completed" | "error" | "exhausted",
-    to: "submitted" | "executing" | "completed" | "error" | "exhausted"
+    from: WorkflowExecutionStatus | "idle",
+    to: WorkflowExecutionStatus | "idle"
   ): void {
     if (this.isDevelopment && from !== to) {
       console.log(`[State Transition] ${from} → ${to}`);
