@@ -17,14 +17,13 @@ import { HttpRequest } from "../nodes/types";
 import { EmailMessage } from "../nodes/types";
 import { updateOrganizationComputeUsage } from "../utils/credits";
 import { validateWorkflow } from "../utils/workflows";
-import { SkipHandler } from "./skip-handler";
 import { CreditManager } from "./credit-manager";
 import { ErrorHandler } from "./error-handler";
 import { ExecutionMonitoring } from "./execution-monitoring";
 import { ExecutionPersistence } from "./execution-persistence";
 import { ExecutionEngine } from "./execution-engine";
 import { ResourceProvider } from "./resource-provider";
-import { StateTransitions } from "./transitions";
+import { getExecutionStatus } from "./status-utils";
 import type {
   ExecutionState,
   WorkflowExecutionContext,
@@ -61,46 +60,37 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
   private resourceProvider: ResourceProvider;
   private creditManager: CreditManager;
   private errorHandler: ErrorHandler;
-  private skipHandler: SkipHandler;
   private persistence: ExecutionPersistence;
-  private monitoring: ExecutionMonitoring;
   private executionEngine: ExecutionEngine;
-  private transitions: StateTransitions;
+  private isDevelopment: boolean;
 
   constructor(ctx: ExecutionContext, env: Bindings) {
     super(ctx, env);
+    this.isDevelopment = env.CLOUDFLARE_ENV === "development";
     this.nodeRegistry = new CloudflareNodeRegistry(env, true);
-    this.transitions = new StateTransitions(env.CLOUDFLARE_ENV === "development");
 
-    // ResourceProvider needs to be created early but will get toolRegistry later
-    this.resourceProvider = new ResourceProvider(env);
-
-    // Create tool registry with resource provider's tool context factory
+    // Create tool registry with a factory function for tool contexts
+    // We'll pass this to ResourceProvider constructor
+    let resourceProvider: ResourceProvider;
     const toolRegistry = new CloudflareToolRegistry(
       this.nodeRegistry,
       (nodeId: string, inputs: Record<string, any>) =>
-        this.resourceProvider.createToolContext(nodeId, inputs)
+        resourceProvider.createToolContext(nodeId, inputs)
     );
 
-    // Set tool registry on resource provider
-    this.resourceProvider.setToolRegistry(toolRegistry);
+    // Create ResourceProvider with toolRegistry
+    this.resourceProvider = resourceProvider = new ResourceProvider(env, toolRegistry);
 
     // Initialize other components
     this.creditManager = new CreditManager(env, this.nodeRegistry);
     this.errorHandler = new ErrorHandler(env.CLOUDFLARE_ENV === "development");
-    this.skipHandler = new SkipHandler(this.nodeRegistry);
     this.persistence = new ExecutionPersistence(env, this.errorHandler);
-    this.monitoring = new ExecutionMonitoring(env);
     this.executionEngine = new ExecutionEngine(
       env,
       this.nodeRegistry,
       this.resourceProvider,
-      this.skipHandler,
       this.errorHandler
     );
-
-    // Set execution engine on skip handler to break circular dependency
-    this.skipHandler.setExecutionEngine(this.executionEngine);
   }
 
   /**
@@ -124,17 +114,17 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     } = event.payload;
     const instanceId = event.instanceId;
 
-    // Initialize monitoring with session ID for this execution
-    this.monitoring = new ExecutionMonitoring(this.env, workflowSessionId);
+    // Use monitoring instance with session ID for this execution
+    const monitoring = new ExecutionMonitoring(this.env, workflowSessionId);
 
     // Initialise state and execution records.
-    let executionState: ExecutionState = this.transitions.toSubmitted({
+    let executionState: ExecutionState = {
       nodeOutputs: new Map(),
       executedNodes: new Set(),
       skippedNodes: new Set(),
       nodeErrors: new Map(),
-      status: "idle",
-    });
+    };
+    this.logTransition("idle", "submitted");
 
     let executionRecord: WorkflowExecution = {
       id: instanceId,
@@ -147,7 +137,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     } as WorkflowExecution;
 
     // Send initial state update
-    await this.monitoring.sendUpdate(executionRecord);
+    await monitoring.sendUpdate(executionRecord);
 
     if (
       !(await this.creditManager.hasEnoughComputeCredits(
@@ -156,7 +146,19 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         this.creditManager.getNodesComputeCost(workflow.nodes)
       ))
     ) {
-      executionState = this.transitions.toExhausted(executionState);
+      // Create a minimal context for status computation (before full initialization)
+      const minimalContext: WorkflowExecutionContext = {
+        workflow,
+        orderedNodeIds: workflow.nodes.map((n) => n.id),
+        workflowId: workflow.id,
+        organizationId,
+        executionId: instanceId,
+      };
+
+      this.logTransition(
+        getExecutionStatus(minimalContext, executionState),
+        "exhausted"
+      );
       executionRecord = await step.do(
         "persist exhausted execution state",
         Runtime.defaultStepConfig,
@@ -165,6 +167,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
             userId,
             organizationId,
             workflow,
+            minimalContext,
             instanceId,
             executionState,
             new Date(),
@@ -173,7 +176,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       );
 
       // Send exhausted state update
-      await this.monitoring.sendUpdate(executionRecord);
+      await monitoring.sendUpdate(executionRecord);
       return executionRecord;
     }
 
@@ -205,10 +208,10 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       executionContext = context;
       executionState = state;
       executionRecord.startedAt = new Date();
-      executionRecord.status = executionState.status; // Use state from state machine
+      executionRecord.status = getExecutionStatus(executionContext, executionState);
 
       // Send executing state update
-      await this.monitoring.sendUpdate(executionRecord);
+      await monitoring.sendUpdate(executionRecord);
 
       // Execute nodes sequentially
       for (const nodeId of executionContext.orderedNodeIds) {
@@ -232,34 +235,41 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         // Send progress update after each node
         executionRecord = {
           ...executionRecord,
-          status: executionState.status,
+          status: getExecutionStatus(executionContext, executionState),
           nodeExecutions: this.persistence.buildNodeExecutions(
             executionContext.workflow,
+            executionContext,
             executionState
           ),
         };
 
-        await this.monitoring.sendUpdate(executionRecord);
+        await monitoring.sendUpdate(executionRecord);
       }
     } catch (error) {
-      // Capture unexpected failure.
-      executionState = this.transitions.toError(executionState);
+      // Capture unexpected failure - log transition
+      if (executionContext) {
+        this.logTransition(
+          getExecutionStatus(executionContext, executionState),
+          "error"
+        );
+      }
       executionRecord = {
         ...executionRecord,
-        status: executionState.status, // Use state from state machine
+        status: executionContext
+          ? getExecutionStatus(executionContext, executionState)
+          : "error",
         error: error instanceof Error ? error.message : String(error),
       };
 
       // Send error state update immediately
-      await this.monitoring.sendUpdate(executionRecord);
+      await monitoring.sendUpdate(executionRecord);
     } finally {
       // Set endedAt timestamp when execution finishes (success or error)
       executionRecord.endedAt = new Date();
 
-      // Always update status based on execution results (not just when status is "executing")
-      // This ensures we transition from "executing" to "completed" or "error"
+      // Log final status transition
       if (executionContext) {
-        executionState = this.errorHandler.updateStatus(executionContext, executionState);
+        this.errorHandler.logStatusTransition(executionContext, executionState);
       }
 
       // Always persist the final state
@@ -284,6 +294,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
             userId,
             organizationId,
             workflow,
+            executionContext!,
             instanceId,
             executionState,
             executionRecord.startedAt,
@@ -293,7 +304,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       );
 
       // Send final update
-      await this.monitoring.sendUpdate(executionRecord);
+      await monitoring.sendUpdate(executionRecord);
     }
 
     return executionRecord;
@@ -335,13 +346,15 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     };
 
     // Mutable state
-    const state: ExecutionState = this.transitions.toExecuting({
+    const state: ExecutionState = {
       nodeOutputs: new Map(),
       executedNodes: new Set(),
       skippedNodes: new Set(),
       nodeErrors: new Map(),
-      status: "idle",
-    });
+    };
+
+    // Log transition to executing
+    this.logTransition(getExecutionStatus(context, state), "executing");
 
     return { context, state };
   }
@@ -382,5 +395,17 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
 
     // If ordering missed nodes, a cycle exists.
     return ordered.length === workflow.nodes.length ? ordered : [];
+  }
+
+  /**
+   * Logs state transitions in development mode for debugging.
+   */
+  private logTransition(
+    from: "idle" | "submitted" | "executing" | "completed" | "error" | "exhausted",
+    to: "submitted" | "executing" | "completed" | "error" | "exhausted"
+  ): void {
+    if (this.isDevelopment && from !== to) {
+      console.log(`[State Transition] ${from} → ${to}`);
+    }
   }
 }

@@ -4,7 +4,8 @@ import type { Bindings } from "../context";
 import { type ExecutionStatusType } from "../db";
 import { ExecutionStore } from "../stores/execution-store";
 import type { ErrorHandler } from "./error-handler";
-import type { ExecutionState } from "./types";
+import { getExecutionStatus } from "./status-utils";
+import type { ExecutionState, WorkflowExecutionContext } from "./types";
 
 /**
  * Handles persistence for workflow executions.
@@ -23,9 +24,13 @@ export class ExecutionPersistence {
   /**
    * Builds node execution list from execution state
    */
-  buildNodeExecutions(workflow: Workflow, state: ExecutionState) {
+  buildNodeExecutions(
+    workflow: Workflow,
+    context: WorkflowExecutionContext,
+    state: ExecutionState
+  ) {
     // Determine if workflow is still running
-    const isStillRunning = state.status === "executing";
+    const isStillRunning = getExecutionStatus(context, state) === "executing";
 
     return workflow.nodes.map((node) => {
       if (state.executedNodes.has(node.id)) {
@@ -65,14 +70,15 @@ export class ExecutionPersistence {
     userId: string,
     organizationId: string,
     workflow: Workflow,
+    context: WorkflowExecutionContext,
     instanceId: string,
     state: ExecutionState,
     startedAt?: Date,
     endedAt?: Date
   ): Promise<WorkflowExecution> {
-    const nodeExecutionList = this.buildNodeExecutions(workflow, state);
+    const nodeExecutionList = this.buildNodeExecutions(workflow, context, state);
 
-    const executionStatus = state.status;
+    const executionStatus = getExecutionStatus(context, state);
 
     // Get error message from error handler
     const errorMsg = this.errorHandler.createErrorReport(state);

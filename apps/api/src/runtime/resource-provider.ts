@@ -15,16 +15,11 @@ export class ResourceProvider {
   private organizationId: string | null = null;
   private secrets: Record<string, string> = {};
   private integrations: Record<string, IntegrationData> = {};
-  private toolRegistry: CloudflareToolRegistry | null = null;
 
-  constructor(private env: Bindings) {}
-
-  /**
-   * Set the tool registry (called after construction to break circular dependency)
-   */
-  setToolRegistry(toolRegistry: CloudflareToolRegistry): void {
-    this.toolRegistry = toolRegistry;
-  }
+  constructor(
+    private env: Bindings,
+    private toolRegistry: CloudflareToolRegistry
+  ) {}
 
   /**
    * Preloads all organization secrets and integrations for synchronous access.
@@ -139,7 +134,7 @@ export class ResourceProvider {
       httpRequest,
       emailMessage,
       onProgress: () => {},
-      toolRegistry: this.toolRegistry!,
+      toolRegistry: this.toolRegistry,
       // Callback-based access to secrets (lazy, secure)
       getSecret: async (secretName: string) => {
         return this.secrets?.[secretName];
@@ -216,7 +211,7 @@ export class ResourceProvider {
       workflowId: `tool_execution_${Date.now()}`,
       organizationId: "system",
       inputs,
-      toolRegistry: this.toolRegistry!,
+      toolRegistry: this.toolRegistry,
       // Tool executions don't have access to organization secrets/integrations
       getSecret: async (secretName: string) => {
         throw new Error(

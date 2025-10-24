@@ -8,11 +8,15 @@
  * - Runtime: Main workflow execution entrypoint
  * - RuntimeParams: Configuration for workflow execution
  * - Types: Core data structures for workflow execution
+ * - Utilities: Status computation and input collection
  */
 
 // Main runtime class and parameters (only public API for workflow execution)
 export type { RuntimeParams } from "./runtime";
 export { Runtime } from "./runtime";
+
+// Utilities
+export { getExecutionStatus } from "./status-utils";
 
 // Essential types used by external modules
 export type {

@@ -8,7 +8,6 @@ import { apiToNodeParameter, nodeToApiParameter } from "../nodes/parameter-mappe
 import { ObjectStore } from "../stores/object-store";
 import type { ErrorHandler } from "./error-handler";
 import type { ResourceProvider } from "./resource-provider";
-import type { SkipHandler } from "./skip-handler";
 import { getNodeType, isRuntimeValue, NodeNotFoundError, NodeTypeNotImplementedError } from "./types";
 import type {
   ExecutionState,
@@ -24,6 +23,7 @@ import type {
  * Combines responsibilities of:
  * - NodeExecutor: executing individual nodes
  * - InputCollector: gathering inputs from workflow graph
+ * - SkipHandler: managing conditional execution
  * - InputTransformer: converting runtime values to node parameters
  * - OutputTransformer: converting node outputs to runtime values
  */
@@ -32,7 +32,6 @@ export class ExecutionEngine {
     private env: Bindings,
     private nodeRegistry: CloudflareNodeRegistry,
     private resourceProvider: ResourceProvider,
-    private skipHandler: SkipHandler,
     private errorHandler: ErrorHandler
   ) {}
 
@@ -53,7 +52,7 @@ export class ExecutionEngine {
     if (!node) {
       const error = new NodeNotFoundError(nodeId);
       state = this.errorHandler.recordNodeError(state, nodeId, error);
-      state = this.errorHandler.updateStatus(context, state);
+      this.errorHandler.logStatusTransition(context, state);
       return state;
     }
 
@@ -69,7 +68,7 @@ export class ExecutionEngine {
     if (!executable) {
       const error = new NodeTypeNotImplementedError(nodeId, node.type);
       state = this.errorHandler.recordNodeError(state, nodeId, error);
-      state = this.errorHandler.updateStatus(context, state);
+      this.errorHandler.logStatusTransition(context, state);
       return state;
     }
 
@@ -117,7 +116,7 @@ export class ExecutionEngine {
         state.executedNodes.add(nodeId);
 
         // After successful execution, mark nodes connected to inactive outputs as skipped
-        state = this.skipHandler.skipInactiveOutputs(
+        state = this.skipInactiveOutputs(
           context,
           state,
           nodeId,
@@ -133,8 +132,8 @@ export class ExecutionEngine {
         );
       }
 
-      // Update workflow status based on current state
-      state = this.errorHandler.updateStatus(context, state);
+      // Log status transition based on current state
+      this.errorHandler.logStatusTransition(context, state);
 
       return state;
     } catch (error) {
@@ -145,85 +144,13 @@ export class ExecutionEngine {
         error instanceof Error ? error : new Error(String(error))
       );
 
-      // Update workflow status
-      state = this.errorHandler.updateStatus(context, state);
+      // Log status transition
+      this.errorHandler.logStatusTransition(context, state);
 
       return state;
     }
   }
 
-  /**
-   * Collects inputs for a node by checking its default values and inbound edges.
-   * Public method needed by SkipHandler to determine if nodes have required inputs.
-   */
-  collectNodeInputs(
-    workflow: Workflow,
-    nodeOutputs: Map<string, NodeRuntimeValues>,
-    nodeId: string
-  ): NodeRuntimeValues {
-    const inputs: NodeRuntimeValues = {};
-    const node = workflow.nodes.find((n): boolean => n.id === nodeId);
-    if (!node) return inputs;
-
-    // Defaults declared directly on the node
-    for (const input of node.inputs) {
-      if (input.value !== undefined && isRuntimeValue(input.value)) {
-        inputs[input.name] = input.value;
-      }
-    }
-
-    // Values coming from connected nodes
-    const inboundEdges = workflow.edges.filter(
-      (edge): boolean => edge.target === nodeId
-    );
-
-    // Group edges by target input to handle multiple connections
-    const edgesByInput = new Map<string, typeof inboundEdges>();
-    for (const edge of inboundEdges) {
-      const inputName = edge.targetInput;
-      if (!edgesByInput.has(inputName)) {
-        edgesByInput.set(inputName, []);
-      }
-      edgesByInput.get(inputName)!.push(edge);
-    }
-
-    // Process each input's connections
-    for (const [inputName, edges] of edgesByInput) {
-      // Get the node type definition to check repeated
-      const executable = this.nodeRegistry.createExecutableNode(node);
-      const nodeType = getNodeType(executable);
-      const nodeTypeInput = nodeType?.inputs?.find(
-        (input) => input.name === inputName
-      );
-
-      // Check repeated from node type definition (not workflow node)
-      const acceptsMultiple = nodeTypeInput?.repeated ?? false;
-
-      const values: RuntimeValue[] = [];
-
-      for (const edge of edges) {
-        const sourceOutputs = nodeOutputs.get(edge.source);
-        if (sourceOutputs && sourceOutputs[edge.sourceOutput] !== undefined) {
-          const value = sourceOutputs[edge.sourceOutput];
-          if (isRuntimeValue(value)) {
-            values.push(value);
-          }
-        }
-      }
-
-      if (values.length > 0) {
-        if (acceptsMultiple) {
-          // For parameters that accept multiple connections, provide an array
-          inputs[inputName] = values;
-        } else {
-          // For single connection parameters, use the last value (current behavior)
-          inputs[inputName] = values[values.length - 1];
-        }
-      }
-    }
-
-    return inputs;
-  }
 
   /**
    * Transforms runtime inputs to node execution format.
@@ -324,5 +251,193 @@ export class ExecutionEngine {
       );
     }
     return processed;
+  }
+
+  // ==========================================================================
+  // INPUT COLLECTION (Private methods)
+  // ==========================================================================
+
+  /**
+   * Collects inputs for a node by checking its default values and inbound edges.
+   */
+  private collectNodeInputs(
+    workflow: Workflow,
+    nodeOutputs: Map<string, NodeRuntimeValues>,
+    nodeId: string
+  ): NodeRuntimeValues {
+    const inputs: NodeRuntimeValues = {};
+    const node = workflow.nodes.find((n): boolean => n.id === nodeId);
+    if (!node) return inputs;
+
+    // Defaults declared directly on the node
+    for (const input of node.inputs) {
+      if (input.value !== undefined && isRuntimeValue(input.value)) {
+        inputs[input.name] = input.value;
+      }
+    }
+
+    // Values coming from connected nodes
+    const inboundEdges = workflow.edges.filter(
+      (edge): boolean => edge.target === nodeId
+    );
+
+    // Group edges by target input to handle multiple connections
+    const edgesByInput = new Map<string, typeof inboundEdges>();
+    for (const edge of inboundEdges) {
+      const inputName = edge.targetInput;
+      if (!edgesByInput.has(inputName)) {
+        edgesByInput.set(inputName, []);
+      }
+      edgesByInput.get(inputName)!.push(edge);
+    }
+
+    // Process each input's connections
+    for (const [inputName, edges] of edgesByInput) {
+      // Get the node type definition to check repeated
+      const executable = this.nodeRegistry.createExecutableNode(node);
+      const nodeType = getNodeType(executable);
+      const nodeTypeInput = nodeType?.inputs?.find(
+        (input) => input.name === inputName
+      );
+
+      // Check repeated from node type definition (not workflow node)
+      const acceptsMultiple = nodeTypeInput?.repeated ?? false;
+
+      const values: RuntimeValue[] = [];
+
+      for (const edge of edges) {
+        const sourceOutputs = nodeOutputs.get(edge.source);
+        if (sourceOutputs && sourceOutputs[edge.sourceOutput] !== undefined) {
+          const value = sourceOutputs[edge.sourceOutput];
+          if (isRuntimeValue(value)) {
+            values.push(value);
+          }
+        }
+      }
+
+      if (values.length > 0) {
+        if (acceptsMultiple) {
+          // For parameters that accept multiple connections, provide an array
+          inputs[inputName] = values;
+        } else {
+          // For single connection parameters, use the last value (current behavior)
+          inputs[inputName] = values[values.length - 1];
+        }
+      }
+    }
+
+    return inputs;
+  }
+
+  // ==========================================================================
+  // SKIP HANDLER (Private methods)
+  // ==========================================================================
+
+  /**
+   * Marks nodes connected to inactive outputs as skipped.
+   * This is crucial for conditional logic where only one branch should execute.
+   */
+  private skipInactiveOutputs(
+    context: WorkflowExecutionContext,
+    state: ExecutionState,
+    nodeId: string,
+    nodeOutputs: Record<string, unknown>
+  ): ExecutionState {
+    const node = context.workflow.nodes.find((n) => n.id === nodeId);
+    if (!node) return state;
+
+    // Find outputs that were NOT produced
+    const inactiveOutputs = node.outputs
+      .map((output) => output.name)
+      .filter((outputName) => !(outputName in nodeOutputs));
+
+    if (inactiveOutputs.length === 0) return state;
+
+    // Find all edges from this node's inactive outputs
+    const inactiveEdges = context.workflow.edges.filter(
+      (edge) =>
+        edge.source === nodeId &&
+        inactiveOutputs.includes(edge.sourceOutput)
+    );
+
+    // Process each target node of inactive edges
+    for (const edge of inactiveEdges) {
+      this.skipIfMissingInputs(context, state, edge.target);
+    }
+
+    return state;
+  }
+
+  /**
+   * Marks a node as skipped if it cannot execute due to missing required inputs.
+   * This is smarter than recursively skipping all dependents.
+   */
+  private skipIfMissingInputs(
+    context: WorkflowExecutionContext,
+    state: ExecutionState,
+    nodeId: string
+  ): void {
+    if (state.skippedNodes.has(nodeId) || state.executedNodes.has(nodeId)) {
+      return; // Already processed
+    }
+
+    const node = context.workflow.nodes.find((n) => n.id === nodeId);
+    if (!node) return;
+
+    // Check if this node has all required inputs satisfied
+    const allRequiredInputsSatisfied = this.hasAllRequiredInputs(
+      context,
+      state,
+      nodeId
+    );
+
+    // Only skip if the node cannot execute (missing required inputs)
+    if (!allRequiredInputsSatisfied) {
+      state.skippedNodes.add(nodeId);
+
+      // Recursively check dependents of this skipped node
+      const outgoingEdges = context.workflow.edges.filter(
+        (edge) => edge.source === nodeId
+      );
+
+      for (const edge of outgoingEdges) {
+        this.skipIfMissingInputs(context, state, edge.target);
+      }
+    }
+  }
+
+  /**
+   * Checks if a node has all required inputs satisfied.
+   * A node can execute if all its required inputs are available.
+   */
+  private hasAllRequiredInputs(
+    context: WorkflowExecutionContext,
+    state: ExecutionState,
+    nodeId: string
+  ): boolean {
+    const node = context.workflow.nodes.find((n) => n.id === nodeId);
+    if (!node) return false;
+
+    // Get the node type definition to check for required inputs
+    const executable = this.nodeRegistry.createExecutableNode(node);
+    if (!executable) return false;
+
+    const nodeType = getNodeType(executable);
+    if (!nodeType) return false;
+
+    const inputValues = this.collectNodeInputs(
+      context.workflow,
+      state.nodeOutputs,
+      nodeId
+    );
+
+    // Check each required input based on the node type definition (not workflow node definition)
+    for (const input of nodeType.inputs) {
+      if (input.required && inputValues[input.name] === undefined) {
+        return false; // Found a required input that's missing
+      }
+    }
+
+    return true; // All required inputs are satisfied
   }
 }
