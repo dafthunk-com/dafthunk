@@ -80,6 +80,7 @@ export class ErrorHandler {
 
   /**
    * Checks if all nodes in the execution plan have been visited.
+   * Simplified: all execution units are individual nodes now.
    */
   private areAllNodesVisited(
     executionPlan: WorkflowExecutionContext["executionPlan"],
@@ -88,22 +89,12 @@ export class ErrorHandler {
     nodeErrors: Map<string, string>
   ): boolean {
     return executionPlan.every((unit) => {
-      if (unit.type === "individual") {
-        return (
-          executedNodes.has(unit.nodeId) ||
-          skippedNodes.has(unit.nodeId) ||
-          nodeErrors.has(unit.nodeId)
-        );
-      }
-
-      if (unit.type === "inline") {
-        return unit.nodeIds.every(
-          (id: string) =>
-            executedNodes.has(id) || skippedNodes.has(id) || nodeErrors.has(id)
-        );
-      }
-
-      return false;
+      // All units are individual nodes now (no inline groups)
+      return (
+        executedNodes.has(unit.nodeId) ||
+        skippedNodes.has(unit.nodeId) ||
+        nodeErrors.has(unit.nodeId)
+      );
     });
   }
 

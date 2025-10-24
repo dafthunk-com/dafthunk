@@ -206,12 +206,12 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       executionContext = context;
       executionState = state;
       executionRecord.startedAt = new Date();
-      executionRecord.status = "executing";
+      executionRecord.status = executionState.status; // Use state from state machine
 
       // Send executing state update
       await this.monitoring.sendUpdate(executionRecord);
 
-      // Execute nodes sequentially.
+      // Execute nodes sequentially (one at a time, no inline grouping)
       for (const executionUnit of executionContext.executionPlan) {
         if (executionUnit.type === "individual") {
           const nodeIdentifier = executionUnit.nodeId;
@@ -233,42 +233,27 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
                 emailMessage
               )
           );
-        } else if (executionUnit.type === "inline") {
-          // Execute inline group - all nodes in a single step
-          const groupDescription = `inline group [${executionUnit.nodeIds.join(", ")}]`;
 
-          executionState = await step.do(
-            `run ${groupDescription}`,
-            Runtime.defaultStepConfig,
-            async () =>
-              this.executionEngine.executeInlineGroup(
-                executionContext!,
-                executionState,
-                executionUnit.nodeIds,
-                httpRequest,
-                emailMessage
-              )
-          );
+          // Send progress update after each node
+          executionRecord = {
+            ...executionRecord,
+            status: executionState.status,
+            nodeExecutions: this.persistence.buildNodeExecutions(
+              executionContext.workflow,
+              executionState
+            ),
+          };
+
+          await this.monitoring.sendUpdate(executionRecord);
         }
-
-        // Send progress update
-        executionRecord = {
-          ...executionRecord,
-          status: executionState.status,
-          nodeExecutions: this.persistence.buildNodeExecutions(
-            executionContext.workflow,
-            executionState
-          ),
-        };
-
-        await this.monitoring.sendUpdate(executionRecord);
+        // Note: inline groups removed for simplicity
       }
     } catch (error) {
       // Capture unexpected failure.
       executionState = this.transitions.toError(executionState);
       executionRecord = {
         ...executionRecord,
-        status: "error",
+        status: executionState.status, // Use state from state machine
         error: error instanceof Error ? error.message : String(error),
       };
 
@@ -277,6 +262,13 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     } finally {
       // Set endedAt timestamp when execution finishes (success or error)
       executionRecord.endedAt = new Date();
+
+      // Always update status based on execution results (not just when status is "executing")
+      // This ensures we transition from "executing" to "completed" or "error"
+      if (executionContext) {
+        executionState = this.errorHandler.updateStatus(executionContext, executionState);
+      }
+
       // Always persist the final state
       executionRecord = await step.do(
         "persist final execution record",
@@ -367,159 +359,18 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
   }
 
   /**
-   * Creates an execution plan that groups consecutive inlinable nodes together.
+   * Creates a simple execution plan with all nodes as individual execution units.
+   * Inline grouping has been removed for simplicity.
    */
   private createExecutionPlan(
     workflow: Workflow,
     orderedNodes: string[]
   ): ExecutionPlan {
-    const plan: ExecutionPlan = [];
-    const processedNodes = new Set<string>();
-    let totalInlineGroups = 0;
-    let totalInlinedNodes = 0;
-
-    for (let i = 0; i < orderedNodes.length; i++) {
-      const nodeId = orderedNodes[i];
-
-      if (processedNodes.has(nodeId)) {
-        continue; // Already processed in a group
-      }
-
-      const node = workflow.nodes.find((n) => n.id === nodeId);
-      if (!node) continue;
-
-      const nodeType = this.nodeRegistry.getNodeType(node.type);
-      const isInlinable = nodeType.inlinable ?? false;
-
-      if (isInlinable) {
-        // Look ahead to find a group of connected inlinable nodes
-        const inlineGroup = this.findConnectedInlinableGroup(
-          workflow,
-          nodeId,
-          orderedNodes,
-          i,
-          processedNodes
-        );
-
-        if (inlineGroup.length === 1) {
-          // Single node - add as individual
-          plan.push({ type: "individual", nodeId: inlineGroup[0] });
-        } else {
-          // Multiple nodes - add as inline group
-          plan.push({ type: "inline", nodeIds: [...inlineGroup] });
-          totalInlineGroups++;
-          totalInlinedNodes += inlineGroup.length;
-        }
-
-        // Mark all nodes in the group as processed
-        inlineGroup.forEach((id) => processedNodes.add(id));
-      } else {
-        // Non-inlinable node - add as individual
-        plan.push({ type: "individual", nodeId });
-        processedNodes.add(nodeId);
-      }
-    }
-
-    // Log metrics for performance analysis
-    if (totalInlineGroups > 0) {
-      const totalInlinableNodes = orderedNodes.filter((nodeId) => {
-        const node = workflow.nodes.find((n) => n.id === nodeId);
-        if (!node) return false;
-        const nodeType = this.nodeRegistry.getNodeType(node.type);
-        return nodeType.inlinable ?? false;
-      }).length;
-
-      const inliningEfficiency =
-        (totalInlinedNodes / totalInlinableNodes) * 100;
-      console.log(
-        `Execution plan optimized: ${totalInlineGroups} inline groups containing ${totalInlinedNodes}/${totalInlinableNodes} inlinable nodes (${inliningEfficiency.toFixed(1)}% efficiency)`
-      );
-
-      // Log individual group sizes for analysis
-      const groupSizes = plan
-        .filter((unit) => unit.type === "inline")
-        .map((unit) => (unit.type === "inline" ? unit.nodeIds.length : 0));
-
-      console.log(`Group sizes: [${groupSizes.join(", ")}]`);
-    }
-
-    return plan;
-  }
-
-  /**
-   * Finds a connected group of inlinable nodes starting from a given node.
-   */
-  private findConnectedInlinableGroup(
-    workflow: Workflow,
-    startNodeId: string,
-    orderedNodes: string[],
-    startIndex: number,
-    alreadyProcessed: Set<string>
-  ): string[] {
-    const group = [startNodeId];
-    const groupSet = new Set([startNodeId]);
-
-    // Look ahead in the topological order for nodes that can be added to this group
-    for (let i = startIndex + 1; i < orderedNodes.length; i++) {
-      const candidateId = orderedNodes[i];
-
-      // Skip if already processed or not inlinable
-      if (alreadyProcessed.has(candidateId)) continue;
-
-      const candidateNode = workflow.nodes.find((n) => n.id === candidateId);
-      if (!candidateNode) continue;
-
-      const candidateNodeType = this.nodeRegistry.getNodeType(
-        candidateNode.type
-      );
-      if (!(candidateNodeType.inlinable ?? false)) continue;
-
-      // Check if this candidate can be safely added to the group
-      if (
-        this.canSafelyAddToGroup(
-          workflow,
-          candidateId,
-          groupSet,
-          orderedNodes,
-          startIndex
-        )
-      ) {
-        group.push(candidateId);
-        groupSet.add(candidateId);
-      }
-    }
-
-    return group;
-  }
-
-  /**
-   * Simplified check: a node can be added to a group if all its dependencies
-   * are either already executed or in the current group.
-   */
-  private canSafelyAddToGroup(
-    workflow: Workflow,
-    nodeId: string,
-    currentGroupSet: Set<string>,
-    orderedNodes: string[],
-    groupStartIndex: number
-  ): boolean {
-    // Get all dependencies of this node
-    const dependencies = workflow.edges
-      .filter((edge) => edge.target === nodeId)
-      .map((edge) => edge.source);
-
-    // Check each dependency
-    for (const depId of dependencies) {
-      const isInGroup = currentGroupSet.has(depId);
-      const depIndex = orderedNodes.indexOf(depId);
-      const isAlreadyExecuted = depIndex < groupStartIndex;
-
-      if (!isInGroup && !isAlreadyExecuted) {
-        return false; // Has unmet dependency
-      }
-    }
-
-    return true;
+    // Simply create an individual execution unit for each node in order
+    return orderedNodes.map((nodeId) => ({
+      type: "individual" as const,
+      nodeId,
+    }));
   }
 
   /**
