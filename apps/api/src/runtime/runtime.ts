@@ -26,7 +26,6 @@ import { ExecutionEngine } from "./execution-engine";
 import { ResourceProvider } from "./resource-provider";
 import { StateTransitions } from "./transitions";
 import type {
-  ExecutionPlan,
   ExecutionState,
   WorkflowExecutionContext,
 } from "./types";
@@ -211,42 +210,36 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       // Send executing state update
       await this.monitoring.sendUpdate(executionRecord);
 
-      // Execute nodes sequentially (one at a time, no inline grouping)
-      for (const executionUnit of executionContext.executionPlan) {
-        if (executionUnit.type === "individual") {
-          const nodeIdentifier = executionUnit.nodeId;
-          if (
-            this.errorHandler.shouldSkipNode(executionState, nodeIdentifier)
-          ) {
-            continue; // Skip nodes that were already marked as failed.
-          }
-
-          executionState = await step.do(
-            `run node ${nodeIdentifier}`,
-            Runtime.defaultStepConfig,
-            async () =>
-              this.executionEngine.executeNode(
-                executionContext!,
-                executionState,
-                nodeIdentifier,
-                httpRequest,
-                emailMessage
-              )
-          );
-
-          // Send progress update after each node
-          executionRecord = {
-            ...executionRecord,
-            status: executionState.status,
-            nodeExecutions: this.persistence.buildNodeExecutions(
-              executionContext.workflow,
-              executionState
-            ),
-          };
-
-          await this.monitoring.sendUpdate(executionRecord);
+      // Execute nodes sequentially
+      for (const nodeId of executionContext.orderedNodeIds) {
+        if (this.errorHandler.shouldSkipNode(executionState, nodeId)) {
+          continue; // Skip nodes that were already marked as failed.
         }
-        // Note: inline groups removed for simplicity
+
+        executionState = await step.do(
+          `run node ${nodeId}`,
+          Runtime.defaultStepConfig,
+          async () =>
+            this.executionEngine.executeNode(
+              executionContext!,
+              executionState,
+              nodeId,
+              httpRequest,
+              emailMessage
+            )
+        );
+
+        // Send progress update after each node
+        executionRecord = {
+          ...executionRecord,
+          status: executionState.status,
+          nodeExecutions: this.persistence.buildNodeExecutions(
+            executionContext.workflow,
+            executionState
+          ),
+        };
+
+        await this.monitoring.sendUpdate(executionRecord);
       }
     } catch (error) {
       // Capture unexpected failure.
@@ -307,10 +300,8 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
   }
 
   /**
-   * Validates the workflow and creates a sequential execution order with inline groups.
+   * Validates the workflow and creates a sequential execution order.
    * Returns separated immutable context and mutable state.
-   *
-   * Absorbs ExecutionPlanner logic - no need for separate component.
    */
   private async initialiseWorkflow(
     workflow: Workflow,
@@ -327,20 +318,17 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       );
     }
 
-    const orderedNodes = this.createTopologicalOrder(workflow);
-    if (orderedNodes.length === 0 && workflow.nodes.length > 0) {
+    const orderedNodeIds = this.createTopologicalOrder(workflow);
+    if (orderedNodeIds.length === 0 && workflow.nodes.length > 0) {
       throw new NonRetryableError(
         "Unable to derive execution order. The graph may contain a cycle."
       );
     }
 
-    // Create execution plan with inline groups
-    const executionPlan = this.createExecutionPlan(workflow, orderedNodes);
-
     // Immutable context
     const context: WorkflowExecutionContext = {
       workflow,
-      executionPlan,
+      orderedNodeIds,
       workflowId,
       organizationId,
       executionId,
@@ -356,21 +344,6 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     });
 
     return { context, state };
-  }
-
-  /**
-   * Creates a simple execution plan with all nodes as individual execution units.
-   * Inline grouping has been removed for simplicity.
-   */
-  private createExecutionPlan(
-    workflow: Workflow,
-    orderedNodes: string[]
-  ): ExecutionPlan {
-    // Simply create an individual execution unit for each node in order
-    return orderedNodes.map((nodeId) => ({
-      type: "individual" as const,
-      nodeId,
-    }));
   }
 
   /**

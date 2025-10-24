@@ -37,10 +37,7 @@ describe("Runtime Integration", () => {
   // Helper to create execution context
   const createContext = (workflow: Workflow): WorkflowExecutionContext => ({
     workflow,
-    executionPlan: workflow.nodes.map((node) => ({
-      type: "individual" as const,
-      nodeId: node.id,
-    })),
+    orderedNodeIds: workflow.nodes.map((node) => node.id),
     workflowId: workflow.id,
     organizationId: "test-org",
     executionId: "test-exec",
@@ -97,30 +94,28 @@ describe("Runtime Integration", () => {
       nodeExecutions: [],
     } as WorkflowExecution);
 
-    // Execute each node in the execution plan
-    for (const unit of context.executionPlan) {
-      if (unit.type === "individual") {
-        state = await executionEngine.executeNode(
-          context,
-          state,
-          unit.nodeId,
-          undefined,
-          undefined
-        );
+    // Execute each node
+    for (const nodeId of context.orderedNodeIds) {
+      state = await executionEngine.executeNode(
+        context,
+        state,
+        nodeId,
+        undefined,
+        undefined
+      );
 
-        // Send progress update after each execution unit (simulating Runtime behavior)
-        await monitoring.sendUpdate({
-          id: executionId,
-          workflowId: workflow.id,
-          status: state.status,
-          nodeExecutions: Array.from(state.executedNodes).map((nodeId) => ({
-            nodeId,
-            status: state.nodeErrors.has(nodeId) ? "error" : "completed",
-            error: state.nodeErrors.get(nodeId),
-            outputs: state.nodeOutputs.get(nodeId) as any,
-          })),
-        } as WorkflowExecution);
-      }
+      // Send progress update after each node (simulating Runtime behavior)
+      await monitoring.sendUpdate({
+        id: executionId,
+        workflowId: workflow.id,
+        status: state.status,
+        nodeExecutions: Array.from(state.executedNodes).map((nodeId) => ({
+          nodeId,
+          status: state.nodeErrors.has(nodeId) ? "error" : "completed",
+          error: state.nodeErrors.get(nodeId),
+          outputs: state.nodeOutputs.get(nodeId) as any,
+        })),
+      } as WorkflowExecution);
     }
 
     // Update final status based on execution results
@@ -733,18 +728,6 @@ describe("Runtime Integration", () => {
       };
 
       const { state, updates } = await executeWorkflow(workflow);
-
-      // Debug: Print all monitoring updates to see exact sequence
-      console.log("\n=== MONITORING UPDATES FOR STUCK WORKFLOW TEST ===");
-      updates.forEach((update, index) => {
-        console.log(`\nUpdate ${index + 1}:`);
-        console.log(`  Status: ${update.status}`);
-        console.log(`  Node Executions: ${update.nodeExecutions.length}`);
-        update.nodeExecutions.forEach(ne => {
-          console.log(`    - ${ne.nodeId}: ${ne.status}${ne.error ? ` (${ne.error})` : ''}`);
-        });
-      });
-      console.log("=== END UPDATES ===\n");
 
       // Verify execution state
       expect(state.status).toBe("error"); // Should be error, NOT executing
