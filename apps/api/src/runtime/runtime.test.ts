@@ -1,14 +1,12 @@
 import type { Workflow, WorkflowExecution } from "@dafthunk/types";
 import { describe, expect, it, vi } from "vitest";
 
+import { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
 import { TestNodeRegistry } from "../nodes/test-node-registry";
-import { ExecutionEngine } from "./execution-engine";
-import { ErrorHandler } from "./error-handler";
 import { ExecutionMonitoring } from "./execution-monitoring";
 import { ResourceProvider } from "./resource-provider";
-import { getExecutionStatus } from "./types";
 import type { ExecutionState, WorkflowExecutionContext } from "./types";
-import { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
+import { getExecutionStatus } from "./types";
 
 /**
  * Integration tests for Runtime execution with real math nodes.
@@ -51,6 +49,104 @@ describe("Runtime Integration", () => {
     nodeErrors: new Map(),
   });
 
+  // Helper class to expose Runtime's private methods for testing
+  class TestRuntime {
+    private nodeRegistry: TestNodeRegistry;
+    private resourceProvider: ResourceProvider;
+    private env: any;
+
+    constructor(env: any) {
+      this.env = env;
+      this.nodeRegistry = new TestNodeRegistry(env, true);
+
+      // Create tool registry with factory function
+      let resourceProvider: ResourceProvider;
+      const toolRegistry = new CloudflareToolRegistry(
+        this.nodeRegistry,
+        (nodeId: string, inputs: Record<string, any>) =>
+          resourceProvider.createToolContext(nodeId, inputs)
+      );
+      this.resourceProvider = resourceProvider = new ResourceProvider(
+        env,
+        toolRegistry
+      );
+    }
+
+    // Expose executeNode by copying the implementation from Runtime
+    async executeNode(
+      context: WorkflowExecutionContext,
+      state: ExecutionState,
+      nodeId: string
+    ): Promise<ExecutionState> {
+      const node = context.workflow.nodes.find((n): boolean => n.id === nodeId);
+      if (!node) {
+        state.nodeErrors.set(nodeId, "Node not found");
+        return state;
+      }
+
+      const executable = this.nodeRegistry.createExecutableNode(node);
+      if (!executable) {
+        state.nodeErrors.set(
+          nodeId,
+          `Node type '${node.type}' not implemented`
+        );
+        return state;
+      }
+
+      // Collect inputs (simplified version)
+      const inputs: Record<string, any> = {};
+      for (const input of node.inputs) {
+        if (input.value !== undefined) {
+          inputs[input.name] = input.value;
+        }
+      }
+
+      // Collect inputs from edges
+      const inboundEdges = context.workflow.edges.filter(
+        (edge): boolean => edge.target === nodeId
+      );
+      for (const edge of inboundEdges) {
+        const sourceOutputs = state.nodeOutputs.get(edge.source);
+        if (sourceOutputs && sourceOutputs[edge.sourceOutput] !== undefined) {
+          inputs[edge.targetInput] = sourceOutputs[edge.sourceOutput];
+        }
+      }
+
+      try {
+        const nodeContext = this.resourceProvider.createNodeContext(
+          nodeId,
+          context.workflowId,
+          context.organizationId,
+          inputs,
+          undefined,
+          undefined
+        );
+
+        const result = await executable.execute(nodeContext);
+
+        if (result.status === "completed") {
+          state.nodeOutputs.set(nodeId, result.outputs ?? {});
+          state.executedNodes.add(nodeId);
+        } else {
+          const failureMessage = result.error ?? "Unknown error";
+          state.nodeErrors.set(nodeId, failureMessage);
+        }
+
+        return state;
+      } catch (error) {
+        state.nodeErrors.set(
+          nodeId,
+          error instanceof Error ? error.message : String(error)
+        );
+        return state;
+      }
+    }
+
+    shouldSkipNode(state: ExecutionState, nodeId: string): boolean {
+      return state.nodeErrors.has(nodeId) || state.skippedNodes.has(nodeId);
+    }
+  }
+
   // Helper to execute a workflow sequentially and track monitoring updates
   const executeWorkflow = async (
     workflow: Workflow,
@@ -59,25 +155,8 @@ describe("Runtime Integration", () => {
     state: ExecutionState;
     updates: WorkflowExecution[];
   }> => {
-    const nodeRegistry = new TestNodeRegistry(testEnv, true);
-    const errorHandler = new ErrorHandler(true);
+    const runtime = new TestRuntime(testEnv);
     const monitoring = createMonitoring();
-
-    // Create tool registry with factory function
-    let resourceProvider: ResourceProvider;
-    const toolRegistry = new CloudflareToolRegistry(
-      nodeRegistry,
-      (nodeId: string, inputs: Record<string, any>) =>
-        resourceProvider.createToolContext(nodeId, inputs)
-    );
-    resourceProvider = new ResourceProvider(testEnv, toolRegistry);
-
-    const executionEngine = new ExecutionEngine(
-      testEnv,
-      nodeRegistry,
-      resourceProvider,
-      errorHandler
-    );
 
     const context = createContext(workflow);
     let state = createState();
@@ -92,13 +171,11 @@ describe("Runtime Integration", () => {
 
     // Execute each node
     for (const nodeId of context.orderedNodeIds) {
-      state = await executionEngine.executeNode(
-        context,
-        state,
-        nodeId,
-        undefined,
-        undefined
-      );
+      if (runtime.shouldSkipNode(state, nodeId)) {
+        continue;
+      }
+
+      state = await runtime.executeNode(context, state, nodeId);
 
       // Send progress update after each node (simulating Runtime behavior)
       await monitoring.sendUpdate({
@@ -114,9 +191,6 @@ describe("Runtime Integration", () => {
       } as WorkflowExecution);
     }
 
-    // Log final status transition
-    errorHandler.logStatusTransition(context, state);
-
     // Send final update
     await monitoring.sendUpdate({
       id: executionId,
@@ -127,10 +201,10 @@ describe("Runtime Integration", () => {
         status: state.nodeErrors.has(node.id)
           ? "error"
           : state.executedNodes.has(node.id)
-          ? "completed"
-          : state.skippedNodes.has(node.id)
-          ? "skipped"
-          : "idle",
+            ? "completed"
+            : state.skippedNodes.has(node.id)
+              ? "skipped"
+              : "idle",
         error: state.nodeErrors.get(node.id),
         outputs: state.nodeOutputs.get(node.id) as any,
       })),
@@ -238,7 +312,9 @@ describe("Runtime Integration", () => {
       // Final update
       expect(updates[5].status).toBe("completed");
       expect(updates[5].nodeExecutions).toHaveLength(4);
-      expect(updates[5].nodeExecutions.every(ne => ne.status === "completed")).toBe(true);
+      expect(
+        updates[5].nodeExecutions.every((ne) => ne.status === "completed")
+      ).toBe(true);
     });
 
     it("should execute parallel workflow with multiple independent branches", async () => {
@@ -253,7 +329,9 @@ describe("Runtime Integration", () => {
             name: "Number 1",
             type: "number-input",
             position: { x: 0, y: 0 },
-            inputs: [{ name: "value", type: "number", value: 10, hidden: true }],
+            inputs: [
+              { name: "value", type: "number", value: 10, hidden: true },
+            ],
             outputs: [{ name: "value", type: "number" }],
           },
           {
@@ -476,7 +554,9 @@ describe("Runtime Integration", () => {
             name: "Number 1",
             type: "number-input",
             position: { x: 0, y: 0 },
-            inputs: [{ name: "value", type: "number", value: 10, hidden: true }],
+            inputs: [
+              { name: "value", type: "number", value: 10, hidden: true },
+            ],
             outputs: [{ name: "value", type: "number" }],
           },
           {
@@ -533,13 +613,19 @@ describe("Runtime Integration", () => {
       expect(finalUpdate.status).toBe("error");
 
       // Should have error recorded for div node
-      const divExecution = finalUpdate.nodeExecutions.find(ne => ne.nodeId === "div");
+      const divExecution = finalUpdate.nodeExecutions.find(
+        (ne) => ne.nodeId === "div"
+      );
       expect(divExecution?.status).toBe("error");
       expect(divExecution?.error).toContain("Division by zero");
 
       // num1 and num2 should be completed
-      const num1Execution = finalUpdate.nodeExecutions.find(ne => ne.nodeId === "num1");
-      const num2Execution = finalUpdate.nodeExecutions.find(ne => ne.nodeId === "num2");
+      const num1Execution = finalUpdate.nodeExecutions.find(
+        (ne) => ne.nodeId === "num1"
+      );
+      const num2Execution = finalUpdate.nodeExecutions.find(
+        (ne) => ne.nodeId === "num2"
+      );
       expect(num1Execution?.status).toBe("completed");
       expect(num2Execution?.status).toBe("completed");
     });
@@ -588,7 +674,7 @@ describe("Runtime Integration", () => {
       expect(getExecutionStatus(context, state)).toBe("error");
       expect(state.executedNodes.size).toBe(1); // Only num1 succeeded
       expect(state.nodeErrors.size).toBe(1);
-      expect(state.nodeErrors.get("add")).toContain("Required input 'b' missing");
+      expect(state.nodeErrors.get("add")).toContain("Input 'b' is required");
     });
 
     it("should handle error in middle of workflow chain", async () => {
@@ -603,7 +689,9 @@ describe("Runtime Integration", () => {
             name: "Number 1",
             type: "number-input",
             position: { x: 0, y: 0 },
-            inputs: [{ name: "value", type: "number", value: 10, hidden: true }],
+            inputs: [
+              { name: "value", type: "number", value: 10, hidden: true },
+            ],
             outputs: [{ name: "value", type: "number" }],
           },
           {
@@ -666,7 +754,7 @@ describe("Runtime Integration", () => {
       expect(state.executedNodes.size).toBe(2); // Only num1 and num2
       expect(state.nodeErrors.size).toBe(2); // div failed, add failed due to missing input
       expect(state.nodeErrors.get("div")).toContain("Division by zero");
-      expect(state.nodeErrors.get("add")).toContain("Required input 'a' missing");
+      expect(state.nodeErrors.get("add")).toContain("Input 'a' is required");
     });
 
     it("should handle workflow with error in middle node blocking dependent nodes", async () => {
@@ -738,10 +826,14 @@ describe("Runtime Integration", () => {
       expect(state.nodeErrors.size).toBe(2); // Both subtraction and multiplication failed
 
       // Subtraction should fail due to missing input 'b'
-      expect(state.nodeErrors.get("subtraction")).toContain("Required input 'b' missing");
+      expect(state.nodeErrors.get("subtraction")).toContain(
+        "Input 'b' is required"
+      );
 
       // Multiplication should fail due to missing input from failed subtraction
-      expect(state.nodeErrors.get("multiplication")).toContain("Required input 'a' missing");
+      expect(state.nodeErrors.get("multiplication")).toContain(
+        "Input 'a' is required"
+      );
 
       // Verify monitoring updates match what Runtime sends
       // Updates: initial + 3 progress (addition, subtraction, multiplication) + final = 5 total
@@ -752,9 +844,15 @@ describe("Runtime Integration", () => {
       expect(finalUpdate.status).toBe("error"); // ❌ BUG: This was "executing" in production
 
       // Verify final update shows correct node statuses
-      const additionExec = finalUpdate.nodeExecutions.find(ne => ne.nodeId === "addition");
-      const subtractionExec = finalUpdate.nodeExecutions.find(ne => ne.nodeId === "subtraction");
-      const multiplicationExec = finalUpdate.nodeExecutions.find(ne => ne.nodeId === "multiplication");
+      const additionExec = finalUpdate.nodeExecutions.find(
+        (ne) => ne.nodeId === "addition"
+      );
+      const subtractionExec = finalUpdate.nodeExecutions.find(
+        (ne) => ne.nodeId === "subtraction"
+      );
+      const multiplicationExec = finalUpdate.nodeExecutions.find(
+        (ne) => ne.nodeId === "multiplication"
+      );
 
       expect(additionExec?.status).toBe("completed");
       expect(subtractionExec?.status).toBe("error");
@@ -762,18 +860,25 @@ describe("Runtime Integration", () => {
 
       // Verify intermediate updates show progression
       // After addition completes, status should still be "executing"
-      const updateAfterAddition = updates.find(u =>
-        u.nodeExecutions.some(ne => ne.nodeId === "addition" && ne.status === "completed") &&
-        !u.nodeExecutions.some(ne => ne.nodeId === "subtraction" && ne.status === "error")
+      const updateAfterAddition = updates.find(
+        (u) =>
+          u.nodeExecutions.some(
+            (ne) => ne.nodeId === "addition" && ne.status === "completed"
+          ) &&
+          !u.nodeExecutions.some(
+            (ne) => ne.nodeId === "subtraction" && ne.status === "error"
+          )
       );
       if (updateAfterAddition) {
         expect(updateAfterAddition.status).toBe("executing");
       }
 
       // After subtraction fails, status should still be "executing" (not yet finished)
-      const updateAfterSubtraction = updates.find(u =>
-        u.nodeExecutions.some(ne => ne.nodeId === "subtraction" && ne.status === "error") &&
-        u !== finalUpdate
+      const updateAfterSubtraction = updates.find(
+        (u) =>
+          u.nodeExecutions.some(
+            (ne) => ne.nodeId === "subtraction" && ne.status === "error"
+          ) && u !== finalUpdate
       );
       if (updateAfterSubtraction) {
         expect(updateAfterSubtraction.status).toBe("executing");

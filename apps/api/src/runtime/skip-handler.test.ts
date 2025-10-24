@@ -106,12 +106,10 @@ describe("SkipHandler", () => {
       const handler = new SkipHandler(registry);
       handler.setExecutionEngine(executionEngine);
 
-      const result = handler.skipInactiveOutputs(
-        context,
-        state,
-        "A",
-        { true: "yes", false: "no" }
-      );
+      const result = handler.skipInactiveOutputs(context, state, "A", {
+        true: "yes",
+        false: "no",
+      });
 
       expect(result.skippedNodes.size).toBe(0);
     });
@@ -255,12 +253,9 @@ describe("SkipHandler", () => {
       const handler = new SkipHandler(registry);
       handler.setExecutionEngine(executionEngine);
 
-      const result = handler.skipInactiveOutputs(
-        context,
-        state,
-        "A",
-        { true: "yes" }
-      );
+      const result = handler.skipInactiveOutputs(context, state, "A", {
+        true: "yes",
+      });
 
       // Both B and C should be skipped
       expect(result.skippedNodes.has("B")).toBe(true);
@@ -318,12 +313,9 @@ describe("SkipHandler", () => {
       const handler = new SkipHandler(registry);
       handler.setExecutionEngine(executionEngine);
 
-      const result = handler.skipInactiveOutputs(
-        context,
-        state,
-        "A",
-        { true: "yes" }
-      );
+      const result = handler.skipInactiveOutputs(context, state, "A", {
+        true: "yes",
+      });
 
       // B should NOT be skipped because input is optional
       expect(result.skippedNodes.has("B")).toBe(false);
@@ -404,12 +396,9 @@ describe("SkipHandler", () => {
       const handler = new SkipHandler(registry);
       handler.setExecutionEngine(executionEngine);
 
-      const result = handler.skipInactiveOutputs(
-        context,
-        state,
-        "A",
-        { true: "yes" }
-      );
+      const result = handler.skipInactiveOutputs(context, state, "A", {
+        true: "yes",
+      });
 
       // C should NOT be skipped because it has input1 from B
       expect(result.skippedNodes.has("C")).toBe(false);
@@ -475,12 +464,7 @@ describe("SkipHandler", () => {
       const handler = new SkipHandler(registry);
       handler.setExecutionEngine(executionEngine);
 
-      const result = handler.skipInactiveOutputs(
-        context,
-        state,
-        "A",
-        {}
-      );
+      const result = handler.skipInactiveOutputs(context, state, "A", {});
 
       expect(result.skippedNodes.size).toBe(0);
     });
