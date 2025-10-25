@@ -36,6 +36,13 @@
   "analytics_engine_datasets": [
     { "binding": "COMPUTE", "dataset": "test-compute" }
   ],
+  "workflows": [
+    {
+      "name": "dafthunk-api-test",
+      "binding": "EXECUTE",
+      "class_name": "Runtime"
+    }
+  ],
   "unsafe": {
     "bindings": [
       {

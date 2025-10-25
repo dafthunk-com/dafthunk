@@ -1,8 +1,7 @@
 import type { Workflow, WorkflowExecution } from "@dafthunk/types";
 import { describe, expect, it, vi } from "vitest";
 
-import { TestNodeRegistry } from "../nodes/test-node-registry";
-import { TestToolRegistry } from "../nodes/test-tool-registry";
+import { MockNodeRegistry, MockToolRegistry } from "../mocks";
 import { ResourceProvider } from "./resource-provider";
 import type { ExecutionState, WorkflowExecutionContext } from "./types";
 import { getExecutionStatus } from "./types";
@@ -66,17 +65,17 @@ describe("Runtime Specification", () => {
    * The logic here should be kept in sync with Runtime's private methods.
    */
   class TestRuntime {
-    private nodeRegistry: TestNodeRegistry;
+    private nodeRegistry: MockNodeRegistry;
     private resourceProvider: ResourceProvider;
     private env: any;
 
     constructor(env: any) {
       this.env = env;
-      this.nodeRegistry = new TestNodeRegistry(env, true);
+      this.nodeRegistry = new MockNodeRegistry(env, true);
 
       // Create tool registry with factory function
       let resourceProvider: ResourceProvider;
-      const toolRegistry = new TestToolRegistry(
+      const toolRegistry = new MockToolRegistry(
         this.nodeRegistry,
         (nodeId: string, inputs: Record<string, any>) =>
           resourceProvider.createToolContext(nodeId, inputs)
@@ -272,7 +271,11 @@ describe("Runtime Specification", () => {
     nodeExecutions: any[],
     nodeId: string,
     expectedStatus: "completed" | "error" | "skipped" | "idle",
-    options?: { hasOutputs?: boolean; hasError?: boolean; errorContains?: string }
+    options?: {
+      hasOutputs?: boolean;
+      hasError?: boolean;
+      errorContains?: string;
+    }
   ) => {
     const nodeExec = nodeExecutions.find((ne) => ne.nodeId === nodeId);
     expect(nodeExec).toBeDefined();
@@ -385,14 +388,26 @@ describe("Runtime Specification", () => {
 
       // Final update - verify complete state
       assertFinalUpdate(updates[5], "completed", 4);
-      assertNodeExecution(updates[5].nodeExecutions, "num1", "completed", { hasOutputs: true });
-      assertNodeExecution(updates[5].nodeExecutions, "num2", "completed", { hasOutputs: true });
-      assertNodeExecution(updates[5].nodeExecutions, "add", "completed", { hasOutputs: true });
-      assertNodeExecution(updates[5].nodeExecutions, "mult", "completed", { hasOutputs: true });
+      assertNodeExecution(updates[5].nodeExecutions, "num1", "completed", {
+        hasOutputs: true,
+      });
+      assertNodeExecution(updates[5].nodeExecutions, "num2", "completed", {
+        hasOutputs: true,
+      });
+      assertNodeExecution(updates[5].nodeExecutions, "add", "completed", {
+        hasOutputs: true,
+      });
+      assertNodeExecution(updates[5].nodeExecutions, "mult", "completed", {
+        hasOutputs: true,
+      });
 
       // Verify outputs are included in final update
-      const addExec = updates[5].nodeExecutions.find((ne) => ne.nodeId === "add");
-      const multExec = updates[5].nodeExecutions.find((ne) => ne.nodeId === "mult");
+      const addExec = updates[5].nodeExecutions.find(
+        (ne) => ne.nodeId === "add"
+      );
+      const multExec = updates[5].nodeExecutions.find(
+        (ne) => ne.nodeId === "mult"
+      );
       expect(addExec?.outputs).toHaveProperty("result", 8);
       expect(multExec?.outputs).toHaveProperty("result", 16);
     });
@@ -534,13 +549,27 @@ describe("Runtime Specification", () => {
       assertFinalUpdate(finalUpdate, "completed", 7);
 
       // All nodes should be completed
-      assertNodeExecution(finalUpdate.nodeExecutions, "num1", "completed", { hasOutputs: true });
-      assertNodeExecution(finalUpdate.nodeExecutions, "num2", "completed", { hasOutputs: true });
-      assertNodeExecution(finalUpdate.nodeExecutions, "num3", "completed", { hasOutputs: true });
-      assertNodeExecution(finalUpdate.nodeExecutions, "num4", "completed", { hasOutputs: true });
-      assertNodeExecution(finalUpdate.nodeExecutions, "add1", "completed", { hasOutputs: true });
-      assertNodeExecution(finalUpdate.nodeExecutions, "add2", "completed", { hasOutputs: true });
-      assertNodeExecution(finalUpdate.nodeExecutions, "mult", "completed", { hasOutputs: true });
+      assertNodeExecution(finalUpdate.nodeExecutions, "num1", "completed", {
+        hasOutputs: true,
+      });
+      assertNodeExecution(finalUpdate.nodeExecutions, "num2", "completed", {
+        hasOutputs: true,
+      });
+      assertNodeExecution(finalUpdate.nodeExecutions, "num3", "completed", {
+        hasOutputs: true,
+      });
+      assertNodeExecution(finalUpdate.nodeExecutions, "num4", "completed", {
+        hasOutputs: true,
+      });
+      assertNodeExecution(finalUpdate.nodeExecutions, "add1", "completed", {
+        hasOutputs: true,
+      });
+      assertNodeExecution(finalUpdate.nodeExecutions, "add2", "completed", {
+        hasOutputs: true,
+      });
+      assertNodeExecution(finalUpdate.nodeExecutions, "mult", "completed", {
+        hasOutputs: true,
+      });
     });
 
     it("should execute workflow with chained operations", async () => {
@@ -649,11 +678,21 @@ describe("Runtime Specification", () => {
 
       // All nodes should be completed with outputs
       const finalUpdate = updates[updates.length - 1];
-      assertNodeExecution(finalUpdate.nodeExecutions, "num1", "completed", { hasOutputs: true });
-      assertNodeExecution(finalUpdate.nodeExecutions, "num2", "completed", { hasOutputs: true });
-      assertNodeExecution(finalUpdate.nodeExecutions, "add", "completed", { hasOutputs: true });
-      assertNodeExecution(finalUpdate.nodeExecutions, "mult", "completed", { hasOutputs: true });
-      assertNodeExecution(finalUpdate.nodeExecutions, "sub", "completed", { hasOutputs: true });
+      assertNodeExecution(finalUpdate.nodeExecutions, "num1", "completed", {
+        hasOutputs: true,
+      });
+      assertNodeExecution(finalUpdate.nodeExecutions, "num2", "completed", {
+        hasOutputs: true,
+      });
+      assertNodeExecution(finalUpdate.nodeExecutions, "add", "completed", {
+        hasOutputs: true,
+      });
+      assertNodeExecution(finalUpdate.nodeExecutions, "mult", "completed", {
+        hasOutputs: true,
+      });
+      assertNodeExecution(finalUpdate.nodeExecutions, "sub", "completed", {
+        hasOutputs: true,
+      });
     });
   });
 
@@ -799,7 +838,9 @@ describe("Runtime Specification", () => {
       assertFinalUpdate(finalUpdate, "error", 2);
 
       // num1 completed, add failed
-      assertNodeExecution(finalUpdate.nodeExecutions, "num1", "completed", { hasOutputs: true });
+      assertNodeExecution(finalUpdate.nodeExecutions, "num1", "completed", {
+        hasOutputs: true,
+      });
       assertNodeExecution(finalUpdate.nodeExecutions, "add", "error", {
         hasError: true,
         errorContains: "Input 'b' is required",
@@ -892,8 +933,12 @@ describe("Runtime Specification", () => {
       assertFinalUpdate(finalUpdate, "error", 4);
 
       // num1 and num2 completed, div and add failed
-      assertNodeExecution(finalUpdate.nodeExecutions, "num1", "completed", { hasOutputs: true });
-      assertNodeExecution(finalUpdate.nodeExecutions, "num2", "completed", { hasOutputs: true });
+      assertNodeExecution(finalUpdate.nodeExecutions, "num1", "completed", {
+        hasOutputs: true,
+      });
+      assertNodeExecution(finalUpdate.nodeExecutions, "num2", "completed", {
+        hasOutputs: true,
+      });
       assertNodeExecution(finalUpdate.nodeExecutions, "div", "error", {
         hasError: true,
         errorContains: "Division by zero",
@@ -1070,7 +1115,9 @@ describe("Runtime Specification", () => {
             name: "Number 1",
             type: "number-input",
             position: { x: 0, y: 0 },
-            inputs: [{ name: "value", type: "number", value: 42, hidden: true }],
+            inputs: [
+              { name: "value", type: "number", value: 42, hidden: true },
+            ],
             outputs: [{ name: "value", type: "number" }],
           },
         ],
@@ -1089,7 +1136,9 @@ describe("Runtime Specification", () => {
       expect(updates).toHaveLength(3);
       assertInitialUpdate(updates[0], workflow.id, "test-exec");
       assertFinalUpdate(updates[2], "completed", 1);
-      assertNodeExecution(updates[2].nodeExecutions, "num1", "completed", { hasOutputs: true });
+      assertNodeExecution(updates[2].nodeExecutions, "num1", "completed", {
+        hasOutputs: true,
+      });
     });
 
     it("should handle workflow with multiple isolated nodes", async () => {
@@ -1234,9 +1283,16 @@ describe("Runtime Specification", () => {
       assertFinalUpdate(finalUpdate, "completed", 11);
 
       // Verify all nodes completed
-      assertNodeExecution(finalUpdate.nodeExecutions, "num", "completed", { hasOutputs: true });
+      assertNodeExecution(finalUpdate.nodeExecutions, "num", "completed", {
+        hasOutputs: true,
+      });
       for (let i = 1; i <= 10; i++) {
-        assertNodeExecution(finalUpdate.nodeExecutions, `add${i}`, "completed", { hasOutputs: true });
+        assertNodeExecution(
+          finalUpdate.nodeExecutions,
+          `add${i}`,
+          "completed",
+          { hasOutputs: true }
+        );
       }
     });
 
@@ -1318,10 +1374,20 @@ describe("Runtime Specification", () => {
 
       // Spot check some nodes
       for (let i = 1; i <= 10; i++) {
-        assertNodeExecution(finalUpdate.nodeExecutions, `num${i}`, "completed", { hasOutputs: true });
+        assertNodeExecution(
+          finalUpdate.nodeExecutions,
+          `num${i}`,
+          "completed",
+          { hasOutputs: true }
+        );
       }
       for (let i = 1; i <= 5; i++) {
-        assertNodeExecution(finalUpdate.nodeExecutions, `add${i}`, "completed", { hasOutputs: true });
+        assertNodeExecution(
+          finalUpdate.nodeExecutions,
+          `add${i}`,
+          "completed",
+          { hasOutputs: true }
+        );
       }
     });
   });
@@ -1437,10 +1503,18 @@ describe("Runtime Specification", () => {
       assertFinalUpdate(finalUpdate, "error", 6);
 
       // All input nodes completed
-      assertNodeExecution(finalUpdate.nodeExecutions, "num1", "completed", { hasOutputs: true });
-      assertNodeExecution(finalUpdate.nodeExecutions, "num2", "completed", { hasOutputs: true });
-      assertNodeExecution(finalUpdate.nodeExecutions, "zero1", "completed", { hasOutputs: true });
-      assertNodeExecution(finalUpdate.nodeExecutions, "zero2", "completed", { hasOutputs: true });
+      assertNodeExecution(finalUpdate.nodeExecutions, "num1", "completed", {
+        hasOutputs: true,
+      });
+      assertNodeExecution(finalUpdate.nodeExecutions, "num2", "completed", {
+        hasOutputs: true,
+      });
+      assertNodeExecution(finalUpdate.nodeExecutions, "zero1", "completed", {
+        hasOutputs: true,
+      });
+      assertNodeExecution(finalUpdate.nodeExecutions, "zero2", "completed", {
+        hasOutputs: true,
+      });
 
       // Both division nodes failed
       assertNodeExecution(finalUpdate.nodeExecutions, "div1", "error", {
@@ -1557,8 +1631,12 @@ describe("Runtime Specification", () => {
       assertFinalUpdate(finalUpdate, "error", 5);
 
       // First two nodes completed
-      assertNodeExecution(finalUpdate.nodeExecutions, "num1", "completed", { hasOutputs: true });
-      assertNodeExecution(finalUpdate.nodeExecutions, "zero", "completed", { hasOutputs: true });
+      assertNodeExecution(finalUpdate.nodeExecutions, "num1", "completed", {
+        hasOutputs: true,
+      });
+      assertNodeExecution(finalUpdate.nodeExecutions, "zero", "completed", {
+        hasOutputs: true,
+      });
 
       // All downstream nodes failed
       assertNodeExecution(finalUpdate.nodeExecutions, "div", "error", {

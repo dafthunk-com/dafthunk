@@ -24,8 +24,10 @@ import typeRoutes from "./routes/types";
 import usageRoutes from "./routes/usage";
 import workflowRoutes from "./routes/workflows";
 import wsRoutes from "./routes/ws";
-import { Runtime } from "./runtime";
 import { Session } from "./session/session";
+
+// Export CloudflareRuntime as "Runtime" for wrangler config compatibility
+export { CloudflareRuntime as Runtime } from "./runtime/cloudflare-runtime";
 
 // Initialize Hono app with types
 const app = new Hono<ApiContext>();
@@ -74,7 +76,8 @@ app.route("/:organizationIdOrHandle/objects", objectRoutes);
 app.route("/:organizationIdOrHandle/usage", usageRoutes);
 app.route("/:organizationIdOrHandle/ws", wsRoutes);
 
-export { Runtime, Session as WorkflowSession };
+// Export Session for Durable Objects
+export { Session as WorkflowSession };
 
 export default {
   scheduled: handleCronTriggers,
