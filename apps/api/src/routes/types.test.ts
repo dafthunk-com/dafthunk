@@ -5,14 +5,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { Bindings } from "../context";
 import { ApiContext } from "../context";
-import { TestNodeRegistry } from "../nodes/test-node-registry";
+import { MockNodeRegistry } from "../mocks";
 import typeRoutes from "./types";
 
-// Mock the CloudflareNodeRegistry to use TestNodeRegistry instead
+// Mock the CloudflareNodeRegistry to use MockNodeRegistry instead
 vi.mock("../nodes/cloudflare-node-registry", () => ({
   CloudflareNodeRegistry: class {
     constructor(_env: any, _developerMode: boolean) {
-      return new TestNodeRegistry(env as Bindings, true);
+      return new MockNodeRegistry(env as Bindings, true);
     }
   },
 }));

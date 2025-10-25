@@ -23,7 +23,7 @@
     "generate:master-key": "node scripts/generate-master-key.js"
   },
   "devDependencies": {
-    "@cloudflare/vitest-pool-workers": "^0.8.58",
+    "@cloudflare/vitest-pool-workers": "^0.9.3",
     "@eslint/js": "^9.26.0",
     "@types/mailparser": "^3.4.6",
     "@types/node": "^22.15.3",

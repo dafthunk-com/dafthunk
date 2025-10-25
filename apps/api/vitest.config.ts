@@ -9,6 +9,9 @@ export default defineWorkersConfig({
         wrangler: {
           configPath: "./wrangler.test.jsonc",
         },
+        // Use test-entry.ts which exports TestRuntime with injected test dependencies
+        // This avoids loading CloudflareNodeRegistry and heavy packages like geotiff
+        main: "./src/test-entry.ts",
         singleWorker: true,
       },
     },

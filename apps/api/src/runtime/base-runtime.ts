@@ -13,7 +13,7 @@ import {
 import { NonRetryableError } from "cloudflare:workflows";
 
 import { Bindings } from "../context";
-import { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
+import { BaseNodeRegistry } from "../nodes/base-node-registry";
 import { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
 import {
   apiToNodeParameter,
@@ -59,9 +59,35 @@ export interface RuntimeParams {
 }
 
 /**
- * Executes a `Workflow` instance from start to finish.
+ * Injectable dependencies for BaseRuntime.
+ * Allows overriding default implementations for testing.
  */
-export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
+export interface RuntimeDependencies {
+  nodeRegistry?: BaseNodeRegistry;
+  resourceProvider?: ResourceProvider;
+  executionStore?: ExecutionStore;
+  monitoringService?: MonitoringService;
+}
+
+/**
+ * Base Runtime - Abstract Workflow Execution Engine
+ *
+ * Base class for executing Workflow instances from start to finish.
+ * Provides core execution logic with dependency injection support.
+ *
+ * This class should not be instantiated directly. Use:
+ * - {@link CloudflareRuntime} for production deployments
+ * - {@link MockRuntime} for testing
+ *
+ * ## Dependency Injection
+ *
+ * Accepts optional RuntimeDependencies to override default implementations:
+ * - nodeRegistry: Registry of available node types
+ * - resourceProvider: Manages external resources (AI models, secrets, integrations)
+ * - executionStore: Persists workflow execution state
+ * - monitoringService: Sends real-time execution updates
+ */
+export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
   /**
    * Default step configuration used across the workflow.
    */
@@ -74,35 +100,56 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     timeout: "10 minutes",
   };
 
-  private nodeRegistry: CloudflareNodeRegistry;
-  private resourceProvider: ResourceProvider;
-  private executionStore: ExecutionStore;
-  private monitoringService: MonitoringService;
+  protected nodeRegistry: BaseNodeRegistry;
+  protected resourceProvider: ResourceProvider;
+  protected executionStore: ExecutionStore;
+  protected monitoringService: MonitoringService;
 
-  constructor(ctx: ExecutionContext, env: Bindings) {
+  constructor(
+    ctx: ExecutionContext,
+    env: Bindings,
+    dependencies?: RuntimeDependencies
+  ) {
     super(ctx, env);
-    this.nodeRegistry = new CloudflareNodeRegistry(env, true);
 
-    // Create tool registry with a factory function for tool contexts
-    // We'll pass this to ResourceProvider constructor
-    let resourceProvider: ResourceProvider;
-    const toolRegistry = new CloudflareToolRegistry(
-      this.nodeRegistry,
-      (nodeId: string, inputs: Record<string, any>) =>
-        resourceProvider.createToolContext(nodeId, inputs)
-    );
+    // Use injected dependencies or create defaults
+    // Note: We can't use CloudflareNodeRegistry here directly because importing it
+    // would pull in all node types (including geotiff with node:https).
+    // Instead, we require nodeRegistry to be provided when using BaseRuntime.
+    if (!dependencies?.nodeRegistry) {
+      throw new Error(
+        "BaseRuntime requires a nodeRegistry to be provided via dependencies. " +
+          "Use CloudflareRuntime for production or MockRuntime for tests."
+      );
+    }
+    this.nodeRegistry = dependencies.nodeRegistry;
 
-    // Create ResourceProvider with toolRegistry
-    this.resourceProvider = resourceProvider = new ResourceProvider(
-      env,
-      toolRegistry
-    );
+    if (dependencies?.resourceProvider) {
+      this.resourceProvider = dependencies.resourceProvider;
+    } else {
+      // Create tool registry with a factory function for tool contexts
+      // We'll pass this to ResourceProvider constructor
+      let resourceProvider: ResourceProvider;
+      const toolRegistry = new CloudflareToolRegistry(
+        this.nodeRegistry,
+        (nodeId: string, inputs: Record<string, any>) =>
+          resourceProvider.createToolContext(nodeId, inputs)
+      );
 
-    // Initialize other components
-    this.executionStore = new ExecutionStore(env.DB, env.RESSOURCES);
-    this.monitoringService = new WorkflowSessionMonitoringService(
-      env.WORKFLOW_SESSION
-    );
+      // Create ResourceProvider with toolRegistry
+      this.resourceProvider = resourceProvider = new ResourceProvider(
+        env,
+        toolRegistry
+      );
+    }
+
+    this.executionStore =
+      dependencies?.executionStore ??
+      new ExecutionStore(env.DB, env.RESSOURCES);
+
+    this.monitoringService =
+      dependencies?.monitoringService ??
+      new WorkflowSessionMonitoringService(env.WORKFLOW_SESSION);
   }
 
   /**
@@ -115,8 +162,13 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
    * - All errors transmitted to client via sendExecutionUpdateToSession callbacks
    */
   async run(event: WorkflowEvent<RuntimeParams>, step: WorkflowStep) {
-    const { userId, organizationId, workflowSessionId, httpRequest, emailMessage } =
-      event.payload;
+    const {
+      userId,
+      organizationId,
+      workflowSessionId,
+      httpRequest,
+      emailMessage,
+    } = event.payload;
     const instanceId = event.instanceId;
 
     // Initialise state and execution record
@@ -159,7 +211,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       // Preload organization resources (secrets + integrations)
       await step.do(
         "preload organization resources",
-        Runtime.defaultStepConfig,
+        BaseRuntime.defaultStepConfig,
         async () => this.resourceProvider.initialize(organizationId)
       );
 
@@ -167,7 +219,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       // @ts-expect-error - TS2589: Type instantiation depth limitation with Cloudflare Workflows step.do
       const { context, state } = await step.do(
         "initialise workflow",
-        Runtime.defaultStepConfig,
+        BaseRuntime.defaultStepConfig,
         () =>
           this.initialiseWorkflow(
             event.payload.workflow,
@@ -180,9 +232,15 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       executionContext = context;
       executionState = state;
       executionRecord.startedAt = new Date();
-      executionRecord.status = getExecutionStatus(executionContext, executionState);
+      executionRecord.status = getExecutionStatus(
+        executionContext,
+        executionState
+      );
 
-      await this.monitoringService.sendUpdate(workflowSessionId, executionRecord);
+      await this.monitoringService.sendUpdate(
+        workflowSessionId,
+        executionRecord
+      );
 
       // Execute workflow nodes sequentially
       const { state: finalState, record: finalRecord } =
@@ -200,14 +258,22 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       executionRecord = finalRecord;
     } catch (error) {
       if (executionContext) {
-        this.logTransition(getExecutionStatus(executionContext, executionState), "error");
+        this.logTransition(
+          getExecutionStatus(executionContext, executionState),
+          "error"
+        );
       }
       executionRecord = {
         ...executionRecord,
-        status: executionContext ? getExecutionStatus(executionContext, executionState) : "error",
+        status: executionContext
+          ? getExecutionStatus(executionContext, executionState)
+          : "error",
         error: error instanceof Error ? error.message : String(error),
       };
-      await this.monitoringService.sendUpdate(workflowSessionId, executionRecord);
+      await this.monitoringService.sendUpdate(
+        workflowSessionId,
+        executionRecord
+      );
     } finally {
       executionRecord.endedAt = new Date();
 
@@ -223,7 +289,10 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         );
       }
 
-      await this.monitoringService.sendUpdate(workflowSessionId, executionRecord);
+      await this.monitoringService.sendUpdate(
+        workflowSessionId,
+        executionRecord
+      );
     }
 
     return executionRecord;
@@ -452,7 +521,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
 
       currentState = await step.do(
         `run node ${nodeId}`,
-        Runtime.defaultStepConfig,
+        BaseRuntime.defaultStepConfig,
         async () =>
           this.executeNode(
             context,
@@ -762,7 +831,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
 
     const executionRecord = await step.do(
       "persist exhausted execution state",
-      Runtime.defaultStepConfig,
+      BaseRuntime.defaultStepConfig,
       async () =>
         this.executionStore.save({
           id: instanceId,
@@ -799,7 +868,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
   ): Promise<WorkflowExecution> {
     return await step.do(
       "persist final execution record",
-      Runtime.defaultStepConfig,
+      BaseRuntime.defaultStepConfig,
       async () => {
         // Update compute credits for executed nodes (skip in development)
         if (this.env.CLOUDFLARE_ENV !== "development") {
@@ -904,5 +973,4 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       };
     });
   }
-
 }

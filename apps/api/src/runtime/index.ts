@@ -5,15 +5,20 @@
  * Deep module design: exposes minimal public API while hiding implementation complexity.
  *
  * Public API:
- * - Runtime: Main workflow execution class (the only thing most code needs)
+ * - BaseRuntime: Base workflow execution class with dependency injection
+ * - CloudflareRuntime: Production runtime with Cloudflare services
  * - RuntimeParams: Configuration type for workflow execution
+ * - RuntimeDependencies: Injectable dependencies interface
+ *
+ * Note: MockRuntime is exported from src/mocks/ instead of here.
  *
  * Everything else is an implementation detail and should not be imported directly.
  */
 
-// Main runtime class and parameters - this is all you need!
-export type { RuntimeParams } from "./runtime";
-export { Runtime } from "./runtime";
+// Main runtime classes and types
+export type { RuntimeDependencies, RuntimeParams } from "./base-runtime";
+export { BaseRuntime } from "./base-runtime";
+export { CloudflareRuntime } from "./cloudflare-runtime";
 
 // Internal components are NOT exported - they are implementation details:
 // - ExecutionEngine: node execution, skip logic, input collection
