@@ -30,10 +30,10 @@
 
 import type { Bindings } from "../context";
 import { BaseRuntime, type RuntimeDependencies } from "../runtime/base-runtime";
-import { ResourceProvider } from "../runtime/resource-provider";
 import { MockExecutionStore } from "./execution-store";
 import { MockMonitoringService } from "./monitoring-service";
 import { MockNodeRegistry } from "./node-registry";
+import { MockResourceProvider } from "./resource-provider";
 import { MockToolRegistry } from "./tool-registry";
 
 export class MockRuntime extends BaseRuntime {
@@ -43,15 +43,15 @@ export class MockRuntime extends BaseRuntime {
 
     // Create tool registry with factory function
     // eslint-disable-next-line prefer-const -- circular dependency pattern requires let
-    let resourceProvider: ResourceProvider;
+    let resourceProvider: MockResourceProvider;
     const toolRegistry = new MockToolRegistry(
       nodeRegistry,
       (nodeId: string, inputs: Record<string, any>) =>
         resourceProvider.createToolContext(nodeId, inputs)
     );
 
-    // Create ResourceProvider with test tool registry
-    resourceProvider = new ResourceProvider(env, toolRegistry);
+    // Create MockResourceProvider with test tool registry (no database access)
+    resourceProvider = new MockResourceProvider(env, toolRegistry);
 
     // Create test-friendly dependencies
     const dependencies: RuntimeDependencies = {

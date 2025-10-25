@@ -173,10 +173,10 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
 
     // Initialise state and execution record
     let executionState: ExecutionState = {
-      nodeOutputs: new Map(),
-      executedNodes: new Set(),
-      skippedNodes: new Set(),
-      nodeErrors: new Map(),
+      nodeOutputs: {},
+      executedNodes: [],
+      skippedNodes: [],
+      nodeErrors: {},
     };
     this.logTransition("idle", "submitted");
 
@@ -335,10 +335,10 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
 
     // Mutable state
     const state: ExecutionState = {
-      nodeOutputs: new Map(),
-      executedNodes: new Set(),
-      skippedNodes: new Set(),
-      nodeErrors: new Map(),
+      nodeOutputs: {},
+      executedNodes: [],
+      skippedNodes: [],
+      nodeErrors: {},
     };
 
     // Log transition to executing
@@ -423,7 +423,19 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       return state;
     }
 
-    const nodeType = this.nodeRegistry.getNodeType(node.type);
+    let nodeType;
+    try {
+      nodeType = this.nodeRegistry.getNodeType(node.type);
+    } catch (_error) {
+      // Node type not found in registry
+      state = this.recordNodeError(
+        state,
+        nodeId,
+        new NodeTypeNotImplementedError(nodeId, node.type)
+      );
+      return state;
+    }
+
     this.env.COMPUTE.writeDataPoint({
       indexes: [context.organizationId],
       blobs: [context.organizationId, context.workflowId, node.id],
@@ -474,8 +486,10 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
           context.organizationId,
           context.executionId
         );
-        state.nodeOutputs.set(nodeId, outputsForRuntime as NodeRuntimeValues);
-        state.executedNodes.add(nodeId);
+        state.nodeOutputs[nodeId] = outputsForRuntime as NodeRuntimeValues;
+        if (!state.executedNodes.includes(nodeId)) {
+          state.executedNodes.push(nodeId);
+        }
 
         state = this.skipInactiveOutputs(
           context,
@@ -630,7 +644,7 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
 
       const values: RuntimeValue[] = [];
       for (const edge of edges) {
-        const sourceOutputs = nodeOutputs.get(edge.source);
+        const sourceOutputs = nodeOutputs[edge.source];
         if (sourceOutputs && sourceOutputs[edge.sourceOutput] !== undefined) {
           const value = sourceOutputs[edge.sourceOutput];
           if (isRuntimeValue(value)) {
@@ -681,7 +695,10 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     state: ExecutionState,
     nodeId: string
   ): void {
-    if (state.skippedNodes.has(nodeId) || state.executedNodes.has(nodeId)) {
+    if (
+      state.skippedNodes.includes(nodeId) ||
+      state.executedNodes.includes(nodeId)
+    ) {
       return;
     }
 
@@ -695,7 +712,9 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     );
 
     if (!allRequiredInputsSatisfied) {
-      state.skippedNodes.add(nodeId);
+      if (!state.skippedNodes.includes(nodeId)) {
+        state.skippedNodes.push(nodeId);
+      }
 
       const outgoingEdges = context.workflow.edges.filter(
         (edge) => edge.source === nodeId
@@ -787,8 +806,13 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
    */
   private getNodesComputeCost(nodes: Node[]): number {
     return nodes.reduce((acc, node) => {
-      const nodeType = this.nodeRegistry.getNodeType(node.type);
-      return acc + (nodeType.computeCost ?? 1);
+      try {
+        const nodeType = this.nodeRegistry.getNodeType(node.type);
+        return acc + (nodeType.computeCost ?? 1);
+      } catch (_error) {
+        // Node type not found in registry, use default cost
+        return acc + 1;
+      }
     }, 0);
   }
 
@@ -877,7 +901,7 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
             organizationId,
             this.getNodesComputeCost(
               context.workflow.nodes.filter((node) =>
-                state.executedNodes.has(node.id)
+                state.executedNodes.includes(node.id)
               )
             )
           );
@@ -912,19 +936,19 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     error: Error | string
   ): ExecutionState {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    state.nodeErrors.set(nodeId, errorMessage);
+    state.nodeErrors[nodeId] = errorMessage;
     return state;
   }
 
   private createErrorReport(state: ExecutionState): string | undefined {
-    if (state.nodeErrors.size === 0) {
+    if (Object.keys(state.nodeErrors).length === 0) {
       return undefined;
     }
     return "Workflow execution failed";
   }
 
   private shouldSkipNode(state: ExecutionState, nodeId: string): boolean {
-    return state.nodeErrors.has(nodeId) || state.skippedNodes.has(nodeId);
+    return nodeId in state.nodeErrors || state.skippedNodes.includes(nodeId);
   }
 
   // ==========================================================================
@@ -944,21 +968,21 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     const isStillRunning = getExecutionStatus(context, state) === "executing";
 
     return workflow.nodes.map((node) => {
-      if (state.executedNodes.has(node.id)) {
+      if (state.executedNodes.includes(node.id)) {
         return {
           nodeId: node.id,
           status: "completed" as const,
-          outputs: state.nodeOutputs.get(node.id) || {},
+          outputs: state.nodeOutputs[node.id] || {},
         };
       }
-      if (state.nodeErrors.has(node.id)) {
+      if (node.id in state.nodeErrors) {
         return {
           nodeId: node.id,
           status: "error" as const,
-          error: state.nodeErrors.get(node.id),
+          error: state.nodeErrors[node.id],
         };
       }
-      if (state.skippedNodes.has(node.id)) {
+      if (state.skippedNodes.includes(node.id)) {
         return {
           nodeId: node.id,
           status: "skipped" as const,

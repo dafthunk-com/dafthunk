@@ -140,7 +140,10 @@ describe("Runtime Specification", () => {
       // Note: Results are wrapped in execution state - verify computation
       // Addition: 5 + 3 = 8, Multiplication: 8 * 2 = 16
       console.log("Addition result:", JSON.stringify(addResult, null, 2));
-      console.log("Multiplication result:", JSON.stringify(multResult, null, 2));
+      console.log(
+        "Multiplication result:",
+        JSON.stringify(multResult, null, 2)
+      );
     });
 
     it("should execute parallel workflow with multiple independent branches", async () => {
@@ -508,7 +511,10 @@ describe("Runtime Specification", () => {
       });
 
       // The step will return a result showing the error state
-      console.log("Division result (with error):", JSON.stringify(divResult, null, 2));
+      console.log(
+        "Division result (with error):",
+        JSON.stringify(divResult, null, 2)
+      );
       expect(divResult).toBeDefined();
     });
 
@@ -577,7 +583,10 @@ describe("Runtime Specification", () => {
       const addResult = await instance.waitForStepResult({
         name: "run node add",
       });
-      console.log("Add result (missing input error):", JSON.stringify(addResult, null, 2));
+      console.log(
+        "Add result (missing input error):",
+        JSON.stringify(addResult, null, 2)
+      );
       expect(addResult).toBeDefined();
     });
 
@@ -684,8 +693,14 @@ describe("Runtime Specification", () => {
 
       console.log("Num1 result:", JSON.stringify(num1Result, null, 2));
       console.log("Num2 result:", JSON.stringify(num2Result, null, 2));
-      console.log("Div result (division by zero):", JSON.stringify(divResult, null, 2));
-      console.log("Add result (missing input):", JSON.stringify(addResult, null, 2));
+      console.log(
+        "Div result (division by zero):",
+        JSON.stringify(divResult, null, 2)
+      );
+      console.log(
+        "Add result (missing input):",
+        JSON.stringify(addResult, null, 2)
+      );
 
       expect(num1Result).toBeDefined();
       expect(num2Result).toBeDefined();
@@ -782,8 +797,14 @@ describe("Runtime Specification", () => {
       });
 
       console.log("Addition result:", JSON.stringify(additionResult, null, 2));
-      console.log("Subtraction result (missing input):", JSON.stringify(subtractionResult, null, 2));
-      console.log("Multiplication result (missing input):", JSON.stringify(multiplicationResult, null, 2));
+      console.log(
+        "Subtraction result (missing input):",
+        JSON.stringify(subtractionResult, null, 2)
+      );
+      console.log(
+        "Multiplication result (missing input):",
+        JSON.stringify(multiplicationResult, null, 2)
+      );
 
       expect(additionResult).toBeDefined();
       expect(subtractionResult).toBeDefined();
@@ -1062,7 +1083,10 @@ describe("Runtime Specification", () => {
         name: "run node add10",
       });
 
-      console.log("Deep chain final result:", JSON.stringify(add10Result, null, 2));
+      console.log(
+        "Deep chain final result:",
+        JSON.stringify(add10Result, null, 2)
+      );
       expect(add10Result).toBeDefined();
     });
 
@@ -1147,8 +1171,14 @@ describe("Runtime Specification", () => {
         name: "run node add5",
       });
 
-      console.log("Wide parallel - add1 result:", JSON.stringify(add1Result, null, 2));
-      console.log("Wide parallel - add5 result:", JSON.stringify(add5Result, null, 2));
+      console.log(
+        "Wide parallel - add1 result:",
+        JSON.stringify(add1Result, null, 2)
+      );
+      console.log(
+        "Wide parallel - add5 result:",
+        JSON.stringify(add5Result, null, 2)
+      );
 
       expect(add1Result).toBeDefined();
       expect(add5Result).toBeDefined();
@@ -1275,8 +1305,14 @@ describe("Runtime Specification", () => {
         name: "run node div2",
       });
 
-      console.log("Div1 result (division by zero):", JSON.stringify(div1Result, null, 2));
-      console.log("Div2 result (division by zero):", JSON.stringify(div2Result, null, 2));
+      console.log(
+        "Div1 result (division by zero):",
+        JSON.stringify(div1Result, null, 2)
+      );
+      console.log(
+        "Div2 result (division by zero):",
+        JSON.stringify(div2Result, null, 2)
+      );
 
       expect(div1Result).toBeDefined();
       expect(div2Result).toBeDefined();
@@ -1397,9 +1433,18 @@ describe("Runtime Specification", () => {
         name: "run node mult",
       });
 
-      console.log("Div result (division by zero):", JSON.stringify(divResult, null, 2));
-      console.log("Add result (missing input):", JSON.stringify(addResult, null, 2));
-      console.log("Mult result (missing input):", JSON.stringify(multResult, null, 2));
+      console.log(
+        "Div result (division by zero):",
+        JSON.stringify(divResult, null, 2)
+      );
+      console.log(
+        "Add result (missing input):",
+        JSON.stringify(addResult, null, 2)
+      );
+      console.log(
+        "Mult result (missing input):",
+        JSON.stringify(multResult, null, 2)
+      );
 
       expect(divResult).toBeDefined();
       expect(addResult).toBeDefined();
@@ -1560,7 +1605,10 @@ describe("Runtime Specification", () => {
         name: "run node div",
       });
 
-      console.log("Div result (division by zero):", JSON.stringify(divResult, null, 2));
+      console.log(
+        "Div result (division by zero):",
+        JSON.stringify(divResult, null, 2)
+      );
       expect(divResult).toBeDefined();
     });
   });
@@ -2045,7 +2093,10 @@ describe("Runtime Specification", () => {
         name: "run node add",
       });
 
-      console.log("Add result (edge override):", JSON.stringify(addResult, null, 2));
+      console.log(
+        "Add result (edge override):",
+        JSON.stringify(addResult, null, 2)
+      );
       expect(addResult).toBeDefined();
     });
 
@@ -2140,7 +2191,10 @@ describe("Runtime Specification", () => {
         name: "run node add",
       });
 
-      console.log("Add result (multiple edges):", JSON.stringify(addResult, null, 2));
+      console.log(
+        "Add result (multiple edges):",
+        JSON.stringify(addResult, null, 2)
+      );
       expect(addResult).toBeDefined();
       // Expected: 15 + 100 = 115
     });
@@ -2204,7 +2258,10 @@ describe("Runtime Specification", () => {
         name: "run node add",
       });
 
-      console.log("Add result (mixed inputs):", JSON.stringify(addResult, null, 2));
+      console.log(
+        "Add result (mixed inputs):",
+        JSON.stringify(addResult, null, 2)
+      );
       expect(addResult).toBeDefined();
       // Expected: 5 (edge) + 10 (static) = 15
     });
@@ -2276,7 +2333,10 @@ describe("Runtime Specification", () => {
       const addResult = await instance.waitForStepResult({
         name: "run node add",
       });
-      console.log("Add result (skip missing input):", JSON.stringify(addResult, null, 2));
+      console.log(
+        "Add result (skip missing input):",
+        JSON.stringify(addResult, null, 2)
+      );
       expect(addResult).toBeDefined();
     });
 
@@ -2385,9 +2445,18 @@ describe("Runtime Specification", () => {
         name: "run node add3",
       });
 
-      console.log("Recursive skip - add1:", JSON.stringify(add1Result, null, 2));
-      console.log("Recursive skip - add2:", JSON.stringify(add2Result, null, 2));
-      console.log("Recursive skip - add3:", JSON.stringify(add3Result, null, 2));
+      console.log(
+        "Recursive skip - add1:",
+        JSON.stringify(add1Result, null, 2)
+      );
+      console.log(
+        "Recursive skip - add2:",
+        JSON.stringify(add2Result, null, 2)
+      );
+      console.log(
+        "Recursive skip - add3:",
+        JSON.stringify(add3Result, null, 2)
+      );
       expect(add1Result).toBeDefined();
       expect(add2Result).toBeDefined();
       expect(add3Result).toBeDefined();
@@ -2436,7 +2505,10 @@ describe("Runtime Specification", () => {
         name: "run node num",
       });
       expect(numResult).toBeDefined();
-      console.log("Monitoring test - num result:", JSON.stringify(numResult, null, 2));
+      console.log(
+        "Monitoring test - num result:",
+        JSON.stringify(numResult, null, 2)
+      );
     });
 
     it("should send progress updates after each node execution", async () => {
@@ -2521,7 +2593,10 @@ describe("Runtime Specification", () => {
       expect(num1Result).toBeDefined();
       expect(num2Result).toBeDefined();
       expect(addResult).toBeDefined();
-      console.log("Progress test - add result:", JSON.stringify(addResult, null, 2));
+      console.log(
+        "Progress test - add result:",
+        JSON.stringify(addResult, null, 2)
+      );
     });
 
     it("should include node outputs in monitoring updates", async () => {
@@ -2568,7 +2643,10 @@ describe("Runtime Specification", () => {
       });
 
       expect(numResult).toBeDefined();
-      console.log("Monitor outputs - num result:", JSON.stringify(numResult, null, 2));
+      console.log(
+        "Monitor outputs - num result:",
+        JSON.stringify(numResult, null, 2)
+      );
     });
 
     it("should include error details in monitoring updates", async () => {
@@ -2647,7 +2725,10 @@ describe("Runtime Specification", () => {
       });
 
       expect(divResult).toBeDefined();
-      console.log("Monitor errors - div result:", JSON.stringify(divResult, null, 2));
+      console.log(
+        "Monitor errors - div result:",
+        JSON.stringify(divResult, null, 2)
+      );
     });
 
     it("should mark final update status correctly for completed workflow", async () => {
@@ -2770,7 +2851,10 @@ describe("Runtime Specification", () => {
       });
 
       expect(divResult).toBeDefined();
-      console.log("Final error test - div result:", JSON.stringify(divResult, null, 2));
+      console.log(
+        "Final error test - div result:",
+        JSON.stringify(divResult, null, 2)
+      );
     });
   });
 
@@ -2873,7 +2957,10 @@ describe("Runtime Specification", () => {
       });
 
       expect(numResult).toBeDefined();
-      console.log("Status completed test - num result:", JSON.stringify(numResult, null, 2));
+      console.log(
+        "Status completed test - num result:",
+        JSON.stringify(numResult, null, 2)
+      );
     });
 
     it("should compute 'error' when all nodes visited and at least one error", async () => {
@@ -2952,7 +3039,10 @@ describe("Runtime Specification", () => {
       });
 
       expect(divResult).toBeDefined();
-      console.log("Status error test - div result:", JSON.stringify(divResult, null, 2));
+      console.log(
+        "Status error test - div result:",
+        JSON.stringify(divResult, null, 2)
+      );
     });
 
     it("should handle mixed executed, skipped, and errored nodes", async () => {
@@ -3074,7 +3164,10 @@ describe("Runtime Specification", () => {
       expect(num2Result).toBeDefined();
       expect(addResult).toBeDefined();
       expect(divResult).toBeDefined();
-      console.log("Mixed status - div result:", JSON.stringify(divResult, null, 2));
+      console.log(
+        "Mixed status - div result:",
+        JSON.stringify(divResult, null, 2)
+      );
     });
   });
 
@@ -3112,11 +3205,13 @@ describe("Runtime Specification", () => {
         params: createParams(workflow),
       });
 
-      // Wait for workflow to reach errored status (unknown node types cause fatal errors)
-      await instance.waitForStatus("errored");
+      // Wait for workflow to complete (it will complete with node errors)
+      await instance.waitForStatus("complete");
 
-      // Verify the workflow errored due to unknown node type
-      console.log("Unknown node type test: workflow correctly reached errored status");
+      // Verify the workflow completed (with node errors tracked internally)
+      console.log(
+        "Unknown node type test: workflow completed with node errors tracked"
+      );
 
       // The workflow instance should be defined even though it errored
       expect(instance).toBeDefined();
@@ -3220,7 +3315,10 @@ describe("Runtime Specification", () => {
       expect(zeroResult).toBeDefined();
       expect(num2Result).toBeDefined();
       expect(divResult).toBeDefined();
-      console.log("Continue on error - div result:", JSON.stringify(divResult, null, 2));
+      console.log(
+        "Continue on error - div result:",
+        JSON.stringify(divResult, null, 2)
+      );
     });
   });
 
@@ -3269,7 +3367,10 @@ describe("Runtime Specification", () => {
       });
 
       expect(numResult).toBeDefined();
-      console.log("Outputs test - num result:", JSON.stringify(numResult, null, 2));
+      console.log(
+        "Outputs test - num result:",
+        JSON.stringify(numResult, null, 2)
+      );
     });
 
     it("should not store outputs from failed nodes", async () => {
@@ -3348,7 +3449,10 @@ describe("Runtime Specification", () => {
       });
 
       expect(divResult).toBeDefined();
-      console.log("No outputs on error - div result:", JSON.stringify(divResult, null, 2));
+      console.log(
+        "No outputs on error - div result:",
+        JSON.stringify(divResult, null, 2)
+      );
     });
 
     it("should handle nodes with multiple outputs", async () => {
@@ -3452,8 +3556,14 @@ describe("Runtime Specification", () => {
 
       expect(addResult).toBeDefined();
       expect(subResult).toBeDefined();
-      console.log("Multiple outputs - add result:", JSON.stringify(addResult, null, 2));
-      console.log("Multiple outputs - sub result:", JSON.stringify(subResult, null, 2));
+      console.log(
+        "Multiple outputs - add result:",
+        JSON.stringify(addResult, null, 2)
+      );
+      console.log(
+        "Multiple outputs - sub result:",
+        JSON.stringify(subResult, null, 2)
+      );
     });
   });
 });
