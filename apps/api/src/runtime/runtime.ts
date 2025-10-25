@@ -21,6 +21,10 @@ import {
 } from "../nodes/parameter-mapper";
 import { HttpRequest } from "../nodes/types";
 import { EmailMessage } from "../nodes/types";
+import {
+  MonitoringService,
+  WorkflowSessionMonitoringService,
+} from "../services/monitoring-service";
 import { ExecutionStore } from "../stores/execution-store";
 import { ObjectStore } from "../stores/object-store";
 import {
@@ -73,6 +77,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
   private nodeRegistry: CloudflareNodeRegistry;
   private resourceProvider: ResourceProvider;
   private executionStore: ExecutionStore;
+  private monitoringService: MonitoringService;
 
   constructor(ctx: ExecutionContext, env: Bindings) {
     super(ctx, env);
@@ -95,6 +100,9 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
 
     // Initialize other components
     this.executionStore = new ExecutionStore(env.DB, env.RESSOURCES);
+    this.monitoringService = new WorkflowSessionMonitoringService(
+      env.WORKFLOW_SESSION
+    );
   }
 
   /**
@@ -130,7 +138,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       endedAt: undefined,
     } as WorkflowExecution;
 
-    await this.sendMonitoringUpdate(workflowSessionId, executionRecord);
+    await this.monitoringService.sendUpdate(workflowSessionId, executionRecord);
 
     // Check for credit exhaustion
     const exhaustedRecord = await this.handleCreditExhaustion(
@@ -174,7 +182,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       executionRecord.startedAt = new Date();
       executionRecord.status = getExecutionStatus(executionContext, executionState);
 
-      await this.sendMonitoringUpdate(workflowSessionId, executionRecord);
+      await this.monitoringService.sendUpdate(workflowSessionId, executionRecord);
 
       // Execute workflow nodes sequentially
       const { state: finalState, record: finalRecord } =
@@ -199,7 +207,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         status: executionContext ? getExecutionStatus(executionContext, executionState) : "error",
         error: error instanceof Error ? error.message : String(error),
       };
-      await this.sendMonitoringUpdate(workflowSessionId, executionRecord);
+      await this.monitoringService.sendUpdate(workflowSessionId, executionRecord);
     } finally {
       executionRecord.endedAt = new Date();
 
@@ -215,7 +223,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         );
       }
 
-      await this.sendMonitoringUpdate(workflowSessionId, executionRecord);
+      await this.monitoringService.sendUpdate(workflowSessionId, executionRecord);
     }
 
     return executionRecord;
@@ -658,41 +666,6 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     return true;
   }
 
-  // ==========================================================================
-  // EXECUTION MONITORING
-  // ==========================================================================
-
-  /**
-   * Sends execution update to the workflow session Durable Object.
-   * No-op if no session ID is provided.
-   */
-  private async sendMonitoringUpdate(
-    sessionId: string | undefined,
-    execution: WorkflowExecution
-  ): Promise<void> {
-    if (!sessionId) {
-      return;
-    }
-
-    try {
-      const id = this.env.WORKFLOW_SESSION.idFromName(sessionId);
-      const stub = this.env.WORKFLOW_SESSION.get(id);
-
-      await stub.fetch(`https://workflow-session/execution`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(execution),
-      });
-    } catch (error) {
-      console.error(
-        `Failed to send execution update to session ${sessionId}:`,
-        error
-      );
-    }
-  }
-
   /**
    * Updates execution record with current state and sends monitoring notification.
    */
@@ -711,7 +684,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         state
       ),
     };
-    await this.sendMonitoringUpdate(sessionId, updated);
+    await this.monitoringService.sendUpdate(sessionId, updated);
     return updated;
   }
 
@@ -808,7 +781,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         })
     );
 
-    await this.sendMonitoringUpdate(workflowSessionId, executionRecord);
+    await this.monitoringService.sendUpdate(workflowSessionId, executionRecord);
     return executionRecord;
   }
 
