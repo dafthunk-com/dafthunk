@@ -1,19 +1,18 @@
 import type { GetNodeTypesResponse, WorkflowType } from "@dafthunk/types";
+import { env } from "cloudflare:test";
 import { Hono } from "hono";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { Bindings } from "../context";
 import { ApiContext } from "../context";
-import {
-  getTestNodeRegistry,
-  initializeTestEnvironment,
-} from "../runtime/test-runtime";
+import { TestNodeRegistry } from "../nodes/test-node-registry";
 import typeRoutes from "./types";
 
 // Mock the CloudflareNodeRegistry to use TestNodeRegistry instead
 vi.mock("../nodes/cloudflare-node-registry", () => ({
   CloudflareNodeRegistry: class {
     constructor(_env: any, _developerMode: boolean) {
-      return getTestNodeRegistry();
+      return new TestNodeRegistry(env as Bindings, true);
     }
   },
 }));
@@ -22,9 +21,6 @@ describe("Types Route Tests", () => {
   let app: Hono<ApiContext>;
 
   beforeEach(() => {
-    // Initialize the test environment with TestNodeRegistry
-    initializeTestEnvironment();
-
     // Create a new Hono app instance with the types routes
     app = new Hono<ApiContext>();
     app.route("/types", typeRoutes);
