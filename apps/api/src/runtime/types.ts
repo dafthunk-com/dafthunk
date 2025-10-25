@@ -46,7 +46,7 @@ export type NodeRuntimeValues = Record<string, RuntimeValue | RuntimeValue[]>;
  *   "node-2" => { "result": 42, "status": "completed" }
  * }
  */
-export type WorkflowRuntimeState = Map<string, NodeRuntimeValues>;
+export type WorkflowRuntimeState = Record<string, NodeRuntimeValues>;
 
 /**
  * Immutable execution context.
@@ -78,12 +78,12 @@ export interface WorkflowExecutionContext {
 export interface ExecutionState {
   /** Outputs from executed nodes */
   nodeOutputs: WorkflowRuntimeState;
-  /** Set of successfully executed node IDs */
-  executedNodes: Set<string>;
-  /** Set of skipped node IDs (due to conditional logic) */
-  skippedNodes: Set<string>;
-  /** Map of node IDs to error messages */
-  nodeErrors: Map<string, string>;
+  /** Array of successfully executed node IDs */
+  executedNodes: string[];
+  /** Array of skipped node IDs (due to conditional logic) */
+  skippedNodes: string[];
+  /** Record of node IDs to error messages */
+  nodeErrors: Record<string, string>;
 }
 
 /**
@@ -108,9 +108,9 @@ export function getExecutionStatus(
   // Check if all nodes have been visited (executed, skipped, or errored)
   const allNodesVisited = orderedNodeIds.every(
     (nodeId) =>
-      executedNodes.has(nodeId) ||
-      skippedNodes.has(nodeId) ||
-      nodeErrors.has(nodeId)
+      executedNodes.includes(nodeId) ||
+      skippedNodes.includes(nodeId) ||
+      nodeId in nodeErrors
   );
 
   if (!allNodesVisited) {
@@ -118,7 +118,7 @@ export function getExecutionStatus(
   }
 
   // All nodes visited - determine success or failure
-  return nodeErrors.size === 0 ? "completed" : "error";
+  return Object.keys(nodeErrors).length === 0 ? "completed" : "error";
 }
 
 /**
