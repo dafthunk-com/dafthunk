@@ -407,6 +407,30 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
   // ==========================================================================
 
   /**
+   * Executes or skips a single node based on its dependencies.
+   * Returns updated state with node execution result embedded for introspection.
+   */
+  private async executeOrSkipNode(
+    context: WorkflowExecutionContext,
+    state: ExecutionState,
+    nodeId: string,
+    httpRequest?: HttpRequest,
+    emailMessage?: EmailMessage
+  ): Promise<ExecutionState> {
+    // Check if node should be skipped due to missing required inputs or upstream failures
+    if (this.shouldSkipNode(context, state, nodeId)) {
+      // Mark as skipped
+      if (!state.skippedNodes.includes(nodeId)) {
+        state.skippedNodes.push(nodeId);
+      }
+      return state;
+    }
+
+    // Execute the node and return updated state
+    return await this.executeNode(context, state, nodeId, httpRequest, emailMessage);
+  }
+
+  /**
    * Executes a single node and stores its outputs.
    */
   private async executeNode(
@@ -491,12 +515,7 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
           state.executedNodes.push(nodeId);
         }
 
-        state = this.skipInactiveOutputs(
-          context,
-          state,
-          nodeId,
-          result.outputs ?? {}
-        );
+        // Downstream nodes will be checked by shouldSkipNode when we reach them
       } else {
         const failureMessage = result.error ?? "Unknown error";
         state = this.recordNodeError(state, nodeId, failureMessage);
@@ -529,21 +548,30 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     let currentRecord = executionRecord;
 
     for (const nodeId of context.orderedNodeIds) {
-      if (this.shouldSkipNode(currentState, nodeId)) {
-        continue;
-      }
-
-      currentState = await step.do(
+      // Execute or skip the node
+      // The step returns a result object for introspection by waitForStepResult
+      await step.do(
         `run node ${nodeId}`,
         BaseRuntime.defaultStepConfig,
-        async () =>
-          this.executeNode(
+        async () => {
+          // Execute and get updated state
+          currentState = await this.executeOrSkipNode(
             context,
             currentState,
             nodeId,
             httpRequest,
             emailMessage
-          )
+          );
+
+          // Build result object for introspection
+          const nodeExecution = this.buildNodeExecutions(
+            context.workflow,
+            context,
+            currentState
+          ).find((exec) => exec.nodeId === nodeId);
+
+          return nodeExecution || { nodeId, status: "idle" };
+        }
       );
 
       currentRecord = await this.updateAndNotify(
@@ -661,97 +689,6 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     }
 
     return inputs;
-  }
-
-  private skipInactiveOutputs(
-    context: WorkflowExecutionContext,
-    state: ExecutionState,
-    nodeId: string,
-    nodeOutputs: Record<string, unknown>
-  ): ExecutionState {
-    const node = this.findNode(context.workflow, nodeId);
-    if (!node) return state;
-
-    const inactiveOutputs = node.outputs
-      .map((output) => output.name)
-      .filter((outputName) => !(outputName in nodeOutputs));
-
-    if (inactiveOutputs.length === 0) return state;
-
-    const inactiveEdges = context.workflow.edges.filter(
-      (edge) =>
-        edge.source === nodeId && inactiveOutputs.includes(edge.sourceOutput)
-    );
-
-    for (const edge of inactiveEdges) {
-      this.skipIfMissingInputs(context, state, edge.target);
-    }
-
-    return state;
-  }
-
-  private skipIfMissingInputs(
-    context: WorkflowExecutionContext,
-    state: ExecutionState,
-    nodeId: string
-  ): void {
-    if (
-      state.skippedNodes.includes(nodeId) ||
-      state.executedNodes.includes(nodeId)
-    ) {
-      return;
-    }
-
-    const node = this.findNode(context.workflow, nodeId);
-    if (!node) return;
-
-    const allRequiredInputsSatisfied = this.hasAllRequiredInputs(
-      context,
-      state,
-      nodeId
-    );
-
-    if (!allRequiredInputsSatisfied) {
-      if (!state.skippedNodes.includes(nodeId)) {
-        state.skippedNodes.push(nodeId);
-      }
-
-      const outgoingEdges = context.workflow.edges.filter(
-        (edge) => edge.source === nodeId
-      );
-      for (const edge of outgoingEdges) {
-        this.skipIfMissingInputs(context, state, edge.target);
-      }
-    }
-  }
-
-  private hasAllRequiredInputs(
-    context: WorkflowExecutionContext,
-    state: ExecutionState,
-    nodeId: string
-  ): boolean {
-    const node = this.findNode(context.workflow, nodeId);
-    if (!node) return false;
-
-    const executable = this.nodeRegistry.createExecutableNode(node);
-    if (!executable) return false;
-
-    const nodeType = getNodeType(executable);
-    if (!nodeType) return false;
-
-    const inputValues = this.collectNodeInputs(
-      context.workflow,
-      state.nodeOutputs,
-      nodeId
-    );
-
-    for (const input of nodeType.inputs) {
-      if (input.required && inputValues[input.name] === undefined) {
-        return false;
-      }
-    }
-
-    return true;
   }
 
   /**
@@ -947,8 +884,43 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     return "Workflow execution failed";
   }
 
-  private shouldSkipNode(state: ExecutionState, nodeId: string): boolean {
-    return nodeId in state.nodeErrors || state.skippedNodes.includes(nodeId);
+  /**
+   * Determines if a node should be skipped.
+   * A node is skipped if:
+   * - It has already been marked as skipped
+   * - It has upstream dependencies that failed or were skipped
+   *
+   * Note: Nodes are NOT skipped for missing required inputs.
+   * The node itself is responsible for validating its inputs and throwing
+   * an error if required inputs are missing or invalid.
+   */
+  private shouldSkipNode(
+    context: WorkflowExecutionContext,
+    state: ExecutionState,
+    nodeId: string
+  ): boolean {
+    // Already skipped or errored
+    if (state.skippedNodes.includes(nodeId) || nodeId in state.nodeErrors) {
+      return true;
+    }
+
+    const node = this.findNode(context.workflow, nodeId);
+    if (!node) return false;
+
+    // Check if any upstream dependencies failed or were skipped
+    const inboundEdges = context.workflow.edges.filter(
+      (edge) => edge.target === nodeId
+    );
+    for (const edge of inboundEdges) {
+      if (
+        state.skippedNodes.includes(edge.source) ||
+        edge.source in state.nodeErrors
+      ) {
+        return true; // Upstream failure
+      }
+    }
+
+    return false;
   }
 
   // ==========================================================================
@@ -958,6 +930,7 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
   /**
    * Builds node execution list from execution state.
    * Maps workflow nodes to their execution status for persistence and monitoring.
+   * For skipped nodes, infers skip reason and details from state.
    */
   private buildNodeExecutions(
     workflow: Workflow,
@@ -978,14 +951,22 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       if (node.id in state.nodeErrors) {
         return {
           nodeId: node.id,
-          status: "error" as const,
-          error: state.nodeErrors[node.id],
+          status: "failed" as const,
+          error: {
+            type: "execution_error",
+            message: state.nodeErrors[node.id],
+          },
+          outputs: null,
         };
       }
       if (state.skippedNodes.includes(node.id)) {
+        // Infer skip reason and details from state
+        const skipInfo = this.inferSkipReason(workflow, state, node.id);
         return {
           nodeId: node.id,
           status: "skipped" as const,
+          outputs: null,
+          ...skipInfo,
         };
       }
       // If node hasn't been processed yet:
@@ -996,5 +977,42 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         status: isStillRunning ? ("executing" as const) : ("idle" as const),
       };
     });
+  }
+
+  /**
+   * Infers skip reason and details for a skipped node.
+   * Only checks for upstream failures (nodes are not skipped for missing inputs).
+   */
+  private inferSkipReason(
+    workflow: Workflow,
+    state: ExecutionState,
+    nodeId: string
+  ): {
+    skipReason?: string;
+    blockedBy?: string[];
+  } {
+    const node = workflow.nodes.find((n) => n.id === nodeId);
+    if (!node) return {};
+
+    // Check for upstream failures
+    const inboundEdges = workflow.edges.filter((edge) => edge.target === nodeId);
+    const blockedBy: string[] = [];
+    for (const edge of inboundEdges) {
+      if (
+        state.skippedNodes.includes(edge.source) ||
+        edge.source in state.nodeErrors
+      ) {
+        blockedBy.push(edge.source);
+      }
+    }
+
+    if (blockedBy.length > 0) {
+      return {
+        skipReason: "upstream_failure",
+        blockedBy,
+      };
+    }
+
+    return {};
   }
 }
