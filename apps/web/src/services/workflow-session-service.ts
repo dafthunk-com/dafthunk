@@ -13,13 +13,12 @@ import { getApiBaseUrl } from "@/config/api";
 export type { WorkflowState };
 
 export interface WorkflowWSOptions {
-  // Message-level callbacks (application protocol)
+  // Message-level callbacks (happy path only)
   onInit?: (state: WorkflowState) => void;
   onUpdate?: (state: WorkflowState) => void;
-  onOperationalError?: (error: string, details?: string) => void;
   onExecutionUpdate?: (execution: WorkflowExecution) => void;
 
-  // Connection-level callbacks (WebSocket protocol)
+  // Connection-level callbacks (problems)
   onConnectionOpen?: () => void;
   onConnectionClose?: (event: CloseEvent) => void;
   onConnectionError?: (event: Event) => void;
@@ -109,44 +108,52 @@ export class WorkflowWebSocket {
     try {
       const message = JSON.parse(event.data) as ServerMessage;
 
-      // Route typed messages
-      if ("type" in message) {
-        switch (message.type) {
-          case "init":
-            this.currentState = message.state;
-            this.options.onInit?.(message.state);
-            break;
+      // Route typed messages (happy path only)
+      if (!("type" in message)) {
+        // Protocol violation: message must have a type
+        console.error("[WorkflowWS] Protocol violation: message missing type");
+        this.disconnect();
+        return;
+      }
 
-          case "update":
-            this.currentState = message.state;
-            this.options.onUpdate?.(message.state);
-            break;
+      switch (message.type) {
+        case "init":
+          this.currentState = message.state;
+          this.options.onInit?.(message.state);
+          break;
 
-          case "execution_update":
-            // Execution updates are normal results, not errors
-            // Even if execution.error is set, this is just a summary
-            this.options.onExecutionUpdate?.({
-              id: message.executionId,
-              workflowId: this.workflowId,
-              status: message.status,
-              nodeExecutions: message.nodeExecutions,
-              error: message.error,
-            });
-            break;
-        }
-      } else if ("error" in message) {
-        // WorkflowErrorMessage - operational errors (no type field)
-        // e.g., "Failed to execute workflow", "Workflow not initialized"
-        console.error("[WorkflowWS] Operational error:", message.error);
-        this.options.onOperationalError?.(
-          message.error || "Unknown error",
-          message.details
-        );
+        case "update":
+          this.currentState = message.state;
+          this.options.onUpdate?.(message.state);
+          break;
+
+        case "execution_update":
+          // Execution updates are normal results, not errors
+          // Even if execution.error is set, this is just a summary
+          this.options.onExecutionUpdate?.({
+            id: message.executionId,
+            workflowId: this.workflowId,
+            status: message.status,
+            nodeExecutions: message.nodeExecutions,
+            error: message.error,
+          });
+          break;
+
+        default:
+          // Unknown message type - protocol violation
+          console.error(
+            "[WorkflowWS] Protocol violation: unknown message type"
+          );
+          this.disconnect();
+          break;
       }
     } catch (error) {
-      console.error("[WorkflowWS] Failed to parse message:", error);
-      // Message parsing failure is an operational error, not a connection error
-      this.options.onOperationalError?.("Failed to parse message");
+      // Parse failure - protocol violation, close connection
+      console.error(
+        "[WorkflowWS] Protocol violation: failed to parse message:",
+        error
+      );
+      this.disconnect();
     }
   }
 
@@ -168,7 +175,9 @@ export class WorkflowWebSocket {
    */
   send(nodes: Node[], edges: Edge[]): void {
     if (!this.currentState) {
-      console.warn("[WorkflowWS] No current state available, cannot send update");
+      console.warn(
+        "[WorkflowWS] No current state available, cannot send update"
+      );
       return;
     }
 
@@ -195,7 +204,6 @@ export class WorkflowWebSocket {
   private sendJson(message: ClientMessage, errorMessage: string): boolean {
     if (!this.isConnected()) {
       console.warn("[WorkflowWS] Not connected, cannot send message");
-      this.options.onOperationalError?.("WebSocket is not connected");
       return false;
     }
 
@@ -204,7 +212,6 @@ export class WorkflowWebSocket {
       return true;
     } catch (error) {
       console.error(`[WorkflowWS] ${errorMessage}:`, error);
-      this.options.onOperationalError?.(errorMessage);
       return false;
     }
   }

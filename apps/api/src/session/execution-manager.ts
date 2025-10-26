@@ -6,7 +6,6 @@
  */
 
 import type {
-  WorkflowErrorMessage,
   WorkflowExecution,
   WorkflowExecutionUpdateMessage,
   WorkflowState,
@@ -137,16 +136,6 @@ export class ExecutionManager {
       status: execution.status,
       nodeExecutions: execution.nodeExecutions,
       error: execution.error,
-    };
-  }
-
-  /**
-   * Create error message
-   */
-  createErrorMessage(error: string, details?: string): WorkflowErrorMessage {
-    return {
-      error,
-      ...(details && { details }),
     };
   }
 }

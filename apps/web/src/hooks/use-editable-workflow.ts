@@ -33,7 +33,6 @@ export function useEditableWorkflow({
   const [nodes, setNodes] = useState<Node<WorkflowNodeType>[]>([]);
   const [edges, setEdges] = useState<Edge<WorkflowEdgeType>[]>([]);
   const [isInitializing, setIsInitializing] = useState<boolean>(true);
-  const [processingError, setProcessingError] = useState<string | null>(null);
   const [savingError, setSavingError] = useState<string | null>(null);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const wsRef = useRef<WorkflowWebSocket | null>(null);
@@ -105,15 +104,15 @@ export function useEditableWorkflow({
 
           setNodes(reactFlowNodes);
           setEdges(reactFlowEdges);
-          setProcessingError(null);
         } catch (error) {
           console.error("Error processing WebSocket state:", error);
-          setProcessingError("Failed to load state from WebSocket");
+          // State processing error - close connection to force reconnect
+          wsRef.current?.disconnect();
         }
       };
 
       const ws = connectWorkflowWS(organization.handle, workflowId, {
-        // Message-level callbacks
+        // Message-level callbacks (happy path)
         onInit: (state: WorkflowState) => {
           handleStateUpdate(state);
           setIsInitializing(false);
@@ -122,26 +121,20 @@ export function useEditableWorkflow({
           // Handle broadcasts from other users
           handleStateUpdate(state);
         },
-        onOperationalError: (error, details) => {
-          console.error("Operational error:", error, details);
-          // Operational errors (can't execute, invalid state) are processing errors
-          // but NOT saving errors
-          setProcessingError(`Operation failed: ${error}`);
-          setIsInitializing(false);
-        },
         onExecutionUpdate: (execution: WorkflowExecution) => {
           // Forward execution updates to parent component
           // Note: execution.error is just a summary, not an error to display
           onExecutionUpdate?.(execution);
         },
 
-        // Connection-level callbacks
+        // Connection-level callbacks (problems)
         onConnectionOpen: () => {
           setIsWSConnected(true);
           setConnectionError(null);
         },
         onConnectionClose: (event) => {
           setIsWSConnected(false);
+          setIsInitializing(false);
           // Only set connection error for abnormal closures
           if (!event.wasClean && event.code !== 1000 && event.code !== 1001) {
             setConnectionError(
@@ -269,7 +262,6 @@ export function useEditableWorkflow({
     nodes,
     edges,
     isInitializing,
-    processingError,
     savingError,
     connectionError,
     saveWorkflow,

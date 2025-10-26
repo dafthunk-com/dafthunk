@@ -300,7 +300,7 @@ export type NodeExecutionStatus =
   | "idle"
   | "executing"
   | "completed"
-  | "failed"
+  | "error"
   | "skipped";
 
 /**
@@ -498,14 +498,6 @@ export interface WorkflowUpdateMessage {
 }
 
 /**
- * Error message sent from server to client
- */
-export interface WorkflowErrorMessage {
-  error: string;
-  details?: string;
-}
-
-/**
  * Message sent from client to server to start workflow execution
  * or register for execution updates
  */
@@ -539,5 +531,4 @@ export type ClientMessage = WorkflowUpdateMessage | WorkflowExecuteMessage;
 export type ServerMessage =
   | WorkflowInitMessage
   | WorkflowUpdateMessage
-  | WorkflowErrorMessage
   | WorkflowExecutionUpdateMessage;

@@ -427,7 +427,13 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     }
 
     // Execute the node and return updated state
-    return await this.executeNode(context, state, nodeId, httpRequest, emailMessage);
+    return await this.executeNode(
+      context,
+      state,
+      nodeId,
+      httpRequest,
+      emailMessage
+    );
   }
 
   /**
@@ -951,7 +957,7 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       if (node.id in state.nodeErrors) {
         return {
           nodeId: node.id,
-          status: "failed" as const,
+          status: "error" as const,
           error: state.nodeErrors[node.id],
           outputs: null,
         };
@@ -992,7 +998,9 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     if (!node) return {};
 
     // Check for upstream failures
-    const inboundEdges = workflow.edges.filter((edge) => edge.target === nodeId);
+    const inboundEdges = workflow.edges.filter(
+      (edge) => edge.target === nodeId
+    );
     const blockedBy: string[] = [];
     for (const edge of inboundEdges) {
       if (

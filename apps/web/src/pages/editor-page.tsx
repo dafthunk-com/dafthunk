@@ -115,7 +115,6 @@ export function EditorPage() {
     nodes: initialNodesForUI,
     edges: initialEdgesForUI,
     isInitializing: isWorkflowInitializing,
-    processingError: workflowProcessingError,
     savingError: workflowSavingError,
     connectionError: workflowConnectionError,
     saveWorkflow,
@@ -299,12 +298,6 @@ export function EditorPage() {
     [executeWorkflow, nodeTemplates, workflowMetadata?.type]
   );
 
-  const handleRetryLoading = () => {
-    if (id) {
-      navigate(0);
-    }
-  };
-
   const handleEditMetadata = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -368,15 +361,6 @@ export function EditorPage() {
       <WorkflowError
         message={nodeTypesError.message || "Failed to load node types."}
         onRetry={() => window.location.reload()}
-      />
-    );
-  }
-
-  if (workflowProcessingError) {
-    return (
-      <WorkflowError
-        message={workflowProcessingError}
-        onRetry={handleRetryLoading}
       />
     );
   }
