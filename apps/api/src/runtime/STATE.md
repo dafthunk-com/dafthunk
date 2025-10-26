@@ -10,13 +10,13 @@ The runtime separates **immutable context** (workflow definition, execution orde
 
 A workflow progresses through the following states during execution:
 
-| Status | Description | Terminal |
-|--------|-------------|----------|
-| `submitted` | Workflow has been submitted but not yet started | No |
-| `executing` | Workflow is actively executing nodes | No |
-| `completed` | All nodes executed successfully | Yes |
-| `error` | Unrecoverable error occurred (e.g., missing required inputs, validation failure, cycle detected) | Yes |
-| `exhausted` | Insufficient compute credits to execute workflow | Yes |
+| Status      | Description                                                                                      | Terminal |
+| ----------- | ------------------------------------------------------------------------------------------------ | -------- |
+| `submitted` | Workflow has been submitted but not yet started                                                  | No       |
+| `executing` | Workflow is actively executing nodes                                                             | No       |
+| `completed` | All nodes executed successfully                                                                  | Yes      |
+| `error`     | Unrecoverable error occurred (e.g., missing required inputs, validation failure, cycle detected) | Yes      |
+| `exhausted` | Insufficient compute credits to execute workflow                                                 | Yes      |
 
 ### Status Computation
 
@@ -29,16 +29,16 @@ function getExecutionStatus(
 ): WorkflowExecutionStatus {
   // Check if all nodes have been visited (executed, skipped, or errored)
   const allNodesVisited = orderedNodeIds.every(
-    nodeId => executedNodes.includes(nodeId) ||
-              skippedNodes.includes(nodeId) ||
-              nodeId in nodeErrors
+    (nodeId) =>
+      executedNodes.includes(nodeId) ||
+      skippedNodes.includes(nodeId) ||
+      nodeId in nodeErrors
   );
 
   if (!allNodesVisited) return "executing";
 
   const hasErrorsOrSkips =
-    Object.keys(nodeErrors).length > 0 ||
-    skippedNodes.length > 0;
+    Object.keys(nodeErrors).length > 0 || skippedNodes.length > 0;
 
   return hasErrorsOrSkips ? "error" : "completed";
 }
@@ -48,13 +48,13 @@ function getExecutionStatus(
 
 Each node transitions through states during workflow execution:
 
-| Status | Description | Can Transition To |
-|--------|-------------|-------------------|
-| `idle` | Node has not been reached yet | `executing`, `skipped` |
-| `executing` | Node is currently being executed | `completed`, `failed`, `skipped` |
-| `completed` | Node executed successfully and produced outputs | _(terminal)_ |
-| `failed` | Node execution failed with an error | _(terminal)_ |
-| `skipped` | Node was skipped due to missing inputs or upstream failures | _(terminal)_ |
+| Status      | Description                                                 | Can Transition To                |
+| ----------- | ----------------------------------------------------------- | -------------------------------- |
+| `idle`      | Node has not been reached yet                               | `executing`, `skipped`           |
+| `executing` | Node is currently being executed                            | `completed`, `failed`, `skipped` |
+| `completed` | Node executed successfully and produced outputs             | _(terminal)_                     |
+| `failed`    | Node execution failed with an error                         | _(terminal)_                     |
+| `skipped`   | Node was skipped due to missing inputs or upstream failures | _(terminal)_                     |
 
 ### State Determination
 
@@ -97,6 +97,7 @@ Node depends on upstream nodes that failed or were skipped.
 ### Input Validation (Node Responsibility)
 
 Nodes receive `undefined` for missing inputs and are responsible for:
+
 - Validating that required inputs are present
 - Throwing errors or returning failure status if validation fails
 - Handling `undefined` as a valid value if appropriate for their logic
@@ -111,8 +112,8 @@ Created once during initialization, never modified:
 
 ```typescript
 interface WorkflowExecutionContext {
-  readonly workflow: Workflow;           // Workflow definition
-  readonly orderedNodeIds: string[];     // Topological execution order
+  readonly workflow: Workflow; // Workflow definition
+  readonly orderedNodeIds: string[]; // Topological execution order
   readonly workflowId: string;
   readonly organizationId: string;
   readonly executionId: string;
@@ -125,10 +126,10 @@ Updated throughout execution using immutable update patterns:
 
 ```typescript
 interface ExecutionState {
-  nodeOutputs: WorkflowRuntimeState;     // Map: nodeId → outputs
-  executedNodes: string[];               // Successfully executed nodes
-  skippedNodes: string[];                // Skipped nodes
-  nodeErrors: Record<string, string>;    // Map: nodeId → error message
+  nodeOutputs: WorkflowRuntimeState; // Map: nodeId → outputs
+  executedNodes: string[]; // Successfully executed nodes
+  skippedNodes: string[]; // Skipped nodes
+  nodeErrors: Record<string, string>; // Map: nodeId → error message
 }
 ```
 
@@ -159,7 +160,7 @@ type RuntimeValue =
   | string
   | number
   | boolean
-  | ObjectReference        // Pointer to R2 binary data
+  | ObjectReference // Pointer to R2 binary data
   | JsonArray
   | JsonObject;
 ```
@@ -276,9 +277,11 @@ function shouldSkipNode(context, state, nodeId): boolean {
 
   // Check upstream dependencies
   for (const edge of inboundEdges) {
-    if (state.skippedNodes.includes(edge.source) ||
-        edge.source in state.nodeErrors) {
-      return true;  // Upstream failure
+    if (
+      state.skippedNodes.includes(edge.source) ||
+      edge.source in state.nodeErrors
+    ) {
+      return true; // Upstream failure
     }
   }
 
@@ -294,7 +297,10 @@ Tests use Cloudflare Workflows testing APIs to verify state transitions:
 
 ```typescript
 // Set up introspection BEFORE creating instance
-await using instance = await introspectWorkflowInstance(env.EXECUTE, instanceId);
+await using instance = await introspectWorkflowInstance(
+  env.EXECUTE,
+  instanceId
+);
 
 // Create and execute workflow
 await env.EXECUTE.create({ id: instanceId, params: createParams(workflow) });
@@ -316,6 +322,7 @@ num1 (5) → add (+3) → mult (×2)
 ```
 
 **Expected State:**
+
 ```typescript
 executedNodes: ["num1", "add", "mult"]
 nodeOutputs: {
@@ -337,6 +344,7 @@ num2 (0)  ↗
 ```
 
 **Expected State:**
+
 ```typescript
 executedNodes: ["num1", "num2"]
 nodeOutputs: {
@@ -348,6 +356,7 @@ nodeErrors: { div: "Division by zero" }
 ```
 
 **Node States:**
+
 - `num1`: `completed`
 - `num2`: `completed`
 - `div`: `failed` (execution_error)
@@ -363,22 +372,29 @@ num1 (5) → add (+?)
 ```
 
 **Expected State (if node validates and fails):**
+
 ```typescript
-executedNodes: ["num1"]
+executedNodes: ["num1"];
 nodeOutputs: {
-  num1: { value: 5 }
+  num1: {
+    value: 5;
+  }
 }
-skippedNodes: []
-nodeErrors: { add: "Missing required input: b" }
+skippedNodes: [];
+nodeErrors: {
+  add: "Missing required input: b";
+}
 ```
 
 **Node States:**
+
 - `num1`: `completed`
 - `add`: `failed` (node validated inputs and threw error)
 
 **Status:** `error`
 
 **Alternative (if node accepts undefined):**
+
 ```typescript
 executedNodes: ["num1", "add"]
 nodeOutputs: {
@@ -390,6 +406,7 @@ nodeErrors: {}
 ```
 
 **Node States:**
+
 - `num1`: `completed`
 - `add`: `completed` (with NaN result)
 
@@ -408,6 +425,7 @@ Immutable context contains workflow definition and execution order. Mutable stat
 ### Node-Responsible Input Validation
 
 Nodes are NOT skipped for missing required inputs. Instead:
+
 - The runtime passes `undefined` for missing inputs
 - Nodes are responsible for validating their own inputs
 - Nodes decide if `undefined` is valid or should throw an error

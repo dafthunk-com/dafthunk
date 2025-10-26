@@ -255,7 +255,7 @@ export abstract class ExecutableNode {
   protected createErrorResult(error: string): NodeExecution {
     return {
       nodeId: this.node.id,
-      status: "failed",
+      status: "error",
       error,
     } as NodeExecution;
   }

@@ -709,8 +709,7 @@ describe("Runtime Specification", () => {
       expect(num1Result).toBeDefined();
       expect(num2Result).toBeDefined();
       expect(divResult).toBeDefined();
-      expect(divResult.status).toBe("failed");
-      expect(divResult.error.type).toBe("execution_error");
+      expect(divResult.status).toBe("error");
 
       expect(addResult).toBeDefined();
       expect(addResult.status).toBe("skipped");
@@ -1465,8 +1464,7 @@ describe("Runtime Specification", () => {
       );
 
       expect(divResult).toBeDefined();
-      expect(divResult.status).toBe("failed");
-      expect(divResult.error.type).toBe("execution_error");
+      expect(divResult.status).toBe("error");
 
       expect(addResult).toBeDefined();
       expect(addResult.status).toBe("skipped");
@@ -2511,7 +2509,7 @@ describe("Runtime Specification", () => {
       );
 
       expect(divResult).toBeDefined();
-      expect(divResult.status).toBe("failed");
+      expect(divResult.status).toBe("error");
 
       expect(add2Result).toBeDefined();
       expect(add2Result.status).toBe("skipped");

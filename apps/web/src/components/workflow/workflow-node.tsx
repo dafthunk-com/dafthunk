@@ -194,7 +194,7 @@ export const WorkflowNode = memo(
     const hasVisibleOutputs = data.outputs.some((output) => !output.hidden);
     const canShowOutputs =
       hasVisibleOutputs &&
-      ["completed", "failed", "skipped"].includes(data.executionState);
+      ["completed", "error", "skipped"].includes(data.executionState);
     const [selectedInput, setSelectedInput] =
       useState<WorkflowParameter | null>(null);
 
@@ -274,7 +274,7 @@ export const WorkflowNode = memo(
               "border-border": !selected && data.executionState === "idle",
               "border-yellow-400": data.executionState === "executing",
               "border-green-500": data.executionState === "completed",
-              "border-red-500": data.executionState === "failed",
+              "border-red-500": data.executionState === "error",
               "border-blue-400": data.executionState === "skipped",
             }
           )}

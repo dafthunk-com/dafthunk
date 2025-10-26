@@ -250,10 +250,9 @@ export class Session extends DurableObject<Bindings> {
 
       const parsed = this.parseMessage(message);
       if (!parsed || !("type" in parsed)) {
-        const errorMsg = this.executionManager.createErrorMessage(
-          "Invalid message format"
-        );
-        this.connectionManager.send(ws, JSON.stringify(errorMsg));
+        // Protocol violation - close connection
+        console.error("Protocol violation: Invalid message format");
+        ws.close(1003, "Invalid message format");
         return;
       }
 
@@ -264,14 +263,16 @@ export class Session extends DurableObject<Bindings> {
         case "execute":
           await this.handleExecuteMessage(ws, parsed as WorkflowExecuteMessage);
           break;
+        default:
+          // Protocol violation - unknown message type
+          console.error("Protocol violation: Unknown message type");
+          ws.close(1003, "Unknown message type");
+          break;
       }
     } catch (error) {
-      console.error("WebSocket message error:", error);
-      const errorMsg = this.executionManager.createErrorMessage(
-        "Failed to process message",
-        error instanceof Error ? error.message : "Unknown error"
-      );
-      this.connectionManager.send(ws, JSON.stringify(errorMsg));
+      // Protocol violation - message processing failed
+      console.error("Protocol violation: Failed to process message:", error);
+      ws.close(1011, "Message processing failed");
     }
   }
 
@@ -324,10 +325,9 @@ export class Session extends DurableObject<Bindings> {
     const userId = this.stateManager.getUserId();
 
     if (!state || !organizationId || !userId) {
-      const errorMsg = this.executionManager.createErrorMessage(
-        "Workflow not initialized"
-      );
-      this.connectionManager.send(ws, JSON.stringify(errorMsg));
+      // State not initialized - protocol violation
+      console.error("Protocol violation: Workflow not initialized");
+      ws.close(1011, "Workflow not initialized");
       return;
     }
 
@@ -352,11 +352,8 @@ export class Session extends DurableObject<Bindings> {
       this.connectionManager.send(ws, JSON.stringify(updateMessage));
     } catch (error) {
       console.error("Failed to execute workflow:", error);
-      const errorMsg = this.executionManager.createErrorMessage(
-        "Failed to execute workflow",
-        error instanceof Error ? error.message : "Unknown error"
-      );
-      this.connectionManager.send(ws, JSON.stringify(errorMsg));
+      // Can't start execution - close connection
+      ws.close(1011, "Failed to execute workflow");
     }
   }
 
