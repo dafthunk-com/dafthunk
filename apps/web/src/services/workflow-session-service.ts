@@ -59,10 +59,8 @@ export class WorkflowWebSocket {
         try {
           const message = JSON.parse(event.data) as ServerMessage;
 
-          if ("error" in message) {
-            console.error("WebSocket error message:", message.error);
-            this.options.onError?.(message.error || "");
-          } else if (message.type === "init") {
+          // Check for typed messages first
+          if (message.type === "init") {
             this.currentState = message.state;
             this.options.onInit?.(message.state);
           } else if (message.type === "update") {
@@ -76,6 +74,10 @@ export class WorkflowWebSocket {
               nodeExecutions: message.nodeExecutions,
               error: message.error,
             });
+          } else if ("error" in message) {
+            // WorkflowErrorMessage (no type field, only error field)
+            console.error("WebSocket error message:", message.error);
+            this.options.onError?.(message.error || "");
           }
         } catch (error) {
           console.error("Failed to parse WebSocket message:", error);

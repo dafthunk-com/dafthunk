@@ -258,9 +258,9 @@ describe("BboxNode", () => {
       const result = await node.execute(context);
 
       // The node should either complete successfully or return an error
-      expect(["completed", "error"]).toContain(result.status);
+      expect(["completed", "failed"]).toContain(result.status);
 
-      if (result.status === "error") {
+      if (result.status === "failed") {
         expect(result.error).toBeDefined();
         expect(typeof result.error).toBe("string");
       }

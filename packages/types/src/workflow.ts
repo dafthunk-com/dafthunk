@@ -300,7 +300,7 @@ export type NodeExecutionStatus =
   | "idle"
   | "executing"
   | "completed"
-  | "error"
+  | "failed"
   | "skipped";
 
 /**

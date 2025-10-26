@@ -134,7 +134,7 @@ const updateNodesWithExecutionState = (
           data: {
             ...node.data,
             executionState: state,
-            error: state === "error" ? node.data.error : null,
+            error: state === "failed" ? node.data.error : null,
           },
         }
       : node
@@ -160,7 +160,7 @@ const updateEdgesForNodeExecution = (
     });
   }
 
-  if (state === "completed" || state === "error") {
+  if (state === "completed" || state === "failed") {
     return edges.map((edge) => ({
       ...edge,
       data: {

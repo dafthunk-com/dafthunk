@@ -952,10 +952,7 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         return {
           nodeId: node.id,
           status: "failed" as const,
-          error: {
-            type: "execution_error",
-            message: state.nodeErrors[node.id],
-          },
+          error: state.nodeErrors[node.id],
           outputs: null,
         };
       }
