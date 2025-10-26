@@ -5,7 +5,7 @@ export type NodeExecutionState =
   | "idle"
   | "executing"
   | "completed"
-  | "error"
+  | "failed"
   | "skipped";
 
 // Define InputOutputType using ParameterType
