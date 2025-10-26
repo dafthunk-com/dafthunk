@@ -80,7 +80,7 @@ export interface ExecutionState {
   nodeOutputs: WorkflowRuntimeState;
   /** Array of successfully executed node IDs */
   executedNodes: string[];
-  /** Array of skipped node IDs (due to conditional logic) */
+  /** Array of skipped node IDs (due to missing inputs or upstream failures) */
   skippedNodes: string[];
   /** Record of node IDs to error messages */
   nodeErrors: Record<string, string>;
@@ -95,8 +95,8 @@ export interface ExecutionState {
  *
  * Status determination logic:
  * - "executing": Not all nodes have been visited yet
- * - "completed": All nodes visited, no errors
- * - "error": All nodes visited, at least one error
+ * - "completed": All nodes visited successfully (no errors or skips)
+ * - "error": Any nodes failed or were skipped
  */
 export function getExecutionStatus(
   context: WorkflowExecutionContext,
@@ -117,8 +117,11 @@ export function getExecutionStatus(
     return "executing";
   }
 
-  // All nodes visited - determine success or failure
-  return Object.keys(nodeErrors).length === 0 ? "completed" : "error";
+  // All nodes visited - determine if all succeeded or some failed/skipped
+  const hasErrorsOrSkips =
+    Object.keys(nodeErrors).length > 0 || skippedNodes.length > 0;
+
+  return hasErrorsOrSkips ? "error" : "completed";
 }
 
 /**

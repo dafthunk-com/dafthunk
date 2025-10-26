@@ -491,7 +491,7 @@ describe("Runtime Specification", () => {
         params: createParams(workflow),
       });
 
-      // Wait for workflow to finish (will complete even with errors)
+      // Wait for workflow to finish (status should be 'error')
       await instance.waitForStatus("complete");
 
       // Verify step results - successful nodes
@@ -579,15 +579,19 @@ describe("Runtime Specification", () => {
       });
       expect(num1Result).toBeDefined();
 
-      // Verify add node encountered error (missing required input 'b')
+      // Verify add node executed (nodes are responsible for validating their inputs)
+      // The node will receive undefined for input 'b' and should handle it
       const addResult = await instance.waitForStepResult({
         name: "run node add",
       });
       console.log(
-        "Add result (missing input error):",
+        "Add result (executed with undefined input):",
         JSON.stringify(addResult, null, 2)
       );
       expect(addResult).toBeDefined();
+      // Node may complete with NaN or fail - either is acceptable
+      // The important thing is it was not skipped
+      expect(addResult.status).not.toBe("skipped");
     });
 
     it("should handle error in middle of workflow chain", async () => {
@@ -677,7 +681,7 @@ describe("Runtime Specification", () => {
       // Wait for workflow completion
       await instance.waitForStatus("complete");
 
-      // Verify step results - num1 and num2 should succeed, div and add should fail
+      // Verify step results - num1 and num2 should succeed, div should fail, add should skip
       const num1Result = await instance.waitForStepResult({
         name: "run node num1",
       });
@@ -698,19 +702,26 @@ describe("Runtime Specification", () => {
         JSON.stringify(divResult, null, 2)
       );
       console.log(
-        "Add result (missing input):",
+        "Add result (skipped due to upstream failure):",
         JSON.stringify(addResult, null, 2)
       );
 
       expect(num1Result).toBeDefined();
       expect(num2Result).toBeDefined();
       expect(divResult).toBeDefined();
+      expect(divResult.status).toBe("failed");
+      expect(divResult.error.type).toBe("execution_error");
+
       expect(addResult).toBeDefined();
+      expect(addResult.status).toBe("skipped");
+      expect(addResult.skipReason).toBe("upstream_failure");
+      expect(addResult.blockedBy).toContain("div");
+      expect(addResult.outputs).toBeNull();
     });
 
     it("should handle workflow with error in middle node blocking dependent nodes", async () => {
-      // This reproduces the bug: addition → subtraction (missing input b) → multiplication
-      // The workflow should complete with error status, not stay stuck in "executing"
+      // Graph: addition → subtraction (missing input b) → multiplication
+      // Expected: subtraction executes (nodes validate their own inputs), multiplication may skip if subtraction fails
       const workflow: Workflow = {
         id: "test-workflow-7",
         name: "Stuck Workflow",
@@ -798,17 +809,24 @@ describe("Runtime Specification", () => {
 
       console.log("Addition result:", JSON.stringify(additionResult, null, 2));
       console.log(
-        "Subtraction result (missing input):",
+        "Subtraction result (executed with undefined input):",
         JSON.stringify(subtractionResult, null, 2)
       );
       console.log(
-        "Multiplication result (missing input):",
+        "Multiplication result:",
         JSON.stringify(multiplicationResult, null, 2)
       );
 
       expect(additionResult).toBeDefined();
+      expect(additionResult.status).toBe("completed");
+
       expect(subtractionResult).toBeDefined();
+      // Node may complete with NaN or fail - either is acceptable
+      expect(subtractionResult.status).not.toBe("skipped");
+
       expect(multiplicationResult).toBeDefined();
+      // Multiplication will execute if subtraction completed, skip if subtraction failed
+      // The important thing is proper upstream dependency handling
     });
   });
 
@@ -1294,7 +1312,7 @@ describe("Runtime Specification", () => {
         params: createParams(workflow),
       });
 
-      // Wait for workflow completion
+      // Wait for workflow completion (status should be 'error')
       await instance.waitForStatus("complete");
 
       // Verify step results
@@ -1318,7 +1336,7 @@ describe("Runtime Specification", () => {
       expect(div2Result).toBeDefined();
     });
 
-    it("should handle cascading errors (error → missing input → error)", async () => {
+    it("should handle cascading errors (error → skipped → skipped)", async () => {
       const workflow: Workflow = {
         id: "test-workflow-cascade",
         name: "Cascading Errors Workflow",
@@ -1438,17 +1456,29 @@ describe("Runtime Specification", () => {
         JSON.stringify(divResult, null, 2)
       );
       console.log(
-        "Add result (missing input):",
+        "Add result (skipped - upstream failure):",
         JSON.stringify(addResult, null, 2)
       );
       console.log(
-        "Mult result (missing input):",
+        "Mult result (skipped - upstream failure):",
         JSON.stringify(multResult, null, 2)
       );
 
       expect(divResult).toBeDefined();
+      expect(divResult.status).toBe("failed");
+      expect(divResult.error.type).toBe("execution_error");
+
       expect(addResult).toBeDefined();
+      expect(addResult.status).toBe("skipped");
+      expect(addResult.skipReason).toBe("upstream_failure");
+      expect(addResult.blockedBy).toContain("div");
+      expect(addResult.outputs).toBeNull();
+
       expect(multResult).toBeDefined();
+      expect(multResult.status).toBe("skipped");
+      expect(multResult.skipReason).toBe("upstream_failure");
+      expect(multResult.blockedBy).toContain("add");
+      expect(multResult.outputs).toBeNull();
     });
   });
 
@@ -2268,10 +2298,10 @@ describe("Runtime Specification", () => {
   });
 
   describe("skip logic and conditional execution", () => {
-    it("should skip nodes when required inputs are missing", async () => {
+    it("should execute nodes even when required inputs are missing", async () => {
       const workflow: Workflow = {
         id: "test-workflow-skip-missing",
-        name: "Skip Missing Input",
+        name: "Execute with Missing Input",
         handle: "skip-missing",
         type: "manual",
         nodes: [
@@ -2329,18 +2359,20 @@ describe("Runtime Specification", () => {
       });
       expect(numResult).toBeDefined();
 
-      // Verify add node failed (missing required input 'b')
+      // Verify add node executed (not skipped) - nodes validate their own inputs
       const addResult = await instance.waitForStepResult({
         name: "run node add",
       });
       console.log(
-        "Add result (skip missing input):",
+        "Add result (executed with undefined input):",
         JSON.stringify(addResult, null, 2)
       );
       expect(addResult).toBeDefined();
+      // Node executed (not skipped) - may complete or fail depending on node implementation
+      expect(addResult.status).not.toBe("skipped");
     });
 
-    it("should recursively skip downstream nodes when upstream node is skipped", async () => {
+    it("should recursively skip downstream nodes when upstream node fails", async () => {
       const workflow: Workflow = {
         id: "test-workflow-recursive-skip",
         name: "Recursive Skip",
@@ -2348,21 +2380,31 @@ describe("Runtime Specification", () => {
         type: "manual",
         nodes: [
           {
-            id: "num",
-            name: "Number",
+            id: "num1",
+            name: "Number 1",
             type: "number-input",
             position: { x: 0, y: 0 },
-            inputs: [{ name: "value", type: "number", value: 5, hidden: true }],
+            inputs: [
+              { name: "value", type: "number", value: 10, hidden: true },
+            ],
             outputs: [{ name: "value", type: "number" }],
           },
           {
-            id: "add1",
-            name: "Add 1",
-            type: "addition",
+            id: "zero",
+            name: "Zero",
+            type: "number-input",
+            position: { x: 0, y: 100 },
+            inputs: [{ name: "value", type: "number", value: 0, hidden: true }],
+            outputs: [{ name: "value", type: "number" }],
+          },
+          {
+            id: "div",
+            name: "Divide",
+            type: "division",
             position: { x: 200, y: 0 },
             inputs: [
               { name: "a", type: "number", required: true },
-              { name: "b", type: "number", required: true }, // Missing
+              { name: "b", type: "number", required: true },
             ],
             outputs: [{ name: "result", type: "number" }],
           },
@@ -2372,7 +2414,7 @@ describe("Runtime Specification", () => {
             type: "addition",
             position: { x: 400, y: 0 },
             inputs: [
-              { name: "a", type: "number", required: true }, // Depends on add1
+              { name: "a", type: "number", required: true }, // Depends on div
               { name: "b", type: "number", value: 10, hidden: true },
             ],
             outputs: [{ name: "result", type: "number" }],
@@ -2391,13 +2433,19 @@ describe("Runtime Specification", () => {
         ],
         edges: [
           {
-            source: "num",
+            source: "num1",
             sourceOutput: "value",
-            target: "add1",
+            target: "div",
             targetInput: "a",
           },
           {
-            source: "add1",
+            source: "zero",
+            sourceOutput: "value",
+            target: "div",
+            targetInput: "b",
+          },
+          {
+            source: "div",
             sourceOutput: "result",
             target: "add2",
             targetInput: "a",
@@ -2428,15 +2476,19 @@ describe("Runtime Specification", () => {
       // Wait for workflow completion
       await instance.waitForStatus("complete");
 
-      // Verify num node succeeded
-      const numResult = await instance.waitForStepResult({
-        name: "run node num",
+      // Verify input nodes succeeded
+      const num1Result = await instance.waitForStepResult({
+        name: "run node num1",
       });
-      expect(numResult).toBeDefined();
+      const zeroResult = await instance.waitForStepResult({
+        name: "run node zero",
+      });
+      expect(num1Result).toBeDefined();
+      expect(zeroResult).toBeDefined();
 
-      // All downstream nodes should fail due to cascading missing inputs
-      const add1Result = await instance.waitForStepResult({
-        name: "run node add1",
+      // All downstream nodes should be skipped due to cascading failures
+      const divResult = await instance.waitForStepResult({
+        name: "run node div",
       });
       const add2Result = await instance.waitForStepResult({
         name: "run node add2",
@@ -2446,20 +2498,30 @@ describe("Runtime Specification", () => {
       });
 
       console.log(
-        "Recursive skip - add1:",
-        JSON.stringify(add1Result, null, 2)
+        "Recursive skip - div (failed - division by zero):",
+        JSON.stringify(divResult, null, 2)
       );
       console.log(
-        "Recursive skip - add2:",
+        "Recursive skip - add2 (skipped - upstream failure):",
         JSON.stringify(add2Result, null, 2)
       );
       console.log(
-        "Recursive skip - add3:",
+        "Recursive skip - add3 (skipped - upstream failure):",
         JSON.stringify(add3Result, null, 2)
       );
-      expect(add1Result).toBeDefined();
+
+      expect(divResult).toBeDefined();
+      expect(divResult.status).toBe("failed");
+
       expect(add2Result).toBeDefined();
+      expect(add2Result.status).toBe("skipped");
+      expect(add2Result.skipReason).toBe("upstream_failure");
+      expect(add2Result.blockedBy).toContain("div");
+
       expect(add3Result).toBeDefined();
+      expect(add3Result.status).toBe("skipped");
+      expect(add3Result.skipReason).toBe("upstream_failure");
+      expect(add3Result.blockedBy).toContain("add2");
     });
   });
 
@@ -2731,7 +2793,7 @@ describe("Runtime Specification", () => {
       );
     });
 
-    it("should mark final update status correctly for completed workflow", async () => {
+    it("should mark final update status as 'completed' for successful workflow", async () => {
       const workflow: Workflow = {
         id: "test-workflow-final-completed",
         name: "Final Completed",
@@ -2764,7 +2826,7 @@ describe("Runtime Specification", () => {
         params: createParams(workflow),
       });
 
-      // Wait for workflow completion
+      // Wait for workflow completion (should be status 'completed', not 'error')
       await instance.waitForStatus("complete");
 
       // Verify num result
@@ -2775,7 +2837,7 @@ describe("Runtime Specification", () => {
       expect(numResult).toBeDefined();
     });
 
-    it("should mark final update status correctly for errored workflow", async () => {
+    it("should mark final update status as 'error' for workflow with failures", async () => {
       const workflow: Workflow = {
         id: "test-workflow-final-error",
         name: "Final Error",
@@ -2963,7 +3025,7 @@ describe("Runtime Specification", () => {
       );
     });
 
-    it("should compute 'error' when all nodes visited and at least one error", async () => {
+    it("should compute 'error' when nodes fail or are skipped", async () => {
       const workflow: Workflow = {
         id: "test-workflow-status-error",
         name: "Status Error",
@@ -3143,7 +3205,7 @@ describe("Runtime Specification", () => {
         params: createParams(workflow),
       });
 
-      // Wait for workflow completion
+      // Wait for workflow completion (status should be 'error')
       await instance.waitForStatus("complete");
 
       // Verify mixed execution (some succeed, some fail)
@@ -3294,7 +3356,7 @@ describe("Runtime Specification", () => {
         params: createParams(workflow),
       });
 
-      // Wait for workflow completion
+      // Wait for workflow completion (status should be 'error')
       await instance.waitForStatus("complete");
 
       // Verify num1, zero, num2 succeed but div fails
