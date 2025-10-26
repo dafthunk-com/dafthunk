@@ -117,6 +117,7 @@ export function EditorPage() {
     isInitializing: isWorkflowInitializing,
     processingError: workflowProcessingError,
     savingError: workflowSavingError,
+    connectionError: workflowConnectionError,
     saveWorkflow,
     isWSConnected: _isWSConnected,
     workflowMetadata,
@@ -382,6 +383,10 @@ export function EditorPage() {
 
   if (workflowSavingError) {
     toast.error(`Workflow saving error: ${workflowSavingError}`);
+  }
+
+  if (workflowConnectionError) {
+    toast.error(`Connection error: ${workflowConnectionError}`);
   }
 
   if (

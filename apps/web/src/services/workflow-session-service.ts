@@ -14,12 +14,16 @@ import { getApiBaseUrl } from "@/config/api";
 export type { WorkflowState };
 
 export interface WorkflowWSOptions {
+  // Message-level callbacks (application protocol)
   onInit?: (state: WorkflowState) => void;
   onUpdate?: (state: WorkflowState) => void;
-  onError?: (error: string) => void;
-  onClose?: () => void;
-  onOpen?: () => void;
+  onOperationalError?: (error: string, details?: string) => void;
   onExecutionUpdate?: (execution: WorkflowExecution) => void;
+
+  // Connection-level callbacks (WebSocket protocol)
+  onConnectionOpen?: () => void;
+  onConnectionClose?: (event: CloseEvent) => void;
+  onConnectionError?: (event: Event) => void;
 }
 
 export class WorkflowWebSocket {
@@ -52,7 +56,7 @@ export class WorkflowWebSocket {
         console.log("WebSocket connected");
         this.reconnectAttempts = 0;
         this.reconnectDelay = 1000;
-        this.options.onOpen?.();
+        this.options.onConnectionOpen?.();
       };
 
       this.ws.onmessage = (event) => {
@@ -60,44 +64,63 @@ export class WorkflowWebSocket {
           const message = JSON.parse(event.data) as ServerMessage;
 
           // Check for typed messages first
-          if (message.type === "init") {
-            this.currentState = message.state;
-            this.options.onInit?.(message.state);
-          } else if (message.type === "update") {
-            this.currentState = message.state;
-            this.options.onUpdate?.(message.state);
-          } else if (message.type === "execution_update") {
-            this.options.onExecutionUpdate?.({
-              id: message.executionId,
-              workflowId: this.workflowId,
-              status: message.status,
-              nodeExecutions: message.nodeExecutions,
-              error: message.error,
-            });
+          if ("type" in message) {
+            if (message.type === "init") {
+              this.currentState = message.state;
+              this.options.onInit?.(message.state);
+            } else if (message.type === "update") {
+              this.currentState = message.state;
+              this.options.onUpdate?.(message.state);
+            } else if (message.type === "execution_update") {
+              // Execution updates are normal results, not errors
+              // Even if execution.error is set, this is just a summary
+              this.options.onExecutionUpdate?.({
+                id: message.executionId,
+                workflowId: this.workflowId,
+                status: message.status,
+                nodeExecutions: message.nodeExecutions,
+                error: message.error,
+              });
+            }
           } else if ("error" in message) {
-            // WorkflowErrorMessage (no type field, only error field)
-            console.error("WebSocket error message:", message.error);
-            this.options.onError?.(message.error || "");
+            // WorkflowErrorMessage - operational errors (no type field)
+            // e.g., "Failed to execute workflow", "Workflow not initialized"
+            console.error("Operational error from server:", message.error);
+            this.options.onOperationalError?.(
+              message.error || "Unknown error",
+              message.details
+            );
           }
         } catch (error) {
           console.error("Failed to parse WebSocket message:", error);
-          this.options.onError?.("Failed to parse message");
+          // Message parsing failure is an operational error, not a connection error
+          this.options.onOperationalError?.("Failed to parse message");
         }
       };
 
-      this.ws.onerror = (error) => {
-        console.error("WebSocket error:", error);
-        this.options.onError?.("WebSocket connection error");
+      this.ws.onerror = (event) => {
+        console.error("WebSocket connection error:", event);
+        this.options.onConnectionError?.(event);
       };
 
-      this.ws.onclose = () => {
-        console.log("WebSocket closed");
-        this.options.onClose?.();
+      this.ws.onclose = (event) => {
+        console.log("WebSocket closed", {
+          code: event.code,
+          reason: event.reason,
+          wasClean: event.wasClean,
+        });
+        this.options.onConnectionClose?.(event);
 
-        if (
+        // Only reconnect for abnormal closures (not clean disconnects)
+        // Code 1000 is normal closure, 1001 is going away
+        const shouldAttemptReconnect =
           this.shouldReconnect &&
-          this.reconnectAttempts < this.maxReconnectAttempts
-        ) {
+          this.reconnectAttempts < this.maxReconnectAttempts &&
+          !event.wasClean &&
+          event.code !== 1000 &&
+          event.code !== 1001;
+
+        if (shouldAttemptReconnect) {
           this.reconnectAttempts++;
           console.log(
             `Reconnecting... Attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts}`
@@ -113,7 +136,10 @@ export class WorkflowWebSocket {
       };
     } catch (error) {
       console.error("Failed to create WebSocket:", error);
-      this.options.onError?.("Failed to create WebSocket connection");
+      // Connection creation failure is a connection-level error
+      this.options.onConnectionError?.(
+        new Event("error", { cancelable: false })
+      );
     }
   }
 
@@ -145,7 +171,8 @@ export class WorkflowWebSocket {
       this.ws?.send(JSON.stringify(updateMsg));
     } catch (error) {
       console.error("Failed to send WebSocket message:", error);
-      this.options.onError?.("Failed to send message");
+      // Send failure is an operational error (bad state/data), not connection error
+      this.options.onOperationalError?.("Failed to send message");
     }
   }
 
@@ -155,7 +182,8 @@ export class WorkflowWebSocket {
   private sendMessage(message: ClientMessage, errorMessage: string): boolean {
     if (!this.isConnected()) {
       console.warn(`WebSocket is not open, cannot send message`);
-      this.options.onError?.("WebSocket is not connected");
+      // Not being connected is an operational issue, not a connection error
+      this.options.onOperationalError?.("WebSocket is not connected");
       return false;
     }
 
@@ -164,7 +192,8 @@ export class WorkflowWebSocket {
       return true;
     } catch (error) {
       console.error(`${errorMessage}:`, error);
-      this.options.onError?.(errorMessage);
+      // Send failure is an operational error
+      this.options.onOperationalError?.(errorMessage);
       return false;
     }
   }
