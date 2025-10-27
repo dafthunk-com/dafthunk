@@ -84,6 +84,9 @@ export function WorkflowBuilder({
   const [workflowStatus, setWorkflowStatus] = useState<WorkflowExecutionStatus>(
     initialWorkflowExecution?.status || "idle"
   );
+  const [workflowErrorMessage, setWorkflowErrorMessage] = useState<
+    string | undefined
+  >(initialWorkflowExecution?.error);
   const [currentExpandedOutputs, setCurrentExpandedOutputs] =
     useState(expandedOutputs);
   const [errorDialogState, setErrorDialogState] = useState<{
@@ -291,6 +294,7 @@ export function WorkflowBuilder({
         error: undefined,
       });
     });
+    setWorkflowErrorMessage(undefined);
   }, [nodes, updateNodeExecution]);
 
   const handleExecute = useCallback(() => {
@@ -308,6 +312,9 @@ export function WorkflowBuilder({
         }
         return execution.status; // Apply other status updates
       });
+
+      // Update workflow error message
+      setWorkflowErrorMessage(execution.error);
 
       execution.nodeExecutions.forEach((nodeExecution) => {
         updateNodeExecution(nodeExecution.nodeId, {
@@ -436,6 +443,7 @@ export function WorkflowBuilder({
                 !readonly && onEditMetadata ? onEditMetadata : undefined
               }
               workflowStatus={workflowStatus}
+              workflowErrorMessage={workflowErrorMessage}
               workflowType={workflowType}
               onSetSchedule={onSetSchedule}
               onShowHttpIntegration={onShowHttpIntegration}
