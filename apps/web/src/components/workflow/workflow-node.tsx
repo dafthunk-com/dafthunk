@@ -193,8 +193,7 @@ export const WorkflowNode = memo(
     const [isDocsOpen, setIsDocsOpen] = useState(false);
     const hasVisibleOutputs = data.outputs.some((output) => !output.hidden);
     const canShowOutputs =
-      hasVisibleOutputs &&
-      data.executionState === "completed";
+      hasVisibleOutputs && data.executionState === "completed";
     const [selectedInput, setSelectedInput] =
       useState<WorkflowParameter | null>(null);
 

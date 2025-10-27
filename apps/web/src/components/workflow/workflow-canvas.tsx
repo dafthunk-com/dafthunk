@@ -66,11 +66,11 @@ const actionBarButtonOutlineClassName =
 
 interface StatusBarProps {
   workflowStatus: WorkflowExecutionStatus;
-  nodeCount: number;
+  errorMessage?: string;
   readonly?: boolean;
 }
 
-function StatusBar({ workflowStatus, nodeCount, readonly }: StatusBarProps) {
+function StatusBar({ workflowStatus, errorMessage, readonly }: StatusBarProps) {
   const statusConfig = {
     idle: {
       color: "text-neutral-600 dark:text-neutral-400",
@@ -123,21 +123,26 @@ function StatusBar({ workflowStatus, nodeCount, readonly }: StatusBarProps) {
           </span>
         </div>
 
-        <div className="w-px h-4 bg-neutral-300 dark:bg-neutral-600" />
-
-        <div className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
-          <span>
-            {nodeCount} node{nodeCount !== 1 ? "s" : ""}
-          </span>
-          {readonly && (
-            <>
-              <span>•</span>
-              <span className="text-amber-600 dark:text-amber-400">
-                Read-only
-              </span>
-            </>
-          )}
-        </div>
+        {(workflowStatus === "error" && errorMessage) || readonly ? (
+          <>
+            <div className="w-px h-4 bg-neutral-300 dark:bg-neutral-600" />
+            <div className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
+              {workflowStatus === "error" && errorMessage ? (
+                <span className="text-red-600 dark:text-red-400 max-w-md truncate">
+                  {errorMessage}
+                </span>
+              ) : null}
+              {readonly && (
+                <>
+                  {workflowStatus === "error" && errorMessage && <span>•</span>}
+                  <span className="text-amber-600 dark:text-amber-400">
+                    Read-only
+                  </span>
+                </>
+              )}
+            </div>
+          </>
+        ) : null}
       </div>
     </div>
   );
@@ -172,6 +177,7 @@ export interface WorkflowCanvasProps {
   onShowHttpIntegration?: () => void;
   onShowEmailTrigger?: () => void;
   workflowStatus?: WorkflowExecutionStatus;
+  workflowErrorMessage?: string;
   onToggleSidebar?: (e: React.MouseEvent) => void;
   isSidebarVisible?: boolean;
   showControls?: boolean;
@@ -733,6 +739,7 @@ export function WorkflowCanvas({
   onShowHttpIntegration,
   onShowEmailTrigger,
   workflowStatus = "idle",
+  workflowErrorMessage,
   onToggleSidebar,
   isSidebarVisible,
   showControls = true,
@@ -834,7 +841,7 @@ export function WorkflowCanvas({
         {/* Status Bar */}
         <StatusBar
           workflowStatus={workflowStatus}
-          nodeCount={nodes.length}
+          errorMessage={workflowErrorMessage}
           readonly={readonly}
         />
 
