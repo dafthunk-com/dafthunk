@@ -188,19 +188,20 @@ export const WorkflowNode = memo(
   }) => {
     const { updateNodeData, readonly, expandedOutputs } = useWorkflow();
     const [showOutputs, setShowOutputs] = useState(false);
-    const [showError, setShowError] = useState(true);
+    const [showError, setShowError] = useState(false);
     const [isToolSelectorOpen, setIsToolSelectorOpen] = useState(false);
     const [isDocsOpen, setIsDocsOpen] = useState(false);
     const hasVisibleOutputs = data.outputs.some((output) => !output.hidden);
     const canShowOutputs =
       hasVisibleOutputs &&
-      ["completed", "error", "skipped"].includes(data.executionState);
+      data.executionState === "completed";
     const [selectedInput, setSelectedInput] =
       useState<WorkflowParameter | null>(null);
 
-    // Initialize showOutputs based on expandedOutputs and hasVisibleOutputs
+    // Initialize showOutputs and showError based on expandedOutputs
     useEffect(() => {
       setShowOutputs(hasVisibleOutputs && !!expandedOutputs);
+      setShowError(!!expandedOutputs);
     }, [expandedOutputs, hasVisibleOutputs]);
 
     // Get node type

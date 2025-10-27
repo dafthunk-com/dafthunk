@@ -367,10 +367,10 @@ function OutputsToggle({
   disabled?: boolean;
 }) {
   const tooltipText = disabled
-    ? "No outputs to show"
+    ? "No outputs or errors to show"
     : expandedOutputs
-      ? "Hide All Outputs"
-      : "Show All Outputs";
+      ? "Hide All Outputs & Errors"
+      : "Show All Outputs & Errors";
 
   return (
     <ActionBarButton
