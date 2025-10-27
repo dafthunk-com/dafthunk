@@ -176,7 +176,7 @@ Our collection of carefully selected technologies, guaranteed to be outdated by 
    - Fill in the form:
      - Name: Dafthunk (or your app name)
      - App type: `web app`
-     - Redirect URI: `http://localhost:3001/oauth/reddit/callback`
+     - Redirect URI: `http://localhost:3001/oauth/reddit/connect`
    - Click "create app"
    - Copy the Client ID (shown under the app name) and Client Secret
    - Add them to your `.dev.vars` file:
@@ -190,7 +190,7 @@ Our collection of carefully selected technologies, guaranteed to be outdated by 
    - Go to [LinkedIn Developers](https://www.linkedin.com/developers/apps)
    - Create a new app
    - In the Auth tab, add redirect URL:
-     - Redirect URL: `http://localhost:3001/oauth/linkedin/callback`
+     - Redirect URL: `http://localhost:3001/oauth/linkedin/connect`
    - Request access to the "Sign In with LinkedIn using OpenID Connect" and "Share on LinkedIn" products
    - Copy the Client ID and Client Secret
    - Add them to your `.dev.vars` file:

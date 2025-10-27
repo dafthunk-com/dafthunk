@@ -8,6 +8,20 @@ import { jwtVerify } from "jose";
 import { jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
 import { createDatabase, createIntegration, organizations } from "../db";
+import {
+  createOAuthState,
+  validateOAuthState,
+  getOAuthRedirectUri,
+  handleOAuthError,
+  type DiscordToken,
+  type DiscordUser,
+  type LinkedInToken,
+  type LinkedInUser,
+  type RedditToken,
+  type RedditUser,
+  type GitHubToken,
+  type GitHubUser,
+} from "../utils/oauth-helpers";
 
 // Create a new Hono instance for OAuth endpoints
 const oauthRoutes = new Hono<ApiContext>();
@@ -270,22 +284,8 @@ oauthRoutes.get("/discord/connect", jwtMiddleware, async (c) => {
         return c.redirect(`${c.env.WEB_HOST}/integrations?error=oauth_failed`);
       }
 
-      // Decode and validate state
-      let state: {
-        organizationId: string;
-        provider: string;
-        timestamp: number;
-      };
-      try {
-        state = JSON.parse(atob(stateParam));
-      } catch {
-        return c.redirect(`${c.env.WEB_HOST}/integrations?error=invalid_state`);
-      }
-
-      // Validate state is recent (within 10 minutes)
-      if (Date.now() - state.timestamp > 10 * 60 * 1000) {
-        return c.redirect(`${c.env.WEB_HOST}/integrations?error=expired_state`);
-      }
+      // Validate OAuth state and get organization
+      const { organizationId, orgHandle } = await validateOAuthState(c, stateParam);
 
       // Exchange code for token
       const clientId = c.env.INTEGRATION_DISCORD_CLIENT_ID;
@@ -297,11 +297,7 @@ oauthRoutes.get("/discord/connect", jwtMiddleware, async (c) => {
         );
       }
 
-      // Determine redirect URI based on environment (must match the one used in initiation)
-      const redirectUri =
-        c.env.CLOUDFLARE_ENV === "production"
-          ? `https://api.dafthunk.com/oauth/discord/connect`
-          : `http://localhost:3001/oauth/discord/connect`;
+      const redirectUri = getOAuthRedirectUri(c.env, "discord");
 
       const tokenResponse = await fetch(
         "https://discord.com/api/oauth2/token",
@@ -330,13 +326,7 @@ oauthRoutes.get("/discord/connect", jwtMiddleware, async (c) => {
         );
       }
 
-      const tokenData = await tokenResponse.json<{
-        access_token: string;
-        token_type: string;
-        expires_in: number;
-        refresh_token: string;
-        scope: string;
-      }>();
+      const tokenData = await tokenResponse.json<DiscordToken>();
 
       // Fetch user information
       const userResponse = await fetch("https://discord.com/api/users/@me", {
@@ -352,42 +342,20 @@ oauthRoutes.get("/discord/connect", jwtMiddleware, async (c) => {
         );
       }
 
-      const user = await userResponse.json<{
-        id: string;
-        username: string;
-        global_name?: string;
-        discriminator: string;
-        avatar?: string;
-        email?: string;
-      }>();
-
-      // Get organization from database using state
-      const db = createDatabase(c.env.DB);
-      const org = await db
-        .select()
-        .from(organizations)
-        .where(eq(organizations.id, state.organizationId))
-        .get();
-
-      if (!org) {
-        return c.redirect(
-          `${c.env.WEB_HOST}/integrations?error=organization_not_found`
-        );
-      }
+      const user = await userResponse.json<DiscordUser>();
 
       // Create integration with OAuth tokens
+      const db = createDatabase(c.env.DB);
       const integrationName = `Discord - ${user.username || user.global_name || "User"}`;
 
       await createIntegration(
         db,
-        state.organizationId,
+        organizationId,
         integrationName,
         "discord",
         tokenData.access_token,
         tokenData.refresh_token,
-        tokenData.expires_in
-          ? new Date(Date.now() + tokenData.expires_in * 1000)
-          : undefined,
+        new Date(Date.now() + tokenData.expires_in * 1000),
         JSON.stringify({
           username: user.username,
           globalName: user.global_name,
@@ -398,25 +366,20 @@ oauthRoutes.get("/discord/connect", jwtMiddleware, async (c) => {
         c.env
       );
 
-      // Redirect back to integrations page with success
       return c.redirect(
-        `${c.env.WEB_HOST}/org/${org.handle}/integrations?success=discord_connected`
+        `${c.env.WEB_HOST}/org/${orgHandle}/integrations?success=discord_connected`
       );
     } catch (error) {
-      console.error("Discord OAuth error:", error);
-      return c.redirect(`${c.env.WEB_HOST}/integrations?error=oauth_failed`);
+      return handleOAuthError(error, "Discord", c.env.WEB_HOST);
     }
   }
 
   // No code parameter - initiate OAuth flow
   const organizationId = c.get("organizationId");
-  const state = btoa(
-    JSON.stringify({
-      organizationId,
-      provider: "discord",
-      timestamp: Date.now(),
-    })
-  );
+  if (!organizationId) {
+    return c.redirect(`${c.env.WEB_HOST}/integrations?error=not_authenticated`);
+  }
+  const state = createOAuthState(organizationId, "discord");
 
   const clientId = c.env.INTEGRATION_DISCORD_CLIENT_ID;
   if (!clientId) {
@@ -425,13 +388,7 @@ oauthRoutes.get("/discord/connect", jwtMiddleware, async (c) => {
     );
   }
 
-  // Determine redirect URI based on environment
-  const redirectUri =
-    c.env.CLOUDFLARE_ENV === "production"
-      ? `https://api.dafthunk.com/oauth/discord/connect`
-      : `http://localhost:3001/oauth/discord/connect`;
-
-  // Discord OAuth scopes
+  const redirectUri = getOAuthRedirectUri(c.env, "discord");
   const scopes = ["identify", "email", "guilds"];
 
   const authUrl = new URL("https://discord.com/oauth2/authorize");
@@ -466,22 +423,8 @@ oauthRoutes.get("/linkedin/connect", jwtMiddleware, async (c) => {
         return c.redirect(`${c.env.WEB_HOST}/integrations?error=oauth_failed`);
       }
 
-      // Decode and validate state
-      let state: {
-        organizationId: string;
-        provider: string;
-        timestamp: number;
-      };
-      try {
-        state = JSON.parse(atob(stateParam));
-      } catch {
-        return c.redirect(`${c.env.WEB_HOST}/integrations?error=invalid_state`);
-      }
-
-      // Validate state is recent (within 10 minutes)
-      if (Date.now() - state.timestamp > 10 * 60 * 1000) {
-        return c.redirect(`${c.env.WEB_HOST}/integrations?error=expired_state`);
-      }
+      // Validate OAuth state and get organization
+      const { organizationId, orgHandle } = await validateOAuthState(c, stateParam);
 
       // Exchange code for token
       const clientId = c.env.INTEGRATION_LINKEDIN_CLIENT_ID;
@@ -493,11 +436,7 @@ oauthRoutes.get("/linkedin/connect", jwtMiddleware, async (c) => {
         );
       }
 
-      // Determine redirect URI based on environment (must match the one used in initiation)
-      const redirectUri =
-        c.env.CLOUDFLARE_ENV === "production"
-          ? `https://api.dafthunk.com/oauth/linkedin/connect`
-          : `http://localhost:3001/oauth/linkedin/connect`;
+      const redirectUri = getOAuthRedirectUri(c.env, "linkedin");
 
       const tokenResponse = await fetch(
         "https://www.linkedin.com/oauth/v2/accessToken",
@@ -524,12 +463,7 @@ oauthRoutes.get("/linkedin/connect", jwtMiddleware, async (c) => {
         );
       }
 
-      const tokenData = (await tokenResponse.json()) as {
-        access_token: string;
-        expires_in: number;
-        refresh_token?: string;
-        refresh_token_expires_in?: number;
-      };
+      const tokenData = await tokenResponse.json<LinkedInToken>();
 
       // Get user info using the new LinkedIn API v2
       const userResponse = await fetch("https://api.linkedin.com/v2/userinfo", {
@@ -545,14 +479,7 @@ oauthRoutes.get("/linkedin/connect", jwtMiddleware, async (c) => {
         );
       }
 
-      const user = (await userResponse.json()) as {
-        sub: string;
-        name?: string;
-        given_name?: string;
-        family_name?: string;
-        email?: string;
-        picture?: string;
-      };
+      const user = await userResponse.json<LinkedInUser>();
 
       // Create integration with OAuth tokens
       const db = createDatabase(c.env.DB);
@@ -560,7 +487,7 @@ oauthRoutes.get("/linkedin/connect", jwtMiddleware, async (c) => {
 
       await createIntegration(
         db,
-        state.organizationId,
+        organizationId,
         integrationName,
         "linkedin",
         tokenData.access_token,
@@ -577,39 +504,20 @@ oauthRoutes.get("/linkedin/connect", jwtMiddleware, async (c) => {
         c.env
       );
 
-      // Get organization handle for redirect
-      const org = await db
-        .select({ handle: organizations.handle })
-        .from(organizations)
-        .where(eq(organizations.id, state.organizationId))
-        .limit(1);
-
-      const orgHandle = org[0]?.handle;
-      if (!orgHandle) {
-        return c.redirect(
-          `${c.env.WEB_HOST}/integrations?error=organization_not_found`
-        );
-      }
-
-      // Redirect back to integrations page with success
       return c.redirect(
         `${c.env.WEB_HOST}/org/${orgHandle}/integrations?success=linkedin_connected`
       );
     } catch (error) {
-      console.error("LinkedIn OAuth error:", error);
-      return c.redirect(`${c.env.WEB_HOST}/integrations?error=oauth_failed`);
+      return handleOAuthError(error, "LinkedIn", c.env.WEB_HOST);
     }
   }
 
   // No code parameter - initiate OAuth flow
   const organizationId = c.get("organizationId");
-  const state = btoa(
-    JSON.stringify({
-      organizationId,
-      provider: "linkedin",
-      timestamp: Date.now(),
-    })
-  );
+  if (!organizationId) {
+    return c.redirect(`${c.env.WEB_HOST}/integrations?error=not_authenticated`);
+  }
+  const state = createOAuthState(organizationId, "linkedin");
 
   const clientId = c.env.INTEGRATION_LINKEDIN_CLIENT_ID;
   if (!clientId) {
@@ -618,13 +526,7 @@ oauthRoutes.get("/linkedin/connect", jwtMiddleware, async (c) => {
     );
   }
 
-  // Determine redirect URI based on environment
-  const redirectUri =
-    c.env.CLOUDFLARE_ENV === "production"
-      ? `https://api.dafthunk.com/oauth/linkedin/connect`
-      : `http://localhost:3001/oauth/linkedin/connect`;
-
-  // LinkedIn OAuth scopes for posting and profile access
+  const redirectUri = getOAuthRedirectUri(c.env, "linkedin");
   const scopes = ["openid", "profile", "email", "w_member_social"];
 
   const authUrl = new URL("https://www.linkedin.com/oauth/v2/authorization");
@@ -659,22 +561,8 @@ oauthRoutes.get("/reddit/connect", jwtMiddleware, async (c) => {
         return c.redirect(`${c.env.WEB_HOST}/integrations?error=oauth_failed`);
       }
 
-      // Decode and validate state
-      let state: {
-        organizationId: string;
-        provider: string;
-        timestamp: number;
-      };
-      try {
-        state = JSON.parse(atob(stateParam));
-      } catch {
-        return c.redirect(`${c.env.WEB_HOST}/integrations?error=invalid_state`);
-      }
-
-      // Validate state is recent (within 10 minutes)
-      if (Date.now() - state.timestamp > 10 * 60 * 1000) {
-        return c.redirect(`${c.env.WEB_HOST}/integrations?error=expired_state`);
-      }
+      // Validate OAuth state and get organization
+      const { organizationId, orgHandle } = await validateOAuthState(c, stateParam);
 
       // Exchange code for token
       const clientId = c.env.INTEGRATION_REDDIT_CLIENT_ID;
@@ -686,11 +574,7 @@ oauthRoutes.get("/reddit/connect", jwtMiddleware, async (c) => {
         );
       }
 
-      // Determine redirect URI based on environment (must match the one used in initiation)
-      const redirectUri =
-        c.env.CLOUDFLARE_ENV === "production"
-          ? `https://api.dafthunk.com/oauth/reddit/connect`
-          : `http://localhost:3001/oauth/reddit/connect`;
+      const redirectUri = getOAuthRedirectUri(c.env, "reddit");
 
       const tokenResponse = await fetch(
         "https://www.reddit.com/api/v1/access_token",
@@ -717,11 +601,7 @@ oauthRoutes.get("/reddit/connect", jwtMiddleware, async (c) => {
         );
       }
 
-      const tokenData = (await tokenResponse.json()) as {
-        access_token: string;
-        refresh_token: string;
-        expires_in: number;
-      };
+      const tokenData = await tokenResponse.json<RedditToken>();
 
       // Get user info
       const userResponse = await fetch("https://oauth.reddit.com/api/v1/me", {
@@ -738,11 +618,7 @@ oauthRoutes.get("/reddit/connect", jwtMiddleware, async (c) => {
         );
       }
 
-      const user = (await userResponse.json()) as {
-        name: string;
-        id: string;
-        icon_img?: string;
-      };
+      const user = await userResponse.json<RedditUser>();
 
       // Create integration with OAuth tokens
       const db = createDatabase(c.env.DB);
@@ -750,7 +626,7 @@ oauthRoutes.get("/reddit/connect", jwtMiddleware, async (c) => {
 
       await createIntegration(
         db,
-        state.organizationId,
+        organizationId,
         integrationName,
         "reddit",
         tokenData.access_token,
@@ -764,39 +640,20 @@ oauthRoutes.get("/reddit/connect", jwtMiddleware, async (c) => {
         c.env
       );
 
-      // Get organization handle for redirect
-      const org = await db
-        .select({ handle: organizations.handle })
-        .from(organizations)
-        .where(eq(organizations.id, state.organizationId))
-        .limit(1);
-
-      const orgHandle = org[0]?.handle;
-      if (!orgHandle) {
-        return c.redirect(
-          `${c.env.WEB_HOST}/integrations?error=organization_not_found`
-        );
-      }
-
-      // Redirect back to integrations page with success
       return c.redirect(
         `${c.env.WEB_HOST}/org/${orgHandle}/integrations?success=reddit_connected`
       );
     } catch (error) {
-      console.error("Reddit OAuth error:", error);
-      return c.redirect(`${c.env.WEB_HOST}/integrations?error=oauth_failed`);
+      return handleOAuthError(error, "Reddit", c.env.WEB_HOST);
     }
   }
 
   // No code parameter - initiate OAuth flow
   const organizationId = c.get("organizationId");
-  const state = btoa(
-    JSON.stringify({
-      organizationId,
-      provider: "reddit",
-      timestamp: Date.now(),
-    })
-  );
+  if (!organizationId) {
+    return c.redirect(`${c.env.WEB_HOST}/integrations?error=not_authenticated`);
+  }
+  const state = createOAuthState(organizationId, "reddit");
 
   const clientId = c.env.INTEGRATION_REDDIT_CLIENT_ID;
   if (!clientId) {
@@ -805,12 +662,7 @@ oauthRoutes.get("/reddit/connect", jwtMiddleware, async (c) => {
     );
   }
 
-  // Determine redirect URI based on environment
-  const redirectUri =
-    c.env.CLOUDFLARE_ENV === "production"
-      ? `https://api.dafthunk.com/oauth/reddit/connect`
-      : `http://localhost:3001/oauth/reddit/connect`;
-
+  const redirectUri = getOAuthRedirectUri(c.env, "reddit");
   const scopes = ["identity", "submit", "read", "vote", "mysubreddits"];
 
   const authUrl = new URL("https://www.reddit.com/api/v1/authorize");
@@ -846,22 +698,8 @@ oauthRoutes.get("/github/connect", jwtMiddleware, async (c) => {
         return c.redirect(`${c.env.WEB_HOST}/integrations?error=oauth_failed`);
       }
 
-      // Decode and validate state
-      let state: {
-        organizationId: string;
-        provider: string;
-        timestamp: number;
-      };
-      try {
-        state = JSON.parse(atob(stateParam));
-      } catch {
-        return c.redirect(`${c.env.WEB_HOST}/integrations?error=invalid_state`);
-      }
-
-      // Validate state is recent (within 10 minutes)
-      if (Date.now() - state.timestamp > 10 * 60 * 1000) {
-        return c.redirect(`${c.env.WEB_HOST}/integrations?error=expired_state`);
-      }
+      // Validate OAuth state and get organization
+      const { organizationId, orgHandle } = await validateOAuthState(c, stateParam);
 
       // Exchange code for token
       const clientId = c.env.INTEGRATION_GITHUB_CLIENT_ID;
@@ -873,11 +711,7 @@ oauthRoutes.get("/github/connect", jwtMiddleware, async (c) => {
         );
       }
 
-      // Determine redirect URI based on environment (must match the one used in /connect)
-      const redirectUri =
-        c.env.CLOUDFLARE_ENV === "production"
-          ? `https://api.dafthunk.com/oauth/github/connect`
-          : `http://localhost:3001/oauth/github/connect`;
+      const redirectUri = getOAuthRedirectUri(c.env, "github");
 
       const tokenResponse = await fetch(
         "https://github.com/login/oauth/access_token",
@@ -904,11 +738,7 @@ oauthRoutes.get("/github/connect", jwtMiddleware, async (c) => {
         );
       }
 
-      const tokenData = (await tokenResponse.json()) as {
-        access_token: string;
-        token_type: string;
-        scope: string;
-      };
+      const tokenData = await tokenResponse.json<GitHubToken>();
 
       if (!tokenData.access_token) {
         return c.redirect(
@@ -932,13 +762,7 @@ oauthRoutes.get("/github/connect", jwtMiddleware, async (c) => {
         );
       }
 
-      const user = (await userResponse.json()) as {
-        id: number;
-        login: string;
-        name: string;
-        email: string;
-        avatar_url: string;
-      };
+      const user = await userResponse.json<GitHubUser>();
 
       // Create integration with OAuth tokens
       const db = createDatabase(c.env.DB);
@@ -946,12 +770,12 @@ oauthRoutes.get("/github/connect", jwtMiddleware, async (c) => {
 
       await createIntegration(
         db,
-        state.organizationId,
+        organizationId,
         integrationName,
         "github",
         tokenData.access_token,
-        undefined, // GitHub personal access tokens don't have refresh tokens
-        undefined, // GitHub personal access tokens don't expire
+        undefined, // GitHub OAuth tokens don't have refresh tokens
+        undefined, // GitHub OAuth tokens don't expire
         JSON.stringify({
           userId: user.id,
           login: user.login,
@@ -962,39 +786,20 @@ oauthRoutes.get("/github/connect", jwtMiddleware, async (c) => {
         c.env
       );
 
-      // Get organization handle for redirect
-      const org = await db
-        .select({ handle: organizations.handle })
-        .from(organizations)
-        .where(eq(organizations.id, state.organizationId))
-        .limit(1);
-
-      const orgHandle = org[0]?.handle;
-      if (!orgHandle) {
-        return c.redirect(
-          `${c.env.WEB_HOST}/integrations?error=organization_not_found`
-        );
-      }
-
-      // Redirect back to integrations page with success
       return c.redirect(
         `${c.env.WEB_HOST}/org/${orgHandle}/integrations?success=github_connected`
       );
     } catch (error) {
-      console.error("GitHub OAuth error:", error);
-      return c.redirect(`${c.env.WEB_HOST}/integrations?error=oauth_failed`);
+      return handleOAuthError(error, "GitHub", c.env.WEB_HOST);
     }
   }
 
   // No code parameter - initiate OAuth flow
   const organizationId = c.get("organizationId");
-  const state = btoa(
-    JSON.stringify({
-      organizationId,
-      provider: "github",
-      timestamp: Date.now(),
-    })
-  );
+  if (!organizationId) {
+    return c.redirect(`${c.env.WEB_HOST}/integrations?error=not_authenticated`);
+  }
+  const state = createOAuthState(organizationId, "github");
 
   const clientId = c.env.INTEGRATION_GITHUB_CLIENT_ID;
   if (!clientId) {
@@ -1003,13 +808,7 @@ oauthRoutes.get("/github/connect", jwtMiddleware, async (c) => {
     );
   }
 
-  // Determine redirect URI based on environment
-  const redirectUri =
-    c.env.CLOUDFLARE_ENV === "production"
-      ? `https://api.dafthunk.com/oauth/github/connect`
-      : `http://localhost:3001/oauth/github/connect`;
-
-  // GitHub OAuth scopes
+  const redirectUri = getOAuthRedirectUri(c.env, "github");
   const scopes = ["user", "repo", "read:org"];
 
   const authUrl = new URL("https://github.com/login/oauth/authorize");

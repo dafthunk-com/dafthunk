@@ -9,6 +9,12 @@ import {
 import type { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
 import type { HttpRequest, NodeContext } from "../nodes/types";
 import type { EmailMessage } from "../nodes/types";
+import {
+  refreshOAuthToken,
+  shouldRefreshToken,
+  supportsTokenRefresh,
+  TokenRefreshError,
+} from "../utils/oauth";
 import type { IntegrationData } from "./types";
 
 /**
@@ -264,11 +270,11 @@ export class ResourceProvider {
 
   /**
    * Get a valid access token for an integration, refreshing if necessary.
-   * Internal method - token refresh complexity hidden from callers.
+   * Proactive refresh: refreshes 5 minutes before expiration to avoid failures.
    */
   private async getValidAccessToken(integrationId: string): Promise<string> {
     if (!this.organizationId) {
-      throw new Error("Organization ID not set. Call initialize first.");
+      throw new Error("Organization not initialized");
     }
 
     const db = createDatabase(this.env.DB);
@@ -282,314 +288,88 @@ export class ResourceProvider {
       throw new Error(`Integration ${integrationId} not found`);
     }
 
-    // Check if token has expired
-    const now = new Date();
-    const isExpired =
-      integration.tokenExpiresAt && new Date(integration.tokenExpiresAt) < now;
+    const { provider, encryptedToken, encryptedRefreshToken, tokenExpiresAt } =
+      integration;
 
-    if (!isExpired) {
-      // Token is still valid, decrypt and return it
-      return this.decryptSecret(
-        integration.encryptedToken,
-        this.organizationId
-      );
+    // For providers without expiring tokens (GitHub), return current token
+    if (!supportsTokenRefresh(provider)) {
+      return this.decryptSecret(encryptedToken, this.organizationId);
     }
 
-    // Token expired, need to refresh
-    if (!integration.encryptedRefreshToken) {
+    // If token is still valid, return it
+    if (!shouldRefreshToken(tokenExpiresAt)) {
+      return this.decryptSecret(encryptedToken, this.organizationId);
+    }
+
+    // Token needs refresh
+    if (!encryptedRefreshToken) {
+      await this.markIntegrationExpired(db, integrationId);
       throw new Error(
-        `Integration ${integrationId} token expired and no refresh token available. User needs to reconnect.`
+        `Integration ${integrationId} has expired. Please reconnect in settings.`
       );
     }
 
-    const refreshToken = await this.decryptSecret(
-      integration.encryptedRefreshToken,
+    // Decrypt refresh token and refresh
+    const currentRefreshToken = await this.decryptSecret(
+      encryptedRefreshToken,
       this.organizationId
     );
 
-    // Refresh the token based on provider
-    let newTokenData;
     try {
-      newTokenData = await this.refreshToken(
-        integration.provider,
-        refreshToken
-      );
-    } catch (error) {
-      // Refresh token is invalid/expired/revoked
-      console.error(
-        `Failed to refresh token for integration ${integrationId}:`,
-        error
+      console.log(`[OAuth] Refreshing token: ${provider} (${integrationId})`);
+
+      const result = await refreshOAuthToken(
+        provider,
+        currentRefreshToken,
+        this.env
       );
 
-      // Mark integration as expired
+      console.log(`[OAuth] Token refreshed: ${provider} (${integrationId})`);
+
+      // Update integration with new tokens
       await updateIntegration(
         db,
         integrationId,
         this.organizationId,
         {
-          status: "expired",
+          status: "active",
+          token: result.accessToken,
+          tokenExpiresAt: new Date(Date.now() + result.expiresIn * 1000),
+          ...(result.refreshToken && { refreshToken: result.refreshToken }),
         },
         this.env
       );
 
-      throw new Error("Integration expired. Please reconnect your account.");
-    }
+      return result.accessToken;
+    } catch (error) {
+      console.error(
+        `[OAuth] Failed to refresh: ${provider} (${integrationId})`,
+        error instanceof TokenRefreshError ? error.message : error
+      );
 
-    // Update the integration with new tokens and mark as active
+      await this.markIntegrationExpired(db, integrationId);
+      throw new Error(
+        "Integration has expired. Please reconnect in settings."
+      );
+    }
+  }
+
+  /**
+   * Mark an integration as expired
+   */
+  private async markIntegrationExpired(
+    db: ReturnType<typeof createDatabase>,
+    integrationId: string
+  ): Promise<void> {
+    if (!this.organizationId) return;
+
     await updateIntegration(
       db,
       integrationId,
       this.organizationId,
-      {
-        status: "active",
-        token: newTokenData.access_token,
-        tokenExpiresAt: new Date(Date.now() + newTokenData.expires_in * 1000),
-        // Only update refresh token if a new one was provided
-        ...(newTokenData.refresh_token && {
-          refreshToken: newTokenData.refresh_token,
-        }),
-      },
+      { status: "expired" },
       this.env
     );
-
-    return newTokenData.access_token;
-  }
-
-  /**
-   * Refresh an OAuth token based on provider
-   */
-  private async refreshToken(
-    provider: string,
-    refreshToken: string
-  ): Promise<{
-    access_token: string;
-    expires_in: number;
-    refresh_token?: string;
-  }> {
-    if (provider === "google-mail") {
-      const clientId = this.env.INTEGRATION_GOOGLE_MAIL_CLIENT_ID;
-      const clientSecret = this.env.INTEGRATION_GOOGLE_MAIL_CLIENT_SECRET;
-      if (!clientId || !clientSecret) {
-        throw new Error("Google Mail OAuth credentials not configured");
-      }
-      return this.refreshGoogleToken(refreshToken, clientId, clientSecret);
-    }
-
-    if (provider === "google-calendar") {
-      const clientId = this.env.INTEGRATION_GOOGLE_CALENDAR_CLIENT_ID;
-      const clientSecret = this.env.INTEGRATION_GOOGLE_CALENDAR_CLIENT_SECRET;
-      if (!clientId || !clientSecret) {
-        throw new Error("Google Calendar OAuth credentials not configured");
-      }
-      return this.refreshGoogleToken(refreshToken, clientId, clientSecret);
-    }
-
-    if (provider === "discord") {
-      const clientId = this.env.INTEGRATION_DISCORD_CLIENT_ID;
-      const clientSecret = this.env.INTEGRATION_DISCORD_CLIENT_SECRET;
-      if (!clientId || !clientSecret) {
-        throw new Error("Discord OAuth credentials not configured");
-      }
-      return this.refreshDiscordToken(refreshToken, clientId, clientSecret);
-    }
-
-    if (provider === "reddit") {
-      const clientId = this.env.INTEGRATION_REDDIT_CLIENT_ID;
-      const clientSecret = this.env.INTEGRATION_REDDIT_CLIENT_SECRET;
-      if (!clientId || !clientSecret) {
-        throw new Error("Reddit OAuth credentials not configured");
-      }
-      return this.refreshRedditToken(refreshToken, clientId, clientSecret);
-    }
-
-    if (provider === "linkedin") {
-      const clientId = this.env.INTEGRATION_LINKEDIN_CLIENT_ID;
-      const clientSecret = this.env.INTEGRATION_LINKEDIN_CLIENT_SECRET;
-      if (!clientId || !clientSecret) {
-        throw new Error("LinkedIn OAuth credentials not configured");
-      }
-      return this.refreshLinkedInToken(refreshToken, clientId, clientSecret);
-    }
-
-    throw new Error(`Token refresh not supported for provider: ${provider}`);
-  }
-
-  /**
-   * Refresh a Google OAuth token
-   */
-  private async refreshGoogleToken(
-    refreshToken: string,
-    clientId: string,
-    clientSecret: string
-  ): Promise<{
-    access_token: string;
-    expires_in: number;
-    refresh_token?: string;
-  }> {
-    const response = await fetch("https://oauth2.googleapis.com/token", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: new URLSearchParams({
-        client_id: clientId,
-        client_secret: clientSecret,
-        refresh_token: refreshToken,
-        grant_type: "refresh_token",
-      }),
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`Failed to refresh Google token: ${error}`);
-    }
-
-    const data = (await response.json()) as {
-      access_token: string;
-      expires_in: number;
-      refresh_token?: string;
-    };
-
-    return {
-      access_token: data.access_token,
-      expires_in: data.expires_in,
-      // Google may return a new refresh token
-      refresh_token: data.refresh_token,
-    };
-  }
-
-  /**
-   * Refresh a Discord OAuth token
-   */
-  private async refreshDiscordToken(
-    refreshToken: string,
-    clientId: string,
-    clientSecret: string
-  ): Promise<{
-    access_token: string;
-    expires_in: number;
-    refresh_token?: string;
-  }> {
-    const response = await fetch("https://discord.com/api/oauth2/token", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: new URLSearchParams({
-        client_id: clientId,
-        client_secret: clientSecret,
-        grant_type: "refresh_token",
-        refresh_token: refreshToken,
-      }),
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`Failed to refresh Discord token: ${error}`);
-    }
-
-    const data = (await response.json()) as {
-      access_token: string;
-      expires_in: number;
-      refresh_token: string;
-    };
-
-    return {
-      access_token: data.access_token,
-      expires_in: data.expires_in,
-      // Discord always returns a new refresh token
-      refresh_token: data.refresh_token,
-    };
-  }
-
-  /**
-   * Refresh a Reddit OAuth token
-   */
-  private async refreshRedditToken(
-    refreshToken: string,
-    clientId: string,
-    clientSecret: string
-  ): Promise<{
-    access_token: string;
-    expires_in: number;
-    refresh_token?: string;
-  }> {
-    const response = await fetch("https://www.reddit.com/api/v1/access_token", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Authorization: `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
-      },
-      body: new URLSearchParams({
-        grant_type: "refresh_token",
-        refresh_token: refreshToken,
-      }),
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`Failed to refresh Reddit token: ${error}`);
-    }
-
-    const data = (await response.json()) as {
-      access_token: string;
-      expires_in: number;
-      refresh_token?: string;
-    };
-
-    return {
-      access_token: data.access_token,
-      expires_in: data.expires_in,
-      // Reddit may return a new refresh token
-      refresh_token: data.refresh_token,
-    };
-  }
-
-  /**
-   * Refresh a LinkedIn OAuth token
-   */
-  private async refreshLinkedInToken(
-    refreshToken: string,
-    clientId: string,
-    clientSecret: string
-  ): Promise<{
-    access_token: string;
-    expires_in: number;
-    refresh_token?: string;
-  }> {
-    const response = await fetch(
-      "https://www.linkedin.com/oauth/v2/accessToken",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams({
-          grant_type: "refresh_token",
-          refresh_token: refreshToken,
-          client_id: clientId,
-          client_secret: clientSecret,
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`Failed to refresh LinkedIn token: ${error}`);
-    }
-
-    const data = (await response.json()) as {
-      access_token: string;
-      expires_in: number;
-      refresh_token?: string;
-    };
-
-    return {
-      access_token: data.access_token,
-      expires_in: data.expires_in,
-      // LinkedIn may return a new refresh token
-      refresh_token: data.refresh_token,
-    };
   }
 
   /**
