@@ -417,7 +417,7 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     httpRequest?: HttpRequest,
     emailMessage?: EmailMessage
   ): Promise<ExecutionState> {
-    // Check if node should be skipped due to missing required inputs or upstream failures
+    // Check if node should be skipped (all upstream dependencies unavailable)
     if (this.shouldSkipNode(context, state, nodeId)) {
       // Mark as skipped
       if (!state.skippedNodes.includes(nodeId)) {
@@ -893,12 +893,11 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
   /**
    * Determines if a node should be skipped.
    * A node is skipped if:
-   * - It has already been marked as skipped
-   * - It has upstream dependencies that failed or were skipped
+   * - It has already been marked as skipped or errored
+   * - ALL upstream dependencies are unavailable (errored, skipped, or didn't populate outputs)
    *
-   * Note: Nodes are NOT skipped for missing required inputs.
-   * The node itself is responsible for validating its inputs and throwing
-   * an error if required inputs are missing or invalid.
+   * This logic allows nodes like ConditionalJoin to execute with partial inputs when some
+   * branches are inactive, while still propagating errors and cascading skips.
    */
   private shouldSkipNode(
     context: WorkflowExecutionContext,
@@ -913,20 +912,42 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     const node = this.findNode(context.workflow, nodeId);
     if (!node) return false;
 
-    // Check if any upstream dependencies failed or were skipped
+    // Get all inbound edges
     const inboundEdges = context.workflow.edges.filter(
       (edge) => edge.target === nodeId
     );
-    for (const edge of inboundEdges) {
-      if (
-        state.skippedNodes.includes(edge.source) ||
-        edge.source in state.nodeErrors
-      ) {
-        return true; // Upstream failure
-      }
+
+    // If no inbound edges, node can execute (uses only static inputs)
+    if (inboundEdges.length === 0) {
+      return false;
     }
 
-    return false;
+    // Check if ALL upstream dependencies are unavailable
+    // This allows join nodes to execute with partial inputs while still cascading errors
+    const allUpstreamUnavailable = inboundEdges.every((edge) => {
+      // Upstream errored
+      if (edge.source in state.nodeErrors) {
+        return true;
+      }
+
+      // Upstream was skipped
+      if (state.skippedNodes.includes(edge.source)) {
+        return true;
+      }
+
+      // Upstream executed but didn't populate this specific output (conditional branch)
+      if (state.executedNodes.includes(edge.source)) {
+        const sourceOutputs = state.nodeOutputs[edge.source];
+        if (sourceOutputs && !(edge.sourceOutput in sourceOutputs)) {
+          return true;
+        }
+      }
+
+      // Upstream executed and populated output - this input is available
+      return false;
+    });
+
+    return allUpstreamUnavailable;
   }
 
   // ==========================================================================
@@ -984,7 +1005,10 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
 
   /**
    * Infers skip reason and details for a skipped node.
-   * Only checks for upstream failures (nodes are not skipped for missing inputs).
+   * Checks for:
+   * - Upstream errors
+   * - Upstream skips (cascading)
+   * - Conditional branches (upstream node succeeded but didn't populate the connected output)
    */
   private inferSkipReason(
     workflow: Workflow,
@@ -997,24 +1021,44 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     const node = workflow.nodes.find((n) => n.id === nodeId);
     if (!node) return {};
 
-    // Check for upstream failures
+    // Check for upstream errors, skips, and conditional branches
     const inboundEdges = workflow.edges.filter(
       (edge) => edge.target === nodeId
     );
-    const blockedBy: string[] = [];
+    const erroredUpstream: string[] = [];
+    const skippedUpstream: string[] = [];
+    const conditionalSkip: string[] = [];
+
     for (const edge of inboundEdges) {
-      if (
-        state.skippedNodes.includes(edge.source) ||
-        edge.source in state.nodeErrors
-      ) {
-        blockedBy.push(edge.source);
+      // Upstream error
+      if (edge.source in state.nodeErrors) {
+        erroredUpstream.push(edge.source);
+      }
+      // Upstream was skipped (cascading skip)
+      else if (state.skippedNodes.includes(edge.source)) {
+        skippedUpstream.push(edge.source);
+      }
+      // Conditional skip (upstream succeeded but didn't populate this output)
+      else if (state.executedNodes.includes(edge.source)) {
+        const sourceOutputs = state.nodeOutputs[edge.source];
+        if (sourceOutputs && !(edge.sourceOutput in sourceOutputs)) {
+          conditionalSkip.push(edge.source);
+        }
       }
     }
 
-    if (blockedBy.length > 0) {
+    // Prioritize upstream errors, then cascading skips, then conditional branches
+    if (erroredUpstream.length > 0 || skippedUpstream.length > 0) {
       return {
         skipReason: "upstream_failure",
-        blockedBy,
+        blockedBy: [...erroredUpstream, ...skippedUpstream],
+      };
+    }
+
+    if (conditionalSkip.length > 0) {
+      return {
+        skipReason: "conditional_branch",
+        blockedBy: conditionalSkip,
       };
     }
 
