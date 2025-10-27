@@ -1,9 +1,5 @@
-import { JWTTokenPayload } from "@dafthunk/types";
-import { googleAuth } from "@hono/oauth-providers/google";
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
-import { getCookie } from "hono/cookie";
-import { jwtVerify } from "jose";
 
 import { jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
@@ -13,6 +9,8 @@ import {
   validateOAuthState,
   getOAuthRedirectUri,
   handleOAuthError,
+  type GoogleToken,
+  type GoogleUser,
   type DiscordToken,
   type DiscordUser,
   type LinkedInToken,
@@ -29,86 +27,82 @@ const oauthRoutes = new Hono<ApiContext>();
 /**
  * GET /oauth/google-mail/connect
  *
- * Initiates Google Mail OAuth flow
+ * Initiates Google Mail OAuth flow or handles callback
  */
-oauthRoutes.get(
-  "/google-mail/connect",
-  jwtMiddleware,
-  (c, next) => {
-    // Store organization ID in state for callback
-    const organizationId = c.get("organizationId");
-    const state = btoa(
-      JSON.stringify({
-        organizationId,
-        provider: "google-mail",
-        timestamp: Date.now(),
-      })
-    );
+oauthRoutes.get("/google-mail/connect", jwtMiddleware, async (c) => {
+  const code = c.req.query("code");
 
-    const googleAuthHandler = googleAuth({
-      client_id: c.env.INTEGRATION_GOOGLE_MAIL_CLIENT_ID,
-      client_secret: c.env.INTEGRATION_GOOGLE_MAIL_CLIENT_SECRET,
-      scope: [
-        "openid",
-        "email",
-        "profile",
-        "https://www.googleapis.com/auth/gmail.modify",
-      ],
-      state,
-    });
-    return googleAuthHandler(c, next);
-  },
-  async (c) => {
+  // If there's a code parameter, this is a callback from Google
+  if (code) {
     try {
-      const token = c.get("token") as any; // OAuth token from provider
-      const user = c.get("user-google");
       const stateParam = c.req.query("state");
+      const error = c.req.query("error");
 
-      if (!token || !user || !stateParam) {
+      if (error) {
+        return c.redirect(`${c.env.WEB_HOST}/integrations?error=${error}`);
+      }
+
+      if (!code || !stateParam) {
         return c.redirect(`${c.env.WEB_HOST}/integrations?error=oauth_failed`);
       }
 
-      // Decode and validate state
-      let state: {
-        organizationId: string;
-        provider: string;
-        timestamp: number;
-      };
-      try {
-        state = JSON.parse(atob(stateParam));
-      } catch {
-        return c.redirect(`${c.env.WEB_HOST}/integrations?error=invalid_state`);
-      }
+      // Validate OAuth state and get organization
+      const { organizationId, orgHandle } = await validateOAuthState(c, stateParam);
 
-      // Validate state is recent (within 10 minutes)
-      if (Date.now() - state.timestamp > 10 * 60 * 1000) {
-        return c.redirect(`${c.env.WEB_HOST}/integrations?error=expired_state`);
-      }
+      // Exchange code for token
+      const clientId = c.env.INTEGRATION_GOOGLE_MAIL_CLIENT_ID;
+      const clientSecret = c.env.INTEGRATION_GOOGLE_MAIL_CLIENT_SECRET;
 
-      // Verify user is authenticated and matches organization
-      const accessToken = getCookie(c, "access_token");
-      if (!accessToken) {
+      if (!clientId || !clientSecret) {
         return c.redirect(
-          `${c.env.WEB_HOST}/integrations?error=not_authenticated`
+          `${c.env.WEB_HOST}/integrations?error=google_mail_not_configured`
         );
       }
 
-      const secret = new TextEncoder().encode(c.env.JWT_SECRET);
-      let payload: JWTTokenPayload | null = null;
-      try {
-        const verified = await jwtVerify(accessToken, secret);
-        payload = verified.payload as JWTTokenPayload;
-      } catch {
+      const redirectUri = getOAuthRedirectUri(c.env, "google-mail");
+
+      const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          code,
+          client_id: clientId,
+          client_secret: clientSecret,
+          redirect_uri: redirectUri,
+          grant_type: "authorization_code",
+        }),
+      });
+
+      if (!tokenResponse.ok) {
+        const errorData = await tokenResponse.text();
+        console.error("Google Mail token exchange failed:", errorData);
         return c.redirect(
-          `${c.env.WEB_HOST}/integrations?error=not_authenticated`
+          `${c.env.WEB_HOST}/integrations?error=token_exchange_failed`
         );
       }
 
-      if (!payload || payload.organization.id !== state.organizationId) {
+      const tokenData = await tokenResponse.json<GoogleToken>();
+
+      // Get user info
+      const userResponse = await fetch(
+        "https://www.googleapis.com/oauth2/v2/userinfo",
+        {
+          headers: {
+            Authorization: `Bearer ${tokenData.access_token}`,
+          },
+        }
+      );
+
+      if (!userResponse.ok) {
+        console.error("Google user info fetch failed");
         return c.redirect(
-          `${c.env.WEB_HOST}/integrations?error=organization_mismatch`
+          `${c.env.WEB_HOST}/integrations?error=user_fetch_failed`
         );
       }
+
+      const user = await userResponse.json<GoogleUser>();
 
       // Create integration with OAuth tokens
       const db = createDatabase(c.env.DB);
@@ -116,14 +110,12 @@ oauthRoutes.get(
 
       await createIntegration(
         db,
-        state.organizationId,
+        organizationId,
         integrationName,
         "google-mail",
-        token.token, // The actual access token is in token.token, not token.access_token
-        token.refresh_token,
-        token.expires_in
-          ? new Date(Date.now() + token.expires_in * 1000)
-          : undefined,
+        tokenData.access_token,
+        tokenData.refresh_token,
+        new Date(Date.now() + tokenData.expires_in * 1000),
         JSON.stringify({
           email: user.email,
           name: user.name,
@@ -132,101 +124,127 @@ oauthRoutes.get(
         c.env
       );
 
-      // Redirect back to integrations page with success
-      const orgHandle = payload.organization.handle;
       return c.redirect(
         `${c.env.WEB_HOST}/org/${orgHandle}/integrations?success=google_mail_connected`
       );
     } catch (error) {
-      console.error("Google Mail OAuth error:", error);
-      return c.redirect(`${c.env.WEB_HOST}/integrations?error=oauth_failed`);
+      return handleOAuthError(error, "Google Mail", c.env.WEB_HOST);
     }
   }
-);
+
+  // No code parameter - initiate OAuth flow
+  const organizationId = c.get("organizationId");
+  if (!organizationId) {
+    return c.redirect(`${c.env.WEB_HOST}/integrations?error=not_authenticated`);
+  }
+  const state = createOAuthState(organizationId, "google-mail");
+
+  const clientId = c.env.INTEGRATION_GOOGLE_MAIL_CLIENT_ID;
+  if (!clientId) {
+    return c.redirect(
+      `${c.env.WEB_HOST}/integrations?error=google_mail_not_configured`
+    );
+  }
+
+  const redirectUri = getOAuthRedirectUri(c.env, "google-mail");
+  const scopes = [
+    "openid",
+    "email",
+    "profile",
+    "https://www.googleapis.com/auth/gmail.modify",
+  ];
+
+  const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
+  authUrl.searchParams.set("client_id", clientId);
+  authUrl.searchParams.set("redirect_uri", redirectUri);
+  authUrl.searchParams.set("response_type", "code");
+  authUrl.searchParams.set("scope", scopes.join(" "));
+  authUrl.searchParams.set("state", state);
+  authUrl.searchParams.set("access_type", "offline");
+  authUrl.searchParams.set("prompt", "consent");
+
+  return c.redirect(authUrl.toString());
+});
 
 /**
  * GET /oauth/google-calendar/connect
  *
- * Initiates Google Calendar OAuth flow
+ * Initiates Google Calendar OAuth flow or handles callback
  */
-oauthRoutes.get(
-  "/google-calendar/connect",
-  jwtMiddleware,
-  (c, next) => {
-    // Store organization ID in state for callback
-    const organizationId = c.get("organizationId");
-    const state = btoa(
-      JSON.stringify({
-        organizationId,
-        provider: "google-calendar",
-        timestamp: Date.now(),
-      })
-    );
+oauthRoutes.get("/google-calendar/connect", jwtMiddleware, async (c) => {
+  const code = c.req.query("code");
 
-    const googleAuthHandler = googleAuth({
-      client_id: c.env.INTEGRATION_GOOGLE_CALENDAR_CLIENT_ID,
-      client_secret: c.env.INTEGRATION_GOOGLE_CALENDAR_CLIENT_SECRET,
-      scope: [
-        "openid",
-        "email",
-        "profile",
-        "https://www.googleapis.com/auth/calendar",
-      ],
-      state,
-    });
-    return googleAuthHandler(c, next);
-  },
-  async (c) => {
+  // If there's a code parameter, this is a callback from Google
+  if (code) {
     try {
-      const token = c.get("token") as any; // OAuth token from provider
-      const user = c.get("user-google");
       const stateParam = c.req.query("state");
+      const error = c.req.query("error");
 
-      if (!token || !user || !stateParam) {
+      if (error) {
+        return c.redirect(`${c.env.WEB_HOST}/integrations?error=${error}`);
+      }
+
+      if (!code || !stateParam) {
         return c.redirect(`${c.env.WEB_HOST}/integrations?error=oauth_failed`);
       }
 
-      // Decode and validate state
-      let state: {
-        organizationId: string;
-        provider: string;
-        timestamp: number;
-      };
-      try {
-        state = JSON.parse(atob(stateParam));
-      } catch {
-        return c.redirect(`${c.env.WEB_HOST}/integrations?error=invalid_state`);
-      }
+      // Validate OAuth state and get organization
+      const { organizationId, orgHandle } = await validateOAuthState(c, stateParam);
 
-      // Validate state is recent (within 10 minutes)
-      if (Date.now() - state.timestamp > 10 * 60 * 1000) {
-        return c.redirect(`${c.env.WEB_HOST}/integrations?error=expired_state`);
-      }
+      // Exchange code for token
+      const clientId = c.env.INTEGRATION_GOOGLE_CALENDAR_CLIENT_ID;
+      const clientSecret = c.env.INTEGRATION_GOOGLE_CALENDAR_CLIENT_SECRET;
 
-      // Verify user is authenticated and matches organization
-      const accessToken = getCookie(c, "access_token");
-      if (!accessToken) {
+      if (!clientId || !clientSecret) {
         return c.redirect(
-          `${c.env.WEB_HOST}/integrations?error=not_authenticated`
+          `${c.env.WEB_HOST}/integrations?error=google_calendar_not_configured`
         );
       }
 
-      const secret = new TextEncoder().encode(c.env.JWT_SECRET);
-      let payload: JWTTokenPayload | null = null;
-      try {
-        const verified = await jwtVerify(accessToken, secret);
-        payload = verified.payload as JWTTokenPayload;
-      } catch {
+      const redirectUri = getOAuthRedirectUri(c.env, "google-calendar");
+
+      const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          code,
+          client_id: clientId,
+          client_secret: clientSecret,
+          redirect_uri: redirectUri,
+          grant_type: "authorization_code",
+        }),
+      });
+
+      if (!tokenResponse.ok) {
+        const errorData = await tokenResponse.text();
+        console.error("Google Calendar token exchange failed:", errorData);
         return c.redirect(
-          `${c.env.WEB_HOST}/integrations?error=not_authenticated`
+          `${c.env.WEB_HOST}/integrations?error=token_exchange_failed`
         );
       }
 
-      if (!payload || payload.organization.id !== state.organizationId) {
+      const tokenData = await tokenResponse.json<GoogleToken>();
+
+      // Get user info
+      const userResponse = await fetch(
+        "https://www.googleapis.com/oauth2/v2/userinfo",
+        {
+          headers: {
+            Authorization: `Bearer ${tokenData.access_token}`,
+          },
+        }
+      );
+
+      if (!userResponse.ok) {
+        console.error("Google user info fetch failed");
         return c.redirect(
-          `${c.env.WEB_HOST}/integrations?error=organization_mismatch`
+          `${c.env.WEB_HOST}/integrations?error=user_fetch_failed`
         );
       }
+
+      const user = await userResponse.json<GoogleUser>();
 
       // Create integration with OAuth tokens
       const db = createDatabase(c.env.DB);
@@ -234,14 +252,12 @@ oauthRoutes.get(
 
       await createIntegration(
         db,
-        state.organizationId,
+        organizationId,
         integrationName,
         "google-calendar",
-        token.token, // The actual access token is in token.token, not token.access_token
-        token.refresh_token,
-        token.expires_in
-          ? new Date(Date.now() + token.expires_in * 1000)
-          : undefined,
+        tokenData.access_token,
+        tokenData.refresh_token,
+        new Date(Date.now() + tokenData.expires_in * 1000),
         JSON.stringify({
           email: user.email,
           name: user.name,
@@ -250,17 +266,47 @@ oauthRoutes.get(
         c.env
       );
 
-      // Redirect back to integrations page with success
-      const orgHandle = payload.organization.handle;
       return c.redirect(
         `${c.env.WEB_HOST}/org/${orgHandle}/integrations?success=google_calendar_connected`
       );
     } catch (error) {
-      console.error("Google Calendar OAuth error:", error);
-      return c.redirect(`${c.env.WEB_HOST}/integrations?error=oauth_failed`);
+      return handleOAuthError(error, "Google Calendar", c.env.WEB_HOST);
     }
   }
-);
+
+  // No code parameter - initiate OAuth flow
+  const organizationId = c.get("organizationId");
+  if (!organizationId) {
+    return c.redirect(`${c.env.WEB_HOST}/integrations?error=not_authenticated`);
+  }
+  const state = createOAuthState(organizationId, "google-calendar");
+
+  const clientId = c.env.INTEGRATION_GOOGLE_CALENDAR_CLIENT_ID;
+  if (!clientId) {
+    return c.redirect(
+      `${c.env.WEB_HOST}/integrations?error=google_calendar_not_configured`
+    );
+  }
+
+  const redirectUri = getOAuthRedirectUri(c.env, "google-calendar");
+  const scopes = [
+    "openid",
+    "email",
+    "profile",
+    "https://www.googleapis.com/auth/calendar",
+  ];
+
+  const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
+  authUrl.searchParams.set("client_id", clientId);
+  authUrl.searchParams.set("redirect_uri", redirectUri);
+  authUrl.searchParams.set("response_type", "code");
+  authUrl.searchParams.set("scope", scopes.join(" "));
+  authUrl.searchParams.set("state", state);
+  authUrl.searchParams.set("access_type", "offline");
+  authUrl.searchParams.set("prompt", "consent");
+
+  return c.redirect(authUrl.toString());
+});
 
 /**
  * GET /oauth/discord/connect

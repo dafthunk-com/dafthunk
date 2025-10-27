@@ -17,6 +17,7 @@ export interface OAuthState {
   organizationId: string;
   provider: string;
   timestamp: number;
+  nonce: string;
 }
 
 /**
@@ -39,6 +40,31 @@ export class OAuthError extends Error {
     super(message);
     this.name = "OAuthError";
   }
+}
+
+/**
+ * Google OAuth token response
+ */
+export interface GoogleToken {
+  access_token: string;
+  refresh_token?: string;
+  expires_in: number;
+  token_type: string;
+  scope: string;
+}
+
+/**
+ * Google user information
+ */
+export interface GoogleUser {
+  sub: string;
+  name?: string;
+  given_name?: string;
+  family_name?: string;
+  email?: string;
+  email_verified?: boolean;
+  picture?: string;
+  locale?: string;
 }
 
 /**
@@ -127,7 +153,7 @@ export interface GitHubUser {
 }
 
 /**
- * Create OAuth state parameter
+ * Create OAuth state parameter with cryptographic nonce
  */
 export function createOAuthState(
   organizationId: string,
@@ -137,6 +163,7 @@ export function createOAuthState(
     organizationId,
     provider,
     timestamp: Date.now(),
+    nonce: crypto.randomUUID(),
   };
   return btoa(JSON.stringify(state));
 }
@@ -154,7 +181,7 @@ export function parseOAuthState(stateParam: string): OAuthState {
     throw new OAuthError("invalid_state", "Failed to parse state parameter");
   }
 
-  if (!state.organizationId || !state.provider || !state.timestamp) {
+  if (!state.organizationId || !state.provider || !state.timestamp || !state.nonce) {
     throw new OAuthError("invalid_state", "State parameter is malformed");
   }
 
@@ -170,13 +197,31 @@ export function parseOAuthState(stateParam: string): OAuthState {
 /**
  * Validate OAuth state and get organization information
  *
- * @throws OAuthError if state is invalid or organization not found
+ * Verifies that:
+ * 1. The state is well-formed and not expired
+ * 2. The organization exists in the database
+ * 3. The authenticated user belongs to the organization (prevents CSRF)
+ *
+ * @throws OAuthError if state is invalid, organization not found, or user unauthorized
  */
 export async function validateOAuthState(
   c: Context<ApiContext>,
   stateParam: string
 ): Promise<ValidatedOAuthState> {
   const state = parseOAuthState(stateParam);
+
+  // Get the authenticated user's organization from JWT
+  const authenticatedOrgId = c.get("organizationId");
+
+  // Critical security check: Verify JWT organization matches state organization
+  // This prevents an attacker from using their own OAuth credentials to create
+  // integrations in a victim's organization
+  if (state.organizationId !== authenticatedOrgId) {
+    throw new OAuthError(
+      "unauthorized_organization",
+      "Authenticated user does not belong to the organization in OAuth state"
+    );
+  }
 
   // Get organization handle from database
   const db = createDatabase(c.env.DB);
