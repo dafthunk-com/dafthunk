@@ -1,4 +1,6 @@
 import { BaseNodeRegistry } from "../nodes/base-node-registry";
+import { ConditionalForkNode } from "../nodes/logic/conditional-fork-node";
+import { ConditionalJoinNode } from "../nodes/logic/conditional-join-node";
 import { AdditionNode } from "../nodes/math/addition-node";
 import { AvgNode } from "../nodes/math/avg-node";
 import { DivisionNode } from "../nodes/math/division-node";
@@ -13,7 +15,8 @@ import { SumNode } from "../nodes/math/sum-node";
 /**
  * Mock Node Registry
  *
- * Lightweight node registry for testing that only includes basic math operations.
+ * Lightweight node registry for testing that only includes basic math operations
+ * and logic nodes.
  * Uses real node implementations but provides a minimal subset to avoid loading
  * heavy dependencies (like geotiff).
  *
@@ -21,6 +24,7 @@ import { SumNode } from "../nodes/math/sum-node";
  * - Addition, Subtraction, Multiplication, Division
  * - Number Input
  * - Sum, Max, Min, Avg, Median
+ * - Conditional Fork, Conditional Join
  */
 export class MockNodeRegistry extends BaseNodeRegistry {
   protected registerNodes(): void {
@@ -34,5 +38,7 @@ export class MockNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(MinNode);
     this.registerImplementation(AvgNode);
     this.registerImplementation(MedianNode);
+    this.registerImplementation(ConditionalForkNode);
+    this.registerImplementation(ConditionalJoinNode);
   }
 }
