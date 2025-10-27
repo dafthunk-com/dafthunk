@@ -9,12 +9,7 @@ import {
 import type { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
 import type { HttpRequest, NodeContext } from "../nodes/types";
 import type { EmailMessage } from "../nodes/types";
-import {
-  refreshOAuthToken,
-  shouldRefreshToken,
-  supportsTokenRefresh,
-  TokenRefreshError,
-} from "../utils/oauth";
+import { getProvider } from "../oauth";
 import type { IntegrationData } from "./types";
 
 /**
@@ -291,13 +286,16 @@ export class ResourceProvider {
     const { provider, encryptedToken, encryptedRefreshToken, tokenExpiresAt } =
       integration;
 
+    // Get provider instance
+    const oauthProvider = getProvider(provider);
+
     // For providers without expiring tokens (GitHub), return current token
-    if (!supportsTokenRefresh(provider)) {
+    if (!oauthProvider.refreshEnabled) {
       return this.decryptSecret(encryptedToken, this.organizationId);
     }
 
     // If token is still valid, return it
-    if (!shouldRefreshToken(tokenExpiresAt)) {
+    if (!oauthProvider.needsRefresh(tokenExpiresAt ?? undefined)) {
       return this.decryptSecret(encryptedToken, this.organizationId);
     }
 
@@ -318,10 +316,15 @@ export class ResourceProvider {
     try {
       console.log(`[OAuth] Refreshing token: ${provider} (${integrationId})`);
 
-      const result = await refreshOAuthToken(
-        provider,
-        currentRefreshToken,
+      // Get client credentials for the provider
+      const { clientId, clientSecret } = oauthProvider.getClientCredentials(
         this.env
+      );
+
+      const result = await oauthProvider.refreshToken(
+        currentRefreshToken,
+        clientId,
+        clientSecret
       );
 
       console.log(`[OAuth] Token refreshed: ${provider} (${integrationId})`);
@@ -334,7 +337,7 @@ export class ResourceProvider {
         {
           status: "active",
           token: result.accessToken,
-          tokenExpiresAt: new Date(Date.now() + result.expiresIn * 1000),
+          tokenExpiresAt: result.expiresAt,
           ...(result.refreshToken && { refreshToken: result.refreshToken }),
         },
         this.env
@@ -344,13 +347,11 @@ export class ResourceProvider {
     } catch (error) {
       console.error(
         `[OAuth] Failed to refresh: ${provider} (${integrationId})`,
-        error instanceof TokenRefreshError ? error.message : error
+        error
       );
 
       await this.markIntegrationExpired(db, integrationId);
-      throw new Error(
-        "Integration has expired. Please reconnect in settings."
-      );
+      throw new Error("Integration has expired. Please reconnect in settings.");
     }
   }
 
