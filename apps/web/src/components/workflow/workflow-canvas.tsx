@@ -814,6 +814,7 @@ export function WorkflowCanvas({
           padding: 0.25,
         }}
         minZoom={0.05}
+        maxZoom={4}
         className={cn("bg-neutral-100/50", {
           "cursor-default": readonly,
         })}

@@ -11,7 +11,6 @@ import CalendarIcon from "lucide-react/icons/calendar";
 import ChartNoAxesGanttIcon from "lucide-react/icons/chart-no-axes-gantt";
 import CheckIcon from "lucide-react/icons/check";
 import ChevronDown from "lucide-react/icons/chevron-down";
-import ChevronUp from "lucide-react/icons/chevron-up";
 import CircleHelp from "lucide-react/icons/circle-help";
 import DotIcon from "lucide-react/icons/dot";
 import EllipsisIcon from "lucide-react/icons/ellipsis";
@@ -34,7 +33,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useNodeTypes } from "@/services/type-service";
 import { cn } from "@/utils/utils";
 
-import { InputEditDialog } from "./input-edit-dialog";
+import { InputEditPopover } from "./input-edit-popover";
 import { registry } from "./widgets";
 import { updateNodeInput, useWorkflow } from "./workflow-context";
 import { WorkflowOutputRenderer } from "./workflow-output-renderer";
@@ -61,53 +60,59 @@ export interface WorkflowNodeType {
   nodeTemplates?: NodeTemplate[];
 }
 
-const TypeBadge = ({
+export const TypeBadge = ({
   type,
   position,
   id,
   parameter,
   onInputClick,
   readonly,
+  className,
+  size = "sm",
 }: {
   type: InputOutputType;
   position: Position;
   id: string;
   parameter?: WorkflowParameter;
-  onInputClick?: (param: WorkflowParameter) => void;
+  onInputClick?: (param: WorkflowParameter, element: HTMLElement) => void;
   readonly?: boolean;
+  className?: string;
+  size?: "sm" | "md";
 }) => {
+  const iconSize = size === "md" ? "!size-3" : "!size-2";
+
   const icon: Record<InputOutputType, React.ReactNode> = {
-    string: <TypeIcon className="!size-2" />,
-    number: <HashIcon className="!size-2" />,
-    boolean: <CheckIcon className="!size-2" />,
-    image: <ImageIcon className="!size-2" />,
-    document: <StickyNoteIcon className="!size-2" />,
-    audio: <MusicIcon className="!size-2" />,
-    buffergeometry: <BoxIcon className="!size-2" />,
-    gltf: <BoxIcon className="!size-2" />,
-    json: <BracesIcon className="!size-2" />,
-    date: <CalendarIcon className="!size-2" />,
-    point: <DotIcon className="!size-2" />,
-    multipoint: <EllipsisIcon className="!size-2" />,
-    linestring: <MinusIcon className="!size-2" />,
-    multilinestring: <ChartNoAxesGanttIcon className="!size-2" />,
-    polygon: <TriangleIcon className="!size-2" />,
-    multipolygon: <ShapesIcon className="!size-2" />,
-    geometry: <SquareIcon className="!size-2" />,
-    geometrycollection: <LayoutGridIcon className="!size-2" />,
-    feature: <BuildingIcon className="!size-2" />,
-    featurecollection: <Building2Icon className="!size-2" />,
-    geojson: <GlobeIcon className="!size-2" />,
-    secret: <LockIcon className="!size-2" />,
-    any: <AsteriskIcon className="!size-2" />,
+    string: <TypeIcon className={iconSize} />,
+    number: <HashIcon className={iconSize} />,
+    boolean: <CheckIcon className={iconSize} />,
+    image: <ImageIcon className={iconSize} />,
+    document: <StickyNoteIcon className={iconSize} />,
+    audio: <MusicIcon className={iconSize} />,
+    buffergeometry: <BoxIcon className={iconSize} />,
+    gltf: <BoxIcon className={iconSize} />,
+    json: <BracesIcon className={iconSize} />,
+    date: <CalendarIcon className={iconSize} />,
+    point: <DotIcon className={iconSize} />,
+    multipoint: <EllipsisIcon className={iconSize} />,
+    linestring: <MinusIcon className={iconSize} />,
+    multilinestring: <ChartNoAxesGanttIcon className={iconSize} />,
+    polygon: <TriangleIcon className={iconSize} />,
+    multipolygon: <ShapesIcon className={iconSize} />,
+    geometry: <SquareIcon className={iconSize} />,
+    geometrycollection: <LayoutGridIcon className={iconSize} />,
+    feature: <BuildingIcon className={iconSize} />,
+    featurecollection: <Building2Icon className={iconSize} />,
+    geojson: <GlobeIcon className={iconSize} />,
+    secret: <LockIcon className={iconSize} />,
+    any: <AsteriskIcon className={iconSize} />,
   } satisfies Record<InputOutputType, React.ReactNode>;
 
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = (e: React.MouseEvent<HTMLSpanElement>) => {
     if (readonly) return;
 
     if (position === Position.Left && parameter && onInputClick) {
       e.stopPropagation();
-      onInputClick(parameter);
+      onInputClick(parameter, e.currentTarget);
     }
   };
 
@@ -134,7 +139,8 @@ const TypeBadge = ({
       />
       <span
         className={cn(
-          "inline-flex items-center justify-center size-3.5 text-xs font-medium relative z-[1] transition-colors",
+          "inline-flex items-center justify-center text-xs font-medium relative z-[1] transition-colors",
+          size === "md" ? "size-5" : "size-3.5",
           isInput ? "rounded-e-[0.3rem]" : "rounded-s-[0.3rem]",
           // Base styles are the same for readonly and interactive
           {
@@ -161,7 +167,8 @@ const TypeBadge = ({
               !isConnected && (!isInput || !hasValue),
           },
           // Readonly styles
-          readonly && "cursor-default"
+          readonly && "cursor-default",
+          className
         )}
         onClick={handleClick}
       >
@@ -197,6 +204,9 @@ export const WorkflowNode = memo(
       hasVisibleOutputs && data.executionState === "completed";
     const [selectedInput, setSelectedInput] =
       useState<WorkflowParameter | null>(null);
+    const [anchorElement, setAnchorElement] = useState<HTMLElement | null>(
+      null
+    );
 
     // Initialize showOutputs and showError based on expandedOutputs
     useEffect(() => {
@@ -233,13 +243,18 @@ export const WorkflowNode = memo(
       }
     };
 
-    const handleInputClick = (input: WorkflowParameter) => {
+    const handleInputClick = (
+      input: WorkflowParameter,
+      element: HTMLElement
+    ) => {
       if (readonly) return;
       setSelectedInput(input);
+      setAnchorElement(element);
     };
 
     const handleDialogClose = () => {
       setSelectedInput(null);
+      setAnchorElement(null);
     };
 
     const handleToolSelectorClose = () => {
@@ -438,28 +453,38 @@ export const WorkflowNode = memo(
           {canShowOutputs && (
             <>
               <div
-                className="px-2 py-1 border-t flex items-center justify-between nodrag cursor-pointer hover:bg-secondary/50"
+                className="py-0.5 px-2 border-t flex items-center justify-between nodrag cursor-pointer bg-neutral-100 dark:bg-neutral-900 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors"
                 onClick={() => setShowOutputs(!showOutputs)}
               >
                 <span className="text-xs font-medium text-neutral-600 dark:text-neutral-400">
                   Outputs
                 </span>
                 {showOutputs ? (
-                  <ChevronUp className="h-3 w-3 text-neutral-500" />
-                ) : (
                   <ChevronDown className="h-3 w-3 text-neutral-500" />
+                ) : (
+                  <ChevronDown className="h-3 w-3 text-neutral-500 -rotate-90" />
                 )}
               </div>
 
               {showOutputs && (
-                <div className="p-2 border-t space-y-2 nodrag">
+                <div className="p-2 pt-1 border-t space-y-2 nodrag">
                   {data.outputs
                     .filter((output) => !output.hidden)
                     .map((output, index) => (
                       <div
                         key={`output-value-${output.id}-${index}`}
-                        className="space-y-1"
+                        className="text-sm"
                       >
+                        {/* Output Header */}
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="text-foreground font-medium truncate text-[0.6rem]">
+                            {output.name}
+                          </span>
+                          <span className="text-[0.6rem] text-muted-foreground shrink-0">
+                            {output.type}
+                          </span>
+                        </div>
+
                         <WorkflowOutputRenderer
                           output={output}
                           createObjectUrl={data.createObjectUrl}
@@ -476,35 +501,38 @@ export const WorkflowNode = memo(
           {data.error && (
             <>
               <div
-                className="px-2 py-1 border-t flex items-center justify-between nodrag cursor-pointer hover:bg-red-100 dark:hover:bg-red-950 transition-colors"
+                className="py-0.5 px-2 border-t flex items-center justify-between nodrag cursor-pointer bg-neutral-100 dark:bg-neutral-900 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors"
                 onClick={() => setShowError(!showError)}
               >
                 <span className="text-xs font-medium text-red-600 dark:text-red-400">
                   Error
                 </span>
                 {showError ? (
-                  <ChevronUp className="h-3 w-3 text-red-500" />
-                ) : (
                   <ChevronDown className="h-3 w-3 text-red-500" />
+                ) : (
+                  <ChevronDown className="h-3 w-3 text-red-500 -rotate-90" />
                 )}
               </div>
 
               {showError && (
-                <div className="p-2 bg-red-50 text-red-600 text-xs border-t border-red-200 dark:bg-red-900 dark:text-red-400 dark:border-red-800 nodrag">
-                  <p className="m-0">{data.error}</p>
+                <div className="px-2 py-1 border-t nodrag">
+                  <p className="text-[0.6rem] text-red-600 dark:text-red-400">
+                    {data.error}
+                  </p>
                 </div>
               )}
             </>
           )}
         </div>
 
-        <InputEditDialog
+        <InputEditPopover
           nodeId={id}
           nodeInputs={data.inputs}
           input={selectedInput}
           isOpen={selectedInput !== null && !readonly}
           onClose={handleDialogClose}
           readonly={readonly}
+          anchorElement={anchorElement}
         />
 
         {data.functionCalling && (

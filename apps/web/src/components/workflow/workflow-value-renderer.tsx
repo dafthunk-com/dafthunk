@@ -53,7 +53,7 @@ const ImageRenderer = ({
   objectUrl: string;
   readonly?: boolean;
 }) => (
-  <div className={compact ? "mt-1 relative" : "mt-2 relative"}>
+  <div className={compact ? "relative" : "mt-2 relative"}>
     <img
       src={objectUrl}
       alt={`${parameter.name} ${readonly ? "output" : "input"}`}
@@ -104,7 +104,7 @@ const DocumentRenderer = ({
 
   if (isPDF) {
     return (
-      <div className={compact ? "mt-1 relative" : "mt-2 relative"}>
+      <div className={compact ? "relative" : "mt-2 relative"}>
         <div className="flex items-center justify-between mb-1">
           <span className="text-xs text-neutral-500">PDF Document</span>
           <a
@@ -126,7 +126,7 @@ const DocumentRenderer = ({
 
   if (isImage) {
     return (
-      <div className={compact ? "mt-1 relative" : "mt-2 relative"}>
+      <div className={compact ? "relative" : "mt-2 relative"}>
         <div className="flex items-center justify-between mb-1">
           <span className="text-xs text-neutral-500">Document (Image)</span>
           <a
@@ -149,7 +149,7 @@ const DocumentRenderer = ({
 
   // For other document types, just show a link
   return (
-    <div className={compact ? "mt-1 relative" : "mt-2 relative"}>
+    <div className={compact ? "relative" : "mt-2 relative"}>
       <a
         href={objectUrl}
         target="_blank"
@@ -257,7 +257,7 @@ const GeoJSONRenderer = ({
     const result = renderGeoJSONSvg(parameter.value);
 
     return (
-      <div className={compact ? "mt-1 space-y-2" : "mt-2 space-y-3"}>
+      <div className={compact ? "space-y-2" : "mt-2 space-y-3"}>
         {result.error ? (
           <div className="text-sm text-red-500 p-2 bg-red-50 rounded-md dark:bg-red-900 dark:text-red-400 dark:border dark:border-red-800">
             {result.error}
@@ -288,7 +288,7 @@ const GeoJSONRenderer = ({
   }
 
   return (
-    <div className={compact ? "mt-1 space-y-2" : "mt-2 space-y-3"}>
+    <div className={compact ? "space-y-2" : "mt-2 space-y-3"}>
       {parameter.value &&
         (() => {
           const result = renderGeoJSONSvg(parameter.value);
@@ -388,12 +388,12 @@ const CodeRenderer = ({
       <div
         className={
           "border rounded-md bg-muted overflow-auto " +
-          `${compact ? "mt-1 h-32" : "mt-2"}`
+          `${compact ? "h-32" : "mt-2"}`
         }
       >
         <CodeBlock
           language={getLanguage(type)}
-          className="text-xs my-0 [&_pre]:p-2"
+          className={`${compact ? "text-[0.6rem] leading-tight [&_pre]:p-1" : "text-xs"} my-0 ${!compact && "[&_pre]:p-2"}`}
         >
           {value}
         </CodeBlock>
@@ -402,7 +402,7 @@ const CodeRenderer = ({
   }
 
   return (
-    <div className={compact ? "mt-1" : "mt-2"}>
+    <div className={compact ? "" : "mt-2"}>
       <Textarea
         value={value}
         onChange={(e) => onChange?.(e.target.value)}
@@ -432,7 +432,7 @@ const TextRenderer = ({
       <div
         className={
           compact
-            ? "text-xs p-1 mt-1 bg-secondary/50 rounded border whitespace-pre-line max-h-[300px] overflow-y-auto nowheel"
+            ? "text-[0.6rem] leading-tight p-0.5 bg-secondary/50 rounded border whitespace-pre-line max-h-[300px] overflow-y-auto nowheel"
             : "w-full p-2 bg-secondary/50 rounded-md border border-border whitespace-pre-line"
         }
       >
@@ -503,7 +503,7 @@ export function WorkflowValueRenderer({
       <div
         className={
           compact
-            ? "text-xs p-1 mt-1 bg-secondary/50 rounded border"
+            ? "text-[0.6rem] leading-tight p-0.5 bg-secondary/50 rounded border"
             : "w-full p-2 bg-secondary/50 rounded-md border border-border"
         }
       >
@@ -547,15 +547,21 @@ export function WorkflowValueRenderer({
         );
       case "buffergeometry":
         return (
-          <div className={compact ? "mt-1 space-y-1" : "mt-2 space-y-2"}>
-            <div className="text-xs text-neutral-500">
+          <div className={compact ? "space-y-1" : "mt-2 space-y-2"}>
+            <div
+              className={
+                compact
+                  ? "text-[0.6rem] text-neutral-500"
+                  : "text-xs text-neutral-500"
+              }
+            >
               3D Geometry ({parameter.value.mimeType})
             </div>
             <a
               href={objectUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-blue-500 hover:underline flex items-center"
+              className={`text-blue-500 hover:underline flex items-center ${compact ? "text-[0.6rem]" : "text-sm"}`}
             >
               Download Geometry Data
             </a>
@@ -612,15 +618,21 @@ export function WorkflowValueRenderer({
           }
           if (parameter.value.mimeType === "application/x-buffer-geometry") {
             return (
-              <div className={compact ? "mt-1 space-y-1" : "mt-2 space-y-2"}>
-                <div className="text-xs text-neutral-500">
+              <div className={compact ? "space-y-1" : "mt-2 space-y-2"}>
+                <div
+                  className={
+                    compact
+                      ? "text-[0.6rem] text-neutral-500"
+                      : "text-xs text-neutral-500"
+                  }
+                >
                   3D Geometry ({parameter.value.mimeType})
                 </div>
                 <a
                   href={objectUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm text-blue-500 hover:underline flex items-center"
+                  className={`text-blue-500 hover:underline flex items-center ${compact ? "text-[0.6rem]" : "text-sm"}`}
                 >
                   Download Geometry Data
                 </a>
@@ -652,15 +664,21 @@ export function WorkflowValueRenderer({
         }
         // Fallback for any type with object reference
         return (
-          <div className={compact ? "mt-1 space-y-1" : "mt-2 space-y-2"}>
-            <div className="text-xs text-neutral-500">
+          <div className={compact ? "space-y-1" : "mt-2 space-y-2"}>
+            <div
+              className={
+                compact
+                  ? "text-[0.6rem] text-neutral-500"
+                  : "text-xs text-neutral-500"
+              }
+            >
               File ({parameter.value.mimeType || "unknown type"})
             </div>
             <a
               href={objectUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-blue-500 hover:underline flex items-center"
+              className={`text-blue-500 hover:underline flex items-center ${compact ? "text-[0.6rem]" : "text-sm"}`}
             >
               View File
             </a>
@@ -725,7 +743,13 @@ export function WorkflowValueRenderer({
       const formattedValue = JSON.stringify(parameter.value, null, 2);
       return (
         <div className="space-y-1">
-          <div className="text-xs text-neutral-500">
+          <div
+            className={
+              compact
+                ? "text-[0.6rem] text-neutral-500"
+                : "text-xs text-neutral-500"
+            }
+          >
             Any type (contains json)
           </div>
           <CodeRenderer
@@ -745,7 +769,13 @@ export function WorkflowValueRenderer({
     const formattedValue = formatValue(parameter.value, actualType);
     return (
       <div className="space-y-1">
-        <div className="text-xs text-neutral-500">
+        <div
+          className={
+            compact
+              ? "text-[0.6rem] text-neutral-500"
+              : "text-xs text-neutral-500"
+          }
+        >
           Any type (contains {actualType})
         </div>
         <TextRenderer
