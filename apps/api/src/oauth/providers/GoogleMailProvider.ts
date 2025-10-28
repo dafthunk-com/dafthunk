@@ -27,7 +27,7 @@ export class GoogleMailProvider extends OAuthProvider<GoogleToken, GoogleUser> {
 
   // Required implementations
   protected formatIntegrationName(user: GoogleUser): string {
-    return `Google Mail - ${user.email || user.name}`;
+    return user.email || user.name;
   }
 
   protected formatUserMetadata(user: GoogleUser): Record<string, any> {

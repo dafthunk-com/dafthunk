@@ -19,7 +19,7 @@ export class LinkedInProvider extends OAuthProvider<
 
   // Required implementations
   protected formatIntegrationName(user: LinkedInUser): string {
-    return `LinkedIn - ${user.name || user.email || "User"}`;
+    return user.name || user.email || "User";
   }
 
   protected formatUserMetadata(user: LinkedInUser): Record<string, any> {

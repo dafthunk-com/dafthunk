@@ -30,7 +30,7 @@ export class GoogleCalendarProvider extends OAuthProvider<
 
   // Required implementations
   protected formatIntegrationName(user: GoogleUser): string {
-    return `Google Calendar - ${user.email || user.name}`;
+    return user.email || user.name;
   }
 
   protected formatUserMetadata(user: GoogleUser): Record<string, any> {

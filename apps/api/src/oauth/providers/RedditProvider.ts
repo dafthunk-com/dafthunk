@@ -81,7 +81,7 @@ export class RedditProvider extends OAuthProvider<RedditToken, RedditUser> {
 
   // Required implementations
   protected formatIntegrationName(user: RedditUser): string {
-    return `Reddit - u/${user.name}`;
+    return `u/${user.name}`;
   }
 
   protected formatUserMetadata(user: RedditUser): Record<string, any> {

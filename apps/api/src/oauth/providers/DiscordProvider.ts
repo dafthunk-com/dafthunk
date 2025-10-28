@@ -15,7 +15,7 @@ export class DiscordProvider extends OAuthProvider<DiscordToken, DiscordUser> {
 
   // Required implementations
   protected formatIntegrationName(user: DiscordUser): string {
-    return `Discord - ${user.username || user.global_name || "User"}`;
+    return user.username || user.global_name || "User";
   }
 
   protected formatUserMetadata(user: DiscordUser): Record<string, any> {

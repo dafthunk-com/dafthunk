@@ -46,7 +46,7 @@ export class GitHubProvider extends OAuthProvider<GitHubToken, GitHubUser> {
 
   // Required implementations
   protected formatIntegrationName(user: GitHubUser): string {
-    return `GitHub - ${user.login || user.name}`;
+    return user.login || user.name;
   }
 
   protected formatUserMetadata(user: GitHubUser): Record<string, any> {

@@ -12,7 +12,7 @@ import { useAuth } from "@/components/auth-context";
 import { getApiBaseUrl } from "@/config/api";
 import { makeOrgRequest } from "@/services/utils";
 
-import { getProvider, getProviderLabel } from "../providers";
+import { getProvider } from "../providers";
 import { useIntegrations } from "./use-integrations";
 
 const API_ENDPOINT = "/integrations";
@@ -69,11 +69,8 @@ export function useIntegrationActions(): IntegrationActionsResult {
 
       setIsProcessing(true);
       try {
-        const providerLabel = getProviderLabel(provider);
-        const integrationName = `${providerLabel} - ${name}`;
-
         const request: CreateIntegrationRequest = {
-          name: integrationName,
+          name,
           provider,
           token: apiKey,
         };
