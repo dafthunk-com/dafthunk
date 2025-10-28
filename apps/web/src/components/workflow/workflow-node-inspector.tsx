@@ -1,11 +1,11 @@
 import type { ObjectReference } from "@dafthunk/types";
 import type { Node as ReactFlowNode } from "@xyflow/react";
+import ChevronDownIcon from "lucide-react/icons/chevron-down";
 import EyeIcon from "lucide-react/icons/eye";
 import EyeOffIcon from "lucide-react/icons/eye-off";
 import XCircleIcon from "lucide-react/icons/x-circle";
 import { useEffect, useState } from "react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -48,6 +48,10 @@ export function WorkflowNodeInspector({
   const [localOutputs, setLocalOutputs] = useState<
     readonly WorkflowParameter[]
   >(node?.data.outputs || []);
+
+  // Collapsible section state
+  const [inputsExpanded, setInputsExpanded] = useState(true);
+  const [outputsExpanded, setOutputsExpanded] = useState(true);
 
   // Update local state when node changes
   useEffect(() => {
@@ -131,48 +135,75 @@ export function WorkflowNodeInspector({
   };
 
   return (
-    <Card className="border-none shadow-none rounded-none h-full">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg">
+    <div className="flex flex-col h-full bg-card">
+      {/* Header */}
+      <div className="px-4 py-3 border-b border-border">
+        <h1 className="text-sm font-semibold text-foreground">
           {readonly ? "Node Properties (Read-only)" : "Node Properties"}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>Type</Label>
-            <div className="text-sm">{node.data.nodeType || node.type}</div>
-          </div>
+        </h1>
+      </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="node-name">Name</Label>
-            <Input
-              id="node-name"
-              value={localName}
-              onChange={handleNameChange}
-              disabled={readonly}
-              className={readonly ? "opacity-70 cursor-not-allowed" : ""}
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto">
+        {/* Type Section */}
+        <div className="px-4 py-3 border-b border-border">
+          <Label className="text-xs font-medium text-muted-foreground">
+            Type
+          </Label>
+          <div className="text-sm text-foreground mt-1">
+            {node.data.nodeType || node.type}
+          </div>
+        </div>
+
+        {/* Name Section */}
+        <div className="px-4 py-3 border-b border-border">
+          <Label
+            htmlFor="node-name"
+            className="text-xs font-medium text-muted-foreground"
+          >
+            Name
+          </Label>
+          <Input
+            id="node-name"
+            value={localName}
+            onChange={handleNameChange}
+            disabled={readonly}
+            className={`mt-2 text-sm h-8 ${readonly ? "opacity-70 cursor-not-allowed" : ""}`}
+          />
+        </div>
+
+        {/* Inputs Section */}
+        <div className="border-b border-border">
+          <button
+            onClick={() => setInputsExpanded(!inputsExpanded)}
+            className="w-full px-4 py-3 bg-neutral-100 dark:bg-neutral-900 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors flex items-center justify-between"
+          >
+            <h2 className="text-xs font-semibold text-foreground">Inputs</h2>
+            <ChevronDownIcon
+              className={`h-4 w-4 text-muted-foreground transition-transform ${
+                inputsExpanded ? "rotate-0" : "-rotate-90"
+              }`}
             />
-          </div>
-
-          <div className="space-y-2">
-            <h2 className="font-medium border-b border-border pb-2">Inputs</h2>
-            <div className="space-y-2">
+          </button>
+          {inputsExpanded && (
+            <div className="px-4 py-3 space-y-3">
               {localInputs.length > 0 ? (
                 localInputs.map((input) => (
                   <div key={input.id} className="text-sm space-y-1">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span>{input.name}</span>
-                        <span className="text-xs text-neutral-500">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-foreground font-medium truncate">
+                          {input.name}
+                        </span>
+                        <span className="text-xs text-muted-foreground shrink-0">
                           {input.type}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1 shrink-0">
                         {input.value !== undefined && !readonly && (
                           <button
                             onClick={() => handleClearValue(input.id)}
-                            className="text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
+                            className="p-1 text-muted-foreground hover:text-foreground transition-colors"
                             aria-label={`Clear ${input.name} value`}
                           >
                             <XCircleIcon className="h-4 w-4" />
@@ -185,7 +216,7 @@ export function WorkflowNodeInspector({
                             handleToggleVisibility(input.id)
                           }
                           aria-label={`Toggle visibility for ${input.name}`}
-                          className={`bg-transparent data-[state=on]:bg-transparent hover:bg-transparent data-[state=on]:text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors ${
+                          className={`px-1 h-8 w-8 bg-transparent data-[state=on]:bg-transparent hover:bg-muted data-[state=on]:text-muted-foreground hover:text-foreground transition-colors ${
                             readonly ? "opacity-70 cursor-not-allowed" : ""
                           }`}
                           disabled={readonly}
@@ -233,25 +264,40 @@ export function WorkflowNodeInspector({
                   </div>
                 ))
               ) : (
-                <div className="text-sm text-neutral-500">No inputs</div>
+                <div className="text-sm text-muted-foreground">No inputs</div>
               )}
             </div>
-          </div>
+          )}
+        </div>
 
-          <div className="space-y-2">
-            <h2 className="font-medium border-b border-border pb-2">Outputs</h2>
-            <div className="space-y-2">
+        {/* Outputs Section */}
+        <div className="border-b border-border">
+          <button
+            onClick={() => setOutputsExpanded(!outputsExpanded)}
+            className="w-full px-4 py-3 bg-neutral-100 dark:bg-neutral-900 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors flex items-center justify-between"
+          >
+            <h2 className="text-xs font-semibold text-foreground">Outputs</h2>
+            <ChevronDownIcon
+              className={`h-4 w-4 text-muted-foreground transition-transform ${
+                outputsExpanded ? "rotate-0" : "-rotate-90"
+              }`}
+            />
+          </button>
+          {outputsExpanded && (
+            <div className="px-4 py-3 space-y-3">
               {localOutputs.length > 0 ? (
                 localOutputs.map((output) => (
                   <div key={output.id} className="text-sm space-y-1">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span>{output.name}</span>
-                        <span className="text-xs text-neutral-500">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-foreground font-medium truncate">
+                          {output.name}
+                        </span>
+                        <span className="text-xs text-muted-foreground shrink-0">
                           {output.type}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1 shrink-0">
                         <Toggle
                           size="sm"
                           pressed={output.hidden}
@@ -259,7 +305,7 @@ export function WorkflowNodeInspector({
                             handleToggleOutputVisibility(output.id)
                           }
                           aria-label={`Toggle visibility for ${output.name}`}
-                          className={`bg-transparent data-[state=on]:bg-transparent hover:bg-transparent data-[state=on]:text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors ${
+                          className={`px-1 h-8 w-8 bg-transparent data-[state=on]:bg-transparent hover:bg-muted data-[state=on]:text-muted-foreground hover:text-foreground transition-colors ${
                             readonly ? "opacity-70 cursor-not-allowed" : ""
                           }`}
                           disabled={readonly}
@@ -279,12 +325,12 @@ export function WorkflowNodeInspector({
                   </div>
                 ))
               ) : (
-                <div className="text-sm text-neutral-500">No outputs</div>
+                <div className="text-sm text-muted-foreground">No outputs</div>
               )}
             </div>
-          </div>
+          )}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
