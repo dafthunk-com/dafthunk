@@ -8,7 +8,10 @@ export default defineWorkersConfig({
       workers: {
         wrangler: {
           configPath: "./wrangler.test.jsonc",
-          remote: false,
+        },
+        miniflare: {
+          compatibilityDate: "2024-10-22",
+          compatibilityFlags: ["nodejs_compat"],
         },
         // Use test-entry.ts which exports TestRuntime with injected test dependencies
         // This avoids loading CloudflareNodeRegistry and heavy packages like geotiff
