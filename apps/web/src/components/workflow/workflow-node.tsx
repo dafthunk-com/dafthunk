@@ -146,10 +146,7 @@ export const TypeBadge = ({
           {
             // Connected:
             "bg-neutral-400 text-neutral-800 dark:bg-neutral-300 dark:text-neutral-900":
-              isConnected,
-            // Has Value:
-            "bg-neutral-300 text-neutral-700 dark:bg-neutral-600 dark:text-neutral-200":
-              isInput && !isConnected && hasValue,
+              isConnected || hasValue,
             // Default:
             "bg-neutral-200 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400":
               !isConnected && (!isInput || !hasValue),
@@ -158,10 +155,8 @@ export const TypeBadge = ({
           !readonly && {
             "cursor-pointer": true,
             // Connected (Interactive) hover
-            "hover:bg-neutral-600 dark:hover:bg-neutral-200": isConnected,
-            // Has Value (Interactive) hover
-            "hover:bg-neutral-500 dark:hover:bg-neutral-500":
-              isInput && !isConnected && hasValue,
+            "hover:bg-neutral-600 dark:hover:bg-neutral-200":
+              isConnected || hasValue,
             // Default (Interactive) hover
             "hover:bg-neutral-400 dark:hover:bg-neutral-700":
               !isConnected && (!isInput || !hasValue),
