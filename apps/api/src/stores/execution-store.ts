@@ -137,10 +137,6 @@ export class ExecutionStore {
    */
   private writeToAnalytics(record: SaveExecutionRecord): void {
     try {
-      console.log(
-        `ExecutionStore.writeToAnalytics: Writing execution ${record.id}`
-      );
-
       const durationMs =
         record.endedAt && record.startedAt
           ? record.endedAt.getTime() - record.startedAt.getTime()
@@ -156,8 +152,6 @@ export class ExecutionStore {
         ],
         doubles: [durationMs],
       });
-
-      console.log(`ExecutionStore.writeToAnalytics: Success for ${record.id}`);
     } catch (error) {
       console.error(
         `ExecutionStore.writeToAnalytics: Failed to write ${record.id}:`,
@@ -215,8 +209,6 @@ export class ExecutionStore {
     organizationId: string
   ): Promise<ExecutionRow | undefined> {
     try {
-      console.log(`ExecutionStore.readFromAnalytics: Reading execution ${id}`);
-
       const dataset = this.getDatasetName();
 
       const sql = `
@@ -231,14 +223,11 @@ export class ExecutionStore {
       const rows = await this.queryAnalytics(sql);
 
       if (rows.length === 0) {
-        console.log(`ExecutionStore.readFromAnalytics: Not found ${id}`);
         return undefined;
       }
 
       const row = rows[0];
       const timestamp = new Date(row.timestamp);
-
-      console.log(`ExecutionStore.readFromAnalytics: Success for ${id}`);
 
       return {
         id: row.index2,
@@ -269,10 +258,6 @@ export class ExecutionStore {
     options?: ListExecutionsOptions
   ): Promise<ExecutionRow[]> {
     try {
-      console.log(
-        `ExecutionStore.listFromAnalytics: Listing executions for org ${organizationId}`
-      );
-
       const dataset = this.getDatasetName();
 
       const whereConditions = [`index1 = '${organizationId}'`];
@@ -297,10 +282,6 @@ export class ExecutionStore {
       `;
 
       const rows = await this.queryAnalytics(sql);
-
-      console.log(
-        `ExecutionStore.listFromAnalytics: Found ${rows.length} executions`
-      );
 
       return rows.map((row) => {
         const timestamp = new Date(row.timestamp);
@@ -331,34 +312,22 @@ export class ExecutionStore {
    */
   private async writeToR2(execution: WorkflowExecution): Promise<void> {
     try {
-      console.log(
-        `ExecutionStore.writeToR2: Writing execution ${execution.id}`
-      );
-
       if (!this.env.RESSOURCES) {
         throw new Error("R2 bucket is not initialized");
       }
 
       const key = `executions/${execution.id}/execution.json`;
-      const result = await this.env.RESSOURCES.put(
-        key,
-        JSON.stringify(execution),
-        {
-          httpMetadata: {
-            contentType: "application/json",
-            cacheControl: "no-cache",
-          },
-          customMetadata: {
-            workflowId: execution.workflowId,
-            status: execution.status,
-            updatedAt: new Date().toISOString(),
-          },
-        }
-      );
-
-      console.log(
-        `ExecutionStore.writeToR2: Success for ${execution.id}, etag: ${result?.etag || "unknown"}`
-      );
+      await this.env.RESSOURCES.put(key, JSON.stringify(execution), {
+        httpMetadata: {
+          contentType: "application/json",
+          cacheControl: "no-cache",
+        },
+        customMetadata: {
+          workflowId: execution.workflowId,
+          status: execution.status,
+          updatedAt: new Date().toISOString(),
+        },
+      });
     } catch (error) {
       console.error(
         `ExecutionStore.writeToR2: Failed to write ${execution.id}:`,
@@ -373,10 +342,6 @@ export class ExecutionStore {
    */
   private async readFromR2(executionId: string): Promise<WorkflowExecution> {
     try {
-      console.log(
-        `ExecutionStore.readFromR2: Reading execution ${executionId}`
-      );
-
       if (!this.env.RESSOURCES) {
         throw new Error("R2 bucket is not initialized");
       }
@@ -389,9 +354,6 @@ export class ExecutionStore {
       }
 
       const text = await object.text();
-      console.log(
-        `ExecutionStore.readFromR2: Success for ${executionId}, size: ${object.size} bytes`
-      );
       return JSON.parse(text) as WorkflowExecution;
     } catch (error) {
       console.error(
