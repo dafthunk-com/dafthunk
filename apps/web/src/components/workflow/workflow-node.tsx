@@ -77,29 +77,29 @@ const TypeBadge = ({
   readonly?: boolean;
 }) => {
   const icon: Record<InputOutputType, React.ReactNode> = {
-    string: <TypeIcon className="!size-3" />,
-    number: <HashIcon className="!size-3" />,
-    boolean: <CheckIcon className="!size-3" />,
-    image: <ImageIcon className="!size-3" />,
-    document: <StickyNoteIcon className="!size-3" />,
-    audio: <MusicIcon className="!size-3" />,
-    buffergeometry: <BoxIcon className="!size-3" />,
-    gltf: <BoxIcon className="!size-3" />,
-    json: <BracesIcon className="!size-3" />,
-    date: <CalendarIcon className="!size-3" />,
-    point: <DotIcon className="!size-3" />,
-    multipoint: <EllipsisIcon className="!size-3" />,
-    linestring: <MinusIcon className="!size-3" />,
-    multilinestring: <ChartNoAxesGanttIcon className="!size-3" />,
-    polygon: <TriangleIcon className="!size-3" />,
-    multipolygon: <ShapesIcon className="!size-3" />,
-    geometry: <SquareIcon className="!size-3" />,
-    geometrycollection: <LayoutGridIcon className="!size-3" />,
-    feature: <BuildingIcon className="!size-3" />,
-    featurecollection: <Building2Icon className="!size-3" />,
-    geojson: <GlobeIcon className="!size-3" />,
-    secret: <LockIcon className="!size-3" />,
-    any: <AsteriskIcon className="!size-3" />,
+    string: <TypeIcon className="!size-2" />,
+    number: <HashIcon className="!size-2" />,
+    boolean: <CheckIcon className="!size-2" />,
+    image: <ImageIcon className="!size-2" />,
+    document: <StickyNoteIcon className="!size-2" />,
+    audio: <MusicIcon className="!size-2" />,
+    buffergeometry: <BoxIcon className="!size-2" />,
+    gltf: <BoxIcon className="!size-2" />,
+    json: <BracesIcon className="!size-2" />,
+    date: <CalendarIcon className="!size-2" />,
+    point: <DotIcon className="!size-2" />,
+    multipoint: <EllipsisIcon className="!size-2" />,
+    linestring: <MinusIcon className="!size-2" />,
+    multilinestring: <ChartNoAxesGanttIcon className="!size-2" />,
+    polygon: <TriangleIcon className="!size-2" />,
+    multipolygon: <ShapesIcon className="!size-2" />,
+    geometry: <SquareIcon className="!size-2" />,
+    geometrycollection: <LayoutGridIcon className="!size-2" />,
+    feature: <BuildingIcon className="!size-2" />,
+    featurecollection: <Building2Icon className="!size-2" />,
+    geojson: <GlobeIcon className="!size-2" />,
+    secret: <LockIcon className="!size-2" />,
+    any: <AsteriskIcon className="!size-2" />,
   } satisfies Record<InputOutputType, React.ReactNode>;
 
   const handleClick = (e: React.MouseEvent) => {
@@ -134,7 +134,8 @@ const TypeBadge = ({
       />
       <span
         className={cn(
-          "inline-flex items-center justify-center w-5 h-5 rounded text-xs font-medium relative z-[1] transition-colors",
+          "inline-flex items-center justify-center size-3.5 text-xs font-medium relative z-[1] transition-colors",
+          isInput ? "rounded-e-[0.3rem]" : "rounded-s-[0.3rem]",
           // Base styles are the same for readonly and interactive
           {
             // Connected:
@@ -282,7 +283,7 @@ export const WorkflowNode = memo(
           {/* Header */}
           <div
             className={cn(
-              "px-1 py-1 flex justify-between items-center border-b hover:cursor-grab active:cursor-grabbing",
+              "px-0.5 flex justify-between items-center bg-neutral-100 dark:bg-neutral-900 border-b hover:cursor-grab active:cursor-grabbing",
               "workflow-node-drag-handle"
             )}
           >
@@ -291,7 +292,7 @@ export const WorkflowNode = memo(
                 name={data.icon as any}
                 className="mx-1 h-3 w-3 text-blue-500 shrink-0"
               />
-              <h3 className="text-xs font-medium truncate">{data.name}</h3>
+              <h3 className="text-xs font-normal truncate">{data.name}</h3>
             </div>
             <button
               type="button"
@@ -379,9 +380,9 @@ export const WorkflowNode = memo(
           )}
 
           {/* Parameters */}
-          <div className="px-1 py-1 grid grid-cols-2 justify-between gap-1 nodrag">
+          <div className="py-1 grid grid-cols-2 justify-between gap-1 nodrag">
             {/* Input Parameters */}
-            <div className="flex flex-col gap-1 flex-1">
+            <div className="flex flex-col gap-[1px] flex-1">
               {data.inputs
                 .filter((input) => !input.hidden)
                 .map((input, index) => (
@@ -397,7 +398,7 @@ export const WorkflowNode = memo(
                       onInputClick={handleInputClick}
                       readonly={readonly}
                     />
-                    <p className="overflow-hidden text-ellipsis">
+                    <p className="text-[0.6rem] text-neutral-700 dark:text-neutral-300 overflow-hidden text-ellipsis">
                       {input.name}
                       {input.repeated && (
                         <span className="text-neutral-500 dark:text-neutral-400 ml-1">
@@ -410,7 +411,7 @@ export const WorkflowNode = memo(
             </div>
 
             {/* Output Parameters */}
-            <div className="flex flex-col gap-1 flex-1 items-end">
+            <div className="flex flex-col gap-[1px] flex-1 items-end">
               {data.outputs
                 .filter((output) => !output.hidden)
                 .map((output, index) => (
@@ -418,7 +419,7 @@ export const WorkflowNode = memo(
                     key={`output-${output.id}-${index}`}
                     className="flex items-center gap-1 text-xs relative"
                   >
-                    <p className="overflow-hidden text-ellipsis">
+                    <p className="text-[0.6rem] text-neutral-700 dark:text-neutral-300 overflow-hidden text-ellipsis">
                       {output.name}
                     </p>
                     <TypeBadge

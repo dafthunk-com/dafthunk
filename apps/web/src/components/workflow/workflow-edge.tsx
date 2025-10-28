@@ -124,8 +124,8 @@ export const WorkflowEdge = memo(
       sourcePosition,
       targetPosition,
       // Use fixed offsets for regular edges
-      sourceOffset: 6,
-      targetOffset: -9,
+      sourceOffset: 2,
+      targetOffset: -5,
     });
 
     const isValid = data?.isValid ?? true;
@@ -163,8 +163,8 @@ export const WorkflowConnectionLine = memo(
       sourcePosition: fromPosition,
       targetPosition: toPosition,
       // No offsets for connection lines
-      sourceOffset: 16,
-      targetOffset: -19,
+      sourceOffset: 12,
+      targetOffset: -15,
     });
 
     const getColor = () => {
