@@ -1,6 +1,7 @@
 import type { Workflow as WorkflowType } from "@dafthunk/types";
 import { and, eq, inArray } from "drizzle-orm";
 
+import type { Bindings } from "../context";
 import { createDatabase, Database } from "../db";
 import { getOrganizationCondition, getWorkflowCondition } from "../db/queries";
 import type { WorkflowRow } from "../db/schema";
@@ -27,14 +28,11 @@ export interface SaveWorkflowRecord {
  * Provides a unified interface for workflow persistence operations.
  */
 export class WorkflowStore {
-  constructor(
-    d1: D1Database,
-    private bucket: R2Bucket
-  ) {
-    this.db = createDatabase(d1);
-  }
-
   private db: Database;
+
+  constructor(private env: Bindings) {
+    this.db = createDatabase(env.DB);
+  }
 
   /**
    * Save workflow metadata to D1 and full data to R2
@@ -163,7 +161,6 @@ export class WorkflowStore {
     data: Partial<WorkflowRow>
   ): Promise<WorkflowRow> {
     try {
-      console.log(`WorkflowStore.update: Updating workflow ${id}`);
       const now = new Date();
       const updateData = {
         ...data,
@@ -181,7 +178,6 @@ export class WorkflowStore {
         )
         .returning();
 
-      console.log(`WorkflowStore.update: Success for ${id}`);
       return workflow;
     } catch (error) {
       console.error(`WorkflowStore.update: Failed to update ${id}:`, error);
@@ -197,10 +193,6 @@ export class WorkflowStore {
     userId: string
   ): Promise<{ workflow: WorkflowRow; organizationId: string } | undefined> {
     try {
-      console.log(
-        `WorkflowStore.getWithUserAccess: Checking access for workflow ${workflowIdOrHandle}`
-      );
-
       const [result] = await this.db
         .select({
           workflow: workflows,
@@ -224,15 +216,9 @@ export class WorkflowStore {
         .limit(1);
 
       if (!result) {
-        console.log(
-          `WorkflowStore.getWithUserAccess: Access denied for ${workflowIdOrHandle}`
-        );
         return undefined;
       }
 
-      console.log(
-        `WorkflowStore.getWithUserAccess: Success for ${workflowIdOrHandle}`
-      );
       return {
         workflow: result.workflow,
         organizationId: result.organizationId,
@@ -253,18 +239,11 @@ export class WorkflowStore {
     workflowIds: string[]
   ): Promise<{ id: string; name: string }[]> {
     try {
-      console.log(
-        `WorkflowStore.getNames: Fetching names for ${workflowIds.length} workflows`
-      );
-
       const results = await this.db
         .select({ id: workflows.id, name: workflows.name })
         .from(workflows)
         .where(inArray(workflows.id, workflowIds));
 
-      console.log(
-        `WorkflowStore.getNames: Success, found ${results.length} workflows`
-      );
       return results;
     } catch (error) {
       console.error(`WorkflowStore.getNames: Failed to fetch names:`, error);
@@ -280,10 +259,6 @@ export class WorkflowStore {
     organizationIdOrHandle: string
   ): Promise<string | undefined> {
     try {
-      console.log(
-        `WorkflowStore.getName: Fetching name for ${workflowIdOrHandle}`
-      );
-
       const [result] = await this.db
         .select({ name: workflows.name })
         .from(workflows)
@@ -296,9 +271,6 @@ export class WorkflowStore {
         )
         .where(getWorkflowCondition(workflowIdOrHandle));
 
-      console.log(
-        `WorkflowStore.getName: ${result ? "Success" : "Not found"} for ${workflowIdOrHandle}`
-      );
       return result?.name;
     } catch (error) {
       console.error(
@@ -314,14 +286,10 @@ export class WorkflowStore {
    */
   private async writeToD1(record: any): Promise<void> {
     try {
-      console.log(`WorkflowStore.writeToD1: Writing workflow ${record.id}`);
-
       await this.db
         .insert(workflows)
         .values(record)
         .onConflictDoUpdate({ target: workflows.id, set: record });
-
-      console.log(`WorkflowStore.writeToD1: Success for ${record.id}`);
     } catch (error) {
       console.error(
         `WorkflowStore.writeToD1: Failed to write ${record.id}:`,
@@ -339,10 +307,6 @@ export class WorkflowStore {
     organizationIdOrHandle: string
   ): Promise<WorkflowRow | undefined> {
     try {
-      console.log(
-        `WorkflowStore.readFromD1: Reading workflow ${workflowIdOrHandle}`
-      );
-
       const [workflow] = await this.db
         .select()
         .from(workflows)
@@ -357,15 +321,9 @@ export class WorkflowStore {
         .limit(1);
 
       if (!workflow) {
-        console.log(
-          `WorkflowStore.readFromD1: Not found ${workflowIdOrHandle}`
-        );
         return undefined;
       }
 
-      console.log(
-        `WorkflowStore.readFromD1: Success for ${workflowIdOrHandle}`
-      );
       return workflow.workflows;
     } catch (error) {
       console.error(
@@ -383,10 +341,6 @@ export class WorkflowStore {
     organizationIdOrHandle: string
   ): Promise<WorkflowRow[]> {
     try {
-      console.log(
-        `WorkflowStore.listFromD1: Listing workflows for org ${organizationIdOrHandle}`
-      );
-
       const results = await this.db
         .select({
           id: workflows.id,
@@ -407,9 +361,6 @@ export class WorkflowStore {
           )
         );
 
-      console.log(
-        `WorkflowStore.listFromD1: Found ${results.length} workflows`
-      );
       return results;
     } catch (error) {
       console.error(
@@ -428,8 +379,6 @@ export class WorkflowStore {
     organizationId: string
   ): Promise<WorkflowRow | undefined> {
     try {
-      console.log(`WorkflowStore.deleteFromD1: Deleting workflow ${id}`);
-
       const [deleted] = await this.db
         .delete(workflows)
         .where(
@@ -440,11 +389,6 @@ export class WorkflowStore {
         )
         .returning();
 
-      if (deleted) {
-        console.log(`WorkflowStore.deleteFromD1: Success for ${id}`);
-      } else {
-        console.log(`WorkflowStore.deleteFromD1: Not found ${id}`);
-      }
       return deleted;
     } catch (error) {
       console.error(
@@ -460,14 +404,12 @@ export class WorkflowStore {
    */
   private async writeToR2(workflow: WorkflowType): Promise<void> {
     try {
-      console.log(`WorkflowStore.writeToR2: Writing workflow ${workflow.id}`);
-
-      if (!this.bucket) {
+      if (!this.env.RESSOURCES) {
         throw new Error("R2 bucket is not initialized");
       }
 
       const key = `workflows/${workflow.id}.json`;
-      const result = await this.bucket.put(key, JSON.stringify(workflow), {
+      await this.env.RESSOURCES.put(key, JSON.stringify(workflow), {
         httpMetadata: {
           contentType: "application/json",
           cacheControl: "no-cache",
@@ -479,10 +421,6 @@ export class WorkflowStore {
           updatedAt: new Date().toISOString(),
         },
       });
-
-      console.log(
-        `WorkflowStore.writeToR2: Success for ${workflow.id}, etag: ${result?.etag || "unknown"}`
-      );
     } catch (error) {
       console.error(
         `WorkflowStore.writeToR2: Failed to write ${workflow.id}:`,
@@ -497,23 +435,18 @@ export class WorkflowStore {
    */
   private async readFromR2(workflowId: string): Promise<WorkflowType> {
     try {
-      console.log(`WorkflowStore.readFromR2: Reading workflow ${workflowId}`);
-
-      if (!this.bucket) {
+      if (!this.env.RESSOURCES) {
         throw new Error("R2 bucket is not initialized");
       }
 
       const key = `workflows/${workflowId}.json`;
-      const object = await this.bucket.get(key);
+      const object = await this.env.RESSOURCES.get(key);
 
       if (!object) {
         throw new Error(`Workflow not found: ${workflowId}`);
       }
 
       const text = await object.text();
-      console.log(
-        `WorkflowStore.readFromR2: Success for ${workflowId}, size: ${object.size} bytes`
-      );
       return JSON.parse(text) as WorkflowType;
     } catch (error) {
       console.error(
@@ -529,20 +462,12 @@ export class WorkflowStore {
    */
   private async deleteFromR2(workflowId: string): Promise<void> {
     try {
-      console.log(
-        `WorkflowStore.deleteFromR2: Deleting workflow ${workflowId}`
-      );
-
-      if (!this.bucket) {
+      if (!this.env.RESSOURCES) {
         throw new Error("R2 bucket is not initialized");
       }
 
       const key = `workflows/${workflowId}.json`;
-      await this.bucket.delete(key);
-
-      console.log(
-        `WorkflowStore.deleteFromR2: Successfully deleted ${workflowId}`
-      );
+      await this.env.RESSOURCES.delete(key);
     } catch (error) {
       console.error(
         `WorkflowStore.deleteFromR2: Failed to delete ${workflowId}:`,

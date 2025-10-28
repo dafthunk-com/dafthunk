@@ -591,7 +591,7 @@ describe("Runtime Specification", () => {
       expect(addResult).toBeDefined();
       // Node may complete with NaN or fail - either is acceptable
       // The important thing is it was not skipped
-      expect(addResult.status).not.toBe("skipped");
+      expect((addResult as any).status).not.toBe("skipped");
     });
 
     it("should handle error in middle of workflow chain", async () => {
@@ -709,13 +709,13 @@ describe("Runtime Specification", () => {
       expect(num1Result).toBeDefined();
       expect(num2Result).toBeDefined();
       expect(divResult).toBeDefined();
-      expect(divResult.status).toBe("error");
+      expect((divResult as any).status).toBe("error");
 
       expect(addResult).toBeDefined();
-      expect(addResult.status).toBe("skipped");
-      expect(addResult.skipReason).toBe("upstream_failure");
-      expect(addResult.blockedBy).toContain("div");
-      expect(addResult.outputs).toBeNull();
+      expect((addResult as any).status).toBe("skipped");
+      expect((addResult as any).skipReason).toBe("upstream_failure");
+      expect((addResult as any).blockedBy).toContain("div");
+      expect((addResult as any).outputs).toBeNull();
     });
 
     it("should handle workflow with error in middle node blocking dependent nodes", async () => {
@@ -817,11 +817,11 @@ describe("Runtime Specification", () => {
       );
 
       expect(additionResult).toBeDefined();
-      expect(additionResult.status).toBe("completed");
+      expect((additionResult as any).status).toBe("completed");
 
       expect(subtractionResult).toBeDefined();
       // Node may complete with NaN or fail - either is acceptable
-      expect(subtractionResult.status).not.toBe("skipped");
+      expect((subtractionResult as any).status).not.toBe("skipped");
 
       expect(multiplicationResult).toBeDefined();
       // Multiplication will execute if subtraction completed, skip if subtraction failed
@@ -1464,19 +1464,19 @@ describe("Runtime Specification", () => {
       );
 
       expect(divResult).toBeDefined();
-      expect(divResult.status).toBe("error");
+      expect((divResult as any).status).toBe("error");
 
       expect(addResult).toBeDefined();
-      expect(addResult.status).toBe("skipped");
-      expect(addResult.skipReason).toBe("upstream_failure");
-      expect(addResult.blockedBy).toContain("div");
-      expect(addResult.outputs).toBeNull();
+      expect((addResult as any).status).toBe("skipped");
+      expect((addResult as any).skipReason).toBe("upstream_failure");
+      expect((addResult as any).blockedBy).toContain("div");
+      expect((addResult as any).outputs).toBeNull();
 
       expect(multResult).toBeDefined();
-      expect(multResult.status).toBe("skipped");
-      expect(multResult.skipReason).toBe("upstream_failure");
-      expect(multResult.blockedBy).toContain("add");
-      expect(multResult.outputs).toBeNull();
+      expect((multResult as any).status).toBe("skipped");
+      expect((multResult as any).skipReason).toBe("upstream_failure");
+      expect((multResult as any).blockedBy).toContain("add");
+      expect((multResult as any).outputs).toBeNull();
     });
   });
 
@@ -2367,7 +2367,7 @@ describe("Runtime Specification", () => {
       );
       expect(addResult).toBeDefined();
       // Node executed (not skipped) - may complete or fail depending on node implementation
-      expect(addResult.status).not.toBe("skipped");
+      expect((addResult as any).status).not.toBe("skipped");
     });
 
     it("should recursively skip downstream nodes when upstream node fails", async () => {
@@ -2509,17 +2509,17 @@ describe("Runtime Specification", () => {
       );
 
       expect(divResult).toBeDefined();
-      expect(divResult.status).toBe("error");
+      expect((divResult as any).status).toBe("error");
 
       expect(add2Result).toBeDefined();
-      expect(add2Result.status).toBe("skipped");
-      expect(add2Result.skipReason).toBe("upstream_failure");
-      expect(add2Result.blockedBy).toContain("div");
+      expect((add2Result as any).status).toBe("skipped");
+      expect((add2Result as any).skipReason).toBe("upstream_failure");
+      expect((add2Result as any).blockedBy).toContain("div");
 
       expect(add3Result).toBeDefined();
-      expect(add3Result.status).toBe("skipped");
-      expect(add3Result.skipReason).toBe("upstream_failure");
-      expect(add3Result.blockedBy).toContain("add2");
+      expect((add3Result as any).status).toBe("skipped");
+      expect((add3Result as any).skipReason).toBe("upstream_failure");
+      expect((add3Result as any).blockedBy).toContain("add2");
     });
   });
 
@@ -3720,15 +3720,15 @@ describe("Runtime Specification", () => {
       );
 
       expect(forkResult).toBeDefined();
-      expect(forkResult.status).toBe("completed");
+      expect((forkResult as any).status).toBe("completed");
 
       expect(trueNodeResult).toBeDefined();
-      expect(trueNodeResult.status).toBe("completed");
+      expect((trueNodeResult as any).status).toBe("completed");
 
       expect(falseNodeResult).toBeDefined();
-      expect(falseNodeResult.status).toBe("skipped");
-      expect(falseNodeResult.skipReason).toBe("conditional_branch");
-      expect(falseNodeResult.blockedBy).toContain("fork");
+      expect((falseNodeResult as any).status).toBe("skipped");
+      expect((falseNodeResult as any).skipReason).toBe("conditional_branch");
+      expect((falseNodeResult as any).blockedBy).toContain("fork");
     });
 
     it("should execute false branch when condition is false", async () => {
@@ -3828,15 +3828,15 @@ describe("Runtime Specification", () => {
       );
 
       expect(forkResult).toBeDefined();
-      expect(forkResult.status).toBe("completed");
+      expect((forkResult as any).status).toBe("completed");
 
       expect(trueNodeResult).toBeDefined();
-      expect(trueNodeResult.status).toBe("skipped");
-      expect(trueNodeResult.skipReason).toBe("conditional_branch");
-      expect(trueNodeResult.blockedBy).toContain("fork");
+      expect((trueNodeResult as any).status).toBe("skipped");
+      expect((trueNodeResult as any).skipReason).toBe("conditional_branch");
+      expect((trueNodeResult as any).blockedBy).toContain("fork");
 
       expect(falseNodeResult).toBeDefined();
-      expect(falseNodeResult.status).toBe("completed");
+      expect((falseNodeResult as any).status).toBe("completed");
     });
 
     it("should handle fork-join pattern (true branch)", async () => {
@@ -3957,10 +3957,10 @@ describe("Runtime Specification", () => {
       );
       console.log("Join result:", JSON.stringify(joinResult, null, 2));
 
-      expect(forkResult.status).toBe("completed");
-      expect(trueNodeResult.status).toBe("completed");
-      expect(falseNodeResult.status).toBe("skipped");
-      expect(joinResult.status).toBe("completed");
+      expect((forkResult as any).status).toBe("completed");
+      expect((trueNodeResult as any).status).toBe("completed");
+      expect((falseNodeResult as any).status).toBe("skipped");
+      expect((joinResult as any).status).toBe("completed");
     });
 
     it("should handle fork-join pattern (false branch)", async () => {
@@ -4086,10 +4086,10 @@ describe("Runtime Specification", () => {
       );
       console.log("Join result:", JSON.stringify(joinResult, null, 2));
 
-      expect(forkResult.status).toBe("completed");
-      expect(trueNodeResult.status).toBe("skipped");
-      expect(falseNodeResult.status).toBe("completed");
-      expect(joinResult.status).toBe("completed");
+      expect((forkResult as any).status).toBe("completed");
+      expect((trueNodeResult as any).status).toBe("skipped");
+      expect((falseNodeResult as any).status).toBe("completed");
+      expect((joinResult as any).status).toBe("completed");
     });
 
     it("should handle chained nodes after conditional fork", async () => {
@@ -4210,11 +4210,11 @@ describe("Runtime Specification", () => {
         JSON.stringify(falseNodeResult, null, 2)
       );
 
-      expect(forkResult.status).toBe("completed");
-      expect(trueNode1Result.status).toBe("completed");
-      expect(trueNode2Result.status).toBe("completed");
-      expect(falseNodeResult.status).toBe("skipped");
-      expect(falseNodeResult.skipReason).toBe("conditional_branch");
+      expect((forkResult as any).status).toBe("completed");
+      expect((trueNode1Result as any).status).toBe("completed");
+      expect((trueNode2Result as any).status).toBe("completed");
+      expect((falseNodeResult as any).status).toBe("skipped");
+      expect((falseNodeResult as any).skipReason).toBe("conditional_branch");
     });
 
     it("should error when join receives both inputs", async () => {
@@ -4296,8 +4296,8 @@ describe("Runtime Specification", () => {
       );
 
       expect(joinResult).toBeDefined();
-      expect(joinResult.status).toBe("error");
-      expect(joinResult.error).toContain("both");
+      expect((joinResult as any).status).toBe("error");
+      expect((joinResult as any).error).toContain("both");
     });
 
     it("should error when join receives neither input", async () => {
@@ -4346,8 +4346,8 @@ describe("Runtime Specification", () => {
       );
 
       expect(joinResult).toBeDefined();
-      expect(joinResult.status).toBe("error");
-      expect(joinResult.error).toContain("neither");
+      expect((joinResult as any).status).toBe("error");
+      expect((joinResult as any).error).toContain("neither");
     });
   });
 });

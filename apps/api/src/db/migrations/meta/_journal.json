@@ -113,6 +113,13 @@
       "when": 1760987622510,
       "tag": "0015_add_description_column",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "6",
+      "when": 1761317207481,
+      "tag": "0016_remove_executions_table",
+      "breakpoints": true
     }
   ]
 }

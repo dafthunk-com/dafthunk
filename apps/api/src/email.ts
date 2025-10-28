@@ -1,8 +1,11 @@
-import { Node, Workflow as WorkflowType } from "@dafthunk/types";
+import {
+  ExecutionStatus,
+  Node,
+  Workflow as WorkflowType,
+} from "@dafthunk/types";
 
 import { Bindings } from "./context";
 import { createDatabase, getOrganizationComputeCredits } from "./db";
-import { ExecutionStatus } from "./db";
 import { DeploymentStore } from "./stores/deployment-store";
 import { ExecutionStore } from "./stores/execution-store";
 import { WorkflowStore } from "./stores/workflow-store";
@@ -68,9 +71,9 @@ export async function handleIncomingEmail(
   console.log(`Parsed trigger type: ${triggerType}`);
 
   const db = createDatabase(env.DB);
-  const executionStore = new ExecutionStore(env.DB, env.RESSOURCES);
-  const workflowStore = new WorkflowStore(env.DB, env.RESSOURCES);
-  const deploymentStore = new DeploymentStore(env.DB, env.RESSOURCES);
+  const executionStore = new ExecutionStore(env);
+  const workflowStore = new WorkflowStore(env);
+  const deploymentStore = new DeploymentStore(env);
 
   // Get workflow data either from deployment or directly from workflow
   let workflowData: WorkflowType;

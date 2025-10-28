@@ -8,19 +8,53 @@
 
 import type { WorkflowExecution } from "@dafthunk/types";
 
-import type { ExecutionStore } from "../stores/execution-store";
+import type {
+  ExecutionRow,
+  ExecutionStore,
+  SaveExecutionRecord,
+} from "../stores/execution-store";
 
 export class MockExecutionStore implements Partial<ExecutionStore> {
   private executions: Map<string, WorkflowExecution> = new Map();
+  private rows: Map<string, ExecutionRow> = new Map();
 
-  async save(execution: WorkflowExecution): Promise<WorkflowExecution> {
-    // Store in memory for test verification
-    this.executions.set(execution.id, execution);
+  async save(record: SaveExecutionRecord): Promise<WorkflowExecution> {
+    // Store execution row for test verification
+    const row: ExecutionRow = {
+      id: record.id,
+      workflowId: record.workflowId,
+      deploymentId: record.deploymentId ?? null,
+      organizationId: record.organizationId,
+      status: record.status,
+      error: record.error ?? null,
+      startedAt: record.startedAt ?? null,
+      endedAt: record.endedAt ?? null,
+      createdAt: record.createdAt ?? new Date(),
+      updatedAt: record.updatedAt ?? new Date(),
+    };
+    this.rows.set(record.id, row);
+
+    // Store full execution for test verification
+    const execution: WorkflowExecution = {
+      id: record.id,
+      workflowId: record.workflowId,
+      deploymentId: record.deploymentId,
+      status: record.status as any,
+      nodeExecutions: record.nodeExecutions,
+      error: record.error,
+      startedAt: record.startedAt,
+      endedAt: record.endedAt,
+    };
+    this.executions.set(record.id, execution);
     return execution;
   }
 
-  async get(id: string): Promise<WorkflowExecution | null> {
-    return this.executions.get(id) ?? null;
+  async get(
+    id: string,
+    organizationId: string
+  ): Promise<ExecutionRow | undefined> {
+    const row = this.rows.get(id);
+    return row?.organizationId === organizationId ? row : undefined;
   }
 
   /**

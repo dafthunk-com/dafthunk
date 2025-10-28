@@ -40,7 +40,7 @@ const deploymentRoutes = new Hono<ExtendedApiContext>();
  */
 deploymentRoutes.get("/", jwtMiddleware, async (c) => {
   const organizationId = c.get("organizationId")!;
-  const deploymentStore = new DeploymentStore(c.env.DB, c.env.RESSOURCES);
+  const deploymentStore = new DeploymentStore(c.env);
 
   const groupedDeployments =
     await deploymentStore.getGroupedByWorkflow(organizationId);
@@ -59,7 +59,7 @@ deploymentRoutes.get("/", jwtMiddleware, async (c) => {
 deploymentRoutes.get("/version/:deploymentId", jwtMiddleware, async (c) => {
   const organizationId = c.get("organizationId")!;
   const deploymentId = c.req.param("deploymentId");
-  const deploymentStore = new DeploymentStore(c.env.DB, c.env.RESSOURCES);
+  const deploymentStore = new DeploymentStore(c.env);
 
   const deployment = await deploymentStore.getWithData(
     deploymentId,
@@ -92,7 +92,7 @@ deploymentRoutes.get("/version/:deploymentId", jwtMiddleware, async (c) => {
 deploymentRoutes.get("/:workflowIdOrHandle", jwtMiddleware, async (c) => {
   const organizationId = c.get("organizationId")!;
   const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
-  const deploymentStore = new DeploymentStore(c.env.DB, c.env.RESSOURCES);
+  const deploymentStore = new DeploymentStore(c.env);
 
   // Get the latest deployment
   const deployment = await deploymentStore.getLatest(
@@ -131,8 +131,8 @@ deploymentRoutes.get("/:workflowIdOrHandle", jwtMiddleware, async (c) => {
 deploymentRoutes.post("/:workflowIdOrHandle", jwtMiddleware, async (c) => {
   const organizationId = c.get("organizationId")!;
   const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
-  const workflowStore = new WorkflowStore(c.env.DB, c.env.RESSOURCES);
-  const deploymentStore = new DeploymentStore(c.env.DB, c.env.RESSOURCES);
+  const workflowStore = new WorkflowStore(c.env);
+  const deploymentStore = new DeploymentStore(c.env);
   const now = new Date();
 
   // Load workflow with data from D1 and R2
@@ -194,8 +194,8 @@ deploymentRoutes.get(
   async (c) => {
     const organizationId = c.get("organizationId")!;
     const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
-    const workflowStore = new WorkflowStore(c.env.DB, c.env.RESSOURCES);
-    const deploymentStore = new DeploymentStore(c.env.DB, c.env.RESSOURCES);
+    const workflowStore = new WorkflowStore(c.env);
+    const deploymentStore = new DeploymentStore(c.env);
 
     // Check if workflow exists and belongs to the organization
     const workflow = await workflowStore.get(
@@ -260,7 +260,7 @@ deploymentRoutes.post(
 
     const deploymentId = c.req.param("deploymentId");
     const db = createDatabase(c.env.DB);
-    const deploymentStore = new DeploymentStore(c.env.DB, c.env.RESSOURCES);
+    const deploymentStore = new DeploymentStore(c.env);
 
     // Get organization compute credits
     const computeCredits = await getOrganizationComputeCredits(

@@ -44,7 +44,7 @@ export class MockRuntime extends BaseRuntime {
     // Create tool registry with factory function
     // eslint-disable-next-line prefer-const -- circular dependency pattern requires let
     let resourceProvider: MockResourceProvider;
-    const toolRegistry = new MockToolRegistry(
+    const toolRegistry: any = new MockToolRegistry(
       nodeRegistry,
       (nodeId: string, inputs: Record<string, any>) =>
         resourceProvider.createToolContext(nodeId, inputs)
@@ -56,7 +56,7 @@ export class MockRuntime extends BaseRuntime {
     // Create test-friendly dependencies
     const dependencies: RuntimeDependencies = {
       nodeRegistry,
-      resourceProvider,
+      resourceProvider: resourceProvider as any,
       executionStore: new MockExecutionStore() as any,
       monitoringService: new MockMonitoringService(),
     };

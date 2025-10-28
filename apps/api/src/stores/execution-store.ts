@@ -1,10 +1,26 @@
-import type { NodeExecution, WorkflowExecution } from "@dafthunk/types";
-import { and, desc, eq, SQL } from "drizzle-orm";
+import type {
+  ExecutionStatusType,
+  NodeExecution,
+  WorkflowExecution,
+} from "@dafthunk/types";
 
-import { createDatabase, Database } from "../db";
-import { getOrganizationCondition } from "../db/queries";
-import type { ExecutionRow, ExecutionStatusType } from "../db/schema";
-import { executions, organizations } from "../db/schema";
+import type { Bindings } from "../context";
+
+/**
+ * Execution metadata row structure
+ */
+export interface ExecutionRow {
+  id: string;
+  workflowId: string;
+  deploymentId: string | null;
+  organizationId: string;
+  status: ExecutionStatusType;
+  error: string | null;
+  startedAt: Date | null;
+  endedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 /**
  * Data required to save an execution record
@@ -35,25 +51,17 @@ export interface ListExecutionsOptions {
 }
 
 /**
- * Manages execution storage across D1 (metadata) and R2 (full data).
+ * Manages execution storage across Analytics Engine (metadata) and R2 (full data).
  * Provides a unified interface for execution persistence operations.
  */
 export class ExecutionStore {
-  constructor(
-    d1: D1Database,
-    private bucket: R2Bucket
-  ) {
-    this.db = createDatabase(d1);
-  }
-
-  private db: Database;
+  constructor(private env: Bindings) {}
 
   /**
-   * Save execution metadata to D1 and full data to R2
+   * Save execution metadata to Analytics Engine and full data to R2
    */
   async save(record: SaveExecutionRecord): Promise<WorkflowExecution> {
-    const now = new Date();
-    const { nodeExecutions, userId, deploymentId, ...dbFields } = record;
+    const { nodeExecutions } = record;
 
     // Create the execution object for return and R2 storage
     const executionData: WorkflowExecution = {
@@ -67,18 +75,8 @@ export class ExecutionStore {
       endedAt: record.endedAt,
     };
 
-    // Create metadata record for D1
-    const dbRecord = {
-      ...dbFields,
-      deploymentId: deploymentId,
-      updatedAt: record.updatedAt ?? now,
-      createdAt: record.createdAt ?? now,
-      startedAt: record.startedAt,
-      endedAt: record.endedAt,
-    };
-
-    // Save metadata to D1
-    await this.writeToD1(dbRecord);
+    // Save metadata to Analytics Engine
+    this.writeToAnalytics(record);
 
     // Save full data to R2
     await this.writeToR2(executionData);
@@ -87,23 +85,23 @@ export class ExecutionStore {
   }
 
   /**
-   * Get execution metadata from D1
+   * Get execution metadata from Analytics Engine
    */
   async get(
     id: string,
-    organizationIdOrHandle: string
+    organizationId: string
   ): Promise<ExecutionRow | undefined> {
-    return this.readFromD1(id, organizationIdOrHandle);
+    return this.readFromAnalytics(id, organizationId);
   }
 
   /**
-   * Get execution metadata from D1 and full data from R2
+   * Get execution metadata from Analytics Engine and full data from R2
    */
   async getWithData(
     id: string,
-    organizationIdOrHandle: string
+    organizationId: string
   ): Promise<(ExecutionRow & { data: WorkflowExecution }) | undefined> {
-    const execution = await this.readFromD1(id, organizationIdOrHandle);
+    const execution = await this.readFromAnalytics(id, organizationId);
 
     if (!execution) {
       return undefined;
@@ -128,152 +126,124 @@ export class ExecutionStore {
    * List executions with optional filtering and pagination
    */
   async list(
-    organizationIdOrHandle: string,
+    organizationId: string,
     options?: ListExecutionsOptions
   ): Promise<ExecutionRow[]> {
-    return this.listFromD1(organizationIdOrHandle, options);
+    return this.listFromAnalytics(organizationId, options);
   }
 
   /**
-   * Delete execution from both D1 and R2
+   * Write execution metadata to Analytics Engine
    */
-  async delete(id: string, organizationId: string): Promise<boolean> {
+  private writeToAnalytics(record: SaveExecutionRecord): void {
     try {
-      // Delete from D1
-      const deleted = await this.deleteFromD1(id, organizationId);
+      const durationMs =
+        record.endedAt && record.startedAt
+          ? record.endedAt.getTime() - record.startedAt.getTime()
+          : 0;
 
-      // Delete from R2
-      if (deleted) {
-        await this.deleteFromR2(id);
-      }
-
-      return deleted;
-    } catch (error) {
-      console.error(`ExecutionStore.delete: Failed to delete ${id}:`, error);
-      throw error;
-    }
-  }
-
-  /**
-   * Write execution metadata to D1
-   */
-  private async writeToD1(record: any): Promise<void> {
-    try {
-      console.log(`ExecutionStore.writeToD1: Writing execution ${record.id}`);
-
-      await this.db
-        .insert(executions)
-        .values(record)
-        .onConflictDoUpdate({ target: executions.id, set: record });
-
-      console.log(`ExecutionStore.writeToD1: Success for ${record.id}`);
+      this.env.EXECUTIONS.writeDataPoint({
+        indexes: [record.organizationId, record.id],
+        blobs: [
+          record.workflowId,
+          record.deploymentId || "",
+          record.status,
+          (record.error || "").substring(0, 2000), // truncate to fit in blob
+        ],
+        doubles: [durationMs],
+      });
     } catch (error) {
       console.error(
-        `ExecutionStore.writeToD1: Failed to write ${record.id}:`,
+        `ExecutionStore.writeToAnalytics: Failed to write ${record.id}:`,
         error
       );
+      // Don't throw - Analytics Engine writes are fire-and-forget
+    }
+  }
+
+  /**
+   * Query Analytics Engine using SQL API
+   */
+  private async queryAnalytics(sql: string): Promise<any[]> {
+    try {
+      const url = `https://api.cloudflare.com/client/v4/accounts/${this.env.CLOUDFLARE_ACCOUNT_ID}/analytics_engine/sql`;
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${this.env.CLOUDFLARE_API_TOKEN}`,
+        },
+        body: sql,
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(
+          `Analytics query failed: ${response.statusText} - ${error}`
+        );
+      }
+
+      const result = (await response.json()) as { data?: any[] };
+      return result.data || [];
+    } catch (error) {
+      console.error(`ExecutionStore.queryAnalytics: Query failed:`, error);
       throw error;
     }
   }
 
   /**
-   * Read execution metadata from D1
+   * Get the dataset name based on environment
    */
-  private async readFromD1(
+  private getDatasetName(): string {
+    const env = this.env.CLOUDFLARE_ENV || "development";
+    return env === "production"
+      ? "dafthunk_executions_production"
+      : "dafthunk_executions_development";
+  }
+
+  /**
+   * Read execution metadata from Analytics Engine
+   */
+  private async readFromAnalytics(
     id: string,
-    organizationIdOrHandle: string
+    organizationId: string
   ): Promise<ExecutionRow | undefined> {
     try {
-      console.log(`ExecutionStore.readFromD1: Reading execution ${id}`);
+      const dataset = this.getDatasetName();
 
-      const [execution] = await this.db
-        .select()
-        .from(executions)
-        .innerJoin(
-          organizations,
-          and(
-            eq(executions.organizationId, organizations.id),
-            getOrganizationCondition(organizationIdOrHandle)
-          )
-        )
-        .where(eq(executions.id, id))
-        .limit(1);
+      const sql = `
+        SELECT *
+        FROM ${dataset}
+        WHERE index1 = '${organizationId}'
+          AND index2 = '${id}'
+        ORDER BY timestamp DESC
+        LIMIT 1
+      `;
 
-      if (!execution) {
-        console.log(`ExecutionStore.readFromD1: Not found ${id}`);
+      const rows = await this.queryAnalytics(sql);
+
+      if (rows.length === 0) {
         return undefined;
       }
 
-      console.log(`ExecutionStore.readFromD1: Success for ${id}`);
-      return execution.executions;
-    } catch (error) {
-      console.error(`ExecutionStore.readFromD1: Failed to read ${id}:`, error);
-      throw error;
-    }
-  }
+      const row = rows[0];
+      const timestamp = new Date(row.timestamp);
 
-  /**
-   * List executions from D1
-   */
-  private async listFromD1(
-    organizationIdOrHandle: string,
-    options?: ListExecutionsOptions
-  ): Promise<ExecutionRow[]> {
-    try {
-      console.log(
-        `ExecutionStore.listFromD1: Listing executions for org ${organizationIdOrHandle}`
-      );
-
-      let query = this.db
-        .select({ executions: executions })
-        .from(executions)
-        .innerJoin(
-          organizations,
-          eq(executions.organizationId, organizations.id)
-        )
-        .$dynamic();
-
-      const conditions: SQL<unknown>[] = [];
-
-      // Add organization condition
-      conditions.push(getOrganizationCondition(organizationIdOrHandle));
-
-      // Add optional filters
-      if (options?.workflowId) {
-        conditions.push(eq(executions.workflowId, options.workflowId));
-      }
-
-      if (options?.deploymentId) {
-        conditions.push(eq(executions.deploymentId, options.deploymentId));
-      }
-
-      // Apply WHERE conditions
-      if (conditions.length > 0) {
-        query = query.where(and(...conditions));
-      }
-
-      // Apply ORDER BY
-      query = query.orderBy(desc(executions.createdAt));
-
-      // Apply LIMIT
-      if (options?.limit !== undefined) {
-        query = query.limit(options.limit);
-      }
-
-      // Apply OFFSET
-      if (options?.offset !== undefined) {
-        query = query.offset(options.offset);
-      }
-
-      const results = await query;
-
-      console.log(
-        `ExecutionStore.listFromD1: Found ${results.length} executions`
-      );
-      return results.map((item) => item.executions);
+      return {
+        id: row.index2,
+        workflowId: row.blob1,
+        deploymentId: row.blob2 || null,
+        organizationId: row.index1,
+        status: row.blob3 as ExecutionStatusType,
+        error: row.blob4 || null,
+        startedAt: timestamp,
+        endedAt: timestamp,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      };
     } catch (error) {
       console.error(
-        `ExecutionStore.listFromD1: Failed to list executions:`,
+        `ExecutionStore.readFromAnalytics: Failed to read ${id}:`,
         error
       );
       throw error;
@@ -281,33 +251,56 @@ export class ExecutionStore {
   }
 
   /**
-   * Delete execution metadata from D1
+   * List executions from Analytics Engine
    */
-  private async deleteFromD1(
-    id: string,
-    organizationId: string
-  ): Promise<boolean> {
+  private async listFromAnalytics(
+    organizationId: string,
+    options?: ListExecutionsOptions
+  ): Promise<ExecutionRow[]> {
     try {
-      console.log(`ExecutionStore.deleteFromD1: Deleting execution ${id}`);
+      const dataset = this.getDatasetName();
 
-      const [deleted] = await this.db
-        .delete(executions)
-        .where(
-          and(
-            eq(executions.id, id),
-            eq(executions.organizationId, organizationId)
-          )
-        )
-        .returning({ id: executions.id });
+      const whereConditions = [`index1 = '${organizationId}'`];
 
-      const success = !!deleted;
-      console.log(
-        `ExecutionStore.deleteFromD1: ${success ? "Success" : "Not found"} for ${id}`
-      );
-      return success;
+      if (options?.workflowId) {
+        whereConditions.push(`blob1 = '${options.workflowId}'`);
+      }
+
+      if (options?.deploymentId) {
+        whereConditions.push(`blob2 = '${options.deploymentId}'`);
+      }
+
+      const limit = options?.limit ?? 20;
+      const offset = options?.offset ?? 0;
+
+      const sql = `
+        SELECT *
+        FROM ${dataset}
+        WHERE ${whereConditions.join(" AND ")}
+        ORDER BY timestamp DESC
+        LIMIT ${limit} OFFSET ${offset}
+      `;
+
+      const rows = await this.queryAnalytics(sql);
+
+      return rows.map((row) => {
+        const timestamp = new Date(row.timestamp);
+        return {
+          id: row.index2,
+          workflowId: row.blob1,
+          deploymentId: row.blob2 || null,
+          organizationId: row.index1,
+          status: row.blob3 as ExecutionStatusType,
+          error: row.blob4 || null,
+          startedAt: timestamp,
+          endedAt: timestamp,
+          createdAt: timestamp,
+          updatedAt: timestamp,
+        };
+      });
     } catch (error) {
       console.error(
-        `ExecutionStore.deleteFromD1: Failed to delete ${id}:`,
+        `ExecutionStore.listFromAnalytics: Failed to list executions:`,
         error
       );
       throw error;
@@ -319,16 +312,12 @@ export class ExecutionStore {
    */
   private async writeToR2(execution: WorkflowExecution): Promise<void> {
     try {
-      console.log(
-        `ExecutionStore.writeToR2: Writing execution ${execution.id}`
-      );
-
-      if (!this.bucket) {
+      if (!this.env.RESSOURCES) {
         throw new Error("R2 bucket is not initialized");
       }
 
       const key = `executions/${execution.id}/execution.json`;
-      const result = await this.bucket.put(key, JSON.stringify(execution), {
+      await this.env.RESSOURCES.put(key, JSON.stringify(execution), {
         httpMetadata: {
           contentType: "application/json",
           cacheControl: "no-cache",
@@ -339,10 +328,6 @@ export class ExecutionStore {
           updatedAt: new Date().toISOString(),
         },
       });
-
-      console.log(
-        `ExecutionStore.writeToR2: Success for ${execution.id}, etag: ${result?.etag || "unknown"}`
-      );
     } catch (error) {
       console.error(
         `ExecutionStore.writeToR2: Failed to write ${execution.id}:`,
@@ -357,57 +342,22 @@ export class ExecutionStore {
    */
   private async readFromR2(executionId: string): Promise<WorkflowExecution> {
     try {
-      console.log(
-        `ExecutionStore.readFromR2: Reading execution ${executionId}`
-      );
-
-      if (!this.bucket) {
+      if (!this.env.RESSOURCES) {
         throw new Error("R2 bucket is not initialized");
       }
 
       const key = `executions/${executionId}/execution.json`;
-      const object = await this.bucket.get(key);
+      const object = await this.env.RESSOURCES.get(key);
 
       if (!object) {
         throw new Error(`Execution not found: ${executionId}`);
       }
 
       const text = await object.text();
-      console.log(
-        `ExecutionStore.readFromR2: Success for ${executionId}, size: ${object.size} bytes`
-      );
       return JSON.parse(text) as WorkflowExecution;
     } catch (error) {
       console.error(
         `ExecutionStore.readFromR2: Failed to read ${executionId}:`,
-        error
-      );
-      throw error;
-    }
-  }
-
-  /**
-   * Delete execution data from R2
-   */
-  private async deleteFromR2(executionId: string): Promise<void> {
-    try {
-      console.log(
-        `ExecutionStore.deleteFromR2: Deleting execution ${executionId}`
-      );
-
-      if (!this.bucket) {
-        throw new Error("R2 bucket is not initialized");
-      }
-
-      const key = `executions/${executionId}/execution.json`;
-      await this.bucket.delete(key);
-
-      console.log(
-        `ExecutionStore.deleteFromR2: Successfully deleted ${executionId}`
-      );
-    } catch (error) {
-      console.error(
-        `ExecutionStore.deleteFromR2: Failed to delete ${executionId}:`,
         error
       );
       throw error;

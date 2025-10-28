@@ -48,18 +48,6 @@ export const Provider = {
 
 export type ProviderType = (typeof Provider)[keyof typeof Provider];
 
-// Workflow execution states
-export const ExecutionStatus = {
-  STARTED: "started",
-  EXECUTING: "executing",
-  COMPLETED: "completed",
-  ERROR: "error",
-  CANCELLED: "cancelled",
-} as const;
-
-export type ExecutionStatusType =
-  (typeof ExecutionStatus)[keyof typeof ExecutionStatus];
-
 // Workflow trigger types
 export const WorkflowTriggerType = {
   MANUAL: "manual",
@@ -283,51 +271,6 @@ export const deployments = sqliteTable(
   ]
 );
 
-// Executions - Records of workflow runs with status and results
-// Note: Full execution data is stored in R2, only metadata is in the database
-export const executions = sqliteTable(
-  "executions",
-  {
-    id: text("id").primaryKey(),
-    workflowId: text("workflow_id")
-      .notNull()
-      .references(() => workflows.id, { onDelete: "cascade" }),
-    deploymentId: text("deployment_id").references(() => deployments.id, {
-      onDelete: "cascade",
-    }),
-    organizationId: text("organization_id")
-      .notNull()
-      .references(() => organizations.id, { onDelete: "cascade" }),
-    status: text("status")
-      .$type<ExecutionStatusType>()
-      .notNull()
-      .default(ExecutionStatus.STARTED),
-    error: text("error"),
-    startedAt: integer("started_at", { mode: "timestamp" }),
-    endedAt: integer("ended_at", { mode: "timestamp" }),
-    createdAt: createCreatedAt(),
-    updatedAt: createUpdatedAt(),
-  },
-  (table) => [
-    index("executions_workflow_id_idx").on(table.workflowId),
-    index("executions_organization_id_idx").on(table.organizationId),
-    index("executions_status_idx").on(table.status),
-    index("executions_deployment_id_idx").on(table.deploymentId),
-    index("executions_created_at_idx").on(table.createdAt),
-    index("executions_started_at_idx").on(table.startedAt),
-    index("executions_ended_at_idx").on(table.endedAt),
-    // Composite indexes for common query patterns
-    index("executions_organization_id_status_idx").on(
-      table.organizationId,
-      table.status
-    ),
-    index("executions_workflow_id_status_idx").on(
-      table.workflowId,
-      table.status
-    ),
-  ]
-);
-
 // Cron Triggers - Scheduled triggers for workflows
 export const cronTriggers = sqliteTable(
   "cron_triggers",
@@ -461,7 +404,6 @@ export const organizationsRelations = relations(
   ({ many, one }) => ({
     memberships: many(memberships),
     workflows: many(workflows),
-    executions: many(executions),
     deployments: many(deployments),
     apiKeys: many(apiKeys),
     datasets: many(datasets),
@@ -494,26 +436,10 @@ export const workflowsRelations = relations(workflows, ({ one, many }) => ({
     fields: [workflows.organizationId],
     references: [organizations.id],
   }),
-  executions: many(executions),
   deployments: many(deployments),
   cronTrigger: one(cronTriggers, {
     fields: [workflows.id],
     references: [cronTriggers.workflowId],
-  }),
-}));
-
-export const executionsRelations = relations(executions, ({ one }) => ({
-  workflow: one(workflows, {
-    fields: [executions.workflowId],
-    references: [workflows.id],
-  }),
-  organization: one(organizations, {
-    fields: [executions.organizationId],
-    references: [organizations.id],
-  }),
-  deployment: one(deployments, {
-    fields: [executions.deploymentId],
-    references: [deployments.id],
   }),
 }));
 
@@ -588,9 +514,6 @@ export type ApiKeyInsert = typeof apiKeys.$inferInsert;
 
 export type WorkflowRow = typeof workflows.$inferSelect;
 export type WorkflowInsert = typeof workflows.$inferInsert;
-
-export type ExecutionRow = typeof executions.$inferSelect;
-export type ExecutionInsert = typeof executions.$inferInsert;
 
 export type DeploymentRow = typeof deployments.$inferSelect;
 export type DeploymentInsert = typeof deployments.$inferInsert;

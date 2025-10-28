@@ -8,7 +8,13 @@
       ]
     },
     "apps/api": {
-      "ignore": ["src/db/schema/index.ts", "scripts/*"]
+      "ignore": [
+        "src/db/schema/index.ts",
+        "scripts/*",
+        "src/test-entry.ts",
+        "src/mocks/runtime.ts",
+        "src/runtime/types.ts"
+      ]
     }
   },
   "ignoreExportsUsedInFile": true
