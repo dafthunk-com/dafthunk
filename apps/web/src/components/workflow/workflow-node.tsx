@@ -472,11 +472,39 @@ export const WorkflowNode = memo(
                       >
                         {/* Output Header */}
                         <div className="flex items-center gap-2 min-w-0">
-                          <span className="text-foreground font-medium truncate text-xs">
-                            {output.name}
+                          <span className="text-muted-foreground shrink-0">
+                            {(() => {
+                              const iconSize = "h-3 w-3";
+                              const icons: Record<InputOutputType, React.ReactNode> = {
+                                string: <TypeIcon className={iconSize} />,
+                                number: <HashIcon className={iconSize} />,
+                                boolean: <CheckIcon className={iconSize} />,
+                                image: <ImageIcon className={iconSize} />,
+                                document: <StickyNoteIcon className={iconSize} />,
+                                audio: <MusicIcon className={iconSize} />,
+                                buffergeometry: <BoxIcon className={iconSize} />,
+                                gltf: <BoxIcon className={iconSize} />,
+                                json: <BracesIcon className={iconSize} />,
+                                date: <CalendarIcon className={iconSize} />,
+                                point: <DotIcon className={iconSize} />,
+                                multipoint: <EllipsisIcon className={iconSize} />,
+                                linestring: <MinusIcon className={iconSize} />,
+                                multilinestring: <ChartNoAxesGanttIcon className={iconSize} />,
+                                polygon: <TriangleIcon className={iconSize} />,
+                                multipolygon: <ShapesIcon className={iconSize} />,
+                                geometry: <SquareIcon className={iconSize} />,
+                                geometrycollection: <LayoutGridIcon className={iconSize} />,
+                                feature: <BuildingIcon className={iconSize} />,
+                                featurecollection: <Building2Icon className={iconSize} />,
+                                geojson: <GlobeIcon className={iconSize} />,
+                                secret: <LockIcon className={iconSize} />,
+                                any: <AsteriskIcon className={iconSize} />,
+                              };
+                              return icons[output.type] || icons.any;
+                            })()}
                           </span>
-                          <span className="text-xs text-muted-foreground shrink-0">
-                            {output.type}
+                          <span className="text-foreground font-medium font-mono truncate text-xs">
+                            {output.name}
                           </span>
                         </div>
 

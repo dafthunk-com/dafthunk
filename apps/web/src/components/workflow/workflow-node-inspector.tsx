@@ -1,8 +1,30 @@
 import type { ObjectReference } from "@dafthunk/types";
 import type { Node as ReactFlowNode } from "@xyflow/react";
+import AsteriskIcon from "lucide-react/icons/asterisk";
+import BoxIcon from "lucide-react/icons/box";
+import BracesIcon from "lucide-react/icons/braces";
+import BuildingIcon from "lucide-react/icons/building";
+import Building2Icon from "lucide-react/icons/building-2";
+import CalendarIcon from "lucide-react/icons/calendar";
+import ChartNoAxesGanttIcon from "lucide-react/icons/chart-no-axes-gantt";
+import CheckIcon from "lucide-react/icons/check";
 import ChevronDownIcon from "lucide-react/icons/chevron-down";
+import DotIcon from "lucide-react/icons/dot";
+import EllipsisIcon from "lucide-react/icons/ellipsis";
 import EyeIcon from "lucide-react/icons/eye";
 import EyeOffIcon from "lucide-react/icons/eye-off";
+import GlobeIcon from "lucide-react/icons/globe";
+import HashIcon from "lucide-react/icons/hash";
+import ImageIcon from "lucide-react/icons/image";
+import LayoutGridIcon from "lucide-react/icons/layout-grid";
+import LockIcon from "lucide-react/icons/lock";
+import MinusIcon from "lucide-react/icons/minus";
+import MusicIcon from "lucide-react/icons/music";
+import ShapesIcon from "lucide-react/icons/shapes";
+import SquareIcon from "lucide-react/icons/square";
+import StickyNoteIcon from "lucide-react/icons/sticky-note";
+import TriangleIcon from "lucide-react/icons/triangle";
+import TypeIcon from "lucide-react/icons/type";
 import XCircleIcon from "lucide-react/icons/x-circle";
 import { useEffect, useState } from "react";
 
@@ -19,8 +41,38 @@ import {
   useWorkflow,
 } from "./workflow-context";
 import { WorkflowOutputRenderer } from "./workflow-output-renderer";
-import type { WorkflowParameter } from "./workflow-types";
+import type { InputOutputType, WorkflowParameter } from "./workflow-types";
 import type { WorkflowNodeType } from "./workflow-types";
+
+const getTypeIcon = (type: InputOutputType) => {
+  const iconSize = "h-3.5 w-3.5";
+  const icons: Record<InputOutputType, React.ReactNode> = {
+    string: <TypeIcon className={iconSize} />,
+    number: <HashIcon className={iconSize} />,
+    boolean: <CheckIcon className={iconSize} />,
+    image: <ImageIcon className={iconSize} />,
+    document: <StickyNoteIcon className={iconSize} />,
+    audio: <MusicIcon className={iconSize} />,
+    buffergeometry: <BoxIcon className={iconSize} />,
+    gltf: <BoxIcon className={iconSize} />,
+    json: <BracesIcon className={iconSize} />,
+    date: <CalendarIcon className={iconSize} />,
+    point: <DotIcon className={iconSize} />,
+    multipoint: <EllipsisIcon className={iconSize} />,
+    linestring: <MinusIcon className={iconSize} />,
+    multilinestring: <ChartNoAxesGanttIcon className={iconSize} />,
+    polygon: <TriangleIcon className={iconSize} />,
+    multipolygon: <ShapesIcon className={iconSize} />,
+    geometry: <SquareIcon className={iconSize} />,
+    geometrycollection: <LayoutGridIcon className={iconSize} />,
+    feature: <BuildingIcon className={iconSize} />,
+    featurecollection: <Building2Icon className={iconSize} />,
+    geojson: <GlobeIcon className={iconSize} />,
+    secret: <LockIcon className={iconSize} />,
+    any: <AsteriskIcon className={iconSize} />,
+  };
+  return icons[type] || icons.any;
+};
 
 export interface WorkflowNodeInspectorProps {
   node: ReactFlowNode<WorkflowNodeType> | null;
@@ -176,7 +228,7 @@ export function WorkflowNodeInspector({
         <div className="border-b border-border">
           <button
             onClick={() => setInputsExpanded(!inputsExpanded)}
-            className="w-full px-4 py-3 bg-neutral-100 dark:bg-neutral-900 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors flex items-center justify-between"
+            className="w-full px-4 py-3 flex items-center justify-between"
           >
             <h2 className="text-xs font-semibold text-foreground">Inputs</h2>
             <ChevronDownIcon
@@ -192,11 +244,11 @@ export function WorkflowNodeInspector({
                   <div key={input.id} className="text-sm space-y-1">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-foreground font-medium truncate">
-                          {input.name}
+                        <span className="text-muted-foreground shrink-0">
+                          {getTypeIcon(input.type)}
                         </span>
-                        <span className="text-xs text-muted-foreground shrink-0">
-                          {input.type}
+                        <span className="text-foreground font-medium font-mono truncate">
+                          {input.name}
                         </span>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
@@ -274,7 +326,7 @@ export function WorkflowNodeInspector({
         <div className="border-b border-border">
           <button
             onClick={() => setOutputsExpanded(!outputsExpanded)}
-            className="w-full px-4 py-3 bg-neutral-100 dark:bg-neutral-900 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors flex items-center justify-between"
+            className="w-full px-4 py-3 flex items-center justify-between"
           >
             <h2 className="text-xs font-semibold text-foreground">Outputs</h2>
             <ChevronDownIcon
@@ -290,11 +342,11 @@ export function WorkflowNodeInspector({
                   <div key={output.id} className="text-sm space-y-1">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-foreground font-medium truncate">
-                          {output.name}
+                        <span className="text-muted-foreground shrink-0">
+                          {getTypeIcon(output.type)}
                         </span>
-                        <span className="text-xs text-muted-foreground shrink-0">
-                          {output.type}
+                        <span className="text-foreground font-medium font-mono truncate">
+                          {output.name}
                         </span>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
