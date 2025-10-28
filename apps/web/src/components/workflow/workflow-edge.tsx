@@ -41,65 +41,21 @@ const createSmoothStepPath = (params: {
 // Shared SVG rendering for both components
 const renderPath = (
   path: string,
-  id: string,
   color: string,
   isActive?: boolean,
   zIndex?: number
 ) => {
-  const arrowId = `arrow-${id}`;
-  const rectId = `rect-${id}`;
-
   return (
-    <g>
-      <defs>
-        <marker
-          id={arrowId}
-          viewBox="0 0 10 10"
-          refX="5"
-          refY="5"
-          markerWidth="8"
-          markerHeight="8"
-          orient="auto-start-reverse"
-        >
-          <path
-            d="M 0 0 L 10 5 L 0 10 z"
-            fill={color}
-            stroke={color}
-            strokeWidth="1"
-          />
-        </marker>
-        <marker
-          id={rectId}
-          viewBox="0 0 4 10"
-          refX="2"
-          refY="5"
-          markerWidth="4"
-          markerHeight="8"
-        >
-          <rect
-            x="0"
-            y="0"
-            width="4"
-            height="10"
-            fill={color}
-            stroke={color}
-            strokeWidth="1"
-          />
-        </marker>
-      </defs>
-      <path
-        d={path}
-        className={cn("stroke-[1] fill-none", {
-          "animate-pulse": isActive,
-        })}
-        style={{
-          stroke: color,
-          zIndex: zIndex,
-        }}
-        markerEnd={`url(#${arrowId})`}
-        markerStart={`url(#${rectId})`}
-      />
-    </g>
+    <path
+      d={path}
+      className={cn("stroke-[1] fill-none", {
+        "animate-pulse": isActive,
+      })}
+      style={{
+        stroke: color,
+        zIndex: zIndex,
+      }}
+    />
   );
 };
 
@@ -137,7 +93,7 @@ export const WorkflowEdge = memo(
       return "#d1d5db"; // gray-300
     };
 
-    return renderPath(edgePath, id, getColor(), isActive, zIndex);
+    return renderPath(edgePath, getColor(), isActive, zIndex);
   }
 );
 
@@ -173,8 +129,7 @@ export const WorkflowConnectionLine = memo(
       return "#d1d5db"; // gray-300
     };
 
-    // Use a unique ID for connection lines
-    return renderPath(edgePath, "connection", getColor(), false, undefined);
+    return renderPath(edgePath, getColor(), false, undefined);
   }
 );
 
