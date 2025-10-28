@@ -18,7 +18,6 @@ interface DocumentWidgetProps extends BaseWidgetProps {
 function DocumentWidget({
   value,
   onChange,
-  compact = false,
   readonly = false,
 }: DocumentWidgetProps) {
   const [error, setError] = useState<string | null>(null);
@@ -72,12 +71,12 @@ function DocumentWidget({
 
   return (
     <div className="p-2">
-      <div className={cn("overflow-hidden bg-white", compact ? "p-2" : "p-4")}>
+      <div className="overflow-hidden bg-white p-2">
         {fileName ? (
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center space-x-2 min-w-0">
               <File className="h-4 w-4 flex-shrink-0 text-neutral-500" />
-              <span className="text-sm text-neutral-700 truncate">
+              <span className="text-xs text-neutral-700 truncate">
                 {fileName}
               </span>
             </div>
@@ -94,7 +93,7 @@ function DocumentWidget({
         ) : (
           <div className="flex flex-col items-center justify-center space-y-2">
             <Upload className="h-8 w-8 text-neutral-400" />
-            <div className="text-sm text-neutral-500 text-center">
+            <div className="text-xs text-neutral-500 text-center">
               <label
                 htmlFor="document-upload"
                 className={cn(
@@ -116,7 +115,7 @@ function DocumentWidget({
           </div>
         )}
         {error && (
-          <div className="mt-2 text-sm text-red-600 text-center">{error}</div>
+          <div className="mt-2 text-xs text-red-600 text-center">{error}</div>
         )}
       </div>
     </div>

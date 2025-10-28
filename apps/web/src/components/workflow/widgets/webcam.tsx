@@ -138,7 +138,7 @@ function WebcamWidget({
               />
             )}
             {error && (
-              <div className="absolute inset-0 flex items-center justify-center bg-red-50 text-red-600 text-sm">
+              <div className="absolute inset-0 flex items-center justify-center bg-red-50 text-red-600 text-xs">
                 {error}
               </div>
             )}

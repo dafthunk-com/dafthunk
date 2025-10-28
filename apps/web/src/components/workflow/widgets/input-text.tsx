@@ -16,7 +16,6 @@ function InputTextWidget({
   placeholder,
   onChange,
   className,
-  compact = false,
   readonly = false,
 }: InputTextWidgetProps) {
   // Use local state for immediate UI updates
@@ -49,12 +48,12 @@ function InputTextWidget({
   };
 
   return (
-    <div className={cn(compact ? "p-1" : "p-2", className)}>
+    <div className={cn("p-1", className)}>
       <Input
         value={localValue}
         onChange={handleChange}
         placeholder={placeholder || "Enter text..."}
-        className={cn(compact && "text-[0.6rem] leading-tight h-6 px-1.5")}
+        className="text-xs leading-tight h-6 px-1.5"
         disabled={readonly}
       />
     </div>

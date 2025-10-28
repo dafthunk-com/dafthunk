@@ -22,7 +22,6 @@ function NumberInputWidget({
   placeholder,
   onChange,
   className,
-  compact = false,
   readonly = false,
 }: NumberInputWidgetProps) {
   // Use local state for immediate UI updates
@@ -59,7 +58,7 @@ function NumberInputWidget({
   };
 
   return (
-    <div className={cn(compact ? "p-1" : "p-2", className)}>
+    <div className={cn("p-1", className)}>
       <Input
         type="number"
         value={localValue}
@@ -68,9 +67,7 @@ function NumberInputWidget({
         max={max}
         step={step}
         placeholder={placeholder || "Enter number..."}
-        className={cn(
-          compact && "h-6 text-[0.6rem] leading-tight px-1.5 py-0.5"
-        )}
+        className="h-6 text-xs leading-tight px-1.5 py-0.5"
         disabled={readonly}
       />
     </div>

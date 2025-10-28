@@ -279,7 +279,7 @@ export const WorkflowNode = memo(
       <TooltipProvider>
         <div
           className={cn(
-            "bg-card shadow-sm w-[200px] rounded-md border transition-colors overflow-hidden",
+            "bg-card shadow-sm w-[220px] rounded-md border transition-colors overflow-hidden",
             {
               "border-blue-500": selected,
               "border-border": !selected && data.executionState === "idle",
@@ -293,7 +293,7 @@ export const WorkflowNode = memo(
           {/* Header */}
           <div
             className={cn(
-              "px-0.5 flex justify-between items-center bg-neutral-100 dark:bg-neutral-900 border-b hover:cursor-grab active:cursor-grabbing",
+              "px-0.5 flex justify-between items-center hover:cursor-grab active:cursor-grabbing",
               "workflow-node-drag-handle"
             )}
           >
@@ -302,7 +302,7 @@ export const WorkflowNode = memo(
                 name={data.icon as any}
                 className="mx-1 h-3 w-3 text-blue-500 shrink-0"
               />
-              <h3 className="text-xs font-normal truncate">{data.name}</h3>
+              <h3 className="text-xs font-bold truncate">{data.name}</h3>
             </div>
             <button
               type="button"
@@ -329,11 +329,10 @@ export const WorkflowNode = memo(
 
           {/* Widget */}
           {!readonly && widget && (
-            <div className="px-0 py-0 border-b nodrag">
+            <div className="px-0 py-0 nodrag">
               {createElement(widget.Component, {
                 ...widget.config,
                 onChange: handleWidgetChange,
-                compact: true,
                 readonly: readonly,
               })}
             </div>
@@ -342,7 +341,7 @@ export const WorkflowNode = memo(
           {/* Tools bar (between header and body) */}
           {data.functionCalling && (
             <div
-              className="px-1 py-1 border-b nodrag flex flex-wrap items-start gap-1"
+              className="px-1 py-1 nodrag flex flex-wrap items-start gap-1"
               onClick={(e) => {
                 e.stopPropagation();
                 if (readonly) return;
@@ -353,7 +352,7 @@ export const WorkflowNode = memo(
                 const selectedTools = getCurrentSelectedTools();
                 if (!selectedTools.length) {
                   return (
-                    <span className="text-[10px] text-neutral-500">
+                    <span className="text-xs text-neutral-500">
                       Click to select tools
                     </span>
                   );
@@ -368,7 +367,7 @@ export const WorkflowNode = memo(
                       return (
                         <span
                           key={`${tool.identifier}-${idx}`}
-                          className="inline-flex items-center gap-1 px-1 py-[2px] rounded bg-neutral-100 text-[10px] text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300"
+                          className="inline-flex items-center gap-1 px-1 py-[2px] rounded bg-neutral-100 text-xs text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300"
                         >
                           {tpl?.icon ? (
                             <DynamicIcon
@@ -382,7 +381,7 @@ export const WorkflowNode = memo(
                         </span>
                       );
                     })}
-                    <span className="text-[10px] text-blue-500 ml-1">Edit</span>
+                    <span className="text-xs text-blue-500 ml-1">Edit</span>
                   </div>
                 );
               })()}
@@ -408,7 +407,7 @@ export const WorkflowNode = memo(
                       onInputClick={handleInputClick}
                       readonly={readonly}
                     />
-                    <p className="text-[0.6rem] text-neutral-700 dark:text-neutral-300 overflow-hidden text-ellipsis">
+                    <p className="text-xs text-neutral-700 dark:text-neutral-300 overflow-hidden text-ellipsis">
                       {input.name}
                       {input.repeated && (
                         <span className="text-neutral-500 dark:text-neutral-400 ml-1">
@@ -429,7 +428,7 @@ export const WorkflowNode = memo(
                     key={`output-${output.id}-${index}`}
                     className="flex items-center gap-1 text-xs relative"
                   >
-                    <p className="text-[0.6rem] text-neutral-700 dark:text-neutral-300 overflow-hidden text-ellipsis">
+                    <p className="text-xs text-neutral-700 dark:text-neutral-300 overflow-hidden text-ellipsis">
                       {output.name}
                     </p>
                     <TypeBadge
@@ -472,10 +471,10 @@ export const WorkflowNode = memo(
                       >
                         {/* Output Header */}
                         <div className="flex items-center gap-2 min-w-0">
-                          <span className="text-foreground font-medium truncate text-[0.6rem]">
+                          <span className="text-foreground font-medium truncate text-xs">
                             {output.name}
                           </span>
-                          <span className="text-[0.6rem] text-muted-foreground shrink-0">
+                          <span className="text-xs text-muted-foreground shrink-0">
                             {output.type}
                           </span>
                         </div>
@@ -511,7 +510,7 @@ export const WorkflowNode = memo(
 
               {showError && (
                 <div className="px-2 py-1 border-t nodrag">
-                  <p className="text-[0.6rem] text-red-600 dark:text-red-400">
+                  <p className="text-xs text-red-600 dark:text-red-400">
                     {data.error}
                   </p>
                 </div>

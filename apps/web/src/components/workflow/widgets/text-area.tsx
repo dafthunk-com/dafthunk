@@ -18,7 +18,6 @@ function TextAreaWidget({
   rows,
   onChange,
   className,
-  compact = false,
   readonly = false,
 }: TextAreaWidgetProps) {
   // Use local state for immediate UI updates
@@ -51,16 +50,13 @@ function TextAreaWidget({
   };
 
   return (
-    <div className={cn(compact ? "p-1" : "p-2", className)}>
+    <div className={cn("p-1", className)}>
       <Textarea
         value={localValue}
         onChange={handleChange}
         placeholder={placeholder || "Enter text..."}
-        className={cn(
-          compact && "min-h-[100px] text-[0.6rem] leading-tight p-1.5"
-        )}
+        className="min-h-[100px] text-xs leading-tight p-1.5"
         disabled={readonly}
-        rows={compact ? undefined : rows}
       />
     </div>
   );

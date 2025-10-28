@@ -25,7 +25,6 @@ function IntegrationSelectorWidget({
   provider,
   onChange,
   className,
-  compact = false,
   readonly = false,
 }: IntegrationSelectorWidgetProps) {
   const { integrations, error, isLoading, mutate } = useIntegrations();
@@ -68,7 +67,7 @@ function IntegrationSelectorWidget({
         onValueChange={handleSelect}
         disabled={readonly || isLoading}
       >
-        <SelectTrigger className={cn("text-xs", compact ? "h-7" : "h-8")}>
+        <SelectTrigger className="text-xs h-7">
           <SelectValue
             placeholder={isLoading ? "Loading..." : "Select integration..."}
           />

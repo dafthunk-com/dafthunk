@@ -20,7 +20,6 @@ function SliderWidget({
   step,
   onChange,
   className,
-  compact = false,
   readonly = false,
 }: SliderWidgetProps) {
   // Use local state for immediate UI updates
@@ -53,22 +52,17 @@ function SliderWidget({
   };
 
   return (
-    <div className={cn(compact ? "space-y-1 p-1" : "space-y-2 p-2", className)}>
+    <div className={cn("space-y-1 p-1", className)}>
       <Slider
         min={min}
         max={max}
         step={step}
         value={[localValue]}
         onValueChange={handleValueChange}
-        className={cn(compact ? "py-2" : "py-4")}
+        className="py-2"
         disabled={readonly}
       />
-      <div
-        className={cn(
-          "flex justify-between text-neutral-500",
-          compact ? "text-[0.6rem] leading-tight" : "text-xs"
-        )}
-      >
+      <div className="flex justify-between text-neutral-500 text-xs leading-tight">
         <span>{min}</span>
         <span>Value: {localValue}</span>
         <span>{max}</span>

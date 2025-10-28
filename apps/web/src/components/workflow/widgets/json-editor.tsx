@@ -13,7 +13,6 @@ function JsonEditorWidget({
   value,
   onChange,
   className,
-  compact = false,
   readonly = false,
 }: JsonEditorWidgetProps) {
   const handleEditorChange = (value: string | undefined) => {
@@ -35,7 +34,7 @@ function JsonEditorWidget({
 
   return (
     <div className={cn("p-2", className)}>
-      <div className={cn(compact ? "h-[200px]" : "h-[400px]", "relative")}>
+      <div className="h-[200px] relative">
         <Editor
           height="100%"
           defaultLanguage="json"
@@ -45,7 +44,7 @@ function JsonEditorWidget({
             minimap: { enabled: false },
             lineNumbers: "on",
             lineNumbersMinChars: 2,
-            fontSize: compact ? 8 : 12,
+            fontSize: 8,
             automaticLayout: true,
             wordWrap: "on",
             readOnly: readonly,

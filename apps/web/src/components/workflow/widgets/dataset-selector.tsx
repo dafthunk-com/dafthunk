@@ -23,7 +23,6 @@ function DatasetSelectorWidget({
   value,
   onChange,
   className,
-  compact = false,
   readonly = false,
 }: DatasetSelectorWidgetProps) {
   const { datasets, datasetsError, isDatasetsLoading, mutateDatasets } =
@@ -63,7 +62,7 @@ function DatasetSelectorWidget({
         onValueChange={handleSelect}
         disabled={readonly || isDatasetsLoading}
       >
-        <SelectTrigger className={cn("text-xs", compact ? "h-7" : "h-8")}>
+        <SelectTrigger className="text-xs h-7">
           <SelectValue
             placeholder={isDatasetsLoading ? "Loading..." : "Select dataset..."}
           />

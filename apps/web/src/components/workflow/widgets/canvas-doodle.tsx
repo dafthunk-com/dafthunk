@@ -32,7 +32,6 @@ function CanvasDoodleWidget({
   strokeColor,
   strokeWidth,
   onChange,
-  compact: _compact = false,
   readonly = false,
 }: CanvasDoodleWidgetProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -243,7 +242,7 @@ function CanvasDoodleWidget({
             />
           )}
           {isUploading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/30 text-white text-sm">
+            <div className="absolute inset-0 flex items-center justify-center bg-black/30 text-white text-xs">
               Uploading...
             </div>
           )}

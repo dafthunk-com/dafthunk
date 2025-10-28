@@ -159,17 +159,17 @@ function AudioRecorderWidget({
                 {isRecording ? (
                   <div className="flex items-center gap-2 text-red-600">
                     <div className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
-                    <span className="text-sm">Recording...</span>
+                    <span className="text-xs">Recording...</span>
                   </div>
                 ) : (
-                  <span className="text-sm text-neutral-500">
+                  <span className="text-xs text-neutral-500">
                     Click to start recording
                   </span>
                 )}
               </div>
             )}
             {error && (
-              <div className="absolute inset-0 flex items-center justify-center bg-red-50 text-red-600 text-sm">
+              <div className="absolute inset-0 flex items-center justify-center bg-red-50 text-red-600 text-xs">
                 {error}
               </div>
             )}
