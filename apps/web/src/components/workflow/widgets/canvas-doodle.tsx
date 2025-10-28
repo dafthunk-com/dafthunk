@@ -35,6 +35,7 @@ function CanvasDoodleWidget({
   readonly = false,
 }: CanvasDoodleWidgetProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [imageReference, setImageReference] = useState<{
@@ -48,20 +49,21 @@ function CanvasDoodleWidget({
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const container = containerRef.current;
+    if (!canvas || !container) return;
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const displayWidth = 396;
-    const displayHeight = 396;
+    const dpr = 4;
+    const displayWidth = container.clientWidth;
+    const displayHeight = displayWidth; // Keep square aspect ratio
 
     canvas.width = displayWidth * dpr;
     canvas.height = displayHeight * dpr;
     ctx.scale(dpr, dpr);
-    canvas.style.width = `${displayWidth / 2}px`;
-    canvas.style.height = `${displayHeight / 2}px`;
+    canvas.style.width = `${displayWidth}px`;
+    canvas.style.height = `${displayHeight}px`;
 
     ctx.fillStyle = "white";
     ctx.fillRect(0, 0, displayWidth, displayHeight);
@@ -85,7 +87,7 @@ function CanvasDoodleWidget({
     if (!canvas) return { x: 0, y: 0 };
 
     const rect = canvas.getBoundingClientRect();
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = 4;
 
     return {
       x: ((e.clientX - rect.left) * (canvas.width / rect.width)) / dpr,
@@ -162,16 +164,18 @@ function CanvasDoodleWidget({
     onChange(null);
 
     const canvas = canvasRef.current;
+    const container = containerRef.current;
     const ctx = canvas?.getContext("2d");
-    if (!canvas || !ctx) return;
+    if (!canvas || !ctx || !container) return;
 
+    const displayWidth = container.clientWidth;
     ctx.fillStyle = "white";
-    ctx.fillRect(0, 0, 396, 396);
+    ctx.fillRect(0, 0, displayWidth, displayWidth);
     ctx.strokeStyle = strokeColor;
   };
 
   return (
-    <div className="p-2">
+    <div ref={containerRef}>
       <div className="relative w-full">
         <div
           className="absolute bottom-2 left-2 z-10"
