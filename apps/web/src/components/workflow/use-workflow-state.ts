@@ -1161,7 +1161,7 @@ export function useWorkflowState({
     handleNodeSelect,
     setReactFlowInstance,
     updateNodeExecution,
-    updateNodeData: readonly ? () => {} : updateNodeData,
+    updateNodeData,
     updateEdgeData: readonly ? () => {} : updateEdgeData,
     deleteNode: readonly ? () => {} : deleteNode,
     deleteEdge: readonly ? () => {} : deleteEdge,

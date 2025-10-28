@@ -148,8 +148,6 @@ export function WorkflowBuilder({
 
   // Track input and output connections
   useEffect(() => {
-    if (readonly) return; // Skip connection tracking in readonly mode
-
     const connectedInputs = new Map();
     const connectedOutputs = new Map();
 
