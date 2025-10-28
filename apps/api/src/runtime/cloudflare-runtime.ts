@@ -56,7 +56,7 @@ export class CloudflareRuntime extends BaseRuntime {
     const dependencies: RuntimeDependencies = {
       nodeRegistry,
       resourceProvider,
-      executionStore: new ExecutionStore(env.DB, env.RESSOURCES),
+      executionStore: new ExecutionStore(env),
       monitoringService: new WorkflowSessionMonitoringService(
         env.WORKFLOW_SESSION
       ),

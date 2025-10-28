@@ -144,8 +144,7 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     }
 
     this.executionStore =
-      dependencies?.executionStore ??
-      new ExecutionStore(env.DB, env.RESSOURCES);
+      dependencies?.executionStore ?? new ExecutionStore(env);
 
     this.monitoringService =
       dependencies?.monitoringService ??
@@ -643,7 +642,7 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
 
   private collectNodeInputs(
     workflow: Workflow,
-    nodeOutputs: Map<string, NodeRuntimeValues>,
+    nodeOutputs: Record<string, NodeRuntimeValues>,
     nodeId: string
   ): NodeRuntimeValues {
     const inputs: NodeRuntimeValues = {};
@@ -980,7 +979,6 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
           nodeId: node.id,
           status: "error" as const,
           error: state.nodeErrors[node.id],
-          outputs: null,
         };
       }
       if (state.skippedNodes.includes(node.id)) {
@@ -989,7 +987,6 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         return {
           nodeId: node.id,
           status: "skipped" as const,
-          outputs: null,
           ...skipInfo,
         };
       }
