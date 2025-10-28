@@ -359,7 +359,32 @@ The main branch is deployed automatically to Cloudflare using GitHub Actions:
 - **Database**: Cloudflare D1 with automatic migrations
 - **Storage**: Cloudflare R2 for file storage
 
-Manual deployment commands:
+### Required Production Secrets
+
+Before deploying to production, you must set up secrets for Analytics Engine:
+
+#### 1. Create a Cloudflare API Token
+
+1. Go to https://dash.cloudflare.com/profile/api-tokens
+2. Click "Create Token"
+3. Use "Create Custom Token"
+4. Set permissions: **Account → Analytics → Read**
+5. Click "Continue to summary" → "Create Token"
+6. Copy the token (you'll only see it once)
+
+#### 2. Set Secrets in Production
+
+```bash
+# Set your Cloudflare Account ID (find it at https://dash.cloudflare.com/)
+echo "YOUR_ACCOUNT_ID" | pnpm wrangler secret put CLOUDFLARE_ACCOUNT_ID --env production
+
+# Set your Cloudflare API Token (created above)
+echo "YOUR_API_TOKEN" | pnpm wrangler secret put CLOUDFLARE_API_TOKEN --env production
+```
+
+These secrets are required for the execution dashboard to query Analytics Engine for workflow execution metrics.
+
+### Manual Deployment
 
 ```bash
 # Deploy API to Cloudflare Workers
