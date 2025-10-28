@@ -460,12 +460,6 @@ export const WorkflowNode = memo(
                         key={`output-value-${output.id}-${index}`}
                         className="space-y-1"
                       >
-                        <div className="text-xs font-medium flex items-center gap-2">
-                          <span>{output.name}</span>
-                          <span className="text-xs text-neutral-500">
-                            {output.type}
-                          </span>
-                        </div>
                         <WorkflowOutputRenderer
                           output={output}
                           createObjectUrl={data.createObjectUrl}
