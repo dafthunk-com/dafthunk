@@ -1,8 +1,10 @@
+import { useEffect, useRef, useState } from "react";
+
 import { Input } from "@/components/ui/input";
 import { cn } from "@/utils/utils";
 
 import type { BaseWidgetProps } from "./widget";
-import { createWidget, getInputValue } from "./widget";
+import { createWidget, getInputValue, useDebouncedChange } from "./widget";
 
 interface NumberInputWidgetProps extends BaseWidgetProps {
   value: number;
@@ -23,26 +25,52 @@ function NumberInputWidget({
   compact = false,
   readonly = false,
 }: NumberInputWidgetProps) {
+  // Use local state for immediate UI updates
+  const [localValue, setLocalValue] = useState(value?.toString() || "");
+  const isUserTypingRef = useRef(false);
+
+  // Debounce the actual node update
+  const { debouncedOnChange } = useDebouncedChange(onChange, 300);
+
+  // Sync local state when prop value changes (e.g., from external updates)
+  // but only if user is not currently typing
+  useEffect(() => {
+    if (!isUserTypingRef.current) {
+      setLocalValue(value?.toString() || "");
+    }
+  }, [value]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (readonly) return;
 
-    const val = parseFloat(e.target.value);
+    const newValue = e.target.value;
+    isUserTypingRef.current = true;
+    setLocalValue(newValue);
+
+    const val = parseFloat(newValue);
     if (!isNaN(val)) {
-      onChange(val);
+      debouncedOnChange(val);
     }
+
+    // Reset typing flag after debounce completes
+    setTimeout(() => {
+      isUserTypingRef.current = false;
+    }, 350);
   };
 
   return (
-    <div className={cn("p-2", className)}>
+    <div className={cn(compact ? "p-1" : "p-2", className)}>
       <Input
         type="number"
-        value={value || ""}
+        value={localValue}
         onChange={handleChange}
         min={min}
         max={max}
         step={step}
         placeholder={placeholder || "Enter number..."}
-        className={cn(compact && "h-8 text-sm")}
+        className={cn(
+          compact && "h-6 text-[0.6rem] leading-tight px-1.5 py-0.5"
+        )}
         disabled={readonly}
       />
     </div>

@@ -1,8 +1,10 @@
+import { useEffect, useRef, useState } from "react";
+
 import { Input } from "@/components/ui/input";
 import { cn } from "@/utils/utils";
 
 import type { BaseWidgetProps } from "./widget";
-import { createWidget, getInputValue } from "./widget";
+import { createWidget, getInputValue, useDebouncedChange } from "./widget";
 
 interface InputTextWidgetProps extends BaseWidgetProps {
   value: string;
@@ -17,13 +19,42 @@ function InputTextWidget({
   compact = false,
   readonly = false,
 }: InputTextWidgetProps) {
+  // Use local state for immediate UI updates
+  const [localValue, setLocalValue] = useState(value || "");
+  const isUserTypingRef = useRef(false);
+
+  // Debounce the actual node update
+  const { debouncedOnChange } = useDebouncedChange(onChange, 300);
+
+  // Sync local state when prop value changes (e.g., from external updates)
+  // but only if user is not currently typing
+  useEffect(() => {
+    if (!isUserTypingRef.current) {
+      setLocalValue(value || "");
+    }
+  }, [value]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!readonly) {
+      const newValue = e.target.value;
+      isUserTypingRef.current = true;
+      setLocalValue(newValue);
+      debouncedOnChange(newValue);
+
+      // Reset typing flag after debounce completes
+      setTimeout(() => {
+        isUserTypingRef.current = false;
+      }, 350);
+    }
+  };
+
   return (
-    <div className={cn("p-2", className)}>
+    <div className={cn(compact ? "p-1" : "p-2", className)}>
       <Input
-        value={value || ""}
-        onChange={(e) => !readonly && onChange(e.target.value)}
+        value={localValue}
+        onChange={handleChange}
         placeholder={placeholder || "Enter text..."}
-        className={cn(compact && "text-sm h-8")}
+        className={cn(compact && "text-[0.6rem] leading-tight h-6 px-1.5")}
         disabled={readonly}
       />
     </div>

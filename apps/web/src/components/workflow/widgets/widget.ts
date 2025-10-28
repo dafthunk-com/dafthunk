@@ -1,3 +1,5 @@
+import { useCallback, useEffect, useRef } from "react";
+
 import type { WorkflowParameter } from "../workflow-types";
 
 /**
@@ -44,4 +46,51 @@ export function getInputValue<T = any>(
 ): T | undefined {
   const input = inputs.find((i) => i.id === id);
   return input?.value !== undefined ? (input.value as T) : defaultValue;
+}
+
+/**
+ * Hook to debounce onChange calls to prevent excessive re-renders.
+ * Updates immediately in the UI but debounces the actual node data update.
+ */
+export function useDebouncedChange(
+  onChange: (value: any) => void,
+  delay = 300
+) {
+  const timeoutRef = useRef<number | null>(null);
+  const previousValueRef = useRef<any>(undefined);
+
+  // Clear timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current !== null) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
+  const debouncedOnChange = useCallback(
+    (value: any) => {
+      // Clear any pending timeout
+      if (timeoutRef.current !== null) {
+        clearTimeout(timeoutRef.current);
+      }
+
+      // Schedule the update
+      timeoutRef.current = window.setTimeout(() => {
+        // Only call onChange if the value actually changed
+        if (value !== previousValueRef.current) {
+          previousValueRef.current = value;
+          onChange(value);
+        }
+        timeoutRef.current = null;
+      }, delay);
+    },
+    [onChange, delay]
+  );
+
+  // Return both debounced and immediate versions
+  return {
+    debouncedOnChange,
+    immediateOnChange: onChange,
+  };
 }

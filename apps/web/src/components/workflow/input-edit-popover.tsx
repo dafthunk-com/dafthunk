@@ -2,7 +2,7 @@ import { Position } from "@xyflow/react";
 import File from "lucide-react/icons/file";
 import Upload from "lucide-react/icons/upload";
 import XCircleIcon from "lucide-react/icons/x-circle";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,6 +57,9 @@ export function InputEditPopover({
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
+  // Debounce ref for text inputs
+  const debounceTimeoutRef = React.useRef<number | null>(null);
+
   // Helper function to create object URL for previews and downloads
   const getObjectUrl = (objectRef: any): string | null => {
     if (!isObjectReference(objectRef)) return null;
@@ -87,12 +90,32 @@ export function InputEditPopover({
     setUploadError(null);
   }, [input]);
 
+  // Cleanup debounce timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimeoutRef.current !== null) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const handleInputChange = (value: string) => {
     if (!input || readonly || !updateNodeData) return;
 
+    // Update local state immediately for responsive UI
     setInputValue(value);
-    const typedValue = convertValueByType(value, input.type);
-    updateNodeInput(nodeId, input.id, typedValue, nodeInputs, updateNodeData);
+
+    // Clear any pending debounce
+    if (debounceTimeoutRef.current !== null) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+
+    // Debounce the actual node data update
+    debounceTimeoutRef.current = window.setTimeout(() => {
+      const typedValue = convertValueByType(value, input.type);
+      updateNodeInput(nodeId, input.id, typedValue, nodeInputs, updateNodeData);
+      debounceTimeoutRef.current = null;
+    }, 300);
   };
 
   const handleClearValue = () => {

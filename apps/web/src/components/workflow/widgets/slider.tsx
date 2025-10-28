@@ -1,8 +1,10 @@
+import { useEffect, useRef, useState } from "react";
+
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/utils/utils";
 
 import type { BaseWidgetProps } from "./widget";
-import { createWidget, getInputValue } from "./widget";
+import { createWidget, getInputValue, useDebouncedChange } from "./widget";
 
 interface SliderWidgetProps extends BaseWidgetProps {
   value: number;
@@ -21,26 +23,54 @@ function SliderWidget({
   compact = false,
   readonly = false,
 }: SliderWidgetProps) {
+  // Use local state for immediate UI updates
+  const [localValue, setLocalValue] = useState(value);
+  const isUserDraggingRef = useRef(false);
+
+  // Debounce the actual node update
+  const { debouncedOnChange } = useDebouncedChange(onChange, 100);
+
+  // Sync local state when prop value changes (e.g., from external updates)
+  // but only if user is not currently dragging
+  useEffect(() => {
+    if (!isUserDraggingRef.current) {
+      setLocalValue(value);
+    }
+  }, [value]);
+
   const handleValueChange = (values: number[]) => {
     if (values.length > 0 && !readonly) {
-      onChange(values[0]);
+      const newValue = values[0];
+      isUserDraggingRef.current = true;
+      setLocalValue(newValue);
+      debouncedOnChange(newValue);
+
+      // Reset dragging flag after debounce completes
+      setTimeout(() => {
+        isUserDraggingRef.current = false;
+      }, 150);
     }
   };
 
   return (
-    <div className={cn("space-y-2 p-2", className)}>
+    <div className={cn(compact ? "space-y-1 p-1" : "space-y-2 p-2", className)}>
       <Slider
         min={min}
         max={max}
         step={step}
-        value={[value]}
+        value={[localValue]}
         onValueChange={handleValueChange}
-        className={cn("py-4", compact && "py-2")}
+        className={cn(compact ? "py-2" : "py-4")}
         disabled={readonly}
       />
-      <div className="flex justify-between text-xs text-neutral-500">
+      <div
+        className={cn(
+          "flex justify-between text-neutral-500",
+          compact ? "text-[0.6rem] leading-tight" : "text-xs"
+        )}
+      >
         <span>{min}</span>
-        <span>Value: {value}</span>
+        <span>Value: {localValue}</span>
         <span>{max}</span>
       </div>
     </div>
