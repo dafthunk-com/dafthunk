@@ -1,6 +1,5 @@
 import type { Edge as ReactFlowEdge } from "@xyflow/react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 
 import type { WorkflowEdgeType } from "./workflow-types";
@@ -18,27 +17,38 @@ export function WorkflowEdgeInspector({
   if (!edge) return null;
 
   return (
-    <Card className="border-none shadow-none">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg">
+    <div className="flex flex-col h-full bg-card">
+      {/* Header */}
+      <div className="px-4 py-3 border-b border-border">
+        <h1 className="text-sm font-semibold text-foreground">
           {readonly
             ? "Connection Properties (Read-only)"
             : "Connection Properties"}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>Source</Label>
-            <div className="text-sm">{edge.source}</div>
-          </div>
+        </h1>
+      </div>
 
-          <div className="space-y-2">
-            <Label>Target</Label>
-            <div className="text-sm">{edge.target}</div>
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto">
+        {/* Source Section */}
+        <div className="px-4 py-3 border-b border-border">
+          <Label className="text-xs font-medium text-muted-foreground">
+            Source
+          </Label>
+          <div className="text-sm text-foreground mt-1 font-mono">
+            {edge.source}
           </div>
         </div>
-      </CardContent>
-    </Card>
+
+        {/* Target Section */}
+        <div className="px-4 py-3 border-b border-border">
+          <Label className="text-xs font-medium text-muted-foreground">
+            Target
+          </Label>
+          <div className="text-sm text-foreground mt-1 font-mono">
+            {edge.target}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

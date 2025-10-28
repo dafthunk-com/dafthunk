@@ -300,20 +300,23 @@ export function useWorkflowState({
 
     // Determine if an update to the nodes state is actually needed.
     // We check for two conditions:
-    // 1. Structural difference: The data part of the nodes (excluding the createObjectUrl function itself for comparison)
+    // 1. Structural difference: The data part of the nodes (excluding UI-only properties and functions)
     //    has changed between the new processed initial nodes and the current nodes in state.
     // 2. Missing function: Any current node in state is missing the createObjectUrl function
     //    when the initialNodes (and thus newNodesWithCreateObjectUrl) expect it to be there.
 
+    // Strip UI-only properties for comparison (selected, dragging, etc.)
     const newNodesStrippedForCompare = newNodesWithCreateObjectUrl.map((n) => ({
-      ...n,
+      id: n.id,
+      type: n.type,
       position: n.position,
-      data: { ...n.data, createObjectUrl: undefined },
+      data: { ...n.data, createObjectUrl: undefined, nodeTemplates: undefined },
     }));
     const currentNodesStrippedForCompare = nodesRef.current.map((n) => ({
-      ...n,
+      id: n.id,
+      type: n.type,
       position: n.position,
-      data: { ...n.data, createObjectUrl: undefined },
+      data: { ...n.data, createObjectUrl: undefined, nodeTemplates: undefined },
     }));
 
     const newNodesStructurallyDifferent =
@@ -329,7 +332,22 @@ export function useWorkflowState({
       );
 
     if (newNodesStructurallyDifferent || anyCurrentNodeMissingFunction) {
-      setNodes(newNodesWithCreateObjectUrl);
+      // Preserve UI-only properties like selected, dragging, etc.
+      const currentNodesById = new Map(nodesRef.current.map((n) => [n.id, n]));
+      const updatedNodes = newNodesWithCreateObjectUrl.map((newNode) => {
+        const currentNode = currentNodesById.get(newNode.id);
+        if (currentNode) {
+          // Preserve UI-only properties from the current node
+          return {
+            ...newNode,
+            selected: currentNode.selected,
+            dragging: currentNode.dragging,
+          };
+        }
+        return newNode;
+      });
+
+      setNodes(updatedNodes);
     }
   }, [initialNodes, readonly, setNodes, createObjectUrl]);
 
