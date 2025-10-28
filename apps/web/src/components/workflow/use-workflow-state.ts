@@ -468,27 +468,60 @@ export function useWorkflowState({
       const targetNode = nodes.find((node) => node.id === connection.target);
       if (!sourceNode || !targetNode) return false;
 
+      // Determine if source is an output or input
       const sourceOutput = sourceNode.data.outputs.find(
         (output) => output.id === connection.sourceHandle
       );
+      const sourceInput = sourceNode.data.inputs.find(
+        (input) => input.id === connection.sourceHandle
+      );
+
+      // Determine if target is an input or output
       const targetInput = targetNode.data.inputs.find(
         (input) => input.id === connection.targetHandle
       );
-      if (!sourceOutput || !targetInput) return false;
+      const targetOutput = targetNode.data.outputs.find(
+        (output) => output.id === connection.targetHandle
+      );
+
+      // Validate that we have a valid output->input or input->output connection
+      let outputParam, inputParam, inputNodeId, inputHandleId;
+
+      if (sourceOutput && targetInput) {
+        // Output to Input (normal direction)
+        outputParam = sourceOutput;
+        inputParam = targetInput;
+        inputNodeId = connection.target;
+        inputHandleId = connection.targetHandle;
+      } else if (sourceInput && targetOutput) {
+        // Input to Output (reverse direction)
+        outputParam = targetOutput;
+        inputParam = sourceInput;
+        inputNodeId = connection.source;
+        inputHandleId = connection.sourceHandle;
+      } else {
+        // Invalid connection (input-to-input or output-to-output)
+        setConnectionValidationState("invalid");
+        return false;
+      }
 
       const typesMatch =
-        sourceOutput.type === targetInput.type ||
-        sourceOutput.type === "any" ||
-        targetInput.type === "any";
+        outputParam.type === inputParam.type ||
+        outputParam.type === "any" ||
+        inputParam.type === "any";
 
       // Only check for existing connections if the input doesn't accept multiple connections
-      const acceptsMultipleConnections = targetInput.repeated || false;
+      const acceptsMultipleConnections = inputParam.repeated || false;
 
       if (!acceptsMultipleConnections) {
         const hasExistingConnection = edges.some(
-          (edge) =>
-            edge.target === connection.target &&
-            edge.targetHandle === connection.targetHandle
+          (edge) => {
+            // Check both directions for existing connections to this input
+            return (
+              (edge.target === inputNodeId && edge.targetHandle === inputHandleId) ||
+              (edge.source === inputNodeId && edge.sourceHandle === inputHandleId)
+            );
+          }
         );
         if (hasExistingConnection) {
           setConnectionValidationState("invalid");
@@ -512,12 +545,22 @@ export function useWorkflowState({
       if (!connection.source || !connection.target) return;
       if (!isValidConnection(connection)) return;
 
-      // Check if target input accepts multiple connections
+      const sourceNode = nodes.find((node) => node.id === connection.source);
       const targetNode = nodes.find((node) => node.id === connection.target);
-      const targetInput = targetNode?.data.inputs.find(
+      if (!sourceNode || !targetNode) return;
+
+      // Determine which end is the input (could be source or target)
+      const targetInput = targetNode.data.inputs.find(
         (input) => input.id === connection.targetHandle
       );
-      const acceptsMultipleConnections = targetInput?.repeated || false;
+      const sourceInput = sourceNode.data.inputs.find(
+        (input) => input.id === connection.sourceHandle
+      );
+
+      // Identify the input node and handle
+      const inputNodeId = targetInput ? connection.target : connection.source;
+      const inputHandleId = targetInput ? connection.targetHandle : connection.sourceHandle;
+      const acceptsMultipleConnections = targetInput?.repeated || sourceInput?.repeated || false;
 
       const newEdge = {
         ...connection,
@@ -536,14 +579,16 @@ export function useWorkflowState({
       setEdges((eds) => {
         let filteredEdges = eds;
 
-        // Only remove existing edges if target input doesn't accept multiple connections
+        // Only remove existing edges if input doesn't accept multiple connections
         if (!acceptsMultipleConnections) {
           filteredEdges = eds.filter(
-            (edge) =>
-              !(
-                edge.target === connection.target &&
-                edge.targetHandle === connection.targetHandle
-              )
+            (edge) => {
+              // Remove existing connections to this input, checking both directions
+              return !(
+                (edge.target === inputNodeId && edge.targetHandle === inputHandleId) ||
+                (edge.source === inputNodeId && edge.sourceHandle === inputHandleId)
+              );
+            }
           );
         }
 

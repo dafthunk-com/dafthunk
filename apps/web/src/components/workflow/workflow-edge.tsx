@@ -79,9 +79,6 @@ export const WorkflowEdge = memo(
       targetY,
       sourcePosition,
       targetPosition,
-      // Use fixed offsets for regular edges
-      sourceOffset: 2,
-      targetOffset: -5,
     });
 
     const isValid = data?.isValid ?? true;
@@ -110,7 +107,6 @@ export const WorkflowConnectionLine = memo(
     toPosition,
     connectionStatus,
   }: ConnectionLineComponentProps) => {
-    // For connection lines, use different offsets or no offsets
     const [edgePath] = createSmoothStepPath({
       sourceX: fromX,
       sourceY: fromY,
@@ -118,9 +114,6 @@ export const WorkflowConnectionLine = memo(
       targetY: toY,
       sourcePosition: fromPosition,
       targetPosition: toPosition,
-      // No offsets for connection lines
-      sourceOffset: 12,
-      targetOffset: -15,
     });
 
     const getColor = () => {

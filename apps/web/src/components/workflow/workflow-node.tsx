@@ -79,7 +79,7 @@ export const TypeBadge = ({
   className?: string;
   size?: "sm" | "md";
 }) => {
-  const iconSize = size === "md" ? "!size-3" : "!size-2";
+  const iconSize = "!size-2.5";
 
   const icon: Record<InputOutputType, React.ReactNode> = {
     string: <TypeIcon className={iconSize} />,
@@ -133,42 +133,28 @@ export const TypeBadge = ({
         type={position === Position.Left ? "target" : "source"}
         position={position}
         id={id}
-        className="opacity-0 !w-full !h-full !bg-transparent !border-none !absolute !left-0 !top-0 !transform-none !m-0 !z-[1000]"
-        isConnectableStart={position !== Position.Left && !readonly}
-        isConnectable={!readonly}
-      />
-      <span
         className={cn(
-          "inline-flex items-center justify-center text-xs font-medium relative z-[1] transition-colors",
-          size === "md" ? "size-5" : "size-3.5",
-          isInput ? "rounded-e-[0.3rem]" : "rounded-s-[0.3rem]",
-          // Base styles are the same for readonly and interactive
-          {
-            // Connected:
-            "bg-neutral-400 text-neutral-800 dark:bg-neutral-300 dark:text-neutral-900":
-              isConnected || hasValue,
-            // Default:
-            "bg-neutral-200 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400":
-              !isConnected && (!isInput || !hasValue),
-          },
-          // Interactive styles (hover and cursor) are applied conditionally
-          !readonly && {
-            "cursor-pointer": true,
-            // Connected (Interactive) hover
-            "hover:bg-neutral-600 dark:hover:bg-neutral-200":
-              isConnected || hasValue,
-            // Default (Interactive) hover
-            "hover:bg-neutral-400 dark:hover:bg-neutral-700":
-              !isConnected && (!isInput || !hasValue),
-          },
-          // Readonly styles
-          readonly && "cursor-default",
+          "!w-4 !h-4 !border !border-neutral-300 dark:!border-neutral-600 !bg-white dark:!bg-neutral-900",
+          "!rounded-md !inline-flex !items-center !justify-center p",
+          !readonly && "hover:!border-neutral-400 dark:hover:!border-neutral-500",
           className
         )}
+        isConnectableStart={!readonly}
+        isConnectable={!readonly}
         onClick={handleClick}
       >
-        {icon[type]}
-      </span>
+        <span
+          className={cn(
+            "inline-flex items-center justify-center text-xs font-medium transition-colors pointer-events-none",
+            {
+              "text-neutral-800 dark:text-neutral-300": isConnected || hasValue,
+              "text-neutral-600 dark:text-neutral-400": !isConnected && (!isInput || !hasValue),
+            }
+          )}
+        >
+          {icon[type]}
+        </span>
+      </Handle>
       {/* Multiple connections indicator */}
       {isInput && repeated && (
         <span className="absolute -bottom-1 -right-1 text-[8px] text-neutral-500 dark:text-neutral-400 pointer-events-none">
@@ -279,7 +265,7 @@ export const WorkflowNode = memo(
       <TooltipProvider>
         <div
           className={cn(
-            "bg-card shadow-sm w-[220px] rounded-md border transition-colors overflow-hidden",
+            "bg-card shadow-sm w-[220px] rounded-md border transition-colors",
             {
               "border-blue-500": selected,
               "border-border": !selected && data.executionState === "idle",
@@ -293,7 +279,7 @@ export const WorkflowNode = memo(
           {/* Header */}
           <div
             className={cn(
-              "px-0.5 flex justify-between items-center hover:cursor-grab active:cursor-grabbing",
+              "px-1 py-1 flex justify-between items-center hover:cursor-grab active:cursor-grabbing border-b",
               "workflow-node-drag-handle"
             )}
           >
@@ -329,7 +315,7 @@ export const WorkflowNode = memo(
 
           {/* Widget */}
           {!readonly && widget && (
-            <div className="px-0 py-0 nodrag">
+            <div className="px-0 py-0 nodrag border-b">
               {createElement(widget.Component, {
                 ...widget.config,
                 onChange: handleWidgetChange,
@@ -341,7 +327,7 @@ export const WorkflowNode = memo(
           {/* Tools bar (between header and body) */}
           {data.functionCalling && (
             <div
-              className="px-1 py-1 nodrag flex flex-wrap items-start gap-1"
+              className="px-1 py-1 nodrag flex flex-wrap items-start gap-1 border-b"
               onClick={(e) => {
                 e.stopPropagation();
                 if (readonly) return;
@@ -389,15 +375,15 @@ export const WorkflowNode = memo(
           )}
 
           {/* Parameters */}
-          <div className="py-1 grid grid-cols-2 justify-between gap-1 nodrag">
+          <div className="py-2 grid grid-cols-2 justify-between gap-3 nodrag">
             {/* Input Parameters */}
-            <div className="flex flex-col gap-[1px] flex-1">
+            <div className="flex flex-col gap-1 flex-1">
               {data.inputs
                 .filter((input) => !input.hidden)
                 .map((input, index) => (
                   <div
                     key={`input-${input.id}-${index}`}
-                    className="flex items-center gap-1 text-xs relative"
+                    className="flex items-center gap-3 text-xs relative"
                   >
                     <TypeBadge
                       type={input.type}
@@ -420,13 +406,13 @@ export const WorkflowNode = memo(
             </div>
 
             {/* Output Parameters */}
-            <div className="flex flex-col gap-[1px] flex-1 items-end">
+            <div className="flex flex-col gap-1 flex-1 items-end">
               {data.outputs
                 .filter((output) => !output.hidden)
                 .map((output, index) => (
                   <div
                     key={`output-${output.id}-${index}`}
-                    className="flex items-center gap-1 text-xs relative"
+                    className="flex items-center gap-3 text-xs relative"
                   >
                     <p className="text-xs text-neutral-700 dark:text-neutral-300 overflow-hidden text-ellipsis">
                       {output.name}
@@ -447,7 +433,7 @@ export const WorkflowNode = memo(
           {canShowOutputs && (
             <>
               <div
-                className="py-0.5 px-2 border-t flex items-center justify-between nodrag cursor-pointer bg-neutral-100 dark:bg-neutral-900 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors"
+                className="py-2 px-2 border-t flex items-center justify-between nodrag cursor-pointer transition-colors"
                 onClick={() => setShowOutputs(!showOutputs)}
               >
                 <span className="text-xs font-medium text-neutral-600 dark:text-neutral-400">
@@ -495,7 +481,7 @@ export const WorkflowNode = memo(
           {data.error && (
             <>
               <div
-                className="py-0.5 px-2 border-t flex items-center justify-between nodrag cursor-pointer bg-neutral-100 dark:bg-neutral-900 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors"
+                className="py-2 px-2 border-t flex items-center justify-between nodrag cursor-pointer transition-colors"
                 onClick={() => setShowError(!showError)}
               >
                 <span className="text-xs font-medium text-red-600 dark:text-red-400">
