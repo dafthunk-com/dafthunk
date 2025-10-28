@@ -69,6 +69,8 @@ export const TypeBadge = ({
   readonly,
   className,
   size = "sm",
+  executionState = "idle",
+  selected = false,
 }: {
   type: InputOutputType;
   position: Position;
@@ -78,6 +80,8 @@ export const TypeBadge = ({
   readonly?: boolean;
   className?: string;
   size?: "sm" | "md";
+  executionState?: NodeExecutionState;
+  selected?: boolean;
 }) => {
   const iconSize = "!size-2.5";
 
@@ -134,9 +138,16 @@ export const TypeBadge = ({
         position={position}
         id={id}
         className={cn(
-          "!w-4 !h-4 !border !border-neutral-300 dark:!border-neutral-600 !bg-white dark:!bg-neutral-900",
+          "!w-4 !h-4 !border !bg-white dark:!bg-neutral-900",
           "!rounded-md !inline-flex !items-center !justify-center p",
-          !readonly && "hover:!border-neutral-400 dark:hover:!border-neutral-500",
+          {
+            "!border-blue-500": selected,
+            "!border-border": !selected && executionState === "idle",
+            "!border-yellow-400": executionState === "executing",
+            "!border-green-500": executionState === "completed",
+            "!border-red-500": executionState === "error",
+            "!border-blue-400": executionState === "skipped",
+          },
           className
         )}
         isConnectableStart={!readonly}
@@ -392,6 +403,8 @@ export const WorkflowNode = memo(
                       parameter={input}
                       onInputClick={handleInputClick}
                       readonly={readonly}
+                      executionState={data.executionState}
+                      selected={selected}
                     />
                     <p className="text-xs text-neutral-700 dark:text-neutral-300 overflow-hidden text-ellipsis">
                       {input.name}
@@ -423,6 +436,8 @@ export const WorkflowNode = memo(
                       id={output.id}
                       parameter={output}
                       readonly={readonly}
+                      executionState={data.executionState}
+                      selected={selected}
                     />
                   </div>
                 ))}
