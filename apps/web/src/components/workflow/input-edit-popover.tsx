@@ -50,7 +50,7 @@ export function InputEditPopover({
   readonly,
   anchorElement,
 }: InputEditPopoverProps) {
-  const { updateNodeData } = useWorkflow();
+  const { updateNodeData, edges, deleteEdge } = useWorkflow();
   const [inputValue, setInputValue] = useState("");
   const { secrets, isSecretsLoading } = useSecrets();
   const { uploadBinaryData, createObjectUrl } = useObjectService();
@@ -113,7 +113,15 @@ export function InputEditPopover({
     // Debounce the actual node data update
     debounceTimeoutRef.current = window.setTimeout(() => {
       const typedValue = convertValueByType(value, input.type);
-      updateNodeInput(nodeId, input.id, typedValue, nodeInputs, updateNodeData);
+      updateNodeInput(
+        nodeId,
+        input.id,
+        typedValue,
+        nodeInputs,
+        updateNodeData,
+        edges,
+        deleteEdge
+      );
       debounceTimeoutRef.current = null;
     }, 300);
   };
@@ -129,7 +137,15 @@ export function InputEditPopover({
     if (!input || readonly || !updateNodeData) return;
 
     setInputValue(secretName);
-    updateNodeInput(nodeId, input.id, secretName, nodeInputs, updateNodeData);
+    updateNodeInput(
+      nodeId,
+      input.id,
+      secretName,
+      nodeInputs,
+      updateNodeData,
+      edges,
+      deleteEdge
+    );
   };
 
   const handleImageUpload = async (
@@ -149,7 +165,15 @@ export function InputEditPopover({
 
       const arrayBuffer = await file.arrayBuffer();
       const reference = await uploadBinaryData(arrayBuffer, file.type);
-      updateNodeInput(nodeId, input.id, reference, nodeInputs, updateNodeData);
+      updateNodeInput(
+        nodeId,
+        input.id,
+        reference,
+        nodeInputs,
+        updateNodeData,
+        edges,
+        deleteEdge
+      );
       setInputValue(file.name);
       setIsUploading(false);
     } catch (err) {
@@ -181,7 +205,15 @@ export function InputEditPopover({
 
       const arrayBuffer = await file.arrayBuffer();
       const reference = await uploadBinaryData(arrayBuffer, mimeType);
-      updateNodeInput(nodeId, input.id, reference, nodeInputs, updateNodeData);
+      updateNodeInput(
+        nodeId,
+        input.id,
+        reference,
+        nodeInputs,
+        updateNodeData,
+        edges,
+        deleteEdge
+      );
       setInputValue(file.name);
       setIsUploading(false);
     } catch (err) {
@@ -209,7 +241,15 @@ export function InputEditPopover({
 
       const arrayBuffer = await file.arrayBuffer();
       const reference = await uploadBinaryData(arrayBuffer, file.type);
-      updateNodeInput(nodeId, input.id, reference, nodeInputs, updateNodeData);
+      updateNodeInput(
+        nodeId,
+        input.id,
+        reference,
+        nodeInputs,
+        updateNodeData,
+        edges,
+        deleteEdge
+      );
       setInputValue(file.name);
       setIsUploading(false);
     } catch (err) {
@@ -242,7 +282,15 @@ export function InputEditPopover({
 
       const arrayBuffer = await file.arrayBuffer();
       const reference = await uploadBinaryData(arrayBuffer, mimeType);
-      updateNodeInput(nodeId, input.id, reference, nodeInputs, updateNodeData);
+      updateNodeInput(
+        nodeId,
+        input.id,
+        reference,
+        nodeInputs,
+        updateNodeData,
+        edges,
+        deleteEdge
+      );
       setInputValue(file.name);
       setIsUploading(false);
     } catch (err) {
@@ -336,6 +384,7 @@ export function InputEditPopover({
                 placeholder="Enter number"
                 disabled={readonly}
                 className="h-8 text-sm"
+                autoFocus
               />
             ) : input.type === "string" ? (
               <Textarea
@@ -350,6 +399,7 @@ export function InputEditPopover({
                 placeholder="Enter text"
                 className="min-h-[80px] resize-none text-sm"
                 disabled={readonly}
+                autoFocus
               />
             ) : input.type === "json" ? (
               <Textarea
@@ -364,6 +414,7 @@ export function InputEditPopover({
                 placeholder="Enter JSON"
                 className="min-h-[80px] resize-none text-sm"
                 disabled={readonly}
+                autoFocus
               />
             ) : input.type === "secret" ? (
               <Select

@@ -1,3 +1,4 @@
+import type { Edge as ReactFlowEdge } from "@xyflow/react";
 import { createContext, ReactNode, useContext } from "react";
 
 import {
@@ -8,10 +9,13 @@ import {
 
 type UpdateNodeFn = (nodeId: string, data: Partial<WorkflowNodeType>) => void;
 type UpdateEdgeFn = (edgeId: string, data: Partial<WorkflowEdgeType>) => void;
+type DeleteEdgeFn = (edgeId: string) => void;
 
 export interface WorkflowContextProps {
   updateNodeData?: UpdateNodeFn;
   updateEdgeData?: UpdateEdgeFn;
+  deleteEdge?: DeleteEdgeFn;
+  edges?: ReactFlowEdge<WorkflowEdgeType>[];
   readonly?: boolean;
   expandedOutputs?: boolean;
 }
@@ -20,6 +24,8 @@ export interface WorkflowContextProps {
 const WorkflowContext = createContext<WorkflowContextProps>({
   updateNodeData: () => {},
   updateEdgeData: () => {},
+  deleteEdge: () => {},
+  edges: [],
   readonly: false,
 });
 
@@ -30,6 +36,8 @@ export interface WorkflowProviderProps {
   readonly children: ReactNode;
   readonly updateNodeData?: UpdateNodeFn;
   readonly updateEdgeData?: UpdateEdgeFn;
+  readonly deleteEdge?: DeleteEdgeFn;
+  readonly edges?: ReactFlowEdge<WorkflowEdgeType>[];
   readonly readonly?: boolean;
   readonly expandedOutputs?: boolean;
 }
@@ -38,12 +46,16 @@ export function WorkflowProvider({
   children,
   updateNodeData = () => {},
   updateEdgeData = () => {},
+  deleteEdge = () => {},
+  edges = [],
   readonly = false,
   expandedOutputs = false,
 }: WorkflowProviderProps) {
   const workflowContextValue = {
     updateNodeData,
     updateEdgeData,
+    deleteEdge,
+    edges,
     readonly,
     expandedOutputs,
   };
@@ -77,11 +89,21 @@ export const updateNodeInput = (
   inputId: string,
   value: unknown,
   inputs: readonly WorkflowParameter[],
-  updateNodeData?: UpdateNodeFn
+  updateNodeData?: UpdateNodeFn,
+  edges?: ReactFlowEdge<WorkflowEdgeType>[],
+  deleteEdge?: DeleteEdgeFn
 ): readonly WorkflowParameter[] => {
   const updatedInputs = inputs.map((input) =>
     input.id === inputId ? { ...input, value } : input
   );
+
+  // Delete any edges connected to this input when manually setting a value
+  if (edges && deleteEdge) {
+    const connectedEdges = edges.filter(
+      (edge) => edge.target === nodeId && edge.targetHandle === inputId
+    );
+    connectedEdges.forEach((edge) => deleteEdge(edge.id));
+  }
 
   updateNodeData?.(nodeId, { inputs: updatedInputs });
   return updatedInputs;

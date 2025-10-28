@@ -124,6 +124,7 @@ export function WorkflowBuilder({
     isValidConnection,
     updateNodeData,
     updateEdgeData,
+    deleteEdge,
     deleteSelected,
     duplicateSelected,
     isEditNodeNameDialogOpen,
@@ -411,6 +412,8 @@ export function WorkflowBuilder({
       <WorkflowProvider
         updateNodeData={readonly ? undefined : updateNodeData}
         updateEdgeData={readonly ? undefined : updateEdgeData}
+        deleteEdge={readonly ? undefined : deleteEdge}
+        edges={edges}
         readonly={readonly}
         expandedOutputs={currentExpandedOutputs}
       >
