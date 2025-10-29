@@ -18,6 +18,7 @@ interface WorkflowNodeInputProps {
   readonly?: boolean;
   containerRef?: React.RefObject<HTMLDivElement | null>;
   autoFocus?: boolean;
+  onBlur?: () => void;
 }
 
 export function WorkflowNodeInput({
@@ -27,6 +28,7 @@ export function WorkflowNodeInput({
   readonly,
   containerRef,
   autoFocus = false,
+  onBlur,
 }: WorkflowNodeInputProps) {
   const { updateNodeData, edges, deleteEdge } = useWorkflow();
   const { createObjectUrl } = useObjectService();
@@ -106,6 +108,19 @@ export function WorkflowNodeInput({
 
   const hasValue = input.value !== undefined || localValue !== undefined;
 
+  const handleBlur = (e: React.FocusEvent<HTMLDivElement>) => {
+    // Check if focus is moving outside the container
+    if (!containerRef?.current?.contains(e.relatedTarget as Node)) {
+      onBlur?.();
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Escape") {
+      onBlur?.();
+    }
+  };
+
   return (
     <div
       ref={containerRef}
@@ -114,6 +129,8 @@ export function WorkflowNodeInput({
       )}
       onMouseEnter={() => !readonly && setIsExpanded(true)}
       onMouseLeave={() => !readonly && setIsExpanded(false)}
+      onBlur={handleBlur}
+      onKeyDown={handleKeyDown}
     >
       <div className="w-[200px] h-full">
         <InputWidget
