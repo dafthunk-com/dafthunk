@@ -137,7 +137,7 @@ export const TypeBadge = ({
         position={position}
         id={id}
         className={cn(
-          "!w-4 !h-4 !border !rounded-md !inline-flex !items-center !justify-center p",
+          "!w-4 !h-4 !border !rounded-md !inline-flex !items-center !justify-center p transition-colors",
           {
             "!bg-neutral-100 dark:!bg-neutral-800": hasValue,
             "!bg-white dark:!bg-neutral-900": !hasValue,
