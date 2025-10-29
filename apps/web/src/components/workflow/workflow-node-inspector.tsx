@@ -25,12 +25,10 @@ import SquareIcon from "lucide-react/icons/square";
 import StickyNoteIcon from "lucide-react/icons/sticky-note";
 import TriangleIcon from "lucide-react/icons/triangle";
 import TypeIcon from "lucide-react/icons/type";
-import XCircleIcon from "lucide-react/icons/x-circle";
 import { useEffect, useState } from "react";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Toggle } from "@/components/ui/toggle";
 
 import {
@@ -40,6 +38,7 @@ import {
   updateNodeName,
   useWorkflow,
 } from "./workflow-context";
+import { ClearButton, InputWidget } from "./input-widgets";
 import { WorkflowOutputRenderer } from "./workflow-output-renderer";
 import type { InputOutputType, WorkflowParameter } from "./workflow-types";
 import type { WorkflowNodeType } from "./workflow-types";
@@ -268,13 +267,10 @@ export function WorkflowNodeInspector({
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
                         {input.value !== undefined && !readonly && (
-                          <button
+                          <ClearButton
                             onClick={() => handleClearValue(input.id)}
-                            className="p-1 text-muted-foreground hover:text-foreground transition-colors"
-                            aria-label={`Clear ${input.name} value`}
-                          >
-                            <XCircleIcon className="h-4 w-4" />
-                          </button>
+                            label={`Clear ${input.name} value`}
+                          />
                         )}
                         <Toggle
                           size="sm"
@@ -298,35 +294,27 @@ export function WorkflowNodeInspector({
                     </div>
 
                     <div className="relative">
-                      {input.type === "string" ? (
-                        <Textarea
-                          placeholder={`Enter ${input.type} value`}
-                          value={
-                            input.value !== undefined ? String(input.value) : ""
-                          }
-                          onChange={(e) =>
-                            handleInputValueChange(input.id, e.target.value)
-                          }
-                          className={`text-sm min-h-[80px] resize-y ${
-                            readonly ? "opacity-70 cursor-not-allowed" : ""
-                          }`}
-                          disabled={readonly}
-                        />
-                      ) : (
-                        <Input
-                          placeholder={`Enter ${input.type} value`}
-                          value={
-                            input.value !== undefined ? String(input.value) : ""
-                          }
-                          onChange={(e) =>
-                            handleInputValueChange(input.id, e.target.value)
-                          }
-                          className={`text-sm h-8 ${
-                            readonly ? "opacity-70 cursor-not-allowed" : ""
-                          }`}
-                          disabled={readonly}
-                        />
-                      )}
+                      <InputWidget
+                        input={input}
+                        value={input.value}
+                        onChange={(value) => {
+                          const typedValue = convertValueByType(
+                            typeof value === "string" ? value : value,
+                            input.type || "string"
+                          );
+                          const updatedInputs = updateNodeInput(
+                            node.id,
+                            input.id,
+                            typedValue,
+                            localInputs,
+                            updateNodeData
+                          );
+                          setLocalInputs(updatedInputs);
+                        }}
+                        onClear={() => handleClearValue(input.id)}
+                        readonly={readonly}
+                        createObjectUrl={createObjectUrl}
+                      />
                     </div>
                   </div>
                 ))
