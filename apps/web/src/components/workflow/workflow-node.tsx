@@ -138,9 +138,10 @@ export const TypeBadge = ({
         position={position}
         id={id}
         className={cn(
-          "!w-4 !h-4 !border !bg-white dark:!bg-neutral-900",
-          "!rounded-md !inline-flex !items-center !justify-center p",
+          "!w-4 !h-4 !border !rounded-md !inline-flex !items-center !justify-center p",
           {
+            "!bg-neutral-100 dark:!bg-neutral-800": hasValue,
+            "!bg-white dark:!bg-neutral-900": !hasValue,
             "!border-blue-500": selected,
             "!border-border": !selected && executionState === "idle",
             "!border-yellow-400": executionState === "executing",

@@ -1,8 +1,7 @@
-import { Position } from "@xyflow/react";
 import File from "lucide-react/icons/file";
 import Upload from "lucide-react/icons/upload";
 import XCircleIcon from "lucide-react/icons/x-circle";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +24,6 @@ import {
   updateNodeInput,
   useWorkflow,
 } from "@/components/workflow/workflow-context";
-import { TypeBadge } from "@/components/workflow/workflow-node";
 import type { WorkflowParameter } from "@/components/workflow/workflow-types";
 import { isObjectReference, useObjectService } from "@/services/object-service";
 import { useSecrets } from "@/services/secrets-service";
@@ -56,9 +54,18 @@ export function InputEditPopover({
   const { uploadBinaryData, createObjectUrl } = useObjectService();
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [viewportContainer, setViewportContainer] = useState<HTMLElement | null>(null);
 
   // Debounce ref for text inputs
   const debounceTimeoutRef = React.useRef<number | null>(null);
+
+  // Find the React Flow viewport container
+  useEffect(() => {
+    if (anchorElement) {
+      const viewport = anchorElement.closest('.react-flow__viewport');
+      setViewportContainer(viewport as HTMLElement);
+    }
+  }, [anchorElement, isOpen]);
 
   // Helper function to create object URL for previews and downloads
   const getObjectUrl = (objectRef: any): string | null => {
@@ -321,41 +328,18 @@ export function InputEditPopover({
   }
 
   return (
-    <Popover open={isOpen} onOpenChange={onClose}>
+    <Popover open={isOpen} modal={false}>
       {anchorElement && (
         <PopoverAnchor virtualRef={{ current: anchorElement }} />
       )}
-      <PopoverContent side="left" align="start" className="w-80 rounded-xl">
-        <div className="space-y-2">
-          {/* Header */}
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5">
-              <TypeBadge
-                type={input.type}
-                position={Position.Left}
-                id={input.id}
-                parameter={input}
-                readonly={true}
-                className="!rounded-[0.3rem]"
-                size="md"
-              />
-              <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                {input.name}
-              </span>
-            </div>
-            {!readonly && (
-              <button
-                onClick={handleClearValue}
-                className="text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 flex-shrink-0"
-                aria-label="Clear value"
-              >
-                <XCircleIcon className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-
-          {/* Input Fields */}
-          <div className="space-y-2">
+      <PopoverContent
+        side="left"
+        align="center"
+        className="w-80 rounded-xl p-0 border-0 shadow-lg nodrag nowheel"
+        onEscapeKeyDown={onClose}
+        onInteractOutside={onClose}
+      >
+        <div>
             {input.type === "boolean" ? (
               <div className="flex gap-2">
                 <Button
@@ -383,8 +367,7 @@ export function InputEditPopover({
                 onKeyDown={handleKeyDown}
                 placeholder="Enter number"
                 disabled={readonly}
-                className="h-8 text-sm"
-                autoFocus
+                className="h-8 text-xs"
               />
             ) : input.type === "string" ? (
               <Textarea
@@ -397,9 +380,8 @@ export function InputEditPopover({
                   }
                 }}
                 placeholder="Enter text"
-                className="min-h-[80px] resize-none text-sm"
+                className="min-h-[80px] resize-none text-xs"
                 disabled={readonly}
-                autoFocus
               />
             ) : input.type === "json" ? (
               <Textarea
@@ -412,9 +394,8 @@ export function InputEditPopover({
                   }
                 }}
                 placeholder="Enter JSON"
-                className="min-h-[80px] resize-none text-sm"
+                className="min-h-[80px] resize-none text-xs"
                 disabled={readonly}
-                autoFocus
               />
             ) : input.type === "secret" ? (
               <Select
@@ -422,7 +403,7 @@ export function InputEditPopover({
                 onValueChange={handleSecretSelect}
                 disabled={readonly || isSecretsLoading}
               >
-                <SelectTrigger className="h-8 text-sm">
+                <SelectTrigger className="h-8 text-xs">
                   <SelectValue
                     placeholder={
                       isSecretsLoading
@@ -442,7 +423,7 @@ export function InputEditPopover({
                 </SelectContent>
               </Select>
             ) : input.type === "image" ? (
-              <div className="space-y-2">
+              <div>
                 {inputValue && isObjectReference(input.value) ? (
                   <div className="relative border rounded-md overflow-hidden bg-neutral-50 dark:bg-neutral-900">
                     {(() => {
@@ -498,7 +479,7 @@ export function InputEditPopover({
                 )}
               </div>
             ) : input.type === "document" ? (
-              <div className="space-y-2">
+              <div>
                 {inputValue && isObjectReference(input.value) ? (
                   <div className="relative flex items-center gap-2 p-2 border rounded-md bg-neutral-50 dark:bg-neutral-900">
                     <File className="h-4 w-4 flex-shrink-0 text-neutral-500" />
@@ -546,7 +527,7 @@ export function InputEditPopover({
                 )}
               </div>
             ) : input.type === "audio" ? (
-              <div className="space-y-2">
+              <div>
                 {inputValue && isObjectReference(input.value) ? (
                   <div className="relative border rounded-md p-2 bg-neutral-50 dark:bg-neutral-900">
                     {(() => {
@@ -604,7 +585,7 @@ export function InputEditPopover({
                 )}
               </div>
             ) : input.type === "gltf" ? (
-              <div className="space-y-2">
+              <div>
                 {inputValue && isObjectReference(input.value) ? (
                   <div className="relative flex items-center gap-2 p-2 border rounded-md bg-neutral-50 dark:bg-neutral-900">
                     <File className="h-4 w-4 flex-shrink-0 text-neutral-500" />
@@ -658,10 +639,9 @@ export function InputEditPopover({
                 onKeyDown={handleKeyDown}
                 placeholder="Enter value"
                 disabled={readonly}
-                className="h-8 text-sm"
+                className="h-8 text-xs"
               />
             )}
-          </div>
         </div>
       </PopoverContent>
     </Popover>
