@@ -1,9 +1,8 @@
-import { Editor } from "@monaco-editor/react";
-
 import { cn } from "@/utils/utils";
 
 import type { BaseWidgetProps } from "./widget";
 import { createWidget, getInputValue } from "./widget";
+import { CodeEditor } from "./code-editor";
 
 interface JavaScriptEditorWidgetProps extends BaseWidgetProps {
   value: string;
@@ -16,7 +15,7 @@ function JavaScriptEditorWidget({
   compact = false,
   readonly = false,
 }: JavaScriptEditorWidgetProps) {
-  const handleEditorChange = (value: string | undefined) => {
+  const handleEditorChange = (value: string) => {
     if (readonly) return;
 
     if (!value) {
@@ -28,28 +27,14 @@ function JavaScriptEditorWidget({
 
   return (
     <div className={cn("p-2", className)}>
-      <div className={cn(compact ? "h-[200px]" : "h-[400px]", "relative")}>
-        <Editor
-          height="100%"
-          defaultLanguage="javascript"
-          defaultValue={value}
-          theme="vs"
-          options={{
-            minimap: { enabled: false },
-            lineNumbers: "on",
-            lineNumbersMinChars: 2,
-            fontSize: compact ? 8 : 12,
-            automaticLayout: true,
-            wordWrap: "on",
-            readOnly: readonly,
-            scrollbar: {
-              verticalScrollbarSize: 4,
-              horizontalScrollbarSize: 4,
-            },
-          }}
-          onChange={handleEditorChange}
-        />
-      </div>
+      <CodeEditor
+        value={value}
+        onChange={handleEditorChange}
+        language="javascript"
+        readonly={readonly}
+        height={compact ? "200px" : "400px"}
+        fontSize={compact ? 8 : 12}
+      />
     </div>
   );
 }
