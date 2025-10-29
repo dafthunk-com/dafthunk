@@ -5,6 +5,7 @@ import React, { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Popover,
   PopoverAnchor,
@@ -17,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import {
   clearNodeInput,
@@ -341,23 +343,16 @@ export function InputEditPopover({
       >
         <div>
             {input.type === "boolean" ? (
-              <div className="flex gap-2">
-                <Button
-                  variant={inputValue === "true" ? "default" : "outline"}
-                  onClick={() => handleInputChange("true")}
-                  className="flex-1 h-8 text-xs"
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id={`boolean-${input.id}`}
+                  checked={inputValue === "true"}
+                  onCheckedChange={(checked) => handleInputChange(checked ? "true" : "false")}
                   disabled={readonly}
-                >
-                  True
-                </Button>
-                <Button
-                  variant={inputValue === "false" ? "default" : "outline"}
-                  onClick={() => handleInputChange("false")}
-                  className="flex-1 h-8 text-xs"
-                  disabled={readonly}
-                >
-                  False
-                </Button>
+                />
+                <Label htmlFor={`boolean-${input.id}`} className="text-xs">
+                  {inputValue === "true" ? "True" : "False"}
+                </Label>
               </div>
             ) : input.type === "number" ? (
               <Input
