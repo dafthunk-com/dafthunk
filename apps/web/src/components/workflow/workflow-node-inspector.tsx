@@ -102,8 +102,10 @@ export function WorkflowNodeInspector({
   >(node?.data.outputs || []);
 
   // Collapsible section state
+  const [propertiesExpanded, setPropertiesExpanded] = useState(true);
   const [inputsExpanded, setInputsExpanded] = useState(true);
   const [outputsExpanded, setOutputsExpanded] = useState(true);
+  const [errorExpanded, setErrorExpanded] = useState(true);
 
   // Update local state when node changes
   useEffect(() => {
@@ -188,40 +190,53 @@ export function WorkflowNodeInspector({
 
   return (
     <div className="flex flex-col h-full bg-card">
-      {/* Header */}
-      <div className="px-4 py-3 border-b border-border">
-        <h1 className="text-sm font-semibold text-foreground">
-          {readonly ? "Node Properties (Read-only)" : "Node Properties"}
-        </h1>
-      </div>
-
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
-        {/* Type Section */}
-        <div className="px-4 py-3 border-b border-border">
-          <Label className="text-xs font-medium text-muted-foreground">
-            Type
-          </Label>
-          <div className="text-sm text-foreground mt-1">
-            {node.data.nodeType || node.type}
-          </div>
-        </div>
-
-        {/* Name Section */}
-        <div className="px-4 py-3 border-b border-border">
-          <Label
-            htmlFor="node-name"
-            className="text-xs font-medium text-muted-foreground"
+        {/* Node Properties Section */}
+        <div className="border-b border-border">
+          <button
+            onClick={() => setPropertiesExpanded(!propertiesExpanded)}
+            className="w-full px-4 py-3 flex items-center justify-between"
           >
-            Name
-          </Label>
-          <Input
-            id="node-name"
-            value={localName}
-            onChange={handleNameChange}
-            disabled={readonly}
-            className={`mt-2 text-sm h-8 ${readonly ? "opacity-70 cursor-not-allowed" : ""}`}
-          />
+            <h2 className="text-base font-semibold text-foreground">
+              {readonly ? "Node Properties (Read-only)" : "Node Properties"}
+            </h2>
+            <ChevronDownIcon
+              className={`h-4 w-4 text-muted-foreground transition-transform ${
+                propertiesExpanded ? "rotate-0" : "-rotate-90"
+              }`}
+            />
+          </button>
+          {propertiesExpanded && (
+            <div className="px-4 pb-4 space-y-3">
+              {/* Type Section */}
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground">
+                  Type
+                </Label>
+                <div className="text-sm text-foreground mt-1">
+                  {node.data.nodeType || node.type}
+                </div>
+              </div>
+
+              {/* Name Section */}
+              <div>
+                <Label
+                  htmlFor="node-name"
+                  className="text-sm font-medium text-muted-foreground"
+                >
+                  Name
+                </Label>
+                <Input
+                  id="node-name"
+                  value={localName}
+                  onChange={handleNameChange}
+                  disabled={readonly}
+                  className={`mt-2 text-sm h-8 ${readonly ? "opacity-70 cursor-not-allowed" : ""}`}
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Inputs Section */}
@@ -230,7 +245,7 @@ export function WorkflowNodeInspector({
             onClick={() => setInputsExpanded(!inputsExpanded)}
             className="w-full px-4 py-3 flex items-center justify-between"
           >
-            <h2 className="text-xs font-semibold text-foreground">Inputs</h2>
+            <h2 className="text-base font-semibold text-foreground">Inputs</h2>
             <ChevronDownIcon
               className={`h-4 w-4 text-muted-foreground transition-transform ${
                 inputsExpanded ? "rotate-0" : "-rotate-90"
@@ -238,7 +253,7 @@ export function WorkflowNodeInspector({
             />
           </button>
           {inputsExpanded && (
-            <div className="px-4 py-3 space-y-3">
+            <div className="px-4 pb-4 space-y-3">
               {localInputs.length > 0 ? (
                 localInputs.map((input) => (
                   <div key={input.id} className="text-sm space-y-1">
@@ -328,7 +343,7 @@ export function WorkflowNodeInspector({
             onClick={() => setOutputsExpanded(!outputsExpanded)}
             className="w-full px-4 py-3 flex items-center justify-between"
           >
-            <h2 className="text-xs font-semibold text-foreground">Outputs</h2>
+            <h2 className="text-base font-semibold text-foreground">Outputs</h2>
             <ChevronDownIcon
               className={`h-4 w-4 text-muted-foreground transition-transform ${
                 outputsExpanded ? "rotate-0" : "-rotate-90"
@@ -336,7 +351,7 @@ export function WorkflowNodeInspector({
             />
           </button>
           {outputsExpanded && (
-            <div className="px-4 py-3 space-y-3">
+            <div className="px-4 pb-4 space-y-3">
               {localOutputs.length > 0 ? (
                 localOutputs.map((output) => (
                   <div key={output.id} className="text-sm space-y-1">
@@ -378,6 +393,32 @@ export function WorkflowNodeInspector({
                 ))
               ) : (
                 <div className="text-sm text-muted-foreground">No outputs</div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Error Section */}
+        <div className="border-b border-border">
+          <button
+            onClick={() => setErrorExpanded(!errorExpanded)}
+            className="w-full px-4 py-3 flex items-center justify-between"
+          >
+            <h2 className="text-base font-semibold text-foreground">Error</h2>
+            <ChevronDownIcon
+              className={`h-4 w-4 text-muted-foreground transition-transform ${
+                errorExpanded ? "rotate-0" : "-rotate-90"
+              }`}
+            />
+          </button>
+          {errorExpanded && (
+            <div className="px-4 pb-4">
+              {node.data.error ? (
+                <p className="text-sm text-red-600 dark:text-red-400">
+                  {node.data.error}
+                </p>
+              ) : (
+                <p className="text-sm text-muted-foreground">No errors</p>
               )}
             </div>
           )}

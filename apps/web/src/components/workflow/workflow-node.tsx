@@ -451,7 +451,7 @@ export const WorkflowNode = memo(
                 className="py-2 px-2 border-t flex items-center justify-between nodrag cursor-pointer transition-colors"
                 onClick={() => setShowOutputs(!showOutputs)}
               >
-                <span className="text-xs font-medium text-neutral-600 dark:text-neutral-400">
+                <span className="text-xs font-bold  text-neutral-600 dark:text-neutral-400">
                   Outputs
                 </span>
                 {showOutputs ? (
@@ -462,13 +462,13 @@ export const WorkflowNode = memo(
               </div>
 
               {showOutputs && (
-                <div className="p-2 pt-1 border-t space-y-2 nodrag">
+                <div className="px-2 pb-2 space-y-3 nodrag">
                   {data.outputs
                     .filter((output) => !output.hidden)
                     .map((output, index) => (
                       <div
                         key={`output-value-${output.id}-${index}`}
-                        className="text-sm"
+                        className="text-sm space-y-1"
                       >
                         {/* Output Header */}
                         <div className="flex items-center gap-2 min-w-0">
@@ -527,18 +527,18 @@ export const WorkflowNode = memo(
                 className="py-2 px-2 border-t flex items-center justify-between nodrag cursor-pointer transition-colors"
                 onClick={() => setShowError(!showError)}
               >
-                <span className="text-xs font-medium text-red-600 dark:text-red-400">
+                <span className="text-xs font-bold text-foreground">
                   Error
                 </span>
                 {showError ? (
-                  <ChevronDown className="h-3 w-3 text-red-500" />
+                  <ChevronDown className="h-3 w-3 text-muted-foreground" />
                 ) : (
-                  <ChevronDown className="h-3 w-3 text-red-500 -rotate-90" />
+                  <ChevronDown className="h-3 w-3 text-muted-foreground -rotate-90" />
                 )}
               </div>
 
               {showError && (
-                <div className="px-2 py-1 border-t nodrag">
+                <div className="px-2 pb-2 nodrag overflow-auto">
                   <p className="text-xs text-red-600 dark:text-red-400">
                     {data.error}
                   </p>

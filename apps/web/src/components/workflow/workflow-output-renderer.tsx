@@ -12,7 +12,6 @@ interface WorkflowOutputRendererProps {
 export function WorkflowOutputRenderer({
   output,
   createObjectUrl,
-  compact = false,
 }: WorkflowOutputRendererProps) {
   return (
     <div className="space-y-1.5">
@@ -20,7 +19,6 @@ export function WorkflowOutputRenderer({
       <WorkflowValueRenderer
         parameter={output}
         createObjectUrl={createObjectUrl}
-        compact={compact}
         readonly={true}
       />
     </div>
