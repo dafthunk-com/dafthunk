@@ -26,16 +26,16 @@ import SquareIcon from "lucide-react/icons/square";
 import StickyNoteIcon from "lucide-react/icons/sticky-note";
 import TriangleIcon from "lucide-react/icons/triangle";
 import TypeIcon from "lucide-react/icons/type";
-import { createElement, memo, useEffect, useState } from "react";
+import { createElement, memo, useEffect, useRef, useState } from "react";
 
 import { NodeDocsDialog } from "@/components/docs/node-docs-dialog";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useNodeTypes } from "@/services/type-service";
 import { cn } from "@/utils/utils";
 
-import { InputEditPopover } from "./input-edit-popover";
 import { registry } from "./widgets";
 import { updateNodeInput, useWorkflow } from "./workflow-context";
+import { WorkflowNodeInput } from "./workflow-node-input";
 import { WorkflowOutputRenderer } from "./workflow-output-renderer";
 import { ToolReference, WorkflowToolSelector } from "./workflow-tool-selector";
 import {
@@ -115,7 +115,6 @@ export const TypeBadge = ({
     if (readonly) return;
 
     if (position === Position.Left && parameter && onInputClick) {
-      e.stopPropagation();
       onInputClick(parameter, e.currentTarget);
     }
   };
@@ -192,20 +191,44 @@ export const WorkflowNode = memo(
     const [showError, setShowError] = useState(false);
     const [isToolSelectorOpen, setIsToolSelectorOpen] = useState(false);
     const [isDocsOpen, setIsDocsOpen] = useState(false);
+    const [activeInputId, setActiveInputId] = useState<string | null>(null);
+    const inputContainerRefs = useRef<Map<string, React.RefObject<HTMLDivElement | null>>>(new Map());
+    const handleRefs = useRef<Map<string, HTMLElement>>(new Map());
     const hasVisibleOutputs = data.outputs.some((output) => !output.hidden);
     const canShowOutputs =
       hasVisibleOutputs && data.executionState === "completed";
-    const [selectedInput, setSelectedInput] =
-      useState<WorkflowParameter | null>(null);
-    const [anchorElement, setAnchorElement] = useState<HTMLElement | null>(
-      null
-    );
 
     // Initialize showOutputs and showError based on expandedOutputs
     useEffect(() => {
       setShowOutputs(hasVisibleOutputs && !!expandedOutputs);
       setShowError(!!expandedOutputs);
     }, [expandedOutputs, hasVisibleOutputs]);
+
+    // Handle click outside to close active input
+    useEffect(() => {
+      if (!activeInputId) return;
+
+      const handleClickOutside = (event: MouseEvent) => {
+        const target = event.target as HTMLElement;
+        const containerRef = inputContainerRefs.current.get(activeInputId);
+        const handleElement = handleRefs.current.get(activeInputId);
+
+        // Check if click is inside the input container
+        const isInsideContainer = containerRef?.current?.contains(target);
+        // Check if click is on the handle itself
+        const isOnHandle = handleElement?.contains(target);
+
+        // If click is outside both the input container and the handle, close it
+        // If click is on the handle, let the handle's onClick manage the toggle
+        if (!isInsideContainer && !isOnHandle) {
+          setActiveInputId(null);
+        }
+      };
+
+      // Use capture phase to catch the event before ReactFlow handles it
+      document.addEventListener('mousedown', handleClickOutside, true);
+      return () => document.removeEventListener('mousedown', handleClickOutside, true);
+    }, [activeInputId]);
 
     // Get node type
     const nodeType = data.nodeType || "";
@@ -236,20 +259,6 @@ export const WorkflowNode = memo(
       }
     };
 
-    const handleInputClick = (
-      input: WorkflowParameter,
-      element: HTMLElement
-    ) => {
-      if (readonly) return;
-      setSelectedInput(input);
-      setAnchorElement(element);
-    };
-
-    const handleDialogClose = () => {
-      setSelectedInput(null);
-      setAnchorElement(null);
-    };
-
     const handleToolSelectorClose = () => {
       setIsToolSelectorOpen(false);
     };
@@ -271,6 +280,22 @@ export const WorkflowNode = memo(
         return toolsInput.value as ToolReference[];
       }
       return [];
+    };
+
+    const handleInputClick = (param: WorkflowParameter, element: HTMLElement) => {
+      if (readonly) return;
+      handleRefs.current.set(param.id, element);
+      // Toggle: if this input is already active, close it; otherwise open it
+      setActiveInputId(activeInputId === param.id ? null : param.id);
+    };
+
+    // Create or get ref for input container
+    const getInputContainerRef = (inputId: string) => {
+      if (!inputContainerRefs.current.has(inputId)) {
+        const ref = { current: null as HTMLDivElement | null };
+        inputContainerRefs.current.set(inputId, ref);
+      }
+      return inputContainerRefs.current.get(inputId)!;
     };
 
     return (
@@ -397,6 +422,16 @@ export const WorkflowNode = memo(
                     key={`input-${input.id}-${index}`}
                     className="flex items-center gap-3 text-xs relative"
                   >
+                    {activeInputId === input.id && (
+                      <WorkflowNodeInput
+                        nodeId={id}
+                        nodeInputs={data.inputs}
+                        input={input}
+                        readonly={readonly}
+                        containerRef={getInputContainerRef(input.id)}
+                        autoFocus={true}
+                      />
+                    )}
                     <TypeBadge
                       type={input.type}
                       position={Position.Left}
@@ -548,16 +583,6 @@ export const WorkflowNode = memo(
             </>
           )}
         </div>
-
-        <InputEditPopover
-          nodeId={id}
-          nodeInputs={data.inputs}
-          input={selectedInput}
-          isOpen={selectedInput !== null && !readonly}
-          onClose={handleDialogClose}
-          readonly={readonly}
-          anchorElement={anchorElement}
-        />
 
         {data.functionCalling && (
           <WorkflowToolSelector
