@@ -56,7 +56,7 @@ export function AudioInputWidget({
           )}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center space-y-2 p-3 border-2 border-dashed border-neutral-300 dark:border-neutral-700 rounded-md">
+        <div className="flex flex-col items-center justify-center space-y-2 p-3 border border-neutral-300 dark:border-neutral-700 rounded-md bg-neutral-50 dark:bg-neutral-900">
           <Upload className="h-5 w-5 text-neutral-400" />
           <label
             htmlFor={`audio-upload-${input.id}`}
