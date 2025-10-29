@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import type { InputWidgetProps } from "./types";
 
 export function NumberInputWidget({
+  input,
   value,
   onChange,
   readonly,

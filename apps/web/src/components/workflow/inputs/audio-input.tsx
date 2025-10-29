@@ -31,7 +31,7 @@ export function AudioInputWidget({
   return (
     <div>
       {hasValue ? (
-        <div className="relative border rounded-md p-2 bg-neutral-50 dark:bg-neutral-900">
+        <div className="relative border border-neutral-300 dark:border-neutral-700 rounded-md p-2 bg-neutral-50 dark:bg-neutral-900">
           {(() => {
             const objectUrl = getObjectUrl();
             return objectUrl ? (

@@ -10,6 +10,7 @@ import { useSecrets } from "@/services/secrets-service";
 import type { InputWidgetProps } from "./types";
 
 export function SecretInputWidget({
+  input,
   value,
   onChange,
   readonly,

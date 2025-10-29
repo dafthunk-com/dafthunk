@@ -31,7 +31,7 @@ export function ImageInputWidget({
   return (
     <div>
       {hasValue ? (
-        <div className="relative border rounded-md overflow-hidden bg-neutral-50 dark:bg-neutral-900">
+        <div className="relative border border-neutral-300 dark:border-neutral-700 rounded-md overflow-hidden bg-neutral-50 dark:bg-neutral-900">
           {(() => {
             const objectUrl = getObjectUrl();
             return objectUrl ? (
@@ -63,7 +63,7 @@ export function ImageInputWidget({
               (isUploading || readonly) && "opacity-50 pointer-events-none"
             )}
           >
-            {isUploading ? "Uploading..." : "Upload Image"}
+            {isUploading ? "Uploading..." : "Upload"}
           </label>
           <input
             id={`image-upload-${input.id}`}
