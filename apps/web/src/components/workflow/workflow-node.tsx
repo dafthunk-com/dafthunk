@@ -284,6 +284,8 @@ export const WorkflowNode = memo(
 
     const handleInputClick = (param: WorkflowParameter, element: HTMLElement) => {
       if (readonly) return;
+      // Don't allow clicking on connected inputs
+      if (param.isConnected) return;
       handleRefs.current.set(param.id, element);
       // Toggle: if this input is already active, close it; otherwise open it
       setActiveInputId(activeInputId === param.id ? null : param.id);
@@ -422,7 +424,7 @@ export const WorkflowNode = memo(
                     key={`input-${input.id}-${index}`}
                     className="flex items-center gap-3 text-xs relative"
                   >
-                    {activeInputId === input.id && (
+                    {activeInputId === input.id && !input.isConnected && (
                       <WorkflowNodeInput
                         nodeId={id}
                         nodeInputs={data.inputs}
