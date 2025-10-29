@@ -14,7 +14,7 @@ export function NumberInputWidget({
       onChange={(e) => onChange(e.target.value)}
       placeholder="Enter number"
       disabled={readonly}
-      className="h-8 text-xs"
+      className="text-xs"
     />
   );
 }

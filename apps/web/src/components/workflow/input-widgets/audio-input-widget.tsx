@@ -37,7 +37,7 @@ export function AudioInputWidget({
             return objectUrl ? (
               <audio
                 controls
-                className="w-full h-6 text-xs"
+                className="w-full text-xs"
                 preload="metadata"
               >
                 <source

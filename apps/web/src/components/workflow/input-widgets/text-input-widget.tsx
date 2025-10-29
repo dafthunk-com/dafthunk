@@ -16,7 +16,7 @@ export function TextInputWidget({
       value={value !== undefined ? String(value) : ""}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className="min-h-[80px] resize-y text-xs"
+      className="resize-y text-xs"
       disabled={readonly}
     />
   );

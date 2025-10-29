@@ -13,7 +13,7 @@ export function GenericInputWidget({
       onChange={(e) => onChange(e.target.value)}
       placeholder="Enter value"
       disabled={readonly}
-      className="h-8 text-xs"
+      className="text-xs"
     />
   );
 }

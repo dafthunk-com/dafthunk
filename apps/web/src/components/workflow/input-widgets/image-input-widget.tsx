@@ -38,7 +38,7 @@ export function ImageInputWidget({
               <img
                 src={objectUrl}
                 alt="Uploaded image"
-                className="w-full h-24 object-cover"
+                className="w-full object-cover"
                 onError={(e) => {
                   e.currentTarget.style.display = "none";
                 }}

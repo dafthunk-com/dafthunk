@@ -22,7 +22,7 @@ export function SecretInputWidget({
       onValueChange={onChange}
       disabled={readonly || isSecretsLoading}
     >
-      <SelectTrigger className="h-8 text-xs">
+      <SelectTrigger className="text-xs">
         <SelectValue
           placeholder={
             isSecretsLoading
