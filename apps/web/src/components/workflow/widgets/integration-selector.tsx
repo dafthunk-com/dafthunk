@@ -2,13 +2,7 @@ import Database from "lucide-react/icons/database";
 import RefreshCw from "lucide-react/icons/refresh-cw";
 
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { NativeSelect } from "@/components/ui/native-select";
 import { useIntegrations } from "@/integrations";
 import { cn } from "@/utils/utils";
 
@@ -30,9 +24,9 @@ function IntegrationSelectorWidget({
 }: IntegrationSelectorWidgetProps) {
   const { integrations, error, isLoading, mutate } = useIntegrations();
 
-  const handleSelect = (integrationId: string) => {
+  const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     if (!readonly) {
-      onChange(integrationId);
+      onChange(e.target.value);
     }
   };
 
@@ -63,33 +57,26 @@ function IntegrationSelectorWidget({
 
   return (
     <div className={cn("p-2", className)}>
-      <Select
+      <NativeSelect
         value={value || ""}
-        onValueChange={handleSelect}
+        onChange={handleSelect}
         disabled={readonly || isLoading}
+        className={cn("text-xs", compact ? "h-7" : "h-8")}
       >
-        <SelectTrigger className={cn("text-xs", compact ? "h-7" : "h-8")}>
-          <SelectValue
-            placeholder={isLoading ? "Loading..." : "Select integration..."}
-          />
-        </SelectTrigger>
-        <SelectContent>
-          {filteredIntegrations?.map((integration) => (
-            <SelectItem
-              key={integration.id}
-              value={integration.id}
-              className="text-xs"
-            >
-              {integration.name}
-            </SelectItem>
-          ))}
-          {filteredIntegrations?.length === 0 && !isLoading && (
-            <SelectItem disabled value="none" className="text-xs">
-              No integrations found
-            </SelectItem>
-          )}
-        </SelectContent>
-      </Select>
+        <option value="" disabled>
+          {isLoading ? "Loading..." : "Select integration..."}
+        </option>
+        {filteredIntegrations?.map((integration) => (
+          <option key={integration.id} value={integration.id}>
+            {integration.name}
+          </option>
+        ))}
+        {filteredIntegrations?.length === 0 && !isLoading && (
+          <option disabled value="none">
+            No integrations found
+          </option>
+        )}
+      </NativeSelect>
     </div>
   );
 }
