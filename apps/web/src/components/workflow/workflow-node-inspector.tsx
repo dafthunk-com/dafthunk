@@ -38,7 +38,7 @@ import {
   updateNodeName,
   useWorkflow,
 } from "./workflow-context";
-import { ClearButton, InputWidget } from "./input-widgets";
+import { ClearButton, InputWidget } from "./inputs";
 import { WorkflowOutputRenderer } from "./workflow-output-renderer";
 import type { InputOutputType, WorkflowParameter } from "./workflow-types";
 import type { WorkflowNodeType } from "./workflow-types";

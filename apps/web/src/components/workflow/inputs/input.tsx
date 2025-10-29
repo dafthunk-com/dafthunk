@@ -2,15 +2,15 @@ import React, { useState } from "react";
 
 import { useObjectService } from "@/services/object-service";
 
-import { AudioInputWidget } from "./audio-input-widget";
-import { BooleanInputWidget } from "./boolean-input-widget";
-import { DocumentInputWidget } from "./document-input-widget";
-import { GenericInputWidget } from "./generic-input-widget";
-import { GltfInputWidget } from "./gltf-input-widget";
-import { ImageInputWidget } from "./image-input-widget";
-import { NumberInputWidget } from "./number-input-widget";
-import { SecretInputWidget } from "./secret-input-widget";
-import { TextInputWidget } from "./text-input-widget";
+import { AudioInputWidget } from "./audio-input";
+import { BooleanInputWidget } from "./boolean-input";
+import { DocumentInputWidget } from "./document-input";
+import { GenericInputWidget } from "./generic-input";
+import { GltfInputWidget } from "./gltf-input";
+import { ImageInputWidget } from "./image-input";
+import { NumberInputWidget } from "./number-input";
+import { SecretInputWidget } from "./secret-input";
+import { TextInputWidget } from "./text-input";
 import type { InputWidgetProps } from "./types";
 
 export interface InputWidgetRouterProps extends InputWidgetProps {

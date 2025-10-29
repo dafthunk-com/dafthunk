@@ -6,7 +6,7 @@ import {
   updateNodeInput,
   useWorkflow,
 } from "@/components/workflow/workflow-context";
-import { InputWidget } from "@/components/workflow/input-widgets";
+import { InputWidget } from "@/components/workflow/inputs";
 import type { WorkflowParameter } from "@/components/workflow/workflow-types";
 import { useObjectService } from "@/services/object-service";
 import { cn } from "@/utils/utils";
