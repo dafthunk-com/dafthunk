@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useViewport } from "@xyflow/react";
 
 import {
   Popover,
@@ -36,6 +37,7 @@ export function InputEditPopover({
 }: InputEditPopoverProps) {
   const { updateNodeData, edges, deleteEdge } = useWorkflow();
   const { createObjectUrl } = useObjectService();
+  const { zoom } = useViewport();
 
   // Local state for immediate UI updates
   const [localValue, setLocalValue] = useState<any>(undefined);
@@ -110,6 +112,8 @@ export function InputEditPopover({
     return null;
   }
 
+  const scale = zoom;
+
   return (
     <Popover open={isOpen} modal={false}>
       {anchorElement && (
@@ -119,6 +123,10 @@ export function InputEditPopover({
         side="left"
         align="center"
         className="w-80 rounded-xl p-0 border-0 shadow-lg nodrag nowheel"
+        style={{
+          transform: `scale(${scale})`,
+          transformOrigin: 'right center',
+        }}
         onEscapeKeyDown={onClose}
         onInteractOutside={onClose}
       >
