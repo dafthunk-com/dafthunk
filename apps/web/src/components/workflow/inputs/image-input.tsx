@@ -11,6 +11,7 @@ export function ImageInputWidget({
   value,
   onClear,
   readonly,
+  showClearButton,
   isUploading,
   uploadError,
   onFileUpload,
@@ -52,11 +53,11 @@ export function ImageInputWidget({
               />
             ) : null;
           })()}
-          {!readonly && (
+          {!readonly && showClearButton && (
             <ClearButton
               onClick={onClear}
               label="Clear image"
-              className="absolute top-1 right-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
+              className="absolute top-2 right-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
             />
           )}
         </div>

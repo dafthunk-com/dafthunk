@@ -11,6 +11,7 @@ export function AudioInputWidget({
   value,
   onClear,
   readonly,
+  showClearButton,
   isUploading,
   uploadError,
   onFileUpload,
@@ -54,11 +55,11 @@ export function AudioInputWidget({
               </audio>
             ) : null;
           })()}
-          {!readonly && (
+          {!readonly && showClearButton && (
             <ClearButton
               onClick={onClear}
               label="Clear audio"
-              className="absolute top-1 right-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
+              className="absolute top-2 right-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
             />
           )}
         </div>

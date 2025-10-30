@@ -4,12 +4,15 @@ import Upload from "lucide-react/icons/upload";
 import { isObjectReference } from "@/services/object-service";
 import { cn } from "@/utils/utils";
 
+import { ClearButton } from "./clear-button";
 import type { FileInputWidgetProps } from "./types";
 
 export function DocumentInputWidget({
   input,
   value,
+  onClear,
   readonly,
+  showClearButton,
   isUploading,
   uploadError,
   onFileUpload,
@@ -52,6 +55,13 @@ export function DocumentInputWidget({
               </a>
             ) : null;
           })()}
+          {!readonly && showClearButton && (
+            <ClearButton
+              onClick={onClear}
+              label="Clear document"
+              className="absolute top-2 right-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
+            />
+          )}
         </div>
       ) : (
         <div className={cn(

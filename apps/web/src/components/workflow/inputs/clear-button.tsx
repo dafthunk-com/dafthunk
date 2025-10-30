@@ -1,4 +1,4 @@
-import XCircleIcon from "lucide-react/icons/x-circle";
+import { XIcon } from "lucide-react";
 
 interface ClearButtonProps {
   onClick: () => void;
@@ -18,7 +18,7 @@ export function ClearButton({
       aria-label={label}
       type="button"
     >
-      <XCircleIcon className="h-4 w-4" />
+      <XIcon className="h-4 w-4" />
     </button>
   );
 }
