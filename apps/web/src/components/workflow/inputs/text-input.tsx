@@ -16,7 +16,7 @@ export function TextInputWidget({
   return (
     <Textarea
       value={value !== undefined ? String(value) : ""}
-      onChange={(e) => onChange(e.target.value)}
+      onChange={(e) => onChange(e.target.value || undefined)}
       placeholder={placeholder}
       className={cn("resize-y text-xs", className)}
       disabled={readonly}

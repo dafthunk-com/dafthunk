@@ -22,7 +22,7 @@ export function SecretInputWidget({
   return (
     <Select
       value={value !== undefined ? String(value) : ""}
-      onValueChange={onChange}
+      onValueChange={(val) => onChange(val || undefined)}
       disabled={readonly || isSecretsLoading}
     >
       <SelectTrigger className={cn("text-xs", className)}>
