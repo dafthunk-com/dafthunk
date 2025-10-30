@@ -314,6 +314,7 @@ export function WorkflowNodeInspector({
                         onClear={() => handleClearValue(input.id)}
                         readonly={readonly}
                         createObjectUrl={createObjectUrl}
+                        className="w-full"
                       />
                     </div>
                   </div>

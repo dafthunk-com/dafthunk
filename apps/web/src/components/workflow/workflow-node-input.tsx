@@ -121,6 +121,26 @@ export function WorkflowNodeInput({
     }
   };
 
+  // Determine width based on input type
+  const getInputClassName = () => {
+    switch (input.type) {
+      case "string":
+      case "json":
+      case "image":
+      case "document":
+      case "audio":
+      case "gltf":
+        return "w-40"; // 160px for text areas and file uploads
+      case "number":
+      case "secret":
+        return "w-32"; // 128px for number and select inputs
+      case "boolean":
+        return "w-fit"; // Natural width for boolean switch
+      default:
+        return "w-32"; // Default width
+    }
+  };
+
   return (
     <div
       ref={containerRef}
@@ -132,7 +152,7 @@ export function WorkflowNodeInput({
       onBlur={handleBlur}
       onKeyDown={handleKeyDown}
     >
-      <div className="w-[200px] h-full">
+      <div className="h-full">
         <InputWidget
           input={input}
           value={localValue}
@@ -140,6 +160,7 @@ export function WorkflowNodeInput({
           onClear={handleClearValue}
           readonly={readonly}
           createObjectUrl={createObjectUrl}
+          className={getInputClassName()}
         />
       </div>
     </div>

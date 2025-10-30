@@ -6,6 +6,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useSecrets } from "@/services/secrets-service";
+import { cn } from "@/utils/utils";
 
 import type { InputWidgetProps } from "./types";
 
@@ -14,6 +15,7 @@ export function SecretInputWidget({
   value,
   onChange,
   readonly,
+  className,
 }: InputWidgetProps) {
   const { secrets, isSecretsLoading } = useSecrets();
 
@@ -23,7 +25,7 @@ export function SecretInputWidget({
       onValueChange={onChange}
       disabled={readonly || isSecretsLoading}
     >
-      <SelectTrigger className="text-xs">
+      <SelectTrigger className={cn("text-xs", className)}>
         <SelectValue
           placeholder={
             isSecretsLoading

@@ -1,4 +1,5 @@
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/utils/utils";
 
 import type { InputWidgetProps } from "./types";
 
@@ -7,6 +8,7 @@ export function TextInputWidget({
   value,
   onChange,
   readonly,
+  className,
 }: InputWidgetProps) {
   const placeholder =
     input.type === "json" ? "Enter JSON" : "Enter text";
@@ -16,7 +18,7 @@ export function TextInputWidget({
       value={value !== undefined ? String(value) : ""}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className="resize-y text-xs"
+      className={cn("resize-y text-xs", className)}
       disabled={readonly}
     />
   );

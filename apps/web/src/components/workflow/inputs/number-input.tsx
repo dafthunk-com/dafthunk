@@ -1,4 +1,5 @@
 import { Input } from "@/components/ui/input";
+import { cn } from "@/utils/utils";
 
 import type { InputWidgetProps } from "./types";
 
@@ -7,6 +8,7 @@ export function NumberInputWidget({
   value,
   onChange,
   readonly,
+  className,
 }: InputWidgetProps) {
   return (
     <Input
@@ -15,7 +17,7 @@ export function NumberInputWidget({
       onChange={(e) => onChange(e.target.value)}
       placeholder="Enter number"
       disabled={readonly}
-      className="text-xs"
+      className={cn("text-xs", className)}
     />
   );
 }

@@ -15,6 +15,7 @@ export function ImageInputWidget({
   uploadError,
   onFileUpload,
   createObjectUrl,
+  className,
 }: FileInputWidgetProps) {
   const hasValue = value !== undefined && isObjectReference(value);
 
@@ -29,7 +30,7 @@ export function ImageInputWidget({
   };
 
   return (
-    <div>
+    <div className={cn(className)}>
       {hasValue ? (
         <div className="relative border border-neutral-300 dark:border-neutral-700 rounded-md overflow-hidden bg-neutral-50 dark:bg-neutral-900">
           {(() => {

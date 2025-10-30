@@ -7,6 +7,7 @@ export interface InputWidgetProps {
   onClear: () => void;
   readonly?: boolean;
   showClearButton?: boolean;
+  className?: string;
 }
 
 export interface FileInputWidgetProps extends InputWidgetProps {

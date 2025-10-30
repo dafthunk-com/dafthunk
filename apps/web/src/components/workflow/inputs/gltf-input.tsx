@@ -14,6 +14,7 @@ export function GltfInputWidget({
   uploadError,
   onFileUpload,
   createObjectUrl,
+  className,
 }: FileInputWidgetProps) {
   const hasValue = value !== undefined && isObjectReference(value);
 
@@ -28,7 +29,7 @@ export function GltfInputWidget({
   };
 
   return (
-    <div>
+    <div className={cn(className)}>
       {hasValue ? (
         <div className="relative flex items-center gap-2 p-2 border border-neutral-300 dark:border-neutral-700 rounded-md bg-neutral-50 dark:bg-neutral-900">
           <File className="h-4 w-4 flex-shrink-0 text-neutral-500" />
