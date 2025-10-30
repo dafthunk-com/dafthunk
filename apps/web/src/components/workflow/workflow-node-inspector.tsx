@@ -38,7 +38,7 @@ import {
   updateNodeName,
   useWorkflow,
 } from "./workflow-context";
-import { ClearButton, InputWidget } from "./inputs";
+import { ClearButton, UnplugButton, InputWidget } from "./inputs";
 import { WorkflowOutputRenderer } from "./workflow-output-renderer";
 import type { InputOutputType, WorkflowParameter } from "./workflow-types";
 import type { WorkflowNodeType } from "./workflow-types";
@@ -86,7 +86,11 @@ export function WorkflowNodeInspector({
   createObjectUrl,
   readonly = false,
 }: WorkflowNodeInspectorProps) {
-  const { updateNodeData: contextUpdateNodeData } = useWorkflow();
+  const {
+    updateNodeData: contextUpdateNodeData,
+    edges = [],
+    deleteEdge,
+  } = useWorkflow();
 
   // Prefer the context function but fall back to the prop if needed
   const updateNodeData = onNodeUpdate || contextUpdateNodeData;
@@ -116,6 +120,13 @@ export function WorkflowNodeInspector({
   }, [node]);
 
   if (!node) return null;
+
+  // Helper function to check if an input is connected
+  const isInputConnected = (inputId: string): boolean => {
+    return edges.some(
+      (edge) => edge.target === node.id && edge.targetHandle === inputId
+    );
+  };
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (readonly) return;
@@ -187,6 +198,18 @@ export function WorkflowNodeInspector({
     setLocalOutputs(updatedOutputs);
   };
 
+  const handleDisconnect = (inputId: string) => {
+    if (readonly || !deleteEdge) return;
+
+    // Find all edges connected to this input
+    const connectedEdges = edges.filter(
+      (edge) => edge.target === node.id && edge.targetHandle === inputId
+    );
+
+    // Delete all connected edges
+    connectedEdges.forEach((edge) => deleteEdge(edge.id));
+  };
+
   return (
     <div className="flex flex-col h-full bg-card">
       {/* Content */}
@@ -254,71 +277,85 @@ export function WorkflowNodeInspector({
           {inputsExpanded && (
             <div className="px-4 pb-4 space-y-3">
               {localInputs.length > 0 ? (
-                localInputs.map((input) => (
-                  <div key={input.id} className="text-sm space-y-1">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-muted-foreground shrink-0">
-                          {getTypeIcon(input.type)}
-                        </span>
-                        <span className="text-foreground font-medium font-mono truncate">
-                          {input.name}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        {input.value !== undefined && !readonly && (
-                          <ClearButton
-                            onClick={() => handleClearValue(input.id)}
-                            label={`Clear ${input.name} value`}
-                          />
-                        )}
-                        <Toggle
-                          size="sm"
-                          pressed={input.hidden}
-                          onPressedChange={() =>
-                            handleToggleVisibility(input.id)
-                          }
-                          aria-label={`Toggle visibility for ${input.name}`}
-                          className={`px-1 h-8 w-8 bg-transparent data-[state=on]:bg-transparent hover:bg-muted data-[state=on]:text-muted-foreground hover:text-foreground transition-colors ${
-                            readonly ? "opacity-70 cursor-not-allowed" : ""
-                          }`}
-                          disabled={readonly}
-                        >
-                          {input.hidden ? (
-                            <EyeOffIcon className="h-3 w-3" />
-                          ) : (
-                            <EyeIcon className="h-3 w-3" />
+                localInputs.map((input) => {
+                  const isConnected = isInputConnected(input.id);
+                  return (
+                    <div key={input.id} className="text-sm space-y-1">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="text-muted-foreground shrink-0">
+                            {getTypeIcon(input.type)}
+                          </span>
+                          <span className="text-foreground font-medium font-mono truncate">
+                            {input.name}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                          {!readonly && (
+                            <>
+                              {isConnected ? (
+                                <UnplugButton
+                                  onClick={() => handleDisconnect(input.id)}
+                                  label={`Disconnect ${input.name}`}
+                                />
+                              ) : (
+                                input.value !== undefined && (
+                                  <ClearButton
+                                    onClick={() => handleClearValue(input.id)}
+                                    label={`Clear ${input.name} value`}
+                                  />
+                                )
+                              )}
+                            </>
                           )}
-                        </Toggle>
+                          <Toggle
+                            size="sm"
+                            pressed={input.hidden}
+                            onPressedChange={() =>
+                              handleToggleVisibility(input.id)
+                            }
+                            aria-label={`Toggle visibility for ${input.name}`}
+                            className={`px-1 h-8 w-8 bg-transparent data-[state=on]:bg-transparent hover:bg-muted data-[state=on]:text-muted-foreground hover:text-foreground transition-colors ${
+                              readonly ? "opacity-70 cursor-not-allowed" : ""
+                            }`}
+                            disabled={readonly}
+                          >
+                            {input.hidden ? (
+                              <EyeOffIcon className="h-3 w-3" />
+                            ) : (
+                              <EyeIcon className="h-3 w-3" />
+                            )}
+                          </Toggle>
+                        </div>
+                      </div>
+
+                      <div className="relative">
+                        <InputWidget
+                          input={input}
+                          value={input.value}
+                          onChange={(value) => {
+                            const typedValue = convertValueByType(
+                              typeof value === "string" ? value : value,
+                              input.type || "string"
+                            );
+                            const updatedInputs = updateNodeInput(
+                              node.id,
+                              input.id,
+                              typedValue,
+                              localInputs,
+                              updateNodeData
+                            );
+                            setLocalInputs(updatedInputs);
+                          }}
+                          onClear={() => handleClearValue(input.id)}
+                          readonly={readonly || isConnected}
+                          createObjectUrl={createObjectUrl}
+                          className="w-full"
+                        />
                       </div>
                     </div>
-
-                    <div className="relative">
-                      <InputWidget
-                        input={input}
-                        value={input.value}
-                        onChange={(value) => {
-                          const typedValue = convertValueByType(
-                            typeof value === "string" ? value : value,
-                            input.type || "string"
-                          );
-                          const updatedInputs = updateNodeInput(
-                            node.id,
-                            input.id,
-                            typedValue,
-                            localInputs,
-                            updateNodeData
-                          );
-                          setLocalInputs(updatedInputs);
-                        }}
-                        onClear={() => handleClearValue(input.id)}
-                        readonly={readonly}
-                        createObjectUrl={createObjectUrl}
-                        className="w-full"
-                      />
-                    </div>
-                  </div>
-                ))
+                  );
+                })
               ) : (
                 <div className="text-sm text-muted-foreground">No inputs</div>
               )}

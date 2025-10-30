@@ -1,6 +1,7 @@
 export { AudioInputWidget } from "./audio-input";
 export { BooleanInputWidget } from "./boolean-input";
 export { ClearButton } from "./clear-button";
+export { UnplugButton } from "./unplug-button";
 export { DocumentInputWidget } from "./document-input";
 export { GenericInputWidget } from "./generic-input";
 export { GltfInputWidget } from "./gltf-input";
