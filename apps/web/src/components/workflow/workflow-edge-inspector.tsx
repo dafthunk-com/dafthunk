@@ -7,12 +7,12 @@ import type { WorkflowEdgeType } from "./workflow-types";
 export interface WorkflowEdgeInspectorProps {
   edge: ReactFlowEdge<WorkflowEdgeType> | null;
   onEdgeUpdate?: (edgeId: string, data: Partial<WorkflowEdgeType>) => void;
-  readonly?: boolean;
+  disabled?: boolean;
 }
 
 export function WorkflowEdgeInspector({
   edge,
-  readonly = false,
+  disabled = false,
 }: WorkflowEdgeInspectorProps) {
   if (!edge) return null;
 
@@ -21,7 +21,7 @@ export function WorkflowEdgeInspector({
       {/* Header */}
       <div className="px-4 py-3 border-b border-border">
         <h1 className="text-sm font-semibold text-foreground">
-          {readonly
+          {disabled
             ? "Connection Properties (Read-only)"
             : "Connection Properties"}
         </h1>

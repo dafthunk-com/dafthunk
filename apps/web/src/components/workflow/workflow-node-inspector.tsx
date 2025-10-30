@@ -76,7 +76,7 @@ const getTypeIcon = (type: InputOutputType) => {
 export interface WorkflowNodeInspectorProps {
   node: ReactFlowNode<WorkflowNodeType> | null;
   onNodeUpdate?: (nodeId: string, data: Partial<WorkflowNodeType>) => void;
-  readonly?: boolean;
+  disabled?: boolean;
   createObjectUrl: (objectReference: ObjectReference) => string;
 }
 
@@ -84,7 +84,7 @@ export function WorkflowNodeInspector({
   node,
   onNodeUpdate,
   createObjectUrl,
-  readonly = false,
+  disabled = false,
 }: WorkflowNodeInspectorProps) {
   const {
     updateNodeData: contextUpdateNodeData,
@@ -129,7 +129,7 @@ export function WorkflowNodeInspector({
   };
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (readonly) return;
+    if (disabled) return;
 
     const newName = e.target.value;
     setLocalName(newName);
@@ -137,7 +137,7 @@ export function WorkflowNodeInspector({
   };
 
   const handleInputValueChange = (inputId: string, value: string) => {
-    if (readonly || !updateNodeData) return;
+    if (disabled || !updateNodeData) return;
 
     const input = localInputs.find((i) => i.id === inputId);
     if (!input) return;
@@ -156,7 +156,7 @@ export function WorkflowNodeInspector({
   };
 
   const handleClearValue = (inputId: string) => {
-    if (readonly || !updateNodeData) return;
+    if (disabled || !updateNodeData) return;
 
     const updatedInputs = clearNodeInput(
       node.id,
@@ -169,7 +169,7 @@ export function WorkflowNodeInspector({
   };
 
   const handleToggleVisibility = (inputId: string) => {
-    if (readonly || !updateNodeData) return;
+    if (disabled || !updateNodeData) return;
 
     const updatedInputs = localInputs.map((input) =>
       input.id === inputId ? { ...input, hidden: !input.hidden } : input
@@ -184,7 +184,7 @@ export function WorkflowNodeInspector({
   };
 
   const handleToggleOutputVisibility = (outputId: string) => {
-    if (readonly || !updateNodeData) return;
+    if (disabled || !updateNodeData) return;
 
     const updatedOutputs = localOutputs.map((output) =>
       output.id === outputId ? { ...output, hidden: !output.hidden } : output
@@ -199,7 +199,7 @@ export function WorkflowNodeInspector({
   };
 
   const handleDisconnect = (inputId: string) => {
-    if (readonly || !deleteEdge) return;
+    if (disabled || !deleteEdge) return;
 
     // Find all edges connected to this input
     const connectedEdges = edges.filter(
@@ -221,7 +221,7 @@ export function WorkflowNodeInspector({
             className="w-full px-4 py-3 flex items-center justify-between"
           >
             <h2 className="text-base font-semibold text-foreground">
-              {readonly ? "Node Properties (Read-only)" : "Node Properties"}
+              {disabled ? "Node Properties (Read-only)" : "Node Properties"}
             </h2>
             <ChevronDownIcon
               className={`h-4 w-4 text-muted-foreground transition-transform ${
@@ -253,8 +253,8 @@ export function WorkflowNodeInspector({
                   id="node-name"
                   value={localName}
                   onChange={handleNameChange}
-                  disabled={readonly}
-                  className={`mt-2 text-sm h-8 ${readonly ? "opacity-70 cursor-not-allowed" : ""}`}
+                  disabled={disabled}
+                  className={`mt-2 text-sm h-8 ${disabled ? "opacity-70 cursor-not-allowed" : ""}`}
                 />
               </div>
             </div>
@@ -291,7 +291,7 @@ export function WorkflowNodeInspector({
                           </span>
                         </div>
                         <div className="flex items-center gap-1 shrink-0">
-                          {!readonly && (
+                          {!disabled && (
                             <>
                               {isConnected ? (
                                 <UnplugButton
@@ -316,9 +316,9 @@ export function WorkflowNodeInspector({
                             }
                             aria-label={`Toggle visibility for ${input.name}`}
                             className={`px-1 h-8 w-8 bg-transparent data-[state=on]:bg-transparent hover:bg-muted data-[state=on]:text-muted-foreground hover:text-foreground transition-colors ${
-                              readonly ? "opacity-70 cursor-not-allowed" : ""
+                              disabled ? "opacity-70 cursor-not-allowed" : ""
                             }`}
-                            disabled={readonly}
+                            disabled={disabled}
                           >
                             {input.hidden ? (
                               <EyeOffIcon className="h-3 w-3" />
@@ -348,7 +348,7 @@ export function WorkflowNodeInspector({
                             setLocalInputs(updatedInputs);
                           }}
                           onClear={() => handleClearValue(input.id)}
-                          readonly={readonly || isConnected}
+                          disabled={disabled || isConnected}
                           createObjectUrl={createObjectUrl}
                           className="w-full"
                         />
@@ -399,9 +399,9 @@ export function WorkflowNodeInspector({
                           }
                           aria-label={`Toggle visibility for ${output.name}`}
                           className={`px-1 h-8 w-8 bg-transparent data-[state=on]:bg-transparent hover:bg-muted data-[state=on]:text-muted-foreground hover:text-foreground transition-colors ${
-                            readonly ? "opacity-70 cursor-not-allowed" : ""
+                            disabled ? "opacity-70 cursor-not-allowed" : ""
                           }`}
-                          disabled={readonly}
+                          disabled={disabled}
                         >
                           {output.hidden ? (
                             <EyeOffIcon className="h-3 w-3" />

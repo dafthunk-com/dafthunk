@@ -46,7 +46,7 @@ export interface WorkflowBuilderProps {
     onExecution: (execution: WorkflowExecution) => void
   ) => void | (() => void | Promise<void>);
   initialWorkflowExecution?: WorkflowExecution;
-  readonly?: boolean;
+  disabled?: boolean;
   onDeployWorkflow?: (e: React.MouseEvent) => void;
   onEditMetadata?: (e: React.MouseEvent) => void;
   onSetSchedule?: () => void;
@@ -69,7 +69,7 @@ export function WorkflowBuilder({
   validateConnection,
   executeWorkflow,
   initialWorkflowExecution,
-  readonly = false,
+  disabled = false,
   onDeployWorkflow,
   onEditMetadata,
   onSetSchedule,
@@ -142,7 +142,7 @@ export function WorkflowBuilder({
     onEdgesChangePersist: onEdgesChangeFromParent,
     validateConnection,
     createObjectUrl,
-    readonly,
+    disabled,
     nodeTemplates,
   });
 
@@ -184,7 +184,7 @@ export function WorkflowBuilder({
         });
       }
     });
-  }, [edges, nodes, updateNodeData, readonly]);
+  }, [edges, nodes, updateNodeData, disabled]);
 
   // Apply initial workflow execution state
   useEffect(() => {
@@ -408,11 +408,11 @@ export function WorkflowBuilder({
   return (
     <ReactFlowProvider>
       <WorkflowProvider
-        updateNodeData={readonly ? undefined : updateNodeData}
-        updateEdgeData={readonly ? undefined : updateEdgeData}
-        deleteEdge={readonly ? undefined : deleteEdge}
+        updateNodeData={disabled ? undefined : updateNodeData}
+        updateEdgeData={disabled ? undefined : updateEdgeData}
+        deleteEdge={disabled ? undefined : deleteEdge}
         edges={edges}
-        readonly={readonly}
+        disabled={disabled}
         expandedOutputs={currentExpandedOutputs}
       >
         <div className="w-full h-full flex">
@@ -424,24 +424,24 @@ export function WorkflowBuilder({
               edges={edges}
               connectionValidationState={connectionValidationState}
               onNodesChange={onNodesChange}
-              onEdgesChange={readonly ? () => {} : onEdgesChange}
-              onConnect={readonly ? () => {} : onConnect}
-              onConnectStart={readonly ? () => {} : onConnectStart}
-              onConnectEnd={readonly ? () => {} : onConnectEnd}
+              onEdgesChange={disabled ? () => {} : onEdgesChange}
+              onConnect={disabled ? () => {} : onConnect}
+              onConnectStart={disabled ? () => {} : onConnectStart}
+              onConnectEnd={disabled ? () => {} : onConnectEnd}
               onNodeDoubleClick={handleNodeDoubleClick}
               onNodeDragStop={onNodeDragStop}
               onInit={setReactFlowInstance}
-              onAddNode={readonly ? undefined : handleAddNode}
+              onAddNode={disabled ? undefined : handleAddNode}
               onAction={
-                !readonly && executeWorkflow
+                !disabled && executeWorkflow
                   ? handleActionButtonClick
                   : undefined
               }
               onDeploy={
-                !readonly && onDeployWorkflow ? onDeployWorkflow : undefined
+                !disabled && onDeployWorkflow ? onDeployWorkflow : undefined
               }
               onEditMetadata={
-                !readonly && onEditMetadata ? onEditMetadata : undefined
+                !disabled && onEditMetadata ? onEditMetadata : undefined
               }
               workflowStatus={workflowStatus}
               workflowErrorMessage={workflowErrorMessage}
@@ -452,21 +452,21 @@ export function WorkflowBuilder({
               onToggleSidebar={toggleSidebar}
               isSidebarVisible={isSidebarVisible}
               isValidConnection={isValidConnection}
-              readonly={readonly}
+              disabled={disabled}
               expandedOutputs={currentExpandedOutputs}
               onToggleExpandedOutputs={toggleExpandedOutputs}
               onFitToScreen={handleFitToScreen}
               selectedNodes={selectedNodes}
               selectedEdges={selectedEdges}
-              onDeleteSelected={readonly ? undefined : deleteSelected}
-              onDuplicateSelected={readonly ? undefined : duplicateSelected}
+              onDeleteSelected={disabled ? undefined : deleteSelected}
+              onDuplicateSelected={disabled ? undefined : duplicateSelected}
               onEditLabel={
-                readonly ? undefined : () => toggleEditNodeNameDialog(true)
+                disabled ? undefined : () => toggleEditNodeNameDialog(true)
               }
-              onApplyLayout={readonly ? undefined : applyLayout}
-              onCopySelected={readonly ? undefined : copySelected}
-              onCutSelected={readonly ? undefined : cutSelected}
-              onPasteFromClipboard={readonly ? undefined : pasteFromClipboard}
+              onApplyLayout={disabled ? undefined : applyLayout}
+              onCopySelected={disabled ? undefined : copySelected}
+              onCutSelected={disabled ? undefined : cutSelected}
+              onPasteFromClipboard={disabled ? undefined : pasteFromClipboard}
               hasClipboardData={hasClipboardData}
             />
           </div>
@@ -476,16 +476,16 @@ export function WorkflowBuilder({
               <WorkflowSidebar
                 selectedNodes={selectedNodes}
                 selectedEdges={selectedEdges}
-                onNodeUpdate={readonly ? undefined : updateNodeData}
-                onEdgeUpdate={readonly ? undefined : updateEdgeData}
+                onNodeUpdate={disabled ? undefined : updateNodeData}
+                onEdgeUpdate={disabled ? undefined : updateEdgeData}
                 createObjectUrl={createObjectUrl}
-                readonly={readonly}
+                disabled={disabled}
               />
             </div>
           )}
 
           <WorkflowNodeSelector
-            open={readonly ? false : handleIsNodeSelectorOpen}
+            open={disabled ? false : handleIsNodeSelectorOpen}
             onSelect={handleNodeSelect}
             onClose={() => handleSetIsNodeSelectorOpen(false)}
             templates={nodeTemplates}
@@ -519,7 +519,7 @@ export function WorkflowBuilder({
 
         <Dialog
           open={
-            isEditNodeNameDialogOpen && !readonly && selectedNodes.length > 0
+            isEditNodeNameDialogOpen && !disabled && selectedNodes.length > 0
           }
           onOpenChange={(open) => {
             if (!open) {

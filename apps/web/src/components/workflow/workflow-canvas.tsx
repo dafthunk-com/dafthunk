@@ -67,10 +67,10 @@ const actionBarButtonOutlineClassName =
 interface StatusBarProps {
   workflowStatus: WorkflowExecutionStatus;
   errorMessage?: string;
-  readonly?: boolean;
+  disabled?: boolean;
 }
 
-function StatusBar({ workflowStatus, errorMessage, readonly }: StatusBarProps) {
+function StatusBar({ workflowStatus, errorMessage, disabled }: StatusBarProps) {
   const statusConfig = {
     idle: {
       color: "text-neutral-600 dark:text-neutral-400",
@@ -123,7 +123,7 @@ function StatusBar({ workflowStatus, errorMessage, readonly }: StatusBarProps) {
           </span>
         </div>
 
-        {(workflowStatus === "error" && errorMessage) || readonly ? (
+        {(workflowStatus === "error" && errorMessage) || disabled ? (
           <>
             <div className="w-px h-4 bg-neutral-300 dark:bg-neutral-600" />
             <div className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
@@ -132,7 +132,7 @@ function StatusBar({ workflowStatus, errorMessage, readonly }: StatusBarProps) {
                   {errorMessage}
                 </span>
               ) : null}
-              {readonly && (
+              {disabled && (
                 <>
                   {workflowStatus === "error" && errorMessage && <span>•</span>}
                   <span className="text-amber-600 dark:text-amber-400">
@@ -182,7 +182,7 @@ export interface WorkflowCanvasProps {
   isSidebarVisible?: boolean;
   showControls?: boolean;
   isValidConnection?: IsValidConnection<ReactFlowEdge<WorkflowEdgeType>>;
-  readonly?: boolean;
+  disabled?: boolean;
   expandedOutputs?: boolean;
   onToggleExpandedOutputs?: (e: React.MouseEvent) => void;
   onFitToScreen?: (e: React.MouseEvent) => void;
@@ -744,7 +744,7 @@ export function WorkflowCanvas({
   isSidebarVisible,
   showControls = true,
   isValidConnection,
-  readonly = false,
+  disabled = false,
   expandedOutputs = false,
   onToggleExpandedOutputs,
   onFitToScreen,
@@ -775,7 +775,7 @@ export function WorkflowCanvas({
       // Cmd+Enter (Mac) or Ctrl+Enter (Windows/Linux) - Execute workflow
       if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
         event.preventDefault();
-        if (onAction && !readonly && nodes.length > 0) {
+        if (onAction && !disabled && nodes.length > 0) {
           const syntheticEvent = new MouseEvent("click", {
             bubbles: true,
             cancelable: true,
@@ -788,7 +788,7 @@ export function WorkflowCanvas({
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [onAction, readonly, nodes.length]);
+  }, [onAction, disabled, nodes.length]);
 
   return (
     <TooltipProvider>
@@ -796,10 +796,10 @@ export function WorkflowCanvas({
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
-        onEdgesChange={readonly ? () => {} : onEdgesChange}
-        onConnect={readonly ? () => {} : onConnect}
-        onConnectStart={readonly ? () => {} : onConnectStart}
-        onConnectEnd={readonly ? () => {} : onConnectEnd}
+        onEdgesChange={disabled ? () => {} : onEdgesChange}
+        onConnect={disabled ? () => {} : onConnect}
+        onConnectStart={disabled ? () => {} : onConnectStart}
+        onConnectEnd={disabled ? () => {} : onConnectEnd}
         onNodeDoubleClick={onNodeDoubleClick}
         onNodeDragStop={onNodeDragStop}
         nodeTypes={nodeTypes}
@@ -816,12 +816,12 @@ export function WorkflowCanvas({
         minZoom={0.05}
         maxZoom={4}
         className={cn("bg-neutral-100/50", {
-          "cursor-default": readonly,
+          "cursor-default": disabled,
         })}
-        nodesDraggable={!readonly}
-        nodesConnectable={!readonly}
+        nodesDraggable={!disabled}
+        nodesConnectable={!disabled}
         elementsSelectable={true}
-        selectNodesOnDrag={!readonly}
+        selectNodesOnDrag={!disabled}
         multiSelectionKeyCode="Shift"
         panOnDrag={true}
       >
@@ -843,22 +843,22 @@ export function WorkflowCanvas({
         <StatusBar
           workflowStatus={workflowStatus}
           errorMessage={workflowErrorMessage}
-          readonly={readonly}
+          disabled={disabled}
         />
 
         {/* Action Bars */}
-        {((!readonly &&
+        {((!disabled &&
           (onAction ||
             onDeploy ||
             onSetSchedule ||
             onToggleExpandedOutputs ||
             (onToggleSidebar && isSidebarVisible !== undefined))) ||
-          (readonly &&
+          (disabled &&
             (onToggleExpandedOutputs ||
               (onToggleSidebar && isSidebarVisible !== undefined)))) && (
           <div className="absolute top-4 right-4 flex items-center gap-3 z-50">
-            {/* Run/Deploy/Schedule Group - only shown when not readonly */}
-            {!readonly &&
+            {/* Run/Deploy/Schedule Group - only shown when not disabled */}
+            {!disabled &&
               (onAction ||
                 onDeploy ||
                 (onSetSchedule && workflowType === "cron")) && (
@@ -898,7 +898,7 @@ export function WorkflowCanvas({
                 </ActionBarGroup>
               )}
 
-            {/* Preview/Sidebar Group - shown in both readonly and editable modes */}
+            {/* Preview/Sidebar Group - shown in both disabled and editable modes */}
             {(onToggleExpandedOutputs ||
               (onToggleSidebar && isSidebarVisible !== undefined)) && (
               <ActionBarGroup>
@@ -925,7 +925,7 @@ export function WorkflowCanvas({
           </div>
         )}
 
-        {!readonly && (
+        {!disabled && (
           <div
             className={cn(
               "absolute top-4 left-4 z-50 flex flex-col items-center gap-2"
@@ -934,13 +934,13 @@ export function WorkflowCanvas({
             {/* Node-related buttons group */}
             <ActionBarGroup vertical>
               {onAddNode && (
-                <AddNodeButton onClick={onAddNode} disabled={readonly} />
+                <AddNodeButton onClick={onAddNode} disabled={disabled} />
               )}
               {onEditLabel && (
                 <EditLabelButton
                   onClick={onEditLabel}
                   disabled={
-                    readonly || (!hasSelectedNodes && !selectedNodes.length)
+                    disabled || (!hasSelectedNodes && !selectedNodes.length)
                   }
                 />
               )}
@@ -951,26 +951,26 @@ export function WorkflowCanvas({
               {onCopySelected && (
                 <CopyButton
                   onClick={onCopySelected}
-                  disabled={readonly || !hasSelectedNodes}
+                  disabled={disabled || !hasSelectedNodes}
                 />
               )}
               {onCutSelected && (
                 <CutButton
                   onClick={onCutSelected}
-                  disabled={readonly || !hasSelectedNodes}
+                  disabled={disabled || !hasSelectedNodes}
                 />
               )}
               {onPasteFromClipboard && (
                 <PasteButton
                   onClick={onPasteFromClipboard}
-                  disabled={readonly || !hasClipboardData}
+                  disabled={disabled || !hasClipboardData}
                 />
               )}
               {onDuplicateSelected && (
                 <DuplicateButton
                   onClick={onDuplicateSelected}
                   disabled={
-                    readonly || (!hasSelectedNodes && !selectedNodes.length)
+                    disabled || (!hasSelectedNodes && !selectedNodes.length)
                   }
                 />
               )}
@@ -978,7 +978,7 @@ export function WorkflowCanvas({
                 <DeleteButton
                   onClick={onDeleteSelected}
                   disabled={
-                    readonly ||
+                    disabled ||
                     (!hasSelectedElements &&
                       !selectedNodes.length &&
                       !selectedEdges.length)
@@ -993,7 +993,7 @@ export function WorkflowCanvas({
                 {onApplyLayout && (
                   <ApplyLayoutButton
                     onClick={() => onApplyLayout()}
-                    disabled={readonly || nodes.length === 0}
+                    disabled={disabled || nodes.length === 0}
                   />
                 )}
                 {onFitToScreen && <FitToScreenButton onClick={onFitToScreen} />}

@@ -9,7 +9,7 @@ export function TextInputWidget({
   value,
   onChange,
   onClear,
-  readonly,
+  disabled,
   showClearButton,
   className,
   active,
@@ -28,9 +28,9 @@ export function TextInputWidget({
           "resize-y text-xs rounded-md",
           active && "border border-blue-500"
         )}
-        disabled={readonly}
+        disabled={disabled}
       />
-      {!readonly && showClearButton && hasValue && (
+      {!disabled && showClearButton && hasValue && (
         <ClearButton
           onClick={onClear}
           label="Clear text"

@@ -33,7 +33,7 @@ interface UseWorkflowStateProps {
   onEdgesChangePersist?: (edges: ReactFlowEdge<WorkflowEdgeType>[]) => void;
   validateConnection?: (connection: Connection) => boolean;
   createObjectUrl: (objectReference: ObjectReference) => string;
-  readonly?: boolean;
+  disabled?: boolean;
   nodeTemplates?: NodeTemplate[];
 }
 
@@ -219,7 +219,7 @@ export function useWorkflowState({
   onEdgesChangePersist: onEdgesChangePersistCallback,
   validateConnection = () => true,
   createObjectUrl,
-  readonly = false,
+  disabled = false,
   nodeTemplates = [],
 }: UseWorkflowStateProps): UseWorkflowStateReturn {
   // State management
@@ -291,7 +291,7 @@ export function useWorkflowState({
 
     // Condition from original code to prevent wiping an unsaved workflow
     // when initialNodes is empty but there are already nodes in the editor.
-    if (!readonly && initialNodes.length === 0 && nodesRef.current.length > 0) {
+    if (!disabled && initialNodes.length === 0 && nodesRef.current.length > 0) {
       // Do nothing, preserve current nodes.
       // This handles the case where initialNodes might be an empty array during
       // initial loading before actual workflow data is fetched.
@@ -349,24 +349,24 @@ export function useWorkflowState({
 
       setNodes(updatedNodes);
     }
-  }, [initialNodes, readonly, setNodes, createObjectUrl]);
+  }, [initialNodes, disabled, setNodes, createObjectUrl]);
 
   // Effect to update edges when initialEdges prop changes
   useEffect(() => {
     // Similar to nodes, prevent resetting edges unnecessarily.
-    if (!readonly && initialEdges.length === 0 && edgesRef.current.length > 0) {
+    if (!disabled && initialEdges.length === 0 && edgesRef.current.length > 0) {
       // Allow resetting for deliberate empty array.
     } else {
       if (JSON.stringify(edgesRef.current) !== JSON.stringify(initialEdges)) {
         setEdges(initialEdges);
       }
     }
-  }, [initialEdges, readonly, setEdges]);
+  }, [initialEdges, disabled, setEdges]);
 
   // Effect to notify parent of changes for nodes
   // Only persists when the actual persistable data changes (strips position/execution state for comparison)
   useEffect(() => {
-    if (readonly) return;
+    if (disabled) return;
 
     // Create normalized version for comparison (excludes position and execution state)
     const normalizedNodes = nodes.map((node) => ({
@@ -382,11 +382,11 @@ export function useWorkflowState({
       lastPersistedNodesRef.current = serialized;
       onNodesChangePersistCallback?.(nodes);
     }
-  }, [nodes, onNodesChangePersistCallback, readonly]);
+  }, [nodes, onNodesChangePersistCallback, disabled]);
 
   // Effect to notify parent of changes for edges
   useEffect(() => {
-    if (readonly) return;
+    if (disabled) return;
 
     const hasNonExecutionChanges = edges.some((edge) => {
       const initialEdge = initialEdges.find((e) => e.id === edge.id);
@@ -414,13 +414,13 @@ export function useWorkflowState({
     if (hasNonExecutionChanges || hasDeletedEdges) {
       onEdgesChangePersistCallback?.(edges);
     }
-  }, [edges, onEdgesChangePersistCallback, initialEdges, readonly]);
+  }, [edges, onEdgesChangePersistCallback, initialEdges, disabled]);
 
-  // Custom onNodesChange handler for readonly mode
+  // Custom onNodesChange handler for disabled mode
   const handleNodesChangeInternal = useCallback(
     (changes: any) => {
-      if (readonly) {
-        // In readonly mode, only allow selection changes and block destructive changes
+      if (disabled) {
+        // In disabled mode, only allow selection changes and block destructive changes
         const filteredChanges = changes.filter(
           (change: any) => change.type === "select"
         );
@@ -432,36 +432,36 @@ export function useWorkflowState({
         onNodesChange(changes);
       }
     },
-    [onNodesChange, readonly]
+    [onNodesChange, disabled]
   );
 
   // Connection event handlers
   const onConnectStart = useCallback(() => {
-    if (readonly) return;
+    if (disabled) return;
     setConnectionValidationState("default");
-  }, [readonly]);
+  }, [disabled]);
 
   const onConnectEnd = useCallback(() => {
-    if (readonly) return;
+    if (disabled) return;
     setConnectionValidationState("default");
-  }, [readonly]);
+  }, [disabled]);
 
   // Handle node drag stop - persist positions after drag completes
   const onNodeDragStop = useCallback(
     (_event: React.MouseEvent, _node: ReactFlowNode<WorkflowNodeType>) => {
-      if (readonly) return;
+      if (disabled) return;
       // Persist final positions after drag
       // The persistence effect ignores position-only changes during drag,
       // so we need to explicitly persist here with the updated positions
       onNodesChangePersistCallback?.(nodes);
     },
-    [readonly, nodes, onNodesChangePersistCallback]
+    [disabled, nodes, onNodesChangePersistCallback]
   );
 
   // Function to validate connection based on type compatibility
   const isValidConnection = useCallback(
     (connection: any) => {
-      if (readonly) return false;
+      if (disabled) return false;
       if (!connection.source || !connection.target) return false;
 
       const sourceNode = nodes.find((node) => node.id === connection.source);
@@ -535,13 +535,13 @@ export function useWorkflowState({
         (validateConnection ? validateConnection(connection) : true)
       );
     },
-    [nodes, edges, validateConnection, readonly]
+    [nodes, edges, validateConnection, disabled]
   );
 
   // Handle connection
   const onConnect = useCallback(
     (connection: any) => {
-      if (readonly) return;
+      if (disabled) return;
       if (!connection.source || !connection.target) return;
       if (!isValidConnection(connection)) return;
 
@@ -601,14 +601,14 @@ export function useWorkflowState({
         return addEdge(newEdge, updatedEdges);
       });
     },
-    [setEdges, isValidConnection, readonly, createObjectUrl, nodes]
+    [setEdges, isValidConnection, disabled, createObjectUrl, nodes]
   );
 
   // Node management
   const handleAddNode = useCallback(() => {
-    if (readonly) return;
+    if (disabled) return;
     setIsNodeSelectorOpen(true);
-  }, [readonly]);
+  }, [disabled]);
 
   const handleNodeSelect = useCallback(
     (template: NodeTemplate) => {
@@ -730,7 +730,7 @@ export function useWorkflowState({
   // Delete node and its connected edges
   const deleteNode = useCallback(
     (nodeId: string) => {
-      if (readonly) return;
+      if (disabled) return;
       const nodeToDelete = nodes.find((n) => n.id === nodeId);
       if (!nodeToDelete) return;
 
@@ -745,13 +745,13 @@ export function useWorkflowState({
 
       setNodes((nds) => nds.filter((node) => node.id !== nodeId));
     },
-    [readonly, nodes, setEdges, setNodes]
+    [disabled, nodes, setEdges, setNodes]
   );
 
   // Delete multiple nodes and their connected edges
   const deleteNodes = useCallback(
     (nodeIds: string[]) => {
-      if (readonly || nodeIds.length === 0) return;
+      if (disabled || nodeIds.length === 0) return;
 
       const nodesToDelete = nodes.filter((n) => nodeIds.includes(n.id));
       if (nodesToDelete.length === 0) return;
@@ -767,32 +767,32 @@ export function useWorkflowState({
 
       setNodes((nds) => nds.filter((node) => !nodeIds.includes(node.id)));
     },
-    [readonly, nodes, setEdges, setNodes]
+    [disabled, nodes, setEdges, setNodes]
   );
 
   // Delete edge
   const deleteEdge = useCallback(
     (edgeId: string) => {
-      if (readonly) return;
+      if (disabled) return;
       setEdges((eds) => eds.filter((edge) => edge.id !== edgeId));
     },
-    [readonly, setEdges]
+    [disabled, setEdges]
   );
 
   // Delete multiple edges
   const deleteEdges = useCallback(
     (edgeIds: string[]) => {
-      if (readonly || edgeIds.length === 0) return;
+      if (disabled || edgeIds.length === 0) return;
 
       setEdges((eds) => eds.filter((edge) => !edgeIds.includes(edge.id)));
     },
-    [readonly, setEdges]
+    [disabled, setEdges]
   );
 
   // Duplicate node
   const duplicateNode = useCallback(
     (nodeId: string) => {
-      if (readonly) return;
+      if (disabled) return;
       const nodeToDuplicate = nodes.find((n) => n.id === nodeId);
       if (!nodeToDuplicate) return;
 
@@ -839,23 +839,23 @@ export function useWorkflowState({
         }))
       );
     },
-    [readonly, nodes, setNodes, setEdges]
+    [disabled, nodes, setNodes, setEdges]
   );
 
   // Delete selected elements (nodes or edges)
   const deleteSelected = useCallback(() => {
-    if (readonly) return;
+    if (disabled) return;
 
     if (selectedNodes.length > 0) {
       deleteNodes(selectedNodes.map((n) => n.id));
     } else if (selectedEdges.length > 0) {
       deleteEdges(selectedEdges.map((e) => e.id));
     }
-  }, [readonly, selectedNodes, selectedEdges, deleteNodes, deleteEdges]);
+  }, [disabled, selectedNodes, selectedEdges, deleteNodes, deleteEdges]);
 
   // Duplicate selected elements (nodes and edges)
   const duplicateSelected = useCallback(() => {
-    if (readonly || (selectedNodes.length === 0 && selectedEdges.length === 0))
+    if (disabled || (selectedNodes.length === 0 && selectedEdges.length === 0))
       return;
 
     if (selectedNodes.length > 0) {
@@ -942,7 +942,7 @@ export function useWorkflowState({
       ]);
     }
   }, [
-    readonly,
+    disabled,
     selectedNodes,
     selectedEdges,
     edges,
@@ -953,16 +953,16 @@ export function useWorkflowState({
 
   const toggleEditNodeNameDialog = useCallback(
     (open?: boolean) => {
-      if (readonly) return;
+      if (disabled) return;
       setIsEditNodeNameDialogOpen((prev) =>
         open === undefined ? !prev : open
       );
     },
-    [readonly]
+    [disabled]
   );
 
   const applyLayout = useCallback(() => {
-    if (readonly) return;
+    if (disabled) return;
 
     const dagreGraph = new dagre.graphlib.Graph();
     dagreGraph.setDefaultEdgeLabel(() => ({}));
@@ -996,11 +996,11 @@ export function useWorkflowState({
       })
     );
     reactFlowInstance?.fitView();
-  }, [setNodes, readonly, reactFlowInstance]);
+  }, [setNodes, disabled, reactFlowInstance]);
 
   // Clipboard operations
   const copySelected = useCallback(() => {
-    if (readonly || (selectedNodes.length === 0 && selectedEdges.length === 0))
+    if (disabled || (selectedNodes.length === 0 && selectedEdges.length === 0))
       return;
 
     // Get edges that connect selected nodes, plus any manually selected edges
@@ -1027,10 +1027,10 @@ export function useWorkflowState({
       })),
       isCut: false,
     });
-  }, [readonly, selectedNodes, selectedEdges, edges]);
+  }, [disabled, selectedNodes, selectedEdges, edges]);
 
   const cutSelected = useCallback(() => {
-    if (readonly || (selectedNodes.length === 0 && selectedEdges.length === 0))
+    if (disabled || (selectedNodes.length === 0 && selectedEdges.length === 0))
       return;
 
     // Copy first, then delete
@@ -1039,10 +1039,10 @@ export function useWorkflowState({
 
     // Mark as cut in clipboard
     setClipboardData((prev) => (prev ? { ...prev, isCut: true } : null));
-  }, [readonly, selectedNodes, selectedEdges, copySelected, deleteSelected]);
+  }, [disabled, selectedNodes, selectedEdges, copySelected, deleteSelected]);
 
   const pasteFromClipboard = useCallback(() => {
-    if (readonly || !clipboardData || clipboardData.nodes.length === 0) return;
+    if (disabled || !clipboardData || clipboardData.nodes.length === 0) return;
 
     // Calculate paste position
     const pasteOffset = { x: 50, y: 50 };
@@ -1117,7 +1117,7 @@ export function useWorkflowState({
     if (clipboardData.isCut) {
       setClipboardData(null);
     }
-  }, [readonly, clipboardData, setNodes, setEdges, createObjectUrl]);
+  }, [disabled, clipboardData, setNodes, setEdges, createObjectUrl]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -1138,7 +1138,7 @@ export function useWorkflowState({
         switch (event.key.toLowerCase()) {
           case "c":
             if (
-              !readonly &&
+              !disabled &&
               (selectedNodes.length > 0 || selectedEdges.length > 0)
             ) {
               event.preventDefault();
@@ -1147,7 +1147,7 @@ export function useWorkflowState({
             break;
           case "x":
             if (
-              !readonly &&
+              !disabled &&
               (selectedNodes.length > 0 || selectedEdges.length > 0)
             ) {
               event.preventDefault();
@@ -1155,14 +1155,14 @@ export function useWorkflowState({
             }
             break;
           case "v":
-            if (!readonly && clipboardData) {
+            if (!disabled && clipboardData) {
               event.preventDefault();
               pasteFromClipboard();
             }
             break;
           case "d":
             if (
-              !readonly &&
+              !disabled &&
               (selectedNodes.length > 0 || selectedEdges.length > 0)
             ) {
               event.preventDefault();
@@ -1176,7 +1176,7 @@ export function useWorkflowState({
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [
-    readonly,
+    disabled,
     selectedNodes,
     selectedEdges,
     clipboardData,
@@ -1195,11 +1195,11 @@ export function useWorkflowState({
     isNodeSelectorOpen,
     setIsNodeSelectorOpen,
     onNodesChange: handleNodesChangeInternal,
-    onEdgesChange: readonly ? () => {} : onEdgesChange,
+    onEdgesChange: disabled ? () => {} : onEdgesChange,
     onConnect,
     onConnectStart,
     onConnectEnd,
-    onNodeDragStop: readonly ? () => {} : onNodeDragStop,
+    onNodeDragStop: disabled ? () => {} : onNodeDragStop,
     connectionValidationState,
     isValidConnection,
     handleAddNode,
@@ -1207,18 +1207,18 @@ export function useWorkflowState({
     setReactFlowInstance,
     updateNodeExecution,
     updateNodeData,
-    updateEdgeData: readonly ? () => {} : updateEdgeData,
-    deleteNode: readonly ? () => {} : deleteNode,
-    deleteEdge: readonly ? () => {} : deleteEdge,
-    deleteSelected: readonly ? () => {} : deleteSelected,
-    duplicateNode: readonly ? () => {} : duplicateNode,
-    duplicateSelected: readonly ? () => {} : duplicateSelected,
+    updateEdgeData: disabled ? () => {} : updateEdgeData,
+    deleteNode: disabled ? () => {} : deleteNode,
+    deleteEdge: disabled ? () => {} : deleteEdge,
+    deleteSelected: disabled ? () => {} : deleteSelected,
+    duplicateNode: disabled ? () => {} : duplicateNode,
+    duplicateSelected: disabled ? () => {} : duplicateSelected,
     isEditNodeNameDialogOpen,
     toggleEditNodeNameDialog,
     applyLayout,
-    copySelected: readonly ? () => {} : copySelected,
-    cutSelected: readonly ? () => {} : cutSelected,
-    pasteFromClipboard: readonly ? () => {} : pasteFromClipboard,
+    copySelected: disabled ? () => {} : copySelected,
+    cutSelected: disabled ? () => {} : cutSelected,
+    pasteFromClipboard: disabled ? () => {} : pasteFromClipboard,
     hasClipboardData: !!clipboardData && clipboardData.nodes.length > 0,
   };
 }

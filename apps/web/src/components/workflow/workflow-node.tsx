@@ -66,7 +66,7 @@ export const TypeBadge = ({
   id,
   parameter,
   onInputClick,
-  readonly,
+  disabled,
   className,
   size = "sm",
   executionState = "idle",
@@ -77,7 +77,7 @@ export const TypeBadge = ({
   id: string;
   parameter?: WorkflowParameter;
   onInputClick?: (param: WorkflowParameter, element: HTMLElement) => void;
-  readonly?: boolean;
+  disabled?: boolean;
   className?: string;
   size?: "sm" | "md";
   executionState?: NodeExecutionState;
@@ -112,7 +112,7 @@ export const TypeBadge = ({
   } satisfies Record<InputOutputType, React.ReactNode>;
 
   const handleClick = (e: React.MouseEvent<HTMLSpanElement>) => {
-    if (readonly) return;
+    if (disabled) return;
 
     if (position === Position.Left && parameter && onInputClick) {
       onInputClick(parameter, e.currentTarget);
@@ -150,8 +150,8 @@ export const TypeBadge = ({
           },
           className
         )}
-        isConnectableStart={!readonly}
-        isConnectable={!readonly}
+        isConnectableStart={!disabled}
+        isConnectable={!disabled}
         onClick={handleClick}
       >
         <span
@@ -186,7 +186,7 @@ export const WorkflowNode = memo(
     selected?: boolean;
     id: string;
   }) => {
-    const { updateNodeData, readonly, expandedOutputs } = useWorkflow();
+    const { updateNodeData, disabled, expandedOutputs } = useWorkflow();
     const [showOutputs, setShowOutputs] = useState(false);
     const [showError, setShowError] = useState(false);
     const [isToolSelectorOpen, setIsToolSelectorOpen] = useState(false);
@@ -251,7 +251,7 @@ export const WorkflowNode = memo(
     const widget = nodeType ? registry.for(nodeType, id, data.inputs) : null;
 
     const handleWidgetChange = (value: any) => {
-      if (readonly || !updateNodeData || !widget) return;
+      if (disabled || !updateNodeData || !widget) return;
 
       const input = data.inputs.find((i) => i.id === widget.inputField);
       if (input) {
@@ -264,7 +264,7 @@ export const WorkflowNode = memo(
     };
 
     const handleToolsSelect = (tools: ToolReference[]) => {
-      if (readonly || !updateNodeData) return;
+      if (disabled || !updateNodeData) return;
 
       // Find the tools input parameter
       const toolsInput = data.inputs.find((input) => input.id === "tools");
@@ -283,7 +283,7 @@ export const WorkflowNode = memo(
     };
 
     const handleInputClick = (param: WorkflowParameter, element: HTMLElement) => {
-      if (readonly) return;
+      if (disabled) return;
       // Don't allow clicking on connected inputs
       if (param.isConnected) return;
       handleRefs.current.set(param.id, element);
@@ -353,12 +353,12 @@ export const WorkflowNode = memo(
           </div>
 
           {/* Widget */}
-          {!readonly && widget && (
+          {!disabled && widget && (
             <div className="px-0 py-0 nodrag border-b">
               {createElement(widget.Component, {
                 ...widget.config,
                 onChange: handleWidgetChange,
-                readonly: readonly,
+                disabled,
               })}
             </div>
           )}
@@ -369,7 +369,7 @@ export const WorkflowNode = memo(
               className="px-1 py-1 nodrag flex flex-wrap items-start gap-1 border-b"
               onClick={(e) => {
                 e.stopPropagation();
-                if (readonly) return;
+                if (disabled) return;
                 setIsToolSelectorOpen(true);
               }}
             >
@@ -429,7 +429,7 @@ export const WorkflowNode = memo(
                         nodeId={id}
                         nodeInputs={data.inputs}
                         input={input}
-                        readonly={readonly}
+                        disabled={disabled}
                         containerRef={getInputContainerRef(input.id)}
                         autoFocus={true}
                         onBlur={() => setActiveInputId(null)}
@@ -442,7 +442,7 @@ export const WorkflowNode = memo(
                       id={input.id}
                       parameter={input}
                       onInputClick={handleInputClick}
-                      readonly={readonly}
+                      disabled={disabled}
                       executionState={data.executionState}
                       selected={selected}
                     />
@@ -475,7 +475,7 @@ export const WorkflowNode = memo(
                       position={Position.Right}
                       id={output.id}
                       parameter={output}
-                      readonly={readonly}
+                      disabled={disabled}
                       executionState={data.executionState}
                       selected={selected}
                     />

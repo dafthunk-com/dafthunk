@@ -335,7 +335,7 @@ export function DeploymentVersionPage() {
                     nodeTemplates={nodeTemplates}
                     validateConnection={validateConnection}
                     createObjectUrl={createObjectUrl}
-                    disabled={true}
+                    readonly={true}
                   />
                 )}
                 {nodes.length === 0 && (

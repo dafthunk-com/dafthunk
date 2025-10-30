@@ -9,7 +9,7 @@ export function NumberInputWidget({
   value,
   onChange,
   onClear,
-  readonly,
+  disabled,
   showClearButton,
   className,
   active,
@@ -23,13 +23,13 @@ export function NumberInputWidget({
         value={value !== undefined ? String(value) : ""}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Enter number"
-        disabled={readonly}
+        disabled={disabled}
         className={cn(
           "text-xs rounded-md",
           active && "border border-blue-500"
         )}
       />
-      {!readonly && showClearButton && hasValue && (
+      {!disabled && showClearButton && hasValue && (
         <ClearButton
           onClick={onClear}
           label="Clear number"

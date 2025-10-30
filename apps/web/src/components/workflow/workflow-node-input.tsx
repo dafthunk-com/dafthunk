@@ -15,7 +15,7 @@ interface WorkflowNodeInputProps {
   nodeId: string;
   nodeInputs: WorkflowParameter[];
   input: WorkflowParameter;
-  readonly?: boolean;
+  disabled?: boolean;
   containerRef?: React.RefObject<HTMLDivElement | null>;
   autoFocus?: boolean;
   onBlur?: () => void;
@@ -26,7 +26,7 @@ export function WorkflowNodeInput({
   nodeId,
   nodeInputs,
   input,
-  readonly,
+  disabled,
   containerRef,
   autoFocus = false,
   onBlur,
@@ -52,7 +52,7 @@ export function WorkflowNodeInput({
 
   // Auto-focus the input when requested
   useEffect(() => {
-    if (autoFocus && containerRef?.current && !readonly) {
+    if (autoFocus && containerRef?.current && !disabled) {
       // Find the first focusable element (input, textarea, select, etc.)
       const focusable = containerRef.current.querySelector<HTMLElement>(
         'input, textarea, select, [contenteditable="true"]'
@@ -62,10 +62,10 @@ export function WorkflowNodeInput({
         setTimeout(() => focusable.focus(), 0);
       }
     }
-  }, [autoFocus, containerRef, readonly]);
+  }, [autoFocus, containerRef, disabled]);
 
   const handleInputChange = (value: any) => {
-    if (!input || readonly || !updateNodeData) return;
+    if (!input || disabled || !updateNodeData) return;
 
     if (typeof value === "string") {
       setLocalValue(value);
@@ -102,7 +102,7 @@ export function WorkflowNodeInput({
   };
 
   const handleClearValue = () => {
-    if (!input || readonly || !updateNodeData) return;
+    if (!input || disabled || !updateNodeData) return;
 
     setLocalValue(undefined);
     clearNodeInput(nodeId, input.id, nodeInputs, updateNodeData);
@@ -149,8 +149,8 @@ export function WorkflowNodeInput({
       className={cn(
         "absolute right-full mr-3 rounded transition-all duration-200 ease-in-out overflow-hidden"
       )}
-      onMouseEnter={() => !readonly && setIsExpanded(true)}
-      onMouseLeave={() => !readonly && setIsExpanded(false)}
+      onMouseEnter={() => !disabled && setIsExpanded(true)}
+      onMouseLeave={() => !disabled && setIsExpanded(false)}
       onBlur={handleBlur}
       onKeyDown={handleKeyDown}
     >
@@ -160,7 +160,7 @@ export function WorkflowNodeInput({
           value={localValue}
           onChange={handleInputChange}
           onClear={handleClearValue}
-          readonly={readonly}
+          disabled={disabled}
           showClearButton={true}
           createObjectUrl={createObjectUrl}
           className={getInputClassName()}

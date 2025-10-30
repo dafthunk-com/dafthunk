@@ -13,7 +13,7 @@ import { WorkflowParameter } from "./workflow-types";
 interface WorkflowValueRendererProps {
   parameter: WorkflowParameter;
   createObjectUrl?: (objectReference: ObjectReference) => string;
-  readonly?: boolean;
+  disabled?: boolean;
   onChange?: (value: any) => void;
 }
 
@@ -44,16 +44,16 @@ export const formatValue = (value: any, type: string): string => {
 const ImageRenderer = ({
   parameter,
   objectUrl,
-  readonly,
+  disabled,
 }: {
   parameter: WorkflowParameter;
   objectUrl: string;
-  readonly?: boolean;
+  disabled?: boolean;
 }) => (
   <div className="relative">
     <img
       src={objectUrl}
-      alt={`${parameter.name} ${readonly ? "output" : "input"}`}
+      alt={`${parameter.name} ${disabled ? "output" : "input"}`}
       className="w-full rounded-md border"
       onError={(e) => {
         console.error("Error loading image:", e);
@@ -160,11 +160,11 @@ const DocumentRenderer = ({
 // Geometry renderer for GeoJSON geometries
 const GeoJSONRenderer = ({
   parameter,
-  readonly,
+  disabled,
   onChange,
 }: {
   parameter: WorkflowParameter;
-  readonly?: boolean;
+  disabled?: boolean;
   onChange?: (value: any) => void;
 }) => {
   const getGeometryTypeLabel = (type: string): string => {
@@ -246,7 +246,7 @@ const GeoJSONRenderer = ({
   const formattedValue = formatGeoJSON(parameter.value);
   const geometryLabel = getGeometryTypeLabel(parameter.type);
 
-  if (readonly) {
+  if (disabled) {
     const result = renderGeoJSONSvg(parameter.value);
 
     return (
@@ -272,7 +272,7 @@ const GeoJSONRenderer = ({
         <CodeRenderer
           value={formattedValue}
           type="json"
-          readonly={readonly}
+          disabled={disabled}
           onChange={onChange}
         />
       </div>
@@ -335,12 +335,12 @@ const GeoJSONRenderer = ({
 const CodeRenderer = ({
   value,
   type,
-  readonly,
+  disabled,
   onChange,
 }: {
   value: string;
   type: string;
-  readonly?: boolean;
+  disabled?: boolean;
   onChange?: (value: any) => void;
 }) => {
   // Determine the language based on the type
@@ -373,7 +373,7 @@ const CodeRenderer = ({
     }
   };
 
-  if (readonly) {
+  if (disabled) {
     return (
       <div className="border rounded-md bg-muted overflow-auto">
         <CodeBlock
@@ -400,15 +400,15 @@ const CodeRenderer = ({
 const TextRenderer = ({
   value,
   type,
-  readonly,
+  disabled,
   onChange,
 }: {
   value: string;
   type: string;
-  readonly?: boolean;
+  disabled?: boolean;
   onChange?: (value: any) => void;
 }) => {
-  if (readonly) {
+  if (disabled) {
     return (
       <div className="w-full p-2 bg-secondary/50 rounded-md border border-border whitespace-pre-line text-xs">
         {value}
@@ -422,9 +422,9 @@ const TextRenderer = ({
         value={value}
         onChange={(e) => onChange?.(e.target.value)}
         className={`text-xs min-h-[80px] resize-y ${
-          readonly ? "opacity-70 cursor-not-allowed" : ""
+          disabled ? "opacity-70 cursor-not-allowed" : ""
         }`}
-        disabled={readonly}
+        disabled={disabled}
         placeholder={`Enter ${type} value`}
       />
     );
@@ -435,9 +435,9 @@ const TextRenderer = ({
       value={value}
       onChange={(e) => onChange?.(e.target.value)}
       className={`text-xs h-8 ${
-        readonly ? "opacity-70 cursor-not-allowed" : ""
+        disabled ? "opacity-70 cursor-not-allowed" : ""
       }`}
-      disabled={readonly}
+      disabled={disabled}
       placeholder={`Enter ${type} value`}
     />
   );
@@ -446,7 +446,7 @@ const TextRenderer = ({
 export function WorkflowValueRenderer({
   parameter,
   createObjectUrl,
-  readonly = false,
+  disabled = false,
   onChange,
 }: WorkflowValueRendererProps) {
   const [_error, setError] = useState<string | null>(null);
@@ -548,7 +548,7 @@ export function WorkflowValueRenderer({
         return (
           <GeoJSONRenderer
             parameter={parameter}
-            readonly={readonly}
+            disabled={disabled}
             onChange={onChange}
           />
         );
@@ -653,7 +653,7 @@ export function WorkflowValueRenderer({
     return (
       <GeoJSONRenderer
         parameter={parameter}
-        readonly={readonly}
+        disabled={disabled}
         onChange={onChange}
       />
     );
@@ -666,7 +666,7 @@ export function WorkflowValueRenderer({
       <CodeRenderer
         value={formattedValue}
         type={parameter.type}
-        readonly={readonly}
+        disabled={disabled}
         onChange={onChange}
       />
     );
@@ -690,7 +690,7 @@ export function WorkflowValueRenderer({
           <CodeRenderer
             value={formattedValue}
             type="json"
-            readonly={readonly}
+            disabled={disabled}
             onChange={onChange}
           />
         </div>
@@ -709,7 +709,7 @@ export function WorkflowValueRenderer({
         <TextRenderer
           value={formattedValue}
           type={actualType}
-          readonly={readonly}
+          disabled={disabled}
           onChange={onChange}
         />
       </div>
@@ -722,7 +722,7 @@ export function WorkflowValueRenderer({
     <TextRenderer
       value={formattedValue}
       type={parameter.type}
-      readonly={readonly}
+      disabled={disabled}
       onChange={onChange}
     />
   );

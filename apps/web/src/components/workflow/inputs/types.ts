@@ -5,7 +5,7 @@ export interface InputWidgetProps {
   value: any;
   onChange: (value: any) => void;
   onClear: () => void;
-  readonly?: boolean;
+  disabled?: boolean;
   showClearButton?: boolean;
   className?: string;
   active?: boolean;

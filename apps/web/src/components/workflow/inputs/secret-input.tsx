@@ -16,7 +16,7 @@ export function SecretInputWidget({
   value,
   onChange,
   onClear,
-  readonly,
+  disabled,
   showClearButton,
   className,
   active,
@@ -29,7 +29,7 @@ export function SecretInputWidget({
       <Select
         value={value !== undefined ? String(value) : ""}
         onValueChange={(val) => onChange(val || undefined)}
-        disabled={readonly || isSecretsLoading}
+        disabled={disabled || isSecretsLoading}
       >
         <SelectTrigger
           className={cn(
@@ -55,7 +55,7 @@ export function SecretInputWidget({
           ))}
         </SelectContent>
       </Select>
-      {!readonly && showClearButton && hasValue && (
+      {!disabled && showClearButton && hasValue && (
         <ClearButton
           onClick={onClear}
           label="Clear secret"

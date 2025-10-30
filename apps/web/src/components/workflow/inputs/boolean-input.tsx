@@ -9,7 +9,7 @@ export function BooleanInputWidget({
   value,
   onChange,
   onClear,
-  readonly,
+  disabled,
   showClearButton,
   className,
   active,
@@ -31,9 +31,9 @@ export function BooleanInputWidget({
         id={`boolean-${input.id}`}
         checked={boolValue}
         onCheckedChange={(checked) => onChange(checked ? "true" : "false")}
-        disabled={readonly}
+        disabled={disabled}
       />
-      {!readonly && showClearButton && hasValue && (
+      {!disabled && showClearButton && hasValue && (
         <ClearButton
           onClick={onClear}
           label="Clear boolean"

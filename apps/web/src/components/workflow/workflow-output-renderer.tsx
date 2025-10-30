@@ -19,7 +19,7 @@ export function WorkflowOutputRenderer({
       <WorkflowValueRenderer
         parameter={output}
         createObjectUrl={createObjectUrl}
-        readonly={true}
+        disabled={true}
       />
     </div>
   );

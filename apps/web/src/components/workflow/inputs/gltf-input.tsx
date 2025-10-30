@@ -11,7 +11,7 @@ export function GltfInputWidget({
   input,
   value,
   onClear,
-  readonly,
+  disabled,
   showClearButton,
   isUploading,
   uploadError,
@@ -55,7 +55,7 @@ export function GltfInputWidget({
               </a>
             ) : null;
           })()}
-          {!readonly && showClearButton && (
+          {!disabled && showClearButton && (
             <ClearButton
               onClick={onClear}
               label="Clear GLTF file"
@@ -75,7 +75,7 @@ export function GltfInputWidget({
             htmlFor={`gltf-upload-${input.id}`}
             className={cn(
               "text-xs text-blue-500 hover:text-blue-600 cursor-pointer",
-              (isUploading || readonly) && "opacity-50 pointer-events-none"
+              (isUploading || disabled) && "opacity-50 pointer-events-none"
             )}
           >
             {isUploading ? "Uploading..." : "Upload"}
@@ -85,7 +85,7 @@ export function GltfInputWidget({
             type="file"
             className="hidden"
             onChange={onFileUpload}
-            disabled={isUploading || readonly}
+            disabled={isUploading || disabled}
             accept=".gltf,.glb"
           />
         </div>

@@ -22,7 +22,7 @@ interface InputEditPopoverProps {
   input: WorkflowParameter | null;
   isOpen: boolean;
   onClose: () => void;
-  readonly?: boolean;
+  disabled?: boolean;
   anchorElement?: HTMLElement | null;
 }
 
@@ -32,7 +32,7 @@ export function InputEditPopover({
   input,
   isOpen,
   onClose,
-  readonly,
+  disabled,
   anchorElement,
 }: InputEditPopoverProps) {
   const { updateNodeData, edges, deleteEdge } = useWorkflow();
@@ -60,7 +60,7 @@ export function InputEditPopover({
   }, []);
 
   const handleInputChange = (value: any) => {
-    if (!input || readonly || !updateNodeData) return;
+    if (!input || disabled || !updateNodeData) return;
 
     // For string values, update local state immediately and debounce the node update
     if (typeof value === "string") {
@@ -102,7 +102,7 @@ export function InputEditPopover({
   };
 
   const handleClearValue = () => {
-    if (!input || readonly || !updateNodeData) return;
+    if (!input || disabled || !updateNodeData) return;
 
     setLocalValue(undefined);
     clearNodeInput(nodeId, input.id, nodeInputs, updateNodeData);
@@ -136,7 +136,7 @@ export function InputEditPopover({
             value={localValue}
             onChange={handleInputChange}
             onClear={handleClearValue}
-            readonly={readonly}
+            disabled={disabled}
             createObjectUrl={createObjectUrl}
           />
         </div>

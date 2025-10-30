@@ -16,7 +16,7 @@ export interface WorkflowContextProps {
   updateEdgeData?: UpdateEdgeFn;
   deleteEdge?: DeleteEdgeFn;
   edges?: ReactFlowEdge<WorkflowEdgeType>[];
-  readonly?: boolean;
+  disabled?: boolean;
   expandedOutputs?: boolean;
 }
 
@@ -26,7 +26,7 @@ const WorkflowContext = createContext<WorkflowContextProps>({
   updateEdgeData: () => {},
   deleteEdge: () => {},
   edges: [],
-  readonly: false,
+  disabled: false,
 });
 
 // Custom hook for using the workflow context
@@ -38,7 +38,7 @@ export interface WorkflowProviderProps {
   readonly updateEdgeData?: UpdateEdgeFn;
   readonly deleteEdge?: DeleteEdgeFn;
   readonly edges?: ReactFlowEdge<WorkflowEdgeType>[];
-  readonly readonly?: boolean;
+  readonly disabled?: boolean;
   readonly expandedOutputs?: boolean;
 }
 
@@ -48,7 +48,7 @@ export function WorkflowProvider({
   updateEdgeData = () => {},
   deleteEdge = () => {},
   edges = [],
-  readonly = false,
+  disabled = false,
   expandedOutputs = false,
 }: WorkflowProviderProps) {
   const workflowContextValue = {
@@ -56,7 +56,7 @@ export function WorkflowProvider({
     updateEdgeData,
     deleteEdge,
     edges,
-    readonly,
+    disabled,
     expandedOutputs,
   };
 

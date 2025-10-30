@@ -225,7 +225,7 @@ export function ExecutionDetailPage() {
                   validateConnection={handleValidateConnection}
                   initialWorkflowExecution={workflowBuilderExecution}
                   createObjectUrl={createObjectUrl}
-                  disabled={true}
+                  readonly={true}
                 />
               ) : (
                 <div className="flex flex-col items-center justify-center h-full">

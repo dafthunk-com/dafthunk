@@ -39,7 +39,7 @@ export const DemoExecution = memo(() => {
     <div className="h-full w-full">
       <WorkflowBuilder
         workflowId="homepage-demo"
-        readonly={true}
+        disabled={true}
         initialNodes={processedNodes}
         initialEdges={demoEdges}
         initialWorkflowExecution={demoExecution}

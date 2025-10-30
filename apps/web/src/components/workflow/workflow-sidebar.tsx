@@ -17,7 +17,7 @@ export interface WorkflowSidebarProps {
   onNodeUpdate?: (nodeId: string, data: Partial<WorkflowNodeType>) => void;
   onEdgeUpdate?: (edgeId: string, data: Partial<WorkflowEdgeType>) => void;
   createObjectUrl: (objectReference: ObjectReference) => string;
-  readonly?: boolean;
+  disabled?: boolean;
 }
 
 export function WorkflowSidebar({
@@ -26,7 +26,7 @@ export function WorkflowSidebar({
   onNodeUpdate,
   onEdgeUpdate,
   createObjectUrl,
-  readonly = false,
+  disabled = false,
 }: WorkflowSidebarProps) {
   // Determine what to show based on selection
   const totalSelected = selectedNodes.length + selectedEdges.length;
@@ -41,7 +41,7 @@ export function WorkflowSidebar({
         <WorkflowNodeInspector
           node={singleSelectedNode}
           onNodeUpdate={onNodeUpdate}
-          readonly={readonly}
+          disabled={disabled}
           createObjectUrl={createObjectUrl}
         />
       )}
@@ -49,12 +49,12 @@ export function WorkflowSidebar({
         <WorkflowEdgeInspector
           edge={singleSelectedEdge}
           onEdgeUpdate={onEdgeUpdate}
-          readonly={readonly}
+          disabled={disabled}
         />
       )}
       {totalSelected === 0 && (
         <div className="flex flex-col items-center justify-center h-full p-6 text-center">
-          {readonly ? (
+          {disabled ? (
             <>
               <Eye className="w-12 h-12 text-amber-400 mb-4" />
               <h3 className="text-lg font-medium text-neutral-900 dark:text-neutral-100 mb-2">
