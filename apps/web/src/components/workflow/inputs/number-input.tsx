@@ -5,7 +5,7 @@ import { ClearButton } from "./clear-button";
 import type { InputWidgetProps } from "./types";
 
 export function NumberInputWidget({
-  input,
+  input: _input,
   value,
   onChange,
   onClear,
@@ -24,10 +24,7 @@ export function NumberInputWidget({
         onChange={(e) => onChange(e.target.value)}
         placeholder="Enter number"
         disabled={disabled}
-        className={cn(
-          "text-xs rounded-md",
-          active && "border border-blue-500"
-        )}
+        className={cn("text-xs rounded-md", active && "border border-blue-500")}
       />
       {!disabled && showClearButton && hasValue && (
         <ClearButton

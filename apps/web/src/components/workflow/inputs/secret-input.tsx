@@ -12,7 +12,7 @@ import { ClearButton } from "./clear-button";
 import type { InputWidgetProps } from "./types";
 
 export function SecretInputWidget({
-  input,
+  input: _input,
   value,
   onChange,
   onClear,

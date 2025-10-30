@@ -61,7 +61,7 @@ const renderPath = (
 
 export const WorkflowEdge = memo(
   ({
-    id,
+    id: _id,
     sourceX,
     sourceY,
     targetX,

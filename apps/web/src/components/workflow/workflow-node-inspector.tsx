@@ -31,6 +31,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Toggle } from "@/components/ui/toggle";
 
+import { ClearButton, InputWidget, UnplugButton } from "./inputs";
 import {
   clearNodeInput,
   convertValueByType,
@@ -38,7 +39,6 @@ import {
   updateNodeName,
   useWorkflow,
 } from "./workflow-context";
-import { ClearButton, UnplugButton, InputWidget } from "./inputs";
 import { WorkflowOutputRenderer } from "./workflow-output-renderer";
 import type { InputOutputType, WorkflowParameter } from "./workflow-types";
 import type { WorkflowNodeType } from "./workflow-types";
@@ -134,25 +134,6 @@ export function WorkflowNodeInspector({
     const newName = e.target.value;
     setLocalName(newName);
     updateNodeName(node.id, newName, updateNodeData);
-  };
-
-  const handleInputValueChange = (inputId: string, value: string) => {
-    if (disabled || !updateNodeData) return;
-
-    const input = localInputs.find((i) => i.id === inputId);
-    if (!input) return;
-
-    const typedValue = convertValueByType(value, input.type || "string");
-
-    const updatedInputs = updateNodeInput(
-      node.id,
-      inputId,
-      typedValue,
-      localInputs,
-      updateNodeData
-    );
-
-    setLocalInputs(updatedInputs);
   };
 
   const handleClearValue = (inputId: string) => {

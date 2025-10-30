@@ -15,7 +15,7 @@ interface TextAreaWidgetProps extends BaseWidgetProps {
 function TextAreaWidget({
   value,
   placeholder,
-  rows,
+  rows: _rows,
   onChange,
   className,
   readonly = false,

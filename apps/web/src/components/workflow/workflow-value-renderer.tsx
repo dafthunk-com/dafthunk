@@ -490,12 +490,7 @@ export function WorkflowValueRenderer({
 
     switch (parameter.type) {
       case "image":
-        return (
-          <ImageRenderer
-            parameter={parameter}
-            objectUrl={objectUrl}
-          />
-        );
+        return <ImageRenderer parameter={parameter} objectUrl={objectUrl} />;
       case "audio":
         return (
           <AudioRenderer
@@ -505,12 +500,7 @@ export function WorkflowValueRenderer({
           />
         );
       case "document":
-        return (
-          <DocumentRenderer
-            parameter={parameter}
-            objectUrl={objectUrl}
-          />
-        );
+        return <DocumentRenderer parameter={parameter} objectUrl={objectUrl} />;
       case "buffergeometry":
         return (
           <div className="space-y-2">
@@ -528,12 +518,7 @@ export function WorkflowValueRenderer({
           </div>
         );
       case "gltf":
-        return (
-          <ModelViewer
-            parameter={parameter}
-            objectUrl={objectUrl}
-          />
-        );
+        return <ModelViewer parameter={parameter} objectUrl={objectUrl} />;
       case "point":
       case "multipoint":
       case "linestring":
@@ -558,10 +543,7 @@ export function WorkflowValueRenderer({
         if (parameter.value.mimeType) {
           if (parameter.value.mimeType.startsWith("image/")) {
             return (
-              <ImageRenderer
-                parameter={parameter}
-                objectUrl={objectUrl}
-              />
+              <ImageRenderer parameter={parameter} objectUrl={objectUrl} />
             );
           }
           if (parameter.value.mimeType.startsWith("audio/")) {
@@ -591,12 +573,7 @@ export function WorkflowValueRenderer({
             );
           }
           if (parameter.value.mimeType === "model/gltf-binary") {
-            return (
-              <ModelViewer
-                parameter={parameter}
-                objectUrl={objectUrl}
-              />
-            );
+            return <ModelViewer parameter={parameter} objectUrl={objectUrl} />;
           }
           if (
             parameter.value.mimeType === "application/pdf" ||
@@ -604,10 +581,7 @@ export function WorkflowValueRenderer({
             parameter.value.mimeType.startsWith("text/")
           ) {
             return (
-              <DocumentRenderer
-                parameter={parameter}
-                objectUrl={objectUrl}
-              />
+              <DocumentRenderer parameter={parameter} objectUrl={objectUrl} />
             );
           }
         }

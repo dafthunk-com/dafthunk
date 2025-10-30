@@ -21,9 +21,7 @@ export function BooleanInputWidget({
     <div
       className={cn(
         "relative flex items-center space-x-2 rounded-md p-2 bg-white dark:bg-neutral-950",
-        active
-          ? "border border-blue-500"
-          : "border border-transparent",
+        active ? "border border-blue-500" : "border border-transparent",
         className
       )}
     >

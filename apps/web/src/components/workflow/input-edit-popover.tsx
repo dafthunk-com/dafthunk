@@ -1,18 +1,18 @@
-import React, { useEffect, useRef, useState } from "react";
 import { useViewport } from "@xyflow/react";
+import React, { useEffect, useState } from "react";
 
 import {
   Popover,
   PopoverAnchor,
   PopoverContent,
 } from "@/components/ui/popover";
+import { InputWidget } from "@/components/workflow/inputs";
 import {
   clearNodeInput,
   convertValueByType,
   updateNodeInput,
   useWorkflow,
 } from "@/components/workflow/workflow-context";
-import { InputWidget } from "@/components/workflow/inputs";
 import type { WorkflowParameter } from "@/components/workflow/workflow-types";
 import { useObjectService } from "@/services/object-service";
 
@@ -125,7 +125,7 @@ export function InputEditPopover({
         className="w-80 rounded-xl p-0 border-0 shadow-lg nodrag nowheel"
         style={{
           transform: `scale(${scale})`,
-          transformOrigin: 'right center',
+          transformOrigin: "right center",
         }}
         onEscapeKeyDown={onClose}
         onInteractOutside={onClose}

@@ -514,15 +514,14 @@ export function useWorkflowState({
       const acceptsMultipleConnections = inputParam.repeated || false;
 
       if (!acceptsMultipleConnections) {
-        const hasExistingConnection = edges.some(
-          (edge) => {
-            // Check both directions for existing connections to this input
-            return (
-              (edge.target === inputNodeId && edge.targetHandle === inputHandleId) ||
-              (edge.source === inputNodeId && edge.sourceHandle === inputHandleId)
-            );
-          }
-        );
+        const hasExistingConnection = edges.some((edge) => {
+          // Check both directions for existing connections to this input
+          return (
+            (edge.target === inputNodeId &&
+              edge.targetHandle === inputHandleId) ||
+            (edge.source === inputNodeId && edge.sourceHandle === inputHandleId)
+          );
+        });
         if (hasExistingConnection) {
           setConnectionValidationState("invalid");
           return false;
@@ -559,8 +558,11 @@ export function useWorkflowState({
 
       // Identify the input node and handle
       const inputNodeId = targetInput ? connection.target : connection.source;
-      const inputHandleId = targetInput ? connection.targetHandle : connection.sourceHandle;
-      const acceptsMultipleConnections = targetInput?.repeated || sourceInput?.repeated || false;
+      const inputHandleId = targetInput
+        ? connection.targetHandle
+        : connection.sourceHandle;
+      const acceptsMultipleConnections =
+        targetInput?.repeated || sourceInput?.repeated || false;
 
       const newEdge = {
         ...connection,
@@ -581,15 +583,15 @@ export function useWorkflowState({
 
         // Only remove existing edges if input doesn't accept multiple connections
         if (!acceptsMultipleConnections) {
-          filteredEdges = eds.filter(
-            (edge) => {
-              // Remove existing connections to this input, checking both directions
-              return !(
-                (edge.target === inputNodeId && edge.targetHandle === inputHandleId) ||
-                (edge.source === inputNodeId && edge.sourceHandle === inputHandleId)
-              );
-            }
-          );
+          filteredEdges = eds.filter((edge) => {
+            // Remove existing connections to this input, checking both directions
+            return !(
+              (edge.target === inputNodeId &&
+                edge.targetHandle === inputHandleId) ||
+              (edge.source === inputNodeId &&
+                edge.sourceHandle === inputHandleId)
+            );
+          });
         }
 
         // Reset all z-indices and add new edge

@@ -35,12 +35,14 @@ export function GltfInputWidget({
   return (
     <div className={cn(className)}>
       {hasValue ? (
-        <div className={cn(
-          "relative flex items-center gap-2 p-2 rounded-md bg-white dark:bg-neutral-950",
-          active
-            ? "border border-blue-500"
-            : "border border-neutral-300 dark:border-neutral-700"
-        )}>
+        <div
+          className={cn(
+            "relative flex items-center gap-2 p-2 rounded-md bg-white dark:bg-neutral-950",
+            active
+              ? "border border-blue-500"
+              : "border border-neutral-300 dark:border-neutral-700"
+          )}
+        >
           <File className="h-4 w-4 flex-shrink-0 text-neutral-500" />
           {(() => {
             const objectUrl = getObjectUrl();
@@ -64,12 +66,14 @@ export function GltfInputWidget({
           )}
         </div>
       ) : (
-        <div className={cn(
-          "flex flex-col items-center justify-center space-y-2 p-3 rounded-md bg-white dark:bg-neutral-950",
-          active
-            ? "border border-blue-500"
-            : "border border-neutral-300 dark:border-neutral-700"
-        )}>
+        <div
+          className={cn(
+            "flex flex-col items-center justify-center space-y-2 p-3 rounded-md bg-white dark:bg-neutral-950",
+            active
+              ? "border border-blue-500"
+              : "border border-neutral-300 dark:border-neutral-700"
+          )}
+        >
           <Upload className="h-5 w-5 text-neutral-400" />
           <label
             htmlFor={`gltf-upload-${input.id}`}

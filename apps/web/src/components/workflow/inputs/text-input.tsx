@@ -14,8 +14,7 @@ export function TextInputWidget({
   className,
   active,
 }: InputWidgetProps) {
-  const placeholder =
-    input.type === "json" ? "Enter JSON" : "Enter text";
+  const placeholder = input.type === "json" ? "Enter JSON" : "Enter text";
   const hasValue = value !== undefined && value !== "";
 
   return (

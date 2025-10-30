@@ -34,12 +34,14 @@ export function ImageInputWidget({
   return (
     <div className={cn(className)}>
       {hasValue ? (
-        <div className={cn(
-          "relative rounded-md overflow-hidden bg-white dark:bg-neutral-950",
-          active
-            ? "border border-blue-500"
-            : "border border-neutral-300 dark:border-neutral-700"
-        )}>
+        <div
+          className={cn(
+            "relative rounded-md overflow-hidden bg-white dark:bg-neutral-950",
+            active
+              ? "border border-blue-500"
+              : "border border-neutral-300 dark:border-neutral-700"
+          )}
+        >
           {(() => {
             const objectUrl = getObjectUrl();
             return objectUrl ? (
@@ -62,12 +64,14 @@ export function ImageInputWidget({
           )}
         </div>
       ) : (
-        <div className={cn(
-          "flex flex-col items-center justify-center space-y-2 p-3 rounded-md bg-white dark:bg-neutral-950",
-          active
-            ? "border border-blue-500"
-            : "border border-neutral-300 dark:border-neutral-700"
-        )}>
+        <div
+          className={cn(
+            "flex flex-col items-center justify-center space-y-2 p-3 rounded-md bg-white dark:bg-neutral-950",
+            active
+              ? "border border-blue-500"
+              : "border border-neutral-300 dark:border-neutral-700"
+          )}
+        >
           <Upload className="h-5 w-5 text-neutral-400" />
           <label
             htmlFor={`image-upload-${input.id}`}

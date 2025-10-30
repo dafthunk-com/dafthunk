@@ -34,20 +34,18 @@ export function AudioInputWidget({
   return (
     <div className={cn(className)}>
       {hasValue ? (
-        <div className={cn(
-          "relative rounded-md p-2 bg-white dark:bg-neutral-950",
-          active
-            ? "border border-blue-500"
-            : "border border-neutral-300 dark:border-neutral-700"
-        )}>
+        <div
+          className={cn(
+            "relative rounded-md p-2 bg-white dark:bg-neutral-950",
+            active
+              ? "border border-blue-500"
+              : "border border-neutral-300 dark:border-neutral-700"
+          )}
+        >
           {(() => {
             const objectUrl = getObjectUrl();
             return objectUrl ? (
-              <audio
-                controls
-                className="w-full text-xs"
-                preload="metadata"
-              >
+              <audio controls className="w-full text-xs" preload="metadata">
                 <source
                   src={objectUrl}
                   type={(value as any)?.mimeType || "audio/*"}
@@ -64,12 +62,14 @@ export function AudioInputWidget({
           )}
         </div>
       ) : (
-        <div className={cn(
-          "flex flex-col items-center justify-center space-y-2 p-3 rounded-md bg-white dark:bg-neutral-950",
-          active
-            ? "border border-blue-500"
-            : "border border-neutral-300 dark:border-neutral-700"
-        )}>
+        <div
+          className={cn(
+            "flex flex-col items-center justify-center space-y-2 p-3 rounded-md bg-white dark:bg-neutral-950",
+            active
+              ? "border border-blue-500"
+              : "border border-neutral-300 dark:border-neutral-700"
+          )}
+        >
           <Upload className="h-5 w-5 text-neutral-400" />
           <label
             htmlFor={`audio-upload-${input.id}`}

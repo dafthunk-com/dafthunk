@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 
+import { InputWidget } from "@/components/workflow/inputs";
 import {
   clearNodeInput,
   convertValueByType,
   updateNodeInput,
   useWorkflow,
 } from "@/components/workflow/workflow-context";
-import { InputWidget } from "@/components/workflow/inputs";
 import type { WorkflowParameter } from "@/components/workflow/workflow-types";
 import { useObjectService } from "@/services/object-service";
 import { cn } from "@/utils/utils";
@@ -35,7 +35,7 @@ export function WorkflowNodeInput({
   const { updateNodeData, edges, deleteEdge } = useWorkflow();
   const { createObjectUrl } = useObjectService();
   const [localValue, setLocalValue] = useState<any>(undefined);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [_isExpanded, setIsExpanded] = useState(false);
   const debounceTimeoutRef = React.useRef<number | null>(null);
 
   useEffect(() => {
@@ -107,8 +107,6 @@ export function WorkflowNodeInput({
     setLocalValue(undefined);
     clearNodeInput(nodeId, input.id, nodeInputs, updateNodeData);
   };
-
-  const hasValue = input.value !== undefined || localValue !== undefined;
 
   const handleBlur = (e: React.FocusEvent<HTMLDivElement>) => {
     // Check if focus is moving outside the container

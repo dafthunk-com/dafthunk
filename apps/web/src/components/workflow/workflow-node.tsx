@@ -68,7 +68,7 @@ export const TypeBadge = ({
   onInputClick,
   disabled,
   className,
-  size = "sm",
+  size: _size = "sm",
   executionState = "idle",
   selected = false,
 }: {
@@ -159,7 +159,8 @@ export const TypeBadge = ({
             "inline-flex items-center justify-center text-xs font-medium transition-colors pointer-events-none",
             {
               "text-neutral-800 dark:text-neutral-300": isConnected || hasValue,
-              "text-neutral-600 dark:text-neutral-400": !isConnected && (!isInput || !hasValue),
+              "text-neutral-600 dark:text-neutral-400":
+                !isConnected && (!isInput || !hasValue),
             }
           )}
         >
@@ -192,7 +193,9 @@ export const WorkflowNode = memo(
     const [isToolSelectorOpen, setIsToolSelectorOpen] = useState(false);
     const [isDocsOpen, setIsDocsOpen] = useState(false);
     const [activeInputId, setActiveInputId] = useState<string | null>(null);
-    const inputContainerRefs = useRef<Map<string, React.RefObject<HTMLDivElement | null>>>(new Map());
+    const inputContainerRefs = useRef<
+      Map<string, React.RefObject<HTMLDivElement | null>>
+    >(new Map());
     const handleRefs = useRef<Map<string, HTMLElement>>(new Map());
     const hasVisibleOutputs = data.outputs.some((output) => !output.hidden);
     const canShowOutputs =
@@ -226,8 +229,9 @@ export const WorkflowNode = memo(
       };
 
       // Use capture phase to catch the event before ReactFlow handles it
-      document.addEventListener('mousedown', handleClickOutside, true);
-      return () => document.removeEventListener('mousedown', handleClickOutside, true);
+      document.addEventListener("mousedown", handleClickOutside, true);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside, true);
     }, [activeInputId]);
 
     // Get node type
@@ -282,7 +286,10 @@ export const WorkflowNode = memo(
       return [];
     };
 
-    const handleInputClick = (param: WorkflowParameter, element: HTMLElement) => {
+    const handleInputClick = (
+      param: WorkflowParameter,
+      element: HTMLElement
+    ) => {
       if (disabled) return;
       // Don't allow clicking on connected inputs
       if (param.isConnected) return;
@@ -515,27 +522,44 @@ export const WorkflowNode = memo(
                           <span className="text-muted-foreground shrink-0">
                             {(() => {
                               const iconSize = "h-3 w-3";
-                              const icons: Record<InputOutputType, React.ReactNode> = {
+                              const icons: Record<
+                                InputOutputType,
+                                React.ReactNode
+                              > = {
                                 string: <TypeIcon className={iconSize} />,
                                 number: <HashIcon className={iconSize} />,
                                 boolean: <CheckIcon className={iconSize} />,
                                 image: <ImageIcon className={iconSize} />,
-                                document: <StickyNoteIcon className={iconSize} />,
+                                document: (
+                                  <StickyNoteIcon className={iconSize} />
+                                ),
                                 audio: <MusicIcon className={iconSize} />,
-                                buffergeometry: <BoxIcon className={iconSize} />,
+                                buffergeometry: (
+                                  <BoxIcon className={iconSize} />
+                                ),
                                 gltf: <BoxIcon className={iconSize} />,
                                 json: <BracesIcon className={iconSize} />,
                                 date: <CalendarIcon className={iconSize} />,
                                 point: <DotIcon className={iconSize} />,
-                                multipoint: <EllipsisIcon className={iconSize} />,
+                                multipoint: (
+                                  <EllipsisIcon className={iconSize} />
+                                ),
                                 linestring: <MinusIcon className={iconSize} />,
-                                multilinestring: <ChartNoAxesGanttIcon className={iconSize} />,
+                                multilinestring: (
+                                  <ChartNoAxesGanttIcon className={iconSize} />
+                                ),
                                 polygon: <TriangleIcon className={iconSize} />,
-                                multipolygon: <ShapesIcon className={iconSize} />,
+                                multipolygon: (
+                                  <ShapesIcon className={iconSize} />
+                                ),
                                 geometry: <SquareIcon className={iconSize} />,
-                                geometrycollection: <LayoutGridIcon className={iconSize} />,
+                                geometrycollection: (
+                                  <LayoutGridIcon className={iconSize} />
+                                ),
                                 feature: <BuildingIcon className={iconSize} />,
-                                featurecollection: <Building2Icon className={iconSize} />,
+                                featurecollection: (
+                                  <Building2Icon className={iconSize} />
+                                ),
                                 geojson: <GlobeIcon className={iconSize} />,
                                 secret: <LockIcon className={iconSize} />,
                                 any: <AsteriskIcon className={iconSize} />,
@@ -567,9 +591,7 @@ export const WorkflowNode = memo(
                 className="py-2 px-2 border-t flex items-center justify-between nodrag cursor-pointer transition-colors"
                 onClick={() => setShowError(!showError)}
               >
-                <span className="text-xs font-bold text-foreground">
-                  Error
-                </span>
+                <span className="text-xs font-bold text-foreground">Error</span>
                 {showError ? (
                   <ChevronDown className="h-3 w-3 text-muted-foreground" />
                 ) : (
