@@ -31,7 +31,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Toggle } from "@/components/ui/toggle";
 
-import { ClearButton, InputWidget, UnplugButton } from "./inputs";
+import { ClearButton, FieldWidget, UnplugButton } from "./fields";
 import {
   clearNodeInput,
   convertValueByType,
@@ -39,7 +39,6 @@ import {
   updateNodeName,
   useWorkflow,
 } from "./workflow-context";
-import { WorkflowOutputRenderer } from "./workflow-output-renderer";
 import type { InputOutputType, WorkflowParameter } from "./workflow-types";
 import type { WorkflowNodeType } from "./workflow-types";
 
@@ -311,7 +310,7 @@ export function WorkflowNodeInspector({
                       </div>
 
                       <div className="relative">
-                        <InputWidget
+                        <FieldWidget
                           input={input}
                           value={input.value}
                           onChange={(value) => {
@@ -330,6 +329,7 @@ export function WorkflowNodeInspector({
                           }}
                           onClear={() => handleClearValue(input.id)}
                           disabled={disabled || isConnected}
+                          connected={isConnected}
                           createObjectUrl={createObjectUrl}
                           className="w-full"
                         />
@@ -392,8 +392,13 @@ export function WorkflowNodeInspector({
                         </Toggle>
                       </div>
                     </div>
-                    <WorkflowOutputRenderer
-                      output={output}
+                    <FieldWidget
+                      input={output}
+                      value={output.value}
+                      onChange={() => {}}
+                      onClear={() => {}}
+                      disabled={true}
+                      showClearButton={false}
                       createObjectUrl={createObjectUrl}
                     />
                   </div>

@@ -6,7 +6,7 @@ import {
   PopoverAnchor,
   PopoverContent,
 } from "@/components/ui/popover";
-import { InputWidget } from "@/components/workflow/inputs";
+import { FieldWidget } from "@/components/workflow/fields";
 import {
   clearNodeInput,
   convertValueByType,
@@ -131,7 +131,7 @@ export function InputEditPopover({
         onInteractOutside={onClose}
       >
         <div>
-          <InputWidget
+          <FieldWidget
             input={input}
             value={localValue}
             onChange={handleInputChange}

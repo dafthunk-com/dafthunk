@@ -2,9 +2,9 @@ import { Switch } from "@/components/ui/switch";
 import { cn } from "@/utils/utils";
 
 import { ClearButton } from "./clear-button";
-import type { InputWidgetProps } from "./types";
+import type { FieldWidgetProps } from "./types";
 
-export function BooleanInputWidget({
+export function BooleanFieldWidget({
   input,
   value,
   onChange,
@@ -13,15 +13,34 @@ export function BooleanInputWidget({
   showClearButton,
   className,
   active,
-}: InputWidgetProps) {
+  connected,
+}: FieldWidgetProps) {
   const boolValue = String(value) === "true";
   const hasValue = value !== undefined;
+
+  // When connected but no value yet, show "Connected" message
+  if (disabled && connected && !hasValue) {
+    return (
+      <div
+        className={cn(
+          "text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border",
+          className
+        )}
+      >
+        Connected
+      </div>
+    );
+  }
 
   return (
     <div
       className={cn(
-        "relative flex items-center space-x-2 rounded-md p-2 bg-white dark:bg-neutral-950",
-        active ? "border border-blue-500" : "border border-transparent",
+        "relative flex items-center space-x-2 rounded-md p-2",
+        disabled
+          ? "bg-muted/50 border border-border"
+          : "bg-white dark:bg-neutral-950",
+        active && !disabled && "border border-blue-500",
+        !active && !disabled && "border border-transparent",
         className
       )}
     >

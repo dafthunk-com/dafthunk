@@ -1,6 +1,6 @@
 import type { WorkflowParameter } from "@/components/workflow/workflow-types";
 
-export interface InputWidgetProps {
+export interface FieldWidgetProps {
   input: WorkflowParameter;
   value: any;
   onChange: (value: any) => void;
@@ -9,9 +9,10 @@ export interface InputWidgetProps {
   showClearButton?: boolean;
   className?: string;
   active?: boolean;
+  connected?: boolean; // true when field is connected to another node's output
 }
 
-export interface FileInputWidgetProps extends InputWidgetProps {
+export interface FileFieldWidgetProps extends FieldWidgetProps {
   isUploading?: boolean;
   uploadError?: string | null;
   onFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => Promise<void>;

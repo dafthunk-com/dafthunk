@@ -3,22 +3,25 @@ import { useState } from "react";
 
 import { useObjectService } from "@/services/object-service";
 
-import { AudioInputWidget } from "./audio-input";
-import { BooleanInputWidget } from "./boolean-input";
-import { DocumentInputWidget } from "./document-input";
-import { GenericInputWidget } from "./generic-input";
-import { GltfInputWidget } from "./gltf-input";
-import { ImageInputWidget } from "./image-input";
-import { NumberInputWidget } from "./number-input";
-import { SecretInputWidget } from "./secret-input";
-import { TextInputWidget } from "./text-input";
-import type { InputWidgetProps } from "./types";
+import { AnyFieldWidget } from "./any-field";
+import { AudioFieldWidget } from "./audio-field";
+import { BooleanFieldWidget } from "./boolean-field";
+import { BufferGeometryFieldWidget } from "./buffergeometry-field";
+import { DocumentFieldWidget } from "./document-field";
+import { GenericFieldWidget } from "./generic-field";
+import { GeoJSONFieldWidget } from "./geojson-field";
+import { GltfFieldWidget } from "./gltf-field";
+import { ImageFieldWidget } from "./image-field";
+import { NumberFieldWidget } from "./number-field";
+import { SecretFieldWidget } from "./secret-field";
+import { TextFieldWidget } from "./text-field";
+import type { FieldWidgetProps } from "./types";
 
-export interface InputWidgetRouterProps extends InputWidgetProps {
+export interface FieldWidgetRouterProps extends FieldWidgetProps {
   createObjectUrl?: (objectReference: any) => string;
 }
 
-export function InputWidget(props: InputWidgetRouterProps) {
+export function FieldWidget(props: FieldWidgetRouterProps) {
   const { input, createObjectUrl } = props;
   const { uploadBinaryData } = useObjectService();
   const [isUploading, setIsUploading] = useState(false);
@@ -137,20 +140,43 @@ export function InputWidget(props: InputWidgetRouterProps) {
     }
   };
 
+  const handleBufferGeometryUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setUploadError(null);
+      setIsUploading(true);
+
+      const mimeType = "application/x-buffer-geometry";
+      const arrayBuffer = await file.arrayBuffer();
+      const reference = await uploadBinaryData(arrayBuffer, mimeType);
+      props.onChange(reference);
+      setIsUploading(false);
+    } catch (err) {
+      setIsUploading(false);
+      setUploadError(
+        err instanceof Error ? err.message : "Failed to upload geometry"
+      );
+    }
+  };
+
   // Route to appropriate widget based on input type
   switch (input.type) {
     case "boolean":
-      return <BooleanInputWidget {...props} />;
+      return <BooleanFieldWidget {...props} />;
     case "number":
-      return <NumberInputWidget {...props} />;
+      return <NumberFieldWidget {...props} />;
     case "string":
     case "json":
-      return <TextInputWidget {...props} />;
+      return <TextFieldWidget {...props} />;
     case "secret":
-      return <SecretInputWidget {...props} />;
+      return <SecretFieldWidget {...props} />;
     case "image":
       return (
-        <ImageInputWidget
+        <ImageFieldWidget
           {...props}
           isUploading={isUploading}
           uploadError={uploadError}
@@ -160,7 +186,7 @@ export function InputWidget(props: InputWidgetRouterProps) {
       );
     case "document":
       return (
-        <DocumentInputWidget
+        <DocumentFieldWidget
           {...props}
           isUploading={isUploading}
           uploadError={uploadError}
@@ -170,7 +196,7 @@ export function InputWidget(props: InputWidgetRouterProps) {
       );
     case "audio":
       return (
-        <AudioInputWidget
+        <AudioFieldWidget
           {...props}
           isUploading={isUploading}
           uploadError={uploadError}
@@ -180,7 +206,7 @@ export function InputWidget(props: InputWidgetRouterProps) {
       );
     case "gltf":
       return (
-        <GltfInputWidget
+        <GltfFieldWidget
           {...props}
           isUploading={isUploading}
           uploadError={uploadError}
@@ -188,7 +214,31 @@ export function InputWidget(props: InputWidgetRouterProps) {
           createObjectUrl={createObjectUrl}
         />
       );
+    case "buffergeometry":
+      return (
+        <BufferGeometryFieldWidget
+          {...props}
+          isUploading={isUploading}
+          uploadError={uploadError}
+          onFileUpload={handleBufferGeometryUpload}
+          createObjectUrl={createObjectUrl}
+        />
+      );
+    case "point":
+    case "multipoint":
+    case "linestring":
+    case "multilinestring":
+    case "polygon":
+    case "multipolygon":
+    case "geometry":
+    case "geometrycollection":
+    case "feature":
+    case "featurecollection":
+    case "geojson":
+      return <GeoJSONFieldWidget {...props} />;
+    case "any":
+      return <AnyFieldWidget {...props} createObjectUrl={createObjectUrl} />;
     default:
-      return <GenericInputWidget {...props} />;
+      return <GenericFieldWidget {...props} />;
   }
 }

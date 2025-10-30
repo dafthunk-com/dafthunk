@@ -33,10 +33,10 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useNodeTypes } from "@/services/type-service";
 import { cn } from "@/utils/utils";
 
+import { FieldWidget } from "./fields";
 import { registry } from "./widgets";
 import { updateNodeInput, useWorkflow } from "./workflow-context";
 import { WorkflowNodeInput } from "./workflow-node-input";
-import { WorkflowOutputRenderer } from "./workflow-output-renderer";
 import { ToolReference, WorkflowToolSelector } from "./workflow-tool-selector";
 import {
   InputOutputType,
@@ -572,10 +572,14 @@ export const WorkflowNode = memo(
                           </span>
                         </div>
 
-                        <WorkflowOutputRenderer
-                          output={output}
+                        <FieldWidget
+                          input={output}
+                          value={output.value}
+                          onChange={() => {}}
+                          onClear={() => {}}
+                          disabled={true}
+                          showClearButton={false}
                           createObjectUrl={data.createObjectUrl}
-                          compact={true}
                         />
                       </div>
                     ))}

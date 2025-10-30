@@ -1,12 +1,14 @@
+import File from "lucide-react/icons/file";
 import Upload from "lucide-react/icons/upload";
 
 import { isObjectReference } from "@/services/object-service";
 import { cn } from "@/utils/utils";
 
+import { ModelViewer } from "../model-viewer";
 import { ClearButton } from "./clear-button";
-import type { FileInputWidgetProps } from "./types";
+import type { FileFieldWidgetProps } from "./types";
 
-export function AudioInputWidget({
+export function GltfFieldWidget({
   input,
   value,
   onClear,
@@ -18,7 +20,8 @@ export function AudioInputWidget({
   createObjectUrl,
   className,
   active,
-}: FileInputWidgetProps) {
+  connected,
+}: FileFieldWidgetProps) {
   const hasValue = value !== undefined && isObjectReference(value);
 
   const getObjectUrl = (): string | null => {
@@ -31,32 +34,62 @@ export function AudioInputWidget({
     }
   };
 
+  const objectUrl = getObjectUrl();
+
+  // Disabled mode (read-only output with 3D viewer)
+  if (disabled) {
+    if (!hasValue || !objectUrl) {
+      return (
+        <div
+          className={cn(
+            "text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border",
+            className
+          )}
+        >
+          {connected ? "Connected" : "No 3D model"}
+        </div>
+      );
+    }
+
+    return (
+      <div
+        className={cn(
+          "relative p-2 bg-muted/50 rounded-md border border-border",
+          className
+        )}
+      >
+        <ModelViewer parameter={input} objectUrl={objectUrl} />
+      </div>
+    );
+  }
+
+  // Enabled mode (editable input with file upload)
   return (
     <div className={cn(className)}>
       {hasValue ? (
         <div
           className={cn(
-            "relative rounded-md p-2 bg-white dark:bg-neutral-950",
+            "relative flex items-center gap-2 p-2 rounded-md bg-white dark:bg-neutral-950",
             active
               ? "border border-blue-500"
               : "border border-neutral-300 dark:border-neutral-700"
           )}
         >
-          {(() => {
-            const objectUrl = getObjectUrl();
-            return objectUrl ? (
-              <audio controls className="w-full text-xs" preload="metadata">
-                <source
-                  src={objectUrl}
-                  type={(value as any)?.mimeType || "audio/*"}
-                />
-              </audio>
-            ) : null;
-          })()}
+          <File className="h-4 w-4 flex-shrink-0 text-neutral-500" />
+          {objectUrl && (
+            <a
+              href={objectUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-blue-500 hover:text-blue-600 truncate flex-1"
+            >
+              Download
+            </a>
+          )}
           {!disabled && showClearButton && (
             <ClearButton
               onClick={onClear}
-              label="Clear audio"
+              label="Clear GLTF file"
               className="absolute top-2 right-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
             />
           )}
@@ -72,7 +105,7 @@ export function AudioInputWidget({
         >
           <Upload className="h-5 w-5 text-neutral-400" />
           <label
-            htmlFor={`audio-upload-${input.id}`}
+            htmlFor={`gltf-upload-${input.id}`}
             className={cn(
               "text-xs text-blue-500 hover:text-blue-600 cursor-pointer",
               (isUploading || disabled) && "opacity-50 pointer-events-none"
@@ -81,12 +114,12 @@ export function AudioInputWidget({
             {isUploading ? "Uploading..." : "Upload"}
           </label>
           <input
-            id={`audio-upload-${input.id}`}
+            id={`gltf-upload-${input.id}`}
             type="file"
             className="hidden"
             onChange={onFileUpload}
             disabled={isUploading || disabled}
-            accept="audio/*"
+            accept=".gltf,.glb"
           />
         </div>
       )}

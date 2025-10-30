@@ -2,9 +2,9 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/utils/utils";
 
 import { ClearButton } from "./clear-button";
-import type { InputWidgetProps } from "./types";
+import type { FieldWidgetProps } from "./types";
 
-export function NumberInputWidget({
+export function NumberFieldWidget({
   input: _input,
   value,
   onChange,
@@ -13,8 +13,23 @@ export function NumberInputWidget({
   showClearButton,
   className,
   active,
-}: InputWidgetProps) {
+  connected,
+}: FieldWidgetProps) {
   const hasValue = value !== undefined && value !== "";
+
+  // When connected but no value yet, show "Connected" message
+  if (disabled && connected && !hasValue) {
+    return (
+      <div
+        className={cn(
+          "text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border",
+          className
+        )}
+      >
+        Connected
+      </div>
+    );
+  }
 
   return (
     <div className={cn("relative", className)}>
@@ -24,7 +39,11 @@ export function NumberInputWidget({
         onChange={(e) => onChange(e.target.value)}
         placeholder="Enter number"
         disabled={disabled}
-        className={cn("text-xs rounded-md", active && "border border-blue-500")}
+        className={cn(
+          "text-xs rounded-md",
+          disabled && "bg-muted/50",
+          active && "border border-blue-500"
+        )}
       />
       {!disabled && showClearButton && hasValue && (
         <ClearButton
