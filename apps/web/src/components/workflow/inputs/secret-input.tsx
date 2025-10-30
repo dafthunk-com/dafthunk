@@ -16,6 +16,7 @@ export function SecretInputWidget({
   onChange,
   readonly,
   className,
+  active,
 }: InputWidgetProps) {
   const { secrets, isSecretsLoading } = useSecrets();
 
@@ -25,7 +26,13 @@ export function SecretInputWidget({
       onValueChange={(val) => onChange(val || undefined)}
       disabled={readonly || isSecretsLoading}
     >
-      <SelectTrigger className={cn("text-xs", className)}>
+      <SelectTrigger
+        className={cn(
+          "text-xs rounded-md",
+          active && "border border-blue-500",
+          className
+        )}
+      >
         <SelectValue
           placeholder={
             isSecretsLoading

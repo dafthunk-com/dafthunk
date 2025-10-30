@@ -9,15 +9,20 @@ export function NumberInputWidget({
   onChange,
   readonly,
   className,
+  active,
 }: InputWidgetProps) {
   return (
     <Input
-      type="number"
+      type="text"
       value={value !== undefined ? String(value) : ""}
       onChange={(e) => onChange(e.target.value)}
       placeholder="Enter number"
       disabled={readonly}
-      className={cn("text-xs", className)}
+      className={cn(
+        "text-xs rounded-md",
+        active && "border border-blue-500",
+        className
+      )}
     />
   );
 }

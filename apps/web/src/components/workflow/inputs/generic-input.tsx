@@ -9,6 +9,7 @@ export function GenericInputWidget({
   onChange,
   readonly,
   className,
+  active,
 }: InputWidgetProps) {
   return (
     <Input
@@ -16,7 +17,11 @@ export function GenericInputWidget({
       onChange={(e) => onChange(e.target.value)}
       placeholder="Enter value"
       disabled={readonly}
-      className={cn("text-xs", className)}
+      className={cn(
+        "text-xs rounded-md",
+        active && "border border-blue-500",
+        className
+      )}
     />
   );
 }

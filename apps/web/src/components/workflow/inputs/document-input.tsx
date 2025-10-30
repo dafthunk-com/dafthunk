@@ -15,6 +15,7 @@ export function DocumentInputWidget({
   onFileUpload,
   createObjectUrl,
   className,
+  active,
 }: FileInputWidgetProps) {
   const hasValue = value !== undefined && isObjectReference(value);
 
@@ -31,7 +32,12 @@ export function DocumentInputWidget({
   return (
     <div className={cn(className)}>
       {hasValue ? (
-        <div className="relative flex items-center gap-2 p-2 border border-neutral-300 dark:border-neutral-700 rounded-md bg-neutral-50 dark:bg-neutral-900">
+        <div className={cn(
+          "relative flex items-center gap-2 p-2 rounded-md bg-white dark:bg-neutral-950",
+          active
+            ? "border border-blue-500"
+            : "border border-neutral-300 dark:border-neutral-700"
+        )}>
           <File className="h-4 w-4 flex-shrink-0 text-neutral-500" />
           {(() => {
             const objectUrl = getObjectUrl();
@@ -48,7 +54,12 @@ export function DocumentInputWidget({
           })()}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center space-y-2 p-3 border border-neutral-300 dark:border-neutral-700 rounded-md bg-neutral-50 dark:bg-neutral-900">
+        <div className={cn(
+          "flex flex-col items-center justify-center space-y-2 p-3 rounded-md bg-white dark:bg-neutral-950",
+          active
+            ? "border border-blue-500"
+            : "border border-neutral-300 dark:border-neutral-700"
+        )}>
           <Upload className="h-5 w-5 text-neutral-400" />
           <label
             htmlFor={`document-upload-${input.id}`}

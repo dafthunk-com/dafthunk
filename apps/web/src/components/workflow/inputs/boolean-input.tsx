@@ -9,11 +9,20 @@ export function BooleanInputWidget({
   onChange,
   readonly,
   className,
+  active,
 }: InputWidgetProps) {
   const boolValue = String(value) === "true";
 
   return (
-    <div className={cn("flex items-center space-x-2", className)}>
+    <div
+      className={cn(
+        "flex items-center space-x-2 rounded-md p-2 bg-white dark:bg-neutral-950",
+        active
+          ? "border border-blue-500"
+          : "border border-transparent",
+        className
+      )}
+    >
       <Switch
         id={`boolean-${input.id}`}
         checked={boolValue}

@@ -9,6 +9,7 @@ export function TextInputWidget({
   onChange,
   readonly,
   className,
+  active,
 }: InputWidgetProps) {
   const placeholder =
     input.type === "json" ? "Enter JSON" : "Enter text";
@@ -18,7 +19,11 @@ export function TextInputWidget({
       value={value !== undefined ? String(value) : ""}
       onChange={(e) => onChange(e.target.value || undefined)}
       placeholder={placeholder}
-      className={cn("resize-y text-xs", className)}
+      className={cn(
+        "resize-y text-xs rounded-md",
+        active && "border border-blue-500",
+        className
+      )}
       disabled={readonly}
     />
   );

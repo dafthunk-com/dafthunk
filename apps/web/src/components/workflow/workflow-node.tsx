@@ -433,6 +433,7 @@ export const WorkflowNode = memo(
                         containerRef={getInputContainerRef(input.id)}
                         autoFocus={true}
                         onBlur={() => setActiveInputId(null)}
+                        active={true}
                       />
                     )}
                     <TypeBadge

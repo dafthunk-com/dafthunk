@@ -19,6 +19,7 @@ interface WorkflowNodeInputProps {
   containerRef?: React.RefObject<HTMLDivElement | null>;
   autoFocus?: boolean;
   onBlur?: () => void;
+  active?: boolean;
 }
 
 export function WorkflowNodeInput({
@@ -29,6 +30,7 @@ export function WorkflowNodeInput({
   containerRef,
   autoFocus = false,
   onBlur,
+  active,
 }: WorkflowNodeInputProps) {
   const { updateNodeData, edges, deleteEdge } = useWorkflow();
   const { createObjectUrl } = useObjectService();
@@ -161,6 +163,7 @@ export function WorkflowNodeInput({
           readonly={readonly}
           createObjectUrl={createObjectUrl}
           className={getInputClassName()}
+          active={active}
         />
       </div>
     </div>

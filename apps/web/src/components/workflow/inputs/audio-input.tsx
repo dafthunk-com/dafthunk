@@ -16,6 +16,7 @@ export function AudioInputWidget({
   onFileUpload,
   createObjectUrl,
   className,
+  active,
 }: FileInputWidgetProps) {
   const hasValue = value !== undefined && isObjectReference(value);
 
@@ -32,7 +33,12 @@ export function AudioInputWidget({
   return (
     <div className={cn(className)}>
       {hasValue ? (
-        <div className="relative border border-neutral-300 dark:border-neutral-700 rounded-md p-2 bg-neutral-50 dark:bg-neutral-900">
+        <div className={cn(
+          "relative rounded-md p-2 bg-white dark:bg-neutral-950",
+          active
+            ? "border border-blue-500"
+            : "border border-neutral-300 dark:border-neutral-700"
+        )}>
           {(() => {
             const objectUrl = getObjectUrl();
             return objectUrl ? (
@@ -57,7 +63,12 @@ export function AudioInputWidget({
           )}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center space-y-2 p-3 border border-neutral-300 dark:border-neutral-700 rounded-md bg-neutral-50 dark:bg-neutral-900">
+        <div className={cn(
+          "flex flex-col items-center justify-center space-y-2 p-3 rounded-md bg-white dark:bg-neutral-950",
+          active
+            ? "border border-blue-500"
+            : "border border-neutral-300 dark:border-neutral-700"
+        )}>
           <Upload className="h-5 w-5 text-neutral-400" />
           <label
             htmlFor={`audio-upload-${input.id}`}
