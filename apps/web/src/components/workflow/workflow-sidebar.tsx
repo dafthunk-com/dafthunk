@@ -12,6 +12,7 @@ import { WorkflowNodeInspector } from "./workflow-node-inspector";
 import type { WorkflowEdgeType, WorkflowNodeType } from "./workflow-types";
 
 export interface WorkflowSidebarProps {
+  nodes: ReactFlowNode<WorkflowNodeType>[];
   selectedNodes: ReactFlowNode<WorkflowNodeType>[];
   selectedEdges: ReactFlowEdge<WorkflowEdgeType>[];
   onNodeUpdate?: (nodeId: string, data: Partial<WorkflowNodeType>) => void;
@@ -21,6 +22,7 @@ export interface WorkflowSidebarProps {
 }
 
 export function WorkflowSidebar({
+  nodes,
   selectedNodes,
   selectedEdges,
   onNodeUpdate,
@@ -40,6 +42,7 @@ export function WorkflowSidebar({
       {singleSelectedNode && totalSelected === 1 && (
         <WorkflowNodeInspector
           node={singleSelectedNode}
+          nodes={nodes}
           onNodeUpdate={onNodeUpdate}
           disabled={disabled}
           createObjectUrl={createObjectUrl}

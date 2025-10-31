@@ -74,6 +74,7 @@ const getTypeIcon = (type: InputOutputType) => {
 
 export interface WorkflowNodeInspectorProps {
   node: ReactFlowNode<WorkflowNodeType> | null;
+  nodes?: ReactFlowNode<WorkflowNodeType>[];
   onNodeUpdate?: (nodeId: string, data: Partial<WorkflowNodeType>) => void;
   disabled?: boolean;
   createObjectUrl: (objectReference: ObjectReference) => string;
@@ -81,6 +82,7 @@ export interface WorkflowNodeInspectorProps {
 
 export function WorkflowNodeInspector({
   node,
+  nodes = [],
   onNodeUpdate,
   createObjectUrl,
   disabled = false,
@@ -109,14 +111,14 @@ export function WorkflowNodeInspector({
   const [outputsExpanded, setOutputsExpanded] = useState(true);
   const [errorExpanded, setErrorExpanded] = useState(true);
 
-  // Update local state when node changes
+  // Update local state when node data changes
   useEffect(() => {
     if (!node) return;
 
     setLocalName(node.data.name);
     setLocalInputs(node.data.inputs);
     setLocalOutputs(node.data.outputs);
-  }, [node]);
+  }, [node, node?.data.name, node?.data.inputs, node?.data.outputs]);
 
   if (!node) return null;
 
@@ -125,6 +127,27 @@ export function WorkflowNodeInspector({
     return edges.some(
       (edge) => edge.target === node.id && edge.targetHandle === inputId
     );
+  };
+
+  // Helper function to get the value from a connected output
+  const getConnectedValue = (inputId: string): unknown => {
+    // Find the edge connected to this input
+    const connectedEdge = edges.find(
+      (edge) => edge.target === node.id && edge.targetHandle === inputId
+    );
+
+    if (!connectedEdge) return undefined;
+
+    // Find the source node
+    const sourceNode = nodes.find((n) => n.id === connectedEdge.source);
+    if (!sourceNode) return undefined;
+
+    // Find the output with the matching handle ID
+    const output = sourceNode.data.outputs.find(
+      (out) => out.id === connectedEdge.sourceHandle
+    );
+
+    return output?.value;
   };
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -312,7 +335,7 @@ export function WorkflowNodeInspector({
                       <div className="relative">
                         <FieldWidget
                           input={input}
-                          value={input.value}
+                          value={isConnected ? getConnectedValue(input.id) : input.value}
                           onChange={(value) => {
                             const typedValue = convertValueByType(
                               value as string,

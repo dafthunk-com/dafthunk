@@ -474,6 +474,7 @@ export function WorkflowBuilder({
           {isSidebarVisible && (
             <div className="w-96">
               <WorkflowSidebar
+                nodes={nodes}
                 selectedNodes={selectedNodes}
                 selectedEdges={selectedEdges}
                 onNodeUpdate={disabled ? undefined : updateNodeData}
