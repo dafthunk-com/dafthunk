@@ -453,14 +453,14 @@ export const WorkflowNode = memo(
                       executionState={data.executionState}
                       selected={selected}
                     />
-                    <p className="text-xs text-neutral-700 dark:text-neutral-300 overflow-hidden text-ellipsis">
+                    <span className="text-xs text-foreground font-medium font-mono truncate">
                       {input.name}
                       {input.repeated && (
                         <span className="text-neutral-500 dark:text-neutral-400 ml-1">
                           *
                         </span>
                       )}
-                    </p>
+                    </span>
                   </div>
                 ))}
             </div>
@@ -474,9 +474,9 @@ export const WorkflowNode = memo(
                     key={`output-${output.id}-${index}`}
                     className="flex items-center gap-3 text-xs relative"
                   >
-                    <p className="text-xs text-neutral-700 dark:text-neutral-300 overflow-hidden text-ellipsis">
+                    <span className="text-xs text-foreground font-medium font-mono truncate">
                       {output.name}
-                    </p>
+                    </span>
                     <TypeBadge
                       type={output.type}
                       position={Position.Right}
