@@ -50,7 +50,7 @@ function TextAreaWidget({
   };
 
   return (
-    <div className={cn("p-1", className)}>
+    <div className={cn("p-2", className)}>
       <Textarea
         value={localValue}
         onChange={handleChange}

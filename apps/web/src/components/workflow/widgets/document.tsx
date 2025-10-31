@@ -101,7 +101,7 @@ function DocumentWidget({
                   (isUploading || readonly) && "opacity-50 pointer-events-none"
                 )}
               >
-                {isUploading ? "Uploading..." : "Click to upload"}
+                {isUploading ? "Uploading..." : "Upload"}
               </label>
               <input
                 id="document-upload"

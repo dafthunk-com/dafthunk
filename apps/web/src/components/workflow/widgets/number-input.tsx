@@ -58,7 +58,7 @@ function NumberInputWidget({
   };
 
   return (
-    <div className={cn("p-1", className)}>
+    <div className={cn("p-2", className)}>
       <Input
         type="number"
         value={localValue}

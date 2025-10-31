@@ -5,18 +5,18 @@ import { NodeContext } from "../types";
 
 /**
  * CanvasDoodle node implementation
- * This node provides a canvas widget that allows users to draw and outputs the drawing as an image.
+ * This node provides a canvas clearable that allows users to draw and outputs the drawing as an image.
  */
 export class CanvasDoodleNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "canvas-doodle",
     name: "Canvas Doodle",
     type: "canvas-doodle",
-    description: "A canvas widget for drawing and sketching",
+    description: "A canvas clearable for drawing and sketching",
     tags: ["Widget", "Image", "Canvas", "Draw"],
     icon: "pencil",
     documentation:
-      "This node provides a canvas widget that allows users to draw and outputs the drawing as an image.",
+      "This node provides a canvas clearable that allows users to draw and outputs the drawing as an image.",
     inputs: [
       {
         name: "value",

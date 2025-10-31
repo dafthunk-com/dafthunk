@@ -16,7 +16,7 @@ export class InputTextNode extends ExecutableNode {
     name: "Text Input",
     type: "input-text",
     description: "A text input widget for entering single-line text",
-    tags: ["Text", "Input"],
+    tags: ["Widget", "Text", "Input"],
     icon: "text",
     documentation:
       "This node provides a text input widget for entering single-line text.",

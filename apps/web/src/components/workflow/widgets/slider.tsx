@@ -52,7 +52,7 @@ function SliderWidget({
   };
 
   return (
-    <div className={cn("space-y-1 p-1", className)}>
+    <div className={cn("space-y-1 p-2", className)}>
       <Slider
         min={min}
         max={max}

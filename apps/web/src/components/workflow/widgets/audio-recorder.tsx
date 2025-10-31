@@ -114,7 +114,7 @@ function AudioRecorderWidget({
   };
 
   return (
-    <div className="p-2">
+    <div>
       <div className="relative w-full">
         <div className="absolute top-2 right-2 z-10 flex gap-2">
           {audioReference ? (

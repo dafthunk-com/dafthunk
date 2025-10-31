@@ -16,7 +16,7 @@ export class TextAreaNode extends ExecutableNode {
     name: "Text Area",
     type: "text-area",
     description: "A text area widget for entering multi-line text",
-    tags: ["Text", "Input"],
+    tags: ["Widget", "Text", "Input"],
     icon: "text",
     documentation:
       "This node provides a text area widget for entering multi-line text.",

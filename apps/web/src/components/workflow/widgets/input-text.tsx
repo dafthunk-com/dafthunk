@@ -48,7 +48,7 @@ function InputTextWidget({
   };
 
   return (
-    <div className={cn("p-1", className)}>
+    <div className={cn("p-2", className)}>
       <Input
         value={localValue}
         onChange={handleChange}

@@ -51,14 +51,14 @@ function getSecurityHeaders(
   const baseCsp = {
     "default-src": "'self'",
     "script-src": nonce
-      ? `'self' 'nonce-${nonce}' https://static.cloudflareinsights.com https://cdn.jsdelivr.net blob:`
-      : "'self' https://static.cloudflareinsights.com https://cdn.jsdelivr.net blob:", // React/Vite compatibility + Cloudflare Insights + Monaco Editor
-    "style-src": "'self' 'unsafe-inline' https://cdn.jsdelivr.net", // Tailwind/CSS-in-JS support + Monaco Editor
+      ? `'self' 'nonce-${nonce}' https://static.cloudflareinsights.com blob:`
+      : "'self' https://static.cloudflareinsights.com blob:", // React/Vite compatibility + Cloudflare Insights
+    "style-src": "'self' 'unsafe-inline'", // Tailwind/CSS-in-JS support
     "img-src":
       environment === "development"
         ? "'self' data: https: http://localhost:*" // Allow localhost HTTP in dev
         : "'self' data: https:",
-    "font-src": "'self' data: https://cdn.jsdelivr.net",
+    "font-src": "'self' data:",
     "connect-src":
       environment === "development"
         ? "'self' ws://localhost:* http://localhost:* https://api.dafthunk.com blob:" // Allow Vite HMR WebSocket connections in dev + blob URLs for Three.js
@@ -69,7 +69,7 @@ function getSecurityHeaders(
         : "'self' https://api.dafthunk.com", // Allow audio/video from API
     "frame-src": "'self' https://www.youtube.com", // Allow self-iframes and YouTube embeds
     "frame-ancestors": "'self' https://www.dafthunk.com", // Allow self-iframes, prevent external clickjacking
-    "worker-src": "'self' blob: https://cdn.jsdelivr.net", // Allow Monaco Editor workers
+    "worker-src": "'self' blob:", // Allow web workers with blob URLs
     "base-uri": "'self'",
     "form-action": "'self'",
     "object-src": "'none'",

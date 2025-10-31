@@ -14,7 +14,7 @@ export class AudioRecorderNode extends ExecutableNode {
     name: "Audio Recorder",
     type: "audio-recorder",
     description: "A widget for recording audio from the microphone",
-    tags: ["Audio", "Record"],
+    tags: ["Widget", "Audio", "Record"],
     icon: "mic",
     documentation:
       "This node provides an audio recorder widget that allows users to record audio from their microphone and outputs the recording.",
