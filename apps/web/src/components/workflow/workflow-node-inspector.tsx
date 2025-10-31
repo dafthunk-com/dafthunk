@@ -237,6 +237,16 @@ export function WorkflowNodeInspector({
               {/* Type Section */}
               <div>
                 <Label className="text-sm font-medium text-muted-foreground">
+                  Id
+                </Label>
+                <div className="text-sm text-foreground mt-1">
+                  { node.id }
+                </div>
+              </div>
+
+              {/* Type Section */}
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground">
                   Type
                 </Label>
                 <div className="text-sm text-foreground mt-1">
