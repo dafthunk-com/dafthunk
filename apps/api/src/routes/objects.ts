@@ -10,7 +10,6 @@ import { Hono } from "hono";
 
 import { apiKeyOrJwtMiddleware, jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
-import { ExecutionStore } from "../stores/execution-store";
 import { ObjectStore } from "../stores/object-store";
 
 const objectRoutes = new Hono<ApiContext>();
@@ -42,29 +41,10 @@ objectRoutes.get("/", apiKeyOrJwtMiddleware, async (c) => {
 
     const { data, metadata } = result;
 
-    if (metadata?.executionId) {
-      const executionStore = new ExecutionStore(c.env);
-      const execution = await executionStore.get(
-        metadata.executionId,
-        requestingOrganizationId
-      );
-
-      if (!execution) {
-        return c.text("Object not found or linked to invalid execution", 404);
-      }
-
-      // For private executions, the execution's organization must match the requesting organization
-      if (execution.organizationId !== requestingOrganizationId) {
-        return c.text(
-          "Forbidden: You do not have access to this object via its execution",
-          403
-        );
-      }
-    } else {
-      // Object not linked to an execution, check its own organizationId
-      if (metadata?.organizationId !== requestingOrganizationId) {
-        return c.text("Forbidden: You do not have access to this object", 403);
-      }
+    // Check if the object belongs to the requesting organization
+    // The organizationId is stored directly in R2 metadata, no need to query Analytics
+    if (metadata?.organizationId !== requestingOrganizationId) {
+      return c.text("Forbidden: You do not have access to this object", 403);
     }
 
     return c.body(data, {
