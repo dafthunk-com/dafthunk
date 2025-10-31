@@ -12,7 +12,7 @@ export function DocumentFieldWidget({
   value,
   onClear,
   disabled,
-  showClearButton,
+  clearable,
   isUploading,
   uploadError,
   onFileUpload,
@@ -167,7 +167,7 @@ export function DocumentFieldWidget({
               Download
             </a>
           )}
-          {!disabled && showClearButton && (
+          {!disabled && clearable && (
             <ClearButton
               onClick={onClear}
               label="Clear document"

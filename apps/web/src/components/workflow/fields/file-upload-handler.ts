@@ -30,7 +30,9 @@ export function createFileUploadHandler(
       }
 
       // Get MIME type (use custom detector or default to file.type)
-      const mimeType = config.getMimeType ? config.getMimeType(file) : file.type;
+      const mimeType = config.getMimeType
+        ? config.getMimeType(file)
+        : file.type;
 
       const arrayBuffer = await file.arrayBuffer();
       const reference = await uploadBinaryData(arrayBuffer, mimeType);
@@ -38,9 +40,7 @@ export function createFileUploadHandler(
       setIsUploading(false);
     } catch (err) {
       setIsUploading(false);
-      setUploadError(
-        err instanceof Error ? err.message : config.errorMessage
-      );
+      setUploadError(err instanceof Error ? err.message : config.errorMessage);
     }
   };
 }

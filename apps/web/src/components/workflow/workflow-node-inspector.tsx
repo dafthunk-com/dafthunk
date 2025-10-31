@@ -335,7 +335,11 @@ export function WorkflowNodeInspector({
                       <div className="relative">
                         <FieldWidget
                           input={input}
-                          value={isConnected ? getConnectedValue(input.id) : input.value}
+                          value={
+                            isConnected
+                              ? getConnectedValue(input.id)
+                              : input.value
+                          }
                           onChange={(value) => {
                             const typedValue = convertValueByType(
                               value as string,
@@ -421,7 +425,7 @@ export function WorkflowNodeInspector({
                       onChange={() => {}}
                       onClear={() => {}}
                       disabled={true}
-                      showClearButton={false}
+                      clearable={false}
                       createObjectUrl={createObjectUrl}
                     />
                   </div>

@@ -11,7 +11,7 @@ export function AudioFieldWidget({
   value,
   onClear,
   disabled,
-  showClearButton,
+  clearable,
   isUploading,
   uploadError,
   onFileUpload,
@@ -47,7 +47,9 @@ export function AudioFieldWidget({
   };
 
   const objectUrl = getObjectUrl();
-  const mimeType = hasValue ? (value as ObjectReference)?.mimeType || "audio/*" : "audio/*";
+  const mimeType = hasValue
+    ? (value as ObjectReference)?.mimeType || "audio/*"
+    : "audio/*";
 
   // Has value (disabled or enabled)
   if (hasValue) {
@@ -59,7 +61,9 @@ export function AudioFieldWidget({
             disabled && "bg-muted/50 border border-border",
             !disabled && "bg-white dark:bg-neutral-950",
             !disabled && active && "border border-blue-500",
-            !disabled && !active && "border border-neutral-300 dark:border-neutral-700"
+            !disabled &&
+              !active &&
+              "border border-neutral-300 dark:border-neutral-700"
           )}
         >
           {objectUrl && (
@@ -67,7 +71,7 @@ export function AudioFieldWidget({
               <source src={objectUrl} type={mimeType} />
             </audio>
           )}
-          {!disabled && showClearButton && (
+          {!disabled && clearable && (
             <ClearButton
               onClick={onClear}
               label="Clear audio"

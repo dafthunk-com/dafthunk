@@ -17,7 +17,7 @@ export function SecretFieldWidget({
   onChange,
   onClear,
   disabled,
-  showClearButton,
+  clearable,
   className,
   active,
   connected,
@@ -51,7 +51,9 @@ export function SecretFieldWidget({
             "text-xs rounded-md",
             disabled && "bg-muted/50 border-border",
             !disabled && active && "border border-blue-500",
-            !disabled && !active && "border border-neutral-300 dark:border-neutral-700"
+            !disabled &&
+              !active &&
+              "border border-neutral-300 dark:border-neutral-700"
           )}
         >
           <SelectValue
@@ -72,7 +74,7 @@ export function SecretFieldWidget({
           ))}
         </SelectContent>
       </Select>
-      {!disabled && showClearButton && hasValue && (
+      {!disabled && clearable && hasValue && (
         <ClearButton
           onClick={onClear}
           label="Clear secret"

@@ -13,7 +13,7 @@ export function GeoJSONFieldWidget({
   onChange,
   onClear,
   disabled,
-  showClearButton,
+  clearable,
   className,
   active,
   connected,
@@ -211,7 +211,7 @@ export function GeoJSONFieldWidget({
           )}
           disabled={disabled}
         />
-        {!disabled && showClearButton && hasValue && (
+        {!disabled && clearable && hasValue && (
           <ClearButton
             onClick={onClear}
             label="Clear GeoJSON"

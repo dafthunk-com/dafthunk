@@ -16,17 +16,21 @@ export function AnyFieldWidget({
   onChange,
   onClear,
   disabled,
-  showClearButton,
+  clearable,
   className,
   active,
   connected,
   createObjectUrl,
-}: FieldWidgetProps & { createObjectUrl?: (objectReference: ObjectReference) => string }) {
+}: FieldWidgetProps & {
+  createObjectUrl?: (objectReference: ObjectReference) => string;
+}) {
   const hasValue = value !== undefined && value !== null;
 
   // Handle object references (files)
   if (hasValue && isObjectReference(value)) {
-    const objectUrl = createObjectUrl ? createObjectUrl(value as ObjectReference) : null;
+    const objectUrl = createObjectUrl
+      ? createObjectUrl(value as ObjectReference)
+      : null;
     const mimeType = (value as ObjectReference)?.mimeType || "unknown type";
 
     // Images
@@ -50,7 +54,7 @@ export function AnyFieldWidget({
                   e.currentTarget.style.display = "none";
                 }}
               />
-              {!disabled && showClearButton && (
+              {!disabled && clearable && (
                 <ClearButton
                   onClick={onClear}
                   label="Clear image"
@@ -72,7 +76,7 @@ export function AnyFieldWidget({
               <audio controls className="w-full text-xs" preload="metadata">
                 <source src={objectUrl} type={mimeType} />
               </audio>
-              {!disabled && showClearButton && (
+              {!disabled && clearable && (
                 <ClearButton
                   onClick={onClear}
                   label="Clear audio"
@@ -92,7 +96,7 @@ export function AnyFieldWidget({
           {objectUrl && (
             <>
               <ModelViewer parameter={input} objectUrl={objectUrl} />
-              {!disabled && showClearButton && (
+              {!disabled && clearable && (
                 <ClearButton
                   onClick={onClear}
                   label="Clear model"
@@ -190,7 +194,7 @@ export function AnyFieldWidget({
             View File
           </a>
         )}
-        {!disabled && showClearButton && hasValue && (
+        {!disabled && clearable && hasValue && (
           <ClearButton
             onClick={onClear}
             label="Clear file"
@@ -273,7 +277,7 @@ export function AnyFieldWidget({
           placeholder="Enter JSON"
           disabled={disabled}
         />
-        {!disabled && showClearButton && (
+        {!disabled && clearable && (
           <ClearButton
             onClick={onClear}
             label="Clear value"
@@ -333,7 +337,7 @@ export function AnyFieldWidget({
         placeholder={`Enter ${actualType} value`}
         disabled={disabled}
       />
-      {!disabled && showClearButton && (
+      {!disabled && clearable && (
         <ClearButton
           onClick={onClear}
           label="Clear value"

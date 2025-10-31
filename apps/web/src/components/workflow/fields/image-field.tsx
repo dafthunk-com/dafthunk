@@ -11,7 +11,7 @@ export function ImageFieldWidget({
   value,
   onClear,
   disabled,
-  showClearButton,
+  clearable,
   isUploading,
   uploadError,
   onFileUpload,
@@ -58,7 +58,9 @@ export function ImageFieldWidget({
             disabled && "bg-muted/50 border border-border",
             !disabled && "bg-white dark:bg-neutral-950",
             !disabled && active && "border border-blue-500",
-            !disabled && !active && "border border-neutral-300 dark:border-neutral-700"
+            !disabled &&
+              !active &&
+              "border border-neutral-300 dark:border-neutral-700"
           )}
         >
           {objectUrl && (
@@ -71,7 +73,7 @@ export function ImageFieldWidget({
               }}
             />
           )}
-          {!disabled && showClearButton && (
+          {!disabled && clearable && (
             <ClearButton
               onClick={onClear}
               label="Clear image"

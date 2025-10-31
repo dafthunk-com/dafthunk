@@ -11,7 +11,7 @@ export function TextFieldWidget({
   onChange,
   onClear,
   disabled,
-  showClearButton,
+  clearable,
   className,
   active,
   connected,
@@ -46,7 +46,10 @@ export function TextFieldWidget({
 
     return (
       <div
-        className={cn("border border-border rounded-md bg-muted/50 overflow-auto", className)}
+        className={cn(
+          "border border-border rounded-md bg-muted/50 overflow-auto",
+          className
+        )}
       >
         <CodeBlock language="json" className="text-xs my-0 [&_pre]:p-2">
           {formattedValue}
@@ -84,7 +87,7 @@ export function TextFieldWidget({
         )}
         disabled={disabled}
       />
-      {!disabled && showClearButton && hasValue && (
+      {!disabled && clearable && hasValue && (
         <ClearButton
           onClick={onClear}
           label="Clear text"

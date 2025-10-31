@@ -10,7 +10,7 @@ export function BooleanFieldWidget({
   onChange,
   onClear,
   disabled,
-  showClearButton,
+  clearable,
   className,
   active,
   connected,
@@ -39,7 +39,9 @@ export function BooleanFieldWidget({
         disabled && "bg-muted/50 border border-border",
         !disabled && "bg-white dark:bg-neutral-950",
         !disabled && active && "border border-blue-500",
-        !disabled && !active && "border border-neutral-300 dark:border-neutral-700",
+        !disabled &&
+          !active &&
+          "border border-neutral-300 dark:border-neutral-700",
         className
       )}
     >
@@ -49,7 +51,7 @@ export function BooleanFieldWidget({
         onCheckedChange={(checked) => onChange(checked ? "true" : "false")}
         disabled={disabled}
       />
-      {!disabled && showClearButton && hasValue && (
+      {!disabled && clearable && hasValue && (
         <ClearButton
           onClick={onClear}
           label="Clear boolean"

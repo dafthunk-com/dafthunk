@@ -13,7 +13,7 @@ export function GltfFieldWidget({
   value,
   onClear,
   disabled,
-  showClearButton,
+  clearable,
   isUploading,
   uploadError,
   onFileUpload,
@@ -86,7 +86,7 @@ export function GltfFieldWidget({
               Download
             </a>
           )}
-          {!disabled && showClearButton && (
+          {!disabled && clearable && (
             <ClearButton
               onClick={onClear}
               label="Clear GLTF file"

@@ -578,7 +578,7 @@ export const WorkflowNode = memo(
                           onChange={() => {}}
                           onClear={() => {}}
                           disabled={true}
-                          showClearButton={false}
+                          clearable={false}
                           createObjectUrl={data.createObjectUrl}
                         />
                       </div>

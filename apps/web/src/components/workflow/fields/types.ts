@@ -7,11 +7,11 @@ export interface FieldWidgetProps {
   value: unknown;
   onChange: (value: unknown) => void;
   onClear: () => void;
-  disabled?: boolean;
-  showClearButton?: boolean;
   className?: string;
   active?: boolean;
-  connected?: boolean; // true when field is connected to another node's output
+  disabled?: boolean;
+  connected?: boolean;
+  clearable?: boolean;
 }
 
 export interface FileFieldWidgetProps extends FieldWidgetProps {

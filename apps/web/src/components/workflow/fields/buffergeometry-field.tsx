@@ -12,7 +12,7 @@ export function BufferGeometryFieldWidget({
   value,
   onClear,
   disabled,
-  showClearButton,
+  clearable,
   isUploading,
   uploadError,
   onFileUpload,
@@ -99,7 +99,7 @@ export function BufferGeometryFieldWidget({
               Download
             </a>
           )}
-          {!disabled && showClearButton && (
+          {!disabled && clearable && (
             <ClearButton
               onClick={onClear}
               label="Clear geometry"

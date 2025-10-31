@@ -159,7 +159,7 @@ export function WorkflowNodeInput({
           onChange={handleInputChange}
           onClear={handleClearValue}
           disabled={disabled}
-          showClearButton={true}
+          clearable={true}
           createObjectUrl={createObjectUrl}
           className={getInputClassName()}
           active={active}
