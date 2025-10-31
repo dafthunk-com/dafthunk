@@ -18,8 +18,8 @@ export function BooleanFieldWidget({
   const boolValue = String(value) === "true";
   const hasValue = value !== undefined;
 
-  // When connected but no value yet, show "Connected" message
-  if (disabled && connected && !hasValue) {
+  // Disabled state without value
+  if (disabled && !hasValue) {
     return (
       <div
         className={cn(
@@ -27,7 +27,7 @@ export function BooleanFieldWidget({
           className
         )}
       >
-        Connected
+        {connected ? "Connected" : "No value"}
       </div>
     );
   }
@@ -36,11 +36,10 @@ export function BooleanFieldWidget({
     <div
       className={cn(
         "relative flex items-center space-x-2 rounded-md p-2",
-        disabled
-          ? "bg-muted/50 border border-border"
-          : "bg-white dark:bg-neutral-950",
-        active && !disabled && "border border-blue-500",
-        !active && !disabled && "border border-transparent",
+        disabled && "bg-muted/50 border border-border",
+        !disabled && "bg-white dark:bg-neutral-950",
+        !disabled && active && "border border-blue-500",
+        !disabled && !active && "border border-neutral-300 dark:border-neutral-700",
         className
       )}
     >
@@ -54,7 +53,7 @@ export function BooleanFieldWidget({
         <ClearButton
           onClick={onClear}
           label="Clear boolean"
-          className="absolute top-2 right-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
+          className="absolute top-2 right-1"
         />
       )}
     </div>

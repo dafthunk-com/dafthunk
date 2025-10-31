@@ -20,9 +20,22 @@ export function TextFieldWidget({
   const hasValue = value !== undefined && value !== "";
   const stringValue = value !== undefined ? String(value) : "";
 
-  // For JSON type when disabled, show syntax-highlighted code block
-  if (disabled && input.type === "json" && hasValue) {
-    // Try to format JSON nicely
+  // Disabled state without value
+  if (disabled && !hasValue) {
+    return (
+      <div
+        className={cn(
+          "text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border",
+          className
+        )}
+      >
+        {connected ? "Connected" : "No value"}
+      </div>
+    );
+  }
+
+  // Disabled state with value - JSON type shows code block
+  if (disabled && input.type === "json") {
     let formattedValue = stringValue;
     try {
       const parsed = JSON.parse(stringValue);
@@ -33,7 +46,7 @@ export function TextFieldWidget({
 
     return (
       <div
-        className={cn("border rounded-md bg-muted/50 overflow-auto", className)}
+        className={cn("border border-border rounded-md bg-muted/50 overflow-auto", className)}
       >
         <CodeBlock language="json" className="text-xs my-0 [&_pre]:p-2">
           {formattedValue}
@@ -42,7 +55,7 @@ export function TextFieldWidget({
     );
   }
 
-  // For string type when disabled, show as plain text
+  // Disabled state with value - string type shows plain text
   if (disabled) {
     return (
       <div
@@ -51,11 +64,7 @@ export function TextFieldWidget({
           className
         )}
       >
-        {stringValue || (
-          <span className="text-neutral-500 italic">
-            {connected ? "Connected" : "No value"}
-          </span>
-        )}
+        {stringValue}
       </div>
     );
   }
@@ -70,7 +79,8 @@ export function TextFieldWidget({
         className={cn(
           "resize-y text-xs rounded-md",
           input.type === "json" && "font-mono",
-          active && "border border-blue-500"
+          active && "border border-blue-500",
+          !active && "border border-neutral-300 dark:border-neutral-700"
         )}
         disabled={disabled}
       />
@@ -78,7 +88,7 @@ export function TextFieldWidget({
         <ClearButton
           onClick={onClear}
           label="Clear text"
-          className="absolute top-2 right-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
+          className="absolute top-2 right-1"
         />
       )}
     </div>

@@ -206,7 +206,8 @@ export function GeoJSONFieldWidget({
           placeholder={`Enter ${geometryLabel} GeoJSON`}
           className={cn(
             "text-xs font-mono min-h-[120px] resize-y rounded-md",
-            active && "border border-blue-500"
+            active && "border border-blue-500",
+            !active && "border border-neutral-300 dark:border-neutral-700"
           )}
           disabled={disabled}
         />
@@ -214,7 +215,7 @@ export function GeoJSONFieldWidget({
           <ClearButton
             onClick={onClear}
             label="Clear GeoJSON"
-            className="absolute top-2 right-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
+            className="absolute top-2 right-1"
           />
         )}
       </div>

@@ -315,7 +315,7 @@ export function WorkflowNodeInspector({
                           value={input.value}
                           onChange={(value) => {
                             const typedValue = convertValueByType(
-                              typeof value === "string" ? value : value,
+                              value as string,
                               input.type || "string"
                             );
                             const updatedInputs = updateNodeInput(

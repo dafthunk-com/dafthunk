@@ -1,4 +1,3 @@
-import type React from "react";
 import { useState } from "react";
 
 import { useObjectService } from "@/services/object-service";
@@ -8,6 +7,11 @@ import { AudioFieldWidget } from "./audio-field";
 import { BooleanFieldWidget } from "./boolean-field";
 import { BufferGeometryFieldWidget } from "./buffergeometry-field";
 import { DocumentFieldWidget } from "./document-field";
+import {
+  createFileUploadHandler,
+  fileValidators,
+  mimeTypeDetectors,
+} from "./file-upload-handler";
 import { GenericFieldWidget } from "./generic-field";
 import { GeoJSONFieldWidget } from "./geojson-field";
 import { GltfFieldWidget } from "./gltf-field";
@@ -15,10 +19,10 @@ import { ImageFieldWidget } from "./image-field";
 import { NumberFieldWidget } from "./number-field";
 import { SecretFieldWidget } from "./secret-field";
 import { TextFieldWidget } from "./text-field";
-import type { FieldWidgetProps } from "./types";
+import type { FieldWidgetProps, ObjectReference } from "./types";
 
 export interface FieldWidgetRouterProps extends FieldWidgetProps {
-  createObjectUrl?: (objectReference: any) => string;
+  createObjectUrl?: (objectReference: ObjectReference) => string;
 }
 
 export function FieldWidget(props: FieldWidgetRouterProps) {
@@ -27,141 +31,61 @@ export function FieldWidget(props: FieldWidgetRouterProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
-  const handleImageUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  // Create upload handlers using the factory
+  const handleImageUpload = createFileUploadHandler(
+    {
+      validateFile: fileValidators.image,
+      errorMessage: "Failed to upload image",
+    },
+    uploadBinaryData,
+    props.onChange,
+    setIsUploading,
+    setUploadError
+  );
 
-    try {
-      setUploadError(null);
-      setIsUploading(true);
+  const handleAudioUpload = createFileUploadHandler(
+    {
+      validateFile: fileValidators.audio,
+      errorMessage: "Failed to upload audio",
+    },
+    uploadBinaryData,
+    props.onChange,
+    setIsUploading,
+    setUploadError
+  );
 
-      if (!file.type.startsWith("image/")) {
-        throw new Error("Please select a valid image file");
-      }
+  const handleDocumentUpload = createFileUploadHandler(
+    {
+      getMimeType: mimeTypeDetectors.document,
+      errorMessage: "Failed to upload document",
+    },
+    uploadBinaryData,
+    props.onChange,
+    setIsUploading,
+    setUploadError
+  );
 
-      const arrayBuffer = await file.arrayBuffer();
-      const reference = await uploadBinaryData(arrayBuffer, file.type);
-      props.onChange(reference);
-      setIsUploading(false);
-    } catch (err) {
-      setIsUploading(false);
-      setUploadError(
-        err instanceof Error ? err.message : "Failed to upload image"
-      );
-    }
-  };
+  const handleGltfUpload = createFileUploadHandler(
+    {
+      getMimeType: mimeTypeDetectors.gltf,
+      errorMessage: "Failed to upload glTF model",
+    },
+    uploadBinaryData,
+    props.onChange,
+    setIsUploading,
+    setUploadError
+  );
 
-  const handleDocumentUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    try {
-      setUploadError(null);
-      setIsUploading(true);
-
-      let mimeType = file.type;
-      if (file.name.endsWith(".xlsx")) {
-        mimeType =
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-      } else if (file.name.endsWith(".xls")) {
-        mimeType = "application/vnd.ms-excel";
-      }
-
-      const arrayBuffer = await file.arrayBuffer();
-      const reference = await uploadBinaryData(arrayBuffer, mimeType);
-      props.onChange(reference);
-      setIsUploading(false);
-    } catch (err) {
-      setIsUploading(false);
-      setUploadError(
-        err instanceof Error ? err.message : "Failed to upload document"
-      );
-    }
-  };
-
-  const handleAudioUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    try {
-      setUploadError(null);
-      setIsUploading(true);
-
-      if (!file.type.startsWith("audio/")) {
-        throw new Error("Please select a valid audio file");
-      }
-
-      const arrayBuffer = await file.arrayBuffer();
-      const reference = await uploadBinaryData(arrayBuffer, file.type);
-      props.onChange(reference);
-      setIsUploading(false);
-    } catch (err) {
-      setIsUploading(false);
-      setUploadError(
-        err instanceof Error ? err.message : "Failed to upload audio"
-      );
-    }
-  };
-
-  const handleGltfUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    try {
-      setUploadError(null);
-      setIsUploading(true);
-
-      let mimeType = file.type;
-      const fileName = file.name.toLowerCase();
-
-      if (fileName.endsWith(".gltf")) {
-        mimeType = "model/gltf+json";
-      } else if (fileName.endsWith(".glb")) {
-        mimeType = "model/gltf-binary";
-      }
-
-      const arrayBuffer = await file.arrayBuffer();
-      const reference = await uploadBinaryData(arrayBuffer, mimeType);
-      props.onChange(reference);
-      setIsUploading(false);
-    } catch (err) {
-      setIsUploading(false);
-      setUploadError(
-        err instanceof Error ? err.message : "Failed to upload glTF model"
-      );
-    }
-  };
-
-  const handleBufferGeometryUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    try {
-      setUploadError(null);
-      setIsUploading(true);
-
-      const mimeType = "application/x-buffer-geometry";
-      const arrayBuffer = await file.arrayBuffer();
-      const reference = await uploadBinaryData(arrayBuffer, mimeType);
-      props.onChange(reference);
-      setIsUploading(false);
-    } catch (err) {
-      setIsUploading(false);
-      setUploadError(
-        err instanceof Error ? err.message : "Failed to upload geometry"
-      );
-    }
-  };
+  const handleBufferGeometryUpload = createFileUploadHandler(
+    {
+      getMimeType: mimeTypeDetectors.bufferGeometry,
+      errorMessage: "Failed to upload geometry",
+    },
+    uploadBinaryData,
+    props.onChange,
+    setIsUploading,
+    setUploadError
+  );
 
   // Route to appropriate widget based on input type
   switch (input.type) {

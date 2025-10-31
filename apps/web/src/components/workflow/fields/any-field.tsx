@@ -8,7 +8,7 @@ import { cn } from "@/utils/utils";
 
 import { ModelViewer } from "../model-viewer";
 import { ClearButton } from "./clear-button";
-import type { FieldWidgetProps } from "./types";
+import type { FieldWidgetProps, ObjectReference } from "./types";
 
 export function AnyFieldWidget({
   input,
@@ -21,13 +21,13 @@ export function AnyFieldWidget({
   active,
   connected,
   createObjectUrl,
-}: FieldWidgetProps & { createObjectUrl?: (objectReference: any) => string }) {
+}: FieldWidgetProps & { createObjectUrl?: (objectReference: ObjectReference) => string }) {
   const hasValue = value !== undefined && value !== null;
 
   // Handle object references (files)
   if (hasValue && isObjectReference(value)) {
-    const objectUrl = createObjectUrl ? createObjectUrl(value) : null;
-    const mimeType = (value as any)?.mimeType || "unknown type";
+    const objectUrl = createObjectUrl ? createObjectUrl(value as ObjectReference) : null;
+    const mimeType = (value as ObjectReference)?.mimeType || "unknown type";
 
     // Images
     if (mimeType.startsWith("image/")) {
@@ -54,7 +54,7 @@ export function AnyFieldWidget({
                 <ClearButton
                   onClick={onClear}
                   label="Clear image"
-                  className="absolute top-2 right-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
+                  className="absolute top-2 right-1"
                 />
               )}
             </div>
@@ -76,7 +76,7 @@ export function AnyFieldWidget({
                 <ClearButton
                   onClick={onClear}
                   label="Clear audio"
-                  className="absolute top-0 right-0 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
+                  className="absolute top-0 right-0"
                 />
               )}
             </>
@@ -96,7 +96,7 @@ export function AnyFieldWidget({
                 <ClearButton
                   onClick={onClear}
                   label="Clear model"
-                  className="absolute top-2 right-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
+                  className="absolute top-2 right-1"
                 />
               )}
             </>
@@ -194,7 +194,7 @@ export function AnyFieldWidget({
           <ClearButton
             onClick={onClear}
             label="Clear file"
-            className="absolute top-0 right-0 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
+            className="absolute top-0 right-0"
           />
         )}
       </div>
@@ -216,7 +216,12 @@ export function AnyFieldWidget({
       );
     }
     return (
-      <div className={cn("text-xs text-neutral-500 italic", className)}>
+      <div
+        className={cn(
+          "text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border",
+          className
+        )}
+      >
         No value
       </div>
     );
@@ -262,7 +267,8 @@ export function AnyFieldWidget({
           }}
           className={cn(
             "text-xs font-mono min-h-[100px] resize-y rounded-md",
-            active && "border border-blue-500"
+            active && "border border-blue-500",
+            !active && "border border-neutral-300 dark:border-neutral-700"
           )}
           placeholder="Enter JSON"
           disabled={disabled}
@@ -271,7 +277,7 @@ export function AnyFieldWidget({
           <ClearButton
             onClick={onClear}
             label="Clear value"
-            className="absolute top-7 right-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
+            className="absolute top-7 right-1"
           />
         )}
       </div>
@@ -321,7 +327,8 @@ export function AnyFieldWidget({
         }}
         className={cn(
           "text-xs h-8 rounded-md",
-          active && "border border-blue-500"
+          active && "border border-blue-500",
+          !active && "border border-neutral-300 dark:border-neutral-700"
         )}
         placeholder={`Enter ${actualType} value`}
         disabled={disabled}
@@ -330,7 +337,7 @@ export function AnyFieldWidget({
         <ClearButton
           onClick={onClear}
           label="Clear value"
-          className="absolute top-7 right-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
+          className="absolute top-7 right-1"
         />
       )}
     </div>

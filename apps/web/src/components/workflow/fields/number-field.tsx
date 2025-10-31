@@ -17,8 +17,8 @@ export function NumberFieldWidget({
 }: FieldWidgetProps) {
   const hasValue = value !== undefined && value !== "";
 
-  // When connected but no value yet, show "Connected" message
-  if (disabled && connected && !hasValue) {
+  // Disabled state without value
+  if (disabled && !hasValue) {
     return (
       <div
         className={cn(
@@ -26,7 +26,7 @@ export function NumberFieldWidget({
           className
         )}
       >
-        Connected
+        {connected ? "Connected" : "No value"}
       </div>
     );
   }
@@ -41,15 +41,16 @@ export function NumberFieldWidget({
         disabled={disabled}
         className={cn(
           "text-xs rounded-md",
-          disabled && "bg-muted/50",
-          active && "border border-blue-500"
+          disabled && "bg-muted/50 border-border",
+          !disabled && active && "border border-blue-500",
+          !disabled && !active && "border border-neutral-300 dark:border-neutral-700"
         )}
       />
       {!disabled && showClearButton && hasValue && (
         <ClearButton
           onClick={onClear}
           label="Clear number"
-          className="absolute top-2 right-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
+          className="absolute top-2 right-1"
         />
       )}
     </div>

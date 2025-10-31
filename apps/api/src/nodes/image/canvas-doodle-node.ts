@@ -66,6 +66,8 @@ export class CanvasDoodleNode extends ExecutableNode {
     try {
       const { value } = context.inputs;
 
+      console.log("CanvasDoodleNode execute with value:", value);
+
       // If no value is provided, fail
       if (!value) {
         return this.createErrorResult("No image data provided");

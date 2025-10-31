@@ -25,8 +25,8 @@ export function SecretFieldWidget({
   const { secrets, isSecretsLoading } = useSecrets();
   const hasValue = value !== undefined && value !== "";
 
-  // When connected but no value yet, show "Connected" message
-  if (disabled && connected && !hasValue) {
+  // Disabled state without value
+  if (disabled && !hasValue) {
     return (
       <div
         className={cn(
@@ -34,7 +34,7 @@ export function SecretFieldWidget({
           className
         )}
       >
-        Connected
+        {connected ? "Connected" : "No value"}
       </div>
     );
   }
@@ -49,8 +49,9 @@ export function SecretFieldWidget({
         <SelectTrigger
           className={cn(
             "text-xs rounded-md",
-            disabled && "bg-muted/50",
-            active && "border border-blue-500"
+            disabled && "bg-muted/50 border-border",
+            !disabled && active && "border border-blue-500",
+            !disabled && !active && "border border-neutral-300 dark:border-neutral-700"
           )}
         >
           <SelectValue
@@ -75,7 +76,7 @@ export function SecretFieldWidget({
         <ClearButton
           onClick={onClear}
           label="Clear secret"
-          className="absolute top-2 right-8 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
+          className="absolute top-2 right-8"
         />
       )}
     </div>
