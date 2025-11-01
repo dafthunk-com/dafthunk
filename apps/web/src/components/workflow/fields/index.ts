@@ -10,6 +10,7 @@ export { GenericFieldWidget } from "./generic-field";
 export { GeoJSONFieldWidget } from "./geojson-field";
 export { GltfFieldWidget } from "./gltf-field";
 export { ImageFieldWidget } from "./image-field";
+export { JsonFieldWidget } from "./json-field";
 export { NumberFieldWidget } from "./number-field";
 export { SecretFieldWidget } from "./secret-field";
 export { TextFieldWidget } from "./text-field";

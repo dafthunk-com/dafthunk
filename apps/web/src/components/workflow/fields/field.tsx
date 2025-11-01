@@ -16,6 +16,7 @@ import { GenericFieldWidget } from "./generic-field";
 import { GeoJSONFieldWidget } from "./geojson-field";
 import { GltfFieldWidget } from "./gltf-field";
 import { ImageFieldWidget } from "./image-field";
+import { JsonFieldWidget } from "./json-field";
 import { NumberFieldWidget } from "./number-field";
 import { SecretFieldWidget } from "./secret-field";
 import { TextFieldWidget } from "./text-field";
@@ -94,8 +95,9 @@ export function FieldWidget(props: FieldWidgetRouterProps) {
     case "number":
       return <NumberFieldWidget {...props} />;
     case "string":
-    case "json":
       return <TextFieldWidget {...props} />;
+    case "json":
+      return <JsonFieldWidget {...props} />;
     case "secret":
       return <SecretFieldWidget {...props} />;
     case "image":
