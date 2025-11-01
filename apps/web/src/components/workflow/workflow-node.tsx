@@ -27,6 +27,7 @@ import StickyNoteIcon from "lucide-react/icons/sticky-note";
 import TriangleIcon from "lucide-react/icons/triangle";
 import TypeIcon from "lucide-react/icons/type";
 import WrenchIcon from "lucide-react/icons/wrench";
+import XIcon from "lucide-react/icons/x";
 import { createElement, memo, useEffect, useRef, useState } from "react";
 
 import { NodeDocsDialog } from "@/components/docs/node-docs-dialog";
@@ -277,6 +278,26 @@ export const WorkflowNode = memo(
       }
     };
 
+    const handleRemoveTool = (toolIdentifier: string) => {
+      if (disabled || !updateNodeData) return;
+
+      const currentTools = getCurrentSelectedTools();
+      const updatedTools = currentTools.filter(
+        (t) => t.identifier !== toolIdentifier
+      );
+
+      const toolsInput = data.inputs.find((input) => input.id === "tools");
+      if (toolsInput) {
+        updateNodeInput(
+          id,
+          toolsInput.id,
+          updatedTools,
+          data.inputs,
+          updateNodeData
+        );
+      }
+    };
+
     // Get current selected tools from the tools input
     const getCurrentSelectedTools = (): ToolReference[] => {
       const toolsInput = data.inputs.find((input) => input.id === "tools");
@@ -405,17 +426,31 @@ export const WorkflowNode = memo(
                         return (
                           <div
                             key={`${tool.identifier}-${idx}`}
-                            className="flex items-center justify-center gap-2 px-2 py-1 rounded bg-neutral-100 text-xs text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 w-full"
+                            className="flex items-center justify-between gap-2 px-2 py-1 rounded bg-neutral-100 text-xs text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 w-full"
                           >
-                            {tpl?.icon ? (
-                              <DynamicIcon
-                                name={tpl.icon as any}
-                                className="h-3 w-3 shrink-0"
-                              />
-                            ) : null}
-                            <span className="truncate">
-                              {tpl?.name || tool.identifier}
-                            </span>
+                            <div className="flex items-center gap-2 min-w-0 flex-1">
+                              {tpl?.icon ? (
+                                <DynamicIcon
+                                  name={tpl.icon as any}
+                                  className="h-3 w-3 shrink-0"
+                                />
+                              ) : null}
+                              <span className="truncate">
+                                {tpl?.name || tool.identifier}
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              className="shrink-0 text-neutral-400 hover:text-neutral-900 dark:text-neutral-500 dark:hover:text-neutral-100 transition-colors"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRemoveTool(tool.identifier);
+                              }}
+                              disabled={disabled}
+                              aria-label="Remove tool"
+                            >
+                              <XIcon className="h-3 w-3" />
+                            </button>
                           </div>
                         );
                       })}

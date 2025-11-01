@@ -10,7 +10,7 @@ import History from "lucide-react/icons/history";
 import Mail from "lucide-react/icons/mail";
 import MoreHorizontal from "lucide-react/icons/more-horizontal";
 import Play from "lucide-react/icons/play";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 
@@ -245,10 +245,7 @@ export function DeploymentDetailPage() {
           );
         }
       },
-      adaptDeploymentNodesToReactFlowNodes(
-        currentDeployment.nodes,
-        nodeTypes
-      ),
+      adaptDeploymentNodesToReactFlowNodes(currentDeployment.nodes, nodeTypes),
       nodeTypes,
       workflow.type
     );

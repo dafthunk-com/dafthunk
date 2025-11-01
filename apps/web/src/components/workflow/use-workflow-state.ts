@@ -220,9 +220,8 @@ export function useWorkflowState({
   disabled = false,
 }: UseWorkflowStateProps): UseWorkflowStateReturn {
   // State management
-  const [nodes, setNodes, onNodesChange] = useNodesState<
-    ReactFlowNode<WorkflowNodeType>
-  >(initialNodes);
+  const [nodes, setNodes, onNodesChange] =
+    useNodesState<ReactFlowNode<WorkflowNodeType>>(initialNodes);
   const [edges, setEdges, onEdgesChange] =
     useEdgesState<ReactFlowEdge<WorkflowEdgeType>>(initialEdges);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance<

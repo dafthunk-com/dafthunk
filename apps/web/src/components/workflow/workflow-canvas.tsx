@@ -220,43 +220,50 @@ export function ActionButton({
       icon: <Play className="!size-4" />,
       title: "Execute Workflow",
       shortcut: "⌘⏎",
-      className: "bg-white/75 hover:bg-neutral-50/75 text-green-500 hover:text-green-600 dark:bg-neutral-900/75 dark:hover:bg-neutral-800/75 dark:text-green-400 dark:hover:text-green-300",
+      className:
+        "bg-white/75 hover:bg-neutral-50/75 text-green-500 hover:text-green-600 dark:bg-neutral-900/75 dark:hover:bg-neutral-800/75 dark:text-green-400 dark:hover:text-green-300",
     },
     submitted: {
       icon: <Square className="!size-4" />,
       title: "Stop Execution",
       shortcut: "⌘⏎",
-      className: "bg-white/75 hover:bg-neutral-50/75 text-red-500 hover:text-red-600 dark:bg-neutral-900/75 dark:hover:bg-neutral-800/75 dark:text-red-400 dark:hover:text-red-300",
+      className:
+        "bg-white/75 hover:bg-neutral-50/75 text-red-500 hover:text-red-600 dark:bg-neutral-900/75 dark:hover:bg-neutral-800/75 dark:text-red-400 dark:hover:text-red-300",
     },
     executing: {
       icon: <Square className="!size-4" />,
       title: "Stop Execution",
       shortcut: "⌘⏎",
-      className: "bg-white/75 hover:bg-neutral-50/75 text-red-500 hover:text-red-600 dark:bg-neutral-900/75 dark:hover:bg-neutral-800/75 dark:text-red-400 dark:hover:text-red-300",
+      className:
+        "bg-white/75 hover:bg-neutral-50/75 text-red-500 hover:text-red-600 dark:bg-neutral-900/75 dark:hover:bg-neutral-800/75 dark:text-red-400 dark:hover:text-red-300",
     },
     completed: {
       icon: <X className="!size-4" />,
       title: "Clear Outputs & Reset",
       shortcut: "⌘⏎",
-      className: "bg-white/75 hover:bg-neutral-50/75 text-amber-500 hover:text-amber-600 dark:bg-neutral-900/75 dark:hover:bg-neutral-800/75 dark:text-amber-400 dark:hover:text-amber-300",
+      className:
+        "bg-white/75 hover:bg-neutral-50/75 text-amber-500 hover:text-amber-600 dark:bg-neutral-900/75 dark:hover:bg-neutral-800/75 dark:text-amber-400 dark:hover:text-amber-300",
     },
     error: {
       icon: <X className="!size-4" />,
       title: "Clear Errors & Reset",
       shortcut: "⌘⏎",
-      className: "bg-white/75 hover:bg-neutral-50/75 text-amber-500 hover:text-amber-600 dark:bg-neutral-900/75 dark:hover:bg-neutral-800/75 dark:text-amber-400 dark:hover:text-amber-300",
+      className:
+        "bg-white/75 hover:bg-neutral-50/75 text-amber-500 hover:text-amber-600 dark:bg-neutral-900/75 dark:hover:bg-neutral-800/75 dark:text-amber-400 dark:hover:text-amber-300",
     },
     cancelled: {
       icon: <Play className="!size-4" />,
       title: "Restart Workflow",
       shortcut: "⌘⏎",
-      className: "bg-white/75 hover:bg-neutral-50/75 text-green-500 hover:text-green-600 dark:bg-neutral-900/75 dark:hover:bg-neutral-800/75 dark:text-green-400 dark:hover:text-green-300",
+      className:
+        "bg-white/75 hover:bg-neutral-50/75 text-green-500 hover:text-green-600 dark:bg-neutral-900/75 dark:hover:bg-neutral-800/75 dark:text-green-400 dark:hover:text-green-300",
     },
     paused: {
       icon: <Play className="!size-4" />,
       title: "Resume Workflow",
       shortcut: "⌘⏎",
-      className: "bg-white/75 hover:bg-neutral-50/75 text-sky-500 hover:text-sky-600 dark:bg-neutral-900/75 dark:hover:bg-neutral-800/75 dark:text-sky-400 dark:hover:text-sky-300",
+      className:
+        "bg-white/75 hover:bg-neutral-50/75 text-sky-500 hover:text-sky-600 dark:bg-neutral-900/75 dark:hover:bg-neutral-800/75 dark:text-sky-400 dark:hover:text-sky-300",
     },
   };
 
