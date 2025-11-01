@@ -268,13 +268,29 @@ export const WorkflowNode = memo(
       setIsToolSelectorOpen(false);
     };
 
-    const handleToolsSelect = (tools: ToolReference[]) => {
+    const handleToolsSelect = (tool: ToolReference) => {
       if (disabled || !updateNodeData) return;
+
+      // Get current tools and add the new one
+      const currentTools = getCurrentSelectedTools();
+
+      // Check if tool is already in the list
+      if (currentTools.some((t) => t.identifier === tool.identifier)) {
+        return;
+      }
+
+      const updatedTools = [...currentTools, tool];
 
       // Find the tools input parameter
       const toolsInput = data.inputs.find((input) => input.id === "tools");
       if (toolsInput) {
-        updateNodeInput(id, toolsInput.id, tools, data.inputs, updateNodeData);
+        updateNodeInput(
+          id,
+          toolsInput.id,
+          updatedTools,
+          data.inputs,
+          updateNodeData
+        );
       }
     };
 
@@ -412,14 +428,27 @@ export const WorkflowNode = memo(
                 disabled={disabled}
               >
                 <WrenchIcon className="h-3 w-3" />
-                Select Tools
+                Add Tool
               </button>
               {(() => {
                 const selectedTools = getCurrentSelectedTools();
                 if (selectedTools.length > 0) {
+                  // Sort tools by name
+                  const sortedTools = [...selectedTools].sort((a, b) => {
+                    const tplA = (nodeTemplates || []).find(
+                      (t) => t.id === a.identifier
+                    );
+                    const tplB = (nodeTemplates || []).find(
+                      (t) => t.id === b.identifier
+                    );
+                    const nameA = tplA?.name || a.identifier;
+                    const nameB = tplB?.name || b.identifier;
+                    return nameA.localeCompare(nameB);
+                  });
+
                   return (
                     <div className="space-y-1">
-                      {selectedTools.map((tool, idx) => {
+                      {sortedTools.map((tool, idx) => {
                         const tpl = (nodeTemplates || []).find(
                           (t) => t.id === tool.identifier
                         );
@@ -662,7 +691,6 @@ export const WorkflowNode = memo(
             onClose={handleToolSelectorClose}
             onSelect={handleToolsSelect}
             templates={nodeTemplates || []}
-            selectedTools={getCurrentSelectedTools()}
           />
         )}
 

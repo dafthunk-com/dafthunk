@@ -4,12 +4,9 @@ import { DynamicIcon } from "lucide-react/dynamic.mjs";
 import { useMemo, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -32,9 +29,8 @@ export interface ToolReference {
 export interface WorkflowToolSelectorProps {
   open: boolean;
   onClose: () => void;
-  onSelect: (tools: ToolReference[]) => void;
+  onSelect: (tool: ToolReference) => void;
   templates?: NodeType[];
-  selectedTools?: ToolReference[];
   workflowName?: string;
   workflowDescription?: string;
 }
@@ -44,15 +40,11 @@ export function WorkflowToolSelector({
   onClose,
   onSelect,
   templates = [],
-  selectedTools = [],
   workflowName,
   workflowDescription,
 }: WorkflowToolSelectorProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [localSelectedTools, setLocalSelectedTools] = useState<Set<string>>(
-    new Set(selectedTools.map((tool) => tool.identifier))
-  );
 
   // Filter templates to only show nodes that can be used as tools
   const toolTemplates = useMemo(() => {
@@ -175,8 +167,8 @@ export function WorkflowToolSelector({
   }, [toolTemplates, workflowName, workflowDescription, searchTerm]);
 
   // Filter templates based on selected tags (all must match)
-  const filteredTemplates = scoredAndFilteredTemplates.sorted
-    .filter((template) => {
+  const filteredTemplates = scoredAndFilteredTemplates.sorted.filter(
+    (template) => {
       // If no tags selected, show all
       if (selectedTags.length === 0) return true;
 
@@ -184,18 +176,8 @@ export function WorkflowToolSelector({
       return selectedTags.every((selectedTag) =>
         template.tags.includes(selectedTag)
       );
-    })
-    .sort((a, b) => {
-      // Sort selected tools to the top
-      const aSelected = localSelectedTools.has(a.id);
-      const bSelected = localSelectedTools.has(b.id);
-
-      if (aSelected && !bSelected) return -1;
-      if (!aSelected && bSelected) return 1;
-
-      // Maintain existing order (by score) for items with same selection state
-      return 0;
-    });
+    }
+  );
 
   // Get overall tag counts (for display)
   const overallTagCounts = useTagCounts(scoredAndFilteredTemplates.sorted);
@@ -251,53 +233,15 @@ export function WorkflowToolSelector({
     onClose,
     onSelectItem: (index) => {
       const template = filteredTemplates[index];
-      handleTemplateToggle(template.id);
+      onSelect({ type: "node", identifier: template.id });
+      onClose();
     },
     onCategoryChange: handleTagChange,
     categories: tagCounts,
   });
 
-  const handleTemplateToggle = (templateId: string) => {
-    setLocalSelectedTools((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(templateId)) {
-        newSet.delete(templateId);
-      } else {
-        newSet.add(templateId);
-      }
-      return newSet;
-    });
-  };
-
-  const handleConfirm = () => {
-    const tools: ToolReference[] = Array.from(localSelectedTools).map((id) => ({
-      type: "node",
-      identifier: id,
-    }));
-    onSelect(tools);
-    onClose();
-  };
-
-  const handleCancel = () => {
-    setLocalSelectedTools(
-      new Set(selectedTools.map((tool) => tool.identifier))
-    );
-    onClose();
-  };
-
-  // Reset local state when dialog opens
-  const handleOpenChange = (isOpen: boolean) => {
-    if (isOpen) {
-      setLocalSelectedTools(
-        new Set(selectedTools.map((tool) => tool.identifier))
-      );
-    } else {
-      onClose();
-    }
-  };
-
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent
         className="w-[80vw] h-[80vh] max-w-[1400px] flex flex-col p-0"
         onKeyDown={handleKeyDown}
@@ -328,8 +272,6 @@ export function WorkflowToolSelector({
           <ScrollArea className="flex-1">
             <div className="space-y-3 pr-4">
               {filteredTemplates.map((template, index) => {
-                const isSelected = localSelectedTools.has(template.id);
-
                 return (
                   <div
                     key={template.id}
@@ -338,11 +280,12 @@ export function WorkflowToolSelector({
                       "border rounded-lg cursor-pointer bg-card",
                       focusedIndex === index && activeElement === "items"
                         ? "border-primary"
-                        : "border-border hover:border-primary/50",
-                      isSelected &&
-                        "bg-blue-50 border-blue-500 dark:bg-blue-950/20"
+                        : "border-border hover:border-primary/50"
                     )}
-                    onClick={() => handleTemplateToggle(template.id)}
+                    onClick={() => {
+                      onSelect({ type: "node", identifier: template.id });
+                      onClose();
+                    }}
                     onMouseEnter={() => {
                       setActiveElement("items");
                       setFocusedIndex(index);
@@ -360,11 +303,6 @@ export function WorkflowToolSelector({
                   >
                     <div className="p-4">
                       <div className="flex items-start gap-3">
-                        <Checkbox
-                          checked={isSelected}
-                          onChange={() => handleTemplateToggle(template.id)}
-                          className="mt-1"
-                        />
                         <DynamicIcon
                           name={template.icon as any}
                           className="h-5 w-5 text-blue-500 shrink-0 mt-0.5"
@@ -420,29 +358,12 @@ export function WorkflowToolSelector({
                   focusedIndex={focusedIndex}
                 />
               </div>
+              <div className="text-xs text-muted-foreground/60 pt-4 text-right">
+                {filteredTemplates.length} of {toolTemplates.length} tools
+              </div>
             </div>
           )}
         </div>
-
-        <DialogFooter className="px-4 pb-4">
-          <div className="flex justify-between items-center w-full">
-            <div className="flex flex-col gap-1">
-              <p className="text-sm text-muted-foreground">
-                {localSelectedTools.size} tool
-                {localSelectedTools.size !== 1 ? "s" : ""} selected
-              </p>
-              <p className="text-xs text-muted-foreground/60">
-                {filteredTemplates.length} of {toolTemplates.length} tools
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={handleCancel}>
-                Cancel
-              </Button>
-              <Button onClick={handleConfirm}>Confirm Selection</Button>
-            </div>
-          </div>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
