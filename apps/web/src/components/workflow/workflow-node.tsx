@@ -26,6 +26,7 @@ import SquareIcon from "lucide-react/icons/square";
 import StickyNoteIcon from "lucide-react/icons/sticky-note";
 import TriangleIcon from "lucide-react/icons/triangle";
 import TypeIcon from "lucide-react/icons/type";
+import WrenchIcon from "lucide-react/icons/wrench";
 import { createElement, memo, useEffect, useRef, useState } from "react";
 
 import { NodeDocsDialog } from "@/components/docs/node-docs-dialog";
@@ -372,50 +373,57 @@ export const WorkflowNode = memo(
 
           {/* Tools bar (between header and body) */}
           {data.functionCalling && (
-            <div
-              className="px-1 py-1 nodrag flex flex-wrap items-start gap-1 border-b"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (disabled) return;
-                setIsToolSelectorOpen(true);
-              }}
-            >
+            <div className="px-2 py-2 nodrag border-b space-y-2">
+              <button
+                type="button"
+                className={cn(
+                  "w-full px-2 py-1 rounded text-xs font-medium transition-colors flex items-center justify-center gap-1.5",
+                  "border border-border bg-background hover:bg-neutral-100",
+                  "dark:hover:bg-neutral-800",
+                  {
+                    "opacity-50 cursor-not-allowed": disabled,
+                  }
+                )}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (disabled) return;
+                  setIsToolSelectorOpen(true);
+                }}
+                disabled={disabled}
+              >
+                <WrenchIcon className="h-3 w-3" />
+                Select Tools
+              </button>
               {(() => {
                 const selectedTools = getCurrentSelectedTools();
-                if (!selectedTools.length) {
+                if (selectedTools.length > 0) {
                   return (
-                    <span className="text-xs text-neutral-500">
-                      Click to select tools
-                    </span>
+                    <div className="space-y-1">
+                      {selectedTools.map((tool, idx) => {
+                        const tpl = (data.nodeTemplates || []).find(
+                          (t) => t.id === tool.identifier
+                        );
+                        return (
+                          <div
+                            key={`${tool.identifier}-${idx}`}
+                            className="flex items-center justify-center gap-2 px-2 py-1 rounded bg-neutral-100 text-xs text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 w-full"
+                          >
+                            {tpl?.icon ? (
+                              <DynamicIcon
+                                name={tpl.icon as any}
+                                className="h-3 w-3 shrink-0"
+                              />
+                            ) : null}
+                            <span className="truncate">
+                              {tpl?.name || tool.identifier}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
                   );
                 }
-
-                return (
-                  <div className="flex flex-wrap items-center gap-1">
-                    {selectedTools.map((tool, idx) => {
-                      const tpl = (data.nodeTemplates || []).find(
-                        (t) => t.id === tool.identifier
-                      );
-                      return (
-                        <span
-                          key={`${tool.identifier}-${idx}`}
-                          className="inline-flex items-center gap-1 px-1 py-[2px] rounded bg-neutral-100 text-xs text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300"
-                        >
-                          {tpl?.icon ? (
-                            <DynamicIcon
-                              name={tpl.icon as any}
-                              className="h-3 w-3"
-                            />
-                          ) : null}
-                          <span className="truncate max-w-[84px]">
-                            {tpl?.name || tool.identifier}
-                          </span>
-                        </span>
-                      );
-                    })}
-                    <span className="text-xs text-blue-500 ml-1">Edit</span>
-                  </div>
-                );
+                return null;
               })()}
             </div>
           )}
