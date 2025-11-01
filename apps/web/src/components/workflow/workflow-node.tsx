@@ -10,7 +10,6 @@ import Building2Icon from "lucide-react/icons/building-2";
 import CalendarIcon from "lucide-react/icons/calendar";
 import ChartNoAxesGanttIcon from "lucide-react/icons/chart-no-axes-gantt";
 import CheckIcon from "lucide-react/icons/check";
-import ChevronDown from "lucide-react/icons/chevron-down";
 import CircleHelp from "lucide-react/icons/circle-help";
 import DotIcon from "lucide-react/icons/dot";
 import EllipsisIcon from "lucide-react/icons/ellipsis";
@@ -35,7 +34,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useNodeTypes } from "@/services/type-service";
 import { cn } from "@/utils/utils";
 
-import { FieldWidget } from "./fields";
 import { registry } from "./widgets";
 import { updateNodeInput, useWorkflow } from "./workflow-context";
 import { WorkflowNodeInput } from "./workflow-node-input";
@@ -187,10 +185,7 @@ export const WorkflowNode = memo(
     selected?: boolean;
     id: string;
   }) => {
-    const { updateNodeData, disabled, expandedOutputs, nodeTemplates } =
-      useWorkflow();
-    const [showOutputs, setShowOutputs] = useState(false);
-    const [showError, setShowError] = useState(false);
+    const { updateNodeData, disabled, nodeTemplates } = useWorkflow();
     const [isToolSelectorOpen, setIsToolSelectorOpen] = useState(false);
     const [isDocsOpen, setIsDocsOpen] = useState(false);
     const [activeInputId, setActiveInputId] = useState<string | null>(null);
@@ -198,15 +193,6 @@ export const WorkflowNode = memo(
       Map<string, React.RefObject<HTMLDivElement | null>>
     >(new Map());
     const handleRefs = useRef<Map<string, HTMLElement>>(new Map());
-    const hasVisibleOutputs = data.outputs.some((output) => !output.hidden);
-    const canShowOutputs =
-      hasVisibleOutputs && data.executionState === "completed";
-
-    // Initialize showOutputs and showError based on expandedOutputs
-    useEffect(() => {
-      setShowOutputs(hasVisibleOutputs && !!expandedOutputs);
-      setShowError(!!expandedOutputs);
-    }, [expandedOutputs, hasVisibleOutputs]);
 
     // Handle click outside to close active input
     useEffect(() => {
@@ -561,128 +547,6 @@ export const WorkflowNode = memo(
                 ))}
             </div>
           </div>
-
-          {/* Output Values Section */}
-          {canShowOutputs && (
-            <>
-              <div
-                className="py-2 px-2 border-t flex items-center justify-between nodrag cursor-pointer transition-colors"
-                onClick={() => setShowOutputs(!showOutputs)}
-              >
-                <span className="text-xs font-bold  text-neutral-600 dark:text-neutral-400">
-                  Outputs
-                </span>
-                {showOutputs ? (
-                  <ChevronDown className="h-3 w-3 text-neutral-500" />
-                ) : (
-                  <ChevronDown className="h-3 w-3 text-neutral-500 -rotate-90" />
-                )}
-              </div>
-
-              {showOutputs && (
-                <div className="px-2 pb-2 space-y-3 nodrag">
-                  {data.outputs
-                    .filter((output) => !output.hidden)
-                    .map((output, index) => (
-                      <div
-                        key={`output-value-${output.id}-${index}`}
-                        className="text-sm space-y-1"
-                      >
-                        {/* Output Header */}
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span className="text-muted-foreground shrink-0">
-                            {(() => {
-                              const iconSize = "h-3 w-3";
-                              const icons: Record<
-                                InputOutputType,
-                                React.ReactNode
-                              > = {
-                                string: <TypeIcon className={iconSize} />,
-                                number: <HashIcon className={iconSize} />,
-                                boolean: <CheckIcon className={iconSize} />,
-                                image: <ImageIcon className={iconSize} />,
-                                document: (
-                                  <StickyNoteIcon className={iconSize} />
-                                ),
-                                audio: <MusicIcon className={iconSize} />,
-                                buffergeometry: (
-                                  <BoxIcon className={iconSize} />
-                                ),
-                                gltf: <BoxIcon className={iconSize} />,
-                                json: <BracesIcon className={iconSize} />,
-                                date: <CalendarIcon className={iconSize} />,
-                                point: <DotIcon className={iconSize} />,
-                                multipoint: (
-                                  <EllipsisIcon className={iconSize} />
-                                ),
-                                linestring: <MinusIcon className={iconSize} />,
-                                multilinestring: (
-                                  <ChartNoAxesGanttIcon className={iconSize} />
-                                ),
-                                polygon: <TriangleIcon className={iconSize} />,
-                                multipolygon: (
-                                  <ShapesIcon className={iconSize} />
-                                ),
-                                geometry: <SquareIcon className={iconSize} />,
-                                geometrycollection: (
-                                  <LayoutGridIcon className={iconSize} />
-                                ),
-                                feature: <BuildingIcon className={iconSize} />,
-                                featurecollection: (
-                                  <Building2Icon className={iconSize} />
-                                ),
-                                geojson: <GlobeIcon className={iconSize} />,
-                                secret: <LockIcon className={iconSize} />,
-                                any: <AsteriskIcon className={iconSize} />,
-                              };
-                              return icons[output.type] || icons.any;
-                            })()}
-                          </span>
-                          <span className="text-foreground font-medium font-mono truncate text-xs">
-                            {output.name}
-                          </span>
-                        </div>
-
-                        <FieldWidget
-                          input={output}
-                          value={output.value}
-                          onChange={() => {}}
-                          onClear={() => {}}
-                          disabled={true}
-                          clearable={false}
-                          createObjectUrl={data.createObjectUrl}
-                        />
-                      </div>
-                    ))}
-                </div>
-              )}
-            </>
-          )}
-
-          {/* Error Display - Collapsible */}
-          {data.error && (
-            <>
-              <div
-                className="py-2 px-2 border-t flex items-center justify-between nodrag cursor-pointer transition-colors"
-                onClick={() => setShowError(!showError)}
-              >
-                <span className="text-xs font-bold text-foreground">Error</span>
-                {showError ? (
-                  <ChevronDown className="h-3 w-3 text-muted-foreground" />
-                ) : (
-                  <ChevronDown className="h-3 w-3 text-muted-foreground -rotate-90" />
-                )}
-              </div>
-
-              {showError && (
-                <div className="px-2 pb-2 nodrag overflow-auto">
-                  <p className="text-xs text-red-600 dark:text-red-400">
-                    {data.error}
-                  </p>
-                </div>
-              )}
-            </>
-          )}
         </div>
 
         {data.functionCalling && (
