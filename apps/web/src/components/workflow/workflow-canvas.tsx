@@ -27,8 +27,6 @@ import Layers2 from "lucide-react/icons/layers-2";
 import Mail from "lucide-react/icons/mail";
 import Maximize from "lucide-react/icons/maximize";
 import Network from "lucide-react/icons/network";
-import PanelLeft from "lucide-react/icons/panel-left";
-import PanelLeftClose from "lucide-react/icons/panel-left-close";
 import PencilIcon from "lucide-react/icons/pencil";
 import Play from "lucide-react/icons/play";
 import Plus from "lucide-react/icons/plus";
@@ -50,6 +48,7 @@ import type {
   WorkflowExecutionStatus,
   WorkflowNodeType,
 } from "./workflow-types";
+import { PanelRightClose, PanelRightOpen } from "lucide-react";
 
 const nodeTypes = {
   workflowNode: WorkflowNode,
@@ -362,9 +361,9 @@ function SidebarToggle({ onClick, isSidebarVisible }: SidebarToggleProps) {
       className={actionBarButtonOutlineClassName}
     >
       {isSidebarVisible ? (
-        <PanelLeftClose className="!size-4 rotate-180" />
+        <PanelRightClose className="!size-4" />
       ) : (
-        <PanelLeft className="!size-4 rotate-180" />
+        <PanelRightOpen className="!size-4" />
       )}
     </ActionBarButton>
   );

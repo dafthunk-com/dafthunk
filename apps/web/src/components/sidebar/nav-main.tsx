@@ -1,7 +1,8 @@
 "use client";
 
-import { type LucideIcon } from "lucide-react";
+import { PanelLeftClose, type LucideIcon } from "lucide-react";
 import PanelLeft from "lucide-react/icons/panel-left";
+import PanelLeftOpen from "lucide-react/icons/panel-left-open";
 
 import {
   SidebarGroup,
@@ -76,7 +77,7 @@ export function NavMain({ items, footerItems }: NavMainProps) {
             onClick={toggleSidebar}
             className="hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50 transition-colors mt-1 mb-5"
           >
-            <PanelLeft />
+            {open ? <PanelLeftClose /> : <PanelLeftOpen />}
             <span
               className={cn(
                 "uppercase text-semibold text-xs transition-opacity",
