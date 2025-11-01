@@ -19,7 +19,7 @@ export function ActionBarGroup({
   vertical = false,
   className = "",
 }: ActionBarGroupProps) {
-  const baseClasses = "bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-sm";
+  const baseClasses = "backdrop-blur-sm border border-neutral-200 dark:border-neutral-700 rounded-lg shadow";
   const horizontalClasses =
     "flex items-center [&>*:first-child]:rounded-l-lg [&>*:first-child]:rounded-r-none [&>*:last-child]:rounded-r-lg [&>*:last-child]:rounded-l-none [&>*:only-child]:rounded-lg [&>*:not(:last-child)]:border-r [&>*:not(:last-child)]:border-neutral-200 [&>*:not(:last-child)]:dark:border-neutral-700";
   const verticalClasses =
