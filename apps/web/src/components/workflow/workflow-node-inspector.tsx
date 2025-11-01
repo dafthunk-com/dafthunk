@@ -221,15 +221,15 @@ export function WorkflowNodeInspector({
         <div className="border-b border-border">
           <button
             onClick={() => setPropertiesExpanded(!propertiesExpanded)}
-            className="w-full px-4 py-3 flex items-center justify-between"
+            className="group w-full px-4 py-3 flex items-center justify-between transition-colors"
           >
             <h2 className="text-base font-semibold text-foreground">
               {disabled ? "Node Properties (Read-only)" : "Node Properties"}
             </h2>
             <ChevronDownIcon
-              className={`h-4 w-4 text-muted-foreground transition-transform ${
+              className={`h-4 w-4 transition-all ${
                 propertiesExpanded ? "rotate-0" : "-rotate-90"
-              }`}
+              } text-neutral-400 group-hover:text-neutral-700 dark:text-neutral-500 dark:group-hover:text-neutral-300`}
             />
           </button>
           {propertiesExpanded && (
@@ -276,13 +276,13 @@ export function WorkflowNodeInspector({
         <div className="border-b border-border">
           <button
             onClick={() => setInputsExpanded(!inputsExpanded)}
-            className="w-full px-4 py-3 flex items-center justify-between"
+            className="group w-full px-4 py-3 flex items-center justify-between transition-colors"
           >
             <h2 className="text-base font-semibold text-foreground">Inputs</h2>
             <ChevronDownIcon
-              className={`h-4 w-4 text-muted-foreground transition-transform ${
+              className={`h-4 w-4 transition-all ${
                 inputsExpanded ? "rotate-0" : "-rotate-90"
-              }`}
+              } text-neutral-400 group-hover:text-neutral-700 dark:text-neutral-500 dark:group-hover:text-neutral-300`}
             />
           </button>
           {inputsExpanded && (
@@ -326,15 +326,15 @@ export function WorkflowNodeInspector({
                               handleToggleVisibility(input.id)
                             }
                             aria-label={`Toggle visibility for ${input.name}`}
-                            className={`px-1 h-8 w-8 bg-transparent data-[state=on]:bg-transparent hover:bg-muted data-[state=on]:text-muted-foreground hover:text-foreground transition-colors ${
+                            className={`group px-1 h-8 w-8 bg-transparent data-[state=on]:bg-transparent hover:bg-transparent transition-colors ${
                               disabled ? "opacity-70 cursor-not-allowed" : ""
                             }`}
                             disabled={disabled}
                           >
                             {input.hidden ? (
-                              <EyeOffIcon className="h-3 w-3" />
+                              <EyeOffIcon className="h-3 w-3 text-neutral-400 group-hover:text-neutral-700 dark:text-neutral-500 dark:group-hover:text-neutral-300 transition-colors" />
                             ) : (
-                              <EyeIcon className="h-3 w-3" />
+                              <EyeIcon className="h-3 w-3 text-neutral-400 group-hover:text-neutral-700 dark:text-neutral-500 dark:group-hover:text-neutral-300 transition-colors" />
                             )}
                           </Toggle>
                         </div>
@@ -383,11 +383,11 @@ export function WorkflowNodeInspector({
         <div className="border-b border-border">
           <button
             onClick={() => setOutputsExpanded(!outputsExpanded)}
-            className="w-full px-4 py-3 flex items-center justify-between"
+            className="group w-full px-4 py-3 flex items-center justify-between transition-colors"
           >
             <h2 className="text-base font-semibold text-foreground">Outputs</h2>
             <ChevronDownIcon
-              className={`h-4 w-4 text-muted-foreground transition-transform ${
+              className={`h-4 w-4 text-neutral-400 dark:text-neutral-500 transition-transform ${
                 outputsExpanded ? "rotate-0" : "-rotate-90"
               }`}
             />
@@ -414,15 +414,15 @@ export function WorkflowNodeInspector({
                             handleToggleOutputVisibility(output.id)
                           }
                           aria-label={`Toggle visibility for ${output.name}`}
-                          className={`px-1 h-8 w-8 bg-transparent data-[state=on]:bg-transparent hover:bg-muted data-[state=on]:text-muted-foreground hover:text-foreground transition-colors ${
+                          className={`group px-1 h-8 w-8 bg-transparent data-[state=on]:bg-transparent hover:bg-transparent transition-colors ${
                             disabled ? "opacity-70 cursor-not-allowed" : ""
                           }`}
                           disabled={disabled}
                         >
                           {output.hidden ? (
-                            <EyeOffIcon className="h-3 w-3" />
+                            <EyeOffIcon className="h-3 w-3 text-neutral-400 group-hover:text-neutral-700 dark:text-neutral-500 dark:group-hover:text-neutral-300 transition-colors" />
                           ) : (
-                            <EyeIcon className="h-3 w-3" />
+                            <EyeIcon className="h-3 w-3 text-neutral-400 group-hover:text-neutral-700 dark:text-neutral-500 dark:group-hover:text-neutral-300 transition-colors" />
                           )}
                         </Toggle>
                       </div>
@@ -449,11 +449,11 @@ export function WorkflowNodeInspector({
         <div className="border-b border-border">
           <button
             onClick={() => setErrorExpanded(!errorExpanded)}
-            className="w-full px-4 py-3 flex items-center justify-between"
+            className="group w-full px-4 py-3 flex items-center justify-between transition-colors"
           >
             <h2 className="text-base font-semibold text-foreground">Error</h2>
             <ChevronDownIcon
-              className={`h-4 w-4 text-muted-foreground transition-transform ${
+              className={`h-4 w-4 text-neutral-400 dark:text-neutral-500 transition-transform ${
                 errorExpanded ? "rotate-0" : "-rotate-90"
               }`}
             />

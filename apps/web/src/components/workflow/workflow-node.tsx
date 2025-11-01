@@ -339,8 +339,8 @@ export const WorkflowNode = memo(
             <button
               type="button"
               className={cn(
-                "nodrag p-1 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors",
-                "text-neutral-500"
+                "nodrag p-1 rounded transition-colors",
+                "text-neutral-400 hover:text-neutral-700 dark:text-neutral-500 dark:hover:text-neutral-300"
               )}
               onClick={(e) => {
                 e.stopPropagation();
