@@ -773,6 +773,7 @@ export function WorkflowCanvas({
         fitView
         fitViewOptions={{
           padding: 0.25,
+          maxZoom: 2,
         }}
         minZoom={0.05}
         maxZoom={4}

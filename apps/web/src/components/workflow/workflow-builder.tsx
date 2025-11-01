@@ -396,7 +396,7 @@ export function WorkflowBuilder({
       e.preventDefault();
       e.stopPropagation();
       if (reactFlowInstance) {
-        reactFlowInstance.fitView({ padding: 0.25, duration: 200 });
+        reactFlowInstance.fitView({ padding: 0.25, duration: 200, maxZoom: 2 });
       }
     },
     [reactFlowInstance]
