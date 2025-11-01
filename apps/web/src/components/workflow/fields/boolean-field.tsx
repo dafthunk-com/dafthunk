@@ -2,9 +2,9 @@ import { Switch } from "@/components/ui/switch";
 import { cn } from "@/utils/utils";
 
 import { ClearButton } from "./clear-button";
-import type { FieldWidgetProps } from "./types";
+import type { FieldProps } from "./types";
 
-export function BooleanFieldWidget({
+export function BooleanField({
   input,
   value,
   onChange,
@@ -14,7 +14,7 @@ export function BooleanFieldWidget({
   className,
   active,
   connected,
-}: FieldWidgetProps) {
+}: FieldProps) {
   const boolValue = String(value) === "true";
   const hasValue = value !== undefined;
 

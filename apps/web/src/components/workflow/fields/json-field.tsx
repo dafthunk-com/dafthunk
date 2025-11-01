@@ -3,9 +3,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/utils/utils";
 
 import { ClearButton } from "./clear-button";
-import type { FieldWidgetProps } from "./types";
+import type { FieldProps } from "./types";
 
-export function JsonFieldWidget({
+export function JsonField({
   value,
   onChange,
   onClear,
@@ -14,7 +14,7 @@ export function JsonFieldWidget({
   className,
   active,
   connected,
-}: FieldWidgetProps) {
+}: FieldProps) {
   const hasValue = value !== undefined && value !== "";
 
   // Serialize objects/arrays to JSON, or use string value

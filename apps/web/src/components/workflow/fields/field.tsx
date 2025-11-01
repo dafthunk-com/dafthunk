@@ -2,32 +2,32 @@ import { useState } from "react";
 
 import { useObjectService } from "@/services/object-service";
 
-import { AnyFieldWidget } from "./any-field";
-import { AudioFieldWidget } from "./audio-field";
-import { BooleanFieldWidget } from "./boolean-field";
-import { BufferGeometryFieldWidget } from "./buffergeometry-field";
-import { DocumentFieldWidget } from "./document-field";
+import { AnyField } from "./any-field";
+import { AudioField } from "./audio-field";
+import { BooleanField } from "./boolean-field";
+import { BufferGeometryField } from "./buffergeometry-field";
+import { DocumentField } from "./document-field";
 import {
   createFileUploadHandler,
   fileValidators,
   mimeTypeDetectors,
 } from "./file-upload-handler";
-import { GenericFieldWidget } from "./generic-field";
-import { GeoJSONFieldWidget } from "./geojson-field";
-import { GltfFieldWidget } from "./gltf-field";
-import { ImageFieldWidget } from "./image-field";
-import { JsonFieldWidget } from "./json-field";
-import { NumberFieldWidget } from "./number-field";
-import { SecretFieldWidget } from "./secret-field";
-import { TextFieldWidget } from "./text-field";
-import type { FieldWidgetProps, ObjectReference } from "./types";
+import { GenericField } from "./generic-field";
+import { GeoJSONField } from "./geojson-field";
+import { GltfField } from "./gltf-field";
+import { ImageField } from "./image-field";
+import { JsonField } from "./json-field";
+import { NumberField } from "./number-field";
+import { SecretField } from "./secret-field";
+import { TextField } from "./text-field";
+import type { FieldProps, ObjectReference } from "./types";
 
-export interface FieldWidgetRouterProps extends FieldWidgetProps {
+export interface FieldRouterProps extends FieldProps {
   createObjectUrl?: (objectReference: ObjectReference) => string;
   previewable?: boolean;
 }
 
-export function FieldWidget(props: FieldWidgetRouterProps) {
+export function Field(props: FieldRouterProps) {
   const { input, createObjectUrl } = props;
   const { uploadBinaryData } = useObjectService();
   const [isUploading, setIsUploading] = useState(false);
@@ -92,18 +92,18 @@ export function FieldWidget(props: FieldWidgetRouterProps) {
   // Route to appropriate widget based on input type
   switch (input.type) {
     case "boolean":
-      return <BooleanFieldWidget {...props} />;
+      return <BooleanField {...props} />;
     case "number":
-      return <NumberFieldWidget {...props} />;
+      return <NumberField {...props} />;
     case "string":
-      return <TextFieldWidget {...props} />;
+      return <TextField {...props} />;
     case "json":
-      return <JsonFieldWidget {...props} />;
+      return <JsonField {...props} />;
     case "secret":
-      return <SecretFieldWidget {...props} />;
+      return <SecretField {...props} />;
     case "image":
       return (
-        <ImageFieldWidget
+        <ImageField
           {...props}
           isUploading={isUploading}
           uploadError={uploadError}
@@ -113,7 +113,7 @@ export function FieldWidget(props: FieldWidgetRouterProps) {
       );
     case "document":
       return (
-        <DocumentFieldWidget
+        <DocumentField
           {...props}
           isUploading={isUploading}
           uploadError={uploadError}
@@ -123,7 +123,7 @@ export function FieldWidget(props: FieldWidgetRouterProps) {
       );
     case "audio":
       return (
-        <AudioFieldWidget
+        <AudioField
           {...props}
           isUploading={isUploading}
           uploadError={uploadError}
@@ -133,7 +133,7 @@ export function FieldWidget(props: FieldWidgetRouterProps) {
       );
     case "gltf":
       return (
-        <GltfFieldWidget
+        <GltfField
           {...props}
           isUploading={isUploading}
           uploadError={uploadError}
@@ -143,7 +143,7 @@ export function FieldWidget(props: FieldWidgetRouterProps) {
       );
     case "buffergeometry":
       return (
-        <BufferGeometryFieldWidget
+        <BufferGeometryField
           {...props}
           isUploading={isUploading}
           uploadError={uploadError}
@@ -162,10 +162,10 @@ export function FieldWidget(props: FieldWidgetRouterProps) {
     case "feature":
     case "featurecollection":
     case "geojson":
-      return <GeoJSONFieldWidget {...props} />;
+      return <GeoJSONField {...props} />;
     case "any":
-      return <AnyFieldWidget {...props} createObjectUrl={createObjectUrl} />;
+      return <AnyField {...props} createObjectUrl={createObjectUrl} />;
     default:
-      return <GenericFieldWidget {...props} />;
+      return <GenericField {...props} />;
   }
 }

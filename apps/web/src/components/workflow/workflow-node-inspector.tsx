@@ -31,7 +31,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Toggle } from "@/components/ui/toggle";
 
-import { ClearButton, FieldWidget, UnplugButton } from "./fields";
+import { ClearButton, Field, UnplugButton } from "./fields";
 import {
   clearNodeInput,
   convertValueByType,
@@ -341,7 +341,7 @@ export function WorkflowNodeInspector({
                       </div>
 
                       <div className="relative">
-                        <FieldWidget
+                        <Field
                           input={input}
                           value={
                             isConnected
@@ -428,7 +428,7 @@ export function WorkflowNodeInspector({
                         </Toggle>
                       </div>
                     </div>
-                    <FieldWidget
+                    <Field
                       input={output}
                       value={output.value}
                       onChange={() => {}}

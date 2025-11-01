@@ -8,9 +8,9 @@ import { cn } from "@/utils/utils";
 
 import { ModelViewer } from "../model-viewer";
 import { ClearButton } from "./clear-button";
-import type { FieldWidgetProps, ObjectReference } from "./types";
+import type { FieldProps, ObjectReference } from "./types";
 
-export function AnyFieldWidget({
+export function AnyField({
   input,
   value,
   onChange,
@@ -21,8 +21,8 @@ export function AnyFieldWidget({
   active,
   connected,
   createObjectUrl,
-  previewable = true,
-}: FieldWidgetProps & {
+  previewable: _previewable = true,
+}: FieldProps & {
   createObjectUrl?: (objectReference: ObjectReference) => string;
 }) {
   const hasValue = value !== undefined && value !== null;

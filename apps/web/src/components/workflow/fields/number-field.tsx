@@ -2,9 +2,9 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/utils/utils";
 
 import { ClearButton } from "./clear-button";
-import type { FieldWidgetProps } from "./types";
+import type { FieldProps } from "./types";
 
-export function NumberFieldWidget({
+export function NumberField({
   input: _input,
   value,
   onChange,
@@ -14,7 +14,7 @@ export function NumberFieldWidget({
   className,
   active,
   connected,
-}: FieldWidgetProps) {
+}: FieldProps) {
   const hasValue = value !== undefined && value !== "";
 
   // Disabled state without value

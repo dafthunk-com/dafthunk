@@ -9,9 +9,9 @@ import { useSecrets } from "@/services/secrets-service";
 import { cn } from "@/utils/utils";
 
 import { ClearButton } from "./clear-button";
-import type { FieldWidgetProps } from "./types";
+import type { FieldProps } from "./types";
 
-export function SecretFieldWidget({
+export function SecretField({
   input: _input,
   value,
   onChange,
@@ -21,7 +21,7 @@ export function SecretFieldWidget({
   className,
   active,
   connected,
-}: FieldWidgetProps) {
+}: FieldProps) {
   const { secrets, isSecretsLoading } = useSecrets();
   const hasValue = value !== undefined && value !== "";
 

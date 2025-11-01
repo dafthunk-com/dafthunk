@@ -2,7 +2,7 @@ import type { ObjectReference } from "@dafthunk/types";
 
 import type { WorkflowParameter } from "@/components/workflow/workflow-types";
 
-export interface FieldWidgetProps {
+export interface FieldProps {
   input: WorkflowParameter;
   value: unknown;
   onChange: (value: unknown) => void;
@@ -15,7 +15,7 @@ export interface FieldWidgetProps {
   previewable?: boolean;
 }
 
-export interface FileFieldWidgetProps extends FieldWidgetProps {
+export interface FileFieldProps extends FieldProps {
   isUploading?: boolean;
   uploadError?: string | null;
   onFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => Promise<void>;

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-import { FieldWidget } from "@/components/workflow/fields";
+import { Field } from "@/components/workflow/fields";
 import {
   clearNodeInput,
   convertValueByType,
@@ -153,7 +153,7 @@ export function WorkflowNodeInput({
       onKeyDown={handleKeyDown}
     >
       <div className="h-full">
-        <FieldWidget
+        <Field
           input={input}
           value={localValue}
           onChange={handleInputChange}

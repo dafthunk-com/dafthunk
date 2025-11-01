@@ -5,9 +5,9 @@ import { isObjectReference } from "@/services/object-service";
 import { cn } from "@/utils/utils";
 
 import { ClearButton } from "./clear-button";
-import type { FileFieldWidgetProps, ObjectReference } from "./types";
+import type { FileFieldProps, ObjectReference } from "./types";
 
-export function DocumentFieldWidget({
+export function DocumentField({
   input,
   value,
   onClear,
@@ -21,7 +21,7 @@ export function DocumentFieldWidget({
   active,
   connected,
   previewable = true,
-}: FileFieldWidgetProps) {
+}: FileFieldProps) {
   const hasValue = value !== undefined && isObjectReference(value);
 
   // Disabled state without value
@@ -64,7 +64,7 @@ export function DocumentFieldWidget({
             className
           )}
         >
-          Document: {(value as ObjectReference).key}
+          Document: {(value as ObjectReference).id}
         </div>
       );
     }

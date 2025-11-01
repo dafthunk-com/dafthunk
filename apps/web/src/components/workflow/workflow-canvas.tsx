@@ -21,8 +21,6 @@ import ArrowUpToLine from "lucide-react/icons/arrow-up-to-line";
 import ClipboardPaste from "lucide-react/icons/clipboard-paste";
 import Clock from "lucide-react/icons/clock";
 import Copy from "lucide-react/icons/copy";
-import Eye from "lucide-react/icons/eye";
-import EyeOff from "lucide-react/icons/eye-off";
 import FileText from "lucide-react/icons/file-text";
 import Globe from "lucide-react/icons/globe";
 import Layers2 from "lucide-react/icons/layers-2";
@@ -183,8 +181,6 @@ export interface WorkflowCanvasProps {
   showControls?: boolean;
   isValidConnection?: IsValidConnection<ReactFlowEdge<WorkflowEdgeType>>;
   disabled?: boolean;
-  expandedOutputs?: boolean;
-  onToggleExpandedOutputs?: (e: React.MouseEvent) => void;
   onFitToScreen?: (e: React.MouseEvent) => void;
   selectedNodes: ReactFlowNode<WorkflowNodeType>[];
   selectedEdges: ReactFlowEdge<WorkflowEdgeType>[];
@@ -369,38 +365,6 @@ function SidebarToggle({ onClick, isSidebarVisible }: SidebarToggleProps) {
         <PanelLeftClose className="!size-4 rotate-180" />
       ) : (
         <PanelLeft className="!size-4 rotate-180" />
-      )}
-    </ActionBarButton>
-  );
-}
-
-function OutputsToggle({
-  onClick,
-  expandedOutputs,
-  disabled,
-}: {
-  onClick: (e: React.MouseEvent) => void;
-  expandedOutputs: boolean;
-  disabled?: boolean;
-}) {
-  const tooltipText = disabled
-    ? "No outputs or errors to show"
-    : expandedOutputs
-      ? "Hide All Outputs & Errors"
-      : "Show All Outputs & Errors";
-
-  return (
-    <ActionBarButton
-      onClick={onClick}
-      disabled={disabled}
-      className={actionBarButtonOutlineClassName}
-      tooltipSide="bottom"
-      tooltip={tooltipText}
-    >
-      {expandedOutputs ? (
-        <EyeOff className="!size-4" />
-      ) : (
-        <Eye className="!size-4" />
       )}
     </ActionBarButton>
   );
@@ -750,8 +714,6 @@ export function WorkflowCanvas({
   showControls = true,
   isValidConnection,
   disabled = false,
-  expandedOutputs = false,
-  onToggleExpandedOutputs,
   onFitToScreen,
   selectedNodes,
   selectedEdges,
@@ -764,11 +726,6 @@ export function WorkflowCanvas({
   onPasteFromClipboard,
   hasClipboardData = false,
 }: WorkflowCanvasProps) {
-  // Check if any nodes have output values
-  const hasAnyOutputs = nodes.some((node) =>
-    node.data.outputs.some((output) => output.value !== undefined)
-  );
-
   // Get selected elements for button states
   const hasSelectedElements =
     selectedNodes.length > 0 || selectedEdges.length > 0;
@@ -856,11 +813,8 @@ export function WorkflowCanvas({
           (onAction ||
             onDeploy ||
             onSetSchedule ||
-            onToggleExpandedOutputs ||
             (onToggleSidebar && isSidebarVisible !== undefined))) ||
-          (disabled &&
-            (onToggleExpandedOutputs ||
-              (onToggleSidebar && isSidebarVisible !== undefined)))) && (
+          (disabled && onToggleSidebar && isSidebarVisible !== undefined)) && (
           <div className="absolute top-4 right-4 flex items-center gap-3 z-50">
             {/* Runtime Actions Group - Execute + Triggers */}
             {!disabled &&
@@ -913,24 +867,13 @@ export function WorkflowCanvas({
               </ActionBarGroup>
             )}
 
-            {/* View Controls Group - Outputs + Sidebar */}
-            {(onToggleExpandedOutputs ||
-              (onToggleSidebar && isSidebarVisible !== undefined)) && (
+            {/* View Controls Group - Sidebar */}
+            {onToggleSidebar && isSidebarVisible !== undefined && (
               <ActionBarGroup>
-                {onToggleExpandedOutputs && (
-                  <OutputsToggle
-                    onClick={onToggleExpandedOutputs}
-                    expandedOutputs={expandedOutputs}
-                    disabled={!hasAnyOutputs}
-                  />
-                )}
-
-                {onToggleSidebar && isSidebarVisible !== undefined && (
-                  <SidebarToggle
-                    onClick={onToggleSidebar}
-                    isSidebarVisible={isSidebarVisible}
-                  />
-                )}
+                <SidebarToggle
+                  onClick={onToggleSidebar}
+                  isSidebarVisible={isSidebarVisible}
+                />
               </ActionBarGroup>
             )}
           </div>

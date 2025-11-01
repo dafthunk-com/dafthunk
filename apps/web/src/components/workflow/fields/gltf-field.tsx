@@ -6,9 +6,9 @@ import { cn } from "@/utils/utils";
 
 import { ModelViewer } from "../model-viewer";
 import { ClearButton } from "./clear-button";
-import type { FileFieldWidgetProps, ObjectReference } from "./types";
+import type { FileFieldProps, ObjectReference } from "./types";
 
-export function GltfFieldWidget({
+export function GltfField({
   input,
   value,
   onClear,
@@ -22,7 +22,7 @@ export function GltfFieldWidget({
   active,
   connected,
   previewable = true,
-}: FileFieldWidgetProps) {
+}: FileFieldProps) {
   const hasValue = value !== undefined && isObjectReference(value);
 
   // Disabled state without value
@@ -62,7 +62,7 @@ export function GltfFieldWidget({
             className
           )}
         >
-          3D Model: {(value as ObjectReference).key}
+          3D Model: {(value as ObjectReference).id}
         </div>
       );
     }

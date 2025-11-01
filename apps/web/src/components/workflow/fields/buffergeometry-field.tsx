@@ -5,9 +5,9 @@ import { isObjectReference } from "@/services/object-service";
 import { cn } from "@/utils/utils";
 
 import { ClearButton } from "./clear-button";
-import type { FileFieldWidgetProps, ObjectReference } from "./types";
+import type { FileFieldProps, ObjectReference } from "./types";
 
-export function BufferGeometryFieldWidget({
+export function BufferGeometryField({
   input,
   value,
   onClear,
@@ -20,8 +20,8 @@ export function BufferGeometryFieldWidget({
   className,
   active,
   connected,
-  previewable = true,
-}: FileFieldWidgetProps) {
+  previewable: _previewable = true,
+}: FileFieldProps) {
   const hasValue = value !== undefined && isObjectReference(value);
 
   // Disabled state without value

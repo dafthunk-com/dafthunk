@@ -5,9 +5,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/utils/utils";
 
 import { ClearButton } from "./clear-button";
-import type { FieldWidgetProps } from "./types";
+import type { FieldProps } from "./types";
 
-export function GeoJSONFieldWidget({
+export function GeoJSONField({
   input,
   value,
   onChange,
@@ -18,7 +18,7 @@ export function GeoJSONFieldWidget({
   active,
   connected,
   previewable = true,
-}: FieldWidgetProps) {
+}: FieldProps) {
   const hasValue = value !== undefined && value !== null;
 
   // When disabled and no value, show appropriate message

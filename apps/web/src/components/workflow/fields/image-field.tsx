@@ -4,9 +4,9 @@ import { isObjectReference } from "@/services/object-service";
 import { cn } from "@/utils/utils";
 
 import { ClearButton } from "./clear-button";
-import type { FileFieldWidgetProps, ObjectReference } from "./types";
+import type { FileFieldProps, ObjectReference } from "./types";
 
-export function ImageFieldWidget({
+export function ImageField({
   input,
   value,
   onClear,
@@ -20,7 +20,7 @@ export function ImageFieldWidget({
   active,
   connected,
   previewable = true,
-}: FileFieldWidgetProps) {
+}: FileFieldProps) {
   const hasValue = value !== undefined && isObjectReference(value);
 
   // Disabled state without value
@@ -57,11 +57,13 @@ export function ImageFieldWidget({
         <div
           className={cn(
             "text-xs p-2 rounded-md border border-border",
-            disabled ? "bg-muted/50 text-neutral-500" : "bg-white dark:bg-neutral-950",
+            disabled
+              ? "bg-muted/50 text-neutral-500"
+              : "bg-white dark:bg-neutral-950",
             className
           )}
         >
-          Image: {(value as ObjectReference).key}
+          Image: {(value as ObjectReference).id}
           {!disabled && clearable && (
             <ClearButton
               onClick={onClear}

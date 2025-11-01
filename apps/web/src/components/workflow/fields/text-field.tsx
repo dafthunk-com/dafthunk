@@ -2,9 +2,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/utils/utils";
 
 import { ClearButton } from "./clear-button";
-import type { FieldWidgetProps } from "./types";
+import type { FieldProps } from "./types";
 
-export function TextFieldWidget({
+export function TextField({
   value,
   onChange,
   onClear,
@@ -13,7 +13,7 @@ export function TextFieldWidget({
   className,
   active,
   connected,
-}: FieldWidgetProps) {
+}: FieldProps) {
   const hasValue = value !== undefined && value !== "";
   const stringValue = value !== undefined ? String(value) : "";
 
