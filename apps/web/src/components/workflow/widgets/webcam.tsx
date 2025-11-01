@@ -104,20 +104,20 @@ function WebcamWidget({
           {imageReference ? (
             <button
               onClick={clearImage}
-              className="inline-flex items-center justify-center w-6 h-6 rounded bg-white/90 hover:bg-white text-neutral-600"
+              className="inline-flex items-center justify-center size-6 rounded border border-neutral-200 dark:border-neutral-700 bg-white/75 hover:bg-neutral-50/75 text-neutral-600 dark:bg-neutral-900/75 dark:hover:bg-neutral-800/75 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200 transition-colors"
               aria-label="Clear image"
               disabled={readonly}
             >
-              <X className="h-3 w-3" />
+              <X className="!size-3" />
             </button>
           ) : (
             <button
               onClick={captureImage}
-              className="inline-flex items-center justify-center w-6 h-6 rounded bg-white/90 hover:bg-white text-neutral-600"
+              className="inline-flex items-center justify-center size-6 rounded border border-neutral-200 dark:border-neutral-700 bg-white/75 hover:bg-neutral-50/75 text-neutral-600 dark:bg-neutral-900/75 dark:hover:bg-neutral-800/75 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200 transition-colors"
               aria-label="Capture image"
               disabled={isUploading || readonly}
             >
-              <Camera className="h-3 w-3" />
+              <Camera className="!size-3" />
             </button>
           )}
         </div>

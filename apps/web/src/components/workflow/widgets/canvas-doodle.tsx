@@ -3,7 +3,6 @@ import Save from "lucide-react/icons/save";
 import { useEffect, useRef, useState } from "react";
 
 import { useAuth } from "@/components/auth-context";
-import { Button } from "@/components/ui/button";
 import { isObjectReference, useObjectService } from "@/services/object-service";
 
 import type { BaseWidgetProps } from "./widget";
@@ -205,26 +204,22 @@ function CanvasDoodleWidget({
           </div>
         </div>
         <div className="absolute top-2 right-2 z-10 flex gap-1">
-          <Button
-            variant="outline"
-            size="icon"
+          <button
             onClick={handleClear}
-            className="h-6 w-6 bg-white/90 hover:bg-white"
+            className="inline-flex items-center justify-center size-6 rounded border border-neutral-200 dark:border-neutral-700 bg-white/75 hover:bg-neutral-50/75 text-neutral-600 dark:bg-neutral-900/75 dark:hover:bg-neutral-800/75 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200 transition-colors"
             disabled={isUploading || readonly}
             aria-label="Clear"
           >
-            <Eraser className="h-3 w-3" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
+            <Eraser className="!size-3" />
+          </button>
+          <button
             onClick={saveCanvas}
-            className="h-6 w-6 bg-white/90 hover:bg-white"
+            className="inline-flex items-center justify-center size-6 rounded border border-neutral-200 dark:border-neutral-700 bg-white/75 hover:bg-neutral-50/75 text-neutral-600 dark:bg-neutral-900/75 dark:hover:bg-neutral-800/75 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200 transition-colors"
             disabled={isUploading || readonly}
             aria-label="Save"
           >
-            <Save className="h-3 w-3" />
-          </Button>
+            <Save className="!size-3" />
+          </button>
         </div>
         <div className="overflow-hidden bg-white">
           {imageReference ? (

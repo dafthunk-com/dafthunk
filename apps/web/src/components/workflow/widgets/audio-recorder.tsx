@@ -116,33 +116,33 @@ function AudioRecorderWidget({
   return (
     <div>
       <div className="relative w-full">
-        <div className="absolute top-2 right-2 z-10 flex gap-2">
+        <div className="absolute top-2 right-2 z-10 flex gap-1">
           {audioReference ? (
             <button
               onClick={clearRecording}
-              className="inline-flex items-center justify-center w-6 h-6 rounded bg-white/90 hover:bg-white text-neutral-600"
+              className="inline-flex items-center justify-center size-6 rounded border border-neutral-200 dark:border-neutral-700 bg-white/75 hover:bg-neutral-50/75 text-neutral-600 dark:bg-neutral-900/75 dark:hover:bg-neutral-800/75 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200 transition-colors"
               aria-label="Clear recording"
               disabled={isUploading || readonly}
             >
-              <Trash2 className="h-3 w-3" />
+              <Trash2 className="!size-3" />
             </button>
           ) : isRecording ? (
             <button
               onClick={stopRecording}
-              className="inline-flex items-center justify-center w-6 h-6 rounded bg-white/90 hover:bg-white text-red-600"
+              className="inline-flex items-center justify-center size-6 rounded border border-neutral-200 dark:border-neutral-700 bg-white/75 hover:bg-neutral-50/75 text-red-600 dark:bg-neutral-900/75 dark:hover:bg-neutral-800/75 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
               aria-label="Stop recording"
               disabled={isUploading || readonly}
             >
-              <Square className="h-3 w-3" />
+              <Square className="!size-3" />
             </button>
           ) : (
             <button
               onClick={startRecording}
-              className="inline-flex items-center justify-center w-6 h-6 rounded bg-white/90 hover:bg-white text-neutral-600"
+              className="inline-flex items-center justify-center size-6 rounded border border-neutral-200 dark:border-neutral-700 bg-white/75 hover:bg-neutral-50/75 text-neutral-600 dark:bg-neutral-900/75 dark:hover:bg-neutral-800/75 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200 transition-colors"
               aria-label="Start recording"
               disabled={isUploading || readonly}
             >
-              <Mic className="h-3 w-3" />
+              <Mic className="!size-3" />
             </button>
           )}
         </div>
