@@ -18,11 +18,12 @@ export function GeoJSONField({
   active,
   connected,
   previewable = true,
+  editable = true,
 }: FieldProps) {
   const hasValue = value !== undefined && value !== null;
 
-  // When disabled and no value, show appropriate message
-  if (disabled && !hasValue) {
+  // When non-editable or disabled and no value, show appropriate message
+  if ((!editable || disabled) && !hasValue) {
     return (
       <div
         className={cn(
@@ -114,8 +115,8 @@ export function GeoJSONField({
   const formattedValue = hasValue ? formatGeoJSON(value) : "";
   const geometryLabel = getGeometryTypeLabel(input.type);
 
-  // Disabled mode (read-only output)
-  if (disabled) {
+  // Non-editable or disabled mode (read-only output)
+  if (!editable || disabled) {
     const result = hasValue
       ? renderGeoJSONSvg(value)
       : { svg: "", error: null };

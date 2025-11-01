@@ -37,6 +37,7 @@ import { cn } from "@/utils/utils";
 import { registry } from "./widgets";
 import { updateNodeInput, useWorkflow } from "./workflow-context";
 import { WorkflowNodeInput } from "./workflow-node-input";
+import { WorkflowNodeOutput } from "./workflow-node-output";
 import { ToolReference, WorkflowToolSelector } from "./workflow-tool-selector";
 import {
   InputOutputType,
@@ -64,6 +65,7 @@ export const TypeBadge = ({
   id,
   parameter,
   onInputClick,
+  onOutputClick,
   disabled,
   className,
   size: _size = "sm",
@@ -75,6 +77,7 @@ export const TypeBadge = ({
   id: string;
   parameter?: WorkflowParameter;
   onInputClick?: (param: WorkflowParameter, element: HTMLElement) => void;
+  onOutputClick?: (param: WorkflowParameter, element: HTMLElement) => void;
   disabled?: boolean;
   className?: string;
   size?: "sm" | "md";
@@ -114,12 +117,13 @@ export const TypeBadge = ({
 
     if (position === Position.Left && parameter && onInputClick) {
       onInputClick(parameter, e.currentTarget);
+    } else if (position === Position.Right && parameter && onOutputClick) {
+      onOutputClick(parameter, e.currentTarget);
     }
   };
 
-  // Check if the parameter has a value set (only for input parameters)
-  const hasValue =
-    position === Position.Left && parameter && parameter.value !== undefined;
+  // Check if the parameter has a value set
+  const hasValue = parameter && parameter.value !== undefined;
   // Check if the parameter is connected
   const isConnected = parameter?.isConnected === true;
   // Determine if this is an input parameter
@@ -189,7 +193,11 @@ export const WorkflowNode = memo(
     const [isToolSelectorOpen, setIsToolSelectorOpen] = useState(false);
     const [isDocsOpen, setIsDocsOpen] = useState(false);
     const [activeInputId, setActiveInputId] = useState<string | null>(null);
+    const [activeOutputId, setActiveOutputId] = useState<string | null>(null);
     const inputContainerRefs = useRef<
+      Map<string, React.RefObject<HTMLDivElement | null>>
+    >(new Map());
+    const outputContainerRefs = useRef<
       Map<string, React.RefObject<HTMLDivElement | null>>
     >(new Map());
     const handleRefs = useRef<Map<string, HTMLElement>>(new Map());
@@ -220,6 +228,32 @@ export const WorkflowNode = memo(
       return () =>
         document.removeEventListener("mousedown", handleClickOutside, true);
     }, [activeInputId]);
+
+    // Handle click outside to close active output
+    useEffect(() => {
+      if (!activeOutputId) return;
+
+      const handleClickOutside = (event: MouseEvent) => {
+        const target = event.target as HTMLElement;
+        const containerRef = outputContainerRefs.current.get(activeOutputId);
+        const handleElement = handleRefs.current.get(activeOutputId);
+
+        // Check if click is inside the output container
+        const isInsideContainer = containerRef?.current?.contains(target);
+        // Check if click is on the handle itself
+        const isOnHandle = handleElement?.contains(target);
+
+        // If click is outside both the output container and the handle, close it
+        if (!isInsideContainer && !isOnHandle) {
+          setActiveOutputId(null);
+        }
+      };
+
+      // Use capture phase to catch the event before ReactFlow handles it
+      document.addEventListener("mousedown", handleClickOutside, true);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside, true);
+    }, [activeOutputId]);
 
     // Get node type
     const nodeType = data.nodeType || "";
@@ -321,6 +355,17 @@ export const WorkflowNode = memo(
       setActiveInputId(activeInputId === param.id ? null : param.id);
     };
 
+    const handleOutputClick = (
+      param: WorkflowParameter,
+      element: HTMLElement
+    ) => {
+      // Only show preview if there's a value
+      if (param.value === undefined) return;
+      handleRefs.current.set(param.id, element);
+      // Toggle: if this output is already active, close it; otherwise open it
+      setActiveOutputId(activeOutputId === param.id ? null : param.id);
+    };
+
     // Create or get ref for input container
     const getInputContainerRef = (inputId: string) => {
       if (!inputContainerRefs.current.has(inputId)) {
@@ -328,6 +373,15 @@ export const WorkflowNode = memo(
         inputContainerRefs.current.set(inputId, ref);
       }
       return inputContainerRefs.current.get(inputId)!;
+    };
+
+    // Create or get ref for output container
+    const getOutputContainerRef = (outputId: string) => {
+      if (!outputContainerRefs.current.has(outputId)) {
+        const ref = { current: null as HTMLDivElement | null };
+        outputContainerRefs.current.set(outputId, ref);
+      }
+      return outputContainerRefs.current.get(outputId)!;
     };
 
     return (
@@ -531,6 +585,15 @@ export const WorkflowNode = memo(
                     key={`output-${output.id}-${index}`}
                     className="flex items-center gap-3 text-xs relative"
                   >
+                    {activeOutputId === output.id && output.value !== undefined && (
+                      <WorkflowNodeOutput
+                        output={output}
+                        containerRef={getOutputContainerRef(output.id)}
+                        autoFocus={true}
+                        onBlur={() => setActiveOutputId(null)}
+                        active={true}
+                      />
+                    )}
                     <span className="text-xs text-foreground font-medium font-mono truncate">
                       {output.name}
                     </span>
@@ -539,6 +602,7 @@ export const WorkflowNode = memo(
                       position={Position.Right}
                       id={output.id}
                       parameter={output}
+                      onOutputClick={handleOutputClick}
                       disabled={disabled}
                       executionState={data.executionState}
                       selected={selected}

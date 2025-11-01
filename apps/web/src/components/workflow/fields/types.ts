@@ -13,6 +13,7 @@ export interface FieldProps {
   connected?: boolean;
   clearable?: boolean;
   previewable?: boolean;
+  editable?: boolean;
 }
 
 export interface FileFieldProps extends FieldProps {

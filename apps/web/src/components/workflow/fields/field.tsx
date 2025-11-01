@@ -24,7 +24,6 @@ import type { FieldProps, ObjectReference } from "./types";
 
 export interface FieldRouterProps extends FieldProps {
   createObjectUrl?: (objectReference: ObjectReference) => string;
-  previewable?: boolean;
 }
 
 export function Field(props: FieldRouterProps) {

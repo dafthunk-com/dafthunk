@@ -20,12 +20,13 @@ export function BufferGeometryField({
   className,
   active,
   connected,
-  previewable: _previewable = true,
+  previewable = true,
+  editable = true,
 }: FileFieldProps) {
   const hasValue = value !== undefined && isObjectReference(value);
 
-  // Disabled state without value
-  if (disabled && !hasValue) {
+  // Non-editable or disabled state without value
+  if ((!editable || disabled) && !hasValue) {
     return (
       <div
         className={cn(
@@ -53,8 +54,22 @@ export function BufferGeometryField({
     ? (value as ObjectReference)?.mimeType || "application/x-buffer-geometry"
     : "application/x-buffer-geometry";
 
-  // Disabled state with value - show info and download
-  if (disabled && hasValue) {
+  // Non-editable or disabled state with value - show info and download
+  if ((!editable || disabled) && hasValue) {
+    // If not previewable, show minimal text
+    if (!previewable) {
+      return (
+        <div
+          className={cn(
+            "text-xs p-2 bg-muted/50 rounded-md border border-border text-neutral-500",
+            className
+          )}
+        >
+          3D Geometry
+        </div>
+      );
+    }
+
     return (
       <div
         className={cn(
@@ -117,7 +132,20 @@ export function BufferGeometryField({
     );
   }
 
-  // No value - upload zone
+  // No value - upload zone (only if editable)
+  if (!editable) {
+    return (
+      <div
+        className={cn(
+          "text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border",
+          className
+        )}
+      >
+        {connected ? "Connected" : "No geometry data"}
+      </div>
+    );
+  }
+
   return (
     <div className={cn(className)}>
       <div

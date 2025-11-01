@@ -20,11 +20,12 @@ export function ImageField({
   active,
   connected,
   previewable = true,
+  editable = true,
 }: FileFieldProps) {
   const hasValue = value !== undefined && isObjectReference(value);
 
-  // Disabled state without value
-  if (disabled && !hasValue) {
+  // Non-editable or disabled state without value
+  if ((!editable || disabled) && !hasValue) {
     return (
       <div
         className={cn(
@@ -115,7 +116,20 @@ export function ImageField({
     );
   }
 
-  // No value - upload zone
+  // No value - upload zone (only if editable)
+  if (!editable) {
+    return (
+      <div
+        className={cn(
+          "text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border",
+          className
+        )}
+      >
+        {connected ? "Connected" : "No image"}
+      </div>
+    );
+  }
+
   return (
     <div className={cn(className)}>
       <div

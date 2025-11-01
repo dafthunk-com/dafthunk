@@ -21,7 +21,8 @@ export function AnyField({
   active,
   connected,
   createObjectUrl,
-  previewable: _previewable = true,
+  previewable = true,
+  editable = true,
 }: FieldProps & {
   createObjectUrl?: (objectReference: ObjectReference) => string;
 }) {
@@ -36,6 +37,30 @@ export function AnyField({
 
     // Images
     if (mimeType.startsWith("image/")) {
+      // If not previewable, show simple text
+      if (!previewable) {
+        return (
+          <div
+            className={cn(
+              "text-xs p-2 rounded-md border border-border",
+              disabled
+                ? "bg-muted/50 text-neutral-500"
+                : "bg-white dark:bg-neutral-950",
+              className
+            )}
+          >
+            Image: {(value as ObjectReference).id}
+            {!disabled && clearable && (
+              <ClearButton
+                onClick={onClear}
+                label="Clear image"
+                className="ml-2"
+              />
+            )}
+          </div>
+        );
+      }
+
       return (
         <div className={cn("relative", className)}>
           {objectUrl && (
@@ -70,6 +95,30 @@ export function AnyField({
 
     // Audio
     if (mimeType.startsWith("audio/")) {
+      // If not previewable, show simple text
+      if (!previewable) {
+        return (
+          <div
+            className={cn(
+              "text-xs p-2 rounded-md border border-border",
+              disabled
+                ? "bg-muted/50 text-neutral-500"
+                : "bg-white dark:bg-neutral-950",
+              className
+            )}
+          >
+            Audio: {(value as ObjectReference).id}
+            {!disabled && clearable && (
+              <ClearButton
+                onClick={onClear}
+                label="Clear audio"
+                className="ml-2"
+              />
+            )}
+          </div>
+        );
+      }
+
       return (
         <div className={cn("relative", className)}>
           {objectUrl && (
@@ -92,6 +141,30 @@ export function AnyField({
 
     // 3D Models
     if (mimeType === "model/gltf-binary" || mimeType === "model/gltf+json") {
+      // If not previewable, show simple text
+      if (!previewable) {
+        return (
+          <div
+            className={cn(
+              "text-xs p-2 rounded-md border border-border",
+              disabled
+                ? "bg-muted/50 text-neutral-500"
+                : "bg-white dark:bg-neutral-950",
+              className
+            )}
+          >
+            3D Model: {(value as ObjectReference).id}
+            {!disabled && clearable && (
+              <ClearButton
+                onClick={onClear}
+                label="Clear model"
+                className="ml-2"
+              />
+            )}
+          </div>
+        );
+      }
+
       return (
         <div className={cn("relative", className)}>
           {objectUrl && (
@@ -112,26 +185,56 @@ export function AnyField({
 
     // Buffer Geometry
     if (mimeType === "application/x-buffer-geometry") {
-      if (disabled) {
+      // If not previewable, show simple text
+      if (!previewable) {
         return (
-          <div className={cn("space-y-2", className)}>
-            <div className="text-xs text-neutral-500">
-              3D Geometry ({mimeType})
-            </div>
-            {objectUrl && (
-              <a
-                href={objectUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-blue-500 hover:underline flex items-center gap-1"
-              >
-                <File className="h-3 w-3" />
-                Download Geometry Data
-              </a>
+          <div
+            className={cn(
+              "text-xs p-2 rounded-md border border-border",
+              disabled
+                ? "bg-muted/50 text-neutral-500"
+                : "bg-white dark:bg-neutral-950",
+              className
+            )}
+          >
+            3D Geometry: {(value as ObjectReference).id}
+            {!disabled && clearable && (
+              <ClearButton
+                onClick={onClear}
+                label="Clear geometry"
+                className="ml-2"
+              />
             )}
           </div>
         );
       }
+
+      // Previewable - show download link
+      return (
+        <div className={cn("space-y-2", className)}>
+          <div className="text-xs text-neutral-500">
+            3D Geometry ({mimeType})
+          </div>
+          {objectUrl && (
+            <a
+              href={objectUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-blue-500 hover:underline flex items-center gap-1"
+            >
+              <File className="h-3 w-3" />
+              Download Geometry Data
+            </a>
+          )}
+          {!disabled && clearable && (
+            <ClearButton
+              onClick={onClear}
+              label="Clear geometry"
+              className="absolute top-0 right-0"
+            />
+          )}
+        </div>
+      );
     }
 
     // Documents (PDF, etc)
@@ -140,43 +243,80 @@ export function AnyField({
       mimeType.startsWith("application/") ||
       mimeType.startsWith("text/")
     ) {
-      if (disabled) {
-        const isPDF = mimeType === "application/pdf";
-        const isImage = mimeType.startsWith("image/");
+      const isPDF = mimeType === "application/pdf";
+      const isImage = mimeType.startsWith("image/");
 
-        if (isPDF && objectUrl) {
-          return (
-            <div className={cn("relative", className)}>
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs text-neutral-500">PDF Document</span>
-                <a
-                  href={objectUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-blue-500 hover:underline"
-                >
-                  View
-                </a>
-              </div>
-              <iframe
-                src={objectUrl}
-                className="w-full h-64 rounded-md border nowheel"
+      // If not previewable, show simple text
+      if (!previewable) {
+        return (
+          <div
+            className={cn(
+              "text-xs p-2 rounded-md border border-border",
+              disabled
+                ? "bg-muted/50 text-neutral-500"
+                : "bg-white dark:bg-neutral-950",
+              className
+            )}
+          >
+            Document: {(value as ObjectReference).id}
+            {!disabled && clearable && (
+              <ClearButton
+                onClick={onClear}
+                label="Clear document"
+                className="ml-2"
               />
-            </div>
-          );
-        }
+            )}
+          </div>
+        );
+      }
 
-        if (isImage && objectUrl) {
-          return (
-            <div className={cn("relative", className)}>
-              <img
-                src={objectUrl}
-                alt="Document"
-                className="w-full rounded-md border"
-              />
+      // Previewable - show preview based on type
+      if (isPDF && objectUrl) {
+        return (
+          <div className={cn("relative", className)}>
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs text-neutral-500">PDF Document</span>
+              <a
+                href={objectUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-blue-500 hover:underline"
+              >
+                View
+              </a>
             </div>
-          );
-        }
+            <iframe
+              src={objectUrl}
+              className="w-full h-64 rounded-md border nowheel"
+            />
+            {!disabled && clearable && (
+              <ClearButton
+                onClick={onClear}
+                label="Clear document"
+                className="absolute top-2 right-1"
+              />
+            )}
+          </div>
+        );
+      }
+
+      if (isImage && objectUrl) {
+        return (
+          <div className={cn("relative", className)}>
+            <img
+              src={objectUrl}
+              alt="Document"
+              className="w-full rounded-md border"
+            />
+            {!disabled && clearable && (
+              <ClearButton
+                onClick={onClear}
+                label="Clear document"
+                className="absolute top-2 right-1"
+              />
+            )}
+          </div>
+        );
       }
     }
 
@@ -208,7 +348,7 @@ export function AnyField({
 
   // No value
   if (!hasValue) {
-    if (disabled) {
+    if (!editable || disabled) {
       return (
         <div
           className={cn(
@@ -236,7 +376,26 @@ export function AnyField({
   if (Array.isArray(value) || typeof value === "object") {
     const formattedValue = JSON.stringify(value, null, 2);
 
-    if (disabled) {
+    if (!editable || disabled) {
+      // If not previewable, show plain text
+      if (!previewable) {
+        return (
+          <div
+            className={cn(
+              "space-y-1 p-2 bg-muted/50 rounded-md border border-border",
+              className
+            )}
+          >
+            <div className="text-xs text-neutral-500">
+              Any type (contains json)
+            </div>
+            <div className="text-xs p-2 bg-muted rounded-md border border-border whitespace-pre-wrap break-words max-h-[200px] overflow-auto">
+              {formattedValue}
+            </div>
+          </div>
+        );
+      }
+
       return (
         <div
           className={cn(
@@ -293,7 +452,7 @@ export function AnyField({
   const actualType = typeof value;
   const stringValue = String(value);
 
-  if (disabled) {
+  if (!editable || disabled) {
     return (
       <div
         className={cn(

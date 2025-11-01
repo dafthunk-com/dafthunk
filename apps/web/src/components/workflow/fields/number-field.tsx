@@ -14,11 +14,12 @@ export function NumberField({
   className,
   active,
   connected,
+  editable = true,
 }: FieldProps) {
   const hasValue = value !== undefined && value !== "";
 
-  // Disabled state without value
-  if (disabled && !hasValue) {
+  // Non-editable or disabled state without value
+  if ((!editable || disabled) && !hasValue) {
     return (
       <div
         className={cn(
@@ -27,6 +28,20 @@ export function NumberField({
         )}
       >
         {connected ? "Connected" : "No value"}
+      </div>
+    );
+  }
+
+  // Non-editable state with value
+  if (!editable) {
+    return (
+      <div
+        className={cn(
+          "text-xs p-2 bg-muted/50 rounded-md border border-border",
+          className
+        )}
+      >
+        {String(value)}
       </div>
     );
   }

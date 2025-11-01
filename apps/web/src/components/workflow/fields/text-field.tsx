@@ -13,12 +13,13 @@ export function TextField({
   className,
   active,
   connected,
+  editable = true,
 }: FieldProps) {
   const hasValue = value !== undefined && value !== "";
   const stringValue = value !== undefined ? String(value) : "";
 
-  // Disabled state without value
-  if (disabled && !hasValue) {
+  // Non-editable or disabled state without value
+  if ((!editable || disabled) && !hasValue) {
     return (
       <div
         className={cn(
@@ -31,8 +32,8 @@ export function TextField({
     );
   }
 
-  // Disabled state with value - shows plain text
-  if (disabled) {
+  // Non-editable or disabled state with value - shows plain text
+  if (!editable || disabled) {
     return (
       <div
         className={cn(

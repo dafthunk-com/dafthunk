@@ -14,6 +14,8 @@ export function JsonField({
   className,
   active,
   connected,
+  previewable = true,
+  editable = true,
 }: FieldProps) {
   const hasValue = value !== undefined && value !== "";
 
@@ -25,8 +27,8 @@ export function JsonField({
         : String(value)
       : "";
 
-  // Disabled state without value
-  if (disabled && !hasValue) {
+  // Non-editable or disabled state without value
+  if ((!editable || disabled) && !hasValue) {
     return (
       <div
         className={cn(
@@ -39,8 +41,8 @@ export function JsonField({
     );
   }
 
-  // Disabled state with value - pretty print JSON
-  if (disabled) {
+  // Non-editable or disabled state with value - pretty print JSON
+  if (!editable || disabled) {
     let formattedValue = stringValue;
     let isValidJson = false;
 
@@ -52,10 +54,24 @@ export function JsonField({
       // If not valid JSON, show as-is
     }
 
+    // If not previewable, show plain text
+    if (!previewable) {
+      return (
+        <div
+          className={cn(
+            "text-xs p-2 bg-muted/50 rounded-md border border-border whitespace-pre-wrap break-words max-h-[200px] overflow-auto",
+            className
+          )}
+        >
+          {formattedValue}
+        </div>
+      );
+    }
+
     return (
       <div
         className={cn(
-          "border border-border rounded-md bg-muted/50 overflow-auto",
+          "border border-border rounded-md bg-muted/50 overflow-auto min-h-[80px] max-h-[200px]",
           className
         )}
       >
