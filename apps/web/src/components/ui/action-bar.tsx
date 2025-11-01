@@ -19,14 +19,15 @@ export function ActionBarGroup({
   vertical = false,
   className = "",
 }: ActionBarGroupProps) {
+  const baseClasses = "bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-sm";
   const horizontalClasses =
-    "flex items-center gap-0.5 [&>*:first-child]:rounded-l-lg [&>*:first-child]:rounded-r-none [&>*:last-child]:rounded-r-lg [&>*:last-child]:rounded-l-none [&>*:only-child]:rounded-lg";
+    "flex items-center [&>*:first-child]:rounded-l-lg [&>*:first-child]:rounded-r-none [&>*:last-child]:rounded-r-lg [&>*:last-child]:rounded-l-none [&>*:only-child]:rounded-lg [&>*:not(:last-child)]:border-r [&>*:not(:last-child)]:border-neutral-200 [&>*:not(:last-child)]:dark:border-neutral-700";
   const verticalClasses =
-    "flex flex-col items-center gap-0.5 [&>*:first-child]:rounded-t-lg [&>*:first-child]:rounded-b-none [&>*:last-child]:rounded-b-lg [&>*:last-child]:rounded-t-none [&>*:only-child]:rounded-lg";
+    "flex flex-col items-center [&>*:first-child]:rounded-t-lg [&>*:first-child]:rounded-b-none [&>*:last-child]:rounded-b-lg [&>*:last-child]:rounded-t-none [&>*:only-child]:rounded-lg [&>*:not(:last-child)]:border-b [&>*:not(:last-child)]:border-neutral-200 [&>*:not(:last-child)]:dark:border-neutral-700";
 
   return (
     <div
-      className={cn(vertical ? verticalClasses : horizontalClasses, className)}
+      className={cn(baseClasses, vertical ? verticalClasses : horizontalClasses, className)}
     >
       {children}
     </div>
@@ -54,7 +55,7 @@ export function ActionBarButton({
     <Button
       onClick={onClick}
       disabled={disabled}
-      className={cn("h-10 px-3 rounded-none", className, {
+      className={cn("h-10 px-3 rounded-none border-0", className, {
         "opacity-50 cursor-not-allowed": disabled,
       })}
     >
@@ -66,7 +67,7 @@ export function ActionBarButton({
   }
   return (
     <Tooltip delayDuration={0}>
-      <div className="bg-background rounded-none overflow-hidden">
+      <div className="rounded-none overflow-hidden">
         <TooltipTrigger asChild>{trigger}</TooltipTrigger>
         <TooltipContent side={tooltipSide}>{tooltip}</TooltipContent>
       </div>

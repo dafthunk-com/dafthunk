@@ -62,7 +62,7 @@ const edgeTypes = {
 };
 
 const actionBarButtonOutlineClassName =
-  "bg-neutral-200 hover:bg-neutral-300 text-neutral-700 dark:bg-neutral-700 dark:hover:bg-neutral-600 dark:text-neutral-300";
+  "bg-white hover:bg-neutral-50 text-neutral-600 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200";
 
 interface StatusBarProps {
   workflowStatus: WorkflowExecutionStatus;
@@ -220,43 +220,43 @@ export function ActionButton({
       icon: <Play className="!size-4" />,
       title: "Execute Workflow",
       shortcut: "⌘⏎",
-      className: "bg-green-600 hover:bg-green-700 text-white",
+      className: "bg-white hover:bg-neutral-50 text-green-500 hover:text-green-600 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-green-400 dark:hover:text-green-300",
     },
     submitted: {
       icon: <Square className="!size-4" />,
       title: "Stop Execution",
       shortcut: "⌘⏎",
-      className: "bg-red-600 hover:bg-red-700 text-white",
+      className: "bg-white hover:bg-neutral-50 text-red-500 hover:text-red-600 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-red-400 dark:hover:text-red-300",
     },
     executing: {
       icon: <Square className="!size-4" />,
       title: "Stop Execution",
       shortcut: "⌘⏎",
-      className: "bg-red-600 hover:bg-red-700 text-white",
+      className: "bg-white hover:bg-neutral-50 text-red-500 hover:text-red-600 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-red-400 dark:hover:text-red-300",
     },
     completed: {
       icon: <X className="!size-4" />,
       title: "Clear Outputs & Reset",
       shortcut: "⌘⏎",
-      className: "bg-amber-500 hover:bg-amber-600 text-white",
+      className: "bg-white hover:bg-neutral-50 text-amber-500 hover:text-amber-600 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-amber-400 dark:hover:text-amber-300",
     },
     error: {
       icon: <X className="!size-4" />,
       title: "Clear Errors & Reset",
       shortcut: "⌘⏎",
-      className: "bg-amber-500 hover:bg-amber-600 text-white",
+      className: "bg-white hover:bg-neutral-50 text-amber-500 hover:text-amber-600 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-amber-400 dark:hover:text-amber-300",
     },
     cancelled: {
       icon: <Play className="!size-4" />,
       title: "Restart Workflow",
       shortcut: "⌘⏎",
-      className: "bg-green-600 hover:bg-green-700 text-white",
+      className: "bg-white hover:bg-neutral-50 text-green-500 hover:text-green-600 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-green-400 dark:hover:text-green-300",
     },
     paused: {
       icon: <Play className="!size-4" />,
       title: "Resume Workflow",
       shortcut: "⌘⏎",
-      className: "bg-sky-600 hover:bg-sky-700 text-white",
+      className: "bg-white hover:bg-neutral-50 text-sky-500 hover:text-sky-600 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-sky-400 dark:hover:text-sky-300",
     },
   };
 
@@ -310,7 +310,11 @@ export function DeployButton({
     <ActionBarButton
       onClick={onClick}
       disabled={disabled}
-      className={cn("bg-blue-600 hover:bg-blue-700 text-white", className)}
+      className={cn(
+        actionBarButtonOutlineClassName,
+        "text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300",
+        className
+      )}
       tooltipSide="bottom"
       tooltip={tooltip}
     >
@@ -423,10 +427,7 @@ function DeleteButton({
     <ActionBarButton
       onClick={onClick}
       disabled={disabled}
-      className={cn(
-        actionBarButtonOutlineClassName,
-        "text-red-600 dark:text-red-500"
-      )}
+      className={actionBarButtonOutlineClassName}
       tooltipSide="right"
       tooltip={
         <div className="flex items-center gap-2">
@@ -528,7 +529,10 @@ function AddNodeButton({
       onClick={onClick}
       disabled={disabled}
       tooltip="Add Node"
-      className="size-10 !p-0 bg-blue-600 hover:bg-blue-700 text-white"
+      className={cn(
+        actionBarButtonOutlineClassName,
+        "size-10 !p-0 text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+      )}
       tooltipSide="right"
     >
       <Plus className="!size-5" />
@@ -553,7 +557,7 @@ export function SetScheduleButton({
     <ActionBarButton
       onClick={onClick}
       disabled={disabled}
-      className={cn("bg-purple-600 hover:bg-purple-700 text-white", className)}
+      className={cn(actionBarButtonOutlineClassName, className)}
       tooltipSide="bottom"
       tooltip={tooltip}
     >
@@ -580,7 +584,7 @@ export function ShowHttpIntegrationButton({
     <ActionBarButton
       onClick={onClick}
       disabled={disabled}
-      className={cn("bg-purple-600 hover:bg-purple-700 text-white", className)}
+      className={cn(actionBarButtonOutlineClassName, className)}
       tooltipSide="bottom"
       tooltip={tooltip}
     >
@@ -607,7 +611,7 @@ export function ShowEmailTriggerButton({
     <ActionBarButton
       onClick={onClick}
       disabled={disabled}
-      className={cn("bg-purple-600 hover:bg-purple-700 text-white", className)}
+      className={cn(actionBarButtonOutlineClassName, className)}
       tooltipSide="bottom"
       tooltip={tooltip}
     >
@@ -660,10 +664,7 @@ function CutButton({
     <ActionBarButton
       onClick={onClick}
       disabled={disabled}
-      className={cn(
-        actionBarButtonOutlineClassName,
-        "text-orange-600 dark:text-orange-500"
-      )}
+      className={actionBarButtonOutlineClassName}
       tooltipSide="right"
       tooltip={
         <div className="flex items-center gap-2">
@@ -695,10 +696,7 @@ function PasteButton({
     <ActionBarButton
       onClick={onClick}
       disabled={disabled}
-      className={cn(
-        actionBarButtonOutlineClassName,
-        "text-green-600 dark:text-green-500"
-      )}
+      className={actionBarButtonOutlineClassName}
       tooltipSide="right"
       tooltip={
         <div className="flex items-center gap-2">
@@ -857,11 +855,12 @@ export function WorkflowCanvas({
             (onToggleExpandedOutputs ||
               (onToggleSidebar && isSidebarVisible !== undefined)))) && (
           <div className="absolute top-4 right-4 flex items-center gap-3 z-50">
-            {/* Run/Deploy/Schedule Group - only shown when not disabled */}
+            {/* Runtime Actions Group - Execute + Triggers */}
             {!disabled &&
               (onAction ||
-                onDeploy ||
-                (onSetSchedule && workflowType === "cron")) && (
+                onSetSchedule ||
+                onShowHttpIntegration ||
+                onShowEmailTrigger) && (
                 <ActionBarGroup>
                   {onAction && (
                     <ActionButton
@@ -873,12 +872,6 @@ export function WorkflowCanvas({
                           workflowStatus === "executing") &&
                         nodes.length === 0
                       }
-                    />
-                  )}
-                  {onDeploy && (
-                    <DeployButton
-                      onClick={onDeploy}
-                      disabled={nodes.length === 0}
                     />
                   )}
                   {onSetSchedule && workflowType === "cron" && (
@@ -898,14 +891,25 @@ export function WorkflowCanvas({
                 </ActionBarGroup>
               )}
 
-            {/* Preview/Sidebar Group - shown in both disabled and editable modes */}
-            {(onToggleExpandedOutputs ||
-              (onToggleSidebar && isSidebarVisible !== undefined)) && (
+            {/* Publishing Actions Group - Deploy + Metadata */}
+            {!disabled && (onDeploy || onEditMetadata) && (
               <ActionBarGroup>
                 {onEditMetadata && (
                   <EditMetadataButton onClick={onEditMetadata} />
                 )}
+                {onDeploy && (
+                  <DeployButton
+                    onClick={onDeploy}
+                    disabled={nodes.length === 0}
+                  />
+                )}
+              </ActionBarGroup>
+            )}
 
+            {/* View Controls Group - Outputs + Sidebar */}
+            {(onToggleExpandedOutputs ||
+              (onToggleSidebar && isSidebarVisible !== undefined)) && (
+              <ActionBarGroup>
                 {onToggleExpandedOutputs && (
                   <OutputsToggle
                     onClick={onToggleExpandedOutputs}
@@ -936,6 +940,10 @@ export function WorkflowCanvas({
               {onAddNode && (
                 <AddNodeButton onClick={onAddNode} disabled={disabled} />
               )}
+            </ActionBarGroup>
+
+            {/* Edit operations group */}
+            <ActionBarGroup vertical>
               {onEditLabel && (
                 <EditLabelButton
                   onClick={onEditLabel}
@@ -944,10 +952,6 @@ export function WorkflowCanvas({
                   }
                 />
               )}
-            </ActionBarGroup>
-
-            {/* Edit operations group */}
-            <ActionBarGroup vertical>
               {onCopySelected && (
                 <CopyButton
                   onClick={onCopySelected}
