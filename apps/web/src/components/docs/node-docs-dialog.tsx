@@ -1,11 +1,10 @@
 import type { NodeType } from "@dafthunk/types";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, X } from "lucide-react";
 // @ts-ignore - https://github.com/lucide-icons/lucide/issues/2867#issuecomment-2847105863
 import { DynamicIcon } from "lucide-react/dynamic.mjs";
 import Markdown from "react-markdown";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -30,7 +29,14 @@ export function NodeDocsDialog({
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col gap-0">
-        <DialogHeader className="shrink-0">
+        <button
+          className="absolute right-4 top-4 text-muted-foreground hover:text-foreground transition-colors"
+          onClick={() => onOpenChange(false)}
+        >
+          <X className="h-4 w-4" />
+          <span className="sr-only">Close</span>
+        </button>
+        <DialogHeader className="shrink-0 mb-2">
           <DialogTitle className="flex items-start gap-3">
             <div className="flex items-center gap-2 min-w-0">
               <DynamicIcon
@@ -50,6 +56,8 @@ export function NodeDocsDialog({
             </DialogDescription>
           )}
         </DialogHeader>
+
+        <Separator />
 
         <div className="flex-1 overflow-y-auto px-1 -mx-1">
           <div className="space-y-4 py-4">
@@ -94,7 +102,6 @@ export function NodeDocsDialog({
             )}
 
             <>
-              <Separator />
               <div className="space-y-4">
                 <h4 className="text-sm font-semibold">Parameters</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -188,12 +195,6 @@ export function NodeDocsDialog({
               </div>
             </>
           </div>
-        </div>
-
-        <div className="flex justify-end gap-2 pt-4 border-t shrink-0">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Close
-          </Button>
         </div>
       </DialogContent>
     </Dialog>
