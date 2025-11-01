@@ -17,6 +17,7 @@ import {
   ReactFlow,
   ReactFlowInstance,
 } from "@xyflow/react";
+import { PanelRightClose, PanelRightOpen } from "lucide-react";
 import ArrowUpToLine from "lucide-react/icons/arrow-up-to-line";
 import ClipboardPaste from "lucide-react/icons/clipboard-paste";
 import Clock from "lucide-react/icons/clock";
@@ -48,7 +49,6 @@ import type {
   WorkflowExecutionStatus,
   WorkflowNodeType,
 } from "./workflow-types";
-import { PanelRightClose, PanelRightOpen } from "lucide-react";
 
 const nodeTypes = {
   workflowNode: WorkflowNode,
