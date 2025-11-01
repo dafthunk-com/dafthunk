@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/utils/utils";
 
 import { useWorkflowState } from "./use-workflow-state";
 import { WorkflowCanvas } from "./workflow-canvas";
@@ -80,7 +81,7 @@ export function WorkflowBuilder({
   workflowName,
   workflowDescription,
 }: WorkflowBuilderProps) {
-  const [isSidebarVisible, setIsSidebarVisible] = useState(false);
+  const [isSidebarVisible, setIsSidebarVisible] = useState(true);
   const [workflowStatus, setWorkflowStatus] = useState<WorkflowExecutionStatus>(
     initialWorkflowExecution?.status || "idle"
   );
@@ -102,6 +103,8 @@ export function WorkflowBuilder({
   const cleanupRef = useRef<(() => void | Promise<void>) | null>(null);
   const initializedRef = useRef(false);
   const [nodeNameToEdit, setNodeNameToEdit] = useState("");
+  const [sidebarWidth, setSidebarWidth] = useState(384); // w-96 = 384px
+  const [isResizing, setIsResizing] = useState(false);
 
   const {
     nodes,
@@ -404,6 +407,33 @@ export function WorkflowBuilder({
     setIsSidebarVisible(true);
   }, []);
 
+  const handleResizeStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizing(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isResizing) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const newWidth = window.innerWidth - e.clientX;
+      // Min width: 320px, Max width: 800px
+      setSidebarWidth(Math.min(Math.max(newWidth, 320), 800));
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isResizing]);
+
   return (
     <ReactFlowProvider>
       <WorkflowProvider
@@ -417,7 +447,12 @@ export function WorkflowBuilder({
       >
         <div className="w-full h-full flex">
           <div
-            className={`h-full overflow-hidden relative ${isSidebarVisible ? "w-[calc(100%-384px)]" : "w-full"}`}
+            className="h-full overflow-hidden relative"
+            style={{
+              width: isSidebarVisible
+                ? `calc(100% - ${sidebarWidth}px)`
+                : "100%",
+            }}
           >
             <WorkflowCanvas
               nodes={nodes}
@@ -472,17 +507,26 @@ export function WorkflowBuilder({
           </div>
 
           {isSidebarVisible && (
-            <div className="w-96">
-              <WorkflowSidebar
-                nodes={nodes}
-                selectedNodes={selectedNodes}
-                selectedEdges={selectedEdges}
-                onNodeUpdate={disabled ? undefined : updateNodeData}
-                onEdgeUpdate={disabled ? undefined : updateEdgeData}
-                createObjectUrl={createObjectUrl}
-                disabled={disabled}
+            <>
+              <div
+                className={cn(
+                  "w-1 bg-background border-l border-border cursor-col-resize transition-colors",
+                  isResizing && "bg-muted"
+                )}
+                onMouseDown={handleResizeStart}
               />
-            </div>
+              <div style={{ width: `${sidebarWidth}px` }}>
+                <WorkflowSidebar
+                  nodes={nodes}
+                  selectedNodes={selectedNodes}
+                  selectedEdges={selectedEdges}
+                  onNodeUpdate={disabled ? undefined : updateNodeData}
+                  onEdgeUpdate={disabled ? undefined : updateEdgeData}
+                  createObjectUrl={createObjectUrl}
+                  disabled={disabled}
+                />
+              </div>
+            </>
           )}
 
           <WorkflowNodeSelector

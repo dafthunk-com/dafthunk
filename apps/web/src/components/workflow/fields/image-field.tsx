@@ -19,6 +19,7 @@ export function ImageFieldWidget({
   className,
   active,
   connected,
+  previewable = true,
 }: FileFieldWidgetProps) {
   const hasValue = value !== undefined && isObjectReference(value);
 
@@ -50,6 +51,28 @@ export function ImageFieldWidget({
 
   // Has value (disabled or enabled)
   if (hasValue) {
+    // If not previewable, show simple text
+    if (!previewable) {
+      return (
+        <div
+          className={cn(
+            "text-xs p-2 rounded-md border border-border",
+            disabled ? "bg-muted/50 text-neutral-500" : "bg-white dark:bg-neutral-950",
+            className
+          )}
+        >
+          Image: {(value as ObjectReference).key}
+          {!disabled && clearable && (
+            <ClearButton
+              onClick={onClear}
+              label="Clear image"
+              className="ml-2"
+            />
+          )}
+        </div>
+      );
+    }
+
     return (
       <div className={cn(className)}>
         <div

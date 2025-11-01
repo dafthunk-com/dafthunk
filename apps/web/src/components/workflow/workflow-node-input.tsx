@@ -163,6 +163,7 @@ export function WorkflowNodeInput({
           createObjectUrl={createObjectUrl}
           className={getInputClassName()}
           active={active}
+          previewable={false}
         />
       </div>
     </div>

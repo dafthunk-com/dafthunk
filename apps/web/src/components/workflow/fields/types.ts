@@ -12,6 +12,7 @@ export interface FieldWidgetProps {
   disabled?: boolean;
   connected?: boolean;
   clearable?: boolean;
+  previewable?: boolean;
 }
 
 export interface FileFieldWidgetProps extends FieldWidgetProps {

@@ -367,6 +367,7 @@ export function WorkflowNodeInspector({
                           connected={isConnected}
                           createObjectUrl={createObjectUrl}
                           className="w-full"
+                          previewable={true}
                         />
                       </div>
                     </div>
@@ -435,6 +436,7 @@ export function WorkflowNodeInspector({
                       disabled={true}
                       clearable={false}
                       createObjectUrl={createObjectUrl}
+                      previewable={true}
                     />
                   </div>
                 ))

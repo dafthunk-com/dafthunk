@@ -20,6 +20,7 @@ export function DocumentFieldWidget({
   className,
   active,
   connected,
+  previewable = true,
 }: FileFieldWidgetProps) {
   const hasValue = value !== undefined && isObjectReference(value);
 
@@ -54,6 +55,20 @@ export function DocumentFieldWidget({
 
   // Disabled state with value - show preview based on type
   if (disabled && hasValue) {
+    // If not previewable, show simple text
+    if (!previewable) {
+      return (
+        <div
+          className={cn(
+            "text-xs p-2 rounded-md border border-border bg-muted/50 text-neutral-500",
+            className
+          )}
+        >
+          Document: {(value as ObjectReference).key}
+        </div>
+      );
+    }
+
     if (!objectUrl) {
       return (
         <div

@@ -21,6 +21,7 @@ export function GltfFieldWidget({
   className,
   active,
   connected,
+  previewable = true,
 }: FileFieldWidgetProps) {
   const hasValue = value !== undefined && isObjectReference(value);
 
@@ -51,17 +52,33 @@ export function GltfFieldWidget({
   const objectUrl = getObjectUrl();
 
   // Disabled state with value - show 3D viewer
-  if (disabled && hasValue && objectUrl) {
-    return (
-      <div
-        className={cn(
-          "relative p-2 bg-muted/50 rounded-md border border-border",
-          className
-        )}
-      >
-        <ModelViewer parameter={input} objectUrl={objectUrl} />
-      </div>
-    );
+  if (disabled && hasValue) {
+    // If not previewable, show simple text
+    if (!previewable) {
+      return (
+        <div
+          className={cn(
+            "text-xs p-2 rounded-md border border-border bg-muted/50 text-neutral-500",
+            className
+          )}
+        >
+          3D Model: {(value as ObjectReference).key}
+        </div>
+      );
+    }
+
+    if (objectUrl) {
+      return (
+        <div
+          className={cn(
+            "relative p-2 bg-muted/50 rounded-md border border-border",
+            className
+          )}
+        >
+          <ModelViewer parameter={input} objectUrl={objectUrl} />
+        </div>
+      );
+    }
   }
 
   // Has value (enabled) - show download link

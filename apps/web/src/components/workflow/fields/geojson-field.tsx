@@ -17,6 +17,7 @@ export function GeoJSONFieldWidget({
   className,
   active,
   connected,
+  previewable = true,
 }: FieldWidgetProps) {
   const hasValue = value !== undefined && value !== null;
 
@@ -120,33 +121,34 @@ export function GeoJSONFieldWidget({
       : { svg: "", error: null };
 
     return (
-      <div
-        className={cn(
-          "space-y-2 p-2 bg-muted/50 rounded-md border border-border",
-          className
+      <div className={cn("space-y-2", className)}>
+        {/* Preview above JSON */}
+        {previewable && (
+          <>
+            {result.error ? (
+              <div className="text-xs text-red-500 p-2 bg-red-50 rounded-md dark:bg-red-900 dark:text-red-400 dark:border dark:border-red-800">
+                {result.error}
+              </div>
+            ) : result.svg ? (
+              <div className="border border-border rounded-md bg-slate-50 dark:bg-slate-900">
+                <div
+                  className="w-full"
+                  dangerouslySetInnerHTML={{ __html: result.svg }}
+                />
+              </div>
+            ) : hasValue ? (
+              <div className="border border-border rounded-md bg-slate-50 dark:bg-slate-900 p-4 text-center">
+                <span className="text-slate-500 dark:text-slate-400 text-xs">
+                  No geometries to display
+                </span>
+              </div>
+            ) : null}
+          </>
         )}
-      >
-        {result.error ? (
-          <div className="text-xs text-red-500 p-2 bg-red-50 rounded-md dark:bg-red-900 dark:text-red-400 dark:border dark:border-red-800">
-            {result.error}
-          </div>
-        ) : result.svg ? (
-          <div className="border rounded-md bg-slate-50 dark:bg-slate-900">
-            <div
-              className="w-full"
-              dangerouslySetInnerHTML={{ __html: result.svg }}
-            />
-          </div>
-        ) : hasValue ? (
-          <div className="border rounded-md bg-slate-50 dark:bg-slate-900 p-4 text-center">
-            <span className="text-slate-500 dark:text-slate-400 text-xs">
-              No geometries to display
-            </span>
-          </div>
-        ) : null}
 
+        {/* JSON Code Block */}
         {hasValue && (
-          <div className="border rounded-md bg-muted overflow-auto">
+          <div className="border border-border rounded-md bg-muted/50 overflow-auto">
             <CodeBlock language="json" className="text-xs my-0 [&_pre]:p-2">
               {formattedValue}
             </CodeBlock>
@@ -157,40 +159,35 @@ export function GeoJSONFieldWidget({
   }
 
   // Enabled mode (editable input)
+  const result = hasValue ? renderGeoJSONSvg(value) : { svg: "", error: null };
+
   return (
-    <div className={cn("space-y-2 relative", className)}>
-      {hasValue &&
-        (() => {
-          const result = renderGeoJSONSvg(value);
-
-          if (result.error) {
-            return (
-              <div className="text-xs text-red-500 p-2 bg-red-50 rounded-md dark:bg-red-900 dark:text-red-400 dark:border dark:border-red-800">
-                {result.error}
-              </div>
-            );
-          }
-
-          if (result.svg) {
-            return (
-              <div className="border rounded-md bg-slate-50 dark:bg-slate-900">
-                <div
-                  className="w-full"
-                  dangerouslySetInnerHTML={{ __html: result.svg }}
-                />
-              </div>
-            );
-          }
-
-          return (
-            <div className="border rounded-md bg-slate-50 dark:bg-slate-900 p-4 text-center">
+    <div className={cn("space-y-2", className)}>
+      {/* Preview above textarea */}
+      {previewable && hasValue && (
+        <>
+          {result.error ? (
+            <div className="text-xs text-red-500 p-2 bg-red-50 rounded-md dark:bg-red-900 dark:text-red-400 dark:border dark:border-red-800">
+              {result.error}
+            </div>
+          ) : result.svg ? (
+            <div className="border border-border rounded-md bg-slate-50 dark:bg-slate-900">
+              <div
+                className="w-full"
+                dangerouslySetInnerHTML={{ __html: result.svg }}
+              />
+            </div>
+          ) : (
+            <div className="border border-border rounded-md bg-slate-50 dark:bg-slate-900 p-4 text-center">
               <span className="text-slate-500 dark:text-slate-400 text-xs">
                 No geometries to display
               </span>
             </div>
-          );
-        })()}
+          )}
+        </>
+      )}
 
+      {/* Textarea input */}
       <div className="relative">
         <Textarea
           value={formattedValue}

@@ -21,6 +21,7 @@ export function AnyFieldWidget({
   active,
   connected,
   createObjectUrl,
+  previewable = true,
 }: FieldWidgetProps & {
   createObjectUrl?: (objectReference: ObjectReference) => string;
 }) {

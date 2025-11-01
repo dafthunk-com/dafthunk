@@ -20,6 +20,7 @@ export function BufferGeometryFieldWidget({
   className,
   active,
   connected,
+  previewable = true,
 }: FileFieldWidgetProps) {
   const hasValue = value !== undefined && isObjectReference(value);
 

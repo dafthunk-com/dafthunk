@@ -24,6 +24,7 @@ import type { FieldWidgetProps, ObjectReference } from "./types";
 
 export interface FieldWidgetRouterProps extends FieldWidgetProps {
   createObjectUrl?: (objectReference: ObjectReference) => string;
+  previewable?: boolean;
 }
 
 export function FieldWidget(props: FieldWidgetRouterProps) {
