@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type {
-  NodeTemplate,
+  NodeType,
   WorkflowNodeType,
 } from "@/components/workflow/workflow-types";
 import { getApiBaseUrl } from "@/config/api";
@@ -27,7 +27,7 @@ interface HttpIntegrationDialogProps {
   isOpen: boolean;
   onClose: (open: boolean) => void;
   nodes: Node<WorkflowNodeType>[];
-  nodeTemplates: NodeTemplate[];
+  nodeTemplates: NodeType[];
   orgHandle: string;
   workflowId: string;
   deploymentVersion: string;

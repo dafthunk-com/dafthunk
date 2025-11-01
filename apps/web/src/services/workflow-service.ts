@@ -28,7 +28,7 @@ import type { EmailData } from "@/components/workflow/execution-email-dialog";
 import type { DialogFormParameter } from "@/components/workflow/execution-form-dialog";
 import type { JsonBodyParameter } from "@/components/workflow/execution-json-body-dialog";
 import {
-  NodeTemplate,
+  NodeType,
   WorkflowNodeType,
 } from "@/components/workflow/workflow-types";
 import { extractDialogParametersFromNodes } from "@/utils/utils";
@@ -538,7 +538,7 @@ export function useWorkflowExecution(
       id: string,
       onExecution: (execution: WorkflowExecution) => void,
       uiNodes: ReactFlowNode<WorkflowNodeType>[],
-      nodeTemplatesData: NodeTemplate[] | undefined,
+      nodeTemplatesData: NodeType[] | undefined,
       workflowTypeString?: string
     ): (() => void) | undefined => {
       cleanup();

@@ -2,6 +2,7 @@ import type { Edge as ReactFlowEdge } from "@xyflow/react";
 import { createContext, ReactNode, useContext } from "react";
 
 import {
+  NodeType,
   WorkflowEdgeType,
   WorkflowNodeType,
   WorkflowParameter,
@@ -18,6 +19,7 @@ export interface WorkflowContextProps {
   edges?: ReactFlowEdge<WorkflowEdgeType>[];
   disabled?: boolean;
   expandedOutputs?: boolean;
+  nodeTemplates?: NodeType[];
 }
 
 // Create the context with a default value
@@ -27,6 +29,7 @@ const WorkflowContext = createContext<WorkflowContextProps>({
   deleteEdge: () => {},
   edges: [],
   disabled: false,
+  nodeTemplates: [],
 });
 
 // Custom hook for using the workflow context
@@ -40,6 +43,7 @@ export interface WorkflowProviderProps {
   readonly edges?: ReactFlowEdge<WorkflowEdgeType>[];
   readonly disabled?: boolean;
   readonly expandedOutputs?: boolean;
+  readonly nodeTemplates?: NodeType[];
 }
 
 export function WorkflowProvider({
@@ -50,6 +54,7 @@ export function WorkflowProvider({
   edges = [],
   disabled = false,
   expandedOutputs = false,
+  nodeTemplates = [],
 }: WorkflowProviderProps) {
   const workflowContextValue = {
     updateNodeData,
@@ -58,6 +63,7 @@ export function WorkflowProvider({
     edges,
     disabled,
     expandedOutputs,
+    nodeTemplates,
   };
 
   return (

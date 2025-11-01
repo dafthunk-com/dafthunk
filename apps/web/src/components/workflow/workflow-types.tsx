@@ -1,4 +1,7 @@
-import type { ParameterType } from "@dafthunk/types";
+import type { NodeType, ParameterType } from "@dafthunk/types";
+
+// Re-export NodeType for convenience
+export type { NodeType };
 
 // Node Types
 export type NodeExecutionState =
@@ -42,20 +45,6 @@ export interface WorkflowEdgeType extends Record<string, unknown> {
   isActive?: boolean;
   sourceType?: string;
   targetType?: string;
-}
-
-// Node Template Types
-export interface NodeTemplate {
-  id: string;
-  type: string;
-  name: string;
-  description: string;
-  tags: string[];
-  icon: string;
-  inputs: WorkflowParameter[];
-  outputs: WorkflowParameter[];
-  functionCalling?: boolean;
-  asTool?: boolean;
 }
 
 // Canvas Types

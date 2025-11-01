@@ -42,7 +42,6 @@ import { ToolReference, WorkflowToolSelector } from "./workflow-tool-selector";
 import {
   InputOutputType,
   NodeExecutionState,
-  NodeTemplate,
   WorkflowParameter,
 } from "./workflow-types";
 
@@ -58,7 +57,6 @@ export interface WorkflowNodeType {
   asTool?: boolean;
   dragHandle?: string;
   createObjectUrl: (objectReference: ObjectReference) => string;
-  nodeTemplates?: NodeTemplate[];
 }
 
 export const TypeBadge = ({
@@ -188,7 +186,8 @@ export const WorkflowNode = memo(
     selected?: boolean;
     id: string;
   }) => {
-    const { updateNodeData, disabled, expandedOutputs } = useWorkflow();
+    const { updateNodeData, disabled, expandedOutputs, nodeTemplates } =
+      useWorkflow();
     const [showOutputs, setShowOutputs] = useState(false);
     const [showError, setShowError] = useState(false);
     const [isToolSelectorOpen, setIsToolSelectorOpen] = useState(false);
@@ -400,7 +399,7 @@ export const WorkflowNode = memo(
                   return (
                     <div className="space-y-1">
                       {selectedTools.map((tool, idx) => {
-                        const tpl = (data.nodeTemplates || []).find(
+                        const tpl = (nodeTemplates || []).find(
                           (t) => t.id === tool.identifier
                         );
                         return (
@@ -627,7 +626,7 @@ export const WorkflowNode = memo(
             open={isToolSelectorOpen}
             onClose={handleToolSelectorClose}
             onSelect={handleToolsSelect}
-            templates={data.nodeTemplates || []}
+            templates={nodeTemplates || []}
             selectedTools={getCurrentSelectedTools()}
           />
         )}

@@ -8,7 +8,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useAuth } from "@/components/auth-context";
 import type {
-  NodeTemplate,
+  NodeType,
   WorkflowEdgeType,
   WorkflowNodeType,
 } from "@/components/workflow/workflow-types";
@@ -21,7 +21,7 @@ import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
 
 interface UseEditableWorkflowProps {
   workflowId: string | undefined;
-  nodeTemplates?: NodeTemplate[];
+  nodeTemplates?: NodeType[];
   onExecutionUpdate?: (execution: WorkflowExecution) => void;
 }
 

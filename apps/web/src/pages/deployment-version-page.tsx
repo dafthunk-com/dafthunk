@@ -22,7 +22,6 @@ import { ExecutionJsonBodyDialog } from "@/components/workflow/execution-json-bo
 import { HttpIntegrationDialog } from "@/components/workflow/http-integration-dialog";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import type {
-  NodeTemplate,
   WorkflowEdgeType,
   WorkflowNodeType,
 } from "@/components/workflow/workflow-types";
@@ -62,37 +61,6 @@ export function DeploymentVersionPage() {
 
   const { nodeTypes, isNodeTypesLoading } = useNodeTypes(
     deploymentVersion?.type || workflow?.type
-  );
-
-  const nodeTemplates: NodeTemplate[] = useMemo(
-    () =>
-      nodeTypes?.map((type) => ({
-        id: type.id,
-        type: type.id,
-        name: type.name,
-        description: type.description || "",
-        tags: type.tags,
-        icon: type.icon,
-        functionCalling: type.functionCalling,
-        asTool: type.asTool,
-        inputs: type.inputs.map((input) => ({
-          id: input.name,
-          type: input.type,
-          name: input.name,
-          hidden: input.hidden,
-          required: input.required,
-          repeated: input.repeated,
-        })),
-        outputs: type.outputs.map((output) => ({
-          id: output.name,
-          type: output.type,
-          name: output.name,
-          hidden: output.hidden,
-          required: output.required,
-          repeated: output.repeated,
-        })),
-      })) || [],
-    [nodeTypes]
   );
 
   const {
@@ -210,7 +178,7 @@ export function DeploymentVersionPage() {
         }
       },
       nodes,
-      nodeTemplates,
+      nodeTypes,
       workflowType
     );
   }, [
@@ -218,7 +186,7 @@ export function DeploymentVersionPage() {
     deploymentVersion?.type,
     executeWorkflow,
     nodes,
-    nodeTemplates,
+    nodeTypes,
     workflow?.type,
   ]);
 
@@ -332,7 +300,7 @@ export function DeploymentVersionPage() {
                     workflowId={deploymentVersion.id}
                     initialNodes={nodes}
                     initialEdges={edges}
-                    nodeTemplates={nodeTemplates}
+                    nodeTemplates={nodeTypes || []}
                     validateConnection={validateConnection}
                     createObjectUrl={createObjectUrl}
                     disabled={true}

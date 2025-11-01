@@ -9,7 +9,7 @@ import { twMerge } from "tailwind-merge";
 import type { DialogFormParameter } from "@/components/workflow/execution-form-dialog";
 import type {
   InputOutputType,
-  NodeTemplate,
+  NodeType,
   WorkflowNodeType,
   WorkflowParameter,
 } from "@/components/workflow/workflow-types";
@@ -21,7 +21,7 @@ export function cn(...inputs: ClassValue[]) {
 // Helper function to extract and format parameters for the execution dialog
 export function extractDialogParametersFromNodes(
   nodes: Node<WorkflowNodeType>[],
-  nodeTemplates: NodeTemplate[]
+  nodeTemplates: NodeType[]
 ): DialogFormParameter[] {
   return nodes
     .filter((node) => node.data.nodeType?.startsWith("form-data-"))
@@ -72,7 +72,7 @@ export function extractDialogParametersFromNodes(
 // Helper function to convert backend nodes to ReactFlow nodes
 export function adaptDeploymentNodesToReactFlowNodes(
   backendNodes: BackendNode[],
-  nodeTemplates: NodeTemplate[] = []
+  nodeTemplates: NodeType[] = []
 ): Node<WorkflowNodeType>[] {
   return (backendNodes || []).map((depNode) => {
     const adaptedInputs: WorkflowParameter[] = (depNode.inputs || []).map(

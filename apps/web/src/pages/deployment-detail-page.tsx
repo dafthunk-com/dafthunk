@@ -44,7 +44,6 @@ import {
   type CronFormData,
   SetCronDialog,
 } from "@/components/workflow/set-cron-dialog";
-import type { NodeTemplate } from "@/components/workflow/workflow-types";
 import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import {
@@ -184,37 +183,6 @@ export function DeploymentDetailPage() {
 
   const { nodeTypes, isNodeTypesLoading } = useNodeTypes(workflow?.type);
 
-  const nodeTemplates: NodeTemplate[] = useMemo(
-    () =>
-      nodeTypes?.map((type) => ({
-        id: type.id,
-        type: type.id,
-        name: type.name,
-        description: type.description || "",
-        icon: type.icon,
-        tags: type.tags,
-        functionCalling: type.functionCalling,
-        asTool: type.asTool,
-        inputs: type.inputs.map((input) => ({
-          id: input.name, // Assuming name is unique identifier for input/output handles
-          type: input.type,
-          name: input.name,
-          hidden: input.hidden,
-          required: input.required,
-          repeated: input.repeated,
-        })),
-        outputs: type.outputs.map((output) => ({
-          id: output.name, // Assuming name is unique identifier for input/output handles
-          type: output.type,
-          name: output.name,
-          hidden: output.hidden,
-          required: output.required,
-          repeated: output.repeated,
-        })),
-      })) || [],
-    [nodeTypes]
-  );
-
   const {
     executeWorkflow,
     isFormDialogVisible,
@@ -279,9 +247,9 @@ export function DeploymentDetailPage() {
       },
       adaptDeploymentNodesToReactFlowNodes(
         currentDeployment.nodes,
-        nodeTemplates
+        nodeTypes
       ),
-      nodeTemplates,
+      nodeTypes,
       workflow.type
     );
   };
@@ -497,9 +465,9 @@ export function DeploymentDetailPage() {
           onClose={setIsIntegrationDialogOpen}
           nodes={adaptDeploymentNodesToReactFlowNodes(
             currentDeployment.nodes,
-            nodeTemplates
+            nodeTypes
           )}
-          nodeTemplates={nodeTemplates}
+          nodeTemplates={nodeTypes || []}
           orgHandle={orgHandle}
           workflowId={workflowId!}
           deploymentVersion="latest"

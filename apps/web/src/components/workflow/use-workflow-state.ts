@@ -21,7 +21,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type {
   ConnectionValidationState,
   NodeExecutionState,
-  NodeTemplate,
+  NodeType,
   WorkflowEdgeType,
   WorkflowNodeType,
 } from "./workflow-types";
@@ -34,7 +34,6 @@ interface UseWorkflowStateProps {
   validateConnection?: (connection: Connection) => boolean;
   createObjectUrl: (objectReference: ObjectReference) => string;
   disabled?: boolean;
-  nodeTemplates?: NodeTemplate[];
 }
 
 type NodeExecutionUpdate = {
@@ -72,7 +71,7 @@ interface UseWorkflowStateReturn {
   connectionValidationState: ConnectionValidationState;
   isValidConnection: IsValidConnection<ReactFlowEdge<WorkflowEdgeType>>;
   handleAddNode: () => void;
-  handleNodeSelect: (template: NodeTemplate) => void;
+  handleNodeSelect: (template: NodeType) => void;
   setReactFlowInstance: (
     instance: ReactFlowInstance<
       ReactFlowNode<WorkflowNodeType>,
@@ -99,12 +98,11 @@ interface UseWorkflowStateReturn {
 // Helper functions to replace workflowNodeStateService
 const stripExecutionFields = (
   data: WorkflowNodeType
-): Omit<WorkflowNodeType, "executionState" | "error" | "nodeTemplates"> & {
+): Omit<WorkflowNodeType, "executionState" | "error"> & {
   outputs: Omit<WorkflowNodeType["outputs"][number], "value" | "isConnected">[];
   inputs: Omit<WorkflowNodeType["inputs"][number], "isConnected">[];
 } => {
-  // Exclude nodeTemplates from comparison - it's UI metadata that shouldn't trigger persistence
-  const { executionState, error, nodeTemplates, ...rest } = data;
+  const { executionState, error, ...rest } = data;
 
   return {
     ...rest,
@@ -220,39 +218,17 @@ export function useWorkflowState({
   validateConnection = () => true,
   createObjectUrl,
   disabled = false,
-  nodeTemplates = [],
 }: UseWorkflowStateProps): UseWorkflowStateReturn {
   // State management
   const [nodes, setNodes, onNodesChange] = useNodesState<
     ReactFlowNode<WorkflowNodeType>
-  >(
-    initialNodes.map((node) => ({
-      ...node,
-      data: {
-        ...node.data,
-        nodeTemplates,
-      },
-    }))
-  );
+  >(initialNodes);
   const [edges, setEdges, onEdgesChange] =
     useEdgesState<ReactFlowEdge<WorkflowEdgeType>>(initialEdges);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance<
     ReactFlowNode<WorkflowNodeType>,
     ReactFlowEdge<WorkflowEdgeType>
   > | null>(null);
-
-  // Update nodes when nodeTemplates changes
-  useEffect(() => {
-    setNodes((currentNodes) =>
-      currentNodes.map((node) => ({
-        ...node,
-        data: {
-          ...node.data,
-          nodeTemplates,
-        },
-      }))
-    );
-  }, [nodeTemplates, setNodes]);
   const [isNodeSelectorOpen, setIsNodeSelectorOpen] = useState(false);
   const [connectionValidationState, setConnectionValidationState] =
     useState<ConnectionValidationState>("default");
@@ -310,13 +286,13 @@ export function useWorkflowState({
       id: n.id,
       type: n.type,
       position: n.position,
-      data: { ...n.data, createObjectUrl: undefined, nodeTemplates: undefined },
+      data: { ...n.data, createObjectUrl: undefined },
     }));
     const currentNodesStrippedForCompare = nodesRef.current.map((n) => ({
       id: n.id,
       type: n.type,
       position: n.position,
-      data: { ...n.data, createObjectUrl: undefined, nodeTemplates: undefined },
+      data: { ...n.data, createObjectUrl: undefined },
     }));
 
     const newNodesStructurallyDifferent =
@@ -613,7 +589,7 @@ export function useWorkflowState({
   }, [disabled]);
 
   const handleNodeSelect = useCallback(
-    (template: NodeTemplate) => {
+    (nodeType: NodeType) => {
       if (!reactFlowInstance) return;
 
       const position = reactFlowInstance.screenToFlowPosition({
@@ -622,26 +598,25 @@ export function useWorkflowState({
       });
 
       const newNode: ReactFlowNode<WorkflowNodeType> = {
-        id: `${template.type}-${Date.now()}`,
+        id: `${nodeType.type}-${Date.now()}`,
         type: "workflowNode",
         position,
         data: {
-          name: template.name,
-          inputs: template.inputs,
-          outputs: template.outputs,
+          name: nodeType.name,
+          inputs: nodeType.inputs,
+          outputs: nodeType.outputs,
           executionState: "idle" as NodeExecutionState,
-          nodeType: template.type,
-          icon: template.icon,
-          functionCalling: template.functionCalling,
-          asTool: template.asTool,
-          nodeTemplates,
+          nodeType: nodeType.type,
+          icon: nodeType.icon,
+          functionCalling: nodeType.functionCalling,
+          asTool: nodeType.asTool,
           createObjectUrl,
         },
       };
 
       setNodes((nds) => nds.concat(newNode));
     },
-    [reactFlowInstance, setNodes, createObjectUrl, nodeTemplates]
+    [reactFlowInstance, setNodes, createObjectUrl]
   );
 
   // Unified function to update node execution data

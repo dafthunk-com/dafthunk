@@ -25,7 +25,7 @@ import { updateNodeName, WorkflowProvider } from "./workflow-context";
 import { WorkflowNodeSelector } from "./workflow-node-selector";
 import { WorkflowSidebar } from "./workflow-sidebar";
 import type {
-  NodeTemplate,
+  NodeType,
   WorkflowEdgeType,
   WorkflowExecution,
   WorkflowExecutionStatus,
@@ -37,7 +37,7 @@ export interface WorkflowBuilderProps {
   workflowType?: WorkflowType;
   initialNodes?: ReactFlowNode<WorkflowNodeType>[];
   initialEdges?: ReactFlowEdge<WorkflowEdgeType>[];
-  nodeTemplates?: NodeTemplate[];
+  nodeTemplates?: NodeType[];
   onNodesChange?: (nodes: ReactFlowNode<WorkflowNodeType>[]) => void;
   onEdgesChange?: (edges: ReactFlowEdge<WorkflowEdgeType>[]) => void;
   validateConnection?: (connection: Connection) => boolean;
@@ -143,7 +143,6 @@ export function WorkflowBuilder({
     validateConnection,
     createObjectUrl,
     disabled,
-    nodeTemplates,
   });
 
   // Track input and output connections
@@ -414,6 +413,7 @@ export function WorkflowBuilder({
         edges={edges}
         disabled={disabled}
         expandedOutputs={currentExpandedOutputs}
+        nodeTemplates={nodeTemplates}
       >
         <div className="w-full h-full flex">
           <div

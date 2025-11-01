@@ -12,13 +12,13 @@ import { normalizeText } from "@/utils/text-normalization";
 import { cn } from "@/utils/utils";
 
 import { NodeTags } from "./node-tags";
-import type { NodeTemplate } from "./workflow-types";
+import type { NodeType } from "./workflow-types";
 
 export interface WorkflowNodeSelectorProps {
   open: boolean;
   onClose: () => void;
-  onSelect: (template: NodeTemplate) => void;
-  templates?: NodeTemplate[];
+  onSelect: (template: NodeType) => void;
+  templates?: NodeType[];
   workflowName?: string;
   workflowDescription?: string;
 }

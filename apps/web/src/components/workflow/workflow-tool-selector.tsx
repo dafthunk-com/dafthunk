@@ -21,7 +21,7 @@ import { useSearch } from "@/hooks/use-search";
 import { useTagCounts } from "@/hooks/use-tag-counts";
 import { cn } from "@/utils/utils";
 
-import type { NodeTemplate } from "./workflow-types";
+import type { NodeType } from "./workflow-types";
 
 export interface ToolReference {
   type: "node";
@@ -32,7 +32,7 @@ export interface WorkflowToolSelectorProps {
   open: boolean;
   onClose: () => void;
   onSelect: (tools: ToolReference[]) => void;
-  templates?: NodeTemplate[];
+  templates?: NodeType[];
   selectedTools?: ToolReference[];
 }
 

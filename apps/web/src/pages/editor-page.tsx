@@ -20,7 +20,6 @@ import {
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import { WorkflowError } from "@/components/workflow/workflow-error";
 import type {
-  NodeTemplate,
   WorkflowEdgeType,
   WorkflowExecution,
   WorkflowNodeType,
@@ -69,38 +68,6 @@ export function EditorPage() {
 
   const { createObjectUrl } = useObjectService();
 
-  const nodeTemplates: NodeTemplate[] = useMemo(() => {
-    const templates =
-      nodeTypes?.map((type) => ({
-        id: type.id,
-        type: type.id,
-        name: type.name,
-        description: type.description || "",
-        tags: type.tags,
-        icon: type.icon,
-        functionCalling: type.functionCalling,
-        asTool: type.asTool,
-        inputs: type.inputs.map((input) => ({
-          id: input.name, // Assuming name is unique identifier for input/output handles
-          type: input.type,
-          name: input.name,
-          hidden: input.hidden,
-          required: input.required,
-          repeated: input.repeated,
-        })),
-        outputs: type.outputs.map((output) => ({
-          id: output.name, // Assuming name is unique identifier for input/output handles
-          type: output.type,
-          name: output.name,
-          hidden: output.hidden,
-          required: output.required,
-          repeated: output.repeated,
-        })),
-      })) || [];
-
-    return templates;
-  }, [nodeTypes]);
-
   const executionCallbackRef = useRef<
     ((execution: WorkflowExecution) => void) | null
   >(null);
@@ -123,7 +90,7 @@ export function EditorPage() {
     executeWorkflow: wsExecuteWorkflow,
   } = useEditableWorkflow({
     workflowId: id,
-    nodeTemplates,
+    nodeTemplates: nodeTypes || [],
     onExecutionUpdate: handleExecutionUpdate,
   });
 
@@ -291,11 +258,11 @@ export function EditorPage() {
         workflowIdFromBuilder,
         onExecutionFromBuilder,
         latestUiNodesRef.current,
-        nodeTemplates as any,
+        nodeTypes as any,
         workflowMetadata?.type
       );
     },
-    [executeWorkflow, nodeTemplates, workflowMetadata?.type]
+    [executeWorkflow, nodeTypes, workflowMetadata?.type]
   );
 
   const handleEditMetadata = useCallback((e: React.MouseEvent) => {
@@ -425,7 +392,7 @@ export function EditorPage() {
             }
             initialNodes={initialNodesForUI}
             initialEdges={initialEdgesForUI}
-            nodeTemplates={nodeTemplates}
+            nodeTemplates={nodeTypes || []}
             onNodesChange={handleUiNodesChanged}
             onEdgesChange={handleUiEdgesChanged}
             validateConnection={validateConnection}
@@ -447,7 +414,7 @@ export function EditorPage() {
             workflowId={id!}
             deploymentVersion="dev"
             nodes={latestUiNodesRef.current}
-            nodeTemplates={nodeTemplates}
+            nodeTemplates={nodeTypes || []}
           />
         )}
         {workflowMetadata?.type === "http_request" &&
