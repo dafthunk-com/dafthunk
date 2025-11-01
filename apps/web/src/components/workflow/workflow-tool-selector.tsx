@@ -1,5 +1,5 @@
 // @ts-ignore - https://github.com/lucide-icons/lucide/issues/2867#issuecomment-2847105863
-import { Wand } from "lucide-react";
+import { Wrench } from "lucide-react";
 import { DynamicIcon } from "lucide-react/dynamic.mjs";
 import { useMemo, useState } from "react";
 
@@ -252,7 +252,7 @@ export function WorkflowToolSelector({
         </DialogHeader>
 
         <div className="relative px-4">
-          <Wand className="absolute left-8 top-7 h-6 w-6 text-muted-foreground" />
+          <Wrench className="absolute left-8 top-5 h-6 w-6 text-muted-foreground" />
           <Input
             ref={searchInputRef}
             placeholder="Search tools..."

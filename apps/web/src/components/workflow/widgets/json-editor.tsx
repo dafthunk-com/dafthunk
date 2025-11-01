@@ -87,7 +87,11 @@ function JsonEditorWidget({
 
                   // Dispatch formatting change with preserved cursor
                   update.view.dispatch({
-                    changes: { from: 0, to: newValue.length, insert: formatted },
+                    changes: {
+                      from: 0,
+                      to: newValue.length,
+                      insert: formatted,
+                    },
                     selection: { anchor: newCursorPos },
                   });
 
