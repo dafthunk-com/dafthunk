@@ -47,7 +47,6 @@ export interface WorkflowBuilderProps {
   initialWorkflowExecution?: WorkflowExecution;
   disabled?: boolean;
   onDeployWorkflow?: (e: React.MouseEvent) => void;
-  onEditMetadata?: (e: React.MouseEvent) => void;
   onSetSchedule?: () => void;
   onShowHttpIntegration?: () => void;
   onShowEmailTrigger?: () => void;
@@ -55,6 +54,7 @@ export interface WorkflowBuilderProps {
   expandedOutputs?: boolean;
   workflowName?: string;
   workflowDescription?: string;
+  onWorkflowUpdate?: (name: string, description?: string) => void;
 }
 
 export function WorkflowBuilder({
@@ -70,7 +70,6 @@ export function WorkflowBuilder({
   initialWorkflowExecution,
   disabled = false,
   onDeployWorkflow,
-  onEditMetadata,
   onSetSchedule,
   onShowHttpIntegration,
   onShowEmailTrigger,
@@ -78,6 +77,7 @@ export function WorkflowBuilder({
   expandedOutputs = false,
   workflowName,
   workflowDescription,
+  onWorkflowUpdate,
 }: WorkflowBuilderProps) {
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
   const [workflowStatus, setWorkflowStatus] = useState<WorkflowExecutionStatus>(
@@ -447,9 +447,6 @@ export function WorkflowBuilder({
               onDeploy={
                 !disabled && onDeployWorkflow ? onDeployWorkflow : undefined
               }
-              onEditMetadata={
-                !disabled && onEditMetadata ? onEditMetadata : undefined
-              }
               workflowStatus={workflowStatus}
               workflowErrorMessage={workflowErrorMessage}
               workflowType={workflowType}
@@ -491,6 +488,9 @@ export function WorkflowBuilder({
                   onEdgeUpdate={disabled ? undefined : updateEdgeData}
                   createObjectUrl={createObjectUrl}
                   disabled={disabled}
+                  workflowName={workflowName}
+                  workflowDescription={workflowDescription}
+                  onWorkflowUpdate={disabled ? undefined : onWorkflowUpdate}
                 />
               </div>
             </>

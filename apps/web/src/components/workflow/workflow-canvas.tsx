@@ -22,7 +22,6 @@ import ArrowUpToLine from "lucide-react/icons/arrow-up-to-line";
 import ClipboardPaste from "lucide-react/icons/clipboard-paste";
 import Clock from "lucide-react/icons/clock";
 import Copy from "lucide-react/icons/copy";
-import FileText from "lucide-react/icons/file-text";
 import Globe from "lucide-react/icons/globe";
 import Layers2 from "lucide-react/icons/layers-2";
 import Mail from "lucide-react/icons/mail";
@@ -168,7 +167,6 @@ export interface WorkflowCanvasProps {
   onAddNode?: () => void;
   onAction?: (e: React.MouseEvent) => void;
   onDeploy?: (e: React.MouseEvent) => void;
-  onEditMetadata?: (e: React.MouseEvent) => void;
   onSetSchedule?: () => void;
   onShowHttpIntegration?: () => void;
   onShowEmailTrigger?: () => void;
@@ -324,26 +322,6 @@ export function DeployButton({
   );
 }
 
-export function EditMetadataButton({
-  onClick,
-  className = "",
-  tooltip = "Edit Metadata",
-}: {
-  onClick: (e: React.MouseEvent) => void;
-  className?: string;
-  tooltip?: string;
-}) {
-  return (
-    <ActionBarButton
-      onClick={onClick}
-      tooltip={tooltip}
-      tooltipSide="bottom"
-      className={cn(actionBarButtonOutlineClassName, className)}
-    >
-      <FileText className="!size-4" />
-    </ActionBarButton>
-  );
-}
 
 type SidebarToggleProps = {
   onClick: (e: React.MouseEvent) => void;
@@ -679,7 +657,6 @@ export function WorkflowCanvas({
   onAddNode,
   onAction,
   onDeploy,
-  onEditMetadata,
   workflowType,
   onSetSchedule,
   onShowHttpIntegration,
@@ -829,18 +806,10 @@ export function WorkflowCanvas({
                 </ActionBarGroup>
               )}
 
-            {/* Publishing Actions Group - Deploy + Metadata */}
-            {!disabled && (onDeploy || onEditMetadata) && (
+            {/* Publishing Actions Group - Deploy */}
+            {!disabled && onDeploy && (
               <ActionBarGroup>
-                {onEditMetadata && (
-                  <EditMetadataButton onClick={onEditMetadata} />
-                )}
-                {onDeploy && (
-                  <DeployButton
-                    onClick={onDeploy}
-                    disabled={nodes.length === 0}
-                  />
-                )}
+                <DeployButton onClick={onDeploy} disabled={nodes.length === 0} />
               </ActionBarGroup>
             )}
 

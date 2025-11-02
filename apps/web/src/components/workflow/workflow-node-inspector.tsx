@@ -179,24 +179,9 @@ export function WorkflowNodeInspector({
           </button>
           {propertiesExpanded && (
             <div className="px-4 pb-4 space-y-3">
-              {/* Type Section */}
-              <div>
-                <Label className="text-sm font-medium text-muted-foreground">
-                  Id
-                </Label>
-                <div className="text-sm text-foreground mt-1">{node.id}</div>
-              </div>
-
-              {/* Type Section */}
-              <div>
-                <Label className="text-sm font-medium text-muted-foreground">
-                  Type
-                </Label>
-                <div className="text-sm text-foreground mt-1">
-                  {node.data.nodeType || node.type}
-                </div>
-              </div>
-
+              <p className="text-sm text-muted-foreground">
+                Configure the name and type for this node.
+              </p>
               {/* Name Section */}
               <div>
                 <Label
@@ -210,6 +195,19 @@ export function WorkflowNodeInspector({
                   value={localName}
                   onChange={handleNameChange}
                   disabled={disabled}
+                  className={`mt-2 text-sm h-8 ${disabled ? "opacity-70 cursor-not-allowed" : ""}`}
+                />
+              </div>
+
+              {/* Type Section */}
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground">
+                  Type
+                </Label>
+                <Input
+                  id="node-type"
+                  value={node.data.nodeType || node.type}
+                  disabled={true}
                   className={`mt-2 text-sm h-8 ${disabled ? "opacity-70 cursor-not-allowed" : ""}`}
                 />
               </div>

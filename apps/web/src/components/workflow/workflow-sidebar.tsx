@@ -6,6 +6,11 @@ import type {
 import Eye from "lucide-react/icons/eye";
 import Sparkles from "lucide-react/icons/sparkles";
 import Users from "lucide-react/icons/users";
+import { useEffect, useRef, useState } from "react";
+
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 import { WorkflowEdgeInspector } from "./workflow-edge-inspector";
 import { WorkflowNodeInspector } from "./workflow-node-inspector";
@@ -19,6 +24,9 @@ export interface WorkflowSidebarProps {
   onEdgeUpdate?: (edgeId: string, data: Partial<WorkflowEdgeType>) => void;
   createObjectUrl: (objectReference: ObjectReference) => string;
   disabled?: boolean;
+  workflowName?: string;
+  workflowDescription?: string;
+  onWorkflowUpdate?: (name: string, description?: string) => void;
 }
 
 export function WorkflowSidebar({
@@ -29,6 +37,9 @@ export function WorkflowSidebar({
   onEdgeUpdate,
   createObjectUrl,
   disabled = false,
+  workflowName = "",
+  workflowDescription = "",
+  onWorkflowUpdate,
 }: WorkflowSidebarProps) {
   // Determine what to show based on selection
   const totalSelected = selectedNodes.length + selectedEdges.length;
@@ -36,6 +47,61 @@ export function WorkflowSidebar({
     selectedNodes.length === 1 ? selectedNodes[0] : null;
   const singleSelectedEdge =
     selectedEdges.length === 1 ? selectedEdges[0] : null;
+
+  // Local state for workflow properties
+  const [localName, setLocalName] = useState(workflowName);
+  const [localDescription, setLocalDescription] = useState(workflowDescription);
+  const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Update local state when props change
+  useEffect(() => {
+    setLocalName(workflowName);
+  }, [workflowName]);
+
+  useEffect(() => {
+    setLocalDescription(workflowDescription || "");
+  }, [workflowDescription]);
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newName = e.target.value;
+    setLocalName(newName);
+
+    // Debounce the update
+    if (updateTimeoutRef.current) {
+      clearTimeout(updateTimeoutRef.current);
+    }
+    updateTimeoutRef.current = setTimeout(() => {
+      if (onWorkflowUpdate) {
+        onWorkflowUpdate(newName, localDescription || undefined);
+      }
+    }, 500);
+  };
+
+  const handleDescriptionChange = (
+    e: React.ChangeEvent<HTMLTextAreaElement>
+  ) => {
+    const newDescription = e.target.value;
+    setLocalDescription(newDescription);
+
+    // Debounce the update
+    if (updateTimeoutRef.current) {
+      clearTimeout(updateTimeoutRef.current);
+    }
+    updateTimeoutRef.current = setTimeout(() => {
+      if (onWorkflowUpdate) {
+        onWorkflowUpdate(localName, newDescription || undefined);
+      }
+    }, 500);
+  };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (updateTimeoutRef.current) {
+        clearTimeout(updateTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div className="h-full overflow-y-auto border-s bg-card">
@@ -56,9 +122,9 @@ export function WorkflowSidebar({
         />
       )}
       {totalSelected === 0 && (
-        <div className="flex flex-col items-center justify-center h-full p-6 text-center">
+        <div className="h-full">
           {disabled ? (
-            <>
+            <div className="flex flex-col items-center justify-center h-full text-center px-6">
               <Eye className="w-12 h-12 text-amber-400 mb-4" />
               <h3 className="text-lg font-medium text-neutral-900 dark:text-neutral-100 mb-2">
                 Read-only Mode
@@ -67,18 +133,59 @@ export function WorkflowSidebar({
                 You can view node and edge properties, but cannot make changes
                 in this mode.
               </p>
-            </>
+            </div>
           ) : (
-            <>
-              <Sparkles className="w-12 h-12 text-neutral-400 dark:text-neutral-500 mb-4" />
-              <h3 className="text-lg font-medium text-neutral-900 dark:text-neutral-100 mb-2">
-                Nothing Selected
-              </h3>
-              <p className="text-neutral-500">
-                Click on a node or edge in the workflow to view and edit its
-                properties.
-              </p>
-            </>
+            <div className="h-full flex flex-col">
+              <div className="border-b border-border">
+                <div className="px-4 py-3">
+                  <h2 className="text-base font-semibold text-foreground mb-1">
+                    Workflow Properties
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    Configure the name and description for this workflow.
+                  </p>
+                </div>
+                <div className="px-4 pb-4 space-y-3">
+                  <div>
+                    <Label htmlFor="workflow-name">Workflow Name</Label>
+                    <Input
+                      id="workflow-name"
+                      value={localName}
+                      onChange={handleNameChange}
+                      placeholder="Enter workflow name"
+                      className="mt-2"
+                      disabled={disabled}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="workflow-description">
+                      Description (Optional)
+                    </Label>
+                    <Textarea
+                      id="workflow-description"
+                      value={localDescription}
+                      onChange={handleDescriptionChange}
+                      placeholder="Describe what you are building"
+                      className="mt-2"
+                      maxLength={256}
+                      rows={3}
+                      disabled={disabled}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex-1 flex flex-col items-center justify-center text-center px-4">
+                <Sparkles className="w-12 h-12 text-neutral-400 dark:text-neutral-500 mb-4" />
+                <h3 className="text-lg font-medium text-neutral-900 dark:text-neutral-100 mb-2">
+                  Nothing Selected
+                </h3>
+                <p className="text-neutral-500">
+                  Click on a node or edge in the workflow to view and edit its
+                  properties.
+                </p>
+              </div>
+            </div>
           )}
         </div>
       )}

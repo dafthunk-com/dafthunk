@@ -7,7 +7,6 @@ import { toast } from "sonner";
 
 import { useAuth } from "@/components/auth-context";
 import { InsetLoading } from "@/components/inset-loading";
-import { EditMetadataDialog } from "@/components/workflow/edit-metadata-dialog";
 import { EmailTriggerDialog } from "@/components/workflow/email-trigger-dialog";
 import { ExecutionEmailDialog } from "@/components/workflow/execution-email-dialog";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
@@ -54,8 +53,6 @@ export function EditorPage() {
   const [isHttpIntegrationDialogOpen, setIsHttpIntegrationDialogOpen] =
     useState(false);
   const [isEmailTriggerDialogOpen, setIsEmailTriggerDialogOpen] =
-    useState(false);
-  const [isEditMetadataDialogOpen, setIsEditMetadataDialogOpen] =
     useState(false);
   const [httpWorkflowMetadata, setHttpWorkflowMetadata] =
     useState<WorkflowWithMetadata | null>(null);
@@ -265,13 +262,8 @@ export function EditorPage() {
     [executeWorkflow, nodeTypes, workflowMetadata?.type]
   );
 
-  const handleEditMetadata = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsEditMetadataDialogOpen(true);
-  }, []);
 
-  const handleSaveMetadata = useCallback(
+  const handleWorkflowUpdate = useCallback(
     async (name: string, description?: string) => {
       if (!id || !orgHandle || !workflowMetadata) return;
 
@@ -288,7 +280,6 @@ export function EditorPage() {
           },
           orgHandle
         );
-        toast.success("Workflow metadata updated");
 
         // Refresh HTTP metadata to get updated description
         const updatedMetadata = await getWorkflow(id, orgHandle);
@@ -398,12 +389,12 @@ export function EditorPage() {
             validateConnection={validateConnection}
             executeWorkflow={editorExecuteWorkflow}
             onDeployWorkflow={handleDeployWorkflow}
-            onEditMetadata={handleEditMetadata}
             createObjectUrl={createObjectUrl}
             workflowName={
               httpWorkflowMetadata?.name || workflowMetadata?.name || ""
             }
             workflowDescription={httpWorkflowMetadata?.description}
+            onWorkflowUpdate={handleWorkflowUpdate}
           />
         </div>
         {workflowMetadata?.type === "http_request" && (
@@ -468,17 +459,6 @@ export function EditorPage() {
             }}
             deploymentVersions={deploymentVersions}
             workflowName={workflowMetadata?.name}
-          />
-        )}
-        {workflowMetadata && (
-          <EditMetadataDialog
-            open={isEditMetadataDialogOpen}
-            onOpenChange={setIsEditMetadataDialogOpen}
-            initialName={
-              httpWorkflowMetadata?.name || workflowMetadata.name || ""
-            }
-            initialDescription={httpWorkflowMetadata?.description}
-            onSave={handleSaveMetadata}
           />
         )}
       </div>
