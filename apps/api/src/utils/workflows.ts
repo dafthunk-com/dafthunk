@@ -116,12 +116,26 @@ export function validateTypeCompatibility(
       };
     }
 
-    if (sourceParam.type !== targetParam.type) {
-      // Allow "any" type to be compatible with all other types
-      if (sourceParam.type === "any" || targetParam.type === "any") {
-        continue;
-      }
+    // Define blob-compatible types
+    const blobTypes = new Set([
+      "image",
+      "audio",
+      "document",
+      "buffergeometry",
+      "gltf",
+    ]);
 
+    // Check type compatibility
+    const exactMatch = sourceParam.type === targetParam.type;
+    const anyTypeMatch =
+      sourceParam.type === "any" || targetParam.type === "any";
+    const blobCompatible =
+      (sourceParam.type === "blob" && blobTypes.has(targetParam.type)) ||
+      (targetParam.type === "blob" && blobTypes.has(sourceParam.type));
+
+    const typesMatch = exactMatch || anyTypeMatch || blobCompatible;
+
+    if (!typesMatch) {
       return {
         type: "TYPE_MISMATCH",
         message: `Type mismatch: ${sourceParam.type.toLowerCase().replace("value", "")} -> ${targetParam.type.toLowerCase().replace("value", "")}`,

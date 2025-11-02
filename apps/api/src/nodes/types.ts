@@ -48,6 +48,10 @@ export type ParameterType =
       value?: boolean;
     }
   | {
+      type: "blob";
+      value?: BlobParameter;
+    }
+  | {
       type: "image";
       value?: ImageParameter;
     }

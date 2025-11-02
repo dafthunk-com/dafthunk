@@ -6,6 +6,7 @@ import {
 import { ObjectStore } from "../stores/object-store";
 import {
   AudioParameter as NodeAudioParameter,
+  BlobParameter as NodeBlobParameter,
   BufferGeometryParameter as NodeBufferGeometryParameter,
   DocumentParameter as NodeDocumentParameter,
   GltfParameter as NodeGltfParameter,
@@ -14,6 +15,17 @@ import {
 } from "./types";
 
 // Type guards for binary parameter types
+function isBlobParameter(value: unknown): value is NodeBlobParameter {
+  return (
+    !!value &&
+    typeof value === "object" &&
+    "data" in value &&
+    "mimeType" in value &&
+    value["data"] instanceof Uint8Array &&
+    typeof value["mimeType"] === "string"
+  );
+}
+
 function isImageParameter(value: unknown): value is NodeImageParameter {
   return (
     !!value &&
@@ -141,6 +153,40 @@ const converters = {
   boolean: {
     nodeToApi: typeValidatingNodeToApi("boolean"),
     apiToNode: typeValidatingApiToNode("boolean"),
+  },
+  blob: {
+    nodeToApi: async (
+      value: NodeParameterValue,
+      objectStore: ObjectStore,
+      organizationId: string,
+      executionId?: string
+    ) => {
+      if (!isBlobParameter(value)) return undefined;
+      const blob = new Blob([value.data], { type: value.mimeType });
+      const buffer = await blob.arrayBuffer();
+      const data = new Uint8Array(buffer);
+      return await objectStore.writeObject(
+        data,
+        blob.type,
+        organizationId,
+        executionId
+      );
+    },
+    apiToNode: async (value: ApiParameterValue, objectStore: ObjectStore) => {
+      if (
+        !value ||
+        typeof value !== "object" ||
+        !("id" in value) ||
+        !("mimeType" in value)
+      )
+        return undefined;
+      const result = await objectStore.readObject(value as ObjectReference);
+      if (!result) return undefined;
+      return {
+        data: result.data,
+        mimeType: (value as ObjectReference).mimeType,
+      } as NodeBlobParameter;
+    },
   },
   image: {
     nodeToApi: async (
@@ -525,6 +571,7 @@ export async function nodeToApiParameter(
       );
 
     if (
+      type === "blob" ||
       type === "image" ||
       type === "document" ||
       type === "audio" ||

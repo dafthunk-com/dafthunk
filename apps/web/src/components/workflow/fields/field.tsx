@@ -4,6 +4,7 @@ import { useObjectService } from "@/services/object-service";
 
 import { AnyField } from "./any-field";
 import { AudioField } from "./audio-field";
+import { BlobField } from "./blob-field";
 import { BooleanField } from "./boolean-field";
 import { BufferGeometryField } from "./buffergeometry-field";
 import { DateField } from "./date-field";
@@ -89,6 +90,16 @@ export function Field(props: FieldRouterProps) {
     setUploadError
   );
 
+  const handleBlobUpload = createFileUploadHandler(
+    {
+      errorMessage: "Failed to upload file",
+    },
+    uploadBinaryData,
+    props.onChange,
+    setIsUploading,
+    setUploadError
+  );
+
   // Route to appropriate widget based on parameter type
   switch (parameter.type) {
     case "boolean":
@@ -103,6 +114,16 @@ export function Field(props: FieldRouterProps) {
       return <JsonField {...props} />;
     case "secret":
       return <SecretField {...props} />;
+    case "blob":
+      return (
+        <BlobField
+          {...props}
+          isUploading={isUploading}
+          uploadError={uploadError}
+          onFileUpload={handleBlobUpload}
+          createObjectUrl={createObjectUrl}
+        />
+      );
     case "image":
       return (
         <ImageField

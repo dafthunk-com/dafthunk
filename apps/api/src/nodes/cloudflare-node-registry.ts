@@ -38,6 +38,7 @@ import { ListGuildChannelsDiscordNode } from "./discord/list-guild-channels-disc
 import { ListUserGuildsDiscordNode } from "./discord/list-user-guilds-discord-node";
 import { SendDMDiscordNode } from "./discord/send-dm-discord-node";
 import { SendMessageDiscordNode } from "./discord/send-message-discord-node";
+import { BlobNode } from "./blob/blob-node";
 import { DocumentNode } from "./document/document-node";
 import { ToMarkdownNode } from "./document/to-markdown-node";
 import { ParseEmailNode } from "./email/parse-email-node";
@@ -517,6 +518,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
 
     this.registerImplementation(AudioRecorderNode);
     this.registerImplementation(ToMarkdownNode);
+    this.registerImplementation(BlobNode);
     this.registerImplementation(DocumentNode);
     this.registerImplementation(HttpRequestNode);
 

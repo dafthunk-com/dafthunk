@@ -234,10 +234,23 @@ export function EditorPage() {
       );
       if (!sourceOutput || !targetInput) return false;
 
-      const typesMatch =
-        sourceOutput.type === targetInput.type ||
-        sourceOutput.type === "any" ||
-        targetInput.type === "any";
+      // Define blob-compatible types
+      const blobTypes = new Set([
+        "image",
+        "audio",
+        "document",
+        "buffergeometry",
+        "gltf",
+      ]);
+
+      const exactMatch = sourceOutput.type === targetInput.type;
+      const anyTypeMatch =
+        sourceOutput.type === "any" || targetInput.type === "any";
+      const blobCompatible =
+        (sourceOutput.type === "blob" && blobTypes.has(targetInput.type)) ||
+        (targetInput.type === "blob" && blobTypes.has(sourceOutput.type));
+
+      const typesMatch = exactMatch || anyTypeMatch || blobCompatible;
 
       return typesMatch;
     },

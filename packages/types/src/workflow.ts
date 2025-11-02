@@ -123,6 +123,10 @@ export type ParameterType =
       value?: boolean;
     }
   | {
+      type: "blob";
+      value?: ObjectReference;
+    }
+  | {
       type: "image";
       value?: ObjectReference;
     }

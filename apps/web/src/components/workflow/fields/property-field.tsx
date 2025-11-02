@@ -6,12 +6,13 @@ import CalendarIcon from "lucide-react/icons/calendar";
 import CheckIcon from "lucide-react/icons/check";
 import EyeIcon from "lucide-react/icons/eye";
 import EyeOffIcon from "lucide-react/icons/eye-off";
+import FileIcon from "lucide-react/icons/file";
+import FileTextIcon from "lucide-react/icons/file-text";
 import GlobeIcon from "lucide-react/icons/globe";
 import HashIcon from "lucide-react/icons/hash";
 import ImageIcon from "lucide-react/icons/image";
 import LockIcon from "lucide-react/icons/lock";
 import MusicIcon from "lucide-react/icons/music";
-import StickyNoteIcon from "lucide-react/icons/sticky-note";
 import TypeIcon from "lucide-react/icons/type";
 
 import { Toggle } from "@/components/ui/toggle";
@@ -27,8 +28,9 @@ const getTypeIcon = (type: InputOutputType) => {
     string: <TypeIcon className={iconSize} />,
     number: <HashIcon className={iconSize} />,
     boolean: <CheckIcon className={iconSize} />,
+    blob: <FileIcon className={iconSize} />,
     image: <ImageIcon className={iconSize} />,
-    document: <StickyNoteIcon className={iconSize} />,
+    document: <FileTextIcon className={iconSize} />,
     audio: <MusicIcon className={iconSize} />,
     buffergeometry: <BoxIcon className={iconSize} />,
     gltf: <BoxIcon className={iconSize} />,

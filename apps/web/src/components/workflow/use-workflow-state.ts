@@ -476,10 +476,24 @@ export function useWorkflowState({
         return false;
       }
 
-      const typesMatch =
-        outputParam.type === inputParam.type ||
-        outputParam.type === "any" ||
-        inputParam.type === "any";
+      // Define blob-compatible types (specific blob types that can connect to generic blob)
+      const blobTypes = new Set([
+        "image",
+        "audio",
+        "document",
+        "buffergeometry",
+        "gltf",
+      ]);
+
+      // Check if types match
+      const exactMatch = outputParam.type === inputParam.type;
+      const anyTypeMatch =
+        outputParam.type === "any" || inputParam.type === "any";
+      const blobCompatible =
+        (outputParam.type === "blob" && blobTypes.has(inputParam.type)) ||
+        (inputParam.type === "blob" && blobTypes.has(outputParam.type));
+
+      const typesMatch = exactMatch || anyTypeMatch || blobCompatible;
 
       // Only check for existing connections if the input doesn't accept multiple connections
       const acceptsMultipleConnections = inputParam.repeated || false;
