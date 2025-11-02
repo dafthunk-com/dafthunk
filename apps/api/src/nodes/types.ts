@@ -9,54 +9,26 @@ import {
 import { BaseToolRegistry } from "./base-tool-registry";
 import { ToolReference } from "./tool-types";
 
-export type ImageParameter = {
+/**
+ * Generic blob parameter type that accepts any MIME type.
+ * Semantic types below provide workflow connection validation while allowing
+ * maximum flexibility in the actual data format.
+ */
+export type BlobParameter = {
   data: Uint8Array;
-  mimeType:
-    | "image/jpeg"
-    | "image/png"
-    | "image/webp"
-    | "image/svg+xml"
-    | "image/gif"
-    | "image/tiff";
+  mimeType: string;
 };
 
-export type AudioParameter = {
-  data: Uint8Array;
-  mimeType:
-    | "audio/wav"
-    | "audio/mp3"
-    | "audio/m4a"
-    | "audio/ogg"
-    | "audio/mpeg"
-    | "audio/mp4";
-};
-
-export type DocumentParameter = {
-  data: Uint8Array;
-  mimeType:
-    | "application/pdf"
-    | "image/jpeg"
-    | "image/png"
-    | "image/webp"
-    | "image/svg+xml"
-    | "text/html"
-    | "application/xml"
-    | "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    | "application/vnd.ms-excel"
-    | "application/vnd.oasis.opendocument.spreadsheet"
-    | "text/csv"
-    | "application/vnd.apple.numbers";
-};
-
-export type BufferGeometryParameter = {
-  data: Uint8Array;
-  mimeType: "application/x-buffer-geometry";
-};
-
-export type GltfParameter = {
-  data: Uint8Array;
-  mimeType: "model/gltf-binary";
-};
+/**
+ * Semantic blob types - same structure, different meaning in workflow graph.
+ * The type discriminator enforces connection rules in the visual editor,
+ * while the unrestricted mimeType allows any format for maximum flexibility.
+ */
+export type ImageParameter = BlobParameter;
+export type AudioParameter = BlobParameter;
+export type DocumentParameter = BlobParameter;
+export type BufferGeometryParameter = BlobParameter;
+export type GltfParameter = BlobParameter;
 
 export type ParameterType =
   | {
