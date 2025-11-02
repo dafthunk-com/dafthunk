@@ -5,25 +5,15 @@ import { DynamicIcon } from "lucide-react/dynamic.mjs";
 import AsteriskIcon from "lucide-react/icons/asterisk";
 import BoxIcon from "lucide-react/icons/box";
 import BracesIcon from "lucide-react/icons/braces";
-import BuildingIcon from "lucide-react/icons/building";
-import Building2Icon from "lucide-react/icons/building-2";
 import CalendarIcon from "lucide-react/icons/calendar";
-import ChartNoAxesGanttIcon from "lucide-react/icons/chart-no-axes-gantt";
 import CheckIcon from "lucide-react/icons/check";
 import CircleHelp from "lucide-react/icons/circle-help";
-import DotIcon from "lucide-react/icons/dot";
-import EllipsisIcon from "lucide-react/icons/ellipsis";
 import GlobeIcon from "lucide-react/icons/globe";
 import HashIcon from "lucide-react/icons/hash";
 import ImageIcon from "lucide-react/icons/image";
-import LayoutGridIcon from "lucide-react/icons/layout-grid";
 import LockIcon from "lucide-react/icons/lock";
-import MinusIcon from "lucide-react/icons/minus";
 import MusicIcon from "lucide-react/icons/music";
-import ShapesIcon from "lucide-react/icons/shapes";
-import SquareIcon from "lucide-react/icons/square";
 import StickyNoteIcon from "lucide-react/icons/sticky-note";
-import TriangleIcon from "lucide-react/icons/triangle";
 import TypeIcon from "lucide-react/icons/type";
 import WrenchIcon from "lucide-react/icons/wrench";
 import XIcon from "lucide-react/icons/x";
@@ -99,16 +89,6 @@ export const TypeBadge = ({
     gltf: <BoxIcon className={iconSize} />,
     json: <BracesIcon className={iconSize} />,
     date: <CalendarIcon className={iconSize} />,
-    point: <DotIcon className={iconSize} />,
-    multipoint: <EllipsisIcon className={iconSize} />,
-    linestring: <MinusIcon className={iconSize} />,
-    multilinestring: <ChartNoAxesGanttIcon className={iconSize} />,
-    polygon: <TriangleIcon className={iconSize} />,
-    multipolygon: <ShapesIcon className={iconSize} />,
-    geometry: <SquareIcon className={iconSize} />,
-    geometrycollection: <LayoutGridIcon className={iconSize} />,
-    feature: <BuildingIcon className={iconSize} />,
-    featurecollection: <Building2Icon className={iconSize} />,
     geojson: <GlobeIcon className={iconSize} />,
     secret: <LockIcon className={iconSize} />,
     any: <AsteriskIcon className={iconSize} />,

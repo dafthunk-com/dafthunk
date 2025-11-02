@@ -1,19 +1,9 @@
 // Types for workflows
 import {
-  Feature,
-  FeatureCollection,
   GeoJSON,
-  Geometry,
-  GeometryCollection,
-  LineString,
-  MultiLineString,
-  MultiPoint,
-  MultiPolygon,
   Node,
   NodeExecution,
   NodeType,
-  Point,
-  Polygon,
 } from "@dafthunk/types";
 
 import { BaseToolRegistry } from "./base-tool-registry";
@@ -108,46 +98,6 @@ export type ParameterType =
   | {
       type: "gltf";
       value?: GltfParameter;
-    }
-  | {
-      type: "point";
-      value?: Point;
-    }
-  | {
-      type: "multipoint";
-      value?: MultiPoint;
-    }
-  | {
-      type: "linestring";
-      value?: LineString;
-    }
-  | {
-      type: "multilinestring";
-      value?: MultiLineString;
-    }
-  | {
-      type: "polygon";
-      value?: Polygon;
-    }
-  | {
-      type: "multipolygon";
-      value?: MultiPolygon;
-    }
-  | {
-      type: "geometry";
-      value?: Geometry;
-    }
-  | {
-      type: "geometrycollection";
-      value?: GeometryCollection;
-    }
-  | {
-      type: "feature";
-      value?: Feature;
-    }
-  | {
-      type: "featurecollection";
-      value?: FeatureCollection;
     }
   | {
       type: "geojson";

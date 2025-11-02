@@ -153,16 +153,6 @@ export function Field(props: FieldRouterProps) {
           createObjectUrl={createObjectUrl}
         />
       );
-    case "point":
-    case "multipoint":
-    case "linestring":
-    case "multilinestring":
-    case "polygon":
-    case "multipolygon":
-    case "geometry":
-    case "geometrycollection":
-    case "feature":
-    case "featurecollection":
     case "geojson":
       return <GeoJSONField {...props} />;
     case "any":

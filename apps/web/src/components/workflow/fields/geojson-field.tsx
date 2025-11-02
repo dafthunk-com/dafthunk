@@ -21,7 +21,6 @@ export function GeoJSONField({
   disabled,
   onChange,
   onClear,
-  parameter,
   value,
 }: FieldProps) {
   // GeoJSON fields check for null explicitly (null is a valid but empty GeoJSON)
@@ -40,34 +39,6 @@ export function GeoJSONField({
   }, [onChange]);
 
   const readonly = disabled ?? false;
-
-  // Helper to get human-readable label for geometry type
-  const getGeometryTypeLabel = (type: string): string => {
-    switch (type) {
-      case "point":
-        return "Point";
-      case "multipoint":
-        return "MultiPoint";
-      case "linestring":
-        return "LineString";
-      case "multilinestring":
-        return "MultiLineString";
-      case "polygon":
-        return "Polygon";
-      case "multipolygon":
-        return "MultiPolygon";
-      case "geometry":
-        return "Geometry";
-      case "geometrycollection":
-        return "GeometryCollection";
-      case "feature":
-        return "Feature";
-      case "featurecollection":
-        return "FeatureCollection";
-      default:
-        return "GeoJSON";
-    }
-  };
 
   // Helper to format GeoJSON value as pretty-printed JSON string
   const formatGeoJSON = (value: any): string => {

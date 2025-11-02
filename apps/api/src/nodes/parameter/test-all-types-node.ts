@@ -79,158 +79,14 @@ export class TestAllTypesNode extends ExecutableNode {
         description: "GLTF input (ObjectReference)",
       },
       {
-        name: "point",
-        type: "point",
-        description: "GeoJSON Point input",
-        value: { type: "Point", coordinates: [0, 0] },
-      },
-      {
-        name: "multipoint",
-        type: "multipoint",
-        description: "GeoJSON MultiPoint input",
-        value: {
-          type: "MultiPoint",
-          coordinates: [
-            [0, 0],
-            [1, 1],
-          ],
-        },
-      },
-      {
-        name: "linestring",
-        type: "linestring",
-        description: "GeoJSON LineString input",
-        value: {
-          type: "LineString",
-          coordinates: [
-            [0, 0],
-            [1, 1],
-            [2, 2],
-          ],
-        },
-      },
-      {
-        name: "multilinestring",
-        type: "multilinestring",
-        description: "GeoJSON MultiLineString input",
-        value: {
-          type: "MultiLineString",
-          coordinates: [
-            [
-              [0, 0],
-              [1, 1],
-            ],
-            [
-              [2, 2],
-              [3, 3],
-            ],
-          ],
-        },
-      },
-      {
-        name: "polygon",
-        type: "polygon",
-        description: "GeoJSON Polygon input",
-        value: {
-          type: "Polygon",
-          coordinates: [
-            [
-              [0, 0],
-              [1, 0],
-              [1, 1],
-              [0, 1],
-              [0, 0],
-            ],
-          ],
-        },
-      },
-      {
-        name: "multipolygon",
-        type: "multipolygon",
-        description: "GeoJSON MultiPolygon input",
-        value: {
-          type: "MultiPolygon",
-          coordinates: [
-            [
-              [
-                [0, 0],
-                [1, 0],
-                [1, 1],
-                [0, 1],
-                [0, 0],
-              ],
-            ],
-            [
-              [
-                [2, 2],
-                [3, 2],
-                [3, 3],
-                [2, 3],
-                [2, 2],
-              ],
-            ],
-          ],
-        },
-      },
-      {
-        name: "geometry",
-        type: "geometry",
-        description: "GeoJSON Geometry input",
-        value: { type: "Point", coordinates: [0, 0] },
-      },
-      {
-        name: "geometrycollection",
-        type: "geometrycollection",
-        description: "GeoJSON GeometryCollection input",
-        value: {
-          type: "GeometryCollection",
-          geometries: [
-            { type: "Point", coordinates: [0, 0] },
-            {
-              type: "LineString",
-              coordinates: [
-                [1, 1],
-                [2, 2],
-              ],
-            },
-          ],
-        },
-      },
-      {
-        name: "feature",
-        type: "feature",
-        description: "GeoJSON Feature input",
+        name: "geojson",
+        type: "geojson",
+        description: "GeoJSON input",
         value: {
           type: "Feature",
           geometry: { type: "Point", coordinates: [0, 0] },
           properties: { name: "Sample Point" },
         },
-      },
-      {
-        name: "featurecollection",
-        type: "featurecollection",
-        description: "GeoJSON FeatureCollection input",
-        value: {
-          type: "FeatureCollection",
-          features: [
-            {
-              type: "Feature",
-              geometry: { type: "Point", coordinates: [0, 0] },
-              properties: { name: "Point 1" },
-            },
-            {
-              type: "Feature",
-              geometry: { type: "Point", coordinates: [1, 1] },
-              properties: { name: "Point 2" },
-            },
-          ],
-        },
-      },
-      {
-        name: "geojson",
-        type: "geojson",
-        description: "GeoJSON input (any GeoJSON type)",
-        value: { type: "Point", coordinates: [0, 0] },
       },
       {
         name: "secret",
@@ -294,56 +150,6 @@ export class TestAllTypesNode extends ExecutableNode {
         name: "gltf",
         type: "gltf",
         description: "GLTF output (ObjectReference)",
-      },
-      {
-        name: "point",
-        type: "point",
-        description: "GeoJSON Point output",
-      },
-      {
-        name: "multipoint",
-        type: "multipoint",
-        description: "GeoJSON MultiPoint output",
-      },
-      {
-        name: "linestring",
-        type: "linestring",
-        description: "GeoJSON LineString output",
-      },
-      {
-        name: "multilinestring",
-        type: "multilinestring",
-        description: "GeoJSON MultiLineString output",
-      },
-      {
-        name: "polygon",
-        type: "polygon",
-        description: "GeoJSON Polygon output",
-      },
-      {
-        name: "multipolygon",
-        type: "multipolygon",
-        description: "GeoJSON MultiPolygon output",
-      },
-      {
-        name: "geometry",
-        type: "geometry",
-        description: "GeoJSON Geometry output",
-      },
-      {
-        name: "geometrycollection",
-        type: "geometrycollection",
-        description: "GeoJSON GeometryCollection output",
-      },
-      {
-        name: "feature",
-        type: "feature",
-        description: "GeoJSON Feature output",
-      },
-      {
-        name: "featurecollection",
-        type: "featurecollection",
-        description: "GeoJSON FeatureCollection output",
       },
       {
         name: "geojson",

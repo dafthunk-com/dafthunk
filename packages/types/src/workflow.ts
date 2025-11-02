@@ -147,46 +147,6 @@ export type ParameterType =
       value?: ObjectReference;
     }
   | {
-      type: "point";
-      value?: Point;
-    }
-  | {
-      type: "multipoint";
-      value?: MultiPoint;
-    }
-  | {
-      type: "linestring";
-      value?: LineString;
-    }
-  | {
-      type: "multilinestring";
-      value?: MultiLineString;
-    }
-  | {
-      type: "polygon";
-      value?: Polygon;
-    }
-  | {
-      type: "multipolygon";
-      value?: MultiPolygon;
-    }
-  | {
-      type: "geometry";
-      value?: Geometry;
-    }
-  | {
-      type: "geometrycollection";
-      value?: GeometryCollection;
-    }
-  | {
-      type: "feature";
-      value?: Feature;
-    }
-  | {
-      type: "featurecollection";
-      value?: FeatureCollection;
-    }
-  | {
       type: "geojson";
       value?: GeoJSON;
     }

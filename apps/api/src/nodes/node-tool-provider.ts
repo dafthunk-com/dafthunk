@@ -225,16 +225,6 @@ export class NodeToolProvider implements ToolProvider {
           type: "string",
           description: `${parameter.description} (provide as base64 string or reference)`,
         };
-      case "point":
-      case "multipoint":
-      case "linestring":
-      case "multilinestring":
-      case "polygon":
-      case "multipolygon":
-      case "geometry":
-      case "geometrycollection":
-      case "feature":
-      case "featurecollection":
       case "geojson":
         return {
           ...baseProperty,
