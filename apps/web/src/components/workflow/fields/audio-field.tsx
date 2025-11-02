@@ -7,7 +7,7 @@ import { ClearButton } from "./clear-button";
 import type { FileFieldProps, ObjectReference } from "./types";
 
 export function AudioField({
-  input,
+  parameter,
   value,
   onClear,
   disabled,
@@ -19,13 +19,11 @@ export function AudioField({
   className,
   active,
   connected,
-  previewable = true,
-  editable = true,
 }: FileFieldProps) {
   const hasValue = value !== undefined && isObjectReference(value);
 
-  // Non-editable or disabled state without value
-  if ((!editable || disabled) && !hasValue) {
+  // Disabled state without value
+  if (disabled && !hasValue) {
     return (
       <div
         className={cn(
@@ -53,32 +51,8 @@ export function AudioField({
     ? (value as ObjectReference)?.mimeType || "audio/*"
     : "audio/*";
 
-  // Has value (disabled or enabled)
+  // Has value (disabled or enabled) - always show preview
   if (hasValue) {
-    // If not previewable, show simple text
-    if (!previewable) {
-      return (
-        <div
-          className={cn(
-            "text-xs p-2 rounded-md border border-border",
-            disabled
-              ? "bg-muted/50 text-neutral-500"
-              : "bg-white dark:bg-neutral-950",
-            className
-          )}
-        >
-          Audio: {(value as ObjectReference).id}
-          {!disabled && clearable && (
-            <ClearButton
-              onClick={onClear}
-              label="Clear audio"
-              className="ml-2"
-            />
-          )}
-        </div>
-      );
-    }
-
     return (
       <div className={cn(className)}>
         <div
@@ -114,20 +88,7 @@ export function AudioField({
     );
   }
 
-  // No value - upload zone (only if editable)
-  if (!editable) {
-    return (
-      <div
-        className={cn(
-          "text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border",
-          className
-        )}
-      >
-        {connected ? "Connected" : "No audio"}
-      </div>
-    );
-  }
-
+  // No value - upload zone
   return (
     <div className={cn(className)}>
       <div
@@ -139,7 +100,7 @@ export function AudioField({
       >
         <Upload className="h-5 w-5 text-neutral-400" />
         <label
-          htmlFor={`audio-upload-${input.id}`}
+          htmlFor={`audio-upload-${parameter.id}`}
           className={cn(
             "text-xs text-blue-500 hover:text-blue-600 cursor-pointer",
             (isUploading || disabled) && "opacity-50 pointer-events-none"
@@ -148,7 +109,7 @@ export function AudioField({
           {isUploading ? "Uploading..." : "Upload"}
         </label>
         <input
-          id={`audio-upload-${input.id}`}
+          id={`audio-upload-${parameter.id}`}
           type="file"
           className="hidden"
           onChange={onFileUpload}

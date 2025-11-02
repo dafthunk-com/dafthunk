@@ -11,7 +11,7 @@ import { ClearButton } from "./clear-button";
 import type { FieldProps, ObjectReference } from "./types";
 
 export function AnyField({
-  input,
+  parameter,
   value,
   onChange,
   onClear,
@@ -21,8 +21,6 @@ export function AnyField({
   active,
   connected,
   createObjectUrl,
-  previewable = true,
-  editable = true,
 }: FieldProps & {
   createObjectUrl?: (objectReference: ObjectReference) => string;
 }) {
@@ -35,32 +33,8 @@ export function AnyField({
       : null;
     const mimeType = (value as ObjectReference)?.mimeType || "unknown type";
 
-    // Images
+    // Images - always show preview
     if (mimeType.startsWith("image/")) {
-      // If not previewable, show simple text
-      if (!previewable) {
-        return (
-          <div
-            className={cn(
-              "text-xs p-2 rounded-md border border-border",
-              disabled
-                ? "bg-muted/50 text-neutral-500"
-                : "bg-white dark:bg-neutral-950",
-              className
-            )}
-          >
-            Image: {(value as ObjectReference).id}
-            {!disabled && clearable && (
-              <ClearButton
-                onClick={onClear}
-                label="Clear image"
-                className="ml-2"
-              />
-            )}
-          </div>
-        );
-      }
-
       return (
         <div className={cn("relative", className)}>
           {objectUrl && (
@@ -93,32 +67,8 @@ export function AnyField({
       );
     }
 
-    // Audio
+    // Audio - always show preview
     if (mimeType.startsWith("audio/")) {
-      // If not previewable, show simple text
-      if (!previewable) {
-        return (
-          <div
-            className={cn(
-              "text-xs p-2 rounded-md border border-border",
-              disabled
-                ? "bg-muted/50 text-neutral-500"
-                : "bg-white dark:bg-neutral-950",
-              className
-            )}
-          >
-            Audio: {(value as ObjectReference).id}
-            {!disabled && clearable && (
-              <ClearButton
-                onClick={onClear}
-                label="Clear audio"
-                className="ml-2"
-              />
-            )}
-          </div>
-        );
-      }
-
       return (
         <div className={cn("relative", className)}>
           {objectUrl && (
@@ -139,37 +89,13 @@ export function AnyField({
       );
     }
 
-    // 3D Models
+    // 3D Models - always show preview
     if (mimeType === "model/gltf-binary" || mimeType === "model/gltf+json") {
-      // If not previewable, show simple text
-      if (!previewable) {
-        return (
-          <div
-            className={cn(
-              "text-xs p-2 rounded-md border border-border",
-              disabled
-                ? "bg-muted/50 text-neutral-500"
-                : "bg-white dark:bg-neutral-950",
-              className
-            )}
-          >
-            3D Model: {(value as ObjectReference).id}
-            {!disabled && clearable && (
-              <ClearButton
-                onClick={onClear}
-                label="Clear model"
-                className="ml-2"
-              />
-            )}
-          </div>
-        );
-      }
-
       return (
         <div className={cn("relative", className)}>
           {objectUrl && (
             <>
-              <ModelViewer parameter={input} objectUrl={objectUrl} />
+              <ModelViewer parameter={parameter} objectUrl={objectUrl} />
               {!disabled && clearable && (
                 <ClearButton
                   onClick={onClear}
@@ -183,33 +109,8 @@ export function AnyField({
       );
     }
 
-    // Buffer Geometry
+    // Buffer Geometry - show download link
     if (mimeType === "application/x-buffer-geometry") {
-      // If not previewable, show simple text
-      if (!previewable) {
-        return (
-          <div
-            className={cn(
-              "text-xs p-2 rounded-md border border-border",
-              disabled
-                ? "bg-muted/50 text-neutral-500"
-                : "bg-white dark:bg-neutral-950",
-              className
-            )}
-          >
-            3D Geometry: {(value as ObjectReference).id}
-            {!disabled && clearable && (
-              <ClearButton
-                onClick={onClear}
-                label="Clear geometry"
-                className="ml-2"
-              />
-            )}
-          </div>
-        );
-      }
-
-      // Previewable - show download link
       return (
         <div className={cn("space-y-2", className)}>
           <div className="text-xs text-neutral-500">
@@ -237,7 +138,7 @@ export function AnyField({
       );
     }
 
-    // Documents (PDF, etc)
+    // Documents (PDF, etc) - always show preview
     if (
       mimeType === "application/pdf" ||
       mimeType.startsWith("application/") ||
@@ -246,31 +147,7 @@ export function AnyField({
       const isPDF = mimeType === "application/pdf";
       const isImage = mimeType.startsWith("image/");
 
-      // If not previewable, show simple text
-      if (!previewable) {
-        return (
-          <div
-            className={cn(
-              "text-xs p-2 rounded-md border border-border",
-              disabled
-                ? "bg-muted/50 text-neutral-500"
-                : "bg-white dark:bg-neutral-950",
-              className
-            )}
-          >
-            Document: {(value as ObjectReference).id}
-            {!disabled && clearable && (
-              <ClearButton
-                onClick={onClear}
-                label="Clear document"
-                className="ml-2"
-              />
-            )}
-          </div>
-        );
-      }
-
-      // Previewable - show preview based on type
+      // Show preview based on type
       if (isPDF && objectUrl) {
         return (
           <div className={cn("relative", className)}>
@@ -348,7 +225,7 @@ export function AnyField({
 
   // No value
   if (!hasValue) {
-    if (!editable || disabled) {
+    if (disabled) {
       return (
         <div
           className={cn(
@@ -376,26 +253,7 @@ export function AnyField({
   if (Array.isArray(value) || typeof value === "object") {
     const formattedValue = JSON.stringify(value, null, 2);
 
-    if (!editable || disabled) {
-      // If not previewable, show plain text
-      if (!previewable) {
-        return (
-          <div
-            className={cn(
-              "space-y-1 p-2 bg-muted/50 rounded-md border border-border",
-              className
-            )}
-          >
-            <div className="text-xs text-neutral-500">
-              Any type (contains json)
-            </div>
-            <div className="text-xs p-2 bg-muted rounded-md border border-border whitespace-pre-wrap break-words max-h-[200px] overflow-auto">
-              {formattedValue}
-            </div>
-          </div>
-        );
-      }
-
+    if (disabled) {
       return (
         <div
           className={cn(
@@ -452,7 +310,7 @@ export function AnyField({
   const actualType = typeof value;
   const stringValue = String(value);
 
-  if (!editable || disabled) {
+  if (disabled) {
     return (
       <div
         className={cn(

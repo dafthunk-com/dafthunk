@@ -12,7 +12,6 @@ import { ClearButton } from "./clear-button";
 import type { FieldProps } from "./types";
 
 export function SecretField({
-  input: _input,
   value,
   onChange,
   onClear,
@@ -21,63 +20,35 @@ export function SecretField({
   className,
   active,
   connected,
-  editable = true,
 }: FieldProps) {
   const { secrets, isSecretsLoading } = useSecrets();
+  const stringValue = String(value ?? "");
   const hasValue = value !== undefined && value !== "";
-
-  // Non-editable or disabled state without value
-  if ((!editable || disabled) && !hasValue) {
-    return (
-      <div
-        className={cn(
-          "text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border",
-          className
-        )}
-      >
-        {connected ? "Connected" : "No value"}
-      </div>
-    );
-  }
-
-  // Non-editable state with value
-  if (!editable) {
-    return (
-      <div
-        className={cn(
-          "text-xs p-2 bg-muted/50 rounded-md border border-border",
-          className
-        )}
-      >
-        {String(value)}
-      </div>
-    );
-  }
 
   return (
     <div className={cn("relative", className)}>
       <Select
-        value={value !== undefined ? String(value) : ""}
+        value={stringValue}
         onValueChange={(val) => onChange(val || undefined)}
         disabled={disabled || isSecretsLoading}
       >
         <SelectTrigger
           className={cn(
             "text-xs rounded-md",
-            disabled && "bg-muted/50 border-border",
-            !disabled && active && "border border-blue-500",
-            !disabled &&
-              !active &&
-              "border border-neutral-300 dark:border-neutral-700"
+            active
+              ? "border-blue-500"
+              : "border-neutral-300 dark:border-neutral-700"
           )}
         >
           <SelectValue
             placeholder={
-              isSecretsLoading
-                ? "Loading..."
-                : secrets.length === 0
-                  ? "No secrets"
-                  : "Select secret"
+              connected
+                ? "Connected"
+                : isSecretsLoading
+                  ? "Loading..."
+                  : secrets.length === 0
+                    ? "No secrets"
+                    : "Select secret"
             }
           />
         </SelectTrigger>

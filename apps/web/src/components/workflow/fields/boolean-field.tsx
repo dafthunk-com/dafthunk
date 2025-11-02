@@ -1,11 +1,11 @@
-import { Switch } from "@/components/ui/switch";
+import { Toggle } from "@/components/ui/toggle";
 import { cn } from "@/utils/utils";
+import { Check, Minus, X } from "lucide-react";
 
 import { ClearButton } from "./clear-button";
 import type { FieldProps } from "./types";
 
 export function BooleanField({
-  input,
   value,
   onChange,
   onClear,
@@ -14,65 +14,45 @@ export function BooleanField({
   className,
   active,
   connected,
-  editable = true,
 }: FieldProps) {
-  const boolValue = String(value) === "true";
   const hasValue = value !== undefined;
+  const boolValue = hasValue ? String(value) === "true" : null;
 
-  // Non-editable or disabled state without value
-  if ((!editable || disabled) && !hasValue) {
-    return (
-      <div
-        className={cn(
-          "text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border",
-          className
-        )}
-      >
-        {connected ? "Connected" : "No value"}
-      </div>
+  const getIcon = () => {
+    if (boolValue === null)
+      return <Minus className="h-4 w-4 text-muted-foreground" />;
+    return boolValue ? (
+      <Check className="h-4 w-4" />
+    ) : (
+      <X className="h-4 w-4" />
     );
-  }
+  };
 
-  // Non-editable state with value
-  if (!editable) {
-    return (
-      <div
-        className={cn(
-          "text-xs p-2 bg-muted/50 rounded-md border border-border",
-          className
-        )}
-      >
-        {boolValue ? "true" : "false"}
-      </div>
-    );
-  }
+  const getLabel = () => {
+    if (boolValue === null) return connected ? "Connected" : "None";
+    return boolValue ? "True" : "False";
+  };
 
   return (
-    <div
+    <Toggle
+      pressed={boolValue === true}
+      onPressedChange={(pressed) => onChange(pressed ? "true" : "false")}
+      disabled={disabled}
       className={cn(
-        "relative flex items-center space-x-2 rounded-md p-2",
-        disabled && "bg-muted/50 border border-border",
-        !disabled && "bg-white dark:bg-neutral-950",
-        !disabled && active && "border border-blue-500",
-        !disabled &&
-          !active &&
-          "border border-neutral-300 dark:border-neutral-700",
+        "text-xs rounded-md gap-2 justify-between w-full bg-background border",
+        active
+          ? "border-blue-500"
+          : "border-neutral-300 dark:border-neutral-700",
         className
       )}
     >
-      <Switch
-        id={`boolean-${input.id}`}
-        checked={boolValue}
-        onCheckedChange={(checked) => onChange(checked ? "true" : "false")}
-        disabled={disabled}
-      />
+      <div className="flex items-center gap-2">
+        {getIcon()}
+        <span>{getLabel()}</span>
+      </div>
       {!disabled && clearable && hasValue && (
-        <ClearButton
-          onClick={onClear}
-          label="Clear boolean"
-          className="absolute top-2 right-1"
-        />
+        <ClearButton onClick={onClear} label="Clear boolean" />
       )}
-    </div>
+    </Toggle>
   );
 }

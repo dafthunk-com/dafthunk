@@ -8,7 +8,7 @@ import { ClearButton } from "./clear-button";
 import type { FieldProps } from "./types";
 
 export function GeoJSONField({
-  input,
+  parameter,
   value,
   onChange,
   onClear,
@@ -17,13 +17,11 @@ export function GeoJSONField({
   className,
   active,
   connected,
-  previewable = true,
-  editable = true,
 }: FieldProps) {
   const hasValue = value !== undefined && value !== null;
 
-  // When non-editable or disabled and no value, show appropriate message
-  if ((!editable || disabled) && !hasValue) {
+  // Disabled state without value
+  if (disabled && !hasValue) {
     return (
       <div
         className={cn(
@@ -113,10 +111,10 @@ export function GeoJSONField({
   };
 
   const formattedValue = hasValue ? formatGeoJSON(value) : "";
-  const geometryLabel = getGeometryTypeLabel(input.type);
+  const geometryLabel = getGeometryTypeLabel(parameter.type);
 
-  // Non-editable or disabled mode (read-only output)
-  if (!editable || disabled) {
+  // Disabled mode (read-only output) - always show preview
+  if (disabled) {
     const result = hasValue
       ? renderGeoJSONSvg(value)
       : { svg: "", error: null };
@@ -124,28 +122,26 @@ export function GeoJSONField({
     return (
       <div className={cn("space-y-2", className)}>
         {/* Preview above JSON */}
-        {previewable && (
-          <>
-            {result.error ? (
-              <div className="text-xs text-red-500 p-2 bg-red-50 rounded-md dark:bg-red-900 dark:text-red-400 dark:border dark:border-red-800">
-                {result.error}
-              </div>
-            ) : result.svg ? (
-              <div className="border border-border rounded-md bg-slate-50 dark:bg-slate-900">
-                <div
-                  className="w-full"
-                  dangerouslySetInnerHTML={{ __html: result.svg }}
-                />
-              </div>
-            ) : hasValue ? (
-              <div className="border border-border rounded-md bg-slate-50 dark:bg-slate-900 p-4 text-center">
-                <span className="text-slate-500 dark:text-slate-400 text-xs">
-                  No geometries to display
-                </span>
-              </div>
-            ) : null}
-          </>
-        )}
+        <>
+          {result.error ? (
+            <div className="text-xs text-red-500 p-2 bg-red-50 rounded-md dark:bg-red-900 dark:text-red-400 dark:border dark:border-red-800">
+              {result.error}
+            </div>
+          ) : result.svg ? (
+            <div className="border border-border rounded-md bg-slate-50 dark:bg-slate-900">
+              <div
+                className="w-full"
+                dangerouslySetInnerHTML={{ __html: result.svg }}
+              />
+            </div>
+          ) : hasValue ? (
+            <div className="border border-border rounded-md bg-slate-50 dark:bg-slate-900 p-4 text-center">
+              <span className="text-slate-500 dark:text-slate-400 text-xs">
+                No geometries to display
+              </span>
+            </div>
+          ) : null}
+        </>
 
         {/* JSON Code Block */}
         {hasValue && (
@@ -159,13 +155,13 @@ export function GeoJSONField({
     );
   }
 
-  // Enabled mode (editable input)
+  // Enabled mode (editable input) - always show preview
   const result = hasValue ? renderGeoJSONSvg(value) : { svg: "", error: null };
 
   return (
     <div className={cn("space-y-2", className)}>
       {/* Preview above textarea */}
-      {previewable && hasValue && (
+      {hasValue && (
         <>
           {result.error ? (
             <div className="text-xs text-red-500 p-2 bg-red-50 rounded-md dark:bg-red-900 dark:text-red-400 dark:border dark:border-red-800">

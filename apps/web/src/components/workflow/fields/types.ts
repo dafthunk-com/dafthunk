@@ -3,7 +3,7 @@ import type { ObjectReference } from "@dafthunk/types";
 import type { WorkflowParameter } from "@/components/workflow/workflow-types";
 
 export interface FieldProps {
-  input: WorkflowParameter;
+  parameter: WorkflowParameter;
   value: unknown;
   onChange: (value: unknown) => void;
   onClear: () => void;
@@ -12,8 +12,6 @@ export interface FieldProps {
   disabled?: boolean;
   connected?: boolean;
   clearable?: boolean;
-  previewable?: boolean;
-  editable?: boolean;
 }
 
 export interface FileFieldProps extends FieldProps {

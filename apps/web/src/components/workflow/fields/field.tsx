@@ -27,7 +27,7 @@ export interface FieldRouterProps extends FieldProps {
 }
 
 export function Field(props: FieldRouterProps) {
-  const { input, createObjectUrl } = props;
+  const { parameter, createObjectUrl } = props;
   const { uploadBinaryData } = useObjectService();
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -88,8 +88,8 @@ export function Field(props: FieldRouterProps) {
     setUploadError
   );
 
-  // Route to appropriate widget based on input type
-  switch (input.type) {
+  // Route to appropriate widget based on parameter type
+  switch (parameter.type) {
     case "boolean":
       return <BooleanField {...props} />;
     case "number":

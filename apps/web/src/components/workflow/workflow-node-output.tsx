@@ -88,17 +88,15 @@ export function WorkflowNodeOutput({
     >
       <div className="h-full">
         <Field
-          input={output}
+          parameter={output}
           value={output.value}
           onChange={() => {}} // Read-only, no changes allowed
           onClear={() => {}} // Read-only, no clearing allowed
-          disabled={false}
+          disabled={true}
           clearable={false}
-          editable={false}
           createObjectUrl={createObjectUrl}
           className={getOutputClassName()}
           active={active}
-          previewable={true}
         />
       </div>
     </div>

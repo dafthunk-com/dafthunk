@@ -342,7 +342,7 @@ export function WorkflowNodeInspector({
 
                       <div className="relative">
                         <Field
-                          input={input}
+                          parameter={input}
                           value={
                             isConnected
                               ? getConnectedValue(input.id)
@@ -367,7 +367,6 @@ export function WorkflowNodeInspector({
                           connected={isConnected}
                           createObjectUrl={createObjectUrl}
                           className="w-full"
-                          previewable={true}
                         />
                       </div>
                     </div>
@@ -429,14 +428,13 @@ export function WorkflowNodeInspector({
                       </div>
                     </div>
                     <Field
-                      input={output}
+                      parameter={output}
                       value={output.value}
                       onChange={() => {}}
                       onClear={() => {}}
                       disabled={true}
                       clearable={false}
                       createObjectUrl={createObjectUrl}
-                      previewable={true}
                     />
                   </div>
                 ))

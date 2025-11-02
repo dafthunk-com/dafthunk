@@ -8,7 +8,7 @@ import { ClearButton } from "./clear-button";
 import type { FileFieldProps, ObjectReference } from "./types";
 
 export function BufferGeometryField({
-  input,
+  parameter,
   value,
   onClear,
   disabled,
@@ -20,13 +20,11 @@ export function BufferGeometryField({
   className,
   active,
   connected,
-  previewable = true,
-  editable = true,
 }: FileFieldProps) {
   const hasValue = value !== undefined && isObjectReference(value);
 
-  // Non-editable or disabled state without value
-  if ((!editable || disabled) && !hasValue) {
+  // Disabled state without value
+  if (disabled && !hasValue) {
     return (
       <div
         className={cn(
@@ -54,22 +52,8 @@ export function BufferGeometryField({
     ? (value as ObjectReference)?.mimeType || "application/x-buffer-geometry"
     : "application/x-buffer-geometry";
 
-  // Non-editable or disabled state with value - show info and download
-  if ((!editable || disabled) && hasValue) {
-    // If not previewable, show minimal text
-    if (!previewable) {
-      return (
-        <div
-          className={cn(
-            "text-xs p-2 bg-muted/50 rounded-md border border-border text-neutral-500",
-            className
-          )}
-        >
-          3D Geometry
-        </div>
-      );
-    }
-
+  // Disabled state with value - always show info and download
+  if (disabled && hasValue) {
     return (
       <div
         className={cn(
@@ -132,20 +116,7 @@ export function BufferGeometryField({
     );
   }
 
-  // No value - upload zone (only if editable)
-  if (!editable) {
-    return (
-      <div
-        className={cn(
-          "text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border",
-          className
-        )}
-      >
-        {connected ? "Connected" : "No geometry data"}
-      </div>
-    );
-  }
-
+  // No value - upload zone
   return (
     <div className={cn(className)}>
       <div
@@ -157,7 +128,7 @@ export function BufferGeometryField({
       >
         <Upload className="h-5 w-5 text-neutral-400" />
         <label
-          htmlFor={`buffergeometry-upload-${input.id}`}
+          htmlFor={`buffergeometry-upload-${parameter.id}`}
           className={cn(
             "text-xs text-blue-500 hover:text-blue-600 cursor-pointer",
             (isUploading || disabled) && "opacity-50 pointer-events-none"
@@ -166,7 +137,7 @@ export function BufferGeometryField({
           {isUploading ? "Uploading..." : "Upload Geometry"}
         </label>
         <input
-          id={`buffergeometry-upload-${input.id}`}
+          id={`buffergeometry-upload-${parameter.id}`}
           type="file"
           className="hidden"
           onChange={onFileUpload}

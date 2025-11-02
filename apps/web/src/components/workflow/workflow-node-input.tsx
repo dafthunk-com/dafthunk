@@ -154,7 +154,7 @@ export function WorkflowNodeInput({
     >
       <div className="h-full">
         <Field
-          input={input}
+          parameter={input}
           value={localValue}
           onChange={handleInputChange}
           onClear={handleClearValue}
@@ -163,7 +163,6 @@ export function WorkflowNodeInput({
           createObjectUrl={createObjectUrl}
           className={getInputClassName()}
           active={active}
-          previewable={false}
         />
       </div>
     </div>

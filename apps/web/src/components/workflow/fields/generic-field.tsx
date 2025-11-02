@@ -5,7 +5,7 @@ import { ClearButton } from "./clear-button";
 import type { FieldProps } from "./types";
 
 export function GenericField({
-  input: _input,
+  parameter: _parameter,
   value,
   onChange,
   onClear,
@@ -14,12 +14,11 @@ export function GenericField({
   className,
   active,
   connected,
-  editable = true,
 }: FieldProps) {
   const hasValue = value !== undefined && value !== "";
 
-  // Non-editable or disabled state without value
-  if ((!editable || disabled) && !hasValue) {
+  // Disabled state without value
+  if (disabled && !hasValue) {
     return (
       <div
         className={cn(
@@ -32,8 +31,8 @@ export function GenericField({
     );
   }
 
-  // Non-editable state with value
-  if (!editable) {
+  // Disabled state with value
+  if (disabled) {
     return (
       <div
         className={cn(

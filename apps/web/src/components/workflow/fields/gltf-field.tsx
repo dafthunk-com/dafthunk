@@ -9,7 +9,7 @@ import { ClearButton } from "./clear-button";
 import type { FileFieldProps, ObjectReference } from "./types";
 
 export function GltfField({
-  input,
+  parameter,
   value,
   onClear,
   disabled,
@@ -21,13 +21,11 @@ export function GltfField({
   className,
   active,
   connected,
-  previewable = true,
-  editable = true,
 }: FileFieldProps) {
   const hasValue = value !== undefined && isObjectReference(value);
 
-  // Non-editable or disabled state without value
-  if ((!editable || disabled) && !hasValue) {
+  // Disabled state without value
+  if (disabled && !hasValue) {
     return (
       <div
         className={cn(
@@ -52,22 +50,8 @@ export function GltfField({
 
   const objectUrl = getObjectUrl();
 
-  // Non-editable or disabled state with value - show 3D viewer
-  if ((!editable || disabled) && hasValue) {
-    // If not previewable, show simple text
-    if (!previewable) {
-      return (
-        <div
-          className={cn(
-            "text-xs p-2 rounded-md border border-border bg-muted/50 text-neutral-500",
-            className
-          )}
-        >
-          3D Model: {(value as ObjectReference).id}
-        </div>
-      );
-    }
-
+  // Disabled state with value - always show 3D viewer
+  if (disabled && hasValue) {
     if (objectUrl) {
       return (
         <div
@@ -76,7 +60,7 @@ export function GltfField({
             className
           )}
         >
-          <ModelViewer parameter={input} objectUrl={objectUrl} />
+          <ModelViewer parameter={parameter} objectUrl={objectUrl} />
         </div>
       );
     }
@@ -121,20 +105,7 @@ export function GltfField({
     );
   }
 
-  // No value - upload zone (only if editable)
-  if (!editable) {
-    return (
-      <div
-        className={cn(
-          "text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border",
-          className
-        )}
-      >
-        {connected ? "Connected" : "No 3D model"}
-      </div>
-    );
-  }
-
+  // No value - upload zone
   return (
     <div className={cn(className)}>
       <div
@@ -146,7 +117,7 @@ export function GltfField({
       >
         <Upload className="h-5 w-5 text-neutral-400" />
         <label
-          htmlFor={`gltf-upload-${input.id}`}
+          htmlFor={`gltf-upload-${parameter.id}`}
           className={cn(
             "text-xs text-blue-500 hover:text-blue-600 cursor-pointer",
             (isUploading || disabled) && "opacity-50 pointer-events-none"
@@ -155,7 +126,7 @@ export function GltfField({
           {isUploading ? "Uploading..." : "Upload"}
         </label>
         <input
-          id={`gltf-upload-${input.id}`}
+          id={`gltf-upload-${parameter.id}`}
           type="file"
           className="hidden"
           onChange={onFileUpload}

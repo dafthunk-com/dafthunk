@@ -585,15 +585,16 @@ export const WorkflowNode = memo(
                     key={`output-${output.id}-${index}`}
                     className="flex items-center gap-3 text-xs relative"
                   >
-                    {activeOutputId === output.id && output.value !== undefined && (
-                      <WorkflowNodeOutput
-                        output={output}
-                        containerRef={getOutputContainerRef(output.id)}
-                        autoFocus={true}
-                        onBlur={() => setActiveOutputId(null)}
-                        active={true}
-                      />
-                    )}
+                    {activeOutputId === output.id &&
+                      output.value !== undefined && (
+                        <WorkflowNodeOutput
+                          output={output}
+                          containerRef={getOutputContainerRef(output.id)}
+                          autoFocus={true}
+                          onBlur={() => setActiveOutputId(null)}
+                          active={true}
+                        />
+                      )}
                     <span className="text-xs text-foreground font-medium font-mono truncate">
                       {output.name}
                     </span>

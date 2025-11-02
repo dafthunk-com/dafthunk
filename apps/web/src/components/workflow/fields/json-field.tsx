@@ -1,11 +1,19 @@
-import { CodeBlock } from "@/components/docs/code-block";
-import { Textarea } from "@/components/ui/textarea";
+import { json } from "@codemirror/lang-json";
+import {
+  defaultHighlightStyle,
+  syntaxHighlighting,
+} from "@codemirror/language";
+import { Compartment, EditorState } from "@codemirror/state";
+import { EditorView, lineNumbers } from "@codemirror/view";
+import { useEffect, useRef } from "react";
+
 import { cn } from "@/utils/utils";
 
 import { ClearButton } from "./clear-button";
 import type { FieldProps } from "./types";
 
 export function JsonField({
+  parameter: _parameter,
   value,
   onChange,
   onClear,
@@ -14,10 +22,13 @@ export function JsonField({
   className,
   active,
   connected,
-  previewable = true,
-  editable = true,
 }: FieldProps) {
   const hasValue = value !== undefined && value !== "";
+  const editorRef = useRef<HTMLDivElement>(null);
+  const viewRef = useRef<EditorView | null>(null);
+  const onChangeRef = useRef(onChange);
+  const readonlyCompartment = useRef(new Compartment());
+  const isFormattingRef = useRef(false);
 
   // Serialize objects/arrays to JSON, or use string value
   const stringValue =
@@ -27,8 +38,13 @@ export function JsonField({
         : String(value)
       : "";
 
-  // Non-editable or disabled state without value
-  if ((!editable || disabled) && !hasValue) {
+  // Keep onChange ref up to date
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
+
+  // Disabled state without value
+  if (disabled && !hasValue) {
     return (
       <div
         className={cn(
@@ -41,71 +57,166 @@ export function JsonField({
     );
   }
 
-  // Non-editable or disabled state with value - pretty print JSON
-  if (!editable || disabled) {
-    let formattedValue = stringValue;
-    let isValidJson = false;
+  const readonly = disabled ?? false;
 
-    try {
-      const parsed = JSON.parse(stringValue);
-      formattedValue = JSON.stringify(parsed, null, 2);
-      isValidJson = true;
-    } catch {
-      // If not valid JSON, show as-is
-    }
-
-    // If not previewable, show plain text
-    if (!previewable) {
-      return (
-        <div
-          className={cn(
-            "text-xs p-2 bg-muted/50 rounded-md border border-border whitespace-pre-wrap break-words max-h-[200px] overflow-auto",
-            className
-          )}
-        >
-          {formattedValue}
-        </div>
-      );
-    }
-
-    return (
-      <div
-        className={cn(
-          "border border-border rounded-md bg-muted/50 overflow-auto min-h-[80px] max-h-[200px]",
-          className
-        )}
-      >
-        <CodeBlock
-          language="json"
-          className={cn("text-xs my-0 [&_pre]:p-2", {
-            "[&_pre]:text-red-500": !isValidJson,
-          })}
-        >
-          {formattedValue}
-        </CodeBlock>
-      </div>
-    );
+  // Format value for display
+  let formattedValue = stringValue;
+  try {
+    const parsed = JSON.parse(stringValue);
+    formattedValue = JSON.stringify(parsed, null, 2);
+  } catch {
+    // If not valid JSON, show as-is
   }
 
-  // Editable mode
+  // Create editor once on mount
+  useEffect(() => {
+    if (!editorRef.current) return;
+
+    const view = new EditorView({
+      state: EditorState.create({
+        doc: formattedValue,
+        extensions: [
+          json(),
+          syntaxHighlighting(defaultHighlightStyle),
+          lineNumbers(),
+          EditorView.lineWrapping,
+          readonlyCompartment.current.of(EditorState.readOnly.of(readonly)),
+          EditorView.updateListener.of((update) => {
+            if (update.docChanged && !isFormattingRef.current && !readonly) {
+              const newValue = update.state.doc.toString();
+
+              if (!newValue) {
+                onChangeRef.current(undefined);
+                return;
+              }
+
+              try {
+                const parsed = JSON.parse(newValue);
+                const formatted = JSON.stringify(parsed, null, 2);
+
+                if (formatted !== newValue) {
+                  // Format in place while preserving cursor position
+                  isFormattingRef.current = true;
+
+                  // Get current cursor position
+                  const cursorPos = update.state.selection.main.head;
+
+                  // Count non-whitespace characters before cursor to maintain relative position
+                  let contentChars = 0;
+                  for (let i = 0; i < cursorPos && i < newValue.length; i++) {
+                    if (!/\s/.test(newValue[i])) contentChars++;
+                  }
+
+                  // Find new cursor position with same number of content characters
+                  let newCursorPos = 0;
+                  let count = 0;
+                  for (let i = 0; i < formatted.length; i++) {
+                    if (!/\s/.test(formatted[i])) {
+                      count++;
+                      if (count >= contentChars) {
+                        newCursorPos = i + 1;
+                        break;
+                      }
+                    }
+                  }
+
+                  // Dispatch formatting change with preserved cursor
+                  update.view.dispatch({
+                    changes: {
+                      from: 0,
+                      to: newValue.length,
+                      insert: formatted,
+                    },
+                    selection: { anchor: newCursorPos },
+                  });
+
+                  // Reset flag after dispatch
+                  Promise.resolve().then(() => {
+                    isFormattingRef.current = false;
+                  });
+                }
+
+                onChangeRef.current(formatted);
+              } catch {
+                onChangeRef.current(newValue);
+              }
+            }
+          }),
+          EditorView.baseTheme({
+            "&.cm-focused": {
+              outline: "none !important",
+            },
+          }),
+          EditorView.theme({
+            "&": {
+              height: "100%",
+              fontSize: "8px",
+            },
+            ".cm-scroller": {
+              overflow: "auto",
+            },
+            ".cm-gutters": {
+              fontSize: "8px",
+            },
+          }),
+        ],
+      }),
+      parent: editorRef.current,
+    });
+
+    viewRef.current = view;
+
+    return () => {
+      view.destroy();
+      viewRef.current = null;
+    };
+  }, []);
+
+  // Update editor content when value prop changes externally
+  useEffect(() => {
+    const view = viewRef.current;
+    if (!view || isFormattingRef.current) return;
+
+    const currentValue = view.state.doc.toString();
+
+    // Don't update if values are semantically equal (same JSON object)
+    try {
+      const currentParsed = JSON.parse(currentValue);
+      const newParsed = JSON.parse(formattedValue);
+      if (JSON.stringify(currentParsed) === JSON.stringify(newParsed)) {
+        return;
+      }
+    } catch {
+      // If either fails to parse, fall through to string comparison
+    }
+
+    if (currentValue !== formattedValue) {
+      view.dispatch({
+        changes: { from: 0, to: currentValue.length, insert: formattedValue },
+      });
+    }
+  }, [formattedValue]);
+
+  // Update readonly state
+  useEffect(() => {
+    const view = viewRef.current;
+    if (!view) return;
+
+    view.dispatch({
+      effects: readonlyCompartment.current.reconfigure(
+        EditorState.readOnly.of(readonly)
+      ),
+    });
+  }, [readonly]);
+
   return (
     <div className={cn("relative", className)}>
-      <Textarea
-        value={stringValue}
-        onChange={(e) => onChange(e.target.value || undefined)}
-        placeholder="Enter JSON"
-        className={cn(
-          "resize-y text-xs font-mono rounded-md",
-          active && "border border-blue-500",
-          !active && "border border-neutral-300 dark:border-neutral-700"
-        )}
-        disabled={disabled}
-      />
-      {!disabled && clearable && hasValue && (
+      <div ref={editorRef} className="min-h-[80px]" />
+      {!disabled && !readonly && clearable && hasValue && (
         <ClearButton
           onClick={onClear}
           label="Clear JSON"
-          className="absolute top-2 right-1"
+          className="absolute top-2 right-2 z-10"
         />
       )}
     </div>
