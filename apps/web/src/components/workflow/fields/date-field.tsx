@@ -51,11 +51,6 @@ const TIMEZONES = [
   { value: 12, label: "GMT+12" },
 ];
 
-interface DateTimeValue {
-  date: string; // ISO date string
-  offset: number; // GMT offset in hours
-}
-
 export function DateField({
   className,
   clearable,
@@ -65,17 +60,24 @@ export function DateField({
   onClear,
   value,
 }: FieldProps) {
-  // Parse value - can be ISO string or DateTimeValue object
-  const parsedValue = typeof value === "string"
-    ? { date: value, offset: 0 }
-    : (value as DateTimeValue) || { date: "", offset: 0 };
+  // Value can be an ISO string or old format object { date: string, offset: number }
+  const isoValue = typeof value === "string"
+    ? value
+    : (value && typeof value === "object" && "date" in value)
+      ? (value as { date: string }).date
+      : "";
 
-  const [offset, setOffset] = useState(parsedValue.offset || 0);
+  // Timezone offset is for display/editing only (not persisted)
+  const [offset, setOffset] = useState(0);
   const [open, setOpen] = useState(false);
 
-  // Convert ISO string to Date in the selected offset
-  const dateValue = parsedValue.date ? new Date(parsedValue.date) : undefined;
-  const hasValue = parsedValue.date !== undefined && parsedValue.date !== "";
+  // Convert ISO string to Date (validate it's a valid date)
+  const dateValue = (() => {
+    if (!isoValue) return undefined;
+    const date = new Date(isoValue);
+    return isNaN(date.getTime()) ? undefined : date;
+  })();
+  const hasValue = Boolean(dateValue);
 
   // Convert UTC time to time in the selected GMT offset
   const getOffsetTime = (date: Date) => {
@@ -106,12 +108,12 @@ export function DateField({
       })()
     : "00:00:00";
 
-  const updateValue = (isoDate: string, gmtOffset: number) => {
+  const updateValue = (isoDate: string) => {
     if (!isoDate) {
       onChange(undefined);
       return;
     }
-    onChange({ date: isoDate, offset: gmtOffset });
+    onChange(isoDate);
   };
 
   const handleDateSelect = (date: Date | undefined) => {
@@ -121,24 +123,30 @@ export function DateField({
       return;
     }
 
-    // Combine selected date with current time in GMT offset
+    // Extract date components from the selected date (calendar gives us a date in browser local time)
+    // We interpret these as being in the GMT offset timezone
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const day = date.getDate();
+
+    // Combine with current time (or default to 00:00:00 if no time set)
     const [hours, minutes, seconds] = timeStr.split(":").map(Number);
 
-    // Create UTC date representing the selected date/time in GMT offset
-    const utcDate = new Date(Date.UTC(
-      date.getFullYear(),
-      date.getMonth(),
-      date.getDate(),
-      hours,
-      minutes,
-      seconds
-    ));
+    // Create a date in UTC with these components
+    const utcDate = new Date(Date.UTC(year, month, day, hours, minutes, seconds));
 
-    // Convert from GMT offset to UTC
+    // Adjust for the GMT offset to get the actual UTC time
+    // If offset is -5 (GMT-5), and user selects 14:00, that's 19:00 UTC
     const offsetMs = offset * 60 * 60 * 1000;
     const adjustedDate = new Date(utcDate.getTime() - offsetMs);
 
-    updateValue(adjustedDate.toISOString(), offset);
+    // Ensure the date is valid
+    if (isNaN(adjustedDate.getTime())) {
+      console.error("Invalid date created:", adjustedDate);
+      return;
+    }
+
+    updateValue(adjustedDate.toISOString());
     setOpen(false);
   };
 
@@ -148,8 +156,20 @@ export function DateField({
 
     const [hours, minutes, seconds = 0] = time.split(":").map(Number);
 
-    // Get the date part in GMT offset
-    const dateInOffset = dateValue ? getOffsetTime(dateValue) : getOffsetTime(new Date());
+    // Get the date part - if no date is set yet, use today's date in the GMT offset
+    const dateInOffset = dateValue ? getOffsetTime(dateValue) : (() => {
+      const now = new Date();
+      const offsetMs = offset * 60 * 60 * 1000;
+      const offsetNow = new Date(now.getTime() + offsetMs);
+      return {
+        year: offsetNow.getUTCFullYear(),
+        month: offsetNow.getUTCMonth(),
+        day: offsetNow.getUTCDate(),
+        hours: offsetNow.getUTCHours(),
+        minutes: offsetNow.getUTCMinutes(),
+        seconds: offsetNow.getUTCSeconds(),
+      };
+    })();
 
     // Create UTC date representing the selected date/time in GMT offset
     const utcDate = new Date(Date.UTC(
@@ -165,15 +185,20 @@ export function DateField({
     const offsetMs = offset * 60 * 60 * 1000;
     const adjustedDate = new Date(utcDate.getTime() - offsetMs);
 
-    updateValue(adjustedDate.toISOString(), offset);
+    // Ensure the date is valid
+    if (isNaN(adjustedDate.getTime())) {
+      console.error("Invalid date created:", adjustedDate);
+      return;
+    }
+
+    updateValue(adjustedDate.toISOString());
   };
 
   const handleOffsetChange = (newOffset: string) => {
     const offsetValue = Number(newOffset);
     setOffset(offsetValue);
-    if (parsedValue.date) {
-      updateValue(parsedValue.date, offsetValue);
-    }
+    // Note: Changing timezone doesn't change the stored value,
+    // it only affects how the date/time is displayed for editing
   };
 
   return (
@@ -189,7 +214,7 @@ export function DateField({
               id="date-picker"
               disabled={disabled}
               className={cn(
-                "w-32 justify-between font-normal text-xs",
+                "w-32 h-9 justify-between font-normal text-xs",
                 !dateValue && "text-muted-foreground"
               )}
             >
@@ -222,7 +247,7 @@ export function DateField({
           value={timeStr}
           onChange={handleTimeChange}
           disabled={disabled}
-          className="w-32 text-xs bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+          className="w-32 h-9 text-xs bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
         />
       </div>
       <div className="flex flex-col gap-2">
@@ -234,7 +259,7 @@ export function DateField({
           onValueChange={handleOffsetChange}
           disabled={disabled}
         >
-          <SelectTrigger id="timezone-picker" className="w-28 text-xs">
+          <SelectTrigger id="timezone-picker" className="w-28 h-9 text-xs">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
