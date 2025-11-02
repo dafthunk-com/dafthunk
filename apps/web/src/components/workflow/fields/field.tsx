@@ -6,6 +6,7 @@ import { AnyField } from "./any-field";
 import { AudioField } from "./audio-field";
 import { BooleanField } from "./boolean-field";
 import { BufferGeometryField } from "./buffergeometry-field";
+import { DateField } from "./date-field";
 import { DocumentField } from "./document-field";
 import {
   createFileUploadHandler,
@@ -96,6 +97,8 @@ export function Field(props: FieldRouterProps) {
       return <NumberField {...props} />;
     case "string":
       return <TextField {...props} />;
+    case "date":
+      return <DateField {...props} />;
     case "json":
       return <JsonField {...props} />;
     case "secret":
