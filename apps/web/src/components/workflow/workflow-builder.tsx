@@ -88,8 +88,6 @@ export function WorkflowBuilder({
   const [workflowErrorMessage, setWorkflowErrorMessage] = useState<
     string | undefined
   >(initialWorkflowExecution?.error);
-  const [currentExpandedOutputs, setCurrentExpandedOutputs] =
-    useState(expandedOutputs);
   const [errorDialogState, setErrorDialogState] = useState<{
     open: boolean;
     message: string;
@@ -385,12 +383,6 @@ export function WorkflowBuilder({
     setIsSidebarVisible((prev) => !prev);
   }, []);
 
-  const toggleExpandedOutputs = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setCurrentExpandedOutputs((prev) => !prev);
-  }, []);
-
   const handleFitToScreen = useCallback(
     (e: React.MouseEvent) => {
       e.preventDefault();
@@ -442,7 +434,7 @@ export function WorkflowBuilder({
         deleteEdge={disabled ? undefined : deleteEdge}
         edges={edges}
         disabled={disabled}
-        expandedOutputs={currentExpandedOutputs}
+        expandedOutputs={expandedOutputs}
         nodeTemplates={nodeTemplates}
       >
         <div className="w-full h-full flex">
@@ -488,8 +480,6 @@ export function WorkflowBuilder({
               isSidebarVisible={isSidebarVisible}
               isValidConnection={isValidConnection}
               disabled={disabled}
-              expandedOutputs={currentExpandedOutputs}
-              onToggleExpandedOutputs={toggleExpandedOutputs}
               onFitToScreen={handleFitToScreen}
               selectedNodes={selectedNodes}
               selectedEdges={selectedEdges}

@@ -27,7 +27,7 @@ import TriangleIcon from "lucide-react/icons/triangle";
 import TypeIcon from "lucide-react/icons/type";
 import WrenchIcon from "lucide-react/icons/wrench";
 import XIcon from "lucide-react/icons/x";
-import { createElement, memo, useRef, useState } from "react";
+import { createElement, memo, useState } from "react";
 
 import { NodeDocsDialog } from "@/components/docs/node-docs-dialog";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -35,6 +35,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useNodeTypes } from "@/services/type-service";
 import { cn } from "@/utils/utils";
 
+import { PropertyField } from "./fields";
 import { registry } from "./widgets";
 import {
   clearNodeInput,
@@ -42,7 +43,6 @@ import {
   updateNodeInput,
   useWorkflow,
 } from "./workflow-context";
-import { PropertyField } from "./fields";
 import { ToolReference, WorkflowToolSelector } from "./workflow-tool-selector";
 import {
   InputOutputType,
@@ -290,7 +290,7 @@ export const WorkflowNode = memo(
 
     const handleInputClick = (
       param: WorkflowParameter,
-      element: HTMLElement
+      _element: HTMLElement
     ) => {
       if (disabled) return;
       // Don't allow clicking on connected inputs
@@ -301,7 +301,7 @@ export const WorkflowNode = memo(
 
     const handleOutputClick = (
       param: WorkflowParameter,
-      element: HTMLElement
+      _element: HTMLElement
     ) => {
       // Only show preview if there's a value
       if (param.value === undefined) return;
@@ -534,79 +534,93 @@ export const WorkflowNode = memo(
           />
         )}
 
-        <Dialog open={activeInputId !== null} onOpenChange={(open) => !open && setActiveInputId(null)}>
+        <Dialog
+          open={activeInputId !== null}
+          onOpenChange={(open) => !open && setActiveInputId(null)}
+        >
           <DialogContent className="sm:max-w-md pt-4">
-            {activeInputId && (() => {
-              const activeInput = data.inputs.find((i) => i.id === activeInputId);
-              if (!activeInput) return null;
+            {activeInputId &&
+              (() => {
+                const activeInput = data.inputs.find(
+                  (i) => i.id === activeInputId
+                );
+                if (!activeInput) return null;
 
-              return (
-                <PropertyField
-                  parameter={activeInput}
-                  value={activeInput.value}
-                  onChange={(value) => {
-                    const typedValue = convertValueByType(
-                      value as string,
-                      activeInput.type || "string"
-                    );
-                    updateNodeInput(
-                      id,
-                      activeInput.id,
-                      typedValue,
-                      data.inputs,
-                      updateNodeData
-                    );
-                  }}
-                  onClear={() => {
-                    clearNodeInput(
-                      id,
-                      activeInput.id,
-                      data.inputs,
-                      updateNodeData
-                    );
-                  }}
-                  onToggleVisibility={() => {
-                    const updatedInputs = data.inputs.map((input) =>
-                      input.id === activeInput.id
-                        ? { ...input, hidden: !input.hidden }
-                        : input
-                    );
-                    updateNodeData(id, { ...data, inputs: updatedInputs });
-                  }}
-                  disabled={disabled}
-                  connected={activeInput.isConnected}
-                  createObjectUrl={data.createObjectUrl}
-                />
-              );
-            })()}
+                return (
+                  <PropertyField
+                    parameter={activeInput}
+                    value={activeInput.value}
+                    onChange={(value) => {
+                      const typedValue = convertValueByType(
+                        value as string,
+                        activeInput.type || "string"
+                      );
+                      updateNodeInput(
+                        id,
+                        activeInput.id,
+                        typedValue,
+                        data.inputs,
+                        updateNodeData
+                      );
+                    }}
+                    onClear={() => {
+                      clearNodeInput(
+                        id,
+                        activeInput.id,
+                        data.inputs,
+                        updateNodeData
+                      );
+                    }}
+                    onToggleVisibility={() => {
+                      if (!updateNodeData) return;
+                      const updatedInputs = data.inputs.map((input) =>
+                        input.id === activeInput.id
+                          ? { ...input, hidden: !input.hidden }
+                          : input
+                      );
+                      updateNodeData(id, { ...data, inputs: updatedInputs });
+                    }}
+                    disabled={disabled}
+                    connected={activeInput.isConnected}
+                    createObjectUrl={data.createObjectUrl}
+                  />
+                );
+              })()}
           </DialogContent>
         </Dialog>
 
-        <Dialog open={activeOutputId !== null} onOpenChange={(open) => !open && setActiveOutputId(null)}>
+        <Dialog
+          open={activeOutputId !== null}
+          onOpenChange={(open) => !open && setActiveOutputId(null)}
+        >
           <DialogContent className="sm:max-w-md pt-4">
-            {activeOutputId && (() => {
-              const activeOutput = data.outputs.find((o) => o.id === activeOutputId);
-              if (!activeOutput) return null;
+            {activeOutputId &&
+              (() => {
+                const activeOutput = data.outputs.find(
+                  (o) => o.id === activeOutputId
+                );
+                if (!activeOutput) return null;
 
-              return (
-                <PropertyField
-                  parameter={activeOutput}
-                  value={activeOutput.value}
-                  onChange={() => {}}
-                  onClear={() => {}}
-                  onToggleVisibility={() => {
-                    const updatedOutputs = data.outputs.map((output) =>
-                      output.id === activeOutput.id
-                        ? { ...output, hidden: !output.hidden }
-                        : output
-                    );
-                    updateNodeData(id, { ...data, outputs: updatedOutputs });
-                  }}
-                  disabled={true}
-                  createObjectUrl={data.createObjectUrl}
-                />
-              );
-            })()}
+                return (
+                  <PropertyField
+                    parameter={activeOutput}
+                    value={activeOutput.value}
+                    onChange={() => {}}
+                    onClear={() => {}}
+                    onToggleVisibility={() => {
+                      if (!updateNodeData) return;
+                      const updatedOutputs = data.outputs.map((output) =>
+                        output.id === activeOutput.id
+                          ? { ...output, hidden: !output.hidden }
+                          : output
+                      );
+                      updateNodeData(id, { ...data, outputs: updatedOutputs });
+                    }}
+                    disabled={true}
+                    createObjectUrl={data.createObjectUrl}
+                  />
+                );
+              })()}
           </DialogContent>
         </Dialog>
       </TooltipProvider>

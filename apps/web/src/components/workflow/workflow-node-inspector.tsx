@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+
+import { PropertyField } from "./fields";
 import {
   clearNodeInput,
   convertValueByType,
@@ -14,7 +16,6 @@ import {
 } from "./workflow-context";
 import type { WorkflowNodeType } from "./workflow-types";
 import type { WorkflowParameter } from "./workflow-types";
-import { PropertyField } from "./fields";
 
 export interface WorkflowNodeInspectorProps {
   node: ReactFlowNode<WorkflowNodeType> | null;
@@ -257,7 +258,9 @@ export function WorkflowNodeInspector({
                       }}
                       onClear={() => handleClearValue(input.id)}
                       onDisconnect={() => handleDisconnect(input.id)}
-                      onToggleVisibility={() => handleToggleVisibility(input.id)}
+                      onToggleVisibility={() =>
+                        handleToggleVisibility(input.id)
+                      }
                       disabled={disabled}
                       connected={isConnected}
                       createObjectUrl={createObjectUrl}

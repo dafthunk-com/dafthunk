@@ -26,10 +26,10 @@ import TypeIcon from "lucide-react/icons/type";
 
 import { Toggle } from "@/components/ui/toggle";
 
+import type { InputOutputType, WorkflowParameter } from "../workflow-types";
 import { ClearButton } from "./clear-button";
 import { Field } from "./field";
 import { UnplugButton } from "./unplug-button";
-import type { InputOutputType, WorkflowParameter } from "../workflow-types";
 
 const getTypeIcon = (type: InputOutputType) => {
   const iconSize = "h-3.5 w-3.5";

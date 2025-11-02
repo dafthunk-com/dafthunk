@@ -359,7 +359,7 @@ export function DeploymentVersionPage() {
             isOpen={isIntegrationDialogOpen}
             onClose={() => setIsIntegrationDialogOpen(false)}
             nodes={nodes}
-            nodeTemplates={nodeTemplates}
+            nodeTemplates={nodeTypes || []}
             orgHandle={orgHandle}
             workflowId={deploymentVersion.workflowId}
             deploymentVersion={String(deploymentVersion.version)}

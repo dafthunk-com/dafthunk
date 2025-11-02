@@ -44,20 +44,6 @@ export function JsonField({
     onChangeRef.current = onChange;
   }, [onChange]);
 
-  // Disabled state without value - show placeholder message
-  if (disabled && !hasValue) {
-    return (
-      <div
-        className={cn(
-          "text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border",
-          className
-        )}
-      >
-        {connected ? "Connected" : "No value"}
-      </div>
-    );
-  }
-
   const readonly = disabled ?? false;
 
   // Format value for display (pretty-print if valid JSON)
@@ -172,7 +158,6 @@ export function JsonField({
       view.destroy();
       viewRef.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run on mount
 
   // Update editor content when external value changes
@@ -211,6 +196,20 @@ export function JsonField({
       ),
     });
   }, [readonly]);
+
+  // Disabled state without value - show placeholder message
+  if (disabled && !hasValue) {
+    return (
+      <div
+        className={cn(
+          "text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border",
+          className
+        )}
+      >
+        {connected ? "Connected" : "No value"}
+      </div>
+    );
+  }
 
   // Render CodeMirror editor with optional clear button
   return (

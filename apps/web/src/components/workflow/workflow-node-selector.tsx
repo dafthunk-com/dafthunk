@@ -112,7 +112,7 @@ export function WorkflowNodeSelector({
           })
         );
         const descTokens = new Set(
-          normalizeText(template.description, {
+          normalizeText(template.description || "", {
             removeStopWords: true,
             useLemmatization: true,
             minTokenLength: 2,
@@ -145,7 +145,7 @@ export function WorkflowNodeSelector({
         // Bonus scoring for partial matches in search term (substring matching)
         if (rawSearchTerm) {
           if (containsPartialMatch(template.name, rawSearchTerm)) score += 15;
-          if (containsPartialMatch(template.description, rawSearchTerm))
+          if (containsPartialMatch(template.description || "", rawSearchTerm))
             score += 8;
           template.tags.forEach((tag) => {
             if (containsPartialMatch(tag, rawSearchTerm)) score += 12;
@@ -156,7 +156,7 @@ export function WorkflowNodeSelector({
         const matchesSearch =
           !rawSearchTerm ||
           containsPartialMatch(template.name, rawSearchTerm) ||
-          containsPartialMatch(template.description, rawSearchTerm) ||
+          containsPartialMatch(template.description || "", rawSearchTerm) ||
           template.tags.some((tag) =>
             containsPartialMatch(tag, rawSearchTerm)
           ) ||

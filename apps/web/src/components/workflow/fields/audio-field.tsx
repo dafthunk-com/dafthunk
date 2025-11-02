@@ -60,7 +60,8 @@ export function AudioField({
           className={cn(
             "relative rounded-md p-2",
             disabled && "bg-muted/50 border border-border",
-            !disabled && "bg-white dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700"
+            !disabled &&
+              "bg-white dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700"
           )}
         >
           {objectUrl && (

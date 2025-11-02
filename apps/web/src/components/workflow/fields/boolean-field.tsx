@@ -1,6 +1,7 @@
+import { Check, Minus, X } from "lucide-react";
+
 import { Toggle } from "@/components/ui/toggle";
 import { cn } from "@/utils/utils";
-import { Check, Minus, X } from "lucide-react";
 
 import { ClearButton } from "./clear-button";
 import type { FieldProps } from "./types";
