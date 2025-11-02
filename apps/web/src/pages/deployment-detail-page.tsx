@@ -464,7 +464,7 @@ export function DeploymentDetailPage() {
             currentDeployment.nodes,
             nodeTypes
           )}
-          nodeTemplates={nodeTypes || []}
+          nodeTypes={nodeTypes || []}
           orgHandle={orgHandle}
           workflowId={workflowId!}
           deploymentVersion="latest"

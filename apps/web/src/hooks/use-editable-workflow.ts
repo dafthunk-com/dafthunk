@@ -21,13 +21,13 @@ import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
 
 interface UseEditableWorkflowProps {
   workflowId: string | undefined;
-  nodeTemplates?: NodeType[];
+  nodeTypes?: NodeType[];
   onExecutionUpdate?: (execution: WorkflowExecution) => void;
 }
 
 export function useEditableWorkflow({
   workflowId,
-  nodeTemplates = [],
+  nodeTypes = [],
   onExecutionUpdate,
 }: UseEditableWorkflowProps) {
   const [nodes, setNodes] = useState<Node<WorkflowNodeType>[]>([]);
@@ -84,7 +84,7 @@ export function useEditableWorkflow({
           // Convert to ReactFlow format
           const reactFlowNodes = adaptDeploymentNodesToReactFlowNodes(
             state.nodes,
-            nodeTemplates
+            nodeTypes
           );
           const reactFlowEdges = state.edges.map(
             (edge: any, index: number) => ({
@@ -167,7 +167,7 @@ export function useEditableWorkflow({
       edgesToSave: Edge<WorkflowEdgeType>[]
     ) => {
       // Block saves during initialization to prevent race condition where
-      // nodeTemplates load before edges, causing empty edges to be saved
+      // nodeTypes load before edges, causing empty edges to be saved
       if (isInitializing) {
         return;
       }

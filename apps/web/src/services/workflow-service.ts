@@ -538,12 +538,12 @@ export function useWorkflowExecution(
       id: string,
       onExecution: (execution: WorkflowExecution) => void,
       uiNodes: ReactFlowNode<WorkflowNodeType>[],
-      nodeTemplatesData: NodeType[] | undefined,
+      nodeTypesData: NodeType[] | undefined,
       workflowTypeString?: string
     ): (() => void) | undefined => {
       cleanup();
 
-      if (!nodeTemplatesData) {
+      if (!nodeTypesData) {
         onExecution({
           id: "",
           workflowId: id,
@@ -580,7 +580,7 @@ export function useWorkflowExecution(
         );
         const httpParameterNodes = extractDialogParametersFromNodes(
           uiNodes,
-          nodeTemplatesData
+          nodeTypesData
         );
         console.log(
           "[WorkflowService] HTTP_REQUEST block. jsonBodyNode:",

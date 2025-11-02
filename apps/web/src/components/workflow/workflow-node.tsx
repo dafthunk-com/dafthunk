@@ -32,7 +32,6 @@ import { createElement, memo, useState } from "react";
 import { NodeDocsDialog } from "@/components/docs/node-docs-dialog";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { useNodeTypes } from "@/services/type-service";
 import { cn } from "@/utils/utils";
 
 import { PropertyField } from "./fields";
@@ -73,7 +72,6 @@ export const TypeBadge = ({
   onOutputClick,
   disabled,
   className,
-  size: _size = "sm",
   executionState = "idle",
   selected = false,
 }: {
@@ -85,7 +83,6 @@ export const TypeBadge = ({
   onOutputClick?: (param: WorkflowParameter, element: HTMLElement) => void;
   disabled?: boolean;
   className?: string;
-  size?: "sm" | "md";
   executionState?: NodeExecutionState;
   selected?: boolean;
 }) => {
@@ -194,7 +191,7 @@ export const WorkflowNode = memo(
     selected?: boolean;
     id: string;
   }) => {
-    const { updateNodeData, disabled, nodeTemplates } = useWorkflow();
+    const { updateNodeData, disabled, nodeTypes } = useWorkflow();
     const [isToolSelectorOpen, setIsToolSelectorOpen] = useState(false);
     const [isDocsOpen, setIsDocsOpen] = useState(false);
     const [activeInputId, setActiveInputId] = useState<string | null>(null);
@@ -203,9 +200,7 @@ export const WorkflowNode = memo(
     // Get node type
     const nodeType = data.nodeType || "";
 
-    // Load available node types for docs resolution
-    const { nodeTypes } = useNodeTypes();
-
+    // Resolve node type from templates for docs
     const resolvedNodeType = (() => {
       if (!nodeTypes || nodeTypes.length === 0) return null;
       // Prefer matching by type identifier when available
@@ -395,64 +390,57 @@ export const WorkflowNode = memo(
                 <WrenchIcon className="h-3 w-3" />
                 Add Tool
               </button>
-              {(() => {
-                const selectedTools = getCurrentSelectedTools();
-                if (selectedTools.length > 0) {
-                  // Sort tools by name
-                  const sortedTools = [...selectedTools].sort((a, b) => {
-                    const tplA = (nodeTemplates || []).find(
-                      (t) => t.id === a.identifier
-                    );
-                    const tplB = (nodeTemplates || []).find(
-                      (t) => t.id === b.identifier
-                    );
-                    const nameA = tplA?.name || a.identifier;
-                    const nameB = tplB?.name || b.identifier;
-                    return nameA.localeCompare(nameB);
-                  });
-
-                  return (
-                    <div className="space-y-1">
-                      {sortedTools.map((tool, idx) => {
-                        const tpl = (nodeTemplates || []).find(
-                          (t) => t.id === tool.identifier
-                        );
-                        return (
-                          <div
-                            key={`${tool.identifier}-${idx}`}
-                            className="flex items-center justify-between gap-2 px-2 py-1 rounded bg-neutral-100 text-xs text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 w-full"
-                          >
-                            <div className="flex items-center gap-2 min-w-0 flex-1">
-                              {tpl?.icon ? (
-                                <DynamicIcon
-                                  name={tpl.icon as any}
-                                  className="h-3 w-3 shrink-0"
-                                />
-                              ) : null}
-                              <span className="truncate">
-                                {tpl?.name || tool.identifier}
-                              </span>
-                            </div>
-                            <button
-                              type="button"
-                              className="shrink-0 text-neutral-400 hover:text-neutral-900 dark:text-neutral-500 dark:hover:text-neutral-100 transition-colors"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleRemoveTool(tool.identifier);
-                              }}
-                              disabled={disabled}
-                              aria-label="Remove tool"
-                            >
-                              <XIcon className="h-3 w-3" />
-                            </button>
+              {getCurrentSelectedTools().length > 0 && (
+                <div className="space-y-1">
+                  {[...getCurrentSelectedTools()]
+                    .sort((a, b) => {
+                      const tplA = nodeTypes?.find(
+                        (t) => t.id === a.identifier
+                      );
+                      const tplB = nodeTypes?.find(
+                        (t) => t.id === b.identifier
+                      );
+                      const nameA = tplA?.name || a.identifier;
+                      const nameB = tplB?.name || b.identifier;
+                      return nameA.localeCompare(nameB);
+                    })
+                    .map((tool, idx) => {
+                      const tpl = nodeTypes?.find(
+                        (t) => t.id === tool.identifier
+                      );
+                      return (
+                        <div
+                          key={`${tool.identifier}-${idx}`}
+                          className="flex items-center justify-between gap-2 px-2 py-1 rounded bg-neutral-100 text-xs text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 w-full"
+                        >
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                            {tpl?.icon && (
+                              <DynamicIcon
+                                name={tpl.icon as any}
+                                className="h-3 w-3 shrink-0"
+                              />
+                            )}
+                            <span className="truncate">
+                              {tpl?.name || tool.identifier}
+                            </span>
                           </div>
-                        );
-                      })}
-                    </div>
-                  );
-                }
-                return null;
-              })()}
+                          <button
+                            type="button"
+                            className="shrink-0 text-neutral-400 hover:text-neutral-900 dark:text-neutral-500 dark:hover:text-neutral-100 transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRemoveTool(tool.identifier);
+                            }}
+                            disabled={disabled}
+                            aria-label="Remove tool"
+                          >
+                            <XIcon className="h-3 w-3" />
+                          </button>
+                        </div>
+                      );
+                    })}
+                </div>
+              )}
             </div>
           )}
 
@@ -517,75 +505,70 @@ export const WorkflowNode = memo(
           </div>
         </div>
 
-        {data.functionCalling && (
-          <WorkflowToolSelector
-            open={isToolSelectorOpen}
-            onClose={handleToolSelectorClose}
-            onSelect={handleToolsSelect}
-            templates={nodeTemplates || []}
-          />
-        )}
+        <WorkflowToolSelector
+          open={data.functionCalling ? isToolSelectorOpen : false}
+          onClose={handleToolSelectorClose}
+          onSelect={handleToolsSelect}
+          templates={nodeTypes || []}
+        />
 
-        {resolvedNodeType && (
-          <NodeDocsDialog
-            nodeType={resolvedNodeType}
-            isOpen={isDocsOpen}
-            onOpenChange={setIsDocsOpen}
-          />
-        )}
+        <NodeDocsDialog
+          nodeType={resolvedNodeType!}
+          isOpen={isDocsOpen && !!resolvedNodeType}
+          onOpenChange={setIsDocsOpen}
+        />
 
         <Dialog
           open={activeInputId !== null}
           onOpenChange={(open) => !open && setActiveInputId(null)}
         >
           <DialogContent className="sm:max-w-md pt-4">
-            {activeInputId &&
-              (() => {
-                const activeInput = data.inputs.find(
-                  (i) => i.id === activeInputId
-                );
-                if (!activeInput) return null;
+            {(() => {
+              const activeInput = data.inputs.find(
+                (i) => i.id === activeInputId
+              );
+              if (!activeInput) return null;
 
-                return (
-                  <PropertyField
-                    parameter={activeInput}
-                    value={activeInput.value}
-                    onChange={(value) => {
-                      const typedValue = convertValueByType(
-                        value as string,
-                        activeInput.type || "string"
-                      );
-                      updateNodeInput(
-                        id,
-                        activeInput.id,
-                        typedValue,
-                        data.inputs,
-                        updateNodeData
-                      );
-                    }}
-                    onClear={() => {
-                      clearNodeInput(
-                        id,
-                        activeInput.id,
-                        data.inputs,
-                        updateNodeData
-                      );
-                    }}
-                    onToggleVisibility={() => {
-                      if (!updateNodeData) return;
-                      const updatedInputs = data.inputs.map((input) =>
-                        input.id === activeInput.id
-                          ? { ...input, hidden: !input.hidden }
-                          : input
-                      );
-                      updateNodeData(id, { ...data, inputs: updatedInputs });
-                    }}
-                    disabled={disabled}
-                    connected={activeInput.isConnected}
-                    createObjectUrl={data.createObjectUrl}
-                  />
-                );
-              })()}
+              return (
+                <PropertyField
+                  parameter={activeInput}
+                  value={activeInput.value}
+                  onChange={(value) => {
+                    const typedValue = convertValueByType(
+                      value as string,
+                      activeInput.type || "string"
+                    );
+                    updateNodeInput(
+                      id,
+                      activeInput.id,
+                      typedValue,
+                      data.inputs,
+                      updateNodeData
+                    );
+                  }}
+                  onClear={() => {
+                    clearNodeInput(
+                      id,
+                      activeInput.id,
+                      data.inputs,
+                      updateNodeData
+                    );
+                  }}
+                  onToggleVisibility={() => {
+                    if (!updateNodeData) return;
+                    const updatedInputs = data.inputs.map((input) =>
+                      input.id === activeInput.id
+                        ? { ...input, hidden: !input.hidden }
+                        : input
+                    );
+                    updateNodeData(id, { ...data, inputs: updatedInputs });
+                  }}
+                  disabled={disabled}
+                  connected={activeInput.isConnected}
+                  createObjectUrl={data.createObjectUrl}
+                />
+              );
+            })()}
           </DialogContent>
         </Dialog>
 
@@ -594,33 +577,32 @@ export const WorkflowNode = memo(
           onOpenChange={(open) => !open && setActiveOutputId(null)}
         >
           <DialogContent className="sm:max-w-md pt-4">
-            {activeOutputId &&
-              (() => {
-                const activeOutput = data.outputs.find(
-                  (o) => o.id === activeOutputId
-                );
-                if (!activeOutput) return null;
+            {(() => {
+              const activeOutput = data.outputs.find(
+                (o) => o.id === activeOutputId
+              );
+              if (!activeOutput) return null;
 
-                return (
-                  <PropertyField
-                    parameter={activeOutput}
-                    value={activeOutput.value}
-                    onChange={() => {}}
-                    onClear={() => {}}
-                    onToggleVisibility={() => {
-                      if (!updateNodeData) return;
-                      const updatedOutputs = data.outputs.map((output) =>
-                        output.id === activeOutput.id
-                          ? { ...output, hidden: !output.hidden }
-                          : output
-                      );
-                      updateNodeData(id, { ...data, outputs: updatedOutputs });
-                    }}
-                    disabled={true}
-                    createObjectUrl={data.createObjectUrl}
-                  />
-                );
-              })()}
+              return (
+                <PropertyField
+                  parameter={activeOutput}
+                  value={activeOutput.value}
+                  onChange={() => {}}
+                  onClear={() => {}}
+                  onToggleVisibility={() => {
+                    if (!updateNodeData) return;
+                    const updatedOutputs = data.outputs.map((output) =>
+                      output.id === activeOutput.id
+                        ? { ...output, hidden: !output.hidden }
+                        : output
+                    );
+                    updateNodeData(id, { ...data, outputs: updatedOutputs });
+                  }}
+                  disabled={true}
+                  createObjectUrl={data.createObjectUrl}
+                />
+              );
+            })()}
           </DialogContent>
         </Dialog>
       </TooltipProvider>

@@ -21,7 +21,7 @@ export function cn(...inputs: ClassValue[]) {
 // Helper function to extract and format parameters for the execution dialog
 export function extractDialogParametersFromNodes(
   nodes: Node<WorkflowNodeType>[],
-  nodeTemplates: NodeType[]
+  nodeTypes: NodeType[]
 ): DialogFormParameter[] {
   return nodes
     .filter((node) => node.data.nodeType?.startsWith("form-data-"))
@@ -46,7 +46,7 @@ export function extractDialogParametersFromNodes(
       // Prioritize the user-given node instance name, if it's specific and not the default node type name.
       // Otherwise, use the fieldKey (name).
       const defaultNodeTypeDisplayName =
-        nodeTemplates.find((t) => t.id === node.data.nodeType)?.name ||
+        nodeTypes.find((t) => t.id === node.data.nodeType)?.name ||
         node.data.nodeType ||
         "";
       const isNodeNameSpecific =
@@ -72,7 +72,7 @@ export function extractDialogParametersFromNodes(
 // Helper function to convert backend nodes to ReactFlow nodes
 export function adaptDeploymentNodesToReactFlowNodes(
   backendNodes: BackendNode[],
-  nodeTemplates: NodeType[] = []
+  nodeTypes: NodeType[] = []
 ): Node<WorkflowNodeType>[] {
   return (backendNodes || []).map((depNode) => {
     const adaptedInputs: WorkflowParameter[] = (depNode.inputs || []).map(
@@ -105,8 +105,8 @@ export function adaptDeploymentNodesToReactFlowNodes(
       }
     );
 
-    // Find the icon from nodeTemplates by matching the node type
-    const template = nodeTemplates.find((t) => t.type === depNode.type);
+    // Find the icon from nodeTypes by matching the node type
+    const template = nodeTypes.find((t) => t.type === depNode.type);
     const icon = depNode.icon || template?.icon || "circle"; // fallback icon
 
     return {
@@ -122,7 +122,7 @@ export function adaptDeploymentNodesToReactFlowNodes(
         inputs: adaptedInputs,
         outputs: adaptedOutputs,
         executionState: "idle",
-        nodeTemplates,
+        nodeTypes,
       },
     } as Node<WorkflowNodeType>;
   });

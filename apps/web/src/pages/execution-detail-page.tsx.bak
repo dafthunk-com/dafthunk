@@ -38,7 +38,7 @@ export function ExecutionDetailPage() {
   const { createObjectUrl } = useObjectService();
 
   // Use empty node templates array since we're in readonly mode
-  const nodeTemplates = [];
+  const nodeTypes = [];
 
   const { workflow: workflowInfo } = useWorkflow(execution?.workflowId || null);
 
@@ -216,12 +216,12 @@ export function ExecutionDetailPage() {
             <div className="h-[calc(100vh-300px)] border rounded-md relative">
               {reactFlowNodes.length > 0 &&
               workflowBuilderExecution &&
-              nodeTemplates !== undefined ? (
+              nodeTypes !== undefined ? (
                 <WorkflowBuilder
                   workflowId={execution.workflowId || execution.id}
                   initialNodes={reactFlowNodes}
                   initialEdges={reactFlowEdges}
-                  nodeTemplates={nodeTemplates}
+                  nodeTypes={nodeTypes}
                   validateConnection={handleValidateConnection}
                   initialWorkflowExecution={workflowBuilderExecution}
                   createObjectUrl={createObjectUrl}

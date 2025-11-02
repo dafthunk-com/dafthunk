@@ -90,7 +90,7 @@ export function EditorPage() {
     executeWorkflow: wsExecuteWorkflow,
   } = useEditableWorkflow({
     workflowId: id,
-    nodeTemplates: nodeTypes || [],
+    nodeTypes: nodeTypes || [],
     onExecutionUpdate: handleExecutionUpdate,
   });
 
@@ -392,7 +392,7 @@ export function EditorPage() {
             }
             initialNodes={initialNodesForUI}
             initialEdges={initialEdgesForUI}
-            nodeTemplates={nodeTypes || []}
+            nodeTypes={nodeTypes || []}
             onNodesChange={handleUiNodesChanged}
             onEdgesChange={handleUiEdgesChanged}
             validateConnection={validateConnection}
@@ -414,7 +414,7 @@ export function EditorPage() {
             workflowId={id!}
             deploymentVersion="dev"
             nodes={latestUiNodesRef.current}
-            nodeTemplates={nodeTypes || []}
+            nodeTypes={nodeTypes || []}
           />
         )}
         {workflowMetadata?.type === "http_request" &&

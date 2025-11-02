@@ -27,7 +27,7 @@ interface HttpIntegrationDialogProps {
   isOpen: boolean;
   onClose: (open: boolean) => void;
   nodes: Node<WorkflowNodeType>[];
-  nodeTemplates: NodeType[];
+  nodeTypes: NodeType[];
   orgHandle: string;
   workflowId: string;
   deploymentVersion: string;
@@ -37,7 +37,7 @@ export function HttpIntegrationDialog({
   isOpen,
   onClose,
   nodes,
-  nodeTemplates,
+  nodeTypes,
   orgHandle,
   workflowId,
   deploymentVersion,
@@ -47,7 +47,7 @@ export function HttpIntegrationDialog({
   const statusBaseUrl = `${baseUrl}/${orgHandle}/executions`; // Execution ID will be appended in snippets
   const objectBaseUrl = `${baseUrl}/${orgHandle}/objects?id=YOUR_OBJECT_ID`; // Object ID and mimeType to be added
 
-  const parameters = extractDialogParametersFromNodes(nodes, nodeTemplates);
+  const parameters = extractDialogParametersFromNodes(nodes, nodeTypes);
 
   // Check if there\'s a JSON body parameter
   const jsonBodyParam = parameters.find((p) => p.type === "body-json");

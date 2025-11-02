@@ -38,7 +38,7 @@ export interface WorkflowBuilderProps {
   workflowType?: WorkflowType;
   initialNodes?: ReactFlowNode<WorkflowNodeType>[];
   initialEdges?: ReactFlowEdge<WorkflowEdgeType>[];
-  nodeTemplates?: NodeType[];
+  nodeTypes?: NodeType[];
   onNodesChange?: (nodes: ReactFlowNode<WorkflowNodeType>[]) => void;
   onEdgesChange?: (edges: ReactFlowEdge<WorkflowEdgeType>[]) => void;
   validateConnection?: (connection: Connection) => boolean;
@@ -64,7 +64,7 @@ export function WorkflowBuilder({
   workflowType,
   initialNodes = [],
   initialEdges = [],
-  nodeTemplates = [],
+  nodeTypes = [],
   onNodesChange: onNodesChangeFromParent,
   onEdgesChange: onEdgesChangeFromParent,
   validateConnection,
@@ -435,7 +435,7 @@ export function WorkflowBuilder({
         edges={edges}
         disabled={disabled}
         expandedOutputs={expandedOutputs}
-        nodeTemplates={nodeTemplates}
+        nodeTypes={nodeTypes}
       >
         <div className="w-full h-full flex">
           <div
@@ -523,7 +523,7 @@ export function WorkflowBuilder({
             open={disabled ? false : handleIsNodeSelectorOpen}
             onSelect={handleNodeSelect}
             onClose={() => handleSetIsNodeSelectorOpen(false)}
-            templates={nodeTemplates}
+            templates={nodeTypes}
             workflowName={workflowName}
             workflowDescription={workflowDescription}
           />

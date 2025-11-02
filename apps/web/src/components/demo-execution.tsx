@@ -44,7 +44,7 @@ export const DemoExecution = memo(() => {
         initialEdges={demoEdges}
         initialWorkflowExecution={demoExecution}
         createObjectUrl={createDemoObjectUrl}
-        nodeTemplates={[]}
+        nodeTypes={[]}
         expandedOutputs={true}
       />
     </div>

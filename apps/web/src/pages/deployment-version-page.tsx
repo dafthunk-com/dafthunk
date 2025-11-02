@@ -300,7 +300,7 @@ export function DeploymentVersionPage() {
                     workflowId={deploymentVersion.id}
                     initialNodes={nodes}
                     initialEdges={edges}
-                    nodeTemplates={nodeTypes || []}
+                    nodeTypes={nodeTypes || []}
                     validateConnection={validateConnection}
                     createObjectUrl={createObjectUrl}
                     disabled={true}
@@ -359,7 +359,7 @@ export function DeploymentVersionPage() {
             isOpen={isIntegrationDialogOpen}
             onClose={() => setIsIntegrationDialogOpen(false)}
             nodes={nodes}
-            nodeTemplates={nodeTypes || []}
+            nodeTypes={nodeTypes || []}
             orgHandle={orgHandle}
             workflowId={deploymentVersion.workflowId}
             deploymentVersion={String(deploymentVersion.version)}
