@@ -1,7 +1,14 @@
+import { json } from "@codemirror/lang-json";
+import {
+  defaultHighlightStyle,
+  syntaxHighlighting,
+} from "@codemirror/language";
+import { Compartment, EditorState } from "@codemirror/state";
+import { EditorView, lineNumbers } from "@codemirror/view";
 import { type GeoJSONSvgOptions, geojsonToSvg } from "@dafthunk/utils";
+import { useEffect, useRef } from "react";
 
 import { CodeBlock } from "@/components/docs/code-block";
-import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/utils/utils";
 
 import { ClearButton } from "./clear-button";
@@ -19,6 +26,20 @@ export function GeoJSONField({
 }: FieldProps) {
   // GeoJSON fields check for null explicitly (null is a valid but empty GeoJSON)
   const hasValue = value !== undefined && value !== null;
+
+  // Refs for CodeMirror editor management
+  const editorRef = useRef<HTMLDivElement>(null);
+  const viewRef = useRef<EditorView | null>(null);
+  const onChangeRef = useRef(onChange);
+  const readonlyCompartment = useRef(new Compartment());
+  const isFormattingRef = useRef(false); // Prevents infinite loops during auto-formatting
+
+  // Keep onChange ref up to date without triggering editor recreation
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
+
+  const readonly = disabled ?? false;
 
   // Helper to get human-readable label for geometry type
   const getGeometryTypeLabel = (type: string): string => {
@@ -100,7 +121,149 @@ export function GeoJSONField({
   };
 
   const formattedValue = hasValue ? formatGeoJSON(value) : "";
-  const geometryLabel = getGeometryTypeLabel(parameter.type);
+
+  // Create CodeMirror editor once on mount
+  useEffect(() => {
+    if (!editorRef.current) return;
+
+    const view = new EditorView({
+      state: EditorState.create({
+        doc: formattedValue,
+        extensions: [
+          json(),
+          syntaxHighlighting(defaultHighlightStyle),
+          lineNumbers(),
+          EditorView.lineWrapping,
+          readonlyCompartment.current.of(EditorState.readOnly.of(readonly)),
+          // Auto-format JSON and update value on changes
+          EditorView.updateListener.of((update) => {
+            if (update.docChanged && !isFormattingRef.current && !readonly) {
+              const newValue = update.state.doc.toString();
+
+              if (!newValue) {
+                onChangeRef.current?.(undefined);
+                return;
+              }
+
+              try {
+                const parsed = JSON.parse(newValue);
+                const formatted = JSON.stringify(parsed, null, 2);
+
+                if (formatted !== newValue) {
+                  // Format in place while preserving cursor position
+                  isFormattingRef.current = true;
+
+                  // Get current cursor position
+                  const cursorPos = update.state.selection.main.head;
+
+                  // Count non-whitespace characters before cursor to maintain relative position
+                  let contentChars = 0;
+                  for (let i = 0; i < cursorPos && i < newValue.length; i++) {
+                    if (!/\s/.test(newValue[i])) contentChars++;
+                  }
+
+                  // Find new cursor position with same number of content characters
+                  let newCursorPos = 0;
+                  let count = 0;
+                  for (let i = 0; i < formatted.length; i++) {
+                    if (!/\s/.test(formatted[i])) {
+                      count++;
+                      if (count >= contentChars) {
+                        newCursorPos = i + 1;
+                        break;
+                      }
+                    }
+                  }
+
+                  // Dispatch formatting change with preserved cursor
+                  update.view.dispatch({
+                    changes: {
+                      from: 0,
+                      to: newValue.length,
+                      insert: formatted,
+                    },
+                    selection: { anchor: newCursorPos },
+                  });
+
+                  // Reset flag after dispatch
+                  Promise.resolve().then(() => {
+                    isFormattingRef.current = false;
+                  });
+                }
+
+                onChangeRef.current?.(parsed);
+              } catch {
+                // Allow invalid JSON while typing - keep string value
+                onChangeRef.current?.(newValue);
+              }
+            }
+          }),
+          EditorView.baseTheme({
+            "&.cm-focused": {
+              outline: "none !important",
+            },
+          }),
+          EditorView.theme({
+            "&": {
+              height: "100%",
+              fontSize: "12px",
+            },
+            ".cm-scroller": {
+              overflow: "auto",
+            },
+            ".cm-gutters": {
+              fontSize: "12px",
+            },
+          }),
+        ],
+      }),
+      parent: editorRef.current,
+    });
+
+    viewRef.current = view;
+
+    return () => {
+      view.destroy();
+      viewRef.current = null;
+    };
+  }, []); // Only run on mount
+
+  // Update editor content when external value changes
+  useEffect(() => {
+    const view = viewRef.current;
+    if (!view || isFormattingRef.current) return;
+
+    const currentValue = view.state.doc.toString();
+
+    // Don't update if values are semantically equal (same JSON object)
+    try {
+      const currentParsed = JSON.parse(currentValue);
+      const newParsed = JSON.parse(formattedValue);
+      if (JSON.stringify(currentParsed) === JSON.stringify(newParsed)) {
+        return;
+      }
+    } catch {
+      // If either fails to parse, fall through to string comparison
+    }
+
+    if (currentValue !== formattedValue) {
+      view.dispatch({
+        changes: { from: 0, to: currentValue.length, insert: formattedValue },
+      });
+    }
+  }, [formattedValue]);
+
+  // Update editor readonly state when disabled prop changes
+  useEffect(() => {
+    const view = viewRef.current;
+    if (!view) return;
+
+    view.dispatch({
+      effects: readonlyCompartment.current.reconfigure(
+        EditorState.readOnly.of(readonly)
+      ),
+    });
+  }, [readonly]);
 
   // Disabled state without value - show placeholder message
   if (disabled && !hasValue) {
@@ -124,27 +287,25 @@ export function GeoJSONField({
 
     return (
       <div className={cn("space-y-2", className)}>
-        {/* Preview above JSON */}
-        <>
-          {result.error ? (
-            <div className="text-xs text-red-500 p-2 bg-red-50 rounded-md dark:bg-red-900 dark:text-red-400 dark:border dark:border-red-800">
-              {result.error}
-            </div>
-          ) : result.svg ? (
-            <div className="border border-border rounded-md bg-slate-50 dark:bg-slate-900">
-              <div
-                className="w-full"
-                dangerouslySetInnerHTML={{ __html: result.svg }}
-              />
-            </div>
-          ) : hasValue ? (
-            <div className="border border-border rounded-md bg-slate-50 dark:bg-slate-900 p-4 text-center">
-              <span className="text-slate-500 dark:text-slate-400 text-xs">
-                No geometries to display
-              </span>
-            </div>
-          ) : null}
-        </>
+        {/* Preview above JSON - always visible with 200px height */}
+        {result.error ? (
+          <div className="h-[200px] flex items-center justify-center text-xs text-red-500 p-2 bg-red-50 rounded-md dark:bg-red-900 dark:text-red-400 dark:border dark:border-red-800">
+            {result.error}
+          </div>
+        ) : result.svg ? (
+          <div className="h-[200px] border border-border rounded-md bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
+            <div
+              className="w-full h-full"
+              dangerouslySetInnerHTML={{ __html: result.svg }}
+            />
+          </div>
+        ) : (
+          <div className="h-[200px] border border-border rounded-md bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
+            <span className="text-slate-500 dark:text-slate-400 text-xs">
+              {hasValue ? "No geometries to display" : "No GeoJSON"}
+            </span>
+          </div>
+        )}
 
         {/* JSON Code Block */}
         {hasValue && (
@@ -158,59 +319,48 @@ export function GeoJSONField({
     );
   }
 
-  // Enabled state - show SVG preview (if has value) and editable textarea
+  // Enabled state - show SVG preview and editable CodeMirror editor
   const result = hasValue ? renderGeoJSONSvg(value) : { svg: "", error: null };
 
   return (
     <div className={cn("space-y-2", className)}>
-      {/* Preview above textarea */}
-      {hasValue && (
-        <>
-          {result.error ? (
-            <div className="text-xs text-red-500 p-2 bg-red-50 rounded-md dark:bg-red-900 dark:text-red-400 dark:border dark:border-red-800">
-              {result.error}
-            </div>
-          ) : result.svg ? (
-            <div className="border border-border rounded-md bg-slate-50 dark:bg-slate-900">
-              <div
-                className="w-full"
-                dangerouslySetInnerHTML={{ __html: result.svg }}
-              />
-            </div>
-          ) : (
-            <div className="border border-border rounded-md bg-slate-50 dark:bg-slate-900 p-4 text-center">
-              <span className="text-slate-500 dark:text-slate-400 text-xs">
-                No geometries to display
-              </span>
-            </div>
-          )}
-        </>
+      {/* Preview above editor - always visible with 200px height */}
+      {result.error ? (
+        <div className="h-[200px] flex items-center justify-center text-xs text-red-500 p-2 bg-red-50 rounded-md dark:bg-red-900 dark:text-red-400 dark:border dark:border-red-800">
+          {result.error}
+        </div>
+      ) : result.svg ? (
+        <div className="h-[200px] border border-border rounded-md bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
+          <div
+            className="w-full h-full"
+            dangerouslySetInnerHTML={{ __html: result.svg }}
+          />
+        </div>
+      ) : (
+        <div className="h-[200px] border border-border rounded-md bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
+          <span className="text-slate-500 dark:text-slate-400 text-xs">
+            {hasValue ? "No geometries to display" : "No GeoJSON"}
+          </span>
+        </div>
       )}
 
-      {/* Textarea input */}
-      <div className="relative">
-        <Textarea
-          value={formattedValue}
-          onChange={(e) => {
-            try {
-              const parsed = JSON.parse(e.target.value);
-              onChange?.(parsed);
-            } catch {
-              // Allow invalid JSON while typing
-              onChange?.(e.target.value);
-            }
-          }}
-          placeholder={`Enter ${geometryLabel} GeoJSON`}
-          className={cn(
-            "text-xs font-mono min-h-[120px] resize-y rounded-md border border-neutral-300 dark:border-neutral-700"
-          )}
-          disabled={disabled}
+      {/* CodeMirror editor */}
+      <div
+        className="relative"
+        onWheelCapture={(e) => {
+          // Capture wheel events at container level to prevent parent scroll
+          e.stopPropagation();
+        }}
+      >
+        <div
+          ref={editorRef}
+          className="h-[200px] rounded-md border border-neutral-300 dark:border-neutral-700 overflow-auto"
         />
-        {!disabled && clearable && hasValue && (
+        {!disabled && !readonly && clearable && hasValue && (
           <ClearButton
             onClick={onClear}
             label="Clear GeoJSON"
-            className="absolute top-2 right-1"
+            className="absolute top-2 right-2 z-10"
           />
         )}
       </div>

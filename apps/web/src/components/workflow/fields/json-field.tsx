@@ -222,7 +222,7 @@ export function JsonField({
     >
       <div
         ref={editorRef}
-        className="min-h-[80px] max-h-[140px] rounded-md border border-neutral-300 dark:border-neutral-700 overflow-auto"
+        className="min-h-[80px] max-h-[200px] rounded-md border border-neutral-300 dark:border-neutral-700 overflow-auto"
       />
       {!disabled && !readonly && clearable && hasValue && (
         <ClearButton
