@@ -8,32 +8,19 @@ import { ClearButton } from "./clear-button";
 import type { FieldProps } from "./types";
 
 export function GeoJSONField({
-  parameter,
-  value,
+  className,
+  clearable,
+  connected,
+  disabled,
   onChange,
   onClear,
-  disabled,
-  clearable,
-  className,
-  active,
-  connected,
+  parameter,
+  value,
 }: FieldProps) {
+  // GeoJSON fields check for null explicitly (null is a valid but empty GeoJSON)
   const hasValue = value !== undefined && value !== null;
 
-  // Disabled state without value
-  if (disabled && !hasValue) {
-    return (
-      <div
-        className={cn(
-          "text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border",
-          className
-        )}
-      >
-        {connected ? "Connected" : "No GeoJSON"}
-      </div>
-    );
-  }
-
+  // Helper to get human-readable label for geometry type
   const getGeometryTypeLabel = (type: string): string => {
     switch (type) {
       case "point":
@@ -61,6 +48,7 @@ export function GeoJSONField({
     }
   };
 
+  // Helper to format GeoJSON value as pretty-printed JSON string
   const formatGeoJSON = (value: any): string => {
     try {
       return JSON.stringify(value, null, 2);
@@ -70,6 +58,7 @@ export function GeoJSONField({
     }
   };
 
+  // Helper to render GeoJSON as SVG for visual preview
   const renderGeoJSONSvg = (geojson: any) => {
     if (!geojson) {
       return { svg: "", error: null };
@@ -113,7 +102,21 @@ export function GeoJSONField({
   const formattedValue = hasValue ? formatGeoJSON(value) : "";
   const geometryLabel = getGeometryTypeLabel(parameter.type);
 
-  // Disabled mode (read-only output) - always show preview
+  // Disabled state without value - show placeholder message
+  if (disabled && !hasValue) {
+    return (
+      <div
+        className={cn(
+          "text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border",
+          className
+        )}
+      >
+        {connected ? "Connected" : "No GeoJSON"}
+      </div>
+    );
+  }
+
+  // Disabled state with value - show SVG preview and JSON code block
   if (disabled) {
     const result = hasValue
       ? renderGeoJSONSvg(value)
@@ -155,7 +158,7 @@ export function GeoJSONField({
     );
   }
 
-  // Enabled mode (editable input) - always show preview
+  // Enabled state - show SVG preview (if has value) and editable textarea
   const result = hasValue ? renderGeoJSONSvg(value) : { svg: "", error: null };
 
   return (
@@ -199,9 +202,7 @@ export function GeoJSONField({
           }}
           placeholder={`Enter ${geometryLabel} GeoJSON`}
           className={cn(
-            "text-xs font-mono min-h-[120px] resize-y rounded-md",
-            active && "border border-blue-500",
-            !active && "border border-neutral-300 dark:border-neutral-700"
+            "text-xs font-mono min-h-[120px] resize-y rounded-md border border-neutral-300 dark:border-neutral-700"
           )}
           disabled={disabled}
         />

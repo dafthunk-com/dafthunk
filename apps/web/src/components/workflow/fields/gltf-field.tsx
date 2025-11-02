@@ -9,22 +9,35 @@ import { ClearButton } from "./clear-button";
 import type { FileFieldProps, ObjectReference } from "./types";
 
 export function GltfField({
-  parameter,
-  value,
-  onClear,
-  disabled,
-  clearable,
-  isUploading,
-  uploadError,
-  onFileUpload,
-  createObjectUrl,
   className,
-  active,
+  clearable,
   connected,
+  createObjectUrl,
+  disabled,
+  isUploading,
+  onClear,
+  onFileUpload,
+  parameter,
+  uploadError,
+  value,
 }: FileFieldProps) {
+  // File fields check for object references
   const hasValue = value !== undefined && isObjectReference(value);
 
-  // Disabled state without value
+  // Helper to safely create object URL for preview
+  const getObjectUrl = (): string | null => {
+    if (!hasValue || !createObjectUrl) return null;
+    try {
+      return createObjectUrl(value as ObjectReference);
+    } catch (error) {
+      console.error("Failed to create object URL:", error);
+      return null;
+    }
+  };
+
+  const objectUrl = getObjectUrl();
+
+  // Disabled state without value - show placeholder message
   if (disabled && !hasValue) {
     return (
       <div
@@ -38,19 +51,7 @@ export function GltfField({
     );
   }
 
-  const getObjectUrl = (): string | null => {
-    if (!hasValue || !createObjectUrl) return null;
-    try {
-      return createObjectUrl(value as ObjectReference);
-    } catch (error) {
-      console.error("Failed to create object URL:", error);
-      return null;
-    }
-  };
-
-  const objectUrl = getObjectUrl();
-
-  // Disabled state with value - always show 3D viewer
+  // Disabled state with value - show 3D model viewer
   if (disabled && hasValue) {
     if (objectUrl) {
       return (
@@ -66,15 +67,13 @@ export function GltfField({
     }
   }
 
-  // Has value (enabled) - show download link
+  // Enabled state with value - show download link
   if (hasValue) {
     return (
       <div className={cn(className)}>
         <div
           className={cn(
-            "relative flex items-center gap-2 p-2 rounded-md bg-white dark:bg-neutral-950",
-            active && "border border-blue-500",
-            !active && "border border-neutral-300 dark:border-neutral-700"
+            "relative flex items-center gap-2 p-2 rounded-md bg-white dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700"
           )}
         >
           <File className="h-4 w-4 flex-shrink-0 text-neutral-500" />
@@ -105,14 +104,12 @@ export function GltfField({
     );
   }
 
-  // No value - upload zone
+  // No value - show upload zone
   return (
     <div className={cn(className)}>
       <div
         className={cn(
-          "flex flex-col items-center justify-center space-y-2 p-3 rounded-md bg-white dark:bg-neutral-950",
-          active && "border border-blue-500",
-          !active && "border border-neutral-300 dark:border-neutral-700"
+          "flex flex-col items-center justify-center space-y-2 p-3 rounded-md bg-white dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700"
         )}
       >
         <Upload className="h-5 w-5 text-neutral-400" />

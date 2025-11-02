@@ -7,35 +7,22 @@ import { ClearButton } from "./clear-button";
 import type { FileFieldProps, ObjectReference } from "./types";
 
 export function AudioField({
-  parameter,
-  value,
-  onClear,
-  disabled,
-  clearable,
-  isUploading,
-  uploadError,
-  onFileUpload,
-  createObjectUrl,
   className,
-  active,
+  clearable,
   connected,
+  createObjectUrl,
+  disabled,
+  isUploading,
+  onClear,
+  onFileUpload,
+  parameter,
+  uploadError,
+  value,
 }: FileFieldProps) {
+  // File fields check for object references
   const hasValue = value !== undefined && isObjectReference(value);
 
-  // Disabled state without value
-  if (disabled && !hasValue) {
-    return (
-      <div
-        className={cn(
-          "text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border",
-          className
-        )}
-      >
-        {connected ? "Connected" : "No audio"}
-      </div>
-    );
-  }
-
+  // Helper to safely create object URL for preview
   const getObjectUrl = (): string | null => {
     if (!hasValue || !createObjectUrl) return null;
     try {
@@ -51,7 +38,21 @@ export function AudioField({
     ? (value as ObjectReference)?.mimeType || "audio/*"
     : "audio/*";
 
-  // Has value (disabled or enabled) - always show preview
+  // Disabled state without value - show placeholder message
+  if (disabled && !hasValue) {
+    return (
+      <div
+        className={cn(
+          "text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border",
+          className
+        )}
+      >
+        {connected ? "Connected" : "No audio"}
+      </div>
+    );
+  }
+
+  // Has value (disabled or enabled) - show audio player
   if (hasValue) {
     return (
       <div className={cn(className)}>
@@ -59,11 +60,7 @@ export function AudioField({
           className={cn(
             "relative rounded-md p-2",
             disabled && "bg-muted/50 border border-border",
-            !disabled && "bg-white dark:bg-neutral-950",
-            !disabled && active && "border border-blue-500",
-            !disabled &&
-              !active &&
-              "border border-neutral-300 dark:border-neutral-700"
+            !disabled && "bg-white dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700"
           )}
         >
           {objectUrl && (
@@ -88,14 +85,12 @@ export function AudioField({
     );
   }
 
-  // No value - upload zone
+  // No value - show upload zone
   return (
     <div className={cn(className)}>
       <div
         className={cn(
-          "flex flex-col items-center justify-center space-y-2 p-3 rounded-md bg-white dark:bg-neutral-950",
-          active && "border border-blue-500",
-          !active && "border border-neutral-300 dark:border-neutral-700"
+          "flex flex-col items-center justify-center space-y-2 p-3 rounded-md bg-white dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700"
         )}
       >
         <Upload className="h-5 w-5 text-neutral-400" />

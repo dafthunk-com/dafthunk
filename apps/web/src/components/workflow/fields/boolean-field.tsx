@@ -6,18 +6,19 @@ import { ClearButton } from "./clear-button";
 import type { FieldProps } from "./types";
 
 export function BooleanField({
-  value,
+  className,
+  clearable,
+  connected,
+  disabled,
   onChange,
   onClear,
-  disabled,
-  clearable,
-  className,
-  active,
-  connected,
+  value,
 }: FieldProps) {
+  // Check for defined value (boolean fields consider undefined as "no value")
   const hasValue = value !== undefined;
   const boolValue = hasValue ? String(value) === "true" : null;
 
+  // Helper to get the appropriate icon based on current value
   const getIcon = () => {
     if (boolValue === null)
       return <Minus className="h-4 w-4 text-muted-foreground" />;
@@ -28,21 +29,20 @@ export function BooleanField({
     );
   };
 
+  // Helper to get the appropriate label based on current value
   const getLabel = () => {
     if (boolValue === null) return connected ? "Connected" : "None";
     return boolValue ? "True" : "False";
   };
 
+  // Render toggle button with icon and label
   return (
     <Toggle
       pressed={boolValue === true}
       onPressedChange={(pressed) => onChange(pressed ? "true" : "false")}
       disabled={disabled}
       className={cn(
-        "text-xs rounded-md gap-2 justify-between w-full bg-background border",
-        active
-          ? "border-blue-500"
-          : "border-neutral-300 dark:border-neutral-700",
+        "text-xs rounded-md gap-2 justify-between w-full bg-background border border-neutral-300 dark:border-neutral-700",
         className
       )}
     >

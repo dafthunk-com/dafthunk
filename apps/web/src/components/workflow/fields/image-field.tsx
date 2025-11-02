@@ -7,22 +7,35 @@ import { ClearButton } from "./clear-button";
 import type { FileFieldProps, ObjectReference } from "./types";
 
 export function ImageField({
-  parameter,
-  value,
-  onClear,
-  disabled,
-  clearable,
-  isUploading,
-  uploadError,
-  onFileUpload,
-  createObjectUrl,
   className,
-  active,
+  clearable,
   connected,
+  createObjectUrl,
+  disabled,
+  isUploading,
+  onClear,
+  onFileUpload,
+  parameter,
+  uploadError,
+  value,
 }: FileFieldProps) {
+  // File fields check for object references
   const hasValue = value !== undefined && isObjectReference(value);
 
-  // Disabled state without value
+  // Helper to safely create object URL for preview
+  const getObjectUrl = (): string | null => {
+    if (!hasValue || !createObjectUrl) return null;
+    try {
+      return createObjectUrl(value as ObjectReference);
+    } catch (error) {
+      console.error("Failed to create object URL:", error);
+      return null;
+    }
+  };
+
+  const objectUrl = getObjectUrl();
+
+  // Disabled state without value - show placeholder message
   if (disabled && !hasValue) {
     return (
       <div
@@ -36,19 +49,7 @@ export function ImageField({
     );
   }
 
-  const getObjectUrl = (): string | null => {
-    if (!hasValue || !createObjectUrl) return null;
-    try {
-      return createObjectUrl(value as ObjectReference);
-    } catch (error) {
-      console.error("Failed to create object URL:", error);
-      return null;
-    }
-  };
-
-  const objectUrl = getObjectUrl();
-
-  // Has value (disabled or enabled) - always show preview
+  // Has value (disabled or enabled) - show image preview
   if (hasValue) {
     return (
       <div className={cn(className)}>
@@ -56,11 +57,7 @@ export function ImageField({
           className={cn(
             "relative rounded-md overflow-hidden",
             disabled && "bg-muted/50 border border-border",
-            !disabled && "bg-white dark:bg-neutral-950",
-            !disabled && active && "border border-blue-500",
-            !disabled &&
-              !active &&
-              "border border-neutral-300 dark:border-neutral-700"
+            !disabled && "bg-white dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700"
           )}
         >
           {objectUrl && (
@@ -90,14 +87,12 @@ export function ImageField({
     );
   }
 
-  // No value - upload zone
+  // No value - show upload zone
   return (
     <div className={cn(className)}>
       <div
         className={cn(
-          "flex flex-col items-center justify-center space-y-2 p-3 rounded-md bg-white dark:bg-neutral-950",
-          active && "border border-blue-500",
-          !active && "border border-neutral-300 dark:border-neutral-700"
+          "flex flex-col items-center justify-center space-y-2 p-3 rounded-md bg-white dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700"
         )}
       >
         <Upload className="h-5 w-5 text-neutral-400" />

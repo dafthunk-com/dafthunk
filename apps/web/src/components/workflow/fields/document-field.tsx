@@ -8,35 +8,22 @@ import { ClearButton } from "./clear-button";
 import type { FileFieldProps, ObjectReference } from "./types";
 
 export function DocumentField({
-  parameter,
-  value,
-  onClear,
-  disabled,
-  clearable,
-  isUploading,
-  uploadError,
-  onFileUpload,
-  createObjectUrl,
   className,
-  active,
+  clearable,
   connected,
+  createObjectUrl,
+  disabled,
+  isUploading,
+  onClear,
+  onFileUpload,
+  parameter,
+  uploadError,
+  value,
 }: FileFieldProps) {
+  // File fields check for object references
   const hasValue = value !== undefined && isObjectReference(value);
 
-  // Disabled state without value
-  if (disabled && !hasValue) {
-    return (
-      <div
-        className={cn(
-          "text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border",
-          className
-        )}
-      >
-        {connected ? "Connected" : "No document"}
-      </div>
-    );
-  }
-
+  // Helper to safely create object URL for preview
   const getObjectUrl = (): string | null => {
     if (!hasValue || !createObjectUrl) return null;
     try {
@@ -52,8 +39,23 @@ export function DocumentField({
   const isPDF = mimeType === "application/pdf";
   const isImage = mimeType?.startsWith("image/");
 
-  // Disabled state with value - always show preview based on type
+  // Disabled state without value - show placeholder message
+  if (disabled && !hasValue) {
+    return (
+      <div
+        className={cn(
+          "text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border",
+          className
+        )}
+      >
+        {connected ? "Connected" : "No document"}
+      </div>
+    );
+  }
+
+  // Disabled state with value - show preview based on document type
   if (disabled && hasValue) {
+    // No URL available for preview
     if (!objectUrl) {
       return (
         <div
@@ -67,7 +69,7 @@ export function DocumentField({
       );
     }
 
-    // PDF viewer with iframe
+    // PDF documents - show iframe viewer
     if (isPDF) {
       return (
         <div
@@ -95,7 +97,7 @@ export function DocumentField({
       );
     }
 
-    // Image preview
+    // Image documents - show image preview
     if (isImage) {
       return (
         <div
@@ -124,7 +126,7 @@ export function DocumentField({
       );
     }
 
-    // Other document types - show download link
+    // Other document types - show download link only
     return (
       <div
         className={cn(
@@ -145,15 +147,13 @@ export function DocumentField({
     );
   }
 
-  // Has value (enabled) - show download link
+  // Enabled state with value - show download link
   if (hasValue) {
     return (
       <div className={cn(className)}>
         <div
           className={cn(
-            "relative flex items-center gap-2 p-2 rounded-md bg-white dark:bg-neutral-950",
-            active && "border border-blue-500",
-            !active && "border border-neutral-300 dark:border-neutral-700"
+            "relative flex items-center gap-2 p-2 rounded-md bg-white dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700"
           )}
         >
           <File className="h-4 w-4 flex-shrink-0 text-neutral-500" />
@@ -184,14 +184,12 @@ export function DocumentField({
     );
   }
 
-  // No value - upload zone
+  // No value - show upload zone
   return (
     <div className={cn(className)}>
       <div
         className={cn(
-          "flex flex-col items-center justify-center space-y-2 p-3 rounded-md bg-white dark:bg-neutral-950",
-          active && "border border-blue-500",
-          !active && "border border-neutral-300 dark:border-neutral-700"
+          "flex flex-col items-center justify-center space-y-2 p-3 rounded-md bg-white dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700"
         )}
       >
         <Upload className="h-5 w-5 text-neutral-400" />

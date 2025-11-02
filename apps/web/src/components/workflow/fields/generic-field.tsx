@@ -5,19 +5,18 @@ import { ClearButton } from "./clear-button";
 import type { FieldProps } from "./types";
 
 export function GenericField({
-  parameter: _parameter,
-  value,
+  className,
+  clearable,
+  connected,
+  disabled,
   onChange,
   onClear,
-  disabled,
-  clearable,
-  className,
-  active,
-  connected,
+  value,
 }: FieldProps) {
+  // Check for meaningful value (empty strings are considered "no value")
   const hasValue = value !== undefined && value !== "";
 
-  // Disabled state without value
+  // Disabled state without value - show placeholder message
   if (disabled && !hasValue) {
     return (
       <div
@@ -31,7 +30,7 @@ export function GenericField({
     );
   }
 
-  // Disabled state with value
+  // Disabled state with value - show read-only display
   if (disabled) {
     return (
       <div
@@ -45,6 +44,7 @@ export function GenericField({
     );
   }
 
+  // Enabled state - render editable input
   return (
     <div className={cn("relative", className)}>
       <Input
@@ -55,10 +55,7 @@ export function GenericField({
         className={cn(
           "text-xs rounded-md",
           disabled && "bg-muted/50 border-border",
-          !disabled && active && "border border-blue-500",
-          !disabled &&
-            !active &&
-            "border border-neutral-300 dark:border-neutral-700"
+          !disabled && "border border-neutral-300 dark:border-neutral-700"
         )}
       />
       {!disabled && clearable && hasValue && (

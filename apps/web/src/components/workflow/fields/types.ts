@@ -8,7 +8,6 @@ export interface FieldProps {
   onChange: (value: unknown) => void;
   onClear: () => void;
   className?: string;
-  active?: boolean;
   disabled?: boolean;
   connected?: boolean;
   clearable?: boolean;

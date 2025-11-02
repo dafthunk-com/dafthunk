@@ -12,19 +12,21 @@ import { ClearButton } from "./clear-button";
 import type { FieldProps } from "./types";
 
 export function SecretField({
-  value,
+  className,
+  clearable,
+  connected,
+  disabled,
   onChange,
   onClear,
-  disabled,
-  clearable,
-  className,
-  active,
-  connected,
+  value,
 }: FieldProps) {
   const { secrets, isSecretsLoading } = useSecrets();
+
+  // Convert to string and check for meaningful value (empty strings are considered "no value")
   const stringValue = String(value ?? "");
   const hasValue = value !== undefined && value !== "";
 
+  // Render select dropdown with secrets
   return (
     <div className={cn("relative", className)}>
       <Select
@@ -34,10 +36,7 @@ export function SecretField({
       >
         <SelectTrigger
           className={cn(
-            "text-xs rounded-md",
-            active
-              ? "border-blue-500"
-              : "border-neutral-300 dark:border-neutral-700"
+            "text-xs rounded-md border border-neutral-300 dark:border-neutral-700"
           )}
         >
           <SelectValue
@@ -60,6 +59,7 @@ export function SecretField({
           ))}
         </SelectContent>
       </Select>
+      {/* Clear button positioned to avoid overlapping with dropdown arrow */}
       {!disabled && clearable && hasValue && (
         <ClearButton
           onClick={onClear}

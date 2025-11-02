@@ -11,39 +11,37 @@ import { ClearButton } from "./clear-button";
 import type { FieldProps, ObjectReference } from "./types";
 
 export function AnyField({
-  parameter,
-  value,
-  onChange,
-  onClear,
-  disabled,
-  clearable,
   className,
-  active,
+  clearable,
   connected,
   createObjectUrl,
+  disabled,
+  onChange,
+  onClear,
+  parameter,
+  value,
 }: FieldProps & {
   createObjectUrl?: (objectReference: ObjectReference) => string;
 }) {
+  // Any field accepts any type, so null and undefined are both considered "no value"
   const hasValue = value !== undefined && value !== null;
 
-  // Handle object references (files)
+  // ========== OBJECT REFERENCE HANDLING (Files) ==========
+  // When value is a file stored in object storage, render appropriate preview based on MIME type
   if (hasValue && isObjectReference(value)) {
     const objectUrl = createObjectUrl
       ? createObjectUrl(value as ObjectReference)
       : null;
     const mimeType = (value as ObjectReference)?.mimeType || "unknown type";
 
-    // Images - always show preview
+    // Image files - show image preview
     if (mimeType.startsWith("image/")) {
       return (
         <div className={cn("relative", className)}>
           {objectUrl && (
             <div
               className={cn(
-                "relative rounded-md overflow-hidden bg-white dark:bg-neutral-950",
-                active
-                  ? "border border-blue-500"
-                  : "border border-neutral-300 dark:border-neutral-700"
+                "relative rounded-md overflow-hidden bg-white dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700"
               )}
             >
               <img
@@ -67,7 +65,7 @@ export function AnyField({
       );
     }
 
-    // Audio - always show preview
+    // Audio files - show audio player
     if (mimeType.startsWith("audio/")) {
       return (
         <div className={cn("relative", className)}>
@@ -80,7 +78,7 @@ export function AnyField({
                 <ClearButton
                   onClick={onClear}
                   label="Clear audio"
-                  className="absolute top-0 right-0"
+                  className="absolute top-2 right-1"
                 />
               )}
             </>
@@ -89,7 +87,7 @@ export function AnyField({
       );
     }
 
-    // 3D Models - always show preview
+    // 3D model files (GLTF/GLB) - show 3D viewer
     if (mimeType === "model/gltf-binary" || mimeType === "model/gltf+json") {
       return (
         <div className={cn("relative", className)}>
@@ -109,7 +107,7 @@ export function AnyField({
       );
     }
 
-    // Buffer Geometry - show download link
+    // Buffer geometry files - show download link
     if (mimeType === "application/x-buffer-geometry") {
       return (
         <div className={cn("space-y-2", className)}>
@@ -131,14 +129,14 @@ export function AnyField({
             <ClearButton
               onClick={onClear}
               label="Clear geometry"
-              className="absolute top-0 right-0"
+              className="absolute top-2 right-1"
             />
           )}
         </div>
       );
     }
 
-    // Documents (PDF, etc) - always show preview
+    // Document files (PDF, etc) - show appropriate preview based on type
     if (
       mimeType === "application/pdf" ||
       mimeType.startsWith("application/") ||
@@ -197,7 +195,7 @@ export function AnyField({
       }
     }
 
-    // Fallback for unknown file types
+    // Unknown file types - show generic download link
     return (
       <div className={cn("space-y-2 relative", className)}>
         <div className="text-xs text-neutral-500">File ({mimeType})</div>
@@ -216,14 +214,15 @@ export function AnyField({
           <ClearButton
             onClick={onClear}
             label="Clear file"
-            className="absolute top-0 right-0"
+            className="absolute top-2 right-1"
           />
         )}
       </div>
     );
   }
 
-  // No value
+  // ========== NO VALUE ==========
+  // When field is empty, show placeholder message
   if (!hasValue) {
     if (disabled) {
       return (
@@ -249,7 +248,8 @@ export function AnyField({
     );
   }
 
-  // Handle objects and arrays as JSON
+  // ========== OBJECT/ARRAY VALUES ==========
+  // When value is an object or array, render as JSON
   if (Array.isArray(value) || typeof value === "object") {
     const formattedValue = JSON.stringify(value, null, 2);
 
@@ -288,9 +288,7 @@ export function AnyField({
             }
           }}
           className={cn(
-            "text-xs font-mono min-h-[100px] resize-y rounded-md",
-            active && "border border-blue-500",
-            !active && "border border-neutral-300 dark:border-neutral-700"
+            "text-xs font-mono min-h-[100px] resize-y rounded-md border border-neutral-300 dark:border-neutral-700"
           )}
           placeholder="Enter JSON"
           disabled={disabled}
@@ -299,14 +297,15 @@ export function AnyField({
           <ClearButton
             onClick={onClear}
             label="Clear value"
-            className="absolute top-7 right-1"
+            className="absolute top-2 right-1"
           />
         )}
       </div>
     );
   }
 
-  // Handle primitive values (string, number, boolean)
+  // ========== PRIMITIVE VALUES ==========
+  // When value is a string, number, or boolean, render as text input
   const actualType = typeof value;
   const stringValue = String(value);
 
@@ -348,9 +347,7 @@ export function AnyField({
           }
         }}
         className={cn(
-          "text-xs h-8 rounded-md",
-          active && "border border-blue-500",
-          !active && "border border-neutral-300 dark:border-neutral-700"
+          "text-xs h-8 rounded-md border border-neutral-300 dark:border-neutral-700"
         )}
         placeholder={`Enter ${actualType} value`}
         disabled={disabled}
@@ -359,7 +356,7 @@ export function AnyField({
         <ClearButton
           onClick={onClear}
           label="Clear value"
-          className="absolute top-7 right-1"
+          className="absolute top-2 right-1"
         />
       )}
     </div>

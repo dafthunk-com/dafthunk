@@ -13,24 +13,25 @@ import { ClearButton } from "./clear-button";
 import type { FieldProps } from "./types";
 
 export function JsonField({
-  parameter: _parameter,
-  value,
+  className,
+  clearable,
+  connected,
+  disabled,
   onChange,
   onClear,
-  disabled,
-  clearable,
-  className,
-  active: _active,
-  connected,
+  value,
 }: FieldProps) {
+  // Check for meaningful value (empty strings are considered "no value")
   const hasValue = value !== undefined && value !== "";
+
+  // Refs for CodeMirror editor management
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const onChangeRef = useRef(onChange);
   const readonlyCompartment = useRef(new Compartment());
-  const isFormattingRef = useRef(false);
+  const isFormattingRef = useRef(false); // Prevents infinite loops during auto-formatting
 
-  // Serialize objects/arrays to JSON, or use string value
+  // Serialize objects/arrays to JSON string, or use string value as-is
   const stringValue =
     value !== undefined
       ? typeof value === "object"
@@ -38,12 +39,12 @@ export function JsonField({
         : String(value)
       : "";
 
-  // Keep onChange ref up to date
+  // Keep onChange ref up to date without triggering editor recreation
   useEffect(() => {
     onChangeRef.current = onChange;
   }, [onChange]);
 
-  // Disabled state without value
+  // Disabled state without value - show placeholder message
   if (disabled && !hasValue) {
     return (
       <div
@@ -59,7 +60,7 @@ export function JsonField({
 
   const readonly = disabled ?? false;
 
-  // Format value for display
+  // Format value for display (pretty-print if valid JSON)
   let formattedValue = stringValue;
   try {
     const parsed = JSON.parse(stringValue);
@@ -68,7 +69,7 @@ export function JsonField({
     // If not valid JSON, show as-is
   }
 
-  // Create editor once on mount
+  // Create CodeMirror editor once on mount
   useEffect(() => {
     if (!editorRef.current) return;
 
@@ -81,6 +82,7 @@ export function JsonField({
           lineNumbers(),
           EditorView.lineWrapping,
           readonlyCompartment.current.of(EditorState.readOnly.of(readonly)),
+          // Auto-format JSON and update value on changes
           EditorView.updateListener.of((update) => {
             if (update.docChanged && !isFormattingRef.current && !readonly) {
               const newValue = update.state.doc.toString();
@@ -170,9 +172,10 @@ export function JsonField({
       view.destroy();
       viewRef.current = null;
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount
 
-  // Update editor content when value prop changes externally
+  // Update editor content when external value changes
   useEffect(() => {
     const view = viewRef.current;
     if (!view || isFormattingRef.current) return;
@@ -197,7 +200,7 @@ export function JsonField({
     }
   }, [formattedValue]);
 
-  // Update readonly state
+  // Update editor readonly state when disabled prop changes
   useEffect(() => {
     const view = viewRef.current;
     if (!view) return;
@@ -209,6 +212,7 @@ export function JsonField({
     });
   }, [readonly]);
 
+  // Render CodeMirror editor with optional clear button
   return (
     <div className={cn("relative", className)}>
       <div ref={editorRef} className="min-h-[80px]" />

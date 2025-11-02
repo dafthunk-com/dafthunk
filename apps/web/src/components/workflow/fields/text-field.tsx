@@ -5,18 +5,19 @@ import { ClearButton } from "./clear-button";
 import type { FieldProps } from "./types";
 
 export function TextField({
-  value,
+  className,
+  clearable,
+  connected,
+  disabled,
   onChange,
   onClear,
-  disabled,
-  clearable,
-  className,
-  active,
-  connected,
+  value,
 }: FieldProps) {
+  // Convert to string and check for meaningful value (empty strings are considered "no value")
   const stringValue = String(value ?? "");
   const hasValue = value !== undefined && value !== "";
 
+  // Render editable textarea
   return (
     <div className={cn("relative", className)}>
       <Textarea
@@ -24,10 +25,7 @@ export function TextField({
         onChange={(e) => onChange(e.target.value || undefined)}
         placeholder={connected ? "Connected" : "Enter text"}
         className={cn(
-          "resize-y text-xs rounded-md",
-          active
-            ? "border-blue-500"
-            : "border-neutral-300 dark:border-neutral-700"
+          "resize-y text-xs rounded-md border border-neutral-300 dark:border-neutral-700"
         )}
         disabled={disabled}
       />
