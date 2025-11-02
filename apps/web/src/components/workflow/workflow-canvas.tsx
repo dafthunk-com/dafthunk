@@ -28,7 +28,6 @@ import Layers2 from "lucide-react/icons/layers-2";
 import Mail from "lucide-react/icons/mail";
 import Maximize from "lucide-react/icons/maximize";
 import Network from "lucide-react/icons/network";
-import PencilIcon from "lucide-react/icons/pencil";
 import Play from "lucide-react/icons/play";
 import Plus from "lucide-react/icons/plus";
 import Scissors from "lucide-react/icons/scissors";
@@ -185,7 +184,6 @@ export interface WorkflowCanvasProps {
   selectedEdges: ReactFlowEdge<WorkflowEdgeType>[];
   onDeleteSelected?: (e: React.MouseEvent) => void;
   onDuplicateSelected?: (e: React.MouseEvent) => void;
-  onEditLabel?: (e: React.MouseEvent) => void;
   onApplyLayout?: () => void;
   onCopySelected?: () => void;
   onCutSelected?: () => void;
@@ -447,26 +445,6 @@ function DuplicateButton({
   );
 }
 
-function EditLabelButton({
-  onClick,
-  disabled,
-}: {
-  onClick: (e: React.MouseEvent) => void;
-  disabled?: boolean;
-}) {
-  return (
-    <ActionBarButton
-      onClick={onClick}
-      disabled={disabled}
-      className={actionBarButtonOutlineClassName}
-      tooltipSide="right"
-      tooltip="Edit Label(s)"
-    >
-      <PencilIcon className="!size-4" />
-    </ActionBarButton>
-  );
-}
-
 function ApplyLayoutButton({
   onClick,
   disabled,
@@ -718,7 +696,6 @@ export function WorkflowCanvas({
   selectedEdges,
   onDeleteSelected,
   onDuplicateSelected,
-  onEditLabel,
   onApplyLayout,
   onCopySelected,
   onCutSelected,
@@ -894,14 +871,6 @@ export function WorkflowCanvas({
 
             {/* Edit operations group */}
             <ActionBarGroup vertical>
-              {onEditLabel && (
-                <EditLabelButton
-                  onClick={onEditLabel}
-                  disabled={
-                    disabled || (!hasSelectedNodes && !selectedNodes.length)
-                  }
-                />
-              )}
               {onCopySelected && (
                 <CopyButton
                   onClick={onCopySelected}

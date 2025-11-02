@@ -16,13 +16,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { cn } from "@/utils/utils";
 
 import { useWorkflowState } from "./use-workflow-state";
 import { WorkflowCanvas } from "./workflow-canvas";
-import { updateNodeName, WorkflowProvider } from "./workflow-context";
+import { WorkflowProvider } from "./workflow-context";
 import { WorkflowNodeSelector } from "./workflow-node-selector";
 import { WorkflowSidebar } from "./workflow-sidebar";
 import type {
@@ -100,7 +98,6 @@ export function WorkflowBuilder({
   });
   const cleanupRef = useRef<(() => void | Promise<void>) | null>(null);
   const initializedRef = useRef(false);
-  const [nodeNameToEdit, setNodeNameToEdit] = useState("");
   const [sidebarWidth, setSidebarWidth] = useState(384); // w-96 = 384px
   const [isResizing, setIsResizing] = useState(false);
 
@@ -128,8 +125,6 @@ export function WorkflowBuilder({
     deleteEdge,
     deleteSelected,
     duplicateSelected,
-    isEditNodeNameDialogOpen,
-    toggleEditNodeNameDialog,
     applyLayout,
     copySelected,
     cutSelected,
@@ -269,21 +264,6 @@ export function WorkflowBuilder({
       }
     }
   }, [initialWorkflowExecution, nodes, updateNodeData]);
-
-  // Update nodeNameToEdit when the dialog is opened
-  useEffect(() => {
-    if (isEditNodeNameDialogOpen) {
-      if (selectedNodes.length > 0) {
-        // For multiple nodes, use a template or the first node's name
-        if (selectedNodes.length === 1) {
-          setNodeNameToEdit(selectedNodes[0].data.name);
-        } else {
-          // For multiple nodes, suggest a template
-          setNodeNameToEdit("Node {index}");
-        }
-      }
-    }
-  }, [isEditNodeNameDialogOpen, selectedNodes]);
 
   const resetNodeStates = useCallback(() => {
     nodes.forEach((node) => {
@@ -485,9 +465,6 @@ export function WorkflowBuilder({
               selectedEdges={selectedEdges}
               onDeleteSelected={disabled ? undefined : deleteSelected}
               onDuplicateSelected={disabled ? undefined : duplicateSelected}
-              onEditLabel={
-                disabled ? undefined : () => toggleEditNodeNameDialog(true)
-              }
               onApplyLayout={disabled ? undefined : applyLayout}
               onCopySelected={disabled ? undefined : copySelected}
               onCutSelected={disabled ? undefined : cutSelected}
@@ -547,81 +524,6 @@ export function WorkflowBuilder({
                 }
               >
                 Close
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        <Dialog
-          open={
-            isEditNodeNameDialogOpen && !disabled && selectedNodes.length > 0
-          }
-          onOpenChange={(open) => {
-            if (!open) {
-              toggleEditNodeNameDialog(false);
-            }
-          }}
-        >
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Edit Node Name</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label
-                  htmlFor="node-name-input"
-                  className="text-sm font-medium"
-                >
-                  Node Label
-                </Label>
-                <Input
-                  id="node-name-input"
-                  value={nodeNameToEdit}
-                  onChange={(e) => setNodeNameToEdit(e.target.value)}
-                  placeholder="Enter node name"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      if (
-                        selectedNodes.length > 0 &&
-                        nodeNameToEdit.trim() !== ""
-                      ) {
-                        updateNodeName(
-                          selectedNodes[0].id,
-                          nodeNameToEdit,
-                          updateNodeData
-                        );
-                      }
-                      toggleEditNodeNameDialog(false);
-                    }
-                  }}
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => toggleEditNodeNameDialog(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={() => {
-                  if (
-                    selectedNodes.length > 0 &&
-                    nodeNameToEdit.trim() !== ""
-                  ) {
-                    updateNodeName(
-                      selectedNodes[0].id,
-                      nodeNameToEdit,
-                      updateNodeData
-                    );
-                  }
-                  toggleEditNodeNameDialog(false);
-                }}
-                disabled={!nodeNameToEdit.trim()}
-              >
-                Save
               </Button>
             </DialogFooter>
           </DialogContent>

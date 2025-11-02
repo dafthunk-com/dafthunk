@@ -86,8 +86,6 @@ interface UseWorkflowStateReturn {
   deleteSelected: () => void;
   duplicateNode: (nodeId: string) => void;
   duplicateSelected: () => void;
-  isEditNodeNameDialogOpen: boolean;
-  toggleEditNodeNameDialog: (open?: boolean) => void;
   applyLayout: () => void;
   copySelected: () => void;
   cutSelected: () => void;
@@ -231,8 +229,6 @@ export function useWorkflowState({
   const [isNodeSelectorOpen, setIsNodeSelectorOpen] = useState(false);
   const [connectionValidationState, setConnectionValidationState] =
     useState<ConnectionValidationState>("default");
-  const [isEditNodeNameDialogOpen, setIsEditNodeNameDialogOpen] =
-    useState(false);
   const [clipboardData, setClipboardData] = useState<ClipboardData | null>(
     null
   );
@@ -945,16 +941,6 @@ export function useWorkflowState({
     createObjectUrl,
   ]);
 
-  const toggleEditNodeNameDialog = useCallback(
-    (open?: boolean) => {
-      if (disabled) return;
-      setIsEditNodeNameDialogOpen((prev) =>
-        open === undefined ? !prev : open
-      );
-    },
-    [disabled]
-  );
-
   const applyLayout = useCallback(() => {
     if (disabled) return;
 
@@ -1207,8 +1193,6 @@ export function useWorkflowState({
     deleteSelected: disabled ? () => {} : deleteSelected,
     duplicateNode: disabled ? () => {} : duplicateNode,
     duplicateSelected: disabled ? () => {} : duplicateSelected,
-    isEditNodeNameDialogOpen,
-    toggleEditNodeNameDialog,
     applyLayout,
     copySelected: disabled ? () => {} : copySelected,
     cutSelected: disabled ? () => {} : cutSelected,
