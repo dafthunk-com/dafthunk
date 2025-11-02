@@ -20,7 +20,7 @@ export function JsonField({
   disabled,
   clearable,
   className,
-  active,
+  active: _active,
   connected,
 }: FieldProps) {
   const hasValue = value !== undefined && value !== "";

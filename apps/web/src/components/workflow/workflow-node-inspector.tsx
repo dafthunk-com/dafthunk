@@ -1,37 +1,10 @@
 import type { ObjectReference } from "@dafthunk/types";
 import type { Node as ReactFlowNode } from "@xyflow/react";
-import AsteriskIcon from "lucide-react/icons/asterisk";
-import BoxIcon from "lucide-react/icons/box";
-import BracesIcon from "lucide-react/icons/braces";
-import BuildingIcon from "lucide-react/icons/building";
-import Building2Icon from "lucide-react/icons/building-2";
-import CalendarIcon from "lucide-react/icons/calendar";
-import ChartNoAxesGanttIcon from "lucide-react/icons/chart-no-axes-gantt";
-import CheckIcon from "lucide-react/icons/check";
 import ChevronDownIcon from "lucide-react/icons/chevron-down";
-import DotIcon from "lucide-react/icons/dot";
-import EllipsisIcon from "lucide-react/icons/ellipsis";
-import EyeIcon from "lucide-react/icons/eye";
-import EyeOffIcon from "lucide-react/icons/eye-off";
-import GlobeIcon from "lucide-react/icons/globe";
-import HashIcon from "lucide-react/icons/hash";
-import ImageIcon from "lucide-react/icons/image";
-import LayoutGridIcon from "lucide-react/icons/layout-grid";
-import LockIcon from "lucide-react/icons/lock";
-import MinusIcon from "lucide-react/icons/minus";
-import MusicIcon from "lucide-react/icons/music";
-import ShapesIcon from "lucide-react/icons/shapes";
-import SquareIcon from "lucide-react/icons/square";
-import StickyNoteIcon from "lucide-react/icons/sticky-note";
-import TriangleIcon from "lucide-react/icons/triangle";
-import TypeIcon from "lucide-react/icons/type";
 import { useEffect, useState } from "react";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Toggle } from "@/components/ui/toggle";
-
-import { ClearButton, Field, UnplugButton } from "./fields";
 import {
   clearNodeInput,
   convertValueByType,
@@ -39,38 +12,9 @@ import {
   updateNodeName,
   useWorkflow,
 } from "./workflow-context";
-import type { InputOutputType, WorkflowParameter } from "./workflow-types";
 import type { WorkflowNodeType } from "./workflow-types";
-
-const getTypeIcon = (type: InputOutputType) => {
-  const iconSize = "h-3.5 w-3.5";
-  const icons: Record<InputOutputType, React.ReactNode> = {
-    string: <TypeIcon className={iconSize} />,
-    number: <HashIcon className={iconSize} />,
-    boolean: <CheckIcon className={iconSize} />,
-    image: <ImageIcon className={iconSize} />,
-    document: <StickyNoteIcon className={iconSize} />,
-    audio: <MusicIcon className={iconSize} />,
-    buffergeometry: <BoxIcon className={iconSize} />,
-    gltf: <BoxIcon className={iconSize} />,
-    json: <BracesIcon className={iconSize} />,
-    date: <CalendarIcon className={iconSize} />,
-    point: <DotIcon className={iconSize} />,
-    multipoint: <EllipsisIcon className={iconSize} />,
-    linestring: <MinusIcon className={iconSize} />,
-    multilinestring: <ChartNoAxesGanttIcon className={iconSize} />,
-    polygon: <TriangleIcon className={iconSize} />,
-    multipolygon: <ShapesIcon className={iconSize} />,
-    geometry: <SquareIcon className={iconSize} />,
-    geometrycollection: <LayoutGridIcon className={iconSize} />,
-    feature: <BuildingIcon className={iconSize} />,
-    featurecollection: <Building2Icon className={iconSize} />,
-    geojson: <GlobeIcon className={iconSize} />,
-    secret: <LockIcon className={iconSize} />,
-    any: <AsteriskIcon className={iconSize} />,
-  };
-  return icons[type] || icons.any;
-};
+import type { WorkflowParameter } from "./workflow-types";
+import { PropertyField } from "./fields";
 
 export interface WorkflowNodeInspectorProps {
   node: ReactFlowNode<WorkflowNodeType> | null;
@@ -291,85 +235,33 @@ export function WorkflowNodeInspector({
                 localInputs.map((input) => {
                   const isConnected = isInputConnected(input.id);
                   return (
-                    <div key={input.id} className="text-sm space-y-1">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span className="text-muted-foreground shrink-0">
-                            {getTypeIcon(input.type)}
-                          </span>
-                          <span className="text-foreground font-medium font-mono truncate">
-                            {input.name}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1 shrink-0">
-                          {!disabled && (
-                            <>
-                              {isConnected ? (
-                                <UnplugButton
-                                  onClick={() => handleDisconnect(input.id)}
-                                  label={`Disconnect ${input.name}`}
-                                />
-                              ) : (
-                                input.value !== undefined && (
-                                  <ClearButton
-                                    onClick={() => handleClearValue(input.id)}
-                                    label={`Clear ${input.name} value`}
-                                  />
-                                )
-                              )}
-                            </>
-                          )}
-                          <Toggle
-                            size="sm"
-                            pressed={input.hidden}
-                            onPressedChange={() =>
-                              handleToggleVisibility(input.id)
-                            }
-                            aria-label={`Toggle visibility for ${input.name}`}
-                            className={`group px-1 h-8 w-8 bg-transparent data-[state=on]:bg-transparent hover:bg-transparent transition-colors ${
-                              disabled ? "opacity-70 cursor-not-allowed" : ""
-                            }`}
-                            disabled={disabled}
-                          >
-                            {input.hidden ? (
-                              <EyeOffIcon className="h-3 w-3 text-neutral-400 group-hover:text-neutral-700 dark:text-neutral-500 dark:group-hover:text-neutral-300 transition-colors" />
-                            ) : (
-                              <EyeIcon className="h-3 w-3 text-neutral-400 group-hover:text-neutral-700 dark:text-neutral-500 dark:group-hover:text-neutral-300 transition-colors" />
-                            )}
-                          </Toggle>
-                        </div>
-                      </div>
-
-                      <div className="relative">
-                        <Field
-                          parameter={input}
-                          value={
-                            isConnected
-                              ? getConnectedValue(input.id)
-                              : input.value
-                          }
-                          onChange={(value) => {
-                            const typedValue = convertValueByType(
-                              value as string,
-                              input.type || "string"
-                            );
-                            const updatedInputs = updateNodeInput(
-                              node.id,
-                              input.id,
-                              typedValue,
-                              localInputs,
-                              updateNodeData
-                            );
-                            setLocalInputs(updatedInputs);
-                          }}
-                          onClear={() => handleClearValue(input.id)}
-                          disabled={disabled || isConnected}
-                          connected={isConnected}
-                          createObjectUrl={createObjectUrl}
-                          className="w-full"
-                        />
-                      </div>
-                    </div>
+                    <PropertyField
+                      key={input.id}
+                      parameter={input}
+                      value={
+                        isConnected ? getConnectedValue(input.id) : input.value
+                      }
+                      onChange={(value) => {
+                        const typedValue = convertValueByType(
+                          value as string,
+                          input.type || "string"
+                        );
+                        const updatedInputs = updateNodeInput(
+                          node.id,
+                          input.id,
+                          typedValue,
+                          localInputs,
+                          updateNodeData
+                        );
+                        setLocalInputs(updatedInputs);
+                      }}
+                      onClear={() => handleClearValue(input.id)}
+                      onDisconnect={() => handleDisconnect(input.id)}
+                      onToggleVisibility={() => handleToggleVisibility(input.id)}
+                      disabled={disabled}
+                      connected={isConnected}
+                      createObjectUrl={createObjectUrl}
+                    />
                   );
                 })
               ) : (
@@ -396,47 +288,18 @@ export function WorkflowNodeInspector({
             <div className="px-4 pb-4 space-y-3">
               {localOutputs.length > 0 ? (
                 localOutputs.map((output) => (
-                  <div key={output.id} className="text-sm space-y-1">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-muted-foreground shrink-0">
-                          {getTypeIcon(output.type)}
-                        </span>
-                        <span className="text-foreground font-medium font-mono truncate">
-                          {output.name}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <Toggle
-                          size="sm"
-                          pressed={output.hidden}
-                          onPressedChange={() =>
-                            handleToggleOutputVisibility(output.id)
-                          }
-                          aria-label={`Toggle visibility for ${output.name}`}
-                          className={`group px-1 h-8 w-8 bg-transparent data-[state=on]:bg-transparent hover:bg-transparent transition-colors ${
-                            disabled ? "opacity-70 cursor-not-allowed" : ""
-                          }`}
-                          disabled={disabled}
-                        >
-                          {output.hidden ? (
-                            <EyeOffIcon className="h-3 w-3 text-neutral-400 group-hover:text-neutral-700 dark:text-neutral-500 dark:group-hover:text-neutral-300 transition-colors" />
-                          ) : (
-                            <EyeIcon className="h-3 w-3 text-neutral-400 group-hover:text-neutral-700 dark:text-neutral-500 dark:group-hover:text-neutral-300 transition-colors" />
-                          )}
-                        </Toggle>
-                      </div>
-                    </div>
-                    <Field
-                      parameter={output}
-                      value={output.value}
-                      onChange={() => {}}
-                      onClear={() => {}}
-                      disabled={true}
-                      clearable={false}
-                      createObjectUrl={createObjectUrl}
-                    />
-                  </div>
+                  <PropertyField
+                    key={output.id}
+                    parameter={output}
+                    value={output.value}
+                    onChange={() => {}}
+                    onClear={() => {}}
+                    onToggleVisibility={() =>
+                      handleToggleOutputVisibility(output.id)
+                    }
+                    disabled={true}
+                    createObjectUrl={createObjectUrl}
+                  />
                 ))
               ) : (
                 <div className="text-sm text-muted-foreground">No outputs</div>

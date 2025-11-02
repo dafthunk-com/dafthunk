@@ -27,17 +27,22 @@ import TriangleIcon from "lucide-react/icons/triangle";
 import TypeIcon from "lucide-react/icons/type";
 import WrenchIcon from "lucide-react/icons/wrench";
 import XIcon from "lucide-react/icons/x";
-import { createElement, memo, useEffect, useRef, useState } from "react";
+import { createElement, memo, useRef, useState } from "react";
 
 import { NodeDocsDialog } from "@/components/docs/node-docs-dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useNodeTypes } from "@/services/type-service";
 import { cn } from "@/utils/utils";
 
 import { registry } from "./widgets";
-import { updateNodeInput, useWorkflow } from "./workflow-context";
-import { WorkflowNodeInput } from "./workflow-node-input";
-import { WorkflowNodeOutput } from "./workflow-node-output";
+import {
+  clearNodeInput,
+  convertValueByType,
+  updateNodeInput,
+  useWorkflow,
+} from "./workflow-context";
+import { PropertyField } from "./fields";
 import { ToolReference, WorkflowToolSelector } from "./workflow-tool-selector";
 import {
   InputOutputType,
@@ -194,66 +199,6 @@ export const WorkflowNode = memo(
     const [isDocsOpen, setIsDocsOpen] = useState(false);
     const [activeInputId, setActiveInputId] = useState<string | null>(null);
     const [activeOutputId, setActiveOutputId] = useState<string | null>(null);
-    const inputContainerRefs = useRef<
-      Map<string, React.RefObject<HTMLDivElement | null>>
-    >(new Map());
-    const outputContainerRefs = useRef<
-      Map<string, React.RefObject<HTMLDivElement | null>>
-    >(new Map());
-    const handleRefs = useRef<Map<string, HTMLElement>>(new Map());
-
-    // Handle click outside to close active input
-    useEffect(() => {
-      if (!activeInputId) return;
-
-      const handleClickOutside = (event: MouseEvent) => {
-        const target = event.target as HTMLElement;
-        const containerRef = inputContainerRefs.current.get(activeInputId);
-        const handleElement = handleRefs.current.get(activeInputId);
-
-        // Check if click is inside the input container
-        const isInsideContainer = containerRef?.current?.contains(target);
-        // Check if click is on the handle itself
-        const isOnHandle = handleElement?.contains(target);
-
-        // If click is outside both the input container and the handle, close it
-        // If click is on the handle, let the handle's onClick manage the toggle
-        if (!isInsideContainer && !isOnHandle) {
-          setActiveInputId(null);
-        }
-      };
-
-      // Use capture phase to catch the event before ReactFlow handles it
-      document.addEventListener("mousedown", handleClickOutside, true);
-      return () =>
-        document.removeEventListener("mousedown", handleClickOutside, true);
-    }, [activeInputId]);
-
-    // Handle click outside to close active output
-    useEffect(() => {
-      if (!activeOutputId) return;
-
-      const handleClickOutside = (event: MouseEvent) => {
-        const target = event.target as HTMLElement;
-        const containerRef = outputContainerRefs.current.get(activeOutputId);
-        const handleElement = handleRefs.current.get(activeOutputId);
-
-        // Check if click is inside the output container
-        const isInsideContainer = containerRef?.current?.contains(target);
-        // Check if click is on the handle itself
-        const isOnHandle = handleElement?.contains(target);
-
-        // If click is outside both the output container and the handle, close it
-        if (!isInsideContainer && !isOnHandle) {
-          setActiveOutputId(null);
-        }
-      };
-
-      // Use capture phase to catch the event before ReactFlow handles it
-      document.addEventListener("mousedown", handleClickOutside, true);
-      return () =>
-        document.removeEventListener("mousedown", handleClickOutside, true);
-    }, [activeOutputId]);
 
     // Get node type
     const nodeType = data.nodeType || "";
@@ -350,9 +295,8 @@ export const WorkflowNode = memo(
       if (disabled) return;
       // Don't allow clicking on connected inputs
       if (param.isConnected) return;
-      handleRefs.current.set(param.id, element);
-      // Toggle: if this input is already active, close it; otherwise open it
-      setActiveInputId(activeInputId === param.id ? null : param.id);
+      // Open dialog for this input
+      setActiveInputId(param.id);
     };
 
     const handleOutputClick = (
@@ -361,27 +305,8 @@ export const WorkflowNode = memo(
     ) => {
       // Only show preview if there's a value
       if (param.value === undefined) return;
-      handleRefs.current.set(param.id, element);
-      // Toggle: if this output is already active, close it; otherwise open it
-      setActiveOutputId(activeOutputId === param.id ? null : param.id);
-    };
-
-    // Create or get ref for input container
-    const getInputContainerRef = (inputId: string) => {
-      if (!inputContainerRefs.current.has(inputId)) {
-        const ref = { current: null as HTMLDivElement | null };
-        inputContainerRefs.current.set(inputId, ref);
-      }
-      return inputContainerRefs.current.get(inputId)!;
-    };
-
-    // Create or get ref for output container
-    const getOutputContainerRef = (outputId: string) => {
-      if (!outputContainerRefs.current.has(outputId)) {
-        const ref = { current: null as HTMLDivElement | null };
-        outputContainerRefs.current.set(outputId, ref);
-      }
-      return outputContainerRefs.current.get(outputId)!;
+      // Open dialog for this output
+      setActiveOutputId(param.id);
     };
 
     return (
@@ -542,18 +467,6 @@ export const WorkflowNode = memo(
                     key={`input-${input.id}-${index}`}
                     className="flex items-center gap-3 text-xs relative"
                   >
-                    {activeInputId === input.id && !input.isConnected && (
-                      <WorkflowNodeInput
-                        nodeId={id}
-                        nodeInputs={data.inputs}
-                        input={input}
-                        disabled={disabled}
-                        containerRef={getInputContainerRef(input.id)}
-                        autoFocus={true}
-                        onBlur={() => setActiveInputId(null)}
-                        active={true}
-                      />
-                    )}
                     <TypeBadge
                       type={input.type}
                       position={Position.Left}
@@ -585,16 +498,6 @@ export const WorkflowNode = memo(
                     key={`output-${output.id}-${index}`}
                     className="flex items-center gap-3 text-xs relative"
                   >
-                    {activeOutputId === output.id &&
-                      output.value !== undefined && (
-                        <WorkflowNodeOutput
-                          output={output}
-                          containerRef={getOutputContainerRef(output.id)}
-                          autoFocus={true}
-                          onBlur={() => setActiveOutputId(null)}
-                          active={true}
-                        />
-                      )}
                     <span className="text-xs text-foreground font-medium font-mono truncate">
                       {output.name}
                     </span>
@@ -630,6 +533,82 @@ export const WorkflowNode = memo(
             onOpenChange={setIsDocsOpen}
           />
         )}
+
+        <Dialog open={activeInputId !== null} onOpenChange={(open) => !open && setActiveInputId(null)}>
+          <DialogContent className="sm:max-w-md pt-4">
+            {activeInputId && (() => {
+              const activeInput = data.inputs.find((i) => i.id === activeInputId);
+              if (!activeInput) return null;
+
+              return (
+                <PropertyField
+                  parameter={activeInput}
+                  value={activeInput.value}
+                  onChange={(value) => {
+                    const typedValue = convertValueByType(
+                      value as string,
+                      activeInput.type || "string"
+                    );
+                    updateNodeInput(
+                      id,
+                      activeInput.id,
+                      typedValue,
+                      data.inputs,
+                      updateNodeData
+                    );
+                  }}
+                  onClear={() => {
+                    clearNodeInput(
+                      id,
+                      activeInput.id,
+                      data.inputs,
+                      updateNodeData
+                    );
+                  }}
+                  onToggleVisibility={() => {
+                    const updatedInputs = data.inputs.map((input) =>
+                      input.id === activeInput.id
+                        ? { ...input, hidden: !input.hidden }
+                        : input
+                    );
+                    updateNodeData(id, { ...data, inputs: updatedInputs });
+                  }}
+                  disabled={disabled}
+                  connected={activeInput.isConnected}
+                  createObjectUrl={data.createObjectUrl}
+                />
+              );
+            })()}
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={activeOutputId !== null} onOpenChange={(open) => !open && setActiveOutputId(null)}>
+          <DialogContent className="sm:max-w-md pt-4">
+            {activeOutputId && (() => {
+              const activeOutput = data.outputs.find((o) => o.id === activeOutputId);
+              if (!activeOutput) return null;
+
+              return (
+                <PropertyField
+                  parameter={activeOutput}
+                  value={activeOutput.value}
+                  onChange={() => {}}
+                  onClear={() => {}}
+                  onToggleVisibility={() => {
+                    const updatedOutputs = data.outputs.map((output) =>
+                      output.id === activeOutput.id
+                        ? { ...output, hidden: !output.hidden }
+                        : output
+                    );
+                    updateNodeData(id, { ...data, outputs: updatedOutputs });
+                  }}
+                  disabled={true}
+                  createObjectUrl={data.createObjectUrl}
+                />
+              );
+            })()}
+          </DialogContent>
+        </Dialog>
       </TooltipProvider>
     );
   }
