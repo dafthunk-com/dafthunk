@@ -138,13 +138,13 @@ export function JsonField({
           EditorView.theme({
             "&": {
               height: "100%",
-              fontSize: "8px",
+              fontSize: "12px",
             },
             ".cm-scroller": {
               overflow: "auto",
             },
             ".cm-gutters": {
-              fontSize: "8px",
+              fontSize: "12px",
             },
           }),
         ],
@@ -213,8 +213,17 @@ export function JsonField({
 
   // Render CodeMirror editor with optional clear button
   return (
-    <div className={cn("relative", className)}>
-      <div ref={editorRef} className="min-h-[80px]" />
+    <div
+      className={cn("relative", className)}
+      onWheelCapture={(e) => {
+        // Capture wheel events at container level to prevent parent scroll
+        e.stopPropagation();
+      }}
+    >
+      <div
+        ref={editorRef}
+        className="min-h-[80px] max-h-[140px] rounded-md border border-neutral-300 dark:border-neutral-700 overflow-auto"
+      />
       {!disabled && !readonly && clearable && hasValue && (
         <ClearButton
           onClick={onClear}
