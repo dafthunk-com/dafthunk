@@ -452,6 +452,8 @@ export function WorkflowBuilder({
                   workflowName={workflowName}
                   workflowDescription={workflowDescription}
                   onWorkflowUpdate={disabled ? undefined : onWorkflowUpdate}
+                  workflowStatus={workflowStatus}
+                  workflowErrorMessage={workflowErrorMessage}
                 />
               </div>
             </>

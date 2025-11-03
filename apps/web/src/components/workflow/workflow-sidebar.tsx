@@ -3,6 +3,7 @@ import type {
   Edge as ReactFlowEdge,
   Node as ReactFlowNode,
 } from "@xyflow/react";
+import ChevronDownIcon from "lucide-react/icons/chevron-down";
 import Eye from "lucide-react/icons/eye";
 import Sparkles from "lucide-react/icons/sparkles";
 import Users from "lucide-react/icons/users";
@@ -14,7 +15,11 @@ import { Textarea } from "@/components/ui/textarea";
 
 import { WorkflowEdgeInspector } from "./workflow-edge-inspector";
 import { WorkflowNodeInspector } from "./workflow-node-inspector";
-import type { WorkflowEdgeType, WorkflowNodeType } from "./workflow-types";
+import type {
+  WorkflowEdgeType,
+  WorkflowExecutionStatus,
+  WorkflowNodeType,
+} from "./workflow-types";
 
 export interface WorkflowSidebarProps {
   nodes: ReactFlowNode<WorkflowNodeType>[];
@@ -27,6 +32,8 @@ export interface WorkflowSidebarProps {
   workflowName?: string;
   workflowDescription?: string;
   onWorkflowUpdate?: (name: string, description?: string) => void;
+  workflowStatus?: WorkflowExecutionStatus;
+  workflowErrorMessage?: string;
 }
 
 export function WorkflowSidebar({
@@ -40,6 +47,8 @@ export function WorkflowSidebar({
   workflowName = "",
   workflowDescription = "",
   onWorkflowUpdate,
+  workflowStatus,
+  workflowErrorMessage,
 }: WorkflowSidebarProps) {
   // Determine what to show based on selection
   const totalSelected = selectedNodes.length + selectedEdges.length;
@@ -52,6 +61,10 @@ export function WorkflowSidebar({
   const [localName, setLocalName] = useState(workflowName);
   const [localDescription, setLocalDescription] = useState(workflowDescription);
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Collapsible section state
+  const [propertiesExpanded, setPropertiesExpanded] = useState(true);
+  const [errorExpanded, setErrorExpanded] = useState(true);
 
   // Update local state when props change
   useEffect(() => {
@@ -137,42 +150,84 @@ export function WorkflowSidebar({
           ) : (
             <div className="h-full flex flex-col">
               <div className="border-b border-border">
-                <div className="px-4 py-3">
-                  <h2 className="text-base font-semibold text-foreground mb-1">
+                <button
+                  onClick={() => setPropertiesExpanded(!propertiesExpanded)}
+                  className="group w-full px-4 py-3 flex items-center justify-between"
+                >
+                  <h2 className="text-base font-semibold text-foreground">
                     Workflow Properties
                   </h2>
-                  <p className="text-sm text-muted-foreground">
-                    Configure the name and description for this workflow.
-                  </p>
-                </div>
-                <div className="px-4 pb-4 space-y-3">
-                  <div>
-                    <Label htmlFor="workflow-name">Workflow Name</Label>
-                    <Input
-                      id="workflow-name"
-                      value={localName}
-                      onChange={handleNameChange}
-                      placeholder="Enter workflow name"
-                      className="mt-2"
-                      disabled={disabled}
-                    />
+                  <ChevronDownIcon
+                    className={`h-4 w-4 ${
+                      propertiesExpanded ? "rotate-0" : "-rotate-90"
+                    } text-neutral-400 group-hover:text-neutral-700 dark:text-neutral-500 dark:group-hover:text-neutral-300`}
+                  />
+                </button>
+                {propertiesExpanded && (
+                  <>
+                    <div className="px-4 pb-2">
+                      <p className="text-sm text-muted-foreground">
+                        Configure the name and description for this workflow.
+                      </p>
+                    </div>
+                    <div className="px-4 pb-4 space-y-3">
+                      <div>
+                        <Label htmlFor="workflow-name">Workflow Name</Label>
+                        <Input
+                          id="workflow-name"
+                          value={localName}
+                          onChange={handleNameChange}
+                          placeholder="Enter workflow name"
+                          className="mt-2"
+                          disabled={disabled}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="workflow-description">
+                          Description (Optional)
+                        </Label>
+                        <Textarea
+                          id="workflow-description"
+                          value={localDescription}
+                          onChange={handleDescriptionChange}
+                          placeholder="Describe what you are building"
+                          className="mt-2"
+                          maxLength={256}
+                          rows={3}
+                          disabled={disabled}
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Workflow Error Section */}
+              <div className="border-b border-border">
+                <button
+                  onClick={() => setErrorExpanded(!errorExpanded)}
+                  className="group w-full px-4 py-3 flex items-center justify-between"
+                >
+                  <h2 className="text-base font-semibold text-foreground">
+                    Error
+                  </h2>
+                  <ChevronDownIcon
+                    className={`h-4 w-4 ${
+                      errorExpanded ? "rotate-0" : "-rotate-90"
+                    } text-neutral-400 group-hover:text-neutral-700 dark:text-neutral-500 dark:group-hover:text-neutral-300`}
+                  />
+                </button>
+                {errorExpanded && (
+                  <div className="px-4 pb-4">
+                    {workflowStatus === "error" && workflowErrorMessage ? (
+                      <p className="text-sm text-red-600 dark:text-red-400 break-words">
+                        {workflowErrorMessage}
+                      </p>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">No errors</p>
+                    )}
                   </div>
-                  <div>
-                    <Label htmlFor="workflow-description">
-                      Description (Optional)
-                    </Label>
-                    <Textarea
-                      id="workflow-description"
-                      value={localDescription}
-                      onChange={handleDescriptionChange}
-                      placeholder="Describe what you are building"
-                      className="mt-2"
-                      maxLength={256}
-                      rows={3}
-                      disabled={disabled}
-                    />
-                  </div>
-                </div>
+                )}
               </div>
 
               <div className="flex-1 flex flex-col items-center justify-center text-center px-4">
