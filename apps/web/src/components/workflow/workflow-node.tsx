@@ -130,7 +130,7 @@ export const TypeBadge = ({
         position={position}
         id={id}
         className={cn(
-          "!w-4 !h-4 !border !rounded-md !inline-flex !items-center !justify-center p transition-colors !shadow-sm",
+          "!w-4 !h-4 !border !rounded-md !inline-flex !items-center !justify-center p !shadow-sm",
           {
             "!bg-neutral-100 dark:!bg-neutral-800": hasValue,
             "!bg-white dark:!bg-neutral-900": !hasValue,
@@ -149,7 +149,7 @@ export const TypeBadge = ({
       >
         <span
           className={cn(
-            "inline-flex items-center justify-center text-xs font-medium transition-colors pointer-events-none",
+            "inline-flex items-center justify-center text-xs font-medium pointer-events-none",
             {
               "text-neutral-800 dark:text-neutral-300": isConnected || hasValue,
               "text-neutral-600 dark:text-neutral-400":
@@ -302,7 +302,7 @@ export const WorkflowNode = memo(
       <TooltipProvider>
         <div
           className={cn(
-            "bg-card shadow-sm w-[220px] rounded-md border transition-colors",
+            "bg-card shadow-sm w-[220px] rounded-md border",
             {
               "border-blue-500": selected,
               "border-border": !selected && data.executionState === "idle",
@@ -330,7 +330,7 @@ export const WorkflowNode = memo(
             <button
               type="button"
               className={cn(
-                "nodrag p-1 rounded transition-colors",
+                "nodrag p-1 rounded",
                 "text-neutral-400 hover:text-neutral-700 dark:text-neutral-500 dark:hover:text-neutral-300"
               )}
               onClick={(e) => {
@@ -367,7 +367,7 @@ export const WorkflowNode = memo(
               <button
                 type="button"
                 className={cn(
-                  "w-full px-2 py-1 rounded text-xs font-medium transition-colors flex items-center justify-center gap-1.5",
+                  "w-full px-2 py-1 rounded text-xs font-medium flex items-center justify-center gap-1.5",
                   "border border-border bg-background hover:bg-neutral-100",
                   "dark:hover:bg-neutral-800",
                   {
@@ -420,7 +420,7 @@ export const WorkflowNode = memo(
                           </div>
                           <button
                             type="button"
-                            className="shrink-0 text-neutral-400 hover:text-neutral-900 dark:text-neutral-500 dark:hover:text-neutral-100 transition-colors"
+                            className="shrink-0 text-neutral-400 hover:text-neutral-900 dark:text-neutral-500 dark:hover:text-neutral-100"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleRemoveTool(tool.identifier);

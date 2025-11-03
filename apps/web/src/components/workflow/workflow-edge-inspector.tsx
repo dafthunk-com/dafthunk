@@ -37,7 +37,7 @@ export function WorkflowEdgeInspector({
                 : "Connection Properties"}
             </h2>
             <ChevronDownIcon
-              className={`h-4 w-4 text-muted-foreground transition-transform ${
+              className={`h-4 w-4 text-muted-foreground ${
                 propertiesExpanded ? "rotate-0" : "-rotate-90"
               }`}
             />

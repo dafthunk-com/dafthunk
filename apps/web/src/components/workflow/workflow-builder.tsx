@@ -434,7 +434,7 @@ export function WorkflowBuilder({
             <>
               <div
                 className={cn(
-                  "w-1 bg-background border-l border-border cursor-col-resize transition-colors",
+                  "w-1 bg-background border-l border-border cursor-col-resize",
                   isResizing && "bg-muted"
                 )}
                 onMouseDown={handleResizeStart}

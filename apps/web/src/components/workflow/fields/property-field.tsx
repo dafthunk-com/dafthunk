@@ -100,15 +100,15 @@ export function PropertyField({
             pressed={parameter.hidden}
             onPressedChange={onToggleVisibility}
             aria-label={`Toggle visibility for ${parameter.name}`}
-            className={`group px-1 h-8 w-8 bg-transparent data-[state=on]:bg-transparent hover:bg-transparent transition-colors ${
+            className={`group px-1 h-8 w-8 bg-transparent data-[state=on]:bg-transparent hover:bg-transparent ${
               disabled ? "opacity-70 cursor-not-allowed" : ""
             }`}
             disabled={disabled}
           >
             {parameter.hidden ? (
-              <EyeOffIcon className="h-3 w-3 text-neutral-400 group-hover:text-neutral-700 dark:text-neutral-500 dark:group-hover:text-neutral-300 transition-colors" />
+              <EyeOffIcon className="h-3 w-3 text-neutral-400 group-hover:text-neutral-700 dark:text-neutral-500 dark:group-hover:text-neutral-300" />
             ) : (
-              <EyeIcon className="h-3 w-3 text-neutral-400 group-hover:text-neutral-700 dark:text-neutral-500 dark:group-hover:text-neutral-300 transition-colors" />
+              <EyeIcon className="h-3 w-3 text-neutral-400 group-hover:text-neutral-700 dark:text-neutral-500 dark:group-hover:text-neutral-300" />
             )}
           </Toggle>
         </div>

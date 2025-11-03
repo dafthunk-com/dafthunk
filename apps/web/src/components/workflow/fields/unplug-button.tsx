@@ -14,7 +14,7 @@ export function UnplugButton({
   return (
     <button
       onClick={onClick}
-      className={`p-1 text-muted-foreground hover:text-foreground transition-colors ${className}`}
+      className={`p-1 text-muted-foreground hover:text-foreground ${className}`}
       aria-label={label}
       type="button"
     >

@@ -183,13 +183,13 @@ export function WorkflowNodeInspector({
         <div className="border-b border-border">
           <button
             onClick={() => setPropertiesExpanded(!propertiesExpanded)}
-            className="group w-full px-4 py-3 flex items-center justify-between transition-colors"
+            className="group w-full px-4 py-3 flex items-center justify-between"
           >
             <h2 className="text-base font-semibold text-foreground">
               {disabled ? "Node Properties (Read-only)" : "Node Properties"}
             </h2>
             <ChevronDownIcon
-              className={`h-4 w-4 transition-all ${
+              className={`h-4 w-4 ${
                 propertiesExpanded ? "rotate-0" : "-rotate-90"
               } text-neutral-400 group-hover:text-neutral-700 dark:text-neutral-500 dark:group-hover:text-neutral-300`}
             />
@@ -236,11 +236,11 @@ export function WorkflowNodeInspector({
         <div className="border-b border-border">
           <button
             onClick={() => setInputsExpanded(!inputsExpanded)}
-            className="group w-full px-4 py-3 flex items-center justify-between transition-colors"
+            className="group w-full px-4 py-3 flex items-center justify-between"
           >
             <h2 className="text-base font-semibold text-foreground">Inputs</h2>
             <ChevronDownIcon
-              className={`h-4 w-4 transition-all ${
+              className={`h-4 w-4 ${
                 inputsExpanded ? "rotate-0" : "-rotate-90"
               } text-neutral-400 group-hover:text-neutral-700 dark:text-neutral-500 dark:group-hover:text-neutral-300`}
             />
@@ -293,11 +293,11 @@ export function WorkflowNodeInspector({
         <div className="border-b border-border">
           <button
             onClick={() => setOutputsExpanded(!outputsExpanded)}
-            className="group w-full px-4 py-3 flex items-center justify-between transition-colors"
+            className="group w-full px-4 py-3 flex items-center justify-between"
           >
             <h2 className="text-base font-semibold text-foreground">Outputs</h2>
             <ChevronDownIcon
-              className={`h-4 w-4 text-neutral-400 dark:text-neutral-500 transition-transform ${
+              className={`h-4 w-4 text-neutral-400 dark:text-neutral-500 ${
                 outputsExpanded ? "rotate-0" : "-rotate-90"
               }`}
             />
@@ -330,11 +330,11 @@ export function WorkflowNodeInspector({
         <div className="border-b border-border">
           <button
             onClick={() => setErrorExpanded(!errorExpanded)}
-            className="group w-full px-4 py-3 flex items-center justify-between transition-colors"
+            className="group w-full px-4 py-3 flex items-center justify-between"
           >
             <h2 className="text-base font-semibold text-foreground">Error</h2>
             <ChevronDownIcon
-              className={`h-4 w-4 text-neutral-400 dark:text-neutral-500 transition-transform ${
+              className={`h-4 w-4 text-neutral-400 dark:text-neutral-500 ${
                 errorExpanded ? "rotate-0" : "-rotate-90"
               }`}
             />
