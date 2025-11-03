@@ -24,6 +24,7 @@ import { WorkflowProvider } from "./workflow-context";
 import { WorkflowNodeSelector } from "./workflow-node-selector";
 import { WorkflowSidebar } from "./workflow-sidebar";
 import type {
+  NodeExecutionState,
   NodeType,
   WorkflowEdgeType,
   WorkflowExecution,
@@ -225,10 +226,10 @@ export function WorkflowBuilder({
     }
   }, [initialWorkflowExecution, nodes, updateNodeData]);
 
-  const resetNodeStates = useCallback(() => {
+  const resetNodeStates = useCallback((state: NodeExecutionState = "idle") => {
     nodes.forEach((node) => {
       updateNodeExecution(node.id, {
-        state: "idle",
+        state,
         outputs: {},
         error: undefined,
       });
@@ -239,7 +240,7 @@ export function WorkflowBuilder({
   const handleExecute = useCallback(() => {
     if (!executeWorkflow) return null;
 
-    resetNodeStates();
+    resetNodeStates("executing");
     setWorkflowStatus("executing"); // Local immediate update
 
     return executeWorkflow(workflowId, (execution: WorkflowExecution) => {
