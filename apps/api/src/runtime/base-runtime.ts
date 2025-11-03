@@ -191,30 +191,12 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
 
     await this.monitoringService.sendUpdate(workflowSessionId, executionRecord);
 
-    // Check for credit exhaustion
-    const exhaustedRecord = await this.handleCreditExhaustion(
-      step,
-      event.payload,
-      instanceId,
-      executionState,
-      workflowSessionId
-    );
-    if (exhaustedRecord) {
-      return exhaustedRecord;
-    }
-
-    // Declare context outside try block for finally access
+    // Declare context and exhaustion flag outside try block for finally access
     let executionContext: WorkflowExecutionContext | undefined;
+    let isExhausted = false;
 
     try {
-      // Preload organization resources (secrets + integrations)
-      await step.do(
-        "preload organization resources",
-        BaseRuntime.defaultStepConfig,
-        async () => this.resourceProvider.initialize(organizationId)
-      );
-
-      // Initialize workflow (validation + ordering)
+      // Initialize workflow first (validation + ordering) to create context
       // @ts-expect-error - TS2589: Type instantiation depth limitation with Cloudflare Workflows step.do
       const { context, state } = await step.do(
         "initialise workflow",
@@ -230,6 +212,38 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
 
       executionContext = context;
       executionState = state;
+
+      // Check for credit exhaustion early (before resource loading)
+      const computeCost = this.getNodesComputeCost(
+        event.payload.workflow.nodes
+      );
+      if (
+        !(await this.hasEnoughComputeCredits(
+          organizationId,
+          event.payload.computeCredits,
+          computeCost
+        ))
+      ) {
+        isExhausted = true;
+        executionRecord.startedAt = new Date();
+        executionRecord.status = "exhausted" as any;
+        executionRecord.error = "Insufficient compute credits";
+        this.logTransition("submitted", "exhausted");
+        await this.monitoringService.sendUpdate(
+          workflowSessionId,
+          executionRecord
+        );
+        // Skip to finally block to save
+        return executionRecord;
+      }
+
+      // Preload organization resources (secrets + integrations)
+      await step.do(
+        "preload organization resources",
+        BaseRuntime.defaultStepConfig,
+        async () => this.resourceProvider.initialize(organizationId)
+      );
+
       executionRecord.startedAt = new Date();
       executionRecord.status = getExecutionStatus(
         executionContext,
@@ -276,6 +290,7 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     } finally {
       executionRecord.endedAt = new Date();
 
+      // Save to execution store only once, at the very end
       if (executionContext) {
         executionRecord = await this.persistFinalState(
           step,
@@ -284,7 +299,8 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
           executionRecord,
           userId,
           organizationId,
-          instanceId
+          instanceId,
+          isExhausted
         );
       }
 
@@ -759,69 +775,8 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
   }
 
   /**
-   * Handles the case where organization has insufficient compute credits.
-   * Returns execution record if exhausted, null otherwise.
-   */
-  private async handleCreditExhaustion(
-    step: WorkflowStep,
-    params: RuntimeParams,
-    instanceId: string,
-    executionState: ExecutionState,
-    workflowSessionId?: string
-  ): Promise<WorkflowExecution | null> {
-    const { workflow, userId, organizationId, computeCredits } = params;
-
-    if (
-      await this.hasEnoughComputeCredits(
-        organizationId,
-        computeCredits,
-        this.getNodesComputeCost(workflow.nodes)
-      )
-    ) {
-      return null; // Sufficient credits, continue execution
-    }
-
-    // Create a minimal context for status computation
-    const minimalContext: WorkflowExecutionContext = {
-      workflow,
-      orderedNodeIds: workflow.nodes.map((n) => n.id),
-      workflowId: workflow.id,
-      organizationId,
-      executionId: instanceId,
-    };
-
-    this.logTransition(
-      getExecutionStatus(minimalContext, executionState),
-      "exhausted"
-    );
-
-    const executionRecord = await step.do(
-      "persist exhausted execution state",
-      BaseRuntime.defaultStepConfig,
-      async () =>
-        this.executionStore.save({
-          id: instanceId,
-          workflowId: workflow.id,
-          userId,
-          organizationId,
-          status: "exhausted" as any,
-          nodeExecutions: this.buildNodeExecutions(
-            workflow,
-            minimalContext,
-            executionState
-          ),
-          error: this.createErrorReport(executionState),
-          startedAt: new Date(),
-          endedAt: new Date(),
-        })
-    );
-
-    await this.monitoringService.sendUpdate(workflowSessionId, executionRecord);
-    return executionRecord;
-  }
-
-  /**
    * Persists the final execution state with credit updates.
+   * This is the ONLY place where executionStore.save() should be called.
    */
   private async persistFinalState(
     step: WorkflowStep,
@@ -830,14 +785,20 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     executionRecord: WorkflowExecution,
     userId: string,
     organizationId: string,
-    instanceId: string
+    instanceId: string,
+    isExhausted: boolean
   ): Promise<WorkflowExecution> {
     return await step.do(
       "persist final execution record",
       BaseRuntime.defaultStepConfig,
       async () => {
-        // Update compute credits for executed nodes (skip in development)
-        if (this.env.CLOUDFLARE_ENV !== "development") {
+        // Compute final status
+        const finalStatus = isExhausted
+          ? ("exhausted" as any)
+          : getExecutionStatus(context, state);
+
+        // Update compute credits for executed nodes (skip in development and exhausted cases)
+        if (!isExhausted && this.env.CLOUDFLARE_ENV !== "development") {
           await updateOrganizationComputeUsage(
             this.env.KV,
             organizationId,
@@ -849,18 +810,19 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
           );
         }
 
+        // Save to execution store - this happens exactly once per execution
         return this.executionStore.save({
           id: instanceId,
           workflowId: context.workflowId,
           userId,
           organizationId,
-          status: getExecutionStatus(context, state) as any,
+          status: finalStatus,
           nodeExecutions: this.buildNodeExecutions(
             context.workflow,
             context,
             state
           ),
-          error: this.createErrorReport(state),
+          error: this.createErrorReport(state) ?? executionRecord.error,
           startedAt: executionRecord.startedAt,
           endedAt: executionRecord.endedAt,
         });
@@ -987,7 +949,7 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         return {
           nodeId: node.id,
           status: "skipped" as const,
-          outputs: null,
+          outputs: undefined,
           ...skipInfo,
         };
       }
