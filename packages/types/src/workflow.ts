@@ -274,7 +274,7 @@ export interface NodeExecution {
   nodeId: string;
   status: NodeExecutionStatus;
   error?: string;
-  outputs?: Record<string, ParameterValue>;
+  outputs?: Record<string, ParameterValue> | null;
 }
 
 /**

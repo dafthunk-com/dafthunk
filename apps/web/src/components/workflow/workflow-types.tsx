@@ -64,7 +64,7 @@ export type WorkflowExecutionStatus =
 export type WorkflowNodeExecution = {
   nodeId: string;
   status: NodeExecutionState;
-  outputs?: Record<string, any>;
+  outputs?: Record<string, any> | null;
   error?: string;
 };
 
