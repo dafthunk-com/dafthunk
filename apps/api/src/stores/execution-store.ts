@@ -150,8 +150,9 @@ export class ExecutionStore {
           : 0;
 
       const dataPoint = {
-        indexes: [record.organizationId, record.id],
+        indexes: [record.organizationId],
         blobs: [
+          record.id,
           record.workflowId,
           record.deploymentId || "",
           record.status,
@@ -171,11 +172,19 @@ export class ExecutionStore {
         })
       );
 
-      this.env.EXECUTIONS.writeDataPoint(dataPoint);
-
-      console.log(
-        `ExecutionStore.writeToAnalytics: Successfully called writeDataPoint for ${record.id}`
-      );
+      try {
+        this.env.EXECUTIONS.writeDataPoint(dataPoint);
+        console.log(
+          `ExecutionStore.writeToAnalytics: Successfully called writeDataPoint for ${record.id}`
+        );
+      } catch (writeError) {
+        console.error(
+          `ExecutionStore.writeToAnalytics: writeDataPoint failed for ${record.id}:`,
+          writeError,
+          { dataPoint: JSON.stringify(dataPoint) }
+        );
+        throw writeError;
+      }
     } catch (error) {
       console.error(
         `ExecutionStore.writeToAnalytics: Failed to write ${record.id}:`,
@@ -272,7 +281,7 @@ export class ExecutionStore {
         SELECT *
         FROM ${dataset}
         WHERE index1 = '${organizationId}'
-          AND index2 = '${id}'
+          AND blob1 = '${id}'
         ORDER BY timestamp DESC
         LIMIT 1
       `;
@@ -290,16 +299,16 @@ export class ExecutionStore {
       const timestamp = new Date(row.timestamp);
 
       console.log(
-        `ExecutionStore.readFromAnalytics: Found execution ${id} with status ${row.blob3}`
+        `ExecutionStore.readFromAnalytics: Found execution ${id} with status ${row.blob4}`
       );
 
       return {
-        id: row.index2,
-        workflowId: row.blob1,
-        deploymentId: row.blob2 || null,
+        id: row.blob1,
+        workflowId: row.blob2,
+        deploymentId: row.blob3 || null,
         organizationId: row.index1,
-        status: row.blob3 as ExecutionStatusType,
-        error: row.blob4 || null,
+        status: row.blob4 as ExecutionStatusType,
+        error: row.blob5 || null,
         startedAt: timestamp,
         endedAt: timestamp,
         createdAt: timestamp,
@@ -327,11 +336,11 @@ export class ExecutionStore {
       const whereConditions = [`index1 = '${organizationId}'`];
 
       if (options?.workflowId) {
-        whereConditions.push(`blob1 = '${options.workflowId}'`);
+        whereConditions.push(`blob2 = '${options.workflowId}'`);
       }
 
       if (options?.deploymentId) {
-        whereConditions.push(`blob2 = '${options.deploymentId}'`);
+        whereConditions.push(`blob3 = '${options.deploymentId}'`);
       }
 
       const limit = options?.limit ?? 20;
@@ -358,12 +367,12 @@ export class ExecutionStore {
       return rows.map((row) => {
         const timestamp = new Date(row.timestamp);
         return {
-          id: row.index2,
-          workflowId: row.blob1,
-          deploymentId: row.blob2 || null,
+          id: row.blob1,
+          workflowId: row.blob2,
+          deploymentId: row.blob3 || null,
           organizationId: row.index1,
-          status: row.blob3 as ExecutionStatusType,
-          error: row.blob4 || null,
+          status: row.blob4 as ExecutionStatusType,
+          error: row.blob5 || null,
           startedAt: timestamp,
           endedAt: timestamp,
           createdAt: timestamp,
