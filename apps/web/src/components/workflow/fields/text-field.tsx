@@ -25,7 +25,7 @@ export function TextField({
         onChange={(e) => onChange(e.target.value || undefined)}
         placeholder={connected ? "Connected" : "Enter text"}
         className={cn(
-          "resize-y text-xs rounded-md border border-neutral-300 dark:border-neutral-700"
+          "resize-y rounded-md border border-neutral-300 dark:border-neutral-700"
         )}
         disabled={disabled}
       />

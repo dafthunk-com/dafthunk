@@ -53,7 +53,7 @@ export function GenericField({
         placeholder="Enter value"
         disabled={disabled}
         className={cn(
-          "text-xs rounded-md",
+          "rounded-md",
           disabled && "bg-muted/50 border-border",
           !disabled && "border border-neutral-300 dark:border-neutral-700"
         )}

@@ -36,7 +36,7 @@ export function SecretField({
       >
         <SelectTrigger
           className={cn(
-            "text-xs rounded-md border border-neutral-300 dark:border-neutral-700"
+            "rounded-md border border-neutral-300 dark:border-neutral-700"
           )}
         >
           <SelectValue

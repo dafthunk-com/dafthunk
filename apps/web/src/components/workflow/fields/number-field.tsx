@@ -27,7 +27,7 @@ export function NumberField({
         placeholder={connected ? "Connected" : "Enter number"}
         disabled={disabled}
         className={cn(
-          "text-xs rounded-md border border-neutral-300 dark:border-neutral-700"
+          "rounded-md border border-neutral-300 dark:border-neutral-700"
         )}
       />
       {!disabled && clearable && hasValue && (

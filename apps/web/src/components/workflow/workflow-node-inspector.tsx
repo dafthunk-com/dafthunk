@@ -212,7 +212,7 @@ export function WorkflowNodeInspector({
                   value={localName}
                   onChange={handleNameChange}
                   disabled={disabled}
-                  className={`mt-2 text-sm h-8 ${disabled ? "opacity-70 cursor-not-allowed" : ""}`}
+                  className={`mt-2 ${disabled ? "opacity-70 cursor-not-allowed" : ""}`}
                 />
               </div>
 
@@ -225,7 +225,7 @@ export function WorkflowNodeInspector({
                   id="node-type"
                   value={node.data.nodeType || node.type}
                   disabled={true}
-                  className={`mt-2 text-sm h-8 ${disabled ? "opacity-70 cursor-not-allowed" : ""}`}
+                  className={`mt-2 ${disabled ? "opacity-70 cursor-not-allowed" : ""}`}
                 />
               </div>
             </div>

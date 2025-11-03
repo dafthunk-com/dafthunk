@@ -288,7 +288,7 @@ export function AnyField({
             }
           }}
           className={cn(
-            "text-xs font-mono min-h-[100px] resize-y rounded-md border border-neutral-300 dark:border-neutral-700"
+            "font-mono min-h-[100px] resize-y rounded-md border border-neutral-300 dark:border-neutral-700"
           )}
           placeholder="Enter JSON"
           disabled={disabled}
@@ -347,7 +347,7 @@ export function AnyField({
           }
         }}
         className={cn(
-          "text-xs h-8 rounded-md border border-neutral-300 dark:border-neutral-700"
+          "rounded-md border border-neutral-300 dark:border-neutral-700"
         )}
         placeholder={`Enter ${actualType} value`}
         disabled={disabled}

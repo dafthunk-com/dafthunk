@@ -138,13 +138,13 @@ export function JsonField({
           EditorView.theme({
             "&": {
               height: "100%",
-              fontSize: "12px",
+              fontSize: "14px",
             },
             ".cm-scroller": {
               overflow: "auto",
             },
             ".cm-gutters": {
-              fontSize: "12px",
+              fontSize: "14px",
             },
           }),
         ],
