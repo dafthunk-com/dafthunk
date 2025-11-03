@@ -149,11 +149,7 @@ export class ExecutionStore {
           ? record.endedAt.getTime() - record.startedAt.getTime()
           : 0;
 
-      console.log(
-        `ExecutionStore.writeToAnalytics: Writing execution ${record.id} (status: ${record.status}) to dataset ${this.getDatasetName()}`
-      );
-
-      this.env.EXECUTIONS.writeDataPoint({
+      const dataPoint = {
         indexes: [record.organizationId, record.id],
         blobs: [
           record.workflowId,
@@ -162,7 +158,24 @@ export class ExecutionStore {
           (record.error || "").substring(0, 2000), // truncate to fit in blob
         ],
         doubles: [durationMs],
-      });
+      };
+
+      console.log(
+        `ExecutionStore.writeToAnalytics: Writing execution ${record.id} (status: ${record.status}) to dataset ${this.getDatasetName()}`,
+        JSON.stringify({
+          orgId: record.organizationId,
+          executionId: record.id,
+          workflowId: record.workflowId,
+          status: record.status,
+          durationMs,
+        })
+      );
+
+      this.env.EXECUTIONS.writeDataPoint(dataPoint);
+
+      console.log(
+        `ExecutionStore.writeToAnalytics: Successfully called writeDataPoint for ${record.id}`
+      );
     } catch (error) {
       console.error(
         `ExecutionStore.writeToAnalytics: Failed to write ${record.id}:`,
