@@ -21,7 +21,6 @@ export interface WorkflowParameter {
   name: string;
   description?: string;
   value?: any;
-  isConnected?: boolean;
   hidden?: boolean;
   required?: boolean;
   repeated?: boolean; // Flag for parameters that can accept multiple connections

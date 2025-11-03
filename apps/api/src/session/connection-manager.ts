@@ -108,8 +108,10 @@ export class ConnectionManager {
 
   /**
    * Broadcast state update to all connected clients
+   * @param state The workflow state to broadcast
+   * @param excludeWs Optional WebSocket to exclude from broadcast (e.g., the originating client)
    */
-  broadcast(state: WorkflowState): void {
+  broadcast(state: WorkflowState, excludeWs?: WebSocket): void {
     const updateMsg: WorkflowUpdateMessage = {
       type: "update",
       state,
@@ -117,6 +119,10 @@ export class ConnectionManager {
     const message = JSON.stringify(updateMsg);
 
     for (const connection of this.connections.values()) {
+      // Skip the originating WebSocket to avoid echoing back to sender
+      if (excludeWs && connection.ws === excludeWs) {
+        continue;
+      }
       this.send(connection.ws, message);
     }
   }

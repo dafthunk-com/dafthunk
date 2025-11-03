@@ -58,6 +58,7 @@ export const TypeBadge = ({
   type,
   position,
   id,
+  nodeId,
   parameter,
   onInputClick,
   onOutputClick,
@@ -69,6 +70,7 @@ export const TypeBadge = ({
   type: InputOutputType;
   position: Position;
   id: string;
+  nodeId: string;
   parameter?: WorkflowParameter;
   onInputClick?: (param: WorkflowParameter, element: HTMLElement) => void;
   onOutputClick?: (param: WorkflowParameter, element: HTMLElement) => void;
@@ -77,6 +79,7 @@ export const TypeBadge = ({
   executionState?: NodeExecutionState;
   selected?: boolean;
 }) => {
+  const { edges = [] } = useWorkflow();
   const iconSize = "!size-2.5";
 
   const icon: Record<InputOutputType, React.ReactNode> = {
@@ -108,8 +111,12 @@ export const TypeBadge = ({
 
   // Check if the parameter has a value set
   const hasValue = parameter && parameter.value !== undefined;
-  // Check if the parameter is connected
-  const isConnected = parameter?.isConnected === true;
+  // Check if the parameter is connected (computed from edges)
+  const isConnected = edges.some(
+    (edge) =>
+      (edge.target === nodeId && edge.targetHandle === id) ||
+      (edge.source === nodeId && edge.sourceHandle === id)
+  );
   // Determine if this is an input parameter
   const isInput = position === Position.Left;
 
@@ -173,7 +180,7 @@ export const WorkflowNode = memo(
     selected?: boolean;
     id: string;
   }) => {
-    const { updateNodeData, disabled, nodeTypes } = useWorkflow();
+    const { updateNodeData, disabled, nodeTypes, edges = [] } = useWorkflow();
     const [isToolSelectorOpen, setIsToolSelectorOpen] = useState(false);
     const [isDocsOpen, setIsDocsOpen] = useState(false);
     const [activeInputId, setActiveInputId] = useState<string | null>(null);
@@ -271,7 +278,12 @@ export const WorkflowNode = memo(
     ) => {
       if (disabled) return;
       // Don't allow clicking on connected inputs
-      if (param.isConnected) return;
+      const isConnected = edges.some(
+        (edge) =>
+          (edge.target === id && edge.targetHandle === param.id) ||
+          (edge.source === id && edge.sourceHandle === param.id)
+      );
+      if (isConnected) return;
       // Open dialog for this input
       setActiveInputId(param.id);
     };
@@ -441,6 +453,7 @@ export const WorkflowNode = memo(
                       type={input.type}
                       position={Position.Left}
                       id={input.id}
+                      nodeId={id}
                       parameter={input}
                       onInputClick={handleInputClick}
                       disabled={disabled}
@@ -475,6 +488,7 @@ export const WorkflowNode = memo(
                       type={output.type}
                       position={Position.Right}
                       id={output.id}
+                      nodeId={id}
                       parameter={output}
                       onOutputClick={handleOutputClick}
                       disabled={disabled}
@@ -494,11 +508,13 @@ export const WorkflowNode = memo(
           templates={nodeTypes || []}
         />
 
-        <NodeDocsDialog
-          nodeType={resolvedNodeType!}
-          isOpen={isDocsOpen && !!resolvedNodeType}
-          onOpenChange={setIsDocsOpen}
-        />
+        {resolvedNodeType && (
+          <NodeDocsDialog
+            nodeType={resolvedNodeType}
+            isOpen={isDocsOpen}
+            onOpenChange={setIsDocsOpen}
+          />
+        )}
 
         <Dialog
           open={activeInputId !== null}
@@ -510,6 +526,12 @@ export const WorkflowNode = memo(
                 (i) => i.id === activeInputId
               );
               if (!activeInput) return null;
+
+              const isInputConnected = edges.some(
+                (edge) =>
+                  (edge.target === id && edge.targetHandle === activeInput.id) ||
+                  (edge.source === id && edge.sourceHandle === activeInput.id)
+              );
 
               return (
                 <PropertyField
@@ -546,7 +568,7 @@ export const WorkflowNode = memo(
                     updateNodeData(id, { ...data, inputs: updatedInputs });
                   }}
                   disabled={disabled}
-                  connected={activeInput.isConnected}
+                  connected={isInputConnected}
                   createObjectUrl={data.createObjectUrl}
                 />
               );
@@ -565,6 +587,12 @@ export const WorkflowNode = memo(
               );
               if (!activeOutput) return null;
 
+              const isOutputConnected = edges.some(
+                (edge) =>
+                  (edge.target === id && edge.targetHandle === activeOutput.id) ||
+                  (edge.source === id && edge.sourceHandle === activeOutput.id)
+              );
+
               return (
                 <PropertyField
                   parameter={activeOutput}
@@ -581,6 +609,7 @@ export const WorkflowNode = memo(
                     updateNodeData(id, { ...data, outputs: updatedOutputs });
                   }}
                   disabled={true}
+                  connected={isOutputConnected}
                   createObjectUrl={data.createObjectUrl}
                 />
               );

@@ -97,17 +97,15 @@ interface UseWorkflowStateReturn {
 const stripExecutionFields = (
   data: WorkflowNodeType
 ): Omit<WorkflowNodeType, "executionState" | "error"> & {
-  outputs: Omit<WorkflowNodeType["outputs"][number], "value" | "isConnected">[];
-  inputs: Omit<WorkflowNodeType["inputs"][number], "isConnected">[];
+  outputs: Omit<WorkflowNodeType["outputs"][number], "value">[];
+  inputs: WorkflowNodeType["inputs"];
 } => {
   const { executionState, error, ...rest } = data;
 
   return {
     ...rest,
-    outputs: data.outputs.map(
-      ({ value, isConnected, ...outputRest }) => outputRest
-    ),
-    inputs: data.inputs.map(({ isConnected, ...inputRest }) => inputRest),
+    outputs: data.outputs.map(({ value, ...outputRest }) => outputRest),
+    inputs: data.inputs,
   };
 };
 
@@ -236,6 +234,7 @@ export function useWorkflowState({
   const nodesRef = useRef(initialNodes);
   const edgesRef = useRef(initialEdges);
   const lastPersistedNodesRef = useRef<string>("");
+  const lastPersistedEdgesRef = useRef<string>("");
 
   // Get selected nodes and edges directly from the arrays
   const selectedNodes = nodes.filter((node) => node.selected);
@@ -356,36 +355,29 @@ export function useWorkflowState({
   }, [nodes, onNodesChangePersistCallback, disabled]);
 
   // Effect to notify parent of changes for edges
+  // Only persists when the actual persistable data changes (strips execution state for comparison)
   useEffect(() => {
     if (disabled) return;
 
-    const hasNonExecutionChanges = edges.some((edge) => {
-      const initialEdge = initialEdges.find((e) => e.id === edge.id);
-      if (!initialEdge) return true;
+    // Create normalized version for comparison (excludes execution state)
+    const normalizedEdges = edges.map((edge) => ({
+      id: edge.id,
+      source: edge.source,
+      target: edge.target,
+      sourceHandle: edge.sourceHandle,
+      targetHandle: edge.targetHandle,
+      type: edge.type,
+      data: stripEdgeExecutionFields(edge.data),
+    }));
 
-      if (
-        edge.source !== initialEdge.source ||
-        edge.target !== initialEdge.target ||
-        edge.sourceHandle !== initialEdge.sourceHandle ||
-        edge.targetHandle !== initialEdge.targetHandle
-      )
-        return true;
+    const serialized = JSON.stringify(normalizedEdges);
 
-      const edgeData = stripEdgeExecutionFields(edge.data);
-      const initialEdgeData = stripEdgeExecutionFields(initialEdge.data);
-
-      return JSON.stringify(edgeData) !== JSON.stringify(initialEdgeData);
-    });
-
-    // Check for deleted edges by looking for initialEdges that don't exist in the current edges
-    const hasDeletedEdges = initialEdges.some(
-      (initialEdge) => !edges.some((edge) => edge.id === initialEdge.id)
-    );
-
-    if (hasNonExecutionChanges || hasDeletedEdges) {
+    // Only persist if the persistable data actually changed
+    if (serialized !== lastPersistedEdgesRef.current) {
+      lastPersistedEdgesRef.current = serialized;
       onEdgesChangePersistCallback?.(edges);
     }
-  }, [edges, onEdgesChangePersistCallback, initialEdges, disabled]);
+  }, [edges, onEdgesChangePersistCallback, disabled]);
 
   // Custom onNodesChange handler for disabled mode
   const handleNodesChangeInternal = useCallback(
@@ -818,13 +810,9 @@ export function useWorkflowState({
           outputs: nodeToDuplicate.data.outputs.map((output) => ({
             ...output,
             value: undefined,
-            isConnected: false,
           })),
           // Reset input connections
-          inputs: nodeToDuplicate.data.inputs.map((input) => ({
-            ...input,
-            isConnected: false,
-          })),
+          inputs: nodeToDuplicate.data.inputs,
         },
       };
 
@@ -905,13 +893,9 @@ export function useWorkflowState({
             outputs: node.data.outputs.map((output) => ({
               ...output,
               value: undefined,
-              isConnected: false,
             })),
             // Reset input connections
-            inputs: node.data.inputs.map((input) => ({
-              ...input,
-              isConnected: false,
-            })),
+            inputs: node.data.inputs,
           },
         };
       });
@@ -1067,13 +1051,9 @@ export function useWorkflowState({
           outputs: node.data.outputs.map((output) => ({
             ...output,
             value: undefined,
-            isConnected: false,
           })),
           // Reset input connections
-          inputs: node.data.inputs.map((input) => ({
-            ...input,
-            isConnected: false,
-          })),
+          inputs: node.data.inputs,
           createObjectUrl,
         },
       };

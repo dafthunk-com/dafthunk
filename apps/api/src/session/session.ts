@@ -258,7 +258,7 @@ export class Session extends DurableObject<Bindings> {
 
       switch (parsed.type) {
         case "update":
-          this.handleUpdateMessage(parsed as WorkflowUpdateMessage);
+          this.handleUpdateMessage(ws, parsed as WorkflowUpdateMessage);
           break;
         case "execute":
           await this.handleExecuteMessage(ws, parsed as WorkflowExecuteMessage);
@@ -294,9 +294,13 @@ export class Session extends DurableObject<Bindings> {
   /**
    * Handle workflow state update
    */
-  private handleUpdateMessage(message: WorkflowUpdateMessage): void {
+  private handleUpdateMessage(
+    ws: WebSocket,
+    message: WorkflowUpdateMessage
+  ): void {
     this.stateManager.updateState(message.state);
-    this.connectionManager.broadcast(message.state);
+    // Broadcast to all clients except the originating one
+    this.connectionManager.broadcast(message.state, ws);
   }
 
   /**

@@ -149,7 +149,16 @@ export class StateManager {
       throw new Error("Invalid state: nodes and edges must be arrays");
     }
 
-    this.state = state;
+    // Filter out orphaned edges (edges connected to non-existent nodes)
+    const nodeIds = new Set(state.nodes.map((node) => node.id));
+    const filteredEdges = state.edges.filter(
+      (edge) => nodeIds.has(edge.source) && nodeIds.has(edge.target)
+    );
+
+    this.state = {
+      ...state,
+      edges: filteredEdges,
+    };
     this.schedulePersist();
   }
 

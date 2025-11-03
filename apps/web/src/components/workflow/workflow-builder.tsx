@@ -141,46 +141,6 @@ export function WorkflowBuilder({
     disabled,
   });
 
-  // Track input and output connections
-  useEffect(() => {
-    const connectedInputs = new Map();
-    const connectedOutputs = new Map();
-
-    edges.forEach((edge) => {
-      if (edge.targetHandle)
-        connectedInputs.set(`${edge.target}-${edge.targetHandle}`, true);
-      if (edge.sourceHandle)
-        connectedOutputs.set(`${edge.source}-${edge.sourceHandle}`, true);
-    });
-
-    nodes.forEach((node) => {
-      const updatedInputs = node.data.inputs.map((input) => ({
-        ...input,
-        isConnected: connectedInputs.has(`${node.id}-${input.id}`),
-      }));
-
-      const updatedOutputs = node.data.outputs.map((output) => ({
-        ...output,
-        isConnected: connectedOutputs.has(`${node.id}-${output.id}`),
-      }));
-
-      const inputChanged = updatedInputs.some(
-        (input, i) => input.isConnected !== node.data.inputs[i].isConnected
-      );
-
-      const outputChanged = updatedOutputs.some(
-        (output, i) => output.isConnected !== node.data.outputs[i].isConnected
-      );
-
-      if (inputChanged || outputChanged) {
-        updateNodeData(node.id, {
-          inputs: updatedInputs,
-          outputs: updatedOutputs,
-        });
-      }
-    });
-  }, [edges, nodes, updateNodeData, disabled]);
-
   // Apply initial workflow execution state
   useEffect(() => {
     // Only apply the initial state once
