@@ -93,9 +93,15 @@ export function GeoJSONField({
 
   const formattedValue = hasValue ? formatGeoJSON(value) : "";
 
-  // Create CodeMirror editor once on mount
+  // Determine if we should show the editor (not disabled state)
+  const shouldShowEditor = !disabled;
+
+  // Create CodeMirror editor when needed
   useEffect(() => {
-    if (!editorRef.current) return;
+    if (!editorRef.current || !shouldShowEditor) return;
+
+    // Don't recreate if editor already exists
+    if (viewRef.current) return;
 
     const view = new EditorView({
       state: EditorState.create({
@@ -197,7 +203,7 @@ export function GeoJSONField({
       view.destroy();
       viewRef.current = null;
     };
-  }, []); // Only run on mount
+  }, [shouldShowEditor, formattedValue, readonly]); // Recreate when transitioning to showing editor
 
   // Update editor content when external value changes
   useEffect(() => {

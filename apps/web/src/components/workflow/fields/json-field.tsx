@@ -55,9 +55,15 @@ export function JsonField({
     // If not valid JSON, show as-is
   }
 
-  // Create CodeMirror editor once on mount
+  // Determine if we should show the editor (not showing placeholder)
+  const shouldShowEditor = !(disabled && !hasValue);
+
+  // Create CodeMirror editor when needed
   useEffect(() => {
-    if (!editorRef.current) return;
+    if (!editorRef.current || !shouldShowEditor) return;
+
+    // Don't recreate if editor already exists
+    if (viewRef.current) return;
 
     const view = new EditorView({
       state: EditorState.create({
@@ -158,7 +164,7 @@ export function JsonField({
       view.destroy();
       viewRef.current = null;
     };
-  }, []); // Only run on mount
+  }, [shouldShowEditor, formattedValue, readonly]); // Recreate when transitioning to showing editor
 
   // Update editor content when external value changes
   useEffect(() => {
