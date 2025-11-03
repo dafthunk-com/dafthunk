@@ -17,10 +17,7 @@ export function BooleanField({
 
   return (
     <div
-      className={cn(
-        "flex items-center justify-start gap-2 w-full",
-        className
-      )}
+      className={cn("flex items-center justify-start gap-2 w-full", className)}
     >
       {!disabled && clearable && hasValue && (
         <ClearButton onClick={onClear} label="Clear boolean" />

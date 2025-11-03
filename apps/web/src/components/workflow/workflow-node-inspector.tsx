@@ -89,7 +89,10 @@ export function WorkflowNodeInspector({
     if (!connectedEdge) return undefined;
 
     // Determine which end is the output based on connection direction
-    if (connectedEdge.target === node.id && connectedEdge.targetHandle === inputId) {
+    if (
+      connectedEdge.target === node.id &&
+      connectedEdge.targetHandle === inputId
+    ) {
       // Normal direction: this input is the target, find the source output
       const sourceNode = nodes.find((n) => n.id === connectedEdge.source);
       if (!sourceNode) return undefined;

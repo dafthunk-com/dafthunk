@@ -275,7 +275,6 @@ export function EditorPage() {
     [executeWorkflow, nodeTypes, workflowMetadata?.type]
   );
 
-
   const handleWorkflowUpdate = useCallback(
     async (name: string, description?: string) => {
       if (!id || !orgHandle || !workflowMetadata) return;

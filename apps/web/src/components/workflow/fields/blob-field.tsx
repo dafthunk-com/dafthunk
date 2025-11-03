@@ -173,7 +173,11 @@ export function BlobField({
               Download
             </a>
           </div>
-          <video src={objectUrl} controls className="w-full rounded-md border" />
+          <video
+            src={objectUrl}
+            controls
+            className="w-full rounded-md border"
+          />
         </div>
       );
     }

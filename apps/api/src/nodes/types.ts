@@ -1,10 +1,5 @@
 // Types for workflows
-import {
-  GeoJSON,
-  Node,
-  NodeExecution,
-  NodeType,
-} from "@dafthunk/types";
+import { GeoJSON, Node, NodeExecution, NodeType } from "@dafthunk/types";
 
 import { BaseToolRegistry } from "./base-tool-registry";
 import { ToolReference } from "./tool-types";

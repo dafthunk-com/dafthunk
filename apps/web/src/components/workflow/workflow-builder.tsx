@@ -226,16 +226,19 @@ export function WorkflowBuilder({
     }
   }, [initialWorkflowExecution, nodes, updateNodeData]);
 
-  const resetNodeStates = useCallback((state: NodeExecutionState = "idle") => {
-    nodes.forEach((node) => {
-      updateNodeExecution(node.id, {
-        state,
-        outputs: {},
-        error: undefined,
+  const resetNodeStates = useCallback(
+    (state: NodeExecutionState = "idle") => {
+      nodes.forEach((node) => {
+        updateNodeExecution(node.id, {
+          state,
+          outputs: {},
+          error: undefined,
+        });
       });
-    });
-    setWorkflowErrorMessage(undefined);
-  }, [nodes, updateNodeExecution]);
+      setWorkflowErrorMessage(undefined);
+    },
+    [nodes, updateNodeExecution]
+  );
 
   const handleExecute = useCallback(() => {
     if (!executeWorkflow) return null;

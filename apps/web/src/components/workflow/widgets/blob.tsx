@@ -14,11 +14,7 @@ interface BlobWidgetProps extends BaseWidgetProps {
   value: any;
 }
 
-function BlobWidget({
-  value,
-  onChange,
-  readonly = false,
-}: BlobWidgetProps) {
+function BlobWidget({ value, onChange, readonly = false }: BlobWidgetProps) {
   const [error, setError] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(() => {
     if (value && isObjectReference(value)) {

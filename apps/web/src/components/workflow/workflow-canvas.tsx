@@ -322,7 +322,6 @@ export function DeployButton({
   );
 }
 
-
 type SidebarToggleProps = {
   onClick: (e: React.MouseEvent) => void;
   isSidebarVisible: boolean;
@@ -809,7 +808,10 @@ export function WorkflowCanvas({
             {/* Publishing Actions Group - Deploy */}
             {!disabled && onDeploy && (
               <ActionBarGroup>
-                <DeployButton onClick={onDeploy} disabled={nodes.length === 0} />
+                <DeployButton
+                  onClick={onDeploy}
+                  disabled={nodes.length === 0}
+                />
               </ActionBarGroup>
             )}
 

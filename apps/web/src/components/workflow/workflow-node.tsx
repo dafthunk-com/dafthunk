@@ -301,17 +301,14 @@ export const WorkflowNode = memo(
     return (
       <TooltipProvider>
         <div
-          className={cn(
-            "bg-card shadow-sm w-[220px] rounded-md border",
-            {
-              "border-blue-500": selected,
-              "border-border": !selected && data.executionState === "idle",
-              "border-yellow-400": data.executionState === "executing",
-              "border-green-500": data.executionState === "completed",
-              "border-red-500": data.executionState === "error",
-              "border-blue-400": data.executionState === "skipped",
-            }
-          )}
+          className={cn("bg-card shadow-sm w-[220px] rounded-md border", {
+            "border-blue-500": selected,
+            "border-border": !selected && data.executionState === "idle",
+            "border-yellow-400": data.executionState === "executing",
+            "border-green-500": data.executionState === "completed",
+            "border-red-500": data.executionState === "error",
+            "border-blue-400": data.executionState === "skipped",
+          })}
         >
           {/* Header */}
           <div
@@ -529,7 +526,8 @@ export const WorkflowNode = memo(
 
               const isInputConnected = edges.some(
                 (edge) =>
-                  (edge.target === id && edge.targetHandle === activeInput.id) ||
+                  (edge.target === id &&
+                    edge.targetHandle === activeInput.id) ||
                   (edge.source === id && edge.sourceHandle === activeInput.id)
               );
 
@@ -589,7 +587,8 @@ export const WorkflowNode = memo(
 
               const isOutputConnected = edges.some(
                 (edge) =>
-                  (edge.target === id && edge.targetHandle === activeOutput.id) ||
+                  (edge.target === id &&
+                    edge.targetHandle === activeOutput.id) ||
                   (edge.source === id && edge.sourceHandle === activeOutput.id)
               );
 

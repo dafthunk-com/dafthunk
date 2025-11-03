@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { ChevronDownIcon } from "lucide-react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -61,11 +61,12 @@ export function DateField({
   value,
 }: FieldProps) {
   // Value can be an ISO string or old format object { date: string, offset: number }
-  const isoValue = typeof value === "string"
-    ? value
-    : (value && typeof value === "object" && "date" in value)
-      ? (value as { date: string }).date
-      : "";
+  const isoValue =
+    typeof value === "string"
+      ? value
+      : value && typeof value === "object" && "date" in value
+        ? (value as { date: string }).date
+        : "";
 
   // Timezone offset is for display/editing only (not persisted)
   const [offset, setOffset] = useState(0);
@@ -133,7 +134,9 @@ export function DateField({
     const [hours, minutes, seconds] = timeStr.split(":").map(Number);
 
     // Create a date in UTC with these components
-    const utcDate = new Date(Date.UTC(year, month, day, hours, minutes, seconds));
+    const utcDate = new Date(
+      Date.UTC(year, month, day, hours, minutes, seconds)
+    );
 
     // Adjust for the GMT offset to get the actual UTC time
     // If offset is -5 (GMT-5), and user selects 14:00, that's 19:00 UTC
@@ -157,29 +160,33 @@ export function DateField({
     const [hours, minutes, seconds = 0] = time.split(":").map(Number);
 
     // Get the date part - if no date is set yet, use today's date in the GMT offset
-    const dateInOffset = dateValue ? getOffsetTime(dateValue) : (() => {
-      const now = new Date();
-      const offsetMs = offset * 60 * 60 * 1000;
-      const offsetNow = new Date(now.getTime() + offsetMs);
-      return {
-        year: offsetNow.getUTCFullYear(),
-        month: offsetNow.getUTCMonth(),
-        day: offsetNow.getUTCDate(),
-        hours: offsetNow.getUTCHours(),
-        minutes: offsetNow.getUTCMinutes(),
-        seconds: offsetNow.getUTCSeconds(),
-      };
-    })();
+    const dateInOffset = dateValue
+      ? getOffsetTime(dateValue)
+      : (() => {
+          const now = new Date();
+          const offsetMs = offset * 60 * 60 * 1000;
+          const offsetNow = new Date(now.getTime() + offsetMs);
+          return {
+            year: offsetNow.getUTCFullYear(),
+            month: offsetNow.getUTCMonth(),
+            day: offsetNow.getUTCDate(),
+            hours: offsetNow.getUTCHours(),
+            minutes: offsetNow.getUTCMinutes(),
+            seconds: offsetNow.getUTCSeconds(),
+          };
+        })();
 
     // Create UTC date representing the selected date/time in GMT offset
-    const utcDate = new Date(Date.UTC(
-      dateInOffset.year,
-      dateInOffset.month,
-      dateInOffset.day,
-      hours,
-      minutes,
-      seconds
-    ));
+    const utcDate = new Date(
+      Date.UTC(
+        dateInOffset.year,
+        dateInOffset.month,
+        dateInOffset.day,
+        hours,
+        minutes,
+        seconds
+      )
+    );
 
     // Convert from GMT offset to UTC
     const offsetMs = offset * 60 * 60 * 1000;
