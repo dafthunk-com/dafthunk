@@ -137,10 +137,21 @@ export class ExecutionStore {
    */
   private writeToAnalytics(record: SaveExecutionRecord): void {
     try {
+      if (!this.env.EXECUTIONS) {
+        console.warn(
+          `ExecutionStore.writeToAnalytics: EXECUTIONS binding not available - skipping analytics write`
+        );
+        return;
+      }
+
       const durationMs =
         record.endedAt && record.startedAt
           ? record.endedAt.getTime() - record.startedAt.getTime()
           : 0;
+
+      console.log(
+        `ExecutionStore.writeToAnalytics: Writing execution ${record.id} (status: ${record.status}) to dataset ${this.getDatasetName()}`
+      );
 
       this.env.EXECUTIONS.writeDataPoint({
         indexes: [record.organizationId, record.id],
@@ -165,8 +176,24 @@ export class ExecutionStore {
    * Query Analytics Engine using SQL API
    */
   private async queryAnalytics(sql: string): Promise<any[]> {
+    // Validate required credentials
+    if (!this.env.CLOUDFLARE_ACCOUNT_ID || !this.env.CLOUDFLARE_API_TOKEN) {
+      console.error(
+        `ExecutionStore.queryAnalytics: Missing credentials - CLOUDFLARE_ACCOUNT_ID: ${!!this.env.CLOUDFLARE_ACCOUNT_ID}, CLOUDFLARE_API_TOKEN: ${!!this.env.CLOUDFLARE_API_TOKEN}`
+      );
+      throw new Error(
+        "Analytics Engine queries require CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN to be configured. " +
+          "In development: add to .dev.vars file. " +
+          "In production: use 'wrangler secret put' to set these values."
+      );
+    }
+
     try {
       const url = `https://api.cloudflare.com/client/v4/accounts/${this.env.CLOUDFLARE_ACCOUNT_ID}/analytics_engine/sql`;
+
+      console.log(
+        `ExecutionStore.queryAnalytics: Querying dataset with account ID ${this.env.CLOUDFLARE_ACCOUNT_ID.substring(0, 8)}...`
+      );
 
       const response = await fetch(url, {
         method: "POST",
@@ -178,6 +205,19 @@ export class ExecutionStore {
 
       if (!response.ok) {
         const error = await response.text();
+        console.error(
+          `ExecutionStore.queryAnalytics: HTTP ${response.status} - ${error}`
+        );
+
+        // Check for common permission issues
+        if (response.status === 401 || response.status === 403) {
+          throw new Error(
+            `Analytics Engine query authentication failed (${response.status}). ` +
+              `Verify your API token has "Account Analytics: Read" permission. ` +
+              `Error: ${error}`
+          );
+        }
+
         throw new Error(
           `Analytics query failed: ${response.statusText} - ${error}`
         );
@@ -211,6 +251,10 @@ export class ExecutionStore {
     try {
       const dataset = this.getDatasetName();
 
+      console.log(
+        `ExecutionStore.readFromAnalytics: Querying ${dataset} for execution ${id}`
+      );
+
       const sql = `
         SELECT *
         FROM ${dataset}
@@ -223,11 +267,18 @@ export class ExecutionStore {
       const rows = await this.queryAnalytics(sql);
 
       if (rows.length === 0) {
+        console.log(
+          `ExecutionStore.readFromAnalytics: No data found for execution ${id}`
+        );
         return undefined;
       }
 
       const row = rows[0];
       const timestamp = new Date(row.timestamp);
+
+      console.log(
+        `ExecutionStore.readFromAnalytics: Found execution ${id} with status ${row.blob3}`
+      );
 
       return {
         id: row.index2,
@@ -273,6 +324,10 @@ export class ExecutionStore {
       const limit = options?.limit ?? 20;
       const offset = options?.offset ?? 0;
 
+      console.log(
+        `ExecutionStore.listFromAnalytics: Querying ${dataset} for org ${organizationId.substring(0, 8)}... (limit: ${limit}, offset: ${offset})`
+      );
+
       const sql = `
         SELECT *
         FROM ${dataset}
@@ -282,6 +337,10 @@ export class ExecutionStore {
       `;
 
       const rows = await this.queryAnalytics(sql);
+
+      console.log(
+        `ExecutionStore.listFromAnalytics: Found ${rows.length} executions`
+      );
 
       return rows.map((row) => {
         const timestamp = new Date(row.timestamp);
