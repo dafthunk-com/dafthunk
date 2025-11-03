@@ -108,13 +108,23 @@ workflowRoutes.post(
     const workflowName = data.name || "Untitled Workflow";
     const workflowHandle = createHandle(workflowName);
 
+    const nodes = Array.isArray(data.nodes) ? data.nodes : [];
+
+    // Filter out orphaned edges
+    const nodeIds = new Set(nodes.map((n: any) => n.id));
+    const edges = Array.isArray(data.edges)
+      ? data.edges.filter(
+          (edge: any) => nodeIds.has(edge.source) && nodeIds.has(edge.target)
+        )
+      : [];
+
     const workflowData = {
       id: workflowId,
       name: workflowName,
       handle: workflowHandle,
       type: data.type,
-      nodes: Array.isArray(data.nodes) ? data.nodes : [],
-      edges: Array.isArray(data.edges) ? data.edges : [],
+      nodes,
+      edges,
     };
 
     const validationErrors = validateWorkflow(workflowData);
@@ -258,15 +268,21 @@ workflowRoutes.put(
         })
       : existingWorkflowData.nodes;
 
+    // Filter out orphaned edges (defensive: edges referencing non-existent nodes)
+    const nodeIds = new Set(sanitizedNodes.map((n: any) => n.id));
+    const sanitizedEdges = Array.isArray(data.edges)
+      ? data.edges.filter(
+          (edge: any) => nodeIds.has(edge.source) && nodeIds.has(edge.target)
+        )
+      : existingWorkflowData.edges;
+
     const workflowToValidate = {
       id: existingWorkflow.id,
       name: data.name ?? existingWorkflow.name,
       handle: existingWorkflow.handle,
       type: data.type || existingWorkflowData.type,
       nodes: sanitizedNodes,
-      edges: Array.isArray(data.edges)
-        ? data.edges
-        : existingWorkflowData.edges,
+      edges: sanitizedEdges,
     };
     const validationErrors = validateWorkflow(workflowToValidate);
     if (validationErrors.length > 0) {
@@ -283,9 +299,7 @@ workflowRoutes.put(
       type: data.type || existingWorkflowData.type,
       organizationId: organizationId,
       nodes: sanitizedNodes,
-      edges: Array.isArray(data.edges)
-        ? data.edges
-        : existingWorkflowData.edges,
+      edges: sanitizedEdges,
       createdAt: existingWorkflow.createdAt,
       updatedAt: now,
     });
