@@ -11,6 +11,7 @@ export interface FieldProps {
   disabled?: boolean;
   connected?: boolean;
   clearable?: boolean;
+  autoFocus?: boolean;
 }
 
 export interface FileFieldProps extends FieldProps {

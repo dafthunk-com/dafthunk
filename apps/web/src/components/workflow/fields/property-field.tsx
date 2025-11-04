@@ -53,6 +53,7 @@ export interface PropertyFieldProps {
   disabled?: boolean;
   connected?: boolean;
   createObjectUrl: (objectReference: ObjectReference) => string;
+  autoFocus?: boolean;
 }
 
 export function PropertyField({
@@ -65,6 +66,7 @@ export function PropertyField({
   disabled = false,
   connected = false,
   createObjectUrl,
+  autoFocus = false,
 }: PropertyFieldProps) {
   return (
     <div className="text-sm space-y-1">
@@ -124,6 +126,7 @@ export function PropertyField({
           connected={connected}
           createObjectUrl={createObjectUrl}
           className="w-full"
+          autoFocus={autoFocus}
         />
       </div>
     </div>

@@ -568,6 +568,7 @@ export const WorkflowNode = memo(
                   disabled={disabled}
                   connected={isInputConnected}
                   createObjectUrl={data.createObjectUrl}
+                  autoFocus
                 />
               );
             })()}

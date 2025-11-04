@@ -12,6 +12,7 @@ export function NumberField({
   onChange,
   onClear,
   value,
+  autoFocus,
 }: FieldProps) {
   // Convert to string and check for meaningful value (empty strings are considered "no value")
   const stringValue = String(value ?? "");
@@ -29,7 +30,7 @@ export function NumberField({
         className={cn(
           "rounded-md border border-neutral-300 dark:border-neutral-700"
         )}
-        autoFocus
+        autoFocus={autoFocus}
       />
       {!disabled && clearable && hasValue && (
         <ClearButton
