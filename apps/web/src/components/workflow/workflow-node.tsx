@@ -124,6 +124,10 @@ export const TypeBadge = ({
   // Check if this parameter accepts multiple connections
   const repeated = parameter?.repeated || false;
 
+  // Check if this is a required input with no value and no connection
+  const isRequiredAndEmpty =
+    isInput && parameter?.required && !hasValue && !isConnected;
+
   return (
     <div className="relative inline-flex items-center justify-center">
       <Handle
@@ -152,9 +156,11 @@ export const TypeBadge = ({
           className={cn(
             "inline-flex items-center justify-center text-xs font-medium pointer-events-none",
             {
-              "text-neutral-800 dark:text-neutral-300": isConnected || hasValue,
+              "text-red-500 dark:text-red-400": isRequiredAndEmpty,
+              "text-neutral-800 dark:text-neutral-300":
+                !isRequiredAndEmpty && (isConnected || hasValue),
               "text-neutral-600 dark:text-neutral-400":
-                !isConnected && (!isInput || !hasValue),
+                !isRequiredAndEmpty && !isConnected && (!isInput || !hasValue),
             }
           )}
         >

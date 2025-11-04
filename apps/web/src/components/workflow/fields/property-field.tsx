@@ -77,6 +77,9 @@ export function PropertyField({
           </span>
           <span className="text-foreground font-medium font-mono truncate">
             {parameter.name}
+            {parameter.required && (
+              <span className="text-red-500 dark:text-red-400 ml-0.5">*</span>
+            )}
           </span>
         </div>
         <div className="flex items-center gap-1 shrink-0">
