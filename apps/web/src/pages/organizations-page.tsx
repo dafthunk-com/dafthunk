@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 
+import { useAuth } from "@/components/auth-context";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
@@ -34,72 +35,58 @@ import { usePageBreadcrumbs } from "@/hooks/use-page";
 import {
   createOrganization,
   deleteOrganization,
+  useMemberships,
   useOrganizations,
 } from "@/services/organizations-service";
 
-const columns: ColumnDef<{
-  id: string;
-  name: string;
-  handle: string;
-  createdAt: Date;
-  updatedAt: Date;
-}>[] = [
-  {
-    accessorKey: "name",
-    header: "Name",
-    cell: ({ row }) => (
-      <div className="font-medium">{row.getValue("name")}</div>
-    ),
-  },
-  {
-    accessorKey: "handle",
-    header: "Handle",
-    cell: ({ row }) => <div>{row.getValue("handle")}</div>,
-  },
-  {
-    accessorKey: "createdAt",
-    header: "Created",
-    cell: ({ row }) => {
-      const date = row.getValue("createdAt") as Date;
-      return <div>{format(date, "MMM d, yyyy")}</div>;
-    },
-  },
-  {
-    id: "actions",
-    cell: ({ row }) => {
-      const organization = row.original;
-      return (
-        <div className="text-right">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button aria-haspopup="true" size="icon" variant="ghost">
-                <MoreHorizontal className="h-4 w-4" />
-                <span className="sr-only">Toggle menu</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={() =>
-                  document.dispatchEvent(
-                    new CustomEvent("deleteOrganizationTrigger", {
-                      detail: {
-                        id: organization.id,
-                        name: organization.name,
-                      },
-                    })
-                  )
-                }
-                className="text-red-600 focus:text-red-600"
-              >
-                Delete Organization
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      );
-    },
-  },
-];
+function ActionsCell({
+  organizationId,
+  organizationName,
+}: {
+  organizationId: string;
+  organizationName: string;
+}) {
+  const { user } = useAuth();
+  const { memberships } = useMemberships(organizationId);
+
+  const isOwner = memberships.some(
+    (m) => m.userId === user?.sub && m.role === "owner"
+  );
+
+  if (!isOwner) {
+    return null;
+  }
+
+  return (
+    <div className="text-right">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button aria-haspopup="true" size="icon" variant="ghost">
+            <MoreHorizontal className="h-4 w-4" />
+            <span className="sr-only">Toggle menu</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem
+            onClick={() =>
+              document.dispatchEvent(
+                new CustomEvent("deleteOrganizationTrigger", {
+                  detail: {
+                    id: organizationId,
+                    name: organizationName,
+                  },
+                })
+              )
+            }
+            className="text-red-600 focus:text-red-600"
+          >
+            Delete Organization
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+}
 
 export function OrganizationsPage() {
   const {
@@ -120,6 +107,44 @@ export function OrganizationsPage() {
 
   const navigate = useNavigate();
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
+
+  const columns: ColumnDef<{
+    id: string;
+    name: string;
+    handle: string;
+    createdAt: Date;
+    updatedAt: Date;
+  }>[] = [
+    {
+      accessorKey: "name",
+      header: "Name",
+      cell: ({ row }) => (
+        <div className="font-medium">{row.getValue("name")}</div>
+      ),
+    },
+    {
+      accessorKey: "handle",
+      header: "Handle",
+      cell: ({ row }) => <div>{row.getValue("handle")}</div>,
+    },
+    {
+      accessorKey: "createdAt",
+      header: "Created",
+      cell: ({ row }) => {
+        const date = row.getValue("createdAt") as Date;
+        return <div>{format(date, "MMM d, yyyy")}</div>;
+      },
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => (
+        <ActionsCell
+          organizationId={row.original.id}
+          organizationName={row.original.name}
+        />
+      ),
+    },
+  ];
 
   const handleCreateOrganization = useCallback(async (): Promise<void> => {
     if (!newOrgName.trim()) {
