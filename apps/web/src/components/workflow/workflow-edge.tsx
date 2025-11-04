@@ -46,16 +46,28 @@ const renderPath = (
   zIndex?: number
 ) => {
   return (
-    <path
-      d={path}
-      className={cn("stroke-[1] fill-none", {
-        "animate-pulse": isActive,
-      })}
-      style={{
-        stroke: color,
-        zIndex: zIndex,
-      }}
-    />
+    <>
+      {/* Invisible hit slop area for easier clicking */}
+      <path
+        d={path}
+        className="stroke-[12] fill-none pointer-events-stroke"
+        style={{
+          stroke: "transparent",
+          zIndex: zIndex,
+        }}
+      />
+      {/* Visible edge */}
+      <path
+        d={path}
+        className={cn("stroke-[1] fill-none", {
+          "animate-pulse": isActive,
+        })}
+        style={{
+          stroke: color,
+          zIndex: zIndex,
+        }}
+      />
+    </>
   );
 };
 
