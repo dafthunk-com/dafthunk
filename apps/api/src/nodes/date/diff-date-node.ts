@@ -1,17 +1,8 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
+import { normalizeUnit, type Unit } from "../../node-utils";
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
-
-type Unit =
-  | "milliseconds"
-  | "seconds"
-  | "minutes"
-  | "hours"
-  | "days"
-  | "weeks"
-  | "months"
-  | "years";
 
 function diffInUnit(
   aIso: string,
@@ -104,7 +95,15 @@ export class DiffDateNode extends ExecutableNode {
     try {
       const a = String(context.inputs.a ?? "");
       const b = String(context.inputs.b ?? "");
-      const unit = String(context.inputs.unit ?? "milliseconds") as Unit;
+      const unitInput = String(context.inputs.unit ?? "milliseconds");
+      const unit = normalizeUnit(unitInput);
+
+      if (!unit) {
+        return this.createErrorResult(
+          `Invalid unit: ${unitInput}. Must be one of: milliseconds, seconds, minutes, hours, days, weeks, months, years`
+        );
+      }
+
       const absolute = Boolean(context.inputs.absolute ?? false);
       const value = diffInUnit(a, b, unit);
       const out =

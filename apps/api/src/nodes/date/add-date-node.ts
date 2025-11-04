@@ -1,17 +1,8 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
+import { normalizeUnit, type Unit } from "../../node-utils";
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
-
-type Unit =
-  | "milliseconds"
-  | "seconds"
-  | "minutes"
-  | "hours"
-  | "days"
-  | "weeks"
-  | "months"
-  | "years";
 
 function addToDate(
   iso: string,
@@ -93,7 +84,15 @@ export class AddDateNode extends ExecutableNode {
     try {
       const base = context.inputs.date as string;
       const amount = Number(context.inputs.amount);
-      const unit = String(context.inputs.unit) as Unit;
+      const unitInput = String(context.inputs.unit);
+      const unit = normalizeUnit(unitInput);
+
+      if (!unit) {
+        return this.createErrorResult(
+          `Invalid unit: ${unitInput}. Must be one of: milliseconds, seconds, minutes, hours, days, weeks, months, years`
+        );
+      }
+
       const iso = addToDate(base, amount, unit);
       return this.createSuccessResult({ date: iso });
     } catch (error) {

@@ -1,5 +1,6 @@
 import { ObjectReference } from "@dafthunk/types";
 import { Handle, Position } from "@xyflow/react";
+import { AsteriskIcon } from "lucide-react";
 // @ts-ignore - https://github.com/lucide-icons/lucide/issues/2867#issuecomment-2847105863
 import { DynamicIcon } from "lucide-react/dynamic.mjs";
 import BoxIcon from "lucide-react/icons/box";
@@ -38,7 +39,6 @@ import {
   NodeExecutionState,
   WorkflowParameter,
 } from "./workflow-types";
-import { AsteriskIcon } from "lucide-react";
 
 export interface WorkflowNodeType {
   name: string;
