@@ -333,6 +333,7 @@ function createColumns(
           http_request: "HTTP Request",
           email_message: "Email Message",
           cron: "Scheduled",
+          queue_message: "Queue Message",
         };
         return (
           <span className="text-sm text-muted-foreground">
