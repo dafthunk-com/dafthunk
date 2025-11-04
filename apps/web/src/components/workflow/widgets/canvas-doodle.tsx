@@ -1,4 +1,4 @@
-import Eraser from "lucide-react/icons/eraser";
+import { Trash2 } from "lucide-react";
 import Save from "lucide-react/icons/save";
 import { useEffect, useRef, useState } from "react";
 
@@ -210,7 +210,7 @@ function CanvasDoodleWidget({
             disabled={isUploading || readonly}
             aria-label="Clear"
           >
-            <Eraser className="!size-3" />
+            <Trash2 className="!size-3" />
           </button>
           <button
             onClick={saveCanvas}

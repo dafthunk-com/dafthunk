@@ -1,4 +1,4 @@
-import { XIcon } from "lucide-react";
+import { Trash2Icon } from "lucide-react";
 
 interface ClearButtonProps {
   onClick: () => void;
@@ -18,7 +18,7 @@ export function ClearButton({
       aria-label={label}
       type="button"
     >
-      <XIcon className="h-4 w-4" />
+      <Trash2Icon className="h-4 w-4" />
     </button>
   );
 }
