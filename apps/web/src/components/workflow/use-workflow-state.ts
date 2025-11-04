@@ -334,14 +334,15 @@ export function useWorkflowState({
   }, [initialEdges, disabled, setEdges]);
 
   // Effect to notify parent of changes for nodes
-  // Only persists when the actual persistable data changes (strips position/execution state for comparison)
+  // Only persists when the actual persistable data changes (strips execution state for comparison)
   useEffect(() => {
     if (disabled) return;
 
-    // Create normalized version for comparison (excludes position and execution state)
+    // Create normalized version for comparison (excludes execution state, but includes position for layout changes)
     const normalizedNodes = nodes.map((node) => ({
       id: node.id,
       type: node.type,
+      position: node.position,
       data: stripExecutionFields(node.data),
     }));
 
