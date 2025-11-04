@@ -1,5 +1,5 @@
 import type { Workflow as WorkflowType } from "@dafthunk/types";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 
 import type { Bindings } from "../context";
 import { createDatabase, Database } from "../db";
@@ -359,7 +359,8 @@ export class WorkflowStore {
             eq(workflows.organizationId, organizations.id),
             getOrganizationCondition(organizationIdOrHandle)
           )
-        );
+        )
+        .orderBy(desc(workflows.updatedAt));
 
       return results;
     } catch (error) {
