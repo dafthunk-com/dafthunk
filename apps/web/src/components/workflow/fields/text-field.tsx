@@ -28,6 +28,7 @@ export function TextField({
           "resize-y rounded-md border border-neutral-300 dark:border-neutral-700"
         )}
         disabled={disabled}
+        autoFocus
       />
       {!disabled && clearable && hasValue && (
         <ClearButton

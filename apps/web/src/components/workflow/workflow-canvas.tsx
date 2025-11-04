@@ -57,7 +57,7 @@ const edgeTypes = {
 };
 
 const actionBarButtonOutlineClassName =
-  "bg-white/75 hover:bg-neutral-50/75 text-neutral-600 dark:bg-neutral-900/75 dark:hover:bg-neutral-800/75 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200";
+  "bg-white hover:bg-neutral-50 text-neutral-600 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200";
 
 interface StatusBarProps {
   workflowStatus: WorkflowExecutionStatus;
@@ -108,7 +108,7 @@ function StatusBar({ workflowStatus, errorMessage, disabled }: StatusBarProps) {
 
   return (
     <div className="absolute bottom-4 left-4 flex items-center gap-3 z-50">
-      <div className="bg-white/75 dark:bg-neutral-900/75 backdrop-blur-sm border border-neutral-200 dark:border-neutral-700 rounded-lg px-3 py-2 shadow-sm flex items-center gap-3">
+      <div className="bg-white dark:bg-neutral-900 backdrop-blur-sm border border-neutral-200 dark:border-neutral-700 rounded-lg px-3 py-2 shadow-sm flex items-center gap-3">
         <div className="flex items-center gap-2">
           <div className={cn("w-2 h-2 rounded-full", config.bg)}>
             <div className={cn("w-full h-full rounded-full")} />
@@ -212,49 +212,49 @@ export function ActionButton({
       title: "Execute Workflow",
       shortcut: "⌘⏎",
       className:
-        "bg-white/75 hover:bg-neutral-50/75 text-green-500 hover:text-green-600 dark:bg-neutral-900/75 dark:hover:bg-neutral-800/75 dark:text-green-400 dark:hover:text-green-300",
+        "bg-white hover:bg-neutral-50 text-green-500 hover:text-green-600 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-green-400 dark:hover:text-green-300",
     },
     submitted: {
       icon: <Square className="!size-4" />,
       title: "Stop Execution",
       shortcut: "⌘⏎",
       className:
-        "bg-white/75 hover:bg-neutral-50/75 text-red-500 hover:text-red-600 dark:bg-neutral-900/75 dark:hover:bg-neutral-800/75 dark:text-red-400 dark:hover:text-red-300",
+        "bg-white hover:bg-neutral-50 text-red-500 hover:text-red-600 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-red-400 dark:hover:text-red-300",
     },
     executing: {
       icon: <Square className="!size-4" />,
       title: "Stop Execution",
       shortcut: "⌘⏎",
       className:
-        "bg-white/75 hover:bg-neutral-50/75 text-red-500 hover:text-red-600 dark:bg-neutral-900/75 dark:hover:bg-neutral-800/75 dark:text-red-400 dark:hover:text-red-300",
+        "bg-white hover:bg-neutral-50 text-red-500 hover:text-red-600 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-red-400 dark:hover:text-red-300",
     },
     completed: {
       icon: <X className="!size-4" />,
       title: "Clear Outputs & Reset",
       shortcut: "⌘⏎",
       className:
-        "bg-white/75 hover:bg-neutral-50/75 text-amber-500 hover:text-amber-600 dark:bg-neutral-900/75 dark:hover:bg-neutral-800/75 dark:text-amber-400 dark:hover:text-amber-300",
+        "bg-white hover:bg-neutral-50 text-amber-500 hover:text-amber-600 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-amber-400 dark:hover:text-amber-300",
     },
     error: {
       icon: <X className="!size-4" />,
       title: "Clear Errors & Reset",
       shortcut: "⌘⏎",
       className:
-        "bg-white/75 hover:bg-neutral-50/75 text-amber-500 hover:text-amber-600 dark:bg-neutral-900/75 dark:hover:bg-neutral-800/75 dark:text-amber-400 dark:hover:text-amber-300",
+        "bg-white hover:bg-neutral-50 text-amber-500 hover:text-amber-600 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-amber-400 dark:hover:text-amber-300",
     },
     cancelled: {
       icon: <Play className="!size-4" />,
       title: "Restart Workflow",
       shortcut: "⌘⏎",
       className:
-        "bg-white/75 hover:bg-neutral-50/75 text-green-500 hover:text-green-600 dark:bg-neutral-900/75 dark:hover:bg-neutral-800/75 dark:text-green-400 dark:hover:text-green-300",
+        "bg-white hover:bg-neutral-50 text-green-500 hover:text-green-600 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-green-400 dark:hover:text-green-300",
     },
     paused: {
       icon: <Play className="!size-4" />,
       title: "Resume Workflow",
       shortcut: "⌘⏎",
       className:
-        "bg-white/75 hover:bg-neutral-50/75 text-sky-500 hover:text-sky-600 dark:bg-neutral-900/75 dark:hover:bg-neutral-800/75 dark:text-sky-400 dark:hover:text-sky-300",
+        "bg-white hover:bg-neutral-50 text-sky-500 hover:text-sky-600 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-sky-400 dark:hover:text-sky-300",
     },
   };
 

@@ -29,6 +29,7 @@ export function NumberField({
         className={cn(
           "rounded-md border border-neutral-300 dark:border-neutral-700"
         )}
+        autoFocus
       />
       {!disabled && clearable && hasValue && (
         <ClearButton

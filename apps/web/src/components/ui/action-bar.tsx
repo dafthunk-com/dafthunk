@@ -60,11 +60,15 @@ export function ActionBarButton({
     <Button
       onClick={onClick}
       disabled={disabled}
-      className={cn("h-10 px-3 rounded-none border-0", className, {
-        "opacity-50 cursor-not-allowed": disabled,
-      })}
+      className={cn(
+        "h-10 px-3 rounded-none border-0 disabled:!opacity-100",
+        className,
+        {
+          "cursor-not-allowed": disabled,
+        }
+      )}
     >
-      {children}
+      <span className={cn({ "opacity-50": disabled })}>{children}</span>
     </Button>
   );
   if (!tooltip) {
