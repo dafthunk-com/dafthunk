@@ -117,6 +117,7 @@ export const TypeBadge = ({
       (edge.target === nodeId && edge.targetHandle === id) ||
       (edge.source === nodeId && edge.sourceHandle === id)
   );
+  const isActive = hasValue || isConnected;
   // Determine if this is an input parameter
   const isInput = position === Position.Left;
 
@@ -132,8 +133,8 @@ export const TypeBadge = ({
         className={cn(
           "!w-4 !h-4 !border !rounded-md !inline-flex !items-center !justify-center p !shadow-sm",
           {
-            "!bg-neutral-100 dark:!bg-neutral-800": hasValue,
-            "!bg-white dark:!bg-neutral-900": !hasValue,
+            "!bg-neutral-200 dark:!bg-neutral-700": isActive,
+            "!bg-white dark:!bg-neutral-900": !isActive,
             "!border-border": !selected && executionState === "idle",
             "!border-yellow-400": !selected && executionState === "executing",
             "!border-green-500": !selected && executionState === "completed",
