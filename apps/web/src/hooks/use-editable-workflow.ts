@@ -216,6 +216,7 @@ export function useEditableWorkflow({
                   type: output.type as ParameterType["type"],
                   description: output.name,
                   hidden: output.hidden,
+                  repeated: output.repeated,
                 };
                 return parameter;
               }),

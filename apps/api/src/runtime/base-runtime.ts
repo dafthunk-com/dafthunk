@@ -621,11 +621,20 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     for (const [name, value] of Object.entries(inputValues)) {
       const input = node.inputs.find((i) => i.name === name);
       const parameterType = input?.type ?? "string";
-      processed[name] = await apiToNodeParameter(
-        parameterType,
-        value,
-        objectStore
-      );
+
+      // Handle repeated inputs (arrays of values)
+      if (Array.isArray(value)) {
+        const transformedArray = await Promise.all(
+          value.map((v) => apiToNodeParameter(parameterType, v, objectStore))
+        );
+        processed[name] = transformedArray;
+      } else {
+        processed[name] = await apiToNodeParameter(
+          parameterType,
+          value,
+          objectStore
+        );
+      }
     }
     return processed;
   }

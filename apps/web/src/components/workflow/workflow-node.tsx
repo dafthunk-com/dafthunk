@@ -2,7 +2,6 @@ import { ObjectReference } from "@dafthunk/types";
 import { Handle, Position } from "@xyflow/react";
 // @ts-ignore - https://github.com/lucide-icons/lucide/issues/2867#issuecomment-2847105863
 import { DynamicIcon } from "lucide-react/dynamic.mjs";
-import AsteriskIcon from "lucide-react/icons/asterisk";
 import BoxIcon from "lucide-react/icons/box";
 import BracesIcon from "lucide-react/icons/braces";
 import CalendarIcon from "lucide-react/icons/calendar";
@@ -39,6 +38,7 @@ import {
   NodeExecutionState,
   WorkflowParameter,
 } from "./workflow-types";
+import { AsteriskIcon } from "lucide-react";
 
 export interface WorkflowNodeType {
   name: string;
@@ -130,6 +130,17 @@ export const TypeBadge = ({
 
   return (
     <div className="relative inline-flex items-center justify-center">
+      {/* Multiple connections indicator background ring */}
+      {isInput && repeated && (
+        <div
+          className="absolute inset-0 rounded-md border border-dashed border-neutral-400 dark:border-neutral-500"
+          style={{
+            width: "20px",
+            height: "20px",
+            transform: "translate(-50%, -50%)",
+          }}
+        />
+      )}
       <Handle
         type={position === Position.Left ? "target" : "source"}
         position={position}
@@ -167,12 +178,6 @@ export const TypeBadge = ({
           {icon[type]}
         </span>
       </Handle>
-      {/* Multiple connections indicator */}
-      {isInput && repeated && (
-        <span className="absolute -bottom-1 -right-1 text-[8px] text-neutral-500 dark:text-neutral-400 pointer-events-none">
-          ⋯
-        </span>
-      )}
     </div>
   );
 };
@@ -468,11 +473,6 @@ export const WorkflowNode = memo(
                     />
                     <span className="text-xs text-foreground font-medium font-mono truncate">
                       {input.name}
-                      {input.repeated && (
-                        <span className="text-neutral-500 dark:text-neutral-400 ml-1">
-                          *
-                        </span>
-                      )}
                     </span>
                   </div>
                 ))}

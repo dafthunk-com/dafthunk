@@ -120,6 +120,7 @@ export function ExecutionDetailPage() {
               (execMap.get(node.id) as any)?.input?.[input.name] ?? input.value,
             hidden: input.hidden,
             required: input.required,
+            repeated: input.repeated,
           })),
           outputs: (node.outputs || []).map((output: any) => ({
             id: output.name,
@@ -127,6 +128,7 @@ export function ExecutionDetailPage() {
             name: output.name,
             value: execMap.get(node.id)?.outputs?.[output.name],
             hidden: output.hidden,
+            repeated: output.repeated,
           })),
           executionState: execMap.get(node.id)?.status || "idle",
           error: execMap.get(node.id)?.error,
