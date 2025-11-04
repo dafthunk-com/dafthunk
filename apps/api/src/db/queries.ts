@@ -1,6 +1,5 @@
 import * as crypto from "crypto";
-import { and, eq, lte, sql } from "drizzle-orm";
-import { alias } from "drizzle-orm/sqlite-core";
+import { and, eq, lte } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 
 import { Bindings } from "../context";
@@ -15,8 +14,12 @@ import {
   type DatasetInsert,
   type DatasetRow,
   datasets,
-  type DeploymentRow,
-  deployments,
+  type EmailInsert,
+  type EmailRow,
+  emails,
+  type EmailTriggerInsert,
+  type EmailTriggerRow,
+  emailTriggers,
   type IntegrationInsert,
   integrations,
   type MembershipInsert,
@@ -227,6 +230,14 @@ export function getQueueCondition(queueIdOrHandle: string) {
     return eq(queues.id, queueIdOrHandle);
   } else {
     return eq(queues.handle, queueIdOrHandle);
+  }
+}
+
+export function getEmailCondition(emailIdOrHandle: string) {
+  if (isUUID(emailIdOrHandle)) {
+    return eq(emails.id, emailIdOrHandle);
+  } else {
+    return eq(emails.handle, emailIdOrHandle);
   }
 }
 
@@ -791,6 +802,124 @@ export async function deleteQueue(
 }
 
 /**
+ * Get all emails for an organization
+ *
+ * @param db Database instance
+ * @param organizationIdOrHandle Organization ID or handle
+ * @returns Array of emails with basic info
+ */
+export async function getEmails(
+  db: ReturnType<typeof createDatabase>,
+  organizationIdOrHandle: string
+) {
+  return await db
+    .select({
+      id: emails.id,
+      name: emails.name,
+      handle: emails.handle,
+      createdAt: emails.createdAt,
+      updatedAt: emails.updatedAt,
+    })
+    .from(emails)
+    .innerJoin(
+      organizations,
+      and(
+        eq(emails.organizationId, organizations.id),
+        getOrganizationCondition(organizationIdOrHandle)
+      )
+    );
+}
+
+/**
+ * Get an email by ID or handle, ensuring it belongs to the specified organization
+ *
+ * @param db Database instance
+ * @param emailIdOrHandle Email ID or handle
+ * @param organizationIdOrHandle Organization ID or handle
+ * @returns Email record or undefined if not found
+ */
+export async function getEmail(
+  db: ReturnType<typeof createDatabase>,
+  emailIdOrHandle: string,
+  organizationIdOrHandle: string
+): Promise<EmailRow | undefined> {
+  const [email] = await db
+    .select()
+    .from(emails)
+    .innerJoin(
+      organizations,
+      and(
+        eq(emails.organizationId, organizations.id),
+        getOrganizationCondition(organizationIdOrHandle)
+      )
+    )
+    .where(getEmailCondition(emailIdOrHandle))
+    .limit(1);
+  return email?.emails;
+}
+
+/**
+ * Create a new email
+ *
+ * @param db Database instance
+ * @param newEmail Email data to insert
+ * @returns Created email record
+ */
+export async function createEmail(
+  db: ReturnType<typeof createDatabase>,
+  newEmail: EmailInsert
+): Promise<EmailRow> {
+  const [email] = await db.insert(emails).values(newEmail).returning();
+
+  return email;
+}
+
+/**
+ * Update an email, ensuring it belongs to the specified organization
+ *
+ * @param db Database instance
+ * @param id Email ID
+ * @param organizationId Organization ID
+ * @param data Updated email data
+ * @returns Updated email record
+ */
+export async function updateEmail(
+  db: ReturnType<typeof createDatabase>,
+  id: string,
+  organizationId: string,
+  data: Partial<EmailRow>
+): Promise<EmailRow> {
+  const [email] = await db
+    .update(emails)
+    .set(data)
+    .where(and(eq(emails.id, id), eq(emails.organizationId, organizationId)))
+    .returning();
+
+  return email;
+}
+
+/**
+ * Delete an email, ensuring it belongs to the specified organization
+ *
+ * @param db Database instance
+ * @param id Email ID
+ * @param organizationId Organization ID
+ * @returns Deleted email record
+ */
+export async function deleteEmail(
+  db: ReturnType<typeof createDatabase>,
+  id: string,
+  organizationId: string
+): Promise<EmailRow | undefined> {
+  const [email] = await db
+    .delete(emails)
+    .where(and(eq(emails.id, id), eq(emails.organizationId, organizationId)))
+    .returning();
+
+  return email;
+}
+
+/**
  * Get a queue trigger for a workflow
  *
  * @param db Database instance
@@ -895,6 +1024,128 @@ export async function deleteQueueTrigger(
         eq(queueTriggers.workflowId, workflowId),
         eq(
           queueTriggers.workflowId,
+          db
+            .select({ id: workflows.id })
+            .from(workflows)
+            .where(
+              and(
+                eq(workflows.id, workflowId),
+                eq(workflows.organizationId, organizationId)
+              )
+            )
+        )
+      )
+    )
+    .returning();
+
+  return trigger;
+}
+
+/**
+ * Get an email trigger for a workflow
+ *
+ * @param db Database instance
+ * @param workflowId Workflow ID
+ * @param organizationId Organization ID
+ * @returns Email trigger record or undefined if not found
+ */
+export async function getEmailTrigger(
+  db: ReturnType<typeof createDatabase>,
+  workflowId: string,
+  organizationId: string
+): Promise<EmailTriggerRow | undefined> {
+  const [trigger] = await db
+    .select()
+    .from(emailTriggers)
+    .innerJoin(workflows, eq(emailTriggers.workflowId, workflows.id))
+    .where(
+      and(
+        eq(emailTriggers.workflowId, workflowId),
+        eq(workflows.organizationId, organizationId)
+      )
+    )
+    .limit(1);
+
+  return trigger?.email_triggers;
+}
+
+/**
+ * Get all email triggers for a specific email
+ *
+ * @param db Database instance
+ * @param emailId Email ID
+ * @param organizationId Organization ID
+ * @returns Array of email trigger records with workflow info
+ */
+export async function getEmailTriggersByEmail(
+  db: ReturnType<typeof createDatabase>,
+  emailId: string,
+  organizationId: string
+) {
+  return await db
+    .select({
+      emailTrigger: emailTriggers,
+      workflow: workflows,
+    })
+    .from(emailTriggers)
+    .innerJoin(workflows, eq(emailTriggers.workflowId, workflows.id))
+    .innerJoin(emails, eq(emailTriggers.emailId, emails.id))
+    .where(
+      and(
+        eq(emailTriggers.emailId, emailId),
+        eq(emailTriggers.active, true),
+        eq(emails.organizationId, organizationId)
+      )
+    );
+}
+
+/**
+ * Upsert an email trigger for a workflow
+ *
+ * @param db Database instance
+ * @param trigger Email trigger data to insert or update
+ * @returns Upserted email trigger record
+ */
+export async function upsertEmailTrigger(
+  db: ReturnType<typeof createDatabase>,
+  trigger: EmailTriggerInsert
+): Promise<EmailTriggerRow> {
+  const [emailTrigger] = await db
+    .insert(emailTriggers)
+    .values(trigger)
+    .onConflictDoUpdate({
+      target: emailTriggers.workflowId,
+      set: {
+        emailId: trigger.emailId,
+        active: trigger.active,
+        updatedAt: new Date(),
+      },
+    })
+    .returning();
+
+  return emailTrigger;
+}
+
+/**
+ * Delete an email trigger for a workflow
+ *
+ * @param db Database instance
+ * @param workflowId Workflow ID
+ * @param organizationId Organization ID
+ * @returns Deleted email trigger record or undefined if not found
+ */
+export async function deleteEmailTrigger(
+  db: ReturnType<typeof createDatabase>,
+  workflowId: string,
+  organizationId: string
+): Promise<EmailTriggerRow | undefined> {
+  const [trigger] = await db
+    .delete(emailTriggers)
+    .where(
+      and(
+        eq(emailTriggers.workflowId, workflowId),
+        eq(
+          emailTriggers.workflowId,
           db
             .select({ id: workflows.id })
             .from(workflows)

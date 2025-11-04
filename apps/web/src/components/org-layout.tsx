@@ -5,6 +5,7 @@ import KeyRound from "lucide-react/icons/key-round";
 import LayoutDashboard from "lucide-react/icons/layout-dashboard";
 import Lock from "lucide-react/icons/lock";
 import Logs from "lucide-react/icons/logs";
+import Mail from "lucide-react/icons/mail";
 import Plug from "lucide-react/icons/plug";
 import SquareTerminal from "lucide-react/icons/square-terminal";
 import Target from "lucide-react/icons/target";
@@ -51,6 +52,11 @@ export const getDashboardSidebarItems = (orgHandle: string) => [
     title: "Queues",
     url: `/org/${orgHandle}/queues`,
     icon: Inbox,
+  },
+  {
+    title: "Emails",
+    url: `/org/${orgHandle}/emails`,
+    icon: Mail,
   },
   {
     title: "Integrations",

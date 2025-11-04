@@ -49,36 +49,110 @@ export async function handleIncomingEmail(
 
   if (parts.length !== 3) {
     console.error(
-      `Invalid email format: ${to}. Expected <type>+<organizationIdOrHandle>+<workflowIdOrHandle>@domain.com`
+      `Invalid email format: ${to}. Expected <type>+<organizationIdOrHandle>+<emailIdOrHandle>@domain.com`
     );
     return;
   }
 
-  const [triggerType, organizationIdOrHandle, workflowIdOrHandle] = parts;
+  const [triggerType, organizationIdOrHandle, emailIdOrHandle] = parts;
 
-  if (triggerType !== "workflow") {
-    console.error(`Invalid trigger type: ${triggerType}. Expected "workflow".`);
+  if (triggerType !== "email") {
+    console.error(`Invalid trigger type: ${triggerType}. Expected "email".`);
     return;
   }
 
-  console.log(`Processing email trigger for workflow: ${workflowIdOrHandle}`);
+  console.log(`Processing email trigger for email inbox: ${emailIdOrHandle}`);
 
   const db = createDatabase(env.DB);
   const executionStore = new ExecutionStore(env);
   const workflowStore = new WorkflowStore(env);
   const deploymentStore = new DeploymentStore(env);
 
-  // Get workflow metadata
-  const workflow = await workflowStore.get(
-    workflowIdOrHandle,
-    organizationIdOrHandle
-  );
-  if (!workflow) {
+  // Get email inbox
+  const { getEmail, getEmailTriggersByEmail } = await import("./db");
+  const email = await getEmail(db, emailIdOrHandle, organizationIdOrHandle);
+  if (!email) {
     console.error(
-      `Workflow '${workflowIdOrHandle}' not found or does not belong to organization '${organizationIdOrHandle}'`
+      `Email inbox '${emailIdOrHandle}' not found or does not belong to organization '${organizationIdOrHandle}'`
     );
     return;
   }
+
+  // Get organization ID from the email record
+  const organizationId = email.organizationId;
+
+  // Get all workflows triggered by this email
+  const emailTriggersWithWorkflows = await getEmailTriggersByEmail(
+    db,
+    email.id,
+    organizationId
+  );
+
+  if (emailTriggersWithWorkflows.length === 0) {
+    console.log(
+      `No active workflows found for email inbox: ${emailIdOrHandle}`
+    );
+    return;
+  }
+
+  console.log(
+    `Found ${emailTriggersWithWorkflows.length} workflow(s) to trigger for email inbox ${emailIdOrHandle}`
+  );
+
+  // Process each workflow that listens to this email
+  for (const { workflow } of emailTriggersWithWorkflows) {
+    console.log(`Triggering workflow: ${workflow.id} (${workflow.name})`);
+
+    try {
+      await triggerWorkflowForEmail({
+        workflow,
+        email,
+        organizationId,
+        env,
+        executionStore,
+        workflowStore,
+        deploymentStore,
+        from,
+        to,
+        headers,
+        raw,
+      });
+    } catch (error) {
+      console.error(
+        `Failed to trigger workflow ${workflow.id}:`,
+        error instanceof Error ? error.message : String(error)
+      );
+      // Continue with other workflows even if one fails
+    }
+  }
+}
+
+async function triggerWorkflowForEmail({
+  workflow,
+  email: _email,
+  organizationId,
+  env,
+  executionStore,
+  workflowStore,
+  deploymentStore,
+  from,
+  to,
+  headers,
+  raw,
+}: {
+  workflow: any;
+  email: any;
+  organizationId: string;
+  env: Bindings;
+  executionStore: ExecutionStore;
+  workflowStore: WorkflowStore;
+  deploymentStore: DeploymentStore;
+  from: string;
+  to: string;
+  headers: Headers;
+  raw: ReadableStream<Uint8Array>;
+}): Promise<void> {
+  const db = createDatabase(env.DB);
 
   console.log(
     `Loading workflow in ${workflow.activeDeploymentId ? "prod" : "dev"} mode`
@@ -107,7 +181,7 @@ export async function handleIncomingEmail(
     try {
       const workflowWithData = await workflowStore.getWithData(
         workflow.id,
-        organizationIdOrHandle
+        organizationId
       );
       if (!workflowWithData || !workflowWithData.data) {
         console.error(`Failed to load workflow data for ${workflow.id}`);
@@ -134,7 +208,7 @@ export async function handleIncomingEmail(
   // Get organization compute credits
   const computeCredits = await getOrganizationComputeCredits(
     db,
-    workflow.organizationId
+    organizationId
   );
   if (computeCredits === undefined) {
     console.error("Organization not found");
@@ -145,7 +219,7 @@ export async function handleIncomingEmail(
   const instance = await env.EXECUTE.create({
     params: {
       userId: "email",
-      organizationId: workflow.organizationId,
+      organizationId,
       computeCredits,
       workflow: {
         id: workflow.id,
@@ -178,7 +252,7 @@ export async function handleIncomingEmail(
     workflowId: workflow.id,
     deploymentId,
     userId: "email",
-    organizationId: workflow.organizationId,
+    organizationId,
     status: ExecutionStatus.EXECUTING,
     nodeExecutions,
     createdAt: new Date(),

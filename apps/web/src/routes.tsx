@@ -24,6 +24,7 @@ import { DocsDevelopersPage } from "./pages/docs/developers-page";
 import { DocsNodesPage } from "./pages/docs/nodes-page";
 import { DocsPage } from "./pages/docs-page";
 import { EditorPage } from "./pages/editor-page";
+import { EmailsPage } from "./pages/emails-page";
 import { ExecutionDetailPage } from "./pages/execution-detail-page";
 import { ExecutionsPage } from "./pages/executions-page";
 import { HomePage } from "./pages/home-page";
@@ -351,6 +352,21 @@ export const routes: AppRouteObject[] = [
       </OrgLayout>
     ),
     handle: { head: <HeadSeo title="Queues - Queues - Dafthunk" /> },
+  },
+  {
+    path: "/emails",
+    element: <OrgRedirect to="/org/:handle/emails" />,
+  },
+  {
+    path: "/org/:handle/emails",
+    element: (
+      <OrgLayout title="Emails">
+        <ProtectedRoute>
+          <EmailsPage />
+        </ProtectedRoute>
+      </OrgLayout>
+    ),
+    handle: { head: <HeadSeo title="Emails - Emails - Dafthunk" /> },
   },
   {
     path: "/deployments",

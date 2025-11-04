@@ -16,7 +16,15 @@ export class ReceiveEmailNode extends ExecutableNode {
     asTool: true,
     compatibility: ["email_message"],
     inlinable: true,
-    inputs: [],
+    inputs: [
+      {
+        name: "emailId",
+        type: "string",
+        description: "Email inbox to receive from",
+        required: false,
+        hidden: true,
+      },
+    ],
     outputs: [
       {
         name: "from",

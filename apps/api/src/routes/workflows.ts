@@ -21,6 +21,7 @@ import {
 } from "@dafthunk/types";
 import { zValidator } from "@hono/zod-validator";
 import CronParser from "cron-parser";
+import { and, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { v7 as uuid } from "uuid";
 import { z } from "zod";
@@ -39,7 +40,6 @@ import {
   upsertQueueTrigger as upsertDbQueueTrigger,
   workflows,
 } from "../db";
-import { and, eq } from "drizzle-orm";
 import { createRateLimitMiddleware } from "../middleware/rate-limit";
 import { WorkflowExecutor } from "../services/workflow-executor";
 import { DeploymentStore } from "../stores/deployment-store";
@@ -492,7 +492,10 @@ workflowRoutes.post(
     const deploymentStore = new DeploymentStore(c.env);
 
     // Get workflow metadata
-    const workflow = await workflowStore.get(workflowIdOrHandle, organizationId);
+    const workflow = await workflowStore.get(
+      workflowIdOrHandle,
+      organizationId
+    );
     if (!workflow) {
       return c.json({ error: "Workflow not found" }, 404);
     }
@@ -986,7 +989,10 @@ workflowRoutes.patch(
     // If deploymentId is provided, verify it exists and belongs to this workflow
     if (deploymentId) {
       const deploymentStore = new DeploymentStore(c.env);
-      const deployment = await deploymentStore.get(deploymentId, organizationId);
+      const deployment = await deploymentStore.get(
+        deploymentId,
+        organizationId
+      );
 
       if (!deployment) {
         return c.json({ error: "Deployment not found" }, 404);

@@ -137,16 +137,30 @@ export async function handleQueueMessages(
 
         console.log(`Found ${triggers.length} active triggers for this queue.`);
 
-        // Execute each subscribed workflow
+        // Deduplicate workflows by (workflowId + deploymentPath) to avoid loading same workflow multiple times
+        const workflowCache = new Map<
+          string,
+          {
+            data: WorkflowType;
+            deploymentId: string | undefined;
+            workflow: (typeof triggers)[0]["workflow"];
+          }
+        >();
+
+        // Load each unique workflow once
         for (const item of triggers) {
           const { workflow } = item;
+          const cacheKey = `${workflow.id}:${workflow.activeDeploymentId || "dev"}`;
+
+          if (workflowCache.has(cacheKey)) {
+            continue; // Already loaded this workflow
+          }
 
           console.log(
-            `Processing trigger for workflow: ${workflow.id} (${workflow.activeDeploymentId ? "prod" : "dev"} mode)`
+            `Loading workflow: ${workflow.id} (${workflow.activeDeploymentId ? "prod" : "dev"} mode)`
           );
 
           try {
-            // Simple 2-path model: use activeDeploymentId to determine dev vs prod
             let workflowToExecute: WorkflowType | null = null;
             let deploymentIdToExecute: string | undefined = undefined;
 
@@ -188,29 +202,52 @@ export async function handleQueueMessages(
             }
 
             if (workflowToExecute) {
-              const workflowInfo = {
-                id: workflow.id,
-                name: workflow.name,
-                handle: workflow.handle,
-                organizationId: workflow.organizationId,
-              };
-
-              await executeWorkflow(
-                workflowInfo,
-                workflowToExecute,
-                deploymentIdToExecute,
-                queueMessage,
-                db,
-                env,
-                ctx,
-                executionStore
-              );
+              workflowCache.set(cacheKey, {
+                data: workflowToExecute,
+                deploymentId: deploymentIdToExecute,
+                workflow,
+              });
             }
           } catch (err) {
-            console.error(
-              `Error processing trigger for workflow ${workflow.id}:`,
-              err
+            console.error(`Error loading workflow ${workflow.id}:`, err);
+          }
+        }
+
+        // Execute each trigger with its corresponding workflow
+        for (const item of triggers) {
+          const { workflow } = item;
+          const cacheKey = `${workflow.id}:${workflow.activeDeploymentId || "dev"}`;
+          const cached = workflowCache.get(cacheKey);
+
+          if (!cached) {
+            console.log(
+              `Skipping trigger for workflow ${workflow.id}: failed to load`
             );
+            continue;
+          }
+
+          console.log(`Executing trigger for workflow: ${workflow.id}`);
+
+          try {
+            const workflowInfo = {
+              id: workflow.id,
+              name: workflow.name,
+              handle: workflow.handle,
+              organizationId: workflow.organizationId,
+            };
+
+            await executeWorkflow(
+              workflowInfo,
+              cached.data,
+              cached.deploymentId,
+              queueMessage,
+              db,
+              env,
+              ctx,
+              executionStore
+            );
+          } catch (err) {
+            console.error(`Error executing workflow ${workflow.id}:`, err);
           }
         }
 

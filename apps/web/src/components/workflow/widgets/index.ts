@@ -10,6 +10,7 @@ import { audioRecorderWidget } from "./audio-recorder";
 import { canvasDoodleWidget } from "./canvas-doodle";
 import { datasetSelectorWidget } from "./dataset-selector";
 import { fileWidget } from "./file";
+import { emailSelectorWidget } from "./email-selector";
 import { inputTextWidget } from "./input-text";
 import {
   anthropicWidget,
@@ -42,6 +43,7 @@ const widgets = [
   javascriptEditorWidget,
   datasetSelectorWidget,
   queueSelectorWidget,
+  emailSelectorWidget,
 
   // Complex widgets
   webcamWidget,

@@ -365,6 +365,54 @@ export const queueTriggers = sqliteTable(
   ]
 );
 
+// Emails - Email inboxes associated with organizations
+export const emails = sqliteTable(
+  "emails",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    handle: text("handle").notNull(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    createdAt: createCreatedAt(),
+    updatedAt: createUpdatedAt(),
+  },
+  (table) => [
+    index("emails_name_idx").on(table.name),
+    index("emails_handle_idx").on(table.handle),
+    index("emails_organization_id_idx").on(table.organizationId),
+    index("emails_created_at_idx").on(table.createdAt),
+    uniqueIndex("emails_organization_id_handle_unique_idx").on(
+      table.organizationId,
+      table.handle
+    ),
+  ]
+);
+
+// Email Triggers - Email inbox triggers for workflows
+export const emailTriggers = sqliteTable(
+  "email_triggers",
+  {
+    workflowId: text("workflow_id")
+      .primaryKey()
+      .references(() => workflows.id, { onDelete: "cascade" }),
+    emailId: text("email_id")
+      .notNull()
+      .references(() => emails.id, { onDelete: "cascade" }),
+    active: integer("active", { mode: "boolean" }).notNull().default(true),
+    createdAt: createCreatedAt(),
+    updatedAt: createUpdatedAt(),
+  },
+  (table) => [
+    index("email_triggers_workflow_id_idx").on(table.workflowId),
+    index("email_triggers_email_id_idx").on(table.emailId),
+    index("email_triggers_active_idx").on(table.active),
+    index("email_triggers_created_at_idx").on(table.createdAt),
+    index("email_triggers_updated_at_idx").on(table.updatedAt),
+  ]
+);
+
 // Secrets - Encrypted secrets associated with organizations
 export const secrets = sqliteTable(
   "secrets",
@@ -446,6 +494,7 @@ export const organizationsRelations = relations(
     apiKeys: many(apiKeys),
     datasets: many(datasets),
     queues: many(queues),
+    emails: many(emails),
     secrets: many(secrets),
     integrations: many(integrations),
     users: one(users),
@@ -487,6 +536,10 @@ export const workflowsRelations = relations(workflows, ({ one, many }) => ({
   queueTrigger: one(queueTriggers, {
     fields: [workflows.id],
     references: [queueTriggers.workflowId],
+  }),
+  emailTrigger: one(emailTriggers, {
+    fields: [workflows.id],
+    references: [emailTriggers.workflowId],
   }),
 }));
 
@@ -531,6 +584,25 @@ export const queueTriggersRelations = relations(queueTriggers, ({ one }) => ({
   queue: one(queues, {
     fields: [queueTriggers.queueId],
     references: [queues.id],
+  }),
+}));
+
+export const emailsRelations = relations(emails, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [emails.organizationId],
+    references: [organizations.id],
+  }),
+  emailTriggers: many(emailTriggers),
+}));
+
+export const emailTriggersRelations = relations(emailTriggers, ({ one }) => ({
+  workflow: one(workflows, {
+    fields: [emailTriggers.workflowId],
+    references: [workflows.id],
+  }),
+  email: one(emails, {
+    fields: [emailTriggers.emailId],
+    references: [emails.id],
   }),
 }));
 
@@ -595,6 +667,12 @@ export type QueueInsert = typeof queues.$inferInsert;
 
 export type QueueTriggerRow = typeof queueTriggers.$inferSelect;
 export type QueueTriggerInsert = typeof queueTriggers.$inferInsert;
+
+export type EmailRow = typeof emails.$inferSelect;
+export type EmailInsert = typeof emails.$inferInsert;
+
+export type EmailTriggerRow = typeof emailTriggers.$inferSelect;
+export type EmailTriggerInsert = typeof emailTriggers.$inferInsert;
 
 export type SecretRow = typeof secrets.$inferSelect;
 export type SecretInsert = typeof secrets.$inferInsert;

@@ -1,9 +1,21 @@
+<<<<<<< HEAD
 import type { Workflow as WorkflowType } from "@dafthunk/types";
 import { and, desc, eq, inArray } from "drizzle-orm";
+=======
+import type { Node, Workflow as WorkflowType } from "@dafthunk/types";
+import { and, eq, inArray } from "drizzle-orm";
+>>>>>>> 1fc16e13 (feat: add email and queue management functionality)
 
 import type { Bindings } from "../context";
 import { createDatabase, Database } from "../db";
-import { getOrganizationCondition, getWorkflowCondition } from "../db/queries";
+import {
+  deleteEmailTrigger,
+  deleteQueueTrigger,
+  getOrganizationCondition,
+  getWorkflowCondition,
+  upsertEmailTrigger,
+  upsertQueueTrigger,
+} from "../db/queries";
 import type { WorkflowRow } from "../db/schema";
 import { memberships, organizations, workflows } from "../db/schema";
 
@@ -35,6 +47,107 @@ export class WorkflowStore {
   }
 
   /**
+   * Extract queue ID from workflow nodes
+   */
+  private extractQueueId(nodes: Node[]): string | null {
+    const queueNode = nodes.find((node) => node.type === "queue-message");
+    if (!queueNode) return null;
+
+    const queueIdInput = queueNode.inputs.find(
+      (input) => input.name === "queueId"
+    );
+    if (!queueIdInput || !queueIdInput.value) return null;
+
+    return queueIdInput.value as string;
+  }
+
+  /**
+   * Extract email ID from workflow nodes
+   */
+  private extractEmailId(nodes: Node[]): string | null {
+    const emailNode = nodes.find((node) => node.type === "receive-email");
+    if (!emailNode) return null;
+
+    const emailIdInput = emailNode.inputs.find(
+      (input) => input.name === "emailId"
+    );
+    if (!emailIdInput || !emailIdInput.value) return null;
+
+    return emailIdInput.value as string;
+  }
+
+  /**
+   * Sync triggers for queue_message and email_message workflows
+   * Directly upserts/deletes triggers without additional verification queries
+   */
+  private async syncTriggers(
+    workflowId: string,
+    workflowType: string,
+    organizationId: string,
+    nodes: Node[]
+  ): Promise<void> {
+    // Handle queue_message workflows
+    if (workflowType === "queue_message") {
+      const queueId = this.extractQueueId(nodes);
+
+      if (queueId) {
+        try {
+          await upsertQueueTrigger(this.db, {
+            workflowId,
+            queueId,
+            active: true,
+            updatedAt: new Date(),
+          });
+          console.log(
+            `Auto-registered queue trigger: workflow=${workflowId}, queue=${queueId}`
+          );
+        } catch (_error) {
+          console.error(
+            `Failed to create queue trigger for workflow ${workflowId}`
+          );
+        }
+      } else {
+        // No queue node - delete trigger if exists
+        try {
+          await deleteQueueTrigger(this.db, workflowId, organizationId);
+        } catch (_error) {
+          // Ignore - trigger didn't exist
+        }
+      }
+    }
+
+    // Handle email_message workflows
+    if (workflowType === "email_message") {
+      const emailId = this.extractEmailId(nodes);
+
+      if (emailId) {
+        try {
+          await upsertEmailTrigger(this.db, {
+            workflowId,
+            emailId,
+            active: true,
+            updatedAt: new Date(),
+          });
+          console.log(
+            `Auto-registered email trigger: workflow=${workflowId}, email=${emailId}`
+          );
+        } catch (_error) {
+          console.error(
+            `Failed to create email trigger for workflow ${workflowId}`
+          );
+        }
+      } else {
+        // No email node - delete trigger if exists
+        try {
+          await deleteEmailTrigger(this.db, workflowId, organizationId);
+        } catch (_error) {
+          // Ignore - trigger didn't exist
+        }
+      }
+    }
+  }
+
+  /**
    * Save workflow metadata to D1 and full data to R2
    */
   async save(record: SaveWorkflowRecord): Promise<WorkflowType> {
@@ -61,6 +174,14 @@ export class WorkflowStore {
 
     // Save metadata to D1
     await this.writeToD1(dbRecord);
+
+    // Auto-sync triggers based on workflow structure
+    await this.syncTriggers(
+      record.id,
+      record.type,
+      record.organizationId,
+      nodes
+    );
 
     // Save full data to R2
     await this.writeToR2(workflowData);
