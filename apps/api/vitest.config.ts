@@ -13,6 +13,8 @@ export default defineWorkersConfig({
         // This avoids loading CloudflareNodeRegistry and heavy packages like geotiff
         main: "./src/test-entry.ts",
         singleWorker: true,
+        // Use isolated local mode in CI to avoid authentication errors
+        isolatedStorage: true,
       },
     },
   },
