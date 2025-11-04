@@ -19,7 +19,7 @@ import { WhisperLargeV3TurboNode } from "./audio/whisper-large-v3-turbo-node";
 import { WhisperNode } from "./audio/whisper-node";
 import { WhisperTinyEnNode } from "./audio/whisper-tiny-en-node";
 import { BaseNodeRegistry } from "./base-node-registry";
-import { BlobNode } from "./blob/blob-node";
+import { FileNode } from "./blob/file-node";
 import { CloudflareBrowserContentNode } from "./browser/cloudflare-browser-content-node";
 import { CloudflareBrowserJsonNode } from "./browser/cloudflare-browser-json-node";
 import { CloudflareBrowserLinksNode } from "./browser/cloudflare-browser-links-node";
@@ -39,7 +39,6 @@ import { ListGuildChannelsDiscordNode } from "./discord/list-guild-channels-disc
 import { ListUserGuildsDiscordNode } from "./discord/list-user-guilds-discord-node";
 import { SendDMDiscordNode } from "./discord/send-dm-discord-node";
 import { SendMessageDiscordNode } from "./discord/send-message-discord-node";
-import { DocumentNode } from "./document/document-node";
 import { ToMarkdownNode } from "./document/to-markdown-node";
 import { ParseEmailNode } from "./email/parse-email-node";
 import { ReceiveEmailNode } from "./email/receive-email-node";
@@ -518,8 +517,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
 
     this.registerImplementation(AudioRecorderNode);
     this.registerImplementation(ToMarkdownNode);
-    this.registerImplementation(BlobNode);
-    this.registerImplementation(DocumentNode);
+    this.registerImplementation(FileNode);
     this.registerImplementation(HttpRequestNode);
 
     // Conditional registrations based on environment

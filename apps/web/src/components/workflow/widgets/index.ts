@@ -7,10 +7,9 @@
 
 // Import all widgets
 import { audioRecorderWidget } from "./audio-recorder";
-import { blobWidget } from "./blob";
 import { canvasDoodleWidget } from "./canvas-doodle";
 import { datasetSelectorWidget } from "./dataset-selector";
-import { documentWidget } from "./document";
+import { fileWidget } from "./file";
 import { inputTextWidget } from "./input-text";
 import {
   anthropicWidget,
@@ -46,8 +45,7 @@ const widgets = [
   webcamWidget,
   audioRecorderWidget,
   canvasDoodleWidget,
-  blobWidget,
-  documentWidget,
+  fileWidget,
 
   // Integration widgets
   googleMailWidget,
