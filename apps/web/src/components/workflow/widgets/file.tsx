@@ -97,63 +97,83 @@ function FileWidget({ value, onChange, readonly = false }: FileWidgetProps) {
         {value && isObjectReference(value) ? (
           <>
             {/* Full-screen preview with absolute positioned buttons */}
-            <div className="relative w-full h-full">
-              {/* Preview section based on MIME type */}
-              {isImage && objectUrl && (
-                <img
-                  src={objectUrl}
-                  alt="Preview"
-                  className="w-full h-full object-contain"
-                />
-              )}
-              {isAudio && objectUrl && (
-                <div className="w-full h-full flex items-center justify-center bg-neutral-100">
-                  <audio src={objectUrl} controls className="w-4/5" />
+            {isAudio && objectUrl ? (
+              <div className="w-full h-full flex items-center justify-between gap-4 px-2 py-2 bg-neutral-100">
+                <audio src={objectUrl} controls className="flex-1" />
+                <div className="flex gap-1 flex-shrink-0">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={downloadFile}
+                    className="h-8 w-8 bg-white/75 hover:bg-white dark:bg-neutral-900/75 dark:hover:bg-neutral-900 border border-neutral-200 dark:border-neutral-700"
+                    disabled={readonly}
+                    title="Download file"
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={clearFile}
+                    className="h-8 w-8 bg-white/75 hover:bg-white dark:bg-neutral-900/75 dark:hover:bg-neutral-900 border border-neutral-200 dark:border-neutral-700"
+                    disabled={readonly}
+                    title="Remove file"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
-              )}
-              {isVideo && objectUrl && (
-                <video
-                  src={objectUrl}
-                  controls
-                  className="w-full h-full object-contain"
-                />
-              )}
-              {!isImage && !isAudio && !isVideo && objectUrl && (
-                <div className="w-full h-full flex flex-col items-center justify-center bg-neutral-50 gap-4 py-2">
-                  <File className="h-10 w-10 text-neutral-400" />
-                  <div className="text-center">
-                    <p className="text-sm font-medium text-neutral-700">
-                      {getMimeTypeDisplay(mimeType)}
-                    </p>
-                    <p className="text-xs text-neutral-500">File uploaded</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Top-right action buttons */}
-              <div className="absolute top-2 right-2 z-10 flex gap-1">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={downloadFile}
-                  className="h-8 w-8 bg-white/75 hover:bg-white dark:bg-neutral-900/75 dark:hover:bg-neutral-900 border border-neutral-200 dark:border-neutral-700"
-                  disabled={readonly}
-                  title="Download file"
-                >
-                  <Download className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={clearFile}
-                  className="h-8 w-8 bg-white/75 hover:bg-white dark:bg-neutral-900/75 dark:hover:bg-neutral-900 border border-neutral-200 dark:border-neutral-700"
-                  disabled={readonly}
-                  title="Remove file"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
               </div>
-            </div>
+            ) : (
+              <div className="relative w-full h-full">
+                {/* Preview section based on MIME type */}
+                {isImage && objectUrl && (
+                  <img
+                    src={objectUrl}
+                    alt="Preview"
+                    className="w-full h-full object-contain"
+                  />
+                )}
+                {isVideo && objectUrl && (
+                  <video
+                    src={objectUrl}
+                    controls
+                    className="w-full h-full object-contain"
+                  />
+                )}
+                {!isImage && !isVideo && objectUrl && (
+                  <div className="w-full h-full flex items-center justify-between gap-4 px-2 py-2 bg-neutral-50">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <File className="h-5 w-5 text-neutral-400 flex-shrink-0" />
+                      <p className="text-sm font-medium text-neutral-700 truncate">
+                        {getMimeTypeDisplay(mimeType)}
+                      </p>
+                    </div>
+                    <div className="flex gap-1 flex-shrink-0">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={downloadFile}
+                        className="h-8 w-8 bg-white/75 hover:bg-white dark:bg-neutral-900/75 dark:hover:bg-neutral-900 border border-neutral-200 dark:border-neutral-700"
+                        disabled={readonly}
+                        title="Download file"
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={clearFile}
+                        className="h-8 w-8 bg-white/75 hover:bg-white dark:bg-neutral-900/75 dark:hover:bg-neutral-900 border border-neutral-200 dark:border-neutral-700"
+                        disabled={readonly}
+                        title="Remove file"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </>
         ) : (
           <label
