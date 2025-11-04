@@ -11,6 +11,7 @@ export interface Bindings {
   RATE_LIMIT_EXECUTE: RateLimit;
   EXECUTE: Workflow<RuntimeParams>;
   WORKFLOW_SESSION: DurableObjectNamespace<Session>;
+  WORKFLOW_QUEUE: Queue;
   RESSOURCES: R2Bucket;
   DATASETS: R2Bucket;
   DATASETS_AUTORAG: string;

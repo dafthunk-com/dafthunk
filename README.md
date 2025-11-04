@@ -238,13 +238,56 @@ Our collection of carefully selected technologies, guaranteed to be outdated by 
    pnpm db:migrate
    ```
 
-8. Start the development server and cross your fingers:
+8. Create a Cloudflare Queue for workflow messaging:
+
+   ```bash
+   # Create the queue
+   wrangler queues create WORKFLOW_QUEUE
+   ```
+
+   After creating the queue, add the binding to `apps/api/wrangler.jsonc`:
+
+   ```jsonc
+   "queues": {
+     "producers": [
+       {
+         "binding": "WORKFLOW_QUEUE",
+         "queue": "WORKFLOW_QUEUE"
+       }
+     ],
+     "consumers": [
+       {
+         "queue": "WORKFLOW_QUEUE",
+         "max_batch_size": 10,
+         "max_batch_timeout": 30
+       }
+     ]
+   }
+   ```
+
+   Also add it to the production environment section (`env.production`).
+
+   The queue enables asynchronous workflow execution through message triggers. When you publish a message to a queue using the **Queue Publish** node, workflows subscribed to that queue via queue triggers will be automatically executed.
+
+   **Queue Architecture:**
+   - **Producer**: The Queue Publish node sends messages to the queue
+   - **Consumer**: The queue handler (`src/queue.ts`) processes messages and triggers subscribed workflows
+   - **Multi-tenant**: Each message includes `queueId` and `organizationId` for proper isolation
+
+   **Usage:**
+   1. Create a queue in the UI (under your organization)
+   2. Create a workflow with type "Queue Message"
+   3. Add a queue trigger to the workflow (links workflow to queue)
+   4. Use the Queue Message node to access the message payload
+   5. Publish messages using the Queue Publish node from any workflow
+
+9. Start the development server and cross your fingers:
 
    ```bash
    pnpm dev
    ```
 
-9. Open your browser and navigate to `http://localhost:3000`. Prepare to either celebrate or debug.
+10. Open your browser and navigate to `http://localhost:3000`. Prepare to either celebrate or debug.
 
 ## 👨‍💻 Development
 

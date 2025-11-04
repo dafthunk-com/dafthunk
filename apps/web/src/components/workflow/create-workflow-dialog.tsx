@@ -1,6 +1,7 @@
 import { WorkflowType } from "@dafthunk/types";
 import Clock from "lucide-react/icons/clock";
 import Globe from "lucide-react/icons/globe";
+import Inbox from "lucide-react/icons/inbox";
 import Mail from "lucide-react/icons/mail";
 import Play from "lucide-react/icons/play";
 import { useState } from "react";
@@ -41,6 +42,12 @@ const workflowTypes = [
     title: "Scheduled",
     description: "Trigger workflows on a schedule",
     icon: Clock,
+  },
+  {
+    type: "queue_message" as WorkflowType,
+    title: "Queue Message",
+    description: "Trigger workflows from queue messages",
+    icon: Inbox,
   },
 ];
 

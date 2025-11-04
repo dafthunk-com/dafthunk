@@ -2,10 +2,12 @@ import {
   CancelWorkflowExecutionResponse,
   CreateWorkflowRequest,
   CreateWorkflowResponse,
+  DeleteQueueTriggerResponse,
   DeleteWorkflowResponse,
   ExecuteWorkflowResponse,
   ExecutionStatus,
   GetCronTriggerResponse,
+  GetQueueTriggerResponse,
   GetWorkflowResponse,
   JWTTokenPayload,
   ListWorkflowsResponse,
@@ -13,6 +15,8 @@ import {
   UpdateWorkflowResponse,
   UpsertCronTriggerRequest,
   UpsertCronTriggerResponse,
+  UpsertQueueTriggerRequest,
+  UpsertQueueTriggerResponse,
   VersionAlias,
   WorkflowWithMetadata,
 } from "@dafthunk/types";
@@ -27,9 +31,13 @@ import { ApiContext } from "../context";
 import {
   createDatabase,
   createHandle,
+  deleteQueueTrigger as deleteDbQueueTrigger,
   getCronTrigger,
   getOrganizationComputeCredits,
+  getQueue,
+  getQueueTrigger,
   upsertCronTrigger as upsertDbCronTrigger,
+  upsertQueueTrigger as upsertDbQueueTrigger,
 } from "../db";
 import { createRateLimitMiddleware } from "../middleware/rate-limit";
 import { WorkflowExecutor } from "../services/workflow-executor";
@@ -678,6 +686,175 @@ workflowRoutes.post(
       };
       return c.json(response);
     }
+  }
+);
+
+/**
+ * Get queue trigger for a workflow
+ */
+workflowRoutes.get(
+  "/:workflowIdOrHandle/queue-trigger",
+  jwtMiddleware,
+  async (c) => {
+    const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
+    const organizationId = c.get("organizationId")!;
+    const workflowStore = new WorkflowStore(c.env);
+    const db = createDatabase(c.env.DB);
+
+    const workflow = await workflowStore.get(
+      workflowIdOrHandle,
+      organizationId
+    );
+    if (!workflow) {
+      return c.json({ error: "Workflow not found" }, 404);
+    }
+
+    const queueTrigger = await getQueueTrigger(db, workflow.id, organizationId);
+
+    if (!queueTrigger) {
+      return c.json(
+        { error: "Queue trigger not found for this workflow" },
+        404
+      );
+    }
+
+    // Map the DB row to GetQueueTriggerResponse
+    const response: GetQueueTriggerResponse = {
+      workflowId: queueTrigger.workflowId,
+      queueId: queueTrigger.queueId,
+      versionAlias: queueTrigger.versionAlias as VersionAlias,
+      versionNumber: queueTrigger.versionNumber,
+      active: queueTrigger.active,
+      createdAt: queueTrigger.createdAt,
+      updatedAt: queueTrigger.updatedAt,
+    };
+
+    return c.json(response);
+  }
+);
+
+/**
+ * Upsert (create or update) a queue trigger for a workflow
+ */
+const UpsertQueueTriggerRequestSchema = z.object({
+  queueId: z.string().min(1, "Queue ID is required"),
+  versionAlias: z.enum(["dev", "latest", "version"]).optional(),
+  versionNumber: z.number().optional().nullable(),
+  active: z.boolean().optional(),
+}) as z.ZodType<UpsertQueueTriggerRequest>;
+
+workflowRoutes.put(
+  "/:workflowIdOrHandle/queue-trigger",
+  jwtMiddleware,
+  zValidator("json", UpsertQueueTriggerRequestSchema),
+  async (c) => {
+    const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
+    const organizationId = c.get("organizationId")!;
+    const data = c.req.valid("json");
+    const db = createDatabase(c.env.DB);
+    const workflowStore = new WorkflowStore(c.env);
+
+    const workflow = await workflowStore.get(
+      workflowIdOrHandle,
+      organizationId
+    );
+    if (!workflow) {
+      return c.json({ error: "Workflow not found" }, 404);
+    }
+
+    if (workflow.type !== "queue_message") {
+      return c.json({ error: "Workflow is not a queue message workflow" }, 400);
+    }
+
+    // Verify that the queue exists and belongs to the organization
+    const queue = await getQueue(db, data.queueId, organizationId);
+    if (!queue) {
+      return c.json({ error: "Queue not found" }, 404);
+    }
+
+    if (data.versionAlias === "version" && !data.versionNumber) {
+      return c.json(
+        { error: "versionNumber is required when versionAlias is 'version'" },
+        400
+      );
+    }
+
+    const now = new Date();
+    const isActive = data.active ?? true;
+
+    try {
+      const upsertedQueueTrigger = await upsertDbQueueTrigger(db, {
+        workflowId: workflow.id,
+        queueId: queue.id,
+        active: isActive,
+        updatedAt: now,
+        versionAlias: data.versionAlias,
+        versionNumber:
+          data.versionAlias === "version" ? data.versionNumber : null,
+      });
+
+      if (!upsertedQueueTrigger) {
+        return c.json(
+          { error: "Failed to create or update queue trigger" },
+          500
+        );
+      }
+
+      const response: UpsertQueueTriggerResponse = {
+        ...upsertedQueueTrigger,
+        versionAlias: upsertedQueueTrigger.versionAlias as VersionAlias,
+      };
+      return c.json(response, 200);
+    } catch (dbError: any) {
+      console.error("Error upserting queue trigger:", dbError);
+      return c.json(
+        {
+          error: "Database error while saving queue trigger",
+          details: dbError.message,
+        },
+        500
+      );
+    }
+  }
+);
+
+/**
+ * Delete a queue trigger for a workflow
+ */
+workflowRoutes.delete(
+  "/:workflowIdOrHandle/queue-trigger",
+  jwtMiddleware,
+  async (c) => {
+    const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
+    const organizationId = c.get("organizationId")!;
+    const workflowStore = new WorkflowStore(c.env);
+    const db = createDatabase(c.env.DB);
+
+    const workflow = await workflowStore.get(
+      workflowIdOrHandle,
+      organizationId
+    );
+    if (!workflow) {
+      return c.json({ error: "Workflow not found" }, 404);
+    }
+
+    const deletedTrigger = await deleteDbQueueTrigger(
+      db,
+      workflow.id,
+      organizationId
+    );
+
+    if (!deletedTrigger) {
+      return c.json(
+        { error: "Queue trigger not found for this workflow" },
+        404
+      );
+    }
+
+    const response: DeleteQueueTriggerResponse = {
+      workflowId: deletedTrigger.workflowId,
+    };
+    return c.json(response);
   }
 );
 

@@ -28,6 +28,12 @@ import {
   organizations,
   Plan,
   type PlanType,
+  type QueueInsert,
+  type QueueRow,
+  queues,
+  type QueueTriggerInsert,
+  type QueueTriggerRow,
+  queueTriggers,
   type SecretInsert,
   secrets,
   UserRole,
@@ -213,6 +219,14 @@ export function getDatasetCondition(datasetIdOrHandle: string) {
     return eq(datasets.id, datasetIdOrHandle);
   } else {
     return eq(datasets.handle, datasetIdOrHandle);
+  }
+}
+
+export function getQueueCondition(queueIdOrHandle: string) {
+  if (isUUID(queueIdOrHandle)) {
+    return eq(queues.id, queueIdOrHandle);
+  } else {
+    return eq(queues.handle, queueIdOrHandle);
   }
 }
 
@@ -702,6 +716,248 @@ export async function deleteDataset(
     .returning();
 
   return dataset;
+}
+
+/**
+ * Get all queues for an organization
+ *
+ * @param db Database instance
+ * @param organizationIdOrHandle Organization ID or handle
+ * @returns Array of queues with basic info
+ */
+export async function getQueues(
+  db: ReturnType<typeof createDatabase>,
+  organizationIdOrHandle: string
+) {
+  return await db
+    .select({
+      id: queues.id,
+      name: queues.name,
+      handle: queues.handle,
+      createdAt: queues.createdAt,
+      updatedAt: queues.updatedAt,
+    })
+    .from(queues)
+    .innerJoin(
+      organizations,
+      and(
+        eq(queues.organizationId, organizations.id),
+        getOrganizationCondition(organizationIdOrHandle)
+      )
+    );
+}
+
+/**
+ * Get a queue by ID or handle, ensuring it belongs to the specified organization
+ *
+ * @param db Database instance
+ * @param queueIdOrHandle Queue ID or handle
+ * @param organizationIdOrHandle Organization ID or handle
+ * @returns Queue record or undefined if not found
+ */
+export async function getQueue(
+  db: ReturnType<typeof createDatabase>,
+  queueIdOrHandle: string,
+  organizationIdOrHandle: string
+): Promise<QueueRow | undefined> {
+  const [queue] = await db
+    .select()
+    .from(queues)
+    .innerJoin(
+      organizations,
+      and(
+        eq(queues.organizationId, organizations.id),
+        getOrganizationCondition(organizationIdOrHandle)
+      )
+    )
+    .where(getQueueCondition(queueIdOrHandle))
+    .limit(1);
+  return queue?.queues;
+}
+
+/**
+ * Create a new queue
+ *
+ * @param db Database instance
+ * @param newQueue Queue data to insert
+ * @returns Created queue record
+ */
+export async function createQueue(
+  db: ReturnType<typeof createDatabase>,
+  newQueue: QueueInsert
+): Promise<QueueRow> {
+  const [queue] = await db.insert(queues).values(newQueue).returning();
+
+  return queue;
+}
+
+/**
+ * Update a queue, ensuring it belongs to the specified organization
+ *
+ * @param db Database instance
+ * @param id Queue ID
+ * @param organizationId Organization ID
+ * @param data Updated queue data
+ * @returns Updated queue record
+ */
+export async function updateQueue(
+  db: ReturnType<typeof createDatabase>,
+  id: string,
+  organizationId: string,
+  data: Partial<QueueRow>
+): Promise<QueueRow> {
+  const [queue] = await db
+    .update(queues)
+    .set(data)
+    .where(and(eq(queues.id, id), eq(queues.organizationId, organizationId)))
+    .returning();
+
+  return queue;
+}
+
+/**
+ * Delete a queue, ensuring it belongs to the specified organization
+ *
+ * @param db Database instance
+ * @param id Queue ID
+ * @param organizationId Organization ID
+ * @returns Deleted queue record
+ */
+export async function deleteQueue(
+  db: ReturnType<typeof createDatabase>,
+  id: string,
+  organizationId: string
+): Promise<QueueRow | undefined> {
+  const [queue] = await db
+    .delete(queues)
+    .where(and(eq(queues.id, id), eq(queues.organizationId, organizationId)))
+    .returning();
+
+  return queue;
+}
+
+/**
+ * Get a queue trigger for a workflow
+ *
+ * @param db Database instance
+ * @param workflowId Workflow ID
+ * @param organizationId Organization ID
+ * @returns Queue trigger record or undefined if not found
+ */
+export async function getQueueTrigger(
+  db: ReturnType<typeof createDatabase>,
+  workflowId: string,
+  organizationId: string
+): Promise<QueueTriggerRow | undefined> {
+  const [trigger] = await db
+    .select()
+    .from(queueTriggers)
+    .innerJoin(workflows, eq(queueTriggers.workflowId, workflows.id))
+    .where(
+      and(
+        eq(queueTriggers.workflowId, workflowId),
+        eq(workflows.organizationId, organizationId)
+      )
+    )
+    .limit(1);
+
+  return trigger?.queue_triggers;
+}
+
+/**
+ * Get all queue triggers for a specific queue
+ *
+ * @param db Database instance
+ * @param queueId Queue ID
+ * @param organizationId Organization ID
+ * @returns Array of queue trigger records with workflow info
+ */
+export async function getQueueTriggersByQueue(
+  db: ReturnType<typeof createDatabase>,
+  queueId: string,
+  organizationId: string
+) {
+  return await db
+    .select({
+      queueTrigger: queueTriggers,
+      workflow: workflows,
+    })
+    .from(queueTriggers)
+    .innerJoin(workflows, eq(queueTriggers.workflowId, workflows.id))
+    .innerJoin(queues, eq(queueTriggers.queueId, queues.id))
+    .where(
+      and(
+        eq(queueTriggers.queueId, queueId),
+        eq(queueTriggers.active, true),
+        eq(queues.organizationId, organizationId)
+      )
+    );
+}
+
+/**
+ * Upsert a queue trigger for a workflow
+ *
+ * @param db Database instance
+ * @param trigger Queue trigger data to insert or update
+ * @returns Upserted queue trigger record
+ */
+export async function upsertQueueTrigger(
+  db: ReturnType<typeof createDatabase>,
+  trigger: QueueTriggerInsert
+): Promise<QueueTriggerRow> {
+  const [queueTrigger] = await db
+    .insert(queueTriggers)
+    .values(trigger)
+    .onConflictDoUpdate({
+      target: queueTriggers.workflowId,
+      set: {
+        queueId: trigger.queueId,
+        versionAlias: trigger.versionAlias,
+        versionNumber: trigger.versionNumber,
+        active: trigger.active,
+        updatedAt: new Date(),
+      },
+    })
+    .returning();
+
+  return queueTrigger;
+}
+
+/**
+ * Delete a queue trigger for a workflow
+ *
+ * @param db Database instance
+ * @param workflowId Workflow ID
+ * @param organizationId Organization ID
+ * @returns Deleted queue trigger record or undefined if not found
+ */
+export async function deleteQueueTrigger(
+  db: ReturnType<typeof createDatabase>,
+  workflowId: string,
+  organizationId: string
+): Promise<QueueTriggerRow | undefined> {
+  const [trigger] = await db
+    .delete(queueTriggers)
+    .where(
+      and(
+        eq(queueTriggers.workflowId, workflowId),
+        eq(
+          queueTriggers.workflowId,
+          db
+            .select({ id: workflows.id })
+            .from(workflows)
+            .where(
+              and(
+                eq(workflows.id, workflowId),
+                eq(workflows.organizationId, organizationId)
+              )
+            )
+        )
+      )
+    )
+    .returning();
+
+  return trigger;
 }
 
 /**

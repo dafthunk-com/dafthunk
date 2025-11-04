@@ -34,6 +34,7 @@ import { MembersPage } from "./pages/members-page";
 import { NotFoundPage } from "./pages/not-found-page";
 import { OrganizationsPage } from "./pages/organizations-page";
 import { ProfilePage } from "./pages/profile-page";
+import { QueuesPage } from "./pages/queues-page";
 import { SecretsPage } from "./pages/secrets-page";
 import { WorkflowsPage } from "./pages/workflows-page";
 
@@ -335,6 +336,21 @@ export const routes: AppRouteObject[] = [
       </OrgLayout>
     ),
     handle: { head: <HeadSeo title="Dataset Details - Datasets - Dafthunk" /> },
+  },
+  {
+    path: "/queues",
+    element: <OrgRedirect to="/org/:handle/queues" />,
+  },
+  {
+    path: "/org/:handle/queues",
+    element: (
+      <OrgLayout title="Queues">
+        <ProtectedRoute>
+          <QueuesPage />
+        </ProtectedRoute>
+      </OrgLayout>
+    ),
+    handle: { head: <HeadSeo title="Queues - Queues - Dafthunk" /> },
   },
   {
     path: "/deployments",

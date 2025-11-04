@@ -19,8 +19,7 @@ import {
   apiToNodeParameter,
   nodeToApiParameter,
 } from "../nodes/parameter-mapper";
-import { HttpRequest } from "../nodes/types";
-import { EmailMessage } from "../nodes/types";
+import { EmailMessage, HttpRequest, QueueMessage } from "../nodes/types";
 import {
   MonitoringService,
   WorkflowSessionMonitoringService,
@@ -56,6 +55,7 @@ export interface RuntimeParams {
   readonly deploymentId?: string;
   readonly httpRequest?: HttpRequest;
   readonly emailMessage?: EmailMessage;
+  readonly queueMessage?: QueueMessage;
 }
 
 /**
@@ -167,6 +167,7 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       workflowSessionId,
       httpRequest,
       emailMessage,
+      queueMessage,
     } = event.payload;
     const instanceId = event.instanceId;
 
@@ -264,6 +265,7 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
           executionRecord,
           httpRequest,
           emailMessage,
+          queueMessage,
           workflowSessionId
         );
 
@@ -430,7 +432,8 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     state: ExecutionState,
     nodeId: string,
     httpRequest?: HttpRequest,
-    emailMessage?: EmailMessage
+    emailMessage?: EmailMessage,
+    queueMessage?: QueueMessage
   ): Promise<ExecutionState> {
     // Check if node should be skipped (all upstream dependencies unavailable)
     if (this.shouldSkipNode(context, state, nodeId)) {
@@ -447,7 +450,8 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       state,
       nodeId,
       httpRequest,
-      emailMessage
+      emailMessage,
+      queueMessage
     );
   }
 
@@ -459,7 +463,8 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     state: ExecutionState,
     nodeId: string,
     httpRequest?: HttpRequest,
-    emailMessage?: EmailMessage
+    emailMessage?: EmailMessage,
+    queueMessage?: QueueMessage
   ): Promise<ExecutionState> {
     const node = this.findNode(context.workflow, nodeId);
     if (!node) {
@@ -517,7 +522,8 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         context.organizationId,
         processedInputs,
         httpRequest,
-        emailMessage
+        emailMessage,
+        queueMessage
       );
 
       const result = await executable.execute(nodeContext);
@@ -563,6 +569,7 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     executionRecord: WorkflowExecution,
     httpRequest?: HttpRequest,
     emailMessage?: EmailMessage,
+    queueMessage?: QueueMessage,
     workflowSessionId?: string
   ): Promise<{ state: ExecutionState; record: WorkflowExecution }> {
     let currentState = state;
@@ -581,7 +588,8 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
             currentState,
             nodeId,
             httpRequest,
-            emailMessage
+            emailMessage,
+            queueMessage
           );
 
           // Build result object for introspection

@@ -25,6 +25,7 @@ import {
 import { javascriptEditorWidget } from "./javascript-editor";
 import { jsonEditorWidget } from "./json-editor";
 import { numberInputWidget } from "./number-input";
+import { queueSelectorWidget } from "./queue-selector";
 import { registry } from "./registry";
 import { sliderWidget } from "./slider";
 import { textAreaWidget } from "./text-area";
@@ -40,6 +41,7 @@ const widgets = [
   jsonEditorWidget,
   javascriptEditorWidget,
   datasetSelectorWidget,
+  queueSelectorWidget,
 
   // Complex widgets
   webcamWidget,

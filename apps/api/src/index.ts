@@ -6,6 +6,7 @@ import { handleCronTriggers } from "./cron";
 import { handleIncomingEmail } from "./email";
 import { corsMiddleware } from "./middleware/cors";
 import { createRateLimitMiddleware } from "./middleware/rate-limit";
+import { handleQueueMessages } from "./queue";
 import apiKeyRoutes from "./routes/api-keys";
 import dashboardRoutes from "./routes/dashboard";
 import datasetRoutes from "./routes/datasets";
@@ -18,6 +19,7 @@ import oauthRoutes from "./routes/oauth";
 import objectRoutes from "./routes/objects";
 import organizationRoutes from "./routes/organizations";
 import profileRoutes from "./routes/profile";
+import queueRoutes from "./routes/queues";
 import robotsRoutes from "./routes/robots";
 import secretRoutes from "./routes/secrets";
 import typeRoutes from "./routes/types";
@@ -70,6 +72,7 @@ app.route("/:organizationIdOrHandle/datasets", datasetRoutes);
 app.route("/:organizationIdOrHandle/deployments", deploymentRoutes);
 app.route("/:organizationIdOrHandle/executions", executionRoutes);
 app.route("/:organizationIdOrHandle/integrations", integrationRoutes);
+app.route("/:organizationIdOrHandle/queues", queueRoutes);
 app.route("/:organizationIdOrHandle/secrets", secretRoutes);
 app.route("/:organizationIdOrHandle/workflows", workflowRoutes);
 app.route("/:organizationIdOrHandle/objects", objectRoutes);
@@ -82,5 +85,6 @@ export { Session as WorkflowSession };
 export default {
   scheduled: handleCronTriggers,
   email: handleIncomingEmail,
+  queue: handleQueueMessages,
   fetch: app.fetch,
 };

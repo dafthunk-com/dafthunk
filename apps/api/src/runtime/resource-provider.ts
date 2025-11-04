@@ -7,8 +7,12 @@ import {
   updateIntegration,
 } from "../db";
 import type { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
-import type { HttpRequest, NodeContext } from "../nodes/types";
-import type { EmailMessage } from "../nodes/types";
+import type {
+  EmailMessage,
+  HttpRequest,
+  NodeContext,
+  QueueMessage,
+} from "../nodes/types";
 import { getProvider } from "../oauth";
 import type { IntegrationData } from "./types";
 
@@ -124,7 +128,8 @@ export class ResourceProvider {
     organizationId: string,
     inputs: Record<string, unknown>,
     httpRequest?: HttpRequest,
-    emailMessage?: EmailMessage
+    emailMessage?: EmailMessage,
+    queueMessage?: QueueMessage
   ): NodeContext {
     // Configure AI Gateway options
     const aiOptions: AiOptions = {};
@@ -143,6 +148,7 @@ export class ResourceProvider {
       inputs,
       httpRequest,
       emailMessage,
+      queueMessage,
       onProgress: () => {},
       toolRegistry: this.toolRegistry,
       // Callback-based access to secrets (lazy, secure)
@@ -176,6 +182,7 @@ export class ResourceProvider {
         RESSOURCES: this.env.RESSOURCES,
         DATASETS: this.env.DATASETS,
         DATASETS_AUTORAG: this.env.DATASETS_AUTORAG,
+        WORKFLOW_QUEUE: this.env.WORKFLOW_QUEUE,
         CLOUDFLARE_ACCOUNT_ID: this.env.CLOUDFLARE_ACCOUNT_ID,
         CLOUDFLARE_API_TOKEN: this.env.CLOUDFLARE_API_TOKEN,
         CLOUDFLARE_AI_GATEWAY_ID: this.env.CLOUDFLARE_AI_GATEWAY_ID,
@@ -240,6 +247,7 @@ export class ResourceProvider {
         RESSOURCES: this.env.RESSOURCES,
         DATASETS: this.env.DATASETS,
         DATASETS_AUTORAG: this.env.DATASETS_AUTORAG,
+        WORKFLOW_QUEUE: this.env.WORKFLOW_QUEUE,
         CLOUDFLARE_ACCOUNT_ID: this.env.CLOUDFLARE_ACCOUNT_ID,
         CLOUDFLARE_API_TOKEN: this.env.CLOUDFLARE_API_TOKEN,
         CLOUDFLARE_AI_GATEWAY_ID: this.env.CLOUDFLARE_AI_GATEWAY_ID,

@@ -54,6 +54,7 @@ export const WorkflowTriggerType = {
   HTTP_REQUEST: "http_request",
   EMAIL_MESSAGE: "email_message",
   CRON: "cron",
+  QUEUE_MESSAGE: "queue_message",
 } as const;
 
 export type WorkflowTriggerTypeType =
@@ -327,6 +328,61 @@ export const datasets = sqliteTable(
   ]
 );
 
+// Queues - Message queues associated with organizations
+export const queues = sqliteTable(
+  "queues",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    handle: text("handle").notNull(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    createdAt: createCreatedAt(),
+    updatedAt: createUpdatedAt(),
+  },
+  (table) => [
+    index("queues_name_idx").on(table.name),
+    index("queues_handle_idx").on(table.handle),
+    index("queues_organization_id_idx").on(table.organizationId),
+    index("queues_created_at_idx").on(table.createdAt),
+    uniqueIndex("queues_organization_id_handle_unique_idx").on(
+      table.organizationId,
+      table.handle
+    ),
+  ]
+);
+
+// Queue Triggers - Message queue triggers for workflows
+export const queueTriggers = sqliteTable(
+  "queue_triggers",
+  {
+    workflowId: text("workflow_id")
+      .primaryKey()
+      .references(() => workflows.id, { onDelete: "cascade" }),
+    queueId: text("queue_id")
+      .notNull()
+      .references(() => queues.id, { onDelete: "cascade" }),
+    versionAlias: text("version_alias")
+      .$type<VersionAliasType>()
+      .notNull()
+      .default(VersionAlias.DEV),
+    versionNumber: integer("version_number"),
+    active: integer("active", { mode: "boolean" }).notNull().default(true),
+    createdAt: createCreatedAt(),
+    updatedAt: createUpdatedAt(),
+  },
+  (table) => [
+    index("queue_triggers_workflow_id_idx").on(table.workflowId),
+    index("queue_triggers_queue_id_idx").on(table.queueId),
+    index("queue_triggers_version_alias_idx").on(table.versionAlias),
+    index("queue_triggers_version_number_idx").on(table.versionNumber),
+    index("queue_triggers_active_idx").on(table.active),
+    index("queue_triggers_created_at_idx").on(table.createdAt),
+    index("queue_triggers_updated_at_idx").on(table.updatedAt),
+  ]
+);
+
 // Secrets - Encrypted secrets associated with organizations
 export const secrets = sqliteTable(
   "secrets",
@@ -407,6 +463,7 @@ export const organizationsRelations = relations(
     deployments: many(deployments),
     apiKeys: many(apiKeys),
     datasets: many(datasets),
+    queues: many(queues),
     secrets: many(secrets),
     integrations: many(integrations),
     users: one(users),
@@ -441,6 +498,10 @@ export const workflowsRelations = relations(workflows, ({ one, many }) => ({
     fields: [workflows.id],
     references: [cronTriggers.workflowId],
   }),
+  queueTrigger: one(queueTriggers, {
+    fields: [workflows.id],
+    references: [queueTriggers.workflowId],
+  }),
 }));
 
 export const deploymentsRelations = relations(deployments, ({ one }) => ({
@@ -465,6 +526,25 @@ export const datasetsRelations = relations(datasets, ({ one }) => ({
   organization: one(organizations, {
     fields: [datasets.organizationId],
     references: [organizations.id],
+  }),
+}));
+
+export const queuesRelations = relations(queues, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [queues.organizationId],
+    references: [organizations.id],
+  }),
+  queueTriggers: many(queueTriggers),
+}));
+
+export const queueTriggersRelations = relations(queueTriggers, ({ one }) => ({
+  workflow: one(workflows, {
+    fields: [queueTriggers.workflowId],
+    references: [workflows.id],
+  }),
+  queue: one(queues, {
+    fields: [queueTriggers.queueId],
+    references: [queues.id],
   }),
 }));
 
@@ -523,6 +603,12 @@ export type CronTriggerInsert = typeof cronTriggers.$inferInsert;
 
 export type DatasetRow = typeof datasets.$inferSelect;
 export type DatasetInsert = typeof datasets.$inferInsert;
+
+export type QueueRow = typeof queues.$inferSelect;
+export type QueueInsert = typeof queues.$inferInsert;
+
+export type QueueTriggerRow = typeof queueTriggers.$inferSelect;
+export type QueueTriggerInsert = typeof queueTriggers.$inferInsert;
 
 export type SecretRow = typeof secrets.$inferSelect;
 export type SecretInsert = typeof secrets.$inferInsert;

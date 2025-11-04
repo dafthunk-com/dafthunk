@@ -97,6 +97,12 @@ export interface EmailMessage {
   raw: string;
 }
 
+export interface QueueMessage {
+  queueId: string;
+  payload: any;
+  timestamp: number;
+}
+
 /**
  * Minimal integration information exposed to nodes.
  * Token is automatically refreshed if expired when accessed via getIntegration.
@@ -117,6 +123,7 @@ export interface NodeContext {
   onProgress?: (progress: number) => void;
   httpRequest?: HttpRequest;
   emailMessage?: EmailMessage;
+  queueMessage?: QueueMessage;
   toolRegistry?: BaseToolRegistry;
   // Callback-based access to sensitive data (improves security and isolation)
   getSecret?: (secretName: string) => Promise<string | undefined>;
@@ -128,6 +135,7 @@ export interface NodeContext {
     RESSOURCES: R2Bucket;
     DATASETS: R2Bucket;
     DATASETS_AUTORAG: string;
+    WORKFLOW_QUEUE: Queue;
     EMAIL_DOMAIN: string;
     CLOUDFLARE_ACCOUNT_ID?: string;
     CLOUDFLARE_API_TOKEN?: string;

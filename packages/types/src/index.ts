@@ -8,6 +8,7 @@ export * from "./integration";
 export * from "./objects";
 export * from "./organization";
 export * from "./profile";
+export * from "./queue";
 export * from "./secret";
 export * from "./types";
 export * from "./usage";

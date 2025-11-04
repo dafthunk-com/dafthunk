@@ -284,6 +284,8 @@ import { FormDataNumberNode } from "./parameter/form-data-number-node";
 import { FormDataStringNode } from "./parameter/form-data-string-node";
 import { JsonBodyNode } from "./parameter/json-body-node";
 import { TestAllTypesNode } from "./parameter/test-all-types-node";
+import { PublishQueueMessageNode } from "./queue/publish-queue-message-node";
+import { ReceiveQueueMessageNode } from "./queue/receive-queue-message-node";
 import { RagAiSearchNode } from "./rag/rag-ai-search-node";
 import { RagSearchNode } from "./rag/rag-search-node";
 import { GetSubredditRedditNode } from "./reddit/get-subreddit-reddit-node";
@@ -377,6 +379,8 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(FormDataBooleanNode);
     this.registerImplementation(JsonBodyNode);
     this.registerImplementation(TestAllTypesNode);
+    this.registerImplementation(PublishQueueMessageNode);
+    this.registerImplementation(ReceiveQueueMessageNode);
     this.registerImplementation(ReceiveEmailNode);
     this.registerImplementation(ParseEmailNode);
     this.registerImplementation(AdditionNode);

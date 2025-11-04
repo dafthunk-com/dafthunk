@@ -9,7 +9,12 @@ export interface ObjectReference {
 /**
  * Workflow trigger types
  */
-export type WorkflowType = "manual" | "http_request" | "email_message" | "cron";
+export type WorkflowType =
+  | "manual"
+  | "http_request"
+  | "email_message"
+  | "cron"
+  | "queue_message";
 
 /**
  * Primitive value types
