@@ -134,12 +134,12 @@ export const TypeBadge = ({
           {
             "!bg-neutral-100 dark:!bg-neutral-800": hasValue,
             "!bg-white dark:!bg-neutral-900": !hasValue,
-            "!border-blue-500": selected,
             "!border-border": !selected && executionState === "idle",
-            "!border-yellow-400": executionState === "executing",
-            "!border-green-500": executionState === "completed",
-            "!border-red-500": executionState === "error",
-            "!border-blue-400": executionState === "skipped",
+            "!border-yellow-400": !selected && executionState === "executing",
+            "!border-green-500": !selected && executionState === "completed",
+            "!border-red-500": !selected && executionState === "error",
+            "!border-blue-400": !selected && executionState === "skipped",
+            "!border-blue-500": selected,
           },
           className
         )}
@@ -302,12 +302,14 @@ export const WorkflowNode = memo(
       <TooltipProvider>
         <div
           className={cn("bg-card shadow-sm w-[220px] rounded-md border", {
-            "border-blue-500": selected,
             "border-border": !selected && data.executionState === "idle",
-            "border-yellow-400": data.executionState === "executing",
-            "border-green-500": data.executionState === "completed",
-            "border-red-500": data.executionState === "error",
-            "border-blue-400": data.executionState === "skipped",
+            "border-yellow-400":
+              !selected && data.executionState === "executing",
+            "border-green-500":
+              !selected && data.executionState === "completed",
+            "border-red-500": !selected && data.executionState === "error",
+            "border-blue-400": !selected && data.executionState === "skipped",
+            "border-blue-500": selected,
           })}
         >
           {/* Header */}
