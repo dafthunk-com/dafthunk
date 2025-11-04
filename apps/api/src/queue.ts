@@ -139,19 +139,33 @@ export async function handleQueueMessages(
 
         // Execute each subscribed workflow
         for (const item of triggers) {
-          const { queueTrigger, workflow } = item;
-          const { versionAlias, workflowId } = queueTrigger;
+          const { workflow } = item;
 
           console.log(
-            `Processing trigger for workflow: ${workflowId} with version alias: ${versionAlias}`
+            `Processing trigger for workflow: ${workflow.id} (${workflow.activeDeploymentId ? "prod" : "dev"} mode)`
           );
 
-          let workflowToExecute: WorkflowType | null = null;
-          let deploymentIdToExecute: string | undefined = undefined;
-
           try {
-            if (versionAlias === "dev") {
-              // Load workflow data from R2
+            // Simple 2-path model: use activeDeploymentId to determine dev vs prod
+            let workflowToExecute: WorkflowType | null = null;
+            let deploymentIdToExecute: string | undefined = undefined;
+
+            if (workflow.activeDeploymentId) {
+              // PROD PATH: Load from active deployment
+              try {
+                workflowToExecute = await deploymentStore.readWorkflowSnapshot(
+                  workflow.activeDeploymentId
+                );
+                deploymentIdToExecute = workflow.activeDeploymentId;
+              } catch (error) {
+                console.error(
+                  `Failed to load active deployment ${workflow.activeDeploymentId} for workflow ${workflow.id}:`,
+                  error
+                );
+                continue;
+              }
+            } else {
+              // DEV PATH: Load from working version
               try {
                 const workflowWithData = await workflowStore.getWithData(
                   workflow.id,
@@ -171,45 +185,6 @@ export async function handleQueueMessages(
                 );
                 continue;
               }
-            } else {
-              // Determine which deployment to use
-              let deployment: any;
-              if (versionAlias === "latest") {
-                deployment = await deploymentStore.getLatest(
-                  workflow.id,
-                  workflow.organizationId
-                );
-              } else if (
-                versionAlias === "version" &&
-                queueTrigger.versionNumber !== null
-              ) {
-                deployment = await deploymentStore.getByVersion(
-                  workflow.id,
-                  workflow.organizationId,
-                  queueTrigger.versionNumber
-                );
-              }
-
-              if (!deployment) {
-                console.error(
-                  `Could not find a valid deployment for workflow ${workflowId} with version alias '${versionAlias}'.`
-                );
-                continue;
-              }
-
-              // Load deployment workflow snapshot from R2
-              try {
-                workflowToExecute = await deploymentStore.readWorkflowSnapshot(
-                  deployment.id
-                );
-              } catch (error) {
-                console.error(
-                  `Failed to load deployment workflow data from R2 for ${deployment.id}:`,
-                  error
-                );
-                continue;
-              }
-              deploymentIdToExecute = deployment.id;
             }
 
             if (workflowToExecute) {
@@ -230,11 +205,6 @@ export async function handleQueueMessages(
                 ctx,
                 executionStore
               );
-            } else {
-              console.log(
-                `No workflow data found to execute for trigger with workflowId: ${workflowId}`
-              );
-              continue;
             }
           } catch (err) {
             console.error(

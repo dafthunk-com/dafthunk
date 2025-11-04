@@ -47,86 +47,80 @@ export async function handleIncomingEmail(
   const localPart = to.split("@")[0];
   const parts = localPart.split("+");
 
-  if (parts.length < 3 || parts.length > 4) {
+  if (parts.length !== 3) {
     console.error(
-      `Invalid email format: ${to}. Expected <type>+<organizationIdOrHandle>+<workflowIdOrHandle>[+<version>]@domain.com`
+      `Invalid email format: ${to}. Expected <type>+<organizationIdOrHandle>+<workflowIdOrHandle>@domain.com`
     );
     return;
   }
 
-  const [
-    triggerType,
-    organizationIdOrHandle,
-    workflowIdOrHandle,
-    deploymentVersion,
-  ] = parts;
-  const version = deploymentVersion || "latest";
+  const [triggerType, organizationIdOrHandle, workflowIdOrHandle] = parts;
 
   if (triggerType !== "workflow") {
     console.error(`Invalid trigger type: ${triggerType}. Expected "workflow".`);
     return;
   }
 
-  // TODO: Use triggerType if needed in the future. For now, it's parsed but not used.
-  console.log(`Parsed trigger type: ${triggerType}`);
+  console.log(`Processing email trigger for workflow: ${workflowIdOrHandle}`);
 
   const db = createDatabase(env.DB);
   const executionStore = new ExecutionStore(env);
   const workflowStore = new WorkflowStore(env);
   const deploymentStore = new DeploymentStore(env);
 
-  // Get workflow data either from deployment or directly from workflow
+  // Get workflow metadata
+  const workflow = await workflowStore.get(
+    workflowIdOrHandle,
+    organizationIdOrHandle
+  );
+  if (!workflow) {
+    console.error(
+      `Workflow '${workflowIdOrHandle}' not found or does not belong to organization '${organizationIdOrHandle}'`
+    );
+    return;
+  }
+
+  console.log(
+    `Loading workflow in ${workflow.activeDeploymentId ? "prod" : "dev"} mode`
+  );
+
+  // Simple 2-path model: use activeDeploymentId to determine dev vs prod
   let workflowData: WorkflowType;
-  let workflow: any;
   let deploymentId: string | undefined;
 
-  if (version === "dev") {
-    // Get workflow with data from DB and R2
-    const workflowWithData = await workflowStore.getWithData(
-      workflowIdOrHandle,
-      organizationIdOrHandle
-    );
-    if (!workflowWithData) {
-      console.error("Workflow not found");
+  if (workflow.activeDeploymentId) {
+    // PROD PATH: Load from active deployment
+    try {
+      workflowData = await deploymentStore.readWorkflowSnapshot(
+        workflow.activeDeploymentId
+      );
+      deploymentId = workflow.activeDeploymentId;
+    } catch (error) {
+      console.error(
+        `Failed to load active deployment ${workflow.activeDeploymentId} for workflow ${workflow.id}:`,
+        error
+      );
       return;
     }
-
-    workflow = workflowWithData;
-    workflowData = workflowWithData.data;
   } else {
-    // Get deployment based on version
-    let deployment;
-    if (version === "latest") {
-      deployment = await deploymentStore.getLatest(
-        workflowIdOrHandle,
+    // DEV PATH: Load from working version
+    try {
+      const workflowWithData = await workflowStore.getWithData(
+        workflow.id,
         organizationIdOrHandle
       );
-      if (!deployment) {
-        console.error("Deployment not found");
+      if (!workflowWithData || !workflowWithData.data) {
+        console.error(`Failed to load workflow data for ${workflow.id}`);
         return;
       }
-    } else {
-      deployment = await deploymentStore.getByVersion(
-        workflowIdOrHandle,
-        organizationIdOrHandle,
-        version
+      workflowData = workflowWithData.data;
+    } catch (error) {
+      console.error(
+        `Failed to load workflow data from R2 for ${workflow.id}:`,
+        error
       );
-      if (!deployment) {
-        console.error("Deployment not found");
-        return;
-      }
+      return;
     }
-
-    deploymentId = deployment.id;
-
-    // Load deployment workflow snapshot from R2
-    workflowData = await deploymentStore.readWorkflowSnapshot(deployment.id);
-
-    workflow = {
-      id: deployment.workflowId,
-      name: workflowData.name,
-      organizationId: deployment.organizationId,
-    };
   }
 
   // Validate if workflow has nodes

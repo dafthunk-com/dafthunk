@@ -115,19 +115,33 @@ export async function handleCronTriggers(
     console.log(`Found ${dueTriggers.length} due cron triggers.`);
 
     for (const item of dueTriggers) {
-      const { cronTrigger, workflow, deployment } = item;
-      const { versionAlias, workflowId } = cronTrigger;
+      const { cronTrigger, workflow } = item;
 
       console.log(
-        `Processing trigger for workflow: ${workflowId} with version alias: ${versionAlias}`
+        `Processing trigger for workflow: ${workflow.id} (${workflow.activeDeploymentId ? "prod" : "dev"} mode)`
       );
 
-      let workflowToExecute: WorkflowType | null = null;
-      let deploymentIdToExecute: string | undefined = undefined;
-
       try {
-        if (versionAlias === "dev") {
-          // Load workflow data from R2
+        // Simple 2-path model: use activeDeploymentId to determine dev vs prod
+        let workflowToExecute: WorkflowType | null = null;
+        let deploymentIdToExecute: string | undefined = undefined;
+
+        if (workflow.activeDeploymentId) {
+          // PROD PATH: Load from active deployment
+          try {
+            workflowToExecute = await deploymentStore.readWorkflowSnapshot(
+              workflow.activeDeploymentId
+            );
+            deploymentIdToExecute = workflow.activeDeploymentId;
+          } catch (error) {
+            console.error(
+              `Failed to load active deployment ${workflow.activeDeploymentId} for workflow ${workflow.id}:`,
+              error
+            );
+            continue;
+          }
+        } else {
+          // DEV PATH: Load from working version
           try {
             const workflowWithData = await workflowStore.getWithData(
               workflow.id,
@@ -147,25 +161,6 @@ export async function handleCronTriggers(
             );
             continue;
           }
-        } else if (deployment) {
-          // Load deployment workflow snapshot from R2
-          try {
-            workflowToExecute = await deploymentStore.readWorkflowSnapshot(
-              deployment.id
-            );
-          } catch (error) {
-            console.error(
-              `Failed to load deployment workflow data from R2 for ${deployment.id}:`,
-              error
-            );
-            continue;
-          }
-          deploymentIdToExecute = deployment.id;
-        } else {
-          console.error(
-            `Could not find a valid deployment for workflow ${workflowId} with version alias '${versionAlias}'.`
-          );
-          continue;
         }
 
         if (workflowToExecute) {
@@ -185,15 +180,9 @@ export async function handleCronTriggers(
             ctx,
             executionStore
           );
-        } else {
-          // This case should ideally not be reached due to the checks above,
-          // but is kept as a safeguard.
-          console.log(
-            `No workflow data found to execute for trigger with workflowId: ${workflowId}`
-          );
-          continue;
         }
 
+        // Calculate next run time and update trigger
         const interval = CronParser.parse(cronTrigger.cronExpression, {
           currentDate: cronTrigger.lastRun || now,
         });
@@ -207,11 +196,11 @@ export async function handleCronTriggers(
         );
 
         console.log(
-          `Workflow ${item.workflow.id} processing initiated. Next run at: ${nextRun.toISOString()}`
+          `Workflow ${workflow.id} processing initiated. Next run at: ${nextRun.toISOString()}`
         );
       } catch (err) {
         console.error(
-          `Error processing trigger for workflow ${item.workflow.id}:`,
+          `Error processing trigger for workflow ${workflow.id}:`,
           err
         );
       }

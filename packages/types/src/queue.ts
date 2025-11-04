@@ -1,5 +1,3 @@
-import { VersionAlias } from "./workflow";
-
 // Queue Types
 export interface CreateQueueRequest {
   name: string;
@@ -51,16 +49,12 @@ export interface DeleteQueueResponse {
 export interface QueueTrigger {
   workflowId: string;
   queueId: string;
-  versionAlias: VersionAlias;
-  versionNumber: number | null;
   active: boolean;
 }
 
 export interface GetQueueTriggerResponse {
   workflowId: string;
   queueId: string;
-  versionAlias: VersionAlias;
-  versionNumber: number | null;
   active: boolean;
   createdAt: string | Date;
   updatedAt: string | Date;
@@ -68,8 +62,6 @@ export interface GetQueueTriggerResponse {
 
 export interface UpsertQueueTriggerRequest {
   queueId: string;
-  versionAlias?: VersionAlias;
-  versionNumber?: number | null;
   active?: boolean;
 }
 

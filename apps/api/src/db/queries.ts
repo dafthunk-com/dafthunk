@@ -533,67 +533,21 @@ export async function getDueCronTriggers(
   {
     cronTrigger: CronTriggerRow;
     workflow: WorkflowRow;
-    deployment: DeploymentRow | null;
   }[]
 > {
-  const latestByWorkflow = db
-    .select({
-      workflowId: deployments.workflowId,
-      latestVersion: sql<number>`MAX(${deployments.version})`.as(
-        "latest_version"
-      ),
-    })
-    .from(deployments)
-    .groupBy(deployments.workflowId)
-    .as("latest_by_workflow");
-
-  const latestDeployment = alias(deployments, "latest_deployment");
-  const selectedDeployment = alias(deployments, "selected_deployment");
-
+  // Simplified query: just join workflows to get activeDeploymentId
+  // The handler will use that to determine dev vs prod execution path
   const rows = await db
     .select({
       cronTrigger: cronTriggers,
       workflow: workflows,
-      latestDeployment: latestDeployment,
-      selectedDeployment: selectedDeployment,
     })
     .from(cronTriggers)
     .where(and(eq(cronTriggers.active, true), lte(cronTriggers.nextRunAt, now)))
     .innerJoin(workflows, eq(workflows.id, cronTriggers.workflowId))
-    .leftJoin(latestByWorkflow, eq(latestByWorkflow.workflowId, workflows.id))
-    .leftJoin(
-      latestDeployment,
-      and(
-        eq(latestDeployment.workflowId, latestByWorkflow.workflowId),
-        eq(latestDeployment.version, latestByWorkflow.latestVersion)
-      )
-    )
-    .leftJoin(
-      selectedDeployment,
-      and(
-        eq(selectedDeployment.workflowId, workflows.id),
-        eq(selectedDeployment.version, cronTriggers.versionNumber)
-      )
-    )
     .all();
 
-  return rows
-    .filter(
-      (r) =>
-        r.cronTrigger.versionAlias === "dev" ||
-        (r.cronTrigger.versionAlias === "latest" && r.latestDeployment) ||
-        (r.cronTrigger.versionAlias === "version" && r.selectedDeployment)
-    )
-    .map((r) => ({
-      cronTrigger: r.cronTrigger,
-      workflow: r.workflow,
-      deployment:
-        r.cronTrigger.versionAlias === "latest"
-          ? r.latestDeployment
-          : r.cronTrigger.versionAlias === "version"
-            ? r.selectedDeployment
-            : null,
-    }));
+  return rows;
 }
 
 /**
@@ -912,8 +866,6 @@ export async function upsertQueueTrigger(
       target: queueTriggers.workflowId,
       set: {
         queueId: trigger.queueId,
-        versionAlias: trigger.versionAlias,
-        versionNumber: trigger.versionNumber,
         active: trigger.active,
         updatedAt: new Date(),
       },

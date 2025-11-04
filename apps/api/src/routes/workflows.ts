@@ -17,7 +17,6 @@ import {
   UpsertCronTriggerResponse,
   UpsertQueueTriggerRequest,
   UpsertQueueTriggerResponse,
-  VersionAlias,
   WorkflowWithMetadata,
 } from "@dafthunk/types";
 import { zValidator } from "@hono/zod-validator";
@@ -38,7 +37,9 @@ import {
   getQueueTrigger,
   upsertCronTrigger as upsertDbCronTrigger,
   upsertQueueTrigger as upsertDbQueueTrigger,
+  workflows,
 } from "../db";
+import { and, eq } from "drizzle-orm";
 import { createRateLimitMiddleware } from "../middleware/rate-limit";
 import { WorkflowExecutor } from "../services/workflow-executor";
 import { DeploymentStore } from "../stores/deployment-store";
@@ -371,8 +372,6 @@ workflowRoutes.get("/:workflowIdOrHandle/cron", jwtMiddleware, async (c) => {
   const response: GetCronTriggerResponse = {
     workflowId: cron.workflowId,
     cronExpression: cron.cronExpression,
-    versionAlias: cron.versionAlias as VersionAlias,
-    versionNumber: cron.versionNumber,
     active: cron.active,
     nextRunAt: cron.nextRunAt,
     createdAt: cron.createdAt,
@@ -387,8 +386,6 @@ workflowRoutes.get("/:workflowIdOrHandle/cron", jwtMiddleware, async (c) => {
  */
 const UpsertCronTriggerRequestSchema = z.object({
   cronExpression: z.string().min(1, "Cron expression is required"),
-  versionAlias: z.enum(["dev", "latest", "version"]).optional(),
-  versionNumber: z.number().optional().nullable(),
   active: z.boolean().optional(),
 }) as z.ZodType<UpsertCronTriggerRequest>;
 
@@ -413,13 +410,6 @@ workflowRoutes.put(
 
     if (workflow.type !== "cron") {
       return c.json({ error: "Workflow is not a cron workflow" }, 400);
-    }
-
-    if (data.versionAlias === "version" && !data.versionNumber) {
-      return c.json(
-        { error: "versionNumber is required when versionAlias is 'version'" },
-        400
-      );
     }
 
     const now = new Date();
@@ -447,9 +437,6 @@ workflowRoutes.put(
         active: isActive,
         nextRunAt: nextRunAt,
         updatedAt: now,
-        versionAlias: data.versionAlias,
-        versionNumber:
-          data.versionAlias === "version" ? data.versionNumber : null,
       });
 
       if (!upsertedCron) {
@@ -461,7 +448,6 @@ workflowRoutes.put(
 
       const response: UpsertCronTriggerResponse = {
         ...upsertedCron,
-        versionAlias: upsertedCron.versionAlias as VersionAlias,
       };
       return c.json(response, 200);
     } catch (dbError: any) {
@@ -478,18 +464,16 @@ workflowRoutes.put(
 );
 
 /**
- * Execute a workflow with the specified version
- * - version can be "dev" for development mode
- * - version can be "latest" for the latest deployment
- * - version can be a number for a specific deployment version
+ * Execute a workflow in production mode
+ * - Uses active deployment if set
+ * - Returns error if no active deployment
  */
 workflowRoutes.post(
-  "/:workflowIdOrHandle/execute/:version",
+  "/:workflowIdOrHandle/execute",
   apiKeyOrJwtMiddleware,
   (c, next) => createRateLimitMiddleware(c.env.RATE_LIMIT_EXECUTE)(c, next),
   async (c) => {
     const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
-    const version = c.req.param("version");
     const db = createDatabase(c.env.DB);
 
     // Get auth context from either JWT or API key
@@ -504,61 +488,41 @@ workflowRoutes.post(
       return c.json({ error: "Organization not found" }, 404);
     }
 
-    // Get workflow data either from deployment or directly from workflow
-    let workflowData: any;
-    let workflow: any;
-    let deploymentId: string | undefined;
     const workflowStore = new WorkflowStore(c.env);
     const deploymentStore = new DeploymentStore(c.env);
 
-    if (version === "dev") {
-      // Load workflow with data from database and R2
-      const workflowWithData = await workflowStore.getWithData(
-        workflowIdOrHandle,
-        organizationId
+    // Get workflow metadata
+    const workflow = await workflowStore.get(workflowIdOrHandle, organizationId);
+    if (!workflow) {
+      return c.json({ error: "Workflow not found" }, 404);
+    }
+
+    // PROD PATH: Require active deployment
+    if (!workflow.activeDeploymentId) {
+      return c.json(
+        {
+          error:
+            "No active deployment set for this workflow. Use /execute/dev for development or set an active deployment.",
+        },
+        400
       );
-      if (!workflowWithData) {
-        return c.json({ error: "Workflow not found" }, 404);
-      }
+    }
 
-      workflow = workflowWithData;
-      workflowData = workflowWithData.data;
-    } else {
-      // Get deployment based on version
-      let deployment: any;
-      if (version === "latest") {
-        deployment = await deploymentStore.getLatest(
-          workflowIdOrHandle,
-          organizationId
-        );
-        if (!deployment) {
-          return c.json(
-            { error: "No deployments found for this workflow" },
-            404
-          );
-        }
-      } else {
-        deployment = await deploymentStore.getByVersion(
-          workflowIdOrHandle,
-          organizationId,
-          version
-        );
-        if (!deployment) {
-          return c.json({ error: "Deployment version not found" }, 404);
-        }
-      }
+    let workflowData: any;
+    let deploymentId: string | undefined;
 
-      deploymentId = deployment.id;
-
-      // Load deployment workflow snapshot from R2
-      workflowData = await deploymentStore.readWorkflowSnapshot(deployment.id);
-
-      workflow = {
-        id: deployment.workflowId,
-        name: workflowData.name,
-        handle: workflowData.handle,
-        type: workflowData.type,
-      };
+    try {
+      workflowData = await deploymentStore.readWorkflowSnapshot(
+        workflow.activeDeploymentId
+      );
+      deploymentId = workflow.activeDeploymentId;
+    } catch (error) {
+      return c.json(
+        {
+          error: `Failed to load active deployment: ${error instanceof Error ? error.message : String(error)}`,
+        },
+        500
+      );
     }
 
     // Prepare workflow for execution
@@ -586,6 +550,95 @@ workflowRoutes.post(
       organizationId,
       computeCredits,
       deploymentId,
+      parameters,
+      env: c.env,
+    });
+
+    const response: ExecuteWorkflowResponse = {
+      id: execution.id,
+      workflowId: execution.workflowId,
+      status: execution.status,
+      nodeExecutions: execution.nodeExecutions,
+    };
+
+    return c.json(response, 201);
+  }
+);
+
+/**
+ * Execute a workflow in development mode
+ * - Uses working version from R2
+ */
+workflowRoutes.post(
+  "/:workflowIdOrHandle/execute/dev",
+  apiKeyOrJwtMiddleware,
+  (c, next) => createRateLimitMiddleware(c.env.RATE_LIMIT_EXECUTE)(c, next),
+  async (c) => {
+    const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
+    const db = createDatabase(c.env.DB);
+
+    // Get auth context from either JWT or API key
+    const { organizationId, userId } = getAuthContext(c);
+
+    // Get organization compute credits
+    const computeCredits = await getOrganizationComputeCredits(
+      db,
+      organizationId
+    );
+    if (computeCredits === undefined) {
+      return c.json({ error: "Organization not found" }, 404);
+    }
+
+    const workflowStore = new WorkflowStore(c.env);
+
+    // DEV PATH: Load from working version
+    let workflowData: any;
+    let workflow: any;
+
+    try {
+      const workflowWithData = await workflowStore.getWithData(
+        workflowIdOrHandle,
+        organizationId
+      );
+      if (!workflowWithData || !workflowWithData.data) {
+        return c.json({ error: "Workflow data not found" }, 404);
+      }
+      workflow = workflowWithData;
+      workflowData = workflowWithData.data;
+    } catch (error) {
+      return c.json(
+        {
+          error: `Failed to load workflow data: ${error instanceof Error ? error.message : String(error)}`,
+        },
+        500
+      );
+    }
+
+    // Prepare workflow for execution
+    const preparationResult = await prepareWorkflowExecution(c, workflowData);
+    if (isExecutionPreparationError(preparationResult)) {
+      return c.json(
+        { error: preparationResult.error },
+        preparationResult.status
+      );
+    }
+
+    const { parameters } = preparationResult;
+
+    // Execute workflow using shared service
+    const { execution } = await WorkflowExecutor.execute({
+      workflow: {
+        id: workflow.id,
+        name: workflow.name,
+        handle: workflow.handle,
+        type: workflowData.type,
+        nodes: workflowData.nodes,
+        edges: workflowData.edges,
+      },
+      userId,
+      organizationId,
+      computeCredits,
+      deploymentId: undefined, // Dev mode has no deployment
       parameters,
       env: c.env,
     });
@@ -722,8 +775,6 @@ workflowRoutes.get(
     const response: GetQueueTriggerResponse = {
       workflowId: queueTrigger.workflowId,
       queueId: queueTrigger.queueId,
-      versionAlias: queueTrigger.versionAlias as VersionAlias,
-      versionNumber: queueTrigger.versionNumber,
       active: queueTrigger.active,
       createdAt: queueTrigger.createdAt,
       updatedAt: queueTrigger.updatedAt,
@@ -738,8 +789,6 @@ workflowRoutes.get(
  */
 const UpsertQueueTriggerRequestSchema = z.object({
   queueId: z.string().min(1, "Queue ID is required"),
-  versionAlias: z.enum(["dev", "latest", "version"]).optional(),
-  versionNumber: z.number().optional().nullable(),
   active: z.boolean().optional(),
 }) as z.ZodType<UpsertQueueTriggerRequest>;
 
@@ -772,13 +821,6 @@ workflowRoutes.put(
       return c.json({ error: "Queue not found" }, 404);
     }
 
-    if (data.versionAlias === "version" && !data.versionNumber) {
-      return c.json(
-        { error: "versionNumber is required when versionAlias is 'version'" },
-        400
-      );
-    }
-
     const now = new Date();
     const isActive = data.active ?? true;
 
@@ -788,9 +830,6 @@ workflowRoutes.put(
         queueId: queue.id,
         active: isActive,
         updatedAt: now,
-        versionAlias: data.versionAlias,
-        versionNumber:
-          data.versionAlias === "version" ? data.versionNumber : null,
       });
 
       if (!upsertedQueueTrigger) {
@@ -802,7 +841,6 @@ workflowRoutes.put(
 
       const response: UpsertQueueTriggerResponse = {
         ...upsertedQueueTrigger,
-        versionAlias: upsertedQueueTrigger.versionAlias as VersionAlias,
       };
       return c.json(response, 200);
     } catch (dbError: any) {
@@ -855,6 +893,143 @@ workflowRoutes.delete(
       workflowId: deletedTrigger.workflowId,
     };
     return c.json(response);
+  }
+);
+
+/**
+ * Get active deployment for a workflow
+ */
+workflowRoutes.get(
+  "/:workflowIdOrHandle/active-deployment",
+  jwtMiddleware,
+  async (c) => {
+    const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
+    const organizationId = c.get("organizationId")!;
+    const workflowStore = new WorkflowStore(c.env);
+
+    const workflow = await workflowStore.get(
+      workflowIdOrHandle,
+      organizationId
+    );
+    if (!workflow) {
+      return c.json({ error: "Workflow not found" }, 404);
+    }
+
+    if (!workflow.activeDeploymentId) {
+      return c.json({
+        activeDeploymentId: null,
+        message: "No active deployment set (using dev version)",
+      });
+    }
+
+    // Get deployment details
+    const deploymentStore = new DeploymentStore(c.env);
+    try {
+      const deployment = await deploymentStore.get(
+        workflow.activeDeploymentId,
+        organizationId
+      );
+
+      if (!deployment) {
+        // Active deployment reference exists but deployment not found
+        // This shouldn't happen but handle gracefully
+        return c.json(
+          {
+            error:
+              "Active deployment reference exists but deployment not found",
+            activeDeploymentId: workflow.activeDeploymentId,
+          },
+          500
+        );
+      }
+
+      return c.json({
+        activeDeploymentId: deployment.id,
+        version: deployment.version,
+        createdAt: deployment.createdAt,
+      });
+    } catch (error) {
+      return c.json(
+        {
+          error: `Failed to fetch deployment: ${error instanceof Error ? error.message : String(error)}`,
+        },
+        500
+      );
+    }
+  }
+);
+
+/**
+ * Set or clear active deployment for a workflow
+ */
+workflowRoutes.patch(
+  "/:workflowIdOrHandle/active-deployment",
+  jwtMiddleware,
+  async (c) => {
+    const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
+    const organizationId = c.get("organizationId")!;
+    const body = await c.req.json();
+    const deploymentId = body.deploymentId as string | null;
+
+    const workflowStore = new WorkflowStore(c.env);
+    const db = createDatabase(c.env.DB);
+
+    // Get workflow
+    const workflow = await workflowStore.get(
+      workflowIdOrHandle,
+      organizationId
+    );
+    if (!workflow) {
+      return c.json({ error: "Workflow not found" }, 404);
+    }
+
+    // If deploymentId is provided, verify it exists and belongs to this workflow
+    if (deploymentId) {
+      const deploymentStore = new DeploymentStore(c.env);
+      const deployment = await deploymentStore.get(deploymentId, organizationId);
+
+      if (!deployment) {
+        return c.json({ error: "Deployment not found" }, 404);
+      }
+
+      if (deployment.workflowId !== workflow.id) {
+        return c.json(
+          { error: "Deployment does not belong to this workflow" },
+          400
+        );
+      }
+    }
+
+    // Update workflow's activeDeploymentId
+    try {
+      await db
+        .update(workflows)
+        .set({
+          activeDeploymentId: deploymentId,
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(workflows.id, workflow.id),
+            eq(workflows.organizationId, organizationId)
+          )
+        );
+
+      return c.json({
+        workflowId: workflow.id,
+        activeDeploymentId: deploymentId,
+        message: deploymentId
+          ? `Active deployment set to ${deploymentId}`
+          : "Active deployment cleared (using dev version)",
+      });
+    } catch (error) {
+      return c.json(
+        {
+          error: `Failed to update workflow: ${error instanceof Error ? error.message : String(error)}`,
+        },
+        500
+      );
+    }
   }
 );
 
