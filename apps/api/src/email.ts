@@ -47,21 +47,20 @@ export async function handleIncomingEmail(
   const localPart = to.split("@")[0];
   const parts = localPart.split("+");
 
-  if (parts.length !== 3) {
+  // Support 2 or 3 parts: org+inbox or org+inbox+dev
+  if (parts.length < 2 || parts.length > 3) {
     console.error(
-      `Invalid email format: ${to}. Expected <type>+<organizationIdOrHandle>+<emailIdOrHandle>@domain.com`
+      `Invalid email format: ${to}. Expected <organizationIdOrHandle>+<emailIdOrHandle>[+dev]@domain.com`
     );
     return;
   }
 
-  const [triggerType, organizationIdOrHandle, emailIdOrHandle] = parts;
+  const [organizationIdOrHandle, emailIdOrHandle, devFlag] = parts;
+  const forceDev = devFlag === "dev";
 
-  if (triggerType !== "email") {
-    console.error(`Invalid trigger type: ${triggerType}. Expected "email".`);
-    return;
-  }
-
-  console.log(`Processing email trigger for email inbox: ${emailIdOrHandle}`);
+  console.log(
+    `Processing email trigger for email inbox: ${emailIdOrHandle}${forceDev ? " (dev mode)" : ""}`
+  );
 
   const db = createDatabase(env.DB);
   const executionStore = new ExecutionStore(env);
@@ -116,6 +115,7 @@ export async function handleIncomingEmail(
         to,
         headers,
         raw,
+        forceDev,
       });
     } catch (error) {
       console.error(
@@ -139,6 +139,7 @@ async function triggerWorkflowForEmail({
   to,
   headers,
   raw,
+  forceDev = false,
 }: {
   workflow: any;
   email: any;
@@ -151,33 +152,16 @@ async function triggerWorkflowForEmail({
   to: string;
   headers: Headers;
   raw: ReadableStream<Uint8Array>;
+  forceDev?: boolean;
 }): Promise<void> {
   const db = createDatabase(env.DB);
 
-  console.log(
-    `Loading workflow in ${workflow.activeDeploymentId ? "prod" : "dev"} mode`
-  );
-
-  // Simple 2-path model: use activeDeploymentId to determine dev vs prod
   let workflowData: WorkflowType;
   let deploymentId: string | undefined;
 
-  if (workflow.activeDeploymentId) {
-    // PROD PATH: Load from active deployment
-    try {
-      workflowData = await deploymentStore.readWorkflowSnapshot(
-        workflow.activeDeploymentId
-      );
-      deploymentId = workflow.activeDeploymentId;
-    } catch (error) {
-      console.error(
-        `Failed to load active deployment ${workflow.activeDeploymentId} for workflow ${workflow.id}:`,
-        error
-      );
-      return;
-    }
-  } else {
-    // DEV PATH: Load from working version
+  if (forceDev) {
+    // DEV PATH: Always use working version when +dev suffix is used
+    console.log(`Loading workflow in dev mode (explicit)`);
     try {
       const workflowWithData = await workflowStore.getWithData(
         workflow.id,
@@ -191,6 +175,28 @@ async function triggerWorkflowForEmail({
     } catch (error) {
       console.error(
         `Failed to load workflow data from R2 for ${workflow.id}:`,
+        error
+      );
+      return;
+    }
+  } else {
+    // PROD PATH: Only trigger if workflow has an active deployment
+    if (!workflow.activeDeploymentId) {
+      console.log(
+        `Discarding email for workflow ${workflow.id}: no active deployment (production address requires deployed workflow)`
+      );
+      return;
+    }
+
+    console.log(`Loading workflow in prod mode`);
+    try {
+      workflowData = await deploymentStore.readWorkflowSnapshot(
+        workflow.activeDeploymentId
+      );
+      deploymentId = workflow.activeDeploymentId;
+    } catch (error) {
+      console.error(
+        `Failed to load active deployment ${workflow.activeDeploymentId} for workflow ${workflow.id}:`,
         error
       );
       return;

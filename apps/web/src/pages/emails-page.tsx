@@ -1,6 +1,4 @@
 import { ColumnDef } from "@tanstack/react-table";
-import Check from "lucide-react/icons/check";
-import Copy from "lucide-react/icons/copy";
 import MoreHorizontal from "lucide-react/icons/more-horizontal";
 import Plus from "lucide-react/icons/plus";
 import { useEffect, useState } from "react";
@@ -95,42 +93,9 @@ function useEmailActions() {
   };
 }
 
-function CopyEmailButton({ email }: { email: any }) {
-  const { organization } = useAuth();
-  const [copied, setCopied] = useState(false);
-
-  const emailAddress = `email+${organization?.handle}+${email.handle}@dafthunk.com`;
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(emailAddress);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  return (
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={handleCopy}
-      className="h-7 gap-1"
-    >
-      {copied ? (
-        <>
-          <Check className="h-3 w-3" />
-          Copied
-        </>
-      ) : (
-        <>
-          <Copy className="h-3 w-3" />
-          Copy
-        </>
-      )}
-    </Button>
-  );
-}
-
 function createColumns(
-  openDeleteDialog: (email: any) => void
+  openDeleteDialog: (email: any) => void,
+  orgHandle: string
 ): ColumnDef<any>[] {
   return [
     {
@@ -138,7 +103,7 @@ function createColumns(
       header: "Email Name",
       cell: ({ row }) => {
         const name = row.getValue("name") as string;
-        return <div className="font-medium">{name || "Untitled Email"}</div>;
+        return <span className="font-medium">{name || "Untitled Email"}</span>;
       },
     },
     {
@@ -146,19 +111,25 @@ function createColumns(
       header: "Email Handle",
       cell: ({ row }) => {
         const handle = row.original.handle;
-        return <div className="font-mono text-xs">{handle}</div>;
+        return <span className="text-sm text-muted-foreground">{handle}</span>;
       },
     },
     {
-      id: "emailAddress",
-      header: "Email Address",
+      id: "devEmailAddress",
+      header: "Development Email",
       cell: ({ row }) => {
         const email = row.original;
-        return (
-          <div className="flex items-center gap-2">
-            <CopyEmailButton email={email} />
-          </div>
-        );
+        const emailAddress = `${orgHandle}+${email.handle}+dev@dafthunk.com`;
+        return <span className="text-sm text-muted-foreground">{emailAddress}</span>;
+      },
+    },
+    {
+      id: "prodEmailAddress",
+      header: "Production Email",
+      cell: ({ row }) => {
+        const email = row.original;
+        const emailAddress = `${orgHandle}+${email.handle}@dafthunk.com`;
+        return <span className="text-sm text-muted-foreground">{emailAddress}</span>;
       },
     },
     {
@@ -197,7 +168,7 @@ export function EmailsPage() {
 
   const { deleteDialog, openDeleteDialog } = useEmailActions();
 
-  const columns = createColumns(openDeleteDialog);
+  const columns = createColumns(openDeleteDialog, orgHandle);
 
   useEffect(() => {
     setBreadcrumbs([{ label: "Emails" }]);

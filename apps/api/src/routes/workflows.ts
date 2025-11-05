@@ -7,6 +7,7 @@ import {
   ExecuteWorkflowResponse,
   ExecutionStatus,
   GetCronTriggerResponse,
+  GetEmailTriggerResponse,
   GetQueueTriggerResponse,
   GetWorkflowResponse,
   JWTTokenPayload,
@@ -33,6 +34,7 @@ import {
   createHandle,
   deleteQueueTrigger as deleteDbQueueTrigger,
   getCronTrigger,
+  getEmailTrigger,
   getOrganizationComputeCredits,
   getQueue,
   getQueueTrigger,
@@ -895,6 +897,48 @@ workflowRoutes.delete(
     const response: DeleteQueueTriggerResponse = {
       workflowId: deletedTrigger.workflowId,
     };
+    return c.json(response);
+  }
+);
+
+/**
+ * Get email trigger for a workflow
+ */
+workflowRoutes.get(
+  "/:workflowIdOrHandle/email-trigger",
+  jwtMiddleware,
+  async (c) => {
+    const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
+    const organizationId = c.get("organizationId")!;
+    const workflowStore = new WorkflowStore(c.env);
+    const db = createDatabase(c.env.DB);
+
+    const workflow = await workflowStore.get(
+      workflowIdOrHandle,
+      organizationId
+    );
+    if (!workflow) {
+      return c.json({ error: "Workflow not found" }, 404);
+    }
+
+    const emailTrigger = await getEmailTrigger(db, workflow.id, organizationId);
+
+    if (!emailTrigger) {
+      return c.json(
+        { error: "Email trigger not found for this workflow" },
+        404
+      );
+    }
+
+    // Map the DB row to GetEmailTriggerResponse
+    const response: GetEmailTriggerResponse = {
+      workflowId: emailTrigger.workflowId,
+      emailId: emailTrigger.emailId,
+      active: emailTrigger.active,
+      createdAt: emailTrigger.createdAt,
+      updatedAt: emailTrigger.updatedAt,
+    };
+
     return c.json(response);
   }
 );

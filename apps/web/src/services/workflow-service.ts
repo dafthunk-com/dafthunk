@@ -7,6 +7,7 @@ import {
   ExecuteWorkflowRequest,
   ExecuteWorkflowResponse,
   GetCronTriggerResponse,
+  GetEmailTriggerResponse,
   GetWorkflowResponse,
   ListWorkflowsResponse,
   UpdateWorkflowRequest,
@@ -751,6 +752,52 @@ export const useCronTrigger = (
     cronTriggerError: error || null,
     isCronTriggerLoading: isLoading,
     mutateCronTrigger: mutate,
+  };
+};
+
+/**
+ * Hook to get an email trigger for a specific workflow
+ */
+export const useEmailTrigger = (
+  workflowId: string | null,
+  options?: SWRConfiguration<GetEmailTriggerResponse | null>
+) => {
+  const { organization } = useAuth();
+  const orgHandle = organization?.handle;
+  const { data, error, isLoading, mutate } =
+    useSWR<GetEmailTriggerResponse | null>(
+      orgHandle && workflowId
+        ? `/${orgHandle}${API_ENDPOINT_BASE}/${workflowId}/email-trigger`
+        : null,
+      orgHandle && workflowId
+        ? async () => {
+            try {
+              const response = await makeOrgRequest<GetEmailTriggerResponse>(
+                orgHandle,
+                API_ENDPOINT_BASE,
+                `/${workflowId}/email-trigger`
+              );
+              return response;
+            } catch (error) {
+              if (
+                error instanceof Error &&
+                "status" in error &&
+                (error as any).status === 404
+              ) {
+                return null;
+              }
+              throw error;
+            }
+          }
+        : null,
+      options
+    );
+
+  return {
+    emailTrigger: data || null,
+    emailTriggerError: error || null,
+    isEmailTriggerLoading: isLoading,
+    mutateEmailTrigger: mutate,
   };
 };
 

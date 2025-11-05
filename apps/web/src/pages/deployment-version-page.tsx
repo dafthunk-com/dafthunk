@@ -370,14 +370,11 @@ export function DeploymentVersionPage() {
       {/* Email Trigger Dialog */}
       {(deploymentVersion?.type === "email_message" ||
         workflow?.type === "email_message") &&
-        deploymentVersion &&
-        workflow && (
+        deploymentVersion && (
           <EmailTriggerDialog
             isOpen={isEmailTriggerDialogOpen}
             onClose={() => setIsEmailTriggerDialogOpen(false)}
-            orgHandle={orgHandle}
-            workflowHandle={workflow.handle}
-            deploymentVersion={String(deploymentVersion.version)}
+            workflowId={deploymentVersion.workflowId}
           />
         )}
     </InsetLayout>

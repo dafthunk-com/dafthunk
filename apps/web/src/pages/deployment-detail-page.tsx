@@ -472,15 +472,15 @@ export function DeploymentDetailPage() {
       )}
 
       {/* Email Trigger Dialog */}
-      {workflow?.type === "email_message" && currentDeployment && (
-        <EmailTriggerDialog
-          isOpen={isIntegrationDialogOpen}
-          onClose={setIsIntegrationDialogOpen}
-          orgHandle={orgHandle}
-          workflowHandle={workflow.handle}
-          deploymentVersion="latest"
-        />
-      )}
+      {workflow?.type === "email_message" &&
+        currentDeployment &&
+        workflowId && (
+          <EmailTriggerDialog
+            isOpen={isIntegrationDialogOpen}
+            onClose={setIsIntegrationDialogOpen}
+            workflowId={workflowId}
+          />
+        )}
 
       {/* Cron Integration Dialog */}
       {workflow?.type === "cron" && currentDeployment && (
