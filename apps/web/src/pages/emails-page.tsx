@@ -30,11 +30,7 @@ import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
-import {
-  createEmail,
-  deleteEmail,
-  useEmails,
-} from "@/services/email-service";
+import { createEmail, deleteEmail, useEmails } from "@/services/email-service";
 
 function useEmailActions() {
   const { mutateEmails } = useEmails();

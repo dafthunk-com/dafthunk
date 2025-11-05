@@ -72,11 +72,7 @@ function QueueSelectorWidget({
         </SelectTrigger>
         <SelectContent>
           {queues?.map((queue) => (
-            <SelectItem
-              key={queue.id}
-              value={queue.id}
-              className="text-xs"
-            >
+            <SelectItem key={queue.id} value={queue.id} className="text-xs">
               {queue.name}
             </SelectItem>
           ))}

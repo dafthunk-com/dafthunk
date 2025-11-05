@@ -2,7 +2,6 @@ import { ColumnDef } from "@tanstack/react-table";
 import MoreHorizontal from "lucide-react/icons/more-horizontal";
 import Plus from "lucide-react/icons/plus";
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router";
 
 import { useAuth } from "@/components/auth-context";
 import { InsetError } from "@/components/inset-error";
@@ -28,13 +27,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
-import {
-  createQueue,
-  deleteQueue,
-  useQueues,
-} from "@/services/queue-service";
+import { createQueue, deleteQueue, useQueues } from "@/services/queue-service";
 
 function useQueueActions() {
   const { mutateQueues } = useQueues();
@@ -100,9 +94,7 @@ function useQueueActions() {
 }
 
 function createColumns(
-  openDeleteDialog: (queue: any) => void,
-  navigate: ReturnType<typeof useNavigate>,
-  getOrgUrl: (path: string) => string
+  openDeleteDialog: (queue: any) => void
 ): ColumnDef<any>[] {
   return [
     {
@@ -110,9 +102,7 @@ function createColumns(
       header: "Queue Name",
       cell: ({ row }) => {
         const name = row.getValue("name") as string;
-        return (
-          <div className="font-medium">{name || "Untitled Queue"}</div>
-        );
+        return <div className="font-medium">{name || "Untitled Queue"}</div>;
       },
     },
     {
@@ -120,9 +110,7 @@ function createColumns(
       header: "Queue Handle",
       cell: ({ row }) => {
         const handle = row.original.handle;
-        return (
-          <div className="font-mono text-xs">{handle}</div>
-        );
+        return <div className="font-mono text-xs">{handle}</div>;
       },
     },
     {
@@ -153,17 +141,15 @@ function createColumns(
 
 export function QueuesPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const navigate = useNavigate();
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const { organization } = useAuth();
   const orgHandle = organization?.handle || "";
-  const { getOrgUrl } = useOrgUrl();
 
   const { queues, queuesError, isQueuesLoading, mutateQueues } = useQueues();
 
   const { deleteDialog, openDeleteDialog } = useQueueActions();
 
-  const columns = createColumns(openDeleteDialog, navigate, getOrgUrl);
+  const columns = createColumns(openDeleteDialog);
 
   useEffect(() => {
     setBreadcrumbs([{ label: "Queues" }]);

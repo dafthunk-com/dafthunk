@@ -67,16 +67,14 @@ function EmailSelectorWidget({
       >
         <SelectTrigger className="text-xs h-7">
           <SelectValue
-            placeholder={isEmailsLoading ? "Loading..." : "Select email inbox..."}
+            placeholder={
+              isEmailsLoading ? "Loading..." : "Select email inbox..."
+            }
           />
         </SelectTrigger>
         <SelectContent>
           {emails?.map((email) => (
-            <SelectItem
-              key={email.id}
-              value={email.id}
-              className="text-xs"
-            >
+            <SelectItem key={email.id} value={email.id} className="text-xs">
               {email.name}
             </SelectItem>
           ))}

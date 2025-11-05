@@ -75,6 +75,6 @@ export interface DeleteQueueTriggerResponse {
 export interface QueueMessage {
   queueId: string;
   organizationId: string;
-  payload: any;
+  payload: unknown;
   timestamp: number;
 }
