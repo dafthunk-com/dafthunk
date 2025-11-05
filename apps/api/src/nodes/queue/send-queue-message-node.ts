@@ -3,29 +3,29 @@ import { NodeExecution, NodeType, QueueMessage } from "@dafthunk/types";
 import { createDatabase, getQueue } from "../../db";
 import { ExecutableNode, NodeContext } from "../types";
 
-export class PublishQueueMessageNode extends ExecutableNode {
+export class SendQueueMessageNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "queue-publish",
-    name: "Publish Queue Message",
-    type: "queue-publish",
-    description: "Publishes a message to a queue.",
-    tags: ["Queue", "Publish", "Message"],
+    id: "queue-send",
+    name: "Send Queue Message",
+    type: "queue-send",
+    description: "Sends a single message to a message queue.",
+    tags: ["Queue", "Send", "Message"],
     icon: "send",
     documentation:
-      "This node publishes a message to a queue. The message will trigger workflows subscribed to this queue.",
+      "Sends a message to a queue. The message will be delivered to all workflows subscribed to the queue, triggering their execution with the message payload as input.",
     asTool: true,
     inputs: [
       {
         name: "queueId",
         type: "string",
-        description: "The queue ID or handle to publish to.",
+        description: "Queue ID or handle.",
         required: true,
         hidden: true,
       },
       {
         name: "message",
         type: "json",
-        description: "The message payload to publish (JSON).",
+        description: "Message payload (any JSON value).",
         required: true,
       },
     ],
@@ -33,12 +33,12 @@ export class PublishQueueMessageNode extends ExecutableNode {
       {
         name: "success",
         type: "boolean",
-        description: "Whether the message was successfully published.",
+        description: "True if message was sent successfully.",
       },
       {
         name: "messageId",
         type: "string",
-        description: "The ID of the published message.",
+        description: "Unique identifier for the sent message.",
       },
     ],
   };
@@ -75,7 +75,7 @@ export class PublishQueueMessageNode extends ExecutableNode {
         mode: context.mode,
       };
 
-      // Publish to Cloudflare Queue
+      // Send to Cloudflare Queue
       await context.env.WORKFLOW_QUEUE.send(queueMessage);
 
       // Generate a pseudo message ID (timestamp-based)
@@ -87,7 +87,7 @@ export class PublishQueueMessageNode extends ExecutableNode {
       });
     } catch (error) {
       return this.createErrorResult(
-        `Failed to publish message: ${error instanceof Error ? error.message : String(error)}`
+        `Failed to send message: ${error instanceof Error ? error.message : String(error)}`
       );
     }
   }
