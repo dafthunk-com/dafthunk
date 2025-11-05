@@ -94,7 +94,8 @@ function useQueueActions() {
 }
 
 function createColumns(
-  openDeleteDialog: (queue: any) => void
+  openDeleteDialog: (queue: any) => void,
+  _orgHandle: string
 ): ColumnDef<any>[] {
   return [
     {
@@ -102,7 +103,7 @@ function createColumns(
       header: "Queue Name",
       cell: ({ row }) => {
         const name = row.getValue("name") as string;
-        return <div className="font-medium">{name || "Untitled Queue"}</div>;
+        return <span className="font-medium">{name || "Untitled Queue"}</span>;
       },
     },
     {
@@ -110,7 +111,7 @@ function createColumns(
       header: "Queue Handle",
       cell: ({ row }) => {
         const handle = row.original.handle;
-        return <div className="font-mono text-xs">{handle}</div>;
+        return <span className="text-sm text-muted-foreground">{handle}</span>;
       },
     },
     {
@@ -167,7 +168,7 @@ export function QueuesPage() {
 
   const { deleteDialog, openDeleteDialog } = useQueueActions();
 
-  const columns = createColumns(openDeleteDialog);
+  const columns = createColumns(openDeleteDialog, orgHandle);
 
   useEffect(() => {
     setBreadcrumbs([{ label: "Queues" }]);

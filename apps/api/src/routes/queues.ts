@@ -229,7 +229,7 @@ queueRoutes.post(
         {
           success: true,
           queueId: queue.id,
-          mode: 'prod',
+          mode: "prod",
           timestamp: queueMessage.timestamp,
         },
         201
@@ -293,7 +293,7 @@ queueRoutes.post(
         {
           success: true,
           queueId: queue.id,
-          mode: 'dev',
+          mode: "dev",
           timestamp: queueMessage.timestamp,
         },
         201

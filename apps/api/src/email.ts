@@ -224,7 +224,7 @@ async function triggerWorkflowForEmail({
   // Trigger the runtime and get the instance id
   const instance = await env.EXECUTE.create({
     params: {
-      userId: "email",
+      userId: "email_trigger",
       organizationId,
       computeCredits,
       workflow: {
@@ -257,7 +257,7 @@ async function triggerWorkflowForEmail({
     id: executionId,
     workflowId: workflow.id,
     deploymentId,
-    userId: "email",
+    userId: "email_trigger",
     organizationId,
     status: ExecutionStatus.EXECUTING,
     nodeExecutions,

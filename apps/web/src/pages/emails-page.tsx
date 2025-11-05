@@ -56,7 +56,7 @@ function useEmailActions() {
     <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Delete Email Inbox</DialogTitle>
+          <DialogTitle>Delete Email</DialogTitle>
           <DialogDescription>
             Are you sure you want to delete "
             {emailToDelete?.name || "Untitled Email"}"? This action cannot be
