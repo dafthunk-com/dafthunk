@@ -1,10 +1,5 @@
-<<<<<<< HEAD
-import type { Workflow as WorkflowType } from "@dafthunk/types";
-import { and, desc, eq, inArray } from "drizzle-orm";
-=======
 import type { Node, Workflow as WorkflowType } from "@dafthunk/types";
-import { and, eq, inArray } from "drizzle-orm";
->>>>>>> 1fc16e13 (feat: add email and queue management functionality)
+import { and, desc, eq, inArray } from "drizzle-orm";
 
 import type { Bindings } from "../context";
 import { createDatabase, Database } from "../db";

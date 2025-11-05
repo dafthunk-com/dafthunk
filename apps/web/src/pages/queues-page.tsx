@@ -120,7 +120,11 @@ function createColumns(
       cell: ({ row }) => {
         const queue = row.original;
         const endpoint = `/api/queues/${queue.handle}/publish/dev`;
-        return <span className="text-sm text-muted-foreground font-mono">{endpoint}</span>;
+        return (
+          <span className="text-sm text-muted-foreground font-mono">
+            {endpoint}
+          </span>
+        );
       },
     },
     {
@@ -129,7 +133,11 @@ function createColumns(
       cell: ({ row }) => {
         const queue = row.original;
         const endpoint = `/api/queues/${queue.handle}/publish`;
-        return <span className="text-sm text-muted-foreground font-mono">{endpoint}</span>;
+        return (
+          <span className="text-sm text-muted-foreground font-mono">
+            {endpoint}
+          </span>
+        );
       },
     },
     {

@@ -150,7 +150,7 @@ export async function handleQueueMessages(
         >();
 
         // Determine mode from queue message (defaults to 'prod' for backward compatibility)
-        const isDevMode = queueMessage.mode === 'dev';
+        const isDevMode = queueMessage.mode === "dev";
 
         // Load each unique workflow once
         for (const item of triggers) {
@@ -162,7 +162,7 @@ export async function handleQueueMessages(
           }
 
           console.log(
-            `Loading workflow: ${workflow.id} (message mode: ${queueMessage.mode || 'prod'}, workflow has deployment: ${!!workflow.activeDeploymentId})`
+            `Loading workflow: ${workflow.id} (message mode: ${queueMessage.mode || "prod"}, workflow has deployment: ${!!workflow.activeDeploymentId})`
           );
 
           try {

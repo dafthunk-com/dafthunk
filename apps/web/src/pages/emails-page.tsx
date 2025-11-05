@@ -120,7 +120,9 @@ function createColumns(
       cell: ({ row }) => {
         const email = row.original;
         const emailAddress = `${orgHandle}+${email.handle}+dev@dafthunk.com`;
-        return <span className="text-sm text-muted-foreground">{emailAddress}</span>;
+        return (
+          <span className="text-sm text-muted-foreground">{emailAddress}</span>
+        );
       },
     },
     {
@@ -129,7 +131,9 @@ function createColumns(
       cell: ({ row }) => {
         const email = row.original;
         const emailAddress = `${orgHandle}+${email.handle}@dafthunk.com`;
-        return <span className="text-sm text-muted-foreground">{emailAddress}</span>;
+        return (
+          <span className="text-sm text-muted-foreground">{emailAddress}</span>
+        );
       },
     },
     {

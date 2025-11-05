@@ -56,7 +56,7 @@ describe("Gemini25FlashNode", () => {
       },
       workflowId: "test",
       organizationId: "test-org",
-    mode: "dev" as const,
+      mode: "dev" as const,
       integrations: includeIntegration
         ? {
             "test-integration": {

@@ -9,11 +9,7 @@ import {
   updateIntegration,
 } from "../db";
 import type { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
-import type {
-  EmailMessage,
-  HttpRequest,
-  NodeContext,
-} from "../nodes/types";
+import type { EmailMessage, HttpRequest, NodeContext } from "../nodes/types";
 import { getProvider } from "../oauth";
 import type { IntegrationData } from "./types";
 

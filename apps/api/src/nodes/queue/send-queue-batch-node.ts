@@ -8,7 +8,8 @@ export class SendQueueBatchNode extends ExecutableNode {
     id: "queue-send-batch",
     name: "Send Queue Batch",
     type: "queue-send-batch",
-    description: "Sends multiple messages to a message queue in a single batch operation.",
+    description:
+      "Sends multiple messages to a message queue in a single batch operation.",
     tags: ["Queue", "Send", "Message", "Batch"],
     icon: "send",
     documentation:
