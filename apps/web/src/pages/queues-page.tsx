@@ -201,7 +201,7 @@ export function QueuesPage() {
           </div>
           <Button onClick={() => setIsCreateDialogOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
-            Create New Queue
+            Create New Message Queue
           </Button>
         </div>
         <DataTable
