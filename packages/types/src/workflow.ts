@@ -17,6 +17,13 @@ export type WorkflowType =
   | "queue_message";
 
 /**
+ * Workflow execution mode
+ * - dev: Uses working version from R2 (latest changes)
+ * - prod: Uses deployed version (active deployment)
+ */
+export type WorkflowMode = "dev" | "prod";
+
+/**
  * Primitive value types
  */
 export type PrimitiveValue = string | number | boolean | null | undefined;

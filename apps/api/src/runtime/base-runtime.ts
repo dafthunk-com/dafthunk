@@ -1,9 +1,10 @@
 import type {
+  Node,
+  QueueMessage,
   Workflow,
   WorkflowExecution,
   WorkflowExecutionStatus,
 } from "@dafthunk/types";
-import type { Node } from "@dafthunk/types";
 import {
   WorkflowEntrypoint,
   WorkflowEvent,
@@ -19,7 +20,7 @@ import {
   apiToNodeParameter,
   nodeToApiParameter,
 } from "../nodes/parameter-mapper";
-import { EmailMessage, HttpRequest, QueueMessage } from "../nodes/types";
+import { EmailMessage, HttpRequest } from "../nodes/types";
 import {
   MonitoringService,
   WorkflowSessionMonitoringService,
@@ -207,7 +208,8 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
             event.payload.workflow,
             event.payload.workflow.id,
             organizationId,
-            instanceId
+            instanceId,
+            event.payload.deploymentId
           )
       );
 
@@ -323,7 +325,8 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     workflow: Workflow,
     workflowId: string,
     organizationId: string,
-    executionId: string
+    executionId: string,
+    deploymentId?: string
   ): Promise<{ context: WorkflowExecutionContext; state: ExecutionState }> {
     const validationErrors = validateWorkflow(workflow);
     if (validationErrors.length > 0) {
@@ -348,6 +351,7 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       workflowId,
       organizationId,
       executionId,
+      deploymentId,
     };
 
     // Mutable state
@@ -523,7 +527,8 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         processedInputs,
         httpRequest,
         emailMessage,
-        queueMessage
+        queueMessage,
+        context.deploymentId
       );
 
       const result = await executable.execute(nodeContext);

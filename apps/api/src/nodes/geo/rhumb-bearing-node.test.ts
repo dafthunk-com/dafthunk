@@ -8,6 +8,7 @@ describe("RhumbBearingNode", () => {
     nodeId: "test-node",
     workflowId: "test-workflow",
     organizationId: "test-org",
+    mode: "dev" as const,
     inputs,
     getIntegration: async () => {
       throw new Error("No integrations in test");

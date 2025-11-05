@@ -56,6 +56,7 @@ describe("Gemini25ProNode", () => {
       },
       workflowId: "test",
       organizationId: "test-org",
+    mode: "dev" as const,
       integrations: includeIntegration
         ? {
             "test-integration": {

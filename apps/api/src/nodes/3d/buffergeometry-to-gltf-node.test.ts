@@ -8,6 +8,7 @@ describe("BufferGeometryToGltfNode", () => {
     nodeId: "test-node",
     workflowId: "test-workflow",
     organizationId: "test-org",
+    mode: "dev",
     inputs,
     getIntegration: async () => {
       throw new Error("No integrations in test");

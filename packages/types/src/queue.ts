@@ -1,3 +1,5 @@
+import type { WorkflowMode } from "./workflow";
+
 // Queue Types
 export interface CreateQueueRequest {
   name: string;
@@ -77,4 +79,5 @@ export interface QueueMessage {
   organizationId: string;
   payload: unknown;
   timestamp: number;
+  mode?: WorkflowMode;
 }

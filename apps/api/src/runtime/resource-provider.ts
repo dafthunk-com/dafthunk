@@ -1,3 +1,5 @@
+import type { QueueMessage } from "@dafthunk/types";
+
 import type { Bindings } from "../context";
 import {
   createDatabase,
@@ -11,7 +13,6 @@ import type {
   EmailMessage,
   HttpRequest,
   NodeContext,
-  QueueMessage,
 } from "../nodes/types";
 import { getProvider } from "../oauth";
 import type { IntegrationData } from "./types";
@@ -129,7 +130,8 @@ export class ResourceProvider {
     inputs: Record<string, unknown>,
     httpRequest?: HttpRequest,
     emailMessage?: EmailMessage,
-    queueMessage?: QueueMessage
+    queueMessage?: QueueMessage,
+    deploymentId?: string
   ): NodeContext {
     // Configure AI Gateway options
     const aiOptions: AiOptions = {};
@@ -145,6 +147,8 @@ export class ResourceProvider {
       nodeId,
       workflowId,
       organizationId,
+      mode: deploymentId ? "prod" : "dev",
+      deploymentId,
       inputs,
       httpRequest,
       emailMessage,
@@ -227,6 +231,7 @@ export class ResourceProvider {
       nodeId,
       workflowId: `tool_execution_${Date.now()}`,
       organizationId: "system",
+      mode: "dev",
       inputs,
       toolRegistry: this.toolRegistry,
       // Tool executions don't have access to organization secrets/integrations

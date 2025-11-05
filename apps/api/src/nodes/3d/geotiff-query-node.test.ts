@@ -28,6 +28,7 @@ describe("GeoTiffQueryNode", () => {
         nodeId: "test-node",
         workflowId: "test-workflow",
         organizationId: "test-org",
+    mode: "dev" as const,
         inputs: {
           bbox: [-10, -10, 10, 10],
           width: 256,
@@ -48,6 +49,7 @@ describe("GeoTiffQueryNode", () => {
         nodeId: "test-node",
         workflowId: "test-workflow",
         organizationId: "test-org",
+    mode: "dev" as const,
         inputs: {
           url: "https://example.com/test.tif",
           bbox: [-10, -10, 10], // Invalid: only 3 values
@@ -71,6 +73,7 @@ describe("GeoTiffQueryNode", () => {
         nodeId: "test-node",
         workflowId: "test-workflow",
         organizationId: "test-org",
+    mode: "dev" as const,
         inputs: {
           url: "https://example.com/test.tif",
           bbox: [-10, -10, 10, 10],
@@ -95,6 +98,7 @@ describe("GeoTiffQueryNode", () => {
         nodeId: "test-node",
         workflowId: "test-workflow",
         organizationId: "test-org",
+    mode: "dev" as const,
         inputs: {
           url: "https://example.com/test.tif",
           bbox: [-10, -10, 10, 10],
@@ -135,6 +139,7 @@ describe("GeoTiffQueryNode", () => {
         nodeId: "test-node",
         workflowId: "test-workflow",
         organizationId: "test-org",
+    mode: "dev" as const,
         inputs: {
           url: "https://example.com/test.tif",
           bbox: [-10, -10, 10, 10],

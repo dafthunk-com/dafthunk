@@ -72,6 +72,7 @@ export class PublishQueueMessageNode extends ExecutableNode {
         organizationId: context.organizationId,
         payload: message,
         timestamp: Date.now(),
+        mode: context.mode,
       };
 
       // Publish to Cloudflare Queue

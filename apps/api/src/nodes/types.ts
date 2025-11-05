@@ -1,5 +1,12 @@
 // Types for workflows
-import { GeoJSON, Node, NodeExecution, NodeType } from "@dafthunk/types";
+import {
+  GeoJSON,
+  Node,
+  NodeExecution,
+  NodeType,
+  QueueMessage,
+  WorkflowMode,
+} from "@dafthunk/types";
 
 import { BaseToolRegistry } from "./base-tool-registry";
 import { ToolReference } from "./tool-types";
@@ -97,12 +104,6 @@ export interface EmailMessage {
   raw: string;
 }
 
-export interface QueueMessage {
-  queueId: string;
-  payload: any;
-  timestamp: number;
-}
-
 /**
  * Minimal integration information exposed to nodes.
  * Token is automatically refreshed if expired when accessed via getIntegration.
@@ -119,6 +120,8 @@ export interface NodeContext {
   nodeId: string;
   workflowId: string;
   organizationId: string;
+  mode: WorkflowMode;
+  deploymentId?: string;
   inputs: Record<string, any>;
   onProgress?: (progress: number) => void;
   httpRequest?: HttpRequest;

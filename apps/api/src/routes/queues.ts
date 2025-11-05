@@ -1,18 +1,20 @@
-import {
+import type {
   CreateQueueRequest,
   CreateQueueResponse,
   DeleteQueueResponse,
   GetQueueResponse,
   ListQueuesResponse,
+  QueueMessage,
   UpdateQueueRequest,
   UpdateQueueResponse,
+  WorkflowMode,
 } from "@dafthunk/types";
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { v7 as uuid } from "uuid";
 import { z } from "zod";
 
-import { jwtMiddleware } from "../auth";
+import { apiKeyOrJwtMiddleware, jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
 import {
   createDatabase,
@@ -23,6 +25,7 @@ import {
   getQueues,
   updateQueue,
 } from "../db";
+import { getAuthContext } from "../utils/auth-context";
 
 // Extend the ApiContext with our custom variable
 type ExtendedApiContext = ApiContext & {
@@ -177,5 +180,133 @@ queueRoutes.delete("/:id", async (c) => {
   const response: DeleteQueueResponse = { id: deletedQueue.id };
   return c.json(response);
 });
+
+/**
+ * Publish a message to a queue in production mode
+ * - Message will trigger workflows with active deployments
+ */
+queueRoutes.post(
+  "/:queueIdOrHandle/publish",
+  apiKeyOrJwtMiddleware,
+  zValidator(
+    "json",
+    z.object({
+      payload: z.unknown(),
+    })
+  ),
+  async (c) => {
+    const queueIdOrHandle = c.req.param("queueIdOrHandle");
+    const { payload } = c.req.valid("json");
+    const db = createDatabase(c.env.DB);
+
+    // Get auth context from either JWT or API key
+    const { organizationId } = getAuthContext(c);
+
+    // Verify queue exists and belongs to organization
+    const queue = await getQueue(db, queueIdOrHandle, organizationId);
+    if (!queue) {
+      return c.json(
+        { error: "Queue not found or does not belong to your organization" },
+        404
+      );
+    }
+
+    // Create queue message with prod mode
+    const mode: WorkflowMode = "prod";
+    const queueMessage: QueueMessage = {
+      queueId: queue.id,
+      organizationId,
+      payload,
+      timestamp: Date.now(),
+      mode,
+    };
+
+    try {
+      // Publish to Cloudflare Queue
+      await c.env.WORKFLOW_QUEUE.send(queueMessage);
+
+      return c.json(
+        {
+          success: true,
+          queueId: queue.id,
+          mode: 'prod',
+          timestamp: queueMessage.timestamp,
+        },
+        201
+      );
+    } catch (error) {
+      return c.json(
+        {
+          error: `Failed to publish message: ${error instanceof Error ? error.message : String(error)}`,
+        },
+        500
+      );
+    }
+  }
+);
+
+/**
+ * Publish a message to a queue in development mode
+ * - Message will trigger workflows without active deployments (working version)
+ */
+queueRoutes.post(
+  "/:queueIdOrHandle/publish/dev",
+  apiKeyOrJwtMiddleware,
+  zValidator(
+    "json",
+    z.object({
+      payload: z.unknown(),
+    })
+  ),
+  async (c) => {
+    const queueIdOrHandle = c.req.param("queueIdOrHandle");
+    const { payload } = c.req.valid("json");
+    const db = createDatabase(c.env.DB);
+
+    // Get auth context from either JWT or API key
+    const { organizationId } = getAuthContext(c);
+
+    // Verify queue exists and belongs to organization
+    const queue = await getQueue(db, queueIdOrHandle, organizationId);
+    if (!queue) {
+      return c.json(
+        { error: "Queue not found or does not belong to your organization" },
+        404
+      );
+    }
+
+    // Create queue message with dev mode
+    const mode: WorkflowMode = "dev";
+    const queueMessage: QueueMessage = {
+      queueId: queue.id,
+      organizationId,
+      payload,
+      timestamp: Date.now(),
+      mode,
+    };
+
+    try {
+      // Publish to Cloudflare Queue
+      await c.env.WORKFLOW_QUEUE.send(queueMessage);
+
+      return c.json(
+        {
+          success: true,
+          queueId: queue.id,
+          mode: 'dev',
+          timestamp: queueMessage.timestamp,
+        },
+        201
+      );
+    } catch (error) {
+      return c.json(
+        {
+          error: `Failed to publish message: ${error instanceof Error ? error.message : String(error)}`,
+        },
+        500
+      );
+    }
+  }
+);
 
 export default queueRoutes;

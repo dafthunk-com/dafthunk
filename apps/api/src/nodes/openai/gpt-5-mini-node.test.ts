@@ -34,6 +34,7 @@ describe("Gpt5MiniNode", () => {
       },
       workflowId: "test",
       organizationId: "test-org",
+    mode: "dev" as const,
       secrets: {},
       integrations: includeIntegration
         ? {

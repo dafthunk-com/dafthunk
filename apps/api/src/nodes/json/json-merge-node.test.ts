@@ -16,6 +16,7 @@ describe("JsonMergeNode", () => {
       inputs,
       workflowId: "test",
       organizationId: "test-org",
+    mode: "dev" as const,
       getIntegration: async () => {
         throw new Error("No integrations in test");
       },

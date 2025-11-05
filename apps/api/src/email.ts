@@ -56,10 +56,10 @@ export async function handleIncomingEmail(
   }
 
   const [organizationIdOrHandle, emailIdOrHandle, devFlag] = parts;
-  const forceDev = devFlag === "dev";
+  const isDevMode = devFlag === "dev";
 
   console.log(
-    `Processing email trigger for email inbox: ${emailIdOrHandle}${forceDev ? " (dev mode)" : ""}`
+    `Processing email trigger for email inbox: ${emailIdOrHandle}${isDevMode ? " (dev mode)" : ""}`
   );
 
   const db = createDatabase(env.DB);
@@ -115,7 +115,7 @@ export async function handleIncomingEmail(
         to,
         headers,
         raw,
-        forceDev,
+        isDevMode,
       });
     } catch (error) {
       console.error(
@@ -139,7 +139,7 @@ async function triggerWorkflowForEmail({
   to,
   headers,
   raw,
-  forceDev = false,
+  isDevMode = false,
 }: {
   workflow: any;
   email: any;
@@ -152,14 +152,14 @@ async function triggerWorkflowForEmail({
   to: string;
   headers: Headers;
   raw: ReadableStream<Uint8Array>;
-  forceDev?: boolean;
+  isDevMode?: boolean;
 }): Promise<void> {
   const db = createDatabase(env.DB);
 
   let workflowData: WorkflowType;
   let deploymentId: string | undefined;
 
-  if (forceDev) {
+  if (isDevMode) {
     // DEV PATH: Always use working version when +dev suffix is used
     console.log(`Loading workflow in dev mode (explicit)`);
     try {

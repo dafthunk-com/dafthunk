@@ -52,6 +52,7 @@ describe("GeoTiffDemQueryNode", () => {
         nodeId: "test-node",
         workflowId: "test-workflow",
         organizationId: "test-org",
+    mode: "dev" as const,
         inputs: {
           bbox: [-10, -10, 10, 10],
           width: 256,
@@ -72,6 +73,7 @@ describe("GeoTiffDemQueryNode", () => {
         nodeId: "test-node",
         workflowId: "test-workflow",
         organizationId: "test-org",
+    mode: "dev" as const,
         inputs: {
           url: "https://example.com/dem.tif",
           bbox: [-10, -10, 10], // Invalid: only 3 values
@@ -95,6 +97,7 @@ describe("GeoTiffDemQueryNode", () => {
         nodeId: "test-node",
         workflowId: "test-workflow",
         organizationId: "test-org",
+    mode: "dev" as const,
         inputs: {
           url: "https://example.com/dem.tif",
           bbox: [-10, -10, 10, 10],
@@ -119,6 +122,7 @@ describe("GeoTiffDemQueryNode", () => {
         nodeId: "test-node",
         workflowId: "test-workflow",
         organizationId: "test-org",
+    mode: "dev" as const,
         inputs: {
           url: "https://example.com/dem.tif",
           bbox: [-10, -10, 10, 10],
@@ -162,6 +166,7 @@ describe("GeoTiffDemQueryNode", () => {
         nodeId: "test-node",
         workflowId: "test-workflow",
         organizationId: "test-org",
+    mode: "dev" as const,
         inputs: {
           url: "https://example.com/dem.tif",
           bbox: [-10, -10, 10, 10],
@@ -214,6 +219,7 @@ describe("GeoTiffDemQueryNode", () => {
         nodeId: "test-node",
         workflowId: "test-workflow",
         organizationId: "test-org",
+    mode: "dev" as const,
         inputs: {
           url: "https://example.com/dem.tif",
           bbox: [-20, -20, 20, 20], // Outside DEM bounds
@@ -260,6 +266,7 @@ describe("GeoTiffDemQueryNode", () => {
         nodeId: "test-node",
         workflowId: "test-workflow",
         organizationId: "test-org",
+    mode: "dev" as const,
         inputs: {
           url: "https://example.com/dem.tif",
           width: 2,
@@ -306,6 +313,7 @@ describe("GeoTiffDemQueryNode", () => {
         nodeId: "test-node",
         workflowId: "test-workflow",
         organizationId: "test-org",
+    mode: "dev" as const,
         inputs: {
           url: "https://example.com/dem.tif",
           width: 2,

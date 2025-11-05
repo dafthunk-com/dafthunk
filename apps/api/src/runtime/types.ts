@@ -64,6 +64,8 @@ export interface WorkflowExecutionContext {
   readonly organizationId: string;
   /** Execution instance ID */
   readonly executionId: string;
+  /** Deployment ID if executing a deployed version */
+  readonly deploymentId?: string;
 }
 
 /**

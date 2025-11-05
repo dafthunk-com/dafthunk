@@ -34,6 +34,7 @@ describe("Gpt5NanoNode", () => {
       },
       workflowId: "test",
       organizationId: "test-org",
+    mode: "dev" as const,
       integrations: includeIntegration
         ? {
             "test-integration": {

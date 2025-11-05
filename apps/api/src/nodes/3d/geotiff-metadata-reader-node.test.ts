@@ -24,6 +24,7 @@ describe("GeoTiffMetadataReaderNode", () => {
         nodeId: "test-node",
         workflowId: "test-workflow",
         organizationId: "test-org",
+    mode: "dev" as const,
         inputs: {},
         getIntegration: async () => {
           throw new Error("No integrations in test");
@@ -40,6 +41,7 @@ describe("GeoTiffMetadataReaderNode", () => {
         nodeId: "test-node",
         workflowId: "test-workflow",
         organizationId: "test-org",
+    mode: "dev" as const,
         inputs: { url: 123 },
         getIntegration: async () => {
           throw new Error("No integrations in test");
@@ -56,6 +58,7 @@ describe("GeoTiffMetadataReaderNode", () => {
         nodeId: "test-node",
         workflowId: "test-workflow",
         organizationId: "test-org",
+    mode: "dev" as const,
         inputs: { url: "not-a-valid-url" },
         getIntegration: async () => {
           throw new Error("No integrations in test");
@@ -75,6 +78,7 @@ describe("GeoTiffMetadataReaderNode", () => {
         nodeId: "test-node",
         workflowId: "test-workflow",
         organizationId: "test-org",
+    mode: "dev" as const,
         inputs: { url: "https://example.com/test.tif" },
         getIntegration: async () => {
           throw new Error("No integrations in test");
@@ -113,6 +117,7 @@ describe("GeoTiffMetadataReaderNode", () => {
         nodeId: "test-node",
         workflowId: "test-workflow",
         organizationId: "test-org",
+    mode: "dev" as const,
         inputs: { url: "https://example.com/test.tif" },
         getIntegration: async () => {
           throw new Error("No integrations in test");

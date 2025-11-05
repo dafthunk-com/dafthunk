@@ -62,8 +62,10 @@ async function executeWorkflow(
         deploymentId: deploymentId,
         queueMessage: {
           queueId: queueMessage.queueId,
+          organizationId: queueMessage.organizationId,
           payload: queueMessage.payload,
           timestamp: queueMessage.timestamp,
+          mode: queueMessage.mode,
         },
       },
     });
@@ -147,6 +149,9 @@ export async function handleQueueMessages(
           }
         >();
 
+        // Determine mode from queue message (defaults to 'prod' for backward compatibility)
+        const isDevMode = queueMessage.mode === 'dev';
+
         // Load each unique workflow once
         for (const item of triggers) {
           const { workflow } = item;
@@ -157,28 +162,22 @@ export async function handleQueueMessages(
           }
 
           console.log(
-            `Loading workflow: ${workflow.id} (${workflow.activeDeploymentId ? "prod" : "dev"} mode)`
+            `Loading workflow: ${workflow.id} (message mode: ${queueMessage.mode || 'prod'}, workflow has deployment: ${!!workflow.activeDeploymentId})`
           );
 
           try {
             let workflowToExecute: WorkflowType | null = null;
             let deploymentIdToExecute: string | undefined = undefined;
 
-            if (workflow.activeDeploymentId) {
-              // PROD PATH: Load from active deployment
-              try {
-                workflowToExecute = await deploymentStore.readWorkflowSnapshot(
-                  workflow.activeDeploymentId
-                );
-                deploymentIdToExecute = workflow.activeDeploymentId;
-              } catch (error) {
-                console.error(
-                  `Failed to load active deployment ${workflow.activeDeploymentId} for workflow ${workflow.id}:`,
-                  error
+            if (isDevMode) {
+              // DEV MODE: Only trigger workflows WITHOUT active deployment
+              if (workflow.activeDeploymentId) {
+                console.log(
+                  `Skipping workflow ${workflow.id}: dev message but workflow has active deployment`
                 );
                 continue;
               }
-            } else {
+
               // DEV PATH: Load from working version
               try {
                 const workflowWithData = await workflowStore.getWithData(
@@ -195,6 +194,28 @@ export async function handleQueueMessages(
               } catch (error) {
                 console.error(
                   `Failed to load workflow data from R2 for ${workflow.id}:`,
+                  error
+                );
+                continue;
+              }
+            } else {
+              // PROD MODE: Only trigger workflows WITH active deployment
+              if (!workflow.activeDeploymentId) {
+                console.log(
+                  `Skipping workflow ${workflow.id}: prod message but workflow has no active deployment`
+                );
+                continue;
+              }
+
+              // PROD PATH: Load from active deployment
+              try {
+                workflowToExecute = await deploymentStore.readWorkflowSnapshot(
+                  workflow.activeDeploymentId
+                );
+                deploymentIdToExecute = workflow.activeDeploymentId;
+              } catch (error) {
+                console.error(
+                  `Failed to load active deployment ${workflow.activeDeploymentId} for workflow ${workflow.id}:`,
                   error
                 );
                 continue;
