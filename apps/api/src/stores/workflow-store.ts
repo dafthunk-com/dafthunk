@@ -428,8 +428,10 @@ export class WorkflowStore {
         .from(workflows)
         .innerJoin(
           organizations,
+          eq(workflows.organizationId, organizations.id)
+        )
+        .where(
           and(
-            eq(workflows.organizationId, organizations.id),
             getOrganizationCondition(organizationIdOrHandle),
             getWorkflowCondition(workflowIdOrHandle)
           )
