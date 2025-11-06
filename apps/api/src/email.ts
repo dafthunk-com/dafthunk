@@ -1,13 +1,8 @@
-import {
-  ExecutionStatus,
-  Node,
-  Workflow as WorkflowType,
-} from "@dafthunk/types";
+import type { Workflow as WorkflowType } from "@dafthunk/types";
 
-import { Bindings } from "./context";
+import type { Bindings } from "./context";
 import { createDatabase, getOrganizationComputeCredits } from "./db";
 import { DeploymentStore } from "./stores/deployment-store";
-import { ExecutionStore } from "./stores/execution-store";
 import { WorkflowStore } from "./stores/workflow-store";
 
 async function streamToString(
@@ -63,7 +58,6 @@ export async function handleIncomingEmail(
   );
 
   const db = createDatabase(env.DB);
-  const executionStore = new ExecutionStore(env);
   const workflowStore = new WorkflowStore(env);
   const deploymentStore = new DeploymentStore(env);
 
@@ -108,7 +102,6 @@ export async function handleIncomingEmail(
         email,
         organizationId,
         env,
-        executionStore,
         workflowStore,
         deploymentStore,
         from,
@@ -145,7 +138,6 @@ async function triggerWorkflowForEmail({
   email: any;
   organizationId: string;
   env: Bindings;
-  executionStore: ExecutionStore;
   workflowStore: WorkflowStore;
   deploymentStore: DeploymentStore;
   from: string;
@@ -221,8 +213,8 @@ async function triggerWorkflowForEmail({
     return;
   }
 
-  // Trigger the runtime and get the instance id
-  const instance = await env.EXECUTE.create({
+  // Trigger the runtime - it will handle execution persistence
+  await env.EXECUTE.create({
     params: {
       userId: "email_trigger",
       organizationId,
@@ -243,25 +235,5 @@ async function triggerWorkflowForEmail({
         raw: await streamToString(raw),
       },
     },
-  });
-  const executionId = instance.id;
-
-  // Build initial nodeExecutions (all idle)
-  const nodeExecutions = workflowData.nodes.map((node: Node) => ({
-    nodeId: node.id,
-    status: "idle" as const,
-  }));
-
-  // Save initial execution record
-  await executionStore.save({
-    id: executionId,
-    workflowId: workflow.id,
-    deploymentId,
-    userId: "email_trigger",
-    organizationId,
-    status: ExecutionStatus.EXECUTING,
-    nodeExecutions,
-    createdAt: new Date(),
-    updatedAt: new Date(),
   });
 }
