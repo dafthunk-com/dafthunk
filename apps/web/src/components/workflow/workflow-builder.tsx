@@ -6,6 +6,7 @@ import type {
 } from "@xyflow/react";
 import { ReactFlowProvider } from "@xyflow/react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -17,7 +18,20 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/utils/utils";
+import {
+  upsertCronTrigger,
+  useWorkflowExecution,
+} from "@/services/workflow-service";
 
+import { EmailTriggerDialog } from "./email-trigger-dialog";
+import { ExecutionEmailDialog } from "./execution-email-dialog";
+import { ExecutionFormDialog } from "./execution-form-dialog";
+import { ExecutionJsonBodyDialog } from "./execution-json-body-dialog";
+import { HttpIntegrationDialog } from "./http-integration-dialog";
+import {
+  type CronFormData,
+  SetCronDialog,
+} from "./set-cron-dialog";
 import { useWorkflowState } from "./use-workflow-state";
 import { WorkflowCanvas } from "./workflow-canvas";
 import { WorkflowProvider } from "./workflow-context";
@@ -43,19 +57,23 @@ export interface WorkflowBuilderProps {
   validateConnection?: (connection: Connection) => boolean;
   executeWorkflow?: (
     workflowId: string,
-    onExecution: (execution: WorkflowExecution) => void
+    onExecution: (execution: WorkflowExecution) => void,
+    triggerData?: unknown
   ) => void | (() => void | Promise<void>);
   initialWorkflowExecution?: WorkflowExecution;
   disabled?: boolean;
   onDeployWorkflow?: (e: React.MouseEvent) => void;
-  onSetSchedule?: () => void;
-  onShowHttpIntegration?: () => void;
-  onShowEmailTrigger?: () => void;
   createObjectUrl: (objectReference: ObjectReference) => string;
   expandedOutputs?: boolean;
   workflowName?: string;
   workflowDescription?: string;
   onWorkflowUpdate?: (name: string, description?: string) => void;
+  orgHandle: string;
+  cronTrigger?: any;
+  mutateCronTrigger?: (data?: any) => void;
+  deploymentVersions?: number[];
+  mutateDeploymentHistory?: () => void;
+  wsExecuteWorkflow?: (options?: { parameters?: Record<string, unknown> }) => void;
 }
 
 export function WorkflowBuilder({
@@ -71,14 +89,17 @@ export function WorkflowBuilder({
   initialWorkflowExecution,
   disabled = false,
   onDeployWorkflow,
-  onSetSchedule,
-  onShowHttpIntegration,
-  onShowEmailTrigger,
   createObjectUrl,
   expandedOutputs = false,
   workflowName,
   workflowDescription,
   onWorkflowUpdate,
+  orgHandle,
+  cronTrigger,
+  mutateCronTrigger,
+  deploymentVersions = [],
+  mutateDeploymentHistory,
+  wsExecuteWorkflow,
 }: WorkflowBuilderProps) {
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
   const [workflowStatus, setWorkflowStatus] = useState<WorkflowExecutionStatus>(
@@ -101,6 +122,25 @@ export function WorkflowBuilder({
   const initializedRef = useRef(false);
   const [sidebarWidth, setSidebarWidth] = useState(384); // w-96 = 384px
   const [isResizing, setIsResizing] = useState(false);
+
+  // Trigger dialog state
+  const [isSetCronDialogOpen, setIsSetCronDialogOpen] = useState(false);
+  const [isHttpIntegrationDialogOpen, setIsHttpIntegrationDialogOpen] = useState(false);
+  const [isEmailTriggerDialogOpen, setIsEmailTriggerDialogOpen] = useState(false);
+
+  // Use workflow execution hook for execution dialogs
+  const {
+    executeWorkflow: executeWorkflowWithForm,
+    isFormDialogVisible,
+    isJsonBodyDialogVisible,
+    isEmailFormDialogVisible,
+    executionFormParameters,
+    executionJsonBodyParameters,
+    closeExecutionForm,
+  } = useWorkflowExecution(orgHandle, wsExecuteWorkflow);
+
+  // Execution coordination
+  const executeRef = useRef<((triggerData?: unknown) => void) | null>(null);
 
   const {
     nodes,
@@ -240,7 +280,109 @@ export function WorkflowBuilder({
     [nodes, updateNodeExecution]
   );
 
-  const handleExecute = useCallback(() => {
+  // Cron dialog handlers
+  const handleOpenSetCronDialog = useCallback(() => {
+    mutateDeploymentHistory?.();
+    mutateCronTrigger?.();
+    setIsSetCronDialogOpen(true);
+  }, [mutateDeploymentHistory, mutateCronTrigger]);
+
+  const handleCloseSetCronDialog = useCallback(() => {
+    setIsSetCronDialogOpen(false);
+  }, []);
+
+  const handleSaveCron = useCallback(
+    async (data: CronFormData) => {
+      if (!workflowId || !orgHandle) return;
+      try {
+        const updatedCron = await upsertCronTrigger(workflowId, orgHandle, {
+          cronExpression: data.cronExpression,
+          active: data.active,
+          versionAlias: data.versionAlias,
+          versionNumber: data.versionNumber,
+        });
+        mutateCronTrigger?.(updatedCron);
+        toast.success("Cron schedule saved successfully.");
+        setIsSetCronDialogOpen(false);
+      } catch (error) {
+        console.error("Failed to save cron schedule:", error);
+        toast.error("Failed to save cron schedule. Please try again.");
+      }
+    },
+    [workflowId, orgHandle, mutateCronTrigger]
+  );
+
+  // Execution dialog handlers
+  const handleDialogCancel = useCallback(() => {
+    closeExecutionForm();
+    executeRef.current = null;
+  }, [closeExecutionForm]);
+
+  const handleFormSubmit = useCallback(
+    (formData: Record<string, any>) => {
+      if (executeRef.current) {
+        executeRef.current(formData);
+        executeRef.current = null;
+      }
+      closeExecutionForm();
+    },
+    [closeExecutionForm]
+  );
+
+  const handleJsonBodySubmit = useCallback(
+    (jsonData: Record<string, any>) => {
+      if (executeRef.current) {
+        executeRef.current({ jsonBody: jsonData.jsonBody });
+        executeRef.current = null;
+      }
+      closeExecutionForm();
+    },
+    [closeExecutionForm]
+  );
+
+  const handleEmailSubmit = useCallback(
+    (emailData: { from: string; subject: string; body: string }) => {
+      if (executeRef.current) {
+        executeRef.current({
+          from: emailData.from,
+          subject: emailData.subject,
+          body: emailData.body,
+        });
+        executeRef.current = null;
+      }
+      closeExecutionForm();
+    },
+    [closeExecutionForm]
+  );
+
+  const handleExecuteRequest = useCallback(
+    (execute: (triggerData?: unknown) => void) => {
+      // For manual and cron workflows, execute immediately (no dialog needed)
+      if (!workflowType || workflowType === "manual" || workflowType === "cron") {
+        execute();
+        return;
+      }
+
+      // For http_request and email_message workflows that require dialogs:
+      // Store the execute callback for later use when dialog is submitted
+      executeRef.current = execute;
+
+      // Trigger the dialog opening by calling executeWorkflow from useWorkflowExecution
+      // This will check for parameters and open the appropriate dialog
+      if (workflowId) {
+        executeWorkflowWithForm(
+          workflowId,
+          () => {}, // Dummy callback since we'll use the stored execute callback
+          nodes,
+          nodeTypes as any,
+          workflowType
+        );
+      }
+    },
+    [workflowType, workflowId, executeWorkflowWithForm, nodes, nodeTypes]
+  );
+
+  const handleExecute = useCallback((triggerData?: unknown) => {
     if (!executeWorkflow) return null;
 
     resetNodeStates("executing");
@@ -275,7 +417,7 @@ export function WorkflowBuilder({
             "You have run out of compute credits. Thanks for checking out the preview. The code is available at https://github.com/dafthunk-com/dafthunk.",
         });
       }
-    });
+    }, triggerData);
   }, [executeWorkflow, workflowId, resetNodeStates, updateNodeExecution]);
 
   const handleActionButtonClick = useCallback(
@@ -285,8 +427,10 @@ export function WorkflowBuilder({
 
       switch (workflowStatus) {
         case "idle": {
-          const cleanup = handleExecute();
-          if (cleanup) cleanupRef.current = cleanup;
+          handleExecuteRequest((triggerData) => {
+            const cleanup = handleExecute(triggerData);
+            if (cleanup) cleanupRef.current = cleanup;
+          });
           break;
         }
         case "submitted":
@@ -312,13 +456,15 @@ export function WorkflowBuilder({
         }
         case "cancelled": {
           resetNodeStates();
-          const cleanup = handleExecute();
-          if (cleanup) cleanupRef.current = cleanup;
+          handleExecuteRequest((triggerData) => {
+            const cleanup = handleExecute(triggerData);
+            if (cleanup) cleanupRef.current = cleanup;
+          });
           break;
         }
       }
     },
-    [workflowStatus, handleExecute, resetNodeStates]
+    [workflowStatus, handleExecute, resetNodeStates, handleExecuteRequest]
   );
 
   const toggleSidebar = useCallback((e: React.MouseEvent) => {
@@ -414,9 +560,19 @@ export function WorkflowBuilder({
               workflowStatus={workflowStatus}
               workflowErrorMessage={workflowErrorMessage}
               workflowType={workflowType}
-              onSetSchedule={onSetSchedule}
-              onShowHttpIntegration={onShowHttpIntegration}
-              onShowEmailTrigger={onShowEmailTrigger}
+              onSetSchedule={
+                workflowType === "cron" ? handleOpenSetCronDialog : undefined
+              }
+              onShowHttpIntegration={
+                workflowType === "http_request"
+                  ? () => setIsHttpIntegrationDialogOpen(true)
+                  : undefined
+              }
+              onShowEmailTrigger={
+                workflowType === "email_message"
+                  ? () => setIsEmailTriggerDialogOpen(true)
+                  : undefined
+              }
               onToggleSidebar={toggleSidebar}
               isSidebarVisible={isSidebarVisible}
               isValidConnection={isValidConnection}
@@ -471,6 +627,76 @@ export function WorkflowBuilder({
             workflowDescription={workflowDescription}
           />
         </div>
+
+        {/* Trigger Dialogs */}
+        {workflowType === "http_request" && (
+          <HttpIntegrationDialog
+            isOpen={isHttpIntegrationDialogOpen}
+            onClose={() => setIsHttpIntegrationDialogOpen(false)}
+            orgHandle={orgHandle}
+            workflowId={workflowId}
+            deploymentVersion="dev"
+            nodes={nodes}
+            nodeTypes={nodeTypes || []}
+          />
+        )}
+
+        {workflowType === "email_message" && (
+          <EmailTriggerDialog
+            isOpen={isEmailTriggerDialogOpen}
+            onClose={() => setIsEmailTriggerDialogOpen(false)}
+            workflowId={workflowId}
+          />
+        )}
+
+        {workflowType === "cron" && (
+          <SetCronDialog
+            isOpen={isSetCronDialogOpen}
+            onClose={handleCloseSetCronDialog}
+            onSubmit={handleSaveCron}
+            initialData={{
+              cronExpression: cronTrigger?.cronExpression || "",
+              active:
+                cronTrigger?.active === undefined ? true : cronTrigger.active,
+              versionAlias: cronTrigger?.versionAlias || "dev",
+              versionNumber: cronTrigger?.versionNumber,
+            }}
+            deploymentVersions={deploymentVersions}
+            workflowName={workflowName}
+          />
+        )}
+
+        {/* Execution Dialogs */}
+        {workflowType === "http_request" &&
+          executionFormParameters.length > 0 && (
+            <ExecutionFormDialog
+              isOpen={isFormDialogVisible}
+              onClose={closeExecutionForm}
+              onCancel={handleDialogCancel}
+              parameters={executionFormParameters}
+              onSubmit={handleFormSubmit}
+            />
+          )}
+
+        {workflowType === "http_request" &&
+          executionJsonBodyParameters.length > 0 && (
+            <ExecutionJsonBodyDialog
+              isOpen={isJsonBodyDialogVisible}
+              onClose={closeExecutionForm}
+              onCancel={handleDialogCancel}
+              parameters={executionJsonBodyParameters}
+              onSubmit={handleJsonBodySubmit}
+            />
+          )}
+
+        {workflowType === "email_message" && (
+          <ExecutionEmailDialog
+            isOpen={isEmailFormDialogVisible}
+            onClose={closeExecutionForm}
+            onCancel={handleDialogCancel}
+            onSubmit={handleEmailSubmit}
+          />
+        )}
 
         <Dialog
           open={errorDialogState.open}

@@ -7,15 +7,6 @@ import { toast } from "sonner";
 
 import { useAuth } from "@/components/auth-context";
 import { InsetLoading } from "@/components/inset-loading";
-import { EmailTriggerDialog } from "@/components/workflow/email-trigger-dialog";
-import { ExecutionEmailDialog } from "@/components/workflow/execution-email-dialog";
-import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
-import { ExecutionJsonBodyDialog } from "@/components/workflow/execution-json-body-dialog";
-import { HttpIntegrationDialog } from "@/components/workflow/http-integration-dialog";
-import {
-  type CronFormData,
-  SetCronDialog,
-} from "@/components/workflow/set-cron-dialog";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import { WorkflowError } from "@/components/workflow/workflow-error";
 import type {
@@ -35,9 +26,7 @@ import { useNodeTypes } from "@/services/type-service";
 import {
   getWorkflow,
   updateWorkflow,
-  upsertCronTrigger,
   useCronTrigger,
-  useWorkflowExecution,
 } from "@/services/workflow-service";
 
 export function EditorPage() {
@@ -47,11 +36,6 @@ export function EditorPage() {
   const orgHandle = organization?.handle || "";
   const { getOrgUrl } = useOrgUrl();
 
-  const [isSetCronDialogOpen, setIsSetCronDialogOpen] = useState(false);
-  const [isHttpIntegrationDialogOpen, setIsHttpIntegrationDialogOpen] =
-    useState(false);
-  const [isEmailTriggerDialogOpen, setIsEmailTriggerDialogOpen] =
-    useState(false);
   const [httpWorkflowMetadata, setHttpWorkflowMetadata] =
     useState<WorkflowWithMetadata | null>(null);
 
@@ -63,6 +47,7 @@ export function EditorPage() {
 
   const { createObjectUrl } = useObjectService();
 
+  // Store the callback from WorkflowBuilder to forward execution updates
   const executionCallbackRef = useRef<
     ((execution: WorkflowExecution) => void) | null
   >(null);
@@ -89,6 +74,26 @@ export function EditorPage() {
     onExecutionUpdate: handleExecutionUpdate,
   });
 
+  // Wrapper to convert wsExecuteWorkflow to the expected executeWorkflow signature
+  const executeWorkflowWrapper = useCallback(
+    (
+      workflowId: string,
+      onExecution: (execution: WorkflowExecution) => void,
+      triggerData?: unknown
+    ) => {
+      // Store the callback so we can forward execution updates
+      executionCallbackRef.current = onExecution;
+
+      if (wsExecuteWorkflow) {
+        wsExecuteWorkflow({
+          parameters: triggerData ? (triggerData as Record<string, unknown>) : undefined,
+        });
+      }
+      return undefined;
+    },
+    [wsExecuteWorkflow]
+  );
+
   // Now we can use workflowMetadata for cron trigger
   const { cronTrigger, isCronTriggerLoading, mutateCronTrigger } =
     useCronTrigger(workflowMetadata?.type === "cron" && id ? id : null, {
@@ -110,37 +115,6 @@ export function EditorPage() {
   // Both are only used for validation, execution, and saving - no UI rendering depends on them
   const latestUiNodesRef = useRef<Node<WorkflowNodeType>[]>([]);
   const latestUiEdgesRef = useRef<Edge<WorkflowEdgeType>[]>([]);
-
-  const handleOpenSetCronDialog = useCallback(() => {
-    mutateDeploymentHistory();
-    mutateCronTrigger();
-    setIsSetCronDialogOpen(true);
-  }, [mutateDeploymentHistory, mutateCronTrigger]);
-
-  const handleCloseSetCronDialog = useCallback(() => {
-    setIsSetCronDialogOpen(false);
-  }, []);
-
-  const handleSaveCron = useCallback(
-    async (data: CronFormData) => {
-      if (!id || !orgHandle) return;
-      try {
-        const updatedCron = await upsertCronTrigger(id, orgHandle, {
-          cronExpression: data.cronExpression,
-          active: data.active,
-          versionAlias: data.versionAlias,
-          versionNumber: data.versionNumber,
-        });
-        mutateCronTrigger(updatedCron);
-        toast.success("Cron schedule saved successfully.");
-        setIsSetCronDialogOpen(false);
-      } catch (error) {
-        console.error("Failed to save cron schedule:", error);
-        toast.error("Failed to save cron schedule. Please try again.");
-      }
-    },
-    [id, orgHandle, mutateCronTrigger]
-  );
 
   useEffect(() => {
     if (initialNodesForUI) {
@@ -175,19 +149,6 @@ export function EditorPage() {
     },
     [saveWorkflow, workflowMetadata]
   );
-
-  const {
-    executeWorkflow,
-    isFormDialogVisible,
-    isJsonBodyDialogVisible,
-    executionFormParameters,
-    executionJsonBodyParameters,
-    submitFormData,
-    submitJsonBody,
-    closeExecutionForm,
-    isEmailFormDialogVisible,
-    submitEmailFormData,
-  } = useWorkflowExecution(orgHandle, wsExecuteWorkflow);
 
   // Fetch workflow metadata via HTTP (for description and other metadata)
   useEffect(() => {
@@ -255,24 +216,6 @@ export function EditorPage() {
     [] // No dependencies since we're using refs
   );
 
-  const editorExecuteWorkflow = useCallback(
-    (
-      workflowIdFromBuilder: string,
-      onExecutionFromBuilder: (execution: WorkflowExecution) => void
-    ) => {
-      executionCallbackRef.current = onExecutionFromBuilder;
-
-      return executeWorkflow(
-        workflowIdFromBuilder,
-        onExecutionFromBuilder,
-        latestUiNodesRef.current,
-        nodeTypes as any,
-        workflowMetadata?.type
-      );
-    },
-    [executeWorkflow, nodeTypes, workflowMetadata?.type]
-  );
-
   const handleWorkflowUpdate = useCallback(
     async (name: string, description?: string) => {
       if (!id || !orgHandle || !workflowMetadata) return;
@@ -318,10 +261,6 @@ export function EditorPage() {
     },
     [id, orgHandle]
   );
-
-  const handleDialogCancel = () => {
-    closeExecutionForm();
-  };
 
   if (nodeTypesError) {
     return (
@@ -374,28 +313,13 @@ export function EditorPage() {
           <WorkflowBuilder
             workflowId={id || ""}
             workflowType={workflowMetadata?.type as WorkflowType | undefined}
-            onSetSchedule={
-              workflowMetadata?.type === "cron"
-                ? handleOpenSetCronDialog
-                : undefined
-            }
-            onShowHttpIntegration={
-              workflowMetadata?.type === "http_request"
-                ? () => setIsHttpIntegrationDialogOpen(true)
-                : undefined
-            }
-            onShowEmailTrigger={
-              workflowMetadata?.type === "email_message"
-                ? () => setIsEmailTriggerDialogOpen(true)
-                : undefined
-            }
             initialNodes={initialNodesForUI}
             initialEdges={initialEdgesForUI}
             nodeTypes={nodeTypes || []}
             onNodesChange={handleUiNodesChanged}
             onEdgesChange={handleUiEdgesChanged}
             validateConnection={validateConnection}
-            executeWorkflow={editorExecuteWorkflow}
+            executeWorkflow={executeWorkflowWrapper}
             onDeployWorkflow={handleDeployWorkflow}
             createObjectUrl={createObjectUrl}
             workflowName={
@@ -403,72 +327,14 @@ export function EditorPage() {
             }
             workflowDescription={httpWorkflowMetadata?.description}
             onWorkflowUpdate={handleWorkflowUpdate}
+            orgHandle={orgHandle}
+            cronTrigger={cronTrigger}
+            mutateCronTrigger={mutateCronTrigger}
+            deploymentVersions={deploymentVersions}
+            mutateDeploymentHistory={mutateDeploymentHistory}
+            wsExecuteWorkflow={wsExecuteWorkflow}
           />
         </div>
-        {workflowMetadata?.type === "http_request" && (
-          <HttpIntegrationDialog
-            isOpen={isHttpIntegrationDialogOpen}
-            onClose={() => setIsHttpIntegrationDialogOpen(false)}
-            orgHandle={orgHandle}
-            workflowId={id!}
-            deploymentVersion="dev"
-            nodes={latestUiNodesRef.current}
-            nodeTypes={nodeTypes || []}
-          />
-        )}
-        {workflowMetadata?.type === "http_request" &&
-          executionFormParameters.length > 0 && (
-            <ExecutionFormDialog
-              isOpen={isFormDialogVisible}
-              onClose={closeExecutionForm}
-              onCancel={handleDialogCancel}
-              parameters={executionFormParameters}
-              onSubmit={submitFormData}
-            />
-          )}
-        {workflowMetadata?.type === "http_request" &&
-          executionJsonBodyParameters.length > 0 && (
-            <ExecutionJsonBodyDialog
-              isOpen={isJsonBodyDialogVisible}
-              onClose={closeExecutionForm}
-              onCancel={handleDialogCancel}
-              parameters={executionJsonBodyParameters}
-              onSubmit={submitJsonBody}
-            />
-          )}
-        {workflowMetadata?.type === "email_message" && (
-          <EmailTriggerDialog
-            isOpen={isEmailTriggerDialogOpen}
-            onClose={() => setIsEmailTriggerDialogOpen(false)}
-            orgHandle={orgHandle}
-            workflowHandle={workflowMetadata.handle}
-            deploymentVersion="dev"
-          />
-        )}
-        {workflowMetadata?.type === "email_message" && (
-          <ExecutionEmailDialog
-            isOpen={isEmailFormDialogVisible}
-            onClose={closeExecutionForm}
-            onCancel={handleDialogCancel}
-            onSubmit={submitEmailFormData}
-          />
-        )}
-        {workflowMetadata?.type === "cron" && (
-          <SetCronDialog
-            isOpen={isSetCronDialogOpen}
-            onClose={handleCloseSetCronDialog}
-            onSubmit={handleSaveCron}
-            initialData={{
-              cronExpression: cronTrigger?.cronExpression || "",
-              active:
-                cronTrigger?.active === undefined ? true : cronTrigger.active,
-              versionAlias: cronTrigger?.versionAlias || "dev",
-              versionNumber: cronTrigger?.versionNumber,
-            }}
-            deploymentVersions={deploymentVersions}
-            workflowName={workflowMetadata?.name}
-          />
-        )}
       </div>
     </ReactFlowProvider>
   );
