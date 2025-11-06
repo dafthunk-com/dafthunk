@@ -1,21 +1,18 @@
-import {
-  ExecutionStatusType,
-  Node,
+import type {
   QueueMessage,
   Workflow as WorkflowType,
 } from "@dafthunk/types";
 
-import { Bindings } from "./context";
+import type { Bindings } from "./context";
 import { createDatabase } from "./db";
 import {
   getOrganizationComputeCredits,
   getQueueTriggersByQueue,
 } from "./db/queries";
 import { DeploymentStore } from "./stores/deployment-store";
-import { ExecutionStore } from "./stores/execution-store";
 import { WorkflowStore } from "./stores/workflow-store";
 
-// This function handles the actual execution triggering and initial record saving
+// This function handles the actual execution triggering
 async function executeWorkflow(
   workflowInfo: {
     id: string;
@@ -28,8 +25,7 @@ async function executeWorkflow(
   queueMessage: QueueMessage,
   db: ReturnType<typeof createDatabase>,
   env: Bindings,
-  _ctx: ExecutionContext,
-  executionStore: ExecutionStore
+  _ctx: ExecutionContext
 ): Promise<void> {
   console.log(
     `Attempting to execute workflow ${workflowInfo.id} via queue message.`
@@ -46,6 +42,7 @@ async function executeWorkflow(
       return;
     }
 
+    // Trigger the runtime - it will handle execution persistence
     const executionInstance = await env.EXECUTE.create({
       params: {
         userId: "queue_trigger",
@@ -70,32 +67,12 @@ async function executeWorkflow(
       },
     });
 
-    const executionId = executionInstance.id;
     console.log(
-      `Workflow ${workflowInfo.id} started with execution ID: ${executionId}`
+      `Workflow ${workflowInfo.id} started with execution ID: ${executionInstance.id}`
     );
-
-    const nodeExecutions = workflowData.nodes.map((node: Node) => ({
-      nodeId: node.id,
-      status: "idle" as const,
-    }));
-
-    await executionStore.save({
-      id: executionId,
-      workflowId: workflowInfo.id,
-      deploymentId: deploymentId,
-      userId: "queue_trigger",
-      organizationId: workflowInfo.organizationId,
-      status: "executing" as ExecutionStatusType,
-      nodeExecutions,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      startedAt: new Date(),
-    });
-    console.log(`Initial execution record saved for ${executionId}`);
   } catch (execError) {
     console.error(
-      `Error executing workflow ${workflowInfo.id} or saving initial record:`,
+      `Error executing workflow ${workflowInfo.id}:`,
       execError
     );
   }
@@ -108,7 +85,6 @@ export async function handleQueueMessages(
 ): Promise<void> {
   console.log(`Queue batch received with ${batch.messages.length} messages`);
   const db = createDatabase(env.DB);
-  const executionStore = new ExecutionStore(env);
   const workflowStore = new WorkflowStore(env);
   const deploymentStore = new DeploymentStore(env);
 
@@ -264,8 +240,7 @@ export async function handleQueueMessages(
               queueMessage,
               db,
               env,
-              ctx,
-              executionStore
+              ctx
             );
           } catch (err) {
             console.error(`Error executing workflow ${workflow.id}:`, err);
