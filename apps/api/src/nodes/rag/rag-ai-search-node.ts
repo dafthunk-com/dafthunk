@@ -40,7 +40,7 @@ export class RagAiSearchNode extends ExecutableNode {
         type: "string",
         description: "The text-generation model to use",
         hidden: true,
-        value: "@cf/meta/llama-3.3-70b-instruct-sd",
+        value: "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
       },
       {
         name: "rewriteQuery",
