@@ -1,7 +1,4 @@
-import type {
-  QueueMessage,
-  Workflow as WorkflowType,
-} from "@dafthunk/types";
+import type { QueueMessage, Workflow as WorkflowType } from "@dafthunk/types";
 
 import type { Bindings } from "./context";
 import { createDatabase } from "./db";
@@ -71,10 +68,7 @@ async function executeWorkflow(
       `Workflow ${workflowInfo.id} started with execution ID: ${executionInstance.id}`
     );
   } catch (execError) {
-    console.error(
-      `Error executing workflow ${workflowInfo.id}:`,
-      execError
-    );
+    console.error(`Error executing workflow ${workflowInfo.id}:`, execError);
   }
 }
 

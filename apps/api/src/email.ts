@@ -125,7 +125,6 @@ async function triggerWorkflowForEmail({
   email: _email,
   organizationId,
   env,
-  executionStore,
   workflowStore,
   deploymentStore,
   from,

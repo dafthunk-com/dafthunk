@@ -17,21 +17,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { cn } from "@/utils/utils";
 import {
   upsertCronTrigger,
   useWorkflowExecution,
 } from "@/services/workflow-service";
+import { cn } from "@/utils/utils";
 
 import { EmailTriggerDialog } from "./email-trigger-dialog";
 import { ExecutionEmailDialog } from "./execution-email-dialog";
 import { ExecutionFormDialog } from "./execution-form-dialog";
 import { ExecutionJsonBodyDialog } from "./execution-json-body-dialog";
 import { HttpIntegrationDialog } from "./http-integration-dialog";
-import {
-  type CronFormData,
-  SetCronDialog,
-} from "./set-cron-dialog";
+import { type CronFormData, SetCronDialog } from "./set-cron-dialog";
 import { useWorkflowState } from "./use-workflow-state";
 import { WorkflowCanvas } from "./workflow-canvas";
 import { WorkflowProvider } from "./workflow-context";
@@ -73,7 +70,9 @@ export interface WorkflowBuilderProps {
   mutateCronTrigger?: (data?: any) => void;
   deploymentVersions?: number[];
   mutateDeploymentHistory?: () => void;
-  wsExecuteWorkflow?: (options?: { parameters?: Record<string, unknown> }) => void;
+  wsExecuteWorkflow?: (options?: {
+    parameters?: Record<string, unknown>;
+  }) => void;
 }
 
 export function WorkflowBuilder({
@@ -125,8 +124,10 @@ export function WorkflowBuilder({
 
   // Trigger dialog state
   const [isSetCronDialogOpen, setIsSetCronDialogOpen] = useState(false);
-  const [isHttpIntegrationDialogOpen, setIsHttpIntegrationDialogOpen] = useState(false);
-  const [isEmailTriggerDialogOpen, setIsEmailTriggerDialogOpen] = useState(false);
+  const [isHttpIntegrationDialogOpen, setIsHttpIntegrationDialogOpen] =
+    useState(false);
+  const [isEmailTriggerDialogOpen, setIsEmailTriggerDialogOpen] =
+    useState(false);
 
   // Use workflow execution hook for execution dialogs
   const {
@@ -358,7 +359,11 @@ export function WorkflowBuilder({
   const handleExecuteRequest = useCallback(
     (execute: (triggerData?: unknown) => void) => {
       // For manual and cron workflows, execute immediately (no dialog needed)
-      if (!workflowType || workflowType === "manual" || workflowType === "cron") {
+      if (
+        !workflowType ||
+        workflowType === "manual" ||
+        workflowType === "cron"
+      ) {
         execute();
         return;
       }
@@ -382,43 +387,53 @@ export function WorkflowBuilder({
     [workflowType, workflowId, executeWorkflowWithForm, nodes, nodeTypes]
   );
 
-  const handleExecute = useCallback((triggerData?: unknown) => {
-    if (!executeWorkflow) return null;
+  const handleExecute = useCallback(
+    (triggerData?: unknown) => {
+      if (!executeWorkflow) return null;
 
-    resetNodeStates("executing");
-    setWorkflowStatus("executing"); // Local immediate update
+      resetNodeStates("executing");
+      setWorkflowStatus("executing"); // Local immediate update
 
-    return executeWorkflow(workflowId, (execution: WorkflowExecution) => {
-      // Only update status if the new status is not 'idle' while we are 'executing',
-      // or if the local status is not 'executing' anymore (e.g., already completed/errored).
-      setWorkflowStatus((currentStatus) => {
-        if (currentStatus === "executing" && execution.status === "submitted") {
-          return currentStatus; // Ignore initial idle updates while executing
-        }
-        return execution.status; // Apply other status updates
-      });
+      return executeWorkflow(
+        workflowId,
+        (execution: WorkflowExecution) => {
+          // Only update status if the new status is not 'idle' while we are 'executing',
+          // or if the local status is not 'executing' anymore (e.g., already completed/errored).
+          setWorkflowStatus((currentStatus) => {
+            if (
+              currentStatus === "executing" &&
+              execution.status === "submitted"
+            ) {
+              return currentStatus; // Ignore initial idle updates while executing
+            }
+            return execution.status; // Apply other status updates
+          });
 
-      // Update workflow error message
-      setWorkflowErrorMessage(execution.error);
+          // Update workflow error message
+          setWorkflowErrorMessage(execution.error);
 
-      execution.nodeExecutions.forEach((nodeExecution) => {
-        updateNodeExecution(nodeExecution.nodeId, {
-          state: nodeExecution.status,
-          outputs: nodeExecution.outputs || {},
-          error: nodeExecution.error,
-        });
-      });
+          execution.nodeExecutions.forEach((nodeExecution) => {
+            updateNodeExecution(nodeExecution.nodeId, {
+              state: nodeExecution.status,
+              outputs: nodeExecution.outputs || {},
+              error: nodeExecution.error,
+            });
+          });
 
-      // Only show dialog for workflow-level errors (not node errors)
-      if (execution.status === "exhausted") {
-        setErrorDialogState({
-          open: true,
-          message:
-            "You have run out of compute credits. Thanks for checking out the preview. The code is available at https://github.com/dafthunk-com/dafthunk.",
-        });
-      }
-    }, triggerData);
-  }, [executeWorkflow, workflowId, resetNodeStates, updateNodeExecution]);
+          // Only show dialog for workflow-level errors (not node errors)
+          if (execution.status === "exhausted") {
+            setErrorDialogState({
+              open: true,
+              message:
+                "You have run out of compute credits. Thanks for checking out the preview. The code is available at https://github.com/dafthunk-com/dafthunk.",
+            });
+          }
+        },
+        triggerData
+      );
+    },
+    [executeWorkflow, workflowId, resetNodeStates, updateNodeExecution]
+  );
 
   const handleActionButtonClick = useCallback(
     (e: React.MouseEvent) => {

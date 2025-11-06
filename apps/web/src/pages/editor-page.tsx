@@ -77,7 +77,7 @@ export function EditorPage() {
   // Wrapper to convert wsExecuteWorkflow to the expected executeWorkflow signature
   const executeWorkflowWrapper = useCallback(
     (
-      workflowId: string,
+      _workflowId: string,
       onExecution: (execution: WorkflowExecution) => void,
       triggerData?: unknown
     ) => {
@@ -86,7 +86,9 @@ export function EditorPage() {
 
       if (wsExecuteWorkflow) {
         wsExecuteWorkflow({
-          parameters: triggerData ? (triggerData as Record<string, unknown>) : undefined,
+          parameters: triggerData
+            ? (triggerData as Record<string, unknown>)
+            : undefined,
         });
       }
       return undefined;
