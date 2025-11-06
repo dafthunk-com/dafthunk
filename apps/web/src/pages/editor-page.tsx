@@ -47,8 +47,6 @@ export function EditorPage() {
   const orgHandle = organization?.handle || "";
   const { getOrgUrl } = useOrgUrl();
 
-  const [workflowBuilderKey, setWorkflowBuilderKey] = useState(Date.now());
-
   const [isSetCronDialogOpen, setIsSetCronDialogOpen] = useState(false);
   const [isHttpIntegrationDialogOpen, setIsHttpIntegrationDialogOpen] =
     useState(false);
@@ -323,7 +321,6 @@ export function EditorPage() {
 
   const handleDialogCancel = () => {
     closeExecutionForm();
-    setWorkflowBuilderKey(Date.now());
   };
 
   if (nodeTypesError) {
@@ -375,7 +372,6 @@ export function EditorPage() {
       <div className="h-full w-full flex flex-col relative">
         <div className="h-full w-full flex-grow">
           <WorkflowBuilder
-            key={workflowBuilderKey}
             workflowId={id || ""}
             workflowType={workflowMetadata?.type as WorkflowType | undefined}
             onSetSchedule={
