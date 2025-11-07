@@ -75,6 +75,34 @@ export interface WorkflowBuilderProps {
   }) => void;
 }
 
+// Helper: Apply initial execution state to nodes
+function applyInitialExecution(
+  execution: WorkflowExecution,
+  nodes: ReactFlowNode<WorkflowNodeType>[],
+  updateNodeData: (nodeId: string, data: Partial<WorkflowNodeType>) => void
+) {
+  execution.nodeExecutions.forEach((nodeExec) => {
+    const node = nodes.find((n) => n.id === nodeExec.nodeId);
+    if (!node) return;
+
+    const updatedOutputs = node.data.outputs.map((output) => {
+      const outputValue = nodeExec.outputs?.[output.id] ?? nodeExec.outputs?.[output.name];
+      return { ...output, value: outputValue };
+    });
+
+    const executionState =
+      nodeExec.status === "idle" && updatedOutputs.some((o) => o.value !== undefined)
+        ? "completed"
+        : nodeExec.status;
+
+    updateNodeData(nodeExec.nodeId, {
+      outputs: updatedOutputs,
+      executionState,
+      error: nodeExec.error,
+    });
+  });
+}
+
 export function WorkflowBuilder({
   workflowId,
   workflowType,
@@ -107,19 +135,12 @@ export function WorkflowBuilder({
   const [workflowErrorMessage, setWorkflowErrorMessage] = useState<
     string | undefined
   >(initialWorkflowExecution?.error);
-  const [errorDialogState, setErrorDialogState] = useState<{
-    open: boolean;
-    message: string;
-  }>({
-    open: initialWorkflowExecution?.status === "exhausted",
-    message:
-      initialWorkflowExecution?.status === "exhausted"
-        ? "You have run out of compute credits. Thanks for checking out the preview. The code is available at https://github.com/dafthunk-com/dafthunk."
-        : "",
-  });
+  const [errorDialogOpen, setErrorDialogOpen] = useState(
+    initialWorkflowExecution?.status === "exhausted"
+  );
   const cleanupRef = useRef<(() => void | Promise<void>) | null>(null);
   const initializedRef = useRef(false);
-  const [sidebarWidth, setSidebarWidth] = useState(384); // w-96 = 384px
+  const [sidebarWidth, setSidebarWidth] = useState(384);
   const [isResizing, setIsResizing] = useState(false);
 
   // Trigger dialog state
@@ -183,86 +204,15 @@ export function WorkflowBuilder({
     disabled,
   });
 
-  // Apply initial workflow execution state
+  // Apply initial workflow execution state once
   useEffect(() => {
-    // Only apply the initial state once
-    if (
-      initialWorkflowExecution &&
-      !initializedRef.current &&
-      nodes.length > 0
-    ) {
+    if (initialWorkflowExecution && !initializedRef.current && nodes.length > 0) {
       initializedRef.current = true;
       setWorkflowStatus(initialWorkflowExecution.status);
+      applyInitialExecution(initialWorkflowExecution, nodes, updateNodeData);
 
-      console.log(
-        "Initializing workflow with execution:",
-        initialWorkflowExecution
-      );
-
-      // Process each node execution
-      initialWorkflowExecution.nodeExecutions.forEach((nodeExec) => {
-        const node = nodes.find((n) => n.id === nodeExec.nodeId);
-        if (!node) {
-          console.warn(`Node not found for execution: ${nodeExec.nodeId}`);
-          return;
-        }
-
-        console.log(`Processing node ${nodeExec.nodeId}:`, {
-          node: node.data,
-          execution: nodeExec,
-        });
-
-        // Create updated outputs with values
-        const updatedOutputs = node.data.outputs.map((output) => {
-          // Try to find the output value using both id and name
-          let outputValue = undefined;
-          if (nodeExec.outputs) {
-            // First check by id
-            outputValue = nodeExec.outputs[output.id];
-
-            // If not found, check by name
-            if (outputValue === undefined) {
-              outputValue = nodeExec.outputs[output.name];
-            }
-          }
-
-          console.log(`Output ${output.name}:`, {
-            original: output.value,
-            new: outputValue,
-            nodeExecutionOutputs: nodeExec.outputs,
-          });
-
-          return {
-            ...output,
-            value: outputValue,
-          };
-        });
-
-        console.log(`Updated outputs for ${nodeExec.nodeId}:`, updatedOutputs);
-
-        // Force the executionState to be completed even if it's not in the execution
-        // This ensures the outputs are displayed
-        const executionState =
-          nodeExec.status === "idle" &&
-          updatedOutputs.some((o) => o.value !== undefined)
-            ? "completed"
-            : nodeExec.status;
-
-        // Update the node data
-        updateNodeData(nodeExec.nodeId, {
-          outputs: updatedOutputs,
-          executionState: executionState,
-          error: nodeExec.error,
-        });
-      });
-
-      // Handle error dialog only for workflow-level errors (not node errors)
       if (initialWorkflowExecution.status === "exhausted") {
-        setErrorDialogState({
-          open: true,
-          message:
-            "You have run out of compute credits. Thanks for checking out the preview. The code is available at https://github.com/dafthunk-com/dafthunk.",
-        });
+        setErrorDialogOpen(true);
       }
     }
   }, [initialWorkflowExecution, nodes, updateNodeData]);
@@ -281,27 +231,11 @@ export function WorkflowBuilder({
     [nodes, updateNodeExecution]
   );
 
-  // Cron dialog handlers
-  const handleOpenSetCronDialog = useCallback(() => {
-    mutateDeploymentHistory?.();
-    mutateCronTrigger?.();
-    setIsSetCronDialogOpen(true);
-  }, [mutateDeploymentHistory, mutateCronTrigger]);
-
-  const handleCloseSetCronDialog = useCallback(() => {
-    setIsSetCronDialogOpen(false);
-  }, []);
-
   const handleSaveCron = useCallback(
     async (data: CronFormData) => {
       if (!workflowId || !orgHandle) return;
       try {
-        const updatedCron = await upsertCronTrigger(workflowId, orgHandle, {
-          cronExpression: data.cronExpression,
-          active: data.active,
-          versionAlias: data.versionAlias,
-          versionNumber: data.versionNumber,
-        });
+        const updatedCron = await upsertCronTrigger(workflowId, orgHandle, data);
         mutateCronTrigger?.(updatedCron);
         toast.success("Cron schedule saved successfully.");
         setIsSetCronDialogOpen(false);
@@ -313,44 +247,10 @@ export function WorkflowBuilder({
     [workflowId, orgHandle, mutateCronTrigger]
   );
 
-  // Execution dialog handlers
-  const handleDialogCancel = useCallback(() => {
-    closeExecutionForm();
-    executeRef.current = null;
-  }, [closeExecutionForm]);
-
-  const handleFormSubmit = useCallback(
-    (formData: Record<string, any>) => {
-      if (executeRef.current) {
-        executeRef.current(formData);
-        executeRef.current = null;
-      }
-      closeExecutionForm();
-    },
-    [closeExecutionForm]
-  );
-
-  const handleJsonBodySubmit = useCallback(
-    (jsonData: Record<string, any>) => {
-      if (executeRef.current) {
-        executeRef.current({ jsonBody: jsonData.jsonBody });
-        executeRef.current = null;
-      }
-      closeExecutionForm();
-    },
-    [closeExecutionForm]
-  );
-
-  const handleEmailSubmit = useCallback(
-    (emailData: { from: string; subject: string; body: string }) => {
-      if (executeRef.current) {
-        executeRef.current({
-          from: emailData.from,
-          subject: emailData.subject,
-          body: emailData.body,
-        });
-        executeRef.current = null;
-      }
+  const handleDialogSubmit = useCallback(
+    (data: unknown) => {
+      executeRef.current?.(data);
+      executeRef.current = null;
       closeExecutionForm();
     },
     [closeExecutionForm]
@@ -420,13 +320,8 @@ export function WorkflowBuilder({
             });
           });
 
-          // Only show dialog for workflow-level errors (not node errors)
           if (execution.status === "exhausted") {
-            setErrorDialogState({
-              open: true,
-              message:
-                "You have run out of compute credits. Thanks for checking out the preview. The code is available at https://github.com/dafthunk-com/dafthunk.",
-            });
+            setErrorDialogOpen(true);
           }
         },
         triggerData
@@ -435,72 +330,47 @@ export function WorkflowBuilder({
     [executeWorkflow, workflowId, resetNodeStates, updateNodeExecution]
   );
 
+  const startExecution = useCallback(() => {
+    handleExecuteRequest((triggerData) => {
+      const cleanup = handleExecute(triggerData);
+      if (cleanup) cleanupRef.current = cleanup;
+    });
+  }, [handleExecute, handleExecuteRequest]);
+
   const handleActionButtonClick = useCallback(
     (e: React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
 
-      switch (workflowStatus) {
-        case "idle": {
-          handleExecuteRequest((triggerData) => {
-            const cleanup = handleExecute(triggerData);
-            if (cleanup) cleanupRef.current = cleanup;
-          });
-          break;
+      if (workflowStatus === "idle" || workflowStatus === "cancelled") {
+        if (workflowStatus === "cancelled") resetNodeStates();
+        startExecution();
+      } else if (workflowStatus === "submitted" || workflowStatus === "executing") {
+        if (cleanupRef.current) {
+          Promise.resolve(cleanupRef.current()).catch((error) =>
+            console.error("Error during cleanup:", error)
+          );
+          cleanupRef.current = null;
         }
-        case "submitted":
-        case "executing": {
-          if (cleanupRef.current) {
-            const cleanup = cleanupRef.current();
-            if (cleanup instanceof Promise) {
-              cleanup.catch((error) => {
-                console.error("Error during cleanup:", error);
-              });
-            }
-            cleanupRef.current = null;
-          }
-          setWorkflowStatus("cancelled");
-          break;
-        }
-        case "completed":
-        case "error":
-        case "exhausted": {
-          resetNodeStates();
-          setWorkflowStatus("idle");
-          break;
-        }
-        case "cancelled": {
-          resetNodeStates();
-          handleExecuteRequest((triggerData) => {
-            const cleanup = handleExecute(triggerData);
-            if (cleanup) cleanupRef.current = cleanup;
-          });
-          break;
-        }
+        setWorkflowStatus("cancelled");
+      } else {
+        // completed, error, exhausted
+        resetNodeStates();
+        setWorkflowStatus("idle");
       }
     },
-    [workflowStatus, handleExecute, resetNodeStates, handleExecuteRequest]
+    [workflowStatus, resetNodeStates, startExecution]
   );
 
-  const toggleSidebar = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const toggleSidebar = useCallback(() => {
     setIsSidebarVisible((prev) => !prev);
   }, []);
 
-  const handleFitToScreen = useCallback(
-    (e: React.MouseEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      if (reactFlowInstance) {
-        reactFlowInstance.fitView({ padding: 0.25, duration: 200, maxZoom: 2 });
-      }
-    },
-    [reactFlowInstance]
-  );
+  const handleFitToScreen = useCallback(() => {
+    reactFlowInstance?.fitView({ padding: 0.25, duration: 200, maxZoom: 2 });
+  }, [reactFlowInstance]);
 
-  const handleNodeDoubleClick = useCallback((event: React.MouseEvent) => {
-    event.stopPropagation();
+  const handleNodeDoubleClick = useCallback(() => {
     setIsSidebarVisible(true);
   }, []);
 
@@ -576,7 +446,13 @@ export function WorkflowBuilder({
               workflowErrorMessage={workflowErrorMessage}
               workflowType={workflowType}
               onSetSchedule={
-                workflowType === "cron" ? handleOpenSetCronDialog : undefined
+                workflowType === "cron"
+                  ? () => {
+                      mutateDeploymentHistory?.();
+                      mutateCronTrigger?.();
+                      setIsSetCronDialogOpen(true);
+                    }
+                  : undefined
               }
               onShowHttpIntegration={
                 workflowType === "http_request"
@@ -667,12 +543,11 @@ export function WorkflowBuilder({
         {workflowType === "cron" && (
           <SetCronDialog
             isOpen={isSetCronDialogOpen}
-            onClose={handleCloseSetCronDialog}
+            onClose={() => setIsSetCronDialogOpen(false)}
             onSubmit={handleSaveCron}
             initialData={{
               cronExpression: cronTrigger?.cronExpression || "",
-              active:
-                cronTrigger?.active === undefined ? true : cronTrigger.active,
+              active: cronTrigger?.active ?? true,
               versionAlias: cronTrigger?.versionAlias || "dev",
               versionNumber: cronTrigger?.versionNumber,
             }}
@@ -687,9 +562,12 @@ export function WorkflowBuilder({
             <ExecutionFormDialog
               isOpen={isFormDialogVisible}
               onClose={closeExecutionForm}
-              onCancel={handleDialogCancel}
+              onCancel={() => {
+                closeExecutionForm();
+                executeRef.current = null;
+              }}
               parameters={executionFormParameters}
-              onSubmit={handleFormSubmit}
+              onSubmit={handleDialogSubmit}
             />
           )}
 
@@ -698,9 +576,12 @@ export function WorkflowBuilder({
             <ExecutionJsonBodyDialog
               isOpen={isJsonBodyDialogVisible}
               onClose={closeExecutionForm}
-              onCancel={handleDialogCancel}
+              onCancel={() => {
+                closeExecutionForm();
+                executeRef.current = null;
+              }}
               parameters={executionJsonBodyParameters}
-              onSubmit={handleJsonBodySubmit}
+              onSubmit={(data) => handleDialogSubmit({ jsonBody: data.jsonBody })}
             />
           )}
 
@@ -708,30 +589,26 @@ export function WorkflowBuilder({
           <ExecutionEmailDialog
             isOpen={isEmailFormDialogVisible}
             onClose={closeExecutionForm}
-            onCancel={handleDialogCancel}
-            onSubmit={handleEmailSubmit}
+            onCancel={() => {
+              closeExecutionForm();
+              executeRef.current = null;
+            }}
+            onSubmit={handleDialogSubmit}
           />
         )}
 
-        <Dialog
-          open={errorDialogState.open}
-          onOpenChange={(open) =>
-            setErrorDialogState((prev) => ({ ...prev, open }))
-          }
-        >
+        <Dialog open={errorDialogOpen} onOpenChange={setErrorDialogOpen}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Workflow Execution Error</DialogTitle>
-              <DialogDescription>{errorDialogState.message}</DialogDescription>
+              <DialogDescription>
+                You have run out of compute credits. Thanks for checking out the
+                preview. The code is available at
+                https://github.com/dafthunk-com/dafthunk.
+              </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-              <Button
-                onClick={() =>
-                  setErrorDialogState((prev) => ({ ...prev, open: false }))
-                }
-              >
-                Close
-              </Button>
+              <Button onClick={() => setErrorDialogOpen(false)}>Close</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

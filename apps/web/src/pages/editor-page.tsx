@@ -47,16 +47,9 @@ export function EditorPage() {
 
   const { createObjectUrl } = useObjectService();
 
-  // Store the callback from WorkflowBuilder to forward execution updates
   const executionCallbackRef = useRef<
     ((execution: WorkflowExecution) => void) | null
   >(null);
-
-  const handleExecutionUpdate = useCallback((execution: WorkflowExecution) => {
-    if (executionCallbackRef.current) {
-      executionCallbackRef.current(execution);
-    }
-  }, []);
 
   const {
     nodes: initialNodesForUI,
@@ -71,26 +64,19 @@ export function EditorPage() {
   } = useEditableWorkflow({
     workflowId: id,
     nodeTypes: nodeTypes || [],
-    onExecutionUpdate: handleExecutionUpdate,
+    onExecutionUpdate: (execution) => executionCallbackRef.current?.(execution),
   });
 
-  // Wrapper to convert wsExecuteWorkflow to the expected executeWorkflow signature
   const executeWorkflowWrapper = useCallback(
     (
       _workflowId: string,
       onExecution: (execution: WorkflowExecution) => void,
       triggerData?: unknown
     ) => {
-      // Store the callback so we can forward execution updates
       executionCallbackRef.current = onExecution;
-
-      if (wsExecuteWorkflow) {
-        wsExecuteWorkflow({
-          parameters: triggerData
-            ? (triggerData as Record<string, unknown>)
-            : undefined,
-        });
-      }
+      wsExecuteWorkflow?.({
+        parameters: triggerData as Record<string, unknown> | undefined,
+      });
       return undefined;
     },
     [wsExecuteWorkflow]
@@ -113,40 +99,27 @@ export function EditorPage() {
     [deploymentHistory]
   );
 
-  // Use refs for both nodes and edges to avoid stale closures and unnecessary re-renders
-  // Both are only used for validation, execution, and saving - no UI rendering depends on them
-  const latestUiNodesRef = useRef<Node<WorkflowNodeType>[]>([]);
-  const latestUiEdgesRef = useRef<Edge<WorkflowEdgeType>[]>([]);
+  const nodesRef = useRef<Node<WorkflowNodeType>[]>([]);
+  const edgesRef = useRef<Edge<WorkflowEdgeType>[]>([]);
 
-  useEffect(() => {
-    if (initialNodesForUI) {
-      latestUiNodesRef.current = initialNodesForUI;
-    }
-  }, [initialNodesForUI]);
-
-  useEffect(() => {
-    if (initialEdgesForUI) {
-      latestUiEdgesRef.current = initialEdgesForUI;
-    }
-  }, [initialEdgesForUI]);
+  nodesRef.current = initialNodesForUI || [];
+  edgesRef.current = initialEdgesForUI || [];
 
   const handleUiNodesChanged = useCallback(
-    (updatedNodesFromUI: Node<WorkflowNodeType>[]) => {
-      latestUiNodesRef.current = updatedNodesFromUI;
+    (nodes: Node<WorkflowNodeType>[]) => {
+      nodesRef.current = nodes;
       if (workflowMetadata) {
-        // Use refs for both to get current values without stale closures
-        saveWorkflow(updatedNodesFromUI, latestUiEdgesRef.current);
+        saveWorkflow(nodes, edgesRef.current);
       }
     },
     [saveWorkflow, workflowMetadata]
   );
 
   const handleUiEdgesChanged = useCallback(
-    (updatedEdgesFromUI: Edge<WorkflowEdgeType>[]) => {
-      latestUiEdgesRef.current = updatedEdgesFromUI;
+    (edges: Edge<WorkflowEdgeType>[]) => {
+      edgesRef.current = edges;
       if (workflowMetadata) {
-        // Use refs for both to get current values without stale closures
-        saveWorkflow(latestUiNodesRef.current, updatedEdgesFromUI);
+        saveWorkflow(nodesRef.current, edges);
       }
     },
     [saveWorkflow, workflowMetadata]
@@ -177,66 +150,52 @@ export function EditorPage() {
     [httpWorkflowMetadata?.name, workflowMetadata?.name]
   );
 
-  const validateConnection = useCallback(
-    (connection: Connection) => {
-      const sourceNode = latestUiNodesRef.current.find(
-        (node) => node.id === connection.source
-      );
-      const targetNode = latestUiNodesRef.current.find(
-        (node) => node.id === connection.target
-      );
-      if (!sourceNode || !targetNode) return false;
+  const validateConnection = useCallback((connection: Connection) => {
+    const sourceNode = nodesRef.current.find(
+      (node) => node.id === connection.source
+    );
+    const targetNode = nodesRef.current.find(
+      (node) => node.id === connection.target
+    );
+    if (!sourceNode || !targetNode) return false;
 
-      const sourceOutput = sourceNode.data.outputs.find(
-        (output) => output.id === connection.sourceHandle
-      );
-      const targetInput = targetNode.data.inputs.find(
-        (input) => input.id === connection.targetHandle
-      );
-      if (!sourceOutput || !targetInput) return false;
+    const sourceOutput = sourceNode.data.outputs.find(
+      (output) => output.id === connection.sourceHandle
+    );
+    const targetInput = targetNode.data.inputs.find(
+      (input) => input.id === connection.targetHandle
+    );
+    if (!sourceOutput || !targetInput) return false;
 
-      // Define blob-compatible types
-      const blobTypes = new Set([
-        "image",
-        "audio",
-        "document",
-        "buffergeometry",
-        "gltf",
-      ]);
+    const blobTypes = new Set([
+      "image",
+      "audio",
+      "document",
+      "buffergeometry",
+      "gltf",
+    ]);
 
-      const exactMatch = sourceOutput.type === targetInput.type;
-      const anyTypeMatch =
-        sourceOutput.type === "any" || targetInput.type === "any";
-      const blobCompatible =
-        (sourceOutput.type === "blob" && blobTypes.has(targetInput.type)) ||
-        (targetInput.type === "blob" && blobTypes.has(sourceOutput.type));
+    const exactMatch = sourceOutput.type === targetInput.type;
+    const anyTypeMatch =
+      sourceOutput.type === "any" || targetInput.type === "any";
+    const blobCompatible =
+      (sourceOutput.type === "blob" && blobTypes.has(targetInput.type)) ||
+      (targetInput.type === "blob" && blobTypes.has(sourceOutput.type));
 
-      const typesMatch = exactMatch || anyTypeMatch || blobCompatible;
-
-      return typesMatch;
-    },
-    [] // No dependencies since we're using refs
-  );
+    return exactMatch || anyTypeMatch || blobCompatible;
+  }, []);
 
   const handleWorkflowUpdate = useCallback(
     async (name: string, description?: string) => {
-      if (!id || !orgHandle || !workflowMetadata) return;
+      if (!id || !orgHandle) return;
 
       try {
         const fullWorkflow = await getWorkflow(id, orgHandle);
         await updateWorkflow(
           id,
-          {
-            name,
-            description,
-            type: fullWorkflow.type,
-            nodes: fullWorkflow.nodes,
-            edges: fullWorkflow.edges,
-          },
+          { ...fullWorkflow, name, description },
           orgHandle
         );
-
-        // Refresh HTTP metadata to get updated description
         const updatedMetadata = await getWorkflow(id, orgHandle);
         setHttpWorkflowMetadata(updatedMetadata);
       } catch (error) {
@@ -244,7 +203,7 @@ export function EditorPage() {
         toast.error("Failed to update workflow metadata");
       }
     },
-    [id, orgHandle, workflowMetadata]
+    [id, orgHandle]
   );
 
   const handleDeployWorkflow = useCallback(
@@ -264,6 +223,18 @@ export function EditorPage() {
     [id, orgHandle]
   );
 
+  useEffect(() => {
+    if (workflowSavingError) {
+      toast.error(`Workflow saving error: ${workflowSavingError}`);
+    }
+  }, [workflowSavingError]);
+
+  useEffect(() => {
+    if (workflowConnectionError) {
+      toast.error(`Connection error: ${workflowConnectionError}`);
+    }
+  }, [workflowConnectionError]);
+
   if (nodeTypesError) {
     return (
       <WorkflowError
@@ -273,39 +244,25 @@ export function EditorPage() {
     );
   }
 
-  if (workflowSavingError) {
-    toast.error(`Workflow saving error: ${workflowSavingError}`);
-  }
-
-  if (workflowConnectionError) {
-    toast.error(`Connection error: ${workflowConnectionError}`);
-  }
-
-  if (
+  const isLoading =
     isNodeTypesLoading ||
     isWorkflowInitializing ||
     isCronTriggerLoading ||
-    isDeploymentHistoryLoading
-  ) {
+    isDeploymentHistoryLoading ||
+    !initialNodesForUI ||
+    !initialEdgesForUI;
+
+  if (isLoading) {
     return <InsetLoading />;
   }
 
-  if (
-    !workflowMetadata &&
-    !isNodeTypesLoading &&
-    !nodeTypesError &&
-    !isWorkflowInitializing
-  ) {
+  if (!workflowMetadata) {
     return (
       <WorkflowError
         message={`Workflow with ID "${id}" not found, or could not be loaded via WebSocket.`}
         onRetry={() => navigate(getOrgUrl("workflows"))}
       />
     );
-  }
-
-  if (!initialNodesForUI || !initialEdgesForUI) {
-    return <InsetLoading />;
   }
 
   return (
