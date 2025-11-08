@@ -277,16 +277,12 @@ export const cronTriggers = sqliteTable(
       .references(() => workflows.id, { onDelete: "cascade" }),
     cronExpression: text("cron_expression").notNull(),
     active: integer("active", { mode: "boolean" }).notNull().default(true),
-    lastRun: integer("last_run", { mode: "timestamp" }),
-    nextRunAt: integer("next_run_at", { mode: "timestamp" }),
     createdAt: createCreatedAt(),
     updatedAt: createUpdatedAt(),
   },
   (table) => [
     index("cron_triggers_workflow_id_idx").on(table.workflowId),
     index("cron_triggers_active_idx").on(table.active),
-    index("cron_triggers_last_run_idx").on(table.lastRun),
-    index("cron_triggers_next_run_at_idx").on(table.nextRunAt),
     index("cron_triggers_created_at_idx").on(table.createdAt),
     index("cron_triggers_updated_at_idx").on(table.updatedAt),
   ]
