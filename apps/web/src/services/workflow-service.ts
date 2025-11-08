@@ -6,13 +6,11 @@ import {
   Edge,
   ExecuteWorkflowRequest,
   ExecuteWorkflowResponse,
-  GetCronTriggerResponse,
   GetEmailTriggerResponse,
   GetWorkflowResponse,
   ListWorkflowsResponse,
   UpdateWorkflowRequest,
   UpdateWorkflowResponse,
-  UpsertCronTriggerResponse,
   WorkflowExecution,
   WorkflowWithMetadata,
 } from "@dafthunk/types";
@@ -710,52 +708,6 @@ export function useWorkflowExecution(
 }
 
 /**
- * Hook to get a cron trigger for a specific workflow
- */
-export const useCronTrigger = (
-  workflowId: string | null,
-  options?: SWRConfiguration<GetCronTriggerResponse | null>
-) => {
-  const { organization } = useAuth();
-  const orgHandle = organization?.handle;
-  const { data, error, isLoading, mutate } =
-    useSWR<GetCronTriggerResponse | null>(
-      orgHandle && workflowId
-        ? `/${orgHandle}${API_ENDPOINT_BASE}/${workflowId}/cron`
-        : null,
-      orgHandle && workflowId
-        ? async () => {
-            try {
-              const response = await makeOrgRequest<GetCronTriggerResponse>(
-                orgHandle,
-                API_ENDPOINT_BASE,
-                `/${workflowId}/cron`
-              );
-              return response;
-            } catch (error) {
-              if (
-                error instanceof Error &&
-                "status" in error &&
-                (error as any).status === 404
-              ) {
-                return null;
-              }
-              throw error;
-            }
-          }
-        : null,
-      options
-    );
-
-  return {
-    cronTrigger: data || null,
-    cronTriggerError: error || null,
-    isCronTriggerLoading: isLoading,
-    mutateCronTrigger: mutate,
-  };
-};
-
-/**
  * Hook to get an email trigger for a specific workflow
  */
 export const useEmailTrigger = (
@@ -801,26 +753,3 @@ export const useEmailTrigger = (
   };
 };
 
-/**
- * Create or update a cron trigger for a workflow
- */
-export const upsertCronTrigger = async (
-  workflowId: string,
-  orgHandle: string,
-  data: {
-    cronExpression: string;
-    versionAlias: "dev" | "latest" | "version";
-    versionNumber?: number | null;
-    active: boolean;
-  }
-): Promise<UpsertCronTriggerResponse> => {
-  return await makeOrgRequest<UpsertCronTriggerResponse>(
-    orgHandle,
-    API_ENDPOINT_BASE,
-    `/${workflowId}/cron`,
-    {
-      method: "PUT",
-      body: JSON.stringify(data),
-    }
-  );
-};

@@ -8,9 +8,6 @@ import {
   type ApiKeyInsert,
   apiKeys,
   createDatabase,
-  type CronTriggerInsert,
-  type CronTriggerRow,
-  cronTriggers,
   type DatasetInsert,
   type DatasetRow,
   datasets,
@@ -443,123 +440,6 @@ export async function deleteApiKey(
  * @param organizationId Organization ID
  * @returns The latest version number or null if no deployments exist
  */
-
-/**
- * Get a cron trigger.
- *
- * @param db Database instance
- * @param workflowId Workflow ID
- * @param organizationIdOrHandle Organization ID or handle
- * @returns Cron trigger record or undefined.
- */
-export async function getCronTrigger(
-  db: ReturnType<typeof createDatabase>,
-  workflowId: string,
-  organizationIdOrHandle: string
-): Promise<CronTriggerRow | undefined> {
-  const [cronTrigger] = await db
-    .select()
-    .from(cronTriggers)
-    .innerJoin(workflows, eq(cronTriggers.workflowId, workflows.id))
-    .innerJoin(
-      organizations,
-      and(
-        eq(workflows.organizationId, organizations.id),
-        getOrganizationCondition(organizationIdOrHandle)
-      )
-    )
-    .where(eq(cronTriggers.workflowId, workflowId))
-    .limit(1);
-
-  return cronTrigger?.cron_triggers;
-}
-
-/**
- * Create or update a cron trigger.
- *
- * @param db Database instance
- * @param values Cron trigger data.
- * @returns The created or updated cron trigger record.
- */
-export async function upsertCronTrigger(
-  db: ReturnType<typeof createDatabase>,
-  values: CronTriggerInsert
-): Promise<CronTriggerRow> {
-  const now = new Date();
-  const updateSet = {
-    ...values,
-    updatedAt: now,
-  };
-  const [upsertedCron] = await db
-    .insert(cronTriggers)
-    .values({
-      ...values,
-      updatedAt: now,
-    })
-    .onConflictDoUpdate({
-      target: cronTriggers.workflowId,
-      set: updateSet,
-    })
-    .returning();
-
-  return upsertedCron;
-}
-
-/**
- * Update run times for a cron trigger.
- *
- * @param db Database instance
- * @param workflowId Workflow ID
- * @param nextRunAt New next run time
- * @param lastRun Current execution time
- * @returns Updated cron trigger record or undefined.
- */
-export async function updateCronTriggerRunTimes(
-  db: ReturnType<typeof createDatabase>,
-  workflowId: string,
-  nextRunAt: Date,
-  lastRun: Date
-): Promise<CronTriggerRow | undefined> {
-  const now = new Date();
-  const [updatedTrigger] = await db
-    .update(cronTriggers)
-    .set({
-      lastRun: lastRun,
-      nextRunAt: nextRunAt,
-      updatedAt: now,
-    })
-    .where(eq(cronTriggers.workflowId, workflowId))
-    .returning();
-  return updatedTrigger;
-}
-
-/**
- * Get active, due cron triggers together with the workflow and (optionally) a
- * deployment that should be executed.
- */
-export async function getDueCronTriggers(
-  db: ReturnType<typeof createDatabase>,
-  now: Date
-): Promise<
-  {
-    cronTrigger: CronTriggerRow;
-    workflow: WorkflowRow;
-  }[]
-> {
-  // Simplified query: just join workflows to get activeDeploymentId
-  // The handler will use that to determine dev vs prod execution path
-  const rows = await db
-    .select({
-      cronTrigger: cronTriggers,
-      workflow: workflows,
-    })
-    .from(cronTriggers)
-    .where(and(eq(cronTriggers.active, true), lte(cronTriggers.nextRunAt, now)))
-    .innerJoin(workflows, eq(workflows.id, cronTriggers.workflowId))
-    .all();
-
-  return rows;
-}
 
 /**
  * Get all datasets for an organization

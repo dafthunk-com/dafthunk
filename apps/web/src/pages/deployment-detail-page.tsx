@@ -40,10 +40,6 @@ import {
 import { EmailTriggerDialog } from "@/components/workflow/email-trigger-dialog";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
 import { HttpIntegrationDialog } from "@/components/workflow/http-integration-dialog";
-import {
-  type CronFormData,
-  SetCronDialog,
-} from "@/components/workflow/set-cron-dialog";
 import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import {
@@ -52,8 +48,6 @@ import {
 } from "@/services/deployment-service";
 import { useNodeTypes } from "@/services/type-service";
 import {
-  upsertCronTrigger,
-  useCronTrigger,
   useWorkflow,
   useWorkflowExecution,
 } from "@/services/workflow-service";
@@ -167,8 +161,6 @@ export function DeploymentDetailPage() {
   const [expandedHistory, setExpandedHistory] = useState(false);
   const [isIntegrationDialogOpen, setIsIntegrationDialogOpen] = useState(false);
 
-  const { cronTrigger, mutateCronTrigger } = useCronTrigger(workflowId!);
-
   const {
     workflow: workflowSummary,
     deployments,
@@ -251,29 +243,6 @@ export function DeploymentDetailPage() {
     );
   };
 
-  const handleSaveCron = async (data: CronFormData) => {
-    if (!workflowId || !orgHandle) return;
-    try {
-      const updatedCron = await upsertCronTrigger(workflowId, orgHandle, {
-        cronExpression: data.cronExpression,
-        active: data.active,
-        versionAlias: data.versionAlias,
-        versionNumber: data.versionNumber,
-      });
-      mutateCronTrigger(updatedCron);
-      toast.success("Cron schedule saved successfully.");
-      setIsIntegrationDialogOpen(false);
-    } catch (error) {
-      console.error("Failed to save cron schedule:", error);
-      toast.error("Failed to save cron schedule. Please try again.");
-    }
-  };
-
-  const handleOpenSetCronDialog = useCallback(() => {
-    mutateCronTrigger(); // Ensure cron trigger data is fresh
-    setIsIntegrationDialogOpen(true);
-  }, [mutateCronTrigger]);
-
   const displayDeployments = expandedHistory
     ? deployments || []
     : deployments.slice(0, 3) || [];
@@ -320,7 +289,6 @@ export function DeploymentDetailPage() {
     manual: "Manual",
     http_request: "HTTP Request",
     email_message: "Email Message",
-    cron: "Scheduled",
   };
 
   return (
@@ -352,12 +320,6 @@ export function DeploymentDetailPage() {
                   <Button onClick={() => setIsIntegrationDialogOpen(true)}>
                     <Mail className="mr-2 h-4 w-4" />
                     Show Email Trigger
-                  </Button>
-                )}
-                {workflow.type === "cron" && (
-                  <Button onClick={handleOpenSetCronDialog}>
-                    <CalendarClock className="mr-2 h-4 w-4" />
-                    Set Schedule
                   </Button>
                 )}
               </div>
@@ -481,24 +443,6 @@ export function DeploymentDetailPage() {
             workflowId={workflowId}
           />
         )}
-
-      {/* Cron Integration Dialog */}
-      {workflow?.type === "cron" && currentDeployment && (
-        <SetCronDialog
-          isOpen={isIntegrationDialogOpen}
-          onClose={() => setIsIntegrationDialogOpen(false)}
-          onSubmit={handleSaveCron}
-          initialData={{
-            cronExpression: cronTrigger?.cronExpression || "",
-            active:
-              cronTrigger?.active === undefined ? true : cronTrigger.active,
-            versionAlias: cronTrigger?.versionAlias || "dev",
-            versionNumber: cronTrigger?.versionNumber,
-          }}
-          deploymentVersions={[currentDeployment.version]}
-          workflowName={workflowSummary?.name || ""}
-        />
-      )}
     </InsetLayout>
   );
 }

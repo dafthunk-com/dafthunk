@@ -2,7 +2,6 @@ import { Hono } from "hono";
 
 import auth from "./auth";
 import { ApiContext } from "./context";
-import { handleCronTriggers } from "./cron";
 import { handleIncomingEmail } from "./email";
 import { corsMiddleware } from "./middleware/cors";
 import { createRateLimitMiddleware } from "./middleware/rate-limit";
@@ -85,7 +84,6 @@ app.route("/:organizationIdOrHandle/ws", wsRoutes);
 export { Session as WorkflowSession };
 
 export default {
-  scheduled: handleCronTriggers,
   email: handleIncomingEmail,
   queue: handleQueueMessages,
   fetch: app.fetch,

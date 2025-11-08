@@ -23,11 +23,7 @@ import {
 } from "@/services/deployment-service";
 import { useObjectService } from "@/services/object-service";
 import { useNodeTypes } from "@/services/type-service";
-import {
-  getWorkflow,
-  updateWorkflow,
-  useCronTrigger,
-} from "@/services/workflow-service";
+import { getWorkflow, updateWorkflow } from "@/services/workflow-service";
 
 export function EditorPage() {
   const { id } = useParams<{ id: string }>();
@@ -81,12 +77,6 @@ export function EditorPage() {
     },
     [wsExecuteWorkflow]
   );
-
-  // Now we can use workflowMetadata for cron trigger
-  const { cronTrigger, isCronTriggerLoading, mutateCronTrigger } =
-    useCronTrigger(workflowMetadata?.type === "cron" && id ? id : null, {
-      revalidateOnFocus: false,
-    });
 
   const {
     deployments: deploymentHistory,
@@ -247,7 +237,6 @@ export function EditorPage() {
   const isLoading =
     isNodeTypesLoading ||
     isWorkflowInitializing ||
-    isCronTriggerLoading ||
     isDeploymentHistoryLoading ||
     !initialNodesForUI ||
     !initialEdgesForUI;
@@ -287,8 +276,6 @@ export function EditorPage() {
             workflowDescription={httpWorkflowMetadata?.description}
             onWorkflowUpdate={handleWorkflowUpdate}
             orgHandle={orgHandle}
-            cronTrigger={cronTrigger}
-            mutateCronTrigger={mutateCronTrigger}
             deploymentVersions={deploymentVersions}
             mutateDeploymentHistory={mutateDeploymentHistory}
             wsExecuteWorkflow={wsExecuteWorkflow}

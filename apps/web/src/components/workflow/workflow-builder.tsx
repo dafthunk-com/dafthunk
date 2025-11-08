@@ -17,10 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  upsertCronTrigger,
-  useWorkflowExecution,
-} from "@/services/workflow-service";
+import { useWorkflowExecution } from "@/services/workflow-service";
 import { cn } from "@/utils/utils";
 
 import { EmailTriggerDialog } from "./email-trigger-dialog";
@@ -28,7 +25,6 @@ import { ExecutionEmailDialog } from "./execution-email-dialog";
 import { ExecutionFormDialog } from "./execution-form-dialog";
 import { ExecutionJsonBodyDialog } from "./execution-json-body-dialog";
 import { HttpIntegrationDialog } from "./http-integration-dialog";
-import { type CronFormData, SetCronDialog } from "./set-cron-dialog";
 import { useWorkflowState } from "./use-workflow-state";
 import { WorkflowCanvas } from "./workflow-canvas";
 import { WorkflowProvider } from "./workflow-context";
@@ -66,8 +62,6 @@ export interface WorkflowBuilderProps {
   workflowDescription?: string;
   onWorkflowUpdate?: (name: string, description?: string) => void;
   orgHandle: string;
-  cronTrigger?: any;
-  mutateCronTrigger?: (data?: any) => void;
   deploymentVersions?: number[];
   mutateDeploymentHistory?: () => void;
   wsExecuteWorkflow?: (options?: {
@@ -122,8 +116,6 @@ export function WorkflowBuilder({
   workflowDescription,
   onWorkflowUpdate,
   orgHandle,
-  cronTrigger,
-  mutateCronTrigger,
   deploymentVersions = [],
   mutateDeploymentHistory,
   wsExecuteWorkflow,
@@ -144,7 +136,6 @@ export function WorkflowBuilder({
   const [isResizing, setIsResizing] = useState(false);
 
   // Trigger dialog state
-  const [isSetCronDialogOpen, setIsSetCronDialogOpen] = useState(false);
   const [isHttpIntegrationDialogOpen, setIsHttpIntegrationDialogOpen] =
     useState(false);
   const [isEmailTriggerDialogOpen, setIsEmailTriggerDialogOpen] =
@@ -231,22 +222,6 @@ export function WorkflowBuilder({
     [nodes, updateNodeExecution]
   );
 
-  const handleSaveCron = useCallback(
-    async (data: CronFormData) => {
-      if (!workflowId || !orgHandle) return;
-      try {
-        const updatedCron = await upsertCronTrigger(workflowId, orgHandle, data);
-        mutateCronTrigger?.(updatedCron);
-        toast.success("Cron schedule saved successfully.");
-        setIsSetCronDialogOpen(false);
-      } catch (error) {
-        console.error("Failed to save cron schedule:", error);
-        toast.error("Failed to save cron schedule. Please try again.");
-      }
-    },
-    [workflowId, orgHandle, mutateCronTrigger]
-  );
-
   const handleDialogSubmit = useCallback(
     (data: unknown) => {
       executeRef.current?.(data);
@@ -258,12 +233,8 @@ export function WorkflowBuilder({
 
   const handleExecuteRequest = useCallback(
     (execute: (triggerData?: unknown) => void) => {
-      // For manual and cron workflows, execute immediately (no dialog needed)
-      if (
-        !workflowType ||
-        workflowType === "manual" ||
-        workflowType === "cron"
-      ) {
+      // For manual workflows, execute immediately (no dialog needed)
+      if (!workflowType || workflowType === "manual") {
         execute();
         return;
       }
@@ -445,15 +416,6 @@ export function WorkflowBuilder({
               workflowStatus={workflowStatus}
               workflowErrorMessage={workflowErrorMessage}
               workflowType={workflowType}
-              onSetSchedule={
-                workflowType === "cron"
-                  ? () => {
-                      mutateDeploymentHistory?.();
-                      mutateCronTrigger?.();
-                      setIsSetCronDialogOpen(true);
-                    }
-                  : undefined
-              }
               onShowHttpIntegration={
                 workflowType === "http_request"
                   ? () => setIsHttpIntegrationDialogOpen(true)
@@ -537,22 +499,6 @@ export function WorkflowBuilder({
             isOpen={isEmailTriggerDialogOpen}
             onClose={() => setIsEmailTriggerDialogOpen(false)}
             workflowId={workflowId}
-          />
-        )}
-
-        {workflowType === "cron" && (
-          <SetCronDialog
-            isOpen={isSetCronDialogOpen}
-            onClose={() => setIsSetCronDialogOpen(false)}
-            onSubmit={handleSaveCron}
-            initialData={{
-              cronExpression: cronTrigger?.cronExpression || "",
-              active: cronTrigger?.active ?? true,
-              versionAlias: cronTrigger?.versionAlias || "dev",
-              versionNumber: cronTrigger?.versionNumber,
-            }}
-            deploymentVersions={deploymentVersions}
-            workflowName={workflowName}
           />
         )}
 

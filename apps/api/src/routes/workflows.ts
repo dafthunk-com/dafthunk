@@ -6,7 +6,6 @@ import {
   DeleteWorkflowResponse,
   ExecuteWorkflowResponse,
   ExecutionStatus,
-  GetCronTriggerResponse,
   GetEmailTriggerResponse,
   GetQueueTriggerResponse,
   GetWorkflowResponse,
@@ -14,14 +13,11 @@ import {
   ListWorkflowsResponse,
   UpdateWorkflowRequest,
   UpdateWorkflowResponse,
-  UpsertCronTriggerRequest,
-  UpsertCronTriggerResponse,
   UpsertQueueTriggerRequest,
   UpsertQueueTriggerResponse,
   WorkflowWithMetadata,
 } from "@dafthunk/types";
 import { zValidator } from "@hono/zod-validator";
-import CronParser from "cron-parser";
 import { and, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { v7 as uuid } from "uuid";
@@ -33,12 +29,10 @@ import {
   createDatabase,
   createHandle,
   deleteQueueTrigger as deleteDbQueueTrigger,
-  getCronTrigger,
   getEmailTrigger,
   getOrganizationComputeCredits,
   getQueue,
   getQueueTrigger,
-  upsertCronTrigger as upsertDbCronTrigger,
   upsertQueueTrigger as upsertDbQueueTrigger,
   workflows,
 } from "../db";
@@ -349,121 +343,6 @@ workflowRoutes.delete("/:id", jwtMiddleware, async (c) => {
   const response: DeleteWorkflowResponse = { id: deletedWorkflow.id };
   return c.json(response);
 });
-
-/**
- * Get cron trigger for a workflow
- */
-workflowRoutes.get("/:workflowIdOrHandle/cron", jwtMiddleware, async (c) => {
-  const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
-  const organizationId = c.get("organizationId")!;
-  const workflowStore = new WorkflowStore(c.env);
-  const db = createDatabase(c.env.DB);
-
-  const workflow = await workflowStore.get(workflowIdOrHandle, organizationId);
-  if (!workflow) {
-    return c.json({ error: "Workflow not found" }, 404);
-  }
-
-  const cron = await getCronTrigger(db, workflow.id, organizationId);
-
-  if (!cron) {
-    return c.json({ error: "Cron trigger not found for this workflow" }, 404);
-  }
-
-  // Map the DB row to GetCronTriggerResponse
-  const response: GetCronTriggerResponse = {
-    workflowId: cron.workflowId,
-    cronExpression: cron.cronExpression,
-    active: cron.active,
-    nextRunAt: cron.nextRunAt,
-    createdAt: cron.createdAt,
-    updatedAt: cron.updatedAt,
-  };
-
-  return c.json(response);
-});
-
-/**
- * Upsert (create or update) a cron trigger for a workflow
- */
-const UpsertCronTriggerRequestSchema = z.object({
-  cronExpression: z.string().min(1, "Cron expression is required"),
-  active: z.boolean().optional(),
-}) as z.ZodType<UpsertCronTriggerRequest>;
-
-workflowRoutes.put(
-  "/:workflowIdOrHandle/cron",
-  jwtMiddleware,
-  zValidator("json", UpsertCronTriggerRequestSchema),
-  async (c) => {
-    const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
-    const organizationId = c.get("organizationId")!;
-    const data = c.req.valid("json");
-    const db = createDatabase(c.env.DB);
-    const workflowStore = new WorkflowStore(c.env);
-
-    const workflow = await workflowStore.get(
-      workflowIdOrHandle,
-      organizationId
-    );
-    if (!workflow) {
-      return c.json({ error: "Workflow not found" }, 404);
-    }
-
-    if (workflow.type !== "cron") {
-      return c.json({ error: "Workflow is not a cron workflow" }, 400);
-    }
-
-    const now = new Date();
-    const isActive = data.active ?? true;
-    let nextRunAt: Date | null = null;
-
-    if (isActive) {
-      try {
-        const interval = CronParser.parse(data.cronExpression, {
-          currentDate: now,
-        });
-        nextRunAt = interval.next().toDate();
-      } catch (e: any) {
-        return c.json(
-          { error: "Invalid cron expression", details: e.message },
-          400
-        );
-      }
-    }
-
-    try {
-      const upsertedCron = await upsertDbCronTrigger(db, {
-        workflowId: workflow.id,
-        cronExpression: data.cronExpression,
-        active: isActive,
-        nextRunAt: nextRunAt,
-        updatedAt: now,
-      });
-
-      if (!upsertedCron) {
-        return c.json(
-          { error: "Failed to create or update cron trigger" },
-          500
-        );
-      }
-
-      const response: UpsertCronTriggerResponse = {
-        ...upsertedCron,
-      };
-      return c.json(response, 200);
-    } catch (dbError: any) {
-      console.error("Error upserting cron trigger:", dbError);
-      return c.json(
-        {
-          error: "Database error while saving cron trigger",
-          details: dbError.message,
-        },
-        500
-      );
-    }
-  }
-);
 
 /**
  * Execute a workflow in production mode
