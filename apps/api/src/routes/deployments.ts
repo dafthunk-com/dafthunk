@@ -169,6 +169,13 @@ deploymentRoutes.post("/:workflowIdOrHandle", jwtMiddleware, async (c) => {
   // Save workflow snapshot to R2
   await deploymentStore.writeWorkflowSnapshot(deploymentId, workflowData);
 
+  // Automatically activate this deployment
+  await workflowStore.setActiveDeployment(
+    workflowId,
+    organizationId,
+    deploymentId
+  );
+
   // Transform to match WorkflowDeploymentVersion type
   const deploymentVersion: DeploymentVersion = {
     id: newDeployment.id,
@@ -242,6 +249,68 @@ deploymentRoutes.get(
     };
 
     return c.json(response);
+  }
+);
+
+/**
+ * PUT /deployments/version/:deploymentId/activate
+ * Activates a specific deployment version for production use
+ */
+deploymentRoutes.put(
+  "/version/:deploymentId/activate",
+  jwtMiddleware,
+  async (c) => {
+    const organizationId = c.get("organizationId")!;
+    const deploymentId = c.req.param("deploymentId");
+    const deploymentStore = new DeploymentStore(c.env);
+    const workflowStore = new WorkflowStore(c.env);
+
+    // Verify deployment exists and belongs to organization
+    const deployment = await deploymentStore.get(deploymentId, organizationId);
+    if (!deployment) {
+      return c.json({ error: "Deployment not found" }, 404);
+    }
+
+    // Set this deployment as active for the workflow
+    await workflowStore.setActiveDeployment(
+      deployment.workflowId!,
+      organizationId,
+      deploymentId
+    );
+
+    return c.json({ success: true, deploymentId });
+  }
+);
+
+/**
+ * PUT /deployments/:workflowIdOrHandle/deactivate
+ * Deactivates the current active deployment for a workflow
+ */
+deploymentRoutes.put(
+  "/:workflowIdOrHandle/deactivate",
+  jwtMiddleware,
+  async (c) => {
+    const organizationId = c.get("organizationId")!;
+    const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
+    const workflowStore = new WorkflowStore(c.env);
+
+    // Verify workflow exists and belongs to organization
+    const workflow = await workflowStore.get(
+      workflowIdOrHandle,
+      organizationId
+    );
+    if (!workflow) {
+      return c.json({ error: "Workflow not found" }, 404);
+    }
+
+    // Clear active deployment
+    await workflowStore.setActiveDeployment(
+      workflowIdOrHandle,
+      organizationId,
+      null
+    );
+
+    return c.json({ success: true });
   }
 );
 
