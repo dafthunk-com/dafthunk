@@ -94,6 +94,11 @@
         "name": "WORKFLOW_SESSION",
         "class_name": "WorkflowSession",
         "script_name": "dafthunk-api"
+      },
+      {
+        "name": "DATABASE",
+        "class_name": "DatabaseDO",
+        "script_name": "dafthunk-api"
       }
     ]
   },
@@ -101,6 +106,10 @@
     {
       "tag": "v1",
       "new_classes": ["WorkflowSession"]
+    },
+    {
+      "tag": "v2",
+      "new_sqlite_classes": ["DatabaseDO"]
     }
   ],
   "unsafe": {
@@ -203,6 +212,11 @@
             "name": "WORKFLOW_SESSION",
             "class_name": "WorkflowSession",
             "script_name": "dafthunk-api"
+          },
+          {
+            "name": "DATABASE",
+            "class_name": "DatabaseDO",
+            "script_name": "dafthunk-api"
           }
         ]
       },
@@ -210,6 +224,10 @@
         {
           "tag": "v1",
           "new_classes": ["WorkflowSession"]
+        },
+        {
+          "tag": "v2",
+          "new_sqlite_classes": ["DatabaseDO"]
         }
       ],
       "unsafe": {

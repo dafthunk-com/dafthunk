@@ -1,6 +1,7 @@
 export * from "./api-key";
 export * from "./auth";
 export * from "./dashboard";
+export * from "./database";
 export * from "./dataset";
 export * from "./deployment";
 export * from "./email";

@@ -1,5 +1,6 @@
 import type { OrganizationInfo } from "@dafthunk/types";
 import Database from "lucide-react/icons/database";
+import FolderOpen from "lucide-react/icons/folder-open";
 import Inbox from "lucide-react/icons/inbox";
 import KeyRound from "lucide-react/icons/key-round";
 import LayoutDashboard from "lucide-react/icons/layout-dashboard";
@@ -46,6 +47,11 @@ export const getDashboardSidebarItems = (orgHandle: string) => [
   {
     title: "Datasets",
     url: `/org/${orgHandle}/datasets`,
+    icon: FolderOpen,
+  },
+  {
+    title: "Databases",
+    url: `/org/${orgHandle}/databases`,
     icon: Database,
   },
   {

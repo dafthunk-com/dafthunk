@@ -9,6 +9,7 @@
 import { audioRecorderWidget } from "./audio-recorder";
 import { canvasDoodleWidget } from "./canvas-doodle";
 import { cronExpressionWidget } from "./cron-expression";
+import { databaseSelectorWidget } from "./database-selector";
 import { datasetSelectorWidget } from "./dataset-selector";
 import { emailSelectorWidget } from "./email-selector";
 import { fileWidget } from "./file";
@@ -43,6 +44,7 @@ const widgets = [
   jsonEditorWidget,
   javascriptEditorWidget,
   datasetSelectorWidget,
+  databaseSelectorWidget,
   queueSelectorWidget,
   emailSelectorWidget,
   cronExpressionWidget,

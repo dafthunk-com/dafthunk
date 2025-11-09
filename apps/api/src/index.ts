@@ -8,6 +8,7 @@ import { createRateLimitMiddleware } from "./middleware/rate-limit";
 import { handleQueueMessages } from "./queue";
 import apiKeyRoutes from "./routes/api-keys";
 import dashboardRoutes from "./routes/dashboard";
+import databaseRoutes from "./routes/databases";
 import datasetRoutes from "./routes/datasets";
 import deploymentRoutes from "./routes/deployments";
 import emailRoutes from "./routes/emails";
@@ -27,6 +28,7 @@ import usageRoutes from "./routes/usage";
 import workflowRoutes from "./routes/workflows";
 import wsRoutes from "./routes/ws";
 import { handleScheduledEvent } from "./scheduled";
+import { DatabaseDO } from "./durable-objects/database-do";
 import { Session } from "./session/session";
 
 // Export CloudflareRuntime as "Runtime" for wrangler config compatibility
@@ -69,6 +71,7 @@ app.route("/types", typeRoutes);
 
 app.route("/:organizationIdOrHandle/api-keys", apiKeyRoutes);
 app.route("/:organizationIdOrHandle/dashboard", dashboardRoutes);
+app.route("/:organizationIdOrHandle/databases", databaseRoutes);
 app.route("/:organizationIdOrHandle/datasets", datasetRoutes);
 app.route("/:organizationIdOrHandle/deployments", deploymentRoutes);
 app.route("/:organizationIdOrHandle/emails", emailRoutes);
@@ -81,8 +84,9 @@ app.route("/:organizationIdOrHandle/objects", objectRoutes);
 app.route("/:organizationIdOrHandle/usage", usageRoutes);
 app.route("/:organizationIdOrHandle/ws", wsRoutes);
 
-// Export Session for Durable Objects
+// Export Durable Objects
 export { Session as WorkflowSession };
+export { DatabaseDO };
 
 export default {
   email: handleIncomingEmail,

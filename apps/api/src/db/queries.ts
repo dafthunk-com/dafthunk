@@ -11,6 +11,9 @@ import {
   type DatasetInsert,
   type DatasetRow,
   datasets,
+  type DatabaseInsert,
+  type DatabaseRow,
+  databases,
   type EmailInsert,
   type EmailRow,
   emails,
@@ -229,6 +232,14 @@ export function getQueueCondition(queueIdOrHandle: string) {
     return eq(queues.id, queueIdOrHandle);
   } else {
     return eq(queues.handle, queueIdOrHandle);
+  }
+}
+
+export function getDatabaseCondition(databaseIdOrHandle: string) {
+  if (isUUID(databaseIdOrHandle)) {
+    return eq(databases.id, databaseIdOrHandle);
+  } else {
+    return eq(databases.handle, databaseIdOrHandle);
   }
 }
 
@@ -681,6 +692,124 @@ export async function deleteQueue(
     .returning();
 
   return queue;
+}
+
+/**
+ * Get all databases for an organization
+ *
+ * @param db Database instance
+ * @param organizationIdOrHandle Organization ID or handle
+ * @returns Array of databases with basic info
+ */
+export async function getDatabases(
+  db: ReturnType<typeof createDatabase>,
+  organizationIdOrHandle: string
+) {
+  return await db
+    .select({
+      id: databases.id,
+      name: databases.name,
+      handle: databases.handle,
+      createdAt: databases.createdAt,
+      updatedAt: databases.updatedAt,
+    })
+    .from(databases)
+    .innerJoin(
+      organizations,
+      and(
+        eq(databases.organizationId, organizations.id),
+        getOrganizationCondition(organizationIdOrHandle)
+      )
+    );
+}
+
+/**
+ * Get a database by ID or handle, ensuring it belongs to the specified organization
+ *
+ * @param db Database instance
+ * @param databaseIdOrHandle Database ID or handle
+ * @param organizationIdOrHandle Organization ID or handle
+ * @returns Database record or undefined if not found
+ */
+export async function getDatabase(
+  db: ReturnType<typeof createDatabase>,
+  databaseIdOrHandle: string,
+  organizationIdOrHandle: string
+): Promise<DatabaseRow | undefined> {
+  const [database] = await db
+    .select()
+    .from(databases)
+    .innerJoin(
+      organizations,
+      and(
+        eq(databases.organizationId, organizations.id),
+        getOrganizationCondition(organizationIdOrHandle)
+      )
+    )
+    .where(getDatabaseCondition(databaseIdOrHandle))
+    .limit(1);
+  return database?.databases;
+}
+
+/**
+ * Create a new database record
+ *
+ * @param db Database instance
+ * @param newDatabase Database data to insert
+ * @returns Created database record
+ */
+export async function createDatabaseRecord(
+  db: ReturnType<typeof createDatabase>,
+  newDatabase: DatabaseInsert
+): Promise<DatabaseRow> {
+  const [database] = await db.insert(databases).values(newDatabase).returning();
+
+  return database;
+}
+
+/**
+ * Update a database record, ensuring it belongs to the specified organization
+ *
+ * @param db Database instance
+ * @param id Database ID
+ * @param organizationId Organization ID
+ * @param data Updated database data
+ * @returns Updated database record
+ */
+export async function updateDatabaseRecord(
+  db: ReturnType<typeof createDatabase>,
+  id: string,
+  organizationId: string,
+  data: Partial<DatabaseRow>
+): Promise<DatabaseRow> {
+  const [database] = await db
+    .update(databases)
+    .set(data)
+    .where(and(eq(databases.id, id), eq(databases.organizationId, organizationId)))
+    .returning();
+
+  return database;
+}
+
+/**
+ * Delete a database record, ensuring it belongs to the specified organization
+ *
+ * @param db Database instance
+ * @param id Database ID
+ * @param organizationId Organization ID
+ * @returns Deleted database record
+ */
+export async function deleteDatabaseRecord(
+  db: ReturnType<typeof createDatabase>,
+  id: string,
+  organizationId: string
+): Promise<DatabaseRow | undefined> {
+  const [database] = await db
+    .delete(databases)
+    .where(and(eq(databases.id, id), eq(databases.organizationId, organizationId)))
+    .returning();
+
+  return database;
 }
 
 /**

@@ -338,6 +338,31 @@ export const queues = sqliteTable(
   ]
 );
 
+// Databases - Durable Object databases associated with organizations
+export const databases = sqliteTable(
+  "databases",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    handle: text("handle").notNull(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    createdAt: createCreatedAt(),
+    updatedAt: createUpdatedAt(),
+  },
+  (table) => [
+    index("databases_name_idx").on(table.name),
+    index("databases_handle_idx").on(table.handle),
+    index("databases_organization_id_idx").on(table.organizationId),
+    index("databases_created_at_idx").on(table.createdAt),
+    uniqueIndex("databases_organization_id_handle_unique_idx").on(
+      table.organizationId,
+      table.handle
+    ),
+  ]
+);
+
 // Queue Triggers - Message queue triggers for workflows
 export const queueTriggers = sqliteTable(
   "queue_triggers",
@@ -490,6 +515,7 @@ export const organizationsRelations = relations(
     apiKeys: many(apiKeys),
     datasets: many(datasets),
     queues: many(queues),
+    databases: many(databases),
     emails: many(emails),
     secrets: many(secrets),
     integrations: many(integrations),
@@ -586,6 +612,13 @@ export const queueTriggersRelations = relations(queueTriggers, ({ one }) => ({
   }),
 }));
 
+export const databasesRelations = relations(databases, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [databases.organizationId],
+    references: [organizations.id],
+  }),
+}));
+
 export const emailsRelations = relations(emails, ({ one, many }) => ({
   organization: one(organizations, {
     fields: [emails.organizationId],
@@ -666,6 +699,9 @@ export type QueueInsert = typeof queues.$inferInsert;
 
 export type QueueTriggerRow = typeof queueTriggers.$inferSelect;
 export type QueueTriggerInsert = typeof queueTriggers.$inferInsert;
+
+export type DatabaseRow = typeof databases.$inferSelect;
+export type DatabaseInsert = typeof databases.$inferInsert;
 
 export type EmailRow = typeof emails.$inferSelect;
 export type EmailInsert = typeof emails.$inferInsert;

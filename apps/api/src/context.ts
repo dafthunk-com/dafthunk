@@ -1,6 +1,7 @@
 import { JWTTokenPayload } from "@dafthunk/types";
 
 import type { RuntimeParams } from "./runtime";
+import { DatabaseDO } from "./durable-objects/database-do";
 import { Session } from "./session/session";
 
 export interface Bindings {
@@ -11,6 +12,7 @@ export interface Bindings {
   RATE_LIMIT_EXECUTE: RateLimit;
   EXECUTE: Workflow<RuntimeParams>;
   WORKFLOW_SESSION: DurableObjectNamespace<Session>;
+  DATABASE: DurableObjectNamespace<DatabaseDO>;
   WORKFLOW_QUEUE: Queue;
   RESSOURCES: R2Bucket;
   DATASETS: R2Bucket;

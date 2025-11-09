@@ -35,6 +35,8 @@ import { MembersPage } from "./pages/members-page";
 import { NotFoundPage } from "./pages/not-found-page";
 import { OrganizationsPage } from "./pages/organizations-page";
 import { ProfilePage } from "./pages/profile-page";
+import { DatabaseConsolePage } from "./pages/database-console-page";
+import { DatabasesPage } from "./pages/databases-page";
 import { QueuesPage } from "./pages/queues-page";
 import { SecretsPage } from "./pages/secrets-page";
 import { WorkflowsPage } from "./pages/workflows-page";
@@ -337,6 +339,32 @@ export const routes: AppRouteObject[] = [
       </OrgLayout>
     ),
     handle: { head: <HeadSeo title="Dataset Details - Datasets - Dafthunk" /> },
+  },
+  {
+    path: "/databases",
+    element: <OrgRedirect to="/org/:handle/databases" />,
+  },
+  {
+    path: "/org/:handle/databases",
+    element: (
+      <OrgLayout title="Databases">
+        <ProtectedRoute>
+          <DatabasesPage />
+        </ProtectedRoute>
+      </OrgLayout>
+    ),
+    handle: { head: <HeadSeo title="Databases - Databases - Dafthunk" /> },
+  },
+  {
+    path: "/org/:handle/databases/:id/console",
+    element: (
+      <OrgLayout title="Database Console">
+        <ProtectedRoute>
+          <DatabaseConsolePage />
+        </ProtectedRoute>
+      </OrgLayout>
+    ),
+    handle: { head: <HeadSeo title="Console - Database - Dafthunk" /> },
   },
   {
     path: "/queues",

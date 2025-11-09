@@ -140,6 +140,7 @@ export interface NodeContext {
     RESSOURCES: R2Bucket;
     DATASETS: R2Bucket;
     DATASETS_AUTORAG: string;
+    DATABASE: DurableObjectNamespace;
     WORKFLOW_QUEUE: Queue;
     EMAIL_DOMAIN: string;
     CLOUDFLARE_ACCOUNT_ID?: string;
