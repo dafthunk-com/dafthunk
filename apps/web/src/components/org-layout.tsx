@@ -1,6 +1,6 @@
 import type { OrganizationInfo } from "@dafthunk/types";
 import Database from "lucide-react/icons/database";
-import FolderOpen from "lucide-react/icons/folder-open";
+import Folder from "lucide-react/icons/folder";
 import Inbox from "lucide-react/icons/inbox";
 import KeyRound from "lucide-react/icons/key-round";
 import LayoutDashboard from "lucide-react/icons/layout-dashboard";
@@ -23,66 +23,85 @@ interface OrgLayoutProps {
   title: string;
 }
 
-export const getDashboardSidebarItems = (orgHandle: string) => [
+export const getDashboardSidebarGroups = (orgHandle: string) => [
   {
-    title: "Dashboard",
-    url: `/org/${orgHandle}/dashboard`,
-    icon: LayoutDashboard,
+    items: [
+      {
+        title: "Dashboard",
+        url: `/org/${orgHandle}/dashboard`,
+        icon: LayoutDashboard,
+      },
+    ],
   },
   {
-    title: "Workflows",
-    url: `/org/${orgHandle}/workflows`,
-    icon: SquareTerminal,
+    label: "Workflows",
+    items: [
+      {
+        title: "Workflows",
+        url: `/org/${orgHandle}/workflows`,
+        icon: SquareTerminal,
+      },
+      {
+        title: "Deployments",
+        url: `/org/${orgHandle}/deployments`,
+        icon: Target,
+      },
+      {
+        title: "Executions",
+        url: `/org/${orgHandle}/executions`,
+        icon: Logs,
+      },
+    ],
   },
   {
-    title: "Deployments",
-    url: `/org/${orgHandle}/deployments`,
-    icon: Target,
+    label: "Resources",
+    items: [
+      {
+        title: "Datasets",
+        url: `/org/${orgHandle}/datasets`,
+        icon: Folder,
+      },
+      {
+        title: "Databases",
+        url: `/org/${orgHandle}/databases`,
+        icon: Database,
+      },
+      {
+        title: "Queues",
+        url: `/org/${orgHandle}/queues`,
+        icon: Inbox,
+      },
+      {
+        title: "Emails",
+        url: `/org/${orgHandle}/emails`,
+        icon: Mail,
+      },
+    ],
   },
   {
-    title: "Executions",
-    url: `/org/${orgHandle}/executions`,
-    icon: Logs,
-  },
-  {
-    title: "Datasets",
-    url: `/org/${orgHandle}/datasets`,
-    icon: FolderOpen,
-  },
-  {
-    title: "Databases",
-    url: `/org/${orgHandle}/databases`,
-    icon: Database,
-  },
-  {
-    title: "Queues",
-    url: `/org/${orgHandle}/queues`,
-    icon: Inbox,
-  },
-  {
-    title: "Emails",
-    url: `/org/${orgHandle}/emails`,
-    icon: Mail,
-  },
-  {
-    title: "Integrations",
-    url: `/org/${orgHandle}/integrations`,
-    icon: Plug,
-  },
-  {
-    title: "Secrets",
-    url: `/org/${orgHandle}/secrets`,
-    icon: Lock,
-  },
-  {
-    title: "API Keys",
-    url: `/org/${orgHandle}/api-keys`,
-    icon: KeyRound,
-  },
-  {
-    title: "Members",
-    url: `/org/${orgHandle}/members`,
-    icon: Users,
+    label: "Settings",
+    items: [
+      {
+        title: "Integrations",
+        url: `/org/${orgHandle}/integrations`,
+        icon: Plug,
+      },
+      {
+        title: "Secrets",
+        url: `/org/${orgHandle}/secrets`,
+        icon: Lock,
+      },
+      {
+        title: "API Keys",
+        url: `/org/${orgHandle}/api-keys`,
+        icon: KeyRound,
+      },
+      {
+        title: "Members",
+        url: `/org/${orgHandle}/members`,
+        icon: Users,
+      },
+    ],
   },
 ];
 
@@ -114,13 +133,13 @@ export const OrgLayout: React.FC<OrgLayoutProps> = ({ children, title }) => {
     return <div>Loading...</div>;
   }
 
-  const sidebarItems = getDashboardSidebarItems(organization?.handle);
+  const sidebarGroups = getDashboardSidebarGroups(organization?.handle);
 
   return (
     <AppLayout
       sidebar={{
         title,
-        items: sidebarItems,
+        groups: sidebarGroups,
         footerItems: [],
       }}
     >

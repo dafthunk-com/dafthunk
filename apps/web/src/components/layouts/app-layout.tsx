@@ -13,7 +13,7 @@ interface AppLayoutProps {
   className?: string;
   sidebar?: {
     title: string;
-    items: NavMainProps["items"];
+    groups: NavMainProps["groups"];
     footerItems?: NavMainProps["footerItems"];
   };
 }
@@ -29,7 +29,7 @@ export function AppLayout({ children, sidebar, className }: AppLayoutProps) {
             <Sidebar.SidebarProvider>
               <AppSidebar
                 title={sidebar.title}
-                items={sidebar.items}
+                groups={sidebar.groups}
                 footerItems={sidebar.footerItems}
               />
               <Sidebar.SidebarInset>

@@ -7,7 +7,7 @@ type AppSidebarProps = React.ComponentProps<typeof Sidebar> & NavMainProps;
 
 export function AppSidebar({
   title,
-  items,
+  groups,
   footerItems,
   ...props
 }: AppSidebarProps) {
@@ -18,7 +18,7 @@ export function AppSidebar({
       {...props}
     >
       <SidebarContent className="h-full">
-        <NavMain title={title} items={items} footerItems={footerItems} />
+        <NavMain title={title} groups={groups} footerItems={footerItems} />
       </SidebarContent>
       <SidebarRail />
     </Sidebar>
