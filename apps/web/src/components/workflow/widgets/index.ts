@@ -8,6 +8,7 @@
 // Import all widgets
 import { audioRecorderWidget } from "./audio-recorder";
 import { canvasDoodleWidget } from "./canvas-doodle";
+import { cronExpressionWidget } from "./cron-expression";
 import { datasetSelectorWidget } from "./dataset-selector";
 import { emailSelectorWidget } from "./email-selector";
 import { fileWidget } from "./file";
@@ -44,6 +45,7 @@ const widgets = [
   datasetSelectorWidget,
   queueSelectorWidget,
   emailSelectorWidget,
+  cronExpressionWidget,
 
   // Complex widgets
   webcamWidget,

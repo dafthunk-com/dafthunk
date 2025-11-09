@@ -8,12 +8,12 @@ export class ReceiveScheduledTriggerNode extends ExecutableNode {
     name: "Receive Scheduled Trigger",
     type: "receive-scheduled-trigger",
     description: "Receives scheduled trigger from schedule expression",
-    tags: ["Parameter", "Schedule", "Scheduled"],
+    tags: ["Parameter", "Scheduled"],
     icon: "clock",
     documentation:
       "This node extracts timing information from a scheduled workflow, providing access to the scheduled execution time and schedule pattern.",
-    inlinable: true,
-    asTool: true,
+    inlinable: false,
+    asTool: false,
     compatibility: ["scheduled"],
     inputs: [
       {
@@ -21,24 +21,21 @@ export class ReceiveScheduledTriggerNode extends ExecutableNode {
         type: "string",
         description: "Schedule expression (e.g., '0 9 * * *' for 9am daily)",
         required: true,
-        hidden: false,
+        hidden: true,
+        value: "0 0 * * *",
       },
     ],
     outputs: [
       {
         name: "timestamp",
-        type: "number",
-        description: "Actual execution timestamp",
-      },
-      {
-        name: "scheduledTime",
-        type: "number",
-        description: "Expected execution time from schedule expression",
+        type: "date",
+        description: "Actual execution timestamp (ISO-8601)",
       },
       {
         name: "scheduleExpression",
         type: "string",
         description: "The schedule expression that triggered this execution",
+        hidden: true,
       },
     ],
   };
@@ -56,13 +53,14 @@ export class ReceiveScheduledTriggerNode extends ExecutableNode {
       // If executed manually, generate mock context for testing
       const scheduledContext = context.scheduledTrigger || {
         timestamp: Date.now(),
-        scheduledTime: Date.now(),
         scheduleExpression: scheduleExpression || "manual-execution",
       };
 
+      // Convert timestamp to ISO-8601 string
+      const timestamp = new Date(scheduledContext.timestamp).toISOString();
+
       return this.createSuccessResult({
-        timestamp: scheduledContext.timestamp,
-        scheduledTime: scheduledContext.scheduledTime,
+        timestamp,
         scheduleExpression: scheduledContext.scheduleExpression,
       });
     } catch (error) {

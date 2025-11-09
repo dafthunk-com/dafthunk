@@ -7,7 +7,6 @@ import {
   getOrganizationComputeCredits,
 } from "./db";
 import { DeploymentStore } from "./stores/deployment-store";
-import { WorkflowStore } from "./stores/workflow-store";
 
 export async function handleScheduledEvent(
   _event: ScheduledEvent,
@@ -17,7 +16,6 @@ export async function handleScheduledEvent(
   console.log("Scheduled event triggered at:", new Date().toISOString());
 
   const db = createDatabase(env.DB);
-  const workflowStore = new WorkflowStore(env);
   const deploymentStore = new DeploymentStore(env);
 
   // Get all active scheduled triggers
@@ -28,6 +26,15 @@ export async function handleScheduledEvent(
 
   for (const { scheduledTrigger, workflow } of triggers) {
     try {
+      // Skip workflows that haven't been deployed
+      // Scheduled workflows should only run in production mode
+      if (!workflow.activeDeploymentId) {
+        console.log(
+          `Skipping scheduled workflow ${workflow.id}: not deployed (dev mode only)`
+        );
+        continue;
+      }
+
       // Parse schedule expression
       const interval = CronParser.parse(scheduledTrigger.scheduleExpression, {
         currentDate: new Date(now),
@@ -45,25 +52,11 @@ export async function handleScheduledEvent(
         `Executing scheduled workflow ${workflow.id} (${scheduledTrigger.scheduleExpression})`
       );
 
-      // Load workflow data (dev mode if no deployment, else prod)
-      let workflowData: any;
-      let deploymentId: string | undefined;
-
-      if (workflow.activeDeploymentId) {
-        // PROD MODE
-        workflowData = await deploymentStore.readWorkflowSnapshot(
-          workflow.activeDeploymentId
-        );
-        deploymentId = workflow.activeDeploymentId;
-      } else {
-        // DEV MODE
-        const wf = await workflowStore.getWithData(
-          workflow.id,
-          workflow.organizationId
-        );
-        if (!wf) continue;
-        workflowData = wf.data;
-      }
+      // Load workflow data from active deployment
+      const workflowData = await deploymentStore.readWorkflowSnapshot(
+        workflow.activeDeploymentId
+      );
+      const deploymentId = workflow.activeDeploymentId;
 
       // Get organization compute credits
       const computeCredits = await getOrganizationComputeCredits(

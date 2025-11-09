@@ -87,13 +87,7 @@ export class AddDateNode extends ExecutableNode {
       const unitInput = String(context.inputs.unit);
       const unit = normalizeUnit(unitInput);
 
-      if (!unit) {
-        return this.createErrorResult(
-          `Invalid unit: ${unitInput}. Must be one of: milliseconds, seconds, minutes, hours, days, weeks, months, years`
-        );
-      }
-
-      const iso = addToDate(base, amount, unit);
+      const iso = unit ? addToDate(base, amount, unit) : undefined;
       return this.createSuccessResult({ date: iso });
     } catch (error) {
       return this.createErrorResult(

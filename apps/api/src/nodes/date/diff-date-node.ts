@@ -98,14 +98,8 @@ export class DiffDateNode extends ExecutableNode {
       const unitInput = String(context.inputs.unit ?? "milliseconds");
       const unit = normalizeUnit(unitInput);
 
-      if (!unit) {
-        return this.createErrorResult(
-          `Invalid unit: ${unitInput}. Must be one of: milliseconds, seconds, minutes, hours, days, weeks, months, years`
-        );
-      }
-
       const absolute = Boolean(context.inputs.absolute ?? false);
-      const value = diffInUnit(a, b, unit);
+      const value = unit ? diffInUnit(a, b, unit) : undefined;
       const out =
         value === undefined ? undefined : absolute ? Math.abs(value) : value;
       return this.createSuccessResult({ value: out });
