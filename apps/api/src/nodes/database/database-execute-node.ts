@@ -9,8 +9,7 @@ export class DatabaseExecuteNode extends ExecutableNode {
     id: "database-execute",
     name: "Database Execute",
     type: "database-execute",
-    description:
-      "Executes INSERT, UPDATE, or DELETE operations on a database.",
+    description: "Executes INSERT, UPDATE, or DELETE operations on a database.",
     tags: ["Database", "Execute", "SQL"],
     icon: "database",
     documentation:

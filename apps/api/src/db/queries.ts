@@ -8,12 +8,12 @@ import {
   type ApiKeyInsert,
   apiKeys,
   createDatabase,
-  type DatasetInsert,
-  type DatasetRow,
-  datasets,
   type DatabaseInsert,
   type DatabaseRow,
   databases,
+  type DatasetInsert,
+  type DatasetRow,
+  datasets,
   type EmailInsert,
   type EmailRow,
   emails,
@@ -785,7 +785,9 @@ export async function updateDatabaseRecord(
   const [database] = await db
     .update(databases)
     .set(data)
-    .where(and(eq(databases.id, id), eq(databases.organizationId, organizationId)))
+    .where(
+      and(eq(databases.id, id), eq(databases.organizationId, organizationId))
+    )
     .returning();
 
   return database;
@@ -806,7 +808,9 @@ export async function deleteDatabaseRecord(
 ): Promise<DatabaseRow | undefined> {
   const [database] = await db
     .delete(databases)
-    .where(and(eq(databases.id, id), eq(databases.organizationId, organizationId)))
+    .where(
+      and(eq(databases.id, id), eq(databases.organizationId, organizationId))
+    )
     .returning();
 
   return database;

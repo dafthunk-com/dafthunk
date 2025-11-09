@@ -9,7 +9,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarSeparator,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { cn } from "@/utils/utils";
@@ -69,7 +68,10 @@ export function NavMain({ groups, footerItems }: NavMainProps) {
     <div className="flex-1 flex flex-col justify-between py-2 pb-0">
       <div className="flex flex-col gap-2 px-4">
         {groups.map((group, index) => (
-          <SidebarGroup key={group.label || index} className="bg-transparent p-0">
+          <SidebarGroup
+            key={group.label || index}
+            className="bg-transparent p-0"
+          >
             {group.label && (
               <SidebarGroupLabel className="text-xs text-neutral-500 dark:text-neutral-400 px-2">
                 {group.label}

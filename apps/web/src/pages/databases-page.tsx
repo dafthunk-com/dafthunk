@@ -64,8 +64,8 @@ function useDatabaseActions() {
           <DialogTitle>Delete Database</DialogTitle>
           <DialogDescription>
             Are you sure you want to delete "
-            {databaseToDelete?.name || "Untitled Database"}"? This action
-            cannot be undone and all data in this database will be lost.
+            {databaseToDelete?.name || "Untitled Database"}"? This action cannot
+            be undone and all data in this database will be lost.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
@@ -136,7 +136,9 @@ function createColumns(
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem asChild>
-                  <Link to={`/org/${orgHandle}/databases/${database.id}/console`}>
+                  <Link
+                    to={`/org/${orgHandle}/databases/${database.id}/console`}
+                  >
                     Open Console
                   </Link>
                 </DropdownMenuItem>
@@ -184,7 +186,9 @@ export function DatabasesPage() {
   if (isDatabasesLoading) {
     return <InsetLoading title="Databases" />;
   } else if (databasesError) {
-    return <InsetError title="Databases" errorMessage={databasesError.message} />;
+    return (
+      <InsetError title="Databases" errorMessage={databasesError.message} />
+    );
   }
 
   return (

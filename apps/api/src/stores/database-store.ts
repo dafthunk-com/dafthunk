@@ -1,5 +1,8 @@
 import type { Bindings } from "../context";
-import type { QueryRequest, QueryResponse } from "../durable-objects/database-do";
+import type {
+  QueryRequest,
+  QueryResponse,
+} from "../durable-objects/database-do";
 
 /**
  * Manages connections to Database Durable Objects.

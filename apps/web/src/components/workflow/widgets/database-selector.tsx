@@ -96,7 +96,12 @@ function DatabaseSelectorWidget({
 
 export const databaseSelectorWidget = createWidget({
   component: DatabaseSelectorWidget,
-  nodeTypes: ["database-query", "database-execute"],
+  nodeTypes: [
+    "database-query",
+    "database-execute",
+    "database-import-table",
+    "database-export-table",
+  ],
   inputField: "databaseId",
   extractConfig: (_nodeId, inputs) => ({
     value: getInputValue(inputs, "databaseId", ""),

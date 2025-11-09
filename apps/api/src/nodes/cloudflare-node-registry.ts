@@ -28,6 +28,10 @@ import { CloudflareBrowserPdfNode } from "./browser/cloudflare-browser-pdf-node"
 import { CloudflareBrowserScrapeNode } from "./browser/cloudflare-browser-scrape-node";
 import { CloudflareBrowserScreenshotNode } from "./browser/cloudflare-browser-screenshot-node";
 import { CloudflareBrowserSnapshotNode } from "./browser/cloudflare-browser-snapshot-node";
+import { DatabaseExecuteNode } from "./database/database-execute-node";
+import { DatabaseExportTableNode } from "./database/database-export-table-node";
+import { DatabaseImportTableNode } from "./database/database-import-table-node";
+import { DatabaseQueryNode } from "./database/database-query-node";
 import { AddDateNode } from "./date/add-date-node";
 import { DiffDateNode } from "./date/diff-date-node";
 import { NowDateNode } from "./date/now-date-node";
@@ -287,8 +291,6 @@ import { TestAllTypesNode } from "./parameter/test-all-types-node";
 import { ReceiveQueueMessageNode } from "./queue/receive-queue-message-node";
 import { SendQueueBatchNode } from "./queue/send-queue-batch-node";
 import { SendQueueMessageNode } from "./queue/send-queue-message-node";
-import { DatabaseExecuteNode } from "./database/database-execute-node";
-import { DatabaseQueryNode } from "./database/database-query-node";
 import { RagAiSearchNode } from "./rag/rag-ai-search-node";
 import { RagSearchNode } from "./rag/rag-search-node";
 import { GetSubredditRedditNode } from "./reddit/get-subreddit-reddit-node";
@@ -388,6 +390,8 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(ReceiveQueueMessageNode);
     this.registerImplementation(DatabaseQueryNode);
     this.registerImplementation(DatabaseExecuteNode);
+    this.registerImplementation(DatabaseImportTableNode);
+    this.registerImplementation(DatabaseExportTableNode);
     this.registerImplementation(ReceiveEmailNode);
     this.registerImplementation(ReceiveScheduledTriggerNode);
     this.registerImplementation(ParseEmailNode);

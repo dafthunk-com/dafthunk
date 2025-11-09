@@ -27,7 +27,9 @@ export function DatabaseConsolePage() {
   const orgHandle = organization?.handle || "";
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
 
-  const { database, databaseError, isDatabaseLoading } = useDatabase(id || null);
+  const { database, databaseError, isDatabaseLoading } = useDatabase(
+    id || null
+  );
 
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
@@ -151,11 +153,7 @@ export function DatabaseConsolePage() {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="sql">SQL Query</Label>
-            <Button
-              onClick={handleExecute}
-              disabled={isExecuting}
-              size="sm"
-            >
+            <Button onClick={handleExecute} disabled={isExecuting} size="sm">
               {isExecuting ? (
                 <Spinner className="h-4 w-4 mr-2" />
               ) : (

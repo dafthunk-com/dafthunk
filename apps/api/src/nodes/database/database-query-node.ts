@@ -9,7 +9,8 @@ export class DatabaseQueryNode extends ExecutableNode {
     id: "database-query",
     name: "Database Query",
     type: "database-query",
-    description: "Executes a SELECT query on a database and returns the results.",
+    description:
+      "Executes a SELECT query on a database and returns the results.",
     tags: ["Database", "Query", "SQL"],
     icon: "database",
     documentation:

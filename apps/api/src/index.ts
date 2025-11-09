@@ -2,6 +2,7 @@ import { Hono } from "hono";
 
 import auth from "./auth";
 import { ApiContext } from "./context";
+import { DatabaseDO } from "./durable-objects/database-do";
 import { handleIncomingEmail } from "./email";
 import { corsMiddleware } from "./middleware/cors";
 import { createRateLimitMiddleware } from "./middleware/rate-limit";
@@ -28,7 +29,6 @@ import usageRoutes from "./routes/usage";
 import workflowRoutes from "./routes/workflows";
 import wsRoutes from "./routes/ws";
 import { handleScheduledEvent } from "./scheduled";
-import { DatabaseDO } from "./durable-objects/database-do";
 import { Session } from "./session/session";
 
 // Export CloudflareRuntime as "Runtime" for wrangler config compatibility
