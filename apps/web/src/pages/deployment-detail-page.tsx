@@ -285,6 +285,8 @@ export function DeploymentDetailPage() {
     manual: "Manual",
     http_request: "HTTP Request",
     email_message: "Email Message",
+    scheduled: "Scheduled",
+    queue_message: "Queue Message",
   };
 
   return (

@@ -1,4 +1,4 @@
-import { parseExpression } from "cron-parser";
+import CronParser from "cron-parser";
 
 import type { Bindings } from "./context";
 import {
@@ -29,7 +29,7 @@ export async function handleScheduledEvent(
   for (const { scheduledTrigger, workflow } of triggers) {
     try {
       // Parse schedule expression
-      const interval = parseExpression(scheduledTrigger.scheduleExpression, {
+      const interval = CronParser.parse(scheduledTrigger.scheduleExpression, {
         currentDate: new Date(now),
         tz: "UTC",
       });

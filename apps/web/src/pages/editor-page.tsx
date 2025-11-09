@@ -281,7 +281,7 @@ export function EditorPage() {
             onEdgesChange={handleUiEdgesChanged}
             validateConnection={validateConnection}
             executeWorkflow={executeWorkflowWrapper}
-            initialWorkflowExecution={latestExecution}
+            initialWorkflowExecution={latestExecution || undefined}
             onDeployWorkflow={handleDeployWorkflow}
             createObjectUrl={createObjectUrl}
             workflowName={

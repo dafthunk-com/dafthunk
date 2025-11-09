@@ -148,6 +148,20 @@
       "when": 1762645590673,
       "tag": "0020_remove_cron_trigger_timestamps",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "6",
+      "when": 1762685990000,
+      "tag": "0021_update_cron_to_scheduled",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "6",
+      "when": 1762686120000,
+      "tag": "0022_rename_cron_triggers_to_scheduled",
+      "breakpoints": true
     }
   ]
 }
