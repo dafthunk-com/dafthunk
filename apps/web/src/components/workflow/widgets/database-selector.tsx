@@ -101,6 +101,12 @@ export const databaseSelectorWidget = createWidget({
     "database-execute",
     "database-import-table",
     "database-export-table",
+    "database-describe-table",
+    "database-list-tables",
+    "database-drop-table",
+    "database-table-exists",
+    "database-get-row-count",
+    "database-truncate-table",
   ],
   inputField: "databaseId",
   extractConfig: (_nodeId, inputs) => ({
