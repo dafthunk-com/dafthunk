@@ -1,5 +1,5 @@
 import * as crypto from "crypto";
-import { and, eq, lte } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 
 import { Bindings } from "../context";
@@ -34,13 +34,15 @@ import {
   type QueueTriggerInsert,
   type QueueTriggerRow,
   queueTriggers,
+  type ScheduledTriggerInsert,
+  type ScheduledTriggerRow,
+  scheduledTriggers,
   type SecretInsert,
   secrets,
   UserRole,
   type UserRoleType,
   type UserRow,
   users,
-  type WorkflowRow,
   workflows,
 } from "./index";
 
@@ -1038,6 +1040,71 @@ export async function deleteEmailTrigger(
         )
       )
     )
+    .returning();
+
+  return trigger;
+}
+
+/**
+ * Get ALL active scheduled triggers (for scheduled worker)
+ *
+ * @param db Database instance
+ * @returns Array of scheduled trigger records with workflow info
+ */
+export async function getActiveScheduledTriggers(
+  db: ReturnType<typeof createDatabase>
+) {
+  return await db
+    .select({
+      scheduledTrigger: scheduledTriggers,
+      workflow: workflows,
+    })
+    .from(scheduledTriggers)
+    .innerJoin(workflows, eq(scheduledTriggers.workflowId, workflows.id))
+    .where(eq(scheduledTriggers.active, true));
+}
+
+/**
+ * Upsert a scheduled trigger for a workflow
+ *
+ * @param db Database instance
+ * @param trigger Scheduled trigger data to insert or update
+ * @returns Upserted scheduled trigger record
+ */
+export async function upsertScheduledTrigger(
+  db: ReturnType<typeof createDatabase>,
+  trigger: ScheduledTriggerInsert
+): Promise<ScheduledTriggerRow> {
+  const [scheduledTrigger] = await db
+    .insert(scheduledTriggers)
+    .values(trigger)
+    .onConflictDoUpdate({
+      target: scheduledTriggers.workflowId,
+      set: {
+        scheduleExpression: trigger.scheduleExpression,
+        active: trigger.active,
+        updatedAt: new Date(),
+      },
+    })
+    .returning();
+
+  return scheduledTrigger;
+}
+
+/**
+ * Delete a scheduled trigger for a workflow
+ *
+ * @param db Database instance
+ * @param workflowId Workflow ID
+ * @returns Deleted scheduled trigger record or undefined if not found
+ */
+export async function deleteScheduledTrigger(
+  db: ReturnType<typeof createDatabase>,
+  workflowId: string
+): Promise<ScheduledTriggerRow | undefined> {
+  const [trigger] = await db
+    .delete(scheduledTriggers)
+    .where(eq(scheduledTriggers.workflowId, workflowId))
     .returning();
 
   return trigger;

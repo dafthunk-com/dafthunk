@@ -26,6 +26,7 @@ import typeRoutes from "./routes/types";
 import usageRoutes from "./routes/usage";
 import workflowRoutes from "./routes/workflows";
 import wsRoutes from "./routes/ws";
+import { handleScheduledEvent } from "./scheduled";
 import { Session } from "./session/session";
 
 // Export CloudflareRuntime as "Runtime" for wrangler config compatibility
@@ -86,5 +87,6 @@ export { Session as WorkflowSession };
 export default {
   email: handleIncomingEmail,
   queue: handleQueueMessages,
+  scheduled: handleScheduledEvent,
   fetch: app.fetch,
 };

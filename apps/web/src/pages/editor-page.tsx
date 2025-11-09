@@ -47,6 +47,10 @@ export function EditorPage() {
     ((execution: WorkflowExecution) => void) | null
   >(null);
 
+  // Track the latest execution for scheduled workflows
+  const [latestExecution, setLatestExecution] =
+    useState<WorkflowExecution | null>(null);
+
   const {
     nodes: initialNodesForUI,
     edges: initialEdgesForUI,
@@ -60,7 +64,16 @@ export function EditorPage() {
   } = useEditableWorkflow({
     workflowId: id,
     nodeTypes: nodeTypes || [],
-    onExecutionUpdate: (execution) => executionCallbackRef.current?.(execution),
+    onExecutionUpdate: (execution) => {
+      // Try to call the callback ref (for UI-triggered executions)
+      if (executionCallbackRef.current) {
+        executionCallbackRef.current(execution);
+      } else {
+        // For scheduled workflows or other backend-triggered executions,
+        // update state so WorkflowBuilder can receive it
+        setLatestExecution(execution);
+      }
+    },
   });
 
   const executeWorkflowWrapper = useCallback(
@@ -268,6 +281,7 @@ export function EditorPage() {
             onEdgesChange={handleUiEdgesChanged}
             validateConnection={validateConnection}
             executeWorkflow={executeWorkflowWrapper}
+            initialWorkflowExecution={latestExecution}
             onDeployWorkflow={handleDeployWorkflow}
             createObjectUrl={createObjectUrl}
             workflowName={

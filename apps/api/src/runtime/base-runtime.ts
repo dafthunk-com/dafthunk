@@ -1,6 +1,7 @@
 import type {
   Node,
   QueueMessage,
+  ScheduledTrigger,
   Workflow,
   WorkflowExecution,
   WorkflowExecutionStatus,
@@ -57,6 +58,7 @@ export interface RuntimeParams {
   readonly httpRequest?: HttpRequest;
   readonly emailMessage?: EmailMessage;
   readonly queueMessage?: QueueMessage;
+  readonly scheduledTrigger?: ScheduledTrigger;
 }
 
 /**
@@ -169,6 +171,7 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       httpRequest,
       emailMessage,
       queueMessage,
+      scheduledTrigger,
     } = event.payload;
     const instanceId = event.instanceId;
 
@@ -268,6 +271,7 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
           httpRequest,
           emailMessage,
           queueMessage,
+          scheduledTrigger,
           workflowSessionId
         );
 
@@ -437,7 +441,8 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     nodeId: string,
     httpRequest?: HttpRequest,
     emailMessage?: EmailMessage,
-    queueMessage?: QueueMessage
+    queueMessage?: QueueMessage,
+    scheduledTrigger?: ScheduledTrigger
   ): Promise<ExecutionState> {
     // Check if node should be skipped (all upstream dependencies unavailable)
     if (this.shouldSkipNode(context, state, nodeId)) {
@@ -455,7 +460,8 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       nodeId,
       httpRequest,
       emailMessage,
-      queueMessage
+      queueMessage,
+      scheduledTrigger
     );
   }
 
@@ -468,7 +474,8 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     nodeId: string,
     httpRequest?: HttpRequest,
     emailMessage?: EmailMessage,
-    queueMessage?: QueueMessage
+    queueMessage?: QueueMessage,
+    scheduledTrigger?: ScheduledTrigger
   ): Promise<ExecutionState> {
     const node = this.findNode(context.workflow, nodeId);
     if (!node) {
@@ -528,6 +535,7 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         httpRequest,
         emailMessage,
         queueMessage,
+        scheduledTrigger,
         context.deploymentId
       );
 
@@ -575,6 +583,7 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     httpRequest?: HttpRequest,
     emailMessage?: EmailMessage,
     queueMessage?: QueueMessage,
+    scheduledTrigger?: ScheduledTrigger,
     workflowSessionId?: string
   ): Promise<{ state: ExecutionState; record: WorkflowExecution }> {
     let currentState = state;
@@ -594,7 +603,8 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
             nodeId,
             httpRequest,
             emailMessage,
-            queueMessage
+            queueMessage,
+            scheduledTrigger
           );
 
           // Build result object for introspection

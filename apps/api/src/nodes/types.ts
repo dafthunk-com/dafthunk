@@ -5,6 +5,7 @@ import {
   NodeExecution,
   NodeType,
   QueueMessage,
+  ScheduledTrigger,
   WorkflowMode,
 } from "@dafthunk/types";
 
@@ -127,6 +128,7 @@ export interface NodeContext {
   httpRequest?: HttpRequest;
   emailMessage?: EmailMessage;
   queueMessage?: QueueMessage;
+  scheduledTrigger?: ScheduledTrigger;
   toolRegistry?: BaseToolRegistry;
   // Callback-based access to sensitive data (improves security and isolation)
   getSecret?: (secretName: string) => Promise<string | undefined>;

@@ -13,7 +13,8 @@ export type WorkflowType =
   | "manual"
   | "http_request"
   | "email_message"
-  | "queue_message";
+  | "queue_message"
+  | "scheduled";
 
 /**
  * Workflow execution mode

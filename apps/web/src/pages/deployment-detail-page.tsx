@@ -3,14 +3,13 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import ArrowDown from "lucide-react/icons/arrow-down";
 import ArrowUpToLine from "lucide-react/icons/arrow-up-to-line";
-import CalendarClock from "lucide-react/icons/calendar-clock";
 import GitCommitHorizontal from "lucide-react/icons/git-commit-horizontal";
 import Globe from "lucide-react/icons/globe";
 import History from "lucide-react/icons/history";
 import Mail from "lucide-react/icons/mail";
 import MoreHorizontal from "lucide-react/icons/more-horizontal";
 import Play from "lucide-react/icons/play";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 
@@ -47,10 +46,7 @@ import {
   useDeploymentHistory,
 } from "@/services/deployment-service";
 import { useNodeTypes } from "@/services/type-service";
-import {
-  useWorkflow,
-  useWorkflowExecution,
-} from "@/services/workflow-service";
+import { useWorkflow, useWorkflowExecution } from "@/services/workflow-service";
 import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
 
 // --- Inline deployment history columns and helper ---

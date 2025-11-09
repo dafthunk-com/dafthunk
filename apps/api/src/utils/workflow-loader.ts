@@ -30,7 +30,7 @@ export interface WorkflowLoadResult {
  * - DEV PATH: activeDeploymentId is NULL → load from R2 working version
  * - PROD PATH: activeDeploymentId is set → load from deployment snapshot
  *
- * This ensures consistent behavior across manual, HTTP, email, cron, and queue triggers.
+ * This ensures consistent behavior across manual, HTTP, email, scheduled, and queue triggers.
  *
  * @param workflowIdOrHandle - Workflow ID or handle
  * @param organizationId - Organization ID

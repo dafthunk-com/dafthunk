@@ -6,10 +6,12 @@ import { createDatabase, Database } from "../db";
 import {
   deleteEmailTrigger,
   deleteQueueTrigger,
+  deleteScheduledTrigger,
   getOrganizationCondition,
   getWorkflowCondition,
   upsertEmailTrigger,
   upsertQueueTrigger,
+  upsertScheduledTrigger,
 } from "../db/queries";
 import type { WorkflowRow } from "../db/schema";
 import { memberships, organizations, workflows } from "../db/schema";
@@ -72,7 +74,24 @@ export class WorkflowStore {
   }
 
   /**
-   * Sync triggers for queue_message and email_message workflows
+   * Extract schedule expression from workflow nodes
+   */
+  private extractScheduleExpression(nodes: Node[]): string | null {
+    const scheduledNode = nodes.find(
+      (node) => node.type === "receive-scheduled-trigger"
+    );
+    if (!scheduledNode) return null;
+
+    const scheduleExpressionInput = scheduledNode.inputs.find(
+      (input) => input.name === "scheduleExpression"
+    );
+    if (!scheduleExpressionInput || !scheduleExpressionInput.value) return null;
+
+    return scheduleExpressionInput.value as string;
+  }
+
+  /**
+   * Sync triggers for queue_message, email_message, and scheduled workflows
    * Directly upserts/deletes triggers without additional verification queries
    */
   private async syncTriggers(
@@ -135,6 +154,36 @@ export class WorkflowStore {
         // No email node - delete trigger if exists
         try {
           await deleteEmailTrigger(this.db, workflowId, organizationId);
+        } catch (_error) {
+          // Ignore - trigger didn't exist
+        }
+      }
+    }
+
+    // Handle scheduled workflows
+    if (workflowType === "scheduled") {
+      const scheduleExpression = this.extractScheduleExpression(nodes);
+
+      if (scheduleExpression) {
+        try {
+          await upsertScheduledTrigger(this.db, {
+            workflowId,
+            scheduleExpression,
+            active: true,
+            updatedAt: new Date(),
+          });
+          console.log(
+            `Auto-registered scheduled trigger: workflow=${workflowId}, schedule=${scheduleExpression}`
+          );
+        } catch (_error) {
+          console.error(
+            `Failed to create scheduled trigger for workflow ${workflowId}`
+          );
+        }
+      } else {
+        // No scheduled node - delete trigger if exists
+        try {
+          await deleteScheduledTrigger(this.db, workflowId);
         } catch (_error) {
           // Ignore - trigger didn't exist
         }

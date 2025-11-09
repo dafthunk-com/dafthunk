@@ -6,7 +6,6 @@ import type {
 } from "@xyflow/react";
 import { ReactFlowProvider } from "@xyflow/react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -80,12 +79,14 @@ function applyInitialExecution(
     if (!node) return;
 
     const updatedOutputs = node.data.outputs.map((output) => {
-      const outputValue = nodeExec.outputs?.[output.id] ?? nodeExec.outputs?.[output.name];
+      const outputValue =
+        nodeExec.outputs?.[output.id] ?? nodeExec.outputs?.[output.name];
       return { ...output, value: outputValue };
     });
 
     const executionState =
-      nodeExec.status === "idle" && updatedOutputs.some((o) => o.value !== undefined)
+      nodeExec.status === "idle" &&
+      updatedOutputs.some((o) => o.value !== undefined)
         ? "completed"
         : nodeExec.status;
 
@@ -116,8 +117,8 @@ export function WorkflowBuilder({
   workflowDescription,
   onWorkflowUpdate,
   orgHandle,
-  deploymentVersions = [],
-  mutateDeploymentHistory,
+  deploymentVersions: _deploymentVersions = [],
+  mutateDeploymentHistory: _mutateDeploymentHistory,
   wsExecuteWorkflow,
 }: WorkflowBuilderProps) {
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
@@ -197,7 +198,11 @@ export function WorkflowBuilder({
 
   // Apply initial workflow execution state once
   useEffect(() => {
-    if (initialWorkflowExecution && !initializedRef.current && nodes.length > 0) {
+    if (
+      initialWorkflowExecution &&
+      !initializedRef.current &&
+      nodes.length > 0
+    ) {
       initializedRef.current = true;
       setWorkflowStatus(initialWorkflowExecution.status);
       applyInitialExecution(initialWorkflowExecution, nodes, updateNodeData);
@@ -233,9 +238,14 @@ export function WorkflowBuilder({
 
   const handleExecuteRequest = useCallback(
     (execute: (triggerData?: unknown) => void) => {
-      // For manual workflows, execute immediately (no dialog needed)
-      if (!workflowType || workflowType === "manual") {
-        execute();
+      // For workflows that don't require parameters, execute directly
+      if (
+        !workflowType ||
+        workflowType === "manual" ||
+        workflowType === "scheduled" ||
+        workflowType === "queue_message"
+      ) {
+        execute(undefined);
         return;
       }
 
@@ -243,12 +253,13 @@ export function WorkflowBuilder({
       // Store the execute callback for later use when dialog is submitted
       executeRef.current = execute;
 
-      // Trigger the dialog opening by calling executeWorkflow from useWorkflowExecution
-      // This will check for parameters and open the appropriate dialog
       if (workflowId) {
+        // http_request or email_message - check for parameters and show dialog
         executeWorkflowWithForm(
           workflowId,
-          () => {}, // Dummy callback since we'll use the stored execute callback
+          (execution) => {
+            execute(execution);
+          },
           nodes,
           nodeTypes as any,
           workflowType
@@ -316,7 +327,10 @@ export function WorkflowBuilder({
       if (workflowStatus === "idle" || workflowStatus === "cancelled") {
         if (workflowStatus === "cancelled") resetNodeStates();
         startExecution();
-      } else if (workflowStatus === "submitted" || workflowStatus === "executing") {
+      } else if (
+        workflowStatus === "submitted" ||
+        workflowStatus === "executing"
+      ) {
         if (cleanupRef.current) {
           Promise.resolve(cleanupRef.current()).catch((error) =>
             console.error("Error during cleanup:", error)
@@ -527,7 +541,9 @@ export function WorkflowBuilder({
                 executeRef.current = null;
               }}
               parameters={executionJsonBodyParameters}
-              onSubmit={(data) => handleDialogSubmit({ jsonBody: data.jsonBody })}
+              onSubmit={(data) =>
+                handleDialogSubmit({ jsonBody: data.jsonBody })
+              }
             />
           )}
 

@@ -295,6 +295,7 @@ import { ListPostsRedditNode } from "./reddit/list-posts-reddit-node";
 import { SubmitCommentRedditNode } from "./reddit/submit-comment-reddit-node";
 import { SubmitPostRedditNode } from "./reddit/submit-post-reddit-node";
 import { VoteRedditNode } from "./reddit/vote-reddit-node";
+import { ReceiveScheduledTriggerNode } from "./scheduled/receive-scheduled-trigger-node";
 import { BartLargeCnnNode } from "./text/bart-large-cnn-node";
 import { BgeRerankerBaseNode } from "./text/bge-reranker-base-node";
 import { DeepseekR1DistillQwen32BNode } from "./text/deepseek-r1-distill-qwen-32b-node";
@@ -384,6 +385,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(SendQueueBatchNode);
     this.registerImplementation(ReceiveQueueMessageNode);
     this.registerImplementation(ReceiveEmailNode);
+    this.registerImplementation(ReceiveScheduledTriggerNode);
     this.registerImplementation(ParseEmailNode);
     this.registerImplementation(AdditionNode);
     this.registerImplementation(SubtractionNode);

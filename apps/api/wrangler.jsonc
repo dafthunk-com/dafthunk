@@ -75,6 +75,9 @@
       }
     ]
   },
+  "triggers": {
+    "crons": ["* * * * *"]
+  },
   "analytics_engine_datasets": [
     {
       "binding": "COMPUTE",
@@ -242,6 +245,9 @@
       },
       "vars": {
         "WEB_HOST": "https://www.dafthunk.com"
+      },
+      "triggers": {
+        "crons": ["* * * * *"]
       }
     }
   }

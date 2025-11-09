@@ -82,7 +82,7 @@ describe("Types Route Tests", () => {
       "manual",
       "http_request",
       "email_message",
-      "cron",
+      "scheduled",
     ];
 
     it.each(workflowTypes)(
@@ -268,7 +268,7 @@ describe("Types Route Tests", () => {
               "manual",
               "http_request",
               "email_message",
-              "cron",
+              "scheduled",
             ]).toContain(workflowType);
           });
         }

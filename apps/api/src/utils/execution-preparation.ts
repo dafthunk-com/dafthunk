@@ -39,7 +39,7 @@ interface HttpRequestParameters {
 }
 
 /**
- * Parameters for manual and cron workflow types
+ * Parameters for manual and scheduled workflow types
  */
 interface DefaultParameters {
   url: string;

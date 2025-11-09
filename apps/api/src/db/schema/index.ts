@@ -53,7 +53,7 @@ export const WorkflowTriggerType = {
   MANUAL: "manual",
   HTTP_REQUEST: "http_request",
   EMAIL_MESSAGE: "email_message",
-  CRON: "cron",
+  SCHEDULED: "scheduled",
   QUEUE_MESSAGE: "queue_message",
 } as const;
 
@@ -268,23 +268,23 @@ export const deployments = sqliteTable(
   ]
 );
 
-// Cron Triggers - Scheduled triggers for workflows
-export const cronTriggers = sqliteTable(
-  "cron_triggers",
+// Scheduled Triggers - Scheduled triggers for workflows
+export const scheduledTriggers = sqliteTable(
+  "scheduled_triggers",
   {
     workflowId: text("workflow_id")
       .primaryKey()
       .references(() => workflows.id, { onDelete: "cascade" }),
-    cronExpression: text("cron_expression").notNull(),
+    scheduleExpression: text("schedule_expression").notNull(),
     active: integer("active", { mode: "boolean" }).notNull().default(true),
     createdAt: createCreatedAt(),
     updatedAt: createUpdatedAt(),
   },
   (table) => [
-    index("cron_triggers_workflow_id_idx").on(table.workflowId),
-    index("cron_triggers_active_idx").on(table.active),
-    index("cron_triggers_created_at_idx").on(table.createdAt),
-    index("cron_triggers_updated_at_idx").on(table.updatedAt),
+    index("scheduled_triggers_workflow_id_idx").on(table.workflowId),
+    index("scheduled_triggers_active_idx").on(table.active),
+    index("scheduled_triggers_created_at_idx").on(table.createdAt),
+    index("scheduled_triggers_updated_at_idx").on(table.updatedAt),
   ]
 );
 
@@ -525,9 +525,9 @@ export const workflowsRelations = relations(workflows, ({ one, many }) => ({
     fields: [workflows.activeDeploymentId],
     references: [deployments.id],
   }),
-  cronTrigger: one(cronTriggers, {
+  scheduledTrigger: one(scheduledTriggers, {
     fields: [workflows.id],
-    references: [cronTriggers.workflowId],
+    references: [scheduledTriggers.workflowId],
   }),
   queueTrigger: one(queueTriggers, {
     fields: [workflows.id],
@@ -550,12 +550,15 @@ export const deploymentsRelations = relations(deployments, ({ one }) => ({
   }),
 }));
 
-export const cronTriggersRelations = relations(cronTriggers, ({ one }) => ({
-  workflow: one(workflows, {
-    fields: [cronTriggers.workflowId],
-    references: [workflows.id],
-  }),
-}));
+export const scheduledTriggersRelations = relations(
+  scheduledTriggers,
+  ({ one }) => ({
+    workflow: one(workflows, {
+      fields: [scheduledTriggers.workflowId],
+      references: [workflows.id],
+    }),
+  })
+);
 
 export const datasetsRelations = relations(datasets, ({ one }) => ({
   organization: one(organizations, {
@@ -652,8 +655,8 @@ export type WorkflowInsert = typeof workflows.$inferInsert;
 export type DeploymentRow = typeof deployments.$inferSelect;
 export type DeploymentInsert = typeof deployments.$inferInsert;
 
-export type CronTriggerRow = typeof cronTriggers.$inferSelect;
-export type CronTriggerInsert = typeof cronTriggers.$inferInsert;
+export type ScheduledTriggerRow = typeof scheduledTriggers.$inferSelect;
+export type ScheduledTriggerInsert = typeof scheduledTriggers.$inferInsert;
 
 export type DatasetRow = typeof datasets.$inferSelect;
 export type DatasetInsert = typeof datasets.$inferInsert;

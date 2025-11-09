@@ -180,7 +180,7 @@ const updateNodesWithExecutionOutputs = (
             ...node.data,
             outputs: node.data.outputs.map((output) => ({
               ...output,
-              value: outputs[output.id],
+              value: outputs[output.id] ?? outputs[output.name],
             })),
           },
         }

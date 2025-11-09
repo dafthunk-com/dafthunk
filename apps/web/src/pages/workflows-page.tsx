@@ -332,7 +332,7 @@ function createColumns(
           manual: "Manual",
           http_request: "HTTP Request",
           email_message: "Email Message",
-          cron: "Scheduled",
+          scheduled: "Scheduled",
           queue_message: "Queue Message",
         };
         return (

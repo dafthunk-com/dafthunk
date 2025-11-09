@@ -38,7 +38,7 @@ const workflowTypes = [
     icon: Mail,
   },
   {
-    type: "cron" as WorkflowType,
+    type: "scheduled" as WorkflowType,
     title: "Scheduled",
     description: "Trigger workflows on a schedule",
     icon: Clock,

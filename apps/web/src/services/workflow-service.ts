@@ -554,12 +554,6 @@ export function useWorkflowExecution(
       }
 
       const lowercasedWorkflowType = workflowTypeString?.toLowerCase();
-      console.log(
-        "[WorkflowService] executeWorkflowWithForm received workflowTypeString:",
-        workflowTypeString,
-        "Lowercased:",
-        lowercasedWorkflowType
-      );
 
       // Check for email workflow type first
       if (lowercasedWorkflowType === "email_message") {
@@ -580,12 +574,6 @@ export function useWorkflowExecution(
         const httpParameterNodes = extractDialogParametersFromNodes(
           uiNodes,
           nodeTypesData
-        );
-        console.log(
-          "[WorkflowService] HTTP_REQUEST block. jsonBodyNode:",
-          jsonBodyNode,
-          "httpParameterNodes:",
-          httpParameterNodes
         );
 
         // Handle JSON body node if present for HTTP workflows
@@ -752,4 +740,3 @@ export const useEmailTrigger = (
     mutateEmailTrigger: mutate,
   };
 };
-

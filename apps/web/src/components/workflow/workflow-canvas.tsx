@@ -788,7 +788,7 @@ export function WorkflowCanvas({
                       }
                     />
                   )}
-                  {onSetSchedule && workflowType === "cron" && (
+                  {onSetSchedule && workflowType === "scheduled" && (
                     <SetScheduleButton
                       onClick={onSetSchedule}
                       disabled={nodes.length === 0}

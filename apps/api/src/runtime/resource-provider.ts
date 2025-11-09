@@ -1,4 +1,4 @@
-import type { QueueMessage } from "@dafthunk/types";
+import type { QueueMessage, ScheduledTrigger } from "@dafthunk/types";
 
 import type { Bindings } from "../context";
 import {
@@ -127,6 +127,7 @@ export class ResourceProvider {
     httpRequest?: HttpRequest,
     emailMessage?: EmailMessage,
     queueMessage?: QueueMessage,
+    scheduledTrigger?: ScheduledTrigger,
     deploymentId?: string
   ): NodeContext {
     // Configure AI Gateway options
@@ -149,6 +150,7 @@ export class ResourceProvider {
       httpRequest,
       emailMessage,
       queueMessage,
+      scheduledTrigger,
       onProgress: () => {},
       toolRegistry: this.toolRegistry,
       // Callback-based access to secrets (lazy, secure)
