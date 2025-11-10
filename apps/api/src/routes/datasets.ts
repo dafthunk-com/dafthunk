@@ -181,6 +181,58 @@ datasetRoutes.delete("/:id", async (c) => {
   return c.json(response);
 });
 
+// Maximum file size for AI Search (4MB)
+const MAX_FILE_SIZE = 4 * 1024 * 1024;
+
+// Supported file extensions for AI Search
+const SUPPORTED_EXTENSIONS = new Set([
+  // Plain text
+  ".txt",
+  ".rst",
+  ".log",
+  ".ini",
+  ".conf",
+  ".env",
+  ".md",
+  ".mdx",
+  // Programming languages
+  ".js",
+  ".jsx",
+  ".ts",
+  ".tsx",
+  ".py",
+  ".java",
+  ".c",
+  ".cpp",
+  ".h",
+  ".cs",
+  ".go",
+  ".rb",
+  ".php",
+  ".sh",
+  ".bash",
+  ".yaml",
+  ".yml",
+  ".json",
+  ".xml",
+  // Rich formats
+  ".pdf",
+  ".jpeg",
+  ".jpg",
+  ".png",
+  ".webp",
+  ".svg",
+  ".html",
+  ".htm",
+  ".csv",
+  ".doc",
+  ".docx",
+  ".xls",
+  ".xlsx",
+  ".ppt",
+  ".pptx",
+]);
+
 /**
  * Upload a file to a dataset
  */
@@ -201,6 +253,27 @@ datasetRoutes.post("/:id/upload", async (c) => {
 
     if (!file) {
       return c.json({ error: "No file provided" }, 400);
+    }
+
+    // Validate file size (4MB limit for AI Search)
+    if (file.size > MAX_FILE_SIZE) {
+      return c.json(
+        {
+          error: `File size exceeds 4MB limit (${Math.round(file.size / 1024 / 1024)}MB)`,
+        },
+        400
+      );
+    }
+
+    // Validate file extension
+    const extension = file.name.toLowerCase().match(/\.[^.]+$/)?.[0];
+    if (!extension || !SUPPORTED_EXTENSIONS.has(extension)) {
+      return c.json(
+        {
+          error: `Unsupported file type: ${extension || "unknown"}. Must be a supported text, document, or image format.`,
+        },
+        400
+      );
     }
 
     // Create the R2 path following the multitenant pattern
