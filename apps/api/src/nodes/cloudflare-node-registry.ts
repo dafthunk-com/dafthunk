@@ -196,6 +196,13 @@ import { SendDraftGoogleMailNode } from "./google-mail/send-draft-google-mail-no
 import { SendEmailGoogleMailNode } from "./google-mail/send-email-google-mail-node";
 import { TrashMessageGoogleMailNode } from "./google-mail/trash-message-google-mail-node";
 import { UpdateDraftGoogleMailNode } from "./google-mail/update-draft-google-mail-node";
+import { FormDataBooleanNode } from "./http/form-data-boolean-node";
+import { FormDataNumberNode } from "./http/form-data-number-node";
+import { FormDataStringNode } from "./http/form-data-string-node";
+import { HttpRequestNode } from "./http/http-request-node";
+import { HttpResponseNode } from "./http/http-response-node";
+import { JsonBodyNode } from "./http/json-body-node";
+import { TestAllTypesNode } from "./http/test-all-types-node";
 import { CanvasDoodleNode } from "./image/canvas-doodle-node";
 import { DetrResnet50Node } from "./image/detr-resnet50-node";
 import { DreamShaper8LCMNode } from "./image/dream-shaper8-lcm-node";
@@ -289,19 +296,13 @@ import { SliderNode } from "./math/slider-node";
 import { SquareRootNode } from "./math/square-root-node";
 import { SubtractionNode } from "./math/subtraction-node";
 import { SumNode } from "./math/sum-node";
-import { HttpRequestNode } from "./net/http-request-node";
-import { HttpResponseNode } from "./net/http-response-node";
+import { FetchNode } from "./fetch/fetch-node";
 import { Gpt5MiniNode } from "./openai/gpt-5-mini-node";
 import { Gpt5NanoNode } from "./openai/gpt-5-nano-node";
 import { Gpt5Node } from "./openai/gpt-5-node";
 import { Gpt41Node } from "./openai/gpt-41-node";
 import { GptOss20BNode } from "./openai/gpt-oss-20b-node";
 import { GptOss120BNode } from "./openai/gpt-oss-120b-node";
-import { FormDataBooleanNode } from "./parameter/form-data-boolean-node";
-import { FormDataNumberNode } from "./parameter/form-data-number-node";
-import { FormDataStringNode } from "./parameter/form-data-string-node";
-import { JsonBodyNode } from "./parameter/json-body-node";
-import { TestAllTypesNode } from "./parameter/test-all-types-node";
 import { ReceiveQueueMessageNode } from "./queue/receive-queue-message-node";
 import { SendQueueBatchNode } from "./queue/send-queue-batch-node";
 import { SendQueueMessageNode } from "./queue/send-queue-message-node";
@@ -395,6 +396,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(FormDataStringNode);
     this.registerImplementation(FormDataNumberNode);
     this.registerImplementation(FormDataBooleanNode);
+    this.registerImplementation(HttpRequestNode);
     this.registerImplementation(JsonBodyNode);
     this.registerImplementation(TestAllTypesNode);
     this.registerImplementation(SendQueueMessageNode);
@@ -553,7 +555,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(AudioRecorderNode);
     this.registerImplementation(ToMarkdownNode);
     this.registerImplementation(FileNode);
-    this.registerImplementation(HttpRequestNode);
+    this.registerImplementation(FetchNode);
     this.registerImplementation(HttpResponseNode);
 
     // Conditional registrations based on environment

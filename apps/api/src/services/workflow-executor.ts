@@ -39,7 +39,7 @@ export interface WorkflowExecutorParameters {
   method?: string;
   headers?: Record<string, string>;
   query?: Record<string, string>;
-  formData?: Record<string, string | File>;
+  formData?: Record<string, string>;
   // Body can be from JSON or converted form data
   requestBody?: any;
 }

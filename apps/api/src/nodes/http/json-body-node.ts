@@ -68,12 +68,34 @@ export class JsonBodyNode extends ExecutableNode {
         });
       }
 
-      // The body should already be parsed by the time it reaches here
-      // Accept any valid JSON value (object, array, string, number, boolean, null)
-      // Only reject if it's undefined when required
+      // Handle BlobParameter (production) or plain objects (legacy/tests)
+      let parsedValue: any;
+
+      // Check if body is a BlobParameter
+      if (
+        typeof body === "object" &&
+        body !== null &&
+        "data" in body &&
+        body.data instanceof Uint8Array &&
+        "mimeType" in body
+      ) {
+        // Parse JSON from BlobParameter
+        try {
+          const textDecoder = new TextDecoder();
+          const bodyString = textDecoder.decode(body.data);
+          parsedValue = JSON.parse(bodyString);
+        } catch (parseError) {
+          return this.createErrorResult(
+            `Failed to parse JSON body: ${parseError instanceof Error ? parseError.message : String(parseError)}`
+          );
+        }
+      } else {
+        // Legacy format: body is already parsed (for backward compatibility and tests)
+        parsedValue = body;
+      }
 
       return this.createSuccessResult({
-        value: body,
+        value: parsedValue,
       });
     } catch (error) {
       return this.createErrorResult(

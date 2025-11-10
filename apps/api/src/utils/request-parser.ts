@@ -10,7 +10,7 @@ import { processFormData } from "./http";
 
 export interface ParsedRequest {
   body?: any;
-  formData?: Record<string, string | File>;
+  formData?: Record<string, string>;
 }
 
 export interface ParseRequestError {
@@ -28,7 +28,7 @@ export async function parseRequestBody(
   c: Context
 ): Promise<ParsedRequest | ParseRequestError> {
   let body: any = undefined;
-  let formData: Record<string, string | File> | undefined;
+  let formData: Record<string, string> | undefined;
 
   const contentType = c.req.header("content-type");
 
@@ -53,7 +53,13 @@ export async function parseRequestBody(
     contentType?.includes("application/x-www-form-urlencoded")
   ) {
     try {
-      formData = Object.fromEntries(await c.req.formData());
+      const rawFormData = Object.fromEntries(await c.req.formData());
+      // Filter out File objects - only keep string values
+      formData = Object.fromEntries(
+        Object.entries(rawFormData).filter(
+          ([_, value]) => typeof value === "string"
+        )
+      ) as Record<string, string>;
       // Convert form data to body with type coercion
       body = processFormData(formData);
     } catch (e: any) {

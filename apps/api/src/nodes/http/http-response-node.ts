@@ -15,7 +15,7 @@ export class HttpResponseNode extends ExecutableNode {
     description:
       "Define the HTTP response for synchronous HTTP Request workflows.",
     tags: ["Network", "HTTP", "Response"],
-    icon: "arrow-left",
+    icon: "log-out",
     compatibility: ["http_request"], // Only compatible with sync HTTP workflows
     documentation:
       "This node defines the HTTP response to be returned when using a synchronous HTTP Request trigger. " +

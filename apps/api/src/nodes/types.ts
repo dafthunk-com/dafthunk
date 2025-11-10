@@ -91,11 +91,13 @@ export type ParameterValue = ParameterType["value"];
 
 export interface HttpRequest {
   url?: string;
+  path?: string;
   method?: string;
   headers?: Record<string, string>;
   query?: Record<string, string>;
-  body?: any;
-  formData?: Record<string, string | File>;
+  queryParams?: Record<string, string>; // Alias for query
+  body?: BlobParameter; // Raw request body with MIME type (JSON, images, PDFs, etc.)
+  formData?: Record<string, string>;
 }
 
 export interface EmailMessage {

@@ -1,18 +1,31 @@
 import { Node } from "@dafthunk/types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { NodeContext } from "../types";
-import { HttpRequestNode } from "./http-request-node";
+import { BlobParameter, NodeContext } from "../types";
+import { FetchNode } from "./fetch-node";
 
 // Mock fetch
 global.fetch = vi.fn();
 
-describe("HttpRequestNode", () => {
+// Helper to convert string to ArrayBuffer
+function stringToArrayBuffer(str: string): ArrayBuffer {
+  const encoder = new TextEncoder();
+  return encoder.encode(str).buffer;
+}
+
+// Helper to decode BlobParameter to string
+function blobToString(blob: BlobParameter): string {
+  const decoder = new TextDecoder();
+  return decoder.decode(blob.data);
+}
+
+describe("FetchNode", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it("should make a GET request successfully", async () => {
+    const responseData = JSON.stringify({ url: "https://httpbin.org/get" });
     const mockResponse = {
       status: 200,
       statusText: "OK",
@@ -20,15 +33,13 @@ describe("HttpRequestNode", () => {
         ["content-type", "application/json"],
         ["server", "httpbin.org"],
       ]),
-      text: vi
-        .fn()
-        .mockResolvedValue(JSON.stringify({ url: "https://httpbin.org/get" })),
+      arrayBuffer: vi.fn().mockResolvedValue(stringToArrayBuffer(responseData)),
     };
 
     (global.fetch as any).mockResolvedValue(mockResponse);
 
-    const nodeId = "http-request";
-    const node = new HttpRequestNode({
+    const nodeId = "fetch";
+    const node = new FetchNode({
       nodeId,
     } as unknown as Node);
 
@@ -50,11 +61,20 @@ describe("HttpRequestNode", () => {
     expect(result.outputs?.status).toBe(200);
     expect(result.outputs?.statusText).toBe("OK");
     expect(result.outputs?.headers).toBeDefined();
-    expect(typeof result.outputs?.body).toBe("string");
-    expect(JSON.parse(result.outputs?.body || "{}")).toHaveProperty("url");
+
+    // Check BlobParameter structure
+    const body = result.outputs?.body as BlobParameter;
+    expect(body).toBeDefined();
+    expect(body.data).toBeInstanceOf(Uint8Array);
+    expect(body.mimeType).toBe("application/json");
+
+    // Decode and parse JSON
+    const bodyString = blobToString(body);
+    expect(JSON.parse(bodyString)).toHaveProperty("url");
   });
 
   it("should make a POST request with body", async () => {
+    const responseData = JSON.stringify({ json: { test: "data" } });
     const mockResponse = {
       status: 200,
       statusText: "OK",
@@ -62,15 +82,13 @@ describe("HttpRequestNode", () => {
         ["content-type", "application/json"],
         ["server", "httpbin.org"],
       ]),
-      text: vi
-        .fn()
-        .mockResolvedValue(JSON.stringify({ json: { test: "data" } })),
+      arrayBuffer: vi.fn().mockResolvedValue(stringToArrayBuffer(responseData)),
     };
 
     (global.fetch as any).mockResolvedValue(mockResponse);
 
-    const nodeId = "http-request";
-    const node = new HttpRequestNode({
+    const nodeId = "fetch";
+    const node = new FetchNode({
       nodeId,
     } as unknown as Node);
 
@@ -93,14 +111,20 @@ describe("HttpRequestNode", () => {
     expect(result.outputs?.status).toBe(200);
     expect(result.outputs?.statusText).toBe("OK");
     expect(result.outputs?.headers).toBeDefined();
-    expect(typeof result.outputs?.body).toBe("string");
 
-    const responseBody = JSON.parse(result.outputs?.body || "{}");
+    const body = result.outputs?.body as BlobParameter;
+    expect(body).toBeDefined();
+    expect(body.data).toBeInstanceOf(Uint8Array);
+
+    const responseBody = JSON.parse(blobToString(body));
     expect(responseBody).toHaveProperty("json");
     expect(responseBody.json).toEqual({ test: "data" });
   });
 
   it("should handle query parameters", async () => {
+    const responseData = JSON.stringify({
+      args: { param1: "value1", param2: "value2" },
+    });
     const mockResponse = {
       status: 200,
       statusText: "OK",
@@ -108,17 +132,13 @@ describe("HttpRequestNode", () => {
         ["content-type", "application/json"],
         ["server", "httpbin.org"],
       ]),
-      text: vi.fn().mockResolvedValue(
-        JSON.stringify({
-          args: { param1: "value1", param2: "value2" },
-        })
-      ),
+      arrayBuffer: vi.fn().mockResolvedValue(stringToArrayBuffer(responseData)),
     };
 
     (global.fetch as any).mockResolvedValue(mockResponse);
 
-    const nodeId = "http-request";
-    const node = new HttpRequestNode({
+    const nodeId = "fetch";
+    const node = new FetchNode({
       nodeId,
     } as unknown as Node);
 
@@ -139,13 +159,20 @@ describe("HttpRequestNode", () => {
     expect(result.status).toBe("completed");
     expect(result.outputs?.status).toBe(200);
 
-    const responseBody = JSON.parse(result.outputs?.body || "{}");
+    const body = result.outputs?.body as BlobParameter;
+    const responseBody = JSON.parse(blobToString(body));
     expect(responseBody).toHaveProperty("args");
     expect(responseBody.args).toHaveProperty("param1", "value1");
     expect(responseBody.args).toHaveProperty("param2", "value2");
   });
 
   it("should handle custom headers", async () => {
+    const responseData = JSON.stringify({
+      headers: {
+        "X-Custom-Header": "test-value",
+        "User-Agent": "test-agent",
+      },
+    });
     const mockResponse = {
       status: 200,
       statusText: "OK",
@@ -153,20 +180,13 @@ describe("HttpRequestNode", () => {
         ["content-type", "application/json"],
         ["server", "httpbin.org"],
       ]),
-      text: vi.fn().mockResolvedValue(
-        JSON.stringify({
-          headers: {
-            "X-Custom-Header": "test-value",
-            "User-Agent": "test-agent",
-          },
-        })
-      ),
+      arrayBuffer: vi.fn().mockResolvedValue(stringToArrayBuffer(responseData)),
     };
 
     (global.fetch as any).mockResolvedValue(mockResponse);
 
-    const nodeId = "http-request";
-    const node = new HttpRequestNode({
+    const nodeId = "fetch";
+    const node = new FetchNode({
       nodeId,
     } as unknown as Node);
 
@@ -190,7 +210,8 @@ describe("HttpRequestNode", () => {
     expect(result.status).toBe("completed");
     expect(result.outputs?.status).toBe(200);
 
-    const responseBody = JSON.parse(result.outputs?.body || "{}");
+    const body = result.outputs?.body as BlobParameter;
+    const responseBody = JSON.parse(blobToString(body));
     expect(responseBody).toHaveProperty("headers");
     expect(responseBody.headers).toHaveProperty(
       "X-Custom-Header",
@@ -204,8 +225,8 @@ describe("HttpRequestNode", () => {
       new Error("The user aborted a request.")
     );
 
-    const nodeId = "http-request";
-    const node = new HttpRequestNode({
+    const nodeId = "fetch";
+    const node = new FetchNode({
       nodeId,
     } as unknown as Node);
 
@@ -230,8 +251,8 @@ describe("HttpRequestNode", () => {
   });
 
   it("should handle invalid URL", async () => {
-    const nodeId = "http-request";
-    const node = new HttpRequestNode({
+    const nodeId = "fetch";
+    const node = new FetchNode({
       nodeId,
     } as unknown as Node);
 
@@ -253,8 +274,8 @@ describe("HttpRequestNode", () => {
   });
 
   it("should handle missing URL", async () => {
-    const nodeId = "http-request";
-    const node = new HttpRequestNode({
+    const nodeId = "fetch";
+    const node = new FetchNode({
       nodeId,
     } as unknown as Node);
 
@@ -275,6 +296,7 @@ describe("HttpRequestNode", () => {
   });
 
   it("should handle PUT request", async () => {
+    const responseData = JSON.stringify({ json: { update: "data" } });
     const mockResponse = {
       status: 200,
       statusText: "OK",
@@ -282,15 +304,13 @@ describe("HttpRequestNode", () => {
         ["content-type", "application/json"],
         ["server", "httpbin.org"],
       ]),
-      text: vi
-        .fn()
-        .mockResolvedValue(JSON.stringify({ json: { update: "data" } })),
+      arrayBuffer: vi.fn().mockResolvedValue(stringToArrayBuffer(responseData)),
     };
 
     (global.fetch as any).mockResolvedValue(mockResponse);
 
-    const nodeId = "http-request";
-    const node = new HttpRequestNode({
+    const nodeId = "fetch";
+    const node = new FetchNode({
       nodeId,
     } as unknown as Node);
 
@@ -312,12 +332,14 @@ describe("HttpRequestNode", () => {
     expect(result.status).toBe("completed");
     expect(result.outputs?.status).toBe(200);
 
-    const responseBody = JSON.parse(result.outputs?.body || "{}");
+    const body = result.outputs?.body as BlobParameter;
+    const responseBody = JSON.parse(blobToString(body));
     expect(responseBody).toHaveProperty("json");
     expect(responseBody.json).toEqual({ update: "data" });
   });
 
   it("should handle DELETE request", async () => {
+    const responseData = JSON.stringify({});
     const mockResponse = {
       status: 200,
       statusText: "OK",
@@ -325,13 +347,13 @@ describe("HttpRequestNode", () => {
         ["content-type", "application/json"],
         ["server", "httpbin.org"],
       ]),
-      text: vi.fn().mockResolvedValue(JSON.stringify({})),
+      arrayBuffer: vi.fn().mockResolvedValue(stringToArrayBuffer(responseData)),
     };
 
     (global.fetch as any).mockResolvedValue(mockResponse);
 
-    const nodeId = "http-request";
-    const node = new HttpRequestNode({
+    const nodeId = "fetch";
+    const node = new FetchNode({
       nodeId,
     } as unknown as Node);
 
@@ -354,6 +376,7 @@ describe("HttpRequestNode", () => {
   });
 
   it("should handle 404 error", async () => {
+    const responseData = "Not Found";
     const mockResponse = {
       status: 404,
       statusText: "NOT FOUND",
@@ -361,13 +384,13 @@ describe("HttpRequestNode", () => {
         ["content-type", "text/html"],
         ["server", "httpbin.org"],
       ]),
-      text: vi.fn().mockResolvedValue("Not Found"),
+      arrayBuffer: vi.fn().mockResolvedValue(stringToArrayBuffer(responseData)),
     };
 
     (global.fetch as any).mockResolvedValue(mockResponse);
 
-    const nodeId = "http-request";
-    const node = new HttpRequestNode({
+    const nodeId = "fetch";
+    const node = new FetchNode({
       nodeId,
     } as unknown as Node);
 
@@ -390,6 +413,7 @@ describe("HttpRequestNode", () => {
   });
 
   it("should handle 500 error", async () => {
+    const responseData = "Internal Server Error";
     const mockResponse = {
       status: 500,
       statusText: "INTERNAL SERVER ERROR",
@@ -397,13 +421,13 @@ describe("HttpRequestNode", () => {
         ["content-type", "text/html"],
         ["server", "httpbin.org"],
       ]),
-      text: vi.fn().mockResolvedValue("Internal Server Error"),
+      arrayBuffer: vi.fn().mockResolvedValue(stringToArrayBuffer(responseData)),
     };
 
     (global.fetch as any).mockResolvedValue(mockResponse);
 
-    const nodeId = "http-request";
-    const node = new HttpRequestNode({
+    const nodeId = "fetch";
+    const node = new FetchNode({
       nodeId,
     } as unknown as Node);
 

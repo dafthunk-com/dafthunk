@@ -34,7 +34,7 @@ interface HttpRequestParameters {
   method: string;
   headers: Record<string, string>;
   query: Record<string, string>;
-  formData?: Record<string, string | File>;
+  formData?: Record<string, string>;
   requestBody?: JsonValue;
 }
 
