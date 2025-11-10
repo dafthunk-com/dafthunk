@@ -298,8 +298,12 @@ import { TestAllTypesNode } from "./parameter/test-all-types-node";
 import { ReceiveQueueMessageNode } from "./queue/receive-queue-message-node";
 import { SendQueueBatchNode } from "./queue/send-queue-batch-node";
 import { SendQueueMessageNode } from "./queue/send-queue-message-node";
-import { RagAiSearchNode } from "./rag/rag-ai-search-node";
-import { RagSearchNode } from "./rag/rag-search-node";
+import { DatasetAiSearchNode } from "./dataset/dataset-ai-search-node";
+import { DatasetDeleteFileNode } from "./dataset/dataset-delete-file-node";
+import { DatasetDownloadFileNode } from "./dataset/dataset-download-file-node";
+import { DatasetListFilesNode } from "./dataset/dataset-list-files-node";
+import { DatasetSearchNode } from "./dataset/dataset-search-node";
+import { DatasetUploadFileNode } from "./dataset/dataset-upload-file-node";
 import { GetSubredditRedditNode } from "./reddit/get-subreddit-reddit-node";
 import { GetUserRedditNode } from "./reddit/get-user-reddit-node";
 import { ListPostsRedditNode } from "./reddit/list-posts-reddit-node";
@@ -650,10 +654,14 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
       this.registerImplementation(ListOrganizationRepositoriesGithubNode);
     }
 
-    // RAG nodes
+    // Dataset nodes
     if (this.developerMode) {
-      this.registerImplementation(RagAiSearchNode);
-      this.registerImplementation(RagSearchNode);
+      this.registerImplementation(DatasetAiSearchNode);
+      this.registerImplementation(DatasetDeleteFileNode);
+      this.registerImplementation(DatasetDownloadFileNode);
+      this.registerImplementation(DatasetListFilesNode);
+      this.registerImplementation(DatasetSearchNode);
+      this.registerImplementation(DatasetUploadFileNode);
     }
 
     // 3D Tiles workflow nodes

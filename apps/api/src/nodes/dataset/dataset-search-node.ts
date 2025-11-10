@@ -5,20 +5,21 @@ import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
 
 /**
- * RAG AI Search node implementation
- * This node provides a dataset selector widget and performs AI-powered search
- * using Cloudflare's AutoRAG with multi-tenant folder filtering.
+ * Dataset Search node implementation
+ * This node provides a dataset selector widget and performs search
+ * using Cloudflare's AutoRAG search() method with multi-tenant folder filtering.
+ * Returns search results without AI-generated response.
  */
-export class RagAiSearchNode extends ExecutableNode {
+export class DatasetSearchNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "rag-ai-search",
-    name: "RAG AI Search",
-    type: "rag-ai-search",
-    description: "AI-powered search through datasets",
-    tags: ["Widget", "AI", "RAG", "Vector", "Search"],
+    id: "dataset-search",
+    name: "Dataset Search",
+    type: "dataset-search",
+    description: "Search through datasets and return relevant results",
+    tags: ["Widget", "AI", "Dataset", "Vector", "Search"],
     icon: "search",
     documentation:
-      "This node performs AI-powered search through datasets using RAG (Retrieval-Augmented Generation) and generates intelligent responses.",
+      "This node searches through datasets using RAG (Retrieval-Augmented Generation) to find relevant content based on a query.",
     computeCost: 10,
     asTool: true,
     inputs: [
@@ -34,13 +35,6 @@ export class RagAiSearchNode extends ExecutableNode {
         description: "Selected dataset ID for the search",
         hidden: true,
         required: true,
-      },
-      {
-        name: "model",
-        type: "string",
-        description: "The text-generation model to use",
-        hidden: true,
-        value: "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
       },
       {
         name: "rewriteQuery",
@@ -66,15 +60,9 @@ export class RagAiSearchNode extends ExecutableNode {
     ],
     outputs: [
       {
-        name: "response",
-        type: "string",
-        description: "The AI-generated response based on the search results",
-      },
-      {
         name: "searchResults",
         type: "json",
-        description: "Raw search results from the dataset",
-        hidden: true,
+        description: "Search results from the dataset",
       },
       {
         name: "searchQuery",
@@ -82,19 +70,19 @@ export class RagAiSearchNode extends ExecutableNode {
         description: "The processed search query that was used",
         hidden: true,
       },
+      {
+        name: "hasMore",
+        type: "boolean",
+        description: "Whether there are more results available",
+        hidden: true,
+      },
     ],
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const {
-        query,
-        datasetId,
-        model,
-        rewriteQuery,
-        maxResults,
-        scoreThreshold,
-      } = context.inputs;
+      const { query, datasetId, rewriteQuery, maxResults, scoreThreshold } =
+        context.inputs;
 
       const { organizationId } = context;
 
@@ -130,11 +118,6 @@ export class RagAiSearchNode extends ExecutableNode {
         query: query.trim(),
       };
 
-      // Only set model if provided
-      if (model && typeof model === "string") {
-        searchParams.model = model;
-      }
-
       // Only set rewrite_query if explicitly provided
       if (rewriteQuery !== undefined) {
         searchParams.rewrite_query = Boolean(rewriteQuery);
@@ -154,9 +137,6 @@ export class RagAiSearchNode extends ExecutableNode {
         };
       }
 
-      // Always set stream to false for simplicity
-      searchParams.stream = false;
-
       // Only set filters if we have a valid folder prefix
       if (folderPrefix) {
         searchParams.filters = {
@@ -166,36 +146,33 @@ export class RagAiSearchNode extends ExecutableNode {
         };
       }
 
-      // Execute AutoRAG search
+      // Execute AutoRAG search (search only, no generation)
       const autoragInstance = context.env.AI.autorag(
         context.env.DATASETS_AUTORAG
       );
-      const result = await autoragInstance.aiSearch(searchParams);
+      const result = await autoragInstance.search(searchParams);
 
       // Handle the response
-      let response = "";
       let searchResults = null;
       let searchQuery = "";
+      let hasMore = false;
 
       if (result && typeof result === "object") {
-        response = (result as any).response || "";
-        searchResults = (result as any).data || null;
+        searchResults = (result as any).data || [];
         searchQuery = (result as any).search_query || query;
-      } else if (typeof result === "string") {
-        response = result;
-        searchQuery = query;
+        hasMore = (result as any).has_more || false;
       }
 
       return this.createSuccessResult({
-        response,
         searchResults,
         searchQuery,
+        hasMore,
       });
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error
           ? error.message
-          : "Unknown error during AutoRAG search"
+          : "Unknown error during RAG search"
       );
     }
   }

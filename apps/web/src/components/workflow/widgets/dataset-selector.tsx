@@ -86,7 +86,14 @@ function DatasetSelectorWidget({
 
 export const datasetSelectorWidget = createWidget({
   component: DatasetSelectorWidget,
-  nodeTypes: ["rag-ai-search", "rag-search"],
+  nodeTypes: [
+    "dataset-ai-search",
+    "dataset-search",
+    "dataset-upload-file",
+    "dataset-list-files",
+    "dataset-delete-file",
+    "dataset-download-file",
+  ],
   inputField: "datasetId",
   extractConfig: (_nodeId, inputs) => ({
     value: getInputValue(inputs, "datasetId", ""),
