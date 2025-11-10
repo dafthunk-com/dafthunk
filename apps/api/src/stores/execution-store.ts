@@ -79,7 +79,7 @@ export class ExecutionStore {
     this.writeToAnalytics(record);
 
     // Save full data to R2
-    await this.writeToR2(executionData);
+    await this.writeToR2(executionData, record.organizationId);
 
     return executionData;
   }
@@ -108,7 +108,7 @@ export class ExecutionStore {
     }
 
     try {
-      const executionData = await this.readFromR2(execution.id);
+      const executionData = await this.readFromR2(execution.id, organizationId);
       return {
         ...execution,
         data: executionData,
@@ -391,7 +391,10 @@ export class ExecutionStore {
   /**
    * Write execution data to R2
    */
-  private async writeToR2(execution: WorkflowExecution): Promise<void> {
+  private async writeToR2(
+    execution: WorkflowExecution,
+    organizationId: string
+  ): Promise<void> {
     try {
       if (!this.env.RESSOURCES) {
         throw new Error("R2 bucket is not initialized");
@@ -404,6 +407,7 @@ export class ExecutionStore {
           cacheControl: "no-cache",
         },
         customMetadata: {
+          organizationId, // Add organizationId for security
           workflowId: execution.workflowId,
           status: execution.status,
           updatedAt: new Date().toISOString(),
@@ -421,7 +425,10 @@ export class ExecutionStore {
   /**
    * Read execution data from R2
    */
-  private async readFromR2(executionId: string): Promise<WorkflowExecution> {
+  private async readFromR2(
+    executionId: string,
+    organizationId: string
+  ): Promise<WorkflowExecution> {
     try {
       if (!this.env.RESSOURCES) {
         throw new Error("R2 bucket is not initialized");
@@ -432,6 +439,14 @@ export class ExecutionStore {
 
       if (!object) {
         throw new Error(`Execution not found: ${executionId}`);
+      }
+
+      // Verify organizationId matches for security
+      const storedOrgId = object.customMetadata?.organizationId;
+      if (storedOrgId && storedOrgId !== organizationId) {
+        throw new Error(
+          `Access denied: execution ${executionId} does not belong to organization ${organizationId}`
+        );
       }
 
       const text = await object.text();

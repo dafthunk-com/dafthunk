@@ -40,6 +40,7 @@ export interface SyncHttpExecutionResult {
  */
 async function readExecutionFromR2(
   executionId: string,
+  organizationId: string,
   env: Bindings
 ): Promise<WorkflowExecution | undefined> {
   try {
@@ -51,6 +52,15 @@ async function readExecutionFromR2(
     const object = await env.RESSOURCES.get(key);
 
     if (!object) {
+      return undefined;
+    }
+
+    // Verify organizationId matches for security
+    const storedOrgId = object.customMetadata?.organizationId;
+    if (storedOrgId && storedOrgId !== organizationId) {
+      console.error(
+        `Access denied: execution ${executionId} does not belong to organization ${organizationId}`
+      );
       return undefined;
     }
 
@@ -66,7 +76,7 @@ async function readExecutionFromR2(
  * Polls for workflow execution completion with a timeout
  *
  * @param executionId - The execution ID to poll
- * @param organizationId - The organization ID
+ * @param organizationId - The organization ID for security verification
  * @param env - Cloudflare bindings
  * @param timeoutMs - Timeout in milliseconds (default 10000ms)
  * @param pollIntervalMs - Polling interval in milliseconds (default 100ms)
@@ -84,7 +94,11 @@ async function pollForCompletion(
   while (Date.now() - startTime < timeoutMs) {
     try {
       // Read directly from R2 (immediate consistency) instead of Analytics Engine (eventual consistency)
-      const execution = await readExecutionFromR2(executionId, env);
+      const execution = await readExecutionFromR2(
+        executionId,
+        organizationId,
+        env
+      );
 
       if (!execution) {
         // Execution not found yet, continue polling

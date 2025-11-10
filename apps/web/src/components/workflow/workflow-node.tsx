@@ -192,7 +192,13 @@ export const WorkflowNode = memo(
     selected?: boolean;
     id: string;
   }) => {
-    const { updateNodeData, disabled, nodeTypes, edges = [] } = useWorkflow();
+    const {
+      updateNodeData,
+      disabled,
+      nodeTypes,
+      edges = [],
+      workflowType,
+    } = useWorkflow();
     const [isToolSelectorOpen, setIsToolSelectorOpen] = useState(false);
     const [isDocsOpen, setIsDocsOpen] = useState(false);
     const [activeInputId, setActiveInputId] = useState<string | null>(null);
@@ -512,6 +518,7 @@ export const WorkflowNode = memo(
           onClose={handleToolSelectorClose}
           onSelect={handleToolsSelect}
           templates={nodeTypes || []}
+          workflowType={workflowType}
         />
 
         {resolvedNodeType && (

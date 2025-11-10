@@ -1,3 +1,4 @@
+import type { WorkflowType } from "@dafthunk/types";
 import { Wand } from "lucide-react";
 import { DynamicIcon } from "lucide-react/dynamic.mjs";
 import { useMemo, useState } from "react";
@@ -21,6 +22,7 @@ export interface WorkflowNodeSelectorProps {
   templates?: NodeType[];
   workflowName?: string;
   workflowDescription?: string;
+  workflowType?: WorkflowType;
 }
 
 // Helper function to highlight matching text
@@ -63,9 +65,24 @@ export function WorkflowNodeSelector({
   templates = [],
   workflowName,
   workflowDescription,
+  workflowType,
 }: WorkflowNodeSelectorProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+
+  // Filter templates by workflow type compatibility
+  const compatibleTemplates = useMemo(() => {
+    if (!workflowType) return templates;
+
+    return templates.filter((template) => {
+      // If node has no compatibility field, it's compatible with all workflow types
+      if (!template.compatibility || template.compatibility.length === 0) {
+        return true;
+      }
+      // Otherwise, check if current workflow type is in the compatibility list
+      return template.compatibility.includes(workflowType);
+    });
+  }, [templates, workflowType]);
 
   // Combined scoring using substring matching (not fuzzy)
   const scoredAndFilteredTemplates = useMemo(() => {
@@ -98,8 +115,8 @@ export function WorkflowNodeSelector({
       return text.toLowerCase().includes(searchTerm);
     };
 
-    // Score each template
-    const scored = templates
+    // Score each template (using compatibleTemplates instead of templates)
+    const scored = compatibleTemplates
       .map((template) => {
         let score = 0;
 
@@ -180,7 +197,7 @@ export function WorkflowNodeSelector({
       sorted: scored.map((s) => s.template),
       scores: scored,
     };
-  }, [templates, workflowName, workflowDescription, searchTerm]);
+  }, [compatibleTemplates, workflowName, workflowDescription, searchTerm]);
 
   // Filter templates based on selected tags (all must match)
   const filteredTemplates = scoredAndFilteredTemplates.sorted.filter(
@@ -366,7 +383,7 @@ export function WorkflowNodeSelector({
                 />
               </div>
               <div className="text-xs text-muted-foreground/60 pt-4 text-right">
-                {filteredTemplates.length} of {templates.length} nodes
+                {filteredTemplates.length} of {compatibleTemplates.length} nodes
               </div>
             </div>
           )}

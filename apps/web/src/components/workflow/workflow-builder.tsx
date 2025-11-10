@@ -396,6 +396,7 @@ export function WorkflowBuilder({
         disabled={disabled}
         expandedOutputs={expandedOutputs}
         nodeTypes={nodeTypes}
+        workflowType={workflowType}
       >
         <div className="w-full h-full flex">
           <div
@@ -493,6 +494,7 @@ export function WorkflowBuilder({
             templates={nodeTypes}
             workflowName={workflowName}
             workflowDescription={workflowDescription}
+            workflowType={workflowType}
           />
         </div>
 

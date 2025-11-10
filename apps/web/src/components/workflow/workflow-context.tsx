@@ -1,3 +1,4 @@
+import type { WorkflowType } from "@dafthunk/types";
 import type { Edge as ReactFlowEdge } from "@xyflow/react";
 import { createContext, ReactNode, useContext } from "react";
 
@@ -20,6 +21,7 @@ export interface WorkflowContextProps {
   disabled?: boolean;
   expandedOutputs?: boolean;
   nodeTypes?: NodeType[];
+  workflowType?: WorkflowType;
 }
 
 // Create the context with a default value
@@ -44,6 +46,7 @@ export interface WorkflowProviderProps {
   readonly disabled?: boolean;
   readonly expandedOutputs?: boolean;
   readonly nodeTypes?: NodeType[];
+  readonly workflowType?: WorkflowType;
 }
 
 export function WorkflowProvider({
@@ -55,6 +58,7 @@ export function WorkflowProvider({
   disabled = false,
   expandedOutputs = false,
   nodeTypes = [],
+  workflowType,
 }: WorkflowProviderProps) {
   const workflowContextValue = {
     updateNodeData,
@@ -64,6 +68,7 @@ export function WorkflowProvider({
     disabled,
     expandedOutputs,
     nodeTypes,
+    workflowType,
   };
 
   return (
