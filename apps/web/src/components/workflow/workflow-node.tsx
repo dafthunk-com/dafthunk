@@ -21,7 +21,7 @@ import XIcon from "lucide-react/icons/x";
 import { createElement, memo, useState } from "react";
 
 import { NodeDocsDialog } from "@/components/docs/node-docs-dialog";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/utils/utils";
 
@@ -533,7 +533,10 @@ export const WorkflowNode = memo(
           open={activeInputId !== null}
           onOpenChange={(open) => !open && setActiveInputId(null)}
         >
-          <DialogContent className="sm:max-w-md pt-4">
+          <DialogContent className="sm:max-w-md pt-4" aria-describedby={undefined}>
+            <DialogTitle className="sr-only">
+              {data.inputs.find((i) => i.id === activeInputId)?.name || "Edit Input"}
+            </DialogTitle>
             {(() => {
               const activeInput = data.inputs.find(
                 (i) => i.id === activeInputId
@@ -595,7 +598,10 @@ export const WorkflowNode = memo(
           open={activeOutputId !== null}
           onOpenChange={(open) => !open && setActiveOutputId(null)}
         >
-          <DialogContent className="sm:max-w-md pt-4">
+          <DialogContent className="sm:max-w-md pt-4" aria-describedby={undefined}>
+            <DialogTitle className="sr-only">
+              {data.outputs.find((o) => o.id === activeOutputId)?.name || "View Output"}
+            </DialogTitle>
             {(() => {
               const activeOutput = data.outputs.find(
                 (o) => o.id === activeOutputId
