@@ -4,6 +4,7 @@ import Globe from "lucide-react/icons/globe";
 import Inbox from "lucide-react/icons/inbox";
 import Mail from "lucide-react/icons/mail";
 import Play from "lucide-react/icons/play";
+import Webhook from "lucide-react/icons/webhook";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -26,9 +27,21 @@ const workflowTypes = [
     icon: Play,
   },
   {
+    type: "scheduled" as WorkflowType,
+    title: "Scheduled",
+    description: "Trigger workflows on a schedule",
+    icon: Clock,
+  },
+  {
+    type: "http_webhook" as WorkflowType,
+    title: "HTTP Webhook",
+    description: "Async HTTP trigger, returns execution ID immediately",
+    icon: Webhook,
+  },
+  {
     type: "http_request" as WorkflowType,
     title: "HTTP Request",
-    description: "Trigger workflows via HTTP endpoints",
+    description: "Sync HTTP trigger, waits for workflow completion",
     icon: Globe,
   },
   {
@@ -36,12 +49,6 @@ const workflowTypes = [
     title: "Email Message",
     description: "Trigger workflows from email messages",
     icon: Mail,
-  },
-  {
-    type: "scheduled" as WorkflowType,
-    title: "Scheduled",
-    description: "Trigger workflows on a schedule",
-    icon: Clock,
   },
   {
     type: "queue_message" as WorkflowType,

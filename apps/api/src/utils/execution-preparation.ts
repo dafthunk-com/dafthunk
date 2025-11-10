@@ -27,7 +27,7 @@ interface EmailMessageParameters {
 }
 
 /**
- * Parameters for http_request workflow type
+ * Parameters for http_webhook and http_request workflow types
  */
 interface HttpRequestParameters {
   url: string;
@@ -140,7 +140,10 @@ function buildParameters(
       subject: emailBody?.subject,
       body: emailBody?.body,
     };
-  } else if (workflowType === "http_request") {
+  } else if (
+    workflowType === "http_webhook" ||
+    workflowType === "http_request"
+  ) {
     return {
       url: data.url,
       method: data.method,

@@ -93,6 +93,7 @@ export class ExecutionManager {
     switch (workflowType) {
       case "email_message":
         return this.buildEmailParameters(parameters);
+      case "http_webhook":
       case "http_request":
         return this.buildHttpParameters(parameters);
       default:
@@ -115,7 +116,7 @@ export class ExecutionManager {
   }
 
   /**
-   * Extract HTTP-specific parameters
+   * Extract HTTP-specific parameters (for http_webhook and http_request)
    */
   private buildHttpParameters(
     parameters: Record<string, unknown>

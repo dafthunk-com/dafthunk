@@ -794,11 +794,13 @@ export function WorkflowCanvas({
                       disabled={nodes.length === 0}
                     />
                   )}
-                  {onShowHttpIntegration && workflowType === "http_request" && (
-                    <ShowHttpIntegrationButton
-                      onClick={onShowHttpIntegration}
-                    />
-                  )}
+                  {onShowHttpIntegration &&
+                    (workflowType === "http_webhook" ||
+                      workflowType === "http_request") && (
+                      <ShowHttpIntegrationButton
+                        onClick={onShowHttpIntegration}
+                      />
+                    )}
                   {onShowEmailTrigger && workflowType === "email_message" && (
                     <ShowEmailTriggerButton onClick={onShowEmailTrigger} />
                   )}

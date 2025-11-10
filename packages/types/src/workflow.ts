@@ -11,6 +11,7 @@ export interface ObjectReference {
  */
 export type WorkflowType =
   | "manual"
+  | "http_webhook"
   | "http_request"
   | "email_message"
   | "queue_message"

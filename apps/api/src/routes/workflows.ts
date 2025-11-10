@@ -46,6 +46,7 @@ import {
   isExecutionPreparationError,
   prepareWorkflowExecution,
 } from "../utils/execution-preparation";
+import { waitForSyncHttpResponse } from "../utils/sync-http-execution";
 import { validateWorkflow } from "../utils/workflows";
 
 // Extend the ApiContext with our custom variable
@@ -438,6 +439,36 @@ workflowRoutes.post(
       env: c.env,
     });
 
+    // For synchronous HTTP Request workflows, wait for response
+    if (workflowData.type === "http_request") {
+      const syncResult = await waitForSyncHttpResponse(
+        execution.id,
+        organizationId,
+        c.env,
+        10000 // 10 second timeout
+      );
+
+      if (syncResult.timeout) {
+        return c.json({ error: "Request timeout" }, 504);
+      }
+
+      if (!syncResult.success) {
+        return c.json(
+          { error: syncResult.error || "Workflow execution failed" },
+          500
+        );
+      }
+
+      // Return the HTTP response from the Response node
+      return new Response(syncResult.body, {
+        status: syncResult.statusCode,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    }
+
+    // For async workflows (http_webhook, etc.), return execution ID immediately
     const response: ExecuteWorkflowResponse = {
       id: execution.id,
       workflowId: execution.workflowId,
@@ -527,6 +558,36 @@ workflowRoutes.post(
       env: c.env,
     });
 
+    // For synchronous HTTP Request workflows, wait for response
+    if (workflowData.type === "http_request") {
+      const syncResult = await waitForSyncHttpResponse(
+        execution.id,
+        organizationId,
+        c.env,
+        10000 // 10 second timeout
+      );
+
+      if (syncResult.timeout) {
+        return c.json({ error: "Request timeout" }, 504);
+      }
+
+      if (!syncResult.success) {
+        return c.json(
+          { error: syncResult.error || "Workflow execution failed" },
+          500
+        );
+      }
+
+      // Return the HTTP response from the Response node
+      return new Response(syncResult.body, {
+        status: syncResult.statusCode,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    }
+
+    // For async workflows (http_webhook, etc.), return execution ID immediately
     const response: ExecuteWorkflowResponse = {
       id: execution.id,
       workflowId: execution.workflowId,

@@ -13,7 +13,7 @@ export class FormDataNumberNode extends ExecutableNode {
     documentation:
       "This node extracts a number parameter from HTTP request form data, automatically converting string values to numbers.",
     asTool: true,
-    compatibility: ["http_request"],
+    compatibility: ["http_webhook", "http_request"],
     inlinable: true,
     inputs: [
       {

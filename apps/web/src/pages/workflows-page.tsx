@@ -330,6 +330,7 @@ function createColumns(
         const type = row.getValue("type") as WorkflowType;
         const typeLabels: Record<WorkflowType, string> = {
           manual: "Manual",
+          http_webhook: "HTTP Webhook",
           http_request: "HTTP Request",
           email_message: "Email Message",
           scheduled: "Scheduled",

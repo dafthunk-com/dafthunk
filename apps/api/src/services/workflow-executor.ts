@@ -98,7 +98,10 @@ export class WorkflowExecutor {
           workflowHandleOrId: workflow.handle || workflow.id,
         }),
       };
-    } else if (workflow.type === "http_request") {
+    } else if (
+      workflow.type === "http_webhook" ||
+      workflow.type === "http_request"
+    ) {
       finalExecutionParams = {
         ...baseExecutionParams,
         httpRequest: createSimulatedHttpRequest({

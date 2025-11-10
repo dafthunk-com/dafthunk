@@ -249,12 +249,12 @@ export function WorkflowBuilder({
         return;
       }
 
-      // For http_request and email_message workflows that require dialogs:
+      // For http_webhook, http_request and email_message workflows that require dialogs:
       // Store the execute callback for later use when dialog is submitted
       executeRef.current = execute;
 
       if (workflowId) {
-        // http_request or email_message - check for parameters and show dialog
+        // http_webhook, http_request or email_message - check for parameters and show dialog
         executeWorkflowWithForm(
           workflowId,
           (execution) => {
@@ -431,6 +431,7 @@ export function WorkflowBuilder({
               workflowErrorMessage={workflowErrorMessage}
               workflowType={workflowType}
               onShowHttpIntegration={
+                workflowType === "http_webhook" ||
                 workflowType === "http_request"
                   ? () => setIsHttpIntegrationDialogOpen(true)
                   : undefined
@@ -496,7 +497,8 @@ export function WorkflowBuilder({
         </div>
 
         {/* Trigger Dialogs */}
-        {workflowType === "http_request" && (
+        {(workflowType === "http_webhook" ||
+          workflowType === "http_request") && (
           <HttpIntegrationDialog
             isOpen={isHttpIntegrationDialogOpen}
             onClose={() => setIsHttpIntegrationDialogOpen(false)}
@@ -517,7 +519,7 @@ export function WorkflowBuilder({
         )}
 
         {/* Execution Dialogs */}
-        {workflowType === "http_request" &&
+        {(workflowType === "http_webhook" || workflowType === "http_request") &&
           executionFormParameters.length > 0 && (
             <ExecutionFormDialog
               isOpen={isFormDialogVisible}
@@ -531,7 +533,7 @@ export function WorkflowBuilder({
             />
           )}
 
-        {workflowType === "http_request" &&
+        {(workflowType === "http_webhook" || workflowType === "http_request") &&
           executionJsonBodyParameters.length > 0 && (
             <ExecutionJsonBodyDialog
               isOpen={isJsonBodyDialogVisible}

@@ -190,7 +190,7 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       deploymentId: event.payload.deploymentId,
       status: "submitted",
       nodeExecutions: [],
-      startedAt: undefined,
+      startedAt: new Date(),
       endedAt: undefined,
     } as WorkflowExecution;
 
@@ -231,7 +231,6 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         ))
       ) {
         isExhausted = true;
-        executionRecord.startedAt = new Date();
         executionRecord.status = "exhausted" as any;
         executionRecord.error = "Insufficient compute credits";
         this.logTransition("submitted", "exhausted");
@@ -250,7 +249,6 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         async () => this.resourceProvider.initialize(organizationId)
       );
 
-      executionRecord.startedAt = new Date();
       executionRecord.status = getExecutionStatus(
         executionContext,
         executionState

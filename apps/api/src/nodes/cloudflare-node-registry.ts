@@ -290,6 +290,7 @@ import { SquareRootNode } from "./math/square-root-node";
 import { SubtractionNode } from "./math/subtraction-node";
 import { SumNode } from "./math/sum-node";
 import { HttpRequestNode } from "./net/http-request-node";
+import { HttpResponseNode } from "./net/http-response-node";
 import { Gpt5MiniNode } from "./openai/gpt-5-mini-node";
 import { Gpt5NanoNode } from "./openai/gpt-5-nano-node";
 import { Gpt5Node } from "./openai/gpt-5-node";
@@ -553,6 +554,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(ToMarkdownNode);
     this.registerImplementation(FileNode);
     this.registerImplementation(HttpRequestNode);
+    this.registerImplementation(HttpResponseNode);
 
     // Conditional registrations based on environment
     if (hasCloudflare) {

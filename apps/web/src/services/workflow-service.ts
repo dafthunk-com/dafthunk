@@ -567,7 +567,10 @@ export function useWorkflowExecution(
       }
 
       // Then check for HTTP workflow type for other dialogs
-      if (lowercasedWorkflowType === "http_request") {
+      if (
+        lowercasedWorkflowType === "http_webhook" ||
+        lowercasedWorkflowType === "http_request"
+      ) {
         const jsonBodyNode = uiNodes.find(
           (node) => node.data.nodeType === "body-json"
         );

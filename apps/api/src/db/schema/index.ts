@@ -51,6 +51,7 @@ export type ProviderType = (typeof Provider)[keyof typeof Provider];
 // Workflow trigger types
 export const WorkflowTriggerType = {
   MANUAL: "manual",
+  HTTP_WEBHOOK: "http_webhook",
   HTTP_REQUEST: "http_request",
   EMAIL_MESSAGE: "email_message",
   SCHEDULED: "scheduled",
