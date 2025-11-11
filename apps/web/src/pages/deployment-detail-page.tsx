@@ -283,6 +283,7 @@ export function DeploymentDetailPage() {
 
   const typeLabels: Record<WorkflowType, string> = {
     manual: "Manual",
+    http_webhook: "HTTP Webhook",
     http_request: "HTTP Request",
     email_message: "Email Message",
     scheduled: "Scheduled",

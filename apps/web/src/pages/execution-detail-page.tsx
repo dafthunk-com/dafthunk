@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router";
 import { toast } from "sonner";
 
+import { useAuth } from "@/components/auth-context";
 import { ExecutionInfoCard } from "@/components/executions/execution-info-card";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
@@ -28,6 +29,8 @@ export function ExecutionDetailPage() {
   const { executionId } = useParams<{ executionId: string }>();
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const { getOrgUrl } = useOrgUrl();
+  const { organization } = useAuth();
+  const orgHandle = organization?.handle || "";
 
   const {
     execution,
@@ -228,6 +231,7 @@ export function ExecutionDetailPage() {
                   initialWorkflowExecution={workflowBuilderExecution}
                   createObjectUrl={createObjectUrl}
                   disabled={true}
+                  orgHandle={orgHandle}
                 />
               ) : (
                 <div className="flex flex-col items-center justify-center h-full">

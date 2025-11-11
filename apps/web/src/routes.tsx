@@ -59,14 +59,18 @@ export type AppRouteObject = RouteObject & {
 
 const settingsSidebarItems = [
   {
-    title: "Profile",
-    url: "/settings/profile",
-    icon: User,
-  },
-  {
-    title: "Organizations",
-    url: "/settings/organizations",
-    icon: Building2,
+    items: [
+      {
+        title: "Profile",
+        url: "/settings/profile",
+        icon: User,
+      },
+      {
+        title: "Organizations",
+        url: "/settings/organizations",
+        icon: Building2,
+      },
+    ],
   },
 ];
 
@@ -101,7 +105,7 @@ export const routes: AppRouteObject[] = [
       <AppLayout
         sidebar={{
           title: "Settings",
-          items: settingsSidebarItems,
+          groups: settingsSidebarItems,
           footerItems: footerItems,
         }}
       >
@@ -122,7 +126,7 @@ export const routes: AppRouteObject[] = [
       <AppLayout
         sidebar={{
           title: "Organizations",
-          items: settingsSidebarItems,
+          groups: settingsSidebarItems,
           footerItems: footerItems,
         }}
       >

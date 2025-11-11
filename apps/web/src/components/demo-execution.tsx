@@ -46,6 +46,7 @@ export const DemoExecution = memo(() => {
         createObjectUrl={createDemoObjectUrl}
         nodeTypes={[]}
         expandedOutputs={true}
+        orgHandle="demo"
       />
     </div>
   );

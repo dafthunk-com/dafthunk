@@ -213,6 +213,7 @@ export function DeploymentVersionPage() {
 
   const typeLabels: Record<WorkflowType, string> = {
     manual: "Manual",
+    http_webhook: "HTTP Webhook",
     http_request: "HTTP Request",
     email_message: "Email Message",
     scheduled: "Scheduled",
@@ -307,6 +308,7 @@ export function DeploymentVersionPage() {
                     validateConnection={validateConnection}
                     createObjectUrl={createObjectUrl}
                     disabled={true}
+                    orgHandle={orgHandle}
                   />
                 )}
                 {nodes.length === 0 && (
