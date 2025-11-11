@@ -1,6 +1,6 @@
 ---
 name: node-generator
-description: Generate production-ready Dafthunk workflow nodes with implementation, tests, and registry registration
+description: Generate new workflow nodes with implementation, tests, and registry registration
 ---
 
 # Node Generator Skill
