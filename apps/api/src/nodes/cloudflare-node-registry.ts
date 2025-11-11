@@ -1,5 +1,5 @@
-import { BufferGeometryToGltfNode } from "./3d/buffergeometry-to-gltf-node";
-import { DemToBufferGeometryNode } from "./3d/dem-to-buffergeometry-node";
+import { AddMaterialToGltfNode } from "./3d/add-material-to-gltf-node";
+import { DemToGltfNode } from "./3d/dem-to-gltf-node";
 import { GeoTiffDemQueryNode } from "./3d/geotiff-dem-query-node";
 import { GeoTiffMetadataReaderNode } from "./3d/geotiff-metadata-reader-node";
 import { GeoTiffQueryNode } from "./3d/geotiff-query-node";
@@ -312,7 +312,6 @@ import {
   AudioPreviewNode,
   BlobPreviewNode,
   BooleanPreviewNode,
-  BufferGeometryPreviewNode,
   DatePreviewNode,
   DocumentPreviewNode,
   GeoJSONPreviewNode,
@@ -695,8 +694,8 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
 
     // 3D Tiles workflow nodes
     if (this.developerMode) {
-      this.registerImplementation(BufferGeometryToGltfNode);
-      this.registerImplementation(DemToBufferGeometryNode);
+      this.registerImplementation(AddMaterialToGltfNode);
+      this.registerImplementation(DemToGltfNode);
       this.registerImplementation(GeoTiffDemQueryNode);
       this.registerImplementation(GeoTiffMetadataReaderNode);
       this.registerImplementation(GeoTiffQueryNode);
@@ -833,7 +832,6 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(ImagePreviewNode);
     this.registerImplementation(DocumentPreviewNode);
     this.registerImplementation(AudioPreviewNode);
-    this.registerImplementation(BufferGeometryPreviewNode);
     this.registerImplementation(GltfPreviewNode);
     this.registerImplementation(JsonPreviewNode);
     this.registerImplementation(GeoJSONPreviewNode);

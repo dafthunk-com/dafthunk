@@ -69,11 +69,6 @@ export class TestAllTypesNode extends ExecutableNode {
         description: "Audio input (ObjectReference)",
       },
       {
-        name: "buffergeometry",
-        type: "buffergeometry",
-        description: "BufferGeometry input (ObjectReference)",
-      },
-      {
         name: "gltf",
         type: "gltf",
         description: "GLTF input (ObjectReference)",
@@ -140,11 +135,6 @@ export class TestAllTypesNode extends ExecutableNode {
         name: "audio",
         type: "audio",
         description: "Audio output (ObjectReference)",
-      },
-      {
-        name: "buffergeometry",
-        type: "buffergeometry",
-        description: "BufferGeometry output (ObjectReference)",
       },
       {
         name: "gltf",

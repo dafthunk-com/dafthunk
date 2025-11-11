@@ -30,7 +30,6 @@ export type BlobParameter = {
 export type ImageParameter = BlobParameter;
 export type AudioParameter = BlobParameter;
 export type DocumentParameter = BlobParameter;
-export type BufferGeometryParameter = BlobParameter;
 export type GltfParameter = BlobParameter;
 
 export type ParameterType =
@@ -69,10 +68,6 @@ export type ParameterType =
   | {
       type: "audio";
       value?: AudioParameter;
-    }
-  | {
-      type: "buffergeometry";
-      value?: BufferGeometryParameter;
     }
   | {
       type: "gltf";

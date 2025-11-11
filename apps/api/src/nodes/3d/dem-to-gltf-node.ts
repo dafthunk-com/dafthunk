@@ -1,12 +1,18 @@
 import { decode } from "@cf-wasm/png";
 import { NodeExecution, NodeType } from "@dafthunk/types";
+import {
+  Accessor,
+  Buffer,
+  Document,
+  NodeIO,
+} from "@gltf-transform/core";
 // @ts-ignore – no types available
 import Martini from "@mapbox/martini";
 import { z } from "zod";
 
 import { ExecutableNode, NodeContext } from "../types";
 
-export class DemToBufferGeometryNode extends ExecutableNode {
+export class DemToGltfNode extends ExecutableNode {
   private static readonly elevationDataShape = {
     elevations: {} as Float32Array,
     width: 0,
@@ -44,15 +50,15 @@ export class DemToBufferGeometryNode extends ExecutableNode {
   private static readonly TRIANGLE_VERTICES = 3;
 
   public static readonly nodeType: NodeType = {
-    id: "dem-to-buffergeometry",
-    name: "DEM to BufferGeometry",
-    type: "dem-to-buffergeometry",
+    id: "dem-to-gltf",
+    name: "DEM to glTF",
+    type: "dem-to-gltf",
     description:
-      "Convert Digital Elevation Model (DEM) image data to 3D BufferGeometry using Martini triangulation",
-    tags: ["3D", "DEM", "BufferGeometry", "Convert"],
+      "Convert Digital Elevation Model (DEM) image data to 3D glTF geometry using Martini triangulation",
+    tags: ["3D", "DEM", "GLTF", "Convert"],
     icon: "mountain",
     documentation:
-      "Converts PNG elevation tiles to 3D mesh geometry suitable for terrain visualization.",
+      "Converts PNG elevation tiles to 3D mesh geometry in glTF format. The output is a material-less glTF that can be combined with materials using the Add Material to glTF node.",
     inlinable: false,
     inputs: [
       {
@@ -78,9 +84,9 @@ export class DemToBufferGeometryNode extends ExecutableNode {
     ],
     outputs: [
       {
-        name: "bufferGeometry",
-        type: "buffergeometry",
-        description: "3D mesh geometry data",
+        name: "gltf",
+        type: "gltf",
+        description: "3D mesh geometry in glTF format (without material)",
       },
       {
         name: "metadata",
@@ -92,7 +98,7 @@ export class DemToBufferGeometryNode extends ExecutableNode {
 
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const validatedInput = DemToBufferGeometryNode.demInputSchema.parse(
+      const validatedInput = DemToGltfNode.demInputSchema.parse(
         context.inputs
       );
       const { image, bounds, martiniError } = validatedInput;
@@ -119,7 +125,7 @@ export class DemToBufferGeometryNode extends ExecutableNode {
         indices
       );
 
-      const geometryBuffer = this.createBufferGeometry({
+      const glbData = await this.createGltfDocument({
         positions: new Float32Array(transformedGeometry.positions),
         indices: new Uint32Array(indices),
         normals: new Float32Array(normals),
@@ -127,9 +133,9 @@ export class DemToBufferGeometryNode extends ExecutableNode {
       });
 
       return this.createSuccessResult({
-        bufferGeometry: {
-          data: geometryBuffer,
-          mimeType: "application/x-buffer-geometry" as const,
+        gltf: {
+          data: glbData,
+          mimeType: "model/gltf-binary" as const,
         },
         metadata: {
           vertexCount: transformedGeometry.positions.length / 3,
@@ -144,11 +150,11 @@ export class DemToBufferGeometryNode extends ExecutableNode {
           .map((issue) => issue.message)
           .join(", ");
         return this.createErrorResult(
-          `DEM to BufferGeometry conversion failed: ${errorMessages}`
+          `DEM to glTF conversion failed: ${errorMessages}`
         );
       }
       return this.createErrorResult(
-        `DEM to BufferGeometry conversion failed: ${error instanceof Error ? error.message : String(error)}`
+        `DEM to glTF conversion failed: ${error instanceof Error ? error.message : String(error)}`
       );
     }
   }
@@ -156,7 +162,7 @@ export class DemToBufferGeometryNode extends ExecutableNode {
   private async decodeElevationFromPng(
     imageData: Uint8Array,
     bounds: readonly [number, number, number, number]
-  ): Promise<typeof DemToBufferGeometryNode.elevationDataShape> {
+  ): Promise<typeof DemToGltfNode.elevationDataShape> {
     const png = await this.decodePngImage(imageData);
     const { data, width, height } = png;
 
@@ -188,7 +194,7 @@ export class DemToBufferGeometryNode extends ExecutableNode {
       bounds,
       minElevation: minElevation === Infinity ? 0 : minElevation,
       maxElevation: maxElevation === -Infinity ? 0 : maxElevation,
-    } as typeof DemToBufferGeometryNode.elevationDataShape;
+    } as typeof DemToGltfNode.elevationDataShape;
   }
 
   private async decodePngImage(imageData: Uint8Array): Promise<{
@@ -211,9 +217,9 @@ export class DemToBufferGeometryNode extends ExecutableNode {
   }
 
   private generateTerrainMesh(
-    elevationData: typeof DemToBufferGeometryNode.elevationDataShape,
+    elevationData: typeof DemToGltfNode.elevationDataShape,
     martiniError: number
-  ): typeof DemToBufferGeometryNode.meshDataShape {
+  ): typeof DemToGltfNode.meshDataShape {
     const { width, height, elevations } = elevationData;
     const maxDim = Math.max(width, height);
     const gridSize = this.getNextPowerOf2Plus1(maxDim);
@@ -244,7 +250,7 @@ export class DemToBufferGeometryNode extends ExecutableNode {
     bounds: readonly [number, number, number, number],
     width: number,
     height: number
-  ): typeof DemToBufferGeometryNode.transformedGeometryShape {
+  ): typeof DemToGltfNode.transformedGeometryShape {
     const pos: number[] = [];
     const uvs: number[] = [];
     const vMap = new Map<number, number>();
@@ -300,7 +306,7 @@ export class DemToBufferGeometryNode extends ExecutableNode {
       vertexMap: vMap,
       minElevation: minElevation === Infinity ? 0 : minElevation,
       maxElevation: maxElevation === -Infinity ? 0 : maxElevation,
-    } as typeof DemToBufferGeometryNode.transformedGeometryShape;
+    } as typeof DemToGltfNode.transformedGeometryShape;
   }
 
   private buildTriangleIndices(
@@ -312,7 +318,7 @@ export class DemToBufferGeometryNode extends ExecutableNode {
     for (
       let i = 0;
       i < triangles.length;
-      i += DemToBufferGeometryNode.TRIANGLE_VERTICES
+      i += DemToGltfNode.TRIANGLE_VERTICES
     ) {
       const a = vertexMap.get(triangles[i])!;
       const b = vertexMap.get(triangles[i + 1])!;
@@ -335,11 +341,11 @@ export class DemToBufferGeometryNode extends ExecutableNode {
     for (
       let i = 0;
       i < indices.length;
-      i += DemToBufferGeometryNode.TRIANGLE_VERTICES
+      i += DemToGltfNode.TRIANGLE_VERTICES
     ) {
-      const ia = indices[i] * DemToBufferGeometryNode.VERTEX_COMPONENTS_3D;
-      const ib = indices[i + 1] * DemToBufferGeometryNode.VERTEX_COMPONENTS_3D;
-      const ic = indices[i + 2] * DemToBufferGeometryNode.VERTEX_COMPONENTS_3D;
+      const ia = indices[i] * DemToGltfNode.VERTEX_COMPONENTS_3D;
+      const ib = indices[i + 1] * DemToGltfNode.VERTEX_COMPONENTS_3D;
+      const ic = indices[i + 2] * DemToGltfNode.VERTEX_COMPONENTS_3D;
 
       const [nx, ny, nz] = this.computeFaceNormal(positions, ia, ib, ic);
 
@@ -357,7 +363,7 @@ export class DemToBufferGeometryNode extends ExecutableNode {
     for (
       let i = 0;
       i < normals.length;
-      i += DemToBufferGeometryNode.VERTEX_COMPONENTS_3D
+      i += DemToGltfNode.VERTEX_COMPONENTS_3D
     ) {
       this.normalizeVector(normals, i);
     }
@@ -406,47 +412,95 @@ export class DemToBufferGeometryNode extends ExecutableNode {
     normals[startIndex + 2] = nz / len;
   }
 
-  private createBufferGeometry(data: {
+  private async createGltfDocument(geometry: {
     positions: Float32Array;
     indices: Uint32Array;
     normals: Float32Array;
     uvs: Float32Array;
-  }): Uint8Array {
-    const totalSize =
-      4 +
-      data.positions.byteLength +
-      data.indices.byteLength +
-      data.normals.byteLength +
-      data.uvs.byteLength;
+  }): Promise<Uint8Array> {
+    const doc = new Document();
+    const buffer = doc.createBuffer();
 
-    const buffer = new ArrayBuffer(totalSize);
-    const view = new DataView(buffer);
-
-    let offset = 0;
-
-    view.setUint32(offset, data.positions.length / 3, true);
-    offset += 4;
-
-    new Uint8Array(buffer, offset, data.positions.byteLength).set(
-      new Uint8Array(data.positions.buffer)
+    // Create accessors for geometry data
+    const positionAccessor = this.createPositionAccessor(
+      doc,
+      buffer,
+      geometry.positions
     );
-    offset += data.positions.byteLength;
-
-    new Uint8Array(buffer, offset, data.indices.byteLength).set(
-      new Uint8Array(data.indices.buffer)
+    const normalAccessor = this.createNormalAccessor(
+      doc,
+      buffer,
+      geometry.normals
     );
-    offset += data.indices.byteLength;
-
-    new Uint8Array(buffer, offset, data.normals.byteLength).set(
-      new Uint8Array(data.normals.buffer)
-    );
-    offset += data.normals.byteLength;
-
-    new Uint8Array(buffer, offset, data.uvs.byteLength).set(
-      new Uint8Array(data.uvs.buffer)
+    const uvAccessor = this.createUvAccessor(doc, buffer, geometry.uvs);
+    const indexAccessor = this.createIndexAccessor(
+      doc,
+      buffer,
+      geometry.indices
     );
 
-    return new Uint8Array(buffer);
+    // Build mesh primitive without material (will use default rendering material)
+    const primitive = doc
+      .createPrimitive()
+      .setAttribute("POSITION", positionAccessor)
+      .setAttribute("NORMAL", normalAccessor)
+      .setAttribute("TEXCOORD_0", uvAccessor)
+      .setIndices(indexAccessor);
+    // Note: No .setMaterial() call - creates material-less glTF
+
+    // Create mesh and scene hierarchy
+    const mesh = doc.createMesh().addPrimitive(primitive);
+    const node = doc.createNode().setMesh(mesh);
+    const scene = doc.getRoot().getDefaultScene() || doc.createScene();
+    scene.addChild(node);
+
+    // Export as GLB binary format
+    const io = new NodeIO();
+    return await io.writeBinary(doc);
+  }
+
+  private createPositionAccessor(
+    doc: Document,
+    buffer: Buffer,
+    positions: Float32Array
+  ): Accessor {
+    return doc
+      .createAccessor()
+      .setType("VEC3")
+      .setArray(positions)
+      .setBuffer(buffer);
+  }
+
+  private createNormalAccessor(
+    doc: Document,
+    buffer: Buffer,
+    normals: Float32Array
+  ): Accessor {
+    return doc
+      .createAccessor()
+      .setType("VEC3")
+      .setArray(normals)
+      .setBuffer(buffer);
+  }
+
+  private createUvAccessor(
+    doc: Document,
+    buffer: Buffer,
+    uvs: Float32Array
+  ): Accessor {
+    return doc.createAccessor().setType("VEC2").setArray(uvs).setBuffer(buffer);
+  }
+
+  private createIndexAccessor(
+    doc: Document,
+    buffer: Buffer,
+    indices: Uint32Array
+  ): Accessor {
+    return doc
+      .createAccessor()
+      .setType("SCALAR")
+      .setArray(indices)
+      .setBuffer(buffer);
   }
 
   private getNextPowerOf2Plus1(n: number): number {
