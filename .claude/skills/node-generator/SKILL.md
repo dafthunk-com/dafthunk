@@ -1,3 +1,8 @@
+---
+name: node-generator
+description: Assists in defining requirements and generating production-ready Dafthunk workflow nodes (implementation, tests, and registry registration) using templates, defensive programming best practices, and test coverage guidance.
+---
+
 # Node Generator Skill
 
 You are helping to generate a new workflow node for the Dafthunk platform. Follow these instructions carefully to create a high-quality, production-ready node implementation.
@@ -56,8 +61,8 @@ export class [NodeClassName]Node extends ExecutableNode {
     tags: ["Category", "Tag1", "Tag2"],
     icon: "[icon-name]",
     documentation: "[Detailed documentation about what this node does and how to use it]",
-    inlinable: true, // Set to true if node can be inlined in workflow
-    asTool: true, // Set to true if node can be used as an AI tool
+    inlinable: false, // Set to true if node can be inlined in cloudflare workflow step
+    asTool: false, // Set to true if node can be used as an AI tool by a LLM
     inputs: [
       {
         name: "[inputName]",
