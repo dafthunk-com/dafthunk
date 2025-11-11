@@ -26,13 +26,24 @@ export class StringPreviewNode extends ExecutableNode {
         required: true,
       },
     ],
-    outputs: [],
+    outputs: [
+      {
+        name: "displayValue",
+        type: "string",
+        description: "Persisted value for preview display",
+        hidden: true,
+      },
+    ],
   };
 
-  async execute(_context: NodeContext): Promise<NodeExecution> {
+  async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      // Value input is persisted automatically by the workflow system
-      return this.createSuccessResult({});
+      const value = context.inputs.value as string | undefined;
+
+      // Store value in output for persistence across executions
+      return this.createSuccessResult({
+        displayValue: value ?? "",
+      });
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"

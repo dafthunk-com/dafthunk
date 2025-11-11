@@ -27,14 +27,27 @@ export class AnyPreviewNode extends ExecutableNode {
         required: true,
       },
     ],
-    outputs: [],
+    outputs: [
+      {
+        name: "displayValue",
+        type: "any",
+        description: "Persisted value for preview display",
+        hidden: true,
+      },
+    ],
   };
 
-  async execute(_context: NodeContext): Promise<NodeExecution> {
+  async execute(context: NodeContext): Promise<NodeExecution> {
     try {
+      const value = context.inputs.value as any;
+
       // The "any" type accepts anything - no validation needed
-      // Just validate and return - value input is persisted automatically
-      return this.createSuccessResult({});
+      // Just pass through the value as-is
+
+      // Store value in output for persistence across executions
+      return this.createSuccessResult({
+        displayValue: value,
+      });
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"

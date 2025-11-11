@@ -1,4 +1,4 @@
-import { NodeExecution, NodeType } from "@dafthunk/types";
+import { JsonObject, NodeExecution, NodeType } from "@dafthunk/types";
 
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
@@ -26,14 +26,27 @@ export class JsonPreviewNode extends ExecutableNode {
         required: true,
       },
     ],
-    outputs: [],
+    outputs: [
+      {
+        name: "displayValue",
+        type: "json",
+        description: "Persisted JSON value for preview display",
+        hidden: true,
+      },
+    ],
   };
 
-  async execute(_context: NodeContext): Promise<NodeExecution> {
+  async execute(context: NodeContext): Promise<NodeExecution> {
     try {
+      const value = context.inputs.value as JsonObject | undefined;
+
       // JSON value can be any JSON-serializable type, no strict validation needed
-      // Just validate and return - value input is persisted automatically
-      return this.createSuccessResult({});
+      // Just pass through the value as-is
+
+      // Store value in output for persistence across executions
+      return this.createSuccessResult({
+        displayValue: value ?? {},
+      });
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"

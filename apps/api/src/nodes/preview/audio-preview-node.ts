@@ -1,6 +1,6 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
-import { ExecutableNode } from "../types";
+import { AudioParameter, ExecutableNode } from "../types";
 import { NodeContext } from "../types";
 
 /**
@@ -27,12 +27,44 @@ export class AudioPreviewNode extends ExecutableNode {
         required: true,
       },
     ],
-    outputs: [],
+    outputs: [
+      {
+        name: "displayValue",
+        type: "audio",
+        description: "Persisted audio reference for preview display",
+        hidden: true,
+      },
+    ],
   };
 
-  async execute(_context: NodeContext): Promise<NodeExecution> {
+  async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      return this.createSuccessResult({});
+      const value = context.inputs.value as AudioParameter | undefined;
+
+      // Validate if provided
+      if (value !== undefined) {
+        if (
+          typeof value !== "object" ||
+          !(value.data instanceof Uint8Array) ||
+          typeof value.mimeType !== "string"
+        ) {
+          return this.createErrorResult(
+            "Value must be a valid audio blob with data and mimeType"
+          );
+        }
+
+        // Validate MIME type is audio-related
+        if (!value.mimeType.startsWith("audio/")) {
+          return this.createErrorResult(
+            "MIME type must be audio-related (e.g., audio/wav, audio/mp3)"
+          );
+        }
+      }
+
+      // Store audio reference in output for persistence - no transformation
+      return this.createSuccessResult({
+        displayValue: value,
+      });
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"

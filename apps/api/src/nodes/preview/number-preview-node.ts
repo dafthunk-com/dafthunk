@@ -26,12 +26,29 @@ export class NumberPreviewNode extends ExecutableNode {
         required: true,
       },
     ],
-    outputs: [],
+    outputs: [
+      {
+        name: "displayValue",
+        type: "number",
+        description: "Persisted value for preview display",
+        hidden: true,
+      },
+    ],
   };
 
-  async execute(_context: NodeContext): Promise<NodeExecution> {
+  async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      return this.createSuccessResult({});
+      const value = context.inputs.value as number | undefined;
+
+      // Validate if provided
+      if (value !== undefined && typeof value !== "number") {
+        return this.createErrorResult("Value must be a number");
+      }
+
+      // Store value in output for persistence across executions
+      return this.createSuccessResult({
+        displayValue: value ?? 0,
+      });
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"

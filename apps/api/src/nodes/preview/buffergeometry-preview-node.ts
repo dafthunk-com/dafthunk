@@ -1,6 +1,6 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
-import { ExecutableNode } from "../types";
+import { BufferGeometryParameter, ExecutableNode } from "../types";
 import { NodeContext } from "../types";
 
 /**
@@ -27,12 +27,37 @@ export class BufferGeometryPreviewNode extends ExecutableNode {
         required: true,
       },
     ],
-    outputs: [],
+    outputs: [
+      {
+        name: "displayValue",
+        type: "buffergeometry",
+        description: "Persisted geometry reference for preview display",
+        hidden: true,
+      },
+    ],
   };
 
-  async execute(_context: NodeContext): Promise<NodeExecution> {
+  async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      return this.createSuccessResult({});
+      const value = context.inputs.value as BufferGeometryParameter | undefined;
+
+      // Validate if provided
+      if (value !== undefined) {
+        if (
+          typeof value !== "object" ||
+          !(value.data instanceof Uint8Array) ||
+          typeof value.mimeType !== "string"
+        ) {
+          return this.createErrorResult(
+            "Value must be a valid buffer geometry with data and mimeType"
+          );
+        }
+      }
+
+      // Store geometry reference in output for persistence - no transformation
+      return this.createSuccessResult({
+        displayValue: value,
+      });
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"

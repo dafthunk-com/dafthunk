@@ -27,12 +27,30 @@ export class SecretPreviewNode extends ExecutableNode {
         required: true,
       },
     ],
-    outputs: [],
+    outputs: [
+      {
+        name: "displayValue",
+        type: "secret",
+        description: "Persisted secret reference for preview display",
+        hidden: true,
+      },
+    ],
   };
 
-  async execute(_context: NodeContext): Promise<NodeExecution> {
+  async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      return this.createSuccessResult({});
+      const value = context.inputs.value as string | undefined;
+
+      // Validate if provided - should be a secret name reference
+      if (value !== undefined && typeof value !== "string") {
+        return this.createErrorResult("Value must be a secret name reference");
+      }
+
+      // Store secret reference in output for persistence - no transformation
+      // The actual secret value is never exposed here
+      return this.createSuccessResult({
+        displayValue: value ?? "",
+      });
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"
