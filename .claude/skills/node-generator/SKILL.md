@@ -1,57 +1,67 @@
 ---
 name: node-generator
-description: Assists in defining requirements and generating production-ready Dafthunk workflow nodes (implementation, tests, and registry registration) using templates, defensive programming best practices, and test coverage guidance.
+description: Generate production-ready Dafthunk workflow nodes with implementation, tests, and registry registration
 ---
 
 # Node Generator Skill
 
-You are helping to generate a new workflow node for the Dafthunk platform. Follow these instructions carefully to create a high-quality, production-ready node implementation.
+Generate workflow nodes for Dafthunk: research requirements, create implementation and tests, register in the node registry.
 
-## Node Structure
+## Step 1: Research and Define Requirements
 
-Every node consists of three files:
-1. **Implementation file** (`<node-name>.ts`) - The node class
-2. **Test file** (`<node-name>.test.ts`) - Unit tests
-3. **Registry registration** - Add to `cloudflare-node-registry.ts`
+When a user requests a new node, research first, then present a complete specification for confirmation.
 
-## Step 1: Gather Requirements
+**Research the functionality:**
+- If based on a library/API: Use WebSearch or WebFetch to find official documentation
+- Look for function signatures, parameters, return types, and examples
+- Check if the package exists in `apps/api/package.json` or search npm for the latest version
 
-Ask the user for the following information if not provided:
+**Check existing patterns:**
+- Search `apps/api/src/nodes/<category>/` for similar nodes
+- Examine 2-3 similar implementations to understand input/output patterns and validation approaches
 
-1. **Node purpose**: What does this node do? (e.g., "Reverse a string", "Calculate average of numbers")
-2. **Category**: Which category does it belong to? (text, math, logic, json, geo, etc.)
-3. **Node name**: Human-readable name (e.g., "String Reverse", "Calculate Average")
-4. **Node ID**: kebab-case identifier (e.g., "string-reverse", "calculate-average")
-5. **Inputs**: What inputs does the node accept?
-   - Name, type (string, number, boolean, json, array, etc.)
-   - Description
-   - Required or optional
-   - Default values (if any)
-   - Is it repeated? (accepts multiple connections)
-6. **Outputs**: What does the node produce?
-   - Name, type, description
-   - Hidden outputs (for metadata like "found", "count", etc.)
-7. **Icon**: lucide icon name (e.g., "text", "calculator", "git-branch")
-8. **Tags**: Relevant tags for searchability
-9. **Dependencies**: Any npm packages needed beyond the standard ones
+**Draft complete requirements:**
+- Node purpose, category, name, and kebab-case ID
+- Inputs: names, types, descriptions, required/optional, defaults, repeated (from function signature/docs)
+- Outputs: primary outputs and metadata outputs (hidden: true for counts, flags, etc.)
+- Icon: appropriate lucide icon name
+- Tags: category + relevant keywords
+- Dependencies: package name and version if needed
+
+**Present for confirmation:**
+```markdown
+Based on [library/API/functionality], here's the proposed node:
+
+**Name**: [Node Name]
+**ID**: `node-id`
+**Category**: category
+**Icon**: icon-name
+
+**Inputs**:
+- `inputName` (type, required/optional): Description
+
+**Outputs**:
+- `outputName` (type): Description
+- `metadata` (type, hidden): Description
+
+**Dependencies**:
+- package-name@^version
+
+**Tags**: Category, Tag1, Tag2
+
+Does this match your requirements?
+```
+
+Only ask for information you cannot reasonably infer or research. The goal is to present a complete, research-backed specification that the user only needs to approve or tweak.
 
 ## Step 2: Create Node Implementation
 
-### File Location
-`apps/api/src/nodes/<category>/<node-id>.ts`
-
-### Template Structure
+**File:** `apps/api/src/nodes/<category>/<node-id>.ts`
 
 ```typescript
 import { NodeExecution, NodeType } from "@dafthunk/types";
-// Import any additional dependencies here
+import { ExecutableNode, NodeContext } from "../types";
 
-import { ExecutableNode } from "../types";
-import { NodeContext } from "../types";
-
-/**
- * [Brief JSDoc description of what this node does]
- */
 export class [NodeClassName]Node extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "[node-id]",
@@ -60,427 +70,189 @@ export class [NodeClassName]Node extends ExecutableNode {
     description: "[One-line description]",
     tags: ["Category", "Tag1", "Tag2"],
     icon: "[icon-name]",
-    documentation: "[Detailed documentation about what this node does and how to use it]",
-    inlinable: false, // Set to true if node can be inlined in cloudflare workflow step
-    asTool: false, // Set to true if node can be used as an AI tool by a LLM
+    documentation: "[Detailed documentation]",
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "[inputName]",
-        type: "[type]", // string, number, boolean, json, image, audio, etc.
-        description: "[What this input represents]",
-        required: true, // or false
-        repeated: false, // true if accepts multiple connections
-        // hidden: true, // if this input should be hidden by default
-        // value: "default", // if there's a default value
+        type: "[type]",
+        description: "[Description]",
+        required: true,
+        repeated: false,
       },
-      // Add more inputs...
     ],
     outputs: [
       {
         name: "[outputName]",
         type: "[type]",
-        description: "[What this output represents]",
-        // hidden: true, // for metadata outputs
+        description: "[Description]",
       },
-      // Add more outputs...
     ],
   };
 
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      // Extract inputs with destructuring
-      const { input1, input2, optionalInput = "defaultValue" } = context.inputs;
+      const { input1, optionalInput = "default" } = context.inputs;
 
-      // DEFENSIVE PROGRAMMING: Validate required inputs first
-
-      // Check for null/undefined
+      // Validate required inputs
       if (input1 === null || input1 === undefined) {
         return this.createErrorResult("Missing required input: input1");
       }
 
-      // Validate type
       if (typeof input1 !== "expectedType") {
         return this.createErrorResult(
           `Invalid input type for input1: expected expectedType, got ${typeof input1}`
         );
       }
 
-      // Handle repeated inputs (single value vs array)
-      if (nodeType.inputs.some(i => i.repeated)) {
-        // Handle single value
-        if (typeof input1 === "string") {
-          // Process single value
-        }
-
-        // Handle array of values
-        if (Array.isArray(input1)) {
-          // Validate each element
-          for (let i = 0; i < input1.length; i++) {
-            if (typeof input1[i] !== "string") {
-              return this.createErrorResult(
-                `Invalid input at position ${i}: expected string, got ${typeof input1[i]}`
-              );
-            }
+      // Handle repeated inputs (arrays)
+      if (Array.isArray(input1)) {
+        for (let i = 0; i < input1.length; i++) {
+          if (typeof input1[i] !== "string") {
+            return this.createErrorResult(
+              `Invalid input at position ${i}: expected string, got ${typeof input1[i]}`
+            );
           }
-          // Process array
         }
       }
 
-      // MAIN LOGIC: Implement the node's core functionality
+      // Main logic
+      const result = processInput(input1);
 
-      // For operations that might fail, use nested try-catch
-      try {
-        // Risky operation (e.g., parsing, external API)
-        const result = performOperation(input1);
-      } catch (err) {
-        const error = err as Error;
-        return this.createErrorResult(
-          `Operation failed: ${error.message}`
-        );
-      }
-
-      // Calculate outputs
-      const output1 = processedResult;
-      const output2 = metadata;
-
-      // Return success with all outputs
-      return this.createSuccessResult({
-        output1,
-        output2,
-      });
+      return this.createSuccessResult({ output1: result });
     } catch (err) {
-      // Catch-all for unexpected errors
       const error = err as Error;
-      return this.createErrorResult(
-        `Error in [NodeName]: ${error.message}`
-      );
+      return this.createErrorResult(`Error in [NodeName]: ${error.message}`);
     }
   }
 }
 ```
 
-### Best Practices - Defensive Programming
-
-1. **Early returns for validation**
-   - Check null/undefined first
-   - Validate types second
-   - Check ranges/constraints third
-   - Return descriptive error messages
-
-2. **Handle all input variations**
-   - Single values vs arrays (for repeated inputs)
-   - Optional inputs with defaults
-   - Type coercion where appropriate (e.g., Number() for numeric inputs)
-
-3. **Error messages**
-   - Be specific: include the input name, expected type, actual type
-   - For arrays: include the position/index of the invalid element
-   - For operations: include context about what failed
-
-4. **Type safety**
-   - Use `typeof` checks for primitive types
-   - Use `Array.isArray()` for arrays
-   - Use `instanceof` for class instances
-   - Cast errors: `err as Error` or `error instanceof Error`
-
-5. **Nested try-catch**
-   - Outer try-catch for unexpected errors
-   - Inner try-catch for specific operations that might fail
-   - Provide context-specific error messages
-
-6. **Handle edge cases**
-   - Empty arrays
-   - Empty strings
-   - Zero values
-   - Negative numbers (if invalid)
-   - Very large numbers
-   - Special characters in strings
+**Defensive programming checklist:**
+- Validate null/undefined, then types, then ranges/constraints
+- Handle single values and arrays for repeated inputs
+- Use descriptive error messages with input names and types
+- Use nested try-catch for risky operations (parsing, external APIs)
+- Handle edge cases: empty arrays/strings, zero/negative numbers
 
 ## Step 3: Create Test File
 
-### File Location
-`apps/api/src/nodes/<category>/<node-id>.test.ts`
-
-### Template Structure
+**File:** `apps/api/src/nodes/<category>/<node-id>.test.ts`
 
 ```typescript
 import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
-
 import { NodeContext } from "../types";
 import { [NodeClassName]Node } from "./<node-id>";
 
 describe("[NodeClassName]Node", () => {
-  // Happy path - normal operation
+  const createContext = (inputs: Record<string, unknown>): NodeContext => ({
+    nodeId: "[node-id]",
+    inputs,
+    getIntegration: async () => { throw new Error("No integrations in test"); },
+    env: {},
+  } as unknown as NodeContext);
+
   it("should [perform expected operation]", async () => {
-    const nodeId = "[node-id]";
-    const node = new [NodeClassName]Node({
-      nodeId,
-    } as unknown as Node);
+    const node = new [NodeClassName]Node({ nodeId: "[node-id]" } as unknown as Node);
+    const result = await node.execute(createContext({ input1: "test value" }));
 
-    const context = {
-      nodeId,
-      inputs: {
-        input1: "test value",
-        input2: 42,
-      },
-      getIntegration: async () => {
-        throw new Error("No integrations in test");
-      },
-      env: {},
-    } as unknown as NodeContext;
-
-    const result = await node.execute(context);
     expect(result.status).toBe("completed");
-    expect(result.outputs).toBeDefined();
     expect(result.outputs?.output1).toBe("expected value");
   });
 
-  // Edge cases
   it("should handle empty input", async () => {
-    const nodeId = "[node-id]";
-    const node = new [NodeClassName]Node({
-      nodeId,
-    } as unknown as Node);
+    const node = new [NodeClassName]Node({ nodeId: "[node-id]" } as unknown as Node);
+    const result = await node.execute(createContext({ input1: "" }));
 
-    const context = {
-      nodeId,
-      inputs: {
-        input1: "",
-      },
-      getIntegration: async () => {
-        throw new Error("No integrations in test");
-      },
-      env: {},
-    } as unknown as NodeContext;
-
-    const result = await node.execute(context);
     expect(result.status).toBe("completed");
-    expect(result.outputs?.output1).toBe("expected for empty");
   });
 
-  // Error cases
   it("should return error for missing input", async () => {
-    const nodeId = "[node-id]";
-    const node = new [NodeClassName]Node({
-      nodeId,
-    } as unknown as Node);
+    const node = new [NodeClassName]Node({ nodeId: "[node-id]" } as unknown as Node);
+    const result = await node.execute(createContext({}));
 
-    const context = {
-      nodeId,
-      inputs: {},
-      getIntegration: async () => {
-        throw new Error("No integrations in test");
-      },
-      env: {},
-    } as unknown as NodeContext;
-
-    const result = await node.execute(context);
     expect(result.status).toBe("error");
     expect(result.error).toContain("Missing required input");
   });
 
   it("should return error for invalid type", async () => {
-    const nodeId = "[node-id]";
-    const node = new [NodeClassName]Node({
-      nodeId,
-    } as unknown as Node);
+    const node = new [NodeClassName]Node({ nodeId: "[node-id]" } as unknown as Node);
+    const result = await node.execute(createContext({ input1: 123 }));
 
-    const context = {
-      nodeId,
-      inputs: {
-        input1: 123, // Wrong type
-      },
-      getIntegration: async () => {
-        throw new Error("No integrations in test");
-      },
-      env: {},
-    } as unknown as NodeContext;
-
-    const result = await node.execute(context);
     expect(result.status).toBe("error");
     expect(result.error).toContain("Invalid input type");
   });
 
-  // For repeated inputs (arrays)
   it("should handle array of inputs", async () => {
-    const nodeId = "[node-id]";
-    const node = new [NodeClassName]Node({
-      nodeId,
-    } as unknown as Node);
+    const node = new [NodeClassName]Node({ nodeId: "[node-id]" } as unknown as Node);
+    const result = await node.execute(createContext({ input1: ["val1", "val2"] }));
 
-    const context = {
-      nodeId,
-      inputs: {
-        input1: ["value1", "value2", "value3"],
-      },
-      getIntegration: async () => {
-        throw new Error("No integrations in test");
-      },
-      env: {},
-    } as unknown as NodeContext;
-
-    const result = await node.execute(context);
     expect(result.status).toBe("completed");
-    expect(result.outputs?.output1).toBe("expected result");
   });
 
   it("should return error for invalid element in array", async () => {
-    const nodeId = "[node-id]";
-    const node = new [NodeClassName]Node({
-      nodeId,
-    } as unknown as Node);
+    const node = new [NodeClassName]Node({ nodeId: "[node-id]" } as unknown as Node);
+    const result = await node.execute(createContext({ input1: ["valid", 123] }));
 
-    const context = {
-      nodeId,
-      inputs: {
-        input1: ["valid", 123, "valid"], // Invalid element at position 1
-      },
-      getIntegration: async () => {
-        throw new Error("No integrations in test");
-      },
-      env: {},
-    } as unknown as NodeContext;
-
-    const result = await node.execute(context);
     expect(result.status).toBe("error");
     expect(result.error).toContain("position 1");
   });
-
-  // Add more test cases for:
-  // - Boundary conditions
-  // - Type coercion (if applicable)
-  // - Large inputs
-  // - Special characters
-  // - Numeric ranges (negative, zero, very large)
 });
 ```
 
-### Test Coverage Guidelines
-
-Create tests for:
-1. **Happy path**: Normal operation with valid inputs
-2. **Edge cases**: Empty values, boundary values, extremes
-3. **Error cases**: Missing inputs, wrong types, invalid values
-4. **Array handling**: Single values, multiple values, invalid elements
-5. **Type coercion**: If the node converts types (e.g., string to number)
-6. **Special cases**: Any domain-specific edge cases
+**Test coverage:** Happy path, edge cases (empty/boundary values), error cases (missing/wrong types), array handling, type coercion (if applicable), domain-specific cases.
 
 ## Step 4: Register the Node
 
-### File Location
-`apps/api/src/nodes/cloudflare-node-registry.ts`
+**File:** `apps/api/src/nodes/cloudflare-node-registry.ts`
 
-### Steps
-
-1. **Add import at the top** (alphabetically within category):
+Add import (alphabetically within category):
 ```typescript
 import { [NodeClassName]Node } from "./<category>/<node-id>";
 ```
 
-2. **Register in constructor** (alphabetically within category):
+Register in constructor (alphabetically within category):
 ```typescript
 this.registerImplementation([NodeClassName]Node);
 ```
 
-Find the appropriate section for your category (text, math, logic, etc.) and add the import and registration in alphabetical order.
-
 ## Step 5: Run Tests
 
-After creating the files, run tests to verify:
-
 ```bash
-# Type check
 pnpm typecheck
-
-# Run the specific test
 pnpm --filter '@dafthunk/api' test <node-id>
-
-# Run all tests
-pnpm --filter '@dafthunk/api' test
 ```
 
 ## Step 6: Summary
 
-After generating all files, provide a summary:
+List files created, confirm registry registration, show test command, note any dependencies to install.
 
-1. List the files created
-2. Confirm registration in the registry
-3. Show the test command to run
-4. Provide any additional notes (dependencies to install, etc.)
+## Common Patterns
 
-## Common Patterns Reference
-
-### Repeated Inputs (Arrays)
+**Repeated inputs (single value or array):**
 ```typescript
-const { values } = context.inputs;
-
-if (values === null || values === undefined) {
-  return this.createErrorResult("No values provided");
-}
-
-// Single value
-if (typeof values === "string") {
-  return this.createSuccessResult({ result: values });
-}
-
-// Array of values
-if (Array.isArray(values)) {
-  for (let i = 0; i < values.length; i++) {
-    if (typeof values[i] !== "string") {
-      return this.createErrorResult(
-        `Invalid input at position ${i}: expected string, got ${typeof values[i]}`
-      );
-    }
-  }
-  const result = values.join("");
-  return this.createSuccessResult({ result });
-}
-
-return this.createErrorResult(
-  "Invalid input type: expected string or array of strings"
-);
+if (typeof values === "string") { /* handle single */ }
+if (Array.isArray(values)) { /* validate each element */ }
 ```
 
-### Number Validation with Coercion
+**Number coercion:**
 ```typescript
-const { numbers } = context.inputs;
-
-if (Array.isArray(numbers)) {
-  for (let i = 0; i < numbers.length; i++) {
-    const num = Number(numbers[i]);
-    if (isNaN(num)) {
-      return this.createErrorResult(
-        `Invalid input at position ${i}: expected number, got ${typeof numbers[i]}`
-      );
-    }
-  }
-  const result = numbers.reduce((sum, num) => sum + Number(num), 0);
-  return this.createSuccessResult({ result });
-}
+const num = Number(input);
+if (isNaN(num)) { return this.createErrorResult("Invalid number"); }
 ```
 
-### Optional Inputs with Defaults
+**Optional inputs:**
 ```typescript
 const { required, optional = "default" } = context.inputs;
 ```
 
-### External Dependencies
-If the node uses external libraries (like JSONPath, turf for geo, etc.):
+**External libraries:**
 ```typescript
-import { JSONPath } from "jsonpath-plus";
-
 try {
-  const results = JSONPath({ path, json });
-  // Process results
+  const result = library.function(input);
 } catch (err) {
-  const error = err as Error;
-  return this.createErrorResult(
-    `Invalid JSONPath expression: ${error.message}`
-  );
+  return this.createErrorResult(`Operation failed: ${(err as Error).message}`);
 }
 ```
-
-## Ready to Generate!
-
-Now ask the user for their requirements and generate a complete, production-ready node following all these patterns and best practices.
