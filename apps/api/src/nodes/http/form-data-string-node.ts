@@ -12,7 +12,6 @@ export class FormDataStringNode extends ExecutableNode {
     icon: "text",
     documentation:
       "This node extracts a string parameter from HTTP request form data, supporting both required and optional parameters.",
-    asTool: true,
     compatibility: ["http_webhook", "http_request"],
     inlinable: true,
     inputs: [

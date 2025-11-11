@@ -66,7 +66,6 @@ export class Gemini25FlashTtsNode extends ExecutableNode {
     documentation:
       "This node uses Google's Gemini 2.5 Flash Preview TTS model to generate speech from text.",
     computeCost: 20,
-    asTool: true,
     inputs: [
       {
         name: "integrationId",

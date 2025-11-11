@@ -23,7 +23,6 @@ export class Hermes2ProMistral7BNode extends ExecutableNode {
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/hermes-2-pro-mistral-7b/",
     computeCost: 10,
-    asTool: true,
     functionCalling: true,
     inputs: [
       {

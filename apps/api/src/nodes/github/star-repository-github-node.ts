@@ -17,7 +17,6 @@ export class StarRepositoryGithubNode extends ExecutableNode {
     documentation:
       "This node stars a GitHub repository on behalf of the authenticated user. Requires a connected GitHub integration with repo scope.",
     computeCost: 10,
-    asTool: true,
     inputs: [
       {
         name: "integrationId",

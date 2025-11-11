@@ -15,7 +15,6 @@ export class SingleVariableStringTemplateNode extends ExecutableNode {
     documentation:
       "This node creates a string using a template with a single variable injection using \\${variable} syntax.",
     inlinable: true,
-    asTool: true,
     inputs: [
       {
         name: "template",

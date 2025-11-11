@@ -20,7 +20,6 @@ export class InputTextNode extends ExecutableNode {
     icon: "text",
     documentation:
       "This node provides a text input widget for entering single-line text.",
-    asTool: true,
     inputs: [
       {
         name: "value",

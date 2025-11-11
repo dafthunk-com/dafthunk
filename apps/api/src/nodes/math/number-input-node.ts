@@ -23,7 +23,6 @@ export class NumberInputNode extends ExecutableNode {
     specification:
       "result = value, where min ≤ value ≤ max (if constraints specified)",
     inlinable: true,
-    asTool: true,
     inputs: [
       {
         name: "value",

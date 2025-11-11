@@ -17,7 +17,6 @@ export class AddReactionDiscordNode extends ExecutableNode {
     documentation:
       "This node adds a reaction emoji to a Discord message. Requires a connected Discord integration.",
     computeCost: 5,
-    asTool: true,
     inputs: [
       {
         name: "integrationId",

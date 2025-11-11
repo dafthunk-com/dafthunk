@@ -23,7 +23,6 @@ export class Llama4Scout17B16EInstructNode extends ExecutableNode {
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/llama-4-scout-17b-16e-instruct/",
     computeCost: 10,
-    asTool: true,
     functionCalling: true,
     inputs: [
       {

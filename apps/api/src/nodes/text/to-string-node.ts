@@ -18,7 +18,6 @@ export class ToStringNode extends ExecutableNode {
     documentation:
       "This node converts any input value to its string representation.",
     inlinable: true,
-    asTool: true,
     inputs: [
       {
         name: "value",

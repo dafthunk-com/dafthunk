@@ -26,7 +26,6 @@ export class ListCalendarsGoogleCalendarNode extends ExecutableNode {
     documentation:
       "This node lists all calendars available to the user using Google Calendar API. Requires a connected Google Calendar integration from your organization's integrations.",
     computeCost: 10,
-    asTool: true,
     inputs: [
       {
         name: "integrationId",

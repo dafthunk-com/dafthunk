@@ -20,7 +20,6 @@ export class DistilbertSst2Int8Node extends ExecutableNode {
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/distilbert-sst-2-int8/",
     computeCost: 10,
-    asTool: true,
     inputs: [
       {
         name: "text",

@@ -17,7 +17,6 @@ export class DeleteDraftGoogleMailNode extends ExecutableNode {
     documentation:
       "This node deletes a draft using Google Mail API. Requires a connected Google Mail integration from your organization's integrations.",
     computeCost: 10,
-    asTool: true,
     inputs: [
       {
         name: "integrationId",

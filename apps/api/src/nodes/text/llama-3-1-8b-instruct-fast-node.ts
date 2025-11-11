@@ -18,7 +18,6 @@ export class Llama318BInstructFastNode extends ExecutableNode {
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/llama-3.1-8b-instruct-fast/",
     computeCost: 10,
-    asTool: true,
     inputs: [
       {
         name: "prompt",

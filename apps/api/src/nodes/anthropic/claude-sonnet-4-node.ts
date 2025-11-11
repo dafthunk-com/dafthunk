@@ -19,7 +19,6 @@ export class ClaudeSonnet4Node extends ExecutableNode {
     documentation:
       "This node uses Anthropic's Claude Sonnet 4 model to generate text responses based on input prompts.",
     computeCost: 30,
-    asTool: true,
     inputs: [
       {
         name: "integrationId",

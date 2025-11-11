@@ -21,7 +21,6 @@ export class GptOss120BNode extends ExecutableNode {
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/gpt-oss-120b/",
     computeCost: 35,
-    asTool: true,
     inputs: [
       {
         name: "instructions",

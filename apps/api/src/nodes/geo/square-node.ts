@@ -16,7 +16,6 @@ export class SquareNode extends ExecutableNode {
     documentation:
       "This node calculates the minimum square bounding box that would contain the input bounding box.",
     inlinable: true,
-    asTool: true,
     inputs: [
       {
         name: "bbox",

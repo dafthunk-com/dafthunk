@@ -17,7 +17,6 @@ export class GetUserGithubNode extends ExecutableNode {
     documentation:
       "This node retrieves detailed information about a GitHub user including followers, public repos, bio, and more. Requires a connected GitHub integration.",
     computeCost: 10,
-    asTool: true,
     inputs: [
       {
         name: "integrationId",
