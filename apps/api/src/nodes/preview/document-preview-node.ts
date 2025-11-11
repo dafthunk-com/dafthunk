@@ -1,6 +1,6 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
-import { DocumentParameter, ExecutableNode } from "../types";
+import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
 
 /**
@@ -27,37 +27,12 @@ export class DocumentPreviewNode extends ExecutableNode {
         required: true,
       },
     ],
-    outputs: [
-      {
-        name: "displayValue",
-        type: "document",
-        description: "Persisted document reference for preview display",
-        hidden: true,
-      },
-    ],
+    outputs: [],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  async execute(_context: NodeContext): Promise<NodeExecution> {
     try {
-      const value = context.inputs.value as DocumentParameter | undefined;
-
-      // Validate if provided
-      if (value !== undefined) {
-        if (
-          typeof value !== "object" ||
-          !(value.data instanceof Uint8Array) ||
-          typeof value.mimeType !== "string"
-        ) {
-          return this.createErrorResult(
-            "Value must be a valid document with data and mimeType"
-          );
-        }
-      }
-
-      // Store document reference in output for persistence - no transformation
-      return this.createSuccessResult({
-        displayValue: value,
-      });
+      return this.createSuccessResult({});
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"

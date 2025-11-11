@@ -1,6 +1,6 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
-import { BlobParameter, ExecutableNode } from "../types";
+import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
 
 /**
@@ -27,37 +27,12 @@ export class BlobPreviewNode extends ExecutableNode {
         required: true,
       },
     ],
-    outputs: [
-      {
-        name: "displayValue",
-        type: "blob",
-        description: "Persisted blob reference for preview display",
-        hidden: true,
-      },
-    ],
+    outputs: [],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  async execute(_context: NodeContext): Promise<NodeExecution> {
     try {
-      const value = context.inputs.value as BlobParameter | undefined;
-
-      // Validate if provided
-      if (value !== undefined) {
-        if (
-          typeof value !== "object" ||
-          !(value.data instanceof Uint8Array) ||
-          typeof value.mimeType !== "string"
-        ) {
-          return this.createErrorResult(
-            "Value must be a valid blob with data and mimeType"
-          );
-        }
-      }
-
-      // Store blob reference in output for persistence - no transformation
-      return this.createSuccessResult({
-        displayValue: value,
-      });
+      return this.createSuccessResult({});
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"

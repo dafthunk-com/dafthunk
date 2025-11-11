@@ -1,4 +1,4 @@
-import { GeoJSON, NodeExecution, NodeType } from "@dafthunk/types";
+import { NodeExecution, NodeType } from "@dafthunk/types";
 
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
@@ -26,41 +26,12 @@ export class GeoJSONPreviewNode extends ExecutableNode {
         required: true,
       },
     ],
-    outputs: [
-      {
-        name: "displayValue",
-        type: "geojson",
-        description: "Persisted GeoJSON value for preview display",
-        hidden: true,
-      },
-    ],
+    outputs: [],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  async execute(_context: NodeContext): Promise<NodeExecution> {
     try {
-      const value = context.inputs.value as GeoJSON | undefined;
-
-      // Validate GeoJSON structure if provided
-      if (value !== undefined) {
-        if (typeof value !== "object" || value === null) {
-          return this.createErrorResult("Value must be a valid GeoJSON object");
-        }
-
-        // Basic GeoJSON structure validation
-        if (
-          !("type" in value) ||
-          !["Geometry", "Feature", "FeatureCollection"].includes(value.type)
-        ) {
-          return this.createErrorResult(
-            "Value must be a valid GeoJSON with type: Geometry, Feature, or FeatureCollection"
-          );
-        }
-      }
-
-      // Store value in output for persistence across executions
-      return this.createSuccessResult({
-        displayValue: value,
-      });
+      return this.createSuccessResult({});
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"

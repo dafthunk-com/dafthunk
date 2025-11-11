@@ -79,22 +79,13 @@ export const previewWidget = createWidget({
     "preview-any",
   ],
   inputField: "value",
-  extractConfig: (_nodeId, inputs, outputs) => {
+  extractConfig: (_nodeId, inputs) => {
     // Get the value input (what user is providing/connecting)
+    // The value input is persisted automatically in executions and deployments
     const valueInput = inputs.find((i) => i.name === "value");
 
-    // Get the displayValue output (what the node outputs after execution)
-    // The displayValue output contains the previewed value
-    const displayValueOutput = outputs?.find((o) => o.name === "displayValue");
-
-    // Use displayValue output if available (from execution), otherwise use input value
-    const valueToPreview =
-      displayValueOutput?.value !== undefined
-        ? displayValueOutput.value
-        : valueInput?.value;
-
     return {
-      value: valueToPreview,
+      value: valueInput?.value,
       parameterType: valueInput?.type || "any",
     };
   },

@@ -1,6 +1,6 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
-import { ExecutableNode, ImageParameter } from "../types";
+import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
 
 /**
@@ -27,44 +27,12 @@ export class ImagePreviewNode extends ExecutableNode {
         required: true,
       },
     ],
-    outputs: [
-      {
-        name: "displayValue",
-        type: "image",
-        description: "Persisted image reference for preview display",
-        hidden: true,
-      },
-    ],
+    outputs: [],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  async execute(_context: NodeContext): Promise<NodeExecution> {
     try {
-      const value = context.inputs.value as ImageParameter | undefined;
-
-      // Validate if provided
-      if (value !== undefined) {
-        if (
-          typeof value !== "object" ||
-          !(value.data instanceof Uint8Array) ||
-          typeof value.mimeType !== "string"
-        ) {
-          return this.createErrorResult(
-            "Value must be a valid image with data and mimeType"
-          );
-        }
-
-        // Validate MIME type is image-related
-        if (!value.mimeType.startsWith("image/")) {
-          return this.createErrorResult(
-            "MIME type must be image-related (e.g., image/png, image/jpeg)"
-          );
-        }
-      }
-
-      // Store image reference in output for persistence - no transformation
-      return this.createSuccessResult({
-        displayValue: value,
-      });
+      return this.createSuccessResult({});
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"
