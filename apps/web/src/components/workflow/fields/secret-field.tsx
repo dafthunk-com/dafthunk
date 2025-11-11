@@ -19,6 +19,7 @@ export function SecretField({
   onChange,
   onClear,
   value,
+  asWidget,
 }: FieldProps) {
   const { secrets, isSecretsLoading } = useSecrets();
 
@@ -36,7 +37,8 @@ export function SecretField({
       >
         <SelectTrigger
           className={cn(
-            "rounded-md border border-neutral-300 dark:border-neutral-700"
+            "border border-neutral-300 dark:border-neutral-700",
+            !asWidget && "rounded-md"
           )}
         >
           <SelectValue

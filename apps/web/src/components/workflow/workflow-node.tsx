@@ -220,7 +220,9 @@ export const WorkflowNode = memo(
     })();
 
     // Get widget for this node type
-    const widget = nodeType ? registry.for(nodeType, id, data.inputs) : null;
+    const widget = nodeType
+      ? registry.for(nodeType, id, data.inputs, data.outputs)
+      : null;
 
     const handleWidgetChange = (value: any) => {
       if (disabled || !updateNodeData || !widget) return;
@@ -374,6 +376,7 @@ export const WorkflowNode = memo(
                 ...widget.config,
                 onChange: handleWidgetChange,
                 disabled,
+                createObjectUrl: data.createObjectUrl,
               })}
             </div>
           )}

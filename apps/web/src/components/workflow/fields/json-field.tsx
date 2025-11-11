@@ -20,6 +20,7 @@ export function JsonField({
   onChange,
   onClear,
   value,
+  asWidget,
 }: FieldProps) {
   // Check for meaningful value (empty strings are considered "no value")
   const hasValue = value !== undefined && value !== "";
@@ -208,7 +209,8 @@ export function JsonField({
     return (
       <div
         className={cn(
-          "text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border",
+          "text-xs text-neutral-500 italic",
+          !asWidget && "p-2 bg-muted/50 rounded-md border border-border",
           className
         )}
       >
@@ -228,7 +230,10 @@ export function JsonField({
     >
       <div
         ref={editorRef}
-        className="min-h-[80px] max-h-[200px] rounded-md border border-neutral-300 dark:border-neutral-700 overflow-auto"
+        className={cn(
+          "min-h-[80px] max-h-[200px] border border-neutral-300 dark:border-neutral-700 overflow-auto",
+          !asWidget && "rounded-md"
+        )}
       />
       {!disabled && !readonly && clearable && hasValue && (
         <ClearButton

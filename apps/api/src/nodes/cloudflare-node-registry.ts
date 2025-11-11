@@ -307,6 +307,22 @@ import { Gpt5Node } from "./openai/gpt-5-node";
 import { Gpt41Node } from "./openai/gpt-41-node";
 import { GptOss20BNode } from "./openai/gpt-oss-20b-node";
 import { GptOss120BNode } from "./openai/gpt-oss-120b-node";
+import {
+  AnyPreviewNode,
+  AudioPreviewNode,
+  BlobPreviewNode,
+  BooleanPreviewNode,
+  BufferGeometryPreviewNode,
+  DatePreviewNode,
+  DocumentPreviewNode,
+  GeoJSONPreviewNode,
+  GltfPreviewNode,
+  ImagePreviewNode,
+  JsonPreviewNode,
+  NumberPreviewNode,
+  SecretPreviewNode,
+  StringPreviewNode,
+} from "./preview";
 import { ReceiveQueueMessageNode } from "./queue/receive-queue-message-node";
 import { SendQueueBatchNode } from "./queue/send-queue-batch-node";
 import { SendQueueMessageNode } from "./queue/send-queue-message-node";
@@ -807,5 +823,21 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(Gemini25FlashAudioUnderstandingNode);
     this.registerImplementation(Gemini25FlashImageUnderstandingNode);
     this.registerImplementation(ImagenNode);
+
+    // Preview/Widget nodes - always register (for displaying all parameter types)
+    this.registerImplementation(StringPreviewNode);
+    this.registerImplementation(NumberPreviewNode);
+    this.registerImplementation(BooleanPreviewNode);
+    this.registerImplementation(DatePreviewNode);
+    this.registerImplementation(BlobPreviewNode);
+    this.registerImplementation(ImagePreviewNode);
+    this.registerImplementation(DocumentPreviewNode);
+    this.registerImplementation(AudioPreviewNode);
+    this.registerImplementation(BufferGeometryPreviewNode);
+    this.registerImplementation(GltfPreviewNode);
+    this.registerImplementation(JsonPreviewNode);
+    this.registerImplementation(GeoJSONPreviewNode);
+    this.registerImplementation(SecretPreviewNode);
+    this.registerImplementation(AnyPreviewNode);
   }
 }

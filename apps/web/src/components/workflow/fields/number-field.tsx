@@ -13,6 +13,7 @@ export function NumberField({
   onClear,
   value,
   autoFocus,
+  asWidget,
 }: FieldProps) {
   // Convert to string and check for meaningful value (empty strings are considered "no value")
   const stringValue = String(value ?? "");
@@ -28,7 +29,8 @@ export function NumberField({
         placeholder={connected ? "Connected" : "Enter number"}
         disabled={disabled}
         className={cn(
-          "rounded-md border border-neutral-300 dark:border-neutral-700"
+          "border border-neutral-300 dark:border-neutral-700",
+          !asWidget && "rounded-md"
         )}
         autoFocus={autoFocus}
       />

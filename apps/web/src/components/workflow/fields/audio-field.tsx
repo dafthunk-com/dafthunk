@@ -18,6 +18,7 @@ export function AudioField({
   parameter,
   uploadError,
   value,
+  asWidget,
 }: FileFieldProps) {
   // File fields check for object references
   const hasValue = value !== undefined && isObjectReference(value);
@@ -43,7 +44,8 @@ export function AudioField({
     return (
       <div
         className={cn(
-          "text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border",
+          "text-xs text-neutral-500 italic",
+          !asWidget && "p-2 bg-muted/50 rounded-md border border-border",
           className
         )}
       >
@@ -58,9 +60,11 @@ export function AudioField({
       <div className={cn(className)}>
         <div
           className={cn(
-            "relative rounded-md p-2",
-            disabled && "bg-muted/50 border border-border",
-            !disabled &&
+            "relative",
+            !asWidget && "rounded-md p-2",
+            !asWidget && disabled && "bg-muted/50 border border-border",
+            !asWidget &&
+              !disabled &&
               "bg-white dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700"
           )}
         >
@@ -91,7 +95,9 @@ export function AudioField({
     <div className={cn(className)}>
       <div
         className={cn(
-          "flex flex-col items-center justify-center space-y-2 p-3 rounded-md bg-white dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700"
+          "flex flex-col items-center justify-center space-y-2",
+          !asWidget &&
+            "p-3 rounded-md bg-white dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700"
         )}
       >
         <Upload className="h-5 w-5 text-neutral-400" />

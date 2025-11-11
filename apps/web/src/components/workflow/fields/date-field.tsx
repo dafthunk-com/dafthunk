@@ -59,6 +59,7 @@ export function DateField({
   onChange,
   onClear,
   value,
+  asWidget: _asWidget, // DateField doesn't have container styling to conditionally apply
 }: FieldProps) {
   // Value can be an ISO string or old format object { date: string, offset: number }
   const isoValue =

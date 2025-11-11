@@ -11,6 +11,7 @@ export function BooleanField({
   onChange,
   onClear,
   value,
+  asWidget: _asWidget, // BooleanField doesn't have container styling to conditionally apply
 }: FieldProps) {
   const hasValue = value !== undefined;
   const boolValue = hasValue ? String(value) === "true" : false;

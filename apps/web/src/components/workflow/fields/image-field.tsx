@@ -7,6 +7,7 @@ import { ClearButton } from "./clear-button";
 import type { FileFieldProps, ObjectReference } from "./types";
 
 export function ImageField({
+  asWidget,
   className,
   clearable,
   connected,
@@ -40,7 +41,8 @@ export function ImageField({
     return (
       <div
         className={cn(
-          "text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border",
+          !asWidget &&
+            "text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border",
           className
         )}
       >
@@ -55,9 +57,12 @@ export function ImageField({
       <div className={cn(className)}>
         <div
           className={cn(
-            "relative rounded-md overflow-hidden",
-            disabled && "bg-muted/50 border border-border",
-            !disabled &&
+            asWidget
+              ? "relative overflow-hidden w-full h-full"
+              : "relative rounded-md overflow-hidden",
+            !asWidget && disabled && "bg-muted/50 border border-border",
+            !asWidget &&
+              !disabled &&
               "bg-white dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700"
           )}
         >

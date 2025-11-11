@@ -34,12 +34,13 @@ class WidgetRegistry {
   for(
     nodeType: string,
     nodeId: string,
-    inputs: WorkflowParameter[]
+    inputs: WorkflowParameter[],
+    outputs?: WorkflowParameter[]
   ): Widget | null {
     const descriptor = this.widgets.get(nodeType);
     if (!descriptor) return null;
 
-    const config = descriptor.extractConfig(nodeId, inputs);
+    const config = descriptor.extractConfig(nodeId, inputs, outputs);
     if (!config) return null;
 
     return {

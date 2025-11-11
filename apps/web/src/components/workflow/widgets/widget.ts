@@ -24,8 +24,12 @@ export interface WidgetDescriptor {
   /** Which input field this widget updates */
   inputField: string;
 
-  /** Extract widget config from node inputs */
-  extractConfig: (nodeId: string, inputs: WorkflowParameter[]) => any;
+  /** Extract widget config from node inputs and outputs */
+  extractConfig: (
+    nodeId: string,
+    inputs: WorkflowParameter[],
+    outputs?: WorkflowParameter[]
+  ) => any;
 }
 
 /**
