@@ -23,7 +23,7 @@ import type {
 import { getApiBaseUrl } from "@/config/api";
 import { extractDialogParametersFromNodes } from "@/utils/utils";
 
-interface HttpIntegrationDialogProps {
+interface HttpWebhookIntegrationDialogProps {
   isOpen: boolean;
   onClose: (open: boolean) => void;
   nodes: Node<WorkflowNodeType>[];
@@ -33,7 +33,7 @@ interface HttpIntegrationDialogProps {
   deploymentVersion: string;
 }
 
-export function HttpIntegrationDialog({
+export function HttpWebhookIntegrationDialog({
   isOpen,
   onClose,
   nodes,
@@ -41,7 +41,7 @@ export function HttpIntegrationDialog({
   orgHandle,
   workflowId,
   deploymentVersion,
-}: HttpIntegrationDialogProps) {
+}: HttpWebhookIntegrationDialogProps) {
   const baseUrl = getApiBaseUrl().replace(/\/$/, "");
   const executeUrl = `${baseUrl}/${orgHandle}/workflows/${workflowId}/execute/${deploymentVersion}`;
   const statusBaseUrl = `${baseUrl}/${orgHandle}/executions`; // Execution ID will be appended in snippets
@@ -116,10 +116,11 @@ export function HttpIntegrationDialog({
         <DialogHeader>
           <DialogTitle className="text-xl flex items-center gap-2">
             <Terminal className="h-5 w-5" />
-            HTTP Integration
+            HTTP Webhook Integration
           </DialogTitle>
           <DialogDescription>
-            Programmatically interact with this workflow deployment
+            Trigger this workflow as an asynchronous webhook. Poll for execution
+            status and retrieve results.
           </DialogDescription>
         </DialogHeader>
         <Tabs
@@ -202,6 +203,10 @@ export function HttpIntegrationDialog({
                   Replace{" "}
                   <code className="text-xs font-mono">YOUR_API_KEY</code> with
                   an API key from your account settings.
+                </li>
+                <li>
+                  This endpoint returns immediately with an execution ID. Use
+                  the "Execution Status" endpoint to poll for results.
                 </li>
                 {jsonBodyParam && (
                   <li>

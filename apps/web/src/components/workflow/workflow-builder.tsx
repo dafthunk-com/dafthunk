@@ -23,7 +23,8 @@ import { EmailTriggerDialog } from "./email-trigger-dialog";
 import { ExecutionEmailDialog } from "./execution-email-dialog";
 import { ExecutionFormDialog } from "./execution-form-dialog";
 import { ExecutionJsonBodyDialog } from "./execution-json-body-dialog";
-import { HttpIntegrationDialog } from "./http-integration-dialog";
+import { HttpRequestIntegrationDialog } from "./http-request-integration-dialog";
+import { HttpWebhookIntegrationDialog } from "./http-webhook-integration-dialog";
 import { useWorkflowState } from "./use-workflow-state";
 import { WorkflowCanvas } from "./workflow-canvas";
 import { WorkflowProvider } from "./workflow-context";
@@ -498,10 +499,22 @@ export function WorkflowBuilder({
           />
         </div>
 
-        {/* Trigger Dialogs */}
-        {(workflowType === "http_webhook" ||
-          workflowType === "http_request") && (
-          <HttpIntegrationDialog
+        {/* HTTP Webhook integration dialog */}
+        {workflowType === "http_webhook" && (
+          <HttpWebhookIntegrationDialog
+            isOpen={isHttpIntegrationDialogOpen}
+            onClose={() => setIsHttpIntegrationDialogOpen(false)}
+            orgHandle={orgHandle}
+            workflowId={workflowId}
+            deploymentVersion="dev"
+            nodes={nodes}
+            nodeTypes={nodeTypes || []}
+          />
+        )}
+
+        {/* HTTP Request integration dialog */}
+        {workflowType === "http_request" && (
+          <HttpRequestIntegrationDialog
             isOpen={isHttpIntegrationDialogOpen}
             onClose={() => setIsHttpIntegrationDialogOpen(false)}
             orgHandle={orgHandle}

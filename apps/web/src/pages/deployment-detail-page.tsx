@@ -38,7 +38,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { EmailTriggerDialog } from "@/components/workflow/email-trigger-dialog";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
-import { HttpIntegrationDialog } from "@/components/workflow/http-integration-dialog";
+import { HttpRequestIntegrationDialog } from "@/components/workflow/http-request-integration-dialog";
+import { HttpWebhookIntegrationDialog } from "@/components/workflow/http-webhook-integration-dialog";
 import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import {
@@ -416,9 +417,25 @@ export function DeploymentDetailPage() {
         </DialogContent>
       </Dialog>
 
-      {/* HTTP Integration Dialog */}
+      {/* HTTP Webhook Integration Dialog */}
+      {workflow?.type === "http_webhook" && currentDeployment && (
+        <HttpWebhookIntegrationDialog
+          isOpen={isIntegrationDialogOpen}
+          onClose={setIsIntegrationDialogOpen}
+          nodes={adaptDeploymentNodesToReactFlowNodes(
+            currentDeployment.nodes,
+            nodeTypes
+          )}
+          nodeTypes={nodeTypes || []}
+          orgHandle={orgHandle}
+          workflowId={workflowId!}
+          deploymentVersion="latest"
+        />
+      )}
+
+      {/* HTTP Request Integration Dialog */}
       {workflow?.type === "http_request" && currentDeployment && (
-        <HttpIntegrationDialog
+        <HttpRequestIntegrationDialog
           isOpen={isIntegrationDialogOpen}
           onClose={setIsIntegrationDialogOpen}
           nodes={adaptDeploymentNodesToReactFlowNodes(

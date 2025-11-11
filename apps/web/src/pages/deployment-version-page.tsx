@@ -19,7 +19,8 @@ import { EmailTriggerDialog } from "@/components/workflow/email-trigger-dialog";
 import { ExecutionEmailDialog } from "@/components/workflow/execution-email-dialog";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
 import { ExecutionJsonBodyDialog } from "@/components/workflow/execution-json-body-dialog";
-import { HttpIntegrationDialog } from "@/components/workflow/http-integration-dialog";
+import { HttpRequestIntegrationDialog } from "@/components/workflow/http-request-integration-dialog";
+import { HttpWebhookIntegrationDialog } from "@/components/workflow/http-webhook-integration-dialog";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import type {
   WorkflowEdgeType,
@@ -356,11 +357,25 @@ export function DeploymentVersionPage() {
           <p className="text-lg">Deployment not found</p>
         </div>
       )}
-      {/* HTTP Integration Dialog */}
+      {/* HTTP Webhook Integration Dialog */}
+      {(deploymentVersion?.type === "http_webhook" ||
+        workflow?.type === "http_webhook") &&
+        deploymentVersion && (
+          <HttpWebhookIntegrationDialog
+            isOpen={isIntegrationDialogOpen}
+            onClose={() => setIsIntegrationDialogOpen(false)}
+            nodes={nodes}
+            nodeTypes={nodeTypes || []}
+            orgHandle={orgHandle}
+            workflowId={deploymentVersion.workflowId}
+            deploymentVersion={String(deploymentVersion.version)}
+          />
+        )}
+      {/* HTTP Request Integration Dialog */}
       {(deploymentVersion?.type === "http_request" ||
         workflow?.type === "http_request") &&
         deploymentVersion && (
-          <HttpIntegrationDialog
+          <HttpRequestIntegrationDialog
             isOpen={isIntegrationDialogOpen}
             onClose={() => setIsIntegrationDialogOpen(false)}
             nodes={nodes}
