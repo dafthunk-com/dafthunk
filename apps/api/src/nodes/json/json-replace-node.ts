@@ -10,7 +10,7 @@ export class JsonReplaceNode extends ExecutableNode {
     type: "json-replace",
     description: "Replace a value at a specific path only if it exists",
     tags: ["Data", "JSON", "Modify", "Replace"],
-    icon: "refresh",
+    icon: "replace",
     documentation:
       "This node replaces a value at a specific path in a JSON object only if the path exists.",
     inlinable: true,

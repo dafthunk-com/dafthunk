@@ -1,9 +1,9 @@
 import type { WorkflowType } from "@dafthunk/types";
 import { Wand } from "lucide-react";
-import { DynamicIcon } from "lucide-react/dynamic.mjs";
+import { DynamicIcon, iconNames } from "lucide-react/dynamic.mjs";
 import { useMemo, useState } from "react";
 
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { TagFilterButtons } from "@/components/ui/tag-filter-buttons";
@@ -282,6 +282,7 @@ export function WorkflowNodeSelector({
         onKeyDown={handleKeyDown}
         tabIndex={-1}
       >
+        <DialogTitle className="sr-only">Select a node</DialogTitle>
         <div className="relative px-4 pt-4">
           <Wand className="absolute left-8 top-9 h-6 w-6 text-muted-foreground" />
           <Input
@@ -335,7 +336,11 @@ export function WorkflowNodeSelector({
                     <div className="grid grid-cols-[1fr_auto] gap-6 p-4">
                       <div className="flex items-start gap-4 min-w-0">
                         <DynamicIcon
-                          name={template.icon as any}
+                          name={
+                            iconNames.includes(template.icon as any)
+                              ? template.icon
+                              : "file-question"
+                          }
                           className="h-5 w-5 text-blue-500 shrink-0 mt-0.5"
                         />
                         <div className="flex-1 min-w-0">
