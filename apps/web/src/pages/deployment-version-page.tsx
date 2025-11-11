@@ -17,8 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EmailTriggerDialog } from "@/components/workflow/email-trigger-dialog";
 import { ExecutionEmailDialog } from "@/components/workflow/execution-email-dialog";
-import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
-import { ExecutionJsonBodyDialog } from "@/components/workflow/execution-json-body-dialog";
+import { HttpRequestConfigDialog } from "@/components/workflow/http-request-config-dialog";
 import { HttpRequestIntegrationDialog } from "@/components/workflow/http-request-integration-dialog";
 import { HttpWebhookIntegrationDialog } from "@/components/workflow/http-webhook-integration-dialog";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
@@ -66,14 +65,10 @@ export function DeploymentVersionPage() {
 
   const {
     executeWorkflow,
-    isFormDialogVisible,
-    isJsonBodyDialogVisible,
     isEmailFormDialogVisible,
-    executionFormParameters,
-    executionJsonBodyParameters,
-    submitFormData,
-    submitJsonBody,
+    isHttpRequestConfigDialogVisible,
     submitEmailFormData,
+    submitHttpRequestConfig,
     closeExecutionForm,
   } = useWorkflowExecution(orgHandle);
 
@@ -323,26 +318,6 @@ export function DeploymentVersionPage() {
             </TabsContent>
           </Tabs>
 
-          {(deploymentVersion?.type === "http_request" ||
-            workflow?.type === "http_request") &&
-            executionFormParameters.length > 0 && (
-              <ExecutionFormDialog
-                isOpen={isFormDialogVisible}
-                onClose={closeExecutionForm}
-                parameters={executionFormParameters}
-                onSubmit={submitFormData}
-              />
-            )}
-          {(deploymentVersion?.type === "http_request" ||
-            workflow?.type === "http_request") &&
-            executionJsonBodyParameters.length > 0 && (
-              <ExecutionJsonBodyDialog
-                isOpen={isJsonBodyDialogVisible}
-                onClose={closeExecutionForm}
-                parameters={executionJsonBodyParameters}
-                onSubmit={submitJsonBody}
-              />
-            )}
           {(deploymentVersion?.type === "email_message" ||
             workflow?.type === "email_message") && (
             <ExecutionEmailDialog
@@ -395,6 +370,18 @@ export function DeploymentVersionPage() {
             workflowId={deploymentVersion.workflowId}
           />
         )}
+
+      {/* HTTP Request Config Dialog - for execution */}
+      {(deploymentVersion?.type === "http_request" ||
+        deploymentVersion?.type === "http_webhook" ||
+        workflow?.type === "http_request" ||
+        workflow?.type === "http_webhook") && (
+        <HttpRequestConfigDialog
+          isOpen={isHttpRequestConfigDialogVisible}
+          onClose={closeExecutionForm}
+          onSubmit={submitHttpRequestConfig}
+        />
+      )}
     </InsetLayout>
   );
 }

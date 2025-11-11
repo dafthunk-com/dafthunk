@@ -86,7 +86,11 @@ export function EditorPage() {
       wsExecuteWorkflow?.({
         parameters: triggerData as Record<string, unknown> | undefined,
       });
-      return undefined;
+
+      // Return a cleanup function that clears the ref
+      return () => {
+        executionCallbackRef.current = null;
+      };
     },
     [wsExecuteWorkflow]
   );

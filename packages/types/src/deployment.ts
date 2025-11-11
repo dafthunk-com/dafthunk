@@ -57,9 +57,9 @@ export interface ExecuteDeploymentResponse {
   id: string;
   workflowId: string;
   deploymentId: string;
-  status: "executing";
+  status: "executing" | "completed";
   nodeExecutions: Array<{
     nodeId: string;
-    status: "idle";
+    status: "idle" | "completed";
   }>;
 }

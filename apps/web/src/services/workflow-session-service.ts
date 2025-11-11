@@ -56,7 +56,6 @@ export class WorkflowWebSocket {
       this.ws = new WebSocket(url);
 
       this.ws.onopen = () => {
-        console.log("[WorkflowWS] Connected");
         this.reconnectAttempts = 0;
         this.reconnectDelay = 1000;
         this.options.onConnectionOpen?.();
@@ -70,18 +69,10 @@ export class WorkflowWebSocket {
       };
 
       this.ws.onclose = (event) => {
-        console.log("[WorkflowWS] Closed", {
-          code: event.code,
-          reason: event.reason,
-          wasClean: event.wasClean,
-        });
         this.options.onConnectionClose?.(event);
 
         if (this.shouldAttemptReconnect(event)) {
           this.reconnectAttempts++;
-          console.log(
-            `[WorkflowWS] Reconnecting... Attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts}`
-          );
 
           setTimeout(() => this.connect(), this.reconnectDelay);
 

@@ -31,22 +31,22 @@ export async function parseRequestBody(
   let formData: Record<string, string> | undefined;
 
   const contentType = c.req.header("content-type");
+  const contentLength = c.req.header("content-length");
+
+  // Check if there's actually a body to parse
+  if (!contentLength || contentLength === "0") {
+    return { body: undefined, formData: undefined };
+  }
 
   if (contentType?.includes("application/json")) {
-    const contentLength = c.req.header("content-length");
-    if (contentLength && contentLength !== "0") {
-      try {
-        body = await c.req.json();
-      } catch (e: any) {
-        console.error("Failed to parse JSON request body:", e.message);
-        return {
-          error: "Invalid JSON in request body.",
-          details: e.message,
-        };
-      }
-    } else {
-      // Content-Type is application/json but body is empty or content-length is 0
-      body = {};
+    try {
+      body = await c.req.json();
+    } catch (e: any) {
+      console.error("Failed to parse JSON request body:", e.message);
+      return {
+        error: "Invalid JSON in request body.",
+        details: e.message,
+      };
     }
   } else if (
     contentType?.includes("multipart/form-data") ||
@@ -68,6 +68,38 @@ export async function parseRequestBody(
         error: "Invalid form data in request body.",
         details: e.message,
       };
+    }
+  } else if (
+    contentType?.includes("text/plain") ||
+    contentType?.includes("text/xml") ||
+    contentType?.includes("application/xml") ||
+    contentType?.includes("text/html") ||
+    contentType?.includes("application/octet-stream")
+  ) {
+    // For raw text, XML, HTML, or binary content, read as text/string
+    try {
+      body = await c.req.text();
+    } catch (e: any) {
+      console.error("Failed to parse raw request body:", e.message);
+      return {
+        error: "Invalid request body.",
+        details: e.message,
+      };
+    }
+  } else {
+    // For unknown content types, try to parse as JSON first, then as text
+    try {
+      body = await c.req.json();
+    } catch {
+      try {
+        body = await c.req.text();
+      } catch (e: any) {
+        console.error("Failed to parse request body:", e.message);
+        return {
+          error: "Invalid request body.",
+          details: e.message,
+        };
+      }
     }
   }
 

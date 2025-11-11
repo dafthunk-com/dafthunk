@@ -21,8 +21,7 @@ import { cn } from "@/utils/utils";
 
 import { EmailTriggerDialog } from "./email-trigger-dialog";
 import { ExecutionEmailDialog } from "./execution-email-dialog";
-import { ExecutionFormDialog } from "./execution-form-dialog";
-import { ExecutionJsonBodyDialog } from "./execution-json-body-dialog";
+import { HttpRequestConfigDialog } from "./http-request-config-dialog";
 import { HttpRequestIntegrationDialog } from "./http-request-integration-dialog";
 import { HttpWebhookIntegrationDialog } from "./http-webhook-integration-dialog";
 import { useWorkflowState } from "./use-workflow-state";
@@ -143,16 +142,32 @@ export function WorkflowBuilder({
   const [isEmailTriggerDialogOpen, setIsEmailTriggerDialogOpen] =
     useState(false);
 
+  // Store the current execution callback so the WebSocket wrapper can use it
+  const executionCallbackRef = useRef<((execution: WorkflowExecution) => void) | null>(null);
+
+  // Create a wrapper that properly connects WebSocket execution to the workflow-builder callback
+  const wsExecuteWorkflowWrapper = useCallback(
+    (options?: { parameters?: Record<string, unknown> }) => {
+      // Call the provided executeWorkflow function which should set up callbacks properly
+      if (executeWorkflow && executionCallbackRef.current) {
+        executeWorkflow(workflowId, executionCallbackRef.current, options?.parameters);
+      } else if (wsExecuteWorkflow) {
+        // Fallback to direct WebSocket execution if no wrapper provided
+        wsExecuteWorkflow(options);
+      }
+    },
+    [executeWorkflow, wsExecuteWorkflow, workflowId]
+  );
+
   // Use workflow execution hook for execution dialogs
   const {
     executeWorkflow: executeWorkflowWithForm,
-    isFormDialogVisible,
-    isJsonBodyDialogVisible,
     isEmailFormDialogVisible,
-    executionFormParameters,
-    executionJsonBodyParameters,
+    isHttpRequestConfigDialogVisible,
+    submitHttpRequestConfig,
+    submitEmailFormData,
     closeExecutionForm,
-  } = useWorkflowExecution(orgHandle, wsExecuteWorkflow);
+  } = useWorkflowExecution(orgHandle, wsExecuteWorkflowWrapper);
 
   // Execution coordination
   const executeRef = useRef<((triggerData?: unknown) => void) | null>(null);
@@ -228,15 +243,6 @@ export function WorkflowBuilder({
     [nodes, updateNodeExecution]
   );
 
-  const handleDialogSubmit = useCallback(
-    (data: unknown) => {
-      executeRef.current?.(data);
-      executeRef.current = null;
-      closeExecutionForm();
-    },
-    [closeExecutionForm]
-  );
-
   const handleExecuteRequest = useCallback(
     (execute: (triggerData?: unknown) => void) => {
       // For workflows that don't require parameters, execute directly
@@ -254,20 +260,51 @@ export function WorkflowBuilder({
       // Store the execute callback for later use when dialog is submitted
       executeRef.current = execute;
 
+      // Also prepare the execution callback and store it in the ref for WebSocket execution
+      resetNodeStates("executing");
+      setWorkflowStatus("executing");
+
+      const executionCallback = (execution: WorkflowExecution) => {
+        setWorkflowStatus((currentStatus) => {
+          if (
+            currentStatus === "executing" &&
+            execution.status === "submitted"
+          ) {
+            return currentStatus;
+          }
+          return execution.status;
+        });
+
+        setWorkflowErrorMessage(execution.error);
+
+        execution.nodeExecutions.forEach((nodeExecution) => {
+          updateNodeExecution(nodeExecution.nodeId, {
+            state: nodeExecution.status,
+            outputs: nodeExecution.outputs || {},
+            error: nodeExecution.error,
+          });
+        });
+
+        if (execution.status === "exhausted") {
+          setErrorDialogOpen(true);
+        }
+      };
+
+      // Store callback in ref so WebSocket wrapper can access it
+      executionCallbackRef.current = executionCallback;
+
       if (workflowId) {
         // http_webhook, http_request or email_message - check for parameters and show dialog
         executeWorkflowWithForm(
           workflowId,
-          (execution) => {
-            execute(execution);
-          },
+          executionCallback,
           nodes,
           nodeTypes as any,
           workflowType
         );
       }
     },
-    [workflowType, workflowId, executeWorkflowWithForm, nodes, nodeTypes]
+    [workflowType, workflowId, executeWorkflowWithForm, nodes, nodeTypes, resetNodeStates, updateNodeExecution]
   );
 
   const handleExecute = useCallback(
@@ -277,36 +314,42 @@ export function WorkflowBuilder({
       resetNodeStates("executing");
       setWorkflowStatus("executing"); // Local immediate update
 
-      return executeWorkflow(
-        workflowId,
-        (execution: WorkflowExecution) => {
-          // Only update status if the new status is not 'idle' while we are 'executing',
-          // or if the local status is not 'executing' anymore (e.g., already completed/errored).
-          setWorkflowStatus((currentStatus) => {
-            if (
-              currentStatus === "executing" &&
-              execution.status === "submitted"
-            ) {
-              return currentStatus; // Ignore initial idle updates while executing
-            }
-            return execution.status; // Apply other status updates
-          });
+      // Create the callback and store it in the ref so WebSocket wrapper can use it
+      const executionCallback = (execution: WorkflowExecution) => {
+        // Only update status if the new status is not 'idle' while we are 'executing',
+        // or if the local status is not 'executing' anymore (e.g., already completed/errored).
+        setWorkflowStatus((currentStatus) => {
+          if (
+            currentStatus === "executing" &&
+            execution.status === "submitted"
+          ) {
+            return currentStatus; // Ignore initial idle updates while executing
+          }
+          return execution.status; // Apply other status updates
+        });
 
-          // Update workflow error message
-          setWorkflowErrorMessage(execution.error);
+        // Update workflow error message
+        setWorkflowErrorMessage(execution.error);
 
-          execution.nodeExecutions.forEach((nodeExecution) => {
-            updateNodeExecution(nodeExecution.nodeId, {
-              state: nodeExecution.status,
-              outputs: nodeExecution.outputs || {},
-              error: nodeExecution.error,
-            });
+        execution.nodeExecutions.forEach((nodeExecution) => {
+          updateNodeExecution(nodeExecution.nodeId, {
+            state: nodeExecution.status,
+            outputs: nodeExecution.outputs || {},
+            error: nodeExecution.error,
           });
+        });
 
           if (execution.status === "exhausted") {
             setErrorDialogOpen(true);
           }
-        },
+      };
+
+      // Store callback in ref so WebSocket wrapper can access it
+      executionCallbackRef.current = executionCallback;
+
+      return executeWorkflow(
+        workflowId,
+        executionCallback,
         triggerData
       );
     },
@@ -534,36 +577,16 @@ export function WorkflowBuilder({
         )}
 
         {/* Execution Dialogs */}
-        {(workflowType === "http_webhook" || workflowType === "http_request") &&
-          executionFormParameters.length > 0 && (
-            <ExecutionFormDialog
-              isOpen={isFormDialogVisible}
-              onClose={closeExecutionForm}
-              onCancel={() => {
-                closeExecutionForm();
-                executeRef.current = null;
-              }}
-              parameters={executionFormParameters}
-              onSubmit={handleDialogSubmit}
-            />
-          )}
+        {/* HTTP Request Config Dialog */}
+        {(workflowType === "http_webhook" || workflowType === "http_request") && (
+          <HttpRequestConfigDialog
+            isOpen={isHttpRequestConfigDialogVisible}
+            onClose={closeExecutionForm}
+            onSubmit={submitHttpRequestConfig}
+          />
+        )}
 
-        {(workflowType === "http_webhook" || workflowType === "http_request") &&
-          executionJsonBodyParameters.length > 0 && (
-            <ExecutionJsonBodyDialog
-              isOpen={isJsonBodyDialogVisible}
-              onClose={closeExecutionForm}
-              onCancel={() => {
-                closeExecutionForm();
-                executeRef.current = null;
-              }}
-              parameters={executionJsonBodyParameters}
-              onSubmit={(data) =>
-                handleDialogSubmit({ jsonBody: data.jsonBody })
-              }
-            />
-          )}
-
+        {/* Email Execution Dialog */}
         {workflowType === "email_message" && (
           <ExecutionEmailDialog
             isOpen={isEmailFormDialogVisible}
@@ -572,7 +595,7 @@ export function WorkflowBuilder({
               closeExecutionForm();
               executeRef.current = null;
             }}
-            onSubmit={handleDialogSubmit}
+            onSubmit={submitEmailFormData}
           />
         )}
 

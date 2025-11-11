@@ -37,7 +37,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { EmailTriggerDialog } from "@/components/workflow/email-trigger-dialog";
-import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
+import { HttpRequestConfigDialog } from "@/components/workflow/http-request-config-dialog";
 import { HttpRequestIntegrationDialog } from "@/components/workflow/http-request-integration-dialog";
 import { HttpWebhookIntegrationDialog } from "@/components/workflow/http-webhook-integration-dialog";
 import { useOrgUrl } from "@/hooks/use-org-url";
@@ -174,9 +174,8 @@ export function DeploymentDetailPage() {
 
   const {
     executeWorkflow,
-    isFormDialogVisible,
-    executionFormParameters,
-    submitFormData,
+    isHttpRequestConfigDialogVisible,
+    submitHttpRequestConfig,
     closeExecutionForm,
   } = useWorkflowExecution(orgHandle);
 
@@ -374,14 +373,6 @@ export function DeploymentDetailPage() {
             </div>
           )}
 
-          {isFormDialogVisible && (
-            <ExecutionFormDialog
-              isOpen={isFormDialogVisible}
-              onClose={closeExecutionForm}
-              parameters={executionFormParameters}
-              onSubmit={submitFormData}
-            />
-          )}
         </div>
       ) : (
         <div className="text-center py-10">
@@ -459,6 +450,16 @@ export function DeploymentDetailPage() {
             workflowId={workflowId}
           />
         )}
+
+      {/* HTTP Request Config Dialog - for execution */}
+      {(workflow?.type === "http_request" ||
+        workflow?.type === "http_webhook") && (
+        <HttpRequestConfigDialog
+          isOpen={isHttpRequestConfigDialogVisible}
+          onClose={closeExecutionForm}
+          onSubmit={submitHttpRequestConfig}
+        />
+      )}
     </InsetLayout>
   );
 }

@@ -24,13 +24,11 @@ import useSWR, { type SWRConfiguration } from "swr";
 
 import { useAuth } from "@/components/auth-context";
 import type { EmailData } from "@/components/workflow/execution-email-dialog";
-import type { DialogFormParameter } from "@/components/workflow/execution-form-dialog";
-import type { JsonBodyParameter } from "@/components/workflow/execution-json-body-dialog";
+import type { HttpRequestConfig } from "@/components/workflow/http-request-config-dialog";
 import {
   NodeType,
   WorkflowNodeType,
 } from "@/components/workflow/workflow-types";
-import { extractDialogParametersFromNodes } from "@/utils/utils";
 
 import { getExecution } from "./execution-service";
 import { makeOrgRequest } from "./utils";
@@ -292,16 +290,10 @@ export function useWorkflowExecution(
   orgHandle: string,
   wsExecuteFn?: (options?: { parameters?: Record<string, unknown> }) => void
 ) {
-  const [isFormDialogVisible, setIsFormDialogVisible] = useState(false);
-  const [isJsonBodyDialogVisible, setIsJsonBodyDialogVisible] = useState(false);
   const [isEmailFormDialogVisible, setIsEmailFormDialogVisible] =
     useState(false);
-  const [formParameters, setFormParameters] = useState<DialogFormParameter[]>(
-    []
-  );
-  const [jsonBodyParameters, setJsonBodyParameters] = useState<
-    JsonBodyParameter[]
-  >([]);
+  const [isHttpRequestConfigDialogVisible, setIsHttpRequestConfigDialogVisible] =
+    useState(false);
   const [executionContext, setExecutionContext] = useState<{
     id: string;
     onExecution: (execution: WorkflowExecution) => void;
@@ -335,41 +327,73 @@ export function useWorkflowExecution(
         throw new Error("Organization handle is required");
       }
 
-      // Execute the workflow in development mode
+      const requestOptions: RequestInit = {
+        method: "POST",
+      };
+
+      // Extract special parameters from request parameters
+      const params = request?.parameters;
+      let headers: Record<string, string> = {};
+      let queryParams: Record<string, string> = {};
+      let body: BodyInit | undefined;
+
+      if (params) {
+        // Extract headers if provided
+        if (params.headers && typeof params.headers === "object") {
+          headers = params.headers;
+        }
+
+        // Extract query params if provided
+        if (params.queryParams && typeof params.queryParams === "object") {
+          queryParams = params.queryParams;
+        }
+
+        // Handle body - also check for rawType to determine content-type
+        if (params.body) {
+          if (params.body instanceof FormData) {
+            body = params.body;
+            // FormData will automatically set the correct multipart/form-data header
+          } else if (params.body instanceof File) {
+            body = params.body;
+            headers["Content-Type"] = "application/octet-stream";
+          } else if (typeof params.body === "object") {
+            body = JSON.stringify(params.body);
+            headers["Content-Type"] = "application/json";
+          } else if (typeof params.body === "string") {
+            body = params.body;
+            // Set content-type based on rawType if provided
+            if (params.rawType === "json") {
+              headers["Content-Type"] = "application/json";
+            } else if (params.rawType === "xml") {
+              headers["Content-Type"] = "application/xml";
+            } else if (params.rawType === "html") {
+              headers["Content-Type"] = "text/html";
+            } else {
+              headers["Content-Type"] = "text/plain";
+            }
+          }
+        }
+      }
+
+      // Build URL with query parameters
+      let urlPath = `/${id}/execute/dev`;
+      if (Object.keys(queryParams).length > 0) {
+        const searchParams = new URLSearchParams(queryParams);
+        urlPath += `?${searchParams.toString()}`;
+      }
+
+      if (body) {
+        requestOptions.body = body;
+      }
+
+      // Use makeOrgRequest with custom headers
       const response = await makeOrgRequest<ExecuteWorkflowResponse>(
         orgHandle,
         API_ENDPOINT_BASE,
-        `/${id}/execute/dev`,
+        urlPath,
         {
-          method: "POST",
-          ...(request?.parameters &&
-            Object.keys(request.parameters).length > 0 && {
-              body: (() => {
-                // If we have a jsonBody parameter, send it directly as JSON
-                if (request.parameters.jsonBody) {
-                  return JSON.stringify(request.parameters.jsonBody);
-                }
-                // Otherwise use FormData for regular form parameters
-                const formData = new FormData();
-                Object.entries(request.parameters).forEach(([key, value]) => {
-                  if (value !== undefined && value !== null) {
-                    // Convert value to string based on its type
-                    let stringValue: string;
-                    if (typeof value === "boolean") {
-                      stringValue = value ? "true" : "false";
-                    } else if (typeof value === "number") {
-                      stringValue = value.toString();
-                    } else if (typeof value === "object") {
-                      stringValue = JSON.stringify(value);
-                    } else {
-                      stringValue = String(value);
-                    }
-                    formData.append(key, stringValue);
-                  }
-                });
-                return formData;
-              })(),
-            }),
+          ...requestOptions,
+          headers,
         }
       );
 
@@ -536,22 +560,11 @@ export function useWorkflowExecution(
     (
       id: string,
       onExecution: (execution: WorkflowExecution) => void,
-      uiNodes: ReactFlowNode<WorkflowNodeType>[],
-      nodeTypesData: NodeType[] | undefined,
+      _uiNodes: ReactFlowNode<WorkflowNodeType>[],
+      _nodeTypesData: NodeType[] | undefined,
       workflowTypeString?: string
-    ): (() => void) | undefined => {
+    ) => {
       cleanup();
-
-      if (!nodeTypesData) {
-        onExecution({
-          id: "",
-          workflowId: id,
-          status: "error",
-          nodeExecutions: [],
-          error: "Node templates not loaded, cannot prepare execution.",
-        });
-        return undefined;
-      }
 
       const lowercasedWorkflowType = workflowTypeString?.toLowerCase();
 
@@ -563,88 +576,29 @@ export function useWorkflowExecution(
           onExecution,
           workflowType: workflowTypeString,
         });
-        return undefined;
+        return;
       }
 
-      // Then check for HTTP workflow type for other dialogs
+      // Then check for HTTP workflow type - show new HTTP request config dialog
       if (
         lowercasedWorkflowType === "http_webhook" ||
         lowercasedWorkflowType === "http_request"
       ) {
-        const jsonBodyNode = uiNodes.find(
-          (node) => node.data.nodeType === "body-json"
-        );
-        const httpParameterNodes = extractDialogParametersFromNodes(
-          uiNodes,
-          nodeTypesData
-        );
-
-        // Handle JSON body node if present for HTTP workflows
-        if (jsonBodyNode) {
-          setJsonBodyParameters([
-            {
-              nodeId: jsonBodyNode.id,
-              nameForForm: "jsonBody",
-              label: "JSON Body",
-              nodeName: jsonBodyNode.data.name,
-              isRequired: (jsonBodyNode.data.inputs.find(
-                (input) => input.id === "required"
-              )?.value ?? true) as boolean,
-            },
-          ]);
-          setIsJsonBodyDialogVisible(true);
-          setExecutionContext({
-            id,
-            onExecution,
-            workflowType: workflowTypeString,
-          });
-          return undefined;
-        }
-
-        // Handle form parameters if present for HTTP workflows
-        if (httpParameterNodes.length > 0) {
-          setFormParameters(httpParameterNodes);
-          setIsFormDialogVisible(true);
-          setExecutionContext({
-            id,
-            onExecution,
-            workflowType: workflowTypeString,
-          });
-          return undefined;
-        }
+        // Show the new HTTP request config dialog for all HTTP workflows
+        setIsHttpRequestConfigDialogVisible(true);
+        setExecutionContext({
+          id,
+          onExecution,
+          workflowType: workflowTypeString,
+        });
+        return;
       }
 
       // If no specific dialog conditions met for 'email' or 'http' (with params),
       // or if it's another workflow type, execute directly.
-      return performExecutionAndPoll(id, onExecution);
+      performExecutionAndPoll(id, onExecution);
     },
     [performExecutionAndPoll, cleanup]
-  );
-
-  const submitFormData = useCallback(
-    (formData: Record<string, any>) => {
-      if (!executionContext) return;
-
-      const { id, onExecution } = executionContext;
-      performExecutionAndPoll(id, onExecution, { parameters: formData });
-      setIsFormDialogVisible(false);
-      setExecutionContext(null);
-    },
-    [executionContext, performExecutionAndPoll]
-  );
-
-  const submitJsonBody = useCallback(
-    (jsonData: Record<string, any>) => {
-      if (!executionContext) return;
-
-      const { id, onExecution } = executionContext;
-      performExecutionAndPoll(id, onExecution, {
-        parameters: { jsonBody: jsonData.jsonBody },
-      });
-      setIsJsonBodyDialogVisible(false);
-      setExecutionContext(null);
-    },
-    [executionContext, performExecutionAndPoll]
   );
 
   const submitEmailFormData = useCallback(
@@ -672,10 +626,57 @@ export function useWorkflowExecution(
     [executionContext, performExecutionAndPoll]
   );
 
+  const submitHttpRequestConfig = useCallback(
+    (config: HttpRequestConfig) => {
+      if (!executionContext) return;
+
+      const { id, onExecution } = executionContext;
+
+      // Build parameters from HTTP config
+      const parameters: Record<string, any> = {};
+
+      // Add headers
+      if (Object.keys(config.headers).length > 0) {
+        parameters.headers = config.headers;
+      }
+
+      // Add query params
+      if (Object.keys(config.queryParams).length > 0) {
+        parameters.queryParams = config.queryParams;
+      }
+
+      // Add body
+      if (config.body.type !== "none" && config.body.content) {
+        if (config.body.type === "raw" && typeof config.body.content === "string") {
+          // For raw body, send as JSON if it's JSON content type
+          if (config.body.rawType === "json") {
+            try {
+              parameters.body = JSON.parse(config.body.content);
+            } catch {
+              parameters.body = config.body.content;
+            }
+          } else {
+            parameters.body = config.body.content;
+          }
+        } else if (config.body.type === "form-data" || config.body.type === "urlencoded") {
+          // FormData will be sent as-is
+          parameters.body = config.body.content;
+        } else if (config.body.type === "binary") {
+          // Binary file
+          parameters.body = config.body.content;
+        }
+      }
+
+      performExecutionAndPoll(id, onExecution, { parameters });
+      setIsHttpRequestConfigDialogVisible(false);
+      setExecutionContext(null);
+    },
+    [executionContext, performExecutionAndPoll]
+  );
+
   const closeExecutionForm = useCallback(() => {
-    setIsFormDialogVisible(false);
-    setIsJsonBodyDialogVisible(false);
     setIsEmailFormDialogVisible(false);
+    setIsHttpRequestConfigDialogVisible(false);
     setExecutionContext(null);
   }, []);
 
@@ -686,14 +687,10 @@ export function useWorkflowExecution(
   return {
     executeWorkflow: executeWorkflowWithForm,
     cancelWorkflowExecution,
-    isFormDialogVisible,
-    isJsonBodyDialogVisible,
     isEmailFormDialogVisible,
-    executionFormParameters: formParameters,
-    executionJsonBodyParameters: jsonBodyParameters,
-    submitFormData,
-    submitJsonBody,
+    isHttpRequestConfigDialogVisible,
     submitEmailFormData,
+    submitHttpRequestConfig,
     closeExecutionForm,
   };
 }
