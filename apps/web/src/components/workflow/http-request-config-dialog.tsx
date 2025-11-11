@@ -7,11 +7,11 @@ import {
 } from "@codemirror/language";
 import { EditorState } from "@codemirror/state";
 import { EditorView, lineNumbers } from "@codemirror/view";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle, File, Plus, Trash2, Upload } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import * as z from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
 
 import {
   AlertDialog,
@@ -25,8 +25,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { cn } from "@/utils/utils";
 import {
   Select,
   SelectContent,
@@ -34,14 +32,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/utils/utils";
 
 // HTTP method constants
-const HTTP_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"];
+const HTTP_METHODS = [
+  "GET",
+  "POST",
+  "PUT",
+  "PATCH",
+  "DELETE",
+  "HEAD",
+  "OPTIONS",
+];
 
 // Body type options
 type BodyType = "none" | "form-data" | "urlencoded" | "raw" | "binary";
 type RawBodyContentType = "json" | "text" | "xml" | "html";
-
 
 // Config submitted to execution
 export interface HttpRequestConfig {
@@ -365,7 +372,10 @@ export function HttpRequestConfigDialog({
 
     if (data.bodyType === "none") {
       bodyContent = undefined;
-    } else if (data.bodyType === "form-data" || data.bodyType === "urlencoded") {
+    } else if (
+      data.bodyType === "form-data" ||
+      data.bodyType === "urlencoded"
+    ) {
       const formData = new FormData();
       data.formDataEntries.forEach(({ key, value }) => {
         if (key) {
@@ -568,22 +578,33 @@ export function HttpRequestConfigDialog({
                     name="bodyType"
                     control={control}
                     render={({ field }) => (
-                      <Tabs value={field.value} onValueChange={field.onChange} className="w-full">
+                      <Tabs
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        className="w-full"
+                      >
                         <TabsList className="grid w-full grid-cols-5">
                           <TabsTrigger value="none">None</TabsTrigger>
                           <TabsTrigger value="form-data">Form Data</TabsTrigger>
-                          <TabsTrigger value="urlencoded">URL Encoded</TabsTrigger>
+                          <TabsTrigger value="urlencoded">
+                            URL Encoded
+                          </TabsTrigger>
                           <TabsTrigger value="raw">Raw</TabsTrigger>
                           <TabsTrigger value="binary">Binary</TabsTrigger>
                         </TabsList>
 
                         {/* None */}
                         <TabsContent value="none" className="mt-3">
-                          <p className="text-sm text-muted-foreground">No request body will be sent.</p>
+                          <p className="text-sm text-muted-foreground">
+                            No request body will be sent.
+                          </p>
                         </TabsContent>
 
                         {/* Form Data Body */}
-                        <TabsContent value="form-data" className="mt-3 space-y-2">
+                        <TabsContent
+                          value="form-data"
+                          className="mt-3 space-y-2"
+                        >
                           <Label>Form Fields</Label>
                           <div className="space-y-2 max-h-[30vh] overflow-y-auto">
                             {formDataEntries.map((_, index) => (
@@ -606,7 +627,9 @@ export function HttpRequestConfigDialog({
                                   index={index}
                                   fileName={formDataEntries[index].key}
                                   file={files[formDataEntries[index].key]}
-                                  onChange={(file) => handleFileChange(index, file)}
+                                  onChange={(file) =>
+                                    handleFileChange(index, file)
+                                  }
                                 />
                                 {formDataEntries.length > 1 && (
                                   <Button
@@ -636,7 +659,10 @@ export function HttpRequestConfigDialog({
                         </TabsContent>
 
                         {/* URL Encoded Body */}
-                        <TabsContent value="urlencoded" className="mt-3 space-y-2">
+                        <TabsContent
+                          value="urlencoded"
+                          className="mt-3 space-y-2"
+                        >
                           <Label>Form Fields</Label>
                           <div className="space-y-2 max-h-[30vh] overflow-y-auto">
                             {formDataEntries.map((_, index) => (
@@ -697,12 +723,17 @@ export function HttpRequestConfigDialog({
                         <TabsContent value="raw" className="mt-3 space-y-3">
                           <div className="flex gap-2">
                             <div className="flex-1">
-                              <Label htmlFor="rawBodyContentType">Content Type</Label>
+                              <Label htmlFor="rawBodyContentType">
+                                Content Type
+                              </Label>
                               <Controller
                                 name="rawBodyContentType"
                                 control={control}
                                 render={({ field }) => (
-                                  <Select value={field.value} onValueChange={field.onChange}>
+                                  <Select
+                                    value={field.value}
+                                    onValueChange={field.onChange}
+                                  >
                                     <SelectTrigger id="rawBodyContentType">
                                       <SelectValue />
                                     </SelectTrigger>
@@ -752,7 +783,9 @@ export function HttpRequestConfigDialog({
             {!methodAllowsBody && (
               <div className="flex gap-2 p-3 bg-muted rounded-md text-sm text-muted-foreground">
                 <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                <p>The {method} method typically doesn't support a request body.</p>
+                <p>
+                  The {method} method typically doesn't support a request body.
+                </p>
               </div>
             )}
           </div>

@@ -372,7 +372,6 @@ export function DeploymentDetailPage() {
               </Button>
             </div>
           )}
-
         </div>
       ) : (
         <div className="text-center py-10">

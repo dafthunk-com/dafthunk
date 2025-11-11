@@ -6,8 +6,8 @@ import type { Node } from "@xyflow/react";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
-import type { DialogFormParameter } from "@/components/workflow/execution-form-dialog";
 import type {
+  DialogFormParameter,
   InputOutputType,
   NodeType,
   WorkflowNodeType,

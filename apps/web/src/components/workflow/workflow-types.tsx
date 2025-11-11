@@ -73,3 +73,13 @@ export interface WorkflowExecution {
   nodeExecutions: WorkflowNodeExecution[];
   error?: string;
 }
+
+// Dialog Form Parameter Type
+export type DialogFormParameter = {
+  nodeId: string; // Unique ID of the node
+  nameForForm: string; // The key to use in the form data object, e.g., 'customer_email'
+  label: string; // User-friendly label for the form input, e.g., "Customer Email"
+  nodeName: string; // Original name of the workflow node, for context
+  isRequired: boolean; // Whether this parameter is required
+  type: string; // Parameter type, e.g., 'form-data-string', 'form-data-number'
+};

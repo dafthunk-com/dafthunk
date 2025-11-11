@@ -143,14 +143,20 @@ export function WorkflowBuilder({
     useState(false);
 
   // Store the current execution callback so the WebSocket wrapper can use it
-  const executionCallbackRef = useRef<((execution: WorkflowExecution) => void) | null>(null);
+  const executionCallbackRef = useRef<
+    ((execution: WorkflowExecution) => void) | null
+  >(null);
 
   // Create a wrapper that properly connects WebSocket execution to the workflow-builder callback
   const wsExecuteWorkflowWrapper = useCallback(
     (options?: { parameters?: Record<string, unknown> }) => {
       // Call the provided executeWorkflow function which should set up callbacks properly
       if (executeWorkflow && executionCallbackRef.current) {
-        executeWorkflow(workflowId, executionCallbackRef.current, options?.parameters);
+        executeWorkflow(
+          workflowId,
+          executionCallbackRef.current,
+          options?.parameters
+        );
       } else if (wsExecuteWorkflow) {
         // Fallback to direct WebSocket execution if no wrapper provided
         wsExecuteWorkflow(options);
@@ -304,7 +310,15 @@ export function WorkflowBuilder({
         );
       }
     },
-    [workflowType, workflowId, executeWorkflowWithForm, nodes, nodeTypes, resetNodeStates, updateNodeExecution]
+    [
+      workflowType,
+      workflowId,
+      executeWorkflowWithForm,
+      nodes,
+      nodeTypes,
+      resetNodeStates,
+      updateNodeExecution,
+    ]
   );
 
   const handleExecute = useCallback(
@@ -339,19 +353,15 @@ export function WorkflowBuilder({
           });
         });
 
-          if (execution.status === "exhausted") {
-            setErrorDialogOpen(true);
-          }
+        if (execution.status === "exhausted") {
+          setErrorDialogOpen(true);
+        }
       };
 
       // Store callback in ref so WebSocket wrapper can access it
       executionCallbackRef.current = executionCallback;
 
-      return executeWorkflow(
-        workflowId,
-        executionCallback,
-        triggerData
-      );
+      return executeWorkflow(workflowId, executionCallback, triggerData);
     },
     [executeWorkflow, workflowId, resetNodeStates, updateNodeExecution]
   );
@@ -578,7 +588,8 @@ export function WorkflowBuilder({
 
         {/* Execution Dialogs */}
         {/* HTTP Request Config Dialog */}
-        {(workflowType === "http_webhook" || workflowType === "http_request") && (
+        {(workflowType === "http_webhook" ||
+          workflowType === "http_request") && (
           <HttpRequestConfigDialog
             isOpen={isHttpRequestConfigDialogVisible}
             onClose={closeExecutionForm}

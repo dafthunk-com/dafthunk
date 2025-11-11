@@ -292,8 +292,10 @@ export function useWorkflowExecution(
 ) {
   const [isEmailFormDialogVisible, setIsEmailFormDialogVisible] =
     useState(false);
-  const [isHttpRequestConfigDialogVisible, setIsHttpRequestConfigDialogVisible] =
-    useState(false);
+  const [
+    isHttpRequestConfigDialogVisible,
+    setIsHttpRequestConfigDialogVisible,
+  ] = useState(false);
   const [executionContext, setExecutionContext] = useState<{
     id: string;
     onExecution: (execution: WorkflowExecution) => void;
@@ -647,7 +649,10 @@ export function useWorkflowExecution(
 
       // Add body
       if (config.body.type !== "none" && config.body.content) {
-        if (config.body.type === "raw" && typeof config.body.content === "string") {
+        if (
+          config.body.type === "raw" &&
+          typeof config.body.content === "string"
+        ) {
           // For raw body, send as JSON if it's JSON content type
           if (config.body.rawType === "json") {
             try {
@@ -658,7 +663,10 @@ export function useWorkflowExecution(
           } else {
             parameters.body = config.body.content;
           }
-        } else if (config.body.type === "form-data" || config.body.type === "urlencoded") {
+        } else if (
+          config.body.type === "form-data" ||
+          config.body.type === "urlencoded"
+        ) {
           // FormData will be sent as-is
           parameters.body = config.body.content;
         } else if (config.body.type === "binary") {
