@@ -18,7 +18,6 @@ export class BartLargeCnnNode extends ExecutableNode {
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/bart-large-cnn/",
     computeCost: 10,
-    asTool: true,
     inputs: [
       {
         name: "inputText",

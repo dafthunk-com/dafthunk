@@ -533,9 +533,13 @@ export const WorkflowNode = memo(
           open={activeInputId !== null}
           onOpenChange={(open) => !open && setActiveInputId(null)}
         >
-          <DialogContent className="sm:max-w-md pt-4" aria-describedby={undefined}>
+          <DialogContent
+            className="sm:max-w-md pt-4"
+            aria-describedby={undefined}
+          >
             <DialogTitle className="sr-only">
-              {data.inputs.find((i) => i.id === activeInputId)?.name || "Edit Input"}
+              {data.inputs.find((i) => i.id === activeInputId)?.name ||
+                "Edit Input"}
             </DialogTitle>
             {(() => {
               const activeInput = data.inputs.find(
@@ -598,9 +602,13 @@ export const WorkflowNode = memo(
           open={activeOutputId !== null}
           onOpenChange={(open) => !open && setActiveOutputId(null)}
         >
-          <DialogContent className="sm:max-w-md pt-4" aria-describedby={undefined}>
+          <DialogContent
+            className="sm:max-w-md pt-4"
+            aria-describedby={undefined}
+          >
             <DialogTitle className="sr-only">
-              {data.outputs.find((o) => o.id === activeOutputId)?.name || "View Output"}
+              {data.outputs.find((o) => o.id === activeOutputId)?.name ||
+                "View Output"}
             </DialogTitle>
             {(() => {
               const activeOutput = data.outputs.find(

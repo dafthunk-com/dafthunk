@@ -23,7 +23,6 @@ export class MistralSmall31_24BInstructNode extends ExecutableNode {
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/mistral-small-3.1-24b-instruct/",
     computeCost: 10,
-    asTool: true,
     functionCalling: true,
     inputs: [
       {

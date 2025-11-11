@@ -14,7 +14,6 @@ export class SendEmailResendNode extends ExecutableNode {
     documentation:
       "This node sends emails using the Resend email service, supporting HTML content and multiple recipients.",
     computeCost: 10,
-    asTool: true,
     inputs: [
       {
         name: "to",

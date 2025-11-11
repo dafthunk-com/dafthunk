@@ -13,7 +13,6 @@ export class JsonToBlobNode extends ExecutableNode {
     documentation:
       "This node converts JSON data to a blob with application/json MIME type. Useful for creating HTTP request bodies or storing JSON as binary data.",
     inlinable: true,
-    asTool: true,
     inputs: [
       {
         name: "json",

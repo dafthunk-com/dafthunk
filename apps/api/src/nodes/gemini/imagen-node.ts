@@ -20,7 +20,6 @@ export class ImagenNode extends ExecutableNode {
     documentation:
       "This node uses Google's Imagen model to generate high-fidelity images from text prompts.",
     computeCost: 50,
-    asTool: true,
     inputs: [
       {
         name: "integrationId",

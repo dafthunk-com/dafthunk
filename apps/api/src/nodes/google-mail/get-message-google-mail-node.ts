@@ -37,7 +37,6 @@ export class GetMessageGoogleMailNode extends ExecutableNode {
     documentation:
       "This node retrieves a specific message by ID using Google Mail API. Requires a connected Google Mail integration from your organization's integrations.",
     computeCost: 10,
-    asTool: true,
     inputs: [
       {
         name: "integrationId",

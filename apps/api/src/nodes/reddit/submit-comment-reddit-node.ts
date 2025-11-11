@@ -17,7 +17,6 @@ export class SubmitCommentRedditNode extends ExecutableNode {
     documentation:
       "This node submits a comment on a Reddit post or replies to an existing comment. Requires a connected Reddit integration.",
     computeCost: 10,
-    asTool: true,
     inputs: [
       {
         name: "integrationId",

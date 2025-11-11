@@ -21,7 +21,6 @@ export class TextAreaNode extends ExecutableNode {
     documentation:
       "This node provides a text area widget for entering multi-line text.",
     inlinable: true,
-    asTool: true,
     inputs: [
       {
         name: "value",

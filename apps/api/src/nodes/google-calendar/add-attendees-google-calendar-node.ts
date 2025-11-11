@@ -17,7 +17,6 @@ export class AddAttendeesGoogleCalendarNode extends ExecutableNode {
     documentation:
       "This node adds attendees to an existing calendar event using Google Calendar API. Requires a connected Google Calendar integration from your organization's integrations.",
     computeCost: 10,
-    asTool: true,
     inputs: [
       {
         name: "integrationId",

@@ -17,7 +17,6 @@ export class ListUserRepositoriesGithubNode extends ExecutableNode {
     documentation:
       "This node lists all repositories for a specific GitHub user. Can filter by type (all, owner, member) and sort by various criteria. Requires a connected GitHub integration.",
     computeCost: 10,
-    asTool: true,
     inputs: [
       {
         name: "integrationId",

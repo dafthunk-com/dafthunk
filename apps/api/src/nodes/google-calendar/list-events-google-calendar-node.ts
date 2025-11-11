@@ -41,7 +41,6 @@ export class ListEventsGoogleCalendarNode extends ExecutableNode {
     documentation:
       "This node lists upcoming calendar events using Google Calendar API. Requires a connected Google Calendar integration from your organization's integrations.",
     computeCost: 10,
-    asTool: true,
     inputs: [
       {
         name: "integrationId",

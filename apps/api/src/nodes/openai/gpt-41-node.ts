@@ -19,7 +19,6 @@ export class Gpt41Node extends ExecutableNode {
     documentation:
       "This node uses OpenAI's GPT-4.1 model, the latest GPT-4 iteration with enhanced capabilities.",
     computeCost: 25,
-    asTool: true,
     inputs: [
       {
         name: "integrationId",

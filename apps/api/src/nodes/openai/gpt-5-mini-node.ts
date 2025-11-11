@@ -19,7 +19,6 @@ export class Gpt5MiniNode extends ExecutableNode {
     documentation:
       "This node uses OpenAI's GPT-5 Mini model, a faster, cost-effective version of GPT-5.",
     computeCost: 15,
-    asTool: true,
     inputs: [
       {
         name: "integrationId",

@@ -14,7 +14,6 @@ export class StringConcatNode extends ExecutableNode {
     documentation:
       "This node concatenates multiple strings together into a single string, joining them in the order they are provided.",
     inlinable: true,
-    asTool: true,
     inputs: [
       {
         name: "strings",

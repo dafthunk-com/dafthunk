@@ -13,7 +13,6 @@ export class BlobToJsonNode extends ExecutableNode {
     documentation:
       "This node parses a blob containing JSON data and outputs the parsed JSON object. The blob is expected to contain valid JSON text data.",
     inlinable: true,
-    asTool: true,
     inputs: [
       {
         name: "blob",

@@ -13,7 +13,6 @@ export class TextToBlobNode extends ExecutableNode {
     documentation:
       "This node converts text content to a blob with a specified MIME type. Useful for creating HTTP request bodies, files, or storing text as binary data with custom content types.",
     inlinable: true,
-    asTool: true,
     inputs: [
       {
         name: "text",

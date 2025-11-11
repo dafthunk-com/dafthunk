@@ -20,7 +20,6 @@ export class Gemini25FlashImageUnderstandingNode extends ExecutableNode {
     documentation:
       "This node uses Google's Gemini 2.5 Flash model to analyze and understand image content.",
     computeCost: 15,
-    asTool: true,
     inputs: [
       {
         name: "integrationId",

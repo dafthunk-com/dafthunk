@@ -13,7 +13,6 @@ export class BlobToTextNode extends ExecutableNode {
     documentation:
       "This node decodes a blob containing text data and outputs it as a string. Supports any text-based content (plain text, HTML, CSV, XML, etc.).",
     inlinable: true,
-    asTool: true,
     inputs: [
       {
         name: "blob",

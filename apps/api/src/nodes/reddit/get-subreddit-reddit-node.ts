@@ -17,7 +17,6 @@ export class GetSubredditRedditNode extends ExecutableNode {
     documentation:
       "This node retrieves detailed information about a subreddit. Requires a connected Reddit integration.",
     computeCost: 5,
-    asTool: true,
     inputs: [
       {
         name: "integrationId",

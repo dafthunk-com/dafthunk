@@ -12,7 +12,6 @@ export class FormDataNumberNode extends ExecutableNode {
     icon: "calculator",
     documentation:
       "This node extracts a number parameter from HTTP request form data, automatically converting string values to numbers.",
-    asTool: true,
     compatibility: ["http_webhook", "http_request"],
     inlinable: true,
     inputs: [

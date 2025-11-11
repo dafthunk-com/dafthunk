@@ -37,7 +37,6 @@ export class ReadInboxGoogleMailNode extends ExecutableNode {
     documentation:
       "This node reads messages from Gmail inbox using Google Mail API. Requires a connected Google Mail integration from your organization's integrations.",
     computeCost: 10,
-    asTool: true,
     inputs: [
       {
         name: "integrationId",

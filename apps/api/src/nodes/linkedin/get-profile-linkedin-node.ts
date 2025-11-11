@@ -17,7 +17,6 @@ export class GetProfileLinkedInNode extends ExecutableNode {
     documentation:
       "This node retrieves your LinkedIn profile information including name, headline, and profile URL. Requires a connected LinkedIn integration.",
     computeCost: 5,
-    asTool: true,
     inputs: [
       {
         name: "integrationId",

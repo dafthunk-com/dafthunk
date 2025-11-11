@@ -25,7 +25,6 @@ export class SliderNode extends ExecutableNode {
     specification:
       "result = min + round((value - min) / step) * step, where min ≤ result ≤ max, step > 0, min < max",
     inlinable: true,
-    asTool: true,
     inputs: [
       {
         name: "min",

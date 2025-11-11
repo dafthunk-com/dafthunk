@@ -17,7 +17,6 @@ export class CreateReplyDraftGoogleMailNode extends ExecutableNode {
     documentation:
       "This node creates a draft reply to an email using Google Mail API. Requires a connected Google Mail integration from your organization's integrations.",
     computeCost: 10,
-    asTool: true,
     inputs: [
       {
         name: "integrationId",
