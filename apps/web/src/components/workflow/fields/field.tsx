@@ -6,7 +6,6 @@ import { AnyField } from "./any-field";
 import { AudioField } from "./audio-field";
 import { BlobField } from "./blob-field";
 import { BooleanField } from "./boolean-field";
-import { BufferGeometryField } from "./buffergeometry-field";
 import { DateField } from "./date-field";
 import { DocumentField } from "./document-field";
 import {
@@ -72,17 +71,6 @@ export function Field(props: FieldRouterProps) {
     {
       getMimeType: mimeTypeDetectors.gltf,
       errorMessage: "Failed to upload glTF model",
-    },
-    uploadBinaryData,
-    props.onChange,
-    setIsUploading,
-    setUploadError
-  );
-
-  const handleBufferGeometryUpload = createFileUploadHandler(
-    {
-      getMimeType: mimeTypeDetectors.bufferGeometry,
-      errorMessage: "Failed to upload geometry",
     },
     uploadBinaryData,
     props.onChange,
@@ -161,16 +149,6 @@ export function Field(props: FieldRouterProps) {
           isUploading={isUploading}
           uploadError={uploadError}
           onFileUpload={handleGltfUpload}
-          createObjectUrl={createObjectUrl}
-        />
-      );
-    case "buffergeometry":
-      return (
-        <BufferGeometryField
-          {...props}
-          isUploading={isUploading}
-          uploadError={uploadError}
-          onFileUpload={handleBufferGeometryUpload}
           createObjectUrl={createObjectUrl}
         />
       );

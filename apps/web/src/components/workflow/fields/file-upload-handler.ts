@@ -79,7 +79,4 @@ export const mimeTypeDetectors = {
     }
     return file.type;
   },
-  bufferGeometry: (): string => {
-    return "application/x-buffer-geometry";
-  },
 };
