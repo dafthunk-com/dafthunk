@@ -370,11 +370,11 @@ export const WorkflowNode = memo(
           </div>
 
           {/* Widget */}
-          {!disabled && widget && (
+          {widget && (
             <div className="px-0 py-0 nodrag border-b">
               {createElement(widget.Component, {
                 ...widget.config,
-                onChange: handleWidgetChange,
+                onChange: !disabled ? handleWidgetChange : () => {},
                 disabled,
                 createObjectUrl: data.createObjectUrl,
               })}
