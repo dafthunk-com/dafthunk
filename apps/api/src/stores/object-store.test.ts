@@ -107,7 +107,7 @@ describe("ObjectStore", () => {
           mimeType: "image/png",
         };
 
-        const result = await store.readObject(reference);
+        const result = await store.readObject(reference, "org-123");
 
         expect(result).not.toBeNull();
         expect(result?.data).toEqual(mockData);
@@ -126,24 +126,81 @@ describe("ObjectStore", () => {
           mimeType: "image/png",
         };
 
-        const result = await store.readObject(reference);
+        const result = await store.readObject(reference, "org-123");
 
         expect(result).toBeNull();
       });
-    });
 
-    describe("deleteObject", () => {
-      it("should delete object", async () => {
+      it("should throw error when organizationId does not match", async () => {
+        const mockData = new Uint8Array([1, 2, 3]);
+        mockBucket.get.mockResolvedValue({
+          arrayBuffer: vi.fn().mockResolvedValue(mockData.buffer),
+          size: 3,
+          customMetadata: { organizationId: "org-123" },
+        });
+
         const store = new ObjectStore(mockBucket);
         const reference: ObjectReference = {
           id: "obj-123",
           mimeType: "image/png",
         };
 
-        await store.deleteObject(reference);
+        await expect(
+          store.readObject(reference, "org-456")
+        ).rejects.toThrow(
+          "Access denied: object obj-123 does not belong to organization org-456"
+        );
+      });
+    });
+
+    describe("deleteObject", () => {
+      it("should delete object when organizationId matches", async () => {
+        mockBucket.get.mockResolvedValue({
+          customMetadata: { organizationId: "org-123" },
+        });
+
+        const store = new ObjectStore(mockBucket);
+        const reference: ObjectReference = {
+          id: "obj-123",
+          mimeType: "image/png",
+        };
+
+        await store.deleteObject(reference, "org-123");
 
         expect(mockBucket.delete).toHaveBeenCalledWith(
           "objects/obj-123/object.data"
+        );
+      });
+
+      it("should throw error when object not found", async () => {
+        mockBucket.get.mockResolvedValue(null);
+
+        const store = new ObjectStore(mockBucket);
+        const reference: ObjectReference = {
+          id: "obj-123",
+          mimeType: "image/png",
+        };
+
+        await expect(
+          store.deleteObject(reference, "org-123")
+        ).rejects.toThrow("Object not found: obj-123");
+      });
+
+      it("should throw error when organizationId does not match", async () => {
+        mockBucket.get.mockResolvedValue({
+          customMetadata: { organizationId: "org-123" },
+        });
+
+        const store = new ObjectStore(mockBucket);
+        const reference: ObjectReference = {
+          id: "obj-123",
+          mimeType: "image/png",
+        };
+
+        await expect(
+          store.deleteObject(reference, "org-456")
+        ).rejects.toThrow(
+          "Access denied: object obj-123 does not belong to organization org-456"
         );
       });
     });
@@ -228,7 +285,9 @@ describe("ObjectStore", () => {
         mimeType: "image/png",
       };
 
-      await expect(store.readObject(reference)).rejects.toThrow("Read error");
+      await expect(
+        store.readObject(reference, "org-123")
+      ).rejects.toThrow("Read error");
     });
   });
 });

@@ -56,7 +56,10 @@ export class ObjectStore {
     return { id, mimeType };
   }
 
-  async readObject(reference: ObjectReference): Promise<{
+  async readObject(
+    reference: ObjectReference,
+    organizationId: string
+  ): Promise<{
     data: Uint8Array;
     metadata: R2Object["customMetadata"];
   } | null> {
@@ -67,6 +70,14 @@ export class ObjectStore {
 
     if (!object) return null;
 
+    // Verify organizationId matches for security
+    const storedOrgId = object.customMetadata?.organizationId;
+    if (storedOrgId && storedOrgId !== organizationId) {
+      throw new Error(
+        `Access denied: object ${reference.id} does not belong to organization ${organizationId}`
+      );
+    }
+
     const arrayBuffer = await object.arrayBuffer();
     return {
       data: new Uint8Array(arrayBuffer),
@@ -74,7 +85,28 @@ export class ObjectStore {
     };
   }
 
-  async deleteObject(reference: ObjectReference): Promise<void> {
+  async deleteObject(
+    reference: ObjectReference,
+    organizationId: string
+  ): Promise<void> {
+    // First read the object to verify ownership
+    const object = await this.readFromR2(
+      `objects/${reference.id}/object.data`,
+      "deleteObject"
+    );
+
+    if (!object) {
+      throw new Error(`Object not found: ${reference.id}`);
+    }
+
+    // Verify organizationId matches for security
+    const storedOrgId = object.customMetadata?.organizationId;
+    if (storedOrgId && storedOrgId !== organizationId) {
+      throw new Error(
+        `Access denied: object ${reference.id} does not belong to organization ${organizationId}`
+      );
+    }
+
     await this.deleteFromR2(
       `objects/${reference.id}/object.data`,
       "deleteObject"

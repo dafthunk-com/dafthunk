@@ -172,7 +172,11 @@ const converters = {
         executionId
       );
     },
-    apiToNode: async (value: ApiParameterValue, objectStore: ObjectStore) => {
+    apiToNode: async (
+      value: ApiParameterValue,
+      objectStore: ObjectStore,
+      organizationId?: string
+    ) => {
       if (
         !value ||
         typeof value !== "object" ||
@@ -180,7 +184,13 @@ const converters = {
         !("mimeType" in value)
       )
         return undefined;
-      const result = await objectStore.readObject(value as ObjectReference);
+      if (!organizationId) {
+        throw new Error("organizationId required to read object");
+      }
+      const result = await objectStore.readObject(
+        value as ObjectReference,
+        organizationId
+      );
       if (!result) return undefined;
       return {
         data: result.data,
@@ -206,7 +216,11 @@ const converters = {
         executionId
       );
     },
-    apiToNode: async (value: ApiParameterValue, objectStore: ObjectStore) => {
+    apiToNode: async (
+      value: ApiParameterValue,
+      objectStore: ObjectStore,
+      organizationId?: string
+    ) => {
       if (
         !value ||
         typeof value !== "object" ||
@@ -214,7 +228,13 @@ const converters = {
         !("mimeType" in value)
       )
         return undefined;
-      const result = await objectStore.readObject(value as ObjectReference);
+      if (!organizationId) {
+        throw new Error("organizationId required to read object");
+      }
+      const result = await objectStore.readObject(
+        value as ObjectReference,
+        organizationId
+      );
       if (!result) return undefined;
       return {
         data: result.data,
@@ -240,7 +260,11 @@ const converters = {
         executionId
       );
     },
-    apiToNode: async (value: ApiParameterValue, objectStore: ObjectStore) => {
+    apiToNode: async (
+      value: ApiParameterValue,
+      objectStore: ObjectStore,
+      organizationId?: string
+    ) => {
       if (
         !value ||
         typeof value !== "object" ||
@@ -248,7 +272,13 @@ const converters = {
         !("mimeType" in value)
       )
         return undefined;
-      const result = await objectStore.readObject(value as ObjectReference);
+      if (!organizationId) {
+        throw new Error("organizationId required to read object");
+      }
+      const result = await objectStore.readObject(
+        value as ObjectReference,
+        organizationId
+      );
       if (!result) return undefined;
       return {
         data: result.data,
@@ -274,7 +304,11 @@ const converters = {
         executionId
       );
     },
-    apiToNode: async (value: ApiParameterValue, objectStore: ObjectStore) => {
+    apiToNode: async (
+      value: ApiParameterValue,
+      objectStore: ObjectStore,
+      organizationId?: string
+    ) => {
       if (
         !value ||
         typeof value !== "object" ||
@@ -282,7 +316,13 @@ const converters = {
         !("mimeType" in value)
       )
         return undefined;
-      const result = await objectStore.readObject(value as ObjectReference);
+      if (!organizationId) {
+        throw new Error("organizationId required to read object");
+      }
+      const result = await objectStore.readObject(
+        value as ObjectReference,
+        organizationId
+      );
       if (!result) return undefined;
       return {
         data: result.data,
@@ -308,7 +348,11 @@ const converters = {
         executionId
       );
     },
-    apiToNode: async (value: ApiParameterValue, objectStore: ObjectStore) => {
+    apiToNode: async (
+      value: ApiParameterValue,
+      objectStore: ObjectStore,
+      organizationId?: string
+    ) => {
       if (
         !value ||
         typeof value !== "object" ||
@@ -316,7 +360,13 @@ const converters = {
         !("mimeType" in value)
       )
         return undefined;
-      const result = await objectStore.readObject(value as ObjectReference);
+      if (!organizationId) {
+        throw new Error("organizationId required to read object");
+      }
+      const result = await objectStore.readObject(
+        value as ObjectReference,
+        organizationId
+      );
       if (!result) return undefined;
       return {
         data: result.data,
@@ -342,7 +392,11 @@ const converters = {
         executionId
       );
     },
-    apiToNode: async (value: ApiParameterValue, objectStore: ObjectStore) => {
+    apiToNode: async (
+      value: ApiParameterValue,
+      objectStore: ObjectStore,
+      organizationId?: string
+    ) => {
       if (
         !value ||
         typeof value !== "object" ||
@@ -350,7 +404,13 @@ const converters = {
         !("mimeType" in value)
       )
         return undefined;
-      const result = await objectStore.readObject(value as ObjectReference);
+      if (!organizationId) {
+        throw new Error("organizationId required to read object");
+      }
+      const result = await objectStore.readObject(
+        value as ObjectReference,
+        organizationId
+      );
       if (!result) return undefined;
       return {
         data: result.data,
@@ -482,16 +542,23 @@ const converters = {
     },
     apiToNode: (
       value: ApiParameterValue,
-      objectStore?: ObjectStore
+      objectStore?: ObjectStore,
+      organizationId?: string
     ): Promise<NodeParameterValue> | NodeParameterValue => {
       // Handle object references that need to be resolved
       if (isObjectReference(value)) {
         if (!objectStore) {
           throw new Error(`ObjectStore required to resolve object reference`);
         }
+        if (!organizationId) {
+          throw new Error("organizationId required to read object");
+        }
 
         return (async () => {
-          const result = await objectStore.readObject(value as ObjectReference);
+          const result = await objectStore.readObject(
+            value as ObjectReference,
+            organizationId
+          );
           if (!result) return undefined;
 
           const mimeType = (value as ObjectReference).mimeType;
@@ -605,20 +672,21 @@ export async function nodeToApiParameter(
 export async function apiToNodeParameter(
   type: ParameterType,
   value: ApiParameterValue,
-  objectStore?: ObjectStore
+  objectStore?: ObjectStore,
+  organizationId?: string
 ): Promise<NodeParameterValue> {
   const converter = converters[type];
   if (!converter) throw new Error(`No converter for type: ${type}`);
 
   // Special handling for 'any' type - it decides internally whether it needs objectStore
   if (type === "any") {
-    const result = (converter.apiToNode as any)(value, objectStore);
+    const result = (converter.apiToNode as any)(value, objectStore, organizationId);
     return await Promise.resolve(result);
   }
 
   if (converter.apiToNode.length === 2) {
     if (!objectStore) throw new Error(`ObjectStore required for type: ${type}`);
-    return await (converter.apiToNode as any)(value, objectStore);
+    return await (converter.apiToNode as any)(value, objectStore, organizationId);
   }
   return await (converter.apiToNode as any)(value);
 }

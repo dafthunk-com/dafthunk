@@ -33,19 +33,16 @@ objectRoutes.get("/", apiKeyOrJwtMiddleware, async (c) => {
   try {
     const objectStore = new ObjectStore(c.env.RESSOURCES);
     const reference: ObjectReference = { id: objectId, mimeType };
-    const result = await objectStore.readObject(reference);
+    const result = await objectStore.readObject(
+      reference,
+      requestingOrganizationId
+    );
 
     if (!result) {
       return c.text("Object not found", 404);
     }
 
-    const { data, metadata } = result;
-
-    // Check if the object belongs to the requesting organization
-    // The organizationId is stored directly in R2 metadata, no need to query Analytics
-    if (metadata?.organizationId !== requestingOrganizationId) {
-      return c.text("Forbidden: You do not have access to this object", 403);
-    }
+    const { data } = result;
 
     return c.body(data, {
       headers: {
@@ -116,24 +113,8 @@ objectRoutes.delete("/:id", jwtMiddleware, async (c) => {
     const objectStore = new ObjectStore(c.env.RESSOURCES);
     const reference: ObjectReference = { id: objectId, mimeType };
 
-    // Check if the object exists and if the user has permission to delete it
-    const result = await objectStore.readObject(reference);
-
-    if (!result) {
-      return c.text("Object not found", 404);
-    }
-
-    const { metadata } = result;
-
-    // Check if the object belongs to the user's organization
-    if (metadata?.organizationId !== organizationId) {
-      return c.text(
-        "Forbidden: You do not have access to delete this object",
-        403
-      );
-    }
-
-    await objectStore.deleteObject(reference);
+    // Delete the object (validation happens inside deleteObject)
+    await objectStore.deleteObject(reference, organizationId);
 
     const response: DeleteObjectResponse = { success: true };
     return c.json(response);
@@ -160,21 +141,13 @@ objectRoutes.get("/metadata/:id", jwtMiddleware, async (c) => {
     const objectStore = new ObjectStore(c.env.RESSOURCES);
     const reference: ObjectReference = { id: objectId, mimeType };
 
-    const result = await objectStore.readObject(reference);
+    const result = await objectStore.readObject(reference, organizationId);
 
     if (!result) {
       return c.text("Object not found", 404);
     }
 
     const { metadata } = result;
-
-    // Check if the object belongs to the user's organization
-    if (metadata?.organizationId !== organizationId) {
-      return c.text(
-        "Forbidden: You do not have access to this object's metadata",
-        403
-      );
-    }
 
     // Create metadata object from R2 metadata
     const objectMetadata: ObjectMetadata = {

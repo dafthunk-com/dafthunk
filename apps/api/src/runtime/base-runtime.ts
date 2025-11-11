@@ -632,7 +632,7 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     nodeId: string,
     inputValues: NodeRuntimeValues,
     objectStore: ObjectStore,
-    _organizationId: string,
+    organizationId: string,
     _executionId: string
   ): Promise<Record<string, any>> {
     const node = this.findNode(workflow, nodeId);
@@ -646,14 +646,17 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       // Handle repeated inputs (arrays of values)
       if (Array.isArray(value)) {
         const transformedArray = await Promise.all(
-          value.map((v) => apiToNodeParameter(parameterType, v, objectStore))
+          value.map((v) =>
+            apiToNodeParameter(parameterType, v, objectStore, organizationId)
+          )
         );
         processed[name] = transformedArray;
       } else {
         processed[name] = await apiToNodeParameter(
           parameterType,
           value,
-          objectStore
+          objectStore,
+          organizationId
         );
       }
     }
