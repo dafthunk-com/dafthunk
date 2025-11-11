@@ -89,7 +89,7 @@ export class DatabaseGetRowCountNode extends ExecutableNode {
         `SELECT COUNT(*) as count FROM ${tableName}`
       );
 
-      const count = result.results[0]?.count || 0;
+      const count = (result.results[0] as any)?.count || 0;
 
       return this.createSuccessResult({
         count,

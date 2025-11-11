@@ -332,7 +332,7 @@ export class WorkflowStore {
         updatedAt: now,
       };
 
-      const [workflow] = await this.db
+      const results = await this.db
         .update(workflows)
         .set(updateData)
         .where(
@@ -342,6 +342,7 @@ export class WorkflowStore {
           )
         )
         .returning();
+      const workflow = Array.isArray(results) ? results[0] : (results as any);
 
       return workflow;
     } catch (error) {
@@ -547,7 +548,7 @@ export class WorkflowStore {
     organizationId: string
   ): Promise<WorkflowRow | undefined> {
     try {
-      const [deleted] = await this.db
+      const results = await this.db
         .delete(workflows)
         .where(
           and(
@@ -556,6 +557,7 @@ export class WorkflowStore {
           )
         )
         .returning();
+      const deleted = Array.isArray(results) ? results[0] : (results as any);
 
       return deleted;
     } catch (error) {

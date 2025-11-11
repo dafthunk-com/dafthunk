@@ -199,7 +199,7 @@ export class DeploymentStore {
         eq(workflows.id, (workflowDeploymentAggregates as any).workflowId)
       )
       .innerJoin(
-        actualLatestDeployment,
+        actualLatestDeployment as any,
         and(
           eq(
             actualLatestDeployment.workflowId,

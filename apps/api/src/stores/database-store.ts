@@ -8,7 +8,7 @@ import type {
  * Manages connections to Database Durable Objects.
  */
 export class DatabaseStore {
-  constructor(private env: Bindings) {}
+  constructor(private env: Pick<Bindings, "DATABASE">) {}
 
   /**
    * Get Durable Object instance for a database
@@ -37,7 +37,7 @@ export class DatabaseStore {
     });
 
     if (!response.ok) {
-      const error = await response.json();
+      const error = (await response.json()) as Record<string, unknown>;
       throw new Error(
         `Database query failed: ${error.error || "Unknown error"}`
       );
@@ -64,7 +64,7 @@ export class DatabaseStore {
     });
 
     if (!response.ok) {
-      const error = await response.json();
+      const error = (await response.json()) as Record<string, unknown>;
       throw new Error(
         `Database execute failed: ${error.error || "Unknown error"}`
       );

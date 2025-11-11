@@ -40,6 +40,7 @@ export class MockResourceProvider {
       nodeId,
       workflowId,
       organizationId,
+      mode: "dev",
       inputs,
       httpRequest,
       emailMessage,
@@ -53,33 +54,7 @@ export class MockResourceProvider {
           `Integration '${integrationId}' not available in test environment`
         );
       },
-      env: {
-        DB: this.env.DB,
-        AI: this.env.AI,
-        AI_OPTIONS: {},
-        RESSOURCES: this.env.RESSOURCES,
-        DATASETS: this.env.DATASETS,
-        DATASETS_AUTORAG: this.env.DATASETS_AUTORAG,
-        CLOUDFLARE_ACCOUNT_ID: this.env.CLOUDFLARE_ACCOUNT_ID,
-        CLOUDFLARE_API_TOKEN: this.env.CLOUDFLARE_API_TOKEN,
-        CLOUDFLARE_AI_GATEWAY_ID: this.env.CLOUDFLARE_AI_GATEWAY_ID,
-        TWILIO_ACCOUNT_SID: this.env.TWILIO_ACCOUNT_SID,
-        TWILIO_AUTH_TOKEN: this.env.TWILIO_AUTH_TOKEN,
-        TWILIO_PHONE_NUMBER: this.env.TWILIO_PHONE_NUMBER,
-        SENDGRID_API_KEY: this.env.SENDGRID_API_KEY,
-        SENDGRID_DEFAULT_FROM: this.env.SENDGRID_DEFAULT_FROM,
-        RESEND_API_KEY: this.env.RESEND_API_KEY,
-        RESEND_DEFAULT_FROM: this.env.RESEND_DEFAULT_FROM,
-        AWS_ACCESS_KEY_ID: this.env.AWS_ACCESS_KEY_ID,
-        AWS_SECRET_ACCESS_KEY: this.env.AWS_SECRET_ACCESS_KEY,
-        AWS_REGION: this.env.AWS_REGION,
-        SES_DEFAULT_FROM: this.env.SES_DEFAULT_FROM,
-        EMAIL_DOMAIN: this.env.EMAIL_DOMAIN,
-        OPENAI_API_KEY: this.env.OPENAI_API_KEY,
-        ANTHROPIC_API_KEY: this.env.ANTHROPIC_API_KEY,
-        GEMINI_API_KEY: this.env.GEMINI_API_KEY,
-        HUGGINGFACE_API_KEY: this.env.HUGGINGFACE_API_KEY,
-      },
+      env: this.env,
     };
   }
 
@@ -94,6 +69,7 @@ export class MockResourceProvider {
       nodeId,
       workflowId: `tool_execution_${Date.now()}`,
       organizationId: "system",
+      mode: "dev",
       inputs,
       toolRegistry: this.toolRegistry,
       getSecret: async (secretName: string) => {
@@ -106,33 +82,7 @@ export class MockResourceProvider {
           `Integration access not available in tool execution context. Integration '${integrationId}' cannot be accessed.`
         );
       },
-      env: {
-        DB: this.env.DB,
-        AI: this.env.AI,
-        AI_OPTIONS: {},
-        RESSOURCES: this.env.RESSOURCES,
-        DATASETS: this.env.DATASETS,
-        DATASETS_AUTORAG: this.env.DATASETS_AUTORAG,
-        CLOUDFLARE_ACCOUNT_ID: this.env.CLOUDFLARE_ACCOUNT_ID,
-        CLOUDFLARE_API_TOKEN: this.env.CLOUDFLARE_API_TOKEN,
-        CLOUDFLARE_AI_GATEWAY_ID: this.env.CLOUDFLARE_AI_GATEWAY_ID,
-        TWILIO_ACCOUNT_SID: this.env.TWILIO_ACCOUNT_SID,
-        TWILIO_AUTH_TOKEN: this.env.TWILIO_AUTH_TOKEN,
-        TWILIO_PHONE_NUMBER: this.env.TWILIO_PHONE_NUMBER,
-        SENDGRID_API_KEY: this.env.SENDGRID_API_KEY,
-        SENDGRID_DEFAULT_FROM: this.env.SENDGRID_DEFAULT_FROM,
-        RESEND_API_KEY: this.env.RESEND_API_KEY,
-        RESEND_DEFAULT_FROM: this.env.RESEND_DEFAULT_FROM,
-        AWS_ACCESS_KEY_ID: this.env.AWS_ACCESS_KEY_ID,
-        AWS_SECRET_ACCESS_KEY: this.env.AWS_SECRET_ACCESS_KEY,
-        AWS_REGION: this.env.AWS_REGION,
-        SES_DEFAULT_FROM: this.env.SES_DEFAULT_FROM,
-        EMAIL_DOMAIN: this.env.EMAIL_DOMAIN,
-        OPENAI_API_KEY: this.env.OPENAI_API_KEY,
-        ANTHROPIC_API_KEY: this.env.ANTHROPIC_API_KEY,
-        GEMINI_API_KEY: this.env.GEMINI_API_KEY,
-        HUGGINGFACE_API_KEY: this.env.HUGGINGFACE_API_KEY,
-      },
+      env: this.env,
     };
   }
 }

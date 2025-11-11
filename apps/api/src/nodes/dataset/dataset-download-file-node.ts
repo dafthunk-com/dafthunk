@@ -37,7 +37,7 @@ export class DatasetDownloadFileNode extends ExecutableNode {
     outputs: [
       {
         name: "content",
-        type: "binary",
+        type: "blob",
         description: "The file content",
       },
       {

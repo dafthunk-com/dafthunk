@@ -35,7 +35,7 @@ export class DatasetUploadFileNode extends ExecutableNode {
       },
       {
         name: "content",
-        type: "binary",
+        type: "blob",
         description: "File content to upload",
         required: true,
       },

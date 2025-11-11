@@ -205,6 +205,7 @@ export const apiKeys = sqliteTable(
 
 // Workflows - Workflow definitions created and edited by users
 // Note: Full workflow data is stored in R2, only metadata is in the database
+// @ts-expect-error - Circular reference with deployments table (Drizzle ORM known limitation)
 export const workflows = sqliteTable(
   "workflows",
   {
@@ -220,6 +221,7 @@ export const workflows = sqliteTable(
       .notNull()
       .references(() => organizations.id, { onDelete: "cascade" }),
     activeDeploymentId: text("active_deployment_id").references(
+      // @ts-expect-error - Circular reference with deployments table
       () => deployments.id,
       { onDelete: "set null" }
     ),
@@ -242,6 +244,7 @@ export const workflows = sqliteTable(
 
 // Deployments - Versioned workflow definitions ready for execution
 // Note: Workflow snapshot is stored in R2, only metadata is in the database
+// @ts-expect-error - Circular reference with workflows table (Drizzle ORM known limitation)
 export const deployments = sqliteTable(
   "deployments",
   {
@@ -249,9 +252,13 @@ export const deployments = sqliteTable(
     organizationId: text("organization_id")
       .notNull()
       .references(() => organizations.id, { onDelete: "cascade" }),
-    workflowId: text("workflow_id").references(() => workflows.id, {
-      onDelete: "cascade",
-    }),
+    workflowId: text("workflow_id").references(
+      // @ts-expect-error - Circular reference with workflows table
+      () => workflows.id,
+      {
+        onDelete: "cascade",
+      }
+    ),
     version: integer("version").notNull(),
     createdAt: createCreatedAt(),
     updatedAt: createUpdatedAt(),

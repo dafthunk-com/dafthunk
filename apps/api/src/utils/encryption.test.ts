@@ -22,6 +22,8 @@ const createMockEnv = (masterKey?: string): Bindings => ({
   RATE_LIMIT_EXECUTE: {} as RateLimit,
   EXECUTE: {} as Workflow<any>,
   WORKFLOW_SESSION: {} as DurableObjectNamespace<Session>,
+  DATABASE: {} as DurableObjectNamespace<any>,
+  WORKFLOW_QUEUE: {} as Queue,
   RESSOURCES: {} as R2Bucket,
   DATASETS: {} as R2Bucket,
   DATASETS_AUTORAG: "",
@@ -35,6 +37,8 @@ const createMockEnv = (masterKey?: string): Bindings => ({
   CLOUDFLARE_ENV: "",
   CLOUDFLARE_ACCOUNT_ID: "",
   CLOUDFLARE_API_TOKEN: "",
+  CLOUDFLARE_AI_GATEWAY_ID: "",
+  AI_OPTIONS: {},
 });
 
 describe("Encryption Utilities", () => {

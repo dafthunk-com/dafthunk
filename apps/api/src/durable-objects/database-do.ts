@@ -83,7 +83,7 @@ export class DatabaseDO extends DurableObject<Bindings> {
         results: [],
         meta: {
           rowsAffected: result.rowsWritten,
-          lastInsertRowid: result.lastRowId,
+          lastInsertRowid: (result as any).lastRowId,
         },
       } as QueryResponse);
     } catch (error) {

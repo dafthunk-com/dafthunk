@@ -18,6 +18,7 @@ export interface Bindings {
   DATASETS: R2Bucket;
   DATASETS_AUTORAG: string;
   AI: Ai;
+  AI_OPTIONS: AiOptions;
   BROWSER?: Fetcher;
   COMPUTE: AnalyticsEngineDataset;
   EXECUTIONS: AnalyticsEngineDataset;
