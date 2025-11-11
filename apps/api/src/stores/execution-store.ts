@@ -149,6 +149,9 @@ export class ExecutionStore {
           ? record.endedAt.getTime() - record.startedAt.getTime()
           : 0;
 
+      const startedAtMs = record.startedAt?.getTime() ?? 0;
+      const endedAtMs = record.endedAt?.getTime() ?? 0;
+
       const dataPoint = {
         indexes: [record.organizationId],
         blobs: [
@@ -158,7 +161,7 @@ export class ExecutionStore {
           record.status,
           (record.error || "").substring(0, 2000), // truncate to fit in blob
         ],
-        doubles: [durationMs],
+        doubles: [durationMs, startedAtMs, endedAtMs],
       };
 
       console.log(
@@ -302,6 +305,10 @@ export class ExecutionStore {
         `ExecutionStore.readFromAnalytics: Found execution ${id} with status ${row.blob4}`
       );
 
+      // Read timestamps from doubles array (stored as epoch milliseconds)
+      const startedAt = row.double2 ? new Date(row.double2) : timestamp;
+      const endedAt = row.double3 ? new Date(row.double3) : timestamp;
+
       return {
         id: row.blob1,
         workflowId: row.blob2,
@@ -309,8 +316,8 @@ export class ExecutionStore {
         organizationId: row.index1,
         status: row.blob4 as ExecutionStatusType,
         error: row.blob5 || null,
-        startedAt: timestamp,
-        endedAt: timestamp,
+        startedAt,
+        endedAt,
         createdAt: timestamp,
         updatedAt: timestamp,
       };
@@ -366,6 +373,11 @@ export class ExecutionStore {
 
       return rows.map((row) => {
         const timestamp = new Date(row.timestamp);
+
+        // Read timestamps from doubles array (stored as epoch milliseconds)
+        const startedAt = row.double2 ? new Date(row.double2) : timestamp;
+        const endedAt = row.double3 ? new Date(row.double3) : timestamp;
+
         return {
           id: row.blob1,
           workflowId: row.blob2,
@@ -373,8 +385,8 @@ export class ExecutionStore {
           organizationId: row.index1,
           status: row.blob4 as ExecutionStatusType,
           error: row.blob5 || null,
-          startedAt: timestamp,
-          endedAt: timestamp,
+          startedAt,
+          endedAt,
           createdAt: timestamp,
           updatedAt: timestamp,
         };
