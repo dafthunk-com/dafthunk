@@ -123,8 +123,12 @@ function JavaScriptEditorWidget({
 export const javascriptEditorWidget = createWidget({
   component: JavaScriptEditorWidget,
   nodeTypes: ["javascript-editor"],
-  inputField: "value",
+  inputField: "javascript",
   extractConfig: (_nodeId, inputs) => ({
-    value: getInputValue(inputs, "value", "// Write your JavaScript code here"),
+    value: getInputValue(
+      inputs,
+      "javascript",
+      "// Write your JavaScript code here"
+    ),
   }),
 });

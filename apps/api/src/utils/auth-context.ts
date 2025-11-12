@@ -24,7 +24,8 @@ export function getAuthContext(c: Context): AuthContext {
     // Authentication was via JWT
     // Use the organizationId from context (set by middleware based on URL param)
     // Falls back to the organization from the JWT token if not set
-    const organizationId = c.get("organizationId") || jwtPayload.organization.id;
+    const organizationId =
+      c.get("organizationId") || jwtPayload.organization.id;
     return {
       organizationId,
       userId: jwtPayload.sub || "anonymous",

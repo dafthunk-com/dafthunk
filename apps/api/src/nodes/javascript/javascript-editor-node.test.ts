@@ -14,7 +14,7 @@ describe("JavaScriptEditorNode", () => {
     const context = {
       nodeId,
       inputs: {
-        value: "// Write your JavaScript code here",
+        javascript: "// Write your JavaScript code here",
       },
       getIntegration: async () => {
         throw new Error("No integrations in test");
@@ -25,7 +25,9 @@ describe("JavaScriptEditorNode", () => {
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs).toBeDefined();
-    expect(result.outputs?.value).toBe("// Write your JavaScript code here");
+    expect(result.outputs?.javascript).toBe(
+      "// Write your JavaScript code here"
+    );
   });
 
   it("should return custom JavaScript code", async () => {
@@ -42,7 +44,7 @@ console.log(greet("World"));`;
     const context = {
       nodeId,
       inputs: {
-        value: customCode,
+        javascript: customCode,
       },
       getIntegration: async () => {
         throw new Error("No integrations in test");
@@ -53,7 +55,7 @@ console.log(greet("World"));`;
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs).toBeDefined();
-    expect(result.outputs?.value).toBe(customCode);
+    expect(result.outputs?.javascript).toBe(customCode);
   });
 
   it("should handle empty string value", async () => {
@@ -65,7 +67,7 @@ console.log(greet("World"));`;
     const context = {
       nodeId,
       inputs: {
-        value: "",
+        javascript: "",
       },
       getIntegration: async () => {
         throw new Error("No integrations in test");
@@ -76,7 +78,7 @@ console.log(greet("World"));`;
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs).toBeDefined();
-    expect(result.outputs?.value).toBe("");
+    expect(result.outputs?.javascript).toBe("");
   });
 
   it("should handle undefined value", async () => {
@@ -97,7 +99,7 @@ console.log(greet("World"));`;
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs).toBeDefined();
-    expect(result.outputs?.value).toBeUndefined();
+    expect(result.outputs?.javascript).toBeUndefined();
   });
 
   it("should handle complex JavaScript code with comments", async () => {
@@ -119,7 +121,7 @@ console.log("Result:", result); // Should output: Result: 8`;
     const context = {
       nodeId,
       inputs: {
-        value: complexCode,
+        javascript: complexCode,
       },
       getIntegration: async () => {
         throw new Error("No integrations in test");
@@ -130,6 +132,6 @@ console.log("Result:", result); // Should output: Result: 8`;
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs).toBeDefined();
-    expect(result.outputs?.value).toBe(complexCode);
+    expect(result.outputs?.javascript).toBe(complexCode);
   });
 });

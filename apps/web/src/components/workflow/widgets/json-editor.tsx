@@ -186,8 +186,8 @@ function JsonEditorWidget({
 export const jsonEditorWidget = createWidget({
   component: JsonEditorWidget,
   nodeTypes: ["json-editor"],
-  inputField: "value",
+  inputField: "json",
   extractConfig: (_nodeId, inputs) => ({
-    value: getInputValue(inputs, "value", "{}"),
+    value: getInputValue(inputs, "json", "{}"),
   }),
 });

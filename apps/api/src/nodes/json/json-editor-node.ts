@@ -22,7 +22,7 @@ export class JsonEditorNode extends ExecutableNode {
       "This node provides a JSON editor widget for editing and validating JSON data with syntax highlighting and error checking.",
     inputs: [
       {
-        name: "value",
+        name: "json",
         type: "string",
         description: "Current JSON value in the editor",
         hidden: true,
@@ -31,7 +31,7 @@ export class JsonEditorNode extends ExecutableNode {
     ],
     outputs: [
       {
-        name: "value",
+        name: "json",
         type: "json",
         description: "The current JSON value from the editor",
       },
@@ -40,17 +40,17 @@ export class JsonEditorNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const { value } = context.inputs;
+      const { json } = context.inputs;
 
       // Handle null, undefined, or empty string
-      if (value === null || value === undefined || value === "") {
+      if (json === null || json === undefined || json === "") {
         return this.createErrorResult("Invalid JSON");
       }
 
       try {
-        const parsedValue = JSON.parse(value);
+        const parsedValue = JSON.parse(json);
         return this.createSuccessResult({
-          value: parsedValue,
+          json: parsedValue,
         });
       } catch (error) {
         return this.createErrorResult(

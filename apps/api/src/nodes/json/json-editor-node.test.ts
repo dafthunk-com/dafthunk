@@ -15,7 +15,7 @@ describe("JsonEditorNode", () => {
     const context = {
       nodeId,
       inputs: {
-        value: validJson,
+        json: validJson,
       },
       getIntegration: async () => {
         throw new Error("No integrations in test");
@@ -25,7 +25,7 @@ describe("JsonEditorNode", () => {
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs).toBeDefined();
-    expect(result.outputs?.value).toEqual({
+    expect(result.outputs?.json).toEqual({
       name: "John",
       age: 30,
       active: true,
@@ -42,7 +42,7 @@ describe("JsonEditorNode", () => {
     const context = {
       nodeId,
       inputs: {
-        value: emptyJson,
+        json: emptyJson,
       },
       getIntegration: async () => {
         throw new Error("No integrations in test");
@@ -52,7 +52,7 @@ describe("JsonEditorNode", () => {
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs).toBeDefined();
-    expect(result.outputs?.value).toEqual({});
+    expect(result.outputs?.json).toEqual({});
   });
 
   it("should execute with array JSON", async () => {
@@ -65,7 +65,7 @@ describe("JsonEditorNode", () => {
     const context = {
       nodeId,
       inputs: {
-        value: arrayJson,
+        json: arrayJson,
       },
       getIntegration: async () => {
         throw new Error("No integrations in test");
@@ -75,7 +75,7 @@ describe("JsonEditorNode", () => {
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs).toBeDefined();
-    expect(result.outputs?.value).toEqual([
+    expect(result.outputs?.json).toEqual([
       1,
       2,
       3,
@@ -94,7 +94,7 @@ describe("JsonEditorNode", () => {
     const context = {
       nodeId,
       inputs: {
-        value: primitiveJson,
+        json: primitiveJson,
       },
       getIntegration: async () => {
         throw new Error("No integrations in test");
@@ -104,7 +104,7 @@ describe("JsonEditorNode", () => {
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs).toBeDefined();
-    expect(result.outputs?.value).toBe("simple string");
+    expect(result.outputs?.json).toBe("simple string");
   });
 
   it("should handle invalid JSON string", async () => {
@@ -117,7 +117,7 @@ describe("JsonEditorNode", () => {
     const context = {
       nodeId,
       inputs: {
-        value: invalidJson,
+        json: invalidJson,
       },
       getIntegration: async () => {
         throw new Error("No integrations in test");
@@ -139,7 +139,7 @@ describe("JsonEditorNode", () => {
     const context = {
       nodeId,
       inputs: {
-        value: malformedJson,
+        json: malformedJson,
       },
       getIntegration: async () => {
         throw new Error("No integrations in test");
@@ -161,7 +161,7 @@ describe("JsonEditorNode", () => {
     const context = {
       nodeId,
       inputs: {
-        value: emptyString,
+        json: emptyString,
       },
       getIntegration: async () => {
         throw new Error("No integrations in test");
@@ -182,7 +182,7 @@ describe("JsonEditorNode", () => {
     const context = {
       nodeId,
       inputs: {
-        value: null,
+        json: null,
       },
       getIntegration: async () => {
         throw new Error("No integrations in test");
@@ -203,7 +203,7 @@ describe("JsonEditorNode", () => {
     const context = {
       nodeId,
       inputs: {
-        value: undefined,
+        json: undefined,
       },
       getIntegration: async () => {
         throw new Error("No integrations in test");
@@ -246,7 +246,7 @@ describe("JsonEditorNode", () => {
     const context = {
       nodeId,
       inputs: {
-        value: complexJson,
+        json: complexJson,
       },
       getIntegration: async () => {
         throw new Error("No integrations in test");
@@ -256,7 +256,7 @@ describe("JsonEditorNode", () => {
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs).toBeDefined();
-    expect(result.outputs?.value).toEqual({
+    expect(result.outputs?.json).toEqual({
       user: {
         id: 123,
         profile: {
