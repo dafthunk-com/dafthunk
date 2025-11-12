@@ -92,7 +92,7 @@ export const ModelViewer = React.memo(
       useAuthenticatedModelUrl(objectUrl);
 
     const viewerDimensions = compact
-      ? { width: 180, height: 180 }
+      ? { width: 218, height: 218 }
       : { width: 320, height: 320 };
 
     if (error) {
