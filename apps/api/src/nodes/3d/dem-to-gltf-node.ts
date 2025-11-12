@@ -4,6 +4,7 @@ import {
   Accessor,
   Buffer,
   Document,
+  Material,
   NodeIO,
 } from "@gltf-transform/core";
 // @ts-ignore – no types available
@@ -43,11 +44,29 @@ export class DemToGltfNode extends ExecutableNode {
     }),
     bounds: z.tuple([z.number(), z.number(), z.number(), z.number()]),
     martiniError: z.number().min(0.1).max(100).default(1),
+    texture: z
+      .object({
+        data: z.instanceof(Uint8Array),
+        mimeType: z.literal("image/png"),
+      })
+      .optional(),
+    materialProperties: z
+      .object({
+        baseColorFactor: z
+          .tuple([z.number(), z.number(), z.number(), z.number()])
+          .optional(),
+        metallicFactor: z.number().min(0).max(1).optional(),
+        roughnessFactor: z.number().min(0).max(1).optional(),
+      })
+      .optional(),
   });
 
   private static readonly ELEVATION_NO_DATA = -9999;
   private static readonly VERTEX_COMPONENTS_3D = 3;
   private static readonly TRIANGLE_VERTICES = 3;
+  private static readonly DEFAULT_BASE_COLOR = [1.0, 1.0, 1.0, 1.0] as const;
+  private static readonly DEFAULT_METALLIC_FACTOR = 0.0;
+  private static readonly DEFAULT_ROUGHNESS_FACTOR = 0.8;
 
   public static readonly nodeType: NodeType = {
     id: "dem-to-gltf",
@@ -58,7 +77,7 @@ export class DemToGltfNode extends ExecutableNode {
     tags: ["3D", "DEM", "GLTF", "Convert"],
     icon: "mountain",
     documentation:
-      "Converts PNG elevation tiles to 3D mesh geometry in glTF format. The output is a material-less glTF that can be combined with materials using the Add Material to glTF node.",
+      "Converts PNG elevation tiles to 3D mesh geometry in glTF format. Optionally apply PBR materials with textures.",
     inlinable: false,
     inputs: [
       {
@@ -81,27 +100,40 @@ export class DemToGltfNode extends ExecutableNode {
           "Martini triangulation error threshold (0.1-100, default: 1)",
         required: false,
       },
+      {
+        name: "texture",
+        type: "image",
+        description: "PNG texture image for terrain surface (optional)",
+        required: false,
+      },
+      {
+        name: "materialProperties",
+        type: "json",
+        description: "PBR material configuration overrides (optional)",
+        required: false,
+        hidden: true,
+      },
     ],
     outputs: [
       {
         name: "gltf",
         type: "gltf",
-        description: "3D mesh geometry in glTF format (without material)",
+        description: "3D mesh geometry in glTF format (with optional material)",
       },
       {
         name: "metadata",
         type: "json",
-        description: "Geometry metadata (vertex count, elevation range)",
+        description:
+          "Geometry metadata (vertex count, elevation range, material info)",
       },
     ],
   };
 
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const validatedInput = DemToGltfNode.demInputSchema.parse(
-        context.inputs
-      );
-      const { image, bounds, martiniError } = validatedInput;
+      const validatedInput = DemToGltfNode.demInputSchema.parse(context.inputs);
+      const { image, bounds, martiniError, texture, materialProperties } =
+        validatedInput;
 
       const elevationData = await this.decodeElevationFromPng(
         image.data,
@@ -125,12 +157,16 @@ export class DemToGltfNode extends ExecutableNode {
         indices
       );
 
-      const glbData = await this.createGltfDocument({
-        positions: new Float32Array(transformedGeometry.positions),
-        indices: new Uint32Array(indices),
-        normals: new Float32Array(normals),
-        uvs: new Float32Array(transformedGeometry.uvs),
-      });
+      const glbData = await this.createGltfDocument(
+        {
+          positions: new Float32Array(transformedGeometry.positions),
+          indices: new Uint32Array(indices),
+          normals: new Float32Array(normals),
+          uvs: new Float32Array(transformedGeometry.uvs),
+        },
+        texture?.data,
+        materialProperties
+      );
 
       return this.createSuccessResult({
         gltf: {
@@ -142,6 +178,8 @@ export class DemToGltfNode extends ExecutableNode {
           triangleCount: indices.length / 3,
           minElevation: transformedGeometry.minElevation,
           maxElevation: transformedGeometry.maxElevation,
+          hasTexture: !!texture,
+          hasMaterial: !!(texture || materialProperties),
         },
       });
     } catch (error) {
@@ -338,11 +376,7 @@ export class DemToGltfNode extends ExecutableNode {
   ): number[] {
     const normals = new Float32Array(positions.length);
 
-    for (
-      let i = 0;
-      i < indices.length;
-      i += DemToGltfNode.TRIANGLE_VERTICES
-    ) {
+    for (let i = 0; i < indices.length; i += DemToGltfNode.TRIANGLE_VERTICES) {
       const ia = indices[i] * DemToGltfNode.VERTEX_COMPONENTS_3D;
       const ib = indices[i + 1] * DemToGltfNode.VERTEX_COMPONENTS_3D;
       const ic = indices[i + 2] * DemToGltfNode.VERTEX_COMPONENTS_3D;
@@ -412,12 +446,20 @@ export class DemToGltfNode extends ExecutableNode {
     normals[startIndex + 2] = nz / len;
   }
 
-  private async createGltfDocument(geometry: {
-    positions: Float32Array;
-    indices: Uint32Array;
-    normals: Float32Array;
-    uvs: Float32Array;
-  }): Promise<Uint8Array> {
+  private async createGltfDocument(
+    geometry: {
+      positions: Float32Array;
+      indices: Uint32Array;
+      normals: Float32Array;
+      uvs: Float32Array;
+    },
+    textureData?: Uint8Array,
+    materialProperties?: {
+      baseColorFactor?: readonly [number, number, number, number];
+      metallicFactor?: number;
+      roughnessFactor?: number;
+    }
+  ): Promise<Uint8Array> {
     const doc = new Document();
     const buffer = doc.createBuffer();
 
@@ -439,14 +481,23 @@ export class DemToGltfNode extends ExecutableNode {
       geometry.indices
     );
 
-    // Build mesh primitive without material (will use default rendering material)
+    // Build mesh primitive
     const primitive = doc
       .createPrimitive()
       .setAttribute("POSITION", positionAccessor)
       .setAttribute("NORMAL", normalAccessor)
       .setAttribute("TEXCOORD_0", uvAccessor)
       .setIndices(indexAccessor);
-    // Note: No .setMaterial() call - creates material-less glTF
+
+    // Optionally apply material if texture or material properties provided
+    if (textureData || materialProperties) {
+      const material = this.createMaterial(
+        doc,
+        textureData,
+        materialProperties
+      );
+      primitive.setMaterial(material);
+    }
 
     // Create mesh and scene hierarchy
     const mesh = doc.createMesh().addPrimitive(primitive);
@@ -509,5 +560,43 @@ export class DemToGltfNode extends ExecutableNode {
       size *= 2;
     }
     return size + 1;
+  }
+
+  private createMaterial(
+    doc: Document,
+    textureData?: Uint8Array,
+    materialProperties?: {
+      baseColorFactor?: readonly [number, number, number, number];
+      metallicFactor?: number;
+      roughnessFactor?: number;
+    }
+  ): Material {
+    const baseColorFactor =
+      materialProperties?.baseColorFactor || DemToGltfNode.DEFAULT_BASE_COLOR;
+    const metallicFactor =
+      materialProperties?.metallicFactor ??
+      DemToGltfNode.DEFAULT_METALLIC_FACTOR;
+    const roughnessFactor =
+      materialProperties?.roughnessFactor ??
+      DemToGltfNode.DEFAULT_ROUGHNESS_FACTOR;
+
+    let material = doc
+      .createMaterial()
+      .setBaseColorFactor([...baseColorFactor])
+      .setMetallicFactor(metallicFactor)
+      .setRoughnessFactor(roughnessFactor)
+      .setDoubleSided(false);
+
+    // Add texture if provided
+    if (textureData) {
+      const texture = doc
+        .createTexture()
+        .setImage(textureData)
+        .setMimeType("image/png");
+
+      material = material.setBaseColorTexture(texture);
+    }
+
+    return material;
   }
 }

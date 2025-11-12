@@ -1,4 +1,3 @@
-import { AddMaterialToGltfNode } from "./3d/add-material-to-gltf-node";
 import { DemToGltfNode } from "./3d/dem-to-gltf-node";
 import { GeoTiffDemQueryNode } from "./3d/geotiff-dem-query-node";
 import { GeoTiffMetadataReaderNode } from "./3d/geotiff-metadata-reader-node";
@@ -694,7 +693,6 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
 
     // 3D Tiles workflow nodes
     if (this.developerMode) {
-      this.registerImplementation(AddMaterialToGltfNode);
       this.registerImplementation(DemToGltfNode);
       this.registerImplementation(GeoTiffDemQueryNode);
       this.registerImplementation(GeoTiffMetadataReaderNode);
