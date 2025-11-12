@@ -10,6 +10,8 @@ export type IntegrationProvider =
   | "reddit"
   | "linkedin"
   | "github"
+  | "microsoft-teams"
+  | "office-365"
   | "openai"
   | "anthropic"
   | "gemini";
@@ -137,6 +139,22 @@ export const OAUTH_PROVIDERS: OAuthProvider[] = [
       "Connect your GitHub account to manage repositories, issues, and pull requests",
     supportsOAuth: true,
     oauthEndpoint: "/oauth/github/connect",
+  },
+  {
+    id: "microsoft-teams",
+    name: "Microsoft Teams",
+    description:
+      "Connect your Microsoft Teams account to send messages and manage channels",
+    supportsOAuth: true,
+    oauthEndpoint: "/oauth/microsoft-teams/connect",
+  },
+  {
+    id: "office-365",
+    name: "Office 365",
+    description:
+      "Connect your Office 365 account to access email, calendar, and files",
+    supportsOAuth: true,
+    oauthEndpoint: "/oauth/office-365/connect",
   },
   {
     id: "openai",

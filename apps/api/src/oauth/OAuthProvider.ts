@@ -157,11 +157,16 @@ export abstract class OAuthProvider<
     url.searchParams.set("client_id", clientId);
     url.searchParams.set("redirect_uri", redirectUri);
     url.searchParams.set("response_type", "code");
-    url.searchParams.set("scope", this.scopes.join(" "));
+    const scopeString = this.scopes.join(" ");
+    url.searchParams.set("scope", scopeString);
     url.searchParams.set("state", state);
+
+    console.log(`[OAuth ${this.name}] Building auth URL with scopes:`, scopeString);
 
     // Hook for provider-specific params (e.g., Google's access_type=offline)
     this.customizeAuthUrl(url);
+
+    console.log(`[OAuth ${this.name}] Final auth URL:`, url.toString().substring(0, 200) + "...");
     return url.toString();
   }
 
@@ -199,7 +204,16 @@ export abstract class OAuthProvider<
       throw new OAuthError("token_exchange_failed", errorText);
     }
 
-    return this.parseTokenResponse(await response.json());
+    const tokenData = await response.json();
+    console.log(`[OAuth ${this.name}] Token response keys:`, Object.keys(tokenData));
+    console.log(`[OAuth ${this.name}] Has access_token:`, !!tokenData.access_token);
+    console.log(`[OAuth ${this.name}] Scopes in token response:`, tokenData.scope);
+    if (tokenData.access_token) {
+      console.log(`[OAuth ${this.name}] Token prefix:`, tokenData.access_token.substring(0, 20));
+      console.log(`[OAuth ${this.name}] Token parts:`, tokenData.access_token.split('.').length);
+    }
+
+    return this.parseTokenResponse(tokenData);
   }
 
   /**

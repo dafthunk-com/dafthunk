@@ -22,6 +22,7 @@ import {
   googleCalendarWidget,
   googleMailWidget,
   linkedInWidget,
+  microsoftTeamsWidget,
   openaiWidget,
   redditWidget,
 } from "./integration-selector";
@@ -66,6 +67,7 @@ const widgets = [
   redditWidget,
   linkedInWidget,
   githubWidget,
+  microsoftTeamsWidget,
   openaiWidget,
   anthropicWidget,
   geminiWidget,

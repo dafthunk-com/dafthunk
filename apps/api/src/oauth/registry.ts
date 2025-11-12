@@ -4,6 +4,8 @@ import { GitHubProvider } from "./providers/GitHubProvider";
 import { GoogleCalendarProvider } from "./providers/GoogleCalendarProvider";
 import { GoogleMailProvider } from "./providers/GoogleMailProvider";
 import { LinkedInProvider } from "./providers/LinkedInProvider";
+import { MicrosoftTeamsProvider } from "./providers/MicrosoftTeamsProvider";
+import { Office365Provider } from "./providers/Office365Provider";
 import { RedditProvider } from "./providers/RedditProvider";
 
 // Instantiate all providers
@@ -14,6 +16,8 @@ const providers = {
   linkedin: new LinkedInProvider(),
   reddit: new RedditProvider(),
   github: new GitHubProvider(),
+  "microsoft-teams": new MicrosoftTeamsProvider(),
+  "office-365": new Office365Provider(),
 } as const;
 
 export type ProviderName = keyof typeof providers;

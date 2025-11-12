@@ -163,3 +163,49 @@ export interface GitHubUser {
   email: string;
   avatar_url: string;
 }
+
+/**
+ * Microsoft Teams OAuth token response
+ */
+export interface MicrosoftTeamsToken {
+  access_token: string;
+  refresh_token?: string;
+  expires_in: number;
+  token_type: string;
+  scope?: string;
+}
+
+/**
+ * Microsoft Teams user information (Microsoft Graph)
+ */
+export interface MicrosoftTeamsUser {
+  id: string;
+  userPrincipalName: string;
+  displayName?: string;
+  mail?: string;
+  givenName?: string;
+  surname?: string;
+}
+
+/**
+ * Office 365 OAuth token response
+ */
+export interface Office365Token {
+  access_token: string;
+  refresh_token?: string;
+  expires_in: number;
+  token_type: string;
+  scope?: string;
+}
+
+/**
+ * Office 365 user information (Microsoft Graph)
+ */
+export interface Office365User {
+  id: string;
+  userPrincipalName: string;
+  displayName?: string;
+  mail?: string;
+  givenName?: string;
+  surname?: string;
+}

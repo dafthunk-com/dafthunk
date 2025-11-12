@@ -8,6 +8,8 @@ import { githubProvider } from "./github";
 import { googleCalendarProvider } from "./google-calendar";
 import { googleMailProvider } from "./google-mail";
 import { linkedinProvider } from "./linkedin";
+import { microsoftTeamsProvider } from "./microsoft-teams";
+import { office365Provider } from "./office-365";
 import { openaiProvider } from "./openai";
 import { redditProvider } from "./reddit";
 
@@ -22,6 +24,8 @@ export const PROVIDER_REGISTRY: Record<IntegrationProvider, ProviderConfig> = {
   reddit: redditProvider,
   linkedin: linkedinProvider,
   github: githubProvider,
+  "microsoft-teams": microsoftTeamsProvider,
+  "office-365": office365Provider,
   openai: openaiProvider,
   anthropic: anthropicProvider,
   gemini: geminiProvider,

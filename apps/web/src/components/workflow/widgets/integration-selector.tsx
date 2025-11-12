@@ -169,6 +169,12 @@ export const linkedInWidget = createIntegrationWidget("linkedin", [
   "get-organization-linkedin",
 ]);
 
+export const microsoftTeamsWidget = createIntegrationWidget("microsoft-teams", [
+  "send-channel-message-teams",
+  "list-teams",
+  "list-channels-teams",
+]);
+
 export const githubWidget = createIntegrationWidget("github", [
   "get-repository-github",
   "get-user-github",

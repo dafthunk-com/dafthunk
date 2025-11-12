@@ -61,6 +61,9 @@ import { ListUserGuildsDiscordNode } from "./discord/list-user-guilds-discord-no
 import { SendDMDiscordNode } from "./discord/send-dm-discord-node";
 import { SendMessageDiscordNode } from "./discord/send-message-discord-node";
 import { ToMarkdownNode } from "./document/to-markdown-node";
+import { ListChannelsTeamsNode } from "./microsoft-teams/list-channels-teams-node";
+import { ListTeamsNode } from "./microsoft-teams/list-teams-node";
+import { SendChannelMessageTeamsNode } from "./microsoft-teams/send-channel-message-teams-node";
 import { ParseEmailNode } from "./email/parse-email-node";
 import { ReceiveEmailNode } from "./email/receive-email-node";
 import { SendEmailSendgridNode } from "./email/send-emai-sendgrid-node";
@@ -411,6 +414,10 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
       this.env.INTEGRATION_LINKEDIN_CLIENT_ID &&
       this.env.INTEGRATION_LINKEDIN_CLIENT_SECRET
     );
+    const hasMicrosoftTeams = !!(
+      this.env.INTEGRATION_MICROSOFT_TEAMS_CLIENT_ID &&
+      this.env.INTEGRATION_MICROSOFT_TEAMS_CLIENT_SECRET
+    );
 
     // Register all core nodes
     this.registerImplementation(FormDataStringNode);
@@ -657,6 +664,12 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
       this.registerImplementation(GetUserRedditNode);
       this.registerImplementation(ListPostsRedditNode);
       this.registerImplementation(VoteRedditNode);
+    }
+
+    if (hasMicrosoftTeams) {
+      this.registerImplementation(SendChannelMessageTeamsNode);
+      this.registerImplementation(ListTeamsNode);
+      this.registerImplementation(ListChannelsTeamsNode);
     }
 
     if (hasLinkedIn) {

@@ -75,6 +75,18 @@ integrationRoutes.get("/providers", async (c) => {
   ) {
     availableProviders.push("github");
   }
+  if (
+    env.INTEGRATION_MICROSOFT_TEAMS_CLIENT_ID &&
+    env.INTEGRATION_MICROSOFT_TEAMS_CLIENT_SECRET
+  ) {
+    availableProviders.push("microsoft-teams");
+  }
+  if (
+    env.INTEGRATION_OFFICE_365_CLIENT_ID &&
+    env.INTEGRATION_OFFICE_365_CLIENT_SECRET
+  ) {
+    availableProviders.push("office-365");
+  }
 
   // API key providers are always available (users can provide their own keys)
   availableProviders.push("openai");
