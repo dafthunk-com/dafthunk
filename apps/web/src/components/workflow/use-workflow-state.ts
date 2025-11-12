@@ -603,6 +603,7 @@ export function useWorkflowState({
         id: `${nodeType.type}-${Date.now()}`,
         type: "workflowNode",
         position,
+        selected: true,
         data: {
           name: nodeType.name,
           inputs: nodeType.inputs.map((param) => ({
