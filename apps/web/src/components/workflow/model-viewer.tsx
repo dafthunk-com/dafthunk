@@ -107,7 +107,7 @@ export const ModelViewer = React.memo(
             </div>
           </div>
           <div className="text-xs text-neutral-500">
-            glTF Model ({parameter.value.mimeType})
+            glTF Model ({parameter.value?.mimeType ?? "model/gltf-binary"})
           </div>
           <a
             href={objectUrl}
@@ -138,7 +138,7 @@ export const ModelViewer = React.memo(
             </span>
           </div>
           <div className="text-xs text-neutral-500">
-            glTF Model ({parameter.value.mimeType})
+            glTF Model ({parameter.value?.mimeType ?? "model/gltf-binary"})
           </div>
         </div>
       );
@@ -147,11 +147,12 @@ export const ModelViewer = React.memo(
     return (
       <div className={compact ? "mt-1 space-y-2" : "mt-2 space-y-3"}>
         <div
-          className="bg-slate-50 dark:bg-slate-900 rounded border overflow-hidden"
+          className="bg-slate-50 dark:bg-slate-900 rounded border overflow-hidden nodrag nopan"
           style={{
             width: viewerDimensions.width,
             height: viewerDimensions.height,
           }}
+          onPointerDown={(e) => e.stopPropagation()}
         >
           <ModelViewerElement
             src={authenticatedUrl}
