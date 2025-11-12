@@ -147,7 +147,7 @@ export const ModelViewer = React.memo(
     return (
       <div className={compact ? "mt-1 space-y-2" : "mt-2 space-y-3"}>
         <div
-          className="bg-slate-50 dark:bg-slate-900 rounded border overflow-hidden nodrag nopan"
+          className="bg-slate-50 dark:bg-slate-900 rounded border overflow-hidden nodrag nopan nowheel"
           style={{
             width: viewerDimensions.width,
             height: viewerDimensions.height,
