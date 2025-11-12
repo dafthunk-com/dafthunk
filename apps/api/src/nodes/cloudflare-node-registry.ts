@@ -31,6 +31,10 @@ import { CloudflareBrowserPdfNode } from "./browser/cloudflare-browser-pdf-node"
 import { CloudflareBrowserScrapeNode } from "./browser/cloudflare-browser-scrape-node";
 import { CloudflareBrowserScreenshotNode } from "./browser/cloudflare-browser-screenshot-node";
 import { CloudflareBrowserSnapshotNode } from "./browser/cloudflare-browser-snapshot-node";
+import { CsvExtractColumnNode } from "./csv/csv-extract-column-node";
+import { CsvFilterRowsNode } from "./csv/csv-filter-rows-node";
+import { CsvParseNode } from "./csv/csv-parse-node";
+import { CsvStringifyNode } from "./csv/csv-stringify-node";
 import { DatabaseBuildTableNode } from "./database/database-build-table-node";
 import { DatabaseDescribeTableNode } from "./database/database-describe-table-node";
 import { DatabaseDropTableNode } from "./database/database-drop-table-node";
@@ -324,6 +328,10 @@ import {
 import { ReceiveQueueMessageNode } from "./queue/receive-queue-message-node";
 import { SendQueueBatchNode } from "./queue/send-queue-batch-node";
 import { SendQueueMessageNode } from "./queue/send-queue-message-node";
+import { RandomChoiceNode } from "./random/random-choice-node";
+import { RandomNumberNode } from "./random/random-number-node";
+import { RandomStringNode } from "./random/random-string-node";
+import { RandomUuidNode } from "./random/random-uuid-node";
 import { GetSubredditRedditNode } from "./reddit/get-subreddit-reddit-node";
 import { GetUserRedditNode } from "./reddit/get-user-reddit-node";
 import { ListPostsRedditNode } from "./reddit/list-posts-reddit-node";
@@ -448,6 +456,10 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(MinNode);
     this.registerImplementation(AvgNode);
     this.registerImplementation(MedianNode);
+    this.registerImplementation(RandomChoiceNode);
+    this.registerImplementation(RandomNumberNode);
+    this.registerImplementation(RandomStringNode);
+    this.registerImplementation(RandomUuidNode);
     this.registerImplementation(TextAreaNode);
     this.registerImplementation(InputTextNode);
     this.registerImplementation(ToStringNode);
@@ -572,6 +584,10 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(PhotonWatermarkNode);
 
     this.registerImplementation(AudioRecorderNode);
+    this.registerImplementation(CsvExtractColumnNode);
+    this.registerImplementation(CsvFilterRowsNode);
+    this.registerImplementation(CsvParseNode);
+    this.registerImplementation(CsvStringifyNode);
     this.registerImplementation(ToMarkdownNode);
     this.registerImplementation(FileNode);
     this.registerImplementation(BlobToJsonNode);
