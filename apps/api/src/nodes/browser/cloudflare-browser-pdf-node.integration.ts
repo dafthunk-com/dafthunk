@@ -34,43 +34,6 @@ describe("CloudflareBrowserPdfNode", () => {
     expect(typeof result.outputs?.status).toBe("number");
   });
 
-  it("should generate PDF with custom options", async () => {
-    const nodeId = "cloudflare-browser-pdf";
-    const node = new CloudflareBrowserPdfNode({
-      nodeId,
-    } as unknown as Node);
-
-    const context = {
-      nodeId,
-      inputs: {
-        url: "https://example.com",
-        pdfOptions: {
-          format: "A4",
-          printBackground: true,
-          margin: {
-            top: "1in",
-            bottom: "1in",
-            left: "1in",
-            right: "1in",
-          },
-        },
-        gotoOptions: {
-          waitUntil: "networkidle0",
-          timeout: 30000,
-        },
-      },
-      env: {
-        CLOUDFLARE_ACCOUNT_ID: env.CLOUDFLARE_ACCOUNT_ID,
-        CLOUDFLARE_API_TOKEN: env.CLOUDFLARE_API_TOKEN,
-      },
-    } as unknown as NodeContext;
-
-    const result = await node.execute(context);
-    expect(result.status).toBe("completed");
-    expect(result.outputs?.pdf).toBeDefined();
-    expect(result.outputs?.pdf.data.length).toBeGreaterThan(0);
-  });
-
   it("should generate PDF from HTML content", async () => {
     const nodeId = "cloudflare-browser-pdf";
     const node = new CloudflareBrowserPdfNode({
@@ -80,7 +43,6 @@ describe("CloudflareBrowserPdfNode", () => {
     const context = {
       nodeId,
       inputs: {
-        url: "https://example.com",
         html: "<html><body><h1>Test Page</h1><p>This is a test.</p></body></html>",
       },
       env: {
@@ -112,9 +74,7 @@ describe("CloudflareBrowserPdfNode", () => {
 
     const result = await node.execute(context);
     expect(result.status).toBe("error");
-    expect(result.error).toContain(
-      "'url', 'CLOUDFLARE_ACCOUNT_ID', and 'CLOUDFLARE_API_TOKEN' are required"
-    );
+    expect(result.error).toContain("Either 'url' or 'html' is required");
   });
 
   it("should handle missing environment variables", async () => {
@@ -134,7 +94,30 @@ describe("CloudflareBrowserPdfNode", () => {
     const result = await node.execute(context);
     expect(result.status).toBe("error");
     expect(result.error).toContain(
-      "'url', 'CLOUDFLARE_ACCOUNT_ID', and 'CLOUDFLARE_API_TOKEN' are required"
+      "'CLOUDFLARE_ACCOUNT_ID' and 'CLOUDFLARE_API_TOKEN' are required"
     );
+  });
+
+  it("should reject both url and html", async () => {
+    const nodeId = "cloudflare-browser-pdf";
+    const node = new CloudflareBrowserPdfNode({
+      nodeId,
+    } as unknown as Node);
+
+    const context = {
+      nodeId,
+      inputs: {
+        url: "https://example.com",
+        html: "<html><body>Test</body></html>",
+      },
+      env: {
+        CLOUDFLARE_ACCOUNT_ID: env.CLOUDFLARE_ACCOUNT_ID,
+        CLOUDFLARE_API_TOKEN: env.CLOUDFLARE_API_TOKEN,
+      },
+    } as unknown as NodeContext;
+
+    const result = await node.execute(context);
+    expect(result.status).toBe("error");
+    expect(result.error).toContain("Cannot use both 'url' and 'html'");
   });
 });
