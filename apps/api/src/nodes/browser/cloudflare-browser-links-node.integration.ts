@@ -47,11 +47,8 @@ describe("CloudflareBrowserLinksNode", () => {
       nodeId,
       inputs: {
         url: "https://example.com",
-        gotoOptions: {
-          waitUntil: "networkidle0",
-          timeout: 30000,
-        },
-        waitForSelector: "a",
+        visibleLinksOnly: true,
+        excludeExternalLinks: true,
       },
       env: {
         CLOUDFLARE_ACCOUNT_ID: env.CLOUDFLARE_ACCOUNT_ID,
@@ -74,7 +71,6 @@ describe("CloudflareBrowserLinksNode", () => {
     const context = {
       nodeId,
       inputs: {
-        url: "https://example.com",
         html: "<html><body><a href='https://example1.com'>Link 1</a><a href='https://example2.com'>Link 2</a></body></html>",
       },
       env: {
@@ -106,9 +102,7 @@ describe("CloudflareBrowserLinksNode", () => {
 
     const result = await node.execute(context);
     expect(result.status).toBe("error");
-    expect(result.error).toContain(
-      "'url', 'CLOUDFLARE_ACCOUNT_ID', and 'CLOUDFLARE_API_TOKEN' are required"
-    );
+    expect(result.error).toContain("Either 'url' or 'html' is required");
   });
 
   it("should handle missing environment variables", async () => {
@@ -128,7 +122,7 @@ describe("CloudflareBrowserLinksNode", () => {
     const result = await node.execute(context);
     expect(result.status).toBe("error");
     expect(result.error).toContain(
-      "'url', 'CLOUDFLARE_ACCOUNT_ID', and 'CLOUDFLARE_API_TOKEN' are required"
+      "'CLOUDFLARE_ACCOUNT_ID' and 'CLOUDFLARE_API_TOKEN' are required"
     );
   });
 
@@ -141,7 +135,6 @@ describe("CloudflareBrowserLinksNode", () => {
     const context = {
       nodeId,
       inputs: {
-        url: "https://example.com",
         html: "<html><body><h1>No links here</h1></body></html>",
       },
       env: {
@@ -156,5 +149,28 @@ describe("CloudflareBrowserLinksNode", () => {
     expect(Array.isArray(result.outputs?.links)).toBe(true);
     // Should return empty array for pages with no links
     expect(result.outputs?.links.length).toBeGreaterThanOrEqual(0);
+  });
+
+  it("should reject both url and html", async () => {
+    const nodeId = "cloudflare-browser-links";
+    const node = new CloudflareBrowserLinksNode({
+      nodeId,
+    } as unknown as Node);
+
+    const context = {
+      nodeId,
+      inputs: {
+        url: "https://example.com",
+        html: "<html><body>Test</body></html>",
+      },
+      env: {
+        CLOUDFLARE_ACCOUNT_ID: env.CLOUDFLARE_ACCOUNT_ID,
+        CLOUDFLARE_API_TOKEN: env.CLOUDFLARE_API_TOKEN,
+      },
+    } as unknown as NodeContext;
+
+    const result = await node.execute(context);
+    expect(result.status).toBe("error");
+    expect(result.error).toContain("Cannot use both 'url' and 'html'");
   });
 });
