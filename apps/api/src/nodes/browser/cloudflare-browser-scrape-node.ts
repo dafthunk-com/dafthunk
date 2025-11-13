@@ -17,39 +17,38 @@ export class CloudflareBrowserScrapeNode extends ExecutableNode {
     tags: ["Browser", "Web", "Cloudflare", "Scrape"],
     icon: "search",
     documentation:
-      "This node scrapes elements from a rendered page using Cloudflare Browser Rendering.",
+      "Scrapes structured data from web pages using CSS selectors. Either url or html is required (not both). Elements parameter is required. See [Cloudflare Browser Rendering Scrape Endpoint](https://developers.cloudflare.com/browser-rendering/rest-api/scrape-endpoint/) for details.",
     computeCost: 10,
     asTool: true,
     inputs: [
       {
         name: "url",
         type: "string",
-        description: "The URL to render (required)",
-        required: true,
+        description: "The URL to render (either url or html required, not both)",
       },
       {
         name: "html",
         type: "string",
         description:
-          "HTML content to render instead of navigating to a URL (optional)",
+          "HTML content to render (either url or html required, not both)",
       },
       {
         name: "elements",
         type: "json",
         description:
-          "Array of CSS selectors to scrape (required, use 'elements' as per API)",
+          "Array of CSS selectors to scrape (required)",
         required: true,
       },
       {
         name: "gotoOptions",
         type: "json",
-        description: "Options for page navigation (optional)",
+        description: "Page navigation options",
         hidden: true,
       },
       {
         name: "waitForSelector",
-        type: "string",
-        description: "Wait for selector before scraping (optional)",
+        type: "json",
+        description: "Selector to wait for before scraping",
         hidden: true,
       },
     ],
@@ -81,16 +80,43 @@ export class CloudflareBrowserScrapeNode extends ExecutableNode {
 
     const { CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN } = context.env;
 
-    console.log(url, elements, CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN);
-
-    if (!url || !elements || !CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
+    if (!CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
       return this.createErrorResult(
-        "'url', 'elements', 'CLOUDFLARE_ACCOUNT_ID', and 'CLOUDFLARE_API_TOKEN' are required."
+        "'CLOUDFLARE_ACCOUNT_ID' and 'CLOUDFLARE_API_TOKEN' are required."
       );
     }
 
+    if (!url && !html) {
+      return this.createErrorResult("Either 'url' or 'html' is required.");
+    }
+
+    if (url && html) {
+      return this.createErrorResult(
+        "Cannot use both 'url' and 'html' at the same time."
+      );
+    }
+
+    if (!elements) {
+      return this.createErrorResult("'elements' is required.");
+    }
+
+    // Parse elements if it's a string (from JSON input)
+    let parsedElements = elements;
+    if (typeof elements === "string") {
+      try {
+        // Remove any literal newlines/tabs that may have been introduced during copy-paste
+        const cleanedElements = elements.replace(/\n/g, " ").replace(/\t/g, " ").replace(/\s+/g, " ");
+        parsedElements = JSON.parse(cleanedElements);
+      } catch (error) {
+        return this.createErrorResult(
+          `Invalid JSON for 'elements': ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
+    }
+
     // Build request body
-    const body: Record<string, unknown> = { url, elements };
+    const body: Record<string, unknown> = { elements: parsedElements };
+    if (url) body.url = url;
     if (html) body.html = html;
     if (gotoOptions) body.gotoOptions = gotoOptions;
     if (waitForSelector) body.waitForSelector = waitForSelector;

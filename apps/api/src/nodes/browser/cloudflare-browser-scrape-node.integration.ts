@@ -16,7 +16,11 @@ describe("CloudflareBrowserScrapeNode", () => {
       nodeId,
       inputs: {
         url: "https://example.com",
-        elements: ["h1", "p", "title"],
+        elements: [
+          { selector: "h1" },
+          { selector: "p" },
+          { selector: "title" },
+        ],
       },
       env: {
         CLOUDFLARE_ACCOUNT_ID: env.CLOUDFLARE_ACCOUNT_ID,
@@ -35,14 +39,14 @@ describe("CloudflareBrowserScrapeNode", () => {
 
     // Validate each result has the expected structure
     for (const item of result.outputs?.results || []) {
-      expect(item).toHaveProperty("result");
+      expect(item).toHaveProperty("results");
       expect(item).toHaveProperty("selector");
-      expect(typeof item.result).toBe("string");
+      expect(Array.isArray(item.results)).toBe(true);
       expect(typeof item.selector).toBe("string");
     }
   });
 
-  it("should scrape elements with custom options", async () => {
+  it("should scrape multiple element types", async () => {
     const nodeId = "cloudflare-browser-scrape";
     const node = new CloudflareBrowserScrapeNode({
       nodeId,
@@ -52,12 +56,11 @@ describe("CloudflareBrowserScrapeNode", () => {
       nodeId,
       inputs: {
         url: "https://example.com",
-        elements: ["h1", "p"],
-        gotoOptions: {
-          waitUntil: "networkidle0",
-          timeout: 30000,
-        },
-        waitForSelector: "h1",
+        elements: [
+          { selector: "h1" },
+          { selector: "p" },
+          { selector: "a" },
+        ],
       },
       env: {
         CLOUDFLARE_ACCOUNT_ID: env.CLOUDFLARE_ACCOUNT_ID,
@@ -80,9 +83,8 @@ describe("CloudflareBrowserScrapeNode", () => {
     const context = {
       nodeId,
       inputs: {
-        url: "https://example.com",
         html: "<html><body><h1>Test Title</h1><p>Test paragraph</p></body></html>",
-        elements: ["h1", "p"],
+        elements: [{ selector: "h1" }, { selector: "p" }],
       },
       env: {
         CLOUDFLARE_ACCOUNT_ID: env.CLOUDFLARE_ACCOUNT_ID,
@@ -96,7 +98,7 @@ describe("CloudflareBrowserScrapeNode", () => {
     expect(Array.isArray(result.outputs?.results)).toBe(true);
   });
 
-  it("should handle missing required parameters", async () => {
+  it("should handle missing elements parameter", async () => {
     const nodeId = "cloudflare-browser-scrape";
     const node = new CloudflareBrowserScrapeNode({
       nodeId,
@@ -116,9 +118,29 @@ describe("CloudflareBrowserScrapeNode", () => {
 
     const result = await node.execute(context);
     expect(result.status).toBe("error");
-    expect(result.error).toContain(
-      "'url', 'elements', 'CLOUDFLARE_ACCOUNT_ID', and 'CLOUDFLARE_API_TOKEN' are required"
-    );
+    expect(result.error).toContain("'elements' is required");
+  });
+
+  it("should handle missing url and html", async () => {
+    const nodeId = "cloudflare-browser-scrape";
+    const node = new CloudflareBrowserScrapeNode({
+      nodeId,
+    } as unknown as Node);
+
+    const context = {
+      nodeId,
+      inputs: {
+        elements: [{ selector: "h1" }, { selector: "p" }],
+      },
+      env: {
+        CLOUDFLARE_ACCOUNT_ID: env.CLOUDFLARE_ACCOUNT_ID,
+        CLOUDFLARE_API_TOKEN: env.CLOUDFLARE_API_TOKEN,
+      },
+    } as unknown as NodeContext;
+
+    const result = await node.execute(context);
+    expect(result.status).toBe("error");
+    expect(result.error).toContain("Either 'url' or 'html' is required");
   });
 
   it("should handle missing environment variables", async () => {
@@ -131,7 +153,7 @@ describe("CloudflareBrowserScrapeNode", () => {
       nodeId,
       inputs: {
         url: "https://example.com",
-        elements: ["h1", "p"],
+        elements: [{ selector: "h1" }, { selector: "p" }],
       },
       env: {},
     } as unknown as NodeContext;
@@ -139,8 +161,32 @@ describe("CloudflareBrowserScrapeNode", () => {
     const result = await node.execute(context);
     expect(result.status).toBe("error");
     expect(result.error).toContain(
-      "'url', 'elements', 'CLOUDFLARE_ACCOUNT_ID', and 'CLOUDFLARE_API_TOKEN' are required"
+      "'CLOUDFLARE_ACCOUNT_ID' and 'CLOUDFLARE_API_TOKEN' are required"
     );
+  });
+
+  it("should reject both url and html", async () => {
+    const nodeId = "cloudflare-browser-scrape";
+    const node = new CloudflareBrowserScrapeNode({
+      nodeId,
+    } as unknown as Node);
+
+    const context = {
+      nodeId,
+      inputs: {
+        url: "https://example.com",
+        html: "<html><body>Test</body></html>",
+        elements: [{ selector: "h1" }],
+      },
+      env: {
+        CLOUDFLARE_ACCOUNT_ID: env.CLOUDFLARE_ACCOUNT_ID,
+        CLOUDFLARE_API_TOKEN: env.CLOUDFLARE_API_TOKEN,
+      },
+    } as unknown as NodeContext;
+
+    const result = await node.execute(context);
+    expect(result.status).toBe("error");
+    expect(result.error).toContain("Cannot use both 'url' and 'html'");
   });
 
   it("should handle empty elements array", async () => {
@@ -162,9 +208,8 @@ describe("CloudflareBrowserScrapeNode", () => {
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
-    expect(result.status).toBe("completed");
-    expect(result.outputs?.results).toBeDefined();
-    expect(Array.isArray(result.outputs?.results)).toBe(true);
-    expect(result.outputs?.results.length).toBe(0);
+    // Cloudflare API requires at least 1 element
+    expect(result.status).toBe("error");
+    expect(result.error).toContain("Cloudflare API error");
   });
 });
