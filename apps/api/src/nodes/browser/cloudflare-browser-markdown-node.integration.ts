@@ -42,11 +42,7 @@ describe("CloudflareBrowserMarkdownNode", () => {
       nodeId,
       inputs: {
         url: "https://example.com",
-        gotoOptions: {
-          waitUntil: "networkidle0",
-          timeout: 30000,
-        },
-        waitForSelector: "h1",
+        rejectRequestPattern: ["/^.*\\.(css|png|jpg|jpeg|gif|svg)$/"],
       },
       env: {
         CLOUDFLARE_ACCOUNT_ID: env.CLOUDFLARE_ACCOUNT_ID,
@@ -69,7 +65,6 @@ describe("CloudflareBrowserMarkdownNode", () => {
     const context = {
       nodeId,
       inputs: {
-        url: "https://example.com",
         html: "<html><body><h1>Test Title</h1><p>This is a test paragraph.</p></body></html>",
       },
       env: {
@@ -101,9 +96,7 @@ describe("CloudflareBrowserMarkdownNode", () => {
 
     const result = await node.execute(context);
     expect(result.status).toBe("error");
-    expect(result.error).toContain(
-      "'url', 'CLOUDFLARE_ACCOUNT_ID', and 'CLOUDFLARE_API_TOKEN' are required"
-    );
+    expect(result.error).toContain("Either 'url' or 'html' is required");
   });
 
   it("should handle missing environment variables", async () => {
@@ -123,7 +116,7 @@ describe("CloudflareBrowserMarkdownNode", () => {
     const result = await node.execute(context);
     expect(result.status).toBe("error");
     expect(result.error).toContain(
-      "'url', 'CLOUDFLARE_ACCOUNT_ID', and 'CLOUDFLARE_API_TOKEN' are required"
+      "'CLOUDFLARE_ACCOUNT_ID' and 'CLOUDFLARE_API_TOKEN' are required"
     );
   });
 
@@ -136,7 +129,6 @@ describe("CloudflareBrowserMarkdownNode", () => {
     const context = {
       nodeId,
       inputs: {
-        url: "https://example.com",
         html: `
           <html>
             <body>
@@ -166,5 +158,28 @@ describe("CloudflareBrowserMarkdownNode", () => {
     expect(result.outputs?.markdown).toBeDefined();
     expect(typeof result.outputs?.markdown).toBe("string");
     expect(result.outputs?.markdown.length).toBeGreaterThan(0);
+  });
+
+  it("should reject both url and html", async () => {
+    const nodeId = "cloudflare-browser-markdown";
+    const node = new CloudflareBrowserMarkdownNode({
+      nodeId,
+    } as unknown as Node);
+
+    const context = {
+      nodeId,
+      inputs: {
+        url: "https://example.com",
+        html: "<html><body>Test</body></html>",
+      },
+      env: {
+        CLOUDFLARE_ACCOUNT_ID: env.CLOUDFLARE_ACCOUNT_ID,
+        CLOUDFLARE_API_TOKEN: env.CLOUDFLARE_API_TOKEN,
+      },
+    } as unknown as NodeContext;
+
+    const result = await node.execute(context);
+    expect(result.status).toBe("error");
+    expect(result.error).toContain("Cannot use both 'url' and 'html'");
   });
 });

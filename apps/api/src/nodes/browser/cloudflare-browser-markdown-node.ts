@@ -17,32 +17,37 @@ export class CloudflareBrowserMarkdownNode extends ExecutableNode {
     tags: ["Browser", "Web", "Cloudflare", "Markdown"],
     icon: "file-text",
     documentation:
-      "This node converts web pages to Markdown format using Cloudflare's Browser Rendering API.",
+      "Converts web pages to Markdown format. Either url or html is required (not both). See [Cloudflare Browser Rendering Markdown Endpoint](https://developers.cloudflare.com/browser-rendering/rest-api/markdown-endpoint/) for details.",
     computeCost: 10,
     asTool: true,
     inputs: [
       {
         name: "url",
         type: "string",
-        description: "The URL to render (required)",
-        required: true,
+        description: "The URL to render (either url or html required, not both)",
       },
       {
         name: "html",
         type: "string",
         description:
-          "HTML content to render instead of navigating to a URL (optional)",
+          "HTML content to render (either url or html required, not both)",
+      },
+      {
+        name: "rejectRequestPattern",
+        type: "json",
+        description: "Array of regex patterns to block requests",
+        hidden: true,
       },
       {
         name: "gotoOptions",
         type: "json",
-        description: "Options for page navigation (optional)",
+        description: "Page navigation options",
         hidden: true,
       },
       {
         name: "waitForSelector",
-        type: "string",
-        description: "Wait for selector before extracting (optional)",
+        type: "json",
+        description: "Selector to wait for before extraction",
         hidden: true,
       },
     ],
@@ -68,19 +73,32 @@ export class CloudflareBrowserMarkdownNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { url, html, gotoOptions, waitForSelector } = context.inputs;
+    const { url, html, rejectRequestPattern, gotoOptions, waitForSelector } =
+      context.inputs;
 
     const { CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN } = context.env;
 
-    if (!url || !CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
+    if (!CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
       return this.createErrorResult(
-        "'url', 'CLOUDFLARE_ACCOUNT_ID', and 'CLOUDFLARE_API_TOKEN' are required."
+        "'CLOUDFLARE_ACCOUNT_ID' and 'CLOUDFLARE_API_TOKEN' are required."
+      );
+    }
+
+    if (!url && !html) {
+      return this.createErrorResult("Either 'url' or 'html' is required.");
+    }
+
+    if (url && html) {
+      return this.createErrorResult(
+        "Cannot use both 'url' and 'html' at the same time."
       );
     }
 
     // Build request body
-    const body: Record<string, unknown> = { url };
+    const body: Record<string, unknown> = {};
+    if (url) body.url = url;
     if (html) body.html = html;
+    if (rejectRequestPattern) body.rejectRequestPattern = rejectRequestPattern;
     if (gotoOptions) body.gotoOptions = gotoOptions;
     if (waitForSelector) body.waitForSelector = waitForSelector;
 
