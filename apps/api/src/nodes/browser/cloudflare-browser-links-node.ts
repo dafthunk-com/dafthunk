@@ -24,7 +24,8 @@ export class CloudflareBrowserLinksNode extends ExecutableNode {
       {
         name: "url",
         type: "string",
-        description: "The URL to render (either url or html required, not both)",
+        description:
+          "The URL to render (either url or html required, not both)",
       },
       {
         name: "html",
@@ -110,7 +111,8 @@ export class CloudflareBrowserLinksNode extends ExecutableNode {
     const body: Record<string, unknown> = {};
     if (url) body.url = url;
     if (html) body.html = html;
-    if (visibleLinksOnly !== undefined) body.visibleLinksOnly = visibleLinksOnly;
+    if (visibleLinksOnly !== undefined)
+      body.visibleLinksOnly = visibleLinksOnly;
     if (excludeExternalLinks !== undefined)
       body.excludeExternalLinks = excludeExternalLinks;
     if (gotoOptions) body.gotoOptions = gotoOptions;

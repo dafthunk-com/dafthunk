@@ -78,7 +78,6 @@ describe("CloudflareBrowserSnapshotNode", () => {
     const context = {
       nodeId,
       inputs: {
-        url: "https://example.com",
         html: "<html><body><h1>Test Page</h1><p>This is a test.</p></body></html>",
       },
       env: {
@@ -110,9 +109,7 @@ describe("CloudflareBrowserSnapshotNode", () => {
 
     const result = await node.execute(context);
     expect(result.status).toBe("error");
-    expect(result.error).toContain(
-      "'url', 'CLOUDFLARE_ACCOUNT_ID', and 'CLOUDFLARE_API_TOKEN' are required"
-    );
+    expect(result.error).toContain("Either 'url' or 'html' is required");
   });
 
   it("should handle missing environment variables", async () => {
@@ -132,7 +129,30 @@ describe("CloudflareBrowserSnapshotNode", () => {
     const result = await node.execute(context);
     expect(result.status).toBe("error");
     expect(result.error).toContain(
-      "'url', 'CLOUDFLARE_ACCOUNT_ID', and 'CLOUDFLARE_API_TOKEN' are required"
+      "'CLOUDFLARE_ACCOUNT_ID' and 'CLOUDFLARE_API_TOKEN' are required"
     );
+  });
+
+  it("should reject both url and html", async () => {
+    const nodeId = "cloudflare-browser-snapshot";
+    const node = new CloudflareBrowserSnapshotNode({
+      nodeId,
+    } as unknown as Node);
+
+    const context = {
+      nodeId,
+      inputs: {
+        url: "https://example.com",
+        html: "<html><body>Test</body></html>",
+      },
+      env: {
+        CLOUDFLARE_ACCOUNT_ID: env.CLOUDFLARE_ACCOUNT_ID,
+        CLOUDFLARE_API_TOKEN: env.CLOUDFLARE_API_TOKEN,
+      },
+    } as unknown as NodeContext;
+
+    const result = await node.execute(context);
+    expect(result.status).toBe("error");
+    expect(result.error).toContain("Cannot use both 'url' and 'html'");
   });
 });

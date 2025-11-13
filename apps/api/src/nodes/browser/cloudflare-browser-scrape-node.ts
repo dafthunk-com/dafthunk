@@ -24,7 +24,8 @@ export class CloudflareBrowserScrapeNode extends ExecutableNode {
       {
         name: "url",
         type: "string",
-        description: "The URL to render (either url or html required, not both)",
+        description:
+          "The URL to render (either url or html required, not both)",
       },
       {
         name: "html",
@@ -35,8 +36,7 @@ export class CloudflareBrowserScrapeNode extends ExecutableNode {
       {
         name: "elements",
         type: "json",
-        description:
-          "Array of CSS selectors to scrape (required)",
+        description: "Array of CSS selectors to scrape (required)",
         required: true,
       },
       {
@@ -105,7 +105,10 @@ export class CloudflareBrowserScrapeNode extends ExecutableNode {
     if (typeof elements === "string") {
       try {
         // Remove any literal newlines/tabs that may have been introduced during copy-paste
-        const cleanedElements = elements.replace(/\n/g, " ").replace(/\t/g, " ").replace(/\s+/g, " ");
+        const cleanedElements = elements
+          .replace(/\n/g, " ")
+          .replace(/\t/g, " ")
+          .replace(/\s+/g, " ");
         parsedElements = JSON.parse(cleanedElements);
       } catch (error) {
         return this.createErrorResult(

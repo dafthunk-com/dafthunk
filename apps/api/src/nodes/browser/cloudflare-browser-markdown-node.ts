@@ -24,7 +24,8 @@ export class CloudflareBrowserMarkdownNode extends ExecutableNode {
       {
         name: "url",
         type: "string",
-        description: "The URL to render (either url or html required, not both)",
+        description:
+          "The URL to render (either url or html required, not both)",
       },
       {
         name: "html",

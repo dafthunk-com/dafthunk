@@ -24,7 +24,8 @@ export class CloudflareBrowserJsonNode extends ExecutableNode {
       {
         name: "url",
         type: "string",
-        description: "The URL to render (either url or html required, not both)",
+        description:
+          "The URL to render (either url or html required, not both)",
       },
       {
         name: "html",
@@ -35,12 +36,14 @@ export class CloudflareBrowserJsonNode extends ExecutableNode {
       {
         name: "prompt",
         type: "string",
-        description: "Natural language prompt for extracting JSON (either prompt or response_format required)",
+        description:
+          "Natural language prompt for extracting JSON (either prompt or response_format required)",
       },
       {
         name: "response_format",
         type: "json",
-        description: "JSON schema defining expected output structure (either prompt or response_format required)",
+        description:
+          "JSON schema defining expected output structure (either prompt or response_format required)",
       },
       {
         name: "gotoOptions",

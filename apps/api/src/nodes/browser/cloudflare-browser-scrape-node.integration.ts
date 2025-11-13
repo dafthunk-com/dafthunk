@@ -56,11 +56,7 @@ describe("CloudflareBrowserScrapeNode", () => {
       nodeId,
       inputs: {
         url: "https://example.com",
-        elements: [
-          { selector: "h1" },
-          { selector: "p" },
-          { selector: "a" },
-        ],
+        elements: [{ selector: "h1" }, { selector: "p" }, { selector: "a" }],
       },
       env: {
         CLOUDFLARE_ACCOUNT_ID: env.CLOUDFLARE_ACCOUNT_ID,

@@ -17,44 +17,43 @@ export class CloudflareBrowserSnapshotNode extends ExecutableNode {
     tags: ["Browser", "Web", "Cloudflare", "Snapshot"],
     icon: "camera",
     documentation:
-      "This node captures HTML content and screenshots from web pages using Cloudflare's Browser Rendering API.",
+      "Captures HTML content and screenshots from web pages. Either url or html is required (not both). See [Cloudflare Browser Rendering API](https://developers.cloudflare.com/browser-rendering/) for details.",
     computeCost: 10,
     inputs: [
       {
         name: "url",
         type: "string",
-        description: "The URL to render (required)",
-        required: true,
+        description:
+          "The URL to render (either url or html required, not both)",
       },
       {
         name: "html",
         type: "string",
         description:
-          "HTML content to render instead of navigating to a URL (optional)",
+          "HTML content to render (either url or html required, not both)",
       },
       {
         name: "screenshotOptions",
         type: "json",
         description:
-          "Screenshot options (e.g. fullPage, omitBackground, clip, etc.) (optional)",
+          "Screenshot options (fullPage, omitBackground, clip, etc.)",
       },
       {
         name: "viewport",
         type: "json",
-        description:
-          "Viewport settings (width, height, deviceScaleFactor, etc.) (optional)",
+        description: "Viewport settings (width, height, deviceScaleFactor)",
         hidden: true,
       },
       {
         name: "gotoOptions",
         type: "json",
-        description: "Options for page navigation (optional)",
+        description: "Page navigation options",
         hidden: true,
       },
       {
         name: "waitForSelector",
-        type: "string",
-        description: "Wait for selector before capturing (optional)",
+        type: "json",
+        description: "Selector to wait for before capturing",
         hidden: true,
       },
     ],
@@ -96,14 +95,25 @@ export class CloudflareBrowserSnapshotNode extends ExecutableNode {
 
     const { CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN } = context.env;
 
-    if (!url || !CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
+    if (!CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
       return this.createErrorResult(
-        "'url', 'CLOUDFLARE_ACCOUNT_ID', and 'CLOUDFLARE_API_TOKEN' are required."
+        "'CLOUDFLARE_ACCOUNT_ID' and 'CLOUDFLARE_API_TOKEN' are required."
+      );
+    }
+
+    if (!url && !html) {
+      return this.createErrorResult("Either 'url' or 'html' is required.");
+    }
+
+    if (url && html) {
+      return this.createErrorResult(
+        "Cannot use both 'url' and 'html' at the same time."
       );
     }
 
     // Build request body
-    const body: Record<string, unknown> = { url };
+    const body: Record<string, unknown> = {};
+    if (url) body.url = url;
     if (html) body.html = html;
     if (screenshotOptions) body.screenshotOptions = screenshotOptions;
     if (viewport) body.viewport = viewport;
