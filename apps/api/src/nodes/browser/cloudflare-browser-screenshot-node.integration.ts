@@ -112,9 +112,7 @@ describe("CloudflareBrowserScreenshotNode", () => {
 
     const result = await node.execute(context);
     expect(result.status).toBe("error");
-    expect(result.error).toContain(
-      "You must provide either a 'url' or 'html' input"
-    );
+    expect(result.error).toContain("Either 'url' or 'html' is required");
   });
 
   it("should handle missing environment variables", async () => {
@@ -136,5 +134,28 @@ describe("CloudflareBrowserScreenshotNode", () => {
     expect(result.error).toContain(
       "'CLOUDFLARE_ACCOUNT_ID' and 'CLOUDFLARE_API_TOKEN' are required"
     );
+  });
+
+  it("should reject both url and html", async () => {
+    const nodeId = "cloudflare-browser-screenshot";
+    const node = new CloudflareBrowserScreenshotNode({
+      nodeId,
+    } as unknown as Node);
+
+    const context = {
+      nodeId,
+      inputs: {
+        url: "https://example.com",
+        html: "<html><body>Test</body></html>",
+      },
+      env: {
+        CLOUDFLARE_ACCOUNT_ID: env.CLOUDFLARE_ACCOUNT_ID,
+        CLOUDFLARE_API_TOKEN: env.CLOUDFLARE_API_TOKEN,
+      },
+    } as unknown as NodeContext;
+
+    const result = await node.execute(context);
+    expect(result.status).toBe("error");
+    expect(result.error).toContain("Cannot use both 'url' and 'html'");
   });
 });

@@ -17,62 +17,60 @@ export class CloudflareBrowserScreenshotNode extends ExecutableNode {
     tags: ["Browser", "Web", "Cloudflare", "Screenshot"],
     icon: "camera",
     documentation:
-      "This node captures a screenshot of a webpage using Cloudflare Browser Rendering.",
+      "Captures screenshots of web pages. Either url or html is required (not both). See [Cloudflare Browser Rendering Screenshot Endpoint](https://developers.cloudflare.com/browser-rendering/rest-api/screenshot-endpoint/) for details.",
     computeCost: 10,
     inputs: [
       {
         name: "url",
         type: "string",
-        description:
-          "The URL of the webpage to screenshot (optional if html is provided)",
+        description: "The URL to render (either url or html required, not both)",
       },
       {
         name: "html",
         type: "string",
         description:
-          "HTML content to render instead of navigating to a URL (optional)",
+          "HTML content to render (either url or html required, not both)",
       },
       {
         name: "screenshotOptions",
         type: "json",
         description:
-          "Screenshot options (e.g. fullPage, omitBackground, clip, etc.) (optional)",
+          "Screenshot options (fullPage, omitBackground, selector, type, etc.)",
       },
       {
         name: "viewport",
         type: "json",
-        description:
-          "Viewport settings (width, height, deviceScaleFactor, etc.) (optional)",
+        description: "Viewport settings (width, height, deviceScaleFactor)",
         hidden: true,
       },
       {
         name: "gotoOptions",
         type: "json",
-        description: "Options for page navigation (optional)",
+        description: "Page navigation options",
         hidden: true,
       },
       {
         name: "addScriptTag",
         type: "json",
-        description: "Array of script tags to inject (optional)",
+        description: "Script tags to inject",
         hidden: true,
       },
       {
         name: "addStyleTag",
         type: "json",
-        description: "Array of style tags to inject (optional)",
+        description: "Style tags to inject",
         hidden: true,
       },
       {
         name: "cookies",
         type: "json",
-        description: "Cookies to set (optional)",
+        description: "Cookies to set",
         hidden: true,
       },
       {
         name: "authenticate",
         type: "json",
-        description: "HTTP authentication credentials (optional)",
+        description: "HTTP authentication credentials",
         hidden: true,
       },
     ],
@@ -118,10 +116,13 @@ export class CloudflareBrowserScreenshotNode extends ExecutableNode {
       );
     }
 
-    // Require at least one of url or html
     if (!url && !html) {
+      return this.createErrorResult("Either 'url' or 'html' is required.");
+    }
+
+    if (url && html) {
       return this.createErrorResult(
-        "You must provide either a 'url' or 'html' input."
+        "Cannot use both 'url' and 'html' at the same time."
       );
     }
 
@@ -129,15 +130,9 @@ export class CloudflareBrowserScreenshotNode extends ExecutableNode {
     const body: Record<string, unknown> = {};
     if (url) body.url = url;
     if (html) body.html = html;
-    body.screenshotOptions = screenshotOptions ?? {
-      fullPage: true,
-      omitBackground: false,
-    };
-    body.viewport = viewport ?? { width: 1280, height: 720 };
-    body.gotoOptions = gotoOptions ?? {
-      waitUntil: "networkidle0",
-      timeout: 45000,
-    };
+    if (screenshotOptions) body.screenshotOptions = screenshotOptions;
+    if (viewport) body.viewport = viewport;
+    if (gotoOptions) body.gotoOptions = gotoOptions;
     if (addScriptTag) body.addScriptTag = addScriptTag;
     if (addStyleTag) body.addStyleTag = addStyleTag;
     if (cookies) body.cookies = cookies;
