@@ -81,9 +81,74 @@ describe("CloudflareBrowserContentNode", () => {
 
     const result = await node.execute(context);
     expect(result.status).toBe("error");
+    expect(result.error).toContain("Either 'url' or 'html' is required");
+  });
+
+  it("should handle missing environment variables", async () => {
+    const nodeId = "cloudflare-browser-content";
+    const node = new CloudflareBrowserContentNode({
+      nodeId,
+    } as unknown as Node);
+
+    const context = {
+      nodeId,
+      inputs: {
+        url: "https://example.com",
+      },
+      env: {},
+    } as unknown as NodeContext;
+
+    const result = await node.execute(context);
+    expect(result.status).toBe("error");
     expect(result.error).toContain(
-      "'url', 'CLOUDFLARE_ACCOUNT_ID', and 'CLOUDFLARE_API_TOKEN' are required"
+      "'CLOUDFLARE_ACCOUNT_ID' and 'CLOUDFLARE_API_TOKEN' are required"
     );
+  });
+
+  it("should render HTML content", async () => {
+    const nodeId = "cloudflare-browser-content";
+    const node = new CloudflareBrowserContentNode({
+      nodeId,
+    } as unknown as Node);
+
+    const context = {
+      nodeId,
+      inputs: {
+        html: "<html><body><h1>Test Title</h1><p>Test content</p></body></html>",
+      },
+      env: {
+        CLOUDFLARE_ACCOUNT_ID: env.CLOUDFLARE_ACCOUNT_ID,
+        CLOUDFLARE_API_TOKEN: env.CLOUDFLARE_API_TOKEN,
+      },
+    } as unknown as NodeContext;
+
+    const result = await node.execute(context);
+    expect(result.status).toBe("completed");
+    expect(result.outputs?.html).toBeDefined();
+    expect(typeof result.outputs?.html).toBe("string");
+  });
+
+  it("should reject both url and html", async () => {
+    const nodeId = "cloudflare-browser-content";
+    const node = new CloudflareBrowserContentNode({
+      nodeId,
+    } as unknown as Node);
+
+    const context = {
+      nodeId,
+      inputs: {
+        url: "https://example.com",
+        html: "<html><body>Test</body></html>",
+      },
+      env: {
+        CLOUDFLARE_ACCOUNT_ID: env.CLOUDFLARE_ACCOUNT_ID,
+        CLOUDFLARE_API_TOKEN: env.CLOUDFLARE_API_TOKEN,
+      },
+    } as unknown as NodeContext;
+
+    const result = await node.execute(context);
+    expect(result.status).toBe("error");
+    expect(result.error).toContain("Cannot use both 'url' and 'html'");
   });
 
   it("should handle invalid URL", async () => {

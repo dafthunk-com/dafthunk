@@ -17,56 +17,60 @@ export class CloudflareBrowserContentNode extends ExecutableNode {
     tags: ["Browser", "Web", "Cloudflare", "Content"],
     icon: "globe",
     documentation:
-      "This node fetches fully rendered HTML from a URL using Cloudflare Browser Rendering.",
+      "Fetches fully rendered HTML content from a web page. Either url or html is required (not both). See [Cloudflare Browser Rendering Content Endpoint](https://developers.cloudflare.com/browser-rendering/rest-api/content-endpoint/) for details.",
     computeCost: 10,
     asTool: true,
     inputs: [
       {
         name: "url",
         type: "string",
-        description: "The URL to render (required)",
-        required: true,
+        description: "The URL to render (either url or html required, not both)",
+      },
+      {
+        name: "html",
+        type: "string",
+        description: "HTML content to render (either url or html required, not both)",
       },
       {
         name: "rejectResourceTypes",
         type: "json",
-        description: "Array of resource types to block (optional)",
+        description: "Array of resource types to block",
         hidden: true,
       },
       {
         name: "rejectRequestPattern",
         type: "json",
-        description: "Array of regex patterns to block requests (optional)",
+        description: "Array of regex patterns to block requests",
         hidden: true,
       },
       {
         name: "allowRequestPattern",
         type: "json",
-        description: "Array of regex patterns to allow requests (optional)",
+        description: "Array of regex patterns to allow requests",
         hidden: true,
       },
       {
         name: "allowResourceTypes",
         type: "json",
-        description: "Array of resource types to allow (optional)",
+        description: "Array of resource types to allow",
         hidden: true,
       },
       {
         name: "setExtraHTTPHeaders",
         type: "json",
-        description: "Extra HTTP headers to set (optional)",
+        description: "Custom HTTP headers",
         hidden: true,
       },
       {
         name: "cookies",
         type: "json",
-        description: "Cookies to set (optional)",
+        description: "Cookies to set",
         hidden: true,
       },
       {
         name: "gotoOptions",
         type: "json",
-        description: "Options for page navigation (optional)",
+        description: "Page navigation options",
         hidden: true,
       },
     ],
@@ -94,6 +98,7 @@ export class CloudflareBrowserContentNode extends ExecutableNode {
   async execute(context: NodeContext): Promise<NodeExecution> {
     const {
       url,
+      html,
       rejectResourceTypes,
       rejectRequestPattern,
       allowRequestPattern,
@@ -105,14 +110,26 @@ export class CloudflareBrowserContentNode extends ExecutableNode {
 
     const { CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN } = context.env;
 
-    if (!url || !CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
+    if (!CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
       return this.createErrorResult(
-        "'url', 'CLOUDFLARE_ACCOUNT_ID', and 'CLOUDFLARE_API_TOKEN' are required."
+        "'CLOUDFLARE_ACCOUNT_ID' and 'CLOUDFLARE_API_TOKEN' are required."
+      );
+    }
+
+    if (!url && !html) {
+      return this.createErrorResult("Either 'url' or 'html' is required.");
+    }
+
+    if (url && html) {
+      return this.createErrorResult(
+        "Cannot use both 'url' and 'html' at the same time."
       );
     }
 
     // Build request body
-    const body: Record<string, unknown> = { url };
+    const body: Record<string, unknown> = {};
+    if (url) body.url = url;
+    if (html) body.html = html;
     if (rejectResourceTypes) body.rejectResourceTypes = rejectResourceTypes;
     if (rejectRequestPattern) body.rejectRequestPattern = rejectRequestPattern;
     if (allowRequestPattern) body.allowRequestPattern = allowRequestPattern;
