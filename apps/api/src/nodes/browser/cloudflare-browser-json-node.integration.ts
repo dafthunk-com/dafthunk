@@ -16,6 +16,7 @@ describe("CloudflareBrowserJsonNode", () => {
       nodeId,
       inputs: {
         url: "https://example.com",
+        prompt: "Extract the page content as JSON",
       },
       env: {
         CLOUDFLARE_ACCOUNT_ID: env.CLOUDFLARE_ACCOUNT_ID,
@@ -56,7 +57,7 @@ describe("CloudflareBrowserJsonNode", () => {
     expect(typeof result.outputs?.json).toBe("object");
   });
 
-  it("should extract JSON with schema", async () => {
+  it("should extract JSON with response_format", async () => {
     const nodeId = "cloudflare-browser-json";
     const node = new CloudflareBrowserJsonNode({
       nodeId,
@@ -66,13 +67,16 @@ describe("CloudflareBrowserJsonNode", () => {
       nodeId,
       inputs: {
         url: "https://example.com",
-        schema: {
-          type: "object",
-          properties: {
-            title: { type: "string" },
-            description: { type: "string" },
+        response_format: {
+          type: "json_schema",
+          schema: {
+            type: "object",
+            properties: {
+              title: { type: "string" },
+              description: { type: "string" },
+            },
+            required: ["title"],
           },
-          required: ["title"],
         },
       },
       env: {
@@ -96,7 +100,6 @@ describe("CloudflareBrowserJsonNode", () => {
     const context = {
       nodeId,
       inputs: {
-        url: "https://example.com",
         html: "<html><body><h1>Test Title</h1><p>Test description</p></body></html>",
         prompt: "Extract title and description as JSON",
       },
@@ -129,9 +132,7 @@ describe("CloudflareBrowserJsonNode", () => {
 
     const result = await node.execute(context);
     expect(result.status).toBe("error");
-    expect(result.error).toContain(
-      "'url', 'CLOUDFLARE_ACCOUNT_ID', and 'CLOUDFLARE_API_TOKEN' are required"
-    );
+    expect(result.error).toContain("Either 'url' or 'html' is required");
   });
 
   it("should handle missing environment variables", async () => {
@@ -151,7 +152,7 @@ describe("CloudflareBrowserJsonNode", () => {
     const result = await node.execute(context);
     expect(result.status).toBe("error");
     expect(result.error).toContain(
-      "'url', 'CLOUDFLARE_ACCOUNT_ID', and 'CLOUDFLARE_API_TOKEN' are required"
+      "'CLOUDFLARE_ACCOUNT_ID' and 'CLOUDFLARE_API_TOKEN' are required"
     );
   });
 
@@ -165,11 +166,14 @@ describe("CloudflareBrowserJsonNode", () => {
       nodeId,
       inputs: {
         url: "https://example.com",
+        prompt: "Extract page content",
         gotoOptions: {
           waitUntil: "networkidle0",
           timeout: 30000,
         },
-        waitForSelector: "h1",
+        waitForSelector: {
+          selector: "h1",
+        },
       },
       env: {
         CLOUDFLARE_ACCOUNT_ID: env.CLOUDFLARE_ACCOUNT_ID,

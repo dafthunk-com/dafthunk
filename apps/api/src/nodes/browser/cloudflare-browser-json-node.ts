@@ -17,42 +17,41 @@ export class CloudflareBrowserJsonNode extends ExecutableNode {
     tags: ["Browser", "Web", "Cloudflare", "JSON"],
     icon: "braces",
     documentation:
-      "This node fetches JSON from a rendered page using Cloudflare Browser Rendering.",
+      "Fetches JSON from a rendered page using Cloudflare Browser Rendering. Either url or html is required (not both). Either prompt or response_format is required. See [Cloudflare Browser Rendering JSON Endpoint](https://developers.cloudflare.com/browser-rendering/rest-api/json-endpoint/) for details.",
     computeCost: 10,
     asTool: true,
     inputs: [
       {
         name: "url",
         type: "string",
-        description: "The URL to render (required)",
-        required: true,
+        description: "The URL to render (either url or html required, not both)",
       },
       {
         name: "html",
         type: "string",
         description:
-          "HTML content to render instead of navigating to a URL (optional)",
+          "HTML content to render (either url or html required, not both)",
       },
       {
         name: "prompt",
         type: "string",
-        description: "Prompt for extracting JSON (optional)",
+        description: "Natural language prompt for extracting JSON (either prompt or response_format required)",
       },
       {
-        name: "schema",
+        name: "response_format",
         type: "json",
-        description: "JSON schema for extraction (optional)",
+        description: "JSON schema defining expected output structure (either prompt or response_format required)",
       },
       {
         name: "gotoOptions",
         type: "json",
-        description: "Options for page navigation (optional)",
+        description: "Page navigation options",
         hidden: true,
       },
       {
         name: "waitForSelector",
-        type: "string",
-        description: "Wait for selector before extracting (optional)",
+        type: "json",
+        description: "Selector to wait for before extraction",
         hidden: true,
       },
     ],
@@ -78,22 +77,39 @@ export class CloudflareBrowserJsonNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { url, html, prompt, schema, gotoOptions, waitForSelector } =
+    const { url, html, prompt, response_format, gotoOptions, waitForSelector } =
       context.inputs;
 
     const { CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN } = context.env;
 
-    if (!url || !CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
+    if (!CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
       return this.createErrorResult(
-        "'url', 'CLOUDFLARE_ACCOUNT_ID', and 'CLOUDFLARE_API_TOKEN' are required."
+        "'CLOUDFLARE_ACCOUNT_ID' and 'CLOUDFLARE_API_TOKEN' are required."
+      );
+    }
+
+    if (!url && !html) {
+      return this.createErrorResult("Either 'url' or 'html' is required.");
+    }
+
+    if (url && html) {
+      return this.createErrorResult(
+        "Cannot use both 'url' and 'html' at the same time."
+      );
+    }
+
+    if (!prompt && !response_format) {
+      return this.createErrorResult(
+        "Either 'prompt' or 'response_format' is required."
       );
     }
 
     // Build request body
-    const body: Record<string, unknown> = { url };
+    const body: Record<string, unknown> = {};
+    if (url) body.url = url;
     if (html) body.html = html;
     if (prompt) body.prompt = prompt;
-    if (schema) body.schema = schema;
+    if (response_format) body.response_format = response_format;
     if (gotoOptions) body.gotoOptions = gotoOptions;
     if (waitForSelector) body.waitForSelector = waitForSelector;
 
