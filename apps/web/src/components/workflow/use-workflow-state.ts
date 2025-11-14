@@ -636,9 +636,10 @@ export function useWorkflowState({
       };
 
       // Deselect all other nodes and add the new node
-      setNodes((nds) =>
-        nds.map((node) => ({ ...node, selected: false })).concat(newNode)
-      );
+      setNodes((nds) => [
+        ...nds.map((node) => ({ ...node, selected: false })),
+        newNode,
+      ]);
     },
     [reactFlowInstance, setNodes, createObjectUrl]
   );
