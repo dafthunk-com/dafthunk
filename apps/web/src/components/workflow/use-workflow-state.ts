@@ -955,7 +955,9 @@ export function useWorkflowState({
     nodesRef.current.forEach((node) => {
       // Ensure width and height are available, provide defaults if not
       const nodeWidth = node.width || 200; // Default width
-      const nodeHeight = node.height || 100; // Default height
+      // Preview nodes have min-h-44 (176px) + content, use larger default
+      const isPreviewNode = node.data.nodeType?.startsWith("preview-");
+      const nodeHeight = node.height || (isPreviewNode ? 250 : 100);
       dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
     });
 
@@ -970,8 +972,10 @@ export function useWorkflowState({
         const nodeWithPosition = dagreGraph.node(node.id);
         // Adjust position to be an offset from the current viewport center
         // This can help prevent nodes from flying too far off screen
+        const isPreviewNode = node.data.nodeType?.startsWith("preview-");
         const x = nodeWithPosition.x - (node.width || 200) / 2;
-        const y = nodeWithPosition.y - (node.height || 100) / 2;
+        const y =
+          nodeWithPosition.y - (node.height || (isPreviewNode ? 250 : 100)) / 2;
 
         return {
           ...node,
