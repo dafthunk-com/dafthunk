@@ -119,7 +119,14 @@ export const ModelViewer = React.memo(
     if (!isModelViewerLoaded || isLoading || !authenticatedUrl) {
       return (
         <div className="mt-2 space-y-2">
-          <div className="bg-slate-50 dark:bg-slate-900 rounded border flex items-center justify-center w-full aspect-square">
+          <div
+            className="gltf-canvas-container bg-slate-50 dark:bg-slate-900 rounded border flex items-center justify-center"
+            style={{
+              width: 320,
+              height: 320,
+              maxWidth: "100%",
+            }}
+          >
             <span className="text-xs text-neutral-500">
               {!isModelViewerLoaded
                 ? "Loading 3D Viewer..."
@@ -136,7 +143,12 @@ export const ModelViewer = React.memo(
     return (
       <div className="mt-2 space-y-3">
         <div
-          className="bg-slate-50 dark:bg-slate-900 rounded border overflow-hidden nodrag nopan nowheel w-full aspect-square"
+          className="gltf-canvas-container bg-slate-50 dark:bg-slate-900 rounded border overflow-hidden nodrag nopan nowheel"
+          style={{
+            width: 320,
+            height: 320,
+            maxWidth: "100%",
+          }}
           onPointerDown={(e) => e.stopPropagation()}
         >
           <ModelViewerElement
