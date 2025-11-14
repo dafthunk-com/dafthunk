@@ -64,11 +64,7 @@ export function GltfField({
             className
           )}
         >
-          <ModelViewer
-            parameter={parameter}
-            objectUrl={objectUrl}
-            compact={asWidget}
-          />
+          <ModelViewer parameter={parameter} objectUrl={objectUrl} />
         </div>
       );
     }

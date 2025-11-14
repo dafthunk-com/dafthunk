@@ -10,7 +10,6 @@ const ModelViewerElement = React.forwardRef<HTMLElement, any>((props, ref) => {
 export interface ModelViewerProps {
   parameter: WorkflowParameter;
   objectUrl: string;
-  compact?: boolean;
 }
 
 // Custom hook to handle model-viewer loading
@@ -86,18 +85,14 @@ function useAuthenticatedModelUrl(url: string) {
 }
 
 export const ModelViewer = React.memo(
-  ({ parameter, objectUrl, compact }: ModelViewerProps) => {
+  ({ parameter, objectUrl }: ModelViewerProps) => {
     const isModelViewerLoaded = useModelViewer();
     const { authenticatedUrl, isLoading, error } =
       useAuthenticatedModelUrl(objectUrl);
 
-    const viewerDimensions = compact
-      ? { width: 218, height: 218 }
-      : { width: 320, height: 320 };
-
     if (error) {
       return (
-        <div className={compact ? "mt-1 space-y-1" : "mt-2 space-y-2"}>
+        <div className="mt-2 space-y-2">
           <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded border border-red-200 dark:border-red-800">
             <div className="text-sm text-red-800 dark:text-red-200">
               3D Model Error
@@ -123,14 +118,8 @@ export const ModelViewer = React.memo(
 
     if (!isModelViewerLoaded || isLoading || !authenticatedUrl) {
       return (
-        <div className={compact ? "mt-1 space-y-1" : "mt-2 space-y-2"}>
-          <div
-            className="bg-slate-50 dark:bg-slate-900 rounded border flex items-center justify-center"
-            style={{
-              width: viewerDimensions.width,
-              height: viewerDimensions.height,
-            }}
-          >
+        <div className="mt-2 space-y-2">
+          <div className="bg-slate-50 dark:bg-slate-900 rounded border flex items-center justify-center w-full aspect-square">
             <span className="text-xs text-neutral-500">
               {!isModelViewerLoaded
                 ? "Loading 3D Viewer..."
@@ -145,13 +134,9 @@ export const ModelViewer = React.memo(
     }
 
     return (
-      <div className={compact ? "mt-1 space-y-2" : "mt-2 space-y-3"}>
+      <div className="mt-2 space-y-3">
         <div
-          className="bg-slate-50 dark:bg-slate-900 rounded border overflow-hidden nodrag nopan nowheel"
-          style={{
-            width: viewerDimensions.width,
-            height: viewerDimensions.height,
-          }}
+          className="bg-slate-50 dark:bg-slate-900 rounded border overflow-hidden nodrag nopan nowheel w-full aspect-square"
           onPointerDown={(e) => e.stopPropagation()}
         >
           <ModelViewerElement
