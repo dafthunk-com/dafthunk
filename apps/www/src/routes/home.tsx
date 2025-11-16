@@ -4,24 +4,24 @@ export function meta() {
   return [
     {
       title:
-        "Dafthunk - Visual Workflow Automation Platform | No-Code Edge Computing",
+        "Dafthunk - Visual Workflow Automation Platform",
     },
     {
       name: "description",
       content:
-        "Build serverless workflow automation with a drag-and-drop editor. Deploy AI workflows, web scraping, ETL pipelines, and integrations on edge infrastructure.",
+        "Build serverless workflow automation with a React Flow editor. Deploy AI workflows, web scraping pipelines, data transformations, and integrations on Cloudflare's edge infrastructure.",
     },
     { property: "og:type", content: "website" },
     { property: "og:url", content: "https://dafthunk.com/" },
     {
       property: "og:title",
       content:
-        "Dafthunk - Visual Workflow Automation Platform | No-Code Edge Computing",
+        "Dafthunk - Visual Workflow Automation Platform",
     },
     {
       property: "og:description",
       content:
-        "Build serverless workflow automation with a drag-and-drop editor. Deploy AI workflows, web scraping, ETL pipelines, and integrations on edge infrastructure.",
+        "Build serverless workflow automation with a React Flow editor. Deploy AI workflows, web scraping pipelines, data transformations, and integrations on Cloudflare's edge infrastructure.",
     },
     { property: "og:image", content: "https://dafthunk.com/og-image.webp" },
     { property: "og:site_name", content: "Dafthunk" },
@@ -30,12 +30,12 @@ export function meta() {
     {
       name: "twitter:title",
       content:
-        "Dafthunk - Visual Workflow Automation Platform | No-Code Edge Computing",
+        "Dafthunk - Visual Workflow Automation Platform",
     },
     {
       name: "twitter:description",
       content:
-        "Build serverless workflow automation with a drag-and-drop editor. Deploy AI workflows, web scraping, ETL pipelines, and integrations on edge infrastructure.",
+        "Build serverless workflow automation with a React Flow editor. Deploy AI workflows, web scraping pipelines, data transformations, and integrations on Cloudflare's edge infrastructure.",
     },
     { name: "twitter:image", content: "https://dafthunk.com/og-image.webp" },
     { tagName: "link", rel: "canonical", href: "https://dafthunk.com/" },
@@ -67,10 +67,10 @@ export default function Home() {
               automation
             </h1>
             <p className="text-2xl text-gray-600 mb-10 leading-relaxed">
-              Build serverless workflow automation with a drag-and-drop editor
-              that runs on edge infrastructure. Deploy AI workflows, web
+              Build serverless workflow automation with a React Flow editor
+              that runs on Cloudflare's edge infrastructure. Deploy AI workflows, web
               scraping pipelines, data transformations, and API integrations
-              globally in seconds, where infrastructure management is someone
+              globally in seconds, where infrastructure is someone
               else's problem entirely.
             </p>
             <a
@@ -95,11 +95,10 @@ export default function Home() {
       <section id="features" className="px-6 py-32" aria-labelledby="features-heading">
         <div className="mb-32">
           <h2 id="features-heading" className="text-6xl font-light text-gray-900 mb-6">
-            Build workflows on edge infrastructure
+            Prototype workflows on edge infrastructure
           </h2>
           <p className="text-3xl text-gray-500">
-            Everything you need to build and deploy serverless automation
-            workflows
+            Everything you need to build and deploy automation workflows on Cloudflare
           </p>
         </div>
 
@@ -109,9 +108,9 @@ export default function Home() {
               Visual Workflow Editor
             </h3>
             <p className="text-xl text-gray-600 leading-relaxed">
-              A drag-and-drop workflow builder for creating automation workflows
+              A React Flow workflow builder for creating automation workflows
               that makes command-line enthusiasts mildly uncomfortable. Build
-              workflow pipelines by connecting nodes visually—no infrastructure
+              workflow pipelines by connecting nodes visually. No infrastructure
               setup, no Docker containers. Just workflows that run on Workers.
             </p>
           </div>
@@ -135,7 +134,7 @@ export default function Home() {
             </h3>
             <p className="text-xl text-gray-600 leading-relaxed">
               Save workflow state, execution history, and automation data using
-              D1 SQL databases and R2 object storage with reasonable confidence
+              D1 SQL databases, R2 object storage and Workers Analytics Engine with reasonable confidence
               they'll still be there tomorrow. Durable workflow execution that
               persists even when things go sideways. Because workflows should
               complete, eventually.
@@ -181,7 +180,7 @@ export default function Home() {
                 Build AI workflow automation integrating Anthropic Claude,
                 OpenAI GPT, Google Gemini, and Workers AI for text generation,
                 natural language processing, sentiment analysis, and intelligent
-                automation. Create AI-powered workflows that leverage large
+                automation. Create AI and RAG powered workflows that leverage large
                 language models for content creation, data extraction,
                 translation, summarization, and vision AI capabilities. Automate
                 complex reasoning tasks and build intelligent agents that
@@ -266,8 +265,8 @@ export default function Home() {
                 text operations, string formatting, and mathematical
                 computations. Parse, validate, transform, and merge data from
                 multiple sources. Filter, sort, aggregate, and reshape datasets.
-                Perform data cleansing, normalization, and enrichment. Build ETL
-                workflow pipelines that handle complex data transformations and
+                Perform data cleansing, normalization, and enrichment. Build 
+                pipelines that handle complex data transformations and
                 prepare data for analytics, machine learning, or storage.
               </p>
             </div>
@@ -303,7 +302,7 @@ export default function Home() {
                 Generate and manipulate images, audio files, documents, and 3D
                 models in your workflow automation for creative content
                 production. Create AI-generated images, edit and transform
-                existing images, process and convert audio formats, generate PDF
+                existing images with Photon, process and convert audio formats, generate PDF
                 documents from templates, and create 3D models programmatically.
                 Build automated media workflow pipelines for marketing
                 materials, social media content, podcasts, documentation, and
@@ -340,7 +339,7 @@ export default function Home() {
             <div className="lg:col-span-8 xl:col-span-6">
               <p className="text-xl text-gray-600 leading-relaxed">
                 Connect your workflow automation with popular platforms
-                including GitHub for repository management and CI/CD automation,
+                including GitHub for repository management,
                 Discord for community engagement and bot interactions, LinkedIn
                 for professional networking and content publishing, Reddit for
                 community monitoring and content posting, Google Calendar for
@@ -383,8 +382,8 @@ export default function Home() {
               <p className="text-xl text-gray-600 leading-relaxed">
                 Execute custom JavaScript code within your workflow automation,
                 make HTTP and REST API requests to any service, work with SQL
-                databases and NoSQL data stores, implement conditional logic and
-                branching, create loops and iterations, handle errors and
+                databases and textual datasets, implement conditional logic and
+                branching, persist data, iterate with queues, handle errors and
                 retries, and build complex workflow orchestration. Integrate
                 with any API, transform data programmatically, implement custom
                 business logic, and extend workflow automation capabilities with
@@ -490,10 +489,10 @@ export default function Home() {
                   Data extraction
                 </span>
                 <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  ETL pipelines
+                  Alerts
                 </span>
                 <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  Alerts
+                  Transformation pipelines
                 </span>
               </div>
             </div>
@@ -558,7 +557,7 @@ export default function Home() {
               on GitHub. Fork it, self-host the workflow engine on your own
               infrastructure, extend the node library with custom workflow
               nodes, or read the source code to understand how serverless
-              workflow orchestration works. Provided as-is without warranty.
+              workflow orchestration works on Cloudflare. Provided as-is without warranty.
             </p>
           </div>
 

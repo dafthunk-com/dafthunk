@@ -126,6 +126,30 @@ export function Layout({ children, navigation }: LayoutProps) {
               Resources
             </h3>
             <a
+              href={`${import.meta.env.VITE_APP_URL}/docs/concepts`}
+              className="text-base hover:text-white"
+            >
+              Documentation
+            </a>
+            <a
+              href={`${import.meta.env.VITE_APP_URL}/docs/nodes`}
+              className="text-base hover:text-white"
+            >
+              Nodes Reference
+            </a>
+            <a
+              href={`${import.meta.env.VITE_APP_URL}/docs/api`}
+              className="text-base hover:text-white"
+            >
+              API Reference
+            </a>
+            <a
+              href={`${import.meta.env.VITE_APP_URL}/docs/developers`}
+              className="text-base hover:text-white"
+            >
+              Developers Guide
+            </a>
+            <a
               href="https://github.com/dafthunk-com/dafthunk/issues"
               target="_blank"
               rel="noopener noreferrer"

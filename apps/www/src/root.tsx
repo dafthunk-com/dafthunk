@@ -50,7 +50,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           priceCurrency: "USD",
         },
         description:
-          "Build serverless workflow automation with a drag-and-drop editor. Deploy AI workflows, web scraping, ETL pipelines, and integrations on edge infrastructure.",
+          "Build serverless workflow automation with a React Flow editor. Deploy AI workflows, web scraping, ETL pipelines, and integrations on edge infrastructure.",
       },
     ],
   };
