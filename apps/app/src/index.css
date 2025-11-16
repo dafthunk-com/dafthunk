@@ -1,0 +1,269 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 46.9%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 0 0% 91.4%;
+    --input: 0 0% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.5rem;
+    /* 
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%; 
+    */
+  }
+
+  .dark {
+    --background: 0 0% 16%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 0 0% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 0 0% 17%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 0 0% 27%;
+    --muted-foreground: 0 0% 65.1%;
+    --accent: 0 0% 27%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 45.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 0 0% 27%;
+    --input: 0 0% 27%;
+    --ring: 212.7 26.8% 83.9%;
+    /* 
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+     */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-[hsl(var(--border))];
+  }
+  body {
+    @apply bg-neutral-100 dark:bg-neutral-900 text-foreground w-full h-full;
+    font-family: "Inter", sans-serif;
+    font-feature-settings:
+      "rlig" 1,
+      "calt" 1;
+  }
+
+  @supports (font-variation-settings: normal) {
+    body {
+      font-family: "Inter var", sans-serif;
+    }
+  }
+}
+
+.imgDark {
+  display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  html {
+    color-scheme: dark;
+  }
+
+  .imgLight {
+    display: none;
+  }
+  .imgDark {
+    display: unset;
+  }
+}
+
+.react-flow__attribution {
+  @apply !bg-muted rounded-tl overflow-hidden !ps-1.5 border-l border-t;
+}
+
+.react-flow__attribution a {
+  @apply !text-muted-foreground;
+}
+
+html.dark .shiki,
+html.dark .shiki span {
+  color: var(--shiki-dark) !important;
+  /* Optional, if you also want font styles */
+  font-style: var(--shiki-dark-font-style) !important;
+  font-weight: var(--shiki-dark-font-weight) !important;
+  text-decoration: var(--shiki-dark-text-decoration) !important;
+}
+
+/* Documentation content styles - only apply to elements without classes */
+.docs-content h1:not([class]) {
+  @apply scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl mb-8 mt-10 first:mt-0;
+}
+
+.docs-content h2:not([class]) {
+  @apply scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight mt-10 mb-6 first:mt-0;
+}
+
+.docs-content h3:not([class]) {
+  @apply scroll-m-20 text-2xl font-semibold tracking-tight mt-8 mb-4;
+}
+
+.docs-content h4:not([class]) {
+  @apply scroll-m-20 text-xl font-semibold tracking-tight mt-6 mb-3;
+}
+
+.docs-content h5:not([class]) {
+  @apply scroll-m-20 text-lg font-semibold tracking-tight mt-4 mb-2 text-muted-foreground;
+}
+
+.docs-content h6:not([class]) {
+  @apply scroll-m-20 text-base font-semibold tracking-tight mt-4 mb-2 text-muted-foreground;
+}
+
+.docs-content p:not([class]) {
+  @apply leading-7 [&:not(:first-child)]:mt-6;
+}
+
+.docs-content ul:not([class]) {
+  @apply my-6 ml-6 list-disc [&>li]:mt-2;
+}
+
+.docs-content ol:not([class]) {
+  @apply my-6 ml-6 list-decimal [&>li]:mt-2;
+}
+
+.docs-content li:not([class]) {
+  @apply leading-7;
+}
+
+.docs-content a:not([class]) {
+  @apply font-medium text-primary underline underline-offset-4 hover:text-primary/80;
+}
+
+.docs-content code:not([class]):not(pre code) {
+  @apply relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold;
+}
+
+.docs-content blockquote:not([class]) {
+  @apply mt-6 border-l-2 pl-6 italic text-muted-foreground;
+}
+
+.docs-content table:not([class]) {
+  @apply w-full border-collapse border-spacing-0 my-6;
+}
+
+.docs-content thead:not([class]) {
+  @apply border-b;
+}
+
+.docs-content tr:not([class]) {
+  @apply border-b transition-colors hover:bg-muted/50;
+}
+
+.docs-content th:not([class]) {
+  @apply h-12 px-4 text-left align-middle font-medium;
+}
+
+.docs-content td:not([class]) {
+  @apply p-4 align-middle text-muted-foreground;
+}
+
+.docs-content img:not([class]) {
+  @apply rounded-lg border max-w-full h-auto my-6;
+}
+
+.docs-content hr:not([class]) {
+  @apply my-8 border-muted;
+}
+
+.docs-content strong:not([class]) {
+  @apply font-semibold;
+}
+
+.docs-content em:not([class]) {
+  @apply italic;
+}
+
+/* Markdown */
+.md h2 {
+  @apply text-xl font-semibold;
+  @apply mb-2 mt-5;
+}
+
+.md h3 {
+  @apply text-lg font-semibold;
+  @apply mb-1 mt-5;
+}
+
+.md p {
+  @apply mb-2;
+}
+
+.md a {
+  @apply underline;
+}
+
+.md ul {
+  @apply mb-3 list-disc pl-10;
+}
+
+.md ol {
+  @apply mb-3 list-decimal pl-6;
+  counter-reset: item;
+}
+
+.md ol li {
+  display: block;
+}
+
+.md ol li:before {
+  @apply me-2 text-muted-foreground;
+  content: counter(item) ". ";
+  counter-increment: item;
+}
+
+/* GLTF Canvas Container - Prevent ReactFlow interference */
+.gltf-canvas-container {
+  contain: layout style size;
+  transform: none !important;
+}
+
+.gltf-canvas-container canvas {
+  transform: none !important;
+  image-rendering: auto;
+  transition: none !important;
+  animation: none !important;
+  display: block !important;
+  position: relative !important;
+  z-index: 10 !important;
+  background: #000 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}

@@ -7,5 +7,6 @@ node_modules
 dist
 .wrangler
 tsconfig.tsbuildinfo
+.react-router
 
 .idea

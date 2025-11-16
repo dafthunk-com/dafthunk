@@ -14,7 +14,7 @@
     "test": "pnpm --parallel --filter '@dafthunk/api' test",
     "build": "pnpm build:packages && pnpm build:apps",
     "build:packages": "pnpm --filter '@dafthunk/types' build",
-    "build:apps": "pnpm --filter '@dafthunk/web' build",
+    "build:apps": "pnpm --filter '@dafthunk/app' build && pnpm --filter '@dafthunk/www' build",
     "start": "pnpm --parallel start",
     "knip": "knip --include-libs",
     "knip:fix": "knip --include-libs --fix --allow-remove-files"

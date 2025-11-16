@@ -148,7 +148,7 @@
    * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
    */
   "vars": {
-    "WEB_HOST": "https://www.dafthunk.com"
+    "WEB_HOST": "https://app.dafthunk.com"
   },
   "env": {
     "production": {
@@ -262,7 +262,7 @@
         ]
       },
       "vars": {
-        "WEB_HOST": "https://www.dafthunk.com"
+        "WEB_HOST": "https://app.dafthunk.com"
       },
       "triggers": {
         "crons": ["* * * * *"]
