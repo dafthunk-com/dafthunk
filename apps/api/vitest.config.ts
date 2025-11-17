@@ -15,6 +15,9 @@ export default defineWorkersConfig({
         singleWorker: true,
         // Use isolated local mode in CI to avoid authentication errors
         isolatedStorage: true,
+        miniflare: {
+          compatibilityDate: "2025-01-01",
+        },
       },
     },
   },
