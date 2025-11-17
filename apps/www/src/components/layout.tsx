@@ -177,6 +177,14 @@ export function Layout({ children, navigation }: LayoutProps) {
             >
               GitHub
             </a>
+            <a
+              href="https://discord.gg/Z6xHWA9sPN"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-base hover:text-white"
+            >
+              Discord
+            </a>
           </div>
         </div>
         <div>
