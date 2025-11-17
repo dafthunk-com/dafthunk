@@ -73,7 +73,7 @@ const createColumns = (
   },
   {
     accessorKey: "workflowType",
-    header: "Type",
+    header: "Workflow Type",
     cell: ({ row }) => {
       const type = row.getValue("workflowType") as WorkflowType;
       const typeLabels: Record<WorkflowType, string> = {

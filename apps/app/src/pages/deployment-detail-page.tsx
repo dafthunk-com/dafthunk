@@ -80,7 +80,7 @@ function createDeploymentHistoryColumns(
                 >
                   {deployment.id}
                 </Link>
-                <Badge variant="outline" className="ml-2">
+                <Badge variant="outline" className="text-xs ml-2">
                   Current
                 </Badge>
               </div>
@@ -104,7 +104,7 @@ function createDeploymentHistoryColumns(
           to={getOrgUrl(`deployment/${row.original.id}`)}
           className="hover:underline"
         >
-          <Badge variant="secondary" className="gap-1">
+          <Badge variant="secondary" className="text-xs gap-1">
             <GitCommitHorizontal className="h-3.5 w-3.5" />v
             {row.original.version}
           </Badge>

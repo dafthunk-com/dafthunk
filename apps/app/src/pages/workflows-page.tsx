@@ -14,6 +14,7 @@ import { useAuth } from "@/components/auth-context";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import {
@@ -337,9 +338,9 @@ function createColumns(
           queue_message: "Queue Message",
         };
         return (
-          <span className="text-sm text-muted-foreground">
+          <Badge variant="outline" className="text-xs">
             {typeLabels[type]}
-          </span>
+          </Badge>
         );
       },
     },
