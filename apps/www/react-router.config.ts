@@ -8,5 +8,4 @@ export default {
   future: {
     unstable_viteEnvironmentApi: true,
   },
-  routes: "./src/routes.ts",
 } satisfies Config;

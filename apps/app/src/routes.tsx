@@ -6,7 +6,6 @@ import { Navigate } from "react-router";
 
 import { HeadSeo } from "./components/head-seo";
 import { AppLayout } from "./components/layouts/app-layout";
-import { ContentLayout } from "./components/layouts/content-layout";
 import { DocsLayout } from "./components/layouts/docs-layout";
 import { OrgLayout } from "./components/org-layout";
 import { OrgRedirect } from "./components/org-redirect";

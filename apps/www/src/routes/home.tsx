@@ -3,8 +3,7 @@ import { Layout } from "../components/layout";
 export function meta() {
   return [
     {
-      title:
-        "Dafthunk - Visual Workflow Automation Platform",
+      title: "Dafthunk - Visual Workflow Automation Platform",
     },
     {
       name: "description",
@@ -15,8 +14,7 @@ export function meta() {
     { property: "og:url", content: "https://dafthunk.com/" },
     {
       property: "og:title",
-      content:
-        "Dafthunk - Visual Workflow Automation Platform",
+      content: "Dafthunk - Visual Workflow Automation Platform",
     },
     {
       property: "og:description",
@@ -29,8 +27,7 @@ export function meta() {
     { name: "twitter:url", content: "https://dafthunk.com/" },
     {
       name: "twitter:title",
-      content:
-        "Dafthunk - Visual Workflow Automation Platform",
+      content: "Dafthunk - Visual Workflow Automation Platform",
     },
     {
       name: "twitter:description",
@@ -67,11 +64,11 @@ export default function Home() {
               automation
             </h1>
             <p className="text-2xl text-gray-600 mb-10 leading-relaxed">
-              Build serverless workflow automation with a React Flow editor
-              that runs on Cloudflare's edge infrastructure. Deploy AI workflows, web
+              Build serverless workflow automation with a React Flow editor that
+              runs on Cloudflare's edge infrastructure. Deploy AI workflows, web
               scraping pipelines, data transformations, and API integrations
-              globally in seconds, where infrastructure is someone
-              else's problem entirely.
+              globally in seconds, where infrastructure is someone else's
+              problem entirely.
             </p>
             <a
               href={import.meta.env.VITE_APP_URL}
@@ -92,13 +89,21 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="features" className="px-6 py-32" aria-labelledby="features-heading">
+      <section
+        id="features"
+        className="px-6 py-32"
+        aria-labelledby="features-heading"
+      >
         <div className="mb-32">
-          <h2 id="features-heading" className="text-6xl font-light text-gray-900 mb-6">
+          <h2
+            id="features-heading"
+            className="text-6xl font-light text-gray-900 mb-6"
+          >
             Prototype workflows on edge infrastructure
           </h2>
           <p className="text-3xl text-gray-500">
-            Everything you need to build and deploy automation workflows on Cloudflare
+            Everything you need to build and deploy automation workflows on
+            Cloudflare
           </p>
         </div>
 
@@ -134,10 +139,10 @@ export default function Home() {
             </h3>
             <p className="text-xl text-gray-600 leading-relaxed">
               Save workflow state, execution history, and automation data using
-              D1 SQL databases, R2 object storage and Workers Analytics Engine with reasonable confidence
-              they'll still be there tomorrow. Durable workflow execution that
-              persists even when things go sideways. Because workflows should
-              complete, eventually.
+              D1 SQL databases, R2 object storage and Workers Analytics Engine
+              with reasonable confidence they'll still be there tomorrow.
+              Durable workflow execution that persists even when things go
+              sideways. Because workflows should complete, eventually.
             </p>
           </div>
 
@@ -157,9 +162,16 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="capabilities" className="px-6 py-32" aria-labelledby="capabilities-heading">
+      <section
+        id="capabilities"
+        className="px-6 py-32"
+        aria-labelledby="capabilities-heading"
+      >
         <div className="mb-32">
-          <h2 id="capabilities-heading" className="text-6xl font-light text-gray-900 mb-6">
+          <h2
+            id="capabilities-heading"
+            className="text-6xl font-light text-gray-900 mb-6"
+          >
             Workflow automation capabilities
           </h2>
           <p className="text-3xl text-gray-500">
@@ -180,8 +192,8 @@ export default function Home() {
                 Build AI workflow automation integrating Anthropic Claude,
                 OpenAI GPT, Google Gemini, and Workers AI for text generation,
                 natural language processing, sentiment analysis, and intelligent
-                automation. Create AI and RAG powered workflows that leverage large
-                language models for content creation, data extraction,
+                automation. Create AI and RAG powered workflows that leverage
+                large language models for content creation, data extraction,
                 translation, summarization, and vision AI capabilities. Automate
                 complex reasoning tasks and build intelligent agents that
                 understand and generate human-like responses.
@@ -265,9 +277,9 @@ export default function Home() {
                 text operations, string formatting, and mathematical
                 computations. Parse, validate, transform, and merge data from
                 multiple sources. Filter, sort, aggregate, and reshape datasets.
-                Perform data cleansing, normalization, and enrichment. Build 
-                pipelines that handle complex data transformations and
-                prepare data for analytics, machine learning, or storage.
+                Perform data cleansing, normalization, and enrichment. Build
+                pipelines that handle complex data transformations and prepare
+                data for analytics, machine learning, or storage.
               </p>
             </div>
             <div className="lg:col-span-4 xl:col-span-3">
@@ -302,11 +314,11 @@ export default function Home() {
                 Generate and manipulate images, audio files, documents, and 3D
                 models in your workflow automation for creative content
                 production. Create AI-generated images, edit and transform
-                existing images with Photon, process and convert audio formats, generate PDF
-                documents from templates, and create 3D models programmatically.
-                Build automated media workflow pipelines for marketing
-                materials, social media content, podcasts, documentation, and
-                digital assets at scale.
+                existing images with Photon, process and convert audio formats,
+                generate PDF documents from templates, and create 3D models
+                programmatically. Build automated media workflow pipelines for
+                marketing materials, social media content, podcasts,
+                documentation, and digital assets at scale.
               </p>
             </div>
             <div className="lg:col-span-4 xl:col-span-3">
@@ -339,9 +351,9 @@ export default function Home() {
             <div className="lg:col-span-8 xl:col-span-6">
               <p className="text-xl text-gray-600 leading-relaxed">
                 Connect your workflow automation with popular platforms
-                including GitHub for repository management,
-                Discord for community engagement and bot interactions, LinkedIn
-                for professional networking and content publishing, Reddit for
+                including GitHub for repository management, Discord for
+                community engagement and bot interactions, LinkedIn for
+                professional networking and content publishing, Reddit for
                 community monitoring and content posting, Google Calendar for
                 event scheduling and meeting automation, and Gmail for email
                 management and automated communications. Sync data across
@@ -413,9 +425,16 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="use-cases" className="px-6 py-32" aria-labelledby="use-cases-heading">
+      <section
+        id="use-cases"
+        className="px-6 py-32"
+        aria-labelledby="use-cases-heading"
+      >
         <div className="mb-32">
-          <h2 id="use-cases-heading" className="text-6xl font-light text-gray-900 mb-6">
+          <h2
+            id="use-cases-heading"
+            className="text-6xl font-light text-gray-900 mb-6"
+          >
             Automation use cases
           </h2>
           <p className="text-3xl text-gray-500">
@@ -537,9 +556,16 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="open-source" className="px-6 py-32" aria-labelledby="open-source-heading">
+      <section
+        id="open-source"
+        className="px-6 py-32"
+        aria-labelledby="open-source-heading"
+      >
         <div className="mb-32">
-          <h2 id="open-source-heading" className="text-6xl font-light text-gray-900 mb-6">
+          <h2
+            id="open-source-heading"
+            className="text-6xl font-light text-gray-900 mb-6"
+          >
             Open source workflow platform
           </h2>
           <p className="text-3xl text-gray-500">
@@ -557,7 +583,8 @@ export default function Home() {
               on GitHub. Fork it, self-host the workflow engine on your own
               infrastructure, extend the node library with custom workflow
               nodes, or read the source code to understand how serverless
-              workflow orchestration works on Cloudflare. Provided as-is without warranty.
+              workflow orchestration works on Cloudflare. Provided as-is without
+              warranty.
             </p>
           </div>
 

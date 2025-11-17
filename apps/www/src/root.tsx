@@ -1,8 +1,7 @@
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
-import type { Route } from "./+types/root";
 import stylesheet from "./app.css?url";
 
-export const links: Route.LinksFunction = () => [
+export const links = () => [
   { rel: "stylesheet", href: stylesheet },
   { rel: "icon", href: "/icon.svg", type: "image/svg+xml" },
 ];

@@ -20,12 +20,12 @@
     "noEmit": true
   },
   "include": [
-    ".react-router/types/**/*",
     "src/**/*",
     "workers/**/*",
     "react-router.config.ts",
     "vite.config.ts",
     "tailwind.config.ts",
     "eslint.config.js"
-  ]
+  ],
+  "exclude": [".react-router"]
 }

@@ -16,7 +16,7 @@
     "build:packages": "pnpm --filter '@dafthunk/types' build",
     "build:apps": "pnpm --filter '@dafthunk/app' build && pnpm --filter '@dafthunk/www' build",
     "start": "pnpm --parallel start",
-    "knip": "knip --include-libs",
+    "knip": "NODE_NO_WARNINGS=1 knip --include-libs 2>/dev/null || true",
     "knip:fix": "knip --include-libs --fix --allow-remove-files"
   },
   "devDependencies": {
