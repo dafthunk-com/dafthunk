@@ -7,16 +7,27 @@ export default defineWorkersConfig({
     poolOptions: {
       workers: {
         wrangler: {
-          configPath: "./wrangler.test.jsonc",
+          configPath: "./wrangler.jsonc",
         },
         // Use test-entry.ts which exports TestRuntime with injected test dependencies
         // This avoids loading CloudflareNodeRegistry and heavy packages like geotiff
         main: "./src/test-entry.ts",
         singleWorker: true,
-        // Use isolated local mode in CI to avoid authentication errors
         isolatedStorage: true,
         miniflare: {
-          compatibilityDate: "2025-01-01",
+          // Override to force local mode and skip remote-only bindings
+          workers: [
+            {
+              // Disable AI, Workflows, Analytics Engine, Browser in tests
+              bindings: {
+                AI: undefined,
+                EXECUTE: undefined,
+                COMPUTE: undefined,
+                EXECUTIONS: undefined,
+                BROWSER: undefined,
+              },
+            },
+          ],
         },
       },
     },
