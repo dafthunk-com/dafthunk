@@ -135,7 +135,13 @@ export class GltfWireframeNode extends ExecutableNode {
       const edgeSet = new Set<string>();
       const edgeIndices: number[] = [];
       const edgePositions: number[] = [];
+      const edgeUVs: number[] = [];
       const positionMap = new Map<string, number>();
+      const firstPrimitive = primitives[0];
+
+      // Get UV data from the first primitive if available
+      const uvAccessor = firstPrimitive?.getAttribute("TEXCOORD_0");
+      const uvData = uvAccessor?.getArray() as Float32Array | null;
 
       // Collect all unique edges from all primitives
       primitives.forEach((primitive) => {
@@ -157,34 +163,44 @@ export class GltfWireframeNode extends ExecutableNode {
         }
       });
 
-      // Convert edges to position data
+      // Convert edges to position and UV data
       edgeSet.forEach((edgeKey) => {
         const [i0Str, i1Str] = edgeKey.split("-");
         const i0 = parseInt(i0Str);
         const i1 = parseInt(i1Str);
 
         // Get position key
-        const pos0Key = this.getPrimitivePositionKey(primitives[0], i0);
-        const pos1Key = this.getPrimitivePositionKey(primitives[0], i1);
+        const pos0Key = this.getPrimitivePositionKey(firstPrimitive, i0);
+        const pos1Key = this.getPrimitivePositionKey(firstPrimitive, i1);
 
         if (!pos0Key || !pos1Key) return;
 
-        // Map positions if not already mapped
+        // Map positions and UVs if not already mapped
         if (!positionMap.has(pos0Key)) {
-          const pos = this.getPositionFromPrimitive(primitives[0], i0);
+          const pos = this.getPositionFromPrimitive(firstPrimitive, i0);
           if (pos) {
             const newIndex = edgePositions.length / 3;
             positionMap.set(pos0Key, newIndex);
             edgePositions.push(pos[0], pos[1], pos[2]);
+
+            // Add UV coordinates if available
+            if (uvData) {
+              edgeUVs.push(uvData[i0 * 2], uvData[i0 * 2 + 1]);
+            }
           }
         }
 
         if (!positionMap.has(pos1Key)) {
-          const pos = this.getPositionFromPrimitive(primitives[0], i1);
+          const pos = this.getPositionFromPrimitive(firstPrimitive, i1);
           if (pos) {
             const newIndex = edgePositions.length / 3;
             positionMap.set(pos1Key, newIndex);
             edgePositions.push(pos[0], pos[1], pos[2]);
+
+            // Add UV coordinates if available
+            if (uvData) {
+              edgeUVs.push(uvData[i1 * 2], uvData[i1 * 2 + 1]);
+            }
           }
         }
 
@@ -195,6 +211,9 @@ export class GltfWireframeNode extends ExecutableNode {
           edgeIndices.push(idx0, idx1);
         }
       });
+
+      // Get the original material from the first primitive (if it has one)
+      const originalMaterial = firstPrimitive?.getMaterial();
 
       // Remove all original face primitives
       primitives.forEach((primitive) => {
@@ -222,8 +241,24 @@ export class GltfWireframeNode extends ExecutableNode {
           .createPrimitive()
           .setMode(1) // LINE mode
           .setAttribute("POSITION", positionAccessor)
-          .setIndices(indexAccessor)
-          .setMaterial(wireframeMaterial);
+          .setIndices(indexAccessor);
+
+        // Add UV coordinates if available
+        if (edgeUVs.length > 0) {
+          const uvAccessor = doc
+            .createAccessor()
+            .setType("VEC2")
+            .setArray(new Float32Array(edgeUVs))
+            .setBuffer(buffer);
+          wireframePrimitive.setAttribute("TEXCOORD_0", uvAccessor);
+        }
+
+        // Apply the original material if it exists, otherwise use wireframe material
+        if (originalMaterial) {
+          wireframePrimitive.setMaterial(originalMaterial);
+        } else {
+          wireframePrimitive.setMaterial(wireframeMaterial);
+        }
 
         // Add wireframe primitive as the only primitive in the mesh
         mesh.addPrimitive(wireframePrimitive);
