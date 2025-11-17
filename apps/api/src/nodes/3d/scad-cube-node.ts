@@ -46,7 +46,7 @@ export class ScadCubeNode extends ExecutableNode {
     type: "scad-cube",
     description: "Create a cube primitive geometry",
     tags: ["3D", "Geometry", "Primitive"],
-    icon: "cube",
+    icon: "box3d",
     documentation:
       "Creates a cube with specified dimensions. Size can be a single number for uniform dimensions or [x, y, z] for custom width, height, and depth.",
     inlinable: false,
@@ -105,10 +105,9 @@ export class ScadCubeNode extends ExecutableNode {
 
       // Create cube using Manifold API
       // @ts-ignore – manifold-3d has incomplete TypeScript types
-      cube = manifold.cube(
-        { x: sizeX, y: sizeY, z: sizeZ },
-        center
-      );
+      const { Manifold } = manifold;
+      // @ts-ignore – manifold-3d has incomplete TypeScript types
+      cube = Manifold.cube([sizeX, sizeY, sizeZ], center);
 
       if (!cube) {
         return this.createErrorResult("Failed to create cube geometry");

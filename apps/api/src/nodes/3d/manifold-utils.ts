@@ -5,8 +5,6 @@ import {
   Material,
   NodeIO,
 } from "@gltf-transform/core";
-// @ts-ignore – manifold-3d has incomplete TypeScript types
-import Module from "manifold-3d";
 
 /**
  * Manifold mesh type - represented as a WASM object with geometry data
@@ -21,14 +19,106 @@ export interface ManifoldMesh {
 }
 
 /**
+ * Cache for the initialized Manifold instance and WASM binary
+ */
+let cachedWasmInstance: any = null;
+let cachedWasmBinary: ArrayBuffer | null = null;
+
+/**
  * Initialize and return the Manifold WASM module
- * This should be called once per execution
+ * This should be called once per execution.
+ * Works in Cloudflare Workers by dynamically importing Module after setting
+ * up the proper environment, preventing Node.js API usage during initialization.
  */
 export async function initializeManifold() {
   try {
-    const wasm = await Module();
-    return wasm;
+    // Return cached instance if already initialized
+    if (cachedWasmInstance) {
+      console.log("[Manifold] Using cached instance");
+      return cachedWasmInstance;
+    }
+
+    const wasmUrl = "https://unpkg.com/manifold-3d@3.3.2/manifold.wasm";
+    console.log("[Manifold] Fetching WASM from:", wasmUrl);
+
+    // Fetch WASM binary only once
+    if (!cachedWasmBinary) {
+      const response = await fetch(wasmUrl);
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch WASM from CDN: ${response.status} ${response.statusText}`
+        );
+      }
+      cachedWasmBinary = await response.arrayBuffer();
+      console.log(
+        "[Manifold] WASM fetched from CDN, size:",
+        cachedWasmBinary.byteLength
+      );
+    }
+
+    // Save original globals to restore later
+    const originalProcess = (globalThis as any).process;
+    const originalRequire = (globalThis as any).require;
+    const originalImportMeta = (globalThis as any).import?.meta;
+
+    try {
+      // Prevent Manifold from trying to use Node.js APIs
+      // Deleting process and require forces it to use the wasmBinary we provide
+      delete (globalThis as any).process;
+      delete (globalThis as any).require;
+
+      // Set import.meta.url to prevent URL parsing errors
+      // This must be set before Module is initialized
+      if (!(globalThis as any).import) {
+        (globalThis as any).import = {};
+      }
+      (globalThis as any).import.meta = {
+        url: "https://unpkg.com/manifold-3d@3.3.2/", // Safe base URL for resource location
+      };
+
+      console.log("[Manifold] Dynamically importing and initializing Module...");
+
+      // Dynamically import Module only after environment is set up
+      // This ensures manifold.js code runs in the modified environment
+      // @ts-ignore – manifold-3d has incomplete TypeScript types
+      const { default: Module } = await import("manifold-3d");
+
+      // Initialize Module with the pre-fetched WASM binary
+      // @ts-ignore – manifold-3d has incomplete TypeScript types
+      cachedWasmInstance = await Module({
+        // @ts-ignore – wasmBinary is not in types but is supported by manifold-3d
+        wasmBinary: cachedWasmBinary,
+      });
+
+      // @ts-ignore – manifold-3d has incomplete TypeScript types
+      if (!cachedWasmInstance || typeof cachedWasmInstance.setup !== "function") {
+        throw new Error("Module initialization failed - no setup function");
+      }
+
+      cachedWasmInstance.setup();
+      console.log("[Manifold] Successfully initialized");
+    } finally {
+      // Restore original globals
+      if (originalProcess) {
+        (globalThis as any).process = originalProcess;
+      } else {
+        delete (globalThis as any).process;
+      }
+      if (originalRequire) {
+        (globalThis as any).require = originalRequire;
+      } else {
+        delete (globalThis as any).require;
+      }
+      if (originalImportMeta) {
+        (globalThis as any).import.meta = originalImportMeta;
+      } else if ((globalThis as any).import) {
+        delete (globalThis as any).import;
+      }
+    }
+
+    return cachedWasmInstance;
   } catch (error) {
+    console.error("[Manifold] Initialization error:", error);
     throw new Error(
       `Failed to initialize Manifold library: ${error instanceof Error ? error.message : String(error)}`
     );
