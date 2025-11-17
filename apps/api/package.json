@@ -68,6 +68,7 @@
     "jose": "^6.1.0",
     "jsonpath-plus": "^10.3.0",
     "mailparser": "^3.7.4",
+    "manifold-3d": "^3.3.2",
     "openai": "^5.20.3",
     "resend": "^6.1.0",
     "twilio": "^5.9.0",
