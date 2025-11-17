@@ -495,7 +495,7 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       return state;
     }
 
-    this.env.COMPUTE.writeDataPoint({
+    this.env.COMPUTE?.writeDataPoint({
       indexes: [context.organizationId],
       blobs: [context.organizationId, context.workflowId, node.id],
       doubles: [nodeType.computeCost ?? 1],
