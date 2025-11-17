@@ -1,4 +1,4 @@
-WEB_HOST=http://localhost:3000
+WEB_HOST=http://localhost:3001
 
 EMAIL_DOMAIN=dafthunk.com
 

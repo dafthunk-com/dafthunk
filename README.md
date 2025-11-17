@@ -91,7 +91,7 @@ Our collection of carefully selected technologies, guaranteed to be outdated by 
    Required environment variables in `apps/api/.dev.vars`:
 
    ```
-   WEB_HOST=http://localhost:3000
+   WEB_HOST=http://localhost:3001
    CLOUDFLARE_ENV=development
 
    JWT_SECRET=your_32_character_secret_here
@@ -105,7 +105,7 @@ Our collection of carefully selected technologies, guaranteed to be outdated by 
    - Create new OAuth App with:
      - Application Name: `Dafthunk Dev`
      - Homepage URL: `http://localhost:3000`
-     - Authorization callback URL: `http://localhost:3001/auth/login/github`
+     - Authorization callback URL: `http://localhost:3002/auth/login/github`
    - Copy the Client ID and generate a new client secret
    - Add them to your `.dev.vars` file:
 
@@ -118,7 +118,7 @@ Our collection of carefully selected technologies, guaranteed to be outdated by 
    - Go to [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
    - Create a new OAuth 2.0 Client ID with:
      - Application type: `Web application`
-     - Authorized redirect URIs: `http://localhost:3001/auth/login/google`
+     - Authorized redirect URIs: `http://localhost:3002/auth/login/google`
    - Copy the Client ID and Client Secret
    - Add them to your `.dev.vars` file:
 
@@ -133,7 +133,7 @@ Our collection of carefully selected technologies, guaranteed to be outdated by 
    - Go to [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
    - Create a **separate** OAuth 2.0 Client ID (or use a different project):
      - Application type: `Web application`
-     - Authorized redirect URIs: `http://localhost:3001/oauth/google-mail/connect`
+     - Authorized redirect URIs: `http://localhost:3002/oauth/google-mail/connect`
      - Enable Gmail API in [API Library](https://console.cloud.google.com/apis/library/gmail.googleapis.com)
    - Copy the Client ID and Client Secret
    - Add them to your `.dev.vars` file:
@@ -147,7 +147,7 @@ Our collection of carefully selected technologies, guaranteed to be outdated by 
    - Go to [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
    - Create a **separate** OAuth 2.0 Client ID (or use a different project):
      - Application type: `Web application`
-     - Authorized redirect URIs: `http://localhost:3001/oauth/google-calendar/connect`
+     - Authorized redirect URIs: `http://localhost:3002/oauth/google-calendar/connect`
      - Enable Google Calendar API in [API Library](https://console.cloud.google.com/apis/library/calendar-json.googleapis.com)
    - Copy the Client ID and Client Secret
    - Add them to your `.dev.vars` file:
@@ -161,7 +161,7 @@ Our collection of carefully selected technologies, guaranteed to be outdated by 
    - Go to [Discord Developer Portal](https://discord.com/developers/applications)
    - Create a new application
    - Go to OAuth2 settings and add redirect URI:
-     - Redirect URI: `http://localhost:3001/oauth/discord/connect`
+     - Redirect URI: `http://localhost:3002/oauth/discord/connect`
    - Copy the Client ID and Client Secret from the OAuth2 page
    - Add them to your `.dev.vars` file:
 
@@ -176,7 +176,7 @@ Our collection of carefully selected technologies, guaranteed to be outdated by 
    - Fill in the form:
      - Name: Dafthunk (or your app name)
      - App type: `web app`
-     - Redirect URI: `http://localhost:3001/oauth/reddit/connect`
+     - Redirect URI: `http://localhost:3002/oauth/reddit/connect`
    - Click "create app"
    - Copy the Client ID (shown under the app name) and Client Secret
    - Add them to your `.dev.vars` file:
@@ -190,7 +190,7 @@ Our collection of carefully selected technologies, guaranteed to be outdated by 
    - Go to [LinkedIn Developers](https://www.linkedin.com/developers/apps)
    - Create a new app
    - In the Auth tab, add redirect URL:
-     - Redirect URL: `http://localhost:3001/oauth/linkedin/connect`
+     - Redirect URL: `http://localhost:3002/oauth/linkedin/connect`
    - Request access to the "Sign In with LinkedIn using OpenID Connect" and "Share on LinkedIn" products
    - Copy the Client ID and Client Secret
    - Add them to your `.dev.vars` file:
@@ -206,7 +206,7 @@ Our collection of carefully selected technologies, guaranteed to be outdated by 
    - Fill in the form:
      - Application name: Dafthunk (or your app name)
      - Homepage URL: `http://localhost:3000`
-     - Authorization callback URL: `http://localhost:3001/oauth/github/connect`
+     - Authorization callback URL: `http://localhost:3002/oauth/github/connect`
    - Click "Register application"
    - Copy the Client ID and generate a Client Secret
    - Add them to your `.dev.vars` file:
@@ -287,7 +287,7 @@ Our collection of carefully selected technologies, guaranteed to be outdated by 
    pnpm dev
    ```
 
-10. Open your browser and navigate to `http://localhost:3000`. Prepare to either celebrate or debug.
+10. Open your browser and navigate to `http://localhost:3000` (website) or `http://localhost:3001` (app). Prepare to either celebrate or debug.
 
 ## 👨‍💻 Development
 
