@@ -15,7 +15,7 @@ export class GltfPreviewNode extends ExecutableNode {
     type: "preview-gltf",
     description: "Display and preview glTF 3D model data",
     tags: ["Widget", "Preview", "3D", "glTF"],
-    icon: "cube",
+    icon: "box",
     documentation:
       "This node displays glTF 3D model data in the workflow. The model reference is persisted for viewing in read-only execution and deployed workflow views. No data is duplicated - the model passes through unchanged.",
     inlinable: true,
