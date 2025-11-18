@@ -2,13 +2,7 @@ import { NodeExecution, NodeType } from "@dafthunk/types";
 import { z } from "zod";
 
 import { ExecutableNode, NodeContext } from "../types";
-import {
-  cleanupMesh,
-  getMeshStats,
-  initializeManifold,
-  manifoldToGLTF,
-  ManifoldMesh,
-} from "./manifold-utils";
+import { executeManifoldCode, glTFToGLB } from "./manifold-utils";
 
 export class ScadCubeNode extends ExecutableNode {
   private static readonly cubeInputSchema = z.object({
@@ -86,38 +80,32 @@ export class ScadCubeNode extends ExecutableNode {
   };
 
   public async execute(context: NodeContext): Promise<NodeExecution> {
-    let manifold: Awaited<ReturnType<typeof initializeManifold>> | null = null;
-    let cube: ManifoldMesh | null = null;
-
     try {
       const validatedInput = ScadCubeNode.cubeInputSchema.parse(
         context.inputs
       );
       const { size, center, materialProperties } = validatedInput;
 
-      // Initialize Manifold WASM
-      manifold = await initializeManifold();
-
       // Parse size into [x, y, z]
       const [sizeX, sizeY, sizeZ] = Array.isArray(size)
         ? size
         : [size, size, size];
 
-      // Create cube using Manifold API
-      // @ts-ignore – manifold-3d has incomplete TypeScript types
-      const { Manifold } = manifold;
-      // @ts-ignore – manifold-3d has incomplete TypeScript types
-      cube = Manifold.cube([sizeX, sizeY, sizeZ], center);
+      // Generate ManifoldCAD code to create the cube
+      // The cube function in ManifoldCAD creates a cube with the given dimensions
+      // centered at the origin if center is true, otherwise at [0,0,0]
+      const cubeCode = `
+        let cube = cube([${sizeX}, ${sizeY}, ${sizeZ}], ${center});
+        cube
+      `.trim();
 
-      if (!cube) {
-        return this.createErrorResult("Failed to create cube geometry");
-      }
+      console.log("[ScadCubeNode] Executing ManifoldCAD code:", cubeCode);
 
-      // Get mesh statistics
-      const stats = getMeshStats(cube);
+      // Execute the ManifoldCAD code
+      const result = await executeManifoldCode(cubeCode);
 
-      // Convert to glTF
-      const glbData = await manifoldToGLTF(cube, materialProperties);
+      // Convert glTF document to GLB binary format
+      const glbData = await glTFToGLB(result.document, materialProperties);
 
       return this.createSuccessResult({
         mesh: {
@@ -125,8 +113,8 @@ export class ScadCubeNode extends ExecutableNode {
           mimeType: "model/gltf-binary" as const,
         },
         metadata: {
-          vertexCount: stats.vertexCount,
-          triangleCount: stats.triangleCount,
+          vertexCount: result.stats.vertexCount,
+          triangleCount: result.stats.triangleCount,
           dimensions: { x: sizeX, y: sizeY, z: sizeZ },
           centered: center,
           hasMaterial: !!materialProperties,
@@ -143,11 +131,6 @@ export class ScadCubeNode extends ExecutableNode {
       return this.createErrorResult(
         `Cube creation failed: ${error instanceof Error ? error.message : String(error)}`
       );
-    } finally {
-      // Clean up WASM memory
-      if (cube) {
-        cleanupMesh(cube);
-      }
     }
   }
 }
