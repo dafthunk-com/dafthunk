@@ -2,13 +2,7 @@ import { NodeExecution, NodeType } from "@dafthunk/types";
 import { z } from "zod";
 
 import { ExecutableNode, NodeContext } from "../types";
-import {
-  cleanupMesh,
-  getMeshStats,
-  initializeManifold,
-  manifoldToGLTF,
-  ManifoldMesh,
-} from "./manifold-utils";
+import { createCube, glTFToGLB } from "./manifold-utils";
 
 export class ScadCubeNode extends ExecutableNode {
   private static readonly cubeInputSchema = z.object({
@@ -86,38 +80,24 @@ export class ScadCubeNode extends ExecutableNode {
   };
 
   public async execute(context: NodeContext): Promise<NodeExecution> {
-    let manifold: Awaited<ReturnType<typeof initializeManifold>> | null = null;
-    let cube: ManifoldMesh | null = null;
-
     try {
       const validatedInput = ScadCubeNode.cubeInputSchema.parse(
         context.inputs
       );
       const { size, center, materialProperties } = validatedInput;
 
-      // Initialize Manifold WASM
-      manifold = await initializeManifold();
+      console.log("[ScadCubeNode] Creating cube with size:", size, "center:", center);
 
-      // Parse size into [x, y, z]
+      // Create the cube using the direct Manifold API
+      const result = await createCube(size, center);
+
+      // Convert glTF document to GLB binary format
+      const glbData = await glTFToGLB(result.document, materialProperties);
+
+      // Parse size for metadata
       const [sizeX, sizeY, sizeZ] = Array.isArray(size)
         ? size
         : [size, size, size];
-
-      // Create cube using Manifold API
-      // @ts-ignore – manifold-3d has incomplete TypeScript types
-      const { Manifold } = manifold;
-      // @ts-ignore – manifold-3d has incomplete TypeScript types
-      cube = Manifold.cube([sizeX, sizeY, sizeZ], center);
-
-      if (!cube) {
-        return this.createErrorResult("Failed to create cube geometry");
-      }
-
-      // Get mesh statistics
-      const stats = getMeshStats(cube);
-
-      // Convert to glTF
-      const glbData = await manifoldToGLTF(cube, materialProperties);
 
       return this.createSuccessResult({
         mesh: {
@@ -125,8 +105,8 @@ export class ScadCubeNode extends ExecutableNode {
           mimeType: "model/gltf-binary" as const,
         },
         metadata: {
-          vertexCount: stats.vertexCount,
-          triangleCount: stats.triangleCount,
+          vertexCount: result.stats.vertexCount,
+          triangleCount: result.stats.triangleCount,
           dimensions: { x: sizeX, y: sizeY, z: sizeZ },
           centered: center,
           hasMaterial: !!materialProperties,
@@ -143,11 +123,6 @@ export class ScadCubeNode extends ExecutableNode {
       return this.createErrorResult(
         `Cube creation failed: ${error instanceof Error ? error.message : String(error)}`
       );
-    } finally {
-      // Clean up WASM memory
-      if (cube) {
-        cleanupMesh(cube);
-      }
     }
   }
 }
