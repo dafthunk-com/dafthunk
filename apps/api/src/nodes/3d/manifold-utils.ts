@@ -7,6 +7,8 @@ import {
 } from "@gltf-transform/core";
 // @ts-ignore – manifold-3d has incomplete TypeScript types
 import { evaluate } from "manifold-3d/lib/worker.bundled.js";
+// @ts-ignore – manifold-3d has incomplete TypeScript types
+import { setWasmUrl } from "manifold-3d/lib/bundler.js";
 
 /**
  * Represents a glTF document with metadata about the mesh
@@ -20,6 +22,11 @@ export interface ManifoldGLTFResult {
 }
 
 /**
+ * Track if esbuild WASM has been initialized
+ */
+let esbuildWasmInitialized = false;
+
+/**
  * Execute ManifoldCAD code and return the resulting glTF document
  * This uses the worker-specific API that's compatible with Cloudflare Workers
  */
@@ -27,6 +34,15 @@ export async function executeManifoldCode(
   code: string
 ): Promise<ManifoldGLTFResult> {
   try {
+    // Initialize esbuild WASM URL on first call
+    if (!esbuildWasmInitialized) {
+      const esbuildWasmUrl = "https://unpkg.com/esbuild-wasm@0.25.11/esbuild.wasm";
+      console.log("[Manifold] Initializing esbuild-wasm URL:", esbuildWasmUrl);
+      // @ts-ignore – manifold-3d has incomplete TypeScript types
+      setWasmUrl(esbuildWasmUrl);
+      esbuildWasmInitialized = true;
+    }
+
     console.log("[Manifold] Evaluating ManifoldCAD code...");
 
     // @ts-ignore – manifold-3d has incomplete TypeScript types
