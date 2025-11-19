@@ -7,9 +7,11 @@ import {
 import {
   BoxGeometry,
   BufferGeometry,
-  SphereGeometry,
+  ConeGeometry,
   CylinderGeometry,
   Float32BufferAttribute,
+  SphereGeometry,
+  TorusGeometry,
   Uint32BufferAttribute,
 } from "three";
 import { Brush, Evaluator, ADDITION, SUBTRACTION, INTERSECTION } from "three-bvh-csg";
@@ -93,6 +95,51 @@ export function createCylinderBrush(
   if (center) {
     brush.position.y = -height / 2;
   }
+
+  return brush;
+}
+
+/**
+ * Create a cone brush with specified dimensions
+ */
+export function createConeBrush(
+  height: number,
+  radius: number = 1,
+  radialSegments: number = 32,
+  heightSegments: number = 1,
+  openEnded: boolean = false,
+  center: boolean = false
+): Brush {
+  console.log(
+    `[CSG] Creating cone brush: height=${height}, radius=${radius}, radialSegments=${radialSegments}, center=${center}`
+  );
+
+  const geometry = new ConeGeometry(radius, height, radialSegments, heightSegments, openEnded);
+  const brush = new Brush(geometry);
+
+  // Handle centering via position
+  if (center) {
+    brush.position.y = -height / 2;
+  }
+
+  return brush;
+}
+
+/**
+ * Create a torus brush with specified dimensions
+ */
+export function createTorusBrush(
+  radius: number = 1,
+  tubeRadius: number = 0.4,
+  radialSegments: number = 16,
+  tubularSegments: number = 8
+): Brush {
+  console.log(
+    `[CSG] Creating torus brush: radius=${radius}, tubeRadius=${tubeRadius}, radialSegments=${radialSegments}, tubularSegments=${tubularSegments}`
+  );
+
+  const geometry = new TorusGeometry(radius, tubeRadius, radialSegments, tubularSegments);
+  const brush = new Brush(geometry);
 
   return brush;
 }
