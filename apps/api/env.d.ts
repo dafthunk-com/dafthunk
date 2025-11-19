@@ -10,7 +10,8 @@ declare module "cloudflare:test" {
 }
 
 // WASM module declarations for Cloudflare Workers
+// Import WASM files as ArrayBuffer (raw bytes), not as compiled modules
 declare module "*.wasm" {
-  const wasmModule: WebAssembly.Module;
-  export default wasmModule;
+  const wasmBinary: ArrayBuffer;
+  export default wasmBinary;
 }

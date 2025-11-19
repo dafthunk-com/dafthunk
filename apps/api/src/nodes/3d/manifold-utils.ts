@@ -33,26 +33,36 @@ let manifoldModule: any = null;
 async function getManifold() {
   if (!manifoldModule) {
     console.log("[Manifold] Initializing Manifold WASM module...");
+    console.log(
+      "[Manifold] wasmBinary type:",
+      typeof wasmBinary,
+      "is WebAssembly.Module:",
+      wasmBinary instanceof WebAssembly.Module
+    );
+    console.log("[Manifold] wasmBinary value:", wasmBinary);
     try {
-      // Use Emscripten's instantiateWasm callback pattern for pre-imported WASM binary
-      // @ts-ignore – manifold-3d type definitions don't match instantiateWasm signature
+      // Use instantiateWasm to provide a pre-compiled WebAssembly.Module
+      // The wasmBinary here is a WebAssembly.Module (compiled by Wrangler)
       const moduleConfig: any = {
         instantiateWasm: (imports: any, successCallback: any) => {
-          console.log("[Manifold] Instantiating WASM module...");
-          WebAssembly.instantiate(wasmBinary, imports)
-            .then((wasmInstance) => {
-              console.log("[Manifold] WASM instantiation successful");
-              successCallback(wasmInstance);
-            })
-            .catch((error) => {
-              console.error("[Manifold] WASM instantiation failed:", error);
-              throw error;
-            });
-          return {}; // Return empty object to indicate async instantiation
+          console.log("[Manifold] instantiateWasm callback invoked");
+          try {
+            // wasmBinary is a WebAssembly.Module, create an instance
+            const wasmInstance = new WebAssembly.Instance(
+              wasmBinary as WebAssembly.Module,
+              imports
+            );
+            console.log("[Manifold] WASM instance created successfully");
+            successCallback(wasmInstance);
+            return {}; // Return empty object to indicate async instantiation
+          } catch (error) {
+            console.error("[Manifold] WASM instantiation failed:", error);
+            throw error;
+          }
         },
-        locateFile: () => "manifold.wasm", // Fallback, won't be called
       };
 
+      console.log("[Manifold] Calling Module() with instantiateWasm...");
       manifoldModule = await Module(moduleConfig);
       manifoldModule.setup();
       console.log("[Manifold] Module setup completed");
