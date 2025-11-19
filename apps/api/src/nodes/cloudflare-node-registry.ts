@@ -4,6 +4,7 @@ import { GeoTiffMetadataReaderNode } from "./3d/geotiff-metadata-reader-node";
 import { GeoTiffQueryNode } from "./3d/geotiff-query-node";
 import { GeoTiffTransformNode } from "./3d/geotiff-transform-node";
 import { GltfWireframeNode } from "./3d/gltf-wireframe-node";
+import { ScadCubeNode } from "./3d/scad-cube-node";
 import { Claude3OpusNode } from "./anthropic/claude-3-opus-node";
 import { Claude35HaikuNode } from "./anthropic/claude-35-haiku-node";
 import { Claude35SonnetNode } from "./anthropic/claude-35-sonnet-node";
@@ -716,6 +717,11 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
       this.registerImplementation(GeoTiffQueryNode);
       this.registerImplementation(GeoTiffTransformNode);
       this.registerImplementation(GltfWireframeNode);
+    }
+
+    // CSG geometry nodes
+    if (this.developerMode) {
+      this.registerImplementation(ScadCubeNode);
     }
 
     // Geo nodes
