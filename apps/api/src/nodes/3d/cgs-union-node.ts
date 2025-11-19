@@ -11,10 +11,22 @@ import {
 export class CgsUnionNode extends ExecutableNode {
   private static readonly unionInputSchema = z.object({
     meshA: z
-      .instanceof(Uint8Array)
+      .union([
+        z.instanceof(Uint8Array),
+        z.object({
+          data: z.instanceof(Uint8Array),
+          mimeType: z.string().optional(),
+        }),
+      ])
       .describe("First mesh (GLB binary format)"),
     meshB: z
-      .instanceof(Uint8Array)
+      .union([
+        z.instanceof(Uint8Array),
+        z.object({
+          data: z.instanceof(Uint8Array),
+          mimeType: z.string().optional(),
+        }),
+      ])
       .describe("Second mesh (GLB binary format)"),
     materialProperties: z
       .object({
@@ -79,15 +91,19 @@ export class CgsUnionNode extends ExecutableNode {
 
       console.log("[CgsUnionNode] Performing union operation...");
 
+      // Extract GLB data from mesh inputs (handle both raw Uint8Array and mesh object formats)
+      const meshAData = meshA instanceof Uint8Array ? meshA : meshA.data;
+      const meshBData = meshB instanceof Uint8Array ? meshB : meshB.data;
+
       // Parse GLB data back to brushes
-      const brushA = await glTFToBrush(meshA);
-      const brushB = await glTFToBrush(meshB);
+      const brushA = await glTFToBrush(meshAData);
+      const brushB = await glTFToBrush(meshBData);
 
       // Perform union operation
-      const resultGLB = await performUnion(brushA, brushB, materialProperties);
+      const { glb: resultGLB, resultBrush } = await performUnion(brushA, brushB, materialProperties);
 
-      // Extract statistics from result
-      const resultStats = extractBrushStats(brushA); // Use brushA for structure, result will have similar counts
+      // Extract statistics from result brush
+      const resultStats = extractBrushStats(resultBrush);
 
       return this.createSuccessResult({
         mesh: {

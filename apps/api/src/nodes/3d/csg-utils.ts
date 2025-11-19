@@ -41,6 +41,14 @@ export function createCubeBrush(
   );
 
   const geometry = new BoxGeometry(sizeX, sizeY, sizeZ);
+  // Compute normals - required for CSG operations
+  geometry.computeVertexNormals();
+
+  // Remove UV attributes to avoid CSG evaluator issues
+  if (geometry.hasAttribute("uv")) {
+    geometry.deleteAttribute("uv");
+  }
+
   const brush = new Brush(geometry);
 
   // Handle centering via position
@@ -64,6 +72,14 @@ export function createSphereBrush(
   );
 
   const geometry = new SphereGeometry(radius, widthSegments, heightSegments);
+  // Compute normals - required for CSG operations
+  geometry.computeVertexNormals();
+
+  // Remove UV attributes to avoid CSG evaluator issues
+  if (geometry.hasAttribute("uv")) {
+    geometry.deleteAttribute("uv");
+  }
+
   const brush = new Brush(geometry);
 
   return brush;
@@ -89,6 +105,14 @@ export function createCylinderBrush(
     height,
     radialSegments
   );
+  // Compute normals - required for CSG operations
+  geometry.computeVertexNormals();
+
+  // Remove UV attributes to avoid CSG evaluator issues
+  if (geometry.hasAttribute("uv")) {
+    geometry.deleteAttribute("uv");
+  }
+
   const brush = new Brush(geometry);
 
   // Handle centering
@@ -115,6 +139,14 @@ export function createConeBrush(
   );
 
   const geometry = new ConeGeometry(radius, height, radialSegments, heightSegments, openEnded);
+  // Compute normals - required for CSG operations
+  geometry.computeVertexNormals();
+
+  // Remove UV attributes to avoid CSG evaluator issues
+  if (geometry.hasAttribute("uv")) {
+    geometry.deleteAttribute("uv");
+  }
+
   const brush = new Brush(geometry);
 
   // Handle centering via position
@@ -139,6 +171,14 @@ export function createTorusBrush(
   );
 
   const geometry = new TorusGeometry(radius, tubeRadius, radialSegments, tubularSegments);
+  // Compute normals - required for CSG operations
+  geometry.computeVertexNormals();
+
+  // Remove UV attributes to avoid CSG evaluator issues
+  if (geometry.hasAttribute("uv")) {
+    geometry.deleteAttribute("uv");
+  }
+
   const brush = new Brush(geometry);
 
   return brush;
@@ -166,17 +206,37 @@ export async function brushToGLTF(
       throw new Error("Brush has no geometry");
     }
 
+    console.log(
+      `[CSG] Brush geometry type: ${geometry?.constructor?.name}, has position: ${!!geometry?.getAttribute("position")}`
+    );
+
     // Create glTF document and buffer
     const document = new Document();
     const buffer = document.createBuffer();
 
     // Extract and convert position data
     const positionAttr = geometry.getAttribute("position");
+    console.log(`[CSG] Position attribute: ${positionAttr ? "found" : "missing"}`);
+
     if (!positionAttr) {
       throw new Error("Geometry has no position attribute");
     }
 
-    const positions = new Float32Array(positionAttr.array as ArrayBuffer);
+    console.log(`[CSG] Position attribute type: ${positionAttr?.constructor?.name}, has array: ${!!positionAttr?.array}, array type: ${positionAttr?.array?.constructor?.name}`);
+
+    // Ensure position data exists - use safer access
+    const posArray = positionAttr?.array;
+    if (!posArray) {
+      throw new Error(
+        `Position attribute array is invalid - attribute exists but array is ${posArray ? "present" : "missing"}`
+      );
+    }
+
+    const positions = new Float32Array(posArray);
+    if (positions.length === 0) {
+      throw new Error("Position array is empty");
+    }
+
     const positionAccessor = document
       .createAccessor()
       .setType("VEC3")
@@ -191,7 +251,12 @@ export async function brushToGLTF(
     // Extract and convert index data if present
     const indexData = geometry.getIndex();
     if (indexData) {
-      const indices = new Uint32Array(indexData.array as ArrayBuffer);
+      if (!indexData.array) {
+        throw new Error(
+          `Index data is invalid - indexData exists but array is ${indexData.array ? "present" : "missing"}`
+        );
+      }
+      const indices = new Uint32Array(indexData.array);
       const indexAccessor = document
         .createAccessor()
         .setType("SCALAR")
@@ -203,13 +268,17 @@ export async function brushToGLTF(
     // Extract and convert normal data if present
     const normalAttr = geometry.getAttribute("normal");
     if (normalAttr) {
-      const normals = new Float32Array(normalAttr.array as ArrayBuffer);
-      const normalAccessor = document
-        .createAccessor()
-        .setType("VEC3")
-        .setArray(normals)
-        .setBuffer(buffer);
-      primitive.setAttribute("NORMAL", normalAccessor);
+      if (!normalAttr.array) {
+        console.warn("[CSG] Normal attribute exists but has no array data, skipping normals");
+      } else {
+        const normals = new Float32Array(normalAttr.array);
+        const normalAccessor = document
+          .createAccessor()
+          .setType("VEC3")
+          .setArray(normals)
+          .setBuffer(buffer);
+        primitive.setAttribute("NORMAL", normalAccessor);
+      }
     }
 
     // Apply PBR material if provided
@@ -221,7 +290,11 @@ export async function brushToGLTF(
     // Create mesh, node, and scene
     const mesh = document.createMesh().addPrimitive(primitive);
     const node = document.createNode().setMesh(mesh);
-    const scene = document.getRoot().getDefaultScene() || document.createScene();
+    let scene = document.getRoot().getDefaultScene();
+    if (!scene) {
+      scene = document.createScene();
+      document.getRoot().setDefaultScene(scene);
+    }
     scene.addChild(node);
 
     // Export as GLB binary
@@ -231,6 +304,10 @@ export async function brushToGLTF(
     console.log("[CSG] glTF export completed");
     return glbData;
   } catch (error) {
+    console.error("[CSG] Error converting brush to glTF:", error);
+    if (error instanceof Error) {
+      console.error("[CSG] Stack trace:", error.stack);
+    }
     throw new Error(
       `Failed to convert brush to glTF: ${error instanceof Error ? error.message : String(error)}`
     );
@@ -255,11 +332,15 @@ export async function glTFToBrush(glbData: Uint8Array): Promise<Brush> {
       throw new Error("No scene found in glTF document");
     }
 
+    console.log("[CSG] Scene found, listing children...");
+
     // Find the first mesh in the scene
     const meshNodes = scene.listChildren().filter((node) => node.getMesh());
     if (meshNodes.length === 0) {
       throw new Error("No mesh found in scene");
     }
+
+    console.log(`[CSG] Found ${meshNodes.length} mesh nodes`);
 
     const mesh = meshNodes[0].getMesh();
     if (!mesh) {
@@ -272,6 +353,8 @@ export async function glTFToBrush(glbData: Uint8Array): Promise<Brush> {
       throw new Error("No primitives found in mesh");
     }
 
+    console.log(`[CSG] Found ${primitives.length} primitives`);
+
     const primitive = primitives[0];
 
     // Create BufferGeometry from the primitive
@@ -283,21 +366,67 @@ export async function glTFToBrush(glbData: Uint8Array): Promise<Brush> {
       throw new Error("Position attribute not found");
     }
 
-    const positions = positionAccessor.getArray() as Float32Array;
+    let positions = positionAccessor.getArray();
+    if (!positions) {
+      throw new Error("Position data could not be extracted from accessor");
+    }
+
+    // Ensure positions is a proper Float32Array (make a copy if needed)
+    if (!(positions instanceof Float32Array)) {
+      console.log(`[CSG] Position array is ${positions?.constructor?.name}, converting to Float32Array`);
+      positions = new Float32Array(positions as ArrayLike<number>);
+    }
+
     geometry.setAttribute("position", new Float32BufferAttribute(positions, 3));
 
     // Extract normal attribute if present
     const normalAccessor = primitive.getAttribute("NORMAL");
     if (normalAccessor) {
-      const normals = normalAccessor.getArray() as Float32Array;
-      geometry.setAttribute("normal", new Float32BufferAttribute(normals, 3));
+      let normals = normalAccessor.getArray();
+      if (normals) {
+        // Ensure normals is a proper Float32Array (make a copy if needed)
+        if (!(normals instanceof Float32Array)) {
+          console.log(`[CSG] Normal array is ${normals?.constructor?.name}, converting to Float32Array`);
+          normals = new Float32Array(normals as ArrayLike<number>);
+        }
+        geometry.setAttribute("normal", new Float32BufferAttribute(normals, 3));
+      } else {
+        console.warn("[CSG] Normal accessor found but getArray returned undefined, skipping normals");
+      }
     }
 
     // Extract indices if present
     const indexAccessor = primitive.getIndices();
     if (indexAccessor) {
-      const indices = indexAccessor.getArray() as Uint32Array;
+      let indices = indexAccessor.getArray();
+      if (!indices) {
+        throw new Error("Index data could not be extracted from accessor");
+      }
+
+      // Ensure indices is a proper Uint32Array (make a copy if needed)
+      if (!(indices instanceof Uint32Array)) {
+        console.log(`[CSG] Index array is ${indices?.constructor?.name}, converting to Uint32Array`);
+        indices = new Uint32Array(indices as ArrayLike<number>);
+      }
+
       geometry.setIndex(new Uint32BufferAttribute(indices, 1));
+    }
+
+    // Ensure the geometry has proper normals (required for CSG operations)
+    console.log("[CSG] Checking/computing normals for parsed geometry...");
+    if (!geometry.getAttribute("normal")) {
+      console.log("[CSG] No normal attribute found, computing normals...");
+      geometry.computeVertexNormals();
+    } else {
+      console.log("[CSG] Normal attribute exists, recomputing to ensure consistency...");
+      // Recompute normals to ensure they're properly oriented
+      geometry.computeVertexNormals();
+    }
+
+    // Delete any UV attributes that might cause issues
+    if (geometry.hasAttribute("uv")) {
+      console.log("[CSG] Removing UV attribute to prevent evaluator conflicts");
+      geometry.deleteAttribute("uv");
     }
 
     // Create and return Brush
@@ -318,28 +447,43 @@ export function extractBrushStats(brush: Brush): {
   vertexCount: number;
   triangleCount: number;
 } {
-  // Brush extends Mesh, so it has a geometry property
-  const geometry = (brush as any).geometry as BufferGeometry;
+  try {
+    // Brush extends Mesh, so it has a geometry property
+    const geometry = (brush as any).geometry as BufferGeometry;
 
-  if (!geometry) {
+    console.log(`[CSG] Extracting stats - brush type: ${brush?.constructor?.name}, geometry: ${geometry?.constructor?.name}`);
+
+    if (!geometry) {
+      console.warn("[CSG] No geometry found in brush");
+      return { vertexCount: 0, triangleCount: 0 };
+    }
+
+    const positions = geometry.getAttribute("position");
+    console.log(`[CSG] Positions attribute: ${positions ? "found" : "missing"}, type: ${positions?.constructor?.name}`);
+
+    const vertexCount = positions && typeof positions.count === "number" ? positions.count : 0;
+
+    // Count triangles from index or face count
+    const index = geometry.getIndex();
+    console.log(`[CSG] Index attribute: ${index ? "found" : "missing"}, type: ${index?.constructor?.name}`);
+
+    let triangleCount = 0;
+
+    if (index && typeof index.count === "number") {
+      triangleCount = index.count / 3;
+    } else if (positions && typeof positions.count === "number") {
+      // No index buffer, assume each 3 vertices is a triangle
+      triangleCount = positions.count / 3;
+    }
+
+    return { vertexCount, triangleCount };
+  } catch (error) {
+    console.error("[CSG] Error extracting brush stats:", error);
+    if (error instanceof Error) {
+      console.error("[CSG] Stack trace:", error.stack);
+    }
     return { vertexCount: 0, triangleCount: 0 };
   }
-
-  const positions = geometry.getAttribute("position");
-  const vertexCount = positions ? positions.count : 0;
-
-  // Count triangles from index or face count
-  const index = geometry.getIndex();
-  let triangleCount = 0;
-
-  if (index) {
-    triangleCount = index.count / 3;
-  } else if (positions) {
-    // No index buffer, assume each 3 vertices is a triangle
-    triangleCount = positions.count / 3;
-  }
-
-  return { vertexCount, triangleCount };
 }
 
 /**
@@ -404,6 +548,14 @@ export function createPBRMaterial(
 }
 
 /**
+ * Result of a CSG operation containing both the mesh data and the result brush
+ */
+export interface CSGOperationResult {
+  glb: Uint8Array;
+  resultBrush: Brush;
+}
+
+/**
  * Perform a CSG union operation on two brushes
  */
 export async function performUnion(
@@ -414,11 +566,22 @@ export async function performUnion(
     metallicFactor?: number;
     roughnessFactor?: number;
   }
-): Promise<Uint8Array> {
-  console.log("[CSG] Performing union operation...");
+): Promise<CSGOperationResult> {
+  const statsA = extractBrushStats(brushA);
+  const statsB = extractBrushStats(brushB);
+  console.log(
+    `[CSG] Performing union operation... Input A: ${statsA.vertexCount} vertices, ${statsA.triangleCount} triangles. Input B: ${statsB.vertexCount} vertices, ${statsB.triangleCount} triangles`
+  );
+
   const evaluator = new Evaluator();
+  evaluator.attributes = ["position", "normal"];
   const result = evaluator.evaluate(brushA, brushB, ADDITION);
-  return brushToGLTF(result, materialProperties);
+
+  const resultStats = extractBrushStats(result);
+  console.log(`[CSG] Union complete. Result: ${resultStats.vertexCount} vertices, ${resultStats.triangleCount} triangles`);
+
+  const glb = await brushToGLTF(result, materialProperties);
+  return { glb, resultBrush: result };
 }
 
 /**
@@ -432,11 +595,33 @@ export async function performDifference(
     metallicFactor?: number;
     roughnessFactor?: number;
   }
-): Promise<Uint8Array> {
-  console.log("[CSG] Performing difference operation...");
-  const evaluator = new Evaluator();
-  const result = evaluator.evaluate(brushA, brushB, SUBTRACTION);
-  return brushToGLTF(result, materialProperties);
+): Promise<CSGOperationResult> {
+  try {
+    const statsA = extractBrushStats(brushA);
+    const statsB = extractBrushStats(brushB);
+    console.log(
+      `[CSG] Performing difference operation (A - B)... Input A: ${statsA.vertexCount} vertices, ${statsA.triangleCount} triangles. Input B: ${statsB.vertexCount} vertices, ${statsB.triangleCount} triangles`
+    );
+
+    const evaluator = new Evaluator();
+    evaluator.attributes = ["position", "normal"];
+    const result = evaluator.evaluate(brushA, brushB, SUBTRACTION);
+
+    const resultStats = extractBrushStats(result);
+    console.log(`[CSG] Difference complete. Result: ${resultStats.vertexCount} vertices, ${resultStats.triangleCount} triangles`);
+
+    if (resultStats.vertexCount === 0 || resultStats.triangleCount === 0) {
+      throw new Error(
+        "Difference operation produced empty geometry - the second shape may completely contain the first"
+      );
+    }
+
+    const glb = await brushToGLTF(result, materialProperties);
+    return { glb, resultBrush: result };
+  } catch (error) {
+    console.error("[CSG] Error in performDifference:", error);
+    throw error;
+  }
 }
 
 /**
@@ -450,9 +635,26 @@ export async function performIntersection(
     metallicFactor?: number;
     roughnessFactor?: number;
   }
-): Promise<Uint8Array> {
-  console.log("[CSG] Performing intersection operation...");
+): Promise<CSGOperationResult> {
+  const statsA = extractBrushStats(brushA);
+  const statsB = extractBrushStats(brushB);
+  console.log(
+    `[CSG] Performing intersection operation... Input A: ${statsA.vertexCount} vertices, ${statsA.triangleCount} triangles. Input B: ${statsB.vertexCount} vertices, ${statsB.triangleCount} triangles`
+  );
+
   const evaluator = new Evaluator();
+  evaluator.attributes = ["position", "normal"];
   const result = evaluator.evaluate(brushA, brushB, INTERSECTION);
-  return brushToGLTF(result, materialProperties);
+
+  const resultStats = extractBrushStats(result);
+  console.log(`[CSG] Intersection complete. Result: ${resultStats.vertexCount} vertices, ${resultStats.triangleCount} triangles`);
+
+  if (resultStats.vertexCount === 0 || resultStats.triangleCount === 0) {
+    throw new Error(
+      "Intersection produced empty geometry - the shapes may not overlap or their overlap is too small"
+    );
+  }
+
+  const glb = await brushToGLTF(result, materialProperties);
+  return { glb, resultBrush: result };
 }

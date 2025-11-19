@@ -11,10 +11,22 @@ import {
 export class CgsDifferenceNode extends ExecutableNode {
   private static readonly differenceInputSchema = z.object({
     meshA: z
-      .instanceof(Uint8Array)
+      .union([
+        z.instanceof(Uint8Array),
+        z.object({
+          data: z.instanceof(Uint8Array),
+          mimeType: z.string().optional(),
+        }),
+      ])
       .describe("Base mesh (GLB binary format)"),
     meshB: z
-      .instanceof(Uint8Array)
+      .union([
+        z.instanceof(Uint8Array),
+        z.object({
+          data: z.instanceof(Uint8Array),
+          mimeType: z.string().optional(),
+        }),
+      ])
       .describe("Mesh to subtract (GLB binary format)"),
     materialProperties: z
       .object({
@@ -79,15 +91,19 @@ export class CgsDifferenceNode extends ExecutableNode {
 
       console.log("[CgsDifferenceNode] Performing difference operation (A - B)...");
 
+      // Extract GLB data from mesh inputs (handle both raw Uint8Array and mesh object formats)
+      const meshAData = meshA instanceof Uint8Array ? meshA : meshA.data;
+      const meshBData = meshB instanceof Uint8Array ? meshB : meshB.data;
+
       // Parse GLB data back to brushes
-      const brushA = await glTFToBrush(meshA);
-      const brushB = await glTFToBrush(meshB);
+      const brushA = await glTFToBrush(meshAData);
+      const brushB = await glTFToBrush(meshBData);
 
       // Perform difference operation
-      const resultGLB = await performDifference(brushA, brushB, materialProperties);
+      const { glb: resultGLB, resultBrush } = await performDifference(brushA, brushB, materialProperties);
 
-      // Extract statistics from result
-      const resultStats = extractBrushStats(brushA); // Use brushA for structure, result will have similar counts
+      // Extract statistics from result brush
+      const resultStats = extractBrushStats(resultBrush);
 
       return this.createSuccessResult({
         mesh: {
