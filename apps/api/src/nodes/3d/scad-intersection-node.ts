@@ -28,12 +28,12 @@ export class ScadIntersectionNode extends ExecutableNode {
   });
 
   public static readonly nodeType: NodeType = {
-    id: "scad-intersection",
-    name: "Intersection",
-    type: "scad-intersection",
+    id: "csg-intersection",
+    name: "CSG Intersection",
+    type: "csg-intersection",
     description: "Find the overlapping region of two 3D meshes using CSG intersection operation",
     tags: ["3D", "CSG", "Boolean"],
-    icon: "layers",
+    icon: "box",
     documentation:
       "Performs a constructive solid geometry intersection operation, keeping only the overlapping region of two meshes.",
     inlinable: false,

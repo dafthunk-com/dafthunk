@@ -39,12 +39,12 @@ export class ScadCubeNode extends ExecutableNode {
   });
 
   public static readonly nodeType: NodeType = {
-    id: "scad-cube",
-    name: "Cube",
-    type: "scad-cube",
+    id: "csg-cube",
+    name: "CSG Cube",
+    type: "csg-cube",
     description: "Create a cube primitive geometry",
     tags: ["3D", "Geometry", "Primitive"],
-    icon: "box3d",
+    icon: "box",
     documentation:
       "Creates a cube with specified dimensions. Size can be a single number for uniform dimensions or [x, y, z] for custom width, height, and depth.",
     inlinable: false,

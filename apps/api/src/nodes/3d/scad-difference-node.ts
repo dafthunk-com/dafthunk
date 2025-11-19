@@ -28,12 +28,12 @@ export class ScadDifferenceNode extends ExecutableNode {
   });
 
   public static readonly nodeType: NodeType = {
-    id: "scad-difference",
-    name: "Difference",
-    type: "scad-difference",
+    id: "csg-difference",
+    name: "CSG Difference",
+    type: "csg-difference",
     description: "Subtract one 3D mesh from another using CSG difference operation",
     tags: ["3D", "CSG", "Boolean"],
-    icon: "minus",
+    icon: "box",
     documentation:
       "Performs a constructive solid geometry difference operation, subtracting the second mesh from the first (A - B).",
     inlinable: false,

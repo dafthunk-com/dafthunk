@@ -28,12 +28,12 @@ export class ScadUnionNode extends ExecutableNode {
   });
 
   public static readonly nodeType: NodeType = {
-    id: "scad-union",
-    name: "Union",
-    type: "scad-union",
+    id: "csg-union",
+    name: "CSG Union",
+    type: "csg-union",
     description: "Combine two 3D meshes using CSG union operation",
     tags: ["3D", "CSG", "Boolean"],
-    icon: "plus",
+    icon: "box",
     documentation:
       "Performs a constructive solid geometry union operation, combining two meshes into a single solid.",
     inlinable: false,
