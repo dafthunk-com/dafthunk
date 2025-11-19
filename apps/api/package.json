@@ -28,6 +28,7 @@
     "@eslint/js": "^9.26.0",
     "@types/mailparser": "^3.4.6",
     "@types/node": "^22.15.3",
+    "@types/three": "^0.181.0",
     "@types/wellknown": "^0.5.8",
     "drizzle-kit": "0.31.1",
     "eslint": "^9.26.0",

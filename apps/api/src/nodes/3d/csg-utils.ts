@@ -10,8 +10,9 @@ import {
   Scene,
   SphereGeometry,
   CylinderGeometry,
+  Group,
 } from "three";
-import { Brush } from "three-bvh-csg";
+import { Brush, Evaluator } from "three-bvh-csg";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter.js";
 
@@ -126,18 +127,27 @@ export async function brushToGLTF(
     const exporter = new GLTFExporter();
 
     const glbData = await new Promise<Uint8Array>((resolve, reject) => {
-      exporter.parse(
-        scene,
-        (result) => {
-          console.log("[CSG] glTF export completed");
-          resolve(new Uint8Array(result as ArrayBuffer));
-        },
-        (error) => {
-          console.error("[CSG] glTF export error:", error);
-          reject(error);
-        },
-        { binary: true }
-      );
+      try {
+        exporter.parse(
+          scene,
+          (result: ArrayBuffer | unknown) => {
+            try {
+              console.log("[CSG] glTF export completed");
+              const buffer = result instanceof ArrayBuffer ? result : (result as ArrayBuffer);
+              resolve(new Uint8Array(buffer));
+            } catch (err) {
+              reject(err);
+            }
+          },
+          (error: Error | unknown) => {
+            console.error("[CSG] glTF export error:", error);
+            reject(error);
+          },
+          { binary: true }
+        );
+      } catch (err) {
+        reject(err);
+      }
     });
 
     return glbData;
@@ -191,7 +201,12 @@ export function extractBrushStats(brush: Brush): {
   vertexCount: number;
   triangleCount: number;
 } {
-  const geometry = brush.geometry as BufferGeometry;
+  // Brush extends Mesh, so it has a geometry property
+  const geometry = (brush as any).geometry as BufferGeometry;
+
+  if (!geometry) {
+    return { vertexCount: 0, triangleCount: 0 };
+  }
 
   const positions = geometry.getAttribute("position");
   const vertexCount = positions ? positions.count : 0;
