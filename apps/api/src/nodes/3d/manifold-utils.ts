@@ -7,6 +7,8 @@ import {
 // @ts-ignore – manifold-3d has incomplete TypeScript types
 import Module from "manifold-3d";
 // @ts-ignore – manifold-3d has incomplete TypeScript types
+import { getManifoldModule } from "manifold-3d/lib/wasm.js";
+// @ts-ignore – manifold-3d has incomplete TypeScript types
 import wasmBinary from "manifold-3d/manifold.wasm";
 
 /**
@@ -21,59 +23,48 @@ export interface ManifoldGLTFResult {
 }
 
 /**
- * Cached Manifold module instance (singleton)
- */
-let manifoldModule: any = null;
-
-/**
  * Initialize and return the Manifold WASM module
- * This is cached so the module is only initialized once per worker lifecycle
- * Uses Emscripten's instantiateWasm pattern for Cloudflare Workers compatibility
+ * Sets up Module.instantiateWasm callback before calling getManifoldModule()
  */
 async function getManifold() {
-  if (!manifoldModule) {
-    console.log("[Manifold] Initializing Manifold WASM module...");
-    console.log(
-      "[Manifold] wasmBinary type:",
-      typeof wasmBinary,
-      "is WebAssembly.Module:",
-      wasmBinary instanceof WebAssembly.Module
-    );
-    console.log("[Manifold] wasmBinary value:", wasmBinary);
-    try {
-      // Use instantiateWasm to provide a pre-compiled WebAssembly.Module
-      // The wasmBinary here is a WebAssembly.Module (compiled by Wrangler)
-      const moduleConfig: any = {
-        instantiateWasm: (imports: any, successCallback: any) => {
-          console.log("[Manifold] instantiateWasm callback invoked");
-          try {
-            // wasmBinary is a WebAssembly.Module, create an instance
-            const wasmInstance = new WebAssembly.Instance(
-              wasmBinary as WebAssembly.Module,
-              imports
-            );
-            console.log("[Manifold] WASM instance created successfully");
-            successCallback(wasmInstance);
-            return {}; // Return empty object to indicate async instantiation
-          } catch (error) {
-            console.error("[Manifold] WASM instantiation failed:", error);
-            throw error;
-          }
-        },
-      };
+  console.log("[Manifold] Initializing Manifold WASM module...");
+  console.log(
+    "[Manifold] wasmBinary type:",
+    typeof wasmBinary,
+    "is WebAssembly.Module:",
+    wasmBinary instanceof WebAssembly.Module
+  );
 
-      console.log("[Manifold] Calling Module() with instantiateWasm...");
-      manifoldModule = await Module(moduleConfig);
-      manifoldModule.setup();
-      console.log("[Manifold] Module setup completed");
-    } catch (error) {
-      manifoldModule = null;
-      throw new Error(
-        `Failed to initialize Manifold module: ${error instanceof Error ? error.message : String(error)}`
-      );
-    }
+  try {
+    // Hook into Module's WASM instantiation to provide our pre-compiled module
+    // This callback is called by the Module factory when instantiating WASM
+    // @ts-ignore – setting callback on Module object
+    Module.instantiateWasm = (imports: any, successCallback: any) => {
+      console.log("[Manifold] Module.instantiateWasm callback invoked");
+      try {
+        // Create a WebAssembly.Instance from our pre-compiled module
+        const wasmInstance = new WebAssembly.Instance(
+          wasmBinary as WebAssembly.Module,
+          imports
+        );
+        console.log("[Manifold] WASM instance created successfully");
+        successCallback(wasmInstance);
+        return {}; // Return empty object to indicate async instantiation
+      } catch (error) {
+        console.error("[Manifold] WASM instantiation failed:", error);
+        throw error;
+      }
+    };
+
+    console.log("[Manifold] Calling getManifoldModule()...");
+    const manifoldModule = await getManifoldModule();
+    console.log("[Manifold] Module initialization completed");
+    return manifoldModule;
+  } catch (error) {
+    throw new Error(
+      `Failed to initialize Manifold module: ${error instanceof Error ? error.message : String(error)}`
+    );
   }
-  return manifoldModule;
 }
 
 /**
