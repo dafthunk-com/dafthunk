@@ -6,6 +6,8 @@ import {
 } from "@gltf-transform/core";
 // @ts-ignore – manifold-3d has incomplete TypeScript types
 import Module from "manifold-3d";
+// @ts-ignore – manifold-3d has incomplete TypeScript types
+import wasmBinary from "manifold-3d/manifold.wasm";
 
 /**
  * Represents a glTF document with metadata about the mesh
@@ -26,13 +28,18 @@ let manifoldModule: any = null;
 /**
  * Initialize and return the Manifold WASM module
  * This is cached so the module is only initialized once per worker lifecycle
+ * Uses direct WASM binary import for Cloudflare Workers compatibility
  */
 async function getManifold() {
   if (!manifoldModule) {
     console.log("[Manifold] Initializing Manifold WASM module...");
     try {
-      // @ts-ignore – manifold-3d has incomplete TypeScript types
-      manifoldModule = await Module();
+      // @ts-ignore – manifold-3d type definitions don't include wasmModule option for Workers
+      const moduleConfig: any = {
+        wasmModule: wasmBinary,
+        locateFile: () => "manifold.wasm",
+      };
+      manifoldModule = await Module(moduleConfig);
       manifoldModule.setup();
       console.log("[Manifold] Module initialized successfully");
     } catch (error) {
