@@ -4,12 +4,6 @@ import {
   Material,
   NodeIO,
 } from "@gltf-transform/core";
-// @ts-ignore – manifold-3d has incomplete TypeScript types
-import Module from "manifold-3d";
-// @ts-ignore – manifold-3d has incomplete TypeScript types
-import { getManifoldModule } from "manifold-3d/lib/wasm.js";
-// @ts-ignore – manifold-3d has incomplete TypeScript types
-import wasmBinary from "manifold-3d/manifold.wasm";
 
 /**
  * Represents a glTF document with metadata about the mesh
@@ -24,25 +18,31 @@ export interface ManifoldGLTFResult {
 
 /**
  * Initialize and return the Manifold WASM module
- * Sets up Module.instantiateWasm callback before calling getManifoldModule()
+ * Uses lazy-loading to delay import-time initialization until runtime
+ * Sets instantiateWasm on Module global before importing
  */
 async function getManifold() {
   console.log("[Manifold] Initializing Manifold WASM module...");
-  console.log(
-    "[Manifold] wasmBinary type:",
-    typeof wasmBinary,
-    "is WebAssembly.Module:",
-    wasmBinary instanceof WebAssembly.Module
-  );
 
   try {
-    // Hook into Module's WASM instantiation to provide our pre-compiled module
-    // This callback is called by the Module factory when instantiating WASM
-    // @ts-ignore – setting callback on Module object
-    Module.instantiateWasm = (imports: any, successCallback: any) => {
-      console.log("[Manifold] Module.instantiateWasm callback invoked");
+    // Lazy import of manifold-3d and WASM binary
+    // This delays nodejs_compat code execution until runtime
+    const { default: Module } = await import("manifold-3d");
+    // @ts-ignore
+    const { default: wasmBinary } = await import("manifold-3d/manifold.wasm");
+
+    console.log(
+      "[Manifold] wasmBinary type:",
+      typeof wasmBinary,
+      "is WebAssembly.Module:",
+      wasmBinary instanceof WebAssembly.Module
+    );
+
+    // Set instantiateWasm on the Module object globally before calling it
+    // This ensures the callback is registered before any initialization code runs
+    (Module as any).instantiateWasm = (imports: any, successCallback: any) => {
+      console.log("[Manifold] instantiateWasm callback invoked");
       try {
-        // Create a WebAssembly.Instance from our pre-compiled module
         const wasmInstance = new WebAssembly.Instance(
           wasmBinary as WebAssembly.Module,
           imports
@@ -56,8 +56,9 @@ async function getManifold() {
       }
     };
 
-    console.log("[Manifold] Calling getManifoldModule()...");
-    const manifoldModule = await getManifoldModule();
+    console.log("[Manifold] Calling Module()...");
+    const manifoldModule = await Module();
+    manifoldModule.setup();
     console.log("[Manifold] Module initialization completed");
     return manifoldModule;
   } catch (error) {
