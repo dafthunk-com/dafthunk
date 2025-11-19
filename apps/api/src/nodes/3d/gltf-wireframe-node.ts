@@ -1,8 +1,8 @@
-import { Document, Primitive, NodeIO } from "@gltf-transform/core";
 import { NodeExecution, NodeType } from "@dafthunk/types";
+import { Document, NodeIO, Primitive } from "@gltf-transform/core";
 import { z } from "zod";
 
-import { ExecutableNode, GltfParameter, NodeContext } from "../types";
+import { ExecutableNode, NodeContext } from "../types";
 
 /**
  * Adds wireframe edge geometry to a glTF model
@@ -111,7 +111,7 @@ export class GltfWireframeNode extends ExecutableNode {
   private addWireframeToDocument(
     doc: Document,
     lineColor: readonly [number, number, number],
-    lineWidth: number
+    _lineWidth: number
   ): void {
     const root = doc.getRoot();
     const meshes = root.listMeshes();
