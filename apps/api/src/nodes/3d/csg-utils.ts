@@ -7,14 +7,10 @@ import {
 import {
   BoxGeometry,
   BufferGeometry,
-  Scene,
   SphereGeometry,
   CylinderGeometry,
-  Group,
 } from "three";
-import { Brush, Evaluator } from "three-bvh-csg";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter.js";
+import { Brush } from "three-bvh-csg";
 
 /**
  * Represents a glTF document with metadata about the mesh
@@ -101,7 +97,7 @@ export function createCylinderBrush(
 
 /**
  * Convert Brush to glTF GLB binary format
- * Uses three.js GLTFExporter for native three.js geometry support
+ * Manually constructs glTF using @gltf-transform/core for Workers compatibility
  */
 export async function brushToGLTF(
   brush: Brush,
@@ -114,42 +110,76 @@ export async function brushToGLTF(
   try {
     console.log("[CSG] Converting brush to glTF...");
 
-    // Create a scene with the brush
-    const scene = new Scene();
-    scene.add(brush);
+    // Extract geometry from brush (Brush extends Mesh)
+    const geometry = (brush as any).geometry as BufferGeometry;
 
-    // Apply material if provided
-    if (materialProperties && brush.material) {
-      applyPBRMaterial(brush, materialProperties);
+    if (!geometry) {
+      throw new Error("Brush has no geometry");
     }
 
-    // Export to GLB using three.js GLTFExporter
-    const exporter = new GLTFExporter();
+    // Create glTF document and buffer
+    const document = new Document();
+    const buffer = document.createBuffer();
 
-    const glbData = await new Promise<Uint8Array>((resolve, reject) => {
-      try {
-        exporter.parse(
-          scene,
-          (result: ArrayBuffer | unknown) => {
-            try {
-              console.log("[CSG] glTF export completed");
-              const buffer = result instanceof ArrayBuffer ? result : (result as ArrayBuffer);
-              resolve(new Uint8Array(buffer));
-            } catch (err) {
-              reject(err);
-            }
-          },
-          (error: Error | unknown) => {
-            console.error("[CSG] glTF export error:", error);
-            reject(error);
-          },
-          { binary: true }
-        );
-      } catch (err) {
-        reject(err);
-      }
-    });
+    // Extract and convert position data
+    const positionAttr = geometry.getAttribute("position");
+    if (!positionAttr) {
+      throw new Error("Geometry has no position attribute");
+    }
 
+    const positions = new Float32Array(positionAttr.array as ArrayBuffer);
+    const positionAccessor = document
+      .createAccessor()
+      .setType("VEC3")
+      .setArray(positions)
+      .setBuffer(buffer);
+
+    // Create primitive with position
+    const primitive = document
+      .createPrimitive()
+      .setAttribute("POSITION", positionAccessor);
+
+    // Extract and convert index data if present
+    const indexData = geometry.getIndex();
+    if (indexData) {
+      const indices = new Uint32Array(indexData.array as ArrayBuffer);
+      const indexAccessor = document
+        .createAccessor()
+        .setType("SCALAR")
+        .setArray(indices)
+        .setBuffer(buffer);
+      primitive.setIndices(indexAccessor);
+    }
+
+    // Extract and convert normal data if present
+    const normalAttr = geometry.getAttribute("normal");
+    if (normalAttr) {
+      const normals = new Float32Array(normalAttr.array as ArrayBuffer);
+      const normalAccessor = document
+        .createAccessor()
+        .setType("VEC3")
+        .setArray(normals)
+        .setBuffer(buffer);
+      primitive.setAttribute("NORMAL", normalAccessor);
+    }
+
+    // Apply PBR material if provided
+    if (materialProperties) {
+      const material = createPBRMaterial(document, materialProperties);
+      primitive.setMaterial(material);
+    }
+
+    // Create mesh, node, and scene
+    const mesh = document.createMesh().addPrimitive(primitive);
+    const node = document.createNode().setMesh(mesh);
+    const scene = document.getRoot().getDefaultScene() || document.createScene();
+    scene.addChild(node);
+
+    // Export as GLB binary
+    const io = new NodeIO();
+    const glbData = await io.writeBinary(document);
+
+    console.log("[CSG] glTF export completed");
     return glbData;
   } catch (error) {
     throw new Error(
@@ -160,33 +190,19 @@ export async function brushToGLTF(
 
 /**
  * Parse glTF GLB binary data back to a Brush object
+ * NOTE: This requires a Workers-compatible glTF parser.
+ * For MVP, CSG operations will use Brush.evaluate() with already-parsed brushes.
+ * This is a placeholder for future implementation.
  */
 export async function glTFToBrush(glbData: Uint8Array): Promise<Brush> {
   try {
     console.log("[CSG] Parsing glTF to brush...");
 
-    const loader = new GLTFLoader();
-
-    // Parse the GLB data
-    const gltf = await loader.parseAsync(glbData, "");
-
-    // Extract geometry from first mesh in the scene
-    if (!gltf.scene || gltf.scene.children.length === 0) {
-      throw new Error("No geometry found in glTF file");
-    }
-
-    const mesh = gltf.scene.children[0];
-    if (!mesh || !(mesh as any).geometry) {
-      throw new Error("First child does not have geometry");
-    }
-
-    const geometry = (mesh as any).geometry as BufferGeometry;
-
-    // Create and return a new Brush from the geometry
-    const brush = new Brush(geometry);
-    console.log("[CSG] glTF parsed to brush successfully");
-
-    return brush;
+    // TODO: Implement glTF parsing using @gltf-transform/core
+    // For now, throw a helpful error
+    throw new Error(
+      "glTFToBrush not yet implemented. Use brush creation functions (createCubeBrush, etc.) instead."
+    );
   } catch (error) {
     throw new Error(
       `Failed to parse glTF to brush: ${error instanceof Error ? error.message : String(error)}`
@@ -223,25 +239,6 @@ export function extractBrushStats(brush: Brush): {
   }
 
   return { vertexCount, triangleCount };
-}
-
-/**
- * Apply PBR material properties to a Brush
- * Note: three.js Brush doesn't have built-in material support like Manifold
- * This is a placeholder for future enhancement
- */
-function applyPBRMaterial(
-  brush: Brush,
-  materialProperties: {
-    baseColorFactor?: readonly [number, number, number, number];
-    metallicFactor?: number;
-    roughnessFactor?: number;
-  }
-): void {
-  // TODO: Implement PBR material application to brush
-  // This requires creating a three.js MeshStandardMaterial and applying it
-  // For now, material is applied during GLTFExporter
-  console.log("[CSG] PBR material properties received:", materialProperties);
 }
 
 /**
