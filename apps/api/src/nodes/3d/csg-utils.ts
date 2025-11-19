@@ -9,8 +9,10 @@ import {
   BufferGeometry,
   SphereGeometry,
   CylinderGeometry,
+  Float32BufferAttribute,
+  Uint32BufferAttribute,
 } from "three";
-import { Brush } from "three-bvh-csg";
+import { Brush, Evaluator, ADDITION, SUBTRACTION, INTERSECTION } from "three-bvh-csg";
 
 /**
  * Represents a glTF document with metadata about the mesh
@@ -190,19 +192,71 @@ export async function brushToGLTF(
 
 /**
  * Parse glTF GLB binary data back to a Brush object
- * NOTE: This requires a Workers-compatible glTF parser.
- * For MVP, CSG operations will use Brush.evaluate() with already-parsed brushes.
- * This is a placeholder for future implementation.
+ * Uses @gltf-transform/core to parse the binary data and extract geometry
  */
 export async function glTFToBrush(glbData: Uint8Array): Promise<Brush> {
   try {
     console.log("[CSG] Parsing glTF to brush...");
 
-    // TODO: Implement glTF parsing using @gltf-transform/core
-    // For now, throw a helpful error
-    throw new Error(
-      "glTFToBrush not yet implemented. Use brush creation functions (createCubeBrush, etc.) instead."
-    );
+    // Read the binary glTF data
+    const io = new NodeIO();
+    const document = await io.readBinary(glbData);
+
+    // Get the default scene
+    const scene = document.getRoot().getDefaultScene();
+    if (!scene) {
+      throw new Error("No scene found in glTF document");
+    }
+
+    // Find the first mesh in the scene
+    const meshNodes = scene.listChildren().filter((node) => node.getMesh());
+    if (meshNodes.length === 0) {
+      throw new Error("No mesh found in scene");
+    }
+
+    const mesh = meshNodes[0].getMesh();
+    if (!mesh) {
+      throw new Error("Mesh is empty");
+    }
+
+    // Get the first primitive
+    const primitives = mesh.listPrimitives();
+    if (primitives.length === 0) {
+      throw new Error("No primitives found in mesh");
+    }
+
+    const primitive = primitives[0];
+
+    // Create BufferGeometry from the primitive
+    const geometry = new BufferGeometry();
+
+    // Extract position attribute
+    const positionAccessor = primitive.getAttribute("POSITION");
+    if (!positionAccessor) {
+      throw new Error("Position attribute not found");
+    }
+
+    const positions = positionAccessor.getArray() as Float32Array;
+    geometry.setAttribute("position", new Float32BufferAttribute(positions, 3));
+
+    // Extract normal attribute if present
+    const normalAccessor = primitive.getAttribute("NORMAL");
+    if (normalAccessor) {
+      const normals = normalAccessor.getArray() as Float32Array;
+      geometry.setAttribute("normal", new Float32BufferAttribute(normals, 3));
+    }
+
+    // Extract indices if present
+    const indexAccessor = primitive.getIndices();
+    if (indexAccessor) {
+      const indices = indexAccessor.getArray() as Uint32Array;
+      geometry.setIndex(new Uint32BufferAttribute(indices, 1));
+    }
+
+    // Create and return Brush
+    const brush = new Brush(geometry);
+    console.log("[CSG] Successfully parsed brush from glTF");
+    return brush;
   } catch (error) {
     throw new Error(
       `Failed to parse glTF to brush: ${error instanceof Error ? error.message : String(error)}`
@@ -300,4 +354,58 @@ export function createPBRMaterial(
     .setMetallicFactor(metallicFactor)
     .setRoughnessFactor(roughnessFactor)
     .setDoubleSided(false);
+}
+
+/**
+ * Perform a CSG union operation on two brushes
+ */
+export async function performUnion(
+  brushA: Brush,
+  brushB: Brush,
+  materialProperties?: {
+    baseColorFactor?: readonly [number, number, number, number];
+    metallicFactor?: number;
+    roughnessFactor?: number;
+  }
+): Promise<Uint8Array> {
+  console.log("[CSG] Performing union operation...");
+  const evaluator = new Evaluator();
+  const result = evaluator.evaluate(brushA, brushB, ADDITION);
+  return brushToGLTF(result, materialProperties);
+}
+
+/**
+ * Perform a CSG difference operation on two brushes (A - B)
+ */
+export async function performDifference(
+  brushA: Brush,
+  brushB: Brush,
+  materialProperties?: {
+    baseColorFactor?: readonly [number, number, number, number];
+    metallicFactor?: number;
+    roughnessFactor?: number;
+  }
+): Promise<Uint8Array> {
+  console.log("[CSG] Performing difference operation...");
+  const evaluator = new Evaluator();
+  const result = evaluator.evaluate(brushA, brushB, SUBTRACTION);
+  return brushToGLTF(result, materialProperties);
+}
+
+/**
+ * Perform a CSG intersection operation on two brushes
+ */
+export async function performIntersection(
+  brushA: Brush,
+  brushB: Brush,
+  materialProperties?: {
+    baseColorFactor?: readonly [number, number, number, number];
+    metallicFactor?: number;
+    roughnessFactor?: number;
+  }
+): Promise<Uint8Array> {
+  console.log("[CSG] Performing intersection operation...");
+  const evaluator = new Evaluator();
+  const result = evaluator.evaluate(brushA, brushB, INTERSECTION);
+  return brushToGLTF(result, materialProperties);
 }
