@@ -18,15 +18,21 @@ export interface ManifoldGLTFResult {
 
 /**
  * Initialize and return the Manifold WASM module
- * Uses lazy-loading to delay import-time initialization until runtime
- * Sets instantiateWasm on Module global before importing
+ * Mocks import.meta.url before importing to prevent manifold-3d from
+ * attempting to dynamically locate the WASM file
  */
 async function getManifold() {
   console.log("[Manifold] Initializing Manifold WASM module...");
 
   try {
+    // Mock import.meta.url to prevent manifold-3d from trying to locate WASM
+    // The WASM is already bundled by Wrangler, we just need to prevent the
+    // dynamic file lookup that causes "undefined" error
+    if (typeof (globalThis as any).import === "undefined") {
+      (globalThis as any).import = { meta: { url: "file:///manifold-3d" } };
+    }
+
     // Lazy import of manifold-3d and WASM binary
-    // This delays nodejs_compat code execution until runtime
     const { default: Module } = await import("manifold-3d");
     // @ts-ignore
     const { default: wasmBinary } = await import("manifold-3d/manifold.wasm");
@@ -38,8 +44,7 @@ async function getManifold() {
       wasmBinary instanceof WebAssembly.Module
     );
 
-    // Set instantiateWasm on the Module object globally before calling it
-    // This ensures the callback is registered before any initialization code runs
+    // Set instantiateWasm on the Module object before calling it
     (Module as any).instantiateWasm = (imports: any, successCallback: any) => {
       console.log("[Manifold] instantiateWasm callback invoked");
       try {
