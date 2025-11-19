@@ -28,20 +28,34 @@ let manifoldModule: any = null;
 /**
  * Initialize and return the Manifold WASM module
  * This is cached so the module is only initialized once per worker lifecycle
- * Uses direct WASM binary import for Cloudflare Workers compatibility
+ * Uses Emscripten's instantiateWasm pattern for Cloudflare Workers compatibility
  */
 async function getManifold() {
   if (!manifoldModule) {
     console.log("[Manifold] Initializing Manifold WASM module...");
     try {
-      // @ts-ignore – manifold-3d type definitions don't include wasmModule option for Workers
+      // Use Emscripten's instantiateWasm callback pattern for pre-imported WASM binary
+      // @ts-ignore – manifold-3d type definitions don't match instantiateWasm signature
       const moduleConfig: any = {
-        wasmModule: wasmBinary,
-        locateFile: () => "manifold.wasm",
+        instantiateWasm: (imports: any, successCallback: any) => {
+          console.log("[Manifold] Instantiating WASM module...");
+          WebAssembly.instantiate(wasmBinary, imports)
+            .then((wasmInstance) => {
+              console.log("[Manifold] WASM instantiation successful");
+              successCallback(wasmInstance);
+            })
+            .catch((error) => {
+              console.error("[Manifold] WASM instantiation failed:", error);
+              throw error;
+            });
+          return {}; // Return empty object to indicate async instantiation
+        },
+        locateFile: () => "manifold.wasm", // Fallback, won't be called
       };
+
       manifoldModule = await Module(moduleConfig);
       manifoldModule.setup();
-      console.log("[Manifold] Module initialized successfully");
+      console.log("[Manifold] Module setup completed");
     } catch (error) {
       manifoldModule = null;
       throw new Error(

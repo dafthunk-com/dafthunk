@@ -8,3 +8,9 @@ declare module "cloudflare:test" {
     CLOUDFLARE_API_TOKEN: string;
   }
 }
+
+// WASM module declarations for Cloudflare Workers
+declare module "*.wasm" {
+  const wasmModule: WebAssembly.Module;
+  export default wasmModule;
+}
