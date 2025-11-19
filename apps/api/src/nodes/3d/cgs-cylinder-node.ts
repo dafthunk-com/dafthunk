@@ -8,7 +8,7 @@ import {
   extractBrushStats,
 } from "./csg-utils";
 
-export class ScadCylinderNode extends ExecutableNode {
+export class CgsCylinderNode extends ExecutableNode {
   private static readonly cylinderInputSchema = z.object({
     height: z
       .number()
@@ -109,7 +109,7 @@ export class ScadCylinderNode extends ExecutableNode {
 
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const validatedInput = ScadCylinderNode.cylinderInputSchema.parse(context.inputs);
+      const validatedInput = CgsCylinderNode.cylinderInputSchema.parse(context.inputs);
       const { height, radiusBottom, radiusTop, radialSegments, center, materialProperties } =
         validatedInput;
 
@@ -117,7 +117,7 @@ export class ScadCylinderNode extends ExecutableNode {
       const topRadius = radiusTop ?? radiusBottom;
 
       console.log(
-        `[ScadCylinderNode] Creating cylinder with height=${height}, radiusBottom=${radiusBottom}, radiusTop=${topRadius}, radialSegments=${radialSegments}, center=${center}`
+        `[CgsCylinderNode] Creating cylinder with height=${height}, radiusBottom=${radiusBottom}, radiusTop=${topRadius}, radialSegments=${radialSegments}, center=${center}`
       );
 
       // Create the cylinder brush using three-bvh-csg

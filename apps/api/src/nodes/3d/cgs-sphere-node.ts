@@ -4,41 +4,28 @@ import { z } from "zod";
 import { ExecutableNode, NodeContext } from "../types";
 import {
   brushToGLTF,
-  createConeBrush,
+  createSphereBrush,
   extractBrushStats,
 } from "./csg-utils";
 
-export class ScadConeNode extends ExecutableNode {
-  private static readonly coneInputSchema = z.object({
-    height: z
-      .number()
-      .positive("Height must be positive")
-      .describe("Cone height"),
+export class CgsSphereNode extends ExecutableNode {
+  private static readonly sphereInputSchema = z.object({
     radius: z
       .number()
       .positive("Radius must be positive")
-      .default(1)
-      .describe("Cone base radius"),
-    radialSegments: z
+      .describe("Sphere radius"),
+    widthSegments: z
       .number()
       .int()
-      .min(3, "Radial segments must be at least 3")
+      .min(3, "Width segments must be at least 3")
       .default(32)
-      .describe("Circumference resolution"),
+      .describe("Horizontal resolution (vertex count around circumference)"),
     heightSegments: z
       .number()
       .int()
-      .min(1, "Height segments must be at least 1")
-      .default(1)
-      .describe("Vertical resolution"),
-    openEnded: z
-      .boolean()
-      .default(false)
-      .describe("Whether the cone base is open"),
-    center: z
-      .boolean()
-      .default(false)
-      .describe("Center the cone vertically at origin"),
+      .min(2, "Height segments must be at least 2")
+      .default(32)
+      .describe("Vertical resolution (vertex count top to bottom)"),
     materialProperties: z
       .object({
         baseColorFactor: z
@@ -51,50 +38,32 @@ export class ScadConeNode extends ExecutableNode {
   });
 
   public static readonly nodeType: NodeType = {
-    id: "csg-cone",
-    name: "CSG Cone",
-    type: "csg-cone",
-    description: "Create a cone primitive geometry",
+    id: "csg-sphere",
+    name: "CSG Sphere",
+    type: "csg-sphere",
+    description: "Create a sphere primitive geometry",
     tags: ["3D", "Geometry", "Primitive"],
     icon: "box",
     documentation:
-      "Creates a cone with specified height and base radius. Can be made open-ended for pipe-like shapes. Radial segments control the geometry resolution around the circumference.",
+      "Creates a sphere with specified radius. Width and height segments control the geometry resolution for quality vs. performance trade-offs.",
     inlinable: false,
     inputs: [
       {
-        name: "height",
+        name: "radius",
         type: "number",
-        description: "Cone height",
+        description: "Sphere radius",
         required: true,
       },
       {
-        name: "radius",
+        name: "widthSegments",
         type: "number",
-        description: "Cone base radius (default: 1)",
-        required: false,
-      },
-      {
-        name: "radialSegments",
-        type: "number",
-        description: "Circumference resolution (default: 32, min: 3)",
+        description: "Horizontal resolution (default: 32, min: 3)",
         required: false,
       },
       {
         name: "heightSegments",
         type: "number",
-        description: "Vertical resolution (default: 1, min: 1)",
-        required: false,
-      },
-      {
-        name: "openEnded",
-        type: "boolean",
-        description: "Open base of cone (default: false)",
-        required: false,
-      },
-      {
-        name: "center",
-        type: "boolean",
-        description: "Center vertically at origin (default: false)",
+        description: "Vertical resolution (default: 32, min: 2)",
         required: false,
       },
       {
@@ -109,7 +78,7 @@ export class ScadConeNode extends ExecutableNode {
       {
         name: "mesh",
         type: "gltf",
-        description: "3D cone geometry in glTF format",
+        description: "3D sphere geometry in glTF format",
       },
       {
         name: "metadata",
@@ -121,16 +90,15 @@ export class ScadConeNode extends ExecutableNode {
 
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const validatedInput = ScadConeNode.coneInputSchema.parse(context.inputs);
-      const { height, radius, radialSegments, heightSegments, openEnded, center, materialProperties } =
-        validatedInput;
+      const validatedInput = CgsSphereNode.sphereInputSchema.parse(context.inputs);
+      const { radius, widthSegments, heightSegments, materialProperties } = validatedInput;
 
       console.log(
-        `[ScadConeNode] Creating cone with height=${height}, radius=${radius}, radialSegments=${radialSegments}, center=${center}`
+        `[CgsSphereNode] Creating sphere with radius=${radius}, widthSegments=${widthSegments}, heightSegments=${heightSegments}`
       );
 
-      // Create the cone brush using three-bvh-csg
-      const brush = createConeBrush(height, radius, radialSegments, heightSegments, openEnded, center);
+      // Create the sphere brush using three-bvh-csg
+      const brush = createSphereBrush(radius, widthSegments, heightSegments);
 
       // Convert brush to glTF GLB binary format
       const glbData = await brushToGLTF(brush, materialProperties);
@@ -146,12 +114,9 @@ export class ScadConeNode extends ExecutableNode {
         metadata: {
           vertexCount: stats.vertexCount,
           triangleCount: stats.triangleCount,
-          height,
           radius,
-          radialSegments,
+          widthSegments,
           heightSegments,
-          openEnded,
-          centered: center,
           hasMaterial: !!materialProperties,
         },
       });
@@ -164,7 +129,7 @@ export class ScadConeNode extends ExecutableNode {
       }
 
       return this.createErrorResult(
-        `Cone creation failed: ${error instanceof Error ? error.message : String(error)}`
+        `Sphere creation failed: ${error instanceof Error ? error.message : String(error)}`
       );
     }
   }

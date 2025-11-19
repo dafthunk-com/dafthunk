@@ -4,28 +4,29 @@ import { z } from "zod";
 import { ExecutableNode, NodeContext } from "../types";
 import {
   brushToGLTF,
-  createSphereBrush,
+  createCubeBrush,
   extractBrushStats,
 } from "./csg-utils";
 
-export class ScadSphereNode extends ExecutableNode {
-  private static readonly sphereInputSchema = z.object({
-    radius: z
-      .number()
-      .positive("Radius must be positive")
-      .describe("Sphere radius"),
-    widthSegments: z
-      .number()
-      .int()
-      .min(3, "Width segments must be at least 3")
-      .default(32)
-      .describe("Horizontal resolution (vertex count around circumference)"),
-    heightSegments: z
-      .number()
-      .int()
-      .min(2, "Height segments must be at least 2")
-      .default(32)
-      .describe("Vertical resolution (vertex count top to bottom)"),
+export class CgsCubeNode extends ExecutableNode {
+  private static readonly cubeInputSchema = z.object({
+    size: z
+      .union([
+        z.number().positive("Size must be positive"),
+        z
+          .tuple([
+            z.number().positive("Width must be positive"),
+            z.number().positive("Height must be positive"),
+            z.number().positive("Depth must be positive"),
+          ])
+          .describe("Size as [x, y, z]"),
+      ])
+      .describe("Cube size (single number or [x, y, z])"),
+    center: z
+      .boolean()
+      .optional()
+      .default(false)
+      .describe("Center the cube at origin"),
     materialProperties: z
       .object({
         baseColorFactor: z
@@ -38,32 +39,26 @@ export class ScadSphereNode extends ExecutableNode {
   });
 
   public static readonly nodeType: NodeType = {
-    id: "csg-sphere",
-    name: "CSG Sphere",
-    type: "csg-sphere",
-    description: "Create a sphere primitive geometry",
+    id: "csg-cube",
+    name: "CSG Cube",
+    type: "csg-cube",
+    description: "Create a cube primitive geometry",
     tags: ["3D", "Geometry", "Primitive"],
     icon: "box",
     documentation:
-      "Creates a sphere with specified radius. Width and height segments control the geometry resolution for quality vs. performance trade-offs.",
+      "Creates a cube with specified dimensions. Size can be a single number for uniform dimensions or [x, y, z] for custom width, height, and depth.",
     inlinable: false,
     inputs: [
       {
-        name: "radius",
-        type: "number",
-        description: "Sphere radius",
+        name: "size",
+        type: "json",
+        description: "Cube size: single number or [width, height, depth]",
         required: true,
       },
       {
-        name: "widthSegments",
-        type: "number",
-        description: "Horizontal resolution (default: 32, min: 3)",
-        required: false,
-      },
-      {
-        name: "heightSegments",
-        type: "number",
-        description: "Vertical resolution (default: 32, min: 2)",
+        name: "center",
+        type: "boolean",
+        description: "Center the cube at the origin (default: false)",
         required: false,
       },
       {
@@ -78,7 +73,7 @@ export class ScadSphereNode extends ExecutableNode {
       {
         name: "mesh",
         type: "gltf",
-        description: "3D sphere geometry in glTF format",
+        description: "3D cube geometry in glTF format",
       },
       {
         name: "metadata",
@@ -90,15 +85,20 @@ export class ScadSphereNode extends ExecutableNode {
 
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const validatedInput = ScadSphereNode.sphereInputSchema.parse(context.inputs);
-      const { radius, widthSegments, heightSegments, materialProperties } = validatedInput;
+      const validatedInput = CgsCubeNode.cubeInputSchema.parse(context.inputs);
+      const { size, center, materialProperties } = validatedInput;
+
+      // Parse size into [x, y, z]
+      const [sizeX, sizeY, sizeZ] = Array.isArray(size)
+        ? size
+        : [size, size, size];
 
       console.log(
-        `[ScadSphereNode] Creating sphere with radius=${radius}, widthSegments=${widthSegments}, heightSegments=${heightSegments}`
+        `[CgsCubeNode] Creating cube with size [${sizeX}, ${sizeY}, ${sizeZ}], center=${center}`
       );
 
-      // Create the sphere brush using three-bvh-csg
-      const brush = createSphereBrush(radius, widthSegments, heightSegments);
+      // Create the cube brush using three-bvh-csg
+      const brush = createCubeBrush(sizeX, sizeY, sizeZ, center);
 
       // Convert brush to glTF GLB binary format
       const glbData = await brushToGLTF(brush, materialProperties);
@@ -114,9 +114,8 @@ export class ScadSphereNode extends ExecutableNode {
         metadata: {
           vertexCount: stats.vertexCount,
           triangleCount: stats.triangleCount,
-          radius,
-          widthSegments,
-          heightSegments,
+          dimensions: { x: sizeX, y: sizeY, z: sizeZ },
+          centered: center,
           hasMaterial: !!materialProperties,
         },
       });
@@ -129,7 +128,7 @@ export class ScadSphereNode extends ExecutableNode {
       }
 
       return this.createErrorResult(
-        `Sphere creation failed: ${error instanceof Error ? error.message : String(error)}`
+        `Cube creation failed: ${error instanceof Error ? error.message : String(error)}`
       );
     }
   }

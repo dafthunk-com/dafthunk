@@ -4,34 +4,41 @@ import { z } from "zod";
 import { ExecutableNode, NodeContext } from "../types";
 import {
   brushToGLTF,
-  createTorusBrush,
+  createConeBrush,
   extractBrushStats,
 } from "./csg-utils";
 
-export class ScadTorusNode extends ExecutableNode {
-  private static readonly torusInputSchema = z.object({
+export class CgsConeNode extends ExecutableNode {
+  private static readonly coneInputSchema = z.object({
+    height: z
+      .number()
+      .positive("Height must be positive")
+      .describe("Cone height"),
     radius: z
       .number()
       .positive("Radius must be positive")
       .default(1)
-      .describe("Main torus radius"),
-    tubeRadius: z
-      .number()
-      .positive("Tube radius must be positive")
-      .default(0.4)
-      .describe("Tube radius (thickness)"),
+      .describe("Cone base radius"),
     radialSegments: z
       .number()
       .int()
       .min(3, "Radial segments must be at least 3")
-      .default(16)
-      .describe("Segments around main radius"),
-    tubularSegments: z
+      .default(32)
+      .describe("Circumference resolution"),
+    heightSegments: z
       .number()
       .int()
-      .min(3, "Tubular segments must be at least 3")
-      .default(8)
-      .describe("Segments around the tube"),
+      .min(1, "Height segments must be at least 1")
+      .default(1)
+      .describe("Vertical resolution"),
+    openEnded: z
+      .boolean()
+      .default(false)
+      .describe("Whether the cone base is open"),
+    center: z
+      .boolean()
+      .default(false)
+      .describe("Center the cone vertically at origin"),
     materialProperties: z
       .object({
         baseColorFactor: z
@@ -44,38 +51,50 @@ export class ScadTorusNode extends ExecutableNode {
   });
 
   public static readonly nodeType: NodeType = {
-    id: "csg-torus",
-    name: "CSG Torus",
-    type: "csg-torus",
-    description: "Create a torus (donut) primitive geometry",
+    id: "csg-cone",
+    name: "CSG Cone",
+    type: "csg-cone",
+    description: "Create a cone primitive geometry",
     tags: ["3D", "Geometry", "Primitive"],
     icon: "box",
     documentation:
-      "Creates a torus (donut shape) with specified main radius and tube radius. Adjust radial and tubular segments for quality vs. performance. Useful for rings, handles, and rounded shapes.",
+      "Creates a cone with specified height and base radius. Can be made open-ended for pipe-like shapes. Radial segments control the geometry resolution around the circumference.",
     inlinable: false,
     inputs: [
       {
-        name: "radius",
+        name: "height",
         type: "number",
-        description: "Main torus radius (default: 1)",
-        required: false,
+        description: "Cone height",
+        required: true,
       },
       {
-        name: "tubeRadius",
+        name: "radius",
         type: "number",
-        description: "Tube radius/thickness (default: 0.4)",
+        description: "Cone base radius (default: 1)",
         required: false,
       },
       {
         name: "radialSegments",
         type: "number",
-        description: "Segments around main radius (default: 16, min: 3)",
+        description: "Circumference resolution (default: 32, min: 3)",
         required: false,
       },
       {
-        name: "tubularSegments",
+        name: "heightSegments",
         type: "number",
-        description: "Segments around tube (default: 8, min: 3)",
+        description: "Vertical resolution (default: 1, min: 1)",
+        required: false,
+      },
+      {
+        name: "openEnded",
+        type: "boolean",
+        description: "Open base of cone (default: false)",
+        required: false,
+      },
+      {
+        name: "center",
+        type: "boolean",
+        description: "Center vertically at origin (default: false)",
         required: false,
       },
       {
@@ -90,7 +109,7 @@ export class ScadTorusNode extends ExecutableNode {
       {
         name: "mesh",
         type: "gltf",
-        description: "3D torus geometry in glTF format",
+        description: "3D cone geometry in glTF format",
       },
       {
         name: "metadata",
@@ -102,15 +121,16 @@ export class ScadTorusNode extends ExecutableNode {
 
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const validatedInput = ScadTorusNode.torusInputSchema.parse(context.inputs);
-      const { radius, tubeRadius, radialSegments, tubularSegments, materialProperties } = validatedInput;
+      const validatedInput = CgsConeNode.coneInputSchema.parse(context.inputs);
+      const { height, radius, radialSegments, heightSegments, openEnded, center, materialProperties } =
+        validatedInput;
 
       console.log(
-        `[ScadTorusNode] Creating torus with radius=${radius}, tubeRadius=${tubeRadius}, radialSegments=${radialSegments}, tubularSegments=${tubularSegments}`
+        `[CgsConeNode] Creating cone with height=${height}, radius=${radius}, radialSegments=${radialSegments}, center=${center}`
       );
 
-      // Create the torus brush using three-bvh-csg
-      const brush = createTorusBrush(radius, tubeRadius, radialSegments, tubularSegments);
+      // Create the cone brush using three-bvh-csg
+      const brush = createConeBrush(height, radius, radialSegments, heightSegments, openEnded, center);
 
       // Convert brush to glTF GLB binary format
       const glbData = await brushToGLTF(brush, materialProperties);
@@ -126,10 +146,12 @@ export class ScadTorusNode extends ExecutableNode {
         metadata: {
           vertexCount: stats.vertexCount,
           triangleCount: stats.triangleCount,
+          height,
           radius,
-          tubeRadius,
           radialSegments,
-          tubularSegments,
+          heightSegments,
+          openEnded,
+          centered: center,
           hasMaterial: !!materialProperties,
         },
       });
@@ -142,7 +164,7 @@ export class ScadTorusNode extends ExecutableNode {
       }
 
       return this.createErrorResult(
-        `Torus creation failed: ${error instanceof Error ? error.message : String(error)}`
+        `Cone creation failed: ${error instanceof Error ? error.message : String(error)}`
       );
     }
   }

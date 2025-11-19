@@ -5,17 +5,17 @@ import { ExecutableNode, NodeContext } from "../types";
 import {
   glTFToBrush,
   extractBrushStats,
-  performDifference,
+  performUnion,
 } from "./csg-utils";
 
-export class ScadDifferenceNode extends ExecutableNode {
-  private static readonly differenceInputSchema = z.object({
+export class CgsUnionNode extends ExecutableNode {
+  private static readonly unionInputSchema = z.object({
     meshA: z
       .instanceof(Uint8Array)
-      .describe("Base mesh (GLB binary format)"),
+      .describe("First mesh (GLB binary format)"),
     meshB: z
       .instanceof(Uint8Array)
-      .describe("Mesh to subtract (GLB binary format)"),
+      .describe("Second mesh (GLB binary format)"),
     materialProperties: z
       .object({
         baseColorFactor: z
@@ -28,26 +28,26 @@ export class ScadDifferenceNode extends ExecutableNode {
   });
 
   public static readonly nodeType: NodeType = {
-    id: "csg-difference",
-    name: "CSG Difference",
-    type: "csg-difference",
-    description: "Subtract one 3D mesh from another using CSG difference operation",
+    id: "csg-union",
+    name: "CSG Union",
+    type: "csg-union",
+    description: "Combine two 3D meshes using CSG union operation",
     tags: ["3D", "CSG", "Boolean"],
     icon: "box",
     documentation:
-      "Performs a constructive solid geometry difference operation, subtracting the second mesh from the first (A - B).",
+      "Performs a constructive solid geometry union operation, combining two meshes into a single solid.",
     inlinable: false,
     inputs: [
       {
         name: "meshA",
         type: "gltf",
-        description: "Base mesh (GLB format)",
+        description: "First 3D mesh (GLB format)",
         required: true,
       },
       {
         name: "meshB",
         type: "gltf",
-        description: "Mesh to subtract (GLB format)",
+        description: "Second 3D mesh (GLB format)",
         required: true,
       },
       {
@@ -62,7 +62,7 @@ export class ScadDifferenceNode extends ExecutableNode {
       {
         name: "mesh",
         type: "gltf",
-        description: "Result mesh from difference operation (GLB format)",
+        description: "Result mesh from union operation (GLB format)",
       },
       {
         name: "metadata",
@@ -74,17 +74,17 @@ export class ScadDifferenceNode extends ExecutableNode {
 
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const validatedInput = ScadDifferenceNode.differenceInputSchema.parse(context.inputs);
+      const validatedInput = CgsUnionNode.unionInputSchema.parse(context.inputs);
       const { meshA, meshB, materialProperties } = validatedInput;
 
-      console.log("[ScadDifferenceNode] Performing difference operation (A - B)...");
+      console.log("[CgsUnionNode] Performing union operation...");
 
       // Parse GLB data back to brushes
       const brushA = await glTFToBrush(meshA);
       const brushB = await glTFToBrush(meshB);
 
-      // Perform difference operation
-      const resultGLB = await performDifference(brushA, brushB, materialProperties);
+      // Perform union operation
+      const resultGLB = await performUnion(brushA, brushB, materialProperties);
 
       // Extract statistics from result
       const resultStats = extractBrushStats(brushA); // Use brushA for structure, result will have similar counts
@@ -97,7 +97,7 @@ export class ScadDifferenceNode extends ExecutableNode {
         metadata: {
           vertexCount: resultStats.vertexCount,
           triangleCount: resultStats.triangleCount,
-          operation: "difference",
+          operation: "union",
           hasMaterial: !!materialProperties,
         },
       });
@@ -110,7 +110,7 @@ export class ScadDifferenceNode extends ExecutableNode {
       }
 
       return this.createErrorResult(
-        `Difference operation failed: ${error instanceof Error ? error.message : String(error)}`
+        `Union operation failed: ${error instanceof Error ? error.message : String(error)}`
       );
     }
   }

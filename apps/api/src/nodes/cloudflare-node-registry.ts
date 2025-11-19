@@ -4,14 +4,14 @@ import { GeoTiffMetadataReaderNode } from "./3d/geotiff-metadata-reader-node";
 import { GeoTiffQueryNode } from "./3d/geotiff-query-node";
 import { GeoTiffTransformNode } from "./3d/geotiff-transform-node";
 import { GltfWireframeNode } from "./3d/gltf-wireframe-node";
-import { ScadConeNode } from "./3d/scad-cone-node";
-import { ScadCubeNode } from "./3d/scad-cube-node";
-import { ScadCylinderNode } from "./3d/scad-cylinder-node";
-import { ScadDifferenceNode } from "./3d/scad-difference-node";
-import { ScadIntersectionNode } from "./3d/scad-intersection-node";
-import { ScadSphereNode } from "./3d/scad-sphere-node";
-import { ScadTorusNode } from "./3d/scad-torus-node";
-import { ScadUnionNode } from "./3d/scad-union-node";
+import { CgsConeNode } from "./3d/cgs-cone-node";
+import { CgsCubeNode } from "./3d/cgs-cube-node";
+import { CgsCylinderNode } from "./3d/cgs-cylinder-node";
+import { CgsDifferenceNode } from "./3d/cgs-difference-node";
+import { CgsIntersectionNode } from "./3d/cgs-intersection-node";
+import { CgsSphereNode } from "./3d/cgs-sphere-node";
+import { CgsTorusNode } from "./3d/cgs-torus-node";
+import { CgsUnionNode } from "./3d/cgs-union-node";
 import { Claude3OpusNode } from "./anthropic/claude-3-opus-node";
 import { Claude35HaikuNode } from "./anthropic/claude-35-haiku-node";
 import { Claude35SonnetNode } from "./anthropic/claude-35-sonnet-node";
@@ -728,14 +728,14 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
 
     // CSG geometry nodes
     if (this.developerMode) {
-      this.registerImplementation(ScadCubeNode);
-      this.registerImplementation(ScadSphereNode);
-      this.registerImplementation(ScadCylinderNode);
-      this.registerImplementation(ScadConeNode);
-      this.registerImplementation(ScadTorusNode);
-      this.registerImplementation(ScadUnionNode);
-      this.registerImplementation(ScadDifferenceNode);
-      this.registerImplementation(ScadIntersectionNode);
+      this.registerImplementation(CgsCubeNode);
+      this.registerImplementation(CgsSphereNode);
+      this.registerImplementation(CgsCylinderNode);
+      this.registerImplementation(CgsConeNode);
+      this.registerImplementation(CgsTorusNode);
+      this.registerImplementation(CgsUnionNode);
+      this.registerImplementation(CgsDifferenceNode);
+      this.registerImplementation(CgsIntersectionNode);
     }
 
     // Geo nodes

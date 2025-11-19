@@ -8,7 +8,7 @@ import {
   performIntersection,
 } from "./csg-utils";
 
-export class ScadIntersectionNode extends ExecutableNode {
+export class CgsIntersectionNode extends ExecutableNode {
   private static readonly intersectionInputSchema = z.object({
     meshA: z
       .instanceof(Uint8Array)
@@ -74,10 +74,10 @@ export class ScadIntersectionNode extends ExecutableNode {
 
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const validatedInput = ScadIntersectionNode.intersectionInputSchema.parse(context.inputs);
+      const validatedInput = CgsIntersectionNode.intersectionInputSchema.parse(context.inputs);
       const { meshA, meshB, materialProperties } = validatedInput;
 
-      console.log("[ScadIntersectionNode] Performing intersection operation...");
+      console.log("[CgsIntersectionNode] Performing intersection operation...");
 
       // Parse GLB data back to brushes
       const brushA = await glTFToBrush(meshA);
