@@ -70,6 +70,8 @@
     "mailparser": "^3.7.4",
     "openai": "^5.20.3",
     "resend": "^6.1.0",
+    "three": "^0.181.2",
+    "three-bvh-csg": "^0.0.17",
     "twilio": "^5.9.0",
     "uuid": "^13.0.0",
     "wellknown": "^0.5.0",
