@@ -221,7 +221,7 @@ export async function brushToGLTF(
 export interface GLTFMaterialData {
   textureData?: Uint8Array;
   materialProperties?: {
-    baseColorFactor?: readonly [number, number, number, number];
+    baseColorFactor?: [number, number, number, number];
     metallicFactor?: number;
     roughnessFactor?: number;
   };
@@ -279,8 +279,9 @@ export async function glTFToBrush(glbData: Uint8Array): Promise<{
     if (material) {
       console.log("[CSG] Extracting material properties...");
       
+      const baseColor = material.getBaseColorFactor();
       materialData.materialProperties = {
-        baseColorFactor: material.getBaseColorFactor() as readonly [number, number, number, number],
+        baseColorFactor: [baseColor[0], baseColor[1], baseColor[2], baseColor[3]],
         metallicFactor: material.getMetallicFactor(),
         roughnessFactor: material.getRoughnessFactor(),
       };
@@ -485,6 +486,8 @@ export function createPBRMaterial(
   },
   textureData?: Uint8Array
 ): Material {
+  // When a texture is present, use white [1,1,1,1] as default to let texture show fully
+  // Only use custom baseColorFactor if explicitly provided
   const baseColorFactor = materialProperties?.baseColorFactor || [1.0, 1.0, 1.0, 1.0];
   const metallicFactor = materialProperties?.metallicFactor ?? 0.0;
   const roughnessFactor = materialProperties?.roughnessFactor ?? 0.8;
@@ -498,13 +501,14 @@ export function createPBRMaterial(
 
   // Add texture if provided
   if (textureData) {
+    console.log(`[CSG] Applying texture to material (${textureData.length} bytes)...`);
     const texture = doc
       .createTexture()
       .setImage(textureData)
       .setMimeType("image/png");
     
     material = material.setBaseColorTexture(texture);
-    console.log("[CSG] Applied texture to material");
+    console.log("[CSG] Texture applied successfully");
   }
 
   return material;

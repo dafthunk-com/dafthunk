@@ -94,7 +94,15 @@ export class CgsRotateNode extends ExecutableNode {
       brush.updateMatrixWorld();
 
       // Preserve texture and material from input, but allow override with materialProperties
-      const finalMaterialProps = materialProperties || materialData.materialProperties;
+      // When texture exists and no explicit material override, use defaults to avoid tinting
+      let finalMaterialProps = materialProperties;
+      if (!materialProperties && materialData.textureData) {
+        // When preserving texture without explicit material props, use neutral values
+        finalMaterialProps = undefined; // Let createPBRMaterial use defaults
+      } else if (!materialProperties) {
+        // No texture, preserve original material properties
+        finalMaterialProps = materialData.materialProperties;
+      }
       const finalTexture = materialData.textureData;
 
       const glbData = await brushToGLTF(brush, finalMaterialProps, finalTexture);

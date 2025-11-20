@@ -147,7 +147,13 @@ export class CgsDifferenceNode extends ExecutableNode {
       const { brush: brushB } = await glTFToBrush(meshBData);
 
       // Use material/texture from meshA, or override with materialProperties
-      const finalMaterialProps = materialProperties || materialDataA.materialProperties;
+      // When texture exists and no explicit material override, use defaults to avoid tinting
+      let finalMaterialProps = materialProperties;
+      if (!materialProperties && materialDataA.textureData) {
+        finalMaterialProps = undefined;
+      } else if (!materialProperties) {
+        finalMaterialProps = materialDataA.materialProperties;
+      }
       const finalTexture = materialDataA.textureData;
 
       // Perform difference operation
