@@ -35,7 +35,7 @@ async function performXOR(
   );
 
   const evaluator = new Evaluator();
-  evaluator.attributes = ["position", "normal"];
+  evaluator.attributes = ["position", "normal", "uv"];
 
   const aMinusB = evaluator.evaluate(brushA, brushB, SUBTRACTION);
   const bMinusA = evaluator.evaluate(brushB, brushA, SUBTRACTION);

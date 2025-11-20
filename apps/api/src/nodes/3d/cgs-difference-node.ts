@@ -35,7 +35,7 @@ async function performDifference(
     );
 
     const evaluator = new Evaluator();
-    evaluator.attributes = ["position", "normal"];
+    evaluator.attributes = ["position", "normal", "uv"];
     const result = evaluator.evaluate(brushA, brushB, SUBTRACTION);
 
     const resultStats = extractBrushStats(result);
