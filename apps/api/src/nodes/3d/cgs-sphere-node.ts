@@ -49,6 +49,13 @@ export class CgsSphereNode extends ExecutableNode {
       .min(2, "Height segments must be at least 2")
       .default(32)
       .describe("Vertical resolution (vertex count top to bottom)"),
+    texture: z
+      .object({
+        data: z.instanceof(Uint8Array),
+        mimeType: z.literal("image/png"),
+      })
+      .optional()
+      .describe("Optional PNG texture for the sphere surface"),
     materialProperties: z
       .object({
         baseColorFactor: z
@@ -90,6 +97,12 @@ export class CgsSphereNode extends ExecutableNode {
         required: false,
       },
       {
+        name: "texture",
+        type: "image",
+        description: "PNG texture image for sphere surface (optional)",
+        required: false,
+      },
+      {
         name: "materialProperties",
         type: "json",
         description: "PBR material configuration (optional)",
@@ -114,7 +127,7 @@ export class CgsSphereNode extends ExecutableNode {
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const validatedInput = CgsSphereNode.sphereInputSchema.parse(context.inputs);
-      const { radius, widthSegments, heightSegments, materialProperties } = validatedInput;
+      const { radius, widthSegments, heightSegments, texture, materialProperties } = validatedInput;
 
       console.log(
         `[CgsSphereNode] Creating sphere with radius=${radius}, widthSegments=${widthSegments}, heightSegments=${heightSegments}`
@@ -123,8 +136,8 @@ export class CgsSphereNode extends ExecutableNode {
       // Create the sphere brush using three-bvh-csg
       const brush = createSphereBrush(radius, widthSegments, heightSegments);
 
-      // Convert brush to glTF GLB binary format
-      const glbData = await brushToGLTF(brush, materialProperties);
+      // Convert brush to glTF GLB binary format with optional texture
+      const glbData = await brushToGLTF(brush, materialProperties, texture?.data);
 
       // Extract statistics
       const stats = extractBrushStats(brush);
@@ -140,7 +153,8 @@ export class CgsSphereNode extends ExecutableNode {
           radius,
           widthSegments,
           heightSegments,
-          hasMaterial: !!materialProperties,
+          hasTexture: !!texture,
+          hasMaterial: !!(materialProperties || texture),
         },
       });
     } catch (error) {

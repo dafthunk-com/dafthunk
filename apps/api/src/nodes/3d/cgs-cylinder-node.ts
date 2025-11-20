@@ -67,6 +67,13 @@ export class CgsCylinderNode extends ExecutableNode {
       .boolean()
       .default(false)
       .describe("Center the cylinder vertically at origin"),
+    texture: z
+      .object({
+        data: z.instanceof(Uint8Array),
+        mimeType: z.literal("image/png"),
+      })
+      .optional()
+      .describe("Optional PNG texture for the cylinder surface"),
     materialProperties: z
       .object({
         baseColorFactor: z
@@ -120,6 +127,12 @@ export class CgsCylinderNode extends ExecutableNode {
         required: false,
       },
       {
+        name: "texture",
+        type: "image",
+        description: "PNG texture image for cylinder surface (optional)",
+        required: false,
+      },
+      {
         name: "materialProperties",
         type: "json",
         description: "PBR material configuration (optional)",
@@ -144,7 +157,7 @@ export class CgsCylinderNode extends ExecutableNode {
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const validatedInput = CgsCylinderNode.cylinderInputSchema.parse(context.inputs);
-      const { height, radiusBottom, radiusTop, radialSegments, center, materialProperties } =
+      const { height, radiusBottom, radiusTop, radialSegments, center, texture, materialProperties } =
         validatedInput;
 
       // If radiusTop is not provided, use radiusBottom (creating a true cylinder)
@@ -157,8 +170,8 @@ export class CgsCylinderNode extends ExecutableNode {
       // Create the cylinder brush using three-bvh-csg
       const brush = createCylinderBrush(height, radiusBottom, topRadius, radialSegments, center);
 
-      // Convert brush to glTF GLB binary format
-      const glbData = await brushToGLTF(brush, materialProperties);
+      // Convert brush to glTF GLB binary format with optional texture
+      const glbData = await brushToGLTF(brush, materialProperties, texture?.data);
 
       // Extract statistics
       const stats = extractBrushStats(brush);
@@ -176,7 +189,8 @@ export class CgsCylinderNode extends ExecutableNode {
           radiusTop: topRadius,
           radialSegments,
           centered: center,
-          hasMaterial: !!materialProperties,
+          hasTexture: !!texture,
+          hasMaterial: !!(materialProperties || texture),
         },
       });
     } catch (error) {
