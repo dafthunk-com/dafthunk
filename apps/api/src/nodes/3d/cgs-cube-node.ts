@@ -1,12 +1,42 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
+import { BoxGeometry } from "three";
+import { Brush } from "three-bvh-csg";
 import { z } from "zod";
 
 import { ExecutableNode, NodeContext } from "../types";
 import {
   brushToGLTF,
-  createCubeBrush,
   extractBrushStats,
 } from "./csg-utils";
+
+/**
+ * Create a cube brush with specified dimensions
+ */
+function createCubeBrush(
+  sizeX: number,
+  sizeY: number,
+  sizeZ: number,
+  center: boolean = false
+): Brush {
+  console.log(
+    `[CSG] Creating cube brush: [${sizeX}, ${sizeY}, ${sizeZ}], center=${center}`
+  );
+
+  const geometry = new BoxGeometry(sizeX, sizeY, sizeZ);
+  geometry.computeVertexNormals();
+
+  if (geometry.hasAttribute("uv")) {
+    geometry.deleteAttribute("uv");
+  }
+
+  const brush = new Brush(geometry);
+
+  if (center) {
+    brush.position.set(-sizeX / 2, -sizeY / 2, -sizeZ / 2);
+  }
+
+  return brush;
+}
 
 export class CgsCubeNode extends ExecutableNode {
   private static readonly cubeInputSchema = z.object({

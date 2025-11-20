@@ -1,12 +1,58 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
+import { Brush, Evaluator, SUBTRACTION } from "three-bvh-csg";
 import { z } from "zod";
 
 import { ExecutableNode, NodeContext } from "../types";
 import {
   glTFToBrush,
   extractBrushStats,
-  performDifference,
+  brushToGLTF,
 } from "./csg-utils";
+
+interface CSGOperationResult {
+  glb: Uint8Array;
+  resultBrush: Brush;
+}
+
+/**
+ * Perform a CSG difference operation on two brushes (A - B)
+ */
+async function performDifference(
+  brushA: Brush,
+  brushB: Brush,
+  materialProperties?: {
+    baseColorFactor?: readonly [number, number, number, number];
+    metallicFactor?: number;
+    roughnessFactor?: number;
+  }
+): Promise<CSGOperationResult> {
+  try {
+    const statsA = extractBrushStats(brushA);
+    const statsB = extractBrushStats(brushB);
+    console.log(
+      `[CSG] Performing difference operation (A - B)... Input A: ${statsA.vertexCount} vertices, ${statsA.triangleCount} triangles. Input B: ${statsB.vertexCount} vertices, ${statsB.triangleCount} triangles`
+    );
+
+    const evaluator = new Evaluator();
+    evaluator.attributes = ["position", "normal"];
+    const result = evaluator.evaluate(brushA, brushB, SUBTRACTION);
+
+    const resultStats = extractBrushStats(result);
+    console.log(`[CSG] Difference complete. Result: ${resultStats.vertexCount} vertices, ${resultStats.triangleCount} triangles`);
+
+    if (resultStats.vertexCount === 0 || resultStats.triangleCount === 0) {
+      throw new Error(
+        "Difference operation produced empty geometry - the second shape may completely contain the first"
+      );
+    }
+
+    const glb = await brushToGLTF(result, materialProperties);
+    return { glb, resultBrush: result };
+  } catch (error) {
+    console.error("[CSG] Error in performDifference:", error);
+    throw error;
+  }
+}
 
 export class CgsDifferenceNode extends ExecutableNode {
   private static readonly differenceInputSchema = z.object({

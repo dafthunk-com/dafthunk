@@ -1,12 +1,47 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
+import { Brush, Evaluator, ADDITION } from "three-bvh-csg";
 import { z } from "zod";
 
 import { ExecutableNode, NodeContext } from "../types";
 import {
   glTFToBrush,
   extractBrushStats,
-  performUnion,
+  brushToGLTF,
 } from "./csg-utils";
+
+interface CSGOperationResult {
+  glb: Uint8Array;
+  resultBrush: Brush;
+}
+
+/**
+ * Perform a CSG union operation on two brushes
+ */
+async function performUnion(
+  brushA: Brush,
+  brushB: Brush,
+  materialProperties?: {
+    baseColorFactor?: readonly [number, number, number, number];
+    metallicFactor?: number;
+    roughnessFactor?: number;
+  }
+): Promise<CSGOperationResult> {
+  const statsA = extractBrushStats(brushA);
+  const statsB = extractBrushStats(brushB);
+  console.log(
+    `[CSG] Performing union operation... Input A: ${statsA.vertexCount} vertices, ${statsA.triangleCount} triangles. Input B: ${statsB.vertexCount} vertices, ${statsB.triangleCount} triangles`
+  );
+
+  const evaluator = new Evaluator();
+  evaluator.attributes = ["position", "normal"];
+  const result = evaluator.evaluate(brushA, brushB, ADDITION);
+
+  const resultStats = extractBrushStats(result);
+  console.log(`[CSG] Union complete. Result: ${resultStats.vertexCount} vertices, ${resultStats.triangleCount} triangles`);
+
+  const glb = await brushToGLTF(result, materialProperties);
+  return { glb, resultBrush: result };
+}
 
 export class CgsUnionNode extends ExecutableNode {
   private static readonly unionInputSchema = z.object({

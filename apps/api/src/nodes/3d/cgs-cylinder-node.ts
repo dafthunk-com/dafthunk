@@ -1,12 +1,48 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
+import { CylinderGeometry } from "three";
+import { Brush } from "three-bvh-csg";
 import { z } from "zod";
 
 import { ExecutableNode, NodeContext } from "../types";
 import {
   brushToGLTF,
-  createCylinderBrush,
   extractBrushStats,
 } from "./csg-utils";
+
+/**
+ * Create a cylinder brush with specified dimensions
+ */
+function createCylinderBrush(
+  height: number,
+  radiusBottom: number,
+  radiusTop: number = radiusBottom,
+  radialSegments: number = 32,
+  center: boolean = false
+): Brush {
+  console.log(
+    `[CSG] Creating cylinder brush: height=${height}, radiusBottom=${radiusBottom}, radiusTop=${radiusTop}`
+  );
+
+  const geometry = new CylinderGeometry(
+    radiusTop,
+    radiusBottom,
+    height,
+    radialSegments
+  );
+  geometry.computeVertexNormals();
+
+  if (geometry.hasAttribute("uv")) {
+    geometry.deleteAttribute("uv");
+  }
+
+  const brush = new Brush(geometry);
+
+  if (center) {
+    brush.position.y = -height / 2;
+  }
+
+  return brush;
+}
 
 export class CgsCylinderNode extends ExecutableNode {
   private static readonly cylinderInputSchema = z.object({

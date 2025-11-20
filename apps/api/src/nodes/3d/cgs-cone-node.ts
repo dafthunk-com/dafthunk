@@ -1,12 +1,44 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
+import { ConeGeometry } from "three";
+import { Brush } from "three-bvh-csg";
 import { z } from "zod";
 
 import { ExecutableNode, NodeContext } from "../types";
 import {
   brushToGLTF,
-  createConeBrush,
   extractBrushStats,
 } from "./csg-utils";
+
+/**
+ * Create a cone brush with specified dimensions
+ */
+function createConeBrush(
+  height: number,
+  radius: number = 1,
+  radialSegments: number = 32,
+  heightSegments: number = 1,
+  openEnded: boolean = false,
+  center: boolean = false
+): Brush {
+  console.log(
+    `[CSG] Creating cone brush: height=${height}, radius=${radius}, radialSegments=${radialSegments}, center=${center}`
+  );
+
+  const geometry = new ConeGeometry(radius, height, radialSegments, heightSegments, openEnded);
+  geometry.computeVertexNormals();
+
+  if (geometry.hasAttribute("uv")) {
+    geometry.deleteAttribute("uv");
+  }
+
+  const brush = new Brush(geometry);
+
+  if (center) {
+    brush.position.y = -height / 2;
+  }
+
+  return brush;
+}
 
 export class CgsConeNode extends ExecutableNode {
   private static readonly coneInputSchema = z.object({

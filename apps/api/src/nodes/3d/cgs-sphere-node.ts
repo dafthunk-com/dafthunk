@@ -1,12 +1,37 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
+import { SphereGeometry } from "three";
+import { Brush } from "three-bvh-csg";
 import { z } from "zod";
 
 import { ExecutableNode, NodeContext } from "../types";
 import {
   brushToGLTF,
-  createSphereBrush,
   extractBrushStats,
 } from "./csg-utils";
+
+/**
+ * Create a sphere brush with specified radius
+ */
+function createSphereBrush(
+  radius: number,
+  widthSegments: number = 32,
+  heightSegments: number = 32
+): Brush {
+  console.log(
+    `[CSG] Creating sphere brush: radius=${radius}, segments=${widthSegments}x${heightSegments}`
+  );
+
+  const geometry = new SphereGeometry(radius, widthSegments, heightSegments);
+  geometry.computeVertexNormals();
+
+  if (geometry.hasAttribute("uv")) {
+    geometry.deleteAttribute("uv");
+  }
+
+  const brush = new Brush(geometry);
+
+  return brush;
+}
 
 export class CgsSphereNode extends ExecutableNode {
   private static readonly sphereInputSchema = z.object({

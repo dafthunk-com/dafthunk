@@ -1,12 +1,38 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
+import { TorusGeometry } from "three";
+import { Brush } from "three-bvh-csg";
 import { z } from "zod";
 
 import { ExecutableNode, NodeContext } from "../types";
 import {
   brushToGLTF,
-  createTorusBrush,
   extractBrushStats,
 } from "./csg-utils";
+
+/**
+ * Create a torus brush with specified dimensions
+ */
+function createTorusBrush(
+  radius: number = 1,
+  tubeRadius: number = 0.4,
+  radialSegments: number = 16,
+  tubularSegments: number = 8
+): Brush {
+  console.log(
+    `[CSG] Creating torus brush: radius=${radius}, tubeRadius=${tubeRadius}, radialSegments=${radialSegments}, tubularSegments=${tubularSegments}`
+  );
+
+  const geometry = new TorusGeometry(radius, tubeRadius, radialSegments, tubularSegments);
+  geometry.computeVertexNormals();
+
+  if (geometry.hasAttribute("uv")) {
+    geometry.deleteAttribute("uv");
+  }
+
+  const brush = new Brush(geometry);
+
+  return brush;
+}
 
 export class CgsTorusNode extends ExecutableNode {
   private static readonly torusInputSchema = z.object({
