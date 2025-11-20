@@ -27,9 +27,7 @@ function createConeBrush(
   const geometry = new ConeGeometry(radius, height, radialSegments, heightSegments, openEnded);
   geometry.computeVertexNormals();
 
-  if (geometry.hasAttribute("uv")) {
-    geometry.deleteAttribute("uv");
-  }
+  // Keep UV coordinates for texture mapping (geometry generates them automatically)
 
   const brush = new Brush(geometry);
 

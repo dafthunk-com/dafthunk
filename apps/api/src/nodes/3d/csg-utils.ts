@@ -33,7 +33,8 @@ export async function brushToGLTF(
     baseColorFactor?: readonly [number, number, number, number];
     metallicFactor?: number;
     roughnessFactor?: number;
-  }
+  },
+  textureData?: Uint8Array
 ): Promise<Uint8Array> {
   try {
     console.log("[CSG] Converting brush to glTF...");
@@ -168,9 +169,22 @@ export async function brushToGLTF(
       }
     }
 
-    // Apply PBR material if provided
-    if (materialProperties) {
-      const material = createPBRMaterial(document, materialProperties);
+    // Extract and convert UV data if present
+    const uvAttr = geometry.getAttribute("uv");
+    if (uvAttr && uvAttr.array) {
+      const uvs = new Float32Array(uvAttr.array);
+      const uvAccessor = document
+        .createAccessor()
+        .setType("VEC2")
+        .setArray(uvs)
+        .setBuffer(buffer);
+      primitive.setAttribute("TEXCOORD_0", uvAccessor);
+      console.log(`[CSG] Added UV coordinates: ${uvs.length / 2} UVs`);
+    }
+
+    // Apply PBR material if provided or if texture is provided
+    if (materialProperties || textureData) {
+      const material = createPBRMaterial(document, materialProperties, textureData);
       primitive.setMaterial(material);
     }
 
@@ -411,27 +425,41 @@ export function extractMeshStats(document: Document): {
 }
 
 /**
- * Create a PBR material with optional properties
+ * Create a PBR material with optional properties and texture
  * Using @gltf-transform/core for glTF-compatible material
  */
 export function createPBRMaterial(
   doc: Document,
-  materialProperties: {
+  materialProperties?: {
     baseColorFactor?: readonly [number, number, number, number];
     metallicFactor?: number;
     roughnessFactor?: number;
-  }
+  },
+  textureData?: Uint8Array
 ): Material {
-  const baseColorFactor = materialProperties.baseColorFactor || [1.0, 1.0, 1.0, 1.0];
-  const metallicFactor = materialProperties.metallicFactor ?? 0.0;
-  const roughnessFactor = materialProperties.roughnessFactor ?? 0.8;
+  const baseColorFactor = materialProperties?.baseColorFactor || [1.0, 1.0, 1.0, 1.0];
+  const metallicFactor = materialProperties?.metallicFactor ?? 0.0;
+  const roughnessFactor = materialProperties?.roughnessFactor ?? 0.8;
 
-  return doc
+  let material = doc
     .createMaterial()
     .setBaseColorFactor([...baseColorFactor])
     .setMetallicFactor(metallicFactor)
     .setRoughnessFactor(roughnessFactor)
     .setDoubleSided(false);
+
+  // Add texture if provided
+  if (textureData) {
+    const texture = doc
+      .createTexture()
+      .setImage(textureData)
+      .setMimeType("image/png");
+    
+    material = material.setBaseColorTexture(texture);
+    console.log("[CSG] Applied texture to material");
+  }
+
+  return material;
 }
 
 

@@ -25,9 +25,7 @@ function createTorusBrush(
   const geometry = new TorusGeometry(radius, tubeRadius, radialSegments, tubularSegments);
   geometry.computeVertexNormals();
 
-  if (geometry.hasAttribute("uv")) {
-    geometry.deleteAttribute("uv");
-  }
+  // Keep UV coordinates for texture mapping (geometry generates them automatically)
 
   const brush = new Brush(geometry);
 

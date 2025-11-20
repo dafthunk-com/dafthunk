@@ -24,9 +24,7 @@ function createSphereBrush(
   const geometry = new SphereGeometry(radius, widthSegments, heightSegments);
   geometry.computeVertexNormals();
 
-  if (geometry.hasAttribute("uv")) {
-    geometry.deleteAttribute("uv");
-  }
+  // Keep UV coordinates for texture mapping (SphereGeometry generates them automatically)
 
   const brush = new Brush(geometry);
 
