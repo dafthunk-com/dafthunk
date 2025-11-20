@@ -135,16 +135,35 @@ export class CgsXorNode extends ExecutableNode {
       const meshBData = meshB instanceof Uint8Array ? meshB : meshB.data;
 
       const { brush: brushA, materialData: materialDataA } = await glTFToBrush(meshAData);
-      const { brush: brushB } = await glTFToBrush(meshBData);
-      // Use material/texture from meshA, or override with materialProperties
-      // When texture exists and no explicit material override, use defaults to avoid tinting
-      let finalMaterialProps = materialProperties;
-      if (!materialProperties && materialDataA.textureData) {
+      const { brush: brushB, materialData: materialDataB } = await glTFToBrush(meshBData);
+
+      // Handle texture conflicts: CSG operations can't properly support multiple textures
+      // If both inputs have textures, we discard textures and use solid material to avoid confusion
+      let finalTexture: Uint8Array | undefined;
+      let finalMaterialProps;
+
+      if (materialProperties) {
+        // Explicit material override provided
+        finalMaterialProps = materialProperties;
+        finalTexture = undefined; // Don't use input textures when explicit material set
+      } else if (materialDataA.textureData && materialDataB.textureData) {
+        // Both inputs have textures - can't properly combine them
+        console.warn("[CSG XOR] Both inputs have textures. CSG operations cannot properly combine multiple textures. Using solid material instead.");
+        finalTexture = undefined;
+        finalMaterialProps = undefined; // Use default solid material
+      } else if (materialDataA.textureData) {
+        // Only A has texture
+        finalTexture = materialDataA.textureData;
+        finalMaterialProps = undefined; // Use defaults to avoid tinting
+      } else if (materialDataB.textureData) {
+        // Only B has texture
+        finalTexture = materialDataB.textureData;
         finalMaterialProps = undefined;
-      } else if (!materialProperties) {
+      } else {
+        // Neither has texture, preserve material properties from A
+        finalTexture = undefined;
         finalMaterialProps = materialDataA.materialProperties;
       }
-      const finalTexture = materialDataA.textureData;
 
       const { glb: resultGLB, resultBrush } = await performXOR(brushA, brushB, finalMaterialProps, finalTexture);
 
