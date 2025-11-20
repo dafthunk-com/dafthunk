@@ -87,13 +87,17 @@ export class CgsRotateNode extends ExecutableNode {
       console.log(`[CgsRotateNode] Rotating mesh by [${rotation[0]}°, ${rotation[1]}°, ${rotation[2]}°]`);
 
       const meshData = mesh instanceof Uint8Array ? mesh : mesh.data;
-      const brush = await glTFToBrush(meshData);
+      const { brush, materialData } = await glTFToBrush(meshData);
 
       const rotationRad = rotation.map((deg) => (deg * Math.PI) / 180);
       brush.rotation.set(rotationRad[0], rotationRad[1], rotationRad[2]);
       brush.updateMatrixWorld();
 
-      const glbData = await brushToGLTF(brush, materialProperties);
+      // Preserve texture and material from input, but allow override with materialProperties
+      const finalMaterialProps = materialProperties || materialData.materialProperties;
+      const finalTexture = materialData.textureData;
+
+      const glbData = await brushToGLTF(brush, finalMaterialProps, finalTexture);
       const stats = extractBrushStats(brush);
 
       return this.createSuccessResult({
@@ -105,7 +109,8 @@ export class CgsRotateNode extends ExecutableNode {
           vertexCount: stats.vertexCount,
           triangleCount: stats.triangleCount,
           rotation,
-          hasMaterial: !!materialProperties,
+          hasTexture: !!finalTexture,
+          hasMaterial: !!(finalMaterialProps || finalTexture),
         },
       });
     } catch (error) {

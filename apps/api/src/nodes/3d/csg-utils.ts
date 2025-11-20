@@ -216,10 +216,25 @@ export async function brushToGLTF(
 }
 
 /**
- * Parse glTF GLB binary data back to a Brush object
+ * Material and texture data extracted from glTF
+ */
+export interface GLTFMaterialData {
+  textureData?: Uint8Array;
+  materialProperties?: {
+    baseColorFactor?: readonly [number, number, number, number];
+    metallicFactor?: number;
+    roughnessFactor?: number;
+  };
+}
+
+/**
+ * Parse glTF GLB binary data back to a Brush object with material data
  * Uses @gltf-transform/core to parse the binary data and extract geometry
  */
-export async function glTFToBrush(glbData: Uint8Array): Promise<Brush> {
+export async function glTFToBrush(glbData: Uint8Array): Promise<{
+  brush: Brush;
+  materialData: GLTFMaterialData;
+}> {
   try {
     console.log("[CSG] Parsing glTF to brush...");
 
@@ -257,6 +272,30 @@ export async function glTFToBrush(glbData: Uint8Array): Promise<Brush> {
     console.log(`[CSG] Found ${primitives.length} primitives`);
 
     const primitive = primitives[0];
+
+    // Extract material and texture data before creating geometry
+    const materialData: GLTFMaterialData = {};
+    const material = primitive.getMaterial();
+    if (material) {
+      console.log("[CSG] Extracting material properties...");
+      
+      materialData.materialProperties = {
+        baseColorFactor: material.getBaseColorFactor() as readonly [number, number, number, number],
+        metallicFactor: material.getMetallicFactor(),
+        roughnessFactor: material.getRoughnessFactor(),
+      };
+
+      // Extract texture if present
+      const baseColorTexture = material.getBaseColorTexture();
+      if (baseColorTexture) {
+        console.log("[CSG] Extracting texture data...");
+        const textureImage = baseColorTexture.getImage();
+        if (textureImage) {
+          materialData.textureData = textureImage;
+          console.log(`[CSG] Extracted texture: ${textureImage.length} bytes`);
+        }
+      }
+    }
 
     // Create BufferGeometry from the primitive
     const geometry = new BufferGeometry();
@@ -313,6 +352,21 @@ export async function glTFToBrush(glbData: Uint8Array): Promise<Brush> {
       geometry.setIndex(new Uint32BufferAttribute(indices, 1));
     }
 
+    // Extract UV coordinates if present (needed for texture mapping)
+    const uvAccessor = primitive.getAttribute("TEXCOORD_0");
+    if (uvAccessor) {
+      console.log("[CSG] Extracting UV coordinates...");
+      let uvs = uvAccessor.getArray();
+      if (uvs) {
+        if (!(uvs instanceof Float32Array)) {
+          console.log(`[CSG] UV array is ${uvs?.constructor?.name}, converting to Float32Array`);
+          uvs = new Float32Array(uvs as ArrayLike<number>);
+        }
+        geometry.setAttribute("uv", new Float32BufferAttribute(uvs, 2));
+        console.log(`[CSG] Preserved UV coordinates: ${uvs.length / 2} UVs`);
+      }
+    }
+
     // Ensure the geometry has proper normals (required for CSG operations)
     console.log("[CSG] Checking/computing normals for parsed geometry...");
     if (!geometry.getAttribute("normal")) {
@@ -324,16 +378,10 @@ export async function glTFToBrush(glbData: Uint8Array): Promise<Brush> {
       geometry.computeVertexNormals();
     }
 
-    // Delete any UV attributes that might cause issues
-    if (geometry.hasAttribute("uv")) {
-      console.log("[CSG] Removing UV attribute to prevent evaluator conflicts");
-      geometry.deleteAttribute("uv");
-    }
-
-    // Create and return Brush
+    // Create and return Brush with material data
     const brush = new Brush(geometry);
-    console.log("[CSG] Successfully parsed brush from glTF");
-    return brush;
+    console.log("[CSG] Successfully parsed brush from glTF with material data");
+    return { brush, materialData };
   } catch (error) {
     throw new Error(
       `Failed to parse glTF to brush: ${error instanceof Error ? error.message : String(error)}`

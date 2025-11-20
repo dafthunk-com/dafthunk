@@ -100,12 +100,16 @@ export class CgsScaleNode extends ExecutableNode {
       console.log(`[CgsScaleNode] Scaling mesh by [${scaleX}, ${scaleY}, ${scaleZ}]`);
 
       const meshData = mesh instanceof Uint8Array ? mesh : mesh.data;
-      const brush = await glTFToBrush(meshData);
+      const { brush, materialData } = await glTFToBrush(meshData);
 
       brush.scale.set(scaleX, scaleY, scaleZ);
       brush.updateMatrixWorld();
 
-      const glbData = await brushToGLTF(brush, materialProperties);
+      // Preserve texture and material from input, but allow override with materialProperties
+      const finalMaterialProps = materialProperties || materialData.materialProperties;
+      const finalTexture = materialData.textureData;
+
+      const glbData = await brushToGLTF(brush, finalMaterialProps, finalTexture);
       const stats = extractBrushStats(brush);
 
       return this.createSuccessResult({
@@ -117,7 +121,8 @@ export class CgsScaleNode extends ExecutableNode {
           vertexCount: stats.vertexCount,
           triangleCount: stats.triangleCount,
           scale: [scaleX, scaleY, scaleZ],
-          hasMaterial: !!materialProperties,
+          hasTexture: !!finalTexture,
+          hasMaterial: !!(finalMaterialProps || finalTexture),
         },
       });
     } catch (error) {

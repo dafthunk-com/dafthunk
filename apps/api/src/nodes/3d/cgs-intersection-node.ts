@@ -24,7 +24,8 @@ async function performIntersection(
     baseColorFactor?: readonly [number, number, number, number];
     metallicFactor?: number;
     roughnessFactor?: number;
-  }
+  },
+  textureData?: Uint8Array
 ): Promise<CSGOperationResult> {
   const statsA = extractBrushStats(brushA);
   const statsB = extractBrushStats(brushB);
@@ -45,7 +46,7 @@ async function performIntersection(
     );
   }
 
-  const glb = await brushToGLTF(result, materialProperties);
+  const glb = await brushToGLTF(result, materialProperties, textureData);
   return { glb, resultBrush: result };
 }
 
@@ -137,11 +138,14 @@ export class CgsIntersectionNode extends ExecutableNode {
       const meshBData = meshB instanceof Uint8Array ? meshB : meshB.data;
 
       // Parse GLB data back to brushes
-      const brushA = await glTFToBrush(meshAData);
-      const brushB = await glTFToBrush(meshBData);
+      const { brush: brushA, materialData: materialDataA } = await glTFToBrush(meshAData);
+      const { brush: brushB } = await glTFToBrush(meshBData);
+      // Use material/texture from meshA, or override with materialProperties
+      const finalMaterialProps = materialProperties || materialDataA.materialProperties;
+      const finalTexture = materialDataA.textureData;
 
       // Perform intersection operation
-      const { glb: resultGLB, resultBrush } = await performIntersection(brushA, brushB, materialProperties);
+      const { glb: resultGLB, resultBrush } = await performIntersection(brushA, brushB, finalMaterialProps, finalTexture);
 
       // Extract statistics from result brush
       const resultStats = extractBrushStats(resultBrush);
@@ -155,7 +159,8 @@ export class CgsIntersectionNode extends ExecutableNode {
           vertexCount: resultStats.vertexCount,
           triangleCount: resultStats.triangleCount,
           operation: "intersection",
-          hasMaterial: !!materialProperties,
+          hasTexture: !!finalTexture,
+          hasMaterial: !!(finalMaterialProps || finalTexture),
         },
       });
     } catch (error) {

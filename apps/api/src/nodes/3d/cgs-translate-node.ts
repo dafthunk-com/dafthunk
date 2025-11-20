@@ -87,12 +87,16 @@ export class CgsTranslateNode extends ExecutableNode {
       console.log(`[CgsTranslateNode] Translating mesh by [${offset[0]}, ${offset[1]}, ${offset[2]}]`);
 
       const meshData = mesh instanceof Uint8Array ? mesh : mesh.data;
-      const brush = await glTFToBrush(meshData);
+      const { brush, materialData } = await glTFToBrush(meshData);
 
       brush.position.set(offset[0], offset[1], offset[2]);
       brush.updateMatrixWorld();
 
-      const glbData = await brushToGLTF(brush, materialProperties);
+      // Preserve texture and material from input, but allow override with materialProperties
+      const finalMaterialProps = materialProperties || materialData.materialProperties;
+      const finalTexture = materialData.textureData;
+
+      const glbData = await brushToGLTF(brush, finalMaterialProps, finalTexture);
       const stats = extractBrushStats(brush);
 
       return this.createSuccessResult({
@@ -104,7 +108,8 @@ export class CgsTranslateNode extends ExecutableNode {
           vertexCount: stats.vertexCount,
           triangleCount: stats.triangleCount,
           offset,
-          hasMaterial: !!materialProperties,
+          hasTexture: !!finalTexture,
+          hasMaterial: !!(finalMaterialProps || finalTexture),
         },
       });
     } catch (error) {

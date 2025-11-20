@@ -25,7 +25,8 @@ async function performXOR(
     baseColorFactor?: readonly [number, number, number, number];
     metallicFactor?: number;
     roughnessFactor?: number;
-  }
+  },
+  textureData?: Uint8Array
 ): Promise<CSGOperationResult> {
   const statsA = extractBrushStats(brushA);
   const statsB = extractBrushStats(brushB);
@@ -43,7 +44,7 @@ async function performXOR(
   const resultStats = extractBrushStats(result);
   console.log(`[CSG] XOR complete. Result: ${resultStats.vertexCount} vertices, ${resultStats.triangleCount} triangles`);
 
-  const glb = await brushToGLTF(result, materialProperties);
+  const glb = await brushToGLTF(result, materialProperties, textureData);
   return { glb, resultBrush: result };
 }
 
@@ -133,10 +134,13 @@ export class CgsXorNode extends ExecutableNode {
       const meshAData = meshA instanceof Uint8Array ? meshA : meshA.data;
       const meshBData = meshB instanceof Uint8Array ? meshB : meshB.data;
 
-      const brushA = await glTFToBrush(meshAData);
-      const brushB = await glTFToBrush(meshBData);
+      const { brush: brushA, materialData: materialDataA } = await glTFToBrush(meshAData);
+      const { brush: brushB } = await glTFToBrush(meshBData);
+      // Use material/texture from meshA, or override with materialProperties
+      const finalMaterialProps = materialProperties || materialDataA.materialProperties;
+      const finalTexture = materialDataA.textureData;
 
-      const { glb: resultGLB, resultBrush } = await performXOR(brushA, brushB, materialProperties);
+      const { glb: resultGLB, resultBrush } = await performXOR(brushA, brushB, finalMaterialProps, finalTexture);
 
       const resultStats = extractBrushStats(resultBrush);
 
@@ -149,7 +153,8 @@ export class CgsXorNode extends ExecutableNode {
           vertexCount: resultStats.vertexCount,
           triangleCount: resultStats.triangleCount,
           operation: "xor",
-          hasMaterial: !!materialProperties,
+          hasTexture: !!finalTexture,
+          hasMaterial: !!(finalMaterialProps || finalTexture),
         },
       });
     } catch (error) {

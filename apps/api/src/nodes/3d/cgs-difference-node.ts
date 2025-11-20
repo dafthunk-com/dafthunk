@@ -24,7 +24,8 @@ async function performDifference(
     baseColorFactor?: readonly [number, number, number, number];
     metallicFactor?: number;
     roughnessFactor?: number;
-  }
+  },
+  textureData?: Uint8Array
 ): Promise<CSGOperationResult> {
   try {
     const statsA = extractBrushStats(brushA);
@@ -46,7 +47,7 @@ async function performDifference(
       );
     }
 
-    const glb = await brushToGLTF(result, materialProperties);
+    const glb = await brushToGLTF(result, materialProperties, textureData);
     return { glb, resultBrush: result };
   } catch (error) {
     console.error("[CSG] Error in performDifference:", error);
@@ -141,12 +142,16 @@ export class CgsDifferenceNode extends ExecutableNode {
       const meshAData = meshA instanceof Uint8Array ? meshA : meshA.data;
       const meshBData = meshB instanceof Uint8Array ? meshB : meshB.data;
 
-      // Parse GLB data back to brushes
-      const brushA = await glTFToBrush(meshAData);
-      const brushB = await glTFToBrush(meshBData);
+      // Parse GLB data back to brushes with material data
+      const { brush: brushA, materialData: materialDataA } = await glTFToBrush(meshAData);
+      const { brush: brushB } = await glTFToBrush(meshBData);
+
+      // Use material/texture from meshA, or override with materialProperties
+      const finalMaterialProps = materialProperties || materialDataA.materialProperties;
+      const finalTexture = materialDataA.textureData;
 
       // Perform difference operation
-      const { glb: resultGLB, resultBrush } = await performDifference(brushA, brushB, materialProperties);
+      const { glb: resultGLB, resultBrush } = await performDifference(brushA, brushB, finalMaterialProps, finalTexture);
 
       // Extract statistics from result brush
       const resultStats = extractBrushStats(resultBrush);
@@ -160,7 +165,8 @@ export class CgsDifferenceNode extends ExecutableNode {
           vertexCount: resultStats.vertexCount,
           triangleCount: resultStats.triangleCount,
           operation: "difference",
-          hasMaterial: !!materialProperties,
+          hasTexture: !!finalTexture,
+          hasMaterial: !!(finalMaterialProps || finalTexture),
         },
       });
     } catch (error) {

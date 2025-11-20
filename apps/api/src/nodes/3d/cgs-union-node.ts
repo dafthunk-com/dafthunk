@@ -24,7 +24,8 @@ async function performUnion(
     baseColorFactor?: readonly [number, number, number, number];
     metallicFactor?: number;
     roughnessFactor?: number;
-  }
+  },
+  textureData?: Uint8Array
 ): Promise<CSGOperationResult> {
   const statsA = extractBrushStats(brushA);
   const statsB = extractBrushStats(brushB);
@@ -39,7 +40,7 @@ async function performUnion(
   const resultStats = extractBrushStats(result);
   console.log(`[CSG] Union complete. Result: ${resultStats.vertexCount} vertices, ${resultStats.triangleCount} triangles`);
 
-  const glb = await brushToGLTF(result, materialProperties);
+  const glb = await brushToGLTF(result, materialProperties, textureData);
   return { glb, resultBrush: result };
 }
 
@@ -130,12 +131,16 @@ export class CgsUnionNode extends ExecutableNode {
       const meshAData = meshA instanceof Uint8Array ? meshA : meshA.data;
       const meshBData = meshB instanceof Uint8Array ? meshB : meshB.data;
 
-      // Parse GLB data back to brushes
-      const brushA = await glTFToBrush(meshAData);
-      const brushB = await glTFToBrush(meshBData);
+      // Parse GLB data back to brushes with material data
+      const { brush: brushA, materialData: materialDataA } = await glTFToBrush(meshAData);
+      const { brush: brushB } = await glTFToBrush(meshBData);
+
+      // Use material/texture from meshA, or override with materialProperties
+      const finalMaterialProps = materialProperties || materialDataA.materialProperties;
+      const finalTexture = materialDataA.textureData;
 
       // Perform union operation
-      const { glb: resultGLB, resultBrush } = await performUnion(brushA, brushB, materialProperties);
+      const { glb: resultGLB, resultBrush } = await performUnion(brushA, brushB, finalMaterialProps, finalTexture);
 
       // Extract statistics from result brush
       const resultStats = extractBrushStats(resultBrush);
@@ -149,7 +154,8 @@ export class CgsUnionNode extends ExecutableNode {
           vertexCount: resultStats.vertexCount,
           triangleCount: resultStats.triangleCount,
           operation: "union",
-          hasMaterial: !!materialProperties,
+          hasTexture: !!finalTexture,
+          hasMaterial: !!(finalMaterialProps || finalTexture),
         },
       });
     } catch (error) {
