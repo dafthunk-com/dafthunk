@@ -68,6 +68,13 @@ export class CgsXorNode extends ExecutableNode {
         }),
       ])
       .describe("Second mesh (GLB binary format)"),
+    texture: z
+      .object({
+        data: z.instanceof(Uint8Array),
+        mimeType: z.literal("image/png"),
+      })
+      .optional()
+      .describe("Optional PNG texture for the result mesh"),
     materialProperties: z
       .object({
         baseColorFactor: z
@@ -103,6 +110,12 @@ export class CgsXorNode extends ExecutableNode {
         required: true,
       },
       {
+        name: "texture",
+        type: "image",
+        description: "PNG texture image for result mesh (optional)",
+        required: false,
+      },
+      {
         name: "materialProperties",
         type: "json",
         description: "PBR material configuration (optional)",
@@ -127,7 +140,7 @@ export class CgsXorNode extends ExecutableNode {
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const validatedInput = CgsXorNode.xorInputSchema.parse(context.inputs);
-      const { meshA, meshB, materialProperties } = validatedInput;
+      const { meshA, meshB, texture, materialProperties } = validatedInput;
 
       console.log("[CgsXorNode] Performing XOR operation...");
 
@@ -137,15 +150,21 @@ export class CgsXorNode extends ExecutableNode {
       const { brush: brushA, materialData: materialDataA } = await glTFToBrush(meshAData);
       const { brush: brushB, materialData: materialDataB } = await glTFToBrush(meshBData);
 
-      // Handle texture conflicts: CSG operations can't properly support multiple textures
-      // If both inputs have textures, we discard textures and use solid material to avoid confusion
+      // Determine final texture and material with priority:
+      // 1. Explicit texture input (highest priority)
+      // 2. Explicit material properties
+      // 3. Auto-resolve from inputs (with conflict handling)
       let finalTexture: Uint8Array | undefined;
       let finalMaterialProps;
 
-      if (materialProperties) {
-        // Explicit material override provided
+      if (texture) {
+        // User explicitly provided texture for result - use it
+        finalTexture = texture.data;
+        finalMaterialProps = undefined; // Use defaults to let texture show fully
+      } else if (materialProperties) {
+        // Explicit material override provided (no texture)
         finalMaterialProps = materialProperties;
-        finalTexture = undefined; // Don't use input textures when explicit material set
+        finalTexture = undefined;
       } else if (materialDataA.textureData && materialDataB.textureData) {
         // Both inputs have textures - can't properly combine them
         console.warn("[CSG XOR] Both inputs have textures. CSG operations cannot properly combine multiple textures. Using solid material instead.");
