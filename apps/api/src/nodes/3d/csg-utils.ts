@@ -8,6 +8,7 @@ import {
   BufferGeometry,
   Float32BufferAttribute,
   Uint32BufferAttribute,
+  Vector3,
 } from "three";
 import { Brush } from "three-bvh-csg";
 
@@ -70,7 +71,34 @@ export async function brushToGLTF(
       );
     }
 
-    const positions = new Float32Array(posArray);
+    // Apply brush transformation matrix to geometry if needed
+    // Brush extends Mesh which has position, rotation, scale, and matrix
+    brush.updateMatrixWorld(true);
+    const needsTransform = 
+      brush.position.x !== 0 || brush.position.y !== 0 || brush.position.z !== 0 ||
+      brush.rotation.x !== 0 || brush.rotation.y !== 0 || brush.rotation.z !== 0 ||
+      brush.scale.x !== 1 || brush.scale.y !== 1 || brush.scale.z !== 1;
+
+    let positions: Float32Array;
+    if (needsTransform) {
+      console.log(`[CSG] Applying transformation to geometry: position=[${brush.position.x}, ${brush.position.y}, ${brush.position.z}], rotation=[${brush.rotation.x}, ${brush.rotation.y}, ${brush.rotation.z}], scale=[${brush.scale.x}, ${brush.scale.y}, ${brush.scale.z}]`);
+      
+      // Use three.js to apply transformation matrix to positions
+      positions = new Float32Array(posArray.length);
+      const vertex = new Vector3();
+      
+      for (let i = 0; i < posArray.length; i += 3) {
+        vertex.set(posArray[i], posArray[i + 1], posArray[i + 2]);
+        vertex.applyMatrix4(brush.matrixWorld);
+        
+        positions[i] = vertex.x;
+        positions[i + 1] = vertex.y;
+        positions[i + 2] = vertex.z;
+      }
+    } else {
+      positions = new Float32Array(posArray);
+    }
+
     if (positions.length === 0) {
       throw new Error("Position array is empty");
     }
@@ -109,7 +137,28 @@ export async function brushToGLTF(
       if (!normalAttr.array) {
         console.warn("[CSG] Normal attribute exists but has no array data, skipping normals");
       } else {
-        const normals = new Float32Array(normalAttr.array);
+        let normals: Float32Array;
+        
+        if (needsTransform) {
+          // Apply rotation/scale to normals using normal matrix (inverse transpose of upper 3x3)
+          normals = new Float32Array(normalAttr.array.length);
+          const normal = new Vector3();
+          const normalMatrix = brush.matrixWorld.clone();
+          normalMatrix.invert().transpose();
+          
+          for (let i = 0; i < normalAttr.array.length; i += 3) {
+            normal.set(normalAttr.array[i], normalAttr.array[i + 1], normalAttr.array[i + 2]);
+            normal.applyMatrix4(normalMatrix);
+            normal.normalize();
+            
+            normals[i] = normal.x;
+            normals[i + 1] = normal.y;
+            normals[i + 2] = normal.z;
+          }
+        } else {
+          normals = new Float32Array(normalAttr.array);
+        }
+        
         const normalAccessor = document
           .createAccessor()
           .setType("VEC3")
