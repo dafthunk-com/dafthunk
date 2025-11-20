@@ -953,11 +953,11 @@ export function useWorkflowState({
     dagreGraph.setGraph({ rankdir: "LR", nodesep: 100, ranksep: 100 });
 
     nodesRef.current.forEach((node) => {
-      // Ensure width and height are available, provide defaults if not
-      const nodeWidth = node.width || 200; // Default width
-      // Preview nodes have min-h-44 (176px) + content, use larger default
+      // Use React Flow's measured dimensions when available, otherwise fall back to estimates
+      const nodeWidth = node.measured?.width || node.width || 200;
       const isPreviewNode = node.data.nodeType?.startsWith("preview-");
-      const nodeHeight = node.height || (isPreviewNode ? 250 : 100);
+      const nodeHeight =
+        node.measured?.height || node.height || (isPreviewNode ? 250 : 100);
       dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
     });
 
@@ -970,12 +970,12 @@ export function useWorkflowState({
     setNodes((nds) =>
       nds.map((node) => {
         const nodeWithPosition = dagreGraph.node(node.id);
-        // Adjust position to be an offset from the current viewport center
-        // This can help prevent nodes from flying too far off screen
         const isPreviewNode = node.data.nodeType?.startsWith("preview-");
-        const x = nodeWithPosition.x - (node.width || 200) / 2;
-        const y =
-          nodeWithPosition.y - (node.height || (isPreviewNode ? 250 : 100)) / 2;
+        const nodeWidth = node.measured?.width || node.width || 200;
+        const nodeHeight =
+          node.measured?.height || node.height || (isPreviewNode ? 250 : 100);
+        const x = nodeWithPosition.x - nodeWidth / 2;
+        const y = nodeWithPosition.y - nodeHeight / 2;
 
         return {
           ...node,
