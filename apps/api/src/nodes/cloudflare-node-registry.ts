@@ -9,9 +9,13 @@ import { CgsCubeNode } from "./3d/cgs-cube-node";
 import { CgsCylinderNode } from "./3d/cgs-cylinder-node";
 import { CgsDifferenceNode } from "./3d/cgs-difference-node";
 import { CgsIntersectionNode } from "./3d/cgs-intersection-node";
+import { CgsRotateNode } from "./3d/cgs-rotate-node";
+import { CgsScaleNode } from "./3d/cgs-scale-node";
 import { CgsSphereNode } from "./3d/cgs-sphere-node";
 import { CgsTorusNode } from "./3d/cgs-torus-node";
+import { CgsTranslateNode } from "./3d/cgs-translate-node";
 import { CgsUnionNode } from "./3d/cgs-union-node";
+import { CgsXorNode } from "./3d/cgs-xor-node";
 import { Claude3OpusNode } from "./anthropic/claude-3-opus-node";
 import { Claude35HaikuNode } from "./anthropic/claude-35-haiku-node";
 import { Claude35SonnetNode } from "./anthropic/claude-35-sonnet-node";
@@ -728,14 +732,23 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
 
     // CSG geometry nodes
     if (this.developerMode) {
+      // CSG Primitives
       this.registerImplementation(CgsCubeNode);
       this.registerImplementation(CgsSphereNode);
       this.registerImplementation(CgsCylinderNode);
       this.registerImplementation(CgsConeNode);
       this.registerImplementation(CgsTorusNode);
+      
+      // CSG Operations
       this.registerImplementation(CgsUnionNode);
       this.registerImplementation(CgsDifferenceNode);
       this.registerImplementation(CgsIntersectionNode);
+      this.registerImplementation(CgsXorNode);
+      
+      // CSG Transformations
+      this.registerImplementation(CgsTranslateNode);
+      this.registerImplementation(CgsRotateNode);
+      this.registerImplementation(CgsScaleNode);
     }
 
     // Geo nodes
