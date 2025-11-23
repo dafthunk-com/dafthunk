@@ -11,7 +11,7 @@ export function meta() {
         "Build serverless workflow automation with a React Flow editor. Deploy AI workflows, web scraping pipelines, data transformations, and integrations on Cloudflare's edge infrastructure.",
     },
     { property: "og:type", content: "website" },
-    { property: "og:url", content: "https://dafthunk.com/" },
+    { property: "og:url", content: "https://www.dafthunk.com/" },
     {
       property: "og:title",
       content: "Dafthunk - Visual Workflow Automation Platform",
@@ -21,10 +21,10 @@ export function meta() {
       content:
         "Build serverless workflow automation with a React Flow editor. Deploy AI workflows, web scraping pipelines, data transformations, and integrations on Cloudflare's edge infrastructure.",
     },
-    { property: "og:image", content: "https://dafthunk.com/og-image.webp" },
+    { property: "og:image", content: "https://www.dafthunk.com/og-image.webp" },
     { property: "og:site_name", content: "Dafthunk" },
     { name: "twitter:card", content: "summary_large_image" },
-    { name: "twitter:url", content: "https://dafthunk.com/" },
+    { name: "twitter:url", content: "https://www.dafthunk.com/" },
     {
       name: "twitter:title",
       content: "Dafthunk - Visual Workflow Automation Platform",
@@ -34,8 +34,8 @@ export function meta() {
       content:
         "Build serverless workflow automation with a React Flow editor. Deploy AI workflows, web scraping pipelines, data transformations, and integrations on Cloudflare's edge infrastructure.",
     },
-    { name: "twitter:image", content: "https://dafthunk.com/og-image.webp" },
-    { tagName: "link", rel: "canonical", href: "https://dafthunk.com/" },
+    { name: "twitter:image", content: "https://www.dafthunk.com/og-image.webp" },
+    { tagName: "link", rel: "canonical", href: "https://www.dafthunk.com/" },
   ];
 }
 

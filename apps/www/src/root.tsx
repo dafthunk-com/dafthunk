@@ -12,12 +12,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
     "@graph": [
       {
         "@type": "Organization",
-        "@id": "https://dafthunk.com/#organization",
+        "@id": "https://www.dafthunk.com/#organization",
         name: "Dafthunk",
-        url: "https://dafthunk.com",
+        url: "https://www.dafthunk.com",
         logo: {
           "@type": "ImageObject",
-          url: "https://dafthunk.com/icon.svg",
+          url: "https://www.dafthunk.com/icon.svg",
         },
         sameAs: ["https://github.com/dafthunk-com/dafthunk"],
         contactPoint: {
@@ -28,18 +28,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
       },
       {
         "@type": "WebSite",
-        "@id": "https://dafthunk.com/#website",
-        url: "https://dafthunk.com",
+        "@id": "https://www.dafthunk.com/#website",
+        url: "https://www.dafthunk.com",
         name: "Dafthunk",
         description:
           "Visual workflow automation platform for building serverless workflows on edge infrastructure",
         publisher: {
-          "@id": "https://dafthunk.com/#organization",
+          "@id": "https://www.dafthunk.com/#organization",
         },
       },
       {
         "@type": "SoftwareApplication",
-        "@id": "https://dafthunk.com/#application",
+        "@id": "https://www.dafthunk.com/#application",
         name: "Dafthunk",
         applicationCategory: "BusinessApplication",
         operatingSystem: "Web",
