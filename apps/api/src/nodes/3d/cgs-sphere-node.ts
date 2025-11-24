@@ -4,10 +4,7 @@ import { Brush } from "three-bvh-csg";
 import { z } from "zod";
 
 import { ExecutableNode, NodeContext } from "../types";
-import {
-  brushToGLTF,
-  extractBrushStats,
-} from "./csg-utils";
+import { brushToGLTF, extractBrushStats } from "./csg-utils";
 
 /**
  * Create a sphere brush with specified radius
@@ -126,8 +123,16 @@ export class CgsSphereNode extends ExecutableNode {
 
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const validatedInput = CgsSphereNode.sphereInputSchema.parse(context.inputs);
-      const { radius, widthSegments, heightSegments, texture, materialProperties } = validatedInput;
+      const validatedInput = CgsSphereNode.sphereInputSchema.parse(
+        context.inputs
+      );
+      const {
+        radius,
+        widthSegments,
+        heightSegments,
+        texture,
+        materialProperties,
+      } = validatedInput;
 
       console.log(
         `[CgsSphereNode] Creating sphere with radius=${radius}, widthSegments=${widthSegments}, heightSegments=${heightSegments}`
@@ -137,7 +142,11 @@ export class CgsSphereNode extends ExecutableNode {
       const brush = createSphereBrush(radius, widthSegments, heightSegments);
 
       // Convert brush to glTF GLB binary format with optional texture
-      const glbData = await brushToGLTF(brush, materialProperties, texture?.data);
+      const glbData = await brushToGLTF(
+        brush,
+        materialProperties,
+        texture?.data
+      );
 
       // Extract statistics
       const stats = extractBrushStats(brush);

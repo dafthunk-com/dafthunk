@@ -1,13 +1,8 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
-import { Brush } from "three-bvh-csg";
 import { z } from "zod";
 
 import { ExecutableNode, NodeContext } from "../types";
-import {
-  glTFToBrush,
-  extractBrushStats,
-  brushToGLTF,
-} from "./csg-utils";
+import { brushToGLTF, extractBrushStats, glTFToBrush } from "./csg-utils";
 
 export class CgsScaleNode extends ExecutableNode {
   private static readonly scaleInputSchema = z.object({
@@ -90,14 +85,18 @@ export class CgsScaleNode extends ExecutableNode {
 
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const validatedInput = CgsScaleNode.scaleInputSchema.parse(context.inputs);
+      const validatedInput = CgsScaleNode.scaleInputSchema.parse(
+        context.inputs
+      );
       const { mesh, scale, materialProperties } = validatedInput;
 
       const [scaleX, scaleY, scaleZ] = Array.isArray(scale)
         ? scale
         : [scale, scale, scale];
 
-      console.log(`[CgsScaleNode] Scaling mesh by [${scaleX}, ${scaleY}, ${scaleZ}]`);
+      console.log(
+        `[CgsScaleNode] Scaling mesh by [${scaleX}, ${scaleY}, ${scaleZ}]`
+      );
 
       const meshData = mesh instanceof Uint8Array ? mesh : mesh.data;
       const { brush, materialData } = await glTFToBrush(meshData);
@@ -117,7 +116,11 @@ export class CgsScaleNode extends ExecutableNode {
       }
       const finalTexture = materialData.textureData;
 
-      const glbData = await brushToGLTF(brush, finalMaterialProps, finalTexture);
+      const glbData = await brushToGLTF(
+        brush,
+        finalMaterialProps,
+        finalTexture
+      );
       const stats = extractBrushStats(brush);
 
       return this.createSuccessResult({

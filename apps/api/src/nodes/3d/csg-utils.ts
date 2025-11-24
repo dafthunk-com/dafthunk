@@ -1,9 +1,4 @@
-import {
-  Buffer,
-  Document,
-  Material,
-  NodeIO,
-} from "@gltf-transform/core";
+import { Document, Material, NodeIO } from "@gltf-transform/core";
 import {
   BufferGeometry,
   Float32BufferAttribute,
@@ -56,13 +51,17 @@ export async function brushToGLTF(
 
     // Extract and convert position data
     const positionAttr = geometry.getAttribute("position");
-    console.log(`[CSG] Position attribute: ${positionAttr ? "found" : "missing"}`);
+    console.log(
+      `[CSG] Position attribute: ${positionAttr ? "found" : "missing"}`
+    );
 
     if (!positionAttr) {
       throw new Error("Geometry has no position attribute");
     }
 
-    console.log(`[CSG] Position attribute type: ${positionAttr?.constructor?.name}, has array: ${!!positionAttr?.array}, array type: ${positionAttr?.array?.constructor?.name}`);
+    console.log(
+      `[CSG] Position attribute type: ${positionAttr?.constructor?.name}, has array: ${!!positionAttr?.array}, array type: ${positionAttr?.array?.constructor?.name}`
+    );
 
     // Ensure position data exists - use safer access
     const posArray = positionAttr?.array;
@@ -75,23 +74,31 @@ export async function brushToGLTF(
     // Apply brush transformation matrix to geometry if needed
     // Brush extends Mesh which has position, rotation, scale, and matrix
     brush.updateMatrixWorld(true);
-    const needsTransform = 
-      brush.position.x !== 0 || brush.position.y !== 0 || brush.position.z !== 0 ||
-      brush.rotation.x !== 0 || brush.rotation.y !== 0 || brush.rotation.z !== 0 ||
-      brush.scale.x !== 1 || brush.scale.y !== 1 || brush.scale.z !== 1;
+    const needsTransform =
+      brush.position.x !== 0 ||
+      brush.position.y !== 0 ||
+      brush.position.z !== 0 ||
+      brush.rotation.x !== 0 ||
+      brush.rotation.y !== 0 ||
+      brush.rotation.z !== 0 ||
+      brush.scale.x !== 1 ||
+      brush.scale.y !== 1 ||
+      brush.scale.z !== 1;
 
     let positions: Float32Array;
     if (needsTransform) {
-      console.log(`[CSG] Applying transformation to geometry: position=[${brush.position.x}, ${brush.position.y}, ${brush.position.z}], rotation=[${brush.rotation.x}, ${brush.rotation.y}, ${brush.rotation.z}], scale=[${brush.scale.x}, ${brush.scale.y}, ${brush.scale.z}]`);
-      
+      console.log(
+        `[CSG] Applying transformation to geometry: position=[${brush.position.x}, ${brush.position.y}, ${brush.position.z}], rotation=[${brush.rotation.x}, ${brush.rotation.y}, ${brush.rotation.z}], scale=[${brush.scale.x}, ${brush.scale.y}, ${brush.scale.z}]`
+      );
+
       // Use three.js to apply transformation matrix to positions
       positions = new Float32Array(posArray.length);
       const vertex = new Vector3();
-      
+
       for (let i = 0; i < posArray.length; i += 3) {
         vertex.set(posArray[i], posArray[i + 1], posArray[i + 2]);
         vertex.applyMatrix4(brush.matrixWorld);
-        
+
         positions[i] = vertex.x;
         positions[i + 1] = vertex.y;
         positions[i + 2] = vertex.z;
@@ -136,22 +143,28 @@ export async function brushToGLTF(
     const normalAttr = geometry.getAttribute("normal");
     if (normalAttr) {
       if (!normalAttr.array) {
-        console.warn("[CSG] Normal attribute exists but has no array data, skipping normals");
+        console.warn(
+          "[CSG] Normal attribute exists but has no array data, skipping normals"
+        );
       } else {
         let normals: Float32Array;
-        
+
         if (needsTransform) {
           // Apply rotation/scale to normals using normal matrix (inverse transpose of upper 3x3)
           normals = new Float32Array(normalAttr.array.length);
           const normal = new Vector3();
           const normalMatrix = brush.matrixWorld.clone();
           normalMatrix.invert().transpose();
-          
+
           for (let i = 0; i < normalAttr.array.length; i += 3) {
-            normal.set(normalAttr.array[i], normalAttr.array[i + 1], normalAttr.array[i + 2]);
+            normal.set(
+              normalAttr.array[i],
+              normalAttr.array[i + 1],
+              normalAttr.array[i + 2]
+            );
             normal.applyMatrix4(normalMatrix);
             normal.normalize();
-            
+
             normals[i] = normal.x;
             normals[i + 1] = normal.y;
             normals[i + 2] = normal.z;
@@ -159,7 +172,7 @@ export async function brushToGLTF(
         } else {
           normals = new Float32Array(normalAttr.array);
         }
-        
+
         const normalAccessor = document
           .createAccessor()
           .setType("VEC3")
@@ -184,7 +197,11 @@ export async function brushToGLTF(
 
     // Apply PBR material if provided or if texture is provided
     if (materialProperties || textureData) {
-      const material = createPBRMaterial(document, materialProperties, textureData);
+      const material = createPBRMaterial(
+        document,
+        materialProperties,
+        textureData
+      );
       primitive.setMaterial(material);
     }
 
@@ -278,10 +295,15 @@ export async function glTFToBrush(glbData: Uint8Array): Promise<{
     const material = primitive.getMaterial();
     if (material) {
       console.log("[CSG] Extracting material properties...");
-      
+
       const baseColor = material.getBaseColorFactor();
       materialData.materialProperties = {
-        baseColorFactor: [baseColor[0], baseColor[1], baseColor[2], baseColor[3]],
+        baseColorFactor: [
+          baseColor[0],
+          baseColor[1],
+          baseColor[2],
+          baseColor[3],
+        ],
         metallicFactor: material.getMetallicFactor(),
         roughnessFactor: material.getRoughnessFactor(),
       };
@@ -314,7 +336,9 @@ export async function glTFToBrush(glbData: Uint8Array): Promise<{
 
     // Ensure positions is a proper Float32Array (make a copy if needed)
     if (!(positions instanceof Float32Array)) {
-      console.log(`[CSG] Position array is ${positions?.constructor?.name}, converting to Float32Array`);
+      console.log(
+        `[CSG] Position array is ${positions?.constructor?.name}, converting to Float32Array`
+      );
       positions = new Float32Array(positions as ArrayLike<number>);
     }
 
@@ -327,12 +351,16 @@ export async function glTFToBrush(glbData: Uint8Array): Promise<{
       if (normals) {
         // Ensure normals is a proper Float32Array (make a copy if needed)
         if (!(normals instanceof Float32Array)) {
-          console.log(`[CSG] Normal array is ${normals?.constructor?.name}, converting to Float32Array`);
+          console.log(
+            `[CSG] Normal array is ${normals?.constructor?.name}, converting to Float32Array`
+          );
           normals = new Float32Array(normals as ArrayLike<number>);
         }
         geometry.setAttribute("normal", new Float32BufferAttribute(normals, 3));
       } else {
-        console.warn("[CSG] Normal accessor found but getArray returned undefined, skipping normals");
+        console.warn(
+          "[CSG] Normal accessor found but getArray returned undefined, skipping normals"
+        );
       }
     }
 
@@ -346,7 +374,9 @@ export async function glTFToBrush(glbData: Uint8Array): Promise<{
 
       // Ensure indices is a proper Uint32Array (make a copy if needed)
       if (!(indices instanceof Uint32Array)) {
-        console.log(`[CSG] Index array is ${indices?.constructor?.name}, converting to Uint32Array`);
+        console.log(
+          `[CSG] Index array is ${indices?.constructor?.name}, converting to Uint32Array`
+        );
         indices = new Uint32Array(indices as ArrayLike<number>);
       }
 
@@ -360,7 +390,9 @@ export async function glTFToBrush(glbData: Uint8Array): Promise<{
       let uvs = uvAccessor.getArray();
       if (uvs) {
         if (!(uvs instanceof Float32Array)) {
-          console.log(`[CSG] UV array is ${uvs?.constructor?.name}, converting to Float32Array`);
+          console.log(
+            `[CSG] UV array is ${uvs?.constructor?.name}, converting to Float32Array`
+          );
           uvs = new Float32Array(uvs as ArrayLike<number>);
         }
         geometry.setAttribute("uv", new Float32BufferAttribute(uvs, 2));
@@ -374,7 +406,9 @@ export async function glTFToBrush(glbData: Uint8Array): Promise<{
       console.log("[CSG] No normal attribute found, computing normals...");
       geometry.computeVertexNormals();
     } else {
-      console.log("[CSG] Normal attribute exists, recomputing to ensure consistency...");
+      console.log(
+        "[CSG] Normal attribute exists, recomputing to ensure consistency..."
+      );
       // Recompute normals to ensure they're properly oriented
       geometry.computeVertexNormals();
     }
@@ -401,7 +435,9 @@ export function extractBrushStats(brush: Brush): {
     // Brush extends Mesh, so it has a geometry property
     const geometry = (brush as any).geometry as BufferGeometry;
 
-    console.log(`[CSG] Extracting stats - brush type: ${brush?.constructor?.name}, geometry: ${geometry?.constructor?.name}`);
+    console.log(
+      `[CSG] Extracting stats - brush type: ${brush?.constructor?.name}, geometry: ${geometry?.constructor?.name}`
+    );
 
     if (!geometry) {
       console.warn("[CSG] No geometry found in brush");
@@ -409,13 +445,18 @@ export function extractBrushStats(brush: Brush): {
     }
 
     const positions = geometry.getAttribute("position");
-    console.log(`[CSG] Positions attribute: ${positions ? "found" : "missing"}, type: ${positions?.constructor?.name}`);
+    console.log(
+      `[CSG] Positions attribute: ${positions ? "found" : "missing"}, type: ${positions?.constructor?.name}`
+    );
 
-    const vertexCount = positions && typeof positions.count === "number" ? positions.count : 0;
+    const vertexCount =
+      positions && typeof positions.count === "number" ? positions.count : 0;
 
     // Count triangles from index or face count
     const index = geometry.getIndex();
-    console.log(`[CSG] Index attribute: ${index ? "found" : "missing"}, type: ${index?.constructor?.name}`);
+    console.log(
+      `[CSG] Index attribute: ${index ? "found" : "missing"}, type: ${index?.constructor?.name}`
+    );
 
     let triangleCount = 0;
 
@@ -488,7 +529,9 @@ export function createPBRMaterial(
 ): Material {
   // When a texture is present, use white [1,1,1,1] as default to let texture show fully
   // Only use custom baseColorFactor if explicitly provided
-  const baseColorFactor = materialProperties?.baseColorFactor || [1.0, 1.0, 1.0, 1.0];
+  const baseColorFactor = materialProperties?.baseColorFactor || [
+    1.0, 1.0, 1.0, 1.0,
+  ];
   const metallicFactor = materialProperties?.metallicFactor ?? 0.0;
   const roughnessFactor = materialProperties?.roughnessFactor ?? 0.8;
 
@@ -501,17 +544,17 @@ export function createPBRMaterial(
 
   // Add texture if provided
   if (textureData) {
-    console.log(`[CSG] Applying texture to material (${textureData.length} bytes)...`);
+    console.log(
+      `[CSG] Applying texture to material (${textureData.length} bytes)...`
+    );
     const texture = doc
       .createTexture()
       .setImage(textureData)
       .setMimeType("image/png");
-    
+
     material = material.setBaseColorTexture(texture);
     console.log("[CSG] Texture applied successfully");
   }
 
   return material;
 }
-
-

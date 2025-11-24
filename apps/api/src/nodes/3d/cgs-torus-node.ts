@@ -4,10 +4,7 @@ import { Brush } from "three-bvh-csg";
 import { z } from "zod";
 
 import { ExecutableNode, NodeContext } from "../types";
-import {
-  brushToGLTF,
-  extractBrushStats,
-} from "./csg-utils";
+import { brushToGLTF, extractBrushStats } from "./csg-utils";
 
 /**
  * Create a torus brush with specified dimensions
@@ -22,7 +19,12 @@ function createTorusBrush(
     `[CSG] Creating torus brush: radius=${radius}, tubeRadius=${tubeRadius}, radialSegments=${radialSegments}, tubularSegments=${tubularSegments}`
   );
 
-  const geometry = new TorusGeometry(radius, tubeRadius, radialSegments, tubularSegments);
+  const geometry = new TorusGeometry(
+    radius,
+    tubeRadius,
+    radialSegments,
+    tubularSegments
+  );
   geometry.computeVertexNormals();
 
   // Keep UV coordinates for texture mapping (geometry generates them automatically)
@@ -139,18 +141,36 @@ export class CgsTorusNode extends ExecutableNode {
 
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const validatedInput = CgsTorusNode.torusInputSchema.parse(context.inputs);
-      const { radius, tubeRadius, radialSegments, tubularSegments, texture, materialProperties } = validatedInput;
+      const validatedInput = CgsTorusNode.torusInputSchema.parse(
+        context.inputs
+      );
+      const {
+        radius,
+        tubeRadius,
+        radialSegments,
+        tubularSegments,
+        texture,
+        materialProperties,
+      } = validatedInput;
 
       console.log(
         `[CgsTorusNode] Creating torus with radius=${radius}, tubeRadius=${tubeRadius}, radialSegments=${radialSegments}, tubularSegments=${tubularSegments}`
       );
 
       // Create the torus brush using three-bvh-csg
-      const brush = createTorusBrush(radius, tubeRadius, radialSegments, tubularSegments);
+      const brush = createTorusBrush(
+        radius,
+        tubeRadius,
+        radialSegments,
+        tubularSegments
+      );
 
       // Convert brush to glTF GLB binary format with optional texture
-      const glbData = await brushToGLTF(brush, materialProperties, texture?.data);
+      const glbData = await brushToGLTF(
+        brush,
+        materialProperties,
+        texture?.data
+      );
 
       // Extract statistics
       const stats = extractBrushStats(brush);

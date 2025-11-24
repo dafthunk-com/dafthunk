@@ -1,13 +1,9 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
-import { Brush, Evaluator, ADDITION } from "three-bvh-csg";
+import { ADDITION, Brush, Evaluator } from "three-bvh-csg";
 import { z } from "zod";
 
 import { ExecutableNode, NodeContext } from "../types";
-import {
-  glTFToBrush,
-  extractBrushStats,
-  brushToGLTF,
-} from "./csg-utils";
+import { brushToGLTF, extractBrushStats, glTFToBrush } from "./csg-utils";
 
 interface CSGOperationResult {
   glb: Uint8Array;
@@ -38,7 +34,9 @@ async function performUnion(
   const result = evaluator.evaluate(brushA, brushB, ADDITION);
 
   const resultStats = extractBrushStats(result);
-  console.log(`[CSG] Union complete. Result: ${resultStats.vertexCount} vertices, ${resultStats.triangleCount} triangles`);
+  console.log(
+    `[CSG] Union complete. Result: ${resultStats.vertexCount} vertices, ${resultStats.triangleCount} triangles`
+  );
 
   const glb = await brushToGLTF(result, materialProperties, textureData);
   return { glb, resultBrush: result };
@@ -135,7 +133,9 @@ export class CgsUnionNode extends ExecutableNode {
 
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const validatedInput = CgsUnionNode.unionInputSchema.parse(context.inputs);
+      const validatedInput = CgsUnionNode.unionInputSchema.parse(
+        context.inputs
+      );
       const { meshA, meshB, texture, materialProperties } = validatedInput;
 
       console.log("[CgsUnionNode] Performing union operation...");
@@ -145,8 +145,10 @@ export class CgsUnionNode extends ExecutableNode {
       const meshBData = meshB instanceof Uint8Array ? meshB : meshB.data;
 
       // Parse GLB data back to brushes with material data
-      const { brush: brushA, materialData: materialDataA } = await glTFToBrush(meshAData);
-      const { brush: brushB, materialData: materialDataB } = await glTFToBrush(meshBData);
+      const { brush: brushA, materialData: materialDataA } =
+        await glTFToBrush(meshAData);
+      const { brush: brushB, materialData: materialDataB } =
+        await glTFToBrush(meshBData);
 
       // Determine final texture and material with priority:
       // 1. Explicit texture input (highest priority)
@@ -165,7 +167,9 @@ export class CgsUnionNode extends ExecutableNode {
         finalTexture = undefined;
       } else if (materialDataA.textureData && materialDataB.textureData) {
         // Both inputs have textures - can't properly combine them
-        console.warn("[CSG Union] Both inputs have textures. CSG operations cannot properly combine multiple textures. Using solid material instead.");
+        console.warn(
+          "[CSG Union] Both inputs have textures. CSG operations cannot properly combine multiple textures. Using solid material instead."
+        );
         finalTexture = undefined;
         finalMaterialProps = undefined; // Use default solid material
       } else if (materialDataA.textureData) {
@@ -183,7 +187,12 @@ export class CgsUnionNode extends ExecutableNode {
       }
 
       // Perform union operation
-      const { glb: resultGLB, resultBrush } = await performUnion(brushA, brushB, finalMaterialProps, finalTexture);
+      const { glb: resultGLB, resultBrush } = await performUnion(
+        brushA,
+        brushB,
+        finalMaterialProps,
+        finalTexture
+      );
 
       // Extract statistics from result brush
       const resultStats = extractBrushStats(resultBrush);

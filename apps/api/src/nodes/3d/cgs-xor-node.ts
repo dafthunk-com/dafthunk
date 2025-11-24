@@ -1,13 +1,9 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
-import { Brush, Evaluator, SUBTRACTION, ADDITION } from "three-bvh-csg";
+import { ADDITION, Brush, Evaluator, SUBTRACTION } from "three-bvh-csg";
 import { z } from "zod";
 
 import { ExecutableNode, NodeContext } from "../types";
-import {
-  glTFToBrush,
-  extractBrushStats,
-  brushToGLTF,
-} from "./csg-utils";
+import { brushToGLTF, extractBrushStats, glTFToBrush } from "./csg-utils";
 
 interface CSGOperationResult {
   glb: Uint8Array;
@@ -42,7 +38,9 @@ async function performXOR(
   const result = evaluator.evaluate(aMinusB, bMinusA, ADDITION);
 
   const resultStats = extractBrushStats(result);
-  console.log(`[CSG] XOR complete. Result: ${resultStats.vertexCount} vertices, ${resultStats.triangleCount} triangles`);
+  console.log(
+    `[CSG] XOR complete. Result: ${resultStats.vertexCount} vertices, ${resultStats.triangleCount} triangles`
+  );
 
   const glb = await brushToGLTF(result, materialProperties, textureData);
   return { glb, resultBrush: result };
@@ -147,8 +145,10 @@ export class CgsXorNode extends ExecutableNode {
       const meshAData = meshA instanceof Uint8Array ? meshA : meshA.data;
       const meshBData = meshB instanceof Uint8Array ? meshB : meshB.data;
 
-      const { brush: brushA, materialData: materialDataA } = await glTFToBrush(meshAData);
-      const { brush: brushB, materialData: materialDataB } = await glTFToBrush(meshBData);
+      const { brush: brushA, materialData: materialDataA } =
+        await glTFToBrush(meshAData);
+      const { brush: brushB, materialData: materialDataB } =
+        await glTFToBrush(meshBData);
 
       // Determine final texture and material with priority:
       // 1. Explicit texture input (highest priority)
@@ -167,7 +167,9 @@ export class CgsXorNode extends ExecutableNode {
         finalTexture = undefined;
       } else if (materialDataA.textureData && materialDataB.textureData) {
         // Both inputs have textures - can't properly combine them
-        console.warn("[CSG XOR] Both inputs have textures. CSG operations cannot properly combine multiple textures. Using solid material instead.");
+        console.warn(
+          "[CSG XOR] Both inputs have textures. CSG operations cannot properly combine multiple textures. Using solid material instead."
+        );
         finalTexture = undefined;
         finalMaterialProps = undefined; // Use default solid material
       } else if (materialDataA.textureData) {
@@ -184,7 +186,12 @@ export class CgsXorNode extends ExecutableNode {
         finalMaterialProps = materialDataA.materialProperties;
       }
 
-      const { glb: resultGLB, resultBrush } = await performXOR(brushA, brushB, finalMaterialProps, finalTexture);
+      const { glb: resultGLB, resultBrush } = await performXOR(
+        brushA,
+        brushB,
+        finalMaterialProps,
+        finalTexture
+      );
 
       const resultStats = extractBrushStats(resultBrush);
 

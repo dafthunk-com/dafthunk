@@ -3,11 +3,7 @@ import { Brush, Evaluator, SUBTRACTION } from "three-bvh-csg";
 import { z } from "zod";
 
 import { ExecutableNode, NodeContext } from "../types";
-import {
-  glTFToBrush,
-  extractBrushStats,
-  brushToGLTF,
-} from "./csg-utils";
+import { brushToGLTF, extractBrushStats, glTFToBrush } from "./csg-utils";
 
 interface CSGOperationResult {
   glb: Uint8Array;
@@ -39,7 +35,9 @@ async function performDifference(
     const result = evaluator.evaluate(brushA, brushB, SUBTRACTION);
 
     const resultStats = extractBrushStats(result);
-    console.log(`[CSG] Difference complete. Result: ${resultStats.vertexCount} vertices, ${resultStats.triangleCount} triangles`);
+    console.log(
+      `[CSG] Difference complete. Result: ${resultStats.vertexCount} vertices, ${resultStats.triangleCount} triangles`
+    );
 
     if (resultStats.vertexCount === 0 || resultStats.triangleCount === 0) {
       throw new Error(
@@ -97,7 +95,8 @@ export class CgsDifferenceNode extends ExecutableNode {
     id: "csg-difference",
     name: "CSG Difference",
     type: "csg-difference",
-    description: "Subtract one 3D mesh from another using CSG difference operation",
+    description:
+      "Subtract one 3D mesh from another using CSG difference operation",
     tags: ["3D", "CSG", "Boolean"],
     icon: "box",
     documentation:
@@ -146,18 +145,24 @@ export class CgsDifferenceNode extends ExecutableNode {
 
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const validatedInput = CgsDifferenceNode.differenceInputSchema.parse(context.inputs);
+      const validatedInput = CgsDifferenceNode.differenceInputSchema.parse(
+        context.inputs
+      );
       const { meshA, meshB, texture, materialProperties } = validatedInput;
 
-      console.log("[CgsDifferenceNode] Performing difference operation (A - B)...");
+      console.log(
+        "[CgsDifferenceNode] Performing difference operation (A - B)..."
+      );
 
       // Extract GLB data from mesh inputs (handle both raw Uint8Array and mesh object formats)
       const meshAData = meshA instanceof Uint8Array ? meshA : meshA.data;
       const meshBData = meshB instanceof Uint8Array ? meshB : meshB.data;
 
       // Parse GLB data back to brushes with material data
-      const { brush: brushA, materialData: materialDataA } = await glTFToBrush(meshAData);
-      const { brush: brushB, materialData: materialDataB } = await glTFToBrush(meshBData);
+      const { brush: brushA, materialData: materialDataA } =
+        await glTFToBrush(meshAData);
+      const { brush: brushB, materialData: materialDataB } =
+        await glTFToBrush(meshBData);
 
       // Determine final texture and material with priority:
       // 1. Explicit texture input (highest priority)
@@ -176,7 +181,9 @@ export class CgsDifferenceNode extends ExecutableNode {
         finalTexture = undefined;
       } else if (materialDataA.textureData && materialDataB.textureData) {
         // Both inputs have textures - can't properly combine them
-        console.warn("[CSG Difference] Both inputs have textures. CSG operations cannot properly combine multiple textures. Using solid material instead.");
+        console.warn(
+          "[CSG Difference] Both inputs have textures. CSG operations cannot properly combine multiple textures. Using solid material instead."
+        );
         finalTexture = undefined;
         finalMaterialProps = undefined; // Use default solid material
       } else if (materialDataA.textureData) {
@@ -194,7 +201,12 @@ export class CgsDifferenceNode extends ExecutableNode {
       }
 
       // Perform difference operation
-      const { glb: resultGLB, resultBrush } = await performDifference(brushA, brushB, finalMaterialProps, finalTexture);
+      const { glb: resultGLB, resultBrush } = await performDifference(
+        brushA,
+        brushB,
+        finalMaterialProps,
+        finalTexture
+      );
 
       // Extract statistics from result brush
       const resultStats = extractBrushStats(resultBrush);

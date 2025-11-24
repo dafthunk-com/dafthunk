@@ -1,13 +1,8 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
-import { Brush } from "three-bvh-csg";
 import { z } from "zod";
 
 import { ExecutableNode, NodeContext } from "../types";
-import {
-  glTFToBrush,
-  extractBrushStats,
-  brushToGLTF,
-} from "./csg-utils";
+import { brushToGLTF, extractBrushStats, glTFToBrush } from "./csg-utils";
 
 export class CgsRotateNode extends ExecutableNode {
   private static readonly rotateInputSchema = z.object({
@@ -81,10 +76,14 @@ export class CgsRotateNode extends ExecutableNode {
 
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const validatedInput = CgsRotateNode.rotateInputSchema.parse(context.inputs);
+      const validatedInput = CgsRotateNode.rotateInputSchema.parse(
+        context.inputs
+      );
       const { mesh, rotation, materialProperties } = validatedInput;
 
-      console.log(`[CgsRotateNode] Rotating mesh by [${rotation[0]}°, ${rotation[1]}°, ${rotation[2]}°]`);
+      console.log(
+        `[CgsRotateNode] Rotating mesh by [${rotation[0]}°, ${rotation[1]}°, ${rotation[2]}°]`
+      );
 
       const meshData = mesh instanceof Uint8Array ? mesh : mesh.data;
       const { brush, materialData } = await glTFToBrush(meshData);
@@ -105,7 +104,11 @@ export class CgsRotateNode extends ExecutableNode {
       }
       const finalTexture = materialData.textureData;
 
-      const glbData = await brushToGLTF(brush, finalMaterialProps, finalTexture);
+      const glbData = await brushToGLTF(
+        brush,
+        finalMaterialProps,
+        finalTexture
+      );
       const stats = extractBrushStats(brush);
 
       return this.createSuccessResult({

@@ -1,9 +1,3 @@
-import { DemToGltfNode } from "./3d/dem-to-gltf-node";
-import { GeoTiffDemQueryNode } from "./3d/geotiff-dem-query-node";
-import { GeoTiffMetadataReaderNode } from "./3d/geotiff-metadata-reader-node";
-import { GeoTiffQueryNode } from "./3d/geotiff-query-node";
-import { GeoTiffTransformNode } from "./3d/geotiff-transform-node";
-import { GltfWireframeNode } from "./3d/gltf-wireframe-node";
 import { CgsConeNode } from "./3d/cgs-cone-node";
 import { CgsCubeNode } from "./3d/cgs-cube-node";
 import { CgsCylinderNode } from "./3d/cgs-cylinder-node";
@@ -16,6 +10,12 @@ import { CgsTorusNode } from "./3d/cgs-torus-node";
 import { CgsTranslateNode } from "./3d/cgs-translate-node";
 import { CgsUnionNode } from "./3d/cgs-union-node";
 import { CgsXorNode } from "./3d/cgs-xor-node";
+import { DemToGltfNode } from "./3d/dem-to-gltf-node";
+import { GeoTiffDemQueryNode } from "./3d/geotiff-dem-query-node";
+import { GeoTiffMetadataReaderNode } from "./3d/geotiff-metadata-reader-node";
+import { GeoTiffQueryNode } from "./3d/geotiff-query-node";
+import { GeoTiffTransformNode } from "./3d/geotiff-transform-node";
+import { GltfWireframeNode } from "./3d/gltf-wireframe-node";
 import { Claude3OpusNode } from "./anthropic/claude-3-opus-node";
 import { Claude35HaikuNode } from "./anthropic/claude-35-haiku-node";
 import { Claude35SonnetNode } from "./anthropic/claude-35-sonnet-node";
@@ -738,13 +738,13 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
       this.registerImplementation(CgsCylinderNode);
       this.registerImplementation(CgsConeNode);
       this.registerImplementation(CgsTorusNode);
-      
+
       // CSG Operations
       this.registerImplementation(CgsUnionNode);
       this.registerImplementation(CgsDifferenceNode);
       this.registerImplementation(CgsIntersectionNode);
       this.registerImplementation(CgsXorNode);
-      
+
       // CSG Transformations
       this.registerImplementation(CgsTranslateNode);
       this.registerImplementation(CgsRotateNode);

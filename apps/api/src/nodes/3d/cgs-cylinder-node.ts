@@ -4,10 +4,7 @@ import { Brush } from "three-bvh-csg";
 import { z } from "zod";
 
 import { ExecutableNode, NodeContext } from "../types";
-import {
-  brushToGLTF,
-  extractBrushStats,
-} from "./csg-utils";
+import { brushToGLTF, extractBrushStats } from "./csg-utils";
 
 /**
  * Create a cylinder brush with specified dimensions
@@ -56,7 +53,9 @@ export class CgsCylinderNode extends ExecutableNode {
       .number()
       .positive("Top radius must be positive")
       .optional()
-      .describe("Top circle radius (defaults to radiusBottom for true cylinder)"),
+      .describe(
+        "Top circle radius (defaults to radiusBottom for true cylinder)"
+      ),
     radialSegments: z
       .number()
       .int()
@@ -156,9 +155,18 @@ export class CgsCylinderNode extends ExecutableNode {
 
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const validatedInput = CgsCylinderNode.cylinderInputSchema.parse(context.inputs);
-      const { height, radiusBottom, radiusTop, radialSegments, center, texture, materialProperties } =
-        validatedInput;
+      const validatedInput = CgsCylinderNode.cylinderInputSchema.parse(
+        context.inputs
+      );
+      const {
+        height,
+        radiusBottom,
+        radiusTop,
+        radialSegments,
+        center,
+        texture,
+        materialProperties,
+      } = validatedInput;
 
       // If radiusTop is not provided, use radiusBottom (creating a true cylinder)
       const topRadius = radiusTop ?? radiusBottom;
@@ -168,10 +176,20 @@ export class CgsCylinderNode extends ExecutableNode {
       );
 
       // Create the cylinder brush using three-bvh-csg
-      const brush = createCylinderBrush(height, radiusBottom, topRadius, radialSegments, center);
+      const brush = createCylinderBrush(
+        height,
+        radiusBottom,
+        topRadius,
+        radialSegments,
+        center
+      );
 
       // Convert brush to glTF GLB binary format with optional texture
-      const glbData = await brushToGLTF(brush, materialProperties, texture?.data);
+      const glbData = await brushToGLTF(
+        brush,
+        materialProperties,
+        texture?.data
+      );
 
       // Extract statistics
       const stats = extractBrushStats(brush);

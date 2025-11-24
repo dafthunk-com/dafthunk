@@ -4,10 +4,7 @@ import { Brush } from "three-bvh-csg";
 import { z } from "zod";
 
 import { ExecutableNode, NodeContext } from "../types";
-import {
-  brushToGLTF,
-  extractBrushStats,
-} from "./csg-utils";
+import { brushToGLTF, extractBrushStats } from "./csg-utils";
 
 /**
  * Create a cone brush with specified dimensions
@@ -24,7 +21,13 @@ function createConeBrush(
     `[CSG] Creating cone brush: height=${height}, radius=${radius}, radialSegments=${radialSegments}, center=${center}`
   );
 
-  const geometry = new ConeGeometry(radius, height, radialSegments, heightSegments, openEnded);
+  const geometry = new ConeGeometry(
+    radius,
+    height,
+    radialSegments,
+    heightSegments,
+    openEnded
+  );
   geometry.computeVertexNormals();
 
   // Keep UV coordinates for texture mapping (geometry generates them automatically)
@@ -165,18 +168,37 @@ export class CgsConeNode extends ExecutableNode {
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const validatedInput = CgsConeNode.coneInputSchema.parse(context.inputs);
-      const { height, radius, radialSegments, heightSegments, openEnded, center, texture, materialProperties } =
-        validatedInput;
+      const {
+        height,
+        radius,
+        radialSegments,
+        heightSegments,
+        openEnded,
+        center,
+        texture,
+        materialProperties,
+      } = validatedInput;
 
       console.log(
         `[CgsConeNode] Creating cone with height=${height}, radius=${radius}, radialSegments=${radialSegments}, center=${center}`
       );
 
       // Create the cone brush using three-bvh-csg
-      const brush = createConeBrush(height, radius, radialSegments, heightSegments, openEnded, center);
+      const brush = createConeBrush(
+        height,
+        radius,
+        radialSegments,
+        heightSegments,
+        openEnded,
+        center
+      );
 
       // Convert brush to glTF GLB binary format with optional texture
-      const glbData = await brushToGLTF(brush, materialProperties, texture?.data);
+      const glbData = await brushToGLTF(
+        brush,
+        materialProperties,
+        texture?.data
+      );
 
       // Extract statistics
       const stats = extractBrushStats(brush);
