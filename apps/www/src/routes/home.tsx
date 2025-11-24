@@ -34,7 +34,10 @@ export function meta() {
       content:
         "Build serverless workflow automation with a React Flow editor. Deploy AI workflows, web scraping pipelines, data transformations, and integrations on Cloudflare's edge infrastructure.",
     },
-    { name: "twitter:image", content: "https://www.dafthunk.com/og-image.webp" },
+    {
+      name: "twitter:image",
+      content: "https://www.dafthunk.com/og-image.webp",
+    },
     { tagName: "link", rel: "canonical", href: "https://www.dafthunk.com/" },
   ];
 }
