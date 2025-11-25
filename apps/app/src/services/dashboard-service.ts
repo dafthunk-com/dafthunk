@@ -67,9 +67,7 @@ export const useUsage = (): UseUsage => {
   const orgHandle = organization?.handle;
 
   // Create a unique SWR key that includes the organization handle
-  const swrKey = orgHandle
-    ? `/${orgHandle}${USAGE_API_ENDPOINT}`
-    : null;
+  const swrKey = orgHandle ? `/${orgHandle}${USAGE_API_ENDPOINT}` : null;
 
   const { data, error, isLoading, mutate } = useSWR(
     swrKey,
