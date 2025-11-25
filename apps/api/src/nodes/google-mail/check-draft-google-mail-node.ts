@@ -26,7 +26,7 @@ export class CheckDraftGoogleMailNode extends ExecutableNode {
     icon: "mail",
     documentation:
       "This node checks if drafts exist in Gmail. Can check by thread ID or search all drafts. Requires a connected Google Mail integration from your organization's integrations.",
-    computeCost: 10,
+    usage: 10,
     inputs: [
       {
         name: "integrationId",

@@ -16,7 +16,7 @@ export class DeleteFileGithubNode extends ExecutableNode {
     icon: "file-x",
     documentation:
       "This node deletes a file from a GitHub repository. Requires the file's current SHA. Requires a connected GitHub integration with repo scope.",
-    computeCost: 10,
+    usage: 10,
     inputs: [
       {
         name: "integrationId",

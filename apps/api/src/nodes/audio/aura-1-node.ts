@@ -18,7 +18,7 @@ export class Aura1Node extends ExecutableNode {
     documentation:
       "This node converts text to natural-sounding speech using the Aura-1 model from Deepgram. Aura-1 applies natural pacing, expressiveness, and fillers based on the context of the provided text.",
     referenceUrl: "https://developers.cloudflare.com/workers-ai/models/aura-1/",
-    computeCost: 15,
+    usage: 15,
     inputs: [
       {
         name: "text",

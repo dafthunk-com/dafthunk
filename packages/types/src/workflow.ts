@@ -202,7 +202,7 @@ export interface NodeType {
   documentation?: string; // Human readable documentation
   specification?: string; // Machine readable specification
   referenceUrl?: string; // URL to external reference or documentation
-  computeCost?: number; // The cost of running this node in compute credits
+  usage?: number; // The default usage cost for running this node
   inlinable?: boolean; // Flag to indicate if this node can be inlined with others
   functionCalling?: boolean;
   asTool?: boolean;
@@ -285,7 +285,7 @@ export interface NodeExecution {
   status: NodeExecutionStatus;
   error?: string;
   outputs?: Record<string, ParameterValue> | null;
-  computeCost?: number;
+  usage?: number;
 }
 
 /**

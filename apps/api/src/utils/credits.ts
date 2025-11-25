@@ -1,33 +1,33 @@
 /**
- * Gets the organization's total compute usage.
+ * Gets the organization's total usage.
  */
 export async function getOrganizationComputeUsage(
   KV: KVNamespace,
   organizationId: string
 ): Promise<number> {
-  const usageKey = getComputeUsageKey(organizationId);
-  const computeUsage = parseInt((await KV.get(usageKey)) ?? "0");
-  return computeUsage;
+  const usageKey = getUsageKey(organizationId);
+  const currentUsage = parseInt((await KV.get(usageKey)) ?? "0");
+  return currentUsage;
 }
 
 /**
- * Updates the organization's total compute usage.
+ * Updates the organization's total usage.
  */
 export async function updateOrganizationComputeUsage(
   KV: KVNamespace,
   organizationId: string,
-  computeCost: number
+  usage: number
 ): Promise<void> {
-  const usageKey = getComputeUsageKey(organizationId);
-  const computeUsage = parseInt((await KV.get(usageKey)) ?? "0");
+  const usageKey = getUsageKey(organizationId);
+  const currentUsage = parseInt((await KV.get(usageKey)) ?? "0");
 
-  await KV.put(usageKey, (computeUsage + computeCost).toString());
+  await KV.put(usageKey, (currentUsage + usage).toString());
 }
 
 /**
- * Gets the compute usage key for an organization.
+ * Gets the usage key for an organization.
  * Format: {organizationId}:compute-usage
  */
-function getComputeUsageKey(organizationId: string): string {
+function getUsageKey(organizationId: string): string {
   return `${organizationId}:compute-usage`;
 }

@@ -16,7 +16,7 @@ export class CreateUpdateFileGithubNode extends ExecutableNode {
     icon: "file-edit",
     documentation:
       "This node creates a new file or updates an existing file in a GitHub repository. Requires a connected GitHub integration with repo scope.",
-    computeCost: 10,
+    usage: 10,
     inputs: [
       {
         name: "integrationId",

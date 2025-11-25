@@ -16,7 +16,7 @@ export class GetRepositoryGithubNode extends ExecutableNode {
     icon: "git-branch",
     documentation:
       "This node retrieves detailed information about a GitHub repository including stars, forks, description, and more. Requires a connected GitHub integration.",
-    computeCost: 10,
+    usage: 10,
     inputs: [
       {
         name: "integrationId",

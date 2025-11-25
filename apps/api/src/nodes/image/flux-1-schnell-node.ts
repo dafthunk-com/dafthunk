@@ -18,7 +18,7 @@ export class Flux1SchnellNode extends ExecutableNode {
       "This node generates images from text descriptions using the Flux 1 Schnell model for rapid image creation.",
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/flux-1-schnell/",
-    computeCost: 10,
+    usage: 10,
     inputs: [
       {
         name: "prompt",

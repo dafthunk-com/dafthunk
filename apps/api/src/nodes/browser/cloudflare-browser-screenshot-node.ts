@@ -18,7 +18,7 @@ export class CloudflareBrowserScreenshotNode extends ExecutableNode {
     icon: "camera",
     documentation:
       "Captures screenshots of web pages. Either url or html is required (not both). See [Cloudflare Browser Rendering Screenshot Endpoint](https://developers.cloudflare.com/browser-rendering/rest-api/screenshot-endpoint/) for details.",
-    computeCost: 10,
+    usage: 10,
     inputs: [
       {
         name: "url",

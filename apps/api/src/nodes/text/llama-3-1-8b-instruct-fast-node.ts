@@ -17,7 +17,7 @@ export class Llama318BInstructFastNode extends ExecutableNode {
       "This node generates text using Meta's Llama 3.1 8B Instruct Fast model.",
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/llama-3.1-8b-instruct-fast/",
-    computeCost: 10,
+    usage: 10,
     inputs: [
       {
         name: "prompt",

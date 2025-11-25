@@ -176,23 +176,23 @@ export abstract class ExecutableNode {
 
   protected createSuccessResult(
     outputs: Record<string, ParameterValue>,
-    computeCost?: number
+    usage?: number
   ): NodeExecution {
     const nodeType = (this.constructor as typeof ExecutableNode).nodeType;
     return {
       nodeId: this.node.id,
       status: "completed",
       outputs,
-      computeCost: computeCost ?? nodeType.computeCost ?? 1,
+      usage: usage ?? nodeType.usage ?? 1,
     } as NodeExecution;
   }
 
-  protected createErrorResult(error: string, computeCost?: number): NodeExecution {
+  protected createErrorResult(error: string, usage?: number): NodeExecution {
     return {
       nodeId: this.node.id,
       status: "error",
       error,
-      computeCost,
+      usage,
     } as NodeExecution;
   }
 

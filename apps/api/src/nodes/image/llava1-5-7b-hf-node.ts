@@ -19,7 +19,7 @@ export class LLaVA157BHFNode extends ExecutableNode {
       "This node generates text descriptions from images using the LLaVA 1.5 7B model for image-to-text analysis.",
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/llava-1.5-7b-hf/",
-    computeCost: 10,
+    usage: 10,
     inputs: [
       {
         name: "image",

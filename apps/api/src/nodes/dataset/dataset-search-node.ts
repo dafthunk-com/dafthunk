@@ -20,7 +20,7 @@ export class DatasetSearchNode extends ExecutableNode {
     icon: "search",
     documentation:
       "This node searches through datasets using RAG (Retrieval-Augmented Generation) to find relevant content based on a query.",
-    computeCost: 10,
+    usage: 10,
     asTool: true,
     inputs: [
       {

@@ -18,7 +18,7 @@ export class CloudflareBrowserPdfNode extends ExecutableNode {
     icon: "file-text",
     documentation:
       "Generates PDF documents from web pages. Either url or html is required (not both). See [Cloudflare Browser Rendering PDF Endpoint](https://developers.cloudflare.com/browser-rendering/rest-api/pdf-endpoint/) for details.",
-    computeCost: 10,
+    usage: 10,
     inputs: [
       {
         name: "url",

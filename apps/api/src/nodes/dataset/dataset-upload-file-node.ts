@@ -18,7 +18,7 @@ export class DatasetUploadFileNode extends ExecutableNode {
     icon: "upload",
     documentation:
       "This node uploads a file to a dataset. The file is stored in R2 with multi-tenant isolation.",
-    computeCost: 5,
+    usage: 5,
     inputs: [
       {
         name: "datasetId",

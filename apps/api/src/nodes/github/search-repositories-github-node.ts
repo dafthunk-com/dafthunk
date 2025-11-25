@@ -16,7 +16,7 @@ export class SearchRepositoriesGithubNode extends ExecutableNode {
     icon: "search",
     documentation:
       "This node searches for repositories on GitHub using various criteria. Supports searching by keywords, language, stars, and more. Use 'sort=stars' and 'order=desc' to find trending repositories. Requires a connected GitHub integration.",
-    computeCost: 10,
+    usage: 10,
     inputs: [
       {
         name: "integrationId",

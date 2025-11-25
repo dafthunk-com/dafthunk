@@ -19,7 +19,7 @@ export class StableDiffusionXLLightningNode extends ExecutableNode {
       "This node generates images rapidly from text descriptions using Stable Diffusion XL Lightning model for fast image generation.",
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/stable-diffusion-xl-lightning/",
-    computeCost: 10,
+    usage: 10,
     inputs: [
       {
         name: "prompt",

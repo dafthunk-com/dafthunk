@@ -16,7 +16,7 @@ export class DeleteEventGoogleCalendarNode extends ExecutableNode {
     icon: "calendar",
     documentation:
       "This node deletes a calendar event using Google Calendar API. Requires a connected Google Calendar integration from your organization's integrations.",
-    computeCost: 10,
+    usage: 10,
     inputs: [
       {
         name: "integrationId",

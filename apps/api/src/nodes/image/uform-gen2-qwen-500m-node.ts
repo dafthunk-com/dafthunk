@@ -19,7 +19,7 @@ export class UformGen2Qwen500mNode extends ExecutableNode {
       "This node generates images from text descriptions using the UForm Gen2 Qwen 500M model for efficient image creation.",
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/uform-gen2-qwen-500m/",
-    computeCost: 10,
+    usage: 10,
     inputs: [
       {
         name: "image",

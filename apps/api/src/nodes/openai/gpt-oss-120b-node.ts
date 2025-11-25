@@ -20,7 +20,7 @@ export class GptOss120BNode extends ExecutableNode {
       "This node uses OpenAI's GPT-OSS-120B model, an open-weight model designed for powerful reasoning and agentic tasks.",
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/gpt-oss-120b/",
-    computeCost: 35,
+    usage: 35,
     inputs: [
       {
         name: "instructions",

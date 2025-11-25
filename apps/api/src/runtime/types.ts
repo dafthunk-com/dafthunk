@@ -86,8 +86,8 @@ export interface ExecutionState {
   skippedNodes: string[];
   /** Record of node IDs to error messages */
   nodeErrors: Record<string, string>;
-  /** Record of node IDs to their actual compute costs */
-  nodeComputeCosts: Record<string, number>;
+  /** Record of node IDs to their actual usage */
+  nodeUsage: Record<string, number>;
 }
 
 /**

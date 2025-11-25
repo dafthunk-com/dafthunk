@@ -18,7 +18,7 @@ export class CloudflareBrowserJsonNode extends ExecutableNode {
     icon: "braces",
     documentation:
       "Fetches JSON from a rendered page using Cloudflare Browser Rendering. Either url or html is required (not both). Either prompt or response_format is required. See [Cloudflare Browser Rendering JSON Endpoint](https://developers.cloudflare.com/browser-rendering/rest-api/json-endpoint/) for details.",
-    computeCost: 10,
+    usage: 10,
     asTool: true,
     inputs: [
       {

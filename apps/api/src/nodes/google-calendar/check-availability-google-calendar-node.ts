@@ -17,7 +17,7 @@ export class CheckAvailabilityGoogleCalendarNode extends ExecutableNode {
     icon: "calendar",
     documentation:
       "This node checks if time slots are free or busy using Google Calendar API. Requires a connected Google Calendar integration from your organization's integrations.",
-    computeCost: 10,
+    usage: 10,
     inputs: [
       {
         name: "integrationId",

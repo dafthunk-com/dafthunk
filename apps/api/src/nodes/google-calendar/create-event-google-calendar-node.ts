@@ -16,7 +16,7 @@ export class CreateEventGoogleCalendarNode extends ExecutableNode {
     icon: "calendar",
     documentation:
       "This node creates a new calendar event using Google Calendar API. Requires a connected Google Calendar integration from your organization's integrations.",
-    computeCost: 10,
+    usage: 10,
     inputs: [
       {
         name: "integrationId",

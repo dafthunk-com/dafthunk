@@ -19,7 +19,7 @@ export class StableDiffusionXLBase10Node extends ExecutableNode {
       "This node generates high-quality images from text descriptions using Stable Diffusion XL Base 1.0 model.",
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/stable-diffusion-xl-base-1.0/",
-    computeCost: 10,
+    usage: 10,
     inputs: [
       {
         name: "prompt",

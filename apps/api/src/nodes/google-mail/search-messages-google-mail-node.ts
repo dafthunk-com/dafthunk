@@ -36,7 +36,7 @@ export class SearchMessagesGoogleMailNode extends ExecutableNode {
     icon: "mail",
     documentation:
       "This node searches messages using Google Mail API query syntax (e.g., 'from:user@example.com subject:report'). Requires a connected Google Mail integration from your organization's integrations.",
-    computeCost: 10,
+    usage: 10,
     inputs: [
       {
         name: "integrationId",

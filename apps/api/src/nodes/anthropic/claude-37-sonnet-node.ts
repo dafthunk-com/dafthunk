@@ -18,7 +18,7 @@ export class Claude37SonnetNode extends ExecutableNode {
     icon: "sparkles",
     documentation:
       "This node uses Anthropic's Claude 3.7 Sonnet model, a mid-tier model between 3.5 and 4.0 generations.",
-    computeCost: 35,
+    usage: 35,
     inputs: [
       {
         name: "integrationId",

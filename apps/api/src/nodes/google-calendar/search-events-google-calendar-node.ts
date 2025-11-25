@@ -40,7 +40,7 @@ export class SearchEventsGoogleCalendarNode extends ExecutableNode {
     icon: "calendar",
     documentation:
       "This node searches for calendar events using a text query (searches summary, description, location, attendee names/emails). Requires a connected Google Calendar integration from your organization's integrations.",
-    computeCost: 10,
+    usage: 10,
     inputs: [
       {
         name: "integrationId",

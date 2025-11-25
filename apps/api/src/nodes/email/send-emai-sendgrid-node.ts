@@ -13,7 +13,7 @@ export class SendEmailSendgridNode extends ExecutableNode {
     icon: "mail",
     documentation:
       "This node sends emails using the SendGrid email service, supporting HTML content and providing delivery status.",
-    computeCost: 10,
+    usage: 10,
     inputs: [
       {
         name: "to",

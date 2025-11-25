@@ -18,7 +18,7 @@ export class ClaudeOpus41Node extends ExecutableNode {
     icon: "sparkles",
     documentation:
       "This node uses Anthropic's Claude Opus 4.1 model, the most advanced Claude model with latest capabilities.",
-    computeCost: 70,
+    usage: 70,
     inputs: [
       {
         name: "integrationId",

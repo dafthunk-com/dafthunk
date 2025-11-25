@@ -18,7 +18,7 @@ export class DatasetDeleteFileNode extends ExecutableNode {
     icon: "trash",
     documentation:
       "This node deletes a specific file from a dataset. The file is permanently removed from R2 storage.",
-    computeCost: 3,
+    usage: 3,
     asTool: true,
     inputs: [
       {

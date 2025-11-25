@@ -19,7 +19,7 @@ export class Gemini25FlashNode extends ExecutableNode {
     icon: "sparkles",
     documentation:
       "This node uses Google's Gemini 2.5 Flash model to generate text responses based on input prompts.",
-    computeCost: 20,
+    usage: 20,
     functionCalling: true,
     inputs: [
       {

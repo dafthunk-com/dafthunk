@@ -18,7 +18,7 @@ export class MelottsNode extends ExecutableNode {
       "This node converts text to natural-sounding speech using the MeloTTS model, supporting multiple languages.",
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/melotts/",
-    computeCost: 10,
+    usage: 10,
     inputs: [
       {
         name: "prompt",

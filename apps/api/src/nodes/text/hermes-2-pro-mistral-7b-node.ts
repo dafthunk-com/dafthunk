@@ -22,7 +22,7 @@ export class Hermes2ProMistral7BNode extends ExecutableNode {
       "This node generates text with function calling support using Nous Research's Hermes 2 Pro Mistral 7B model.",
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/hermes-2-pro-mistral-7b/",
-    computeCost: 10,
+    usage: 10,
     functionCalling: true,
     inputs: [
       {

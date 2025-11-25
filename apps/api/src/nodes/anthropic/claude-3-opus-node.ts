@@ -18,7 +18,7 @@ export class Claude3OpusNode extends ExecutableNode {
     icon: "sparkles",
     documentation:
       "This node uses Anthropic's Claude 3 Opus model, a previous generation premium model that is still very capable.",
-    computeCost: 45,
+    usage: 45,
     inputs: [
       {
         name: "integrationId",

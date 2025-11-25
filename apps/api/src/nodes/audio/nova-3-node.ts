@@ -18,7 +18,7 @@ export class Nova3Node extends ExecutableNode {
     documentation:
       "This node transcribes speech from audio files using Deepgram's Nova-3 model, providing high-quality speech-to-text conversion with advanced features like speaker diarization, sentiment analysis, and topic detection.",
     referenceUrl: "https://developers.cloudflare.com/workers-ai/models/nova-3/",
-    computeCost: 5,
+    usage: 5,
     inputs: [
       {
         name: "audio",

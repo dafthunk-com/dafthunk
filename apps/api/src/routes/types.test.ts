@@ -258,8 +258,8 @@ describe("Types Route Tests", () => {
         if (nodeType.description !== undefined) {
           expect(typeof nodeType.description).toBe("string");
         }
-        if (nodeType.computeCost !== undefined) {
-          expect(typeof nodeType.computeCost).toBe("number");
+        if (nodeType.usage !== undefined) {
+          expect(typeof nodeType.usage).toBe("number");
         }
         if (nodeType.compatibility !== undefined) {
           expect(Array.isArray(nodeType.compatibility)).toBe(true);

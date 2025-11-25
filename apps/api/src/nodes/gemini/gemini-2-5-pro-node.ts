@@ -19,7 +19,7 @@ export class Gemini25ProNode extends ExecutableNode {
     icon: "sparkles",
     documentation:
       "This node uses Google's Gemini 2.5 Pro model, the most capable model for complex reasoning and creative tasks.",
-    computeCost: 40,
+    usage: 40,
     functionCalling: true,
     inputs: [
       {

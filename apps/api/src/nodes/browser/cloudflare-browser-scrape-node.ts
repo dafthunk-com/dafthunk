@@ -18,7 +18,7 @@ export class CloudflareBrowserScrapeNode extends ExecutableNode {
     icon: "search",
     documentation:
       "Scrapes structured data from web pages using CSS selectors. Either url or html is required (not both). Elements parameter is required. See [Cloudflare Browser Rendering Scrape Endpoint](https://developers.cloudflare.com/browser-rendering/rest-api/scrape-endpoint/) for details.",
-    computeCost: 10,
+    usage: 10,
     asTool: true,
     inputs: [
       {

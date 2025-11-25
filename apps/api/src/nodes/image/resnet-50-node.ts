@@ -19,7 +19,7 @@ export class Resnet50Node extends ExecutableNode {
       "This node classifies images using the ResNet-50 model trained on ImageNet dataset.",
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/resnet-50/",
-    computeCost: 10,
+    usage: 10,
     inputs: [
       {
         name: "image",

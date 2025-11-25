@@ -42,7 +42,7 @@ export class GetEventGoogleCalendarNode extends ExecutableNode {
     icon: "calendar",
     documentation:
       "This node retrieves a specific calendar event by ID using Google Calendar API. Requires a connected Google Calendar integration from your organization's integrations.",
-    computeCost: 10,
+    usage: 10,
     inputs: [
       {
         name: "integrationId",

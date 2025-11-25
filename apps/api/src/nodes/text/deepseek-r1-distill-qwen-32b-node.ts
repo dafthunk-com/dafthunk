@@ -24,7 +24,7 @@ export class DeepseekR1DistillQwen32BNode extends ExecutableNode {
       "This node generates text using DeepSeek's R1 Distill Qwen 32B model.",
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/deepseek-r1-distill-qwen-32b/",
-    computeCost: 10,
+    usage: 10,
     inputs: [
       {
         name: "prompt",

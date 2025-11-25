@@ -19,7 +19,7 @@ export class DatasetAiSearchNode extends ExecutableNode {
     icon: "search",
     documentation:
       "This node performs AI-powered search through datasets using RAG (Retrieval-Augmented Generation) and generates intelligent responses.",
-    computeCost: 10,
+    usage: 10,
     asTool: true,
     inputs: [
       {

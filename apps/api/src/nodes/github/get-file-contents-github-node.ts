@@ -16,7 +16,7 @@ export class GetFileContentsGithubNode extends ExecutableNode {
     icon: "file-text",
     documentation:
       "This node retrieves the contents of a file from a GitHub repository. Returns both the decoded content and metadata like SHA. Requires a connected GitHub integration.",
-    computeCost: 10,
+    usage: 10,
     inputs: [
       {
         name: "integrationId",

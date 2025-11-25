@@ -16,7 +16,7 @@ export class SendMessageDiscordNode extends ExecutableNode {
     icon: "message-circle",
     documentation:
       "This node sends messages to Discord channels using the Discord API. Requires a connected Discord integration from your organization's integrations.",
-    computeCost: 10,
+    usage: 10,
     inputs: [
       {
         name: "integrationId",

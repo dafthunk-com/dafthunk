@@ -18,7 +18,7 @@ export class StableDiffusionV15InpaintingNode extends ExecutableNode {
       "This node fills in missing or masked areas of images using Stable Diffusion v1.5 inpainting model.",
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/stable-diffusion-v1-5-inpainting/",
-    computeCost: 10,
+    usage: 10,
     inputs: [
       {
         name: "prompt",

@@ -18,7 +18,7 @@ export class CloudflareBrowserMarkdownNode extends ExecutableNode {
     icon: "file-text",
     documentation:
       "Converts web pages to Markdown format. Either url or html is required (not both). See [Cloudflare Browser Rendering Markdown Endpoint](https://developers.cloudflare.com/browser-rendering/rest-api/markdown-endpoint/) for details.",
-    computeCost: 10,
+    usage: 10,
     asTool: true,
     inputs: [
       {

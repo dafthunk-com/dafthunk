@@ -18,7 +18,7 @@ export class CloudflareBrowserContentNode extends ExecutableNode {
     icon: "globe",
     documentation:
       "Fetches fully rendered HTML content from a web page. Either url or html is required (not both). See [Cloudflare Browser Rendering Content Endpoint](https://developers.cloudflare.com/browser-rendering/rest-api/content-endpoint/) for details.",
-    computeCost: 10,
+    usage: 10,
     asTool: true,
     inputs: [
       {

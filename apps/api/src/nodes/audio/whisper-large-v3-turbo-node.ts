@@ -19,7 +19,7 @@ export class WhisperLargeV3TurboNode extends ExecutableNode {
       "This node transcribes speech from audio files using OpenAI's Whisper Large V3 Turbo model, providing enhanced accuracy and multilingual support.",
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/whisper-large-v3-turbo/",
-    computeCost: 10,
+    usage: 10,
     inputs: [
       {
         name: "audio",

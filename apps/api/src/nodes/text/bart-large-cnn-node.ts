@@ -17,7 +17,7 @@ export class BartLargeCnnNode extends ExecutableNode {
       "This node summarizes text using Facebook's BART-large-CNN model.",
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/bart-large-cnn/",
-    computeCost: 10,
+    usage: 10,
     inputs: [
       {
         name: "inputText",

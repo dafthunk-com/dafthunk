@@ -18,7 +18,7 @@ export class DatasetDownloadFileNode extends ExecutableNode {
     icon: "download",
     documentation:
       "This node downloads and retrieves the content of a file from a dataset.",
-    computeCost: 5,
+    usage: 5,
     inputs: [
       {
         name: "datasetId",

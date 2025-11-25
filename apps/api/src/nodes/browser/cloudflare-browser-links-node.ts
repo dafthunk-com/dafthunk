@@ -18,7 +18,7 @@ export class CloudflareBrowserLinksNode extends ExecutableNode {
     icon: "link",
     documentation:
       "Extracts all links from a web page. Either url or html is required (not both). See [Cloudflare Browser Rendering Links Endpoint](https://developers.cloudflare.com/browser-rendering/rest-api/links-endpoint/) for details.",
-    computeCost: 10,
+    usage: 10,
     asTool: true,
     inputs: [
       {

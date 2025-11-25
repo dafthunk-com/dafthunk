@@ -19,7 +19,7 @@ export class WhisperNode extends ExecutableNode {
       "This node transcribes speech from audio files using OpenAI's Whisper model, converting spoken words to text.",
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/whisper/",
-    computeCost: 10,
+    usage: 10,
     inputs: [
       {
         name: "audio",

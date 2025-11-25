@@ -18,7 +18,7 @@ export class Gpt5Node extends ExecutableNode {
     icon: "sparkles",
     documentation:
       "This node uses OpenAI's GPT-5 model to generate text responses based on input prompts.",
-    computeCost: 35,
+    usage: 35,
     inputs: [
       {
         name: "integrationId",

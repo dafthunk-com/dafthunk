@@ -18,7 +18,7 @@ export class DatasetListFilesNode extends ExecutableNode {
     icon: "list",
     documentation:
       "This node lists all files stored in a dataset. Returns an array of files with their metadata.",
-    computeCost: 3,
+    usage: 3,
     asTool: true,
     inputs: [
       {
