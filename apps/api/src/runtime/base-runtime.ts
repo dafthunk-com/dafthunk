@@ -999,6 +999,7 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
           nodeId: node.id,
           status: "skipped" as const,
           outputs: null,
+          usage: 0,
           ...skipInfo,
         };
       }
