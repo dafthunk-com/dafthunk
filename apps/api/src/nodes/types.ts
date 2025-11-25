@@ -192,7 +192,7 @@ export abstract class ExecutableNode {
       nodeId: this.node.id,
       status: "error",
       error,
-      usage,
+      usage: usage ?? 0,
     } as NodeExecution;
   }
 
