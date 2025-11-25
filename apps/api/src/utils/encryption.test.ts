@@ -29,7 +29,6 @@ const createMockEnv = (masterKey?: string): Bindings => ({
   DATASETS_AUTORAG: "",
   AI: {} as Ai,
   BROWSER: {} as Fetcher,
-  USAGE: {} as AnalyticsEngineDataset,
   EXECUTIONS: {} as AnalyticsEngineDataset,
   WEB_HOST: "",
   EMAIL_DOMAIN: "",

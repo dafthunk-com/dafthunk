@@ -152,6 +152,12 @@ export class ExecutionStore {
       const startedAtMs = record.startedAt?.getTime() ?? 0;
       const endedAtMs = record.endedAt?.getTime() ?? 0;
 
+      // Sum usage from all node executions
+      const usage = record.nodeExecutions.reduce(
+        (sum, ne) => sum + (ne.usage ?? 0),
+        0
+      );
+
       const dataPoint = {
         indexes: [record.organizationId],
         blobs: [
@@ -161,7 +167,7 @@ export class ExecutionStore {
           record.status,
           (record.error || "").substring(0, 2000), // truncate to fit in blob
         ],
-        doubles: [durationMs, startedAtMs, endedAtMs],
+        doubles: [durationMs, startedAtMs, endedAtMs, usage],
       };
 
       console.log(

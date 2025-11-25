@@ -551,13 +551,6 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         const actualUsage = result.usage ?? nodeType.usage ?? 1;
         state.nodeUsage[nodeId] = actualUsage;
 
-        // Write actual usage to analytics
-        this.env.USAGE?.writeDataPoint({
-          indexes: [context.organizationId],
-          blobs: [context.organizationId, context.workflowId, node.id],
-          doubles: [actualUsage],
-        });
-
         // Downstream nodes will be checked by shouldSkipNode when we reach them
       } else {
         const failureMessage = result.error ?? "Unknown error";
@@ -566,12 +559,6 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         // Track usage even for failed nodes (some errors occur after resources are consumed)
         if (result.usage !== undefined && result.usage > 0) {
           state.nodeUsage[nodeId] = result.usage;
-
-          this.env.USAGE?.writeDataPoint({
-            indexes: [context.organizationId],
-            blobs: [context.organizationId, context.workflowId, node.id],
-            doubles: [result.usage],
-          });
         }
       }
 
