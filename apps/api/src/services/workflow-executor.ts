@@ -136,6 +136,7 @@ export class WorkflowExecutor {
     const nodeExecutions = workflow.nodes.map((node) => ({
       nodeId: node.id,
       status: "executing" as const,
+      usage: 0,
     }));
 
     // Create initial execution record
