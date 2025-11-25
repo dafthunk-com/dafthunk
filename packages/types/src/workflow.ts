@@ -285,6 +285,7 @@ export interface NodeExecution {
   status: NodeExecutionStatus;
   error?: string;
   outputs?: Record<string, ParameterValue> | null;
+  computeCost?: number;
 }
 
 /**

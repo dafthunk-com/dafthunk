@@ -181,6 +181,7 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       executedNodes: [],
       skippedNodes: [],
       nodeErrors: {},
+      nodeComputeCosts: {},
     };
     this.logTransition("idle", "submitted");
 
@@ -362,6 +363,7 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       executedNodes: [],
       skippedNodes: [],
       nodeErrors: {},
+      nodeComputeCosts: {},
     };
 
     // Log transition to executing
@@ -495,12 +497,6 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       return state;
     }
 
-    this.env.COMPUTE?.writeDataPoint({
-      indexes: [context.organizationId],
-      blobs: [context.organizationId, context.workflowId, node.id],
-      doubles: [nodeType.computeCost ?? 1],
-    });
-
     const executable = this.nodeRegistry.createExecutableNode(node);
     if (!executable) {
       const error = new NodeTypeNotImplementedError(nodeId, node.type);
@@ -553,10 +549,32 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
           state.executedNodes.push(nodeId);
         }
 
+        // Store actual compute cost from execution result
+        const actualCost = result.computeCost ?? nodeType.computeCost ?? 1;
+        state.nodeComputeCosts[nodeId] = actualCost;
+
+        // Write actual cost to analytics
+        this.env.COMPUTE?.writeDataPoint({
+          indexes: [context.organizationId],
+          blobs: [context.organizationId, context.workflowId, node.id],
+          doubles: [actualCost],
+        });
+
         // Downstream nodes will be checked by shouldSkipNode when we reach them
       } else {
         const failureMessage = result.error ?? "Unknown error";
         state = this.recordNodeError(state, nodeId, failureMessage);
+
+        // Track cost even for failed nodes (some errors occur after resources are consumed)
+        if (result.computeCost !== undefined && result.computeCost > 0) {
+          state.nodeComputeCosts[nodeId] = result.computeCost;
+
+          this.env.COMPUTE?.writeDataPoint({
+            indexes: [context.organizationId],
+            blobs: [context.organizationId, context.workflowId, node.id],
+            doubles: [result.computeCost],
+          });
+        }
       }
 
       return state;
@@ -827,16 +845,17 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
           ? ("exhausted" as any)
           : getExecutionStatus(context, state);
 
-        // Update compute credits for executed nodes (skip in development and exhausted cases)
+        // Update compute credits for all nodes that incurred cost (skip in development and exhausted cases)
         if (!isExhausted && this.env.CLOUDFLARE_ENV !== "development") {
+          // Sum actual compute costs from all nodes (executed + errored with cost)
+          const actualTotalCost = Object.values(state.nodeComputeCosts).reduce(
+            (sum, cost) => sum + cost,
+            0
+          );
           await updateOrganizationComputeUsage(
             this.env.KV,
             organizationId,
-            this.getNodesComputeCost(
-              context.workflow.nodes.filter((node) =>
-                state.executedNodes.includes(node.id)
-              )
-            )
+            actualTotalCost
           );
         }
 
@@ -964,6 +983,7 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
           nodeId: node.id,
           status: "completed" as const,
           outputs: state.nodeOutputs[node.id] || {},
+          computeCost: state.nodeComputeCosts[node.id],
         };
       }
       if (node.id in state.nodeErrors) {
@@ -971,6 +991,7 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
           nodeId: node.id,
           status: "error" as const,
           error: state.nodeErrors[node.id],
+          computeCost: state.nodeComputeCosts[node.id],
         };
       }
       if (state.skippedNodes.includes(node.id)) {

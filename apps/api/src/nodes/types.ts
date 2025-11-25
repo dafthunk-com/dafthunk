@@ -175,20 +175,24 @@ export abstract class ExecutableNode {
   public abstract execute(context: NodeContext): Promise<NodeExecution>;
 
   protected createSuccessResult(
-    outputs: Record<string, ParameterValue>
+    outputs: Record<string, ParameterValue>,
+    computeCost?: number
   ): NodeExecution {
+    const nodeType = (this.constructor as typeof ExecutableNode).nodeType;
     return {
       nodeId: this.node.id,
       status: "completed",
       outputs,
+      computeCost: computeCost ?? nodeType.computeCost ?? 1,
     } as NodeExecution;
   }
 
-  protected createErrorResult(error: string): NodeExecution {
+  protected createErrorResult(error: string, computeCost?: number): NodeExecution {
     return {
       nodeId: this.node.id,
       status: "error",
       error,
+      computeCost,
     } as NodeExecution;
   }
 
