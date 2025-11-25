@@ -221,9 +221,7 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       executionState = state;
 
       // Check for credit exhaustion early (before resource loading)
-      const estimatedUsage = this.getNodesUsage(
-        event.payload.workflow.nodes
-      );
+      const estimatedUsage = this.getNodesUsage(event.payload.workflow.nodes);
       if (
         !(await this.hasEnoughComputeCredits(
           organizationId,
