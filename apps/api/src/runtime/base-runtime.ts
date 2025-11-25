@@ -981,7 +981,7 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
           nodeId: node.id,
           status: "completed" as const,
           outputs: state.nodeOutputs[node.id] || {},
-          usage: state.nodeUsage[node.id],
+          usage: state.nodeUsage[node.id] ?? 0,
         };
       }
       if (node.id in state.nodeErrors) {
@@ -989,7 +989,7 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
           nodeId: node.id,
           status: "error" as const,
           error: state.nodeErrors[node.id],
-          usage: state.nodeUsage[node.id],
+          usage: state.nodeUsage[node.id] ?? 0,
         };
       }
       if (state.skippedNodes.includes(node.id)) {
@@ -1009,6 +1009,7 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       return {
         nodeId: node.id,
         status: isStillRunning ? ("executing" as const) : ("idle" as const),
+        usage: 0,
       };
     });
   }
