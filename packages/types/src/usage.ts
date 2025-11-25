@@ -1,7 +1,7 @@
 /**
- * Response from the GET /usage/credits endpoint
+ * Response from the GET /usage endpoint
  */
-export interface UsageCreditsResponse {
+export interface UsageResponse {
   computeCredits: number;
   computeUsage: number;
   remainingCredits: number;

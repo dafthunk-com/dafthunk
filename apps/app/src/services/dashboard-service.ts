@@ -1,7 +1,7 @@
 import {
   DashboardStats,
   DashboardStatsResponse,
-  UsageCreditsResponse,
+  UsageResponse,
 } from "@dafthunk/types";
 import useSWR from "swr";
 
@@ -20,8 +20,8 @@ interface UseDashboard {
   mutateDashboardStats: () => Promise<any>;
 }
 
-interface UseUsageCredits {
-  usageData: UsageCreditsResponse | null;
+interface UseUsage {
+  usageData: UsageResponse | null;
   usageError: Error | null;
   isUsageLoading: boolean;
   mutateUsage: () => Promise<any>;
@@ -62,23 +62,23 @@ export const useDashboard = (): UseDashboard => {
 /**
  * Hook to fetch usage credits for the current organization
  */
-export const useUsageCredits = (): UseUsageCredits => {
+export const useUsage = (): UseUsage => {
   const { organization } = useAuth();
   const orgHandle = organization?.handle;
 
   // Create a unique SWR key that includes the organization handle
   const swrKey = orgHandle
-    ? `/${orgHandle}${USAGE_API_ENDPOINT}/credits`
+    ? `/${orgHandle}${USAGE_API_ENDPOINT}`
     : null;
 
   const { data, error, isLoading, mutate } = useSWR(
     swrKey,
     swrKey && orgHandle
       ? async () => {
-          const response = await makeOrgRequest<UsageCreditsResponse>(
+          const response = await makeOrgRequest<UsageResponse>(
             orgHandle,
             USAGE_API_ENDPOINT,
-            "/credits"
+            ""
           );
           return response;
         }

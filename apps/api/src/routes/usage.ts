@@ -1,4 +1,4 @@
-import { UsageCreditsResponse } from "@dafthunk/types";
+import { UsageResponse } from "@dafthunk/types";
 import { Hono } from "hono";
 
 import { jwtMiddleware } from "../auth";
@@ -10,8 +10,8 @@ const usage = new Hono<ApiContext>();
 
 usage.use("*", jwtMiddleware);
 
-// Get compute usage for an organization
-usage.get("/credits", async (c) => {
+// Get usage for an organization
+usage.get("/", async (c) => {
   const organizationId = c.get("organizationId")!;
 
   try {
@@ -33,7 +33,7 @@ usage.get("/credits", async (c) => {
       organizationId
     );
 
-    return c.json<UsageCreditsResponse>({
+    return c.json<UsageResponse>({
       computeCredits,
       computeUsage,
       remainingCredits: Math.max(0, computeCredits - computeUsage),

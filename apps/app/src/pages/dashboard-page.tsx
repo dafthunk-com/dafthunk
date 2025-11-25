@@ -15,14 +15,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
-import { useDashboard, useUsageCredits } from "@/services/dashboard-service";
+import { useDashboard, useUsage } from "@/services/dashboard-service";
 import { cn } from "@/utils/utils";
 
 export function DashboardPage() {
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const { dashboardStats, dashboardStatsError, isDashboardStatsLoading } =
     useDashboard();
-  const { usageData, usageError, isUsageLoading } = useUsageCredits();
+  const { usageData, usageError, isUsageLoading } = useUsage();
   const { getOrgUrl } = useOrgUrl();
 
   useEffect(() => {
