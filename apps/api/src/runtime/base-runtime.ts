@@ -552,7 +552,7 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         state.nodeUsage[nodeId] = actualUsage;
 
         // Write actual usage to analytics
-        this.env.COMPUTE?.writeDataPoint({
+        this.env.USAGE?.writeDataPoint({
           indexes: [context.organizationId],
           blobs: [context.organizationId, context.workflowId, node.id],
           doubles: [actualUsage],
@@ -567,7 +567,7 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         if (result.usage !== undefined && result.usage > 0) {
           state.nodeUsage[nodeId] = result.usage;
 
-          this.env.COMPUTE?.writeDataPoint({
+          this.env.USAGE?.writeDataPoint({
             indexes: [context.organizationId],
             blobs: [context.organizationId, context.workflowId, node.id],
             doubles: [result.usage],

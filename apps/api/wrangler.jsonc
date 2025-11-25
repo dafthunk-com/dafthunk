@@ -80,8 +80,8 @@
   },
   "analytics_engine_datasets": [
     {
-      "binding": "COMPUTE",
-      "dataset": "dafthunk-compute-development"
+      "binding": "USAGE",
+      "dataset": "dafthunk-usage-development"
     },
     {
       "binding": "EXECUTIONS",
@@ -198,8 +198,8 @@
       ],
       "analytics_engine_datasets": [
         {
-          "binding": "COMPUTE",
-          "dataset": "dafthunk-compute-production"
+          "binding": "USAGE",
+          "dataset": "dafthunk-usage-production"
         },
         {
           "binding": "EXECUTIONS",

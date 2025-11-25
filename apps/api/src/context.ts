@@ -20,7 +20,7 @@ export interface Bindings {
   AI: Ai;
   AI_OPTIONS: AiOptions;
   BROWSER?: Fetcher;
-  COMPUTE: AnalyticsEngineDataset;
+  USAGE: AnalyticsEngineDataset;
   EXECUTIONS: AnalyticsEngineDataset;
   WEB_HOST: string;
   EMAIL_DOMAIN: string;
