@@ -1,0 +1,17 @@
+{
+  "name": "ts-morph-refactor",
+  "version": "1.0.0",
+  "description": "Claude Code skill for TypeScript refactoring using ts-morph",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "ts-morph": "^27.0.2",
+    "tsx": "^4.19.4",
+    "typescript": "^5.7.3",
+    "vitest": "^4.0.14"
+  }
+}
