@@ -460,3 +460,34 @@ export type ServerMessage =
   | WorkflowInitMessage
   | WorkflowUpdateMessage
   | WorkflowExecutionUpdateMessage;
+
+/**
+ * Workflow template category
+ */
+export type WorkflowTemplateCategory =
+  | "text-processing"
+  | "data-processing"
+  | "communication"
+  | "web-scraping"
+  | "content-creation";
+
+/**
+ * Represents a workflow template
+ */
+export interface WorkflowTemplate {
+  id: string;
+  name: string;
+  description: string;
+  category: WorkflowTemplateCategory;
+  type: WorkflowType;
+  tags: string[];
+  nodes: Node[];
+  edges: Edge[];
+}
+
+/**
+ * Response for listing workflow templates
+ */
+export interface ListWorkflowTemplatesResponse {
+  templates: WorkflowTemplate[];
+}
