@@ -1,7 +1,9 @@
+import type { WorkflowTemplate } from "@dafthunk/types";
 import BookOpen from "lucide-react/icons/book-open";
 import Calculator from "lucide-react/icons/calculator";
 import FileText from "lucide-react/icons/file-text";
 import Globe from "lucide-react/icons/globe";
+import Loader2 from "lucide-react/icons/loader-2";
 import Mail from "lucide-react/icons/mail";
 import Palette from "lucide-react/icons/palette";
 import Search from "lucide-react/icons/search";
@@ -20,10 +22,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { TagFilterButtons } from "@/components/ui/tag-filter-buttons";
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation";
 import { useCategoryCounts } from "@/hooks/use-tag-counts";
+import { useTemplates } from "@/services/template-service";
 import { cn } from "@/utils/utils";
-
-import type { WorkflowTemplate } from "./workflow-templates";
-import { workflowTemplates } from "./workflow-templates";
 
 export interface ImportTemplateDialogProps {
   open: boolean;
@@ -58,10 +58,12 @@ export function ImportTemplateDialog({
     null
   );
 
-  // Get category counts
-  const categoryCounts = useCategoryCounts(workflowTemplates);
+  const { templates, isTemplatesLoading, templatesError } = useTemplates();
 
-  const filteredTemplates = workflowTemplates.filter((template) => {
+  // Get category counts
+  const categoryCounts = useCategoryCounts(templates);
+
+  const filteredTemplates = templates.filter((template) => {
     const matchesCategory =
       !selectedCategory || template.category === selectedCategory;
     const matchesSearch =
@@ -121,7 +123,8 @@ export function ImportTemplateDialog({
     template: WorkflowTemplate;
     index: number;
   }) => {
-    const IconComponent = categoryIcons[template.category];
+    const IconComponent =
+      categoryIcons[template.category as keyof typeof categoryIcons];
 
     return (
       <div
@@ -147,12 +150,16 @@ export function ImportTemplateDialog({
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-2">
             <div className="p-2 bg-primary/10 rounded-md">
-              <IconComponent className="h-4 w-4 text-primary" />
+              {IconComponent && (
+                <IconComponent className="h-4 w-4 text-primary" />
+              )}
             </div>
             <div>
               <h3 className="font-medium text-sm">{template.name}</h3>
               <p className="text-xs text-muted-foreground">
-                {categoryLabels[template.category]}
+                {categoryLabels[
+                  template.category as keyof typeof categoryLabels
+                ] || template.category}
               </p>
             </div>
           </div>
@@ -207,7 +214,7 @@ export function ImportTemplateDialog({
               onChange={(e) => setSearchQuery(e.target.value)}
               className={cn("pl-10", activeElement === "search" && "bg-accent")}
               onFocus={() => setActiveElement("search")}
-              disabled={importingTemplateId !== null}
+              disabled={importingTemplateId !== null || isTemplatesLoading}
             />
           </div>
         </div>
@@ -217,12 +224,15 @@ export function ImportTemplateDialog({
           <div className="px-6">
             <TagFilterButtons
               categories={categoryCounts.map(({ tag, count }) => ({
-                tag: categoryLabels[tag] || tag,
+                tag:
+                  categoryLabels[tag as keyof typeof categoryLabels] || tag,
                 count,
               }))}
               selectedTag={
                 selectedCategory
-                  ? categoryLabels[selectedCategory] || selectedCategory
+                  ? categoryLabels[
+                      selectedCategory as keyof typeof categoryLabels
+                    ] || selectedCategory
                   : null
               }
               onTagChange={(categoryLabel) => {
@@ -236,19 +246,33 @@ export function ImportTemplateDialog({
                 )?.[0];
                 setSelectedCategory(originalCategory || categoryLabel);
               }}
-              totalCount={workflowTemplates.length}
+              totalCount={templates.length}
               onKeyDown={handleCategoryKeyDown}
               setCategoryButtonRef={setCategoryButtonRef}
               activeElement={activeElement}
               focusedIndex={focusedIndex}
-              disabled={importingTemplateId !== null}
+              disabled={importingTemplateId !== null || isTemplatesLoading}
             />
           </div>
         )}
 
         {/* Templates */}
         <ScrollArea className="flex-1 px-6 pb-6">
-          {filteredTemplates.length === 0 ? (
+          {isTemplatesLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : templatesError ? (
+            <div className="text-center py-12">
+              <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-muted-foreground mb-2">
+                Failed to load templates
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {templatesError.message}
+              </p>
+            </div>
+          ) : filteredTemplates.length === 0 ? (
             <div className="text-center py-12">
               <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-medium text-muted-foreground mb-2">
