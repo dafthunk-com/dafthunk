@@ -2,6 +2,20 @@ import type { WorkflowTemplate } from "@dafthunk/types";
 import { Hono } from "hono";
 
 import type { ApiContext } from "../context";
+import { CloudflareBrowserContentNode } from "../nodes/browser/cloudflare-browser-content-node";
+import { ToMarkdownNode } from "../nodes/document/to-markdown-node";
+import { ParseEmailNode } from "../nodes/email/parse-email-node";
+import { ReceiveEmailNode } from "../nodes/email/receive-email-node";
+import { FormDataStringNode } from "../nodes/http/form-data-string-node";
+import { StableDiffusionXLLightningNode } from "../nodes/image/stable-diffusion-xl-lightning-node";
+import { AdditionNode } from "../nodes/math/addition-node";
+import { MultiplicationNode } from "../nodes/math/multiplication-node";
+import { NumberInputNode } from "../nodes/math/number-input-node";
+import { BartLargeCnnNode } from "../nodes/text/bart-large-cnn-node";
+import { DistilbertSst2Int8Node } from "../nodes/text/distilbert-sst-2-int8-node";
+import { M2m10012bNode } from "../nodes/text/m2m100-1-2b-node";
+import { SingleVariableStringTemplateNode } from "../nodes/text/single-variable-string-template-node";
+import { TextAreaNode } from "../nodes/text/text-area-node";
 
 const templates = new Hono<ApiContext>();
 
@@ -14,65 +28,17 @@ const workflowTemplates: WorkflowTemplate[] = [
     type: "manual",
     tags: ["ai", "text", "summarization"],
     nodes: [
-      {
+      TextAreaNode.create({
         id: "input-1",
-        name: "Text Area",
-        type: "text-area",
-        description: "Enter text to summarize",
         position: { x: 100, y: 100 },
-        inputs: [
-          {
-            name: "value",
-            type: "string",
-            value: "",
-            hidden: true,
-          },
-          {
-            name: "placeholder",
-            type: "string",
-            value: "Enter text to summarize...",
-            hidden: true,
-          },
-          {
-            name: "rows",
-            type: "number",
-            value: 6,
-            hidden: true,
-          },
-        ],
-        outputs: [
-          {
-            name: "value",
-            type: "string",
-          },
-        ],
-      },
-      {
+        description: "Enter text to summarize",
+        inputs: { placeholder: "Enter text to summarize...", rows: 6 },
+      }),
+      BartLargeCnnNode.create({
         id: "summarizer-1",
-        name: "BART Large CNN",
-        type: "bart-large-cnn",
-        description: "AI summarization model",
         position: { x: 500, y: 100 },
-        inputs: [
-          {
-            name: "inputText",
-            type: "string",
-            required: true,
-          },
-          {
-            name: "maxLength",
-            type: "number",
-            value: 1024,
-            hidden: true,
-          },
-        ],
-        outputs: [
-          {
-            name: "summary",
-            type: "string",
-          },
-        ],
-      },
+        description: "AI summarization model",
+      }),
     ],
     edges: [
       {
@@ -91,72 +57,22 @@ const workflowTemplates: WorkflowTemplate[] = [
     type: "http_request",
     tags: ["web", "scraping", "markdown", "content"],
     nodes: [
-      {
+      FormDataStringNode.create({
         id: "url-input-1",
-        name: "Form Data String",
-        type: "form-data-string",
-        description: "Enter website URL to scrape",
         position: { x: 100, y: 100 },
-        inputs: [
-          {
-            name: "name",
-            type: "string",
-            value: "url",
-            required: true,
-          },
-          {
-            name: "required",
-            type: "boolean",
-            value: true,
-          },
-        ],
-        outputs: [
-          {
-            name: "value",
-            type: "string",
-          },
-        ],
-      },
-      {
+        description: "Enter website URL to scrape",
+        inputs: { name: "url", required: true },
+      }),
+      CloudflareBrowserContentNode.create({
         id: "browser-content-1",
-        name: "Browser Content",
-        type: "cloudflare-browser-content",
-        description: "Extract website content",
         position: { x: 500, y: 100 },
-        inputs: [
-          {
-            name: "url",
-            type: "string",
-            required: true,
-          },
-        ],
-        outputs: [
-          {
-            name: "content",
-            type: "string",
-          },
-        ],
-      },
-      {
+        description: "Extract website content",
+      }),
+      ToMarkdownNode.create({
         id: "to-markdown-1",
-        name: "To Markdown",
-        type: "to-markdown",
-        description: "Convert content to markdown format",
         position: { x: 900, y: 100 },
-        inputs: [
-          {
-            name: "html",
-            type: "string",
-            required: true,
-          },
-        ],
-        outputs: [
-          {
-            name: "markdown",
-            type: "string",
-          },
-        ],
-      },
+        description: "Convert content to markdown format",
+      }),
     ],
     edges: [
       {
@@ -168,8 +84,8 @@ const workflowTemplates: WorkflowTemplate[] = [
       {
         source: "browser-content-1",
         target: "to-markdown-1",
-        sourceOutput: "content",
-        targetInput: "html",
+        sourceOutput: "html",
+        targetInput: "document",
       },
     ],
   },
@@ -181,59 +97,17 @@ const workflowTemplates: WorkflowTemplate[] = [
     type: "manual",
     tags: ["ai", "image", "generation", "stable-diffusion"],
     nodes: [
-      {
+      TextAreaNode.create({
         id: "prompt-input-1",
-        name: "Text Area",
-        type: "text-area",
-        description: "Enter description for image generation",
         position: { x: 100, y: 100 },
-        inputs: [
-          {
-            name: "value",
-            type: "string",
-            value: "",
-            hidden: true,
-          },
-          {
-            name: "placeholder",
-            type: "string",
-            value: "Enter your image prompt here...",
-            hidden: true,
-          },
-          {
-            name: "rows",
-            type: "number",
-            value: 4,
-            hidden: true,
-          },
-        ],
-        outputs: [
-          {
-            name: "value",
-            type: "string",
-          },
-        ],
-      },
-      {
+        description: "Enter description for image generation",
+        inputs: { placeholder: "Enter your image prompt here...", rows: 4 },
+      }),
+      StableDiffusionXLLightningNode.create({
         id: "image-gen-1",
-        name: "Stable Diffusion XL Lightning",
-        type: "stable-diffusion-xl-lightning",
-        description: "Generate image from prompt",
         position: { x: 500, y: 100 },
-        inputs: [
-          {
-            name: "prompt",
-            type: "string",
-            required: true,
-          },
-        ],
-        outputs: [
-          {
-            name: "image",
-            type: "image",
-          },
-        ],
-      },
+        description: "Generate image from prompt",
+      }),
     ],
     edges: [
       {
@@ -252,133 +126,28 @@ const workflowTemplates: WorkflowTemplate[] = [
     type: "email_message",
     tags: ["email", "sentiment", "ai", "analysis"],
     nodes: [
-      {
+      ReceiveEmailNode.create({
         id: "email-parameters-1",
-        name: "Email Parameters",
-        type: "email-parameters",
-        description: "Extract email parameters from context",
         position: { x: 100, y: 100 },
-        inputs: [],
-        outputs: [
-          {
-            name: "from",
-            type: "string",
-          },
-          {
-            name: "to",
-            type: "string",
-          },
-          {
-            name: "headers",
-            type: "json",
-          },
-          {
-            name: "raw",
-            type: "string",
-          },
-        ],
-      },
-      {
+        description: "Extract email parameters from context",
+      }),
+      ParseEmailNode.create({
         id: "email-parser-1",
-        name: "Email Parser",
-        type: "email-parser",
-        description: "Extract text from email",
         position: { x: 500, y: 100 },
-        inputs: [
-          {
-            name: "rawEmail",
-            type: "string",
-            required: true,
-          },
-        ],
-        outputs: [
-          {
-            name: "subject",
-            type: "string",
-          },
-          {
-            name: "text",
-            type: "string",
-          },
-          {
-            name: "html",
-            type: "string",
-          },
-          {
-            name: "from",
-            type: "json",
-          },
-          {
-            name: "to",
-            type: "json",
-          },
-          {
-            name: "cc",
-            type: "json",
-          },
-          {
-            name: "bcc",
-            type: "json",
-          },
-          {
-            name: "replyTo",
-            type: "json",
-          },
-          {
-            name: "date",
-            type: "string",
-          },
-          {
-            name: "messageId",
-            type: "string",
-          },
-          {
-            name: "inReplyTo",
-            type: "string",
-          },
-          {
-            name: "references",
-            type: "json",
-          },
-          {
-            name: "priority",
-            type: "string",
-          },
-        ],
-      },
-      {
+        description: "Extract text from email",
+      }),
+      DistilbertSst2Int8Node.create({
         id: "sentiment-1",
-        name: "DistilBERT SST-2 Int8",
-        type: "distilbert-sst-2-int8",
-        description: "Analyze sentiment of email content",
         position: { x: 900, y: 100 },
-        inputs: [
-          {
-            name: "text",
-            type: "string",
-            required: true,
-          },
-        ],
-        outputs: [
-          {
-            name: "positive",
-            description: "positive",
-            type: "number",
-          },
-          {
-            name: "negative",
-            description: "negative",
-            type: "number",
-          },
-        ],
-      },
+        description: "Analyze sentiment of email content",
+      }),
     ],
     edges: [
       {
         source: "email-parameters-1",
         target: "email-parser-1",
         sourceOutput: "raw",
-        targetInput: "rawEmail",
+        targetInput: "raw",
       },
       {
         source: "email-parser-1",
@@ -396,146 +165,28 @@ const workflowTemplates: WorkflowTemplate[] = [
     type: "manual",
     tags: ["math", "calculation", "numbers"],
     nodes: [
-      {
+      NumberInputNode.create({
         id: "number-1",
-        name: "Number Input",
-        type: "number-input",
-        description: "Enter first number",
         position: { x: 100, y: 100 },
-        inputs: [
-          {
-            name: "value",
-            type: "number",
-            value: 0,
-            hidden: true,
-          },
-          {
-            name: "min",
-            type: "number",
-            value: undefined,
-            hidden: true,
-          },
-          {
-            name: "max",
-            type: "number",
-            value: undefined,
-            hidden: true,
-          },
-          {
-            name: "step",
-            type: "number",
-            value: undefined,
-            hidden: true,
-          },
-          {
-            name: "placeholder",
-            type: "string",
-            value: "Enter first number",
-            hidden: true,
-          },
-        ],
-        outputs: [
-          {
-            name: "value",
-            type: "number",
-          },
-        ],
-      },
-      {
+        description: "Enter first number",
+        inputs: { placeholder: "Enter first number" },
+      }),
+      NumberInputNode.create({
         id: "number-2",
-        name: "Number Input",
-        type: "number-input",
-        description: "Enter second number",
         position: { x: 100, y: 300 },
-        inputs: [
-          {
-            name: "value",
-            type: "number",
-            value: 0,
-            hidden: true,
-          },
-          {
-            name: "min",
-            type: "number",
-            value: undefined,
-            hidden: true,
-          },
-          {
-            name: "max",
-            type: "number",
-            value: undefined,
-            hidden: true,
-          },
-          {
-            name: "step",
-            type: "number",
-            value: undefined,
-            hidden: true,
-          },
-          {
-            name: "placeholder",
-            type: "string",
-            value: "Enter second number",
-            hidden: true,
-          },
-        ],
-        outputs: [
-          {
-            name: "value",
-            type: "number",
-          },
-        ],
-      },
-      {
+        description: "Enter second number",
+        inputs: { placeholder: "Enter second number" },
+      }),
+      AdditionNode.create({
         id: "addition-1",
-        name: "Addition",
-        type: "addition",
-        description: "Add the two numbers",
         position: { x: 500, y: 100 },
-        inputs: [
-          {
-            name: "a",
-            type: "number",
-            required: true,
-          },
-          {
-            name: "b",
-            type: "number",
-            required: true,
-          },
-        ],
-        outputs: [
-          {
-            name: "result",
-            type: "number",
-          },
-        ],
-      },
-      {
+        description: "Add the two numbers",
+      }),
+      MultiplicationNode.create({
         id: "multiplication-1",
-        name: "Multiplication",
-        type: "multiplication",
-        description: "Multiply the two numbers",
         position: { x: 500, y: 300 },
-        inputs: [
-          {
-            name: "a",
-            type: "number",
-            required: true,
-          },
-          {
-            name: "b",
-            type: "number",
-            required: true,
-          },
-        ],
-        outputs: [
-          {
-            name: "result",
-            type: "number",
-          },
-        ],
-      },
+        description: "Multiply the two numbers",
+      }),
     ],
     edges: [
       {
@@ -572,72 +223,18 @@ const workflowTemplates: WorkflowTemplate[] = [
     type: "manual",
     tags: ["translation", "language", "ai", "text"],
     nodes: [
-      {
+      TextAreaNode.create({
         id: "text-input-1",
-        name: "Text Area",
-        type: "text-area",
-        description: "Enter text to translate",
         position: { x: 100, y: 100 },
-        inputs: [
-          {
-            name: "value",
-            type: "string",
-            value: "",
-            hidden: true,
-          },
-          {
-            name: "placeholder",
-            type: "string",
-            value: "Enter text to translate...",
-            hidden: true,
-          },
-          {
-            name: "rows",
-            type: "number",
-            value: 4,
-            hidden: true,
-          },
-        ],
-        outputs: [
-          {
-            name: "value",
-            type: "string",
-          },
-        ],
-      },
-      {
+        description: "Enter text to translate",
+        inputs: { placeholder: "Enter text to translate...", rows: 4 },
+      }),
+      M2m10012bNode.create({
         id: "translation-1",
-        name: "M2M100 1-2B",
-        type: "m2m100-1-2b",
-        description: "Multilingual translation model",
         position: { x: 500, y: 100 },
-        inputs: [
-          {
-            name: "text",
-            type: "string",
-            required: true,
-          },
-          {
-            name: "sourceLang",
-            type: "string",
-            value: "en",
-            description: "Source language code (e.g., 'en' for English)",
-          },
-          {
-            name: "targetLang",
-            type: "string",
-            value: "es",
-            required: true,
-            description: "Target language code (e.g., 'es' for Spanish)",
-          },
-        ],
-        outputs: [
-          {
-            name: "translatedText",
-            type: "string",
-          },
-        ],
-      },
+        description: "Multilingual translation model",
+        inputs: { sourceLang: "en", targetLang: "es" },
+      }),
     ],
     edges: [
       {
@@ -656,64 +253,18 @@ const workflowTemplates: WorkflowTemplate[] = [
     type: "manual",
     tags: ["text", "transformation", "processing", "pipeline"],
     nodes: [
-      {
+      TextAreaNode.create({
         id: "input-data-1",
-        name: "Text Area",
-        type: "text-area",
-        description: "Enter raw data to process",
         position: { x: 100, y: 100 },
-        inputs: [
-          {
-            name: "value",
-            type: "string",
-            value: "",
-            hidden: true,
-          },
-          {
-            name: "placeholder",
-            type: "string",
-            value: "Enter your data here...",
-            hidden: true,
-          },
-          {
-            name: "rows",
-            type: "number",
-            value: 6,
-            hidden: true,
-          },
-        ],
-        outputs: [
-          {
-            name: "value",
-            type: "string",
-          },
-        ],
-      },
-      {
+        description: "Enter raw data to process",
+        inputs: { placeholder: "Enter your data here...", rows: 6 },
+      }),
+      SingleVariableStringTemplateNode.create({
         id: "template-1",
-        name: "Single Variable String Template",
-        type: "single-variable-string-template",
-        description: "Format the processed data",
         position: { x: 500, y: 100 },
-        inputs: [
-          {
-            name: "template",
-            type: "string",
-            value: "Processed Data: ${variable}",
-          },
-          {
-            name: "variable",
-            type: "string",
-            required: true,
-          },
-        ],
-        outputs: [
-          {
-            name: "result",
-            type: "string",
-          },
-        ],
-      },
+        description: "Format the processed data",
+        inputs: { template: "Processed Data: ${variable}" },
+      }),
     ],
     edges: [
       {

@@ -162,6 +162,16 @@ export interface NodeContext {
 }
 
 /**
+ * Options for creating a node instance
+ */
+export interface CreateNodeOptions {
+  id: string;
+  position: { x: number; y: number };
+  description?: string;
+  inputs?: Record<string, unknown>;
+}
+
+/**
  * Base class for all executable nodes
  */
 export abstract class ExecutableNode {
@@ -170,6 +180,32 @@ export abstract class ExecutableNode {
 
   constructor(node: Node) {
     this.node = node;
+  }
+
+  /**
+   * Creates a Node definition from this class's nodeType
+   */
+  static create(options: CreateNodeOptions): Node {
+    const nodeType = this.nodeType;
+
+    const inputs = nodeType.inputs.map((input) => {
+      const override = options.inputs?.[input.name];
+      if (override !== undefined) {
+        return { ...input, value: override };
+      }
+      return { ...input };
+    });
+
+    return {
+      id: options.id,
+      name: nodeType.name,
+      type: nodeType.type,
+      description: options.description ?? nodeType.description,
+      icon: nodeType.icon,
+      position: options.position,
+      inputs,
+      outputs: nodeType.outputs.map((output) => ({ ...output })),
+    } as Node;
   }
 
   public abstract execute(context: NodeContext): Promise<NodeExecution>;
