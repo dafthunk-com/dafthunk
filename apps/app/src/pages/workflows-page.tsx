@@ -1,5 +1,6 @@
-import {
+import type {
   CreateWorkflowRequest,
+  WorkflowTemplate,
   WorkflowType,
   WorkflowWithMetadata,
 } from "@dafthunk/types";
@@ -38,7 +39,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { CreateWorkflowDialog } from "@/components/workflow/create-workflow-dialog";
 import { ImportTemplateDialog } from "@/components/workflow/import-template-dialog";
-import type { WorkflowTemplate } from "@/components/workflow/workflow-templates";
 import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { createDeployment } from "@/services/deployment-service";
