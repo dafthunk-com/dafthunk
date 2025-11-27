@@ -24,6 +24,7 @@ import profileRoutes from "./routes/profile";
 import queueRoutes from "./routes/queues";
 import robotsRoutes from "./routes/robots";
 import secretRoutes from "./routes/secrets";
+import templateRoutes from "./routes/templates";
 import typeRoutes from "./routes/types";
 import usageRoutes from "./routes/usage";
 import workflowRoutes from "./routes/workflows";
@@ -67,6 +68,7 @@ app.route("/robots.txt", robotsRoutes);
 app.route("/llms.txt", llmsRoutes);
 
 // Public routes
+app.route("/templates", templateRoutes);
 app.route("/types", typeRoutes);
 
 app.route("/:organizationIdOrHandle/api-keys", apiKeyRoutes);
