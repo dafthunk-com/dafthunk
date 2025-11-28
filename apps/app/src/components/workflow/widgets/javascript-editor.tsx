@@ -65,7 +65,7 @@ function JavaScriptEditorWidget({
             "&": {
               height: "100%",
               fontSize: "8px",
-              backgroundColor: "var(--cm-bg, #f5f5f5)",
+              backgroundColor: "rgba(245, 245, 245, 0.5)",
               color: "var(--cm-text, #000)",
             },
             "&.dark": {
@@ -77,12 +77,12 @@ function JavaScriptEditorWidget({
             },
             ".cm-gutters": {
               fontSize: "8px",
-              backgroundColor: "var(--cm-gutters-bg, #f0f0f0)",
+              backgroundColor: "rgba(245, 245, 245, 0.5)",
               borderRight: "1px solid var(--cm-gutters-border, #e0e0e0)",
               color: "var(--cm-gutters-text, #666)",
             },
             ".dark .cm-gutters": {
-              backgroundColor: "#0f0f0f",
+              backgroundColor: "#1a1a1a",
               borderRightColor: "#333",
               color: "#999",
             },

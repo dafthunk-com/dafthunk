@@ -272,7 +272,7 @@ html.dark .shiki span {
 html.dark .cm-editor {
   --cm-bg: #1a1a1a;
   --cm-text: #e0e0e0;
-  --cm-gutters-bg: #0f0f0f;
+  --cm-gutters-bg: #1a1a1a;
   --cm-gutters-border: #333;
   --cm-gutters-text: #999;
   --cm-linenumber: #555;
@@ -281,7 +281,7 @@ html.dark .cm-editor {
 }
 
 html.dark .cm-gutters {
-  background-color: #0f0f0f !important;
+  background-color: #1a1a1a !important;
   border-right: 1px solid #333 !important;
   color: #999 !important;
 }

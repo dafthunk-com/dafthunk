@@ -66,22 +66,6 @@ export class CgsXorNode extends ExecutableNode {
         }),
       ])
       .describe("Second mesh (GLB binary format)"),
-    texture: z
-      .object({
-        data: z.instanceof(Uint8Array),
-        mimeType: z.literal("image/png"),
-      })
-      .optional()
-      .describe("Optional PNG texture for the result mesh"),
-    materialProperties: z
-      .object({
-        baseColorFactor: z
-          .tuple([z.number(), z.number(), z.number(), z.number()])
-          .optional(),
-        metallicFactor: z.number().min(0).max(1).optional(),
-        roughnessFactor: z.number().min(0).max(1).optional(),
-      })
-      .optional(),
   });
 
   public static readonly nodeType: NodeType = {
@@ -107,19 +91,6 @@ export class CgsXorNode extends ExecutableNode {
         description: "Second 3D mesh (GLB format)",
         required: true,
       },
-      {
-        name: "texture",
-        type: "image",
-        description: "PNG texture image for result mesh (optional)",
-        required: false,
-      },
-      {
-        name: "materialProperties",
-        type: "json",
-        description: "PBR material configuration (optional)",
-        required: false,
-        hidden: true,
-      },
     ],
     outputs: [
       {
@@ -138,7 +109,7 @@ export class CgsXorNode extends ExecutableNode {
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const validatedInput = CgsXorNode.xorInputSchema.parse(context.inputs);
-      const { meshA, meshB, texture, materialProperties } = validatedInput;
+      const { meshA, meshB } = validatedInput;
 
       console.log("[CgsXorNode] Performing XOR operation...");
 
@@ -150,22 +121,11 @@ export class CgsXorNode extends ExecutableNode {
       const { brush: brushB, materialData: materialDataB } =
         await glTFToBrush(meshBData);
 
-      // Determine final texture and material with priority:
-      // 1. Explicit texture input (highest priority)
-      // 2. Explicit material properties
-      // 3. Auto-resolve from inputs (with conflict handling)
+      // Auto-resolve texture and material from inputs (with conflict handling)
       let finalTexture: Uint8Array | undefined;
       let finalMaterialProps;
 
-      if (texture) {
-        // User explicitly provided texture for result - use it
-        finalTexture = texture.data;
-        finalMaterialProps = undefined; // Use defaults to let texture show fully
-      } else if (materialProperties) {
-        // Explicit material override provided (no texture)
-        finalMaterialProps = materialProperties;
-        finalTexture = undefined;
-      } else if (materialDataA.textureData && materialDataB.textureData) {
+      if (materialDataA.textureData && materialDataB.textureData) {
         // Both inputs have textures - can't properly combine them
         console.warn(
           "[CSG XOR] Both inputs have textures. CSG operations cannot properly combine multiple textures. Using solid material instead."

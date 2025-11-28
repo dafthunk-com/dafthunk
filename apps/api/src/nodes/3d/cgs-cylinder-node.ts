@@ -66,22 +66,6 @@ export class CgsCylinderNode extends ExecutableNode {
       .boolean()
       .default(false)
       .describe("Center the cylinder vertically at origin"),
-    texture: z
-      .object({
-        data: z.instanceof(Uint8Array),
-        mimeType: z.literal("image/png"),
-      })
-      .optional()
-      .describe("Optional PNG texture for the cylinder surface"),
-    materialProperties: z
-      .object({
-        baseColorFactor: z
-          .tuple([z.number(), z.number(), z.number(), z.number()])
-          .optional(),
-        metallicFactor: z.number().min(0).max(1).optional(),
-        roughnessFactor: z.number().min(0).max(1).optional(),
-      })
-      .optional(),
   });
 
   public static readonly nodeType: NodeType = {
@@ -125,19 +109,6 @@ export class CgsCylinderNode extends ExecutableNode {
         description: "Center vertically at origin (default: false)",
         required: false,
       },
-      {
-        name: "texture",
-        type: "image",
-        description: "PNG texture image for cylinder surface (optional)",
-        required: false,
-      },
-      {
-        name: "materialProperties",
-        type: "json",
-        description: "PBR material configuration (optional)",
-        required: false,
-        hidden: true,
-      },
     ],
     outputs: [
       {
@@ -158,15 +129,8 @@ export class CgsCylinderNode extends ExecutableNode {
       const validatedInput = CgsCylinderNode.cylinderInputSchema.parse(
         context.inputs
       );
-      const {
-        height,
-        radiusBottom,
-        radiusTop,
-        radialSegments,
-        center,
-        texture,
-        materialProperties,
-      } = validatedInput;
+      const { height, radiusBottom, radiusTop, radialSegments, center } =
+        validatedInput;
 
       // If radiusTop is not provided, use radiusBottom (creating a true cylinder)
       const topRadius = radiusTop ?? radiusBottom;
@@ -184,12 +148,8 @@ export class CgsCylinderNode extends ExecutableNode {
         center
       );
 
-      // Convert brush to glTF GLB binary format with optional texture
-      const glbData = await brushToGLTF(
-        brush,
-        materialProperties,
-        texture?.data
-      );
+      // Convert brush to glTF GLB binary format
+      const glbData = await brushToGLTF(brush);
 
       // Extract statistics
       const stats = extractBrushStats(brush);
@@ -207,8 +167,6 @@ export class CgsCylinderNode extends ExecutableNode {
           radiusTop: topRadius,
           radialSegments,
           centered: center,
-          hasTexture: !!texture,
-          hasMaterial: !!(materialProperties || texture),
         },
       });
     } catch (error) {

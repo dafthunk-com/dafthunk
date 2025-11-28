@@ -52,22 +52,6 @@ export class CgsCubeNode extends ExecutableNode {
       .optional()
       .default(false)
       .describe("Center the cube at origin"),
-    texture: z
-      .object({
-        data: z.instanceof(Uint8Array),
-        mimeType: z.literal("image/png"),
-      })
-      .optional()
-      .describe("Optional PNG texture for the cube surface"),
-    materialProperties: z
-      .object({
-        baseColorFactor: z
-          .tuple([z.number(), z.number(), z.number(), z.number()])
-          .optional(),
-        metallicFactor: z.number().min(0).max(1).optional(),
-        roughnessFactor: z.number().min(0).max(1).optional(),
-      })
-      .optional(),
   });
 
   public static readonly nodeType: NodeType = {
@@ -93,19 +77,6 @@ export class CgsCubeNode extends ExecutableNode {
         description: "Center the cube at the origin (default: false)",
         required: false,
       },
-      {
-        name: "texture",
-        type: "image",
-        description: "PNG texture image for cube surface (optional)",
-        required: false,
-      },
-      {
-        name: "materialProperties",
-        type: "json",
-        description: "PBR material configuration (optional)",
-        required: false,
-        hidden: true,
-      },
     ],
     outputs: [
       {
@@ -124,7 +95,7 @@ export class CgsCubeNode extends ExecutableNode {
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const validatedInput = CgsCubeNode.cubeInputSchema.parse(context.inputs);
-      const { size, center, texture, materialProperties } = validatedInput;
+      const { size, center } = validatedInput;
 
       // Parse size into [x, y, z]
       const [sizeX, sizeY, sizeZ] = Array.isArray(size)
@@ -138,12 +109,8 @@ export class CgsCubeNode extends ExecutableNode {
       // Create the cube brush using three-bvh-csg
       const brush = createCubeBrush(sizeX, sizeY, sizeZ, center);
 
-      // Convert brush to glTF GLB binary format with optional texture
-      const glbData = await brushToGLTF(
-        brush,
-        materialProperties,
-        texture?.data
-      );
+      // Convert brush to glTF GLB binary format
+      const glbData = await brushToGLTF(brush);
 
       // Extract statistics
       const stats = extractBrushStats(brush);
@@ -158,8 +125,6 @@ export class CgsCubeNode extends ExecutableNode {
           triangleCount: stats.triangleCount,
           dimensions: { x: sizeX, y: sizeY, z: sizeZ },
           centered: center,
-          hasTexture: !!texture,
-          hasMaterial: !!(materialProperties || texture),
         },
       });
     } catch (error) {

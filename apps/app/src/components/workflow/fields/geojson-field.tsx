@@ -279,7 +279,7 @@ export function GeoJSONField({
         ) : result.svg ? (
           <div
             className={cn(
-              "h-[200px] border border-border bg-slate-50 dark:bg-slate-900 flex items-center justify-center",
+              "h-[200px] border border-border bg-neutral-50 dark:bg-neutral-900 flex items-center justify-center",
               !asWidget && "rounded-md"
             )}
           >
@@ -291,11 +291,11 @@ export function GeoJSONField({
         ) : (
           <div
             className={cn(
-              "h-[200px] border border-border bg-slate-50 dark:bg-slate-900 flex items-center justify-center",
+              "h-[200px] border border-border bg-neutral-50 dark:bg-neutral-900 flex items-center justify-center",
               !asWidget && "rounded-md"
             )}
           >
-            <span className="text-slate-500 dark:text-slate-400 text-xs">
+            <span className="text-neutral-500 dark:text-neutral-400 text-xs">
               {hasValue ? "No geometries to display" : "No GeoJSON"}
             </span>
           </div>
@@ -336,7 +336,7 @@ export function GeoJSONField({
       ) : result.svg ? (
         <div
           className={cn(
-            "h-[200px] border border-border bg-slate-50 dark:bg-slate-900 flex items-center justify-center",
+            "h-[200px] border border-border bg-neutral-50 dark:bg-neutral-900 flex items-center justify-center",
             !asWidget && "rounded-md"
           )}
         >
@@ -348,11 +348,11 @@ export function GeoJSONField({
       ) : (
         <div
           className={cn(
-            "h-[200px] border border-border bg-slate-50 dark:bg-slate-900 flex items-center justify-center",
+            "h-[200px] border border-border bg-neutral-50 dark:bg-neutral-900 flex items-center justify-center",
             !asWidget && "rounded-md"
           )}
         >
-          <span className="text-slate-500 dark:text-slate-400 text-xs">
+          <span className="text-neutral-500 dark:text-neutral-400 text-xs">
             {hasValue ? "No geometries to display" : "No GeoJSON"}
           </span>
         </div>
@@ -369,7 +369,7 @@ export function GeoJSONField({
         <div
           ref={editorRef}
           className={cn(
-            "h-[200px] border border-neutral-300 dark:border-neutral-700 overflow-auto",
+            "h-[200px] border border-neutral-300 dark:border-neutral-700 overflow-auto bg-neutral-100/50 dark:bg-neutral-900",
             !asWidget && "rounded-md"
           )}
         />

@@ -46,22 +46,6 @@ export class CgsSphereNode extends ExecutableNode {
       .min(2, "Height segments must be at least 2")
       .default(32)
       .describe("Vertical resolution (vertex count top to bottom)"),
-    texture: z
-      .object({
-        data: z.instanceof(Uint8Array),
-        mimeType: z.literal("image/png"),
-      })
-      .optional()
-      .describe("Optional PNG texture for the sphere surface"),
-    materialProperties: z
-      .object({
-        baseColorFactor: z
-          .tuple([z.number(), z.number(), z.number(), z.number()])
-          .optional(),
-        metallicFactor: z.number().min(0).max(1).optional(),
-        roughnessFactor: z.number().min(0).max(1).optional(),
-      })
-      .optional(),
   });
 
   public static readonly nodeType: NodeType = {
@@ -93,19 +77,6 @@ export class CgsSphereNode extends ExecutableNode {
         description: "Vertical resolution (default: 32, min: 2)",
         required: false,
       },
-      {
-        name: "texture",
-        type: "image",
-        description: "PNG texture image for sphere surface (optional)",
-        required: false,
-      },
-      {
-        name: "materialProperties",
-        type: "json",
-        description: "PBR material configuration (optional)",
-        required: false,
-        hidden: true,
-      },
     ],
     outputs: [
       {
@@ -126,13 +97,7 @@ export class CgsSphereNode extends ExecutableNode {
       const validatedInput = CgsSphereNode.sphereInputSchema.parse(
         context.inputs
       );
-      const {
-        radius,
-        widthSegments,
-        heightSegments,
-        texture,
-        materialProperties,
-      } = validatedInput;
+      const { radius, widthSegments, heightSegments } = validatedInput;
 
       console.log(
         `[CgsSphereNode] Creating sphere with radius=${radius}, widthSegments=${widthSegments}, heightSegments=${heightSegments}`
@@ -141,12 +106,8 @@ export class CgsSphereNode extends ExecutableNode {
       // Create the sphere brush using three-bvh-csg
       const brush = createSphereBrush(radius, widthSegments, heightSegments);
 
-      // Convert brush to glTF GLB binary format with optional texture
-      const glbData = await brushToGLTF(
-        brush,
-        materialProperties,
-        texture?.data
-      );
+      // Convert brush to glTF GLB binary format
+      const glbData = await brushToGLTF(brush);
 
       // Extract statistics
       const stats = extractBrushStats(brush);
@@ -162,8 +123,6 @@ export class CgsSphereNode extends ExecutableNode {
           radius,
           widthSegments,
           heightSegments,
-          hasTexture: !!texture,
-          hasMaterial: !!(materialProperties || texture),
         },
       });
     } catch (error) {

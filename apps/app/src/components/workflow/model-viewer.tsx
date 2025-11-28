@@ -120,7 +120,7 @@ export const ModelViewer = React.memo(
       return (
         <div className="space-y-2">
           <div
-            className="gltf-canvas-container bg-slate-50 dark:bg-slate-900 flex items-center justify-center"
+            className="gltf-canvas-container bg-neutral-100/50 dark:bg-neutral-900 flex items-center justify-center"
             style={{
               width: 320,
               height: 320,
@@ -143,7 +143,7 @@ export const ModelViewer = React.memo(
     return (
       <div className="space-y-3">
         <div
-          className="gltf-canvas-container bg-slate-50 dark:bg-slate-900 overflow-hidden nodrag nopan nowheel"
+          className="gltf-canvas-container bg-neutral-100/50 dark:bg-neutral-900 overflow-hidden nodrag nopan nowheel"
           style={{
             width: 320,
             height: 320,

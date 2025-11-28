@@ -146,12 +146,22 @@ export function JsonField({
             "&": {
               height: "100%",
               fontSize: "14px",
+              backgroundColor: "rgba(245, 245, 245, 0.5)",
+              color: "var(--cm-text, #000)",
+            },
+            "&.dark": {
+              backgroundColor: "#1a1a1a",
+              color: "#e0e0e0",
             },
             ".cm-scroller": {
               overflow: "auto",
             },
             ".cm-gutters": {
               fontSize: "14px",
+              backgroundColor: "rgba(245, 245, 245, 0.5)",
+            },
+            ".dark .cm-gutters": {
+              backgroundColor: "#1a1a1a",
             },
           }),
         ],
@@ -231,7 +241,7 @@ export function JsonField({
       <div
         ref={editorRef}
         className={cn(
-          "min-h-[80px] max-h-[200px] border border-neutral-300 dark:border-neutral-700 overflow-auto",
+          "min-h-[80px] max-h-[200px] border border-neutral-300 dark:border-neutral-700 overflow-auto bg-neutral-100/50 dark:bg-neutral-900",
           !asWidget && "rounded-md"
         )}
       />

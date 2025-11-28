@@ -58,22 +58,6 @@ export class CgsTorusNode extends ExecutableNode {
       .min(3, "Tubular segments must be at least 3")
       .default(8)
       .describe("Segments around the tube"),
-    texture: z
-      .object({
-        data: z.instanceof(Uint8Array),
-        mimeType: z.literal("image/png"),
-      })
-      .optional()
-      .describe("Optional PNG texture for the torus surface"),
-    materialProperties: z
-      .object({
-        baseColorFactor: z
-          .tuple([z.number(), z.number(), z.number(), z.number()])
-          .optional(),
-        metallicFactor: z.number().min(0).max(1).optional(),
-        roughnessFactor: z.number().min(0).max(1).optional(),
-      })
-      .optional(),
   });
 
   public static readonly nodeType: NodeType = {
@@ -111,19 +95,6 @@ export class CgsTorusNode extends ExecutableNode {
         description: "Segments around tube (default: 8, min: 3)",
         required: false,
       },
-      {
-        name: "texture",
-        type: "image",
-        description: "PNG texture image for torus surface (optional)",
-        required: false,
-      },
-      {
-        name: "materialProperties",
-        type: "json",
-        description: "PBR material configuration (optional)",
-        required: false,
-        hidden: true,
-      },
     ],
     outputs: [
       {
@@ -144,14 +115,8 @@ export class CgsTorusNode extends ExecutableNode {
       const validatedInput = CgsTorusNode.torusInputSchema.parse(
         context.inputs
       );
-      const {
-        radius,
-        tubeRadius,
-        radialSegments,
-        tubularSegments,
-        texture,
-        materialProperties,
-      } = validatedInput;
+      const { radius, tubeRadius, radialSegments, tubularSegments } =
+        validatedInput;
 
       console.log(
         `[CgsTorusNode] Creating torus with radius=${radius}, tubeRadius=${tubeRadius}, radialSegments=${radialSegments}, tubularSegments=${tubularSegments}`
@@ -165,12 +130,8 @@ export class CgsTorusNode extends ExecutableNode {
         tubularSegments
       );
 
-      // Convert brush to glTF GLB binary format with optional texture
-      const glbData = await brushToGLTF(
-        brush,
-        materialProperties,
-        texture?.data
-      );
+      // Convert brush to glTF GLB binary format
+      const glbData = await brushToGLTF(brush);
 
       // Extract statistics
       const stats = extractBrushStats(brush);
@@ -187,8 +148,6 @@ export class CgsTorusNode extends ExecutableNode {
           tubeRadius,
           radialSegments,
           tubularSegments,
-          hasTexture: !!texture,
-          hasMaterial: !!(materialProperties || texture),
         },
       });
     } catch (error) {
