@@ -5,7 +5,6 @@ import type { Bindings } from "../context";
 import { AdditionNode } from "../nodes/math/addition-node";
 import { MultiplicationNode } from "../nodes/math/multiplication-node";
 import { NumberInputNode } from "../nodes/math/number-input-node";
-
 import { mathematicalCalculatorTemplate } from "./mathematical-calculator";
 
 describe("Mathematical Calculator Template", () => {

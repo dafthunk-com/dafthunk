@@ -4,7 +4,6 @@ import { describe, expect, it } from "vitest";
 import type { Bindings } from "../context";
 import { ToMarkdownNode } from "../nodes/document/to-markdown-node";
 import { FormDataStringNode } from "../nodes/http/form-data-string-node";
-
 import { websiteContentExtractionTemplate } from "./website-content-extraction";
 
 describe("Website Content Extraction Template", () => {

@@ -4,7 +4,6 @@ import { describe, expect, it } from "vitest";
 import type { Bindings } from "../context";
 import { BartLargeCnnNode } from "../nodes/text/bart-large-cnn-node";
 import { TextAreaNode } from "../nodes/text/text-area-node";
-
 import { textSummarizationTemplate } from "./text-summarization";
 
 describe("Text Summarization Template", () => {

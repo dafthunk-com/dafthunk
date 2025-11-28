@@ -4,7 +4,6 @@ import { describe, expect, it } from "vitest";
 import type { Bindings } from "../context";
 import { StableDiffusionXLLightningNode } from "../nodes/image/stable-diffusion-xl-lightning-node";
 import { TextAreaNode } from "../nodes/text/text-area-node";
-
 import { imageGenerationTemplate } from "./image-generation";
 
 describe("Image Generation Template", () => {
