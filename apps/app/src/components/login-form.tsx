@@ -30,8 +30,12 @@ export function LoginForm({
         <CardHeader className="text-center">
           <CardTitle className="text-xl flex justify-center">
             <a href="/" className="flex items-center gap-3">
-              <img src="/icon.svg" alt="Dafthunk" className="h-8 w-8" />
-              <span className="text-2xl font-semibold text-gray-900">
+              <img
+                src="/icon.svg"
+                alt="Dafthunk"
+                className="h-8 w-8 dark:invert"
+              />
+              <span className="text-2xl font-semibold text-foreground">
                 dafthunk
               </span>
             </a>
