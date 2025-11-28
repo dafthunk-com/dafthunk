@@ -93,12 +93,12 @@ function FileWidget({ value, onChange, readonly = false }: FileWidgetProps) {
 
   return (
     <div className={cn("w-full h-full", !value && "p-2")}>
-      <div className="overflow-hidden bg-white w-full h-full">
+      <div className="overflow-hidden w-full h-full">
         {value && isObjectReference(value) ? (
           <>
             {/* Full-screen preview with absolute positioned buttons */}
             {isAudio && objectUrl ? (
-              <div className="w-full h-full flex items-center justify-between gap-4 px-2 py-2 bg-neutral-100">
+              <div className="w-full h-full flex items-center justify-between gap-4 px-2 py-2">
                 <audio src={objectUrl} controls className="flex-1" />
                 <div className="flex gap-1 flex-shrink-0">
                   <Button
@@ -141,7 +141,7 @@ function FileWidget({ value, onChange, readonly = false }: FileWidgetProps) {
                   />
                 )}
                 {!isImage && !isVideo && objectUrl && (
-                  <div className="w-full h-full flex items-center justify-between gap-4 px-2 py-2 bg-neutral-50">
+                  <div className="w-full h-full flex items-center justify-between gap-4 px-2 py-2">
                     <div className="flex items-center gap-3 min-w-0">
                       <File className="h-5 w-5 text-neutral-400 flex-shrink-0" />
                       <p className="text-sm font-medium text-neutral-700 truncate">
@@ -183,7 +183,7 @@ function FileWidget({ value, onChange, readonly = false }: FileWidgetProps) {
               (isUploading || readonly) && "opacity-50 pointer-events-none"
             )}
           >
-            <div className="w-full flex items-center justify-center gap-2 border border-dashed border-neutral-300 rounded-lg px-4 py-2">
+            <div className="w-full flex items-center justify-center gap-2 border border-dashed border-neutral-300 dark:border-neutral-700 rounded-lg px-4 py-2">
               <Upload className="h-4 w-4 text-neutral-400 flex-shrink-0" />
               <div className="text-xs text-blue-500 hover:text-blue-600">
                 {isUploading ? "Uploading..." : "Upload"}

@@ -65,7 +65,7 @@ export function AudioField({
             !asWidget && disabled && "bg-muted/50 border border-border",
             !asWidget &&
               !disabled &&
-              "bg-white dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700"
+              "border border-neutral-300 dark:border-neutral-700"
           )}
         >
           {objectUrl && (
@@ -97,7 +97,7 @@ export function AudioField({
         className={cn(
           "flex flex-col items-center justify-center space-y-2",
           !asWidget &&
-            "p-3 rounded-md bg-white dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700"
+            "p-3 rounded-md border border-neutral-300 dark:border-neutral-700"
         )}
       >
         <Upload className="h-5 w-5 text-neutral-400" />

@@ -116,12 +116,32 @@ function JsonEditorWidget({
             "&": {
               height: "100%",
               fontSize: "8px",
+              backgroundColor: "var(--cm-bg, #f5f5f5)",
+              color: "var(--cm-text, #000)",
+            },
+            "&.dark": {
+              backgroundColor: "#1a1a1a",
+              color: "#e0e0e0",
             },
             ".cm-scroller": {
               overflow: "auto",
             },
             ".cm-gutters": {
               fontSize: "8px",
+              backgroundColor: "var(--cm-gutters-bg, #f0f0f0)",
+              borderRight: "1px solid var(--cm-gutters-border, #e0e0e0)",
+              color: "var(--cm-gutters-text, #666)",
+            },
+            ".dark .cm-gutters": {
+              backgroundColor: "#0f0f0f",
+              borderRightColor: "#333",
+              color: "#999",
+            },
+            ".cm-linenumber": {
+              color: "var(--cm-linenumber, #999)",
+            },
+            ".dark .cm-linenumber": {
+              color: "#555",
             },
           }),
         ],
