@@ -37,7 +37,7 @@ import React, { useEffect } from "react";
 
 import { ActionBarButton, ActionBarGroup } from "@/components/ui/action-bar";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { cn } from "@/utils/utils";
+import { cn, getModifierKey, getModifierSymbol } from "@/utils/utils";
 
 import { WorkflowConnectionLine, WorkflowEdge } from "./workflow-edge";
 import { WorkflowNode } from "./workflow-node";
@@ -206,53 +206,49 @@ export function ActionButton({
   text = "",
   showTooltip = true,
 }: ActionButtonProps) {
+  const modifierSymbol = getModifierSymbol();
+  const shortcut = `${modifierSymbol}⏎`;
+
   const statusConfig = {
     idle: {
       icon: <Play className="!size-4" />,
       title: "Execute Workflow",
-      shortcut: "⌘⏎",
       className:
         "bg-white hover:bg-neutral-50 text-green-500 hover:text-green-600 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-green-400 dark:hover:text-green-300",
     },
     submitted: {
       icon: <Square className="!size-4" />,
       title: "Stop Execution",
-      shortcut: "⌘⏎",
       className:
         "bg-white hover:bg-neutral-50 text-red-500 hover:text-red-600 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-red-400 dark:hover:text-red-300",
     },
     executing: {
       icon: <Square className="!size-4" />,
       title: "Stop Execution",
-      shortcut: "⌘⏎",
       className:
         "bg-white hover:bg-neutral-50 text-red-500 hover:text-red-600 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-red-400 dark:hover:text-red-300",
     },
     completed: {
       icon: <X className="!size-4" />,
       title: "Clear Outputs & Reset",
-      shortcut: "⌘⏎",
       className:
         "bg-white hover:bg-neutral-50 text-amber-500 hover:text-amber-600 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-amber-400 dark:hover:text-amber-300",
     },
     error: {
       icon: <X className="!size-4" />,
       title: "Clear Errors & Reset",
-      shortcut: "⌘⏎",
       className:
         "bg-white hover:bg-neutral-50 text-amber-500 hover:text-amber-600 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-amber-400 dark:hover:text-amber-300",
     },
     cancelled: {
       icon: <Play className="!size-4" />,
       title: "Restart Workflow",
-      shortcut: "⌘⏎",
       className:
         "bg-white hover:bg-neutral-50 text-green-500 hover:text-green-600 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-green-400 dark:hover:text-green-300",
     },
     paused: {
       icon: <Play className="!size-4" />,
       title: "Resume Workflow",
-      shortcut: "⌘⏎",
       className:
         "bg-white hover:bg-neutral-50 text-sky-500 hover:text-sky-600 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-sky-400 dark:hover:text-sky-300",
     },
@@ -272,9 +268,9 @@ export function ActionButton({
           <div className="flex items-center gap-2">
             <span>{config.title}</span>
             <div className="flex items-center gap-1">
-              {config.shortcut.split("").map((key) => (
+              {shortcut.split("").map((key, index) => (
                 <kbd
-                  key={key}
+                  key={index}
                   className="px-1 py-0.25 text-xs rounded border font-mono"
                 >
                   {key}
@@ -397,6 +393,7 @@ function DuplicateButton({
   onClick: (e: React.MouseEvent) => void;
   disabled?: boolean;
 }) {
+  const modifierKey = getModifierKey();
   return (
     <ActionBarButton
       onClick={onClick}
@@ -408,7 +405,7 @@ function DuplicateButton({
           <span>Duplicate</span>
           <div className="flex items-center gap-1">
             <kbd className="px-1 py-0.25 text-xs rounded border font-mono">
-              ⌘
+              {modifierKey}
             </kbd>
             <kbd className="px-1 py-0.25 text-xs rounded border font-mono">
               D
@@ -553,6 +550,7 @@ function CopyButton({
   onClick: () => void;
   disabled?: boolean;
 }) {
+  const modifierKey = getModifierKey();
   return (
     <ActionBarButton
       onClick={onClick}
@@ -564,7 +562,7 @@ function CopyButton({
           <span>Copy</span>
           <div className="flex items-center gap-1">
             <kbd className="px-1 py-0.25 text-xs rounded border font-mono">
-              ⌘
+              {modifierKey}
             </kbd>
             <kbd className="px-1 py-0.25 text-xs rounded border font-mono">
               C
@@ -585,6 +583,7 @@ function CutButton({
   onClick: () => void;
   disabled?: boolean;
 }) {
+  const modifierKey = getModifierKey();
   return (
     <ActionBarButton
       onClick={onClick}
@@ -596,7 +595,7 @@ function CutButton({
           <span>Cut</span>
           <div className="flex items-center gap-1">
             <kbd className="px-1 py-0.25 text-xs rounded border font-mono">
-              ⌘
+              {modifierKey}
             </kbd>
             <kbd className="px-1 py-0.25 text-xs rounded border font-mono">
               X
@@ -617,6 +616,7 @@ function PasteButton({
   onClick: () => void;
   disabled?: boolean;
 }) {
+  const modifierKey = getModifierKey();
   return (
     <ActionBarButton
       onClick={onClick}
@@ -628,7 +628,7 @@ function PasteButton({
           <span>Paste</span>
           <div className="flex items-center gap-1">
             <kbd className="px-1 py-0.25 text-xs rounded border font-mono">
-              ⌘
+              {modifierKey}
             </kbd>
             <kbd className="px-1 py-0.25 text-xs rounded border font-mono">
               V

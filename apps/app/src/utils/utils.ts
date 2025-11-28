@@ -18,6 +18,20 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+// Get the OS-specific modifier key (Cmd on Mac, Ctrl on others)
+export function getModifierKey(): string {
+  if (typeof navigator === "undefined") return "Ctrl";
+  const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.platform);
+  return isMac ? "Cmd" : "Ctrl";
+}
+
+// Get the symbol for the modifier key
+export function getModifierSymbol(): string {
+  if (typeof navigator === "undefined") return "⌃";
+  const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.platform);
+  return isMac ? "⌘" : "⌃";
+}
+
 // Helper function to extract and format parameters for the execution dialog
 export function extractDialogParametersFromNodes(
   nodes: Node<WorkflowNodeType>[],
