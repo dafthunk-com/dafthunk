@@ -1,22 +1,12 @@
 import type { WorkflowTemplate } from "@dafthunk/types";
-import BookOpen from "lucide-react/icons/book-open";
-import Calculator from "lucide-react/icons/calculator";
+import { DynamicIcon, iconNames } from "lucide-react/dynamic.mjs";
 import FileText from "lucide-react/icons/file-text";
-import Globe from "lucide-react/icons/globe";
 import Loader2 from "lucide-react/icons/loader-2";
-import Mail from "lucide-react/icons/mail";
-import Palette from "lucide-react/icons/palette";
-import Search from "lucide-react/icons/search";
-import { useState } from "react";
+import Wand from "lucide-react/icons/wand";
+import { useMemo, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { TagFilterButtons } from "@/components/ui/tag-filter-buttons";
@@ -31,21 +21,51 @@ export interface ImportTemplateDialogProps {
   onImportTemplate: (template: WorkflowTemplate) => Promise<void>;
 }
 
-const categoryIcons = {
-  "text-processing": BookOpen,
-  "data-processing": Calculator,
-  communication: Mail,
-  "web-scraping": Globe,
-  "content-creation": Palette,
-} as const;
-
-const categoryLabels = {
+const categoryLabels: Record<string, string> = {
   "text-processing": "Text Processing",
   "data-processing": "Data Processing",
   communication: "Communication",
   "web-scraping": "Web Scraping",
   "content-creation": "Content Creation",
-} as const;
+};
+
+const categoryIcons: Record<string, string> = {
+  "text-processing": "book-open",
+  "data-processing": "calculator",
+  communication: "mail",
+  "web-scraping": "globe",
+  "content-creation": "palette",
+};
+
+// Helper function to highlight matching text
+function highlightMatch(text: string, searchTerm: string) {
+  if (!searchTerm.trim()) return text;
+
+  const words = searchTerm
+    .trim()
+    .split(/\s+/)
+    .map((word) => word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+    .filter((word) => word.length > 0);
+
+  if (words.length === 0) return text;
+
+  const regex = new RegExp(`(${words.join("|")})`, "gi");
+  const parts = text.split(regex);
+
+  return parts.map((part, index) => {
+    if (words.some((word) => new RegExp(`^${word}$`, "i").test(part))) {
+      return (
+        <mark
+          key={index}
+          className="bg-yellow-200 dark:bg-yellow-900 font-semibold"
+        >
+          {part}
+        </mark>
+      );
+    }
+    return part;
+  });
+}
 
 export function ImportTemplateDialog({
   open,
@@ -63,19 +83,39 @@ export function ImportTemplateDialog({
   // Get category counts
   const categoryCounts = useCategoryCounts(templates);
 
-  const filteredTemplates = templates.filter((template) => {
-    const matchesCategory =
-      !selectedCategory || template.category === selectedCategory;
-    const matchesSearch =
-      !searchQuery ||
-      template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      template.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      template.tags.some((tag) =>
-        tag.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+  // Filter and score templates
+  const filteredTemplates = useMemo(() => {
+    const rawSearchTerm = searchQuery.toLowerCase().trim();
 
-    return matchesCategory && matchesSearch;
-  });
+    return templates
+      .filter((template) => {
+        const matchesCategory =
+          !selectedCategory || template.category === selectedCategory;
+        const matchesSearch =
+          !rawSearchTerm ||
+          template.name.toLowerCase().includes(rawSearchTerm) ||
+          template.description.toLowerCase().includes(rawSearchTerm) ||
+          template.tags.some((tag) =>
+            tag.toLowerCase().includes(rawSearchTerm)
+          );
+
+        return matchesCategory && matchesSearch;
+      })
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [templates, selectedCategory, searchQuery]);
+
+  // Handle category change
+  const handleCategoryChange = (categoryLabel: string | null) => {
+    if (categoryLabel === null) {
+      setSelectedCategory(null);
+      return;
+    }
+    // Find the original category key from the label
+    const originalCategory = Object.entries(categoryLabels).find(
+      ([, label]) => label === categoryLabel
+    )?.[0];
+    setSelectedCategory(originalCategory || categoryLabel);
+  };
 
   // Use keyboard navigation hook
   const {
@@ -92,7 +132,7 @@ export function ImportTemplateDialog({
   } = useKeyboardNavigation({
     open,
     itemsCount: filteredTemplates.length,
-    categoriesCount: categoryCounts.length + 1, // +1 for "All" button
+    categoriesCount: categoryCounts.length + 1,
     onClose: () => onOpenChange(false),
     onSelectItem: async (index) => {
       const template = filteredTemplates[index];
@@ -100,10 +140,11 @@ export function ImportTemplateDialog({
         await handleImportTemplate(template);
       }
     },
-    onCategoryChange: (category) => {
-      setSelectedCategory(category);
-    },
-    categories: categoryCounts,
+    onCategoryChange: handleCategoryChange,
+    categories: categoryCounts.map(({ tag, count }) => ({
+      tag: categoryLabels[tag] || tag,
+      count,
+    })),
   });
 
   const handleImportTemplate = async (template: WorkflowTemplate) => {
@@ -116,184 +157,168 @@ export function ImportTemplateDialog({
     }
   };
 
-  const TemplateCard = ({
-    template,
-    index,
-  }: {
-    template: WorkflowTemplate;
-    index: number;
-  }) => {
-    const IconComponent =
-      categoryIcons[template.category as keyof typeof categoryIcons];
-
-    return (
-      <div
-        ref={(el) => setItemRef(el, index)}
-        className={cn(
-          "border rounded-lg p-4 transition-all cursor-pointer",
-          focusedIndex === index && activeElement === "items"
-            ? "bg-accent border-primary/50"
-            : "hover:bg-muted/50"
-        )}
-        onClick={() => handleImportTemplate(template)}
-        onMouseEnter={() => {
-          setActiveElement("items");
-          setFocusedIndex(index);
-        }}
-        tabIndex={focusedIndex === index && activeElement === "items" ? 0 : -1}
-        onFocus={() => {
-          setActiveElement("items");
-          setFocusedIndex(index);
-        }}
-        onKeyDown={(e) => handleItemKeyDown(e, index)}
-      >
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <div className="p-2 bg-primary/10 rounded-md">
-              {IconComponent && (
-                <IconComponent className="h-4 w-4 text-primary" />
-              )}
-            </div>
-            <div>
-              <h3 className="font-medium text-sm">{template.name}</h3>
-              <p className="text-xs text-muted-foreground">
-                {categoryLabels[
-                  template.category as keyof typeof categoryLabels
-                ] || template.category}
-              </p>
-            </div>
-          </div>
-          <Button
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleImportTemplate(template);
-            }}
-            disabled={importingTemplateId !== null}
-          >
-            {importingTemplateId === template.id ? "Importing..." : "Import"}
-          </Button>
-        </div>
-        <p className="text-sm text-muted-foreground mb-3">
-          {template.description}
-        </p>
-        <div className="flex flex-wrap gap-1 mb-3">
-          {template.tags.map((tag) => (
-            <Badge key={tag} variant="secondary" className="text-xs">
-              {tag}
-            </Badge>
-          ))}
-        </div>
-        <div className="text-xs text-muted-foreground">
-          {template.nodes.length} nodes • {template.edges.length} connections •{" "}
-          {template.type.replace("_", " ")}
-        </div>
-      </div>
-    );
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-w-4xl h-[80vh] flex flex-col p-0"
+        className="w-[80vw] h-[80vh] max-w-[1400px] flex flex-col p-0"
         onKeyDown={handleKeyDown}
         tabIndex={-1}
       >
-        <DialogHeader className="px-6 pt-6">
-          <DialogTitle>Import Workflow Template</DialogTitle>
-        </DialogHeader>
+        <DialogTitle className="sr-only">Import Workflow Template</DialogTitle>
 
         {/* Search */}
-        <div className="px-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <Input
-              ref={searchInputRef}
-              placeholder="Search templates..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className={cn("pl-10", activeElement === "search" && "bg-accent")}
-              onFocus={() => setActiveElement("search")}
-              disabled={importingTemplateId !== null || isTemplatesLoading}
-            />
-          </div>
+        <div className="relative px-4 pt-4">
+          <Wand className="absolute left-8 top-9 h-6 w-6 text-muted-foreground" />
+          <Input
+            ref={searchInputRef}
+            placeholder="Search templates..."
+            className={cn(
+              "pl-14 text-xl h-16 border rounded-lg bg-accent",
+              activeElement === "search"
+                ? "border-primary"
+                : "border-primary/20"
+            )}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onFocus={() => setActiveElement("search")}
+            disabled={importingTemplateId !== null || isTemplatesLoading}
+          />
         </div>
 
-        {/* Categories */}
-        {categoryCounts.length > 0 && (
-          <div className="px-6">
-            <TagFilterButtons
-              categories={categoryCounts.map(({ tag, count }) => ({
-                tag:
-                  categoryLabels[tag as keyof typeof categoryLabels] || tag,
-                count,
-              }))}
-              selectedTag={
-                selectedCategory
-                  ? categoryLabels[
-                      selectedCategory as keyof typeof categoryLabels
-                    ] || selectedCategory
-                  : null
-              }
-              onTagChange={(categoryLabel) => {
-                if (!categoryLabel) {
-                  setSelectedCategory(null);
-                  return;
-                }
-                // Find the original category key from the label
-                const originalCategory = Object.entries(categoryLabels).find(
-                  ([, label]) => label === categoryLabel
-                )?.[0];
-                setSelectedCategory(originalCategory || categoryLabel);
-              }}
-              totalCount={templates.length}
-              onKeyDown={handleCategoryKeyDown}
-              setCategoryButtonRef={setCategoryButtonRef}
-              activeElement={activeElement}
-              focusedIndex={focusedIndex}
-              disabled={importingTemplateId !== null || isTemplatesLoading}
-            />
-          </div>
-        )}
+        <div className="flex-1 flex gap-2 px-4 pb-4 min-h-0">
+          {/* Templates */}
+          <ScrollArea className="flex-1">
+            {isTemplatesLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : templatesError ? (
+              <div className="text-center py-12">
+                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-muted-foreground mb-2">
+                  Failed to load templates
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {templatesError.message}
+                </p>
+              </div>
+            ) : filteredTemplates.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <p className="text-sm">
+                  No templates found matching your search
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3 pr-4">
+                {filteredTemplates.map((template, index) => {
+                  const iconName =
+                    categoryIcons[template.category] || "file-text";
 
-        {/* Templates */}
-        <ScrollArea className="flex-1 px-6 pb-6">
-          {isTemplatesLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-          ) : templatesError ? (
-            <div className="text-center py-12">
-              <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-muted-foreground mb-2">
-                Failed to load templates
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                {templatesError.message}
-              </p>
-            </div>
-          ) : filteredTemplates.length === 0 ? (
-            <div className="text-center py-12">
-              <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-muted-foreground mb-2">
-                No templates found
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                Try adjusting your search or filter criteria.
-              </p>
-            </div>
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2">
-              {filteredTemplates.map((template, index) => (
-                <TemplateCard
-                  key={template.id}
-                  template={template}
-                  index={index}
+                  return (
+                    <div
+                      key={template.id}
+                      ref={(el) => setItemRef(el, index)}
+                      className={cn(
+                        "border rounded-lg cursor-pointer bg-card",
+                        focusedIndex === index && activeElement === "items"
+                          ? "border-primary"
+                          : "border-border hover:border-primary/50",
+                        importingTemplateId === template.id && "opacity-50"
+                      )}
+                      onClick={() => handleImportTemplate(template)}
+                      onMouseEnter={() => {
+                        setActiveElement("items");
+                        setFocusedIndex(index);
+                      }}
+                      tabIndex={
+                        focusedIndex === index && activeElement === "items"
+                          ? 0
+                          : -1
+                      }
+                      onFocus={() => {
+                        setActiveElement("items");
+                        setFocusedIndex(index);
+                      }}
+                      onKeyDown={(e) => handleItemKeyDown(e, index)}
+                    >
+                      <div className="grid grid-cols-[1fr_auto] gap-6 p-4">
+                        <div className="flex items-start gap-4 min-w-0">
+                          <DynamicIcon
+                            name={
+                              iconNames.includes(iconName as never)
+                                ? iconName
+                                : "file-text"
+                            }
+                            className="h-5 w-5 text-blue-500 shrink-0 mt-0.5"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-base leading-tight mb-1">
+                              {highlightMatch(template.name, searchQuery)}
+                            </h3>
+                            <p className="text-xs text-muted-foreground mb-2">
+                              {categoryLabels[template.category] ||
+                                template.category}{" "}
+                              • {template.type.replace("_", " ")}
+                            </p>
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                              {highlightMatch(template.description, searchQuery)}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-end gap-2">
+                          <div className="flex flex-wrap gap-1 justify-end">
+                            {template.tags.slice(0, 3).map((tag) => (
+                              <Badge
+                                key={tag}
+                                variant="secondary"
+                                className="text-xs"
+                              >
+                                {tag}
+                              </Badge>
+                            ))}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {template.nodes.length} nodes •{" "}
+                            {template.edges.length} connections
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </ScrollArea>
+
+          {/* Categories */}
+          {categoryCounts.length > 0 && !isTemplatesLoading && (
+            <div className="w-80 shrink-0 flex flex-col">
+              <div className="sticky top-0 flex-1">
+                <TagFilterButtons
+                  categories={categoryCounts.map(({ tag, count }) => ({
+                    tag: categoryLabels[tag] || tag,
+                    count,
+                  }))}
+                  selectedTag={
+                    selectedCategory
+                      ? categoryLabels[selectedCategory] || selectedCategory
+                      : null
+                  }
+                  onTagChange={handleCategoryChange}
+                  totalCount={templates.length}
+                  onKeyDown={handleCategoryKeyDown}
+                  setCategoryButtonRef={setCategoryButtonRef}
+                  activeElement={activeElement}
+                  focusedIndex={focusedIndex}
+                  disabled={importingTemplateId !== null}
                 />
-              ))}
+              </div>
+              <div className="text-xs text-muted-foreground/60 pt-4 text-right">
+                {filteredTemplates.length} of {templates.length} templates
+              </div>
             </div>
           )}
-        </ScrollArea>
+        </div>
       </DialogContent>
     </Dialog>
   );

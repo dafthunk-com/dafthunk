@@ -34,11 +34,15 @@ describe("DetrResnet50Node", () => {
       const firstDetection = result.outputs?.detections[0];
       expect(firstDetection).toHaveProperty("label");
       expect(firstDetection).toHaveProperty("score");
-      expect(firstDetection).toHaveProperty("bbox");
+      expect(firstDetection).toHaveProperty("box");
       expect(typeof firstDetection.label).toBe("string");
       expect(typeof firstDetection.score).toBe("number");
-      expect(Array.isArray(firstDetection.bbox)).toBe(true);
-      expect(firstDetection.bbox.length).toBe(4); // x, y, width, height
+      // box is an object with xmin, ymin, xmax, ymax
+      expect(typeof firstDetection.box).toBe("object");
+      expect(firstDetection.box).toHaveProperty("xmin");
+      expect(firstDetection.box).toHaveProperty("ymin");
+      expect(firstDetection.box).toHaveProperty("xmax");
+      expect(firstDetection.box).toHaveProperty("ymax");
     }
   });
 });
