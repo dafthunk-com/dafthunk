@@ -4,6 +4,7 @@ import Upload from "lucide-react/icons/upload";
 import { isObjectReference } from "@/services/object-service";
 import { cn } from "@/utils/utils";
 
+import { ModelViewer } from "../model-viewer";
 import { ClearButton } from "./clear-button";
 import type { FileFieldProps, ObjectReference } from "./types";
 
@@ -41,6 +42,8 @@ export function BlobField({
   const isImage = mimeType?.startsWith("image/");
   const isAudio = mimeType?.startsWith("audio/");
   const isVideo = mimeType?.startsWith("video/");
+  const isGltf =
+    mimeType === "model/gltf+json" || mimeType === "model/gltf-binary";
 
   // Disabled state without value - show placeholder message
   if (disabled && !hasValue) {
@@ -192,6 +195,32 @@ export function BlobField({
       );
     }
 
+    // GLTF 3D models - show 3D viewer
+    if (isGltf) {
+      return (
+        <div
+          className={cn(
+            "relative",
+            !asWidget && "p-2 bg-muted/50 rounded-md border border-border",
+            className
+          )}
+        >
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-xs text-neutral-500">3D Model</span>
+            <a
+              href={objectUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-blue-500 hover:underline"
+            >
+              Download
+            </a>
+          </div>
+          <ModelViewer parameter={parameter} objectUrl={objectUrl} />
+        </div>
+      );
+    }
+
     // Other blob types - show download link only
     return (
       <div
@@ -279,7 +308,7 @@ export function BlobField({
           className="hidden"
           onChange={onFileUpload}
           disabled={isUploading || disabled}
-          accept="*/*"
+          accept="*/*,.gltf,.glb"
         />
       </div>
       {uploadError && (

@@ -57,6 +57,12 @@ export const fileValidators = {
       throw new Error("Please select a valid audio file");
     }
   },
+  gltf: (file: File) => {
+    const fileName = file.name.toLowerCase();
+    if (!fileName.endsWith(".gltf") && !fileName.endsWith(".glb")) {
+      throw new Error("Please select a valid GLTF (.gltf or .glb) file");
+    }
+  },
 };
 
 export const mimeTypeDetectors = {
