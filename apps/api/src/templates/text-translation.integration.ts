@@ -4,7 +4,6 @@ import { describe, expect, it } from "vitest";
 import type { Bindings } from "../context";
 import { M2m10012bNode } from "../nodes/text/m2m100-1-2b-node";
 import { TextAreaNode } from "../nodes/text/text-area-node";
-
 import { textTranslationTemplate } from "./text-translation";
 
 describe("Text Translation Template", () => {

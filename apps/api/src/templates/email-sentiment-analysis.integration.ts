@@ -5,7 +5,6 @@ import type { Bindings } from "../context";
 import { ParseEmailNode } from "../nodes/email/parse-email-node";
 import { ReceiveEmailNode } from "../nodes/email/receive-email-node";
 import { DistilbertSst2Int8Node } from "../nodes/text/distilbert-sst-2-int8-node";
-
 import { emailSentimentAnalysisTemplate } from "./email-sentiment-analysis";
 
 describe("Email Sentiment Analysis Template", () => {

@@ -20,9 +20,8 @@ export interface UseTemplates {
  */
 export const useTemplates = (): UseTemplates => {
   const { data, error, isLoading, mutate } = useSWR(API_ENDPOINT, async () => {
-    const response = await makeRequest<ListWorkflowTemplatesResponse>(
-      API_ENDPOINT
-    );
+    const response =
+      await makeRequest<ListWorkflowTemplatesResponse>(API_ENDPOINT);
     return response.templates;
   });
 

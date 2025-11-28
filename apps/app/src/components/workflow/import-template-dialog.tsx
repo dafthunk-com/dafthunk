@@ -261,7 +261,10 @@ export function ImportTemplateDialog({
                               • {template.type.replace("_", " ")}
                             </p>
                             <p className="text-sm text-muted-foreground leading-relaxed">
-                              {highlightMatch(template.description, searchQuery)}
+                              {highlightMatch(
+                                template.description,
+                                searchQuery
+                              )}
                             </p>
                           </div>
                         </div>

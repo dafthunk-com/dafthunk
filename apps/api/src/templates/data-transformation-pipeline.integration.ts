@@ -4,7 +4,6 @@ import { describe, expect, it } from "vitest";
 import type { Bindings } from "../context";
 import { SingleVariableStringTemplateNode } from "../nodes/text/single-variable-string-template-node";
 import { TextAreaNode } from "../nodes/text/text-area-node";
-
 import { dataTransformationPipelineTemplate } from "./data-transformation-pipeline";
 
 describe("Data Transformation Pipeline Template", () => {
