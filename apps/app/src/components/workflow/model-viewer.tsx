@@ -92,8 +92,8 @@ export const ModelViewer = React.memo(
 
     if (error) {
       return (
-        <div className="mt-2 space-y-2">
-          <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded border border-red-200 dark:border-red-800">
+        <div className="space-y-2">
+          <div className="p-3 bg-red-50 dark:bg-red-900/20">
             <div className="text-sm text-red-800 dark:text-red-200">
               3D Model Error
             </div>
@@ -118,9 +118,9 @@ export const ModelViewer = React.memo(
 
     if (!isModelViewerLoaded || isLoading || !authenticatedUrl) {
       return (
-        <div className="mt-2 space-y-2">
+        <div className="space-y-2">
           <div
-            className="gltf-canvas-container bg-slate-50 dark:bg-slate-900 rounded border flex items-center justify-center"
+            className="gltf-canvas-container bg-slate-50 dark:bg-slate-900 flex items-center justify-center"
             style={{
               width: 320,
               height: 320,
@@ -141,9 +141,9 @@ export const ModelViewer = React.memo(
     }
 
     return (
-      <div className="mt-2 space-y-3">
+      <div className="space-y-3">
         <div
-          className="gltf-canvas-container bg-slate-50 dark:bg-slate-900 rounded border overflow-hidden nodrag nopan nowheel"
+          className="gltf-canvas-container bg-slate-50 dark:bg-slate-900 overflow-hidden nodrag nopan nowheel"
           style={{
             width: 320,
             height: 320,
@@ -160,17 +160,6 @@ export const ModelViewer = React.memo(
               backgroundColor: "transparent",
             }}
           />
-        </div>
-
-        <div className="flex items-center justify-between">
-          <a
-            href={objectUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs text-blue-500 hover:underline"
-          >
-            Download GLB File
-          </a>
         </div>
       </div>
     );

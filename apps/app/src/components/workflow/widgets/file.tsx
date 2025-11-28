@@ -131,7 +131,7 @@ function FileWidget({ value, onChange, readonly = false }: FileWidgetProps) {
                 </div>
               </div>
             ) : (
-              <div className="relative w-full h-full">
+              <>
                 {/* Preview section based on MIME type */}
                 {isImage && objectUrl && (
                   <img
@@ -185,7 +185,7 @@ function FileWidget({ value, onChange, readonly = false }: FileWidgetProps) {
                     </div>
                   </div>
                 )}
-              </div>
+              </>
             )}
           </>
         ) : (
