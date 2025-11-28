@@ -5,6 +5,8 @@ import Upload from "lucide-react/icons/upload";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { mimeTypeDetectors } from "@/components/workflow/fields/file-upload-handler";
+import { ModelViewer } from "@/components/workflow/model-viewer";
 import { isObjectReference, useObjectService } from "@/services/object-service";
 import { cn } from "@/utils/utils";
 
@@ -32,7 +34,7 @@ function FileWidget({ value, onChange, readonly = false }: FileWidgetProps) {
       setError(null);
       setIsUploading(true);
 
-      // Determine MIME type
+      // Determine MIME type using specialized detectors
       let mimeType = file.type || "application/octet-stream";
 
       // Handle special cases for Office formats
@@ -41,6 +43,9 @@ function FileWidget({ value, onChange, readonly = false }: FileWidgetProps) {
           "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
       } else if (file.name.endsWith(".xls")) {
         mimeType = "application/vnd.ms-excel";
+      } else if (file.name.endsWith(".gltf") || file.name.endsWith(".glb")) {
+        // Use gltf detector for proper MIME type detection
+        mimeType = mimeTypeDetectors.gltf(file);
       }
 
       const arrayBuffer = await file.arrayBuffer();
@@ -84,6 +89,8 @@ function FileWidget({ value, onChange, readonly = false }: FileWidgetProps) {
   const isImage = mimeType?.startsWith("image/");
   const isAudio = mimeType?.startsWith("audio/");
   const isVideo = mimeType?.startsWith("video/");
+  const isGltf =
+    mimeType === "model/gltf+json" || mimeType === "model/gltf-binary";
 
   const getMimeTypeDisplay = (mime: string | null): string => {
     if (!mime) return "Unknown";
@@ -140,7 +147,13 @@ function FileWidget({ value, onChange, readonly = false }: FileWidgetProps) {
                     className="w-full h-full object-contain"
                   />
                 )}
-                {!isImage && !isVideo && objectUrl && (
+                {isGltf && objectUrl && (
+                  <ModelViewer
+                    parameter={{ id: "", name: "file", type: "gltf" }}
+                    objectUrl={objectUrl}
+                  />
+                )}
+                {!isImage && !isVideo && !isGltf && objectUrl && (
                   <div className="w-full h-full flex items-center justify-between gap-4 px-2 py-2">
                     <div className="flex items-center gap-3 min-w-0">
                       <File className="h-5 w-5 text-neutral-400 flex-shrink-0" />
