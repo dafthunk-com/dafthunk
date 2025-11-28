@@ -640,7 +640,7 @@ export const WorkflowNode = memo(
                     );
                     updateNodeData(id, { ...data, outputs: updatedOutputs });
                   }}
-                  disabled={true}
+                  disabled={disabled}
                   connected={isOutputConnected}
                   createObjectUrl={data.createObjectUrl}
                 />
