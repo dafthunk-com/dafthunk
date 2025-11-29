@@ -134,7 +134,6 @@ export class CloudflareBrowserSnapshotNode extends ExecutableNode {
 
       const status = response.status;
       const json: any = await response.json();
-      console.log("Cloudflare API response:", json);
 
       // Only treat as error if HTTP is not ok, or errors array is present and non-empty
       if (
