@@ -9,10 +9,6 @@ export interface ItemWithTags {
   tags: string[];
 }
 
-export interface ItemWithCategory {
-  category: string;
-}
-
 export function useTagCounts<
   T extends ItemWithTags & { functionCalling?: boolean },
 >(items: T[], topN?: number): TagCount[] {
@@ -44,23 +40,4 @@ export function useTagCounts<
     // If topN is specified, return only top N tags
     return topN !== undefined ? sorted.slice(0, topN) : sorted;
   }, [items, topN]);
-}
-
-export function useCategoryCounts<T extends ItemWithCategory>(
-  items: T[]
-): TagCount[] {
-  return useMemo(() => {
-    const counts: Record<string, number> = {};
-
-    items.forEach((item) => {
-      const category = item.category;
-      if (category) {
-        counts[category] = (counts[category] || 0) + 1;
-      }
-    });
-
-    return Object.entries(counts)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([tag, count]) => ({ tag, count }));
-  }, [items]);
 }

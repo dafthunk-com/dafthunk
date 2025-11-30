@@ -7,7 +7,7 @@ export const textFormatterTemplate: WorkflowTemplate = {
   id: "text-formatter",
   name: "Text Formatter",
   description: "Format text using a simple template",
-  category: "text-processing",
+  icon: "text",
   type: "manual",
   tags: ["text", "formatting", "template"],
   nodes: [

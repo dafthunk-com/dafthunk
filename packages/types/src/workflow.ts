@@ -462,23 +462,13 @@ export type ServerMessage =
   | WorkflowExecutionUpdateMessage;
 
 /**
- * Workflow template category
- */
-export type WorkflowTemplateCategory =
-  | "text-processing"
-  | "data-processing"
-  | "communication"
-  | "web-scraping"
-  | "content-creation";
-
-/**
  * Represents a workflow template
  */
 export interface WorkflowTemplate {
   id: string;
   name: string;
   description: string;
-  category: WorkflowTemplateCategory;
+  icon: string;
   type: WorkflowType;
   tags: string[];
   nodes: Node[];

@@ -7,7 +7,7 @@ export const textSentimentAnalysisTemplate: WorkflowTemplate = {
   id: "text-sentiment-analysis",
   name: "Text Sentiment Analysis",
   description: "Analyze the sentiment of text",
-  category: "text-processing",
+  icon: "smile",
   type: "manual",
   tags: ["text", "sentiment", "ai"],
   nodes: [

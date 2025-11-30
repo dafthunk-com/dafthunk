@@ -7,7 +7,7 @@ export const textSummarizationTemplate: WorkflowTemplate = {
   id: "text-summarization",
   name: "Text Summarization",
   description: "Summarize long text content using AI",
-  category: "text-processing",
+  icon: "file-text",
   type: "manual",
   tags: ["text", "summarization", "ai"],
   nodes: [
