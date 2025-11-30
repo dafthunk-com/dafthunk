@@ -1,7 +1,7 @@
 import type { WorkflowTemplate } from "@dafthunk/types";
 
+import { TextInputNode } from "../nodes/input/text-input-node";
 import { BartLargeCnnNode } from "../nodes/text/bart-large-cnn-node";
-import { TextAreaNode } from "../nodes/text/text-area-node";
 
 export const textSummarizationTemplate: WorkflowTemplate = {
   id: "text-summarization",
@@ -11,7 +11,7 @@ export const textSummarizationTemplate: WorkflowTemplate = {
   type: "manual",
   tags: ["text", "summarization", "ai"],
   nodes: [
-    TextAreaNode.create({
+    TextInputNode.create({
       id: "input-1",
       position: { x: 100, y: 100 },
       description: "Text to summarize",

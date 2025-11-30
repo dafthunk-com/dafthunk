@@ -3,8 +3,8 @@ import { env } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../context";
+import { TextInputNode } from "../nodes/input/text-input-node";
 import { BartLargeCnnNode } from "../nodes/text/bart-large-cnn-node";
-import { TextAreaNode } from "../nodes/text/text-area-node";
 import { textSummarizationTemplate } from "./text-summarization";
 
 describe("Text Summarization Template", () => {
@@ -13,7 +13,7 @@ describe("Text Summarization Template", () => {
     expect(textSummarizationTemplate.edges).toHaveLength(1);
 
     const nodeTypes = textSummarizationTemplate.nodes.map((n) => n.type);
-    expect(nodeTypes).toContain("text-area");
+    expect(nodeTypes).toContain("text-input");
     expect(nodeTypes).toContain("bart-large-cnn");
   });
 
@@ -25,7 +25,7 @@ describe("Text Summarization Template", () => {
     const inputNode = textSummarizationTemplate.nodes.find(
       (n) => n.id === "input-1"
     )!;
-    const inputInstance = new TextAreaNode({
+    const inputInstance = new TextInputNode({
       ...inputNode,
       inputs: inputNode.inputs.map((input) =>
         input.name === "value" ? { ...input, value: inputText } : input

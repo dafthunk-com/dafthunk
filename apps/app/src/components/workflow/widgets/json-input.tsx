@@ -1,211 +1,35 @@
-import { json } from "@codemirror/lang-json";
-import {
-  defaultHighlightStyle,
-  syntaxHighlighting,
-} from "@codemirror/language";
-import { Compartment, EditorState } from "@codemirror/state";
-import { EditorView, lineNumbers } from "@codemirror/view";
-import { useEffect, useRef } from "react";
-
 import { cn } from "@/utils/utils";
 
+import { JsonField } from "../fields/json-field";
 import type { BaseWidgetProps } from "./widget";
 import { createWidget, getInputValue } from "./widget";
 
-interface JsonEditorWidgetProps extends BaseWidgetProps {
+interface JsonInputWidgetProps extends BaseWidgetProps {
   value: string;
 }
 
-function JsonEditorWidget({
+function JsonInputWidget({
   value,
   onChange,
   className,
   readonly = false,
-}: JsonEditorWidgetProps) {
-  const editorRef = useRef<HTMLDivElement>(null);
-  const viewRef = useRef<EditorView | null>(null);
-  const onChangeRef = useRef(onChange);
-  const readonlyCompartment = useRef(new Compartment());
-  const isFormattingRef = useRef(false);
-
-  // Keep onChange ref up to date
-  useEffect(() => {
-    onChangeRef.current = onChange;
-  }, [onChange]);
-
-  // Create editor once on mount
-  useEffect(() => {
-    if (!editorRef.current) return;
-
-    const view = new EditorView({
-      state: EditorState.create({
-        doc: value,
-        extensions: [
-          json(),
-          syntaxHighlighting(defaultHighlightStyle),
-          lineNumbers(),
-          EditorView.lineWrapping,
-          readonlyCompartment.current.of(EditorState.readOnly.of(readonly)),
-          EditorView.updateListener.of((update) => {
-            if (update.docChanged && !isFormattingRef.current) {
-              const newValue = update.state.doc.toString();
-
-              if (!newValue) {
-                onChangeRef.current("{}");
-                return;
-              }
-
-              try {
-                const parsed = JSON.parse(newValue);
-                const formatted = JSON.stringify(parsed, null, 2);
-
-                if (formatted !== newValue) {
-                  // Format in place while preserving cursor position
-                  isFormattingRef.current = true;
-
-                  // Get current cursor position
-                  const cursorPos = update.state.selection.main.head;
-
-                  // Count non-whitespace characters before cursor to maintain relative position
-                  let contentChars = 0;
-                  for (let i = 0; i < cursorPos && i < newValue.length; i++) {
-                    if (!/\s/.test(newValue[i])) contentChars++;
-                  }
-
-                  // Find new cursor position with same number of content characters
-                  let newCursorPos = 0;
-                  let count = 0;
-                  for (let i = 0; i < formatted.length; i++) {
-                    if (!/\s/.test(formatted[i])) {
-                      count++;
-                      if (count >= contentChars) {
-                        newCursorPos = i + 1;
-                        break;
-                      }
-                    }
-                  }
-
-                  // Dispatch formatting change with preserved cursor
-                  update.view.dispatch({
-                    changes: {
-                      from: 0,
-                      to: newValue.length,
-                      insert: formatted,
-                    },
-                    selection: { anchor: newCursorPos },
-                  });
-
-                  // Reset flag after dispatch
-                  Promise.resolve().then(() => {
-                    isFormattingRef.current = false;
-                  });
-                }
-
-                onChangeRef.current(formatted);
-              } catch (_) {
-                onChangeRef.current(newValue);
-              }
-            }
-          }),
-          EditorView.baseTheme({
-            "&.cm-focused": {
-              outline: "none !important",
-            },
-          }),
-          EditorView.theme({
-            "&": {
-              height: "100%",
-              fontSize: "8px",
-              backgroundColor: "rgba(245, 245, 245, 0.5)",
-              color: "var(--cm-text, #000)",
-            },
-            "&.dark": {
-              backgroundColor: "#1a1a1a",
-              color: "#e0e0e0",
-            },
-            ".cm-scroller": {
-              overflow: "auto",
-            },
-            ".cm-gutters": {
-              fontSize: "8px",
-              backgroundColor: "rgba(245, 245, 245, 0.5)",
-              borderRight: "1px solid var(--cm-gutters-border, #e0e0e0)",
-              color: "var(--cm-gutters-text, #666)",
-            },
-            ".dark .cm-gutters": {
-              backgroundColor: "#1a1a1a",
-              borderRightColor: "#333",
-              color: "#999",
-            },
-            ".cm-linenumber": {
-              color: "var(--cm-linenumber, #999)",
-            },
-            ".dark .cm-linenumber": {
-              color: "#555",
-            },
-          }),
-        ],
-      }),
-      parent: editorRef.current,
-    });
-
-    viewRef.current = view;
-
-    return () => {
-      view.destroy();
-      viewRef.current = null;
-    };
-  }, []);
-
-  // Update editor content when value prop changes externally
-  useEffect(() => {
-    const view = viewRef.current;
-    if (!view || isFormattingRef.current) return;
-
-    const currentValue = view.state.doc.toString();
-
-    // Don't update if values are semantically equal (same JSON object)
-    try {
-      const currentParsed = JSON.parse(currentValue);
-      const newParsed = JSON.parse(value);
-      if (JSON.stringify(currentParsed) === JSON.stringify(newParsed)) {
-        return;
-      }
-    } catch {
-      // If either fails to parse, fall through to string comparison
-    }
-
-    if (currentValue !== value) {
-      view.dispatch({
-        changes: { from: 0, to: currentValue.length, insert: value },
-      });
-    }
-  }, [value]);
-
-  // Update readonly state
-  useEffect(() => {
-    const view = viewRef.current;
-    if (!view) return;
-
-    view.dispatch({
-      effects: readonlyCompartment.current.reconfigure(
-        EditorState.readOnly.of(readonly)
-      ),
-    });
-  }, [readonly]);
-
+}: JsonInputWidgetProps) {
   return (
-    <div className={cn(className)}>
-      <div className="h-[200px] relative nowheel nopan">
-        <div ref={editorRef} className="h-full" />
-      </div>
+    <div className={cn("p-2 h-full w-full", className)}>
+      <JsonField
+        parameter={{ id: "input", name: "json", type: "json" }}
+        value={value}
+        onChange={onChange}
+        onClear={() => onChange("{}")}
+        disabled={readonly}
+      />
     </div>
   );
 }
 
 export const jsonInputWidget = createWidget({
-  component: JsonEditorWidget,
-  nodeTypes: ["json-editor"],
+  component: JsonInputWidget,
+  nodeTypes: ["json-input"],
   inputField: "json",
   extractConfig: (_nodeId, inputs) => ({
     value: getInputValue(inputs, "json", "{}"),

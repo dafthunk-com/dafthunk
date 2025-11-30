@@ -142,7 +142,7 @@ function JavaScriptEditorWidget({
 
 export const javascriptInputWidget = createWidget({
   component: JavaScriptEditorWidget,
-  nodeTypes: ["javascript-editor"],
+  nodeTypes: ["javascript-input"],
   inputField: "javascript",
   extractConfig: (_nodeId, inputs) => ({
     value: getInputValue(

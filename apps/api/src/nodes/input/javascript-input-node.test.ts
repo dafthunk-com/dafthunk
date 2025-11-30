@@ -2,12 +2,12 @@ import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
 import { NodeContext } from "../types";
-import { JavaScriptEditorNode } from "./javascript-editor-node";
+import { JavaScriptInputNode } from "./javascript-input-node";
 
-describe("JavaScriptEditorNode", () => {
+describe("JavaScriptInputNode", () => {
   it("should return default JavaScript code when no value provided", async () => {
     const nodeId = "javascript-editor";
-    const node = new JavaScriptEditorNode({
+    const node = new JavaScriptInputNode({
       nodeId,
     } as unknown as Node);
 
@@ -32,7 +32,7 @@ describe("JavaScriptEditorNode", () => {
 
   it("should return custom JavaScript code", async () => {
     const nodeId = "javascript-editor";
-    const node = new JavaScriptEditorNode({
+    const node = new JavaScriptInputNode({
       nodeId,
     } as unknown as Node);
 
@@ -60,7 +60,7 @@ console.log(greet("World"));`;
 
   it("should handle empty string value", async () => {
     const nodeId = "javascript-editor";
-    const node = new JavaScriptEditorNode({
+    const node = new JavaScriptInputNode({
       nodeId,
     } as unknown as Node);
 
@@ -83,7 +83,7 @@ console.log(greet("World"));`;
 
   it("should handle undefined value", async () => {
     const nodeId = "javascript-editor";
-    const node = new JavaScriptEditorNode({
+    const node = new JavaScriptInputNode({
       nodeId,
     } as unknown as Node);
 
@@ -104,7 +104,7 @@ console.log(greet("World"));`;
 
   it("should handle complex JavaScript code with comments", async () => {
     const nodeId = "javascript-editor";
-    const node = new JavaScriptEditorNode({
+    const node = new JavaScriptInputNode({
       nodeId,
     } as unknown as Node);
 

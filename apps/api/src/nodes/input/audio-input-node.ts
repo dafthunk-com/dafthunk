@@ -8,11 +8,11 @@ import { NodeContext } from "../types";
  * This node provides an audio recorder widget that allows users to record audio from their microphone
  * and outputs the recording as an audio reference.
  */
-export class AudioRecorderNode extends ExecutableNode {
+export class AudioInputNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "audio-recorder",
-    name: "Audio Recorder",
-    type: "audio-recorder",
+    id: "audio-input",
+    name: "Audio Input",
+    type: "audio-input",
     description: "A widget for recording audio from the microphone",
     tags: ["Widget", "Audio", "Record"],
     icon: "mic",

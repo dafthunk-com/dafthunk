@@ -2,12 +2,12 @@ import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
 import { NodeContext } from "../types";
-import { JsonEditorNode } from "./json-editor-node";
+import { JsonInputNode } from "./json-input-node";
 
-describe("JsonEditorNode", () => {
+describe("JsonInputNode", () => {
   it("should execute with valid JSON string", async () => {
     const nodeId = "json-editor";
-    const node = new JsonEditorNode({
+    const node = new JsonInputNode({
       nodeId,
     } as unknown as Node);
 
@@ -34,7 +34,7 @@ describe("JsonEditorNode", () => {
 
   it("should execute with empty object JSON", async () => {
     const nodeId = "json-editor";
-    const node = new JsonEditorNode({
+    const node = new JsonInputNode({
       nodeId,
     } as unknown as Node);
 
@@ -57,7 +57,7 @@ describe("JsonEditorNode", () => {
 
   it("should execute with array JSON", async () => {
     const nodeId = "json-editor";
-    const node = new JsonEditorNode({
+    const node = new JsonInputNode({
       nodeId,
     } as unknown as Node);
 
@@ -86,7 +86,7 @@ describe("JsonEditorNode", () => {
 
   it("should execute with primitive values", async () => {
     const nodeId = "json-editor";
-    const node = new JsonEditorNode({
+    const node = new JsonInputNode({
       nodeId,
     } as unknown as Node);
 
@@ -109,7 +109,7 @@ describe("JsonEditorNode", () => {
 
   it("should handle invalid JSON string", async () => {
     const nodeId = "json-editor";
-    const node = new JsonEditorNode({
+    const node = new JsonInputNode({
       nodeId,
     } as unknown as Node);
 
@@ -131,7 +131,7 @@ describe("JsonEditorNode", () => {
 
   it("should handle malformed JSON with unclosed brackets", async () => {
     const nodeId = "json-editor";
-    const node = new JsonEditorNode({
+    const node = new JsonInputNode({
       nodeId,
     } as unknown as Node);
 
@@ -153,7 +153,7 @@ describe("JsonEditorNode", () => {
 
   it("should handle empty string input", async () => {
     const nodeId = "json-editor";
-    const node = new JsonEditorNode({
+    const node = new JsonInputNode({
       nodeId,
     } as unknown as Node);
 
@@ -175,7 +175,7 @@ describe("JsonEditorNode", () => {
 
   it("should handle null input", async () => {
     const nodeId = "json-editor";
-    const node = new JsonEditorNode({
+    const node = new JsonInputNode({
       nodeId,
     } as unknown as Node);
 
@@ -196,7 +196,7 @@ describe("JsonEditorNode", () => {
 
   it("should handle undefined input", async () => {
     const nodeId = "json-editor";
-    const node = new JsonEditorNode({
+    const node = new JsonInputNode({
       nodeId,
     } as unknown as Node);
 
@@ -217,7 +217,7 @@ describe("JsonEditorNode", () => {
 
   it("should handle complex nested JSON", async () => {
     const nodeId = "json-editor";
-    const node = new JsonEditorNode({
+    const node = new JsonInputNode({
       nodeId,
     } as unknown as Node);
 

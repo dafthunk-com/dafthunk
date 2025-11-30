@@ -1,7 +1,7 @@
 import type { WorkflowTemplate } from "@dafthunk/types";
 
+import { TextInputNode } from "../nodes/input/text-input-node";
 import { M2m10012bNode } from "../nodes/text/m2m100-1-2b-node";
-import { TextAreaNode } from "../nodes/text/text-area-node";
 
 export const textTranslationTemplate: WorkflowTemplate = {
   id: "text-translation",
@@ -11,7 +11,7 @@ export const textTranslationTemplate: WorkflowTemplate = {
   type: "manual",
   tags: ["text", "translation", "ai"],
   nodes: [
-    TextAreaNode.create({
+    TextInputNode.create({
       id: "input-1",
       position: { x: 100, y: 100 },
       description: "Text to translate",

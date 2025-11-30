@@ -74,7 +74,7 @@ function SliderWidget({
 // Widget descriptor - clean, declarative, self-contained
 export const sliderInputWidget = createWidget({
   component: SliderWidget,
-  nodeTypes: ["slider"],
+  nodeTypes: ["slider-input"],
   inputField: "value",
   extractConfig: (_nodeId, inputs) => ({
     value: getInputValue(inputs, "value", 0),

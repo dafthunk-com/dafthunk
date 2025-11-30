@@ -10,6 +10,7 @@ import { audioInputWidget } from "./audio-input";
 // Preview widgets
 import { audioPreviewWidget } from "./audio-preview";
 import { blobPreviewWidget } from "./blob-preview";
+import { booleanInputWidget } from "./boolean-input";
 import { booleanPreviewWidget } from "./boolean-preview";
 import { buffergeometryPreviewWidget } from "./buffergeometry-preview";
 import { canvasInputWidget } from "./canvas-input";
@@ -17,6 +18,7 @@ import { cronInputWidget } from "./cron-input";
 // Selector widgets
 import { databaseSelectorWidget } from "./database-selector";
 import { datasetSelectorWidget } from "./dataset-selector";
+import { dateInputWidget } from "./date-input";
 import { datePreviewWidget } from "./date-preview";
 import { documentPreviewWidget } from "./document-preview";
 import { emailSelectorWidget } from "./email-selector";
@@ -47,18 +49,18 @@ import { secretPreviewWidget } from "./secret-preview";
 import { sliderInputWidget } from "./slider-input";
 import { textInputWidget } from "./text-input";
 import { textPreviewWidget } from "./text-preview";
-import { textareaInputWidget } from "./textarea-input";
 import { webcamInputWidget } from "./webcam-input";
 
 // Register all widgets
 const widgets = [
   // Input widgets
-  sliderInputWidget,
-  textareaInputWidget,
   textInputWidget,
   numberInputWidget,
+  booleanInputWidget,
+  dateInputWidget,
   jsonInputWidget,
   javascriptInputWidget,
+  sliderInputWidget,
   cronInputWidget,
   fileInputWidget,
   webcamInputWidget,

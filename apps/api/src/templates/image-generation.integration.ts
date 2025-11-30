@@ -4,8 +4,8 @@ import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../context";
 import { StableDiffusionXLLightningNode } from "../nodes/image/stable-diffusion-xl-lightning-node";
+import { TextInputNode } from "../nodes/input/text-input-node";
 import { ImagePreviewNode } from "../nodes/preview/image-preview-node";
-import { TextAreaNode } from "../nodes/text/text-area-node";
 import { imageGenerationTemplate } from "./image-generation";
 
 describe("Image Generation Template", () => {
@@ -14,7 +14,7 @@ describe("Image Generation Template", () => {
     expect(imageGenerationTemplate.edges).toHaveLength(2);
 
     const nodeTypes = imageGenerationTemplate.nodes.map((n) => n.type);
-    expect(nodeTypes).toContain("text-area");
+    expect(nodeTypes).toContain("text-input");
     expect(nodeTypes).toContain("stable-diffusion-xl-lightning");
     expect(nodeTypes).toContain("preview-image");
   });
@@ -26,7 +26,7 @@ describe("Image Generation Template", () => {
     const inputNode = imageGenerationTemplate.nodes.find(
       (n) => n.id === "input-1"
     )!;
-    const inputInstance = new TextAreaNode({
+    const inputInstance = new TextInputNode({
       ...inputNode,
       inputs: inputNode.inputs.map((input) =>
         input.name === "value" ? { ...input, value: prompt } : input

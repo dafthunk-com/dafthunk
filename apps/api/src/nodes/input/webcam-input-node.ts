@@ -7,11 +7,11 @@ import { NodeContext } from "../types";
  * Webcam node implementation
  * This node provides a webcam widget that allows users to capture images and outputs them as an image reference.
  */
-export class WebcamNode extends ExecutableNode {
+export class WebcamInputNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "webcam",
-    name: "Webcam",
-    type: "webcam",
+    id: "webcam-input",
+    name: "Webcam Input",
+    type: "webcam-input",
     description: "A webcam widget for capturing images",
     tags: ["Widget", "Image", "Webcam", "Capture"],
     icon: "camera",

@@ -1,24 +1,24 @@
 import { cn } from "@/utils/utils";
 
-import { TextField } from "../fields/text-field";
+import { DateField } from "../fields/date-field";
 import type { BaseWidgetProps } from "./widget";
 import { createWidget, getInputValue } from "./widget";
 
-interface TextInputWidgetProps extends BaseWidgetProps {
+interface DateInputWidgetProps extends BaseWidgetProps {
   value: string;
 }
 
-function TextInputWidget({
+function DateInputWidget({
   value,
   onChange,
   className,
   readonly = false,
-}: TextInputWidgetProps) {
+}: DateInputWidgetProps) {
   return (
-    <div className={cn("p-2 h-full w-full", className)}>
-      <TextField
-        parameter={{ id: "input", name: "value", type: "string" }}
-        value={value ?? ""}
+    <div className={cn("p-2", className)}>
+      <DateField
+        parameter={{ id: "input", name: "value", type: "date" }}
+        value={value}
         onChange={onChange}
         onClear={() => onChange("")}
         disabled={readonly}
@@ -27,9 +27,9 @@ function TextInputWidget({
   );
 }
 
-export const textInputWidget = createWidget({
-  component: TextInputWidget,
-  nodeTypes: ["text-input"],
+export const dateInputWidget = createWidget({
+  component: DateInputWidget,
+  nodeTypes: ["date-input"],
   inputField: "value",
   extractConfig: (_nodeId, inputs) => ({
     value: getInputValue(inputs, "value", ""),

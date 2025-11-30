@@ -3,18 +3,19 @@ import { env } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../context";
+import { TextInputNode } from "../nodes/input/text-input-node";
 import { SingleVariableStringTemplateNode } from "../nodes/text/single-variable-string-template-node";
-import { TextAreaNode } from "../nodes/text/text-area-node";
 import { textFormatterTemplate } from "./text-formatter";
 
 describe("Text Formatter Template", () => {
   it("should have correct node types defined", () => {
-    expect(textFormatterTemplate.nodes).toHaveLength(2);
-    expect(textFormatterTemplate.edges).toHaveLength(1);
+    expect(textFormatterTemplate.nodes).toHaveLength(4);
+    expect(textFormatterTemplate.edges).toHaveLength(3);
 
     const nodeTypes = textFormatterTemplate.nodes.map((n) => n.type);
-    expect(nodeTypes).toContain("text-area");
+    expect(nodeTypes).toContain("text-input");
     expect(nodeTypes).toContain("single-variable-string-template");
+    expect(nodeTypes).toContain("preview-text");
   });
 
   it("should execute all nodes in the template", async () => {
@@ -22,7 +23,7 @@ describe("Text Formatter Template", () => {
     const inputNode = textFormatterTemplate.nodes.find(
       (n) => n.id === "input-1"
     )!;
-    const inputInstance = new TextAreaNode({
+    const inputInstance = new TextInputNode({
       ...inputNode,
       inputs: inputNode.inputs.map((input) =>
         input.name === "value" ? { ...input, value: "Hello World" } : input

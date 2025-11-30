@@ -7,11 +7,11 @@ import { NodeContext } from "../types";
  * CanvasDoodle node implementation
  * This node provides a canvas widget that allows users to draw and outputs the drawing as an image.
  */
-export class CanvasDoodleNode extends ExecutableNode {
+export class CanvasInputNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "canvas-doodle",
-    name: "Canvas Doodle",
-    type: "canvas-doodle",
+    id: "canvas-input",
+    name: "Canvas Input",
+    type: "canvas-input",
     description: "A canvas widget for drawing and sketching",
     tags: ["Widget", "Image", "Canvas", "Draw"],
     icon: "pencil",

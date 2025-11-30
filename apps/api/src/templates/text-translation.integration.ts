@@ -3,8 +3,8 @@ import { env } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../context";
+import { TextInputNode } from "../nodes/input/text-input-node";
 import { M2m10012bNode } from "../nodes/text/m2m100-1-2b-node";
-import { TextAreaNode } from "../nodes/text/text-area-node";
 import { textTranslationTemplate } from "./text-translation";
 
 describe("Text Translation Template", () => {
@@ -13,7 +13,7 @@ describe("Text Translation Template", () => {
     expect(textTranslationTemplate.edges).toHaveLength(1);
 
     const nodeTypes = textTranslationTemplate.nodes.map((n) => n.type);
-    expect(nodeTypes).toContain("text-area");
+    expect(nodeTypes).toContain("text-input");
     expect(nodeTypes).toContain("m2m100-1-2b");
   });
 
@@ -24,7 +24,7 @@ describe("Text Translation Template", () => {
     const inputNode = textTranslationTemplate.nodes.find(
       (n) => n.id === "input-1"
     )!;
-    const inputInstance = new TextAreaNode({
+    const inputInstance = new TextInputNode({
       ...inputNode,
       inputs: inputNode.inputs.map((input) =>
         input.name === "value" ? { ...input, value: inputText } : input

@@ -253,7 +253,7 @@ function CanvasDoodleWidget({
 
 export const canvasInputWidget = createWidget({
   component: CanvasDoodleWidget,
-  nodeTypes: ["canvas-doodle"],
+  nodeTypes: ["canvas-input"],
   inputField: "value",
   extractConfig: (_nodeId, inputs) => ({
     value: getInputValue(inputs, "value", ""),

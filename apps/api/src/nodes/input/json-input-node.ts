@@ -10,11 +10,11 @@ import { NodeContext } from "../types";
  * The editor's current value is stored as an input parameter named "value"
  * and passed directly to the output.
  */
-export class JsonEditorNode extends ExecutableNode {
+export class JsonInputNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "json-editor",
-    name: "JSON Editor",
-    type: "json-editor",
+    id: "json-input",
+    name: "JSON Input",
+    type: "json-input",
     description: "A JSON Editor widget for editing and validating JSON",
     tags: ["Widget", "Data", "JSON", "Edit"],
     icon: "code",

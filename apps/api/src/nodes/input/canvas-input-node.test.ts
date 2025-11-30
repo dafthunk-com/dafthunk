@@ -3,12 +3,12 @@ import { describe, expect, it } from "vitest";
 
 import { testImageData } from "../../../test/fixtures/image-fixtures";
 import { NodeContext } from "../types";
-import { CanvasDoodleNode } from "./canvas-doodle-node";
+import { CanvasInputNode } from "./canvas-input-node";
 
-describe("CanvasDoodleNode", () => {
+describe("CanvasInputNode", () => {
   it("should return the input image", async () => {
     const nodeId = "canvas-doodle";
-    const node = new CanvasDoodleNode({
+    const node = new CanvasInputNode({
       nodeId,
     } as unknown as Node);
 
@@ -34,7 +34,7 @@ describe("CanvasDoodleNode", () => {
 
   it("should handle missing image data", async () => {
     const nodeId = "canvas-doodle";
-    const node = new CanvasDoodleNode({
+    const node = new CanvasInputNode({
       nodeId,
     } as unknown as Node);
 

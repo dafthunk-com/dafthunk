@@ -1,8 +1,8 @@
 import type { WorkflowTemplate } from "@dafthunk/types";
 
 import { StableDiffusionXLLightningNode } from "../nodes/image/stable-diffusion-xl-lightning-node";
+import { TextInputNode } from "../nodes/input/text-input-node";
 import { ImagePreviewNode } from "../nodes/preview/image-preview-node";
-import { TextAreaNode } from "../nodes/text/text-area-node";
 
 export const imageGenerationTemplate: WorkflowTemplate = {
   id: "image-generation",
@@ -12,7 +12,7 @@ export const imageGenerationTemplate: WorkflowTemplate = {
   type: "manual",
   tags: ["image", "generation", "ai"],
   nodes: [
-    TextAreaNode.create({
+    TextInputNode.create({
       id: "input-1",
       position: { x: 100, y: 100 },
       description: "Image prompt",

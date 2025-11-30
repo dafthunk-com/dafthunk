@@ -3,8 +3,8 @@ import { env } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../context";
+import { TextInputNode } from "../nodes/input/text-input-node";
 import { DistilbertSst2Int8Node } from "../nodes/text/distilbert-sst-2-int8-node";
-import { TextAreaNode } from "../nodes/text/text-area-node";
 import { textSentimentAnalysisTemplate } from "./text-sentiment-analysis";
 
 describe("Text Sentiment Analysis Template", () => {
@@ -13,7 +13,7 @@ describe("Text Sentiment Analysis Template", () => {
     expect(textSentimentAnalysisTemplate.edges).toHaveLength(1);
 
     const nodeTypes = textSentimentAnalysisTemplate.nodes.map((n) => n.type);
-    expect(nodeTypes).toContain("text-area");
+    expect(nodeTypes).toContain("text-input");
     expect(nodeTypes).toContain("distilbert-sst-2-int8");
   });
 
@@ -22,7 +22,7 @@ describe("Text Sentiment Analysis Template", () => {
     const inputNode = textSentimentAnalysisTemplate.nodes.find(
       (n) => n.id === "input-1"
     )!;
-    const inputInstance = new TextAreaNode({
+    const inputInstance = new TextInputNode({
       ...inputNode,
       inputs: inputNode.inputs.map((input) =>
         input.name === "value"

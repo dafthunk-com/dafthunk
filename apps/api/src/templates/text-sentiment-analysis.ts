@@ -1,7 +1,7 @@
 import type { WorkflowTemplate } from "@dafthunk/types";
 
+import { TextInputNode } from "../nodes/input/text-input-node";
 import { DistilbertSst2Int8Node } from "../nodes/text/distilbert-sst-2-int8-node";
-import { TextAreaNode } from "../nodes/text/text-area-node";
 
 export const textSentimentAnalysisTemplate: WorkflowTemplate = {
   id: "text-sentiment-analysis",
@@ -11,7 +11,7 @@ export const textSentimentAnalysisTemplate: WorkflowTemplate = {
   type: "manual",
   tags: ["text", "sentiment", "ai"],
   nodes: [
-    TextAreaNode.create({
+    TextInputNode.create({
       id: "input-1",
       position: { x: 100, y: 100 },
       description: "Text to analyze",

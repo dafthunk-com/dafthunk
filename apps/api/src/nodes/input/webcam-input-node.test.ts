@@ -3,12 +3,12 @@ import { describe, expect, it } from "vitest";
 
 import { testImageData } from "../../../test/fixtures/image-fixtures";
 import { NodeContext } from "../types";
-import { WebcamNode } from "./webcam-node";
+import { WebcamInputNode } from "./webcam-input-node";
 
-describe("WebcamNode", () => {
+describe("WebcamInputNode", () => {
   it("should return the input image", async () => {
     const nodeId = "webcam";
-    const node = new WebcamNode({
+    const node = new WebcamInputNode({
       nodeId,
     } as unknown as Node);
 
@@ -34,7 +34,7 @@ describe("WebcamNode", () => {
 
   it("should handle missing image data", async () => {
     const nodeId = "webcam";
-    const node = new WebcamNode({
+    const node = new WebcamInputNode({
       nodeId,
     } as unknown as Node);
 

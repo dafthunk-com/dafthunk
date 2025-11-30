@@ -10,11 +10,11 @@ import { NodeContext } from "../types";
  * The editor's current value is stored as an input parameter named "value"
  * and passed directly to the output.
  */
-export class JavaScriptEditorNode extends ExecutableNode {
+export class JavaScriptInputNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "javascript-editor",
-    name: "JavaScript Editor",
-    type: "javascript-editor",
+    id: "javascript-input",
+    name: "JavaScript Input",
+    type: "javascript-input",
     description:
       "A JavaScript Editor widget for editing and validating JavaScript code",
     tags: ["Widget", "Code", "JavaScript", "Execute"],

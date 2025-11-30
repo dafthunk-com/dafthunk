@@ -156,7 +156,7 @@ function WebcamWidget({
 
 export const webcamInputWidget = createWidget({
   component: WebcamWidget,
-  nodeTypes: ["webcam"],
+  nodeTypes: ["webcam-input"],
   inputField: "value",
   extractConfig: (_nodeId, inputs) => ({
     value: getInputValue(inputs, "value", ""),

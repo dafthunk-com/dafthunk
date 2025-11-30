@@ -3,12 +3,12 @@ import { describe, expect, it } from "vitest";
 
 import { testAudioData } from "../../../test/fixtures/audio-fixtures";
 import { NodeContext } from "../types";
-import { AudioRecorderNode } from "./audio-recorder-node";
+import { AudioInputNode } from "./audio-input-node";
 
-describe("AudioRecorderNode", () => {
+describe("AudioInputNode", () => {
   it("should execute with valid audio input", async () => {
     const nodeId = "audio-recorder";
-    const node = new AudioRecorderNode({
+    const node = new AudioInputNode({
       nodeId,
     } as unknown as Node);
 
@@ -33,7 +33,7 @@ describe("AudioRecorderNode", () => {
 
   it("should return error for missing audio input", async () => {
     const nodeId = "audio-recorder";
-    const node = new AudioRecorderNode({
+    const node = new AudioInputNode({
       nodeId,
     } as unknown as Node);
 
@@ -53,7 +53,7 @@ describe("AudioRecorderNode", () => {
 
   it("should return error for null audio input", async () => {
     const nodeId = "audio-recorder";
-    const node = new AudioRecorderNode({
+    const node = new AudioInputNode({
       nodeId,
     } as unknown as Node);
 
@@ -75,7 +75,7 @@ describe("AudioRecorderNode", () => {
 
   it("should return error for undefined audio input", async () => {
     const nodeId = "audio-recorder";
-    const node = new AudioRecorderNode({
+    const node = new AudioInputNode({
       nodeId,
     } as unknown as Node);
 

@@ -11,11 +11,11 @@ import { NodeContext } from "../types";
  * The slider's current value is stored as an input parameter named "value"
  * and passed directly to the output.
  */
-export class SliderNode extends ExecutableNode {
+export class SliderInputNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "slider",
-    name: "Slider",
-    type: "slider",
+    id: "slider-input",
+    name: "Slider Input",
+    type: "slider-input",
     description:
       "A slider widget for selecting a value constrained by min, max, and step values",
     tags: ["Widget", "Math", "Slider"],
@@ -66,13 +66,13 @@ export class SliderNode extends ExecutableNode {
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       // Get default values from nodeType
-      const defaultMin = SliderNode.nodeType.inputs.find(
+      const defaultMin = SliderInputNode.nodeType.inputs.find(
         (i) => i.name === "min"
       )?.value as number;
-      const defaultMax = SliderNode.nodeType.inputs.find(
+      const defaultMax = SliderInputNode.nodeType.inputs.find(
         (i) => i.name === "max"
       )?.value as number;
-      const defaultStep = SliderNode.nodeType.inputs.find(
+      const defaultStep = SliderInputNode.nodeType.inputs.find(
         (i) => i.name === "step"
       )?.value as number;
 

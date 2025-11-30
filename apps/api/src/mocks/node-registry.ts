@@ -1,4 +1,5 @@
 import { BaseNodeRegistry } from "../nodes/base-node-registry";
+import { NumberInputNode } from "../nodes/input/number-input-node";
 import { ConditionalForkNode } from "../nodes/logic/conditional-fork-node";
 import { ConditionalJoinNode } from "../nodes/logic/conditional-join-node";
 import { AdditionNode } from "../nodes/math/addition-node";
@@ -8,7 +9,6 @@ import { MaxNode } from "../nodes/math/max-node";
 import { MedianNode } from "../nodes/math/median-node";
 import { MinNode } from "../nodes/math/min-node";
 import { MultiplicationNode } from "../nodes/math/multiplication-node";
-import { NumberInputNode } from "../nodes/math/number-input-node";
 import { SubtractionNode } from "../nodes/math/subtraction-node";
 import { SumNode } from "../nodes/math/sum-node";
 

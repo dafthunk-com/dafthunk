@@ -2,12 +2,12 @@ import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
 import { NodeContext } from "../types";
-import { SliderNode } from "./slider-node";
+import { SliderInputNode } from "./slider-input-node";
 
-describe("SliderNode", () => {
+describe("SliderInputNode", () => {
   it("should return default min value when no value provided", async () => {
     const nodeId = "slider";
-    const node = new SliderNode({
+    const node = new SliderInputNode({
       nodeId,
     } as unknown as Node);
 
@@ -27,7 +27,7 @@ describe("SliderNode", () => {
 
   it("should return the provided value within range", async () => {
     const nodeId = "slider";
-    const node = new SliderNode({
+    const node = new SliderInputNode({
       nodeId,
     } as unknown as Node);
 
@@ -49,7 +49,7 @@ describe("SliderNode", () => {
 
   it("should constrain value to minimum", async () => {
     const nodeId = "slider";
-    const node = new SliderNode({
+    const node = new SliderInputNode({
       nodeId,
     } as unknown as Node);
 
@@ -73,7 +73,7 @@ describe("SliderNode", () => {
 
   it("should constrain value to maximum", async () => {
     const nodeId = "slider";
-    const node = new SliderNode({
+    const node = new SliderInputNode({
       nodeId,
     } as unknown as Node);
 
@@ -97,7 +97,7 @@ describe("SliderNode", () => {
 
   it("should round to nearest step", async () => {
     const nodeId = "slider";
-    const node = new SliderNode({
+    const node = new SliderInputNode({
       nodeId,
     } as unknown as Node);
 
@@ -122,7 +122,7 @@ describe("SliderNode", () => {
 
   it("should handle custom min/max/step values", async () => {
     const nodeId = "slider";
-    const node = new SliderNode({
+    const node = new SliderInputNode({
       nodeId,
     } as unknown as Node);
 
@@ -147,7 +147,7 @@ describe("SliderNode", () => {
 
   it("should handle string inputs that can be converted to numbers", async () => {
     const nodeId = "slider";
-    const node = new SliderNode({
+    const node = new SliderInputNode({
       nodeId,
     } as unknown as Node);
 
@@ -172,7 +172,7 @@ describe("SliderNode", () => {
 
   it("should return error for invalid min/max/step parameters", async () => {
     const nodeId = "slider";
-    const node = new SliderNode({
+    const node = new SliderInputNode({
       nodeId,
     } as unknown as Node);
 
@@ -197,7 +197,7 @@ describe("SliderNode", () => {
 
   it("should return error when min is greater than or equal to max", async () => {
     const nodeId = "slider";
-    const node = new SliderNode({
+    const node = new SliderInputNode({
       nodeId,
     } as unknown as Node);
 
@@ -220,7 +220,7 @@ describe("SliderNode", () => {
 
   it("should return error for invalid step value", async () => {
     const nodeId = "slider";
-    const node = new SliderNode({
+    const node = new SliderInputNode({
       nodeId,
     } as unknown as Node);
 
