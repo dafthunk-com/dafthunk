@@ -1,0 +1,45 @@
+import type { WorkflowTemplate } from "@dafthunk/types";
+
+import { WhisperNode } from "../nodes/audio/whisper-node";
+import { AudioRecorderInputNode } from "../nodes/input/audio-recorder-input-node";
+import { TextPreviewNode } from "../nodes/preview/text-preview-node";
+
+export const speechToTextTemplate: WorkflowTemplate = {
+  id: "speech-to-text",
+  name: "Speech to Text",
+  description: "Record audio and transcribe it to text",
+  icon: "mic",
+  type: "manual",
+  tags: ["audio", "stt", "ai", "transcription"],
+  nodes: [
+    AudioRecorderInputNode.create({
+      id: "audio-recorder",
+      name: "Audio Recorder",
+      position: { x: 100, y: 100 },
+    }),
+    WhisperNode.create({
+      id: "transcriber",
+      name: "Transcriber",
+      position: { x: 500, y: 100 },
+    }),
+    TextPreviewNode.create({
+      id: "transcription-preview",
+      name: "Transcription",
+      position: { x: 900, y: 100 },
+    }),
+  ],
+  edges: [
+    {
+      source: "audio-recorder",
+      target: "transcriber",
+      sourceOutput: "audio",
+      targetInput: "audio",
+    },
+    {
+      source: "transcriber",
+      target: "transcription-preview",
+      sourceOutput: "text",
+      targetInput: "value",
+    },
+  ],
+};

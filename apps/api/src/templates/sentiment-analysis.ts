@@ -4,9 +4,9 @@ import { TextInputNode } from "../nodes/input/text-input-node";
 import { NumberPreviewNode } from "../nodes/preview/number-preview-node";
 import { DistilbertSst2Int8Node } from "../nodes/text/distilbert-sst-2-int8-node";
 
-export const textSentimentAnalysisTemplate: WorkflowTemplate = {
-  id: "text-sentiment-analysis",
-  name: "Text Sentiment Analysis",
+export const sentimentAnalysisTemplate: WorkflowTemplate = {
+  id: "sentiment-analysis",
+  name: "Sentiment Analysis",
   description: "Analyze the sentiment of text",
   icon: "smile",
   type: "manual",

@@ -202,6 +202,7 @@ export abstract class ExecutableNode {
       position: options.position,
       inputs,
       outputs: nodeType.outputs.map((output) => ({ ...output })),
+      ...(nodeType.functionCalling && { functionCalling: true }),
     } as Node;
   }
 
