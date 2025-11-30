@@ -15,7 +15,11 @@ export const textTranslationTemplate: WorkflowTemplate = {
       id: "input-1",
       position: { x: 100, y: 100 },
       description: "Text to translate",
-      inputs: { placeholder: "Enter text here...", rows: 4 },
+      inputs: {
+        value: "Hello, how are you today? I hope you are having a wonderful day.",
+        placeholder: "Enter text here...",
+        rows: 4,
+      },
     }),
     M2m10012bNode.create({
       id: "translator-1",

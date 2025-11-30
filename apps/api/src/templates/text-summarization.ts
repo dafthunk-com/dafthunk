@@ -15,12 +15,21 @@ export const textSummarizationTemplate: WorkflowTemplate = {
       id: "input-1",
       position: { x: 100, y: 100 },
       description: "Text to summarize",
-      inputs: { placeholder: "Enter text here...", rows: 4 },
+      inputs: {
+        value:
+          "The Amazon rainforest, often called the lungs of the Earth, spans nine countries and covers approximately 5.5 million square kilometers. It contains about 10% of all species on Earth, including more than 40,000 plant species, 1,300 bird species, and 3,000 types of fish. The forest plays a crucial role in regulating the global climate by absorbing carbon dioxide and releasing oxygen. Indigenous communities have lived in harmony with the rainforest for thousands of years, developing sustainable practices for hunting, fishing, and agriculture. However, deforestation threatens this vital ecosystem, with an area roughly the size of a football field being cleared every minute.",
+        placeholder: "Enter text here...",
+        rows: 4,
+      },
     }),
     BartLargeCnnNode.create({
       id: "summarizer-1",
       position: { x: 500, y: 100 },
       description: "Summarize text",
+      inputs: {
+        inputText: "",
+        maxLength: 20,
+      },
     }),
   ],
   edges: [

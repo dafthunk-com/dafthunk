@@ -16,7 +16,11 @@ export const imageGenerationTemplate: WorkflowTemplate = {
       id: "input-1",
       position: { x: 100, y: 100 },
       description: "Image prompt",
-      inputs: { placeholder: "Enter text here...", rows: 4 },
+      inputs: {
+        value: "A majestic mountain landscape at sunset with vibrant orange and purple colors",
+        placeholder: "Enter text here...",
+        rows: 4,
+      },
     }),
     StableDiffusionXLLightningNode.create({
       id: "generator-1",

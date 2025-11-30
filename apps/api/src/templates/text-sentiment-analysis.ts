@@ -15,7 +15,11 @@ export const textSentimentAnalysisTemplate: WorkflowTemplate = {
       id: "input-1",
       position: { x: 100, y: 100 },
       description: "Text to analyze",
-      inputs: { placeholder: "Enter text here...", rows: 4 },
+      inputs: {
+        value: "I absolutely loved this product! It exceeded all my expectations.",
+        placeholder: "Enter text here...",
+        rows: 4,
+      },
     }),
     DistilbertSst2Int8Node.create({
       id: "analyzer-1",
