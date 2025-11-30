@@ -59,7 +59,6 @@ export function DateField({
   onChange,
   onClear,
   value,
-  asWidget,
 }: FieldProps) {
   // Value can be an ISO string or old format object { date: string, offset: number }
   const isoValue =
@@ -103,10 +102,7 @@ export function DateField({
           readOnly
           disabled
           placeholder={connected ? "Connected" : "No date"}
-          className={cn(
-            "border border-neutral-300 dark:border-neutral-700",
-            !asWidget && "rounded-md"
-          )}
+          className="rounded-md border border-neutral-300 dark:border-neutral-700"
         />
       </div>
     );

@@ -1,3 +1,5 @@
+import { cn } from "@/utils/utils";
+
 import { SecretField } from "../fields/secret-field";
 import type { BaseWidgetProps } from "./widget";
 import { createWidget } from "./widget";
@@ -8,15 +10,15 @@ interface SecretPreviewWidgetProps extends BaseWidgetProps {
 
 function SecretPreviewWidget({ value, className }: SecretPreviewWidgetProps) {
   return (
-    <SecretField
-      parameter={{ id: "preview", name: "value", type: "secret" }}
-      value={value ?? ""}
-      onChange={() => {}}
-      onClear={() => {}}
-      disabled
-      asWidget
-      className={className}
-    />
+    <div className={cn("p-2", className)}>
+      <SecretField
+        parameter={{ id: "preview", name: "value", type: "secret" }}
+        value={value ?? ""}
+        onChange={() => {}}
+        onClear={() => {}}
+        disabled
+      />
+    </div>
   );
 }
 

@@ -1,3 +1,5 @@
+import { cn } from "@/utils/utils";
+
 import { TextField } from "../fields/text-field";
 import type { BaseWidgetProps } from "./widget";
 import { createWidget } from "./widget";
@@ -8,15 +10,15 @@ interface TextPreviewWidgetProps extends BaseWidgetProps {
 
 function TextPreviewWidget({ value, className }: TextPreviewWidgetProps) {
   return (
-    <TextField
-      parameter={{ id: "preview", name: "value", type: "string" }}
-      value={value ?? ""}
-      onChange={() => {}}
-      onClear={() => {}}
-      disabled
-      asWidget
-      className={className}
-    />
+    <div className={cn("p-2 h-full w-full", className)}>
+      <TextField
+        parameter={{ id: "preview", name: "value", type: "string" }}
+        value={value ?? ""}
+        onChange={() => {}}
+        onClear={() => {}}
+        disabled
+      />
+    </div>
   );
 }
 

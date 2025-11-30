@@ -1,5 +1,7 @@
 import type { ObjectReference } from "@dafthunk/types";
 
+import { cn } from "@/utils/utils";
+
 import { ImageField } from "../fields/image-field";
 import type { BaseWidgetProps } from "./widget";
 import { createWidget } from "./widget";
@@ -15,17 +17,17 @@ function ImagePreviewWidget({
   createObjectUrl,
 }: ImagePreviewWidgetProps) {
   return (
-    <ImageField
-      parameter={{ id: "preview", name: "value", type: "image" }}
-      value={value}
-      onChange={() => {}}
-      onClear={() => {}}
-      onFileUpload={async () => {}}
-      createObjectUrl={createObjectUrl}
-      disabled
-      asWidget
-      className={className}
-    />
+    <div className={cn("p-2 h-full w-full", className)}>
+      <ImageField
+        parameter={{ id: "preview", name: "value", type: "image" }}
+        value={value}
+        onChange={() => {}}
+        onClear={() => {}}
+        onFileUpload={async () => {}}
+        createObjectUrl={createObjectUrl}
+        disabled
+      />
+    </div>
   );
 }
 

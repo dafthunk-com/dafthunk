@@ -1,3 +1,5 @@
+import { cn } from "@/utils/utils";
+
 import { DateField } from "../fields/date-field";
 import type { BaseWidgetProps } from "./widget";
 import { createWidget } from "./widget";
@@ -8,15 +10,15 @@ interface DatePreviewWidgetProps extends BaseWidgetProps {
 
 function DatePreviewWidget({ value, className }: DatePreviewWidgetProps) {
   return (
-    <DateField
-      parameter={{ id: "preview", name: "value", type: "date" }}
-      value={value ?? ""}
-      onChange={() => {}}
-      onClear={() => {}}
-      disabled
-      asWidget
-      className={className}
-    />
+    <div className={cn("p-2", className)}>
+      <DateField
+        parameter={{ id: "preview", name: "value", type: "date" }}
+        value={value ?? ""}
+        onChange={() => {}}
+        onClear={() => {}}
+        disabled
+      />
+    </div>
   );
 }
 

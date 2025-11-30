@@ -1,3 +1,5 @@
+import { cn } from "@/utils/utils";
+
 import { BooleanField } from "../fields/boolean-field";
 import type { BaseWidgetProps } from "./widget";
 import { createWidget } from "./widget";
@@ -8,15 +10,15 @@ interface BooleanPreviewWidgetProps extends BaseWidgetProps {
 
 function BooleanPreviewWidget({ value, className }: BooleanPreviewWidgetProps) {
   return (
-    <BooleanField
-      parameter={{ id: "preview", name: "value", type: "boolean" }}
-      value={value}
-      onChange={() => {}}
-      onClear={() => {}}
-      disabled
-      asWidget
-      className={className}
-    />
+    <div className={cn("p-2", className)}>
+      <BooleanField
+        parameter={{ id: "preview", name: "value", type: "boolean" }}
+        value={value}
+        onChange={() => {}}
+        onClear={() => {}}
+        disabled
+      />
+    </div>
   );
 }
 

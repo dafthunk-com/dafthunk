@@ -1,5 +1,7 @@
 import type { ObjectReference } from "@dafthunk/types";
 
+import { cn } from "@/utils/utils";
+
 import { GltfField } from "../fields/gltf-field";
 import type { BaseWidgetProps } from "./widget";
 import { createWidget } from "./widget";
@@ -15,17 +17,17 @@ function GltfPreviewWidget({
   createObjectUrl,
 }: GltfPreviewWidgetProps) {
   return (
-    <GltfField
-      parameter={{ id: "preview", name: "value", type: "gltf" }}
-      value={value}
-      onChange={() => {}}
-      onClear={() => {}}
-      onFileUpload={async () => {}}
-      createObjectUrl={createObjectUrl}
-      disabled
-      asWidget
-      className={className}
-    />
+    <div className={cn("p-2 h-full w-full", className)}>
+      <GltfField
+        parameter={{ id: "preview", name: "value", type: "gltf" }}
+        value={value}
+        onChange={() => {}}
+        onClear={() => {}}
+        onFileUpload={async () => {}}
+        createObjectUrl={createObjectUrl}
+        disabled
+      />
+    </div>
   );
 }
 

@@ -12,7 +12,6 @@ export function GenericField({
   onChange,
   onClear,
   value,
-  asWidget,
 }: FieldProps) {
   // Check for meaningful value (empty strings are considered "no value")
   const hasValue = value !== undefined && value !== "";
@@ -22,8 +21,7 @@ export function GenericField({
     return (
       <div
         className={cn(
-          "text-xs text-neutral-500 italic",
-          !asWidget && "p-2 bg-muted/50 rounded-md border border-border",
+          "text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border",
           className
         )}
       >
@@ -37,8 +35,7 @@ export function GenericField({
     return (
       <div
         className={cn(
-          "text-xs",
-          !asWidget && "p-2 bg-muted/50 rounded-md border border-border",
+          "text-xs p-2 bg-muted/50 rounded-md border border-border",
           className
         )}
       >
@@ -55,11 +52,7 @@ export function GenericField({
         onChange={(e) => onChange(e.target.value)}
         placeholder="Enter value"
         disabled={disabled}
-        className={cn(
-          !asWidget && "rounded-md",
-          disabled && "bg-muted/50 border-border",
-          !disabled && "border border-neutral-300 dark:border-neutral-700"
-        )}
+        className="rounded-md border border-neutral-300 dark:border-neutral-700"
       />
       {!disabled && clearable && hasValue && (
         <ClearButton

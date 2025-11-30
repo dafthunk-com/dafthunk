@@ -1,5 +1,7 @@
 import type { ObjectReference } from "@dafthunk/types";
 
+import { cn } from "@/utils/utils";
+
 import { DocumentField } from "../fields/document-field";
 import type { BaseWidgetProps } from "./widget";
 import { createWidget } from "./widget";
@@ -15,17 +17,17 @@ function DocumentPreviewWidget({
   createObjectUrl,
 }: DocumentPreviewWidgetProps) {
   return (
-    <DocumentField
-      parameter={{ id: "preview", name: "value", type: "document" }}
-      value={value}
-      onChange={() => {}}
-      onClear={() => {}}
-      onFileUpload={async () => {}}
-      createObjectUrl={createObjectUrl}
-      disabled
-      asWidget
-      className={className}
-    />
+    <div className={cn("p-2 h-full w-full", className)}>
+      <DocumentField
+        parameter={{ id: "preview", name: "value", type: "document" }}
+        value={value}
+        onChange={() => {}}
+        onClear={() => {}}
+        onFileUpload={async () => {}}
+        createObjectUrl={createObjectUrl}
+        disabled
+      />
+    </div>
   );
 }
 

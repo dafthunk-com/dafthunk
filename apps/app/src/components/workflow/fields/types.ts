@@ -12,7 +12,6 @@ export interface FieldProps {
   connected?: boolean;
   clearable?: boolean;
   autoFocus?: boolean;
-  asWidget?: boolean;
 }
 
 export interface FileFieldProps extends FieldProps {

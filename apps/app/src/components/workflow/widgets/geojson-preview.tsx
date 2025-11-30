@@ -1,3 +1,5 @@
+import { cn } from "@/utils/utils";
+
 import { GeoJSONField } from "../fields/geojson-field";
 import type { BaseWidgetProps } from "./widget";
 import { createWidget } from "./widget";
@@ -8,15 +10,15 @@ interface GeoJSONPreviewWidgetProps extends BaseWidgetProps {
 
 function GeoJSONPreviewWidget({ value, className }: GeoJSONPreviewWidgetProps) {
   return (
-    <GeoJSONField
-      parameter={{ id: "preview", name: "value", type: "geojson" }}
-      value={value}
-      onChange={() => {}}
-      onClear={() => {}}
-      disabled
-      asWidget
-      className={className}
-    />
+    <div className={cn("p-2 h-full w-full", className)}>
+      <GeoJSONField
+        parameter={{ id: "preview", name: "value", type: "geojson" }}
+        value={value}
+        onChange={() => {}}
+        onClear={() => {}}
+        disabled
+      />
+    </div>
   );
 }
 

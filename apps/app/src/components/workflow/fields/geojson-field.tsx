@@ -22,7 +22,6 @@ export function GeoJSONField({
   onChange,
   onClear,
   value,
-  asWidget,
 }: FieldProps) {
   // GeoJSON fields check for null explicitly (null is a valid but empty GeoJSON)
   const hasValue = value !== undefined && value !== null;
@@ -248,8 +247,7 @@ export function GeoJSONField({
     return (
       <div
         className={cn(
-          "text-xs text-neutral-500 italic",
-          !asWidget && "p-2 bg-muted/50 rounded-md border border-border",
+          "text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border",
           className
         )}
       >
@@ -268,33 +266,18 @@ export function GeoJSONField({
       <div className={cn("space-y-2", className)}>
         {/* Preview above JSON - always visible with 200px height */}
         {result.error ? (
-          <div
-            className={cn(
-              "h-[200px] flex items-center justify-center text-xs text-red-500 p-2 bg-red-50 dark:bg-red-900 dark:text-red-400 dark:border dark:border-red-800",
-              !asWidget && "rounded-md"
-            )}
-          >
+          <div className="h-[200px] flex items-center justify-center text-xs text-red-500 p-2 bg-red-50 dark:bg-red-900 dark:text-red-400 dark:border dark:border-red-800 rounded-md">
             {result.error}
           </div>
         ) : result.svg ? (
-          <div
-            className={cn(
-              "h-[200px] border border-border bg-neutral-50 dark:bg-neutral-900 flex items-center justify-center",
-              !asWidget && "rounded-md"
-            )}
-          >
+          <div className="h-[200px] border border-border bg-neutral-50 dark:bg-neutral-900 flex items-center justify-center rounded-md">
             <div
               className="w-full h-full"
               dangerouslySetInnerHTML={{ __html: result.svg }}
             />
           </div>
         ) : (
-          <div
-            className={cn(
-              "h-[200px] border border-border bg-neutral-50 dark:bg-neutral-900 flex items-center justify-center",
-              !asWidget && "rounded-md"
-            )}
-          >
+          <div className="h-[200px] border border-border bg-neutral-50 dark:bg-neutral-900 flex items-center justify-center rounded-md">
             <span className="text-neutral-500 dark:text-neutral-400 text-xs">
               {hasValue ? "No geometries to display" : "No GeoJSON"}
             </span>
@@ -303,12 +286,7 @@ export function GeoJSONField({
 
         {/* JSON Code Block */}
         {hasValue && (
-          <div
-            className={cn(
-              "border border-border bg-muted/50 overflow-auto",
-              !asWidget && "rounded-md"
-            )}
-          >
+          <div className="border border-border bg-muted/50 overflow-auto rounded-md">
             <CodeBlock language="json" className="text-xs my-0 [&_pre]:p-2">
               {formattedValue}
             </CodeBlock>
@@ -325,33 +303,18 @@ export function GeoJSONField({
     <div className={cn("space-y-2", className)}>
       {/* Preview above editor - always visible with 200px height */}
       {result.error ? (
-        <div
-          className={cn(
-            "h-[200px] flex items-center justify-center text-xs text-red-500 p-2 bg-red-50 dark:bg-red-900 dark:text-red-400 dark:border dark:border-red-800",
-            !asWidget && "rounded-md"
-          )}
-        >
+        <div className="h-[200px] flex items-center justify-center text-xs text-red-500 p-2 bg-red-50 dark:bg-red-900 dark:text-red-400 dark:border dark:border-red-800 rounded-md">
           {result.error}
         </div>
       ) : result.svg ? (
-        <div
-          className={cn(
-            "h-[200px] border border-border bg-neutral-50 dark:bg-neutral-900 flex items-center justify-center",
-            !asWidget && "rounded-md"
-          )}
-        >
+        <div className="h-[200px] border border-border bg-neutral-50 dark:bg-neutral-900 flex items-center justify-center rounded-md">
           <div
             className="w-full h-full"
             dangerouslySetInnerHTML={{ __html: result.svg }}
           />
         </div>
       ) : (
-        <div
-          className={cn(
-            "h-[200px] border border-border bg-neutral-50 dark:bg-neutral-900 flex items-center justify-center",
-            !asWidget && "rounded-md"
-          )}
-        >
+        <div className="h-[200px] border border-border bg-neutral-50 dark:bg-neutral-900 flex items-center justify-center rounded-md">
           <span className="text-neutral-500 dark:text-neutral-400 text-xs">
             {hasValue ? "No geometries to display" : "No GeoJSON"}
           </span>
@@ -368,10 +331,7 @@ export function GeoJSONField({
       >
         <div
           ref={editorRef}
-          className={cn(
-            "h-[200px] border border-neutral-300 dark:border-neutral-700 overflow-auto bg-neutral-100/50 dark:bg-neutral-900",
-            !asWidget && "rounded-md"
-          )}
+          className="h-[200px] rounded-md border border-neutral-300 dark:border-neutral-700 overflow-auto bg-neutral-100/50 dark:bg-neutral-900"
         />
         {!disabled && !readonly && clearable && hasValue && (
           <ClearButton

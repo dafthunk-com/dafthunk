@@ -1,5 +1,7 @@
 import type { ObjectReference } from "@dafthunk/types";
 
+import { cn } from "@/utils/utils";
+
 import { AudioField } from "../fields/audio-field";
 import type { BaseWidgetProps } from "./widget";
 import { createWidget } from "./widget";
@@ -15,17 +17,17 @@ function AudioPreviewWidget({
   createObjectUrl,
 }: AudioPreviewWidgetProps) {
   return (
-    <AudioField
-      parameter={{ id: "preview", name: "value", type: "audio" }}
-      value={value}
-      onChange={() => {}}
-      onClear={() => {}}
-      onFileUpload={async () => {}}
-      createObjectUrl={createObjectUrl}
-      disabled
-      asWidget
-      className={className}
-    />
+    <div className={cn("p-2 h-full w-full", className)}>
+      <AudioField
+        parameter={{ id: "preview", name: "value", type: "audio" }}
+        value={value}
+        onChange={() => {}}
+        onClear={() => {}}
+        onFileUpload={async () => {}}
+        createObjectUrl={createObjectUrl}
+        disabled
+      />
+    </div>
   );
 }
 

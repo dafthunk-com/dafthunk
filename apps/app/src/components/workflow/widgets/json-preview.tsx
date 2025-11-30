@@ -1,3 +1,5 @@
+import { cn } from "@/utils/utils";
+
 import { JsonField } from "../fields/json-field";
 import type { BaseWidgetProps } from "./widget";
 import { createWidget } from "./widget";
@@ -8,15 +10,15 @@ interface JsonPreviewWidgetProps extends BaseWidgetProps {
 
 function JsonPreviewWidget({ value, className }: JsonPreviewWidgetProps) {
   return (
-    <JsonField
-      parameter={{ id: "preview", name: "value", type: "json" }}
-      value={value}
-      onChange={() => {}}
-      onClear={() => {}}
-      disabled
-      asWidget
-      className={className}
-    />
+    <div className={cn("p-2 h-full w-full", className)}>
+      <JsonField
+        parameter={{ id: "preview", name: "value", type: "json" }}
+        value={value}
+        onChange={() => {}}
+        onClear={() => {}}
+        disabled
+      />
+    </div>
   );
 }
 

@@ -1,3 +1,5 @@
+import { cn } from "@/utils/utils";
+
 import { NumberField } from "../fields/number-field";
 import type { BaseWidgetProps } from "./widget";
 import { createWidget } from "./widget";
@@ -8,15 +10,15 @@ interface NumberPreviewWidgetProps extends BaseWidgetProps {
 
 function NumberPreviewWidget({ value, className }: NumberPreviewWidgetProps) {
   return (
-    <NumberField
-      parameter={{ id: "preview", name: "value", type: "number" }}
-      value={value ?? ""}
-      onChange={() => {}}
-      onClear={() => {}}
-      disabled
-      asWidget
-      className={className}
-    />
+    <div className={cn("p-2", className)}>
+      <NumberField
+        parameter={{ id: "preview", name: "value", type: "number" }}
+        value={value ?? ""}
+        onChange={() => {}}
+        onClear={() => {}}
+        disabled
+      />
+    </div>
   );
 }
 

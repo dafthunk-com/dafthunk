@@ -20,7 +20,6 @@ export function SecretField({
   onChange,
   onClear,
   value,
-  asWidget,
 }: FieldProps) {
   const { secrets, isSecretsLoading } = useSecrets();
 
@@ -39,10 +38,7 @@ export function SecretField({
           readOnly
           disabled
           placeholder={connected ? "Connected" : "No secret"}
-          className={cn(
-            "border border-neutral-300 dark:border-neutral-700",
-            !asWidget && "rounded-md"
-          )}
+          className="rounded-md border border-neutral-300 dark:border-neutral-700"
         />
       </div>
     );
@@ -56,12 +52,7 @@ export function SecretField({
         onValueChange={(val) => onChange(val || undefined)}
         disabled={isSecretsLoading}
       >
-        <SelectTrigger
-          className={cn(
-            "border border-neutral-300 dark:border-neutral-700",
-            !asWidget && "rounded-md"
-          )}
-        >
+        <SelectTrigger className="rounded-md border border-neutral-300 dark:border-neutral-700">
           <SelectValue
             placeholder={
               connected

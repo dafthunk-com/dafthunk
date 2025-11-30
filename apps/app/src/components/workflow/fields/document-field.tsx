@@ -19,7 +19,6 @@ export function DocumentField({
   parameter,
   uploadError,
   value,
-  asWidget,
 }: FileFieldProps) {
   // File fields check for object references
   const hasValue = value !== undefined && isObjectReference(value);
@@ -45,8 +44,7 @@ export function DocumentField({
     return (
       <div
         className={cn(
-          "text-xs text-neutral-500 italic",
-          !asWidget && "p-2 bg-muted/50 rounded-md border border-border",
+          "text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border",
           className
         )}
       >
@@ -62,8 +60,7 @@ export function DocumentField({
       return (
         <div
           className={cn(
-            "text-xs text-neutral-500 italic",
-            !asWidget && "p-2 bg-muted/50 rounded-md border border-border",
+            "text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border",
             className
           )}
         >
@@ -77,8 +74,7 @@ export function DocumentField({
       return (
         <div
           className={cn(
-            "relative",
-            !asWidget && "p-2 bg-muted/50 rounded-md border border-border",
+            "relative p-2 bg-muted/50 rounded-md border border-border",
             className
           )}
         >
@@ -95,10 +91,7 @@ export function DocumentField({
           </div>
           <iframe
             src={objectUrl}
-            className={cn(
-              "w-full h-64 border nowheel",
-              !asWidget && "rounded-md"
-            )}
+            className="w-full h-64 border nowheel rounded-md"
           />
         </div>
       );
@@ -109,8 +102,7 @@ export function DocumentField({
       return (
         <div
           className={cn(
-            "relative",
-            !asWidget && "p-2 bg-muted/50 rounded-md border border-border",
+            "relative p-2 bg-muted/50 rounded-md border border-border",
             className
           )}
         >
@@ -128,7 +120,7 @@ export function DocumentField({
           <img
             src={objectUrl}
             alt="Document"
-            className={cn("w-full border", !asWidget && "rounded-md")}
+            className="w-full border rounded-md"
           />
         </div>
       );
@@ -138,8 +130,7 @@ export function DocumentField({
     return (
       <div
         className={cn(
-          "relative",
-          !asWidget && "p-2 bg-muted/50 rounded-md border border-border",
+          "relative p-2 bg-muted/50 rounded-md border border-border",
           className
         )}
       >
@@ -160,13 +151,7 @@ export function DocumentField({
   if (hasValue) {
     return (
       <div className={cn(className)}>
-        <div
-          className={cn(
-            "relative flex items-center gap-2",
-            !asWidget &&
-              "p-2 rounded-md border border-neutral-300 dark:border-neutral-700"
-          )}
-        >
+        <div className="relative flex items-center gap-2 p-2 rounded-md border border-neutral-300 dark:border-neutral-700">
           <File className="h-4 w-4 flex-shrink-0 text-neutral-500" />
           {objectUrl && (
             <a
@@ -198,13 +183,7 @@ export function DocumentField({
   // No value - show upload zone
   return (
     <div className={cn(className)}>
-      <div
-        className={cn(
-          "flex flex-col items-center justify-center space-y-2",
-          !asWidget &&
-            "p-3 rounded-md border border-neutral-300 dark:border-neutral-700"
-        )}
-      >
+      <div className="flex flex-col items-center justify-center space-y-2 p-3 rounded-md border border-neutral-300 dark:border-neutral-700">
         <Upload className="h-5 w-5 text-neutral-400" />
         <label
           htmlFor={`document-upload-${parameter.id}`}
