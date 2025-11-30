@@ -175,3 +175,4 @@ Custom skills are available in `.claude/skills/`. Read the SKILL.md file before 
 | `ts-morph-refactor` | Rename symbols, move declarations, propagate interface changes across codebase |
 | `node-generator` | Generate new workflow nodes with implementation, tests, and registry registration |
 | `integration-generator` | Generate OAuth integration providers (backend, types, frontend, nodes) |
+| `template-generator` | Generate workflow templates with coherent node graphs and integration tests |
