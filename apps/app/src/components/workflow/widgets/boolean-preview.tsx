@@ -1,6 +1,4 @@
-import { Switch } from "@/components/ui/switch";
-import { cn } from "@/utils/utils";
-
+import { BooleanField } from "../fields/boolean-field";
 import type { BaseWidgetProps } from "./widget";
 import { createWidget } from "./widget";
 
@@ -8,21 +6,17 @@ interface BooleanPreviewWidgetProps extends BaseWidgetProps {
   value: boolean;
 }
 
-function BooleanPreviewWidget({
-  value,
-  className,
-}: BooleanPreviewWidgetProps) {
-  const boolValue = value !== undefined ? String(value) === "true" : false;
-
+function BooleanPreviewWidget({ value, className }: BooleanPreviewWidgetProps) {
   return (
-    <div
-      className={cn(
-        "p-2 h-full w-full flex items-center justify-start",
-        className
-      )}
-    >
-      <Switch checked={boolValue} disabled />
-    </div>
+    <BooleanField
+      parameter={{ id: "preview", name: "value", type: "boolean" }}
+      value={value}
+      onChange={() => {}}
+      onClear={() => {}}
+      disabled
+      asWidget
+      className={className}
+    />
   );
 }
 

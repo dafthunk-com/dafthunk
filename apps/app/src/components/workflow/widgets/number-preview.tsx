@@ -1,6 +1,4 @@
-import { Input } from "@/components/ui/input";
-import { cn } from "@/utils/utils";
-
+import { NumberField } from "../fields/number-field";
 import type { BaseWidgetProps } from "./widget";
 import { createWidget } from "./widget";
 
@@ -10,16 +8,15 @@ interface NumberPreviewWidgetProps extends BaseWidgetProps {
 
 function NumberPreviewWidget({ value, className }: NumberPreviewWidgetProps) {
   return (
-    <div className={cn("p-2 h-full w-full", className)}>
-      <Input
-        type="text"
-        value={value ?? ""}
-        readOnly
-        disabled
-        placeholder="No value"
-        className="border border-neutral-300 dark:border-neutral-700"
-      />
-    </div>
+    <NumberField
+      parameter={{ id: "preview", name: "value", type: "number" }}
+      value={value ?? ""}
+      onChange={() => {}}
+      onClear={() => {}}
+      disabled
+      asWidget
+      className={className}
+    />
   );
 }
 

@@ -1,3 +1,4 @@
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -27,13 +28,33 @@ export function SecretField({
   const stringValue = String(value ?? "");
   const hasValue = value !== undefined && value !== "";
 
+  // Disabled state - show masked secret value
+  if (disabled) {
+    const maskedValue = hasValue ? "••••••••" : "";
+    return (
+      <div className={cn("relative", className)}>
+        <Input
+          type="text"
+          value={maskedValue}
+          readOnly
+          disabled
+          placeholder={connected ? "Connected" : "No secret"}
+          className={cn(
+            "border border-neutral-300 dark:border-neutral-700",
+            !asWidget && "rounded-md"
+          )}
+        />
+      </div>
+    );
+  }
+
   // Render select dropdown with secrets
   return (
     <div className={cn("relative", className)}>
       <Select
         value={stringValue}
         onValueChange={(val) => onChange(val || undefined)}
-        disabled={disabled || isSecretsLoading}
+        disabled={isSecretsLoading}
       >
         <SelectTrigger
           className={cn(
@@ -62,7 +83,7 @@ export function SecretField({
         </SelectContent>
       </Select>
       {/* Clear button positioned to avoid overlapping with dropdown arrow */}
-      {!disabled && clearable && hasValue && (
+      {clearable && hasValue && (
         <ClearButton
           onClick={onClear}
           label="Clear secret"

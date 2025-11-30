@@ -1,6 +1,4 @@
-import { Input } from "@/components/ui/input";
-import { cn } from "@/utils/utils";
-
+import { DateField } from "../fields/date-field";
 import type { BaseWidgetProps } from "./widget";
 import { createWidget } from "./widget";
 
@@ -9,29 +7,16 @@ interface DatePreviewWidgetProps extends BaseWidgetProps {
 }
 
 function DatePreviewWidget({ value, className }: DatePreviewWidgetProps) {
-  // Format ISO date string for display
-  const formatDate = (isoString: string): string => {
-    if (!isoString) return "";
-    try {
-      const date = new Date(isoString);
-      if (isNaN(date.getTime())) return isoString;
-      return date.toLocaleString();
-    } catch {
-      return isoString;
-    }
-  };
-
   return (
-    <div className={cn("p-2 h-full w-full", className)}>
-      <Input
-        type="text"
-        value={formatDate(value)}
-        readOnly
-        disabled
-        placeholder="No date"
-        className="border border-neutral-300 dark:border-neutral-700"
-      />
-    </div>
+    <DateField
+      parameter={{ id: "preview", name: "value", type: "date" }}
+      value={value ?? ""}
+      onChange={() => {}}
+      onClear={() => {}}
+      disabled
+      asWidget
+      className={className}
+    />
   );
 }
 

@@ -59,7 +59,7 @@ export function DateField({
   onChange,
   onClear,
   value,
-  asWidget: _asWidget, // DateField doesn't have container styling to conditionally apply
+  asWidget,
 }: FieldProps) {
   // Value can be an ISO string or old format object { date: string, offset: number }
   const isoValue =
@@ -80,6 +80,37 @@ export function DateField({
     return isNaN(date.getTime()) ? undefined : date;
   })();
   const hasValue = Boolean(dateValue);
+
+  // Format ISO date string for display
+  const formatDate = (isoString: string): string => {
+    if (!isoString) return "";
+    try {
+      const date = new Date(isoString);
+      if (isNaN(date.getTime())) return isoString;
+      return date.toLocaleString();
+    } catch {
+      return isoString;
+    }
+  };
+
+  // Disabled state - show formatted date in readonly input
+  if (disabled) {
+    return (
+      <div className={cn("relative", className)}>
+        <Input
+          type="text"
+          value={hasValue ? formatDate(isoValue) : ""}
+          readOnly
+          disabled
+          placeholder={connected ? "Connected" : "No date"}
+          className={cn(
+            "border border-neutral-300 dark:border-neutral-700",
+            !asWidget && "rounded-md"
+          )}
+        />
+      </div>
+    );
+  }
 
   // Convert UTC time to time in the selected GMT offset
   const getOffsetTime = (date: Date) => {

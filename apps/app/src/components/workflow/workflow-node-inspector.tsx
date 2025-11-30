@@ -318,7 +318,7 @@ export function WorkflowNodeInspector({
                     onToggleVisibility={() =>
                       handleToggleOutputVisibility(output.id)
                     }
-                    disabled={disabled}
+                    disabled // Outputs are always read-only
                     createObjectUrl={createObjectUrl}
                   />
                 ))

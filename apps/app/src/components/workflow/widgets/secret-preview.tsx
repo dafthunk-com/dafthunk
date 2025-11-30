@@ -1,6 +1,4 @@
-import { Input } from "@/components/ui/input";
-import { cn } from "@/utils/utils";
-
+import { SecretField } from "../fields/secret-field";
 import type { BaseWidgetProps } from "./widget";
 import { createWidget } from "./widget";
 
@@ -9,20 +7,16 @@ interface SecretPreviewWidgetProps extends BaseWidgetProps {
 }
 
 function SecretPreviewWidget({ value, className }: SecretPreviewWidgetProps) {
-  // Mask the secret value
-  const maskedValue = value ? "••••••••" : "";
-
   return (
-    <div className={cn("p-2 h-full w-full", className)}>
-      <Input
-        type="text"
-        value={maskedValue}
-        readOnly
-        disabled
-        placeholder="No secret"
-        className="border border-neutral-300 dark:border-neutral-700"
-      />
-    </div>
+    <SecretField
+      parameter={{ id: "preview", name: "value", type: "secret" }}
+      value={value ?? ""}
+      onChange={() => {}}
+      onClear={() => {}}
+      disabled
+      asWidget
+      className={className}
+    />
   );
 }
 
