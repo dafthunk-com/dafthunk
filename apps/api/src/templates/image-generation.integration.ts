@@ -19,9 +19,9 @@ describe("Image Generation Template", () => {
   it("should execute all nodes in the template", async () => {
     const prompt = "A beautiful sunset over the ocean";
 
-    // Execute prompt input node
+    // Execute input node
     const inputNode = imageGenerationTemplate.nodes.find(
-      (n) => n.id === "prompt-input-1"
+      (n) => n.id === "input-1"
     )!;
     const inputInstance = new TextAreaNode({
       ...inputNode,
@@ -37,19 +37,19 @@ describe("Image Generation Template", () => {
     expect(inputResult.status).toBe("completed");
     expect(inputResult.outputs?.value).toBe(prompt);
 
-    // Execute image generation node
-    const imageGenNode = imageGenerationTemplate.nodes.find(
-      (n) => n.id === "image-gen-1"
+    // Execute generator node
+    const generatorNode = imageGenerationTemplate.nodes.find(
+      (n) => n.id === "generator-1"
     )!;
-    const imageGenInstance = new StableDiffusionXLLightningNode(imageGenNode);
-    const imageGenResult = await imageGenInstance.execute({
-      nodeId: imageGenNode.id,
+    const generatorInstance = new StableDiffusionXLLightningNode(generatorNode);
+    const generatorResult = await generatorInstance.execute({
+      nodeId: generatorNode.id,
       inputs: {
         prompt: inputResult.outputs?.value,
       },
       env: env as Bindings,
     } as any);
-    expect(imageGenResult.status).toBe("completed");
-    expect(imageGenResult.outputs?.image).toBeDefined();
+    expect(generatorResult.status).toBe("completed");
+    expect(generatorResult.outputs?.image).toBeDefined();
   });
 });

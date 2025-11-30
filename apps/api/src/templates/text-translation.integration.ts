@@ -21,7 +21,7 @@ describe("Text Translation Template", () => {
 
     // Execute text area input node
     const inputNode = textTranslationTemplate.nodes.find(
-      (n) => n.id === "text-input-1"
+      (n) => n.id === "input-1"
     )!;
     const inputInstance = new TextAreaNode({
       ...inputNode,
@@ -38,12 +38,12 @@ describe("Text Translation Template", () => {
     expect(inputResult.outputs?.value).toBe(inputText);
 
     // Execute translation node
-    const translationNode = textTranslationTemplate.nodes.find(
-      (n) => n.id === "translation-1"
+    const translatorNode = textTranslationTemplate.nodes.find(
+      (n) => n.id === "translator-1"
     )!;
-    const translationInstance = new M2m10012bNode(translationNode);
-    const translationResult = await translationInstance.execute({
-      nodeId: translationNode.id,
+    const translatorInstance = new M2m10012bNode(translatorNode);
+    const translatorResult = await translatorInstance.execute({
+      nodeId: translatorNode.id,
       inputs: {
         text: inputResult.outputs?.value,
         sourceLang: "en",
@@ -51,9 +51,9 @@ describe("Text Translation Template", () => {
       },
       env: env as Bindings,
     } as any);
-    expect(translationResult.status).toBe("completed");
-    expect(translationResult.outputs?.translatedText).toBeDefined();
-    expect(typeof translationResult.outputs?.translatedText).toBe("string");
-    expect(translationResult.outputs?.translatedText.length).toBeGreaterThan(0);
+    expect(translatorResult.status).toBe("completed");
+    expect(translatorResult.outputs?.translatedText).toBeDefined();
+    expect(typeof translatorResult.outputs?.translatedText).toBe("string");
+    expect(translatorResult.outputs?.translatedText.length).toBeGreaterThan(0);
   });
 });
