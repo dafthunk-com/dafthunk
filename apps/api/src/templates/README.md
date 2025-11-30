@@ -58,23 +58,23 @@ Create `{template-name}.integration.ts` to verify nodes execute correctly.
 
 Use kebab-case IDs that describe the node's purpose:
 
-| Pattern | Example |
-|---------|---------|
-| Input data | `text-to-summarize`, `image-prompt` |
-| Configuration | `source-language`, `target-language` |
-| Processing | `text-summarizer`, `sentiment-analyzer` |
-| Output | `summary-preview`, `translation-preview` |
+| Pattern       | Example                                  |
+| ------------- | ---------------------------------------- |
+| Input data    | `text-to-summarize`, `image-prompt`      |
+| Configuration | `source-language`, `target-language`     |
+| Processing    | `text-summarizer`, `sentiment-analyzer`  |
+| Output        | `summary-preview`, `translation-preview` |
 
 ### Node Names
 
 Use short, intent-reflecting Title Case names:
 
-| Good | Avoid |
-|------|-------|
-| `Generated Image` | `Generated Image Preview` |
-| `Summary` | `Summary Preview` |
-| `Positive Score` | `Positive Score Output` |
-| `Text to Translate` | `Input Text` |
+| Good                | Avoid                     |
+| ------------------- | ------------------------- |
+| `Generated Image`   | `Generated Image Preview` |
+| `Summary`           | `Summary Preview`         |
+| `Positive Score`    | `Positive Score Output`   |
+| `Text to Translate` | `Input Text`              |
 
 Names should describe **what** the node represents, not **how** it works.
 
@@ -102,14 +102,15 @@ Use the static `create()` method from node classes:
 ```ts
 TextInputNode.create({
   id: "text-to-translate",
-  name: "Text to Translate",      // Optional: overrides default node name
+  name: "Text to Translate", // Optional: overrides default node name
   position: { x: 100, y: 0 },
-  inputs: {                       // Optional: override default input values
+  inputs: {
+    // Optional: override default input values
     value: "Hello, world!",
     placeholder: "Enter text...",
     rows: 4,
   },
-})
+});
 ```
 
 ## Defining Edges
@@ -119,23 +120,23 @@ Connect nodes by specifying source/target IDs and port names:
 ```ts
 edges: [
   {
-    source: "text-to-translate",    // Source node ID
-    target: "text-translator",      // Target node ID
-    sourceOutput: "value",          // Output port name on source
-    targetInput: "text",            // Input port name on target
+    source: "text-to-translate", // Source node ID
+    target: "text-translator", // Target node ID
+    sourceOutput: "value", // Output port name on source
+    targetInput: "text", // Input port name on target
   },
-]
+];
 ```
 
 ## Template Types
 
-| Type | Trigger | Use Case |
-|------|---------|----------|
-| `manual` | User clicks "Run" | Interactive workflows |
-| `http` | HTTP request | API endpoints, webhooks |
-| `scheduled` | Cron schedule | Periodic tasks |
-| `email` | Incoming email | Email processing |
-| `queue` | Queue message | Async processing |
+| Type        | Trigger           | Use Case                |
+| ----------- | ----------------- | ----------------------- |
+| `manual`    | User clicks "Run" | Interactive workflows   |
+| `http`      | HTTP request      | API endpoints, webhooks |
+| `scheduled` | Cron schedule     | Periodic tasks          |
+| `email`     | Incoming email    | Email processing        |
+| `queue`     | Queue message     | Async processing        |
 
 ## Example Template
 

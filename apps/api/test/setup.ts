@@ -22,31 +22,6 @@ vi.mock("mailparser", () => ({
   ParsedMail: vi.fn(),
 }));
 
-// Mock SendGrid mail service
-vi.mock("@sendgrid/mail", () => ({
-  default: {
-    setApiKey: vi.fn(),
-    send: vi.fn().mockResolvedValue([
-      {
-        statusCode: 202,
-        body: "",
-        headers: {},
-      },
-    ]),
-  },
-  setApiKey: vi.fn(),
-  send: vi.fn().mockResolvedValue([
-    {
-      statusCode: 202,
-      body: "",
-      headers: {},
-    },
-  ]),
-}));
-
-// Mock SendGrid client packages
-vi.mock("@sendgrid/client", () => ({}));
-
 // Mock Twilio package
 vi.mock("twilio", () => ({
   default: vi.fn().mockImplementation(() => ({

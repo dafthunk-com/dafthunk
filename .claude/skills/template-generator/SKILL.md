@@ -43,6 +43,25 @@ Read file_path="apps/api/src/nodes/text/bart-large-cnn-node.ts"
 
 Key fields: `inputs[].name` → `targetInput`, `outputs[].name` → `sourceOutput`
 
+## Trigger Types
+
+The `type` field defines how the workflow is triggered:
+
+| Type | Description | Entry Node |
+|------|-------------|------------|
+| `manual` | User-initiated via UI/API | Input nodes (TextInputNode, etc.) |
+| `email_message` | Triggered by incoming email | ReceiveEmailNode |
+| `http_request` | Triggered by HTTP request (sync) | HttpRequestNode |
+| `http_webhook` | Triggered by webhook (async) | HttpRequestNode |
+| `scheduled` | Triggered on schedule (cron) | ReceiveScheduledTriggerNode |
+| `queue_message` | Triggered by queue message | ReceiveQueueMessageNode |
+
+**Finding trigger-compatible nodes:** Nodes declare which triggers they work with via the `compatibility` field in their `nodeType`. Search for compatible nodes:
+```bash
+Grep pattern="compatibility:.*email_message" path="apps/api/src/nodes" glob="*.ts"
+Grep pattern="compatibility:.*http_request" path="apps/api/src/nodes" glob="*.ts"
+```
+
 ## Create Template
 
 **File:** `apps/api/src/templates/{template-id}.ts`

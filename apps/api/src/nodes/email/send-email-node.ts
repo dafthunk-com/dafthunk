@@ -7,13 +7,13 @@ import { NodeExecution, NodeType } from "@dafthunk/types";
 
 import { ExecutableNode, NodeContext } from "../types";
 
-export class SendEmailSesNode extends ExecutableNode {
+export class SendEmailNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "send-email-ses",
-    name: "Send Email (SES)",
-    type: "send-email-ses",
+    id: "send-email",
+    name: "Send Email",
+    type: "send-email",
     description: "Send an email using Amazon SES",
-    tags: ["Social", "Email", "AWS", "Send"],
+    tags: ["Social", "Email", "Send"],
     icon: "mail",
     documentation:
       "This node sends emails using Amazon SES (Simple Email Service), supporting both HTML and plain text content with advanced features.",

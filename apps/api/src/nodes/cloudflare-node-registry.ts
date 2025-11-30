@@ -79,9 +79,7 @@ import { SendMessageDiscordNode } from "./discord/send-message-discord-node";
 import { ToMarkdownNode } from "./document/to-markdown-node";
 import { ParseEmailNode } from "./email/parse-email-node";
 import { ReceiveEmailNode } from "./email/receive-email-node";
-import { SendEmailSendgridNode } from "./email/send-emai-sendgrid-node";
-import { SendEmailResendNode } from "./email/send-email-resend-node";
-import { SendEmailSesNode } from "./email/send-email-ses-node";
+import { SendEmailNode } from "./email/send-email-node";
 import { FetchNode } from "./fetch/fetch-node";
 import { Gemini25FlashAudioUnderstandingNode } from "./gemini/gemini-2-5-flash-audio-understanding-node";
 import { Gemini25FlashImagePreviewNode } from "./gemini/gemini-2-5-flash-image-preview-node";
@@ -403,12 +401,6 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
       this.env.TWILIO_AUTH_TOKEN &&
       this.env.TWILIO_PHONE_NUMBER
     );
-    const hasSendgridEmail = !!(
-      this.env.SENDGRID_API_KEY && this.env.SENDGRID_DEFAULT_FROM
-    );
-    const hasResendEmail = !!(
-      this.env.RESEND_API_KEY && this.env.RESEND_DEFAULT_FROM
-    );
     const hasSESEmail = !!(
       this.env.AWS_ACCESS_KEY_ID &&
       this.env.AWS_SECRET_ACCESS_KEY &&
@@ -645,15 +637,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     }
 
     if (hasSESEmail) {
-      this.registerImplementation(SendEmailSesNode);
-    }
-
-    if (hasSendgridEmail) {
-      this.registerImplementation(SendEmailSendgridNode);
-    }
-
-    if (hasResendEmail) {
-      this.registerImplementation(SendEmailResendNode);
+      this.registerImplementation(SendEmailNode);
     }
 
     if (hasGoogleMail) {
