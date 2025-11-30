@@ -74,8 +74,7 @@ export function ImportTemplateDialog({
 
     return templates
       .filter((template) => {
-        const matchesTag =
-          !selectedTag || template.tags.includes(selectedTag);
+        const matchesTag = !selectedTag || template.tags.includes(selectedTag);
         const matchesSearch =
           !rawSearchTerm ||
           template.name.toLowerCase().includes(rawSearchTerm) ||

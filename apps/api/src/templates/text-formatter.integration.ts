@@ -39,7 +39,9 @@ describe("Text Formatter Template", () => {
     const formatterNode = textFormatterTemplate.nodes.find(
       (n) => n.id === "formatter-1"
     )!;
-    const formatterInstance = new SingleVariableStringTemplateNode(formatterNode);
+    const formatterInstance = new SingleVariableStringTemplateNode(
+      formatterNode
+    );
     const formatterResult = await formatterInstance.execute({
       nodeId: formatterNode.id,
       inputs: {

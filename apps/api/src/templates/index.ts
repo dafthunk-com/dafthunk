@@ -1,8 +1,8 @@
 import type { WorkflowTemplate } from "@dafthunk/types";
 
+import { imageGenerationTemplate } from "./image-generation";
 import { textFormatterTemplate } from "./text-formatter";
 import { textSentimentAnalysisTemplate } from "./text-sentiment-analysis";
-import { imageGenerationTemplate } from "./image-generation";
 import { textSummarizationTemplate } from "./text-summarization";
 import { textTranslationTemplate } from "./text-translation";
 
