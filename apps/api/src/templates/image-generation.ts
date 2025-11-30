@@ -7,7 +7,7 @@ export const imageGenerationTemplate: WorkflowTemplate = {
   id: "image-generation",
   name: "Image Generation",
   description: "Generate images from text prompts",
-  category: "content-creation",
+  icon: "image",
   type: "manual",
   tags: ["image", "generation", "ai"],
   nodes: [

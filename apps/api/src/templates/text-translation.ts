@@ -7,7 +7,7 @@ export const textTranslationTemplate: WorkflowTemplate = {
   id: "text-translation",
   name: "Text Translation",
   description: "Translate text between different languages",
-  category: "text-processing",
+  icon: "languages",
   type: "manual",
   tags: ["text", "translation", "ai"],
   nodes: [
