@@ -4,33 +4,33 @@ import type { NodeContext } from "../types";
 import { ExecutableNode } from "../types";
 
 /**
- * AudioInput node implementation
- * This node provides an audio input widget that outputs an audio reference.
+ * GltfInput node implementation
+ * This node provides a GLTF input widget that outputs a GLTF reference.
  */
-export class AudioInputNode extends ExecutableNode {
+export class GltfInputNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "audio-input",
-    name: "Audio Input",
-    type: "audio-input",
-    description: "An audio input widget for uploading audio files",
-    tags: ["Widget", "Audio", "Input"],
-    icon: "music",
+    id: "gltf-input",
+    name: "GLTF Input",
+    type: "gltf-input",
+    description: "A GLTF input widget for uploading 3D models",
+    tags: ["Widget", "GLTF", "Input", "3D"],
+    icon: "box",
     documentation:
-      "This node provides an audio input widget for uploading audio files.",
+      "This node provides a GLTF input widget for uploading 3D models in GLTF/GLB format.",
     inlinable: true,
     inputs: [
       {
         name: "value",
-        type: "audio",
-        description: "Current audio value",
+        type: "gltf",
+        description: "Current GLTF value",
         hidden: true,
       },
     ],
     outputs: [
       {
         name: "value",
-        type: "audio",
-        description: "The uploaded audio",
+        type: "gltf",
+        description: "The uploaded GLTF model",
       },
     ],
   };
@@ -40,7 +40,7 @@ export class AudioInputNode extends ExecutableNode {
       const value = context.inputs.value;
 
       if (!value) {
-        return this.createErrorResult("No audio provided");
+        return this.createErrorResult("No GLTF model provided");
       }
 
       return this.createSuccessResult({

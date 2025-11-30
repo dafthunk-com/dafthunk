@@ -4,33 +4,33 @@ import type { NodeContext } from "../types";
 import { ExecutableNode } from "../types";
 
 /**
- * AudioInput node implementation
- * This node provides an audio input widget that outputs an audio reference.
+ * DocumentInput node implementation
+ * This node provides a document input widget that outputs a document reference.
  */
-export class AudioInputNode extends ExecutableNode {
+export class DocumentInputNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "audio-input",
-    name: "Audio Input",
-    type: "audio-input",
-    description: "An audio input widget for uploading audio files",
-    tags: ["Widget", "Audio", "Input"],
-    icon: "music",
+    id: "document-input",
+    name: "Document Input",
+    type: "document-input",
+    description: "A document input widget for uploading documents",
+    tags: ["Widget", "Document", "Input", "PDF"],
+    icon: "file-text",
     documentation:
-      "This node provides an audio input widget for uploading audio files.",
+      "This node provides a document input widget for uploading documents like PDFs, Word docs, etc.",
     inlinable: true,
     inputs: [
       {
         name: "value",
-        type: "audio",
-        description: "Current audio value",
+        type: "document",
+        description: "Current document value",
         hidden: true,
       },
     ],
     outputs: [
       {
         name: "value",
-        type: "audio",
-        description: "The uploaded audio",
+        type: "document",
+        description: "The uploaded document",
       },
     ],
   };
@@ -40,7 +40,7 @@ export class AudioInputNode extends ExecutableNode {
       const value = context.inputs.value;
 
       if (!value) {
-        return this.createErrorResult("No audio provided");
+        return this.createErrorResult("No document provided");
       }
 
       return this.createSuccessResult({

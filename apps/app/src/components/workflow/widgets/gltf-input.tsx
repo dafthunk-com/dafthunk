@@ -3,32 +3,34 @@ import { useState } from "react";
 import { useObjectService } from "@/services/object-service";
 import { cn } from "@/utils/utils";
 
-import { AudioField } from "../fields/audio-field";
 import {
   createFileUploadHandler,
   fileValidators,
+  mimeTypeDetectors,
 } from "../fields/file-upload-handler";
+import { GltfField } from "../fields/gltf-field";
 import type { BaseWidgetProps } from "./widget";
 import { createWidget, getInputValue } from "./widget";
 
-interface AudioInputWidgetProps extends BaseWidgetProps {
+interface GltfInputWidgetProps extends BaseWidgetProps {
   value: unknown;
 }
 
-function AudioInputWidget({
+function GltfInputWidget({
   value,
   onChange,
   className,
   readonly = false,
-}: AudioInputWidgetProps) {
+}: GltfInputWidgetProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const { uploadBinaryData, createObjectUrl } = useObjectService();
 
   const handleFileUpload = createFileUploadHandler(
     {
-      validateFile: fileValidators.audio,
-      errorMessage: "Failed to upload audio",
+      validateFile: fileValidators.gltf,
+      getMimeType: mimeTypeDetectors.gltf,
+      errorMessage: "Failed to upload GLTF model",
     },
     uploadBinaryData,
     onChange,
@@ -38,8 +40,8 @@ function AudioInputWidget({
 
   return (
     <div className={cn("p-2 h-full w-full", className)}>
-      <AudioField
-        parameter={{ id: "input", name: "value", type: "audio" }}
+      <GltfField
+        parameter={{ id: "input", name: "value", type: "gltf" }}
         value={value}
         onChange={onChange}
         onClear={() => onChange(undefined)}
@@ -54,9 +56,9 @@ function AudioInputWidget({
   );
 }
 
-export const audioInputWidget = createWidget({
-  component: AudioInputWidget,
-  nodeTypes: ["audio-input"],
+export const gltfInputWidget = createWidget({
+  component: GltfInputWidget,
+  nodeTypes: ["gltf-input"],
   inputField: "value",
   extractConfig: (_nodeId, inputs) => ({
     value: getInputValue(inputs, "value", undefined),

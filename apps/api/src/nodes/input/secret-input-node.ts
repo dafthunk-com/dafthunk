@@ -4,33 +4,33 @@ import type { NodeContext } from "../types";
 import { ExecutableNode } from "../types";
 
 /**
- * AudioInput node implementation
- * This node provides an audio input widget that outputs an audio reference.
+ * SecretInput node implementation
+ * This node provides a secret input widget that outputs a secret reference.
  */
-export class AudioInputNode extends ExecutableNode {
+export class SecretInputNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "audio-input",
-    name: "Audio Input",
-    type: "audio-input",
-    description: "An audio input widget for uploading audio files",
-    tags: ["Widget", "Audio", "Input"],
-    icon: "music",
+    id: "secret-input",
+    name: "Secret Input",
+    type: "secret-input",
+    description: "A secret input widget for selecting secrets",
+    tags: ["Widget", "Secret", "Input"],
+    icon: "key",
     documentation:
-      "This node provides an audio input widget for uploading audio files.",
+      "This node provides a secret input widget for selecting stored secrets.",
     inlinable: true,
     inputs: [
       {
         name: "value",
-        type: "audio",
-        description: "Current audio value",
+        type: "secret",
+        description: "Current secret reference",
         hidden: true,
       },
     ],
     outputs: [
       {
         name: "value",
-        type: "audio",
-        description: "The uploaded audio",
+        type: "secret",
+        description: "The secret reference",
       },
     ],
   };
@@ -40,7 +40,7 @@ export class AudioInputNode extends ExecutableNode {
       const value = context.inputs.value;
 
       if (!value) {
-        return this.createErrorResult("No audio provided");
+        return this.createErrorResult("No secret selected");
       }
 
       return this.createSuccessResult({

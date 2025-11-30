@@ -4,33 +4,33 @@ import type { NodeContext } from "../types";
 import { ExecutableNode } from "../types";
 
 /**
- * AudioInput node implementation
- * This node provides an audio input widget that outputs an audio reference.
+ * GeoJSONInput node implementation
+ * This node provides a GeoJSON input widget that outputs GeoJSON data.
  */
-export class AudioInputNode extends ExecutableNode {
+export class GeoJSONInputNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "audio-input",
-    name: "Audio Input",
-    type: "audio-input",
-    description: "An audio input widget for uploading audio files",
-    tags: ["Widget", "Audio", "Input"],
-    icon: "music",
+    id: "geojson-input",
+    name: "GeoJSON Input",
+    type: "geojson-input",
+    description: "A GeoJSON input widget for editing geographic data",
+    tags: ["Widget", "GeoJSON", "Input", "Geo"],
+    icon: "map",
     documentation:
-      "This node provides an audio input widget for uploading audio files.",
+      "This node provides a GeoJSON input widget for editing geographic data.",
     inlinable: true,
     inputs: [
       {
         name: "value",
-        type: "audio",
-        description: "Current audio value",
+        type: "geojson",
+        description: "Current GeoJSON value",
         hidden: true,
       },
     ],
     outputs: [
       {
         name: "value",
-        type: "audio",
-        description: "The uploaded audio",
+        type: "geojson",
+        description: "The GeoJSON data",
       },
     ],
   };
@@ -39,8 +39,8 @@ export class AudioInputNode extends ExecutableNode {
     try {
       const value = context.inputs.value;
 
-      if (!value) {
-        return this.createErrorResult("No audio provided");
+      if (value === undefined || value === null) {
+        return this.createErrorResult("No GeoJSON data provided");
       }
 
       return this.createSuccessResult({

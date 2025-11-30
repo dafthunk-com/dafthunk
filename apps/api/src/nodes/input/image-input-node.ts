@@ -4,33 +4,33 @@ import type { NodeContext } from "../types";
 import { ExecutableNode } from "../types";
 
 /**
- * AudioInput node implementation
- * This node provides an audio input widget that outputs an audio reference.
+ * ImageInput node implementation
+ * This node provides an image input widget that outputs an image reference.
  */
-export class AudioInputNode extends ExecutableNode {
+export class ImageInputNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "audio-input",
-    name: "Audio Input",
-    type: "audio-input",
-    description: "An audio input widget for uploading audio files",
-    tags: ["Widget", "Audio", "Input"],
-    icon: "music",
+    id: "image-input",
+    name: "Image Input",
+    type: "image-input",
+    description: "An image input widget for uploading images",
+    tags: ["Widget", "Image", "Input"],
+    icon: "image",
     documentation:
-      "This node provides an audio input widget for uploading audio files.",
+      "This node provides an image input widget for uploading images.",
     inlinable: true,
     inputs: [
       {
         name: "value",
-        type: "audio",
-        description: "Current audio value",
+        type: "image",
+        description: "Current image value",
         hidden: true,
       },
     ],
     outputs: [
       {
         name: "value",
-        type: "audio",
-        description: "The uploaded audio",
+        type: "image",
+        description: "The uploaded image",
       },
     ],
   };
@@ -40,7 +40,7 @@ export class AudioInputNode extends ExecutableNode {
       const value = context.inputs.value;
 
       if (!value) {
-        return this.createErrorResult("No audio provided");
+        return this.createErrorResult("No image provided");
       }
 
       return this.createSuccessResult({

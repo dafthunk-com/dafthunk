@@ -3,32 +3,43 @@ import { useState } from "react";
 import { useObjectService } from "@/services/object-service";
 import { cn } from "@/utils/utils";
 
-import { AudioField } from "../fields/audio-field";
+import { BlobField } from "../fields/blob-field";
 import {
   createFileUploadHandler,
-  fileValidators,
+  mimeTypeDetectors,
 } from "../fields/file-upload-handler";
 import type { BaseWidgetProps } from "./widget";
 import { createWidget, getInputValue } from "./widget";
 
-interface AudioInputWidgetProps extends BaseWidgetProps {
+interface BlobInputWidgetProps extends BaseWidgetProps {
   value: unknown;
 }
 
-function AudioInputWidget({
+function BlobInputWidget({
   value,
   onChange,
   className,
   readonly = false,
-}: AudioInputWidgetProps) {
+}: BlobInputWidgetProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const { uploadBinaryData, createObjectUrl } = useObjectService();
 
   const handleFileUpload = createFileUploadHandler(
     {
-      validateFile: fileValidators.audio,
-      errorMessage: "Failed to upload audio",
+      getMimeType: (file: File) => {
+        // Check for GLTF files
+        const fileName = file.name.toLowerCase();
+        if (fileName.endsWith(".gltf") || fileName.endsWith(".glb")) {
+          return mimeTypeDetectors.gltf(file);
+        }
+        // Check for document types
+        if (fileName.endsWith(".xlsx") || fileName.endsWith(".xls")) {
+          return mimeTypeDetectors.document(file);
+        }
+        return file.type || "application/octet-stream";
+      },
+      errorMessage: "Failed to upload file",
     },
     uploadBinaryData,
     onChange,
@@ -38,8 +49,8 @@ function AudioInputWidget({
 
   return (
     <div className={cn("p-2 h-full w-full", className)}>
-      <AudioField
-        parameter={{ id: "input", name: "value", type: "audio" }}
+      <BlobField
+        parameter={{ id: "input", name: "value", type: "blob" }}
         value={value}
         onChange={onChange}
         onClear={() => onChange(undefined)}
@@ -54,9 +65,9 @@ function AudioInputWidget({
   );
 }
 
-export const audioInputWidget = createWidget({
-  component: AudioInputWidget,
-  nodeTypes: ["audio-input"],
+export const blobInputWidget = createWidget({
+  component: BlobInputWidget,
+  nodeTypes: ["blob-input"],
   inputField: "value",
   extractConfig: (_nodeId, inputs) => ({
     value: getInputValue(inputs, "value", undefined),

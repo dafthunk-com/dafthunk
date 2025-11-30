@@ -264,12 +264,19 @@ import { StableDiffusionXLLightningNode } from "./image/stable-diffusion-xl-ligh
 import { SvgToPngNode } from "./image/svg-to-png-node";
 import { UformGen2Qwen500mNode } from "./image/uform-gen2-qwen-500m-node";
 import { AudioInputNode } from "./input/audio-input-node";
+import { AudioRecorderInputNode } from "./input/audio-recorder-input-node";
+import { BlobInputNode } from "./input/blob-input-node";
 import { BooleanInputNode } from "./input/boolean-input-node";
 import { CanvasInputNode } from "./input/canvas-input-node";
 import { DateInputNode } from "./input/date-input-node";
+import { DocumentInputNode } from "./input/document-input-node";
+import { GeoJSONInputNode } from "./input/geojson-input-node";
+import { GltfInputNode } from "./input/gltf-input-node";
+import { ImageInputNode } from "./input/image-input-node";
 import { JavaScriptInputNode } from "./input/javascript-input-node";
 import { JsonInputNode } from "./input/json-input-node";
 import { NumberInputNode } from "./input/number-input-node";
+import { SecretInputNode } from "./input/secret-input-node";
 import { SliderInputNode } from "./input/slider-input-node";
 import { TextInputNode } from "./input/text-input-node";
 import { WebcamInputNode } from "./input/webcam-input-node";
@@ -600,6 +607,14 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(PhotonWatermarkNode);
 
     this.registerImplementation(AudioInputNode);
+    this.registerImplementation(AudioRecorderInputNode);
+    this.registerImplementation(ImageInputNode);
+    this.registerImplementation(BlobInputNode);
+    this.registerImplementation(DocumentInputNode);
+    this.registerImplementation(GltfInputNode);
+    this.registerImplementation(GeoJSONInputNode);
+    this.registerImplementation(SecretInputNode);
+
     this.registerImplementation(CsvExtractColumnNode);
     this.registerImplementation(CsvFilterRowsNode);
     this.registerImplementation(CsvParseNode);

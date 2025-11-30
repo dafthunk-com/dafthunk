@@ -5,10 +5,13 @@
  * Import this file once in your application to make all widgets available.
  */
 
-// Input widgets
+// Simple input widgets (using fields)
 import { audioInputWidget } from "./audio-input";
 // Preview widgets
 import { audioPreviewWidget } from "./audio-preview";
+// Advanced input widgets (special UX)
+import { audioRecorderInputWidget } from "./audio-recorder-input";
+import { blobInputWidget } from "./blob-input";
 import { blobPreviewWidget } from "./blob-preview";
 import { booleanInputWidget } from "./boolean-input";
 import { booleanPreviewWidget } from "./boolean-preview";
@@ -20,11 +23,15 @@ import { databaseSelectorWidget } from "./database-selector";
 import { datasetSelectorWidget } from "./dataset-selector";
 import { dateInputWidget } from "./date-input";
 import { datePreviewWidget } from "./date-preview";
+import { documentInputWidget } from "./document-input";
 import { documentPreviewWidget } from "./document-preview";
 import { emailSelectorWidget } from "./email-selector";
 import { fileInputWidget } from "./file-input";
+import { geojsonInputWidget } from "./geojson-input";
 import { geojsonPreviewWidget } from "./geojson-preview";
+import { gltfInputWidget } from "./gltf-input";
 import { gltfPreviewWidget } from "./gltf-preview";
+import { imageInputWidget } from "./image-input";
 import { imagePreviewWidget } from "./image-preview";
 // Integration widgets
 import {
@@ -45,6 +52,7 @@ import { numberInputWidget } from "./number-input";
 import { numberPreviewWidget } from "./number-preview";
 import { queueSelectorWidget } from "./queue-selector";
 import { registry } from "./registry";
+import { secretInputWidget } from "./secret-input";
 import { secretPreviewWidget } from "./secret-preview";
 import { sliderInputWidget } from "./slider-input";
 import { textInputWidget } from "./text-input";
@@ -53,18 +61,27 @@ import { webcamInputWidget } from "./webcam-input";
 
 // Register all widgets
 const widgets = [
-  // Input widgets
+  // Simple input widgets (one per parameter type)
   textInputWidget,
   numberInputWidget,
   booleanInputWidget,
   dateInputWidget,
   jsonInputWidget,
+  imageInputWidget,
+  blobInputWidget,
+  audioInputWidget,
+  documentInputWidget,
+  gltfInputWidget,
+  geojsonInputWidget,
+  secretInputWidget,
+
+  // Advanced input widgets (special UX)
   javascriptInputWidget,
   sliderInputWidget,
   cronInputWidget,
   fileInputWidget,
   webcamInputWidget,
-  audioInputWidget,
+  audioRecorderInputWidget,
   canvasInputWidget,
 
   // Preview widgets

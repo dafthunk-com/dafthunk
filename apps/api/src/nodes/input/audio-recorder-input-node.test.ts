@@ -1,14 +1,14 @@
-import { Node } from "@dafthunk/types";
+import type { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
 import { testAudioData } from "../../../test/fixtures/audio-fixtures";
-import { NodeContext } from "../types";
-import { AudioInputNode } from "./audio-input-node";
+import type { NodeContext } from "../types";
+import { AudioRecorderInputNode } from "./audio-recorder-input-node";
 
-describe("AudioInputNode", () => {
+describe("AudioRecorderInputNode", () => {
   it("should execute with valid audio input", async () => {
     const nodeId = "audio-recorder";
-    const node = new AudioInputNode({
+    const node = new AudioRecorderInputNode({
       nodeId,
     } as unknown as Node);
 
@@ -33,7 +33,7 @@ describe("AudioInputNode", () => {
 
   it("should return error for missing audio input", async () => {
     const nodeId = "audio-recorder";
-    const node = new AudioInputNode({
+    const node = new AudioRecorderInputNode({
       nodeId,
     } as unknown as Node);
 
@@ -53,7 +53,7 @@ describe("AudioInputNode", () => {
 
   it("should return error for null audio input", async () => {
     const nodeId = "audio-recorder";
-    const node = new AudioInputNode({
+    const node = new AudioRecorderInputNode({
       nodeId,
     } as unknown as Node);
 
@@ -75,7 +75,7 @@ describe("AudioInputNode", () => {
 
   it("should return error for undefined audio input", async () => {
     const nodeId = "audio-recorder";
-    const node = new AudioInputNode({
+    const node = new AudioRecorderInputNode({
       nodeId,
     } as unknown as Node);
 

@@ -4,33 +4,33 @@ import type { NodeContext } from "../types";
 import { ExecutableNode } from "../types";
 
 /**
- * AudioInput node implementation
- * This node provides an audio input widget that outputs an audio reference.
+ * BlobInput node implementation
+ * This node provides a blob input widget that outputs a blob reference.
  */
-export class AudioInputNode extends ExecutableNode {
+export class BlobInputNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "audio-input",
-    name: "Audio Input",
-    type: "audio-input",
-    description: "An audio input widget for uploading audio files",
-    tags: ["Widget", "Audio", "Input"],
-    icon: "music",
+    id: "blob-input",
+    name: "Blob Input",
+    type: "blob-input",
+    description: "A blob input widget for uploading files",
+    tags: ["Widget", "Blob", "Input", "File"],
+    icon: "file",
     documentation:
-      "This node provides an audio input widget for uploading audio files.",
+      "This node provides a blob input widget for uploading files.",
     inlinable: true,
     inputs: [
       {
         name: "value",
-        type: "audio",
-        description: "Current audio value",
+        type: "blob",
+        description: "Current blob value",
         hidden: true,
       },
     ],
     outputs: [
       {
         name: "value",
-        type: "audio",
-        description: "The uploaded audio",
+        type: "blob",
+        description: "The uploaded blob",
       },
     ],
   };
@@ -40,7 +40,7 @@ export class AudioInputNode extends ExecutableNode {
       const value = context.inputs.value;
 
       if (!value) {
-        return this.createErrorResult("No audio provided");
+        return this.createErrorResult("No blob provided");
       }
 
       return this.createSuccessResult({
