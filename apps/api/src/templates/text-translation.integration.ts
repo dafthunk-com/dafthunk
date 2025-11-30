@@ -1,3 +1,4 @@
+import type { Parameter } from "@dafthunk/types";
 import { env } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 
@@ -27,7 +28,7 @@ describe("Text Translation Template", () => {
       ...inputNode,
       inputs: inputNode.inputs.map((input) =>
         input.name === "value" ? { ...input, value: inputText } : input
-      ),
+      ) as Parameter[],
     });
     const inputResult = await inputInstance.execute({
       nodeId: inputNode.id,

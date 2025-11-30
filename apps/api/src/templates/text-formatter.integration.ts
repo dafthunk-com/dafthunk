@@ -1,3 +1,4 @@
+import type { Parameter } from "@dafthunk/types";
 import { env } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 
@@ -25,7 +26,7 @@ describe("Text Formatter Template", () => {
       ...inputNode,
       inputs: inputNode.inputs.map((input) =>
         input.name === "value" ? { ...input, value: "Hello World" } : input
-      ),
+      ) as Parameter[],
     });
     const inputResult = await inputInstance.execute({
       nodeId: inputNode.id,
@@ -39,7 +40,9 @@ describe("Text Formatter Template", () => {
     const formatterNode = textFormatterTemplate.nodes.find(
       (n) => n.id === "formatter-1"
     )!;
-    const formatterInstance = new SingleVariableStringTemplateNode(formatterNode);
+    const formatterInstance = new SingleVariableStringTemplateNode(
+      formatterNode
+    );
     const formatterResult = await formatterInstance.execute({
       nodeId: formatterNode.id,
       inputs: {
