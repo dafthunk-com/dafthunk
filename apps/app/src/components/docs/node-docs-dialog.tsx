@@ -28,7 +28,7 @@ export function NodeDocsDialog({
 }: NodeDocsDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col gap-0">
+      <DialogContent className="w-[80vw] max-w-[1400px] max-h-[80vh] flex flex-col gap-0">
         <button
           className="absolute right-4 top-4 text-muted-foreground hover:text-foreground transition-colors"
           onClick={() => onOpenChange(false)}
@@ -36,7 +36,7 @@ export function NodeDocsDialog({
           <X className="h-4 w-4" />
           <span className="sr-only">Close</span>
         </button>
-        <DialogHeader className="shrink-0 pb-4">
+        <DialogHeader className="shrink-0 pb-4 text-left">
           <DialogTitle className="flex items-center gap-2 min-w-0">
             <DynamicIcon
               name={nodeType.icon as any}
