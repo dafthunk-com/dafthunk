@@ -1,0 +1,265 @@
+import { Trash2 } from "lucide-react";
+import Save from "lucide-react/icons/save";
+import { useEffect, useRef, useState } from "react";
+
+import { useAuth } from "@/components/auth-context";
+import { isObjectReference, useObjectService } from "@/services/object-service";
+
+import type { BaseWidgetProps } from "../widget";
+import { createWidget, getInputValue } from "../widget";
+
+interface CanvasDoodleWidgetProps extends BaseWidgetProps {
+  value: any;
+  width: number;
+  height: number;
+  strokeColor: string;
+  strokeWidth: number;
+}
+
+const COLORS = [
+  "#000000",
+  "#ef4444",
+  "#f59e42",
+  "#facc15",
+  "#22c55e",
+  "#3b82f6",
+  "#a21caf",
+];
+
+function CanvasDoodleWidget({
+  value,
+  strokeColor,
+  strokeWidth,
+  onChange,
+  readonly = false,
+}: CanvasDoodleWidgetProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [imageReference, setImageReference] = useState<{
+    id: string;
+    mimeType: string;
+  } | null>(value && isObjectReference(value) ? value : null);
+  const { createObjectUrl, uploadBinaryData } = useObjectService();
+  const { isAuthenticated, organization } = useAuth();
+  const [currentColor, setCurrentColor] = useState(strokeColor);
+  const [isColorBarOpen, setIsColorBarOpen] = useState(false);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const container = containerRef.current;
+    if (!canvas || !container) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const dpr = 4;
+    const displayWidth = container.clientWidth;
+    const displayHeight = displayWidth; // Keep square aspect ratio
+
+    canvas.width = displayWidth * dpr;
+    canvas.height = displayHeight * dpr;
+    ctx.scale(dpr, dpr);
+    canvas.style.width = `${displayWidth}px`;
+    canvas.style.height = `${displayHeight}px`;
+
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, displayWidth, displayHeight);
+    ctx.lineWidth = strokeWidth * 2;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
+    if (imageReference) {
+      const img = new Image();
+      img.onload = () => {
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, displayWidth, displayHeight);
+        ctx.drawImage(img, 0, 0, displayWidth, displayHeight);
+      };
+      img.src = createObjectUrl(imageReference);
+    }
+  }, [imageReference, strokeColor, strokeWidth, createObjectUrl]);
+
+  const getCanvasCoordinates = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+
+    const rect = canvas.getBoundingClientRect();
+    const dpr = 4;
+
+    return {
+      x: ((e.clientX - rect.left) * (canvas.width / rect.width)) / dpr,
+      y: ((e.clientY - rect.top) * (canvas.height / rect.height)) / dpr,
+    };
+  };
+
+  const saveCanvas = async () => {
+    const canvas = canvasRef.current;
+    if (!canvas || readonly || !isAuthenticated || !organization?.handle)
+      return;
+
+    try {
+      setIsUploading(true);
+
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob(
+          (b) => (b ? resolve(b) : reject(new Error("Failed to create blob"))),
+          "image/png",
+          1.0
+        );
+      });
+
+      const arrayBuffer = await blob.arrayBuffer();
+      const reference = await uploadBinaryData(arrayBuffer, "image/png");
+
+      setImageReference(reference);
+      onChange(reference);
+      setIsUploading(false);
+    } catch (error) {
+      console.error("Error saving canvas:", error);
+      setIsUploading(false);
+    }
+  };
+
+  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (readonly) return;
+
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (!canvas || !ctx) return;
+
+    const { x, y } = getCanvasCoordinates(e);
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.strokeStyle = currentColor;
+    setIsDrawing(true);
+  };
+
+  const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isDrawing || readonly) return;
+
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (!canvas || !ctx) return;
+
+    ctx.strokeStyle = currentColor;
+    const { x, y } = getCanvasCoordinates(e);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+  };
+
+  const stopDrawing = () => {
+    if (!isDrawing) return;
+    const ctx = canvasRef.current?.getContext("2d");
+    ctx?.closePath();
+    setIsDrawing(false);
+  };
+
+  const handleClear = () => {
+    if (readonly) return;
+
+    setImageReference(null);
+    onChange(null);
+
+    const canvas = canvasRef.current;
+    const container = containerRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (!canvas || !ctx || !container) return;
+
+    const displayWidth = container.clientWidth;
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, displayWidth, displayWidth);
+    ctx.strokeStyle = strokeColor;
+  };
+
+  return (
+    <div ref={containerRef}>
+      <div className="relative w-full">
+        <div
+          className="absolute bottom-2 left-2 z-10"
+          onMouseEnter={() => !readonly && setIsColorBarOpen(true)}
+          onMouseLeave={() => setIsColorBarOpen(false)}
+        >
+          <div className="flex flex-row gap-1">
+            <div
+              className="size-3 rounded-full border-4"
+              style={{ borderColor: currentColor }}
+            />
+            {isColorBarOpen &&
+              COLORS.map((color) => (
+                <button
+                  key={color}
+                  type="button"
+                  onClick={() => {
+                    setCurrentColor(color);
+                    setIsColorBarOpen(false);
+                  }}
+                  className="size-3 rounded-full"
+                  style={{ backgroundColor: color }}
+                  aria-label={`Select color ${color}`}
+                  disabled={readonly}
+                />
+              ))}
+          </div>
+        </div>
+        <div className="absolute top-2 right-2 z-10 flex gap-1">
+          <button
+            onClick={handleClear}
+            className="inline-flex items-center justify-center size-6 rounded border border-neutral-200 dark:border-neutral-700 bg-white/75 hover:bg-neutral-50/75 text-neutral-600 dark:bg-neutral-900/75 dark:hover:bg-neutral-800/75 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200 transition-colors"
+            disabled={isUploading || readonly}
+            aria-label="Clear"
+          >
+            <Trash2 className="!size-3" />
+          </button>
+          <button
+            onClick={saveCanvas}
+            className="inline-flex items-center justify-center size-6 rounded border border-neutral-200 dark:border-neutral-700 bg-white/75 hover:bg-neutral-50/75 text-neutral-600 dark:bg-neutral-900/75 dark:hover:bg-neutral-800/75 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200 transition-colors"
+            disabled={isUploading || readonly}
+            aria-label="Save"
+          >
+            <Save className="!size-3" />
+          </button>
+        </div>
+        <div className="overflow-hidden bg-white">
+          {imageReference ? (
+            <div className="relative aspect-square">
+              <img
+                src={createObjectUrl(imageReference)}
+                alt="Doodle"
+                className="w-full h-full object-contain"
+              />
+            </div>
+          ) : (
+            <canvas
+              ref={canvasRef}
+              onMouseDown={startDrawing}
+              onMouseMove={draw}
+              onMouseUp={stopDrawing}
+              onMouseLeave={stopDrawing}
+              className="touch-none cursor-crosshair aspect-square"
+            />
+          )}
+          {isUploading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/30 text-white text-xs">
+              Uploading...
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export const canvasInputWidget = createWidget({
+  component: CanvasDoodleWidget,
+  nodeTypes: ["canvas-input"],
+  inputField: "value",
+  extractConfig: (_nodeId, inputs) => ({
+    value: getInputValue(inputs, "value", ""),
+    width: getInputValue(inputs, "width", 400),
+    height: getInputValue(inputs, "height", 300),
+    strokeColor: getInputValue(inputs, "strokeColor", "#000000"),
+    strokeWidth: getInputValue(inputs, "strokeWidth", 2),
+  }),
+});

@@ -5,35 +5,45 @@
  * Import this file once in your application to make all widgets available.
  */
 
-// Simple input widgets (using fields)
-import { audioInputWidget } from "./audio-input";
+// Input widgets
+import { audioInputWidget } from "./input/audio-input";
+import { audioRecorderInputWidget } from "./input/audio-recorder-input";
+import { blobInputWidget } from "./input/blob-input";
+import { booleanInputWidget } from "./input/boolean-input";
+import { canvasInputWidget } from "./input/canvas-input";
+import { cronInputWidget } from "./input/cron-input";
+import { dateInputWidget } from "./input/date-input";
+import { documentInputWidget } from "./input/document-input";
+import { fileInputWidget } from "./input/file-input";
+import { geojsonInputWidget } from "./input/geojson-input";
+import { gltfInputWidget } from "./input/gltf-input";
+import { imageInputWidget } from "./input/image-input";
+import { javascriptInputWidget } from "./input/javascript-input";
+import { jsonInputWidget } from "./input/json-input";
+import { numberInputWidget } from "./input/number-input";
+import { secretInputWidget } from "./input/secret-input";
+import { sliderInputWidget } from "./input/slider-input";
+import { textInputWidget } from "./input/text-input";
+import { webcamInputWidget } from "./input/webcam-input";
 // Preview widgets
-import { audioPreviewWidget } from "./audio-preview";
-// Advanced input widgets (special UX)
-import { audioRecorderInputWidget } from "./audio-recorder-input";
-import { blobInputWidget } from "./blob-input";
-import { blobPreviewWidget } from "./blob-preview";
-import { booleanInputWidget } from "./boolean-input";
-import { booleanPreviewWidget } from "./boolean-preview";
-import { buffergeometryPreviewWidget } from "./buffergeometry-preview";
-import { canvasInputWidget } from "./canvas-input";
-import { cronInputWidget } from "./cron-input";
+import { audioPreviewWidget } from "./preview/audio-preview";
+import { blobPreviewWidget } from "./preview/blob-preview";
+import { booleanPreviewWidget } from "./preview/boolean-preview";
+import { buffergeometryPreviewWidget } from "./preview/buffergeometry-preview";
+import { datePreviewWidget } from "./preview/date-preview";
+import { documentPreviewWidget } from "./preview/document-preview";
+import { geojsonPreviewWidget } from "./preview/geojson-preview";
+import { gltfPreviewWidget } from "./preview/gltf-preview";
+import { imagePreviewWidget } from "./preview/image-preview";
+import { jsonPreviewWidget } from "./preview/json-preview";
+import { numberPreviewWidget } from "./preview/number-preview";
+import { secretPreviewWidget } from "./preview/secret-preview";
+import { textPreviewWidget } from "./preview/text-preview";
+import { registry } from "./registry";
 // Selector widgets
-import { databaseSelectorWidget } from "./database-selector";
-import { datasetSelectorWidget } from "./dataset-selector";
-import { dateInputWidget } from "./date-input";
-import { datePreviewWidget } from "./date-preview";
-import { documentInputWidget } from "./document-input";
-import { documentPreviewWidget } from "./document-preview";
-import { emailSelectorWidget } from "./email-selector";
-import { fileInputWidget } from "./file-input";
-import { geojsonInputWidget } from "./geojson-input";
-import { geojsonPreviewWidget } from "./geojson-preview";
-import { gltfInputWidget } from "./gltf-input";
-import { gltfPreviewWidget } from "./gltf-preview";
-import { imageInputWidget } from "./image-input";
-import { imagePreviewWidget } from "./image-preview";
-// Integration widgets
+import { databaseSelectorWidget } from "./selector/database-selector";
+import { datasetSelectorWidget } from "./selector/dataset-selector";
+import { emailSelectorWidget } from "./selector/email-selector";
 import {
   anthropicWidget,
   discordWidget,
@@ -44,20 +54,8 @@ import {
   linkedInWidget,
   openaiWidget,
   redditWidget,
-} from "./integration-selector";
-import { javascriptInputWidget } from "./javascript-input";
-import { jsonInputWidget } from "./json-input";
-import { jsonPreviewWidget } from "./json-preview";
-import { numberInputWidget } from "./number-input";
-import { numberPreviewWidget } from "./number-preview";
-import { queueSelectorWidget } from "./queue-selector";
-import { registry } from "./registry";
-import { secretInputWidget } from "./secret-input";
-import { secretPreviewWidget } from "./secret-preview";
-import { sliderInputWidget } from "./slider-input";
-import { textInputWidget } from "./text-input";
-import { textPreviewWidget } from "./text-preview";
-import { webcamInputWidget } from "./webcam-input";
+} from "./selector/integration-selector";
+import { queueSelectorWidget } from "./selector/queue-selector";
 
 // Register all widgets
 const widgets = [
