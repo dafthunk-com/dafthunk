@@ -237,8 +237,8 @@ export function DateField({
   };
 
   return (
-    <div className={cn("relative flex gap-2", className)}>
-      <div className="flex flex-col gap-2">
+    <div className={cn("relative flex flex-col gap-2", className)}>
+      <div className="flex flex-col gap-1">
         <Label htmlFor="date-picker" className="text-xs">
           Date
         </Label>
@@ -249,7 +249,7 @@ export function DateField({
               id="date-picker"
               disabled={disabled}
               className={cn(
-                "w-32 h-9 justify-between font-normal",
+                "w-full h-9 justify-between font-normal",
                 !dateValue && "text-muted-foreground"
               )}
             >
@@ -271,7 +271,7 @@ export function DateField({
           </PopoverContent>
         </Popover>
       </div>
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-1">
         <Label htmlFor="time-picker" className="text-xs">
           Time
         </Label>
@@ -282,10 +282,10 @@ export function DateField({
           value={timeStr}
           onChange={handleTimeChange}
           disabled={disabled}
-          className="w-32 h-9 bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+          className="h-9 bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
         />
       </div>
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-1">
         <Label htmlFor="timezone-picker" className="text-xs">
           Timezone
         </Label>
@@ -294,7 +294,7 @@ export function DateField({
           onValueChange={handleOffsetChange}
           disabled={disabled}
         >
-          <SelectTrigger id="timezone-picker" className="w-28 h-9">
+          <SelectTrigger id="timezone-picker" className="w-full h-9">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
