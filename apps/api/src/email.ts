@@ -92,6 +92,10 @@ export async function handleIncomingEmail(
     `Found ${emailTriggersWithWorkflows.length} workflow(s) to trigger for email inbox ${emailIdOrHandle}`
   );
 
+  // Read raw email content once (stream can only be consumed once)
+  const rawContent = await streamToString(raw);
+  const headersRecord = headersToRecord(headers);
+
   // Process each workflow that listens to this email
   for (const { workflow } of emailTriggersWithWorkflows) {
     console.log(`Triggering workflow: ${workflow.id} (${workflow.name})`);
@@ -106,8 +110,8 @@ export async function handleIncomingEmail(
         deploymentStore,
         from,
         to,
-        headers,
-        raw,
+        headers: headersRecord,
+        rawContent,
         isDevMode,
       });
     } catch (error) {
@@ -130,7 +134,7 @@ async function triggerWorkflowForEmail({
   from,
   to,
   headers,
-  raw,
+  rawContent,
   isDevMode = false,
 }: {
   workflow: any;
@@ -141,8 +145,8 @@ async function triggerWorkflowForEmail({
   deploymentStore: DeploymentStore;
   from: string;
   to: string;
-  headers: Headers;
-  raw: ReadableStream<Uint8Array>;
+  headers: Record<string, string>;
+  rawContent: string;
   isDevMode?: boolean;
 }): Promise<void> {
   const db = createDatabase(env.DB);
@@ -230,8 +234,8 @@ async function triggerWorkflowForEmail({
       emailMessage: {
         from,
         to,
-        headers: headersToRecord(headers),
-        raw: await streamToString(raw),
+        headers,
+        raw: rawContent,
       },
     },
   });
