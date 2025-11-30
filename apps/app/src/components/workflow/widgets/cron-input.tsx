@@ -210,7 +210,7 @@ function CronExpressionWidget({
   );
 }
 
-export const cronExpressionWidget = createWidget({
+export const cronInputWidget = createWidget({
   component: CronExpressionWidget,
   nodeTypes: ["receive-scheduled-trigger"],
   inputField: "scheduleExpression",

@@ -251,7 +251,7 @@ function CanvasDoodleWidget({
   );
 }
 
-export const canvasDoodleWidget = createWidget({
+export const canvasInputWidget = createWidget({
   component: CanvasDoodleWidget,
   nodeTypes: ["canvas-doodle"],
   inputField: "value",

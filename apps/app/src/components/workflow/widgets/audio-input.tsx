@@ -185,7 +185,7 @@ function AudioRecorderWidget({
   );
 }
 
-export const audioRecorderWidget = createWidget({
+export const audioInputWidget = createWidget({
   component: AudioRecorderWidget,
   nodeTypes: ["audio-recorder"],
   inputField: "value",

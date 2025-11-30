@@ -220,7 +220,7 @@ function FileWidget({ value, onChange, readonly = false }: FileWidgetProps) {
   );
 }
 
-export const fileWidget = createWidget({
+export const fileInputWidget = createWidget({
   component: FileWidget,
   nodeTypes: ["blob", "file", "document", "image", "audio"],
   inputField: "value",

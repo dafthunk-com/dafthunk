@@ -5,24 +5,26 @@
  * Import this file once in your application to make all widgets available.
  */
 
-// Import all widgets
+// Input widgets
+import { audioInputWidget } from "./audio-input";
+// Preview widgets
 import { audioPreviewWidget } from "./audio-preview";
-import { audioRecorderWidget } from "./audio-recorder";
 import { blobPreviewWidget } from "./blob-preview";
 import { booleanPreviewWidget } from "./boolean-preview";
 import { buffergeometryPreviewWidget } from "./buffergeometry-preview";
-import { canvasDoodleWidget } from "./canvas-doodle";
-import { cronExpressionWidget } from "./cron-expression";
+import { canvasInputWidget } from "./canvas-input";
+import { cronInputWidget } from "./cron-input";
+// Selector widgets
 import { databaseSelectorWidget } from "./database-selector";
 import { datasetSelectorWidget } from "./dataset-selector";
 import { datePreviewWidget } from "./date-preview";
 import { documentPreviewWidget } from "./document-preview";
 import { emailSelectorWidget } from "./email-selector";
-import { fileWidget } from "./file";
+import { fileInputWidget } from "./file-input";
 import { geojsonPreviewWidget } from "./geojson-preview";
 import { gltfPreviewWidget } from "./gltf-preview";
 import { imagePreviewWidget } from "./image-preview";
-import { inputTextWidget } from "./input-text";
+// Integration widgets
 import {
   anthropicWidget,
   discordWidget,
@@ -34,35 +36,36 @@ import {
   openaiWidget,
   redditWidget,
 } from "./integration-selector";
-import { javascriptEditorWidget } from "./javascript-editor";
-import { jsonEditorWidget } from "./json-editor";
+import { javascriptInputWidget } from "./javascript-input";
+import { jsonInputWidget } from "./json-input";
 import { jsonPreviewWidget } from "./json-preview";
 import { numberInputWidget } from "./number-input";
 import { numberPreviewWidget } from "./number-preview";
 import { queueSelectorWidget } from "./queue-selector";
 import { registry } from "./registry";
 import { secretPreviewWidget } from "./secret-preview";
-import { sliderWidget } from "./slider";
-import { textAreaWidget } from "./text-area";
+import { sliderInputWidget } from "./slider-input";
+import { textInputWidget } from "./text-input";
 import { textPreviewWidget } from "./text-preview";
-import { webcamWidget } from "./webcam";
+import { textareaInputWidget } from "./textarea-input";
+import { webcamInputWidget } from "./webcam-input";
 
 // Register all widgets
 const widgets = [
-  // Simple widgets
-  sliderWidget,
-  textAreaWidget,
-  inputTextWidget,
+  // Input widgets
+  sliderInputWidget,
+  textareaInputWidget,
+  textInputWidget,
   numberInputWidget,
-  jsonEditorWidget,
-  javascriptEditorWidget,
-  datasetSelectorWidget,
-  databaseSelectorWidget,
-  queueSelectorWidget,
-  emailSelectorWidget,
-  cronExpressionWidget,
+  jsonInputWidget,
+  javascriptInputWidget,
+  cronInputWidget,
+  fileInputWidget,
+  webcamInputWidget,
+  audioInputWidget,
+  canvasInputWidget,
 
-  // Preview/Display widgets
+  // Preview widgets
   textPreviewWidget,
   numberPreviewWidget,
   booleanPreviewWidget,
@@ -77,11 +80,11 @@ const widgets = [
   jsonPreviewWidget,
   geojsonPreviewWidget,
 
-  // Complex widgets
-  webcamWidget,
-  audioRecorderWidget,
-  canvasDoodleWidget,
-  fileWidget,
+  // Selector widgets
+  datasetSelectorWidget,
+  databaseSelectorWidget,
+  queueSelectorWidget,
+  emailSelectorWidget,
 
   // Integration widgets
   googleMailWidget,

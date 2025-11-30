@@ -1,23 +1,25 @@
 import { useEffect, useRef, useState } from "react";
 
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/utils/utils";
 
 import type { BaseWidgetProps } from "./widget";
 import { createWidget, getInputValue, useDebouncedChange } from "./widget";
 
-interface InputTextWidgetProps extends BaseWidgetProps {
+interface TextAreaWidgetProps extends BaseWidgetProps {
   value: string;
   placeholder?: string;
+  rows: number;
 }
 
-function InputTextWidget({
+function TextAreaWidget({
   value,
   placeholder,
+  rows: _rows,
   onChange,
   className,
   readonly = false,
-}: InputTextWidgetProps) {
+}: TextAreaWidgetProps) {
   // Use local state for immediate UI updates
   const [localValue, setLocalValue] = useState(value || "");
   const isUserTypingRef = useRef(false);
@@ -33,7 +35,7 @@ function InputTextWidget({
     }
   }, [value]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     if (!readonly) {
       const newValue = e.target.value;
       isUserTypingRef.current = true;
@@ -49,23 +51,24 @@ function InputTextWidget({
 
   return (
     <div className={cn("p-2", className)}>
-      <Input
+      <Textarea
         value={localValue}
         onChange={handleChange}
         placeholder={placeholder || "Enter text..."}
-        className="text-xs leading-tight h-6 px-1.5"
+        className="min-h-[100px] text-xs leading-tight p-1.5"
         disabled={readonly}
       />
     </div>
   );
 }
 
-export const inputTextWidget = createWidget({
-  component: InputTextWidget,
-  nodeTypes: ["input-text"],
+export const textareaInputWidget = createWidget({
+  component: TextAreaWidget,
+  nodeTypes: ["text-area"],
   inputField: "value",
   extractConfig: (_nodeId, inputs) => ({
     value: getInputValue(inputs, "value", ""),
     placeholder: getInputValue(inputs, "placeholder"),
+    rows: getInputValue(inputs, "rows", 4),
   }),
 });

@@ -1,25 +1,23 @@
 import { useEffect, useRef, useState } from "react";
 
-import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/utils/utils";
 
 import type { BaseWidgetProps } from "./widget";
 import { createWidget, getInputValue, useDebouncedChange } from "./widget";
 
-interface TextAreaWidgetProps extends BaseWidgetProps {
+interface InputTextWidgetProps extends BaseWidgetProps {
   value: string;
   placeholder?: string;
-  rows: number;
 }
 
-function TextAreaWidget({
+function InputTextWidget({
   value,
   placeholder,
-  rows: _rows,
   onChange,
   className,
   readonly = false,
-}: TextAreaWidgetProps) {
+}: InputTextWidgetProps) {
   // Use local state for immediate UI updates
   const [localValue, setLocalValue] = useState(value || "");
   const isUserTypingRef = useRef(false);
@@ -35,7 +33,7 @@ function TextAreaWidget({
     }
   }, [value]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!readonly) {
       const newValue = e.target.value;
       isUserTypingRef.current = true;
@@ -51,24 +49,23 @@ function TextAreaWidget({
 
   return (
     <div className={cn("p-2", className)}>
-      <Textarea
+      <Input
         value={localValue}
         onChange={handleChange}
         placeholder={placeholder || "Enter text..."}
-        className="min-h-[100px] text-xs leading-tight p-1.5"
+        className="text-xs leading-tight h-6 px-1.5"
         disabled={readonly}
       />
     </div>
   );
 }
 
-export const textAreaWidget = createWidget({
-  component: TextAreaWidget,
-  nodeTypes: ["text-area"],
+export const textInputWidget = createWidget({
+  component: InputTextWidget,
+  nodeTypes: ["input-text"],
   inputField: "value",
   extractConfig: (_nodeId, inputs) => ({
     value: getInputValue(inputs, "value", ""),
     placeholder: getInputValue(inputs, "placeholder"),
-    rows: getInputValue(inputs, "rows", 4),
   }),
 });

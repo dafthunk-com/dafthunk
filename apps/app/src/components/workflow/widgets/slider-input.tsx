@@ -72,7 +72,7 @@ function SliderWidget({
 }
 
 // Widget descriptor - clean, declarative, self-contained
-export const sliderWidget = createWidget({
+export const sliderInputWidget = createWidget({
   component: SliderWidget,
   nodeTypes: ["slider"],
   inputField: "value",

@@ -1,4 +1,4 @@
-import { javascript } from "@codemirror/lang-javascript";
+import { json } from "@codemirror/lang-json";
 import {
   defaultHighlightStyle,
   syntaxHighlighting,
@@ -12,20 +12,21 @@ import { cn } from "@/utils/utils";
 import type { BaseWidgetProps } from "./widget";
 import { createWidget, getInputValue } from "./widget";
 
-interface JavaScriptEditorWidgetProps extends BaseWidgetProps {
+interface JsonEditorWidgetProps extends BaseWidgetProps {
   value: string;
 }
 
-function JavaScriptEditorWidget({
+function JsonEditorWidget({
   value,
   onChange,
   className,
   readonly = false,
-}: JavaScriptEditorWidgetProps) {
+}: JsonEditorWidgetProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const onChangeRef = useRef(onChange);
   const readonlyCompartment = useRef(new Compartment());
+  const isFormattingRef = useRef(false);
 
   // Keep onChange ref up to date
   useEffect(() => {
@@ -40,20 +41,70 @@ function JavaScriptEditorWidget({
       state: EditorState.create({
         doc: value,
         extensions: [
-          javascript(),
+          json(),
           syntaxHighlighting(defaultHighlightStyle),
           lineNumbers(),
           EditorView.lineWrapping,
           readonlyCompartment.current.of(EditorState.readOnly.of(readonly)),
           EditorView.updateListener.of((update) => {
-            if (update.docChanged) {
+            if (update.docChanged && !isFormattingRef.current) {
               const newValue = update.state.doc.toString();
 
               if (!newValue) {
-                onChangeRef.current("// Write your JavaScript code here");
+                onChangeRef.current("{}");
                 return;
               }
-              onChangeRef.current(newValue);
+
+              try {
+                const parsed = JSON.parse(newValue);
+                const formatted = JSON.stringify(parsed, null, 2);
+
+                if (formatted !== newValue) {
+                  // Format in place while preserving cursor position
+                  isFormattingRef.current = true;
+
+                  // Get current cursor position
+                  const cursorPos = update.state.selection.main.head;
+
+                  // Count non-whitespace characters before cursor to maintain relative position
+                  let contentChars = 0;
+                  for (let i = 0; i < cursorPos && i < newValue.length; i++) {
+                    if (!/\s/.test(newValue[i])) contentChars++;
+                  }
+
+                  // Find new cursor position with same number of content characters
+                  let newCursorPos = 0;
+                  let count = 0;
+                  for (let i = 0; i < formatted.length; i++) {
+                    if (!/\s/.test(formatted[i])) {
+                      count++;
+                      if (count >= contentChars) {
+                        newCursorPos = i + 1;
+                        break;
+                      }
+                    }
+                  }
+
+                  // Dispatch formatting change with preserved cursor
+                  update.view.dispatch({
+                    changes: {
+                      from: 0,
+                      to: newValue.length,
+                      insert: formatted,
+                    },
+                    selection: { anchor: newCursorPos },
+                  });
+
+                  // Reset flag after dispatch
+                  Promise.resolve().then(() => {
+                    isFormattingRef.current = false;
+                  });
+                }
+
+                onChangeRef.current(formatted);
+              } catch (_) {
+                onChangeRef.current(newValue);
+              }
             }
           }),
           EditorView.baseTheme({
@@ -109,9 +160,21 @@ function JavaScriptEditorWidget({
   // Update editor content when value prop changes externally
   useEffect(() => {
     const view = viewRef.current;
-    if (!view) return;
+    if (!view || isFormattingRef.current) return;
 
     const currentValue = view.state.doc.toString();
+
+    // Don't update if values are semantically equal (same JSON object)
+    try {
+      const currentParsed = JSON.parse(currentValue);
+      const newParsed = JSON.parse(value);
+      if (JSON.stringify(currentParsed) === JSON.stringify(newParsed)) {
+        return;
+      }
+    } catch {
+      // If either fails to parse, fall through to string comparison
+    }
+
     if (currentValue !== value) {
       view.dispatch({
         changes: { from: 0, to: currentValue.length, insert: value },
@@ -140,15 +203,11 @@ function JavaScriptEditorWidget({
   );
 }
 
-export const javascriptEditorWidget = createWidget({
-  component: JavaScriptEditorWidget,
-  nodeTypes: ["javascript-editor"],
-  inputField: "javascript",
+export const jsonInputWidget = createWidget({
+  component: JsonEditorWidget,
+  nodeTypes: ["json-editor"],
+  inputField: "json",
   extractConfig: (_nodeId, inputs) => ({
-    value: getInputValue(
-      inputs,
-      "javascript",
-      "// Write your JavaScript code here"
-    ),
+    value: getInputValue(inputs, "json", "{}"),
   }),
 });
