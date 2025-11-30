@@ -36,22 +36,22 @@ export function NodeDocsDialog({
           <X className="h-4 w-4" />
           <span className="sr-only">Close</span>
         </button>
-        <DialogHeader className="shrink-0 mb-2">
-          <DialogTitle className="flex items-start gap-3">
-            <div className="flex items-center gap-2 min-w-0">
-              <DynamicIcon
-                name={nodeType.icon as any}
-                className="size-4 text-blue-500"
-              />
-              <span className="truncate">{nodeType.name}</span>
-              <NodeTags
-                tags={nodeType.tags}
-                functionCalling={nodeType.functionCalling}
-              />
-            </div>
+        <DialogHeader className="shrink-0 pb-4">
+          <DialogTitle className="flex items-center gap-2 min-w-0">
+            <DynamicIcon
+              name={nodeType.icon as any}
+              className="size-4 text-blue-500"
+            />
+            <span className="truncate leading-normal">{nodeType.name}</span>
           </DialogTitle>
+          <div className="mt-2">
+            <NodeTags
+              tags={nodeType.tags}
+              functionCalling={nodeType.functionCalling}
+            />
+          </div>
           {nodeType.description && (
-            <DialogDescription className="text-base pb-2">
+            <DialogDescription className="text-base mt-3">
               {nodeType.description}
             </DialogDescription>
           )}
