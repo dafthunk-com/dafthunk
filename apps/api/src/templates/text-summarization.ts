@@ -9,18 +9,18 @@ export const textSummarizationTemplate: WorkflowTemplate = {
   description: "Summarize long text content using AI",
   category: "text-processing",
   type: "manual",
-  tags: ["ai", "text", "summarization"],
+  tags: ["text", "summarization", "ai"],
   nodes: [
     TextAreaNode.create({
       id: "input-1",
       position: { x: 100, y: 100 },
-      description: "Enter text to summarize",
-      inputs: { placeholder: "Enter text to summarize...", rows: 6 },
+      description: "Text to summarize",
+      inputs: { placeholder: "Enter text here...", rows: 4 },
     }),
     BartLargeCnnNode.create({
       id: "summarizer-1",
       position: { x: 500, y: 100 },
-      description: "AI summarization model",
+      description: "Summarize text",
     }),
   ],
   edges: [
