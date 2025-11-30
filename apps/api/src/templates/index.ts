@@ -1,5 +1,6 @@
 import type { WorkflowTemplate } from "@dafthunk/types";
 
+import { shape3dTemplate } from "./3d-shape";
 import { emailReplyTemplate } from "./email-reply";
 import { imageGenerationTemplate } from "./image-generation";
 import { textFormatterTemplate } from "./text-formatter";
@@ -14,6 +15,7 @@ export const workflowTemplates: WorkflowTemplate[] = [
   textTranslationTemplate,
   textFormatterTemplate,
   emailReplyTemplate,
+  shape3dTemplate,
 ];
 
 export function getTemplateById(id: string): WorkflowTemplate | undefined {

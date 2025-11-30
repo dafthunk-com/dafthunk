@@ -1,3 +1,4 @@
+import { CgsApplyMaterialNode } from "./3d/cgs-apply-material-node";
 import { CgsApplyTextureNode } from "./3d/cgs-apply-texture-node";
 import { CgsConeNode } from "./3d/cgs-cone-node";
 import { CgsCubeNode } from "./3d/cgs-cube-node";
@@ -748,6 +749,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
       this.registerImplementation(CgsXorNode);
 
       // CSG Material & Texture
+      this.registerImplementation(CgsApplyMaterialNode);
       this.registerImplementation(CgsApplyTextureNode);
 
       // CSG Transformations
