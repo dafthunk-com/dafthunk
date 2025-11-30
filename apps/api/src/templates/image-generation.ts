@@ -1,6 +1,7 @@
 import type { WorkflowTemplate } from "@dafthunk/types";
 
 import { StableDiffusionXLLightningNode } from "../nodes/image/stable-diffusion-xl-lightning-node";
+import { ImagePreviewNode } from "../nodes/preview/image-preview-node";
 import { TextAreaNode } from "../nodes/text/text-area-node";
 
 export const imageGenerationTemplate: WorkflowTemplate = {
@@ -22,6 +23,11 @@ export const imageGenerationTemplate: WorkflowTemplate = {
       position: { x: 500, y: 100 },
       description: "Generate image",
     }),
+    ImagePreviewNode.create({
+      id: "preview-1",
+      position: { x: 900, y: 100 },
+      description: "Preview image",
+    }),
   ],
   edges: [
     {
@@ -29,6 +35,12 @@ export const imageGenerationTemplate: WorkflowTemplate = {
       target: "generator-1",
       sourceOutput: "value",
       targetInput: "prompt",
+    },
+    {
+      source: "generator-1",
+      target: "preview-1",
+      sourceOutput: "image",
+      targetInput: "value",
     },
   ],
 };

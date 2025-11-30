@@ -4,17 +4,19 @@ import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../context";
 import { StableDiffusionXLLightningNode } from "../nodes/image/stable-diffusion-xl-lightning-node";
+import { ImagePreviewNode } from "../nodes/preview/image-preview-node";
 import { TextAreaNode } from "../nodes/text/text-area-node";
 import { imageGenerationTemplate } from "./image-generation";
 
 describe("Image Generation Template", () => {
   it("should have correct node types defined", () => {
-    expect(imageGenerationTemplate.nodes).toHaveLength(2);
-    expect(imageGenerationTemplate.edges).toHaveLength(1);
+    expect(imageGenerationTemplate.nodes).toHaveLength(3);
+    expect(imageGenerationTemplate.edges).toHaveLength(2);
 
     const nodeTypes = imageGenerationTemplate.nodes.map((n) => n.type);
     expect(nodeTypes).toContain("text-area");
     expect(nodeTypes).toContain("stable-diffusion-xl-lightning");
+    expect(nodeTypes).toContain("preview-image");
   });
 
   it("should execute all nodes in the template", async () => {
@@ -52,5 +54,20 @@ describe("Image Generation Template", () => {
     } as any);
     expect(generatorResult.status).toBe("completed");
     expect(generatorResult.outputs?.image).toBeDefined();
+
+    // Execute preview node
+    const previewNode = imageGenerationTemplate.nodes.find(
+      (n) => n.id === "preview-1"
+    )!;
+    const previewInstance = new ImagePreviewNode(previewNode);
+    const previewResult = await previewInstance.execute({
+      nodeId: previewNode.id,
+      inputs: {
+        value: generatorResult.outputs?.image,
+      },
+      env: env as Bindings,
+    } as any);
+    expect(previewResult.status).toBe("completed");
+    expect(previewResult.outputs?.displayValue).toBeDefined();
   });
 });

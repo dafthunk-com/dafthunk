@@ -337,7 +337,7 @@ import {
   JsonPreviewNode,
   NumberPreviewNode,
   SecretPreviewNode,
-  StringPreviewNode,
+  TextPreviewNode,
 } from "./preview";
 import { ReceiveQueueMessageNode } from "./queue/receive-queue-message-node";
 import { SendQueueBatchNode } from "./queue/send-queue-batch-node";
@@ -877,7 +877,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(ImagenNode);
 
     // Preview/Widget nodes - always register (for displaying all parameter types)
-    this.registerImplementation(StringPreviewNode);
+    this.registerImplementation(TextPreviewNode);
     this.registerImplementation(NumberPreviewNode);
     this.registerImplementation(BooleanPreviewNode);
     this.registerImplementation(DatePreviewNode);

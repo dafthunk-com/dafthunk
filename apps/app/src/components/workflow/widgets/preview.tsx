@@ -32,8 +32,8 @@ function PreviewWidget({
   return (
     <div
       className={cn(
-        "bg-muted/30 flex items-center justify-center",
-        hasValue ? "h-full" : "min-h-44",
+        "flex items-center justify-center",
+        hasValue ? "h-full" : "min-h-44 bg-muted/30",
         className
       )}
     >
@@ -63,7 +63,6 @@ function PreviewWidget({
 export const previewWidget = createWidget({
   component: PreviewWidget,
   nodeTypes: [
-    "preview-string",
     "preview-number",
     "preview-boolean",
     "preview-date",

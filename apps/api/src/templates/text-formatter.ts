@@ -1,5 +1,6 @@
 import type { WorkflowTemplate } from "@dafthunk/types";
 
+import { TextPreviewNode } from "../nodes/preview/text-preview-node";
 import { SingleVariableStringTemplateNode } from "../nodes/text/single-variable-string-template-node";
 import { TextAreaNode } from "../nodes/text/text-area-node";
 
@@ -13,15 +14,21 @@ export const textFormatterTemplate: WorkflowTemplate = {
   nodes: [
     TextAreaNode.create({
       id: "input-1",
-      position: { x: 100, y: 100 },
-      description: "Text to format",
-      inputs: { placeholder: "Enter text here...", rows: 4 },
+      position: { x: -43, y: 216.5 },
+      inputs: { value: "World", placeholder: "Enter text here...", rows: 4 },
+    }),
+    TextAreaNode.create({
+      id: "text-area-template",
+      position: { x: -43.75, y: -52 },
+      inputs: { value: "Hello, ${variable}!", rows: 4 },
     }),
     SingleVariableStringTemplateNode.create({
       id: "formatter-1",
-      position: { x: 500, y: 100 },
-      description: "Format text",
-      inputs: { template: "Formatted: ${variable}" },
+      position: { x: 298, y: 124.5 },
+    }),
+    TextPreviewNode.create({
+      id: "preview-text-1",
+      position: { x: 650.13, y: 50 },
     }),
   ],
   edges: [
@@ -30,6 +37,18 @@ export const textFormatterTemplate: WorkflowTemplate = {
       target: "formatter-1",
       sourceOutput: "value",
       targetInput: "variable",
+    },
+    {
+      source: "text-area-template",
+      target: "formatter-1",
+      sourceOutput: "value",
+      targetInput: "template",
+    },
+    {
+      source: "formatter-1",
+      target: "preview-text-1",
+      sourceOutput: "result",
+      targetInput: "value",
     },
   ],
 };

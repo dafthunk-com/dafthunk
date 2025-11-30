@@ -30,6 +30,7 @@ import { jsonEditorWidget } from "./json-editor";
 import { numberInputWidget } from "./number-input";
 import { previewWidget } from "./preview";
 import { queueSelectorWidget } from "./queue-selector";
+import { textPreviewWidget } from "./text-preview";
 import { registry } from "./registry";
 import { sliderWidget } from "./slider";
 import { textAreaWidget } from "./text-area";
@@ -52,6 +53,7 @@ const widgets = [
 
   // Preview/Display widgets
   previewWidget,
+  textPreviewWidget,
 
   // Complex widgets
   webcamWidget,

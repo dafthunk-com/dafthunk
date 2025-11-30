@@ -11,4 +11,4 @@ export { ImagePreviewNode } from "./image-preview-node";
 export { JsonPreviewNode } from "./json-preview-node";
 export { NumberPreviewNode } from "./number-preview-node";
 export { SecretPreviewNode } from "./secret-preview-node";
-export { StringPreviewNode } from "./string-preview-node";
+export { TextPreviewNode } from "./text-preview-node";

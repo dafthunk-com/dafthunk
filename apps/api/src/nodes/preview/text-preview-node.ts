@@ -4,25 +4,25 @@ import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
 
 /**
- * StringPreview node implementation
- * This node displays string data and persists the value for read-only execution views
+ * TextPreview node implementation
+ * This node displays text data and persists the value for read-only execution views
  */
-export class StringPreviewNode extends ExecutableNode {
+export class TextPreviewNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "preview-string",
-    name: "String Preview",
-    type: "preview-string",
-    description: "Display and preview string data",
-    tags: ["Widget", "Preview", "String"],
+    id: "preview-text",
+    name: "Text Preview",
+    type: "preview-text",
+    description: "Display and preview text data",
+    tags: ["Widget", "Preview", "Text"],
     icon: "text",
     documentation:
-      "This node displays string data in the workflow. The value is persisted for viewing in read-only execution and deployed workflow views.",
+      "This node displays text data in the workflow. The value is persisted for viewing in read-only execution and deployed workflow views.",
     inlinable: true,
     inputs: [
       {
         name: "value",
         type: "string",
-        description: "String value to display",
+        description: "Text value to display",
         required: true,
       },
     ],
