@@ -17,7 +17,8 @@ export const imageGenerationTemplate: WorkflowTemplate = {
       name: "Image Prompt",
       position: { x: 100, y: 100 },
       inputs: {
-        value: "A majestic mountain landscape at sunset with vibrant orange and purple colors",
+        value:
+          "A majestic mountain landscape at sunset with vibrant orange and purple colors",
         placeholder: "Enter text here...",
         rows: 4,
       },

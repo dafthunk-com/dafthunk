@@ -17,7 +17,8 @@ export const textTranslationTemplate: WorkflowTemplate = {
       name: "Text to Translate",
       position: { x: 100, y: 0 },
       inputs: {
-        value: "Hello, how are you today? I hope you are having a wonderful day.",
+        value:
+          "Hello, how are you today? I hope you are having a wonderful day.",
         placeholder: "Enter text here...",
         rows: 4,
       },

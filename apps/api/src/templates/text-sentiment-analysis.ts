@@ -17,7 +17,8 @@ export const textSentimentAnalysisTemplate: WorkflowTemplate = {
       name: "Text to Analyze",
       position: { x: 100, y: 100 },
       inputs: {
-        value: "I absolutely loved this product! It exceeded all my expectations.",
+        value:
+          "I absolutely loved this product! It exceeded all my expectations.",
         placeholder: "Enter text here...",
         rows: 4,
       },
