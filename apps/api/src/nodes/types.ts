@@ -166,6 +166,7 @@ export interface NodeContext {
  */
 export interface CreateNodeOptions {
   id: string;
+  name?: string;
   position: { x: number; y: number };
   description?: string;
   inputs?: Record<string, unknown>;
@@ -198,7 +199,7 @@ export abstract class ExecutableNode {
 
     return {
       id: options.id,
-      name: nodeType.name,
+      name: options.name ?? nodeType.name,
       type: nodeType.type,
       description: options.description ?? nodeType.description,
       icon: nodeType.icon,

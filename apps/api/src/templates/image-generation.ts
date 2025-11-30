@@ -13,9 +13,9 @@ export const imageGenerationTemplate: WorkflowTemplate = {
   tags: ["image", "generation", "ai"],
   nodes: [
     TextInputNode.create({
-      id: "input-1",
+      id: "image-prompt",
+      name: "Image Prompt",
       position: { x: 100, y: 100 },
-      description: "Image prompt",
       inputs: {
         value: "A majestic mountain landscape at sunset with vibrant orange and purple colors",
         placeholder: "Enter text here...",
@@ -23,26 +23,26 @@ export const imageGenerationTemplate: WorkflowTemplate = {
       },
     }),
     StableDiffusionXLLightningNode.create({
-      id: "generator-1",
+      id: "image-generator",
+      name: "Image Generator",
       position: { x: 500, y: 100 },
-      description: "Generate image",
     }),
     ImagePreviewNode.create({
-      id: "preview-1",
+      id: "generated-image-preview",
+      name: "Generated Image",
       position: { x: 900, y: 100 },
-      description: "Preview image",
     }),
   ],
   edges: [
     {
-      source: "input-1",
-      target: "generator-1",
+      source: "image-prompt",
+      target: "image-generator",
       sourceOutput: "value",
       targetInput: "prompt",
     },
     {
-      source: "generator-1",
-      target: "preview-1",
+      source: "image-generator",
+      target: "generated-image-preview",
       sourceOutput: "image",
       targetInput: "value",
     },

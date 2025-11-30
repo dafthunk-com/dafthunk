@@ -4,17 +4,19 @@ import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../context";
 import { TextInputNode } from "../nodes/input/text-input-node";
+import { NumberPreviewNode } from "../nodes/preview/number-preview-node";
 import { DistilbertSst2Int8Node } from "../nodes/text/distilbert-sst-2-int8-node";
 import { textSentimentAnalysisTemplate } from "./text-sentiment-analysis";
 
 describe("Text Sentiment Analysis Template", () => {
   it("should have correct node types defined", () => {
-    expect(textSentimentAnalysisTemplate.nodes).toHaveLength(2);
-    expect(textSentimentAnalysisTemplate.edges).toHaveLength(1);
+    expect(textSentimentAnalysisTemplate.nodes).toHaveLength(4);
+    expect(textSentimentAnalysisTemplate.edges).toHaveLength(3);
 
     const nodeTypes = textSentimentAnalysisTemplate.nodes.map((n) => n.type);
     expect(nodeTypes).toContain("text-input");
     expect(nodeTypes).toContain("distilbert-sst-2-int8");
+    expect(nodeTypes).toContain("preview-number");
   });
 
   it("should execute all nodes in the template", async () => {
@@ -55,5 +57,35 @@ describe("Text Sentiment Analysis Template", () => {
     expect(analyzerResult.outputs?.negative).toBeDefined();
     expect(typeof analyzerResult.outputs?.positive).toBe("number");
     expect(typeof analyzerResult.outputs?.negative).toBe("number");
+
+    // Execute positive preview node
+    const positivePreviewNode = textSentimentAnalysisTemplate.nodes.find(
+      (n) => n.id === "preview-positive"
+    )!;
+    const positivePreviewInstance = new NumberPreviewNode(positivePreviewNode);
+    const positivePreviewResult = await positivePreviewInstance.execute({
+      nodeId: positivePreviewNode.id,
+      inputs: {
+        value: analyzerResult.outputs?.positive,
+      },
+      env: env as Bindings,
+    } as any);
+    expect(positivePreviewResult.status).toBe("completed");
+    expect(positivePreviewResult.outputs?.displayValue).toBeDefined();
+
+    // Execute negative preview node
+    const negativePreviewNode = textSentimentAnalysisTemplate.nodes.find(
+      (n) => n.id === "preview-negative"
+    )!;
+    const negativePreviewInstance = new NumberPreviewNode(negativePreviewNode);
+    const negativePreviewResult = await negativePreviewInstance.execute({
+      nodeId: negativePreviewNode.id,
+      inputs: {
+        value: analyzerResult.outputs?.negative,
+      },
+      env: env as Bindings,
+    } as any);
+    expect(negativePreviewResult.status).toBe("completed");
+    expect(negativePreviewResult.outputs?.displayValue).toBeDefined();
   });
 });

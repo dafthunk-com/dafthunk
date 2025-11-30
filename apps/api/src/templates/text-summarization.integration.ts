@@ -4,17 +4,19 @@ import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../context";
 import { TextInputNode } from "../nodes/input/text-input-node";
+import { TextPreviewNode } from "../nodes/preview/text-preview-node";
 import { BartLargeCnnNode } from "../nodes/text/bart-large-cnn-node";
 import { textSummarizationTemplate } from "./text-summarization";
 
 describe("Text Summarization Template", () => {
   it("should have correct node types defined", () => {
-    expect(textSummarizationTemplate.nodes).toHaveLength(2);
-    expect(textSummarizationTemplate.edges).toHaveLength(1);
+    expect(textSummarizationTemplate.nodes).toHaveLength(3);
+    expect(textSummarizationTemplate.edges).toHaveLength(2);
 
     const nodeTypes = textSummarizationTemplate.nodes.map((n) => n.type);
     expect(nodeTypes).toContain("text-input");
     expect(nodeTypes).toContain("bart-large-cnn");
+    expect(nodeTypes).toContain("preview-text");
   });
 
   it("should execute all nodes in the template", async () => {
@@ -58,5 +60,20 @@ describe("Text Summarization Template", () => {
     expect(summarizerResult.outputs?.summary.length).toBeLessThan(
       inputText.length
     );
+
+    // Execute preview node
+    const previewNode = textSummarizationTemplate.nodes.find(
+      (n) => n.id === "preview-1"
+    )!;
+    const previewInstance = new TextPreviewNode(previewNode);
+    const previewResult = await previewInstance.execute({
+      nodeId: previewNode.id,
+      inputs: {
+        value: summarizerResult.outputs?.summary,
+      },
+      env: env as Bindings,
+    } as any);
+    expect(previewResult.status).toBe("completed");
+    expect(previewResult.outputs?.displayValue).toBeDefined();
   });
 });
