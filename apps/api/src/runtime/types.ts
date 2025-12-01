@@ -165,7 +165,9 @@ function inferSkipReason(
     }
     // Upstream was skipped - check if it was due to failure (cascading)
     if (state.skippedNodes.includes(edge.source)) {
-      if (inferSkipReason(workflow, state, edge.source) === "upstream_failure") {
+      if (
+        inferSkipReason(workflow, state, edge.source) === "upstream_failure"
+      ) {
         return "upstream_failure";
       }
     }
@@ -182,7 +184,9 @@ function inferSkipReason(
     }
     // Upstream was conditionally skipped (cascading conditional skip)
     if (state.skippedNodes.includes(edge.source)) {
-      if (inferSkipReason(workflow, state, edge.source) === "conditional_branch") {
+      if (
+        inferSkipReason(workflow, state, edge.source) === "conditional_branch"
+      ) {
         return "conditional_branch";
       }
     }

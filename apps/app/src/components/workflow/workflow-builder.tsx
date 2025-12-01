@@ -266,12 +266,15 @@ export function WorkflowBuilder({
       // Store the execute callback for later use when dialog is submitted
       executeRef.current = execute;
 
-      // Also prepare the execution callback and store it in the ref for WebSocket execution
-      resetNodeStates("executing");
-      setWorkflowStatus("executing");
-
+      // Create the execution callback that will be used when the dialog is submitted
+      // Note: We don't set status to "executing" here - that happens when the dialog is submitted
       const executionCallback = (execution: WorkflowExecution) => {
+        // Set status to executing on first callback if not already set
         setWorkflowStatus((currentStatus) => {
+          if (currentStatus === "idle" || currentStatus === "cancelled") {
+            resetNodeStates("executing");
+            return "executing";
+          }
           if (
             currentStatus === "executing" &&
             execution.status === "submitted"
