@@ -76,11 +76,6 @@ integrationRoutes.get("/providers", async (c) => {
     availableProviders.push("github");
   }
 
-  // API key providers are always available (users can provide their own keys)
-  availableProviders.push("openai");
-  availableProviders.push("anthropic");
-  availableProviders.push("gemini");
-
   return c.json({ providers: availableProviders });
 });
 
@@ -124,9 +119,9 @@ integrationRoutes.post(
         "google-mail",
         "google-calendar",
         "discord",
-        "openai",
-        "anthropic",
-        "gemini",
+        "reddit",
+        "linkedin",
+        "github",
       ]),
       token: z.string().min(1, "Token is required"),
       refreshToken: z.string().optional(),

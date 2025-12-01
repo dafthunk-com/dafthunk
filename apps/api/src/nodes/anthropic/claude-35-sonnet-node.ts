@@ -1,6 +1,7 @@
 import Anthropic, { APIError } from "@anthropic-ai/sdk";
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
+import { getAnthropicConfig } from "../../utils/ai-gateway";
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
 
@@ -20,13 +21,6 @@ export class Claude35SonnetNode extends ExecutableNode {
       "This node uses Anthropic's Claude 3.5 Sonnet model with excellent performance/cost balance.",
     usage: 25,
     inputs: [
-      {
-        name: "integrationId",
-        type: "string",
-        description: "Anthropic integration to use",
-        hidden: true,
-        required: false,
-      },
       {
         name: "instructions",
         type: "string",
@@ -52,35 +46,17 @@ export class Claude35SonnetNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const { integrationId, instructions, input } = context.inputs;
-
-      // Get API key from integration
-      let anthropicApiKey: string | undefined;
-
-      if (integrationId && typeof integrationId === "string") {
-        try {
-          const integration = await context.getIntegration(integrationId);
-          if (integration.provider === "anthropic") {
-            anthropicApiKey = integration.token;
-          }
-        } catch {
-          // Integration not found, will fall back to env vars or error below
-        }
-      }
-
-      if (!anthropicApiKey) {
-        return this.createErrorResult(
-          "Anthropic integration is required. Please connect an Anthropic integration."
-        );
-      }
+      const { instructions, input } = context.inputs;
 
       if (!input) {
         return this.createErrorResult("Input is required");
       }
 
+      // API key is injected by AI Gateway via BYOK (Bring Your Own Keys)
       const client = new Anthropic({
-        apiKey: anthropicApiKey,
+        apiKey: "gateway-managed",
         timeout: 60000,
+        ...getAnthropicConfig(context.env),
       });
 
       const response = await client.messages.create({

@@ -45,14 +45,11 @@ import { databaseSelectorWidget } from "./selector/database-selector";
 import { datasetSelectorWidget } from "./selector/dataset-selector";
 import { emailSelectorWidget } from "./selector/email-selector";
 import {
-  anthropicWidget,
   discordWidget,
-  geminiWidget,
   githubWidget,
   googleCalendarWidget,
   googleMailWidget,
   linkedInWidget,
-  openaiWidget,
   redditWidget,
 } from "./selector/integration-selector";
 import { queueSelectorWidget } from "./selector/queue-selector";
@@ -110,9 +107,6 @@ const widgets = [
   redditWidget,
   linkedInWidget,
   githubWidget,
-  openaiWidget,
-  anthropicWidget,
-  geminiWidget,
 ];
 
 widgets.forEach((widget) => registry.register(widget));

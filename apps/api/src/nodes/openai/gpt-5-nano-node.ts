@@ -1,6 +1,7 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 import OpenAI from "openai";
 
+import { getOpenAIConfig } from "../../utils/ai-gateway";
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
 
@@ -20,13 +21,6 @@ export class Gpt5NanoNode extends ExecutableNode {
       "This node uses OpenAI's GPT-5 Nano model, an ultra-lightweight, high-speed model.",
     usage: 5,
     inputs: [
-      {
-        name: "integrationId",
-        type: "string",
-        description: "OpenAI integration to use",
-        hidden: true,
-        required: false,
-      },
       {
         name: "instructions",
         type: "string",
@@ -52,35 +46,17 @@ export class Gpt5NanoNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const { integrationId, instructions, input } = context.inputs;
-
-      // Get API key from integration
-      let openaiApiKey: string | undefined;
-
-      if (integrationId && typeof integrationId === "string") {
-        try {
-          const integration = await context.getIntegration(integrationId);
-          if (integration.provider === "openai") {
-            openaiApiKey = integration.token;
-          }
-        } catch {
-          // Integration not found, will fall back to env vars or error below
-        }
-      }
-
-      if (!openaiApiKey) {
-        return this.createErrorResult(
-          "OpenAI integration is required. Please connect an OpenAI integration."
-        );
-      }
+      const { instructions, input } = context.inputs;
 
       if (!input) {
         return this.createErrorResult("Input is required");
       }
 
+      // API key is injected by AI Gateway via BYOK (Bring Your Own Keys)
       const client = new OpenAI({
-        apiKey: openaiApiKey,
+        apiKey: "gateway-managed",
         timeout: 60000,
+        ...getOpenAIConfig(context.env),
       });
 
       const completion = await client.chat.completions.create({

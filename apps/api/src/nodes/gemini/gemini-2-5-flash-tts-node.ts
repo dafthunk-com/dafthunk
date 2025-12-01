@@ -1,6 +1,7 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 import { GoogleGenAI } from "@google/genai";
 
+import { getGoogleAIConfig } from "../../utils/ai-gateway";
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
 
@@ -68,13 +69,6 @@ export class Gemini25FlashTtsNode extends ExecutableNode {
     usage: 20,
     inputs: [
       {
-        name: "integrationId",
-        type: "string",
-        description: "Gemini integration to use",
-        hidden: true,
-        required: false,
-      },
-      {
         name: "text",
         type: "string",
         description:
@@ -134,40 +128,17 @@ export class Gemini25FlashTtsNode extends ExecutableNode {
     let response: any;
 
     try {
-      const {
-        integrationId,
-        text,
-        voice_name,
-        multi_speaker_config,
-        thinking_budget,
-      } = context.inputs;
-
-      // Get API key from integration
-      let geminiApiKey: string | undefined;
-
-      if (integrationId && typeof integrationId === "string") {
-        try {
-          const integration = await context.getIntegration(integrationId);
-          if (integration.provider === "gemini") {
-            geminiApiKey = integration.token;
-          }
-        } catch {
-          // Integration not found, will fall back to env vars or error below
-        }
-      }
-
-      if (!geminiApiKey) {
-        return this.createErrorResult(
-          "Gemini integration is required. Please connect a Gemini integration."
-        );
-      }
+      const { text, voice_name, multi_speaker_config, thinking_budget } =
+        context.inputs;
 
       if (!text) {
         return this.createErrorResult("Text is required");
       }
 
+      // API key is injected by AI Gateway via BYOK (Bring Your Own Keys)
       ai = new GoogleGenAI({
-        apiKey: geminiApiKey,
+        apiKey: "gateway-managed",
+        ...getGoogleAIConfig(context.env),
       });
 
       const config: any = {

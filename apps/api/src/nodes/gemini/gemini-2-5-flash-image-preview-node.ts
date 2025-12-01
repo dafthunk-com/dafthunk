@@ -1,6 +1,7 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 import { GoogleGenAI } from "@google/genai";
 
+import { getGoogleAIConfig } from "../../utils/ai-gateway";
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
 
@@ -20,13 +21,6 @@ export class Gemini25FlashImagePreviewNode extends ExecutableNode {
       "This node uses Google's Gemini 2.5 Flash Image Preview model to generate images from text prompts and optional input images.",
     usage: 25,
     inputs: [
-      {
-        name: "integrationId",
-        type: "string",
-        description: "Gemini integration to use",
-        hidden: true,
-        required: false,
-      },
       {
         name: "prompt",
         type: "string",
@@ -108,35 +102,17 @@ export class Gemini25FlashImagePreviewNode extends ExecutableNode {
     let response: any;
 
     try {
-      const { integrationId, prompt, image1, image2, image3, thinking_budget } =
+      const { prompt, image1, image2, image3, thinking_budget } =
         context.inputs;
-
-      // Get API key from integration
-      let geminiApiKey: string | undefined;
-
-      if (integrationId && typeof integrationId === "string") {
-        try {
-          const integration = await context.getIntegration(integrationId);
-          if (integration.provider === "gemini") {
-            geminiApiKey = integration.token;
-          }
-        } catch {
-          // Integration not found, will fall back to env vars or error below
-        }
-      }
-
-      if (!geminiApiKey) {
-        return this.createErrorResult(
-          "Gemini integration is required. Please connect a Gemini integration."
-        );
-      }
 
       if (!prompt) {
         return this.createErrorResult("Prompt is required");
       }
 
+      // API key is injected by AI Gateway via BYOK (Bring Your Own Keys)
       ai = new GoogleGenAI({
-        apiKey: geminiApiKey,
+        apiKey: "gateway-managed",
+        ...getGoogleAIConfig(context.env),
       });
 
       const config: any = {};

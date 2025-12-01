@@ -150,9 +150,6 @@ export interface NodeContext {
     AWS_SECRET_ACCESS_KEY?: string;
     AWS_REGION?: string;
     SES_DEFAULT_FROM?: string;
-    OPENAI_API_KEY?: string;
-    ANTHROPIC_API_KEY?: string;
-    GEMINI_API_KEY?: string;
     HUGGINGFACE_API_KEY?: string;
   };
 }

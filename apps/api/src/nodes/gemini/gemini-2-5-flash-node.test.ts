@@ -44,40 +44,14 @@ describe("Gemini25FlashNode", () => {
     nodeId,
   } as unknown as Node);
 
-  const createContext = (
-    inputs: Record<string, any>,
-    includeIntegration = true
-  ): NodeContext =>
+  const createContext = (inputs: Record<string, any>): NodeContext =>
     ({
       nodeId: "test",
-      inputs: {
-        integrationId: includeIntegration ? "test-integration" : undefined,
-        ...inputs,
-      },
+      inputs,
       workflowId: "test",
       organizationId: "test-org",
       mode: "dev" as const,
-      integrations: includeIntegration
-        ? {
-            "test-integration": {
-              id: "test-integration",
-              name: "Test Gemini",
-              provider: "gemini",
-              token: "test-api-key",
-            },
-          }
-        : undefined,
-      getIntegration: async (id: string) => {
-        if (includeIntegration && id === "test-integration") {
-          return {
-            id: "test-integration",
-            name: "Test Gemini",
-            provider: "gemini",
-            token: "test-api-key",
-          };
-        }
-        throw new Error(`Integration ${id} not found`);
-      },
+      secrets: {},
       env: {
         DB: {} as any,
         AI: {} as any,
@@ -86,22 +60,9 @@ describe("Gemini25FlashNode", () => {
         DATASETS: {} as any,
         DATASETS_AUTORAG: "",
         EMAIL_DOMAIN: "",
-        CLOUDFLARE_ACCOUNT_ID: "",
-        CLOUDFLARE_API_TOKEN: "",
-        CLOUDFLARE_AI_GATEWAY_ID: "",
-        TWILIO_ACCOUNT_SID: "",
-        TWILIO_AUTH_TOKEN: "",
-        TWILIO_PHONE_NUMBER: "",
-        SENDGRID_API_KEY: "",
-        SENDGRID_DEFAULT_FROM: "",
-        RESEND_API_KEY: "",
-        RESEND_DEFAULT_FROM: "",
-        AWS_ACCESS_KEY_ID: "",
-        AWS_SECRET_ACCESS_KEY: "",
-        AWS_REGION: "",
-        SES_DEFAULT_FROM: "",
-        OPENAI_API_KEY: "",
-        ANTHROPIC_API_KEY: "",
+        CLOUDFLARE_ACCOUNT_ID: "test-account",
+        CLOUDFLARE_API_TOKEN: "test-token",
+        CLOUDFLARE_AI_GATEWAY_ID: "test-gateway",
       },
     }) as unknown as NodeContext;
 

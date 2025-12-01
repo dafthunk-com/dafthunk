@@ -69,9 +69,6 @@ export const IntegrationProvider = {
   GITHUB: "github",
   REDDIT: "reddit",
   LINKEDIN: "linkedin",
-  OPENAI: "openai",
-  ANTHROPIC: "anthropic",
-  GEMINI: "gemini",
 } as const;
 
 export type IntegrationProviderType =

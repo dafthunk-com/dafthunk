@@ -1,6 +1,7 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 import { GoogleGenAI } from "@google/genai";
 
+import { getGoogleAIConfig } from "../../utils/ai-gateway";
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
 
@@ -21,13 +22,6 @@ export class Gemini25FlashAudioUnderstandingNode extends ExecutableNode {
       "This node uses Google's Gemini 2.5 Flash model to analyze and understand audio content.",
     usage: 15,
     inputs: [
-      {
-        name: "integrationId",
-        type: "string",
-        description: "Gemini integration to use",
-        hidden: true,
-        required: false,
-      },
       {
         name: "audio",
         type: "audio",
@@ -71,27 +65,7 @@ export class Gemini25FlashAudioUnderstandingNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const { integrationId, audio, prompt, thinking_budget } = context.inputs;
-
-      // Get API key from integration
-      let geminiApiKey: string | undefined;
-
-      if (integrationId && typeof integrationId === "string") {
-        try {
-          const integration = await context.getIntegration(integrationId);
-          if (integration.provider === "gemini") {
-            geminiApiKey = integration.token;
-          }
-        } catch {
-          // Integration not found, will fall back to env vars or error below
-        }
-      }
-
-      if (!geminiApiKey) {
-        return this.createErrorResult(
-          "Gemini integration is required. Please connect a Gemini integration."
-        );
-      }
+      const { audio, prompt, thinking_budget } = context.inputs;
 
       if (!audio) {
         return this.createErrorResult("Audio input is required");
@@ -101,8 +75,10 @@ export class Gemini25FlashAudioUnderstandingNode extends ExecutableNode {
         return this.createErrorResult("Prompt is required");
       }
 
+      // API key is injected by AI Gateway via BYOK (Bring Your Own Keys)
       const ai = new GoogleGenAI({
-        apiKey: geminiApiKey,
+        apiKey: "gateway-managed",
+        ...getGoogleAIConfig(context.env),
       });
 
       const config: any = {};

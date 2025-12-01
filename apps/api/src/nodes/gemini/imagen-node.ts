@@ -1,6 +1,7 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 import { GoogleGenAI } from "@google/genai";
 
+import { getGoogleAIConfig } from "../../utils/ai-gateway";
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
 
@@ -21,13 +22,6 @@ export class ImagenNode extends ExecutableNode {
       "This node uses Google's Imagen model to generate high-fidelity images from text prompts.",
     usage: 50,
     inputs: [
-      {
-        name: "integrationId",
-        type: "string",
-        description: "Gemini integration to use",
-        hidden: true,
-        required: false,
-      },
       {
         name: "prompt",
         type: "string",
@@ -88,34 +82,8 @@ export class ImagenNode extends ExecutableNode {
     let response: any;
 
     try {
-      const {
-        integrationId,
-        prompt,
-        aspectRatio,
-        sampleImageSize,
-        personGeneration,
-        model,
-      } = context.inputs;
-
-      // Get API key from integration
-      let geminiApiKey: string | undefined;
-
-      if (integrationId && typeof integrationId === "string") {
-        try {
-          const integration = await context.getIntegration(integrationId);
-          if (integration.provider === "gemini") {
-            geminiApiKey = integration.token;
-          }
-        } catch {
-          // Integration not found, will fall back to env vars or error below
-        }
-      }
-
-      if (!geminiApiKey) {
-        return this.createErrorResult(
-          "Gemini integration is required. Please connect a Gemini integration."
-        );
-      }
+      const { prompt, aspectRatio, sampleImageSize, personGeneration, model } =
+        context.inputs;
 
       if (!prompt) {
         return this.createErrorResult("Prompt is required");
@@ -145,8 +113,10 @@ export class ImagenNode extends ExecutableNode {
         );
       }
 
+      // API key is injected by AI Gateway via BYOK (Bring Your Own Keys)
       ai = new GoogleGenAI({
-        apiKey: geminiApiKey,
+        apiKey: "gateway-managed",
+        ...getGoogleAIConfig(context.env),
       });
 
       // Build configuration object

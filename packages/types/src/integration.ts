@@ -9,10 +9,7 @@ export type IntegrationProvider =
   | "discord"
   | "reddit"
   | "linkedin"
-  | "github"
-  | "openai"
-  | "anthropic"
-  | "gemini";
+  | "github";
 
 // Integration status types
 export type IntegrationStatus = "active" | "expired" | "revoked";
@@ -137,23 +134,5 @@ export const OAUTH_PROVIDERS: OAuthProvider[] = [
       "Connect your GitHub account to manage repositories, issues, and pull requests",
     supportsOAuth: true,
     oauthEndpoint: "/oauth/github/connect",
-  },
-  {
-    id: "openai",
-    name: "OpenAI",
-    description: "Connect to OpenAI API with your API key",
-    supportsOAuth: false,
-  },
-  {
-    id: "anthropic",
-    name: "Anthropic",
-    description: "Connect to Anthropic Claude API with your API key",
-    supportsOAuth: false,
-  },
-  {
-    id: "gemini",
-    name: "Google Gemini",
-    description: "Connect to Google Gemini API with your API key",
-    supportsOAuth: false,
   },
 ];

@@ -183,30 +183,3 @@ export const githubWidget = createIntegrationWidget("github", [
   "list-user-repositories-github",
   "list-organization-repositories-github",
 ]);
-
-export const openaiWidget = createIntegrationWidget("openai", [
-  "gpt-41",
-  "gpt-5",
-  "gpt-5-mini",
-  "gpt-5-nano",
-]);
-
-export const anthropicWidget = createIntegrationWidget("anthropic", [
-  "claude-3-opus",
-  "claude-35-haiku",
-  "claude-35-sonnet",
-  "claude-37-sonnet",
-  "claude-opus-4",
-  "claude-opus-41",
-  "claude-sonnet-4",
-]);
-
-export const geminiWidget = createIntegrationWidget("gemini", [
-  "gemini-2-5-flash",
-  "gemini-2-5-pro",
-  "gemini-2-5-flash-image-preview",
-  "gemini-2-5-flash-audio-understanding",
-  "gemini-2-5-flash-image-understanding",
-  "gemini-2-5-flash-tts",
-  "imagen",
-]);
