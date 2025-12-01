@@ -93,13 +93,15 @@ export function GeoJSONField({
   // Disabled state without value - show placeholder message
   if (disabled && !hasValue) {
     return (
-      <div
-        className={cn(
-          "text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border",
-          className
-        )}
-      >
-        {connected ? "Connected" : "No GeoJSON"}
+      <div className={cn("space-y-2", className)}>
+        <div className="h-[200px] border border-border bg-neutral-50 dark:bg-neutral-900 flex items-start justify-start p-2 rounded-md">
+          <span className="text-neutral-500 dark:text-neutral-400 text-xs">
+            {connected ? "Connected" : "No preview"}
+          </span>
+        </div>
+        <div className="h-[200px] flex items-start justify-start text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border">
+          {connected ? "Connected" : "No GeoJSON"}
+        </div>
       </div>
     );
   }

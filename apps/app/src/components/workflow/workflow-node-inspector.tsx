@@ -68,49 +68,29 @@ export function WorkflowNodeInspector({
   if (!node) return null;
 
   // Helper function to check if an input is connected
-  // Note: inputs can be targets (normal direction) or sources (reverse direction)
+  // Inputs are always targets, so we only check targetHandle
   const isInputConnected = (inputId: string): boolean => {
     return edges.some(
-      (edge) =>
-        (edge.target === node.id && edge.targetHandle === inputId) ||
-        (edge.source === node.id && edge.sourceHandle === inputId)
+      (edge) => edge.target === node.id && edge.targetHandle === inputId
     );
   };
 
   // Helper function to get the value from a connected output
+  // Inputs are always targets, so we find the source node's output value
   const getConnectedValue = (inputId: string): unknown => {
-    // Find the edge connected to this input (check both directions)
     const connectedEdge = edges.find(
-      (edge) =>
-        (edge.target === node.id && edge.targetHandle === inputId) ||
-        (edge.source === node.id && edge.sourceHandle === inputId)
+      (edge) => edge.target === node.id && edge.targetHandle === inputId
     );
 
     if (!connectedEdge) return undefined;
 
-    // Determine which end is the output based on connection direction
-    if (
-      connectedEdge.target === node.id &&
-      connectedEdge.targetHandle === inputId
-    ) {
-      // Normal direction: this input is the target, find the source output
-      const sourceNode = nodes.find((n) => n.id === connectedEdge.source);
-      if (!sourceNode) return undefined;
+    const sourceNode = nodes.find((n) => n.id === connectedEdge.source);
+    if (!sourceNode) return undefined;
 
-      const output = sourceNode.data.outputs.find(
-        (out) => out.id === connectedEdge.sourceHandle
-      );
-      return output?.value;
-    } else {
-      // Reverse direction: this input is the source, find the target output
-      const targetNode = nodes.find((n) => n.id === connectedEdge.target);
-      if (!targetNode) return undefined;
-
-      const output = targetNode.data.outputs.find(
-        (out) => out.id === connectedEdge.targetHandle
-      );
-      return output?.value;
-    }
+    const output = sourceNode.data.outputs.find(
+      (out) => out.id === connectedEdge.sourceHandle
+    );
+    return output?.value;
   };
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -167,11 +147,9 @@ export function WorkflowNodeInspector({
   const handleDisconnect = (inputId: string) => {
     if (disabled || !deleteEdge) return;
 
-    // Find all edges connected to this input (check both directions)
+    // Find all edges where this input is the target
     const connectedEdges = edges.filter(
-      (edge) =>
-        (edge.target === node.id && edge.targetHandle === inputId) ||
-        (edge.source === node.id && edge.sourceHandle === inputId)
+      (edge) => edge.target === node.id && edge.targetHandle === inputId
     );
 
     // Delete all connected edges

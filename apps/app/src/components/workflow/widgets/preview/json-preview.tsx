@@ -11,13 +11,13 @@ interface JsonPreviewWidgetProps extends BaseWidgetProps {
 function JsonPreviewWidget({ value, className }: JsonPreviewWidgetProps) {
   return (
     <div className={cn("p-2 h-full w-full", className)}>
-      <JsonField
-        parameter={{ id: "preview", name: "value", type: "json" }}
-        value={value}
-        onChange={() => {}}
-        onClear={() => {}}
-        disabled
-      />
+      <div className="h-[200px] relative nowheel nopan">
+        <JsonField
+          value={value}
+          onChange={() => {}}
+          disabled
+        />
+      </div>
     </div>
   );
 }

@@ -11,13 +11,13 @@ interface GeoJSONPreviewWidgetProps extends BaseWidgetProps {
 function GeoJSONPreviewWidget({ value, className }: GeoJSONPreviewWidgetProps) {
   return (
     <div className={cn("p-2 h-full w-full", className)}>
-      <GeoJSONField
-        parameter={{ id: "preview", name: "value", type: "geojson" }}
-        value={value}
-        onChange={() => {}}
-        onClear={() => {}}
-        disabled
-      />
+      <div className="h-full relative nowheel nopan">
+        <GeoJSONField
+          value={value}
+          onChange={() => {}}
+          disabled
+        />
+      </div>
     </div>
   );
 }

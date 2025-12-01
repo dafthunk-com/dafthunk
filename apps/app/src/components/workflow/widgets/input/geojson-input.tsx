@@ -16,14 +16,9 @@ function GeoJSONInputWidget({
 }: GeoJSONInputWidgetProps) {
   return (
     <div className={cn("p-2 h-full w-full", className)}>
-      <GeoJSONField
-        parameter={{ id: "input", name: "value", type: "geojson" }}
-        value={value}
-        onChange={onChange}
-        onClear={() => onChange(undefined)}
-        disabled={readonly}
-        clearable
-      />
+      <div className="h-full relative nowheel nopan">
+        <GeoJSONField value={value} onChange={onChange} disabled={readonly} />
+      </div>
     </div>
   );
 }

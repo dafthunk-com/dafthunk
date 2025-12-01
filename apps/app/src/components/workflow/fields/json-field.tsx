@@ -54,7 +54,7 @@ export function JsonField({
     return (
       <div
         className={cn(
-          "text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border",
+          "h-[200px] text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border",
           className
         )}
       >
@@ -65,12 +65,12 @@ export function JsonField({
 
   return (
     <div
-      className={cn("relative h-full", className)}
+      className={cn("relative", className)}
       onWheelCapture={(e) => {
         e.stopPropagation();
       }}
     >
-      <div className="h-full rounded-md border border-border overflow-hidden">
+      <div className="h-[200px] rounded-md border border-border overflow-hidden">
         <CodeEditor
           value={formattedValue}
           onChange={handleChange}
