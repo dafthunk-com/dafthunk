@@ -31,8 +31,8 @@ function JavaScriptEditorWidget({
   };
 
   return (
-    <div className={cn(className)}>
-      <div className="h-[200px] relative nowheel nopan">
+    <div className={cn("p-2 h-full w-full", className)}>
+      <div className="h-[200px] relative nowheel nopan border border-border rounded-md overflow-hidden">
         <CodeEditor
           value={value}
           onChange={handleChange}
