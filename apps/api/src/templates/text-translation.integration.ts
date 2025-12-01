@@ -26,7 +26,7 @@ describe("Text Translation Template", () => {
 
     // Execute text input node
     const inputTextNode = textTranslationTemplate.nodes.find(
-      (n) => n.id === "input-text"
+      (n) => n.id === "text-to-translate"
     )!;
     const inputTextInstance = new TextInputNode({
       ...inputTextNode,
@@ -44,7 +44,7 @@ describe("Text Translation Template", () => {
 
     // Execute source language input node
     const sourceLangNode = textTranslationTemplate.nodes.find(
-      (n) => n.id === "input-source-lang"
+      (n) => n.id === "source-language"
     )!;
     const sourceLangInstance = new TextInputNode({
       ...sourceLangNode,
@@ -62,7 +62,7 @@ describe("Text Translation Template", () => {
 
     // Execute target language input node
     const targetLangNode = textTranslationTemplate.nodes.find(
-      (n) => n.id === "input-target-lang"
+      (n) => n.id === "target-language"
     )!;
     const targetLangInstance = new TextInputNode({
       ...targetLangNode,
@@ -80,7 +80,7 @@ describe("Text Translation Template", () => {
 
     // Execute translation node
     const translatorNode = textTranslationTemplate.nodes.find(
-      (n) => n.id === "translator-1"
+      (n) => n.id === "text-translator"
     )!;
     const translatorInstance = new M2m10012bNode(translatorNode);
     const translatorResult = await translatorInstance.execute({
@@ -97,19 +97,19 @@ describe("Text Translation Template", () => {
     expect(typeof translatorResult.outputs?.translatedText).toBe("string");
     expect(translatorResult.outputs?.translatedText.length).toBeGreaterThan(0);
 
-    // Execute preview node
-    const previewNode = textTranslationTemplate.nodes.find(
-      (n) => n.id === "output-1"
+    // Execute output node
+    const outputNode = textTranslationTemplate.nodes.find(
+      (n) => n.id === "translation-preview"
     )!;
-    const previewInstance = new TextOutputNode(previewNode);
-    const previewResult = await previewInstance.execute({
-      nodeId: previewNode.id,
+    const outputInstance = new TextOutputNode(outputNode);
+    const outputResult = await outputInstance.execute({
+      nodeId: outputNode.id,
       inputs: {
         value: translatorResult.outputs?.translatedText,
       },
       env: env as Bindings,
     } as any);
-    expect(previewResult.status).toBe("completed");
-    expect(previewResult.outputs?.displayValue).toBeDefined();
+    expect(outputResult.status).toBe("completed");
+    expect(outputResult.outputs?.displayValue).toBeDefined();
   });
 });

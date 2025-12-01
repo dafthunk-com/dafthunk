@@ -23,9 +23,9 @@ describe("Text Summarization Template", () => {
     const inputText =
       "Paris is the capital and most populous city of France. With an official estimated population of 2,102,650 residents as of 1 January 2023 in an area of more than 105 km², Paris is the fourth-most populated city in the European Union and the 30th most densely populated city in the world in 2022. Since the 17th century, Paris has been one of the world's major centres of finance, diplomacy, commerce, culture, fashion, gastronomy and many areas.";
 
-    // Execute text area input node
+    // Execute text input node
     const inputNode = textSummarizationTemplate.nodes.find(
-      (n) => n.id === "input-1"
+      (n) => n.id === "text-to-summarize"
     )!;
     const inputInstance = new TextInputNode({
       ...inputNode,
@@ -43,7 +43,7 @@ describe("Text Summarization Template", () => {
 
     // Execute summarizer node
     const summarizerNode = textSummarizationTemplate.nodes.find(
-      (n) => n.id === "summarizer-1"
+      (n) => n.id === "text-summarizer"
     )!;
     const summarizerInstance = new BartLargeCnnNode(summarizerNode);
     const summarizerResult = await summarizerInstance.execute({
@@ -61,19 +61,19 @@ describe("Text Summarization Template", () => {
       inputText.length
     );
 
-    // Execute preview node
-    const previewNode = textSummarizationTemplate.nodes.find(
-      (n) => n.id === "output-1"
+    // Execute output node
+    const outputNode = textSummarizationTemplate.nodes.find(
+      (n) => n.id === "summary-preview"
     )!;
-    const previewInstance = new TextOutputNode(previewNode);
-    const previewResult = await previewInstance.execute({
-      nodeId: previewNode.id,
+    const outputInstance = new TextOutputNode(outputNode);
+    const outputResult = await outputInstance.execute({
+      nodeId: outputNode.id,
       inputs: {
         value: summarizerResult.outputs?.summary,
       },
       env: env as Bindings,
     } as any);
-    expect(previewResult.status).toBe("completed");
-    expect(previewResult.outputs?.displayValue).toBeDefined();
+    expect(outputResult.status).toBe("completed");
+    expect(outputResult.outputs?.displayValue).toBeDefined();
   });
 });

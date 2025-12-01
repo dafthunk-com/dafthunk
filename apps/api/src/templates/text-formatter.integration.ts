@@ -19,9 +19,9 @@ describe("Text Formatter Template", () => {
   });
 
   it("should execute all nodes in the template", async () => {
-    // Execute text area input node
+    // Execute text variable input node
     const inputNode = textFormatterTemplate.nodes.find(
-      (n) => n.id === "input-1"
+      (n) => n.id === "text-variable"
     )!;
     const inputInstance = new TextInputNode({
       ...inputNode,
@@ -39,7 +39,7 @@ describe("Text Formatter Template", () => {
 
     // Execute formatter node
     const formatterNode = textFormatterTemplate.nodes.find(
-      (n) => n.id === "formatter-1"
+      (n) => n.id === "template-formatter"
     )!;
     const formatterInstance = new SingleVariableStringTemplateNode(
       formatterNode

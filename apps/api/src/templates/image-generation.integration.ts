@@ -24,7 +24,7 @@ describe("Image Generation Template", () => {
 
     // Execute input node
     const inputNode = imageGenerationTemplate.nodes.find(
-      (n) => n.id === "input-1"
+      (n) => n.id === "image-prompt"
     )!;
     const inputInstance = new TextInputNode({
       ...inputNode,
@@ -42,7 +42,7 @@ describe("Image Generation Template", () => {
 
     // Execute generator node
     const generatorNode = imageGenerationTemplate.nodes.find(
-      (n) => n.id === "generator-1"
+      (n) => n.id === "image-generator"
     )!;
     const generatorInstance = new StableDiffusionXLLightningNode(generatorNode);
     const generatorResult = await generatorInstance.execute({
@@ -55,19 +55,19 @@ describe("Image Generation Template", () => {
     expect(generatorResult.status).toBe("completed");
     expect(generatorResult.outputs?.image).toBeDefined();
 
-    // Execute preview node
-    const previewNode = imageGenerationTemplate.nodes.find(
-      (n) => n.id === "output-1"
+    // Execute output node
+    const outputNode = imageGenerationTemplate.nodes.find(
+      (n) => n.id === "generated-image-preview"
     )!;
-    const previewInstance = new ImageOutputNode(previewNode);
-    const previewResult = await previewInstance.execute({
-      nodeId: previewNode.id,
+    const outputInstance = new ImageOutputNode(outputNode);
+    const outputResult = await outputInstance.execute({
+      nodeId: outputNode.id,
       inputs: {
         value: generatorResult.outputs?.image,
       },
       env: env as Bindings,
     } as any);
-    expect(previewResult.status).toBe("completed");
-    expect(previewResult.outputs?.displayValue).toBeDefined();
+    expect(outputResult.status).toBe("completed");
+    expect(outputResult.outputs?.displayValue).toBeDefined();
   });
 });
