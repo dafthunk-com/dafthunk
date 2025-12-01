@@ -58,6 +58,10 @@ export function JsonField({
   // Determine if we should show the editor (not showing placeholder)
   const shouldShowEditor = !(disabled && !hasValue);
 
+  // Store formattedValue in a ref to avoid stale closure in editor creation
+  const formattedValueRef = useRef(formattedValue);
+  formattedValueRef.current = formattedValue;
+
   // Create CodeMirror editor when needed
   useEffect(() => {
     if (!editorRef.current || !shouldShowEditor) return;
@@ -67,7 +71,7 @@ export function JsonField({
 
     const view = new EditorView({
       state: EditorState.create({
-        doc: formattedValue,
+        doc: formattedValueRef.current,
         extensions: [
           json(),
           syntaxHighlighting(defaultHighlightStyle),
@@ -174,7 +178,7 @@ export function JsonField({
       view.destroy();
       viewRef.current = null;
     };
-  }, [shouldShowEditor, formattedValue, readonly]); // Recreate when transitioning to showing editor
+  }, [shouldShowEditor, readonly]); // Recreate when transitioning to showing editor
 
   // Update editor content when external value changes
   useEffect(() => {

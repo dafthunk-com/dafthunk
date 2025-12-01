@@ -5,17 +5,16 @@ import { NodeContext } from "../types";
 import { JsonInputNode } from "./json-input-node";
 
 describe("JsonInputNode", () => {
-  it("should execute with valid JSON string", async () => {
+  it("should execute with valid JSON object", async () => {
     const nodeId = "json-editor";
     const node = new JsonInputNode({
       nodeId,
     } as unknown as Node);
 
-    const validJson = '{"name": "John", "age": 30, "active": true}';
     const context = {
       nodeId,
       inputs: {
-        json: validJson,
+        json: { name: "John", age: 30, active: true },
       },
       getIntegration: async () => {
         throw new Error("No integrations in test");
@@ -32,17 +31,16 @@ describe("JsonInputNode", () => {
     });
   });
 
-  it("should execute with empty object JSON", async () => {
+  it("should execute with empty object", async () => {
     const nodeId = "json-editor";
     const node = new JsonInputNode({
       nodeId,
     } as unknown as Node);
 
-    const emptyJson = "{}";
     const context = {
       nodeId,
       inputs: {
-        json: emptyJson,
+        json: {},
       },
       getIntegration: async () => {
         throw new Error("No integrations in test");
@@ -55,17 +53,16 @@ describe("JsonInputNode", () => {
     expect(result.outputs?.json).toEqual({});
   });
 
-  it("should execute with array JSON", async () => {
+  it("should execute with array", async () => {
     const nodeId = "json-editor";
     const node = new JsonInputNode({
       nodeId,
     } as unknown as Node);
 
-    const arrayJson = '[1, 2, 3, "test", {"nested": "value"}]';
     const context = {
       nodeId,
       inputs: {
-        json: arrayJson,
+        json: [1, 2, 3, "test", { nested: "value" }],
       },
       getIntegration: async () => {
         throw new Error("No integrations in test");
@@ -84,17 +81,16 @@ describe("JsonInputNode", () => {
     ]);
   });
 
-  it("should execute with primitive values", async () => {
+  it("should execute with primitive string value", async () => {
     const nodeId = "json-editor";
     const node = new JsonInputNode({
       nodeId,
     } as unknown as Node);
 
-    const primitiveJson = '"simple string"';
     const context = {
       nodeId,
       inputs: {
-        json: primitiveJson,
+        json: "simple string",
       },
       getIntegration: async () => {
         throw new Error("No integrations in test");
@@ -105,72 +101,6 @@ describe("JsonInputNode", () => {
     expect(result.status).toBe("completed");
     expect(result.outputs).toBeDefined();
     expect(result.outputs?.json).toBe("simple string");
-  });
-
-  it("should handle invalid JSON string", async () => {
-    const nodeId = "json-editor";
-    const node = new JsonInputNode({
-      nodeId,
-    } as unknown as Node);
-
-    const invalidJson = '{"name": "John", "age": 30,}'; // Missing value
-    const context = {
-      nodeId,
-      inputs: {
-        json: invalidJson,
-      },
-      getIntegration: async () => {
-        throw new Error("No integrations in test");
-      },
-    } as unknown as NodeContext;
-
-    const result = await node.execute(context);
-    expect(result.status).toBe("error");
-    expect(result.error).toBeDefined();
-  });
-
-  it("should handle malformed JSON with unclosed brackets", async () => {
-    const nodeId = "json-editor";
-    const node = new JsonInputNode({
-      nodeId,
-    } as unknown as Node);
-
-    const malformedJson = '{"name": "John"';
-    const context = {
-      nodeId,
-      inputs: {
-        json: malformedJson,
-      },
-      getIntegration: async () => {
-        throw new Error("No integrations in test");
-      },
-    } as unknown as NodeContext;
-
-    const result = await node.execute(context);
-    expect(result.status).toBe("error");
-    expect(result.error).toBeDefined();
-  });
-
-  it("should handle empty string input", async () => {
-    const nodeId = "json-editor";
-    const node = new JsonInputNode({
-      nodeId,
-    } as unknown as Node);
-
-    const emptyString = "";
-    const context = {
-      nodeId,
-      inputs: {
-        json: emptyString,
-      },
-      getIntegration: async () => {
-        throw new Error("No integrations in test");
-      },
-    } as unknown as NodeContext;
-
-    const result = await node.execute(context);
-    expect(result.status).toBe("error");
-    expect(result.error).toBeDefined();
   });
 
   it("should handle null input", async () => {
@@ -215,38 +145,37 @@ describe("JsonInputNode", () => {
     expect(result.error).toBeDefined();
   });
 
-  it("should handle complex nested JSON", async () => {
+  it("should handle complex nested object", async () => {
     const nodeId = "json-editor";
     const node = new JsonInputNode({
       nodeId,
     } as unknown as Node);
 
-    const complexJson = `{
-      "user": {
-        "id": 123,
-        "profile": {
-          "name": "John Doe",
-          "email": "john@example.com",
-          "preferences": {
-            "theme": "dark",
-            "notifications": true
-          }
-        },
-        "roles": ["admin", "user"],
-        "metadata": {
-          "created": "2023-01-01",
-          "lastLogin": "2023-12-01"
-        }
-      },
-      "settings": {
-        "enabled": true,
-        "timeout": 5000
-      }
-    }`;
     const context = {
       nodeId,
       inputs: {
-        json: complexJson,
+        json: {
+          user: {
+            id: 123,
+            profile: {
+              name: "John Doe",
+              email: "john@example.com",
+              preferences: {
+                theme: "dark",
+                notifications: true,
+              },
+            },
+            roles: ["admin", "user"],
+            metadata: {
+              created: "2023-01-01",
+              lastLogin: "2023-12-01",
+            },
+          },
+          settings: {
+            enabled: true,
+            timeout: 5000,
+          },
+        },
       },
       getIntegration: async () => {
         throw new Error("No integrations in test");

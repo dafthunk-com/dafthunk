@@ -23,10 +23,10 @@ export class JsonInputNode extends ExecutableNode {
     inputs: [
       {
         name: "json",
-        type: "string",
+        type: "json",
         description: "Current JSON value in the editor",
         hidden: true,
-        value: "{}",
+        value: {},
       },
     ],
     outputs: [
@@ -39,28 +39,13 @@ export class JsonInputNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    try {
-      const { json } = context.inputs;
+    const { json } = context.inputs;
 
-      // Handle null, undefined, or empty string
-      if (json === null || json === undefined || json === "") {
-        return this.createErrorResult("Invalid JSON");
-      }
-
-      try {
-        const parsedValue = JSON.parse(json);
-        return this.createSuccessResult({
-          json: parsedValue,
-        });
-      } catch (error) {
-        return this.createErrorResult(
-          error instanceof Error ? error.message : "Invalid JSON"
-        );
-      }
-    } catch (error) {
-      return this.createErrorResult(
-        error instanceof Error ? error.message : "Unknown error"
-      );
+    // Handle null or undefined
+    if (json === null || json === undefined) {
+      return this.createErrorResult("No JSON value provided");
     }
+
+    return this.createSuccessResult({ json });
   }
 }
