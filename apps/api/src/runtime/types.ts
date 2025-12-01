@@ -99,14 +99,14 @@ export interface ExecutionState {
  *
  * Status determination logic:
  * - "executing": Not all nodes have been visited yet
- * - "completed": All nodes visited successfully (no errors or skips)
- * - "error": Any nodes failed or were skipped
+ * - "completed": All nodes visited successfully (only conditional skips allowed)
+ * - "error": Any nodes failed or were skipped due to upstream failures
  */
 export function getExecutionStatus(
   context: WorkflowExecutionContext,
   state: ExecutionState
 ): WorkflowExecutionStatus {
-  const { orderedNodeIds } = context;
+  const { workflow, orderedNodeIds } = context;
   const { executedNodes, skippedNodes, nodeErrors } = state;
 
   // Check if all nodes have been visited (executed, skipped, or errored)
@@ -121,11 +121,77 @@ export function getExecutionStatus(
     return "executing";
   }
 
-  // All nodes visited - determine if all succeeded or some failed/skipped
-  const hasErrorsOrSkips =
-    Object.keys(nodeErrors).length > 0 || skippedNodes.length > 0;
+  // Any node errors means the workflow failed
+  if (Object.keys(nodeErrors).length > 0) {
+    return "error";
+  }
 
-  return hasErrorsOrSkips ? "error" : "completed";
+  // Check if any skipped nodes are due to upstream failures (not conditional branching)
+  for (const skippedNodeId of skippedNodes) {
+    const skipReason = inferSkipReason(workflow, state, skippedNodeId);
+    if (skipReason === "upstream_failure") {
+      return "error";
+    }
+  }
+
+  // All nodes completed or were conditionally skipped (expected behavior)
+  return "completed";
+}
+
+/**
+ * Skip reasons for nodes that were not executed.
+ * - "upstream_failure": Node skipped because an upstream node errored or was skipped due to failure
+ * - "conditional_branch": Node skipped because it's on an inactive conditional branch (expected)
+ */
+type SkipReason = "upstream_failure" | "conditional_branch";
+
+/**
+ * Infers the reason a node was skipped.
+ * Every skipped node must have a determinable reason - if we can't find one,
+ * we default to "upstream_failure" to be conservative (treat as error).
+ */
+function inferSkipReason(
+  workflow: Workflow,
+  state: ExecutionState,
+  nodeId: string
+): SkipReason {
+  const inboundEdges = workflow.edges.filter((edge) => edge.target === nodeId);
+
+  // First pass: check for upstream failures (errors or cascading failure skips)
+  for (const edge of inboundEdges) {
+    // Upstream errored directly
+    if (edge.source in state.nodeErrors) {
+      return "upstream_failure";
+    }
+    // Upstream was skipped - check if it was due to failure (cascading)
+    if (state.skippedNodes.includes(edge.source)) {
+      if (inferSkipReason(workflow, state, edge.source) === "upstream_failure") {
+        return "upstream_failure";
+      }
+    }
+  }
+
+  // Second pass: check for conditional branch skips
+  for (const edge of inboundEdges) {
+    // Upstream executed but didn't populate this specific output (conditional fork)
+    if (state.executedNodes.includes(edge.source)) {
+      const sourceOutputs = state.nodeOutputs[edge.source];
+      if (sourceOutputs && !(edge.sourceOutput in sourceOutputs)) {
+        return "conditional_branch";
+      }
+    }
+    // Upstream was conditionally skipped (cascading conditional skip)
+    if (state.skippedNodes.includes(edge.source)) {
+      if (inferSkipReason(workflow, state, edge.source) === "conditional_branch") {
+        return "conditional_branch";
+      }
+    }
+  }
+
+  // If we reach here, we couldn't determine a specific reason.
+  // This shouldn't happen in a well-formed workflow, but if it does,
+  // treat it as a failure to be conservative (don't mask potential bugs).
+  return "upstream_failure";
 }
 
 /**
