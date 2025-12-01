@@ -1,10 +1,3 @@
-import { sql } from "@codemirror/lang-sql";
-import {
-  defaultHighlightStyle,
-  syntaxHighlighting,
-} from "@codemirror/language";
-import { EditorState } from "@codemirror/state";
-import { EditorView, lineNumbers } from "@codemirror/view";
 import { DatabaseQueryResponse } from "@dafthunk/types";
 import Play from "lucide-react/icons/play";
 import { useEffect, useRef, useState } from "react";
@@ -15,6 +8,7 @@ import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { Button } from "@/components/ui/button";
+import { CodeEditor } from "@/components/ui/code-editor";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
@@ -31,8 +25,6 @@ export function DatabaseConsolePage() {
     id || null
   );
 
-  const editorRef = useRef<HTMLDivElement>(null);
-  const viewRef = useRef<EditorView | null>(null);
   const sqlRef = useRef("");
 
   const [isExecuting, setIsExecuting] = useState(false);
@@ -49,62 +41,9 @@ export function DatabaseConsolePage() {
     }
   }, [setBreadcrumbs, database, id]);
 
-  // Create CodeMirror editor (only after database is loaded)
-  useEffect(() => {
-    if (!editorRef.current || !database) return;
-
-    const view = new EditorView({
-      state: EditorState.create({
-        doc: "",
-        extensions: [
-          sql(),
-          syntaxHighlighting(defaultHighlightStyle),
-          lineNumbers(),
-          EditorView.lineWrapping,
-          EditorView.updateListener.of((update) => {
-            if (update.docChanged) {
-              sqlRef.current = update.state.doc.toString();
-            }
-          }),
-          EditorView.baseTheme({
-            "&.cm-focused": {
-              outline: "2px solid hsl(var(--ring))",
-              outlineOffset: "2px",
-            },
-          }),
-          EditorView.theme({
-            "&": {
-              height: "100%",
-              fontSize: "13px",
-              border: "1px solid hsl(var(--border))",
-              borderRadius: "var(--radius)",
-            },
-            ".cm-scroller": {
-              overflow: "auto",
-              fontFamily: "ui-monospace, monospace",
-            },
-            ".cm-gutters": {
-              fontSize: "13px",
-              backgroundColor: "hsl(var(--muted))",
-              color: "hsl(var(--muted-foreground))",
-              border: "none",
-            },
-            ".cm-activeLineGutter": {
-              backgroundColor: "hsl(var(--accent))",
-            },
-          }),
-        ],
-      }),
-      parent: editorRef.current,
-    });
-
-    viewRef.current = view;
-
-    return () => {
-      view.destroy();
-      viewRef.current = null;
-    };
-  }, [database]);
+  const handleChange = (value: string) => {
+    sqlRef.current = value;
+  };
 
   const handleExecute = async () => {
     const sqlQuery = sqlRef.current.trim();
@@ -162,8 +101,8 @@ export function DatabaseConsolePage() {
               Execute
             </Button>
           </div>
-          <div className="h-[300px] relative">
-            <div ref={editorRef} className="h-full" />
+          <div className="h-[300px] border rounded-md overflow-hidden">
+            <CodeEditor value="" onChange={handleChange} language="sql" />
           </div>
         </div>
 
@@ -198,7 +137,7 @@ export function DatabaseConsolePage() {
                 <table className="w-full text-sm border-collapse">
                   <thead>
                     <tr className="border-b bg-muted/50">
-                      {Object.keys(result.results[0] as any).map((key) => (
+                      {Object.keys(result.results[0] as object).map((key) => (
                         <th
                           key={key}
                           className="text-left px-3 py-2 font-medium text-xs"
@@ -211,7 +150,7 @@ export function DatabaseConsolePage() {
                   <tbody>
                     {result.results.map((row, i) => (
                       <tr key={i} className="border-b hover:bg-muted/30">
-                        {Object.values(row as any).map((value, j) => (
+                        {Object.values(row as object).map((value, j) => (
                           <td key={j} className="px-3 py-2 text-xs font-mono">
                             {value === null
                               ? "NULL"

@@ -1,15 +1,6 @@
-import { html } from "@codemirror/lang-html";
-import { json } from "@codemirror/lang-json";
-import { xml } from "@codemirror/lang-xml";
-import {
-  defaultHighlightStyle,
-  syntaxHighlighting,
-} from "@codemirror/language";
-import { EditorState } from "@codemirror/state";
-import { EditorView, lineNumbers } from "@codemirror/view";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle, File, Plus, Trash2, Upload } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import * as z from "zod";
 
@@ -23,6 +14,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { CodeEditor } from "@/components/ui/code-editor";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -33,7 +25,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { cn } from "@/utils/utils";
 
 // HTTP method constants
 const HTTP_METHODS = [
@@ -157,110 +148,19 @@ function FileUploadField({
   );
 }
 
-// CodeMirror editor component for raw body
-interface CodeMirrorEditorProps {
-  value: string;
-  onChange: (value: string) => void;
-  contentType: RawBodyContentType;
-}
-
-function CodeMirrorEditor({
-  value,
-  onChange,
-  contentType,
-}: CodeMirrorEditorProps) {
-  const editorRef = useRef<HTMLDivElement>(null);
-  const viewRef = useRef<EditorView | null>(null);
-  const onChangeRef = useRef(onChange);
-
-  // Keep onChange ref up to date
-  useEffect(() => {
-    onChangeRef.current = onChange;
-  }, [onChange]);
-
-  // Get the appropriate language extension based on content type
-  const getLanguageExtension = () => {
-    switch (contentType) {
-      case "json":
-        return json();
-      case "xml":
-        return xml();
-      case "html":
-        return html();
-      case "text":
-      default:
-        return [];
-    }
-  };
-
-  // Create editor once on mount
-  useEffect(() => {
-    if (!editorRef.current) return;
-
-    const view = new EditorView({
-      state: EditorState.create({
-        doc: value,
-        extensions: [
-          getLanguageExtension(),
-          syntaxHighlighting(defaultHighlightStyle),
-          lineNumbers(),
-          EditorView.lineWrapping,
-          EditorView.updateListener.of((update) => {
-            if (update.docChanged) {
-              const newValue = update.state.doc.toString();
-              onChangeRef.current(newValue);
-            }
-          }),
-          EditorView.baseTheme({
-            "&.cm-focused": {
-              outline: "none !important",
-            },
-          }),
-          EditorView.theme({
-            "&": {
-              height: "100%",
-              fontSize: "14px",
-            },
-            ".cm-scroller": {
-              overflow: "auto",
-            },
-            ".cm-gutters": {
-              fontSize: "14px",
-            },
-          }),
-        ],
-      }),
-      parent: editorRef.current,
-    });
-
-    viewRef.current = view;
-
-    return () => {
-      view.destroy();
-      viewRef.current = null;
-    };
-  }, [contentType]);
-
-  // Update editor content when value prop changes externally
-  useEffect(() => {
-    const view = viewRef.current;
-    if (!view) return;
-
-    const currentValue = view.state.doc.toString();
-    if (currentValue !== value) {
-      view.dispatch({
-        changes: { from: 0, to: currentValue.length, insert: value },
-      });
-    }
-  }, [value]);
-
-  return (
-    <div className={cn("border rounded-md overflow-hidden")}>
-      <div className="h-[300px] relative">
-        <div ref={editorRef} className="h-full" />
-      </div>
-    </div>
-  );
+// Map content type to CodeEditor language
+function getLanguage(contentType: RawBodyContentType) {
+  switch (contentType) {
+    case "json":
+      return "json" as const;
+    case "xml":
+      return "xml" as const;
+    case "html":
+      return "html" as const;
+    case "text":
+    default:
+      return "text" as const;
+  }
 }
 
 export function HttpRequestConfigDialog({
@@ -753,11 +653,13 @@ export function HttpRequestConfigDialog({
                             name="rawBodyContent"
                             control={control}
                             render={({ field }) => (
-                              <CodeMirrorEditor
-                                value={field.value || ""}
-                                onChange={field.onChange}
-                                contentType={rawBodyContentType}
-                              />
+                              <div className="h-[300px] border rounded-md overflow-hidden">
+                                <CodeEditor
+                                  value={field.value || ""}
+                                  onChange={field.onChange}
+                                  language={getLanguage(rawBodyContentType)}
+                                />
+                              </div>
                             )}
                           />
                         </TabsContent>
