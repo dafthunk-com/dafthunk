@@ -955,9 +955,9 @@ export function useWorkflowState({
     nodesRef.current.forEach((node) => {
       // Use React Flow's measured dimensions when available, otherwise fall back to estimates
       const nodeWidth = node.measured?.width || node.width || 200;
-      const isPreviewNode = node.data.nodeType?.startsWith("preview-");
+      const isOutputNode = node.data.nodeType?.startsWith("output-");
       const nodeHeight =
-        node.measured?.height || node.height || (isPreviewNode ? 250 : 100);
+        node.measured?.height || node.height || (isOutputNode ? 250 : 100);
       dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
     });
 
@@ -970,10 +970,10 @@ export function useWorkflowState({
     setNodes((nds) =>
       nds.map((node) => {
         const nodeWithPosition = dagreGraph.node(node.id);
-        const isPreviewNode = node.data.nodeType?.startsWith("preview-");
+        const isOutputNode = node.data.nodeType?.startsWith("output-");
         const nodeWidth = node.measured?.width || node.width || 200;
         const nodeHeight =
-          node.measured?.height || node.height || (isPreviewNode ? 250 : 100);
+          node.measured?.height || node.height || (isOutputNode ? 250 : 100);
         const x = nodeWithPosition.x - nodeWidth / 2;
         const y = nodeWithPosition.y - nodeHeight / 2;
 

@@ -2,7 +2,7 @@ import type { WorkflowTemplate } from "@dafthunk/types";
 
 import { MelottsNode } from "../nodes/audio/melotts-node";
 import { TextInputNode } from "../nodes/input/text-input-node";
-import { AudioPreviewNode } from "../nodes/preview/audio-preview-node";
+import { AudioOutputNode } from "../nodes/output/audio-output-node";
 
 export const textToSpeechTemplate: WorkflowTemplate = {
   id: "text-to-speech",
@@ -28,7 +28,7 @@ export const textToSpeechTemplate: WorkflowTemplate = {
       name: "Speech Generator",
       position: { x: 500, y: 100 },
     }),
-    AudioPreviewNode.create({
+    AudioOutputNode.create({
       id: "audio-preview",
       name: "Audio",
       position: { x: 900, y: 100 },

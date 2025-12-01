@@ -1,20 +1,22 @@
 import { cn } from "@/utils/utils";
 
-import { JsonField } from "../../fields/json-field";
+import { GeoJSONField } from "../../fields/geojson-field";
 import type { BaseWidgetProps } from "../widget";
 import { createWidget } from "../widget";
 
-interface JsonPreviewWidgetProps extends BaseWidgetProps {
+interface GeoJSONOutputWidgetProps extends BaseWidgetProps {
   value: unknown;
 }
 
-function JsonPreviewWidget({ value, className }: JsonPreviewWidgetProps) {
+function GeoJSONOutputWidget({ value, className }: GeoJSONOutputWidgetProps) {
   return (
     <div className={cn("p-2 h-full w-full", className)}>
-      <div className="h-[200px] relative nowheel nopan">
-        <JsonField
+      <div className="h-full relative nowheel nopan">
+        <GeoJSONField
+          parameter={{ id: "output", name: "value", type: "geojson" }}
           value={value}
           onChange={() => {}}
+          onClear={() => {}}
           disabled
         />
       </div>
@@ -22,9 +24,9 @@ function JsonPreviewWidget({ value, className }: JsonPreviewWidgetProps) {
   );
 }
 
-export const jsonPreviewWidget = createWidget({
-  component: JsonPreviewWidget,
-  nodeTypes: ["preview-json"],
+export const geojsonOutputWidget = createWidget({
+  component: GeoJSONOutputWidget,
+  nodeTypes: ["output-geojson"],
   inputField: "value",
   extractConfig: (_nodeId, inputs, outputs) => {
     const displayValueOutput = outputs?.find((o) => o.name === "displayValue");

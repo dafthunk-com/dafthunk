@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import type { Bindings } from "../context";
 import { StableDiffusionXLLightningNode } from "../nodes/image/stable-diffusion-xl-lightning-node";
 import { TextInputNode } from "../nodes/input/text-input-node";
-import { ImagePreviewNode } from "../nodes/preview/image-preview-node";
+import { ImageOutputNode } from "../nodes/output/image-output-node";
 import { imageGenerationTemplate } from "./image-generation";
 
 describe("Image Generation Template", () => {
@@ -16,7 +16,7 @@ describe("Image Generation Template", () => {
     const nodeTypes = imageGenerationTemplate.nodes.map((n) => n.type);
     expect(nodeTypes).toContain("text-input");
     expect(nodeTypes).toContain("stable-diffusion-xl-lightning");
-    expect(nodeTypes).toContain("preview-image");
+    expect(nodeTypes).toContain("output-image");
   });
 
   it("should execute all nodes in the template", async () => {
@@ -57,9 +57,9 @@ describe("Image Generation Template", () => {
 
     // Execute preview node
     const previewNode = imageGenerationTemplate.nodes.find(
-      (n) => n.id === "preview-1"
+      (n) => n.id === "output-1"
     )!;
-    const previewInstance = new ImagePreviewNode(previewNode);
+    const previewInstance = new ImageOutputNode(previewNode);
     const previewResult = await previewInstance.execute({
       nodeId: previewNode.id,
       inputs: {

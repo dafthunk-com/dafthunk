@@ -4,7 +4,7 @@ import { CgsApplyMaterialNode } from "../nodes/3d/cgs-apply-material-node";
 import { CgsCubeNode } from "../nodes/3d/cgs-cube-node";
 import { CgsDifferenceNode } from "../nodes/3d/cgs-difference-node";
 import { CgsSphereNode } from "../nodes/3d/cgs-sphere-node";
-import { GltfPreviewNode } from "../nodes/preview/gltf-preview-node";
+import { GltfOutputNode } from "../nodes/output/gltf-output-node";
 
 export const shape3dTemplate: WorkflowTemplate = {
   id: "3d-shape",
@@ -48,7 +48,7 @@ export const shape3dTemplate: WorkflowTemplate = {
         roughness: 0.4,
       },
     }),
-    GltfPreviewNode.create({
+    GltfOutputNode.create({
       id: "preview",
       name: "Result",
       position: { x: 1300, y: 200 },

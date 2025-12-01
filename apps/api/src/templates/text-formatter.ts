@@ -1,7 +1,7 @@
 import type { WorkflowTemplate } from "@dafthunk/types";
 
 import { TextInputNode } from "../nodes/input/text-input-node";
-import { TextPreviewNode } from "../nodes/preview/text-preview-node";
+import { TextOutputNode } from "../nodes/output/text-output-node";
 import { SingleVariableStringTemplateNode } from "../nodes/text/single-variable-string-template-node";
 
 export const textFormatterTemplate: WorkflowTemplate = {
@@ -29,7 +29,7 @@ export const textFormatterTemplate: WorkflowTemplate = {
       name: "Template Formatter",
       position: { x: 298, y: 124.5 },
     }),
-    TextPreviewNode.create({
+    TextOutputNode.create({
       id: "formatted-text-preview",
       name: "Formatted Text",
       position: { x: 650.13, y: 50 },

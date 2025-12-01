@@ -4,17 +4,17 @@ import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
 
 /**
- * SecretPreview node implementation
+ * SecretOutput node implementation
  * This node displays secret references (not the actual secret values) for display purposes
  * The secret reference is persisted for read-only execution views
  */
-export class SecretPreviewNode extends ExecutableNode {
+export class SecretOutputNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "preview-secret",
-    name: "Secret Preview",
-    type: "preview-secret",
+    id: "output-secret",
+    name: "Secret Output",
+    type: "output-secret",
     description: "Display and preview secret references",
-    tags: ["Widget", "Preview", "Secret"],
+    tags: ["Widget", "Output", "Secret"],
     icon: "lock",
     documentation:
       "This node displays secret references in the workflow. The actual secret value is never displayed - only the secret name reference is shown. The reference is persisted for viewing in read-only execution and deployed workflow views.",

@@ -6,7 +6,7 @@ import { ConditionalForkNode } from "../nodes/logic/conditional-fork-node";
 import { ConditionalJoinNode } from "../nodes/logic/conditional-join-node";
 import { AdditionNode } from "../nodes/math/addition-node";
 import { SubtractionNode } from "../nodes/math/subtraction-node";
-import { NumberPreviewNode } from "../nodes/preview/number-preview-node";
+import { NumberOutputNode } from "../nodes/output/number-output-node";
 
 export const coinFlipTemplate: WorkflowTemplate = {
   id: "conditional-branching",
@@ -58,7 +58,7 @@ export const coinFlipTemplate: WorkflowTemplate = {
       name: "Join",
       position: { x: 1000, y: 250 },
     }),
-    NumberPreviewNode.create({
+    NumberOutputNode.create({
       id: "result",
       name: "Result",
       position: { x: 1300, y: 250 },

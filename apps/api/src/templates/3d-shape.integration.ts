@@ -20,7 +20,7 @@ describe("3D Shape Template", () => {
     expect(nodeTypes).toContain("csg-sphere");
     expect(nodeTypes).toContain("csg-difference");
     expect(nodeTypes).toContain("csg-apply-material");
-    expect(nodeTypes).toContain("preview-gltf");
+    expect(nodeTypes).toContain("output-gltf");
   });
 
   it("should have correct edge connections", () => {

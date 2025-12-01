@@ -1,19 +1,19 @@
 import { cn } from "@/utils/utils";
 
-import { BooleanField } from "../../fields/boolean-field";
+import { DateField } from "../../fields/date-field";
 import type { BaseWidgetProps } from "../widget";
 import { createWidget } from "../widget";
 
-interface BooleanPreviewWidgetProps extends BaseWidgetProps {
-  value: boolean;
+interface DateOutputWidgetProps extends BaseWidgetProps {
+  value: string;
 }
 
-function BooleanPreviewWidget({ value, className }: BooleanPreviewWidgetProps) {
+function DateOutputWidget({ value, className }: DateOutputWidgetProps) {
   return (
     <div className={cn("p-2", className)}>
-      <BooleanField
-        parameter={{ id: "preview", name: "value", type: "boolean" }}
-        value={value}
+      <DateField
+        parameter={{ id: "preview", name: "value", type: "date" }}
+        value={value ?? ""}
         onChange={() => {}}
         onClear={() => {}}
         disabled
@@ -22,9 +22,9 @@ function BooleanPreviewWidget({ value, className }: BooleanPreviewWidgetProps) {
   );
 }
 
-export const booleanPreviewWidget = createWidget({
-  component: BooleanPreviewWidget,
-  nodeTypes: ["preview-boolean"],
+export const dateOutputWidget = createWidget({
+  component: DateOutputWidget,
+  nodeTypes: ["output-date"],
   inputField: "value",
   extractConfig: (_nodeId, inputs, outputs) => {
     const displayValueOutput = outputs?.find((o) => o.name === "displayValue");
@@ -36,7 +36,7 @@ export const booleanPreviewWidget = createWidget({
         : valueInput?.value;
 
     return {
-      value: valueToPreview,
+      value: valueToPreview ?? "",
     };
   },
 });

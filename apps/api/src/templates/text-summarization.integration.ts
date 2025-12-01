@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../context";
 import { TextInputNode } from "../nodes/input/text-input-node";
-import { TextPreviewNode } from "../nodes/preview/text-preview-node";
+import { TextOutputNode } from "../nodes/output/text-output-node";
 import { BartLargeCnnNode } from "../nodes/text/bart-large-cnn-node";
 import { textSummarizationTemplate } from "./text-summarization";
 
@@ -16,7 +16,7 @@ describe("Text Summarization Template", () => {
     const nodeTypes = textSummarizationTemplate.nodes.map((n) => n.type);
     expect(nodeTypes).toContain("text-input");
     expect(nodeTypes).toContain("bart-large-cnn");
-    expect(nodeTypes).toContain("preview-text");
+    expect(nodeTypes).toContain("output-text");
   });
 
   it("should execute all nodes in the template", async () => {
@@ -63,9 +63,9 @@ describe("Text Summarization Template", () => {
 
     // Execute preview node
     const previewNode = textSummarizationTemplate.nodes.find(
-      (n) => n.id === "preview-1"
+      (n) => n.id === "output-1"
     )!;
-    const previewInstance = new TextPreviewNode(previewNode);
+    const previewInstance = new TextOutputNode(previewNode);
     const previewResult = await previewInstance.execute({
       nodeId: previewNode.id,
       inputs: {

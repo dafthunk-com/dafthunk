@@ -4,17 +4,17 @@ import { ExecutableNode, GltfParameter } from "../types";
 import { NodeContext } from "../types";
 
 /**
- * GltfPreview node implementation
+ * GltfOutput node implementation
  * This node displays glTF 3D model data and persists the reference for read-only execution views
  * The model is passed through without modification - no double-save occurs
  */
-export class GltfPreviewNode extends ExecutableNode {
+export class GltfOutputNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "preview-gltf",
-    name: "glTF Preview",
-    type: "preview-gltf",
+    id: "output-gltf",
+    name: "glTF Output",
+    type: "output-gltf",
     description: "Display and preview glTF 3D model data",
-    tags: ["Widget", "Preview", "3D", "glTF"],
+    tags: ["Widget", "Output", "3D", "glTF"],
     icon: "box",
     documentation:
       "This node displays glTF 3D model data in the workflow. The model reference is persisted for viewing in read-only execution and deployed workflow views. No data is duplicated - the model passes through unchanged.",

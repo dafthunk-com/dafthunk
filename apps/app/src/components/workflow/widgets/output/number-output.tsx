@@ -1,18 +1,18 @@
 import { cn } from "@/utils/utils";
 
-import { SecretField } from "../../fields/secret-field";
+import { NumberField } from "../../fields/number-field";
 import type { BaseWidgetProps } from "../widget";
 import { createWidget } from "../widget";
 
-interface SecretPreviewWidgetProps extends BaseWidgetProps {
+interface NumberOutputWidgetProps extends BaseWidgetProps {
   value: string;
 }
 
-function SecretPreviewWidget({ value, className }: SecretPreviewWidgetProps) {
+function NumberOutputWidget({ value, className }: NumberOutputWidgetProps) {
   return (
     <div className={cn("p-2", className)}>
-      <SecretField
-        parameter={{ id: "preview", name: "value", type: "secret" }}
+      <NumberField
+        parameter={{ id: "preview", name: "value", type: "number" }}
         value={value ?? ""}
         onChange={() => {}}
         onClear={() => {}}
@@ -22,9 +22,9 @@ function SecretPreviewWidget({ value, className }: SecretPreviewWidgetProps) {
   );
 }
 
-export const secretPreviewWidget = createWidget({
-  component: SecretPreviewWidget,
-  nodeTypes: ["preview-secret"],
+export const numberOutputWidget = createWidget({
+  component: NumberOutputWidget,
+  nodeTypes: ["output-number"],
   inputField: "value",
   extractConfig: (_nodeId, inputs, outputs) => {
     const displayValueOutput = outputs?.find((o) => o.name === "displayValue");
@@ -36,7 +36,7 @@ export const secretPreviewWidget = createWidget({
         : valueInput?.value;
 
     return {
-      value: valueToPreview ?? "",
+      value: valueToPreview !== undefined ? String(valueToPreview) : "",
     };
   },
 });

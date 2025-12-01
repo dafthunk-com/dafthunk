@@ -7,14 +7,14 @@ import { cn } from "@/utils/utils";
 import type { BaseWidgetProps } from "../widget";
 import { createWidget } from "../widget";
 
-interface BufferGeometryPreviewWidgetProps extends BaseWidgetProps {
+interface BufferGeometryOutputWidgetProps extends BaseWidgetProps {
   value: ObjectReference | undefined;
 }
 
-function BufferGeometryPreviewWidget({
+function BufferGeometryOutputWidget({
   value,
   className,
-}: BufferGeometryPreviewWidgetProps) {
+}: BufferGeometryOutputWidgetProps) {
   const hasValue = value !== undefined && isObjectReference(value);
   const objectRef = hasValue ? (value as ObjectReference) : null;
 
@@ -37,9 +37,9 @@ function BufferGeometryPreviewWidget({
   );
 }
 
-export const buffergeometryPreviewWidget = createWidget({
-  component: BufferGeometryPreviewWidget,
-  nodeTypes: ["preview-buffergeometry"],
+export const buffergeometryOutputWidget = createWidget({
+  component: BufferGeometryOutputWidget,
+  nodeTypes: ["output-buffergeometry"],
   inputField: "value",
   extractConfig: (_nodeId, inputs, outputs) => {
     const displayValueOutput = outputs?.find((o) => o.name === "displayValue");

@@ -4,16 +4,16 @@ import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
 
 /**
- * NumberPreview node implementation
+ * NumberOutput node implementation
  * This node displays numeric data and persists the value for read-only execution views
  */
-export class NumberPreviewNode extends ExecutableNode {
+export class NumberOutputNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "preview-number",
-    name: "Number Preview",
-    type: "preview-number",
+    id: "output-number",
+    name: "Number Output",
+    type: "output-number",
     description: "Display and preview numeric data",
-    tags: ["Widget", "Preview", "Number"],
+    tags: ["Widget", "Output", "Number"],
     icon: "hash",
     documentation:
       "This node displays numeric data in the workflow. The value is persisted for viewing in read-only execution and deployed workflow views.",

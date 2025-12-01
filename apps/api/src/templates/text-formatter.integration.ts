@@ -15,7 +15,7 @@ describe("Text Formatter Template", () => {
     const nodeTypes = textFormatterTemplate.nodes.map((n) => n.type);
     expect(nodeTypes).toContain("text-input");
     expect(nodeTypes).toContain("single-variable-string-template");
-    expect(nodeTypes).toContain("preview-text");
+    expect(nodeTypes).toContain("output-text");
   });
 
   it("should execute all nodes in the template", async () => {

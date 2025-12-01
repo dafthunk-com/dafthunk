@@ -39,7 +39,7 @@ describe("Speech to Text Template", () => {
       (n) => n.id === "transcription-preview"
     );
     expect(previewNode).toBeDefined();
-    expect(previewNode?.type).toBe("preview-text");
+    expect(previewNode?.type).toBe("output-text");
   });
 
   it("should have correct edge connections", () => {

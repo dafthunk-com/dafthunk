@@ -4,17 +4,17 @@ import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
 
 /**
- * AnyPreview node implementation
+ * AnyOutput node implementation
  * This node displays any data type and persists the value for read-only execution views
  * Can accept any parameter type (mixed types)
  */
-export class AnyPreviewNode extends ExecutableNode {
+export class AnyOutputNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "preview-any",
-    name: "Any Preview",
-    type: "preview-any",
+    id: "output-any",
+    name: "Any Output",
+    type: "output-any",
     description: "Display and preview any data type",
-    tags: ["Widget", "Preview", "Any"],
+    tags: ["Widget", "Output", "Any"],
     icon: "eye",
     documentation:
       "This node displays any data type in the workflow. It accepts any parameter type and persists the value for viewing in read-only execution and deployed workflow views. Useful for generic data inspection.",

@@ -1,19 +1,19 @@
 import { cn } from "@/utils/utils";
 
-import { TextField } from "../../fields/text-field";
+import { BooleanField } from "../../fields/boolean-field";
 import type { BaseWidgetProps } from "../widget";
 import { createWidget } from "../widget";
 
-interface TextPreviewWidgetProps extends BaseWidgetProps {
-  value: string;
+interface BooleanOutputWidgetProps extends BaseWidgetProps {
+  value: boolean;
 }
 
-function TextPreviewWidget({ value, className }: TextPreviewWidgetProps) {
+function BooleanOutputWidget({ value, className }: BooleanOutputWidgetProps) {
   return (
-    <div className={cn("p-2 h-full w-full", className)}>
-      <TextField
-        parameter={{ id: "preview", name: "value", type: "string" }}
-        value={value ?? ""}
+    <div className={cn("p-2", className)}>
+      <BooleanField
+        parameter={{ id: "preview", name: "value", type: "boolean" }}
+        value={value}
         onChange={() => {}}
         onClear={() => {}}
         disabled
@@ -22,9 +22,9 @@ function TextPreviewWidget({ value, className }: TextPreviewWidgetProps) {
   );
 }
 
-export const textPreviewWidget = createWidget({
-  component: TextPreviewWidget,
-  nodeTypes: ["preview-text"],
+export const booleanOutputWidget = createWidget({
+  component: BooleanOutputWidget,
+  nodeTypes: ["output-boolean"],
   inputField: "value",
   extractConfig: (_nodeId, inputs, outputs) => {
     const displayValueOutput = outputs?.find((o) => o.name === "displayValue");
@@ -36,7 +36,7 @@ export const textPreviewWidget = createWidget({
         : valueInput?.value;
 
     return {
-      value: valueToPreview ?? "",
+      value: valueToPreview,
     };
   },
 });

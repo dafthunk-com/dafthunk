@@ -4,7 +4,7 @@ import { PhotonAdjustContrastNode } from "../nodes/image/photon-adjust-contrast-
 import { PhotonInvertColorsNode } from "../nodes/image/photon-invert-colors-node";
 import { PhotonPixelizeNode } from "../nodes/image/photon-pixelize-node";
 import { WebcamInputNode } from "../nodes/input/webcam-input-node";
-import { ImagePreviewNode } from "../nodes/preview/image-preview-node";
+import { ImageOutputNode } from "../nodes/output/image-output-node";
 
 export const imageProcessingTemplate: WorkflowTemplate = {
   id: "image-processing",
@@ -36,7 +36,7 @@ export const imageProcessingTemplate: WorkflowTemplate = {
       position: { x: 1000, y: 200 },
       inputs: { pixelSize: 8 },
     }),
-    ImagePreviewNode.create({
+    ImageOutputNode.create({
       id: "result-preview",
       name: "Result",
       position: { x: 1300, y: 200 },

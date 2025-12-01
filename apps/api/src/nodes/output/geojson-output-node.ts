@@ -4,16 +4,16 @@ import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
 
 /**
- * GeoJSONPreview node implementation
+ * GeoJSONOutput node implementation
  * This node displays GeoJSON geographic data and persists the value for read-only execution views
  */
-export class GeoJSONPreviewNode extends ExecutableNode {
+export class GeoJSONOutputNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "preview-geojson",
-    name: "GeoJSON Preview",
-    type: "preview-geojson",
+    id: "output-geojson",
+    name: "GeoJSON Output",
+    type: "output-geojson",
     description: "Display and preview GeoJSON geographic data",
-    tags: ["Widget", "Preview", "GeoJSON", "Geo"],
+    tags: ["Widget", "Output", "GeoJSON", "Geo"],
     icon: "map-pin",
     documentation:
       "This node displays GeoJSON geographic data in the workflow. The value is persisted for viewing in read-only execution and deployed workflow views.",

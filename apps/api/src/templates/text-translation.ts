@@ -1,7 +1,7 @@
 import type { WorkflowTemplate } from "@dafthunk/types";
 
 import { TextInputNode } from "../nodes/input/text-input-node";
-import { TextPreviewNode } from "../nodes/preview/text-preview-node";
+import { TextOutputNode } from "../nodes/output/text-output-node";
 import { M2m10012bNode } from "../nodes/text/m2m100-1-2b-node";
 
 export const textTranslationTemplate: WorkflowTemplate = {
@@ -48,7 +48,7 @@ export const textTranslationTemplate: WorkflowTemplate = {
       name: "Text Translator",
       position: { x: 500, y: 200 },
     }),
-    TextPreviewNode.create({
+    TextOutputNode.create({
       id: "translation-preview",
       name: "Translation",
       position: { x: 900, y: 200 },

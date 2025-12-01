@@ -18,6 +18,7 @@ function JsonInputWidget({
     <div className={cn("p-2 h-full w-full", className)}>
       <div className="h-[200px] relative nowheel nopan">
         <JsonField
+          parameter={{ id: "input", name: "json", type: "json" }}
           value={value}
           onChange={onChange}
           onClear={() => onChange("{}")}

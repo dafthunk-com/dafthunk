@@ -1,7 +1,7 @@
 import type { WorkflowTemplate } from "@dafthunk/types";
 
 import { TextInputNode } from "../nodes/input/text-input-node";
-import { TextPreviewNode } from "../nodes/preview/text-preview-node";
+import { TextOutputNode } from "../nodes/output/text-output-node";
 import { Llama3370BInstructFastNode } from "../nodes/text/llama-3-3-70b-instruct-fp8-fast-node";
 
 export const aiCalculatorTemplate: WorkflowTemplate = {
@@ -29,7 +29,7 @@ export const aiCalculatorTemplate: WorkflowTemplate = {
         tools: [{ type: "node", identifier: "calculator" }],
       },
     }),
-    TextPreviewNode.create({
+    TextOutputNode.create({
       id: "solution-preview",
       name: "Solution",
       position: { x: 900, y: 100 },

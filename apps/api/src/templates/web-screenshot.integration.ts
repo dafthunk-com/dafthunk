@@ -39,7 +39,7 @@ describe("Web Screenshot Template", () => {
       (n) => n.id === "screenshot-preview"
     );
     expect(previewNode).toBeDefined();
-    expect(previewNode?.type).toBe("preview-image");
+    expect(previewNode?.type).toBe("output-image");
   });
 
   it("should have correct edge connections", () => {

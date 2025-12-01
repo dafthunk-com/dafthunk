@@ -25,20 +25,20 @@ import { secretInputWidget } from "./input/secret-input";
 import { sliderInputWidget } from "./input/slider-input";
 import { textInputWidget } from "./input/text-input";
 import { webcamInputWidget } from "./input/webcam-input";
-// Preview widgets
-import { audioPreviewWidget } from "./preview/audio-preview";
-import { blobPreviewWidget } from "./preview/blob-preview";
-import { booleanPreviewWidget } from "./preview/boolean-preview";
-import { buffergeometryPreviewWidget } from "./preview/buffergeometry-preview";
-import { datePreviewWidget } from "./preview/date-preview";
-import { documentPreviewWidget } from "./preview/document-preview";
-import { geojsonPreviewWidget } from "./preview/geojson-preview";
-import { gltfPreviewWidget } from "./preview/gltf-preview";
-import { imagePreviewWidget } from "./preview/image-preview";
-import { jsonPreviewWidget } from "./preview/json-preview";
-import { numberPreviewWidget } from "./preview/number-preview";
-import { secretPreviewWidget } from "./preview/secret-preview";
-import { textPreviewWidget } from "./preview/text-preview";
+// Output widgets
+import { audioOutputWidget } from "./output/audio-output";
+import { blobOutputWidget } from "./output/blob-output";
+import { booleanOutputWidget } from "./output/boolean-output";
+import { buffergeometryOutputWidget } from "./output/buffergeometry-output";
+import { dateOutputWidget } from "./output/date-output";
+import { documentOutputWidget } from "./output/document-output";
+import { geojsonOutputWidget } from "./output/geojson-output";
+import { gltfOutputWidget } from "./output/gltf-output";
+import { imageOutputWidget } from "./output/image-output";
+import { jsonOutputWidget } from "./output/json-output";
+import { numberOutputWidget } from "./output/number-output";
+import { secretOutputWidget } from "./output/secret-output";
+import { textOutputWidget } from "./output/text-output";
 import { registry } from "./registry";
 // Selector widgets
 import { databaseSelectorWidget } from "./selector/database-selector";
@@ -82,20 +82,20 @@ const widgets = [
   audioRecorderInputWidget,
   canvasInputWidget,
 
-  // Preview widgets
-  textPreviewWidget,
-  numberPreviewWidget,
-  booleanPreviewWidget,
-  datePreviewWidget,
-  secretPreviewWidget,
-  blobPreviewWidget,
-  imagePreviewWidget,
-  documentPreviewWidget,
-  audioPreviewWidget,
-  gltfPreviewWidget,
-  buffergeometryPreviewWidget,
-  jsonPreviewWidget,
-  geojsonPreviewWidget,
+  // Output widgets
+  textOutputWidget,
+  numberOutputWidget,
+  booleanOutputWidget,
+  dateOutputWidget,
+  secretOutputWidget,
+  blobOutputWidget,
+  imageOutputWidget,
+  documentOutputWidget,
+  audioOutputWidget,
+  gltfOutputWidget,
+  buffergeometryOutputWidget,
+  jsonOutputWidget,
+  geojsonOutputWidget,
 
   // Selector widgets
   datasetSelectorWidget,

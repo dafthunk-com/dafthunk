@@ -4,16 +4,16 @@ import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
 
 /**
- * BooleanPreview node implementation
+ * BooleanOutput node implementation
  * This node displays boolean data and persists the value for read-only execution views
  */
-export class BooleanPreviewNode extends ExecutableNode {
+export class BooleanOutputNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "preview-boolean",
-    name: "Boolean Preview",
-    type: "preview-boolean",
+    id: "output-boolean",
+    name: "Boolean Output",
+    type: "output-boolean",
     description: "Display and preview boolean data",
-    tags: ["Widget", "Preview", "Boolean"],
+    tags: ["Widget", "Output", "Boolean"],
     icon: "toggle-right",
     documentation:
       "This node displays boolean data in the workflow. The value is persisted for viewing in read-only execution and deployed workflow views.",

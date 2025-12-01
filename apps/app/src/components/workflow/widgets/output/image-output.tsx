@@ -2,24 +2,24 @@ import type { ObjectReference } from "@dafthunk/types";
 
 import { cn } from "@/utils/utils";
 
-import { GltfField } from "../../fields/gltf-field";
+import { ImageField } from "../../fields/image-field";
 import type { BaseWidgetProps } from "../widget";
 import { createWidget } from "../widget";
 
-interface GltfPreviewWidgetProps extends BaseWidgetProps {
+interface ImageOutputWidgetProps extends BaseWidgetProps {
   value: ObjectReference | undefined;
   createObjectUrl?: (objectReference: ObjectReference) => string;
 }
 
-function GltfPreviewWidget({
+function ImageOutputWidget({
   value,
   className,
   createObjectUrl,
-}: GltfPreviewWidgetProps) {
+}: ImageOutputWidgetProps) {
   return (
     <div className={cn("p-2 h-full w-full", className)}>
-      <GltfField
-        parameter={{ id: "preview", name: "value", type: "gltf" }}
+      <ImageField
+        parameter={{ id: "preview", name: "value", type: "image" }}
         value={value}
         onChange={() => {}}
         onClear={() => {}}
@@ -31,9 +31,9 @@ function GltfPreviewWidget({
   );
 }
 
-export const gltfPreviewWidget = createWidget({
-  component: GltfPreviewWidget,
-  nodeTypes: ["preview-gltf"],
+export const imageOutputWidget = createWidget({
+  component: ImageOutputWidget,
+  nodeTypes: ["output-image"],
   inputField: "value",
   extractConfig: (_nodeId, inputs, outputs) => {
     const displayValueOutput = outputs?.find((o) => o.name === "displayValue");

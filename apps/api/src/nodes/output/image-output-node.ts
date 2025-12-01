@@ -4,17 +4,17 @@ import { ExecutableNode, ImageParameter } from "../types";
 import { NodeContext } from "../types";
 
 /**
- * ImagePreview node implementation
+ * ImageOutput node implementation
  * This node displays image data and persists the reference for read-only execution views
  * The image is passed through without modification - no double-save occurs
  */
-export class ImagePreviewNode extends ExecutableNode {
+export class ImageOutputNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "preview-image",
-    name: "Image Preview",
-    type: "preview-image",
+    id: "output-image",
+    name: "Image Output",
+    type: "output-image",
     description: "Display and preview image data",
-    tags: ["Widget", "Preview", "Image"],
+    tags: ["Widget", "Output", "Image"],
     icon: "image",
     documentation:
       "This node displays image data in the workflow. The image reference is persisted for viewing in read-only execution and deployed workflow views. No data is duplicated - the image passes through unchanged.",

@@ -29,7 +29,7 @@ describe("Conditional Branching Template", () => {
     expect(types).toContain("addition");
     expect(types).toContain("subtraction");
     expect(types).toContain("conditional-join");
-    expect(types).toContain("preview-number");
+    expect(types).toContain("output-number");
   });
 
   it("should have correct fork/join connections", () => {

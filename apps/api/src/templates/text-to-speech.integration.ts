@@ -39,7 +39,7 @@ describe("Text to Speech Template", () => {
       (n) => n.id === "audio-preview"
     );
     expect(previewNode).toBeDefined();
-    expect(previewNode?.type).toBe("preview-audio");
+    expect(previewNode?.type).toBe("output-audio");
   });
 
   it("should have correct edge connections", () => {

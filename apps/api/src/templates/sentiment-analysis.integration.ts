@@ -35,17 +35,17 @@ describe("Sentiment Analysis Template", () => {
     expect(analyzerNode).toBeDefined();
     expect(analyzerNode?.type).toBe("distilbert-sst-2-int8");
 
-    const positivePreviewNode = sentimentAnalysisTemplate.nodes.find(
+    const positiveOutputNode = sentimentAnalysisTemplate.nodes.find(
       (n) => n.id === "positive-score-preview"
     );
-    expect(positivePreviewNode).toBeDefined();
-    expect(positivePreviewNode?.type).toBe("preview-number");
+    expect(positiveOutputNode).toBeDefined();
+    expect(positiveOutputNode?.type).toBe("output-number");
 
-    const negativePreviewNode = sentimentAnalysisTemplate.nodes.find(
+    const negativeOutputNode = sentimentAnalysisTemplate.nodes.find(
       (n) => n.id === "negative-score-preview"
     );
-    expect(negativePreviewNode).toBeDefined();
-    expect(negativePreviewNode?.type).toBe("preview-number");
+    expect(negativeOutputNode).toBeDefined();
+    expect(negativeOutputNode?.type).toBe("output-number");
   });
 
   it("should have correct edge connections", () => {

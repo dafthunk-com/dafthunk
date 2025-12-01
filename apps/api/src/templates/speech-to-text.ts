@@ -2,7 +2,7 @@ import type { WorkflowTemplate } from "@dafthunk/types";
 
 import { WhisperNode } from "../nodes/audio/whisper-node";
 import { AudioRecorderInputNode } from "../nodes/input/audio-recorder-input-node";
-import { TextPreviewNode } from "../nodes/preview/text-preview-node";
+import { TextOutputNode } from "../nodes/output/text-output-node";
 
 export const speechToTextTemplate: WorkflowTemplate = {
   id: "speech-to-text",
@@ -22,7 +22,7 @@ export const speechToTextTemplate: WorkflowTemplate = {
       name: "Transcriber",
       position: { x: 500, y: 100 },
     }),
-    TextPreviewNode.create({
+    TextOutputNode.create({
       id: "transcription-preview",
       name: "Transcription",
       position: { x: 900, y: 100 },

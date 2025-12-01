@@ -2,7 +2,7 @@ import type { WorkflowTemplate } from "@dafthunk/types";
 
 import { CloudflareBrowserScreenshotNode } from "../nodes/browser/cloudflare-browser-screenshot-node";
 import { TextInputNode } from "../nodes/input/text-input-node";
-import { ImagePreviewNode } from "../nodes/preview/image-preview-node";
+import { ImageOutputNode } from "../nodes/output/image-output-node";
 
 export const webScreenshotTemplate: WorkflowTemplate = {
   id: "web-screenshot",
@@ -27,7 +27,7 @@ export const webScreenshotTemplate: WorkflowTemplate = {
       name: "Screenshot",
       position: { x: 500, y: 100 },
     }),
-    ImagePreviewNode.create({
+    ImageOutputNode.create({
       id: "screenshot-preview",
       name: "Screenshot",
       position: { x: 900, y: 100 },

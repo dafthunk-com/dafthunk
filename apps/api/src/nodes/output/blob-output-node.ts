@@ -4,17 +4,17 @@ import { BlobParameter, ExecutableNode } from "../types";
 import { NodeContext } from "../types";
 
 /**
- * BlobPreview node implementation
+ * BlobOutput node implementation
  * This node displays blob (binary) data and persists the reference for read-only execution views
  * The blob is passed through without modification - no double-save occurs
  */
-export class BlobPreviewNode extends ExecutableNode {
+export class BlobOutputNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "preview-blob",
-    name: "Blob Preview",
-    type: "preview-blob",
+    id: "output-blob",
+    name: "Blob Output",
+    type: "output-blob",
     description: "Display and preview binary blob data",
-    tags: ["Widget", "Preview", "Blob"],
+    tags: ["Widget", "Output", "Blob"],
     icon: "file",
     documentation:
       "This node displays binary blob data in the workflow. The blob reference is persisted for viewing in read-only execution and deployed workflow views. No data is duplicated - the blob passes through unchanged.",

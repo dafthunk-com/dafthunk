@@ -38,7 +38,7 @@ describe("AI Calculator Template", () => {
       (n) => n.id === "solution-preview"
     );
     expect(previewNode).toBeDefined();
-    expect(previewNode?.type).toBe("preview-text");
+    expect(previewNode?.type).toBe("output-text");
   });
 
   it("should have calculator configured as a tool for the AI node", () => {

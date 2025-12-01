@@ -1,7 +1,7 @@
 import type { WorkflowTemplate } from "@dafthunk/types";
 
 import { TextInputNode } from "../nodes/input/text-input-node";
-import { NumberPreviewNode } from "../nodes/preview/number-preview-node";
+import { NumberOutputNode } from "../nodes/output/number-output-node";
 import { DistilbertSst2Int8Node } from "../nodes/text/distilbert-sst-2-int8-node";
 
 export const sentimentAnalysisTemplate: WorkflowTemplate = {
@@ -28,12 +28,12 @@ export const sentimentAnalysisTemplate: WorkflowTemplate = {
       name: "Sentiment Analyzer",
       position: { x: 500, y: 100 },
     }),
-    NumberPreviewNode.create({
+    NumberOutputNode.create({
       id: "positive-score-preview",
       name: "Positive Score",
       position: { x: 900, y: 50 },
     }),
-    NumberPreviewNode.create({
+    NumberOutputNode.create({
       id: "negative-score-preview",
       name: "Negative Score",
       position: { x: 900, y: 200 },

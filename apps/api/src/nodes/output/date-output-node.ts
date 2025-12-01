@@ -4,16 +4,16 @@ import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
 
 /**
- * DatePreview node implementation
+ * DateOutput node implementation
  * This node displays date/time data and persists the value for read-only execution views
  */
-export class DatePreviewNode extends ExecutableNode {
+export class DateOutputNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "preview-date",
-    name: "Date Preview",
-    type: "preview-date",
+    id: "output-date",
+    name: "Date Output",
+    type: "output-date",
     description: "Display and preview date/time data",
-    tags: ["Widget", "Preview", "Date"],
+    tags: ["Widget", "Output", "Date"],
     icon: "calendar",
     documentation:
       "This node displays date/time data (ISO 8601 format) in the workflow. The value is persisted for viewing in read-only execution and deployed workflow views.",

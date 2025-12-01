@@ -2,24 +2,24 @@ import type { ObjectReference } from "@dafthunk/types";
 
 import { cn } from "@/utils/utils";
 
-import { AudioField } from "../../fields/audio-field";
+import { DocumentField } from "../../fields/document-field";
 import type { BaseWidgetProps } from "../widget";
 import { createWidget } from "../widget";
 
-interface AudioPreviewWidgetProps extends BaseWidgetProps {
+interface DocumentOutputWidgetProps extends BaseWidgetProps {
   value: ObjectReference | undefined;
   createObjectUrl?: (objectReference: ObjectReference) => string;
 }
 
-function AudioPreviewWidget({
+function DocumentOutputWidget({
   value,
   className,
   createObjectUrl,
-}: AudioPreviewWidgetProps) {
+}: DocumentOutputWidgetProps) {
   return (
     <div className={cn("p-2 h-full w-full", className)}>
-      <AudioField
-        parameter={{ id: "preview", name: "value", type: "audio" }}
+      <DocumentField
+        parameter={{ id: "preview", name: "value", type: "document" }}
         value={value}
         onChange={() => {}}
         onClear={() => {}}
@@ -31,9 +31,9 @@ function AudioPreviewWidget({
   );
 }
 
-export const audioPreviewWidget = createWidget({
-  component: AudioPreviewWidget,
-  nodeTypes: ["preview-audio"],
+export const documentOutputWidget = createWidget({
+  component: DocumentOutputWidget,
+  nodeTypes: ["output-document"],
   inputField: "value",
   extractConfig: (_nodeId, inputs, outputs) => {
     const displayValueOutput = outputs?.find((o) => o.name === "displayValue");

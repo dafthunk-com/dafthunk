@@ -2,7 +2,7 @@ import type { WorkflowTemplate } from "@dafthunk/types";
 
 import { UformGen2Qwen500mNode } from "../nodes/image/uform-gen2-qwen-500m-node";
 import { CanvasInputNode } from "../nodes/input/canvas-input-node";
-import { TextPreviewNode } from "../nodes/preview/text-preview-node";
+import { TextOutputNode } from "../nodes/output/text-output-node";
 
 export const imageDescriptionTemplate: WorkflowTemplate = {
   id: "image-description",
@@ -28,7 +28,7 @@ export const imageDescriptionTemplate: WorkflowTemplate = {
       name: "Image Describer",
       position: { x: 500, y: 100 },
     }),
-    TextPreviewNode.create({
+    TextOutputNode.create({
       id: "description-preview",
       name: "Description",
       position: { x: 900, y: 100 },

@@ -1,7 +1,7 @@
 import type { WorkflowTemplate } from "@dafthunk/types";
 
 import { TextInputNode } from "../nodes/input/text-input-node";
-import { TextPreviewNode } from "../nodes/preview/text-preview-node";
+import { TextOutputNode } from "../nodes/output/text-output-node";
 import { BartLargeCnnNode } from "../nodes/text/bart-large-cnn-node";
 
 export const textSummarizationTemplate: WorkflowTemplate = {
@@ -32,7 +32,7 @@ export const textSummarizationTemplate: WorkflowTemplate = {
         maxLength: 20,
       },
     }),
-    TextPreviewNode.create({
+    TextOutputNode.create({
       id: "summary-preview",
       name: "Summary",
       position: { x: 900, y: 100 },

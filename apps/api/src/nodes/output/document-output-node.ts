@@ -4,17 +4,17 @@ import { DocumentParameter, ExecutableNode } from "../types";
 import { NodeContext } from "../types";
 
 /**
- * DocumentPreview node implementation
+ * DocumentOutput node implementation
  * This node displays document data and persists the reference for read-only execution views
  * The document is passed through without modification - no double-save occurs
  */
-export class DocumentPreviewNode extends ExecutableNode {
+export class DocumentOutputNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "preview-document",
-    name: "Document Preview",
-    type: "preview-document",
+    id: "output-document",
+    name: "Document Output",
+    type: "output-document",
     description: "Display and preview document data",
-    tags: ["Widget", "Preview", "Document"],
+    tags: ["Widget", "Output", "Document"],
     icon: "file-text",
     documentation:
       "This node displays document data in the workflow. The document reference is persisted for viewing in read-only execution and deployed workflow views. No data is duplicated - the document passes through unchanged.",

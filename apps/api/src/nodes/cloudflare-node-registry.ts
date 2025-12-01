@@ -334,20 +334,20 @@ import { Gpt41Node } from "./openai/gpt-41-node";
 import { GptOss20BNode } from "./openai/gpt-oss-20b-node";
 import { GptOss120BNode } from "./openai/gpt-oss-120b-node";
 import {
-  AnyPreviewNode,
-  AudioPreviewNode,
-  BlobPreviewNode,
-  BooleanPreviewNode,
-  DatePreviewNode,
-  DocumentPreviewNode,
-  GeoJSONPreviewNode,
-  GltfPreviewNode,
-  ImagePreviewNode,
-  JsonPreviewNode,
-  NumberPreviewNode,
-  SecretPreviewNode,
-  TextPreviewNode,
-} from "./preview";
+  AnyOutputNode,
+  AudioOutputNode,
+  BlobOutputNode,
+  BooleanOutputNode,
+  DateOutputNode,
+  DocumentOutputNode,
+  GeoJSONOutputNode,
+  GltfOutputNode,
+  ImageOutputNode,
+  JsonOutputNode,
+  NumberOutputNode,
+  SecretOutputNode,
+  TextOutputNode,
+} from "./output";
 import { ReceiveQueueMessageNode } from "./queue/receive-queue-message-node";
 import { SendQueueBatchNode } from "./queue/send-queue-batch-node";
 import { SendQueueMessageNode } from "./queue/send-queue-message-node";
@@ -879,19 +879,19 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(Gemini25FlashImageUnderstandingNode);
     this.registerImplementation(ImagenNode);
 
-    // Preview/Widget nodes - always register (for displaying all parameter types)
-    this.registerImplementation(TextPreviewNode);
-    this.registerImplementation(NumberPreviewNode);
-    this.registerImplementation(BooleanPreviewNode);
-    this.registerImplementation(DatePreviewNode);
-    this.registerImplementation(BlobPreviewNode);
-    this.registerImplementation(ImagePreviewNode);
-    this.registerImplementation(DocumentPreviewNode);
-    this.registerImplementation(AudioPreviewNode);
-    this.registerImplementation(GltfPreviewNode);
-    this.registerImplementation(JsonPreviewNode);
-    this.registerImplementation(GeoJSONPreviewNode);
-    this.registerImplementation(SecretPreviewNode);
-    this.registerImplementation(AnyPreviewNode);
+    // Output/Widget nodes - always register (for displaying all parameter types)
+    this.registerImplementation(TextOutputNode);
+    this.registerImplementation(NumberOutputNode);
+    this.registerImplementation(BooleanOutputNode);
+    this.registerImplementation(DateOutputNode);
+    this.registerImplementation(BlobOutputNode);
+    this.registerImplementation(ImageOutputNode);
+    this.registerImplementation(DocumentOutputNode);
+    this.registerImplementation(AudioOutputNode);
+    this.registerImplementation(GltfOutputNode);
+    this.registerImplementation(JsonOutputNode);
+    this.registerImplementation(GeoJSONOutputNode);
+    this.registerImplementation(SecretOutputNode);
+    this.registerImplementation(AnyOutputNode);
   }
 }

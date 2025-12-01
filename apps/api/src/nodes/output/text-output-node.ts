@@ -4,16 +4,16 @@ import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
 
 /**
- * TextPreview node implementation
+ * TextOutput node implementation
  * This node displays text data and persists the value for read-only execution views
  */
-export class TextPreviewNode extends ExecutableNode {
+export class TextOutputNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "preview-text",
-    name: "Text Preview",
-    type: "preview-text",
+    id: "output-text",
+    name: "Text Output",
+    type: "output-text",
     description: "Display and preview text data",
-    tags: ["Widget", "Preview", "Text"],
+    tags: ["Widget", "Output", "Text"],
     icon: "text",
     documentation:
       "This node displays text data in the workflow. The value is persisted for viewing in read-only execution and deployed workflow views.",

@@ -2,24 +2,24 @@ import type { ObjectReference } from "@dafthunk/types";
 
 import { cn } from "@/utils/utils";
 
-import { ImageField } from "../../fields/image-field";
+import { BlobField } from "../../fields/blob-field";
 import type { BaseWidgetProps } from "../widget";
 import { createWidget } from "../widget";
 
-interface ImagePreviewWidgetProps extends BaseWidgetProps {
+interface BlobOutputWidgetProps extends BaseWidgetProps {
   value: ObjectReference | undefined;
   createObjectUrl?: (objectReference: ObjectReference) => string;
 }
 
-function ImagePreviewWidget({
+function BlobOutputWidget({
   value,
   className,
   createObjectUrl,
-}: ImagePreviewWidgetProps) {
+}: BlobOutputWidgetProps) {
   return (
     <div className={cn("p-2 h-full w-full", className)}>
-      <ImageField
-        parameter={{ id: "preview", name: "value", type: "image" }}
+      <BlobField
+        parameter={{ id: "preview", name: "value", type: "blob" }}
         value={value}
         onChange={() => {}}
         onClear={() => {}}
@@ -31,9 +31,9 @@ function ImagePreviewWidget({
   );
 }
 
-export const imagePreviewWidget = createWidget({
-  component: ImagePreviewWidget,
-  nodeTypes: ["preview-image"],
+export const blobOutputWidget = createWidget({
+  component: BlobOutputWidget,
+  nodeTypes: ["output-blob"],
   inputField: "value",
   extractConfig: (_nodeId, inputs, outputs) => {
     const displayValueOutput = outputs?.find((o) => o.name === "displayValue");
