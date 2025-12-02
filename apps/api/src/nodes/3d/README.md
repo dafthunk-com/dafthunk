@@ -6,7 +6,7 @@ The Trellis node generates 3D models (GLB format) from images using the [Trellis
 
 ## Input
 
-- `image` (image, required): Input image blob to generate 3D model from
+- `images` (image, required, repeated): Input images to generate 3D model from (1-4 images for multi-view)
 
 ## Output
 

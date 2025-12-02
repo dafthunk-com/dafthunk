@@ -29,10 +29,12 @@ interface ReplicatePrediction {
  */
 export class TrellisNode extends ExecutableNode {
   private static readonly inputSchema = z.object({
-    image: z.object({
-      data: z.instanceof(Uint8Array),
-      mimeType: z.string(),
-    }),
+    images: z.array(
+      z.object({
+        data: z.instanceof(Uint8Array),
+        mimeType: z.string(),
+      })
+    ),
     seed: z.number().int().optional().default(0),
     randomize_seed: z.boolean().optional().default(true),
     texture_size: z.number().int().min(512).max(2048).optional().default(1024),
@@ -57,10 +59,11 @@ export class TrellisNode extends ExecutableNode {
     usage: 50,
     inputs: [
       {
-        name: "image",
+        name: "images",
         type: "image",
-        description: "Input image to generate 3D model from",
+        description: "Input images to generate 3D model from (1-4 images for multi-view)",
         required: true,
+        repeated: true,
       },
       {
         name: "seed",
@@ -145,11 +148,18 @@ export class TrellisNode extends ExecutableNode {
         );
       }
 
-      // Generate presigned URL for the input image
-      const imageUrl = await this.uploadImageAndGetPresignedUrl(
-        validatedInput.image,
-        context
+      // Generate presigned URLs for all input images
+      const imageUrls = await Promise.all(
+        validatedInput.images.map((image) =>
+          this.uploadImageAndGetPresignedUrl(image, context)
+        )
       );
+
+      if (imageUrls.length === 0) {
+        return this.createErrorResult("At least one image is required");
+      }
+
+      console.log("TrellisNode: Uploaded", imageUrls.length, "images");
 
       // Create prediction with sync mode (waits up to 60s)
       const syncTimeout = 60;
@@ -157,7 +167,7 @@ export class TrellisNode extends ExecutableNode {
       const startTime = Date.now();
 
       console.log("TrellisNode: Creating prediction");
-      console.log("TrellisNode: Image URL:", imageUrl);
+      console.log("TrellisNode: Image URLs:", imageUrls);
 
       const createResponse = await fetch(
         "https://api.replicate.com/v1/predictions",
@@ -172,7 +182,7 @@ export class TrellisNode extends ExecutableNode {
             version:
               "e8f6c45206993f297372f5436b90350817bd9b4a0d52d2a76df50c1c8afa2b3c",
             input: {
-              images: [imageUrl],
+              images: imageUrls,
               seed: validatedInput.seed,
               randomize_seed: validatedInput.randomize_seed,
               generate_color: true,
