@@ -17,7 +17,7 @@ function GltfOutputWidget({
   createObjectUrl,
 }: GltfOutputWidgetProps) {
   return (
-    <div className={cn("p-2 h-full w-full", className)}>
+    <div className={cn("p-2 w-full", className)}>
       <GltfField
         parameter={{ id: "preview", name: "value", type: "gltf" }}
         value={value}
@@ -26,6 +26,7 @@ function GltfOutputWidget({
         onFileUpload={async () => {}}
         createObjectUrl={createObjectUrl}
         disabled
+        className="!h-[160px]"
       />
     </div>
   );

@@ -118,49 +118,30 @@ export const ModelViewer = React.memo(
 
     if (!isModelViewerLoaded || isLoading || !authenticatedUrl) {
       return (
-        <div className="space-y-2">
-          <div
-            className="gltf-canvas-container bg-neutral-100/50 dark:bg-neutral-900 flex items-center justify-center"
-            style={{
-              width: 320,
-              height: 320,
-              maxWidth: "100%",
-            }}
-          >
-            <span className="text-xs text-neutral-500">
-              {!isModelViewerLoaded
-                ? "Loading 3D Viewer..."
-                : "Loading 3D Model..."}
-            </span>
-          </div>
-          <div className="text-xs text-neutral-500">
-            glTF Model ({parameter.value?.mimeType ?? "model/gltf-binary"})
-          </div>
+        <div className="w-full h-full flex items-center justify-center bg-neutral-100/50 dark:bg-neutral-900">
+          <span className="text-xs text-neutral-500">
+            {!isModelViewerLoaded
+              ? "Loading 3D Viewer..."
+              : "Loading 3D Model..."}
+          </span>
         </div>
       );
     }
 
     return (
-      <div className="space-y-3">
-        <div
-          className="gltf-canvas-container bg-neutral-100/50 dark:bg-neutral-900 overflow-hidden nodrag nopan nowheel"
+      <div
+        className="w-full h-full bg-neutral-100/50 dark:bg-neutral-900 overflow-hidden nodrag nopan nowheel"
+        onPointerDown={(e) => e.stopPropagation()}
+      >
+        <ModelViewerElement
+          src={authenticatedUrl}
+          camera-controls
           style={{
-            width: 320,
-            height: 320,
-            maxWidth: "100%",
+            width: "100%",
+            height: "100%",
+            backgroundColor: "transparent",
           }}
-          onPointerDown={(e) => e.stopPropagation()}
-        >
-          <ModelViewerElement
-            src={authenticatedUrl}
-            camera-controls
-            style={{
-              width: "100%",
-              height: "100%",
-              backgroundColor: "transparent",
-            }}
-          />
-        </div>
+        />
       </div>
     );
   }

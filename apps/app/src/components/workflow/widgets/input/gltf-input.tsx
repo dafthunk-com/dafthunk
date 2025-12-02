@@ -39,7 +39,7 @@ function GltfInputWidget({
   );
 
   return (
-    <div className={cn("p-2 h-full w-full", className)}>
+    <div className={cn("p-2 w-full", className)}>
       <GltfField
         parameter={{ id: "input", name: "value", type: "gltf" }}
         value={value}
@@ -51,6 +51,7 @@ function GltfInputWidget({
         createObjectUrl={createObjectUrl}
         disabled={readonly}
         clearable
+        className="!h-[160px]"
       />
     </div>
   );
