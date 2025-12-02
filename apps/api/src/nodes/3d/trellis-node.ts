@@ -61,7 +61,8 @@ export class TrellisNode extends ExecutableNode {
       {
         name: "images",
         type: "image",
-        description: "Input images to generate 3D model from (1-4 images for multi-view)",
+        description:
+          "Input images to generate 3D model from (1-4 images for multi-view)",
         required: true,
         repeated: true,
       },
