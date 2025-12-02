@@ -404,7 +404,7 @@ The main branch is deployed automatically to Cloudflare using GitHub Actions:
 
 ### Required Production Secrets
 
-Before deploying to production, you must set up secrets for Analytics Engine:
+Before deploying to production, you must set up secrets for Analytics Engine and R2 presigned URLs.
 
 #### 1. Create a Cloudflare API Token
 
@@ -426,6 +426,32 @@ echo "YOUR_API_TOKEN" | pnpm wrangler secret put CLOUDFLARE_API_TOKEN --env prod
 ```
 
 These secrets are required for the execution dashboard to query Analytics Engine for workflow execution metrics.
+
+#### 3. Create R2 API Token for Presigned URLs
+
+Presigned URLs allow temporary, secure access to R2 objects without exposing your bucket directly. R2 uses S3-compatible credentials which are separate from the standard Cloudflare API token.
+
+1. Go to https://dash.cloudflare.com/ → R2 Object Storage → Manage R2 API Tokens
+2. Click "Create API token"
+3. Configure the token:
+   - **Token name**: `dafthunk-presigned-urls`
+   - **Permissions**: Object Read & Write
+   - **Specify bucket(s)**: Select your R2 buckets (`dafthunk-ressources-production`)
+   - **TTL**: Optional, set an expiration if desired
+4. Click "Create API Token"
+5. Copy the **Access Key ID** and **Secret Access Key** (you'll only see them once)
+
+#### 4. Set R2 Secrets in Production
+
+```bash
+# The Access Key ID from step 3
+echo "YOUR_ACCESS_KEY_ID" | pnpm wrangler secret put R2_ACCESS_KEY_ID --env production
+
+# The Secret Access Key from step 3
+echo "YOUR_SECRET_ACCESS_KEY" | pnpm wrangler secret put R2_SECRET_ACCESS_KEY --env production
+```
+
+These secrets, combined with `CLOUDFLARE_ACCOUNT_ID` (already configured), enable generating presigned URLs for secure, temporary access to R2 objects.
 
 ### Manual Deployment
 

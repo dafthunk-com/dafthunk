@@ -1,12 +1,30 @@
 import { ObjectReference } from "@dafthunk/types";
+import { AwsClient } from "aws4fetch";
 import { v7 as uuid } from "uuid";
+
+export interface PresignedUrlConfig {
+  accountId: string;
+  bucketName: string;
+  accessKeyId: string;
+  secretAccessKey: string;
+}
 
 /**
  * Manages R2 storage for objects, workflows, and executions.
  * Uses helper methods to eliminate duplication in logging and error handling.
  */
 export class ObjectStore {
+  private presignedUrlConfig: PresignedUrlConfig | null = null;
+
   constructor(private bucket: R2Bucket) {}
+
+  /**
+   * Configure S3-compatible credentials for generating presigned URLs.
+   * Without this, getPresignedUrl will throw an error.
+   */
+  configurePresignedUrls(config: PresignedUrlConfig): void {
+    this.presignedUrlConfig = config;
+  }
 
   async writeObject(
     data: Uint8Array,
@@ -79,6 +97,84 @@ export class ObjectStore {
       `objects/${reference.id}/object.data`,
       "deleteObject"
     );
+  }
+
+  /**
+   * Generate a presigned URL for downloading an object.
+   * Requires configurePresignedUrls to be called first with S3 credentials.
+   *
+   * @param reference - The object reference
+   * @param expiresInSeconds - URL expiration time (default: 3600, max: 604800 = 7 days)
+   * @returns Presigned URL string
+   */
+  async getPresignedUrl(
+    reference: ObjectReference,
+    expiresInSeconds: number = 3600
+  ): Promise<string> {
+    if (!this.presignedUrlConfig) {
+      throw new Error(
+        "Presigned URL configuration not set. Call configurePresignedUrls first."
+      );
+    }
+
+    const { accountId, bucketName, accessKeyId, secretAccessKey } =
+      this.presignedUrlConfig;
+
+    const client = new AwsClient({
+      accessKeyId,
+      secretAccessKey,
+    });
+
+    const key = `objects/${reference.id}/object.data`;
+    const url = new URL(
+      `https://${bucketName}.${accountId}.r2.cloudflarestorage.com/${key}`
+    );
+    url.searchParams.set("X-Amz-Expires", String(expiresInSeconds));
+
+    const signed = await client.sign(new Request(url, { method: "GET" }), {
+      aws: { signQuery: true },
+    });
+
+    return signed.url;
+  }
+
+  /**
+   * Generate a presigned URL for uploading an object.
+   * Requires configurePresignedUrls to be called first with S3 credentials.
+   *
+   * @param reference - The object reference (id must be pre-generated)
+   * @param expiresInSeconds - URL expiration time (default: 3600, max: 604800 = 7 days)
+   * @returns Presigned URL string for PUT request
+   */
+  async getPresignedUploadUrl(
+    reference: ObjectReference,
+    expiresInSeconds: number = 3600
+  ): Promise<string> {
+    if (!this.presignedUrlConfig) {
+      throw new Error(
+        "Presigned URL configuration not set. Call configurePresignedUrls first."
+      );
+    }
+
+    const { accountId, bucketName, accessKeyId, secretAccessKey } =
+      this.presignedUrlConfig;
+
+    const client = new AwsClient({
+      accessKeyId,
+      secretAccessKey,
+    });
+
+    const key = `objects/${reference.id}/object.data`;
+    const url = new URL(
+      `https://${bucketName}.${accountId}.r2.cloudflarestorage.com/${key}`
+    );
+    url.searchParams.set("X-Amz-Expires", String(expiresInSeconds));
+
+    const signed = await client.sign(new Request(url, { method: "PUT" }), {
+      aws: { signQuery: true },
+    });
+
+    return signed.url;
   }
 
   async listObjects(organizationId: string): Promise<

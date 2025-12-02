@@ -5,7 +5,7 @@
  * @see https://developers.cloudflare.com/ai-gateway/configuration/authentication/
  */
 
-type Provider = "openai" | "anthropic" | "google-ai-studio";
+type Provider = "openai" | "anthropic" | "google-ai-studio" | "replicate";
 
 interface GatewayEnv {
   CLOUDFLARE_ACCOUNT_ID?: string;
@@ -115,4 +115,12 @@ export function getGoogleAIConfig(env: GatewayEnv): {
       headers: gateway.headers,
     },
   };
+}
+
+/**
+ * Returns Replicate API configuration with gateway support.
+ * Returns the base URL for Replicate models endpoint and authentication headers.
+ */
+export function getReplicateConfig(env: GatewayEnv): GatewayConfig | undefined {
+  return getGatewayConfig(env, "replicate");
 }

@@ -151,6 +151,10 @@ export interface NodeContext {
     AWS_REGION?: string;
     SES_DEFAULT_FROM?: string;
     HUGGINGFACE_API_KEY?: string;
+    REPLICATE_API_TOKEN?: string;
+    R2_ACCESS_KEY_ID?: string;
+    R2_SECRET_ACCESS_KEY?: string;
+    R2_BUCKET_NAME?: string;
   };
 }
 
