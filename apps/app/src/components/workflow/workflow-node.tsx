@@ -132,7 +132,17 @@ export const TypeBadge = ({
       {/* Multiple connections indicator background ring */}
       {isInput && repeated && (
         <div
-          className="absolute inset-0 rounded-md border border-dashed border-neutral-400 dark:border-neutral-500"
+          className={cn(
+            "absolute inset-0 rounded-lg border shadow-sm bg-background",
+            {
+              "border-border": !selected && executionState === "idle",
+              "border-yellow-400": !selected && executionState === "executing",
+              "border-green-500": !selected && executionState === "completed",
+              "border-red-500": !selected && executionState === "error",
+              "border-blue-400": !selected && executionState === "skipped",
+              "border-blue-500": selected,
+            }
+          )}
           style={{
             width: "20px",
             height: "20px",
