@@ -5,7 +5,6 @@ import { isObjectReference } from "@/services/object-service";
 import { cn } from "@/utils/utils";
 
 import { ModelViewer } from "../model-viewer";
-import { ClearButton } from "./clear-button";
 import type { FileFieldProps, ObjectReference } from "./types";
 
 export function GltfField({
@@ -132,9 +131,7 @@ export function GltfField({
         accept=".gltf,.glb"
       />
       {uploadError && (
-        <p className="text-xs text-red-600 dark:text-red-400">
-          {uploadError}
-        </p>
+        <p className="text-xs text-red-600 dark:text-red-400">{uploadError}</p>
       )}
     </div>
   );
