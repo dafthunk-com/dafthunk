@@ -635,44 +635,24 @@ export function useWorkflowExecution(
       const { id, onExecution } = executionContext;
 
       // Build parameters from HTTP config
-      const parameters: Record<string, any> = {};
+      const parameters: Record<string, any> = {
+        method: config.method,
+      };
 
-      // Add headers
-      if (Object.keys(config.headers).length > 0) {
+      // Add headers if any
+      if (config.headers && Object.keys(config.headers).length > 0) {
         parameters.headers = config.headers;
       }
 
-      // Add query params
-      if (Object.keys(config.queryParams).length > 0) {
+      // Add query params if any
+      if (config.queryParams && Object.keys(config.queryParams).length > 0) {
         parameters.queryParams = config.queryParams;
       }
 
-      // Add body
-      if (config.body.type !== "none" && config.body.content) {
-        if (
-          config.body.type === "raw" &&
-          typeof config.body.content === "string"
-        ) {
-          // For raw body, send as JSON if it's JSON content type
-          if (config.body.rawType === "json") {
-            try {
-              parameters.body = JSON.parse(config.body.content);
-            } catch {
-              parameters.body = config.body.content;
-            }
-          } else {
-            parameters.body = config.body.content;
-          }
-        } else if (
-          config.body.type === "form-data" ||
-          config.body.type === "urlencoded"
-        ) {
-          // FormData will be sent as-is
-          parameters.body = config.body.content;
-        } else if (config.body.type === "binary") {
-          // Binary file
-          parameters.body = config.body.content;
-        }
+      // Add body and content type for POST requests
+      if (config.method === "POST" && config.body) {
+        parameters.body = config.body;
+        parameters.contentType = config.contentType;
       }
 
       performExecutionAndPoll(id, onExecution, { parameters });

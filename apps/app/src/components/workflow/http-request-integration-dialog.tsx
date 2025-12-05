@@ -1,18 +1,11 @@
 import type { Node } from "@xyflow/react";
-import Terminal from "lucide-react/icons/terminal";
 
 import {
   EXECUTE_WORKFLOW_SNIPPETS,
   type SnippetParams,
 } from "@/components/deployments/api-snippets";
 import { CodeBlock } from "@/components/docs/code-block";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type {
   NodeType,
@@ -44,12 +37,10 @@ export function HttpRequestIntegrationDialog({
   const executeUrl = `${baseUrl}/${orgHandle}/workflows/${workflowId}/execute/${deploymentVersion}`;
 
   const parameters = extractDialogParametersFromNodes(nodes, nodeTypes);
-
-  // Check if there\'s a JSON body parameter
   const jsonBodyParam = parameters.find((p) => p.type === "body-json");
   const formParams: SnippetParams[] = parameters
     .filter((p) => p.type !== "body-json")
-    .map((p) => ({ nameForForm: p.nameForForm, type: p.type })); // Adapt to SnippetParams
+    .map((p) => ({ nameForForm: p.nameForForm, type: p.type }));
 
   const renderSnippets = (language: "curl" | "javascript" | "python") => {
     switch (language) {
@@ -78,120 +69,79 @@ export function HttpRequestIntegrationDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-xl flex items-center gap-2">
-            <Terminal className="h-5 w-5" />
+      <DialogContent className="max-w-4xl max-h-[80vh] flex flex-col gap-0 p-0">
+        <div className="flex items-center justify-between px-4 py-3 border-b">
+          <DialogTitle className="text-base font-semibold">
             HTTP Request Integration
           </DialogTitle>
-          <DialogDescription>
-            Execute this workflow as a REST API endpoint. Returns the response
-            defined by the HTTP Response node.
-          </DialogDescription>
-        </DialogHeader>
-        <Tabs
-          defaultValue="execute"
-          className="w-full flex items-stretch border rounded-lg"
-          orientation="vertical"
-        >
-          <TabsList className="flex flex-col justify-start h-auto gap-1 p-4 rounded-r-none *:w-full *:justify-start *:pe-10">
-            <TabsTrigger value="execute">
-              <span className="text-xs font-mono me-2 text-green-600 dark:text-green-400">
-                POST
-              </span>{" "}
-              Execute Workflow
-            </TabsTrigger>
-          </TabsList>
+        </div>
 
-          {/* Execute Workflow Operation */}
-          <TabsContent value="execute" className="mt-0 p-4">
-            <Tabs defaultValue="curl">
-              <TabsList>
-                <TabsTrigger value="curl" className="text-sm">
-                  cURL
-                </TabsTrigger>
-                <TabsTrigger value="javascript" className="text-sm">
-                  JavaScript
-                </TabsTrigger>
-                <TabsTrigger value="python" className="text-sm">
-                  Python
-                </TabsTrigger>
-              </TabsList>
-              <TabsContent value="curl" className="mt-4 space-y-4">
-                <div className="relative">
-                  <CodeBlock
-                    language="bash"
-                    className="text-xs md:text-sm overflow-x-auto font-mono"
-                  >
-                    {renderSnippets("curl")}
-                  </CodeBlock>
-                </div>
-              </TabsContent>
-              <TabsContent value="javascript" className="mt-4 space-y-4">
-                <div className="relative">
-                  <CodeBlock
-                    language="javascript"
-                    className="text-xs md:text-sm overflow-x-auto font-mono"
-                  >
-                    {renderSnippets("javascript")}
-                  </CodeBlock>
-                </div>
-              </TabsContent>
-              <TabsContent value="python" className="mt-4 space-y-4">
-                <div className="relative">
-                  <CodeBlock
-                    language="python"
-                    className="text-xs md:text-sm overflow-x-auto font-mono"
-                  >
-                    {renderSnippets("python")}
-                  </CodeBlock>
-                </div>
-              </TabsContent>
-            </Tabs>
-            <div className="mt-4">
-              <p className="text-sm text-muted-foreground font-medium">
-                Notes:
-              </p>
-              <ul className="list-disc pl-5 mt-1 space-y-1 text-muted-foreground text-xs">
+        <div className="flex-1 overflow-y-auto p-4">
+          <Tabs defaultValue="curl">
+            <TabsList>
+              <TabsTrigger value="curl">cURL</TabsTrigger>
+              <TabsTrigger value="javascript">JavaScript</TabsTrigger>
+              <TabsTrigger value="python">Python</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="curl" className="mt-3">
+              <CodeBlock language="bash" className="text-sm overflow-x-auto">
+                {renderSnippets("curl")}
+              </CodeBlock>
+            </TabsContent>
+
+            <TabsContent value="javascript" className="mt-3">
+              <CodeBlock
+                language="javascript"
+                className="text-sm overflow-x-auto"
+              >
+                {renderSnippets("javascript")}
+              </CodeBlock>
+            </TabsContent>
+
+            <TabsContent value="python" className="mt-3">
+              <CodeBlock language="python" className="text-sm overflow-x-auto">
+                {renderSnippets("python")}
+              </CodeBlock>
+            </TabsContent>
+          </Tabs>
+
+          <div className="mt-4 text-sm text-muted-foreground space-y-1">
+            <p className="font-medium text-foreground">Notes:</p>
+            <ul className="list-disc pl-5 space-y-0.5">
+              <li>
+                Replace <code className="font-mono">YOUR_API_KEY</code> with an
+                API key from your account settings.
+              </li>
+              <li>
+                This endpoint executes synchronously and returns the response
+                defined by the HTTP Response node.
+              </li>
+              <li>
+                If the workflow takes longer than 10 seconds, it will return a
+                504 Gateway Timeout error.
+              </li>
+              {jsonBodyParam && (
                 <li>
-                  Replace{" "}
-                  <code className="text-xs font-mono">YOUR_API_KEY</code> with
-                  an API key from your account settings.
+                  This endpoint expects a complete JSON object in the request
+                  body.
                 </li>
+              )}
+              {formParams.length > 0 && !jsonBodyParam && (
                 <li>
-                  This endpoint executes synchronously and returns the response
-                  defined by the HTTP Response node in your workflow.
+                  This endpoint accepts form parameters:{" "}
+                  {formParams.map((p) => p.nameForForm).join(", ")}.
                 </li>
+              )}
+              {parameters.length === 0 && (
                 <li>
-                  The response status code and content type are controlled by
-                  the HTTP Response node configuration.
+                  This endpoint doesn&apos;t require any parameters beyond the
+                  API key.
                 </li>
-                <li>
-                  If the workflow takes longer than 10 seconds, the endpoint
-                  will return a 504 Gateway Timeout error.
-                </li>
-                {jsonBodyParam && (
-                  <li>
-                    This endpoint expects a complete JSON object in the request
-                    body.
-                  </li>
-                )}
-                {formParams.length > 0 && !jsonBodyParam && (
-                  <li>
-                    This endpoint accepts the following form parameters:{" "}
-                    {formParams.map((p) => p.nameForForm).join(", ")}.
-                  </li>
-                )}
-                {parameters.length === 0 && (
-                  <li>
-                    This endpoint doesn\'t require any parameters beyond the API
-                    key.
-                  </li>
-                )}
-              </ul>
-            </div>
-          </TabsContent>
-        </Tabs>
+              )}
+            </ul>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

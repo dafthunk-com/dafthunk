@@ -1,5 +1,4 @@
 import type { Node } from "@xyflow/react";
-import Terminal from "lucide-react/icons/terminal";
 
 import {
   EXECUTE_WORKFLOW_SNIPPETS,
@@ -8,19 +7,14 @@ import {
   type SnippetParams,
 } from "@/components/deployments/api-snippets";
 import { CodeBlock } from "@/components/docs/code-block";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type {
   NodeType,
   WorkflowNodeType,
 } from "@/components/workflow/workflow-types";
 import { getApiBaseUrl } from "@/config/api";
+import { cn } from "@/utils/utils";
 import { extractDialogParametersFromNodes } from "@/utils/utils";
 
 interface HttpWebhookIntegrationDialogProps {
@@ -31,6 +25,45 @@ interface HttpWebhookIntegrationDialogProps {
   orgHandle: string;
   workflowId: string;
   deploymentVersion: string;
+}
+
+type Operation = "execute" | "status" | "getObject";
+
+function OperationButton({
+  label,
+  method,
+  isActive,
+  onClick,
+}: {
+  label: string;
+  method: "POST" | "GET";
+  isActive: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors text-left",
+        isActive
+          ? "bg-background text-foreground shadow-sm"
+          : "text-muted-foreground hover:text-foreground"
+      )}
+    >
+      <span
+        className={cn(
+          "text-xs font-mono",
+          method === "POST"
+            ? "text-green-600 dark:text-green-400"
+            : "text-blue-600 dark:text-blue-400"
+        )}
+      >
+        {method}
+      </span>
+      {label}
+    </button>
+  );
 }
 
 export function HttpWebhookIntegrationDialog({
@@ -44,19 +77,17 @@ export function HttpWebhookIntegrationDialog({
 }: HttpWebhookIntegrationDialogProps) {
   const baseUrl = getApiBaseUrl().replace(/\/$/, "");
   const executeUrl = `${baseUrl}/${orgHandle}/workflows/${workflowId}/execute/${deploymentVersion}`;
-  const statusBaseUrl = `${baseUrl}/${orgHandle}/executions`; // Execution ID will be appended in snippets
-  const objectBaseUrl = `${baseUrl}/${orgHandle}/objects?id=YOUR_OBJECT_ID`; // Object ID and mimeType to be added
+  const statusBaseUrl = `${baseUrl}/${orgHandle}/executions`;
+  const objectBaseUrl = `${baseUrl}/${orgHandle}/objects?id=YOUR_OBJECT_ID`;
 
   const parameters = extractDialogParametersFromNodes(nodes, nodeTypes);
-
-  // Check if there\'s a JSON body parameter
   const jsonBodyParam = parameters.find((p) => p.type === "body-json");
   const formParams: SnippetParams[] = parameters
     .filter((p) => p.type !== "body-json")
-    .map((p) => ({ nameForForm: p.nameForForm, type: p.type })); // Adapt to SnippetParams
+    .map((p) => ({ nameForForm: p.nameForForm, type: p.type }));
 
   const renderSnippets = (
-    operation: "execute" | "status" | "getObject",
+    operation: Operation,
     language: "curl" | "javascript" | "python"
   ) => {
     if (operation === "execute") {
@@ -79,8 +110,6 @@ export function HttpWebhookIntegrationDialog({
             !!jsonBodyParam,
             formParams
           );
-        default:
-          return "";
       }
     }
     if (operation === "status") {
@@ -91,8 +120,6 @@ export function HttpWebhookIntegrationDialog({
           return GET_EXECUTION_STATUS_SNIPPETS.javascript(statusBaseUrl);
         case "python":
           return GET_EXECUTION_STATUS_SNIPPETS.python(statusBaseUrl);
-        default:
-          return "";
       }
     }
     if (operation === "getObject") {
@@ -103,277 +130,140 @@ export function HttpWebhookIntegrationDialog({
           return GET_OBJECT_SNIPPETS.javascript(objectBaseUrl);
         case "python":
           return GET_OBJECT_SNIPPETS.python(objectBaseUrl);
-        default:
-          return "";
       }
     }
     return "";
   };
 
+  const getNotes = (operation: Operation) => {
+    const baseNotes = [
+      <>
+        Replace <code className="font-mono">YOUR_API_KEY</code> with an API key
+        from your account settings.
+      </>,
+    ];
+
+    if (operation === "execute") {
+      const notes = [
+        ...baseNotes,
+        "Returns immediately with an execution ID. Use the Status endpoint to poll for results.",
+      ];
+      if (jsonBodyParam) {
+        notes.push("Expects a complete JSON object in the request body.");
+      }
+      if (formParams.length > 0 && !jsonBodyParam) {
+        notes.push(
+          `Accepts form parameters: ${formParams.map((p) => p.nameForForm).join(", ")}.`
+        );
+      }
+      if (parameters.length === 0) {
+        notes.push("No parameters required beyond the API key.");
+      }
+      return notes;
+    }
+
+    if (operation === "status") {
+      return [
+        ...baseNotes,
+        <>
+          Replace <code className="font-mono">YOUR_EXECUTION_ID</code> with the
+          execution ID.
+        </>,
+        "Poll this endpoint to check status and retrieve results.",
+      ];
+    }
+
+    if (operation === "getObject") {
+      return [
+        ...baseNotes,
+        <>
+          Replace <code className="font-mono">YOUR_OBJECT_ID</code> and{" "}
+          <code className="font-mono">YOUR_OBJECT_MIME_TYPE</code> with actual
+          values.
+        </>,
+        "Returns raw object data. Processing depends on the MIME type.",
+      ];
+    }
+
+    return baseNotes;
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-xl flex items-center gap-2">
-            <Terminal className="h-5 w-5" />
+      <DialogContent className="max-w-4xl max-h-[80vh] flex flex-col gap-0 p-0">
+        <div className="flex items-center justify-between px-4 py-3 border-b">
+          <DialogTitle className="text-base font-semibold">
             HTTP Webhook Integration
           </DialogTitle>
-          <DialogDescription>
-            Trigger this workflow as an asynchronous webhook. Poll for execution
-            status and retrieve results.
-          </DialogDescription>
-        </DialogHeader>
+        </div>
+
         <Tabs
           defaultValue="execute"
-          className="w-full flex items-stretch border rounded-lg"
+          className="flex-1 flex overflow-hidden"
           orientation="vertical"
         >
-          <TabsList className="flex flex-col justify-start h-auto gap-1 p-4 rounded-r-none *:w-full *:justify-start *:pe-10">
-            <TabsTrigger value="execute">
-              <span className="text-xs font-mono me-2 text-green-600 dark:text-green-400">
-                POST
-              </span>{" "}
-              Execute Workflow
-            </TabsTrigger>
-            <TabsTrigger value="status">
-              <span className="text-xs font-mono me-2 text-blue-600 dark:text-blue-400">
-                GET&nbsp;
-              </span>{" "}
-              Execution Status
-            </TabsTrigger>
-            <TabsTrigger value="getObject">
-              <span className="text-xs font-mono me-2 text-blue-600 dark:text-blue-400">
-                GET&nbsp;
-              </span>{" "}
-              Object
-            </TabsTrigger>
-          </TabsList>
+          <div className="flex flex-col gap-1 p-3 border-r bg-muted/30">
+            <TabsList className="flex flex-col h-auto bg-transparent p-0 gap-1">
+              <TabsTrigger value="execute" asChild>
+                <OperationButton
+                  label="Execute"
+                  method="POST"
+                  isActive={false}
+                  onClick={() => {}}
+                />
+              </TabsTrigger>
+              <TabsTrigger value="status" asChild>
+                <OperationButton
+                  label="Status"
+                  method="GET"
+                  isActive={false}
+                  onClick={() => {}}
+                />
+              </TabsTrigger>
+              <TabsTrigger value="getObject" asChild>
+                <OperationButton
+                  label="Object"
+                  method="GET"
+                  isActive={false}
+                  onClick={() => {}}
+                />
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
-          {/* Execute Workflow Operation */}
-          <TabsContent value="execute" className="mt-0 p-4">
-            <Tabs defaultValue="curl">
-              <TabsList>
-                <TabsTrigger value="curl" className="text-sm">
-                  cURL
-                </TabsTrigger>
-                <TabsTrigger value="javascript" className="text-sm">
-                  JavaScript
-                </TabsTrigger>
-                <TabsTrigger value="python" className="text-sm">
-                  Python
-                </TabsTrigger>
-              </TabsList>
-              <TabsContent value="curl" className="mt-4 space-y-4">
-                <div className="relative">
-                  <CodeBlock
-                    language="bash"
-                    className="text-xs md:text-sm overflow-x-auto font-mono"
-                  >
-                    {renderSnippets("execute", "curl")}
-                  </CodeBlock>
-                </div>
-              </TabsContent>
-              <TabsContent value="javascript" className="mt-4 space-y-4">
-                <div className="relative">
-                  <CodeBlock
-                    language="javascript"
-                    className="text-xs md:text-sm overflow-x-auto font-mono"
-                  >
-                    {renderSnippets("execute", "javascript")}
-                  </CodeBlock>
-                </div>
-              </TabsContent>
-              <TabsContent value="python" className="mt-4 space-y-4">
-                <div className="relative">
-                  <CodeBlock
-                    language="python"
-                    className="text-xs md:text-sm overflow-x-auto font-mono"
-                  >
-                    {renderSnippets("execute", "python")}
-                  </CodeBlock>
-                </div>
-              </TabsContent>
-            </Tabs>
-            <div className="mt-4">
-              <p className="text-sm text-muted-foreground font-medium">
-                Notes for Execute Workflow:
-              </p>
-              <ul className="list-disc pl-5 mt-1 space-y-1 text-muted-foreground text-xs">
-                <li>
-                  Replace{" "}
-                  <code className="text-xs font-mono">YOUR_API_KEY</code> with
-                  an API key from your account settings.
-                </li>
-                <li>
-                  This endpoint returns immediately with an execution ID. Use
-                  the "Execution Status" endpoint to poll for results.
-                </li>
-                {jsonBodyParam && (
-                  <li>
-                    This endpoint expects a complete JSON object in the request
-                    body for execution.
-                  </li>
-                )}
-                {formParams.length > 0 && !jsonBodyParam && (
-                  <li>
-                    This endpoint accepts the following form parameters for
-                    execution: {formParams.map((p) => p.nameForForm).join(", ")}
-                    .
-                  </li>
-                )}
-                {parameters.length === 0 && (
-                  <li>
-                    This execution endpoint doesn\'t require any parameters
-                    beyond the auth token.
-                  </li>
-                )}
-              </ul>
-            </div>
-          </TabsContent>
+          <div className="flex-1 overflow-y-auto p-4">
+            {(["execute", "status", "getObject"] as Operation[]).map((op) => (
+              <TabsContent key={op} value={op} className="mt-0">
+                <Tabs defaultValue="curl">
+                  <TabsList>
+                    <TabsTrigger value="curl">cURL</TabsTrigger>
+                    <TabsTrigger value="javascript">JavaScript</TabsTrigger>
+                    <TabsTrigger value="python">Python</TabsTrigger>
+                  </TabsList>
 
-          {/* Execution Status Operation */}
-          <TabsContent value="status" className="mt-0 p-4">
-            <Tabs defaultValue="curl">
-              <TabsList>
-                <TabsTrigger value="curl" className="text-sm">
-                  cURL
-                </TabsTrigger>
-                <TabsTrigger value="javascript" className="text-sm">
-                  JavaScript
-                </TabsTrigger>
-                <TabsTrigger value="python" className="text-sm">
-                  Python
-                </TabsTrigger>
-              </TabsList>
-              <TabsContent value="curl" className="mt-4 space-y-4">
-                <div className="relative">
-                  <CodeBlock
-                    language="bash"
-                    className="text-xs md:text-sm overflow-x-auto font-mono"
-                  >
-                    {renderSnippets("status", "curl")}
-                  </CodeBlock>
-                </div>
-              </TabsContent>
-              <TabsContent value="javascript" className="mt-4 space-y-4">
-                <div className="relative">
-                  <CodeBlock
-                    language="javascript"
-                    className="text-xs md:text-sm overflow-x-auto font-mono"
-                  >
-                    {renderSnippets("status", "javascript")}
-                  </CodeBlock>
-                </div>
-              </TabsContent>
-              <TabsContent value="python" className="mt-4 space-y-4">
-                <div className="relative">
-                  <CodeBlock
-                    language="python"
-                    className="text-xs md:text-sm overflow-x-auto font-mono"
-                  >
-                    {renderSnippets("status", "python")}
-                  </CodeBlock>
-                </div>
-              </TabsContent>
-            </Tabs>
-            <div className="mt-4">
-              <p className="text-sm text-muted-foreground font-medium">
-                Notes for Execution Status:
-              </p>
-              <ul className="list-disc pl-5 mt-1 space-y-1 text-muted-foreground text-xs">
-                <li>
-                  Replace{" "}
-                  <code className="text-xs font-mono">YOUR_API_KEY</code> with
-                  an API key.
-                </li>
-                <li>
-                  Replace{" "}
-                  <code className="text-xs font-mono">YOUR_EXECUTION_ID</code>{" "}
-                  with the actual ID of the execution.
-                </li>
-                <li>
-                  This endpoint is used to poll for the status and result of a
-                  workflow execution.
-                </li>
-              </ul>
-            </div>
-          </TabsContent>
+                  {(["curl", "javascript", "python"] as const).map((lang) => (
+                    <TabsContent key={lang} value={lang} className="mt-3">
+                      <CodeBlock
+                        language={lang === "curl" ? "bash" : lang}
+                        className="text-sm overflow-x-auto"
+                      >
+                        {renderSnippets(op, lang)}
+                      </CodeBlock>
+                    </TabsContent>
+                  ))}
+                </Tabs>
 
-          {/* Get Object Operation */}
-          <TabsContent value="getObject" className="mt-0 p-4">
-            <Tabs defaultValue="curl">
-              <TabsList>
-                <TabsTrigger value="curl" className="text-sm">
-                  cURL
-                </TabsTrigger>
-                <TabsTrigger value="javascript" className="text-sm">
-                  JavaScript
-                </TabsTrigger>
-                <TabsTrigger value="python" className="text-sm">
-                  Python
-                </TabsTrigger>
-              </TabsList>
-              <TabsContent value="curl" className="mt-4 space-y-4">
-                <div className="relative">
-                  <CodeBlock
-                    language="bash"
-                    className="text-xs md:text-sm overflow-x-auto font-mono"
-                  >
-                    {renderSnippets("getObject", "curl")}
-                  </CodeBlock>
+                <div className="mt-4 text-sm text-muted-foreground space-y-1">
+                  <p className="font-medium text-foreground">Notes:</p>
+                  <ul className="list-disc pl-5 space-y-0.5">
+                    {getNotes(op).map((note, i) => (
+                      <li key={i}>{note}</li>
+                    ))}
+                  </ul>
                 </div>
               </TabsContent>
-              <TabsContent value="javascript" className="mt-4 space-y-4">
-                <div className="relative">
-                  <CodeBlock
-                    language="javascript"
-                    className="text-xs md:text-sm overflow-x-auto font-mono"
-                  >
-                    {renderSnippets("getObject", "javascript")}
-                  </CodeBlock>
-                </div>
-              </TabsContent>
-              <TabsContent value="python" className="mt-4 space-y-4">
-                <div className="relative">
-                  <CodeBlock
-                    language="python"
-                    className="text-xs md:text-sm overflow-x-auto font-mono"
-                  >
-                    {renderSnippets("getObject", "python")}
-                  </CodeBlock>
-                </div>
-              </TabsContent>
-            </Tabs>
-            <div className="mt-4">
-              <p className="text-sm text-muted-foreground font-medium">
-                Notes for Get Object:
-              </p>
-              <ul className="list-disc pl-5 mt-1 space-y-1 text-muted-foreground text-xs">
-                <li>
-                  Replace{" "}
-                  <code className="text-xs font-mono">YOUR_API_KEY</code> with
-                  an API key.
-                </li>
-                <li>
-                  Replace{" "}
-                  <code className="text-xs font-mono">YOUR_OBJECT_ID</code> in
-                  the URL with the actual ID of the object.
-                </li>
-                <li>
-                  Replace{" "}
-                  <code className="text-xs font-mono">
-                    YOUR_OBJECT_MIME_TYPE
-                  </code>{" "}
-                  in the URL with the actual MIME type of the object (e.g.,
-                  image/png, application/json, text/plain).
-                </li>
-                <li>
-                  This endpoint retrieves the raw object data. How you process
-                  the response will depend on the object&apos;s MIME type.
-                </li>
-              </ul>
-            </div>
-          </TabsContent>
+            ))}
+          </div>
         </Tabs>
       </DialogContent>
     </Dialog>

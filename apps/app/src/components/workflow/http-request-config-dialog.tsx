@@ -1,56 +1,28 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { AlertCircle, File, Plus, Trash2, Upload } from "lucide-react";
+import { File as FileIcon, Plus, Trash2, Upload } from "lucide-react";
 import { useRef, useState } from "react";
-import { Controller, SubmitHandler, useForm } from "react-hook-form";
-import * as z from "zod";
 
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { CodeEditor } from "@/components/ui/code-editor";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/utils/utils";
 
-// HTTP method constants
-const HTTP_METHODS = [
-  "GET",
-  "POST",
-  "PUT",
-  "PATCH",
-  "DELETE",
-  "HEAD",
-  "OPTIONS",
-];
+type BodyType = "none" | "json" | "form-data" | "file";
 
-// Body type options
-type BodyType = "none" | "form-data" | "urlencoded" | "raw" | "binary";
-type RawBodyContentType = "json" | "text" | "xml" | "html";
+interface KeyValue {
+  key: string;
+  value: string;
+}
 
 // Config submitted to execution
 export interface HttpRequestConfig {
-  method: string;
-  headers: Record<string, string>;
-  queryParams: Record<string, string>;
-  body: {
-    type: BodyType;
-    rawType?: RawBodyContentType;
-    content?: string | FormData | File;
-  };
+  method: "GET" | "POST";
+  headers?: Record<string, string>;
+  queryParams?: Record<string, string>;
+  body?: string | File | FormData;
+  contentType?: string;
 }
 
 interface HttpRequestConfigDialogProps {
@@ -59,108 +31,95 @@ interface HttpRequestConfigDialogProps {
   onSubmit: (config: HttpRequestConfig) => void;
 }
 
-// Validation schema
-const keyValueSchema = z.object({
-  key: z.string(),
-  value: z.string(),
-});
-
-const validationSchema = z.object({
-  method: z.string().min(1, "Method is required"),
-  headers: z.array(keyValueSchema),
-  queryParams: z.array(keyValueSchema),
-  bodyType: z.enum(["none", "form-data", "urlencoded", "raw", "binary"]),
-  rawBodyContent: z.string().optional(),
-  rawBodyContentType: z.enum(["json", "text", "xml", "html"]),
-  formDataEntries: z.array(
-    z.object({
-      key: z.string(),
-      value: z.any().optional(),
-    })
-  ),
-});
-
-type FormValues = z.infer<typeof validationSchema>;
-
-// File upload field component
-function FileUploadField({
-  file,
+function ToggleButtons<T extends string>({
+  value,
+  options,
   onChange,
 }: {
-  index: number;
-  fileName: string;
-  file?: File;
-  onChange: (file: File | null) => void;
+  value: T;
+  options: { value: T; label: string }[];
+  onChange: (value: T) => void;
 }) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0];
-    if (f) {
-      onChange(f);
-    }
-  };
-
-  const handleRemoveFile = () => {
-    onChange(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
-
   return (
-    <div className="space-y-1">
-      {file ? (
-        <div className="flex items-center justify-between p-2 bg-blue-50 border border-blue-200 rounded-md">
-          <div className="flex items-center gap-2 min-w-0">
-            <File className="w-4 h-4 text-blue-600 flex-shrink-0" />
-            <span className="text-sm text-blue-900 truncate">{file.name}</span>
-            <span className="text-xs text-blue-600 flex-shrink-0">
-              ({(file.size / 1024).toFixed(2)} KB)
-            </span>
-          </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={handleRemoveFile}
-            className="h-6 px-2"
-          >
-            <Trash2 className="w-3 h-3" />
-          </Button>
-        </div>
-      ) : (
-        <label className="flex items-center justify-center w-full p-2 border-2 border-dashed border-neutral-300 rounded-md cursor-pointer hover:border-blue-400 transition">
-          <div className="flex items-center gap-2">
-            <Upload className="w-4 h-4 text-neutral-400" />
-            <span className="text-sm text-neutral-600">Upload file</span>
-          </div>
-          <input
-            ref={fileInputRef}
-            type="file"
-            className="hidden"
-            onChange={handleFileChange}
-            accept="*/*"
-          />
-        </label>
-      )}
+    <div className="inline-flex rounded-md border bg-muted/30 p-0.5">
+      {options.map((option) => (
+        <button
+          key={option.value}
+          type="button"
+          onClick={() => onChange(option.value)}
+          className={cn(
+            "px-3 py-1 text-sm font-medium rounded transition-colors",
+            value === option.value
+              ? "bg-background text-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          {option.label}
+        </button>
+      ))}
     </div>
   );
 }
 
-// Map content type to CodeEditor language
-function getLanguage(contentType: RawBodyContentType) {
-  switch (contentType) {
-    case "json":
-      return "json" as const;
-    case "xml":
-      return "xml" as const;
-    case "html":
-      return "html" as const;
-    case "text":
-    default:
-      return "text" as const;
-  }
+function KeyValueEditor({
+  items,
+  onChange,
+  keyPlaceholder = "Key",
+  valuePlaceholder = "Value",
+}: {
+  items: KeyValue[];
+  onChange: (items: KeyValue[]) => void;
+  keyPlaceholder?: string;
+  valuePlaceholder?: string;
+}) {
+  const addRow = () => onChange([...items, { key: "", value: "" }]);
+  const removeRow = (index: number) =>
+    onChange(items.filter((_, i) => i !== index));
+  const updateRow = (index: number, field: "key" | "value", value: string) => {
+    const newItems = [...items];
+    newItems[index] = { ...newItems[index], [field]: value };
+    onChange(newItems);
+  };
+
+  return (
+    <div className="space-y-1.5">
+      {items.map((item, index) => (
+        <div key={index} className="flex gap-2">
+          <Input
+            value={item.key}
+            onChange={(e) => updateRow(index, "key", e.target.value)}
+            placeholder={keyPlaceholder}
+            className="flex-1"
+          />
+          <Input
+            value={item.value}
+            onChange={(e) => updateRow(index, "value", e.target.value)}
+            placeholder={valuePlaceholder}
+            className="flex-1"
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="shrink-0"
+            onClick={() => removeRow(index)}
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
+      ))}
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="text-muted-foreground"
+        onClick={addRow}
+      >
+        <Plus className="w-4 h-4 mr-1" />
+        Add
+      </Button>
+    </div>
+  );
 }
 
 export function HttpRequestConfigDialog({
@@ -168,146 +127,62 @@ export function HttpRequestConfigDialog({
   onClose,
   onSubmit,
 }: HttpRequestConfigDialogProps) {
-  const [files, setFiles] = useState<Record<string, File>>({});
+  const [method, setMethod] = useState<"GET" | "POST">("GET");
+  const [headers, setHeaders] = useState<KeyValue[]>([]);
+  const [queryParams, setQueryParams] = useState<KeyValue[]>([]);
+  const [bodyType, setBodyType] = useState<BodyType>("none");
+  const [jsonBody, setJsonBody] = useState("");
+  const [formData, setFormData] = useState<KeyValue[]>([]);
+  const [file, setFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const {
-    control,
-    handleSubmit,
-    watch,
-    setValue,
-    formState: { isValid },
-  } = useForm<FormValues>({
-    resolver: zodResolver(validationSchema),
-    mode: "onChange",
-    defaultValues: {
-      method: "POST",
-      headers: [{ key: "", value: "" }],
-      queryParams: [{ key: "", value: "" }],
-      bodyType: "none",
-      rawBodyContent: "",
-      rawBodyContentType: "json",
-      formDataEntries: [{ key: "", value: "" }],
-    },
-  });
-
-  const method = watch("method");
-  const headers = watch("headers");
-  const queryParams = watch("queryParams");
-  const formDataEntries = watch("formDataEntries");
-  const rawBodyContentType = watch("rawBodyContentType");
-
-  // Check if method allows body
-  const methodAllowsBody = !["GET", "HEAD", "OPTIONS"].includes(method);
-
-  const addHeaderRow = () => {
-    const newHeaders = [...headers, { key: "", value: "" }];
-    setValue("headers", newHeaders, { shouldValidate: true });
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (f) setFile(f);
   };
 
-  const removeHeaderRow = (index: number) => {
-    const newHeaders = headers.filter((_, i) => i !== index);
-    setValue("headers", newHeaders, { shouldValidate: true });
+  const handleRemoveFile = () => {
+    setFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const addQueryParamRow = () => {
-    const newParams = [...queryParams, { key: "", value: "" }];
-    setValue("queryParams", newParams, { shouldValidate: true });
+  const toRecord = (items: KeyValue[]): Record<string, string> => {
+    const record: Record<string, string> = {};
+    items
+      .filter((i) => i.key)
+      .forEach(({ key, value }) => (record[key] = value));
+    return record;
   };
 
-  const removeQueryParamRow = (index: number) => {
-    const newParams = queryParams.filter((_, i) => i !== index);
-    setValue("queryParams", newParams, { shouldValidate: true });
-  };
+  const handleSubmit = () => {
+    const config: HttpRequestConfig = { method };
 
-  const addFormDataRow = () => {
-    const newEntries = [...formDataEntries, { key: "", value: "" }];
-    setValue("formDataEntries", newEntries, { shouldValidate: true });
-  };
-
-  const removeFormDataRow = (index: number) => {
-    const newEntries = formDataEntries.filter((_, i) => i !== index);
-    setValue("formDataEntries", newEntries, { shouldValidate: true });
-    // Also remove file if exists
-    const fileKey = formDataEntries[index].key;
-    if (fileKey && files[fileKey]) {
-      const newFiles = { ...files };
-      delete newFiles[fileKey];
-      setFiles(newFiles);
+    const headersRecord = toRecord(headers);
+    if (Object.keys(headersRecord).length > 0) {
+      config.headers = headersRecord;
     }
-  };
 
-  const handleFileChange = (index: number, file: File | null) => {
-    const fileKey = formDataEntries[index].key;
-    if (!fileKey) return;
-
-    const newFiles = { ...files };
-    if (file) {
-      newFiles[fileKey] = file;
-    } else {
-      delete newFiles[fileKey];
+    const queryRecord = toRecord(queryParams);
+    if (Object.keys(queryRecord).length > 0) {
+      config.queryParams = queryRecord;
     }
-    setFiles(newFiles);
-  };
 
-  const processSubmit: SubmitHandler<FormValues> = (data) => {
-    // Build headers object
-    const headersObj: Record<string, string> = {};
-    data.headers
-      .filter((h) => h.key && h.value)
-      .forEach(({ key, value }) => {
-        headersObj[key] = value;
-      });
-
-    // Build query params object
-    const queryParamsObj: Record<string, string> = {};
-    data.queryParams
-      .filter((q) => q.key && q.value)
-      .forEach(({ key, value }) => {
-        queryParamsObj[key] = value;
-      });
-
-    // Build body
-    let bodyContent: string | FormData | File | undefined;
-    const bodyTypeForConfig: BodyType = data.bodyType;
-
-    if (data.bodyType === "none") {
-      bodyContent = undefined;
-    } else if (
-      data.bodyType === "form-data" ||
-      data.bodyType === "urlencoded"
-    ) {
-      const formData = new FormData();
-      data.formDataEntries.forEach(({ key, value }) => {
-        if (key) {
-          // Check if this entry has a file
-          if (files[key]) {
-            formData.append(key, files[key]);
-          } else if (value) {
-            formData.append(key, String(value));
-          }
-        }
-      });
-      bodyContent = formData;
-    } else if (data.bodyType === "raw") {
-      bodyContent = data.rawBodyContent;
-    } else if (data.bodyType === "binary") {
-      // For binary, we need to find the file from formDataEntries
-      const binaryEntry = data.formDataEntries.find((e) => e.key === "file");
-      if (binaryEntry && files[binaryEntry.key]) {
-        bodyContent = files[binaryEntry.key];
+    if (method === "POST") {
+      if (bodyType === "json" && jsonBody) {
+        config.body = jsonBody;
+        config.contentType = "application/json";
+      } else if (bodyType === "form-data") {
+        const fd = new FormData();
+        formData
+          .filter((i) => i.key)
+          .forEach(({ key, value }) => fd.append(key, value));
+        config.body = fd;
+        config.contentType = "application/x-www-form-urlencoded";
+      } else if (bodyType === "file" && file) {
+        config.body = file;
+        config.contentType = file.type || "application/octet-stream";
       }
     }
-
-    const config: HttpRequestConfig = {
-      method: data.method,
-      headers: headersObj,
-      queryParams: queryParamsObj,
-      body: {
-        type: bodyTypeForConfig,
-        rawType: data.bodyType === "raw" ? data.rawBodyContentType : undefined,
-        content: bodyContent,
-      },
-    };
 
     onSubmit(config);
     onClose();
@@ -316,394 +191,133 @@ export function HttpRequestConfigDialog({
   if (!isOpen) return null;
 
   return (
-    <AlertDialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <AlertDialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-        <AlertDialogHeader>
-          <AlertDialogTitle>Configure HTTP Request</AlertDialogTitle>
-          <AlertDialogDescription>
-            Set up headers, query parameters, and body for your HTTP request.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-[550px] max-h-[80vh] flex flex-col gap-0 p-0">
+        <div className="flex items-center justify-between px-4 py-3 border-b">
+          <DialogTitle className="text-base font-semibold">
+            Execute Workflow
+          </DialogTitle>
+          <ToggleButtons
+            value={method}
+            options={[
+              { value: "GET", label: "GET" },
+              { value: "POST", label: "POST" },
+            ]}
+            onChange={setMethod}
+          />
+        </div>
 
-        <form onSubmit={handleSubmit(processSubmit)} id="httpRequestConfigForm">
-          <div className="space-y-4 py-4">
-            {/* HTTP Method Selection */}
+        <ScrollArea className="flex-1">
+          <div className="p-4 space-y-4">
+            {/* Headers */}
             <div className="space-y-2">
-              <Label htmlFor="method">HTTP Method</Label>
-              <Controller
-                name="method"
-                control={control}
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger id="method">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {HTTP_METHODS.map((m) => (
-                        <SelectItem key={m} value={m}>
-                          {m}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
+              <Label>Headers</Label>
+              <KeyValueEditor
+                items={headers}
+                onChange={setHeaders}
+                keyPlaceholder="Header name"
+                valuePlaceholder="Value"
               />
             </div>
 
-            {/* Tabs for Headers, Query Params, Body */}
-            <Tabs defaultValue="headers" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="headers">Headers</TabsTrigger>
-                <TabsTrigger value="query">Query Params</TabsTrigger>
-                <TabsTrigger value="body" disabled={!methodAllowsBody}>
-                  Body
-                </TabsTrigger>
-              </TabsList>
+            {/* Query Parameters */}
+            <div className="space-y-2">
+              <Label>Query Parameters</Label>
+              <KeyValueEditor
+                items={queryParams}
+                onChange={setQueryParams}
+                keyPlaceholder="Parameter"
+                valuePlaceholder="Value"
+              />
+            </div>
 
-              {/* Headers Tab */}
-              <TabsContent value="headers" className="space-y-3">
-                <div className="space-y-2 max-h-[40vh] overflow-y-auto">
-                  {headers.map((_, index) => (
-                    <div
-                      key={`header-${index}`}
-                      className="flex gap-2 items-end"
-                    >
-                      <Controller
-                        name={`headers.${index}.key`}
-                        control={control}
-                        render={({ field }) => (
-                          <Input
-                            {...field}
-                            placeholder="Header name"
-                            className="flex-1"
-                          />
-                        )}
-                      />
-                      <Controller
-                        name={`headers.${index}.value`}
-                        control={control}
-                        render={({ field }) => (
-                          <Input
-                            {...field}
-                            placeholder="Header value"
-                            className="flex-1"
-                          />
-                        )}
-                      />
-                      {headers.length > 1 && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeHeaderRow(index)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={addHeaderRow}
-                  className="w-full"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Header
-                </Button>
-              </TabsContent>
-
-              {/* Query Params Tab */}
-              <TabsContent value="query" className="space-y-3">
-                <div className="space-y-2 max-h-[40vh] overflow-y-auto">
-                  {queryParams.map((_, index) => (
-                    <div
-                      key={`query-${index}`}
-                      className="flex gap-2 items-end"
-                    >
-                      <Controller
-                        name={`queryParams.${index}.key`}
-                        control={control}
-                        render={({ field }) => (
-                          <Input
-                            {...field}
-                            placeholder="Parameter name"
-                            className="flex-1"
-                          />
-                        )}
-                      />
-                      <Controller
-                        name={`queryParams.${index}.value`}
-                        control={control}
-                        render={({ field }) => (
-                          <Input
-                            {...field}
-                            placeholder="Parameter value"
-                            className="flex-1"
-                          />
-                        )}
-                      />
-                      {queryParams.length > 1 && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeQueryParamRow(index)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={addQueryParamRow}
-                  className="w-full"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Query Parameter
-                </Button>
-              </TabsContent>
-
-              {/* Body Tab */}
-              {methodAllowsBody && (
-                <TabsContent value="body" className="space-y-3">
-                  {/* Body Type Selector with Tabs */}
-                  <Controller
-                    name="bodyType"
-                    control={control}
-                    render={({ field }) => (
-                      <Tabs
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        className="w-full"
-                      >
-                        <TabsList className="grid w-full grid-cols-5">
-                          <TabsTrigger value="none">None</TabsTrigger>
-                          <TabsTrigger value="form-data">Form Data</TabsTrigger>
-                          <TabsTrigger value="urlencoded">
-                            URL Encoded
-                          </TabsTrigger>
-                          <TabsTrigger value="raw">Raw</TabsTrigger>
-                          <TabsTrigger value="binary">Binary</TabsTrigger>
-                        </TabsList>
-
-                        {/* None */}
-                        <TabsContent value="none" className="mt-3">
-                          <p className="text-sm text-muted-foreground">
-                            No request body will be sent.
-                          </p>
-                        </TabsContent>
-
-                        {/* Form Data Body */}
-                        <TabsContent
-                          value="form-data"
-                          className="mt-3 space-y-2"
-                        >
-                          <Label>Form Fields</Label>
-                          <div className="space-y-2 max-h-[30vh] overflow-y-auto">
-                            {formDataEntries.map((_, index) => (
-                              <div
-                                key={`form-data-${index}`}
-                                className="space-y-1.5 p-2 border rounded-md"
-                              >
-                                <Controller
-                                  name={`formDataEntries.${index}.key`}
-                                  control={control}
-                                  render={({ field: keyField }) => (
-                                    <Input
-                                      {...keyField}
-                                      placeholder="Field name"
-                                      className="text-sm"
-                                    />
-                                  )}
-                                />
-                                <FileUploadField
-                                  index={index}
-                                  fileName={formDataEntries[index].key}
-                                  file={files[formDataEntries[index].key]}
-                                  onChange={(file) =>
-                                    handleFileChange(index, file)
-                                  }
-                                />
-                                {formDataEntries.length > 1 && (
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => removeFormDataRow(index)}
-                                    className="w-full"
-                                  >
-                                    <Trash2 className="w-4 h-4 mr-1" />
-                                    Remove
-                                  </Button>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={addFormDataRow}
-                            className="w-full"
-                          >
-                            <Plus className="w-4 h-4 mr-2" />
-                            Add Field
-                          </Button>
-                        </TabsContent>
-
-                        {/* URL Encoded Body */}
-                        <TabsContent
-                          value="urlencoded"
-                          className="mt-3 space-y-2"
-                        >
-                          <Label>Form Fields</Label>
-                          <div className="space-y-2 max-h-[30vh] overflow-y-auto">
-                            {formDataEntries.map((_, index) => (
-                              <div
-                                key={`urlencoded-${index}`}
-                                className="space-y-1.5 p-2 border rounded-md"
-                              >
-                                <Controller
-                                  name={`formDataEntries.${index}.key`}
-                                  control={control}
-                                  render={({ field: keyField }) => (
-                                    <Input
-                                      {...keyField}
-                                      placeholder="Field name"
-                                      className="text-sm"
-                                    />
-                                  )}
-                                />
-                                <Controller
-                                  name={`formDataEntries.${index}.value`}
-                                  control={control}
-                                  render={({ field: valueField }) => (
-                                    <Input
-                                      {...valueField}
-                                      placeholder="Field value"
-                                      className="text-sm"
-                                    />
-                                  )}
-                                />
-                                {formDataEntries.length > 1 && (
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => removeFormDataRow(index)}
-                                    className="w-full"
-                                  >
-                                    <Trash2 className="w-4 h-4 mr-1" />
-                                    Remove
-                                  </Button>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={addFormDataRow}
-                            className="w-full"
-                          >
-                            <Plus className="w-4 h-4 mr-2" />
-                            Add Field
-                          </Button>
-                        </TabsContent>
-
-                        {/* Raw Body */}
-                        <TabsContent value="raw" className="mt-3 space-y-3">
-                          <div className="flex gap-2">
-                            <div className="flex-1">
-                              <Label htmlFor="rawBodyContentType">
-                                Content Type
-                              </Label>
-                              <Controller
-                                name="rawBodyContentType"
-                                control={control}
-                                render={({ field }) => (
-                                  <Select
-                                    value={field.value}
-                                    onValueChange={field.onChange}
-                                  >
-                                    <SelectTrigger id="rawBodyContentType">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="json">JSON</SelectItem>
-                                      <SelectItem value="text">Text</SelectItem>
-                                      <SelectItem value="xml">XML</SelectItem>
-                                      <SelectItem value="html">HTML</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                )}
-                              />
-                            </div>
-                          </div>
-                          <Label>Body Content</Label>
-                          <Controller
-                            name="rawBodyContent"
-                            control={control}
-                            render={({ field }) => (
-                              <div className="h-[300px] border rounded-md overflow-hidden">
-                                <CodeEditor
-                                  value={field.value || ""}
-                                  onChange={field.onChange}
-                                  language={getLanguage(rawBodyContentType)}
-                                />
-                              </div>
-                            )}
-                          />
-                        </TabsContent>
-
-                        {/* Binary Body */}
-                        <TabsContent value="binary" className="mt-3 space-y-2">
-                          <Label>Binary File</Label>
-                          <FileUploadField
-                            index={0}
-                            fileName="file"
-                            file={files["file"]}
-                            onChange={(file) => handleFileChange(0, file)}
-                          />
-                        </TabsContent>
-                      </Tabs>
-                    )}
+            {/* Body (POST only) */}
+            {method === "POST" && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-3">
+                  <Label>Body</Label>
+                  <ToggleButtons
+                    value={bodyType}
+                    options={[
+                      { value: "none", label: "None" },
+                      { value: "json", label: "JSON" },
+                      { value: "form-data", label: "Form" },
+                      { value: "file", label: "File" },
+                    ]}
+                    onChange={setBodyType}
                   />
-                </TabsContent>
-              )}
-            </Tabs>
+                </div>
 
-            {/* Info Box */}
-            {!methodAllowsBody && (
-              <div className="flex gap-2 p-3 bg-muted rounded-md text-sm text-muted-foreground">
-                <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                <p>
-                  The {method} method typically doesn't support a request body.
-                </p>
+                {bodyType === "json" && (
+                  <div className="h-[160px] border rounded-md overflow-hidden">
+                    <CodeEditor
+                      value={jsonBody}
+                      onChange={setJsonBody}
+                      language="json"
+                    />
+                  </div>
+                )}
+
+                {bodyType === "form-data" && (
+                  <KeyValueEditor
+                    items={formData}
+                    onChange={setFormData}
+                    keyPlaceholder="Field"
+                    valuePlaceholder="Value"
+                  />
+                )}
+
+                {bodyType === "file" && (
+                  <>
+                    {file ? (
+                      <div className="flex items-center justify-between p-2 bg-muted/50 border rounded-md">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <FileIcon className="w-4 h-4 text-muted-foreground shrink-0" />
+                          <span className="text-sm truncate">{file.name}</span>
+                          <span className="text-xs text-muted-foreground shrink-0">
+                            ({(file.size / 1024).toFixed(1)} KB)
+                          </span>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 w-7 p-0"
+                          onClick={handleRemoveFile}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <label className="flex items-center justify-center gap-2 p-3 border border-dashed rounded-md cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition">
+                        <Upload className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">
+                          Upload file
+                        </span>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          className="hidden"
+                          onChange={handleFileChange}
+                        />
+                      </label>
+                    )}
+                  </>
+                )}
               </div>
             )}
           </div>
-        </form>
+        </ScrollArea>
 
-        <AlertDialogFooter className="pt-4">
-          <AlertDialogCancel onClick={onClose}>Cancel</AlertDialogCancel>
-          <Button
-            type="submit"
-            form="httpRequestConfigForm"
-            disabled={!isValid}
-          >
-            Execute Request
+        <div className="flex justify-end gap-2 px-4 py-3 border-t bg-muted/30">
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            Cancel
           </Button>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+          <Button size="sm" onClick={handleSubmit}>
+            Execute
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
