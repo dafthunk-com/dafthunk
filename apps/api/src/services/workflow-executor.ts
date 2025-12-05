@@ -8,6 +8,7 @@
 import type { Node, WorkflowExecution } from "@dafthunk/types";
 
 import type { Bindings } from "../context";
+import type { BlobParameter } from "../nodes/types";
 import { createSimulatedEmailMessage } from "../utils/email";
 import { createSimulatedHttpRequest } from "../utils/http";
 
@@ -33,15 +34,13 @@ export interface WorkflowExecutorParameters {
   // For email workflows
   from?: string;
   subject?: string;
-  body?: string;
+  emailBody?: string;
   // For HTTP workflows
   url?: string;
   method?: string;
   headers?: Record<string, string>;
   query?: Record<string, string>;
-  formData?: Record<string, string | File>;
-  // Body can be from JSON or converted form data
-  requestBody?: any;
+  body?: BlobParameter;
 }
 
 export interface WorkflowExecutorResult {
@@ -93,7 +92,7 @@ export class WorkflowExecutor {
         emailMessage: createSimulatedEmailMessage({
           from: parameters?.from,
           subject: parameters?.subject,
-          body: parameters?.body,
+          body: parameters?.emailBody,
           organizationId,
           workflowHandleOrId: workflow.handle || workflow.id,
         }),
@@ -109,8 +108,7 @@ export class WorkflowExecutor {
           method: parameters?.method,
           headers: parameters?.headers,
           query: parameters?.query,
-          body: parameters?.requestBody,
-          formData: parameters?.formData as any,
+          body: parameters?.body,
         }),
       };
     } else {

@@ -1,6 +1,7 @@
-import type { Edge, JsonValue, Node, WorkflowType } from "@dafthunk/types";
+import type { Edge, Node, WorkflowType } from "@dafthunk/types";
 import type { Context } from "hono";
 
+import type { BlobParameter } from "../nodes/types";
 import {
   isParseError,
   parseRequestBody,
@@ -23,7 +24,7 @@ interface WorkflowData {
 interface EmailMessageParameters {
   from?: string;
   subject?: string;
-  body?: string;
+  emailBody?: string;
 }
 
 /**
@@ -34,8 +35,7 @@ interface HttpRequestParameters {
   method: string;
   headers: Record<string, string>;
   query: Record<string, string>;
-  formData?: Record<string, string | File>;
-  requestBody?: JsonValue;
+  body?: BlobParameter;
 }
 
 /**
@@ -93,7 +93,7 @@ export async function prepareWorkflowExecution(
   const method = c.req.method;
   const query = Object.fromEntries(new URL(c.req.url).searchParams.entries());
 
-  // Parse request body
+  // Parse request body as raw BlobParameter
   const parsedRequest = await parseRequestBody(c);
   if (isParseError(parsedRequest)) {
     return {
@@ -102,7 +102,7 @@ export async function prepareWorkflowExecution(
     };
   }
 
-  const { body, formData } = parsedRequest;
+  const { body } = parsedRequest;
 
   // Build parameters based on workflow type
   const parameters = buildParameters(workflowData.type, {
@@ -111,7 +111,6 @@ export async function prepareWorkflowExecution(
     headers,
     query,
     body,
-    formData,
   });
 
   return { parameters };
@@ -127,18 +126,24 @@ function buildParameters(
     method: string;
     headers: Record<string, string>;
     query: Record<string, string>;
-    body?: JsonValue;
-    formData?: Record<string, string | File>;
+    body?: BlobParameter;
   }
 ): ExecutionParameters {
   if (workflowType === "email_message") {
-    const emailBody = data.body as
-      | { from?: string; subject?: string; body?: string }
-      | undefined;
+    // For email workflows, try to parse JSON body for email parameters
+    let parsedEmail: { from?: string; subject?: string; body?: string } | undefined;
+    if (data.body && data.body.mimeType.includes("application/json")) {
+      try {
+        const text = new TextDecoder().decode(data.body.data);
+        parsedEmail = JSON.parse(text);
+      } catch {
+        // Ignore parse errors, parsedEmail stays undefined
+      }
+    }
     return {
-      from: emailBody?.from,
-      subject: emailBody?.subject,
-      body: emailBody?.body,
+      from: parsedEmail?.from,
+      subject: parsedEmail?.subject,
+      emailBody: parsedEmail?.body,
     };
   } else if (
     workflowType === "http_webhook" ||
@@ -149,8 +154,7 @@ function buildParameters(
       method: data.method,
       headers: data.headers,
       query: data.query,
-      formData: data.formData,
-      requestBody: data.body,
+      body: data.body,
     };
   } else {
     return {

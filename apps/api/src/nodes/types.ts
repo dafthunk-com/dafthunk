@@ -91,8 +91,7 @@ export interface HttpRequest {
   headers?: Record<string, string>;
   query?: Record<string, string>;
   queryParams?: Record<string, string>; // Alias for query
-  body?: BlobParameter; // Raw request body with MIME type (JSON, images, PDFs, etc.)
-  formData?: Record<string, string>;
+  body?: BlobParameter; // Raw request body with MIME type
 }
 
 export interface EmailMessage {

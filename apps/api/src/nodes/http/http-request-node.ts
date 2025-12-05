@@ -45,13 +45,7 @@ export class HttpRequestNode extends ExecutableNode {
       {
         name: "body",
         type: "blob",
-        description:
-          "The raw request body with MIME type (JSON, images, PDFs, etc.)",
-      },
-      {
-        name: "formData",
-        type: "json",
-        description: "The form data as a JSON object (for form submissions)",
+        description: "The raw request body with MIME type",
       },
     ],
   };
@@ -68,7 +62,7 @@ export class HttpRequestNode extends ExecutableNode {
         );
       }
 
-      const { method, url, path, headers, queryParams, body, formData } =
+      const { method, url, path, headers, queryParams, body } =
         context.httpRequest;
 
       return this.createSuccessResult({
@@ -78,7 +72,6 @@ export class HttpRequestNode extends ExecutableNode {
         headers: headers || {},
         queryParams: queryParams || {},
         body: body || undefined,
-        formData: formData || {},
       });
     } catch (error) {
       return this.createErrorResult(

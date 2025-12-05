@@ -14,11 +14,11 @@ import type {
 import type { Bindings } from "../context";
 import { createDatabase } from "../db/index";
 import { getOrganizationComputeCredits } from "../db/queries";
+import type { BlobParameter } from "../nodes/types";
 import {
   WorkflowExecutor,
   type WorkflowExecutorParameters,
 } from "../services/workflow-executor";
-import { processHttpParameters } from "../utils/http";
 import { validateWorkflowForExecution } from "../utils/workflows";
 
 interface ExecutionManagerOptions {
@@ -112,17 +112,35 @@ export class ExecutionManager {
       subject?: string;
       body?: string;
     };
-    return { from, subject, body };
+    return { from, subject, emailBody: body };
   }
 
   /**
    * Extract HTTP-specific parameters (for http_webhook and http_request)
+   * Converts parameters to raw BlobParameter body
    */
   private buildHttpParameters(
     parameters: Record<string, unknown>
   ): WorkflowExecutorParameters {
-    const { body: requestBody, formData } = processHttpParameters(parameters);
-    return { requestBody, formData };
+    // If parameters contain a body that's already a BlobParameter, use it directly
+    if (parameters.body && typeof parameters.body === "object") {
+      const maybeBlob = parameters.body as { data?: Uint8Array; mimeType?: string };
+      if (maybeBlob.data instanceof Uint8Array && maybeBlob.mimeType) {
+        return { body: maybeBlob as BlobParameter };
+      }
+    }
+
+    // Convert parameters to JSON body
+    if (Object.keys(parameters).length > 0) {
+      const jsonStr = JSON.stringify(parameters);
+      const body: BlobParameter = {
+        data: new TextEncoder().encode(jsonStr),
+        mimeType: "application/json",
+      };
+      return { body };
+    }
+
+    return {};
   }
 
   /**

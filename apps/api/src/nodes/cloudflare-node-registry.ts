@@ -218,9 +218,6 @@ import { SendDraftGoogleMailNode } from "./google-mail/send-draft-google-mail-no
 import { SendEmailGoogleMailNode } from "./google-mail/send-email-google-mail-node";
 import { TrashMessageGoogleMailNode } from "./google-mail/trash-message-google-mail-node";
 import { UpdateDraftGoogleMailNode } from "./google-mail/update-draft-google-mail-node";
-import { FormDataBooleanNode } from "./http/form-data-boolean-node";
-import { FormDataNumberNode } from "./http/form-data-number-node";
-import { FormDataStringNode } from "./http/form-data-string-node";
 import { HttpRequestNode } from "./http/http-request-node";
 import { HttpResponseNode } from "./http/http-response-node";
 import { JsonBodyNode } from "./http/json-body-node";
@@ -436,9 +433,6 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     );
 
     // Register all core nodes
-    this.registerImplementation(FormDataStringNode);
-    this.registerImplementation(FormDataNumberNode);
-    this.registerImplementation(FormDataBooleanNode);
     this.registerImplementation(HttpRequestNode);
     this.registerImplementation(JsonBodyNode);
     this.registerImplementation(TestAllTypesNode);
