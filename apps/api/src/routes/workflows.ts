@@ -19,6 +19,7 @@ import {
 } from "@dafthunk/types";
 import { zValidator } from "@hono/zod-validator";
 import { and, eq } from "drizzle-orm";
+import type { Context } from "hono";
 import { Hono } from "hono";
 import { v7 as uuid } from "uuid";
 import { z } from "zod";
@@ -346,43 +347,109 @@ workflowRoutes.delete("/:id", jwtMiddleware, async (c) => {
 });
 
 /**
- * Execute a workflow in production mode
- * - Uses active deployment if set
- * - Returns error if no active deployment
+ * Shared workflow execution logic
  */
-workflowRoutes.post(
+async function executeWorkflow(
+  c: Context<ExtendedApiContext>,
+  workflow: { id: string; name: string; handle: string },
+  workflowData: any,
+  deploymentId: string | undefined
+): Promise<Response> {
+  const db = createDatabase(c.env.DB);
+  const { organizationId, userId } = getAuthContext(c);
+
+  // Get organization compute credits
+  const computeCredits = await getOrganizationComputeCredits(db, organizationId);
+  if (computeCredits === undefined) {
+    return c.json({ error: "Organization not found" }, 404);
+  }
+
+  // Prepare workflow for execution
+  const preparationResult = await prepareWorkflowExecution(c, workflowData);
+  if (isExecutionPreparationError(preparationResult)) {
+    return c.json({ error: preparationResult.error }, preparationResult.status);
+  }
+
+  const { parameters } = preparationResult;
+
+  // Execute workflow
+  const { execution } = await WorkflowExecutor.execute({
+    workflow: {
+      id: workflow.id,
+      name: workflow.name,
+      handle: workflow.handle,
+      type: workflowData.type,
+      nodes: workflowData.nodes,
+      edges: workflowData.edges,
+    },
+    userId,
+    organizationId,
+    computeCredits,
+    deploymentId,
+    parameters,
+    env: c.env,
+  });
+
+  // For synchronous HTTP Request workflows, wait for response
+  if (workflowData.type === "http_request") {
+    const syncResult = await waitForSyncHttpResponse(
+      execution.id,
+      organizationId,
+      c.env,
+      10000 // 10 second timeout
+    );
+
+    if (syncResult.timeout) {
+      return c.json({ error: "Request timeout" }, 504);
+    }
+
+    if (!syncResult.success) {
+      return c.json(
+        { error: syncResult.error || "Workflow execution failed" },
+        500
+      );
+    }
+
+    return new Response(syncResult.body, {
+      status: syncResult.statusCode,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  // For async workflows, return execution ID immediately
+  const response: ExecuteWorkflowResponse = {
+    id: execution.id,
+    workflowId: execution.workflowId,
+    status: execution.status,
+    nodeExecutions: execution.nodeExecutions,
+  };
+
+  return c.json(response, 201);
+}
+
+/**
+ * Execute a workflow in production mode (GET/POST)
+ * Uses the active deployment
+ */
+workflowRoutes.on(
+  ["GET", "POST"],
   "/:workflowIdOrHandle/execute",
   apiKeyOrJwtMiddleware,
   (c, next) => createRateLimitMiddleware(c.env.RATE_LIMIT_EXECUTE)(c, next),
   async (c) => {
     const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
-    const db = createDatabase(c.env.DB);
-
-    // Get auth context from either JWT or API key
-    const { organizationId, userId } = getAuthContext(c);
-
-    // Get organization compute credits
-    const computeCredits = await getOrganizationComputeCredits(
-      db,
-      organizationId
-    );
-    if (computeCredits === undefined) {
-      return c.json({ error: "Organization not found" }, 404);
-    }
+    const { organizationId } = getAuthContext(c);
 
     const workflowStore = new WorkflowStore(c.env);
     const deploymentStore = new DeploymentStore(c.env);
 
     // Get workflow metadata
-    const workflow = await workflowStore.get(
-      workflowIdOrHandle,
-      organizationId
-    );
+    const workflow = await workflowStore.get(workflowIdOrHandle, organizationId);
     if (!workflow) {
       return c.json({ error: "Workflow not found" }, 404);
     }
 
-    // PROD PATH: Require active deployment
+    // Require active deployment for prod
     if (!workflow.activeDeploymentId) {
       return c.json(
         {
@@ -393,14 +460,12 @@ workflowRoutes.post(
       );
     }
 
+    // Load workflow data from deployment snapshot
     let workflowData: any;
-    let deploymentId: string | undefined;
-
     try {
       workflowData = await deploymentStore.readWorkflowSnapshot(
         workflow.activeDeploymentId
       );
-      deploymentId = workflow.activeDeploymentId;
     } catch (error) {
       return c.json(
         {
@@ -410,192 +475,46 @@ workflowRoutes.post(
       );
     }
 
-    // Prepare workflow for execution
-    const preparationResult = await prepareWorkflowExecution(c, workflowData);
-    if (isExecutionPreparationError(preparationResult)) {
-      return c.json(
-        { error: preparationResult.error },
-        preparationResult.status
-      );
-    }
-
-    const { parameters } = preparationResult;
-
-    // Execute workflow using shared service
-    const { execution } = await WorkflowExecutor.execute({
-      workflow: {
-        id: workflow.id,
-        name: workflow.name,
-        handle: workflow.handle,
-        type: workflowData.type,
-        nodes: workflowData.nodes,
-        edges: workflowData.edges,
-      },
-      userId,
-      organizationId,
-      computeCredits,
-      deploymentId,
-      parameters,
-      env: c.env,
-    });
-
-    // For synchronous HTTP Request workflows, wait for response
-    if (workflowData.type === "http_request") {
-      const syncResult = await waitForSyncHttpResponse(
-        execution.id,
-        organizationId,
-        c.env,
-        10000 // 10 second timeout
-      );
-
-      if (syncResult.timeout) {
-        return c.json({ error: "Request timeout" }, 504);
-      }
-
-      if (!syncResult.success) {
-        return c.json(
-          { error: syncResult.error || "Workflow execution failed" },
-          500
-        );
-      }
-
-      // Return the HTTP response from the Response node
-      return new Response(syncResult.body, {
-        status: syncResult.statusCode,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-    }
-
-    // For async workflows (http_webhook, etc.), return execution ID immediately
-    const response: ExecuteWorkflowResponse = {
-      id: execution.id,
-      workflowId: execution.workflowId,
-      status: execution.status,
-      nodeExecutions: execution.nodeExecutions,
-    };
-
-    return c.json(response, 201);
+    return executeWorkflow(c, workflow, workflowData, workflow.activeDeploymentId);
   }
 );
 
 /**
- * Execute a workflow in development mode
- * - Uses working version from R2
+ * Execute a workflow in development mode (GET/POST)
+ * Uses the working version from R2
  */
-workflowRoutes.post(
+workflowRoutes.on(
+  ["GET", "POST"],
   "/:workflowIdOrHandle/execute/dev",
   apiKeyOrJwtMiddleware,
   (c, next) => createRateLimitMiddleware(c.env.RATE_LIMIT_EXECUTE)(c, next),
   async (c) => {
     const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
-    const db = createDatabase(c.env.DB);
-
-    // Get auth context from either JWT or API key
-    const { organizationId, userId } = getAuthContext(c);
-
-    // Get organization compute credits
-    const computeCredits = await getOrganizationComputeCredits(
-      db,
-      organizationId
-    );
-    if (computeCredits === undefined) {
-      return c.json({ error: "Organization not found" }, 404);
-    }
+    const { organizationId } = getAuthContext(c);
 
     const workflowStore = new WorkflowStore(c.env);
 
-    // DEV PATH: Load from working version
-    let workflowData: any;
-    let workflow: any;
-
+    // Load workflow with data from working version
+    let workflowWithData;
     try {
-      const workflowWithData = await workflowStore.getWithData(
+      workflowWithData = await workflowStore.getWithData(
         workflowIdOrHandle,
         organizationId
       );
-      if (!workflowWithData || !workflowWithData.data) {
-        return c.json({ error: "Workflow data not found" }, 404);
-      }
-      workflow = workflowWithData;
-      workflowData = workflowWithData.data;
     } catch (error) {
       return c.json(
         {
-          error: `Failed to load workflow data: ${error instanceof Error ? error.message : String(error)}`,
+          error: `Failed to load workflow: ${error instanceof Error ? error.message : String(error)}`,
         },
         500
       );
     }
 
-    // Prepare workflow for execution
-    const preparationResult = await prepareWorkflowExecution(c, workflowData);
-    if (isExecutionPreparationError(preparationResult)) {
-      return c.json(
-        { error: preparationResult.error },
-        preparationResult.status
-      );
+    if (!workflowWithData || !workflowWithData.data) {
+      return c.json({ error: "Workflow not found" }, 404);
     }
 
-    const { parameters } = preparationResult;
-
-    // Execute workflow using shared service
-    const { execution } = await WorkflowExecutor.execute({
-      workflow: {
-        id: workflow.id,
-        name: workflow.name,
-        handle: workflow.handle,
-        type: workflowData.type,
-        nodes: workflowData.nodes,
-        edges: workflowData.edges,
-      },
-      userId,
-      organizationId,
-      computeCredits,
-      deploymentId: undefined, // Dev mode has no deployment
-      parameters,
-      env: c.env,
-    });
-
-    // For synchronous HTTP Request workflows, wait for response
-    if (workflowData.type === "http_request") {
-      const syncResult = await waitForSyncHttpResponse(
-        execution.id,
-        organizationId,
-        c.env,
-        10000 // 10 second timeout
-      );
-
-      if (syncResult.timeout) {
-        return c.json({ error: "Request timeout" }, 504);
-      }
-
-      if (!syncResult.success) {
-        return c.json(
-          { error: syncResult.error || "Workflow execution failed" },
-          500
-        );
-      }
-
-      // Return the HTTP response from the Response node
-      return new Response(syncResult.body, {
-        status: syncResult.statusCode,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-    }
-
-    // For async workflows (http_webhook, etc.), return execution ID immediately
-    const response: ExecuteWorkflowResponse = {
-      id: execution.id,
-      workflowId: execution.workflowId,
-      status: execution.status,
-      nodeExecutions: execution.nodeExecutions,
-    };
-
-    return c.json(response, 201);
+    return executeWorkflow(c, workflowWithData, workflowWithData.data, undefined);
   }
 );
 

@@ -1,29 +1,18 @@
 import {
   Deployment,
   DeploymentVersion,
-  ExecuteDeploymentResponse,
   GetDeploymentVersionResponse,
   GetWorkflowDeploymentsResponse,
   ListDeploymentsResponse,
 } from "@dafthunk/types";
-import { JWTTokenPayload } from "@dafthunk/types";
+import type { JWTTokenPayload } from "@dafthunk/types";
 import { Hono } from "hono";
 import { v7 as uuid } from "uuid";
 
-import { apiKeyOrJwtMiddleware, jwtMiddleware } from "../auth";
+import { jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
-import { createDatabase } from "../db";
-import { getOrganizationComputeCredits } from "../db";
-import { createRateLimitMiddleware } from "../middleware/rate-limit";
-import { WorkflowExecutor } from "../services/workflow-executor";
 import { DeploymentStore } from "../stores/deployment-store";
 import { WorkflowStore } from "../stores/workflow-store";
-import { getAuthContext } from "../utils/auth-context";
-import {
-  isExecutionPreparationError,
-  prepareWorkflowExecution,
-} from "../utils/execution-preparation";
-import { waitForSyncHttpResponse } from "../utils/sync-http-execution";
 
 // Extend the ApiContext with our custom variable
 type ExtendedApiContext = ApiContext & {
@@ -312,118 +301,6 @@ deploymentRoutes.put(
     );
 
     return c.json({ success: true });
-  }
-);
-
-/**
- * POST /deployments/version/:deploymentId/execute
- * Executes a specific deployment version
- * Supports both JWT and API key authentication
- */
-deploymentRoutes.post(
-  "/version/:deploymentId/execute",
-  apiKeyOrJwtMiddleware,
-  (c, next) => createRateLimitMiddleware(c.env.RATE_LIMIT_EXECUTE)(c, next),
-  async (c) => {
-    // Get auth context from either JWT or API key
-    const { organizationId, userId } = getAuthContext(c);
-
-    const deploymentId = c.req.param("deploymentId");
-    const db = createDatabase(c.env.DB);
-    const deploymentStore = new DeploymentStore(c.env);
-
-    // Get organization compute credits
-    const computeCredits = await getOrganizationComputeCredits(
-      db,
-      organizationId
-    );
-    if (computeCredits === undefined) {
-      return c.json({ error: "Organization not found" }, 404);
-    }
-
-    // Get the deployment with workflow data
-    const deployment = await deploymentStore.getWithData(
-      deploymentId,
-      organizationId
-    );
-
-    if (!deployment) {
-      return c.json({ error: "Deployment not found" }, 404);
-    }
-
-    const workflowData = deployment.workflowData;
-
-    // Prepare workflow for execution
-    const preparationResult = await prepareWorkflowExecution(c, workflowData);
-    if (isExecutionPreparationError(preparationResult)) {
-      return c.json(
-        { error: preparationResult.error },
-        preparationResult.status
-      );
-    }
-
-    const { parameters } = preparationResult;
-
-    // Execute workflow using shared service
-    const { execution } = await WorkflowExecutor.execute({
-      workflow: {
-        id: deployment.workflowId || "",
-        name: workflowData.name,
-        handle: workflowData.handle,
-        type: workflowData.type,
-        nodes: workflowData.nodes,
-        edges: workflowData.edges,
-      },
-      userId,
-      organizationId,
-      computeCredits,
-      deploymentId: deployment.id,
-      parameters,
-      env: c.env,
-    });
-
-    // For synchronous HTTP Request workflows, wait for response
-    if (workflowData.type === "http_request") {
-      const syncResult = await waitForSyncHttpResponse(
-        execution.id,
-        organizationId,
-        c.env,
-        10000 // 10 second timeout
-      );
-
-      if (syncResult.timeout) {
-        return c.json({ error: "Request timeout" }, 504);
-      }
-
-      if (!syncResult.success) {
-        return c.json(
-          { error: syncResult.error || "Workflow execution failed" },
-          500
-        );
-      }
-
-      // Return the HTTP response from the Response node
-      return new Response(syncResult.body, {
-        status: syncResult.statusCode,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-    }
-
-    // For async workflows (http_webhook, etc.), return execution ID immediately
-    const response: ExecuteDeploymentResponse = {
-      id: execution.id,
-      workflowId: execution.workflowId,
-      deploymentId: deployment.id,
-      status: "executing",
-      nodeExecutions: execution.nodeExecutions.map((ne) => ({
-        nodeId: ne.nodeId,
-        status: "idle" as const,
-      })),
-    };
-
-    return c.json(response, 201);
   }
 );
 
