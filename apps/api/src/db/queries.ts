@@ -211,6 +211,26 @@ export function getOrganizationCondition(organizationIdOrHandle: string) {
   }
 }
 
+/**
+ * Get an organization by ID or handle
+ */
+export async function getOrganization(
+  db: ReturnType<typeof createDatabase>,
+  organizationIdOrHandle: string
+) {
+  const result = await db
+    .select({
+      id: organizations.id,
+      name: organizations.name,
+      handle: organizations.handle,
+    })
+    .from(organizations)
+    .where(getOrganizationCondition(organizationIdOrHandle))
+    .limit(1);
+
+  return result[0] || null;
+}
+
 export function getWorkflowCondition(workflowIdOrHandle: string) {
   if (isUUID(workflowIdOrHandle)) {
     return eq(workflows.id, workflowIdOrHandle);

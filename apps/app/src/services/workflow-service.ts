@@ -350,30 +350,29 @@ export function useWorkflowExecution(
           queryParams = params.queryParams;
         }
 
-        // Handle body - also check for rawType to determine content-type
+        // Handle body
         if (params.body) {
           if (params.body instanceof FormData) {
             body = params.body;
             // FormData will automatically set the correct multipart/form-data header
           } else if (params.body instanceof File) {
             body = params.body;
-            headers["Content-Type"] = "application/octet-stream";
+            headers["Content-Type"] =
+              params.body.type || "application/octet-stream";
           } else if (typeof params.body === "object") {
             body = JSON.stringify(params.body);
             headers["Content-Type"] = "application/json";
           } else if (typeof params.body === "string") {
             body = params.body;
-            // Set content-type based on rawType if provided
-            if (params.rawType === "json") {
-              headers["Content-Type"] = "application/json";
-            } else if (params.rawType === "xml") {
-              headers["Content-Type"] = "application/xml";
-            } else if (params.rawType === "html") {
-              headers["Content-Type"] = "text/html";
-            } else {
-              headers["Content-Type"] = "text/plain";
-            }
+            // Use contentType if provided, otherwise default to text/plain
+            headers["Content-Type"] =
+              (params.contentType as string) || "text/plain";
           }
+        }
+
+        // Use method from params if provided (e.g., from HttpRequestConfigDialog)
+        if (params.method && typeof params.method === "string") {
+          requestOptions.method = params.method;
         }
       }
 

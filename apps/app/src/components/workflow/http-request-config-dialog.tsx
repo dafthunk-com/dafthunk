@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/utils/utils";
 
-type BodyType = "none" | "json" | "form-data" | "file";
+type BodyType = "none" | "text" | "json" | "form-data" | "file";
 
 interface KeyValue {
   key: string;
@@ -131,10 +131,35 @@ export function HttpRequestConfigDialog({
   const [headers, setHeaders] = useState<KeyValue[]>([]);
   const [queryParams, setQueryParams] = useState<KeyValue[]>([]);
   const [bodyType, setBodyType] = useState<BodyType>("none");
+  const [textBody, setTextBody] = useState("");
   const [jsonBody, setJsonBody] = useState("");
+  const [jsonError, setJsonError] = useState<string | null>(null);
   const [formData, setFormData] = useState<KeyValue[]>([]);
   const [file, setFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleJsonChange = (value: string) => {
+    setJsonBody(value);
+    if (!value.trim()) {
+      setJsonError(null);
+      return;
+    }
+    try {
+      JSON.parse(value);
+      setJsonError(null);
+    } catch (e) {
+      setJsonError(e instanceof Error ? e.message : "Invalid JSON");
+    }
+  };
+
+  const formatJson = () => {
+    try {
+      const parsed = JSON.parse(jsonBody);
+      setJsonBody(JSON.stringify(parsed, null, 2));
+    } catch {
+      // Can't format invalid JSON
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
@@ -168,9 +193,20 @@ export function HttpRequestConfigDialog({
     }
 
     if (method === "POST") {
-      if (bodyType === "json" && jsonBody) {
-        config.body = jsonBody;
-        config.contentType = "application/json";
+      if (bodyType === "text" && textBody) {
+        config.body = textBody;
+        config.contentType = "text/plain";
+      } else if (bodyType === "json" && jsonBody) {
+        try {
+          // Parse and re-stringify to validate and minify
+          const parsed = JSON.parse(jsonBody);
+          config.body = JSON.stringify(parsed);
+          config.contentType = "application/json";
+        } catch (e) {
+          // Invalid JSON - show error and don't submit
+          setJsonError(e instanceof Error ? e.message : "Invalid JSON");
+          return;
+        }
       } else if (bodyType === "form-data") {
         const fd = new FormData();
         formData
@@ -240,6 +276,7 @@ export function HttpRequestConfigDialog({
                     value={bodyType}
                     options={[
                       { value: "none", label: "None" },
+                      { value: "text", label: "Text" },
                       { value: "json", label: "JSON" },
                       { value: "form-data", label: "Form" },
                       { value: "file", label: "File" },
@@ -248,13 +285,44 @@ export function HttpRequestConfigDialog({
                   />
                 </div>
 
-                {bodyType === "json" && (
+                {bodyType === "text" && (
                   <div className="h-[160px] border rounded-md overflow-hidden">
                     <CodeEditor
-                      value={jsonBody}
-                      onChange={setJsonBody}
-                      language="json"
+                      value={textBody}
+                      onChange={setTextBody}
+                      language="text"
                     />
+                  </div>
+                )}
+
+                {bodyType === "json" && (
+                  <div className="space-y-1">
+                    <div
+                      className={cn(
+                        "h-[160px] border rounded-md overflow-hidden relative",
+                        jsonError && "border-destructive"
+                      )}
+                    >
+                      <CodeEditor
+                        value={jsonBody}
+                        onChange={handleJsonChange}
+                        language="json"
+                      />
+                      {jsonBody && !jsonError && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute top-1 right-1 h-6 px-2 text-xs text-muted-foreground"
+                          onClick={formatJson}
+                        >
+                          Format
+                        </Button>
+                      )}
+                    </div>
+                    {jsonError && (
+                      <p className="text-xs text-destructive">{jsonError}</p>
+                    )}
                   </div>
                 )}
 

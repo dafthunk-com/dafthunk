@@ -13,7 +13,7 @@ import type {
 
 import type { Bindings } from "../context";
 import { createDatabase } from "../db/index";
-import { getOrganizationComputeCredits } from "../db/queries";
+import { getOrganization, getOrganizationComputeCredits } from "../db/queries";
 import type { BlobParameter } from "../nodes/types";
 import {
   WorkflowExecutor,
@@ -46,11 +46,13 @@ export class ExecutionManager {
   }> {
     const db = createDatabase(this.env.DB);
 
-    const computeCredits = await getOrganizationComputeCredits(
-      db,
-      organizationId
-    );
-    if (computeCredits === undefined) {
+    // Get organization info (for URL construction) and compute credits in parallel
+    const [organization, computeCredits] = await Promise.all([
+      getOrganization(db, organizationId),
+      getOrganizationComputeCredits(db, organizationId),
+    ]);
+
+    if (!organization || computeCredits === undefined) {
       throw new Error("Organization not found");
     }
 
@@ -58,7 +60,9 @@ export class ExecutionManager {
 
     const executorParameters = this.buildExecutorParameters(
       state.type,
-      parameters
+      parameters,
+      organization.handle,
+      state.handle
     );
 
     return await WorkflowExecutor.execute({
@@ -84,18 +88,20 @@ export class ExecutionManager {
    */
   private buildExecutorParameters(
     workflowType: string,
-    parameters?: Record<string, unknown>
+    parameters: Record<string, unknown> | undefined,
+    orgHandle: string,
+    workflowHandle: string
   ): WorkflowExecutorParameters {
-    if (!parameters) {
-      return {};
-    }
-
     switch (workflowType) {
       case "email_message":
-        return this.buildEmailParameters(parameters);
+        return this.buildEmailParameters(parameters || {});
       case "http_webhook":
       case "http_request":
-        return this.buildHttpParameters(parameters);
+        return this.buildHttpParameters(
+          parameters || {},
+          orgHandle,
+          workflowHandle
+        );
       default:
         return {};
     }
@@ -117,30 +123,70 @@ export class ExecutionManager {
 
   /**
    * Extract HTTP-specific parameters (for http_webhook and http_request)
-   * Converts parameters to raw BlobParameter body
+   * Aligns with the HTTP endpoint's execution-preparation.ts
    */
   private buildHttpParameters(
-    parameters: Record<string, unknown>
+    parameters: Record<string, unknown>,
+    orgHandle: string,
+    workflowHandle: string
   ): WorkflowExecutorParameters {
-    // If parameters contain a body that's already a BlobParameter, use it directly
+    // Build query string from query params if provided
+    const queryParams =
+      (parameters.queryParams as Record<string, string>) || {};
+    const queryString =
+      Object.keys(queryParams).length > 0
+        ? `?${new URLSearchParams(queryParams).toString()}`
+        : "";
+
+    // Construct a simulated URL that matches production format
+    // Using the API base URL pattern: /{orgHandle}/workflows/{workflowHandle}/execute/dev
+    const basePath = `/${orgHandle}/workflows/${workflowHandle}/execute/dev`;
+    const simulatedUrl = `https://api.dafthunk.com${basePath}${queryString}`;
+
+    const result: WorkflowExecutorParameters = {
+      url: simulatedUrl,
+      method: (parameters.method as string) || "GET",
+      headers: (parameters.headers as Record<string, string>) || {},
+      query: queryParams,
+    };
+
+    // Handle body - check if it's already a BlobParameter
     if (parameters.body && typeof parameters.body === "object") {
-      const maybeBlob = parameters.body as { data?: Uint8Array; mimeType?: string };
+      const maybeBlob = parameters.body as {
+        data?: Uint8Array;
+        mimeType?: string;
+      };
       if (maybeBlob.data instanceof Uint8Array && maybeBlob.mimeType) {
-        return { body: maybeBlob as BlobParameter };
+        result.body = maybeBlob as BlobParameter;
+        return result;
       }
     }
 
-    // Convert parameters to JSON body
-    if (Object.keys(parameters).length > 0) {
-      const jsonStr = JSON.stringify(parameters);
-      const body: BlobParameter = {
-        data: new TextEncoder().encode(jsonStr),
-        mimeType: "application/json",
-      };
-      return { body };
+    // Convert body to BlobParameter based on content type or type
+    if (parameters.body !== undefined && parameters.body !== null) {
+      const contentType =
+        (parameters.contentType as string) || "application/octet-stream";
+
+      if (typeof parameters.body === "string") {
+        result.body = {
+          data: new TextEncoder().encode(parameters.body),
+          mimeType: contentType,
+        };
+      } else if (parameters.body instanceof Uint8Array) {
+        result.body = {
+          data: parameters.body,
+          mimeType: contentType,
+        };
+      } else if (typeof parameters.body === "object") {
+        // Object body - serialize as JSON
+        result.body = {
+          data: new TextEncoder().encode(JSON.stringify(parameters.body)),
+          mimeType: "application/json",
+        };
+      }
     }
 
-    return {};
+    return result;
   }
 
   /**

@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 
+import { Button } from "@/components/ui/button";
 import { CodeEditor } from "@/components/ui/code-editor";
 import { cn } from "@/utils/utils";
 
@@ -20,32 +21,40 @@ export function JsonField({
 
   const readonly = disabled ?? false;
 
-  // Format value for display (pretty-print if valid JSON)
-  const formattedValue = useMemo(() => {
+  // Convert value to string for display
+  const stringValue = useMemo(() => {
     if (value === undefined) return "";
-    const stringValue =
-      typeof value === "object"
-        ? JSON.stringify(value, null, 2)
-        : String(value);
-    try {
-      const parsed = JSON.parse(stringValue);
-      return JSON.stringify(parsed, null, 2);
-    } catch {
-      return stringValue;
+    if (typeof value === "object") {
+      return JSON.stringify(value, null, 2);
     }
+    return String(value);
   }, [value]);
+
+  // Check if current value is valid JSON
+  const isValidJson = useMemo(() => {
+    if (!stringValue) return false;
+    try {
+      JSON.parse(stringValue);
+      return true;
+    } catch {
+      return false;
+    }
+  }, [stringValue]);
 
   const handleChange = (newValue: string) => {
     if (!newValue) {
       onChange(undefined);
       return;
     }
-    // Try to parse and re-format, otherwise keep as string
+    onChange(newValue);
+  };
+
+  const formatJson = () => {
     try {
-      const parsed = JSON.parse(newValue);
+      const parsed = JSON.parse(stringValue);
       onChange(JSON.stringify(parsed, null, 2));
     } catch {
-      onChange(newValue);
+      // Can't format invalid JSON
     }
   };
 
@@ -72,17 +81,28 @@ export function JsonField({
     >
       <div className="h-[200px] rounded-md border border-border overflow-hidden">
         <CodeEditor
-          value={formattedValue}
+          value={stringValue}
           onChange={handleChange}
           language="json"
           readonly={readonly}
         />
       </div>
+      {!disabled && !readonly && isValidJson && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="absolute top-1 right-1 h-6 px-2 text-xs text-muted-foreground z-10"
+          onClick={formatJson}
+        >
+          Format
+        </Button>
+      )}
       {!disabled && !readonly && clearable && hasValue && (
         <ClearButton
           onClick={onClear}
           label="Clear JSON"
-          className="absolute top-2 right-2 z-10"
+          className="absolute top-1 right-16 z-10"
         />
       )}
     </div>
