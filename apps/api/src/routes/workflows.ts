@@ -359,7 +359,10 @@ async function executeWorkflow(
   const { organizationId, userId } = getAuthContext(c);
 
   // Get organization compute credits
-  const computeCredits = await getOrganizationComputeCredits(db, organizationId);
+  const computeCredits = await getOrganizationComputeCredits(
+    db,
+    organizationId
+  );
   if (computeCredits === undefined) {
     return c.json({ error: "Organization not found" }, 404);
   }
@@ -444,7 +447,10 @@ workflowRoutes.on(
     const deploymentStore = new DeploymentStore(c.env);
 
     // Get workflow metadata
-    const workflow = await workflowStore.get(workflowIdOrHandle, organizationId);
+    const workflow = await workflowStore.get(
+      workflowIdOrHandle,
+      organizationId
+    );
     if (!workflow) {
       return c.json({ error: "Workflow not found" }, 404);
     }
@@ -475,7 +481,12 @@ workflowRoutes.on(
       );
     }
 
-    return executeWorkflow(c, workflow, workflowData, workflow.activeDeploymentId);
+    return executeWorkflow(
+      c,
+      workflow,
+      workflowData,
+      workflow.activeDeploymentId
+    );
   }
 );
 
@@ -514,7 +525,12 @@ workflowRoutes.on(
       return c.json({ error: "Workflow not found" }, 404);
     }
 
-    return executeWorkflow(c, workflowWithData, workflowWithData.data, undefined);
+    return executeWorkflow(
+      c,
+      workflowWithData,
+      workflowWithData.data,
+      undefined
+    );
   }
 );
 

@@ -1,3 +1,4 @@
+import type { JWTTokenPayload } from "@dafthunk/types";
 import {
   Deployment,
   DeploymentVersion,
@@ -5,7 +6,6 @@ import {
   GetWorkflowDeploymentsResponse,
   ListDeploymentsResponse,
 } from "@dafthunk/types";
-import type { JWTTokenPayload } from "@dafthunk/types";
 import { Hono } from "hono";
 import { v7 as uuid } from "uuid";
 

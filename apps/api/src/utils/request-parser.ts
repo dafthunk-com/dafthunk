@@ -26,7 +26,8 @@ export interface ParseRequestError {
 export async function parseRequestBody(
   c: Context
 ): Promise<ParsedRequest | ParseRequestError> {
-  const contentType = c.req.header("content-type") || "application/octet-stream";
+  const contentType =
+    c.req.header("content-type") || "application/octet-stream";
   const contentLength = c.req.header("content-length");
 
   // Check if there's actually a body to parse

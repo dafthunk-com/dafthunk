@@ -131,7 +131,9 @@ function buildParameters(
 ): ExecutionParameters {
   if (workflowType === "email_message") {
     // For email workflows, try to parse JSON body for email parameters
-    let parsedEmail: { from?: string; subject?: string; body?: string } | undefined;
+    let parsedEmail:
+      | { from?: string; subject?: string; body?: string }
+      | undefined;
     if (data.body && data.body.mimeType.includes("application/json")) {
       try {
         const text = new TextDecoder().decode(data.body.data);
