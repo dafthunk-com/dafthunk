@@ -4,6 +4,7 @@ import { shape3dTemplate } from "./3d-shape";
 import { aiCalculatorTemplate } from "./ai-calculator";
 import { coinFlipTemplate } from "./coin-flip";
 import { emailReplyTemplate } from "./email-reply";
+import { httpEchoTemplate } from "./http-echo";
 import { imageDescriptionTemplate } from "./image-description";
 import { imageGenerationTemplate } from "./image-generation";
 import { imageProcessingTemplate } from "./image-processing";
@@ -30,6 +31,7 @@ export const workflowTemplates: WorkflowTemplate[] = [
   webScreenshotTemplate,
   aiCalculatorTemplate,
   coinFlipTemplate,
+  httpEchoTemplate,
 ];
 
 export function getTemplateById(id: string): WorkflowTemplate | undefined {

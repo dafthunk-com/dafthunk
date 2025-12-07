@@ -1,10 +1,12 @@
-import { Node, NodeExecution, NodeType } from "@dafthunk/types";
+import type { Node, NodeExecution, NodeType } from "@dafthunk/types";
 
 import {
   BlobParameter,
   ExecutableNode,
+  isBlobParameter,
   NodeContext,
   ParameterValue,
+  toUint8Array,
 } from "../types";
 
 export class HttpResponseNode extends ExecutableNode {
@@ -40,12 +42,27 @@ export class HttpResponseNode extends ExecutableNode {
         description: "Response body content (any type)",
       },
     ],
-    outputs: [],
+    outputs: [
+      {
+        name: "statusCode",
+        type: "number",
+        description: "HTTP status code",
+        hidden: true,
+      },
+      {
+        name: "headers",
+        type: "json",
+        description: "HTTP response headers",
+        hidden: true,
+      },
+      {
+        name: "body",
+        type: "blob",
+        description: "Response body",
+        hidden: true,
+      },
+    ],
   };
-
-  constructor(node: Node) {
-    super(node);
-  }
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     const { statusCode = 200, headers = {}, body = "" } = context.inputs;
@@ -93,126 +110,42 @@ export class HttpResponseNode extends ExecutableNode {
     contentType: string;
     formattedBody: BlobParameter;
   } {
-    const encoder = new TextEncoder();
-
     // Handle null/undefined
     if (body === null || body === undefined) {
-      return {
-        contentType: "text/plain",
-        formattedBody: { data: new Uint8Array(0), mimeType: "text/plain" },
-      };
+      return this.createBlobResult(new Uint8Array(0), "text/plain");
     }
 
     // Handle blob types (blob, image, document, audio, buffergeometry, gltf)
-    if (this.isBlobParameter(body)) {
-      const data = this.toUint8Array(body.data);
+    if (isBlobParameter(body)) {
       const mimeType = body.mimeType || "application/octet-stream";
-      return {
-        contentType: mimeType,
-        formattedBody: { data, mimeType },
-      };
+      return this.createBlobResult(toUint8Array(body.data), mimeType);
     }
 
-    // Handle GeoJSON
-    if (this.isGeoJSON(body)) {
-      const mimeType = "application/geo+json";
-      return {
-        contentType: mimeType,
-        formattedBody: {
-          data: encoder.encode(JSON.stringify(body)),
-          mimeType,
-        },
-      };
-    }
-
-    // Handle plain objects and arrays (JSON)
+    // Handle objects and arrays (JSON, including GeoJSON)
     if (typeof body === "object") {
-      const mimeType = "application/json";
-      return {
-        contentType: mimeType,
-        formattedBody: {
-          data: encoder.encode(JSON.stringify(body)),
-          mimeType,
-        },
-      };
+      return this.createTextResult(JSON.stringify(body), "application/json");
     }
 
-    // Handle primitives
+    // Handle string
     if (typeof body === "string") {
-      const mimeType = "text/plain; charset=utf-8";
-      return {
-        contentType: mimeType,
-        formattedBody: { data: encoder.encode(body), mimeType },
-      };
+      return this.createTextResult(body, "text/plain; charset=utf-8");
     }
 
-    if (typeof body === "number" || typeof body === "boolean") {
-      const mimeType = "text/plain";
-      return {
-        contentType: mimeType,
-        formattedBody: { data: encoder.encode(String(body)), mimeType },
-      };
-    }
-
-    // Fallback
-    const mimeType = "text/plain";
-    return {
-      contentType: mimeType,
-      formattedBody: { data: encoder.encode(String(body)), mimeType },
-    };
+    // Handle number, boolean, and fallback
+    return this.createTextResult(String(body), "text/plain");
   }
 
-  private isBlobParameter(value: any): value is BlobParameter {
-    if (!value || typeof value !== "object") return false;
-    if (!("data" in value) || !("mimeType" in value)) return false;
-
-    // Handle native Uint8Array
-    if (value.data instanceof Uint8Array) return true;
-
-    // Handle serialized Uint8Array (plain object with numeric keys from JSON)
-    if (
-      value.data &&
-      typeof value.data === "object" &&
-      !Array.isArray(value.data)
-    ) {
-      const keys = Object.keys(value.data);
-      return keys.length > 0 && keys.every((k) => /^\d+$/.test(k));
-    }
-
-    return false;
+  private createBlobResult(
+    data: Uint8Array,
+    mimeType: string
+  ): { contentType: string; formattedBody: BlobParameter } {
+    return { contentType: mimeType, formattedBody: { data, mimeType } };
   }
 
-  private toUint8Array(data: Uint8Array | Record<string, number>): Uint8Array {
-    if (data instanceof Uint8Array) return data;
-    // Convert serialized Uint8Array back to native
-    const keys = Object.keys(data).map(Number).sort((a, b) => a - b);
-    return new Uint8Array(keys.map((k) => data[k]));
-  }
-
-  private isGeoJSON(value: any): boolean {
-    return (
-      value &&
-      typeof value === "object" &&
-      "type" in value &&
-      (value.type === "Feature" ||
-        value.type === "FeatureCollection" ||
-        value.type === "Point" ||
-        value.type === "LineString" ||
-        value.type === "Polygon" ||
-        value.type === "MultiPoint" ||
-        value.type === "MultiLineString" ||
-        value.type === "MultiPolygon" ||
-        value.type === "GeometryCollection")
-    );
-  }
-
-  private isTextMimeType(mimeType: string): boolean {
-    return (
-      mimeType.startsWith("text/") ||
-      mimeType === "application/json" ||
-      mimeType === "application/xml" ||
-      mimeType.endsWith("+json") ||
-      mimeType.endsWith("+xml")
-    );
+  private createTextResult(
+    text: string,
+    mimeType: string
+  ): { contentType: string; formattedBody: BlobParameter } {
+    return this.createBlobResult(new TextEncoder().encode(text), mimeType);
   }
 }

@@ -5,6 +5,12 @@ import type {
 } from "@dafthunk/types";
 
 import type { Bindings } from "../context";
+import {
+  isBlobParameter,
+  isObjectReference,
+  toUint8Array,
+} from "../nodes/types";
+import { ObjectStore } from "../stores/object-store";
 
 /**
  * Result of polling for execution completion
@@ -14,23 +20,6 @@ interface PollingResult {
   status: WorkflowExecutionStatus;
   nodeExecutions?: NodeExecution[];
   error?: string;
-}
-
-/**
- * Blob parameter structure (serialized from BlobParameter)
- */
-interface SerializedBlobParameter {
-  data: Uint8Array | Record<string, number>;
-  mimeType: string;
-}
-
-/**
- * HTTP Response data extracted from the HTTP Response node
- */
-interface HttpResponseData {
-  statusCode: number;
-  headers: Record<string, string>;
-  body: Uint8Array;
 }
 
 /**
@@ -150,91 +139,38 @@ async function pollForCompletion(
 }
 
 /**
- * Convert serialized Uint8Array (from JSON) back to native Uint8Array
+ * Extracts HTTP response body as Uint8Array from various formats
  */
-function toUint8Array(data: Uint8Array | Record<string, number>): Uint8Array {
-  if (data instanceof Uint8Array) return data;
-  // Convert serialized Uint8Array back to native
-  const keys = Object.keys(data).map(Number).sort((a, b) => a - b);
-  return new Uint8Array(keys.map((k) => data[k]));
-}
-
-/**
- * Check if a value is a blob parameter (native or serialized)
- */
-function isBlobParameter(value: unknown): value is SerializedBlobParameter {
-  if (!value || typeof value !== "object") return false;
-  const obj = value as Record<string, unknown>;
-  if (!("data" in obj) || !("mimeType" in obj)) return false;
-
-  // Handle native Uint8Array
-  if (obj.data instanceof Uint8Array) return true;
-
-  // Handle serialized Uint8Array (plain object with numeric keys from JSON)
-  if (obj.data && typeof obj.data === "object" && !Array.isArray(obj.data)) {
-    const keys = Object.keys(obj.data as object);
-    return keys.length > 0 && keys.every((k) => /^\d+$/.test(k));
+async function extractBody(
+  bodyOutput: unknown,
+  headers: Record<string, string>,
+  env: Bindings
+): Promise<Uint8Array> {
+  if (isObjectReference(bodyOutput)) {
+    const objectStore = new ObjectStore(env.RESSOURCES);
+    const result = await objectStore.readObject(bodyOutput);
+    if (result) {
+      if (!headers["content-type"]) {
+        headers["content-type"] = bodyOutput.mimeType;
+      }
+      return result.data;
+    }
+    return new TextEncoder().encode("Failed to read response body");
   }
-
-  return false;
-}
-
-/**
- * Extracts HTTP response data from node executions
- *
- * @param nodeExecutions - Array of node executions
- * @returns HTTP response data if found, undefined otherwise
- */
-function extractHttpResponse(
-  nodeExecutions: NodeExecution[]
-): HttpResponseData | undefined {
-  // Find the HTTP Response node execution
-  const responseNode = nodeExecutions.find((ne) => {
-    // Check if this is an http-response node that completed successfully
-    return (
-      ne.status === "completed" &&
-      ne.outputs &&
-      "statusCode" in ne.outputs &&
-      "body" in ne.outputs
-    );
-  });
-
-  if (!responseNode || !responseNode.outputs) {
-    return undefined;
-  }
-
-  const statusCode = responseNode.outputs.statusCode as number;
-  const headers = (responseNode.outputs.headers as Record<string, string>) || {};
-  const bodyOutput = responseNode.outputs.body;
-
-  // Extract body as Uint8Array
-  let body: Uint8Array;
 
   if (isBlobParameter(bodyOutput)) {
-    body = toUint8Array(bodyOutput.data);
-  } else if (typeof bodyOutput === "string") {
-    // Legacy fallback for string body
-    body = new TextEncoder().encode(bodyOutput);
-  } else {
-    // Fallback: encode as JSON
-    body = new TextEncoder().encode(JSON.stringify(bodyOutput));
+    return toUint8Array(bodyOutput.data);
   }
 
-  return {
-    statusCode: typeof statusCode === "number" ? statusCode : 200,
-    headers,
-    body,
-  };
+  if (typeof bodyOutput === "string") {
+    return new TextEncoder().encode(bodyOutput);
+  }
+
+  return new TextEncoder().encode(JSON.stringify(bodyOutput));
 }
 
 /**
  * Executes a synchronous HTTP workflow and waits for the response
- *
- * @param executionId - The execution ID to poll
- * @param organizationId - The organization ID
- * @param env - Cloudflare bindings
- * @param timeoutMs - Timeout in milliseconds (default 10000ms)
- * @returns Sync HTTP execution result with status code and body
  */
 export async function waitForSyncHttpResponse(
   executionId: string,
@@ -242,7 +178,6 @@ export async function waitForSyncHttpResponse(
   env: Bindings,
   timeoutMs: number = 10000
 ): Promise<SyncHttpExecutionResult> {
-  // Poll for completion
   const pollingResult = await pollForCompletion(
     executionId,
     organizationId,
@@ -250,49 +185,45 @@ export async function waitForSyncHttpResponse(
     timeoutMs
   );
 
-  // Check if polling was successful
   if (!pollingResult.success) {
-    if (pollingResult.error === "Execution timeout") {
-      return {
-        success: false,
-        timeout: true,
-        error: "Workflow execution timed out",
-      };
-    }
-    return {
-      success: false,
-      error: pollingResult.error || "Execution failed",
-    };
+    return pollingResult.error === "Execution timeout"
+      ? { success: false, timeout: true, error: "Workflow execution timed out" }
+      : { success: false, error: pollingResult.error || "Execution failed" };
   }
 
-  // Extract HTTP response from node executions
   if (!pollingResult.nodeExecutions) {
-    return {
-      success: false,
-      error: "No node executions found",
-    };
+    return { success: false, error: "No node executions found" };
   }
 
-  const httpResponse = extractHttpResponse(pollingResult.nodeExecutions);
+  // Find the HTTP Response node execution
+  const responseNode = pollingResult.nodeExecutions.find(
+    (ne) =>
+      ne.status === "completed" &&
+      ne.outputs &&
+      "statusCode" in ne.outputs &&
+      "body" in ne.outputs
+  );
 
-  if (!httpResponse) {
+  if (!responseNode?.outputs) {
     // No HTTP Response node found, return default success response
-    const defaultBody = JSON.stringify({
-      message: "Workflow completed successfully",
-      executionId,
-    });
     return {
       success: true,
       statusCode: 200,
       headers: { "content-type": "application/json" },
-      body: new TextEncoder().encode(defaultBody),
+      body: new TextEncoder().encode(
+        JSON.stringify({ message: "Workflow completed successfully", executionId })
+      ),
     };
   }
 
+  const statusCode = responseNode.outputs.statusCode;
+  const headers = (responseNode.outputs.headers as Record<string, string>) || {};
+  const body = await extractBody(responseNode.outputs.body, headers, env);
+
   return {
     success: true,
-    statusCode: httpResponse.statusCode,
-    headers: httpResponse.headers,
-    body: httpResponse.body,
+    statusCode: typeof statusCode === "number" ? statusCode : 200,
+    headers,
+    body,
   };
 }

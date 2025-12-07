@@ -1,9 +1,10 @@
 // Types for workflows
-import {
+import type {
   GeoJSON,
   Node,
   NodeExecution,
   NodeType,
+  ObjectReference,
   QueueMessage,
   ScheduledTrigger,
   WorkflowMode,
@@ -31,6 +32,61 @@ export type ImageParameter = BlobParameter;
 export type AudioParameter = BlobParameter;
 export type DocumentParameter = BlobParameter;
 export type GltfParameter = BlobParameter;
+
+/**
+ * Serialized blob parameter - allows for JSON-serialized Uint8Array
+ * (object with numeric keys) in addition to native Uint8Array.
+ */
+export interface SerializedBlobParameter {
+  data: Uint8Array | Record<string, number>;
+  mimeType: string;
+}
+
+/**
+ * Check if a value is an object reference (blob stored in R2).
+ * Object references have an id and mimeType but no data property.
+ */
+export function isObjectReference(value: unknown): value is ObjectReference {
+  if (!value || typeof value !== "object") return false;
+  const obj = value as Record<string, unknown>;
+  return (
+    "id" in obj &&
+    "mimeType" in obj &&
+    typeof obj.id === "string" &&
+    typeof obj.mimeType === "string" &&
+    !("data" in obj)
+  );
+}
+
+/**
+ * Check if a value is a blob parameter (native or serialized from JSON).
+ * Handles both native Uint8Array and serialized format (object with numeric keys).
+ */
+export function isBlobParameter(value: unknown): value is SerializedBlobParameter {
+  if (!value || typeof value !== "object") return false;
+  const obj = value as Record<string, unknown>;
+  if (!("data" in obj) || !("mimeType" in obj)) return false;
+
+  // Handle native Uint8Array
+  if (obj.data instanceof Uint8Array) return true;
+
+  // Handle serialized Uint8Array (plain object with numeric keys from JSON)
+  if (obj.data && typeof obj.data === "object" && !Array.isArray(obj.data)) {
+    const keys = Object.keys(obj.data as object);
+    return keys.length > 0 && keys.every((k) => /^\d+$/.test(k));
+  }
+
+  return false;
+}
+
+/**
+ * Convert serialized Uint8Array (from JSON) back to native Uint8Array.
+ */
+export function toUint8Array(data: Uint8Array | Record<string, number>): Uint8Array {
+  if (data instanceof Uint8Array) return data;
+  const keys = Object.keys(data).map(Number).sort((a, b) => a - b);
+  return new Uint8Array(keys.map((k) => data[k]));
+}
 
 export type ParameterType =
   | {

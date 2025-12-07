@@ -1,4 +1,4 @@
-import {
+import type {
   ObjectReference,
   ParameterValue as ApiParameterValue,
 } from "@dafthunk/types";
@@ -10,11 +10,15 @@ import {
   DocumentParameter as NodeDocumentParameter,
   GltfParameter as NodeGltfParameter,
   ImageParameter as NodeImageParameter,
+  isObjectReference,
   ParameterValue as NodeParameterValue,
 } from "./types";
 
-// Type guards for binary parameter types
-function isBlobParameter(value: unknown): value is NodeBlobParameter {
+/**
+ * Type guard for native BlobParameter (Uint8Array only).
+ * Used for parameter mapping where we work with in-memory data.
+ */
+function isNativeBlobParameter(value: unknown): value is NodeBlobParameter {
   return (
     !!value &&
     typeof value === "object" &&
@@ -25,60 +29,19 @@ function isBlobParameter(value: unknown): value is NodeBlobParameter {
   );
 }
 
-function isImageParameter(value: unknown): value is NodeImageParameter {
-  return (
-    !!value &&
-    typeof value === "object" &&
-    "data" in value &&
-    "mimeType" in value &&
-    value["data"] instanceof Uint8Array &&
-    typeof value["mimeType"] === "string"
-  );
-}
-
-function isDocumentParameter(value: unknown): value is NodeDocumentParameter {
-  return (
-    !!value &&
-    typeof value === "object" &&
-    "data" in value &&
-    "mimeType" in value &&
-    value["data"] instanceof Uint8Array &&
-    typeof value["mimeType"] === "string"
-  );
-}
-
-function isAudioParameter(value: unknown): value is NodeAudioParameter {
-  return (
-    !!value &&
-    typeof value === "object" &&
-    "data" in value &&
-    "mimeType" in value &&
-    value["data"] instanceof Uint8Array &&
-    typeof value["mimeType"] === "string"
-  );
-}
-
-function isGltfParameter(value: unknown): value is NodeGltfParameter {
-  return (
-    !!value &&
-    typeof value === "object" &&
-    "data" in value &&
-    "mimeType" in value &&
-    value["data"] instanceof Uint8Array &&
-    typeof value["mimeType"] === "string"
-  );
-}
-
-function isObjectReference(value: unknown): value is ObjectReference {
-  return (
-    !!value &&
-    typeof value === "object" &&
-    "id" in value &&
-    typeof (value as any).id === "string" &&
-    "mimeType" in value &&
-    typeof (value as any).mimeType === "string"
-  );
-}
+// Alias type guards - all semantic blob types have the same structure
+const isImageParameter = isNativeBlobParameter as (
+  value: unknown
+) => value is NodeImageParameter;
+const isDocumentParameter = isNativeBlobParameter as (
+  value: unknown
+) => value is NodeDocumentParameter;
+const isAudioParameter = isNativeBlobParameter as (
+  value: unknown
+) => value is NodeAudioParameter;
+const isGltfParameter = isNativeBlobParameter as (
+  value: unknown
+) => value is NodeGltfParameter;
 
 // Helper functions for common converter patterns
 const createJsonParsingNodeToApi = () => (value: NodeParameterValue) =>
@@ -147,7 +110,7 @@ const converters = {
       organizationId: string,
       executionId?: string
     ) => {
-      if (!isBlobParameter(value)) return undefined;
+      if (!isNativeBlobParameter(value)) return undefined;
       const blob = new Blob([value.data], { type: value.mimeType });
       const buffer = await blob.arrayBuffer();
       const data = new Uint8Array(buffer);
