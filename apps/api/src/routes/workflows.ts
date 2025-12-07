@@ -415,7 +415,7 @@ async function executeWorkflow(
 
     return new Response(syncResult.body, {
       status: syncResult.statusCode,
-      headers: { "Content-Type": "application/json" },
+      headers: syncResult.headers,
     });
   }
 

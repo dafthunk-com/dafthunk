@@ -17,11 +17,20 @@ interface PollingResult {
 }
 
 /**
+ * Blob parameter structure (serialized from BlobParameter)
+ */
+interface SerializedBlobParameter {
+  data: Uint8Array | Record<string, number>;
+  mimeType: string;
+}
+
+/**
  * HTTP Response data extracted from the HTTP Response node
  */
 interface HttpResponseData {
   statusCode: number;
-  body: string;
+  headers: Record<string, string>;
+  body: Uint8Array;
 }
 
 /**
@@ -30,7 +39,8 @@ interface HttpResponseData {
 export interface SyncHttpExecutionResult {
   success: boolean;
   statusCode?: number;
-  body?: string;
+  headers?: Record<string, string>;
+  body?: Uint8Array;
   error?: string;
   timeout?: boolean;
 }
@@ -140,6 +150,36 @@ async function pollForCompletion(
 }
 
 /**
+ * Convert serialized Uint8Array (from JSON) back to native Uint8Array
+ */
+function toUint8Array(data: Uint8Array | Record<string, number>): Uint8Array {
+  if (data instanceof Uint8Array) return data;
+  // Convert serialized Uint8Array back to native
+  const keys = Object.keys(data).map(Number).sort((a, b) => a - b);
+  return new Uint8Array(keys.map((k) => data[k]));
+}
+
+/**
+ * Check if a value is a blob parameter (native or serialized)
+ */
+function isBlobParameter(value: unknown): value is SerializedBlobParameter {
+  if (!value || typeof value !== "object") return false;
+  const obj = value as Record<string, unknown>;
+  if (!("data" in obj) || !("mimeType" in obj)) return false;
+
+  // Handle native Uint8Array
+  if (obj.data instanceof Uint8Array) return true;
+
+  // Handle serialized Uint8Array (plain object with numeric keys from JSON)
+  if (obj.data && typeof obj.data === "object" && !Array.isArray(obj.data)) {
+    const keys = Object.keys(obj.data as object);
+    return keys.length > 0 && keys.every((k) => /^\d+$/.test(k));
+  }
+
+  return false;
+}
+
+/**
  * Extracts HTTP response data from node executions
  *
  * @param nodeExecutions - Array of node executions
@@ -164,11 +204,26 @@ function extractHttpResponse(
   }
 
   const statusCode = responseNode.outputs.statusCode as number;
-  const body = responseNode.outputs.body as string;
+  const headers = (responseNode.outputs.headers as Record<string, string>) || {};
+  const bodyOutput = responseNode.outputs.body;
+
+  // Extract body as Uint8Array
+  let body: Uint8Array;
+
+  if (isBlobParameter(bodyOutput)) {
+    body = toUint8Array(bodyOutput.data);
+  } else if (typeof bodyOutput === "string") {
+    // Legacy fallback for string body
+    body = new TextEncoder().encode(bodyOutput);
+  } else {
+    // Fallback: encode as JSON
+    body = new TextEncoder().encode(JSON.stringify(bodyOutput));
+  }
 
   return {
     statusCode: typeof statusCode === "number" ? statusCode : 200,
-    body: typeof body === "string" ? body : "",
+    headers,
+    body,
   };
 }
 
@@ -222,19 +277,22 @@ export async function waitForSyncHttpResponse(
 
   if (!httpResponse) {
     // No HTTP Response node found, return default success response
+    const defaultBody = JSON.stringify({
+      message: "Workflow completed successfully",
+      executionId,
+    });
     return {
       success: true,
       statusCode: 200,
-      body: JSON.stringify({
-        message: "Workflow completed successfully",
-        executionId,
-      }),
+      headers: { "content-type": "application/json" },
+      body: new TextEncoder().encode(defaultBody),
     };
   }
 
   return {
     success: true,
     statusCode: httpResponse.statusCode,
+    headers: httpResponse.headers,
     body: httpResponse.body,
   };
 }
