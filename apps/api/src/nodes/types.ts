@@ -62,7 +62,9 @@ export function isObjectReference(value: unknown): value is ObjectReference {
  * Check if a value is a blob parameter (native or serialized from JSON).
  * Handles both native Uint8Array and serialized format (object with numeric keys).
  */
-export function isBlobParameter(value: unknown): value is SerializedBlobParameter {
+export function isBlobParameter(
+  value: unknown
+): value is SerializedBlobParameter {
   if (!value || typeof value !== "object") return false;
   const obj = value as Record<string, unknown>;
   if (!("data" in obj) || !("mimeType" in obj)) return false;
@@ -82,9 +84,13 @@ export function isBlobParameter(value: unknown): value is SerializedBlobParamete
 /**
  * Convert serialized Uint8Array (from JSON) back to native Uint8Array.
  */
-export function toUint8Array(data: Uint8Array | Record<string, number>): Uint8Array {
+export function toUint8Array(
+  data: Uint8Array | Record<string, number>
+): Uint8Array {
   if (data instanceof Uint8Array) return data;
-  const keys = Object.keys(data).map(Number).sort((a, b) => a - b);
+  const keys = Object.keys(data)
+    .map(Number)
+    .sort((a, b) => a - b);
   return new Uint8Array(keys.map((k) => data[k]));
 }
 

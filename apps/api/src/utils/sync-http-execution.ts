@@ -211,13 +211,17 @@ export async function waitForSyncHttpResponse(
       statusCode: 200,
       headers: { "content-type": "application/json" },
       body: new TextEncoder().encode(
-        JSON.stringify({ message: "Workflow completed successfully", executionId })
+        JSON.stringify({
+          message: "Workflow completed successfully",
+          executionId,
+        })
       ),
     };
   }
 
   const statusCode = responseNode.outputs.statusCode;
-  const headers = (responseNode.outputs.headers as Record<string, string>) || {};
+  const headers =
+    (responseNode.outputs.headers as Record<string, string>) || {};
   const body = await extractBody(responseNode.outputs.body, headers, env);
 
   return {

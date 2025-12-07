@@ -1,4 +1,4 @@
-import type { Node, NodeExecution, NodeType } from "@dafthunk/types";
+import type { NodeExecution, NodeType } from "@dafthunk/types";
 
 import {
   BlobParameter,

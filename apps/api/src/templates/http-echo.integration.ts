@@ -46,9 +46,7 @@ describe("HTTP Echo Template", () => {
     const bodyData = encoder.encode(testBody);
 
     // Execute HTTP Request node
-    const requestNode = httpEchoTemplate.nodes.find(
-      (n) => n.id === "request"
-    )!;
+    const requestNode = httpEchoTemplate.nodes.find((n) => n.id === "request")!;
     const requestInstance = new HttpRequestNode(requestNode);
     const requestResult = await requestInstance.execute({
       nodeId: requestNode.id,
@@ -114,9 +112,7 @@ describe("HTTP Echo Template", () => {
     const bodyData = encoder.encode(JSON.stringify(testJson));
 
     // Execute HTTP Request node
-    const requestNode = httpEchoTemplate.nodes.find(
-      (n) => n.id === "request"
-    )!;
+    const requestNode = httpEchoTemplate.nodes.find((n) => n.id === "request")!;
     const requestInstance = new HttpRequestNode(requestNode);
     const requestResult = await requestInstance.execute({
       nodeId: requestNode.id,

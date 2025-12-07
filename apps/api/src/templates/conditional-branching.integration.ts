@@ -7,7 +7,9 @@ describe("Conditional Branching Template", () => {
     expect(conditionalBranchingTemplate.nodes).toHaveLength(7);
     expect(conditionalBranchingTemplate.edges).toHaveLength(7);
 
-    const nodeIds = new Set(conditionalBranchingTemplate.nodes.map((n) => n.id));
+    const nodeIds = new Set(
+      conditionalBranchingTemplate.nodes.map((n) => n.id)
+    );
     for (const edge of conditionalBranchingTemplate.edges) {
       expect(nodeIds.has(edge.source)).toBe(true);
       expect(nodeIds.has(edge.target)).toBe(true);
