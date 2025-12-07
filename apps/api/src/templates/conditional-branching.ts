@@ -8,7 +8,7 @@ import { AdditionNode } from "../nodes/math/addition-node";
 import { SubtractionNode } from "../nodes/math/subtraction-node";
 import { NumberOutputNode } from "../nodes/output/number-output-node";
 
-export const coinFlipTemplate: WorkflowTemplate = {
+export const conditionalBranchingTemplate: WorkflowTemplate = {
   id: "conditional-branching",
   name: "Conditional Branching",
   description: "Demonstrate conditional branching with fork and join",

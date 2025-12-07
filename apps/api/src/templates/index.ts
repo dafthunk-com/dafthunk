@@ -2,7 +2,7 @@ import type { WorkflowTemplate } from "@dafthunk/types";
 
 import { shape3dTemplate } from "./3d-shape";
 import { aiCalculatorTemplate } from "./ai-calculator";
-import { coinFlipTemplate } from "./coin-flip";
+import { conditionalBranchingTemplate } from "./conditional-branching";
 import { emailReplyTemplate } from "./email-reply";
 import { httpEchoTemplate } from "./http-echo";
 import { imageDescriptionTemplate } from "./image-description";
@@ -30,7 +30,7 @@ export const workflowTemplates: WorkflowTemplate[] = [
   imageProcessingTemplate,
   webScreenshotTemplate,
   aiCalculatorTemplate,
-  coinFlipTemplate,
+  conditionalBranchingTemplate,
   httpEchoTemplate,
 ];
 
