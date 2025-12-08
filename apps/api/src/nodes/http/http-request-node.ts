@@ -1,6 +1,12 @@
 import { Node, NodeExecution, NodeType } from "@dafthunk/types";
 
-import { ExecutableNode, NodeContext } from "../types";
+import {
+  BlobParameter,
+  ExecutableNode,
+  isBlobParameter,
+  NodeContext,
+  toUint8Array,
+} from "../types";
 
 export class HttpRequestNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -65,13 +71,22 @@ export class HttpRequestNode extends ExecutableNode {
       const { method, url, path, headers, queryParams, body } =
         context.httpRequest;
 
+      // Normalize body - Cloudflare Workflows serializes Uint8Array to object with numeric keys
+      let normalizedBody: BlobParameter | undefined;
+      if (body && isBlobParameter(body)) {
+        normalizedBody = {
+          data: toUint8Array(body.data),
+          mimeType: body.mimeType,
+        };
+      }
+
       return this.createSuccessResult({
         method,
         url,
         path,
         headers: headers || {},
         queryParams: queryParams || {},
-        body: body || undefined,
+        body: normalizedBody,
       });
     } catch (error) {
       return this.createErrorResult(
