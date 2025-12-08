@@ -1,7 +1,10 @@
+import type { Invitation } from "@dafthunk/types";
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
+import Clock from "lucide-react/icons/clock";
 import MoreHorizontal from "lucide-react/icons/more-horizontal";
 import Plus from "lucide-react/icons/plus";
+import X from "lucide-react/icons/x";
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router";
 import { toast } from "sonner";
@@ -40,11 +43,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import {
-  addMembership,
+  createInvitation,
+  deleteInvitation,
   removeMembership,
   updateMembership,
+  useInvitations,
   useMemberships,
 } from "@/services/organizations-service";
 
@@ -58,6 +64,102 @@ const getRoleBadgeVariant = (role: string) => {
       return "outline" as const;
   }
 };
+
+const invitationColumns: ColumnDef<Invitation>[] = [
+  {
+    accessorKey: "email",
+    header: "Email",
+    cell: ({ row }) => {
+      return (
+        <div className="flex items-center space-x-3">
+          <Avatar className="h-8 w-8">
+            <AvatarFallback>
+              {row.original.email.charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <div className="font-medium">{row.original.email}</div>
+          </div>
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "role",
+    header: "Role",
+    cell: ({ row }) => {
+      const role = row.getValue("role") as string;
+      return (
+        <Badge variant={getRoleBadgeVariant(role)}>
+          {role.charAt(0).toUpperCase() + role.slice(1)}
+        </Badge>
+      );
+    },
+  },
+  {
+    accessorKey: "expiresAt",
+    header: "Expires",
+    cell: ({ row }) => {
+      const date = new Date(row.getValue("expiresAt"));
+      const now = new Date();
+      const isExpired = date < now;
+      return (
+        <div className={isExpired ? "text-red-500" : ""}>
+          {format(date, "MMM d, yyyy")}
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "inviter",
+    header: "Invited By",
+    cell: ({ row }) => {
+      const inviter = row.original.inviter;
+      return (
+        <div className="flex items-center space-x-2">
+          <Avatar className="h-6 w-6">
+            <AvatarImage src={inviter.avatarUrl} alt={inviter.name} />
+            <AvatarFallback>
+              {inviter.name
+                .split(" ")
+                .map((n) => n[0])
+                .join("")
+                .toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          <span className="text-sm text-muted-foreground">{inviter.name}</span>
+        </div>
+      );
+    },
+  },
+  {
+    id: "actions",
+    cell: ({ row }) => {
+      const invitation = row.original;
+      return (
+        <div className="text-right">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() =>
+              document.dispatchEvent(
+                new CustomEvent("cancelInvitationTrigger", {
+                  detail: {
+                    invitationId: invitation.id,
+                    email: invitation.email,
+                  },
+                })
+              )
+            }
+            title="Cancel invitation"
+          >
+            <X className="h-4 w-4 text-muted-foreground hover:text-red-500" />
+          </Button>
+        </div>
+      );
+    },
+  },
+];
 
 const columns: ColumnDef<{
   userId: string;
@@ -190,9 +292,6 @@ export function MembersPage() {
   const { handle } = useParams<{ handle: string }>();
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
 
-  // Debug: Log the handle value
-  console.log("MembersPage - handle:", handle);
-
   const {
     memberships,
     membershipsError,
@@ -200,13 +299,18 @@ export function MembersPage() {
     mutateMemberships,
   } = useMemberships(handle || "");
 
-  const [isAddMemberDialogOpen, setIsAddMemberDialogOpen] = useState(false);
+  const { invitations, mutateInvitations } = useInvitations(handle || "");
+
+  const [isInviteMemberDialogOpen, setIsInviteMemberDialogOpen] =
+    useState(false);
   const [isUpdateRoleDialogOpen, setIsUpdateRoleDialogOpen] = useState(false);
   const [isRemoveMemberDialogOpen, setIsRemoveMemberDialogOpen] =
     useState(false);
+  const [isCancelInvitationDialogOpen, setIsCancelInvitationDialogOpen] =
+    useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Add member state
+  // Invite member state
   const [newMemberEmail, setNewMemberEmail] = useState("");
   const [newMemberRole, setNewMemberRole] = useState<"member" | "admin">(
     "member"
@@ -228,31 +332,37 @@ export function MembersPage() {
     userEmail: string;
   } | null>(null);
 
-  const handleAddMember = useCallback(async (): Promise<void> => {
+  // Cancel invitation state
+  const [invitationToCancel, setInvitationToCancel] = useState<{
+    invitationId: string;
+    email: string;
+  } | null>(null);
+
+  const handleInviteMember = useCallback(async (): Promise<void> => {
     if (!newMemberEmail.trim()) {
-      toast.error("User email is required");
+      toast.error("Email address is required");
       return;
     }
 
     setIsProcessing(true);
     try {
-      await addMembership(handle || "", {
+      await createInvitation(handle || "", {
         email: newMemberEmail.trim(),
         role: newMemberRole,
       });
 
-      toast.success("Member added successfully");
-      setIsAddMemberDialogOpen(false);
+      toast.success("Invitation sent successfully");
+      setIsInviteMemberDialogOpen(false);
       setNewMemberEmail("");
       setNewMemberRole("member");
-      await mutateMemberships();
+      await mutateInvitations();
     } catch (error) {
-      toast.error("Failed to add member. Please try again.");
-      console.error("Add Member Error:", error);
+      toast.error("Failed to send invitation. Please try again.");
+      console.error("Send Invitation Error:", error);
     } finally {
       setIsProcessing(false);
     }
-  }, [newMemberEmail, newMemberRole, handle, mutateMemberships]);
+  }, [newMemberEmail, newMemberRole, handle, mutateInvitations]);
 
   const handleUpdateRole = useCallback(async (): Promise<void> => {
     if (!memberToUpdate) return;
@@ -298,6 +408,25 @@ export function MembersPage() {
     }
   }, [memberToRemove, handle, mutateMemberships]);
 
+  const handleCancelInvitation = useCallback(async (): Promise<void> => {
+    if (!invitationToCancel) return;
+
+    setIsProcessing(true);
+    try {
+      await deleteInvitation(handle || "", invitationToCancel.invitationId);
+
+      toast.success("Invitation cancelled");
+      setIsCancelInvitationDialogOpen(false);
+      setInvitationToCancel(null);
+      await mutateInvitations();
+    } catch (error) {
+      toast.error("Failed to cancel invitation. Please try again.");
+      console.error("Cancel Invitation Error:", error);
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [invitationToCancel, handle, mutateInvitations]);
+
   // Handle events from the table
   const handleUpdateRoleEvent = useCallback((e: Event) => {
     const custom = e as CustomEvent<{
@@ -325,10 +454,25 @@ export function MembersPage() {
     }
   }, []);
 
+  const handleCancelInvitationEvent = useCallback((e: Event) => {
+    const custom = e as CustomEvent<{
+      invitationId: string;
+      email: string;
+    }>;
+    if (custom.detail) {
+      setInvitationToCancel(custom.detail);
+      setIsCancelInvitationDialogOpen(true);
+    }
+  }, []);
+
   // Add event listeners
   useEffect(() => {
     document.addEventListener("updateMemberRoleTrigger", handleUpdateRoleEvent);
     document.addEventListener("removeMemberTrigger", handleRemoveMemberEvent);
+    document.addEventListener(
+      "cancelInvitationTrigger",
+      handleCancelInvitationEvent
+    );
 
     return () => {
       document.removeEventListener(
@@ -339,8 +483,16 @@ export function MembersPage() {
         "removeMemberTrigger",
         handleRemoveMemberEvent
       );
+      document.removeEventListener(
+        "cancelInvitationTrigger",
+        handleCancelInvitationEvent
+      );
     };
-  }, [handleUpdateRoleEvent, handleRemoveMemberEvent]);
+  }, [
+    handleUpdateRoleEvent,
+    handleRemoveMemberEvent,
+    handleCancelInvitationEvent,
+  ]);
 
   useEffect(() => {
     setBreadcrumbs([{ label: "Members" }]);
@@ -361,34 +513,59 @@ export function MembersPage() {
     <InsetLayout title="Members">
       <div className="flex items-center justify-between mb-6 min-h-10">
         <div className="text-sm text-muted-foreground max-w-2xl">
-          Manage organization members and roles.
+          Manage organization members and invitations.
         </div>
-        <Button onClick={() => setIsAddMemberDialogOpen(true)}>
+        <Button onClick={() => setIsInviteMemberDialogOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
-          Add Member
+          Invite Member
         </Button>
       </div>
 
-      <DataTable
-        columns={columns}
-        data={memberships || []}
-        emptyState={{
-          title: "No members found",
-          description: "Add members to your organization to get started.",
-        }}
-      />
+      <Tabs defaultValue="members" className="w-full">
+        <TabsList>
+          <TabsTrigger value="members">
+            Members ({memberships?.length || 0})
+          </TabsTrigger>
+          <TabsTrigger value="invitations">
+            <Clock className="mr-2 h-4 w-4" />
+            Invitations ({invitations?.length || 0})
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="members" className="mt-4">
+          <DataTable
+            columns={columns}
+            data={memberships || []}
+            emptyState={{
+              title: "No members found",
+              description:
+                "Invite members to your organization to get started.",
+            }}
+          />
+        </TabsContent>
+        <TabsContent value="invitations" className="mt-4">
+          <DataTable
+            columns={invitationColumns}
+            data={invitations || []}
+            emptyState={{
+              title: "No pending invitations",
+              description:
+                "Invitations you send will appear here until they are accepted or expire.",
+            }}
+          />
+        </TabsContent>
+      </Tabs>
 
-      {/* Add Member Dialog */}
+      {/* Invite Member Dialog */}
       <AlertDialog
-        open={isAddMemberDialogOpen}
-        onOpenChange={setIsAddMemberDialogOpen}
+        open={isInviteMemberDialogOpen}
+        onOpenChange={setIsInviteMemberDialogOpen}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Add New Member</AlertDialogTitle>
+            <AlertDialogTitle>Invite New Member</AlertDialogTitle>
             <AlertDialogDescription>
-              Add a new member to your organization. You'll need their email
-              address to add them.
+              Send an invitation to join your organization. The recipient will
+              need to accept the invitation to become a member.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="space-y-4">
@@ -432,10 +609,10 @@ export function MembersPage() {
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleAddMember}
+              onClick={handleInviteMember}
               disabled={isProcessing || !newMemberEmail.trim()}
             >
-              {isProcessing ? "Adding..." : "Add Member"}
+              {isProcessing ? "Sending..." : "Send Invitation"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -516,6 +693,34 @@ export function MembersPage() {
               className="bg-red-600 hover:bg-red-700"
             >
               {isProcessing ? "Removing..." : "Remove Member"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Cancel Invitation Dialog */}
+      <AlertDialog
+        open={isCancelInvitationDialogOpen}
+        onOpenChange={setIsCancelInvitationDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel Invitation</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to cancel the invitation to{" "}
+              <strong>{invitationToCancel?.email}</strong>?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setInvitationToCancel(null)}>
+              Keep Invitation
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCancelInvitation}
+              disabled={isProcessing}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isProcessing ? "Cancelling..." : "Cancel Invitation"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -1,4 +1,5 @@
 import Building2 from "lucide-react/icons/building-2";
+import Mail from "lucide-react/icons/mail";
 import User from "lucide-react/icons/user";
 import React from "react";
 import type { RouteObject, RouterState } from "react-router";
@@ -29,6 +30,7 @@ import { EmailsPage } from "./pages/emails-page";
 import { ExecutionDetailPage } from "./pages/execution-detail-page";
 import { ExecutionsPage } from "./pages/executions-page";
 import { IntegrationsPage } from "./pages/integrations-page";
+import { InvitationsPage } from "./pages/invitations-page";
 import { LoginPage } from "./pages/login-page";
 import { MembersPage } from "./pages/members-page";
 import { NotFoundPage } from "./pages/not-found-page";
@@ -66,6 +68,11 @@ const settingsSidebarItems = [
         title: "Organizations",
         url: "/settings/organizations",
         icon: Building2,
+      },
+      {
+        title: "Invitations",
+        url: "/settings/invitations",
+        icon: Mail,
       },
     ],
   },
@@ -117,7 +124,7 @@ export const routes: AppRouteObject[] = [
     element: (
       <AppLayout
         sidebar={{
-          title: "Organizations",
+          title: "Settings",
           groups: settingsSidebarItems,
           footerItems: footerItems,
         }}
@@ -128,6 +135,23 @@ export const routes: AppRouteObject[] = [
       </AppLayout>
     ),
     handle: { head: <HeadSeo title="Organizations - Dafthunk" /> },
+  },
+  {
+    path: "/settings/invitations",
+    element: (
+      <AppLayout
+        sidebar={{
+          title: "Settings",
+          groups: settingsSidebarItems,
+          footerItems: footerItems,
+        }}
+      >
+        <ProtectedRoute>
+          <InvitationsPage />
+        </ProtectedRoute>
+      </AppLayout>
+    ),
+    handle: { head: <HeadSeo title="Invitations - Dafthunk" /> },
   },
   {
     path: "/org/:handle/dashboard",

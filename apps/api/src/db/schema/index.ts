@@ -84,6 +84,17 @@ export const IntegrationStatus = {
 export type IntegrationStatusType =
   (typeof IntegrationStatus)[keyof typeof IntegrationStatus];
 
+// Invitation status types
+export const InvitationStatus = {
+  PENDING: "pending",
+  ACCEPTED: "accepted",
+  DECLINED: "declined",
+  EXPIRED: "expired",
+} as const;
+
+export type InvitationStatusType =
+  (typeof InvitationStatus)[keyof typeof InvitationStatus];
+
 /**
  * REUSABLE COLUMNS
  */
@@ -464,6 +475,46 @@ export const secrets = sqliteTable(
   ]
 );
 
+// Invitations - Pending invitations to join organizations
+export const invitations = sqliteTable(
+  "invitations",
+  {
+    id: text("id").primaryKey(),
+    email: text("email").notNull(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    role: text("role")
+      .$type<OrganizationRoleType>()
+      .notNull()
+      .default(OrganizationRole.MEMBER),
+    status: text("status")
+      .$type<InvitationStatusType>()
+      .notNull()
+      .default(InvitationStatus.PENDING),
+    invitedBy: text("invited_by")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+    createdAt: createCreatedAt(),
+    updatedAt: createUpdatedAt(),
+  },
+  (table) => [
+    index("invitations_email_idx").on(table.email),
+    index("invitations_organization_id_idx").on(table.organizationId),
+    index("invitations_status_idx").on(table.status),
+    index("invitations_invited_by_idx").on(table.invitedBy),
+    index("invitations_expires_at_idx").on(table.expiresAt),
+    index("invitations_created_at_idx").on(table.createdAt),
+    // Ensure unique pending invitation per email per organization
+    uniqueIndex("invitations_organization_id_email_status_unique_idx").on(
+      table.organizationId,
+      table.email,
+      table.status
+    ),
+  ]
+);
+
 // Integrations - Third-party service connections with OAuth tokens
 export const integrations = sqliteTable(
   "integrations",
@@ -524,6 +575,7 @@ export const organizationsRelations = relations(
     emails: many(emails),
     secrets: many(secrets),
     integrations: many(integrations),
+    invitations: many(invitations),
     users: one(users),
   })
 );
@@ -657,6 +709,17 @@ export const integrationsRelations = relations(integrations, ({ one }) => ({
   }),
 }));
 
+export const invitationsRelations = relations(invitations, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [invitations.organizationId],
+    references: [organizations.id],
+  }),
+  inviter: one(users, {
+    fields: [invitations.invitedBy],
+    references: [users.id],
+  }),
+}));
+
 /**
  * HELPER FUNCTIONS
  */
@@ -719,3 +782,6 @@ export type SecretInsert = typeof secrets.$inferInsert;
 
 export type IntegrationRow = typeof integrations.$inferSelect;
 export type IntegrationInsert = typeof integrations.$inferInsert;
+
+export type InvitationRow = typeof invitations.$inferSelect;
+export type InvitationInsert = typeof invitations.$inferInsert;

@@ -1,9 +1,13 @@
-import {
+import type {
   AddMembershipRequest,
   AddMembershipResponse,
+  CreateInvitationRequest,
+  CreateInvitationResponse,
   CreateOrganizationRequest,
   CreateOrganizationResponse,
+  DeleteInvitationResponse,
   DeleteOrganizationResponse,
+  ListInvitationsResponse,
   ListMembershipsResponse,
   ListOrganizationsResponse,
   RemoveMembershipRequest,
@@ -20,12 +24,18 @@ import { ApiContext } from "../context";
 import { createDatabase } from "../db";
 import {
   addOrUpdateMembership,
+  createInvitation,
   createOrganization,
+  deleteInvitation,
   deleteMembership,
   deleteOrganization,
+  getOrganization,
+  getOrganizationInvitations,
   getOrganizationMembershipsWithUsers,
   getUserOrganizations,
 } from "../db/queries";
+import { createEmailService } from "../services/email-service";
+import { getInvitationEmail } from "../services/email-templates";
 
 // Create a new Hono instance for organization endpoints
 const organizationRoutes = new Hono<ApiContext>();
@@ -306,5 +316,184 @@ organizationRoutes.delete(
     }
   }
 );
+
+/**
+ * GET /api/organizations/:id/invitations
+ *
+ * List all pending invitations for an organization
+ */
+organizationRoutes.get("/:id/invitations", async (c) => {
+  const jwtPayload = c.get("jwtPayload");
+  if (!jwtPayload) {
+    return c.json({ error: "Unauthorized" }, 401);
+  }
+
+  const db = createDatabase(c.env.DB);
+  const organizationIdOrHandle = c.req.param("id");
+
+  try {
+    const invitations = await getOrganizationInvitations(
+      db,
+      organizationIdOrHandle
+    );
+    // Cast role to the expected type (invitations can only have member or admin roles)
+    const response: ListInvitationsResponse = {
+      invitations: invitations.map((inv) => ({
+        ...inv,
+        role: inv.role as "member" | "admin",
+        status: inv.status as "pending" | "accepted" | "declined" | "expired",
+      })),
+    };
+    return c.json(response);
+  } catch (error) {
+    console.error("Error fetching invitations:", error);
+    return c.json({ error: "Failed to fetch invitations" }, 500);
+  }
+});
+
+/**
+ * POST /api/organizations/:id/invitations
+ *
+ * Create an invitation to join an organization
+ */
+organizationRoutes.post(
+  "/:id/invitations",
+  zValidator(
+    "json",
+    z.object({
+      email: z.string().email("Valid email is required"),
+      role: z.enum(["member", "admin"], {
+        errorMap: () => ({ message: "Role must be member or admin" }),
+      }),
+    }) as z.ZodType<CreateInvitationRequest>
+  ),
+  async (c) => {
+    const jwtPayload = c.get("jwtPayload");
+    if (!jwtPayload) {
+      return c.json({ error: "Unauthorized" }, 401);
+    }
+
+    const db = createDatabase(c.env.DB);
+    const organizationIdOrHandle = c.req.param("id");
+    const { email, role } = c.req.valid("json");
+
+    try {
+      const invitation = await createInvitation(
+        db,
+        organizationIdOrHandle,
+        email,
+        role,
+        jwtPayload.sub
+      );
+
+      if (!invitation) {
+        return c.json(
+          {
+            error:
+              "Permission denied, user already a member, or invitation already exists",
+          },
+          403
+        );
+      }
+
+      // Fetch the inviter info to return complete invitation data
+      const invitations = await getOrganizationInvitations(
+        db,
+        organizationIdOrHandle
+      );
+      const createdInvitation = invitations.find(
+        (inv) => inv.id === invitation.id
+      );
+
+      if (!createdInvitation) {
+        return c.json({ error: "Failed to retrieve created invitation" }, 500);
+      }
+
+      // Send invitation email
+      const emailService = createEmailService(c.env);
+      if (emailService) {
+        const organization = await getOrganization(db, organizationIdOrHandle);
+        if (organization) {
+          const emailContent = getInvitationEmail({
+            inviteeEmail: email,
+            organizationName: organization.name,
+            inviterName: createdInvitation.inviter.name,
+            role: role.charAt(0).toUpperCase() + role.slice(1),
+            expiresAt: invitation.expiresAt,
+            appUrl: c.env.WEB_HOST,
+          });
+
+          const emailResult = await emailService.send({
+            to: email,
+            subject: emailContent.subject,
+            html: emailContent.html,
+            text: emailContent.text,
+          });
+
+          if (!emailResult.success) {
+            console.warn("Failed to send invitation email:", emailResult.error);
+            // Note: We don't fail the request if email fails
+            // The invitation is still created
+          }
+        }
+      }
+
+      const response: CreateInvitationResponse = {
+        invitation: {
+          ...createdInvitation,
+          role: createdInvitation.role as "member" | "admin",
+          status: createdInvitation.status as
+            | "pending"
+            | "accepted"
+            | "declined"
+            | "expired",
+        },
+      };
+      return c.json(response, 201);
+    } catch (error) {
+      console.error("Error creating invitation:", error);
+      return c.json({ error: "Failed to create invitation" }, 500);
+    }
+  }
+);
+
+/**
+ * DELETE /api/organizations/:id/invitations/:invitationId
+ *
+ * Cancel/delete an invitation
+ */
+organizationRoutes.delete("/:id/invitations/:invitationId", async (c) => {
+  const jwtPayload = c.get("jwtPayload");
+  if (!jwtPayload) {
+    return c.json({ error: "Unauthorized" }, 401);
+  }
+
+  const db = createDatabase(c.env.DB);
+  const organizationIdOrHandle = c.req.param("id");
+  const invitationId = c.req.param("invitationId");
+
+  try {
+    const success = await deleteInvitation(
+      db,
+      invitationId,
+      organizationIdOrHandle,
+      jwtPayload.sub
+    );
+
+    const response: DeleteInvitationResponse = { success };
+
+    if (success) {
+      return c.json(response);
+    } else {
+      return c.json(
+        { error: "Permission denied or invitation not found" },
+        403
+      );
+    }
+  } catch (error) {
+    console.error("Error deleting invitation:", error);
+    return c.json({ error: "Failed to delete invitation" }, 500);
+  }
+});
 
 export default organizationRoutes;

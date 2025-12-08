@@ -16,6 +16,7 @@ import emailRoutes from "./routes/emails";
 import executionRoutes from "./routes/executions";
 import health from "./routes/health";
 import integrationRoutes from "./routes/integrations";
+import invitationRoutes from "./routes/invitations";
 import llmsRoutes from "./routes/llms";
 import oauthRoutes from "./routes/oauth";
 import objectRoutes from "./routes/objects";
@@ -64,6 +65,7 @@ app.route("/auth", auth);
 app.route("/oauth", oauthRoutes);
 app.route("/profile", profileRoutes);
 app.route("/organizations", organizationRoutes);
+app.route("/invitations", invitationRoutes);
 app.route("/robots.txt", robotsRoutes);
 app.route("/llms.txt", llmsRoutes);
 

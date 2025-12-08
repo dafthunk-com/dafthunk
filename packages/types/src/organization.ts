@@ -90,3 +90,81 @@ export interface RemoveMembershipRequest {
 export interface RemoveMembershipResponse {
   success: boolean;
 }
+
+/**
+ * Invitation-related types
+ */
+
+export type InvitationStatus = "pending" | "accepted" | "declined" | "expired";
+
+export interface Invitation {
+  id: string;
+  email: string;
+  organizationId: string;
+  role: "member" | "admin";
+  status: InvitationStatus;
+  expiresAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  inviter: {
+    id: string;
+    name: string;
+    email?: string;
+    avatarUrl?: string;
+  };
+}
+
+export interface UserInvitation {
+  id: string;
+  email: string;
+  role: "member" | "admin";
+  status: InvitationStatus;
+  expiresAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  organization: {
+    id: string;
+    name: string;
+    handle: string;
+  };
+  inviter: {
+    id: string;
+    name: string;
+    avatarUrl?: string;
+  };
+}
+
+export interface CreateInvitationRequest {
+  email: string;
+  role: "member" | "admin";
+}
+
+export interface CreateInvitationResponse {
+  invitation: Invitation;
+}
+
+export interface ListInvitationsResponse {
+  invitations: Invitation[];
+}
+
+export interface ListUserInvitationsResponse {
+  invitations: UserInvitation[];
+}
+
+export interface AcceptInvitationResponse {
+  membership: {
+    userId: string;
+    organizationId: string;
+    role: "member" | "admin" | "owner";
+    createdAt: Date;
+    updatedAt: Date;
+  };
+}
+
+export interface DeclineInvitationResponse {
+  success: boolean;
+}
+
+export interface DeleteInvitationResponse {
+  success: boolean;
+}

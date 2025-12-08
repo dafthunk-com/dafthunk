@@ -1,15 +1,24 @@
-import {
+import type {
+  AcceptInvitationResponse,
   AddMembershipRequest,
   AddMembershipResponse,
+  CreateInvitationRequest,
+  CreateInvitationResponse,
   CreateOrganizationRequest,
   CreateOrganizationResponse,
+  DeclineInvitationResponse,
+  DeleteInvitationResponse,
   DeleteOrganizationResponse,
+  Invitation,
+  ListInvitationsResponse,
   ListMembershipsResponse,
   ListOrganizationsResponse,
+  ListUserInvitationsResponse,
   RemoveMembershipRequest,
   RemoveMembershipResponse,
   UpdateMembershipRequest,
   UpdateMembershipResponse,
+  UserInvitation,
 } from "@dafthunk/types";
 import useSWR from "swr";
 
@@ -181,6 +190,135 @@ export const removeMembership = async (
     {
       method: "DELETE",
       body: JSON.stringify(request),
+    }
+  );
+
+  return response.success;
+};
+
+// Invitation Management Services
+
+interface UseInvitations {
+  invitations: Invitation[];
+  invitationsError: Error | null;
+  isInvitationsLoading: boolean;
+  mutateInvitations: () => Promise<any>;
+}
+
+/**
+ * Hook to list all pending invitations for an organization
+ */
+export const useInvitations = (
+  organizationIdOrHandle: string
+): UseInvitations => {
+  const swrKey = `${API_ENDPOINT_BASE}/${organizationIdOrHandle}/invitations`;
+
+  const { data, error, isLoading, mutate } = useSWR(swrKey, async () => {
+    const response = await makeRequest<ListInvitationsResponse>(swrKey);
+    return response.invitations;
+  });
+
+  return {
+    invitations: data || [],
+    invitationsError: error || null,
+    isInvitationsLoading: isLoading,
+    mutateInvitations: mutate,
+  };
+};
+
+/**
+ * Create an invitation to join an organization
+ */
+export const createInvitation = async (
+  organizationIdOrHandle: string,
+  request: CreateInvitationRequest
+): Promise<CreateInvitationResponse> => {
+  const response = await makeRequest<CreateInvitationResponse>(
+    `${API_ENDPOINT_BASE}/${organizationIdOrHandle}/invitations`,
+    {
+      method: "POST",
+      body: JSON.stringify(request),
+    }
+  );
+
+  return response;
+};
+
+/**
+ * Cancel/delete an invitation
+ */
+export const deleteInvitation = async (
+  organizationIdOrHandle: string,
+  invitationId: string
+): Promise<boolean> => {
+  const response = await makeRequest<DeleteInvitationResponse>(
+    `${API_ENDPOINT_BASE}/${organizationIdOrHandle}/invitations/${invitationId}`,
+    {
+      method: "DELETE",
+    }
+  );
+
+  return response.success;
+};
+
+// User Invitation Services (for accepting/declining invitations)
+
+const INVITATIONS_ENDPOINT = "/invitations";
+
+interface UseUserInvitations {
+  invitations: UserInvitation[];
+  invitationsError: Error | null;
+  isInvitationsLoading: boolean;
+  mutateInvitations: () => Promise<any>;
+}
+
+/**
+ * Hook to list all pending invitations for the current user
+ */
+export const useUserInvitations = (): UseUserInvitations => {
+  const { data, error, isLoading, mutate } = useSWR(
+    INVITATIONS_ENDPOINT,
+    async () => {
+      const response =
+        await makeRequest<ListUserInvitationsResponse>(INVITATIONS_ENDPOINT);
+      return response.invitations;
+    }
+  );
+
+  return {
+    invitations: data || [],
+    invitationsError: error || null,
+    isInvitationsLoading: isLoading,
+    mutateInvitations: mutate,
+  };
+};
+
+/**
+ * Accept an invitation
+ */
+export const acceptInvitation = async (
+  invitationId: string
+): Promise<AcceptInvitationResponse> => {
+  const response = await makeRequest<AcceptInvitationResponse>(
+    `${INVITATIONS_ENDPOINT}/${invitationId}/accept`,
+    {
+      method: "POST",
+    }
+  );
+
+  return response;
+};
+
+/**
+ * Decline an invitation
+ */
+export const declineInvitation = async (
+  invitationId: string
+): Promise<boolean> => {
+  const response = await makeRequest<DeclineInvitationResponse>(
+    `${INVITATIONS_ENDPOINT}/${invitationId}/decline`,
+    {
+      method: "POST",
     }
   );
 
