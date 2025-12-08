@@ -28,15 +28,15 @@ export async function parseRequestBody(
 ): Promise<ParsedRequest | ParseRequestError> {
   const contentType =
     c.req.header("content-type") || "application/octet-stream";
-  const contentLength = c.req.header("content-length");
-
-  // Check if there's actually a body to parse
-  if (!contentLength || contentLength === "0") {
-    return { body: undefined };
-  }
 
   try {
     const arrayBuffer = await c.req.arrayBuffer();
+
+    // Return undefined body if empty
+    if (arrayBuffer.byteLength === 0) {
+      return { body: undefined };
+    }
+
     const body: BlobParameter = {
       data: new Uint8Array(arrayBuffer),
       mimeType: contentType,
