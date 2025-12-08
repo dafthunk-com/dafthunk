@@ -35,6 +35,7 @@ import { usePageBreadcrumbs } from "@/hooks/use-page";
 import {
   createApiKey,
   deleteApiKey,
+  rollApiKey,
   useApiKeys,
 } from "@/services/api-keys-service";
 
@@ -71,6 +72,17 @@ const columns: ColumnDef<ApiKey>[] = [
               <DropdownMenuItem
                 onClick={() =>
                   document.dispatchEvent(
+                    new CustomEvent("rollApiTokenTrigger", {
+                      detail: apiKey.id,
+                    })
+                  )
+                }
+              >
+                Roll Key
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() =>
+                  document.dispatchEvent(
                     new CustomEvent("deleteApiTokenTrigger", {
                       detail: apiKey.id,
                     })
@@ -94,7 +106,9 @@ export function ApiKeysPage() {
   const { organization } = useAuth();
 
   const [tokenToDelete, setTokenToDelete] = useState<string | null>(null);
+  const [tokenToRoll, setTokenToRoll] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isRollDialogOpen, setIsRollDialogOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [newKeyName, setNewKeyName] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
@@ -113,9 +127,19 @@ export function ApiKeysPage() {
         setIsDeleteDialogOpen(true);
       }
     };
+    const handleRollEvent = (e: Event) => {
+      const custom = e as CustomEvent<string>;
+      if (custom.detail) {
+        setTokenToRoll(custom.detail);
+        setIsRollDialogOpen(true);
+      }
+    };
     document.addEventListener("deleteApiTokenTrigger", handleDeleteEvent);
-    return () =>
+    document.addEventListener("rollApiTokenTrigger", handleRollEvent);
+    return () => {
       document.removeEventListener("deleteApiTokenTrigger", handleDeleteEvent);
+      document.removeEventListener("rollApiTokenTrigger", handleRollEvent);
+    };
   }, []);
 
   const handleDeleteKey = useCallback(async (): Promise<void> => {
@@ -134,6 +158,25 @@ export function ApiKeysPage() {
       setIsProcessing(false);
     }
   }, [tokenToDelete, organization?.handle, mutateApiKeys]);
+
+  const handleRollKey = useCallback(async (): Promise<void> => {
+    if (!tokenToRoll || !organization?.handle) return;
+    setIsProcessing(true);
+    try {
+      const rolledKey = await rollApiKey(tokenToRoll, organization.handle);
+      setCreatedKeyToShow(rolledKey.apiKey);
+      setIsRollDialogOpen(false);
+      setIsShowKeyDialogOpen(true);
+      toast.success("API key rolled successfully");
+      await mutateApiKeys();
+    } catch (error) {
+      toast.error("Failed to roll API key. Please try again.");
+      console.error("Roll API Key Error:", error);
+    } finally {
+      setTokenToRoll(null);
+      setIsProcessing(false);
+    }
+  }, [tokenToRoll, organization?.handle, mutateApiKeys]);
 
   const handleCreateKey = useCallback(async (): Promise<void> => {
     if (!newKeyName.trim() || !organization?.handle) {
@@ -263,6 +306,29 @@ export function ApiKeysPage() {
           <AlertDialogFooter>
             <AlertDialogAction onClick={() => setIsShowKeyDialogOpen(false)}>
               Done
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <AlertDialog open={isRollDialogOpen} onOpenChange={setIsRollDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Roll API Key?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will generate a new secret for this API key. The old secret
+              will stop working immediately.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setTokenToRoll(null)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleRollKey}
+              disabled={isProcessing}
+              className="bg-primary hover:bg-primary/90"
+            >
+              {isProcessing ? "Rolling..." : "Roll Key"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

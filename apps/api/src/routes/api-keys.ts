@@ -4,6 +4,7 @@ import {
   CreateApiKeyResponse,
   DeleteApiKeyResponse,
   ListApiKeysResponse,
+  RollApiKeyResponse,
 } from "@dafthunk/types";
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
@@ -12,7 +13,7 @@ import { z } from "zod";
 import { jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
 import { createDatabase } from "../db";
-import { createApiKey, deleteApiKey, getApiKeys } from "../db";
+import { createApiKey, deleteApiKey, getApiKeys, rollApiKey } from "../db";
 
 // Create a new Hono instance for API keys endpoints
 const apiKeyRoutes = new Hono<ApiContext>();
@@ -99,6 +100,38 @@ apiKeyRoutes.delete("/:id", async (c) => {
   } catch (error) {
     console.error("Error deleting API key:", error);
     return c.json({ error: "Failed to delete API key" }, 500);
+  }
+});
+
+/**
+ * PATCH /api/api-keys/:id/roll
+ *
+ * Roll an API key - generate a new secret while preserving ID and metadata
+ */
+apiKeyRoutes.patch("/:id/roll", async (c) => {
+  const organizationId = c.get("organizationId")!;
+  const db = createDatabase(c.env.DB);
+  const apiKeyId = c.req.param("id");
+
+  try {
+    const result = await rollApiKey(db, apiKeyId, organizationId);
+
+    if (!result) {
+      return c.json({ error: "API key not found" }, 404);
+    }
+
+    const apiKeyWithSecret: ApiKeyWithSecret = {
+      apiKey: result.rawApiKey,
+      id: result.apiKey.id,
+      name: result.apiKey.name,
+      createdAt: result.apiKey.createdAt,
+    };
+
+    const response: RollApiKeyResponse = { apiKey: apiKeyWithSecret };
+    return c.json(response);
+  } catch (error) {
+    console.error("Error rolling API key:", error);
+    return c.json({ error: "Failed to roll API key" }, 500);
   }
 });
 

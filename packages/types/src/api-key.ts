@@ -47,3 +47,11 @@ export interface CreateApiKeyResponse {
 export interface DeleteApiKeyResponse {
   success: boolean;
 }
+
+/**
+ * Response when rolling an API key
+ * Returns the new key (shown only once, like on creation)
+ */
+export interface RollApiKeyResponse {
+  apiKey: ApiKeyWithSecret;
+}

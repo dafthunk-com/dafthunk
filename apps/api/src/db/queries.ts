@@ -432,6 +432,59 @@ export async function deleteApiKey(
 }
 
 /**
+ * Roll an API key - generate a new secret for an existing key
+ *
+ * @param db Database instance
+ * @param id Key ID
+ * @param organizationId Organization ID
+ * @returns Object containing the new raw key and the updated record, or null if not found
+ */
+export async function rollApiKey(
+  db: ReturnType<typeof createDatabase>,
+  id: string,
+  organizationId: string
+): Promise<{
+  rawApiKey: string;
+  apiKey: { id: string; name: string; createdAt: Date; updatedAt: Date };
+} | null> {
+  const now = new Date();
+
+  // Generate a new secure random key with prefix
+  const rawKeyBytes = crypto.randomBytes(32).toString("hex");
+  const rawApiKey = `dk_${rawKeyBytes}`;
+
+  // Hash the new key for storage
+  const hashedApiKey = crypto
+    .createHash("sha256")
+    .update(rawApiKey)
+    .digest("hex");
+
+  // Update the key record
+  const [updatedApiKey] = await db
+    .update(apiKeys)
+    .set({
+      key: hashedApiKey,
+      updatedAt: now,
+    })
+    .where(and(eq(apiKeys.id, id), eq(apiKeys.organizationId, organizationId)))
+    .returning({
+      id: apiKeys.id,
+      name: apiKeys.name,
+      createdAt: apiKeys.createdAt,
+      updatedAt: apiKeys.updatedAt,
+    });
+
+  if (!updatedApiKey) {
+    return null;
+  }
+
+  return {
+    rawApiKey,
+    apiKey: updatedApiKey,
+  };
+}
+
+/**
  * Get a deployment by its ID
  *
  * @param db Database instance

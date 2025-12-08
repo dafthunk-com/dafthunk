@@ -4,6 +4,7 @@ import {
   CreateApiKeyResponse,
   DeleteApiKeyResponse,
   ListApiKeysResponse,
+  RollApiKeyResponse,
 } from "@dafthunk/types";
 import useSWR from "swr";
 
@@ -90,4 +91,23 @@ export const deleteApiKey = async (
   );
 
   return response.success;
+};
+
+/**
+ * Roll an API key - generate a new secret while preserving ID and metadata
+ */
+export const rollApiKey = async (
+  id: string,
+  orgHandle: string
+): Promise<ApiKeyWithSecret> => {
+  const response = await makeOrgRequest<RollApiKeyResponse>(
+    orgHandle,
+    API_ENDPOINT_BASE,
+    `/${id}/roll`,
+    {
+      method: "PATCH",
+    }
+  );
+
+  return response.apiKey;
 };
