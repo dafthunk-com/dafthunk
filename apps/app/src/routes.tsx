@@ -12,6 +12,7 @@ import { OrgLayout } from "./components/org-layout";
 import { OrgRedirect } from "./components/org-redirect";
 import { ProtectedRoute } from "./components/protected-route";
 import { ApiKeysPage } from "./pages/api-keys-page";
+import { BillingPage } from "./pages/billing-page";
 import { DashboardPage } from "./pages/dashboard-page";
 import { DatabaseConsolePage } from "./pages/database-console-page";
 import { DatabasesPage } from "./pages/databases-page";
@@ -227,6 +228,21 @@ export const routes: AppRouteObject[] = [
       </OrgLayout>
     ),
     handle: { head: <HeadSeo title="API Keys - Settings - Dafthunk" /> },
+  },
+  {
+    path: "/billing",
+    element: <OrgRedirect to="/org/:handle/billing" />,
+  },
+  {
+    path: "/org/:handle/billing",
+    element: (
+      <OrgLayout title="Settings">
+        <ProtectedRoute>
+          <BillingPage />
+        </ProtectedRoute>
+      </OrgLayout>
+    ),
+    handle: { head: <HeadSeo title="Billing - Settings - Dafthunk" /> },
   },
   {
     path: "/org/:handle/members",

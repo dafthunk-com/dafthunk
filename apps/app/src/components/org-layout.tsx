@@ -1,4 +1,5 @@
 import type { OrganizationInfo } from "@dafthunk/types";
+import CreditCard from "lucide-react/icons/credit-card";
 import Database from "lucide-react/icons/database";
 import Folder from "lucide-react/icons/folder";
 import Inbox from "lucide-react/icons/inbox";
@@ -100,6 +101,11 @@ export const getDashboardSidebarGroups = (orgHandle: string) => [
         title: "Members",
         url: `/org/${orgHandle}/members`,
         icon: Users,
+      },
+      {
+        title: "Billing",
+        url: `/org/${orgHandle}/billing`,
+        icon: CreditCard,
       },
     ],
   },

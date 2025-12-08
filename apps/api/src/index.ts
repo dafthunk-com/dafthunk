@@ -8,6 +8,7 @@ import { corsMiddleware } from "./middleware/cors";
 import { createRateLimitMiddleware } from "./middleware/rate-limit";
 import { handleQueueMessages } from "./queue";
 import apiKeyRoutes from "./routes/api-keys";
+import billingRoutes from "./routes/billing";
 import dashboardRoutes from "./routes/dashboard";
 import databaseRoutes from "./routes/databases";
 import datasetRoutes from "./routes/datasets";
@@ -25,6 +26,7 @@ import profileRoutes from "./routes/profile";
 import queueRoutes from "./routes/queues";
 import robotsRoutes from "./routes/robots";
 import secretRoutes from "./routes/secrets";
+import stripeWebhooks from "./routes/stripe-webhooks";
 import templateRoutes from "./routes/templates";
 import typeRoutes from "./routes/types";
 import usageRoutes from "./routes/usage";
@@ -69,11 +71,15 @@ app.route("/invitations", invitationRoutes);
 app.route("/robots.txt", robotsRoutes);
 app.route("/llms.txt", llmsRoutes);
 
+// Stripe webhooks (no auth, verified by signature)
+app.route("/stripe/webhooks", stripeWebhooks);
+
 // Public routes
 app.route("/templates", templateRoutes);
 app.route("/types", typeRoutes);
 
 app.route("/:organizationIdOrHandle/api-keys", apiKeyRoutes);
+app.route("/:organizationIdOrHandle/billing", billingRoutes);
 app.route("/:organizationIdOrHandle/dashboard", dashboardRoutes);
 app.route("/:organizationIdOrHandle/databases", databaseRoutes);
 app.route("/:organizationIdOrHandle/datasets", datasetRoutes);

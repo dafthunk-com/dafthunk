@@ -95,6 +95,18 @@ export const InvitationStatus = {
 export type InvitationStatusType =
   (typeof InvitationStatus)[keyof typeof InvitationStatus];
 
+// Subscription status types (Stripe)
+export const SubscriptionStatus = {
+  ACTIVE: "active",
+  CANCELED: "canceled",
+  PAST_DUE: "past_due",
+  UNPAID: "unpaid",
+  TRIALING: "trialing",
+} as const;
+
+export type SubscriptionStatusType =
+  (typeof SubscriptionStatus)[keyof typeof SubscriptionStatus];
+
 /**
  * REUSABLE COLUMNS
  */
@@ -121,6 +133,13 @@ export const organizations = sqliteTable(
     name: text("name").notNull(),
     handle: text("handle").notNull().unique(),
     computeCredits: integer("compute_credits").notNull().default(1000),
+    stripeCustomerId: text("stripe_customer_id"),
+    stripeSubscriptionId: text("stripe_subscription_id"),
+    subscriptionStatus: text(
+      "subscription_status"
+    ).$type<SubscriptionStatusType>(),
+    currentPeriodStart: integer("current_period_start", { mode: "timestamp" }),
+    currentPeriodEnd: integer("current_period_end", { mode: "timestamp" }),
     createdAt: createCreatedAt(),
     updatedAt: createUpdatedAt(),
   },
@@ -128,6 +147,11 @@ export const organizations = sqliteTable(
     index("organizations_name_idx").on(table.name),
     index("organizations_handle_idx").on(table.handle),
     index("organizations_created_at_idx").on(table.createdAt),
+    index("organizations_stripe_customer_id_idx").on(table.stripeCustomerId),
+    index("organizations_stripe_subscription_id_idx").on(
+      table.stripeSubscriptionId
+    ),
+    index("organizations_subscription_status_idx").on(table.subscriptionStatus),
   ]
 );
 

@@ -70,6 +70,7 @@
     "jsonpath-plus": "^10.3.0",
     "mailparser": "^3.7.4",
     "openai": "^5.20.3",
+    "stripe": "^20.0.0",
     "three": "^0.181.2",
     "three-bvh-csg": "^0.0.17",
     "twilio": "^5.9.0",

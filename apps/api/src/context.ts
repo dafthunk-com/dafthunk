@@ -53,6 +53,10 @@ export interface Bindings {
   SES_DEFAULT_FROM?: string;
   HUGGINGFACE_API_KEY?: string;
   SECRET_MASTER_KEY: string;
+  STRIPE_SECRET_KEY?: string;
+  STRIPE_WEBHOOK_SECRET?: string;
+  STRIPE_PRICE_ID_PRO?: string;
+  STRIPE_METER_ID?: string;
 }
 
 export interface Variables {
