@@ -2,6 +2,7 @@ import * as crypto from "crypto";
 import { and, eq } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 
+import { TRIAL_CREDITS } from "../constants/billing";
 import { Bindings } from "../context";
 import { encryptSecret } from "../utils/encryption";
 import {
@@ -1340,6 +1341,32 @@ export async function getOrganizationComputeCredits(
 }
 
 /**
+ * Get organization billing info for workflow execution
+ */
+export async function getOrganizationBillingInfo(
+  db: ReturnType<typeof createDatabase>,
+  organizationIdOrHandle: string
+): Promise<
+  | {
+      computeCredits: number;
+      subscriptionStatus: string | null;
+      overageLimit: number | null;
+    }
+  | undefined
+> {
+  const [organization] = await db
+    .select({
+      computeCredits: organizations.computeCredits,
+      subscriptionStatus: organizations.subscriptionStatus,
+      overageLimit: organizations.overageLimit,
+    })
+    .from(organizations)
+    .where(getOrganizationCondition(organizationIdOrHandle))
+    .limit(1);
+  return organization;
+}
+
+/**
  * Create a new secret for an organization
  *
  * @param db Database instance
@@ -1915,7 +1942,7 @@ export async function createOrganization(
     id: organizationId,
     name,
     handle: organizationHandle,
-    computeCredits: 1000, // Default compute credits
+    computeCredits: TRIAL_CREDITS, // Default compute credits for new orgs
     createdAt: now,
     updatedAt: now,
   };

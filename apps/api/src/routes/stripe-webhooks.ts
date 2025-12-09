@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import type Stripe from "stripe";
 
+import { PRO_INCLUDED_CREDITS } from "../constants/billing";
 import type { ApiContext } from "../context";
 import {
   createDatabase,
@@ -11,6 +12,7 @@ import {
   users,
 } from "../db";
 import { createStripeService } from "../services/stripe-service";
+import { resetOrganizationComputeUsage } from "../utils/credits";
 
 const stripeWebhooks = new Hono<ApiContext>();
 
@@ -62,7 +64,7 @@ stripeWebhooks.post("/", async (c) => {
 
       case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription;
-        await handleSubscriptionUpdated(db, subscription);
+        await handleSubscriptionUpdated(db, subscription, c.env.KV);
         break;
       }
 
@@ -148,7 +150,8 @@ async function handleCheckoutCompleted(
  */
 async function handleSubscriptionUpdated(
   db: ReturnType<typeof createDatabase>,
-  subscription: Stripe.Subscription
+  subscription: Stripe.Subscription,
+  KV: KVNamespace
 ) {
   const organizationId = subscription.metadata?.organizationId;
   if (!organizationId) {
@@ -166,9 +169,9 @@ async function handleSubscriptionUpdated(
       return;
     }
 
-    await updateOrganizationSubscription(db, org.id, subscription);
+    await updateOrganizationSubscription(db, org.id, subscription, KV);
   } else {
-    await updateOrganizationSubscription(db, organizationId, subscription);
+    await updateOrganizationSubscription(db, organizationId, subscription, KV);
   }
 }
 
@@ -266,8 +269,7 @@ async function handleInvoiceCreated(
     );
 
     // Calculate overage (usage beyond included credits)
-    const includedCredits = org.computeCredits;
-    const overageUsage = Math.max(0, totalUsage - includedCredits);
+    const overageUsage = Math.max(0, totalUsage - PRO_INCLUDED_CREDITS);
 
     if (overageUsage > 0) {
       // Report overage to Stripe meter
@@ -287,7 +289,8 @@ async function handleInvoiceCreated(
 async function updateOrganizationSubscription(
   db: ReturnType<typeof createDatabase>,
   organizationId: string,
-  subscription: Stripe.Subscription
+  subscription: Stripe.Subscription,
+  KV: KVNamespace
 ) {
   // Map Stripe status to our status enum
   const statusMap: Record<Stripe.Subscription.Status, string> = {
@@ -317,6 +320,32 @@ async function updateOrganizationSubscription(
   const subscriptionItem = subscription.items?.data?.[0];
   const periodStart = subscriptionItem?.current_period_start;
   const periodEnd = subscriptionItem?.current_period_end;
+
+  // Check if billing period has changed (new billing cycle started)
+  // If so, reset usage counter in KV
+  if (periodStart) {
+    const [currentOrg] = await db
+      .select({ currentPeriodStart: organizations.currentPeriodStart })
+      .from(organizations)
+      .where(eq(organizations.id, organizationId))
+      .limit(1);
+
+    const newPeriodStart = new Date(periodStart * 1000);
+    const existingPeriodStart = currentOrg?.currentPeriodStart
+      ? new Date(currentOrg.currentPeriodStart)
+      : null;
+
+    // Reset usage if period start has changed (new billing cycle)
+    if (
+      !existingPeriodStart ||
+      newPeriodStart.getTime() !== existingPeriodStart.getTime()
+    ) {
+      await resetOrganizationComputeUsage(KV, organizationId);
+      console.log(
+        `Reset compute usage for org ${organizationId} (new billing period: ${newPeriodStart.toISOString()})`
+      );
+    }
+  }
 
   await db
     .update(organizations)

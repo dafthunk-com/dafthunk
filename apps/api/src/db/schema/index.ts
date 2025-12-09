@@ -132,7 +132,7 @@ export const organizations = sqliteTable(
     id: text("id").primaryKey(),
     name: text("name").notNull(),
     handle: text("handle").notNull().unique(),
-    computeCredits: integer("compute_credits").notNull().default(1000),
+    computeCredits: integer("compute_credits").notNull().default(10000),
     stripeCustomerId: text("stripe_customer_id"),
     stripeSubscriptionId: text("stripe_subscription_id"),
     subscriptionStatus: text(
@@ -140,6 +140,7 @@ export const organizations = sqliteTable(
     ).$type<SubscriptionStatusType>(),
     currentPeriodStart: integer("current_period_start", { mode: "timestamp" }),
     currentPeriodEnd: integer("current_period_end", { mode: "timestamp" }),
+    overageLimit: integer("overage_limit"), // null = unlimited
     createdAt: createCreatedAt(),
     updatedAt: createUpdatedAt(),
   },

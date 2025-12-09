@@ -13,7 +13,7 @@ import type {
 
 import type { Bindings } from "../context";
 import { createDatabase } from "../db/index";
-import { getOrganization, getOrganizationComputeCredits } from "../db/queries";
+import { getOrganization, getOrganizationBillingInfo } from "../db/queries";
 import type { BlobParameter } from "../nodes/types";
 import {
   WorkflowExecutor,
@@ -46,15 +46,16 @@ export class ExecutionManager {
   }> {
     const db = createDatabase(this.env.DB);
 
-    // Get organization info (for URL construction) and compute credits in parallel
-    const [organization, computeCredits] = await Promise.all([
+    // Get organization info (for URL construction) and billing info in parallel
+    const [organization, billingInfo] = await Promise.all([
       getOrganization(db, organizationId),
-      getOrganizationComputeCredits(db, organizationId),
+      getOrganizationBillingInfo(db, organizationId),
     ]);
 
-    if (!organization || computeCredits === undefined) {
+    if (!organization || !billingInfo) {
       throw new Error("Organization not found");
     }
+    const { computeCredits, subscriptionStatus, overageLimit } = billingInfo;
 
     validateWorkflowForExecution(state);
 
@@ -77,6 +78,8 @@ export class ExecutionManager {
       userId,
       organizationId,
       computeCredits,
+      subscriptionStatus: subscriptionStatus ?? undefined,
+      overageLimit: overageLimit ?? null,
       workflowSessionId: state.id,
       parameters: executorParameters,
       env: this.env,

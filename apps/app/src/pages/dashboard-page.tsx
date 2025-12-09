@@ -1,8 +1,4 @@
-import CreditCard from "lucide-react/icons/credit-card";
-import Layers from "lucide-react/icons/layers";
 import Logs from "lucide-react/icons/logs";
-import Minus from "lucide-react/icons/minus";
-import Plus from "lucide-react/icons/plus";
 import Target from "lucide-react/icons/target";
 import Workflow from "lucide-react/icons/workflow";
 import { useEffect } from "react";
@@ -11,40 +7,47 @@ import { Link } from "react-router";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
-import { useDashboard, useUsage } from "@/services/dashboard-service";
-import { cn } from "@/utils/utils";
+import { useBilling } from "@/services/billing-service";
+import { useDashboard } from "@/services/dashboard-service";
 
 export function DashboardPage() {
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const { dashboardStats, dashboardStatsError, isDashboardStatsLoading } =
     useDashboard();
-  const { usageData, usageError, isUsageLoading } = useUsage();
+  const { billing, billingError, isBillingLoading } = useBilling();
   const { getOrgUrl } = useOrgUrl();
 
   useEffect(() => {
     setBreadcrumbs([{ label: "Dashboard" }]);
   }, [setBreadcrumbs]);
 
-  if (isDashboardStatsLoading || isUsageLoading) {
+  if (isDashboardStatsLoading || isBillingLoading) {
     return <InsetLoading title="Dashboard" />;
-  } else if (dashboardStatsError || usageError) {
+  } else if (dashboardStatsError || billingError) {
     return (
       <InsetError
         title="Dashboard"
         errorMessage={
           dashboardStatsError?.message ||
-          usageError?.message ||
+          billingError?.message ||
           "An error occurred"
         }
       />
     );
   }
 
-  if (!dashboardStats || !usageData) {
+  if (!dashboardStats) {
     return (
       <InsetLayout title="Dashboard">
         <div className="flex flex-1 items-center justify-center">
@@ -54,15 +57,16 @@ export function DashboardPage() {
     );
   }
 
-  const { computeCredits, computeUsage, usagePercentage, remainingCredits } =
-    usageData;
-
-  // Determine progress bar color based on usage
-  const getProgressColor = (percentage: number) => {
-    if (percentage >= 90) return "bg-red-500";
-    if (percentage >= 70) return "bg-yellow-500";
-    return "bg-blue-500";
-  };
+  const isPro = billing?.plan === "pro";
+  const usageThisPeriod = billing?.usageThisPeriod ?? 0;
+  const includedCredits = billing?.includedCredits ?? 0;
+  const usagePercent = includedCredits
+    ? Math.min(100, (usageThisPeriod / includedCredits) * 100)
+    : 0;
+  const hasOverageLimit = billing?.overageLimit != null;
+  const currentOverage = Math.max(0, usageThisPeriod - includedCredits);
+  const isOverageAtLimit =
+    hasOverageLimit && currentOverage >= billing!.overageLimit!;
 
   return (
     <InsetLayout title="Dashboard">
@@ -135,103 +139,88 @@ export function DashboardPage() {
       </div>
 
       {/* Credits Section */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
-        {/* Credits Limit Card */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-            <CardTitle className="text-xl">Credits</CardTitle>
-            <CreditCard className="size-8 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-4xl font-bold">
-              {computeCredits.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground pt-1">Credits limit</p>
-          </CardContent>
-        </Card>
-
-        {/* Credits Used Card */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-            <CardTitle className="text-xl">Used</CardTitle>
-            <Minus className="size-8 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-4xl font-bold">
-              {computeUsage.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground pt-1">Credits used</p>
-          </CardContent>
-        </Card>
-
-        {/* Credits Remaining Card */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-            <CardTitle className="text-xl">Remaining</CardTitle>
-            <Plus className="size-8 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-4xl font-bold">
-              {remainingCredits.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground pt-1">
-              Credits remaining
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Usage Progress Card */}
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>Usage Progress</span>
-            <span className="text-2xl font-bold">
-              {usagePercentage.toFixed(1)}%
-            </span>
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <CardTitle className="flex items-center gap-2">
+                Usage
+                <Badge variant={isPro ? "default" : "secondary"}>
+                  {isPro ? "Pro" : "Trial"}
+                </Badge>
+              </CardTitle>
+              <CardDescription>
+                {isPro
+                  ? "Monthly credits reset each billing period"
+                  : "One-time credits for Trial accounts"}
+              </CardDescription>
+            </div>
+            <Button variant="outline" size="sm" asChild>
+              <Link to={getOrgUrl("billing")}>Manage Billing</Link>
+            </Button>
+          </div>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="relative h-4 bg-muted rounded-full overflow-hidden">
+        <CardContent className="space-y-6">
+          {/* Included Usage Gauge */}
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="font-medium">
+                {isPro ? "Included Usage" : "Available Usage"}
+              </span>
+              <span>
+                {Math.min(usageThisPeriod, includedCredits).toLocaleString()} /{" "}
+                {includedCredits.toLocaleString()}
+              </span>
+            </div>
+            <div className="h-3 bg-muted rounded-full overflow-hidden">
               <div
-                className={cn(
-                  "h-full",
-                  getProgressColor(usagePercentage),
-                  usagePercentage >= 100 ? "rounded-full" : "rounded-l-full"
-                )}
-                style={{ width: `${Math.min(100, usagePercentage)}%` }}
+                className="h-full bg-primary transition-all rounded-full"
+                style={{ width: `${usagePercent}%` }}
               />
             </div>
+            <p className="text-xs text-muted-foreground">
+              {usagePercent < 100
+                ? `${(includedCredits - usageThisPeriod).toLocaleString()} remaining`
+                : isPro
+                  ? "Included usage exhausted"
+                  : "Usage exhausted"}
+            </p>
+          </div>
 
-            {/* Usage Status Message */}
-            <div className="p-4 rounded-md bg-muted">
-              <p className="text-sm text-muted-foreground">
-                {usagePercentage.toFixed(1)}% of compute credits used
+          {/* Overage Section - Pro only */}
+          {isPro && (
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="font-medium">Additional Usage</span>
+                <span>
+                  {currentOverage.toLocaleString()}
+                  {hasOverageLimit &&
+                    ` / ${billing!.overageLimit!.toLocaleString()}`}
+                </span>
+              </div>
+              <div className="h-3 bg-muted rounded-full overflow-hidden">
+                {currentOverage > 0 && (
+                  <div
+                    className={`h-full transition-all rounded-full ${isOverageAtLimit ? "bg-red-500" : "bg-orange-500"}`}
+                    style={{
+                      width: hasOverageLimit
+                        ? `${Math.min(100, (currentOverage / billing!.overageLimit!) * 100)}%`
+                        : `${Math.min(100, (currentOverage / includedCredits) * 100)}%`,
+                    }}
+                  />
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {currentOverage > 0
+                  ? isOverageAtLimit
+                    ? "Limit reached - executions will be blocked"
+                    : "Billed at the end of your billing period"
+                  : hasOverageLimit
+                    ? `Limit: ${billing!.overageLimit!.toLocaleString()} credits`
+                    : "No overage charges yet"}
               </p>
             </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* How Credits Work Card */}
-      <Card className="mb-6">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-          <CardTitle className="text-xl">How Credits Work</CardTitle>
-          <Layers className="size-8 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2 text-sm text-muted-foreground">
-            <p>
-              Compute credits are consumed by individual nodes within your
-              workflows. Each node type has different credit costs based on
-              computational requirements.
-            </p>
-            <p>
-              The total cost of a workflow execution is the sum of all executed
-              nodes. More complex workflows consume more credits.
-            </p>
-          </div>
+          )}
         </CardContent>
       </Card>
     </InsetLayout>

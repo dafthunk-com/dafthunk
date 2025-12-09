@@ -2,6 +2,7 @@ import type {
   CreateBillingPortalResponse,
   CreateCheckoutSessionResponse,
   GetBillingResponse,
+  UpdateOverageLimitResponse,
 } from "@dafthunk/types";
 import useSWR from "swr";
 
@@ -88,4 +89,25 @@ export const createBillingPortal = async (
   );
 
   return response.portalUrl;
+};
+
+/**
+ * Update the overage limit for the organization
+ * @param overageLimit - The new limit, or null for unlimited
+ */
+export const updateOverageLimit = async (
+  orgHandle: string,
+  overageLimit: number | null
+): Promise<number | null> => {
+  const response = await makeOrgRequest<UpdateOverageLimitResponse>(
+    orgHandle,
+    API_ENDPOINT_BASE,
+    "/overage-limit",
+    {
+      method: "PATCH",
+      body: JSON.stringify({ overageLimit }),
+    }
+  );
+
+  return response.overageLimit;
 };

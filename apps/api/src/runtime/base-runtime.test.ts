@@ -3,6 +3,7 @@ import { env } from "cloudflare:test";
 import { introspectWorkflowInstance } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 
+import { TRIAL_CREDITS } from "../constants/billing";
 import type { Bindings } from "../context";
 import type { RuntimeParams } from "./base-runtime";
 
@@ -37,7 +38,7 @@ describe("Runtime Specification", () => {
     workflow,
     userId: "test-user",
     organizationId: "test-org",
-    computeCredits: 10000,
+    computeCredits: TRIAL_CREDITS,
   });
 
   describe("successful execution", () => {

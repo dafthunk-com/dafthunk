@@ -25,6 +25,18 @@ export async function updateOrganizationComputeUsage(
 }
 
 /**
+ * Resets the organization's compute usage to zero.
+ * Called when a Pro user's billing period resets.
+ */
+export async function resetOrganizationComputeUsage(
+  KV: KVNamespace,
+  organizationId: string
+): Promise<void> {
+  const usageKey = getUsageKey(organizationId);
+  await KV.put(usageKey, "0");
+}
+
+/**
  * Gets the usage key for an organization.
  * Format: {organizationId}:compute-usage
  */

@@ -20,6 +20,8 @@ export interface BillingInfo {
   currentPeriodEnd?: Date;
   usageThisPeriod: number;
   includedCredits: number;
+  /** Maximum additional usage allowed beyond included credits. null = unlimited */
+  overageLimit?: number | null;
 }
 
 /**
@@ -49,6 +51,21 @@ export interface CreateCheckoutSessionResponse {
  */
 export interface CreateBillingPortalResponse {
   portalUrl: string;
+}
+
+/**
+ * Request to update overage limit
+ */
+export interface UpdateOverageLimitRequest {
+  /** New overage limit. null to remove limit (unlimited) */
+  overageLimit: number | null;
+}
+
+/**
+ * Response from PATCH /billing/overage-limit
+ */
+export interface UpdateOverageLimitResponse {
+  overageLimit: number | null;
 }
 
 /**

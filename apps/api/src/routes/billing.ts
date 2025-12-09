@@ -3,6 +3,8 @@ import type {
   CreateCheckoutSessionRequest,
   CreateCheckoutSessionResponse,
   GetBillingResponse,
+  UpdateOverageLimitRequest,
+  UpdateOverageLimitResponse,
 } from "@dafthunk/types";
 import { zValidator } from "@hono/zod-validator";
 import { eq } from "drizzle-orm";
@@ -10,6 +12,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 
 import { jwtMiddleware } from "../auth";
+import { PRO_INCLUDED_CREDITS } from "../constants/billing";
 import type { ApiContext } from "../context";
 import { createDatabase, organizations } from "../db";
 import { createStripeService } from "../services/stripe-service";
@@ -78,7 +81,8 @@ billing.get("/", async (c) => {
       org.currentPeriodEnd &&
       new Date(org.currentPeriodEnd) > new Date());
   const plan = hasProAccess ? "pro" : "trial";
-  const includedCredits = hasProAccess ? org.computeCredits : 0;
+  // Always use the constant for Pro included credits (database value may be outdated)
+  const includedCredits = hasProAccess ? PRO_INCLUDED_CREDITS : 0;
 
   const response: GetBillingResponse = {
     billing: {
@@ -88,6 +92,7 @@ billing.get("/", async (c) => {
       currentPeriodEnd: org.currentPeriodEnd ?? undefined,
       usageThisPeriod,
       includedCredits,
+      overageLimit: org.overageLimit ?? null,
     },
   };
 
@@ -181,6 +186,35 @@ billing.post(
       console.error("Failed to create billing portal session:", error);
       return c.json({ error: "Failed to create billing portal session" }, 500);
     }
+  }
+);
+
+/**
+ * PATCH /billing/overage-limit
+ *
+ * Update the overage limit for the current organization
+ */
+billing.patch(
+  "/overage-limit",
+  zValidator(
+    "json",
+    z.object({
+      overageLimit: z.number().int().min(0).nullable(),
+    }) as z.ZodType<UpdateOverageLimitRequest>
+  ),
+  async (c) => {
+    const organizationId = c.get("organizationId")!;
+    const { overageLimit } = c.req.valid("json");
+    const db = createDatabase(c.env.DB);
+
+    // Update the overage limit
+    await db
+      .update(organizations)
+      .set({ overageLimit, updatedAt: new Date() })
+      .where(eq(organizations.id, organizationId));
+
+    const response: UpdateOverageLimitResponse = { overageLimit };
+    return c.json(response);
   }
 );
 

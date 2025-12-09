@@ -24,6 +24,9 @@ export interface WorkflowExecutorOptions {
   userId: string;
   organizationId: string;
   computeCredits: number;
+  subscriptionStatus?: string;
+  /** Maximum additional usage allowed beyond included credits. null = unlimited */
+  overageLimit?: number | null;
   deploymentId?: string;
   workflowSessionId?: string;
   parameters?: WorkflowExecutorParameters;
@@ -60,6 +63,8 @@ export class WorkflowExecutor {
       userId,
       organizationId,
       computeCredits,
+      subscriptionStatus,
+      overageLimit,
       deploymentId,
       workflowSessionId,
       parameters,
@@ -79,6 +84,8 @@ export class WorkflowExecutor {
       userId,
       organizationId,
       computeCredits,
+      ...(subscriptionStatus && { subscriptionStatus }),
+      ...(overageLimit !== undefined && { overageLimit }),
       ...(deploymentId && { deploymentId }),
       ...(workflowSessionId && { workflowSessionId }),
     };

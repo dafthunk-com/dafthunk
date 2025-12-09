@@ -20,6 +20,10 @@ export class MockExecutionStore implements Partial<ExecutionStore> {
 
   async save(record: SaveExecutionRecord): Promise<WorkflowExecution> {
     // Store execution row for test verification
+    const usage = record.nodeExecutions.reduce(
+      (sum, ne) => sum + (ne.usage ?? 0),
+      0
+    );
     const row: ExecutionRow = {
       id: record.id,
       workflowId: record.workflowId,
@@ -31,6 +35,7 @@ export class MockExecutionStore implements Partial<ExecutionStore> {
       endedAt: record.endedAt ?? null,
       createdAt: record.createdAt ?? new Date(),
       updatedAt: record.updatedAt ?? new Date(),
+      usage,
     };
     this.rows.set(record.id, row);
 

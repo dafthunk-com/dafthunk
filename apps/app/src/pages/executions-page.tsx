@@ -4,6 +4,7 @@ import type {
 } from "@dafthunk/types";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
+import Coins from "lucide-react/icons/coins";
 import MoreHorizontal from "lucide-react/icons/more-horizontal";
 import { useEffect } from "react";
 import { Link } from "react-router";
@@ -53,7 +54,19 @@ export const createColumns = (
       return <ExecutionStatusBadge status={status} />;
     },
   },
-
+  {
+    accessorKey: "usage",
+    header: "Usage",
+    cell: ({ row }) => {
+      const usage = row.getValue("usage") as number | undefined;
+      return (
+        <div className="flex items-center gap-1">
+          <Coins className="h-3 w-3 text-muted-foreground" />
+          <span>{(usage ?? 0).toLocaleString()}</span>
+        </div>
+      );
+    },
+  },
   {
     accessorKey: "startedAt",
     header: "Started At",

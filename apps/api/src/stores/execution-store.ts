@@ -20,6 +20,7 @@ export interface ExecutionRow {
   endedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
+  usage: number;
 }
 
 /**
@@ -326,6 +327,7 @@ export class ExecutionStore {
         endedAt,
         createdAt: timestamp,
         updatedAt: timestamp,
+        usage: row.double4 ?? 0,
       };
     } catch (error) {
       console.error(
@@ -395,6 +397,7 @@ export class ExecutionStore {
           endedAt,
           createdAt: timestamp,
           updatedAt: timestamp,
+          usage: row.double4 ?? 0,
         };
       });
     } catch (error) {

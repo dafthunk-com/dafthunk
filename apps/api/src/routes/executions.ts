@@ -14,9 +14,28 @@ import { WorkflowStore } from "../stores/workflow-store";
 
 const executionRoutes = new Hono<ApiContext>();
 
+// UUID v7 format validation regex
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Validate that a string is a valid UUID format.
+ * Returns the string if valid, undefined if invalid or empty.
+ */
+function validateUuid(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  return UUID_REGEX.test(value) ? value : undefined;
+}
+
 executionRoutes.get("/:id", apiKeyOrJwtMiddleware, async (c) => {
   const organizationId = c.get("organizationId")!;
   const id = c.req.param("id");
+
+  // Validate execution ID format to prevent SQL injection
+  if (!UUID_REGEX.test(id)) {
+    return c.json({ error: "Invalid execution ID format" }, 400);
+  }
+
   const executionStore = new ExecutionStore(c.env);
 
   try {
@@ -60,14 +79,18 @@ executionRoutes.get("/", jwtMiddleware, async (c) => {
 
   const organizationId = c.get("organizationId")!;
 
-  // Parse pagination params
-  const parsedLimit = limit ? parseInt(limit, 10) : 20;
-  const parsedOffset = offset ? parseInt(offset, 10) : 0;
+  // Validate UUID parameters to prevent SQL injection
+  const validatedWorkflowId = validateUuid(workflowId);
+  const validatedDeploymentId = validateUuid(deploymentId);
+
+  // Parse and validate pagination params
+  const parsedLimit = Math.min(Math.max(1, parseInt(limit, 10) || 20), 100);
+  const parsedOffset = Math.max(0, parseInt(offset, 10) || 0);
 
   // List executions with optional filtering
   const queryParams: ListExecutionsRequest = {
-    workflowId: workflowId || undefined,
-    deploymentId: deploymentId || undefined,
+    workflowId: validatedWorkflowId,
+    deploymentId: validatedDeploymentId,
     limit: parsedLimit,
     offset: parsedOffset,
   };
@@ -89,6 +112,7 @@ executionRoutes.get("/", jwtMiddleware, async (c) => {
       error: execution.error || undefined,
       startedAt: execution.startedAt || undefined,
       endedAt: execution.endedAt || undefined,
+      usage: execution.usage ?? 0,
     };
   });
 

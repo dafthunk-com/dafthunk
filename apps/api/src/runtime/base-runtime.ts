@@ -53,6 +53,9 @@ export interface RuntimeParams {
   readonly userId: string;
   readonly organizationId: string;
   readonly computeCredits: number;
+  readonly subscriptionStatus?: string;
+  /** Maximum additional usage allowed beyond included credits. null = unlimited */
+  readonly overageLimit?: number | null;
   readonly workflowSessionId?: string;
   readonly deploymentId?: string;
   readonly httpRequest?: HttpRequest;
@@ -226,7 +229,9 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         !(await this.hasEnoughComputeCredits(
           organizationId,
           event.payload.computeCredits,
-          estimatedUsage
+          estimatedUsage,
+          event.payload.subscriptionStatus,
+          event.payload.overageLimit
         ))
       ) {
         isExhausted = true;
@@ -773,22 +778,40 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
 
   /**
    * Checks if the organization has enough compute credits to execute a workflow.
-   * Credit limits are not enforced in development mode.
+   * - Pro users (active subscription): Allowed unless overage limit is set and exceeded
+   * - Trial users: Limited to computeCredits (one-time allowance, blocks when exhausted)
+   * - Credit limits are not enforced in development mode
    */
   private async hasEnoughComputeCredits(
     organizationId: string,
     computeCredits: number,
-    estimatedUsage: number
+    estimatedUsage: number,
+    subscriptionStatus?: string,
+    overageLimit?: number | null
   ): Promise<boolean> {
     // Skip credit limit enforcement in development mode
     if (this.env.CLOUDFLARE_ENV === "development") {
       return true;
     }
 
+    // Get current cumulative usage
     const currentUsage = await getOrganizationComputeUsage(
       this.env.KV,
       organizationId
     );
+
+    // Pro users with active subscription
+    if (subscriptionStatus === "active") {
+      // If no overage limit is set, allow execution (unlimited overage)
+      if (overageLimit == null) {
+        return true;
+      }
+      // Block if current overage already at or exceeds limit
+      const currentOverage = Math.max(0, currentUsage - computeCredits);
+      return currentOverage < overageLimit;
+    }
+
+    // Trial users: check cumulative usage against one-time allowance
     return currentUsage + estimatedUsage <= computeCredits;
   }
 

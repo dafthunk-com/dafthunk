@@ -31,7 +31,7 @@ import {
   createHandle,
   deleteQueueTrigger as deleteDbQueueTrigger,
   getEmailTrigger,
-  getOrganizationComputeCredits,
+  getOrganizationBillingInfo,
   getQueue,
   getQueueTrigger,
   upsertQueueTrigger as upsertDbQueueTrigger,
@@ -358,14 +358,12 @@ async function executeWorkflow(
   const db = createDatabase(c.env.DB);
   const { organizationId, userId } = getAuthContext(c);
 
-  // Get organization compute credits
-  const computeCredits = await getOrganizationComputeCredits(
-    db,
-    organizationId
-  );
-  if (computeCredits === undefined) {
+  // Get organization billing info
+  const billingInfo = await getOrganizationBillingInfo(db, organizationId);
+  if (!billingInfo) {
     return c.json({ error: "Organization not found" }, 404);
   }
+  const { computeCredits, subscriptionStatus, overageLimit } = billingInfo;
 
   // Prepare workflow for execution
   const preparationResult = await prepareWorkflowExecution(c, workflowData);
@@ -388,6 +386,8 @@ async function executeWorkflow(
     userId,
     organizationId,
     computeCredits,
+    subscriptionStatus: subscriptionStatus ?? undefined,
+    overageLimit: overageLimit ?? null,
     deploymentId,
     parameters,
     env: c.env,

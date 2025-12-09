@@ -316,6 +316,8 @@ export interface WorkflowExecution {
   startedAt?: Date;
   /** Timestamp when execution ended */
   endedAt?: Date;
+  /** Total compute credits used by this execution */
+  usage?: number;
 }
 
 // Request and Response types
