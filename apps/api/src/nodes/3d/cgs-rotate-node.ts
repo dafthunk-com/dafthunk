@@ -39,6 +39,7 @@ export class CgsRotateNode extends ExecutableNode {
     documentation:
       "Rotates a 3D mesh by the specified angles in degrees [x, y, z]. Rotation is applied in XYZ order (Euler angles).",
     inlinable: false,
+    usage: 10,
     inputs: [
       {
         name: "mesh",

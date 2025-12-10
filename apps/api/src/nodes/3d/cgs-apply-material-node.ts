@@ -47,6 +47,7 @@ export class CgsApplyMaterialNode extends ExecutableNode {
     documentation:
       "Applies PBR (Physically Based Rendering) material properties to a 3D mesh including color, metallic, and roughness.",
     inlinable: false,
+    usage: 10,
     inputs: [
       {
         name: "mesh",

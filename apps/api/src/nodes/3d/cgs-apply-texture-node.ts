@@ -42,6 +42,7 @@ export class CgsApplyTextureNode extends ExecutableNode {
     documentation:
       "Applies a PNG texture to any 3D mesh. This is the single standard way to add textures to 3D geometry in the workflow.",
     inlinable: false,
+    usage: 10,
     inputs: [
       {
         name: "mesh",

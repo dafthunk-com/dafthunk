@@ -48,6 +48,7 @@ export class CgsScaleNode extends ExecutableNode {
     documentation:
       "Scales a 3D mesh by the specified factor. Can be a single number for uniform scaling or [x, y, z] for per-axis scaling.",
     inlinable: false,
+    usage: 10,
     inputs: [
       {
         name: "mesh",

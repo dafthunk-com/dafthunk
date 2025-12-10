@@ -78,6 +78,7 @@ export class CgsCylinderNode extends ExecutableNode {
     documentation:
       "Creates a cylinder with specified height and radius. Provide different top and bottom radii to create cone shapes. Radial segments control the geometry resolution.",
     inlinable: false,
+    usage: 10,
     inputs: [
       {
         name: "height",

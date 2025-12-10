@@ -39,6 +39,7 @@ export class CgsTranslateNode extends ExecutableNode {
     documentation:
       "Translates a 3D mesh by the specified offset vector [x, y, z]. Does not modify the original mesh.",
     inlinable: false,
+    usage: 10,
     inputs: [
       {
         name: "mesh",

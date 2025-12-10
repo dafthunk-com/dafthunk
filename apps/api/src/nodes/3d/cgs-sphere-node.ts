@@ -58,6 +58,7 @@ export class CgsSphereNode extends ExecutableNode {
     documentation:
       "Creates a sphere with specified radius. Width and height segments control the geometry resolution for quality vs. performance trade-offs.",
     inlinable: false,
+    usage: 10,
     inputs: [
       {
         name: "radius",

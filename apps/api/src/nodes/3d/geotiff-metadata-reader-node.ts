@@ -12,6 +12,8 @@ export class GeoTiffMetadataReaderNode extends ExecutableNode {
       "Read metadata from Cloud Optimized GeoTIFF without downloading content",
     tags: ["3D", "GeoTIFF", "Metadata"],
     icon: "info",
+    inlinable: false,
+    usage: 10,
     inputs: [
       {
         name: "url",

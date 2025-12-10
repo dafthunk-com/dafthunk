@@ -56,7 +56,8 @@ export class TrellisNode extends ExecutableNode {
     documentation:
       "This node generates 3D models from input images using the Trellis model via Replicate. Outputs a GLB file that can be used in 3D workflows.",
     referenceUrl: "https://replicate.com/firtoz/trellis",
-    usage: 50,
+    inlinable: false,
+    usage: 100,
     inputs: [
       {
         name: "images",

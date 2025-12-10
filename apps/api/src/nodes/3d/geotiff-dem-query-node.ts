@@ -37,6 +37,8 @@ export class GeoTiffDemQueryNode extends ExecutableNode {
       "Query a Digital Elevation Model GeoTIFF and return terrain data encoded as Mapbox Terrain-RGB PNG",
     tags: ["3D", "GeoTIFF", "DEM", "Query"],
     icon: "search",
+    inlinable: false,
+    usage: 10,
     inputs: [
       {
         name: "url",

@@ -84,6 +84,7 @@ export class CgsConeNode extends ExecutableNode {
     documentation:
       "Creates a cone with specified height and base radius. Can be made open-ended for pipe-like shapes. Radial segments control the geometry resolution around the circumference.",
     inlinable: false,
+    usage: 10,
     inputs: [
       {
         name: "height",

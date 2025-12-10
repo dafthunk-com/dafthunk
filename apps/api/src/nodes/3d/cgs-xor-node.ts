@@ -78,6 +78,7 @@ export class CgsXorNode extends ExecutableNode {
     documentation:
       "Performs a constructive solid geometry XOR (symmetric difference) operation. Returns the parts that are in A or B, but not in both. Equivalent to (A - B) + (B - A).",
     inlinable: false,
+    usage: 10,
     inputs: [
       {
         name: "meshA",

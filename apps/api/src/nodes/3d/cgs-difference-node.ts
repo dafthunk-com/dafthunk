@@ -86,6 +86,7 @@ export class CgsDifferenceNode extends ExecutableNode {
     documentation:
       "Performs a constructive solid geometry difference operation, subtracting the second mesh from the first (A - B).",
     inlinable: false,
+    usage: 10,
     inputs: [
       {
         name: "meshA",

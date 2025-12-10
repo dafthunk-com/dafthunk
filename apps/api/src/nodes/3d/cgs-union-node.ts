@@ -74,6 +74,7 @@ export class CgsUnionNode extends ExecutableNode {
     documentation:
       "Performs a constructive solid geometry union operation, combining two meshes into a single solid.",
     inlinable: false,
+    usage: 10,
     inputs: [
       {
         name: "meshA",

@@ -70,6 +70,7 @@ export class CgsTorusNode extends ExecutableNode {
     documentation:
       "Creates a torus (donut shape) with specified main radius and tube radius. Adjust radial and tubular segments for quality vs. performance. Useful for rings, handles, and rounded shapes.",
     inlinable: false,
+    usage: 10,
     inputs: [
       {
         name: "radius",

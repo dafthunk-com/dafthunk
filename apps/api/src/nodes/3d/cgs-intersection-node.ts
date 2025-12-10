@@ -81,6 +81,7 @@ export class CgsIntersectionNode extends ExecutableNode {
     documentation:
       "Performs a constructive solid geometry intersection operation, keeping only the overlapping region of two meshes.",
     inlinable: false,
+    usage: 10,
     inputs: [
       {
         name: "meshA",

@@ -64,6 +64,7 @@ export class CgsCubeNode extends ExecutableNode {
     documentation:
       "Creates a cube with specified dimensions. Size can be a single number for uniform dimensions or [x, y, z] for custom width, height, and depth.",
     inlinable: false,
+    usage: 10,
     inputs: [
       {
         name: "size",
