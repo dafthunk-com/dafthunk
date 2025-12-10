@@ -115,11 +115,11 @@ function createColumns(
       },
     },
     {
-      id: "devEndpoint",
-      header: "Development Endpoint",
+      id: "prodEndpoint",
+      header: "Production Endpoint",
       cell: ({ row }) => {
         const queue = row.original;
-        const endpoint = `/api/queues/${queue.handle}/publish/dev`;
+        const endpoint = `/api/queues/${queue.handle}/publish`;
         return (
           <span className="text-sm text-muted-foreground font-mono">
             {endpoint}
@@ -128,11 +128,11 @@ function createColumns(
       },
     },
     {
-      id: "prodEndpoint",
-      header: "Production Endpoint",
+      id: "devEndpoint",
+      header: "Development Endpoint",
       cell: ({ row }) => {
         const queue = row.original;
-        const endpoint = `/api/queues/${queue.handle}/publish`;
+        const endpoint = `/api/queues/${queue.handle}/publish/dev`;
         return (
           <span className="text-sm text-muted-foreground font-mono">
             {endpoint}

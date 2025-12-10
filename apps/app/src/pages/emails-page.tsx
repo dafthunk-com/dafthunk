@@ -115,22 +115,22 @@ function createColumns(
       },
     },
     {
-      id: "devEmailAddress",
-      header: "Development Email",
+      id: "prodEmailAddress",
+      header: "Production Email",
       cell: ({ row }) => {
         const email = row.original;
-        const emailAddress = `${orgHandle}+${email.handle}+dev@dafthunk.com`;
+        const emailAddress = `${orgHandle}+${email.handle}@dafthunk.com`;
         return (
           <span className="text-sm text-muted-foreground">{emailAddress}</span>
         );
       },
     },
     {
-      id: "prodEmailAddress",
-      header: "Production Email",
+      id: "devEmailAddress",
+      header: "Development Email",
       cell: ({ row }) => {
         const email = row.original;
-        const emailAddress = `${orgHandle}+${email.handle}@dafthunk.com`;
+        const emailAddress = `${orgHandle}+${email.handle}+dev@dafthunk.com`;
         return (
           <span className="text-sm text-muted-foreground">{emailAddress}</span>
         );
