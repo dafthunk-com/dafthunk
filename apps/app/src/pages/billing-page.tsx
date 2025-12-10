@@ -421,15 +421,6 @@ export function BillingPage() {
                     </p>
                   </div>
                 </li>
-                <li className="flex items-start gap-2">
-                  <Sparkles className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                  <div>
-                    <span className="font-medium">Priority support</span>
-                    <p className="text-muted-foreground">
-                      Get faster responses from our support team
-                    </p>
-                  </div>
-                </li>
               </ul>
             </CardContent>
           </Card>
