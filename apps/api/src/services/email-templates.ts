@@ -17,6 +17,7 @@ export interface InvitationEmailParams {
 export function getInvitationEmail(params: InvitationEmailParams): {
   subject: string;
   text: string;
+  html: string;
 } {
   const { organizationName, inviterName, role, expiresAt, appUrl } = params;
   const invitationsUrl = `${appUrl}/settings/invitations`;
@@ -38,5 +39,9 @@ This invite expires on ${expiresFormatted}.
 Dafthunk · Visual workflow automation
 https://dafthunk.com`;
 
-  return { subject, text };
+  const html = `<p>${inviterName} invited you to join ${organizationName} on Dafthunk as a ${role}.</p>
+<p><a href="${invitationsUrl}">View Invitation</a></p>
+<p>This invite expires on ${expiresFormatted}.</p>`;
+
+  return { subject, text, html };
 }
