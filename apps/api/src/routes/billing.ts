@@ -12,7 +12,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 
 import { jwtMiddleware } from "../auth";
-import { PRO_INCLUDED_CREDITS } from "../constants/billing";
+import { PRO_INCLUDED_CREDITS, TRIAL_CREDITS } from "../constants/billing";
 import type { ApiContext } from "../context";
 import { createDatabase, organizations } from "../db";
 import { createStripeService } from "../services/stripe-service";
@@ -81,8 +81,8 @@ billing.get("/", async (c) => {
       org.currentPeriodEnd &&
       new Date(org.currentPeriodEnd) > new Date());
   const plan = hasProAccess ? "pro" : "trial";
-  // Always use the constant for Pro included credits (database value may be outdated)
-  const includedCredits = hasProAccess ? PRO_INCLUDED_CREDITS : 0;
+  // Use constants for included credits (database value may be outdated)
+  const includedCredits = hasProAccess ? PRO_INCLUDED_CREDITS : TRIAL_CREDITS;
 
   const response: GetBillingResponse = {
     billing: {
