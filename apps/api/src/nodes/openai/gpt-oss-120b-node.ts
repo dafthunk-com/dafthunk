@@ -1,7 +1,13 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
-import { ExecutableNode } from "../types";
-import { NodeContext } from "../types";
+import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
+import { ExecutableNode, NodeContext } from "../types";
+
+// https://developers.cloudflare.com/workers-ai/platform/pricing/
+const PRICING: TokenPricing = {
+  inputCostPerMillion: 0.35,
+  outputCostPerMillion: 0.75,
+};
 
 /**
  * GPT-OSS-120B node implementation following Cloudflare Workers AI API
@@ -20,7 +26,7 @@ export class GptOss120BNode extends ExecutableNode {
       "This node uses OpenAI's GPT-OSS-120B model, an open-weight model designed for powerful reasoning and agentic tasks.",
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/gpt-oss-120b/",
-    usage: 35,
+    usage: 1,
     inputs: [
       {
         name: "instructions",
@@ -74,9 +80,14 @@ export class GptOss120BNode extends ExecutableNode {
       );
       const responseText = messageOutput?.content?.[0]?.text || "";
 
-      return this.createSuccessResult({
-        response: responseText,
-      });
+      // Calculate usage (estimates tokens since Cloudflare doesn't provide counts)
+      const usage = calculateTokenUsage(
+        (instructions || "") + input,
+        responseText,
+        PRICING
+      );
+
+      return this.createSuccessResult({ response: responseText }, usage);
     } catch (error) {
       console.error(error);
       return this.createErrorResult(

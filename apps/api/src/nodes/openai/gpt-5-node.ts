@@ -2,8 +2,14 @@ import { NodeExecution, NodeType } from "@dafthunk/types";
 import OpenAI from "openai";
 
 import { getOpenAIConfig } from "../../utils/ai-gateway";
-import { ExecutableNode } from "../types";
-import { NodeContext } from "../types";
+import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
+import { ExecutableNode, NodeContext } from "../types";
+
+// https://openai.com/api/pricing/
+const PRICING: TokenPricing = {
+  inputCostPerMillion: 1.25,
+  outputCostPerMillion: 10.0,
+};
 
 /**
  * GPT-5 node implementation using the OpenAI SDK
@@ -19,7 +25,7 @@ export class Gpt5Node extends ExecutableNode {
     icon: "sparkles",
     documentation:
       "This node uses OpenAI's GPT-5 model to generate text responses based on input prompts.",
-    usage: 35,
+    usage: 1,
     inputs: [
       {
         name: "instructions",
@@ -72,9 +78,14 @@ export class Gpt5Node extends ExecutableNode {
 
       const responseText = completion.choices[0]?.message?.content || "";
 
-      return this.createSuccessResult({
-        text: responseText,
-      });
+      // Calculate dynamic usage based on actual token consumption
+      const usage = calculateTokenUsage(
+        completion.usage?.prompt_tokens ?? 0,
+        completion.usage?.completion_tokens ?? 0,
+        PRICING
+      );
+
+      return this.createSuccessResult({ text: responseText }, usage);
     } catch (error) {
       console.error(error);
       if (error instanceof OpenAI.APIError) {

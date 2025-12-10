@@ -1,5 +1,6 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
+import { calculateBrowserUsage } from "../../utils/usage";
 import { ExecutableNode, NodeContext } from "../types";
 
 /**
@@ -98,6 +99,7 @@ export class CloudflareBrowserContentNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
+    const startTime = Date.now();
     const {
       url,
       html,
@@ -170,10 +172,9 @@ export class CloudflareBrowserContentNode extends ExecutableNode {
           "Cloudflare API error: No content returned"
         );
       }
-      return this.createSuccessResult({
-        status,
-        html,
-      });
+      const usage = calculateBrowserUsage(Date.now() - startTime);
+
+      return this.createSuccessResult({ status, html }, usage);
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : String(error)

@@ -1,7 +1,15 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
+import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
 import { NodeContext } from "../types";
 import { ExecutableNode } from "../types";
+
+// https://developers.cloudflare.com/workers-ai/platform/pricing/
+// Cloudflare Workers AI: UForm-Gen2 500M image captioning (smaller model)
+const PRICING: TokenPricing = {
+  inputCostPerMillion: 0.03,
+  outputCostPerMillion: 0.06,
+};
 
 /**
  * Image-to-Text node implementation using UForm-Gen2
@@ -19,7 +27,7 @@ export class UformGen2Qwen500mNode extends ExecutableNode {
       "This node generates images from text descriptions using the UForm Gen2 Qwen 500M model for efficient image creation.",
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/uform-gen2-qwen-500m/",
-    usage: 10,
+    usage: 1,
     inputs: [
       {
         name: "image",
@@ -119,9 +127,19 @@ export class UformGen2Qwen500mNode extends ExecutableNode {
         throw new Error("No description received from the API");
       }
 
-      return this.createSuccessResult({
-        description: response.description,
-      });
+      // Calculate usage based on image size and output text
+      // Estimate input as image bytes / 100 + prompt tokens
+      const imageTokenEstimate = Math.ceil(imageData.length / 100);
+      const usage = calculateTokenUsage(
+        imageTokenEstimate + (prompt || "").length / 4,
+        response.description || "",
+        PRICING
+      );
+
+      return this.createSuccessResult(
+        { description: response.description },
+        usage
+      );
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"

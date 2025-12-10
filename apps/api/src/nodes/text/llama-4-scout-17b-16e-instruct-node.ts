@@ -1,10 +1,18 @@
 import { runWithTools } from "@cloudflare/ai-utils";
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
+import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
 import { ToolCallTracker } from "../base-tool-registry";
 import { ToolReference } from "../tool-types";
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
+
+// https://developers.cloudflare.com/workers-ai/platform/pricing/
+// Cloudflare Workers AI: ~$0.011 per 1000 neurons, estimated for 17B MoE model
+const PRICING: TokenPricing = {
+  inputCostPerMillion: 0.15,
+  outputCostPerMillion: 0.3,
+};
 
 /**
  * Llama 4 Scout 17B 16E Instruct Node implementation with function calling support
@@ -22,7 +30,7 @@ export class Llama4Scout17B16EInstructNode extends ExecutableNode {
       "This node generates text with function calling support using Meta's Llama 4 Scout 17B 16E Instruct model.",
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/llama-4-scout-17b-16e-instruct/",
-    usage: 10,
+    usage: 1,
     functionCalling: true,
     inputs: [
       {
@@ -210,12 +218,22 @@ export class Llama4Scout17B16EInstructNode extends ExecutableNode {
         );
       }
 
-      return this.createSuccessResult({
-        response: result.response,
-        ...(executedToolCalls.length > 0
-          ? { tool_calls: executedToolCalls }
-          : {}),
-      });
+      // Calculate usage based on text length estimation
+      const usage = calculateTokenUsage(
+        prompt || "",
+        result.response || "",
+        PRICING
+      );
+
+      return this.createSuccessResult(
+        {
+          response: result.response,
+          ...(executedToolCalls.length > 0
+            ? { tool_calls: executedToolCalls }
+            : {}),
+        },
+        usage
+      );
     } catch (error) {
       console.error(error);
       return this.createErrorResult(

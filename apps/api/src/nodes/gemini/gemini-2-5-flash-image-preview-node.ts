@@ -2,8 +2,15 @@ import { NodeExecution, NodeType } from "@dafthunk/types";
 import { GoogleGenAI } from "@google/genai";
 
 import { getGoogleAIConfig } from "../../utils/ai-gateway";
+import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
+
+// https://ai.google.dev/pricing (Gemini 2.5 Flash image generation)
+const PRICING: TokenPricing = {
+  inputCostPerMillion: 0.3,
+  outputCostPerMillion: 2.5,
+};
 
 /**
  * Gemini 2.5 Flash Image Preview node implementation using the Google GenAI SDK
@@ -19,7 +26,7 @@ export class Gemini25FlashImagePreviewNode extends ExecutableNode {
     icon: "image",
     documentation:
       "This node uses Google's Gemini 2.5 Flash Image Preview model to generate images from text prompts and optional input images.",
-    usage: 25,
+    usage: 1,
     inputs: [
       {
         name: "prompt",
@@ -267,16 +274,26 @@ export class Gemini25FlashImagePreviewNode extends ExecutableNode {
         return this.createErrorResult(errorMessage);
       }
 
-      return this.createSuccessResult({
-        image: {
-          data: imageData!,
-          mimeType: imageMimeType!,
+      // Calculate usage based on token counts
+      const usage = calculateTokenUsage(
+        usageMetadata?.promptTokenCount ?? 0,
+        usageMetadata?.candidatesTokenCount ?? 0,
+        PRICING
+      );
+
+      return this.createSuccessResult(
+        {
+          image: {
+            data: imageData!,
+            mimeType: imageMimeType!,
+          },
+          ...(candidate && { candidates: [candidate] }),
+          ...(usageMetadata && { usage_metadata: usageMetadata }),
+          ...(promptFeedback && { prompt_feedback: promptFeedback }),
+          ...(finishReason && { finish_reason: finishReason }),
         },
-        ...(candidate && { candidates: [candidate] }),
-        ...(usageMetadata && { usage_metadata: usageMetadata }),
-        ...(promptFeedback && { prompt_feedback: promptFeedback }),
-        ...(finishReason && { finish_reason: finishReason }),
-      });
+        usage
+      );
     } catch (error) {
       console.error("Gemini Image Preview error:", error);
       return this.createErrorResult(

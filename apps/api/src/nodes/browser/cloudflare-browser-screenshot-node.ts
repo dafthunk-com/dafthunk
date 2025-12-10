@@ -1,5 +1,6 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
+import { calculateBrowserUsage } from "../../utils/usage";
 import { ExecutableNode, NodeContext } from "../types";
 
 /**
@@ -97,6 +98,7 @@ export class CloudflareBrowserScreenshotNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
+    const startTime = Date.now();
     const {
       url,
       html,
@@ -166,13 +168,18 @@ export class CloudflareBrowserScreenshotNode extends ExecutableNode {
           "Cloudflare API error: No valid screenshot data returned"
         );
       }
-      return this.createSuccessResult({
-        image: {
-          data: imageBuffer,
-          mimeType: "image/png",
+      const usage = calculateBrowserUsage(Date.now() - startTime);
+
+      return this.createSuccessResult(
+        {
+          image: {
+            data: imageBuffer,
+            mimeType: "image/png",
+          },
+          status: response.status,
         },
-        status: response.status,
-      });
+        usage
+      );
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : String(error)

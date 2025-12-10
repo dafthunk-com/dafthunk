@@ -1,7 +1,15 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
+import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
+
+// https://developers.cloudflare.com/workers-ai/platform/pricing/
+// Cloudflare Workers AI: reranker model
+const PRICING: TokenPricing = {
+  inputCostPerMillion: 0.03,
+  outputCostPerMillion: 0.03,
+};
 
 /**
  * Text reranking node implementation using BGE Reranker Base model
@@ -19,7 +27,7 @@ export class BgeRerankerBaseNode extends ExecutableNode {
       "This node reranks text passages based on their relevance to a query using BAAI's BGE Reranker Base model.",
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/bge-reranker-base/",
-    usage: 10,
+    usage: 1,
     asTool: true,
     inputs: [
       {
@@ -79,9 +87,15 @@ export class BgeRerankerBaseNode extends ExecutableNode {
           text: contexts[item.id as number],
         }));
 
-      return this.createSuccessResult({
-        rankings,
-      });
+      // Calculate usage based on text length estimation
+      const totalContextsText = contexts.join(" ");
+      const usage = calculateTokenUsage(
+        (query || "") + " " + totalContextsText,
+        "",
+        PRICING
+      );
+
+      return this.createSuccessResult({ rankings }, usage);
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"

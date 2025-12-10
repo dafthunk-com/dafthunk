@@ -18,6 +18,7 @@ export class PhotonWatermarkNode extends ExecutableNode {
     documentation:
       "This node adds a watermark image onto a main image at specified x, y coordinates.",
     inlinable: true,
+    usage: 10,
     inputs: [
       {
         name: "mainImage",

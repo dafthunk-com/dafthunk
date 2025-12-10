@@ -16,7 +16,7 @@ export class GetChannelDiscordNode extends ExecutableNode {
     icon: "hash",
     documentation:
       "This node retrieves detailed information about a Discord channel. Requires a connected Discord integration.",
-    usage: 5,
+    usage: 10,
     inputs: [
       {
         name: "integrationId",

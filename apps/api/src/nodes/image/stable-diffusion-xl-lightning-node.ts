@@ -1,7 +1,15 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
+import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
 import { NodeContext } from "../types";
 import { ExecutableNode } from "../types";
+
+// https://developers.cloudflare.com/workers-ai/platform/pricing/
+// Cloudflare Workers AI: SDXL Lightning image generation
+const PRICING: TokenPricing = {
+  inputCostPerMillion: 0.1,
+  outputCostPerMillion: 20.0, // Higher for image generation
+};
 
 /**
  * Image Generation node implementation using Stable Diffusion XL Lightning
@@ -19,7 +27,7 @@ export class StableDiffusionXLLightningNode extends ExecutableNode {
       "This node generates images rapidly from text descriptions using Stable Diffusion XL Lightning model for fast image generation.",
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/stable-diffusion-xl-lightning/",
-    usage: 10,
+    usage: 1,
     inputs: [
       {
         name: "prompt",
@@ -116,13 +124,25 @@ export class StableDiffusionXLLightningNode extends ExecutableNode {
         throw new Error("Received empty image data from the API");
       }
 
+      // Calculate usage based on prompt and image size
+      // Estimate image as output bytes / 1000 (rough approximation)
+      const imageTokenEstimate = Math.ceil(uint8Array.length / 1000);
+      const usage = calculateTokenUsage(
+        prompt || "",
+        imageTokenEstimate,
+        PRICING
+      );
+
       // Return the image data and MIME type - the runtime will handle storage
-      return this.createSuccessResult({
-        image: {
-          data: uint8Array,
-          mimeType: "image/jpeg",
+      return this.createSuccessResult(
+        {
+          image: {
+            data: uint8Array,
+            mimeType: "image/jpeg",
+          },
         },
-      });
+        usage
+      );
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"

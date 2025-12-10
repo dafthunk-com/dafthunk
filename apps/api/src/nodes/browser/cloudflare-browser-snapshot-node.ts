@@ -1,5 +1,6 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
+import { calculateBrowserUsage } from "../../utils/usage";
 import { ExecutableNode, NodeContext } from "../types";
 
 /**
@@ -84,6 +85,7 @@ export class CloudflareBrowserSnapshotNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
+    const startTime = Date.now();
     const {
       url,
       html,
@@ -166,14 +168,19 @@ export class CloudflareBrowserSnapshotNode extends ExecutableNode {
         );
       }
 
-      return this.createSuccessResult({
-        status,
-        content: json.result.content,
-        screenshot: {
-          data: new Uint8Array(screenshotData),
-          mimeType: "image/png",
+      const usage = calculateBrowserUsage(Date.now() - startTime);
+
+      return this.createSuccessResult(
+        {
+          status,
+          content: json.result.content,
+          screenshot: {
+            data: new Uint8Array(screenshotData),
+            mimeType: "image/png",
+          },
         },
-      });
+        usage
+      );
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : String(error)

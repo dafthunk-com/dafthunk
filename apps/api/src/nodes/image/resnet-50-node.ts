@@ -1,7 +1,15 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
+import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
+
+// https://developers.cloudflare.com/workers-ai/platform/pricing/
+// Cloudflare Workers AI: ResNet-50 image classification
+const PRICING: TokenPricing = {
+  inputCostPerMillion: 0.03,
+  outputCostPerMillion: 0.03,
+};
 
 /**
  * ResNet-50 node implementation for image classification
@@ -19,7 +27,7 @@ export class Resnet50Node extends ExecutableNode {
       "This node classifies images using the ResNet-50 model trained on ImageNet dataset.",
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/resnet-50/",
-    usage: 10,
+    usage: 1,
     inputs: [
       {
         name: "image",
@@ -55,9 +63,12 @@ export class Resnet50Node extends ExecutableNode {
         context.env.AI_OPTIONS
       );
 
-      return this.createSuccessResult({
-        classifications: result,
-      });
+      // Calculate usage based on image size
+      // Estimate input as image bytes / 100 (rough approximation)
+      const imageTokenEstimate = Math.ceil(image.data.length / 100);
+      const usage = calculateTokenUsage(imageTokenEstimate, "", PRICING);
+
+      return this.createSuccessResult({ classifications: result }, usage);
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"

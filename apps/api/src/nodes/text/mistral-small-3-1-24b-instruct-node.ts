@@ -1,10 +1,18 @@
 import { runWithTools } from "@cloudflare/ai-utils";
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
+import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
 import { ToolCallTracker } from "../base-tool-registry";
 import { ToolReference } from "../tool-types";
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
+
+// https://developers.cloudflare.com/workers-ai/platform/pricing/
+// Cloudflare Workers AI: ~$0.011 per 1000 neurons, estimated for 24B model
+const PRICING: TokenPricing = {
+  inputCostPerMillion: 0.2,
+  outputCostPerMillion: 0.4,
+};
 
 /**
  * Mistral Small 3.1 24B Instruct Node implementation with function calling support
@@ -22,7 +30,7 @@ export class MistralSmall31_24BInstructNode extends ExecutableNode {
       "This node generates text with function calling support using Mistral's Small 3.1 24B Instruct model.",
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/mistral-small-3.1-24b-instruct/",
-    usage: 10,
+    usage: 1,
     functionCalling: true,
     inputs: [
       {
@@ -209,12 +217,22 @@ export class MistralSmall31_24BInstructNode extends ExecutableNode {
         );
       }
 
-      return this.createSuccessResult({
-        response: result.response,
-        ...(executedToolCalls.length > 0
-          ? { tool_calls: executedToolCalls }
-          : {}),
-      });
+      // Calculate usage based on text length estimation
+      const usage = calculateTokenUsage(
+        prompt || "",
+        result.response || "",
+        PRICING
+      );
+
+      return this.createSuccessResult(
+        {
+          response: result.response,
+          ...(executedToolCalls.length > 0
+            ? { tool_calls: executedToolCalls }
+            : {}),
+        },
+        usage
+      );
     } catch (error) {
       console.error(error);
       return this.createErrorResult(

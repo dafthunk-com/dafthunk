@@ -18,6 +18,7 @@ export class PhotonAdjustBrightnessNode extends ExecutableNode {
     documentation:
       "This node adjusts image brightness. Positive values increase, negative values decrease.",
     inlinable: true,
+    usage: 10,
     inputs: [
       {
         name: "image",

@@ -1,7 +1,15 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
+import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
 import { NodeContext } from "../types";
 import { ExecutableNode } from "../types";
+
+// https://developers.cloudflare.com/workers-ai/platform/pricing/
+// Cloudflare Workers AI: MeloTTS model
+const PRICING: TokenPricing = {
+  inputCostPerMillion: 0.05,
+  outputCostPerMillion: 0.1,
+};
 
 /**
  * Text-to-Speech node implementation using MeloTTS
@@ -18,7 +26,7 @@ export class MelottsNode extends ExecutableNode {
       "This node converts text to natural-sounding speech using the MeloTTS model, supporting multiple languages.",
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/melotts/",
-    usage: 10,
+    usage: 1,
     inputs: [
       {
         name: "prompt",
@@ -101,9 +109,16 @@ export class MelottsNode extends ExecutableNode {
         mimeType: "audio/mpeg",
       };
 
-      return this.createSuccessResult({
-        audio: audioOutput,
-      });
+      // Calculate usage based on text input and audio output size
+      // Estimate output as audio bytes / 100 (rough approximation)
+      const audioTokenEstimate = Math.ceil(audioBuffer.byteLength / 100);
+      const usage = calculateTokenUsage(
+        prompt || "",
+        audioTokenEstimate,
+        PRICING
+      );
+
+      return this.createSuccessResult({ audio: audioOutput }, usage);
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"

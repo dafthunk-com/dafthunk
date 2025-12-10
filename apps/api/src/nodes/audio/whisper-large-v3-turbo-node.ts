@@ -1,7 +1,15 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
+import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
 import { NodeContext } from "../types";
 import { ExecutableNode } from "../types";
+
+// https://developers.cloudflare.com/workers-ai/platform/pricing/
+// Cloudflare Workers AI: Whisper Large V3 Turbo STT model
+const PRICING: TokenPricing = {
+  inputCostPerMillion: 0.1,
+  outputCostPerMillion: 0.1,
+};
 
 /**
  * Speech Recognition node implementation using Whisper Large V3 Turbo
@@ -19,7 +27,7 @@ export class WhisperLargeV3TurboNode extends ExecutableNode {
       "This node transcribes speech from audio files using OpenAI's Whisper Large V3 Turbo model, providing enhanced accuracy and multilingual support.",
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/whisper-large-v3-turbo/",
-    usage: 10,
+    usage: 1,
     inputs: [
       {
         name: "audio",
@@ -133,13 +141,25 @@ export class WhisperLargeV3TurboNode extends ExecutableNode {
         transcription_info: response.transcription_info,
       };
 
-      return this.createSuccessResult({
-        text: output.text,
-        word_count: output.word_count,
-        segments: output.segments,
-        vtt: output.vtt,
-        transcription_info: output.transcription_info,
-      });
+      // Calculate usage based on audio size and output text
+      // Estimate input as audio bytes / 100 (rough approximation for audio tokens)
+      const audioTokenEstimate = Math.ceil(audio.data.length / 100);
+      const usage = calculateTokenUsage(
+        audioTokenEstimate,
+        output.text || "",
+        PRICING
+      );
+
+      return this.createSuccessResult(
+        {
+          text: output.text,
+          word_count: output.word_count,
+          segments: output.segments,
+          vtt: output.vtt,
+          transcription_info: output.transcription_info,
+        },
+        usage
+      );
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"

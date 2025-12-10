@@ -1,7 +1,15 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
+import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
 import { NodeContext } from "../types";
 import { ExecutableNode } from "../types";
+
+// https://developers.cloudflare.com/workers-ai/platform/pricing/
+// Cloudflare Workers AI: SD v1.5 inpainting
+const PRICING: TokenPricing = {
+  inputCostPerMillion: 0.1,
+  outputCostPerMillion: 15.0, // Image inpainting model
+};
 /**
  * Image Inpainting node implementation using Stable Diffusion v1.5
  */
@@ -18,7 +26,7 @@ export class StableDiffusionV15InpaintingNode extends ExecutableNode {
       "This node fills in missing or masked areas of images using Stable Diffusion v1.5 inpainting model.",
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/stable-diffusion-v1-5-inpainting/",
-    usage: 10,
+    usage: 1,
     inputs: [
       {
         name: "prompt",
@@ -148,12 +156,24 @@ export class StableDiffusionV15InpaintingNode extends ExecutableNode {
         throw new Error("Received empty image data from the API");
       }
 
-      return this.createSuccessResult({
-        image: {
-          data: uint8Array,
-          mimeType: "image/png",
+      // Calculate usage based on prompt and image size
+      // Estimate image as output bytes / 1000 (rough approximation)
+      const imageTokenEstimate = Math.ceil(uint8Array.length / 1000);
+      const usage = calculateTokenUsage(
+        prompt || "",
+        imageTokenEstimate,
+        PRICING
+      );
+
+      return this.createSuccessResult(
+        {
+          image: {
+            data: uint8Array,
+            mimeType: "image/png",
+          },
         },
-      });
+        usage
+      );
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"

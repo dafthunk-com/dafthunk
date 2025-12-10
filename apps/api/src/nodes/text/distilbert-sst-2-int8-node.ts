@@ -1,7 +1,15 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
+import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
+
+// https://developers.cloudflare.com/workers-ai/platform/pricing/
+// Cloudflare Workers AI: sentiment classification model (small)
+const PRICING: TokenPricing = {
+  inputCostPerMillion: 0.02,
+  outputCostPerMillion: 0.02,
+};
 
 /**
  * Sentiment classification node implementation using distilbert-sst-2-int8 model
@@ -19,7 +27,7 @@ export class DistilbertSst2Int8Node extends ExecutableNode {
       "This node analyzes the sentiment of text using Hugging Face's Distilbert SST-2 Int8 model.",
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/distilbert-sst-2-int8/",
-    usage: 10,
+    usage: 1,
     inputs: [
       {
         name: "text",
@@ -61,10 +69,17 @@ export class DistilbertSst2Int8Node extends ExecutableNode {
       // The model returns an array of classifications (positive and negative)
       const negative = result[0];
       const positive = result[1];
-      return this.createSuccessResult({
-        positive: positive.score,
-        negative: negative.score,
-      });
+
+      // Calculate usage based on text length estimation
+      const usage = calculateTokenUsage(text || "", "", PRICING);
+
+      return this.createSuccessResult(
+        {
+          positive: positive.score,
+          negative: negative.score,
+        },
+        usage
+      );
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"

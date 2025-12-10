@@ -1,10 +1,18 @@
 import { runWithTools } from "@cloudflare/ai-utils";
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
+import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
 import { ToolCallTracker } from "../base-tool-registry";
 import { ToolReference } from "../tool-types";
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
+
+// https://developers.cloudflare.com/workers-ai/platform/pricing/
+// Cloudflare Workers AI: ~$0.011 per 1000 neurons, estimated for 70B model
+const PRICING: TokenPricing = {
+  inputCostPerMillion: 0.35,
+  outputCostPerMillion: 0.75,
+};
 
 /**
  * Llama 3.3 70B Instruct Fast Node implementation with comprehensive parameters
@@ -22,7 +30,7 @@ export class Llama3370BInstructFastNode extends ExecutableNode {
       "This node generates text using Meta's Llama 3.3 70B Instruct Fast model with fp8 precision and function calling capabilities.",
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/llama-3.3-70b-instruct-fp8-fast/",
-    usage: 10,
+    usage: 1,
     functionCalling: true,
     inputs: [
       {
@@ -196,12 +204,22 @@ export class Llama3370BInstructFastNode extends ExecutableNode {
         )) as AiTextGenerationOutput;
       }
 
-      return this.createSuccessResult({
-        response: result.response,
-        ...(executedToolCalls.length > 0
-          ? { tool_calls: executedToolCalls }
-          : {}),
-      });
+      // Calculate usage based on text length estimation
+      const usage = calculateTokenUsage(
+        prompt || "",
+        result.response || "",
+        PRICING
+      );
+
+      return this.createSuccessResult(
+        {
+          response: result.response,
+          ...(executedToolCalls.length > 0
+            ? { tool_calls: executedToolCalls }
+            : {}),
+        },
+        usage
+      );
     } catch (error) {
       console.error(error);
       return this.createErrorResult(

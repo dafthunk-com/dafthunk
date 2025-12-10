@@ -16,7 +16,7 @@ export class LikePostLinkedInNode extends ExecutableNode {
     icon: "heart",
     documentation:
       "This node likes a post, share, or comment on behalf of the authenticated member. Requires the w_member_social scope. Requires a connected LinkedIn integration.",
-    usage: 5,
+    usage: 10,
     inputs: [
       {
         name: "integrationId",

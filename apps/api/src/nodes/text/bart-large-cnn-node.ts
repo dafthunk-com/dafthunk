@@ -1,7 +1,15 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
+import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
+
+// https://developers.cloudflare.com/workers-ai/platform/pricing/
+// Cloudflare Workers AI: summarization model
+const PRICING: TokenPricing = {
+  inputCostPerMillion: 0.05,
+  outputCostPerMillion: 0.1,
+};
 /**
  * Summarization node implementation using bart-large-cnn model
  */
@@ -17,7 +25,7 @@ export class BartLargeCnnNode extends ExecutableNode {
       "This node summarizes text using Facebook's BART-large-CNN model.",
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/bart-large-cnn/",
-    usage: 10,
+    usage: 1,
     inputs: [
       {
         name: "inputText",
@@ -59,9 +67,14 @@ export class BartLargeCnnNode extends ExecutableNode {
         context.env.AI_OPTIONS
       );
 
-      return this.createSuccessResult({
-        summary: result.summary,
-      });
+      // Calculate usage based on text length estimation
+      const usage = calculateTokenUsage(
+        inputText || "",
+        result.summary || "",
+        PRICING
+      );
+
+      return this.createSuccessResult({ summary: result.summary }, usage);
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"

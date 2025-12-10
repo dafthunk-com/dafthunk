@@ -2,8 +2,14 @@ import Anthropic, { APIError } from "@anthropic-ai/sdk";
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
 import { getAnthropicConfig } from "../../utils/ai-gateway";
-import { ExecutableNode } from "../types";
-import { NodeContext } from "../types";
+import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
+import { ExecutableNode, NodeContext } from "../types";
+
+// https://www.anthropic.com/pricing
+const PRICING: TokenPricing = {
+  inputCostPerMillion: 3.0,
+  outputCostPerMillion: 15.0,
+};
 
 /**
  * Claude Sonnet 4 node implementation using the Anthropic SDK
@@ -19,7 +25,7 @@ export class ClaudeSonnet4Node extends ExecutableNode {
     icon: "sparkles",
     documentation:
       "This node uses Anthropic's Claude Sonnet 4 model to generate text responses based on input prompts.",
-    usage: 30,
+    usage: 1,
     inputs: [
       {
         name: "instructions",
@@ -71,9 +77,13 @@ export class ClaudeSonnet4Node extends ExecutableNode {
         .map((block) => block.text)
         .join("");
 
-      return this.createSuccessResult({
-        text: responseText,
-      });
+      const usage = calculateTokenUsage(
+        response.usage.input_tokens,
+        response.usage.output_tokens,
+        PRICING
+      );
+
+      return this.createSuccessResult({ text: responseText }, usage);
     } catch (error) {
       console.error(error);
       if (error instanceof APIError) {

@@ -2,8 +2,15 @@ import { NodeExecution, NodeType } from "@dafthunk/types";
 import { GoogleGenAI } from "@google/genai";
 
 import { getGoogleAIConfig } from "../../utils/ai-gateway";
+import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
+
+// https://ai.google.dev/pricing (Gemini 2.5 Flash TTS)
+const PRICING: TokenPricing = {
+  inputCostPerMillion: 0.3,
+  outputCostPerMillion: 2.5,
+};
 
 /**
  * Convert PCM audio data to WAV format
@@ -66,7 +73,7 @@ export class Gemini25FlashTtsNode extends ExecutableNode {
     icon: "volume-2",
     documentation:
       "This node uses Google's Gemini 2.5 Flash Preview TTS model to generate speech from text.",
-    usage: 20,
+    usage: 1,
     inputs: [
       {
         name: "text",
@@ -271,14 +278,24 @@ export class Gemini25FlashTtsNode extends ExecutableNode {
         return this.createErrorResult(errorMessage);
       }
 
-      return this.createSuccessResult({
-        audio: {
-          data: audioData!,
-          mimeType: "audio/wav",
+      // Calculate usage based on token counts
+      const usage = calculateTokenUsage(
+        usageMetadata?.promptTokenCount ?? 0,
+        usageMetadata?.candidatesTokenCount ?? 0,
+        PRICING
+      );
+
+      return this.createSuccessResult(
+        {
+          audio: {
+            data: audioData!,
+            mimeType: "audio/wav",
+          },
+          ...(usageMetadata && { usage_metadata: usageMetadata }),
+          ...(finishReason && { finish_reason: finishReason }),
         },
-        ...(usageMetadata && { usage_metadata: usageMetadata }),
-        ...(finishReason && { finish_reason: finishReason }),
-      });
+        usage
+      );
     } catch (error) {
       console.error("Gemini TTS error:", error);
       return this.createErrorResult(

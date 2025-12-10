@@ -1,7 +1,15 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
+import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
+
+// https://developers.cloudflare.com/workers-ai/platform/pricing/
+// Cloudflare Workers AI: FLUX.1 schnell image generation
+const PRICING: TokenPricing = {
+  inputCostPerMillion: 0.1,
+  outputCostPerMillion: 25.0, // Higher for image generation
+};
 /**
  * FLUX.1 schnell node implementation for text-to-image generation
  */
@@ -18,7 +26,7 @@ export class Flux1SchnellNode extends ExecutableNode {
       "This node generates images from text descriptions using the Flux 1 Schnell model for rapid image creation.",
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/flux-1-schnell/",
-    usage: 10,
+    usage: 1,
     inputs: [
       {
         name: "prompt",
@@ -68,12 +76,24 @@ export class Flux1SchnellNode extends ExecutableNode {
         bytes[i] = binaryString.charCodeAt(i);
       }
 
-      return this.createSuccessResult({
-        image: {
-          data: bytes,
-          mimeType: "image/jpeg",
+      // Calculate usage based on prompt and image size
+      // Estimate image as output bytes / 1000 (rough approximation)
+      const imageTokenEstimate = Math.ceil(bytes.length / 1000);
+      const usage = calculateTokenUsage(
+        prompt || "",
+        imageTokenEstimate,
+        PRICING
+      );
+
+      return this.createSuccessResult(
+        {
+          image: {
+            data: bytes,
+            mimeType: "image/jpeg",
+          },
         },
-      });
+        usage
+      );
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"

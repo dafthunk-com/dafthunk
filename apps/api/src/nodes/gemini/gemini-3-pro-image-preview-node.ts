@@ -2,8 +2,15 @@ import { NodeExecution, NodeType } from "@dafthunk/types";
 import { GoogleGenAI } from "@google/genai";
 
 import { getGoogleAIConfig } from "../../utils/ai-gateway";
+import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
+
+// https://ai.google.dev/pricing (Gemini 3 Pro Preview)
+const PRICING: TokenPricing = {
+  inputCostPerMillion: 2.0,
+  outputCostPerMillion: 12.0,
+};
 
 /**
  * Gemini 3 Pro Image Preview node implementation using the Google GenAI SDK
@@ -20,7 +27,7 @@ export class Gemini3ProImagePreviewNode extends ExecutableNode {
     icon: "image",
     documentation:
       "This node uses Google's Gemini 3 Pro Image Preview model for high-fidelity image generation with advanced reasoning, complex multi-turn creation, and high-resolution output (up to 4K).",
-    usage: 100,
+    usage: 1,
     inputs: [
       {
         name: "prompt",
@@ -321,16 +328,26 @@ export class Gemini3ProImagePreviewNode extends ExecutableNode {
         return this.createErrorResult(errorMessage);
       }
 
-      return this.createSuccessResult({
-        image: {
-          data: imageData!,
-          mimeType: imageMimeType!,
+      // Calculate usage based on token counts
+      const usage = calculateTokenUsage(
+        usageMetadata?.promptTokenCount ?? 0,
+        usageMetadata?.candidatesTokenCount ?? 0,
+        PRICING
+      );
+
+      return this.createSuccessResult(
+        {
+          image: {
+            data: imageData!,
+            mimeType: imageMimeType!,
+          },
+          ...(candidate && { candidates: [candidate] }),
+          ...(usageMetadata && { usage_metadata: usageMetadata }),
+          ...(promptFeedback && { prompt_feedback: promptFeedback }),
+          ...(finishReason && { finish_reason: finishReason }),
         },
-        ...(candidate && { candidates: [candidate] }),
-        ...(usageMetadata && { usage_metadata: usageMetadata }),
-        ...(promptFeedback && { prompt_feedback: promptFeedback }),
-        ...(finishReason && { finish_reason: finishReason }),
-      });
+        usage
+      );
     } catch (error) {
       console.error("Gemini 3 Pro Image Preview error:", error);
       return this.createErrorResult(

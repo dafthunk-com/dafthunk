@@ -1,7 +1,15 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
+import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
 import { NodeContext } from "../types";
 import { ExecutableNode } from "../types";
+
+// https://developers.cloudflare.com/workers-ai/platform/pricing/
+// Cloudflare Workers AI: SD v1.5 img2img
+const PRICING: TokenPricing = {
+  inputCostPerMillion: 0.1,
+  outputCostPerMillion: 15.0, // Image transformation model
+};
 
 /**
  * Image Transformation node implementation using Stable Diffusion v1.5 img2img
@@ -19,7 +27,7 @@ export class StableDiffusionV15Img2ImgNode extends ExecutableNode {
       "This node transforms existing images based on text descriptions using Stable Diffusion v1.5 img2img model.",
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/stable-diffusion-v1-5-img2img/",
-    usage: 10,
+    usage: 1,
     inputs: [
       {
         name: "prompt",
@@ -123,12 +131,24 @@ export class StableDiffusionV15Img2ImgNode extends ExecutableNode {
         throw new Error("Received empty image data from the API");
       }
 
-      return this.createSuccessResult({
-        image: {
-          data: uint8Array,
-          mimeType: "image/png",
+      // Calculate usage based on prompt and image size
+      // Estimate image as output bytes / 1000 (rough approximation)
+      const imageTokenEstimate = Math.ceil(uint8Array.length / 1000);
+      const usage = calculateTokenUsage(
+        prompt || "",
+        imageTokenEstimate,
+        PRICING
+      );
+
+      return this.createSuccessResult(
+        {
+          image: {
+            data: uint8Array,
+            mimeType: "image/png",
+          },
         },
-      });
+        usage
+      );
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"

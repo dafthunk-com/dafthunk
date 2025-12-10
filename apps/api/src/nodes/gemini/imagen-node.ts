@@ -2,8 +2,15 @@ import { NodeExecution, NodeType } from "@dafthunk/types";
 import { GoogleGenAI } from "@google/genai";
 
 import { getGoogleAIConfig } from "../../utils/ai-gateway";
+import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
+
+// https://ai.google.dev/pricing (Imagen 4: ~$0.04 per image, using token estimation)
+const PRICING: TokenPricing = {
+  inputCostPerMillion: 0.3,
+  outputCostPerMillion: 40.0, // Higher output cost to account for image generation
+};
 
 /**
  * Imagen node implementation using the Google GenAI SDK
@@ -20,7 +27,7 @@ export class ImagenNode extends ExecutableNode {
     icon: "image",
     documentation:
       "This node uses Google's Imagen model to generate high-fidelity images from text prompts.",
-    usage: 50,
+    usage: 1,
     inputs: [
       {
         name: "prompt",
@@ -195,13 +202,23 @@ export class ImagenNode extends ExecutableNode {
         return this.createErrorResult(errorMessage);
       }
 
-      return this.createSuccessResult({
-        image: {
-          data: imageData!,
-          mimeType: imageMimeType!,
+      // Calculate usage based on token counts
+      const usage = calculateTokenUsage(
+        usageMetadata?.promptTokenCount ?? 0,
+        usageMetadata?.totalTokenCount ?? 1000, // Imagen doesn't return candidatesTokenCount, use totalTokenCount
+        PRICING
+      );
+
+      return this.createSuccessResult(
+        {
+          image: {
+            data: imageData!,
+            mimeType: imageMimeType!,
+          },
+          ...(usageMetadata && { usage_metadata: usageMetadata }),
         },
-        ...(usageMetadata && { usage_metadata: usageMetadata }),
-      });
+        usage
+      );
     } catch (error) {
       console.error("Imagen error:", error);
       return this.createErrorResult(

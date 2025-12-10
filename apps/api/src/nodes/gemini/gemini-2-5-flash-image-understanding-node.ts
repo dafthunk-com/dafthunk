@@ -2,8 +2,15 @@ import { NodeExecution, NodeType } from "@dafthunk/types";
 import { GoogleGenAI } from "@google/genai";
 
 import { getGoogleAIConfig } from "../../utils/ai-gateway";
+import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
+
+// https://ai.google.dev/pricing (Gemini 2.5 Flash with image input)
+const PRICING: TokenPricing = {
+  inputCostPerMillion: 0.3,
+  outputCostPerMillion: 2.5,
+};
 
 /**
  * Gemini 2.5 Flash Image Understanding node implementation using the Google GenAI SDK
@@ -20,7 +27,7 @@ export class Gemini25FlashImageUnderstandingNode extends ExecutableNode {
     icon: "eye",
     documentation:
       "This node uses Google's Gemini 2.5 Flash model to analyze and understand image content.",
-    usage: 15,
+    usage: 1,
     inputs: [
       {
         name: "image",
@@ -133,10 +140,21 @@ export class Gemini25FlashImageUnderstandingNode extends ExecutableNode {
         return this.createErrorResult("No text generated in response");
       }
 
-      return this.createSuccessResult({
-        text: textParts,
-        finish_reason: candidate.finishReason || "STOP",
-      });
+      // Calculate usage based on token counts
+      const usageMetadata = response.usageMetadata;
+      const usage = calculateTokenUsage(
+        usageMetadata?.promptTokenCount ?? 0,
+        usageMetadata?.candidatesTokenCount ?? 0,
+        PRICING
+      );
+
+      return this.createSuccessResult(
+        {
+          text: textParts,
+          finish_reason: candidate.finishReason || "STOP",
+        },
+        usage
+      );
     } catch (error) {
       console.error("Gemini Image Understanding error:", error);
       return this.createErrorResult(

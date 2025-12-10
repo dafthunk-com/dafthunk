@@ -18,6 +18,7 @@ export class PhotonEmbossNode extends ExecutableNode {
     documentation:
       "This node applies an emboss effect to an image, giving it a carved or stamped appearance.",
     inlinable: true,
+    usage: 10,
     inputs: [
       {
         name: "image",

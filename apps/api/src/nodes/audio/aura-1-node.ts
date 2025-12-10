@@ -1,7 +1,15 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
+import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
 import { NodeContext } from "../types";
 import { ExecutableNode } from "../types";
+
+// https://developers.cloudflare.com/workers-ai/platform/pricing/
+// Cloudflare Workers AI: Aura-1 TTS model (Deepgram)
+const PRICING: TokenPricing = {
+  inputCostPerMillion: 0.1,
+  outputCostPerMillion: 0.2,
+};
 
 /**
  * Text-to-Speech node implementation using Aura-1
@@ -18,7 +26,7 @@ export class Aura1Node extends ExecutableNode {
     documentation:
       "This node converts text to natural-sounding speech using the Aura-1 model from Deepgram. Aura-1 applies natural pacing, expressiveness, and fillers based on the context of the provided text.",
     referenceUrl: "https://developers.cloudflare.com/workers-ai/models/aura-1/",
-    usage: 15,
+    usage: 1,
     inputs: [
       {
         name: "text",
@@ -156,9 +164,16 @@ export class Aura1Node extends ExecutableNode {
         mimeType: "audio/mpeg",
       };
 
-      return this.createSuccessResult({
-        audio: audioOutput,
-      });
+      // Calculate usage based on text input and audio output size
+      // Estimate output as audio bytes / 100 (rough approximation)
+      const audioTokenEstimate = Math.ceil(audioBuffer.byteLength / 100);
+      const usage = calculateTokenUsage(
+        text || "",
+        audioTokenEstimate,
+        PRICING
+      );
+
+      return this.createSuccessResult({ audio: audioOutput }, usage);
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"

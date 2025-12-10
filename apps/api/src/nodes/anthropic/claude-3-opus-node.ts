@@ -2,8 +2,14 @@ import Anthropic, { APIError } from "@anthropic-ai/sdk";
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
 import { getAnthropicConfig } from "../../utils/ai-gateway";
-import { ExecutableNode } from "../types";
-import { NodeContext } from "../types";
+import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
+import { ExecutableNode, NodeContext } from "../types";
+
+// https://www.anthropic.com/pricing
+const PRICING: TokenPricing = {
+  inputCostPerMillion: 15.0,
+  outputCostPerMillion: 75.0,
+};
 
 /**
  * Claude 3 Opus node implementation using the Anthropic SDK
@@ -19,7 +25,8 @@ export class Claude3OpusNode extends ExecutableNode {
     icon: "sparkles",
     documentation:
       "This node uses Anthropic's Claude 3 Opus model, a previous generation premium model that is still very capable.",
-    usage: 45,
+    inlinable: false,
+    usage: 1,
     inputs: [
       {
         name: "instructions",
@@ -71,9 +78,13 @@ export class Claude3OpusNode extends ExecutableNode {
         .map((block) => block.text)
         .join("");
 
-      return this.createSuccessResult({
-        response: responseText,
-      });
+      const usage = calculateTokenUsage(
+        response.usage.input_tokens,
+        response.usage.output_tokens,
+        PRICING
+      );
+
+      return this.createSuccessResult({ response: responseText }, usage);
     } catch (error) {
       console.error(error);
       if (error instanceof APIError) {

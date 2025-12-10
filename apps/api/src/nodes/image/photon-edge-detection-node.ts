@@ -16,6 +16,7 @@ export class PhotonEdgeDetectionNode extends ExecutableNode {
     icon: "minimize-2",
     documentation: "This node highlights edges in an image using Photon.",
     inlinable: true,
+    usage: 10,
     inputs: [
       {
         name: "image",

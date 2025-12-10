@@ -1,7 +1,15 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
+import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
 import { NodeContext } from "../types";
 import { ExecutableNode } from "../types";
+
+// https://developers.cloudflare.com/workers-ai/platform/pricing/
+// Cloudflare Workers AI: LLaVA 1.5 7B vision-language model
+const PRICING: TokenPricing = {
+  inputCostPerMillion: 0.08,
+  outputCostPerMillion: 0.15,
+};
 
 /**
  * Image-to-Text node implementation using LLaVA 1.5 7B HF
@@ -19,7 +27,7 @@ export class LLaVA157BHFNode extends ExecutableNode {
       "This node generates text descriptions from images using the LLaVA 1.5 7B model for image-to-text analysis.",
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/llava-1.5-7b-hf/",
-    usage: 10,
+    usage: 1,
     inputs: [
       {
         name: "image",
@@ -106,9 +114,19 @@ export class LLaVA157BHFNode extends ExecutableNode {
         context.env.AI_OPTIONS
       );
 
-      return this.createSuccessResult({
-        description: response.description,
-      });
+      // Calculate usage based on image size and output text
+      // Estimate input as image bytes / 100 + prompt tokens
+      const imageTokenEstimate = Math.ceil(image.data.length / 100);
+      const usage = calculateTokenUsage(
+        imageTokenEstimate + (prompt || "").length / 4,
+        response.description || "",
+        PRICING
+      );
+
+      return this.createSuccessResult(
+        { description: response.description },
+        usage
+      );
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"

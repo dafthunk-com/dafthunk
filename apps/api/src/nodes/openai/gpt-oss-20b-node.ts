@@ -1,7 +1,13 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
-import { ExecutableNode } from "../types";
-import { NodeContext } from "../types";
+import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
+import { ExecutableNode, NodeContext } from "../types";
+
+// https://developers.cloudflare.com/workers-ai/platform/pricing/
+const PRICING: TokenPricing = {
+  inputCostPerMillion: 0.2,
+  outputCostPerMillion: 0.3,
+};
 
 /**
  * GPT-OSS-20B node implementation following Cloudflare Workers AI API
@@ -16,12 +22,12 @@ export class GptOss20BNode extends ExecutableNode {
     description:
       "OpenAI's open-weight model for lower latency and specialized use cases",
     tags: ["AI", "LLM", "OpenAI", "GPT"],
-    icon: "sparkles",
+    icon: "zap",
     documentation:
       "This node uses OpenAI's GPT-OSS-20B model, an open-weight model designed for lower latency and specialized use cases.",
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/gpt-oss-20b/",
-    usage: 20,
+    usage: 1,
     inputs: [
       {
         name: "instructions",
@@ -75,9 +81,14 @@ export class GptOss20BNode extends ExecutableNode {
       );
       const responseText = messageOutput?.content?.[0]?.text || "";
 
-      return this.createSuccessResult({
-        response: responseText,
-      });
+      // Calculate usage (estimates tokens since Cloudflare doesn't provide counts)
+      const usage = calculateTokenUsage(
+        (instructions || "") + input,
+        responseText,
+        PRICING
+      );
+
+      return this.createSuccessResult({ response: responseText }, usage);
     } catch (error) {
       console.error(error);
       return this.createErrorResult(

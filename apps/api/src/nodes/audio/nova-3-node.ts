@@ -1,7 +1,15 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
+import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
 import { NodeContext } from "../types";
 import { ExecutableNode } from "../types";
+
+// https://developers.cloudflare.com/workers-ai/platform/pricing/
+// Cloudflare Workers AI: Nova-3 STT model (Deepgram)
+const PRICING: TokenPricing = {
+  inputCostPerMillion: 0.08,
+  outputCostPerMillion: 0.08,
+};
 
 /**
  * Speech Recognition node implementation using Nova-3
@@ -18,7 +26,7 @@ export class Nova3Node extends ExecutableNode {
     documentation:
       "This node transcribes speech from audio files using Deepgram's Nova-3 model, providing high-quality speech-to-text conversion with advanced features like speaker diarization, sentiment analysis, and topic detection.",
     referenceUrl: "https://developers.cloudflare.com/workers-ai/models/nova-3/",
-    usage: 5,
+    usage: 1,
     inputs: [
       {
         name: "audio",
@@ -322,7 +330,16 @@ export class Nova3Node extends ExecutableNode {
         output.language = results.language;
       }
 
-      return this.createSuccessResult(output);
+      // Calculate usage based on audio size and output text
+      // Estimate input as audio bytes / 100 (rough approximation for audio tokens)
+      const audioTokenEstimate = Math.ceil(audio.data.length / 100);
+      const usage = calculateTokenUsage(
+        audioTokenEstimate,
+        output.text || "",
+        PRICING
+      );
+
+      return this.createSuccessResult(output, usage);
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"

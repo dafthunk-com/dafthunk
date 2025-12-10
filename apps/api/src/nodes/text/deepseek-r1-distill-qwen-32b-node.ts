@@ -1,7 +1,15 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
+import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
+
+// https://developers.cloudflare.com/workers-ai/platform/pricing/
+// Cloudflare Workers AI: ~$0.011 per 1000 neurons, estimated for 32B model
+const PRICING: TokenPricing = {
+  inputCostPerMillion: 0.25,
+  outputCostPerMillion: 0.5,
+};
 
 /**
  * DeepSeek R1 Distill Qwen 32B Node implementation with comprehensive parameters
@@ -24,7 +32,7 @@ export class DeepseekR1DistillQwen32BNode extends ExecutableNode {
       "This node generates text using DeepSeek's R1 Distill Qwen 32B model.",
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/deepseek-r1-distill-qwen-32b/",
-    usage: 10,
+    usage: 1,
     inputs: [
       {
         name: "prompt",
@@ -165,16 +173,26 @@ export class DeepseekR1DistillQwen32BNode extends ExecutableNode {
           if (done) break;
           streamedResponse += decoder.decode(value);
         }
-        return this.createSuccessResult({
-          response: streamedResponse,
-          usage: "", // Usage info might not be available for streams or needs different handling
-        });
+        // Calculate usage based on text length estimation
+        const usage = calculateTokenUsage(
+          prompt || "",
+          streamedResponse,
+          PRICING
+        );
+        return this.createSuccessResult({ response: streamedResponse }, usage);
       } else {
         // Handle non-stream response
         const typedResult = result as DeepseekNonStreamedOutput;
-        return this.createSuccessResult({
-          response: typedResult.response,
-        });
+        // Calculate usage based on text length estimation
+        const usage = calculateTokenUsage(
+          prompt || "",
+          typedResult.response || "",
+          PRICING
+        );
+        return this.createSuccessResult(
+          { response: typedResult.response },
+          usage
+        );
       }
     } catch (error) {
       console.error(error);

@@ -18,6 +18,7 @@ export class PhotonAdjustSaturationNode extends ExecutableNode {
     documentation:
       "This node adjusts image saturation using HSL. Level from 0.0 (no change) to 1.0 (max saturation increase).",
     inlinable: true,
+    usage: 10,
     inputs: [
       {
         name: "image",

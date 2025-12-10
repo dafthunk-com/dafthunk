@@ -1,5 +1,6 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
+import { calculateBrowserUsage } from "../../utils/usage";
 import { ExecutableNode, NodeContext } from "../types";
 
 /**
@@ -80,6 +81,7 @@ export class CloudflareBrowserLinksNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
+    const startTime = Date.now();
     const {
       url,
       html,
@@ -151,10 +153,9 @@ export class CloudflareBrowserLinksNode extends ExecutableNode {
           "Cloudflare API error: No links array returned"
         );
       }
-      return this.createSuccessResult({
-        status,
-        links: json.result,
-      });
+      const usage = calculateBrowserUsage(Date.now() - startTime);
+
+      return this.createSuccessResult({ status, links: json.result }, usage);
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : String(error)

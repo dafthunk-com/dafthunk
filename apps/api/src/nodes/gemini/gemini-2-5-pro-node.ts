@@ -2,9 +2,16 @@ import { NodeExecution, NodeType } from "@dafthunk/types";
 import { GoogleGenAI } from "@google/genai";
 
 import { getGoogleAIConfig } from "../../utils/ai-gateway";
+import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
 import { ToolReference } from "../tool-types";
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
+
+// https://ai.google.dev/pricing
+const PRICING: TokenPricing = {
+  inputCostPerMillion: 1.25,
+  outputCostPerMillion: 10.0,
+};
 
 /**
  * Gemini 2.5 Pro node implementation using the Google GenAI SDK
@@ -20,7 +27,7 @@ export class Gemini25ProNode extends ExecutableNode {
     icon: "sparkles",
     documentation:
       "This node uses Google's Gemini 2.5 Pro model, the most capable model for complex reasoning and creative tasks.",
-    usage: 40,
+    usage: 1,
     functionCalling: true,
     inputs: [
       {
@@ -268,19 +275,29 @@ export class Gemini25ProNode extends ExecutableNode {
       const promptFeedback = response.promptFeedback;
       const finishReason = candidate?.finishReason;
 
-      return this.createSuccessResult({
-        text: finalText,
-        ...(candidate && { candidates: [candidate] }),
-        ...(usageMetadata && { usage_metadata: usageMetadata }),
-        ...(promptFeedback && { prompt_feedback: promptFeedback }),
-        ...(finishReason && { finish_reason: finishReason }),
-        ...(executedToolCalls.length > 0
-          ? { tool_calls: executedToolCalls }
-          : {}),
-        ...(intermediaryMessages.length > 0
-          ? { intermediary_messages: intermediaryMessages }
-          : {}),
-      });
+      // Calculate usage based on token counts
+      const usage = calculateTokenUsage(
+        usageMetadata?.promptTokenCount ?? 0,
+        usageMetadata?.candidatesTokenCount ?? 0,
+        PRICING
+      );
+
+      return this.createSuccessResult(
+        {
+          text: finalText,
+          ...(candidate && { candidates: [candidate] }),
+          ...(usageMetadata && { usage_metadata: usageMetadata }),
+          ...(promptFeedback && { prompt_feedback: promptFeedback }),
+          ...(finishReason && { finish_reason: finishReason }),
+          ...(executedToolCalls.length > 0
+            ? { tool_calls: executedToolCalls }
+            : {}),
+          ...(intermediaryMessages.length > 0
+            ? { intermediary_messages: intermediaryMessages }
+            : {}),
+        },
+        usage
+      );
     } catch (error) {
       console.error(error);
       return this.createErrorResult(

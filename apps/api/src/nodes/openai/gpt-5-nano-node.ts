@@ -2,8 +2,14 @@ import { NodeExecution, NodeType } from "@dafthunk/types";
 import OpenAI from "openai";
 
 import { getOpenAIConfig } from "../../utils/ai-gateway";
-import { ExecutableNode } from "../types";
-import { NodeContext } from "../types";
+import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
+import { ExecutableNode, NodeContext } from "../types";
+
+// https://openai.com/api/pricing/
+const PRICING: TokenPricing = {
+  inputCostPerMillion: 0.05,
+  outputCostPerMillion: 0.4,
+};
 
 /**
  * GPT-5 Nano node implementation using the OpenAI SDK
@@ -16,10 +22,10 @@ export class Gpt5NanoNode extends ExecutableNode {
     type: "gpt-5-nano",
     description: "Ultra-lightweight, high-speed model",
     tags: ["AI", "LLM", "OpenAI", "GPT"],
-    icon: "sparkles",
+    icon: "zap",
     documentation:
       "This node uses OpenAI's GPT-5 Nano model, an ultra-lightweight, high-speed model.",
-    usage: 5,
+    usage: 1,
     inputs: [
       {
         name: "instructions",
@@ -72,9 +78,14 @@ export class Gpt5NanoNode extends ExecutableNode {
 
       const responseText = completion.choices[0]?.message?.content || "";
 
-      return this.createSuccessResult({
-        text: responseText,
-      });
+      // Calculate dynamic usage based on actual token consumption
+      const usage = calculateTokenUsage(
+        completion.usage?.prompt_tokens ?? 0,
+        completion.usage?.completion_tokens ?? 0,
+        PRICING
+      );
+
+      return this.createSuccessResult({ text: responseText }, usage);
     } catch (error) {
       console.error(error);
       if (error instanceof OpenAI.APIError) {

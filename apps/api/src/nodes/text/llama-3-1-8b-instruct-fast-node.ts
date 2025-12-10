@@ -1,7 +1,15 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
+import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
+
+// https://developers.cloudflare.com/workers-ai/platform/pricing/
+// Cloudflare Workers AI: ~$0.011 per 1000 neurons, estimated for 8B model
+const PRICING: TokenPricing = {
+  inputCostPerMillion: 0.1,
+  outputCostPerMillion: 0.1,
+};
 /**
  * Simplified LLM node implementation with essential parameters
  */
@@ -17,7 +25,7 @@ export class Llama318BInstructFastNode extends ExecutableNode {
       "This node generates text using Meta's Llama 3.1 8B Instruct Fast model.",
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/llama-3.1-8b-instruct-fast/",
-    usage: 10,
+    usage: 1,
     inputs: [
       {
         name: "prompt",
@@ -67,9 +75,14 @@ export class Llama318BInstructFastNode extends ExecutableNode {
         context.env.AI_OPTIONS
       )) as AiTextGenerationOutput;
 
-      return this.createSuccessResult({
-        response: result.response,
-      });
+      // Calculate usage based on text length estimation
+      const usage = calculateTokenUsage(
+        prompt || "",
+        result.response || "",
+        PRICING
+      );
+
+      return this.createSuccessResult({ response: result.response }, usage);
     } catch (error) {
       console.error(error);
       return this.createErrorResult(

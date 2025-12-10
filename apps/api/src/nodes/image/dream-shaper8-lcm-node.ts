@@ -1,7 +1,15 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
+import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
+
+// https://developers.cloudflare.com/workers-ai/platform/pricing/
+// Cloudflare Workers AI: DreamShaper 8 LCM image generation
+const PRICING: TokenPricing = {
+  inputCostPerMillion: 0.1,
+  outputCostPerMillion: 15.0, // Image generation model
+};
 
 /**
  * DreamShaper 8 LCM node implementation for text-to-image generation
@@ -19,7 +27,7 @@ export class DreamShaper8LCMNode extends ExecutableNode {
       "This node generates images from text descriptions using the Dream Shaper 8 LCM model for fast and creative image generation.",
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/dreamshaper-8-lcm/",
-    usage: 10,
+    usage: 1,
     inputs: [
       {
         name: "prompt",
@@ -163,12 +171,25 @@ export class DreamShaper8LCMNode extends ExecutableNode {
 
       const buffer = await blob.arrayBuffer();
 
-      return this.createSuccessResult({
-        image: {
-          data: new Uint8Array(buffer),
-          mimeType: "image/jpeg",
+      // Calculate usage based on prompt and image size
+      const imageData = new Uint8Array(buffer);
+      // Estimate image as output bytes / 1000 (rough approximation)
+      const imageTokenEstimate = Math.ceil(imageData.length / 1000);
+      const usage = calculateTokenUsage(
+        prompt || "",
+        imageTokenEstimate,
+        PRICING
+      );
+
+      return this.createSuccessResult(
+        {
+          image: {
+            data: imageData,
+            mimeType: "image/jpeg",
+          },
         },
-      });
+        usage
+      );
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Failed to generate image"

@@ -16,6 +16,7 @@ export class PhotonSepiaNode extends ExecutableNode {
     icon: "coffee",
     documentation: "This node applies a sepia tone to an image using Photon.",
     inlinable: true,
+    usage: 10,
     inputs: [
       {
         name: "image",

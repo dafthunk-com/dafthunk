@@ -1,7 +1,15 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
+import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
 import { NodeContext } from "../types";
 import { ExecutableNode } from "../types";
+
+// https://developers.cloudflare.com/workers-ai/platform/pricing/
+// Cloudflare Workers AI: Whisper STT model
+const PRICING: TokenPricing = {
+  inputCostPerMillion: 0.05,
+  outputCostPerMillion: 0.05,
+};
 
 /**
  * Speech Recognition node implementation using Whisper
@@ -19,7 +27,7 @@ export class WhisperNode extends ExecutableNode {
       "This node transcribes speech from audio files using OpenAI's Whisper model, converting spoken words to text.",
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/whisper/",
-    usage: 10,
+    usage: 1,
     inputs: [
       {
         name: "audio",
@@ -80,12 +88,24 @@ export class WhisperNode extends ExecutableNode {
         vtt: response.vtt,
       };
 
-      return this.createSuccessResult({
-        text: output.text,
-        word_count: output.word_count,
-        words: output.words,
-        vtt: output.vtt,
-      });
+      // Calculate usage based on audio size and output text
+      // Estimate input as audio bytes / 100 (rough approximation for audio tokens)
+      const audioTokenEstimate = Math.ceil(audio.data.length / 100);
+      const usage = calculateTokenUsage(
+        audioTokenEstimate,
+        output.text || "",
+        PRICING
+      );
+
+      return this.createSuccessResult(
+        {
+          text: output.text,
+          word_count: output.word_count,
+          words: output.words,
+          vtt: output.vtt,
+        },
+        usage
+      );
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"

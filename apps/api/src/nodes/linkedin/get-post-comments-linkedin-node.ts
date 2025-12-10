@@ -16,7 +16,7 @@ export class GetPostCommentsLinkedInNode extends ExecutableNode {
     icon: "message-square",
     documentation:
       "This node retrieves comments on a LinkedIn post or share. Requires the r_member_social scope (note: this scope has restricted access and may require partner approval). Use with posts you have access to. Requires a connected LinkedIn integration.",
-    usage: 5,
+    usage: 10,
     inputs: [
       {
         name: "integrationId",

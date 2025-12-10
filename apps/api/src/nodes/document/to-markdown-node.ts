@@ -77,9 +77,14 @@ export class ToMarkdownNode extends ExecutableNode {
         return this.createErrorResult("Failed to convert document to Markdown");
       }
 
-      return this.createSuccessResult({
-        markdown: result[0].data,
-      });
+      // Free for most conversions, but charge minimum for platform overhead
+      // Estimate ~1 credit per 100KB of document data
+      const usage = Math.max(
+        10,
+        Math.ceil(documentInput.data.length / 100_000)
+      );
+
+      return this.createSuccessResult({ markdown: result[0].data }, usage);
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"

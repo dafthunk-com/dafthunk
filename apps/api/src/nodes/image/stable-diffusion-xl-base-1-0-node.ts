@@ -1,7 +1,15 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
+import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
+
+// https://developers.cloudflare.com/workers-ai/platform/pricing/
+// Cloudflare Workers AI: SDXL Base 1.0 image generation
+const PRICING: TokenPricing = {
+  inputCostPerMillion: 0.1,
+  outputCostPerMillion: 20.0, // Image generation model
+};
 
 /**
  * Stable Diffusion XL Base 1.0 node implementation for text-to-image generation
@@ -19,7 +27,7 @@ export class StableDiffusionXLBase10Node extends ExecutableNode {
       "This node generates high-quality images from text descriptions using Stable Diffusion XL Base 1.0 model.",
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/stable-diffusion-xl-base-1.0/",
-    usage: 10,
+    usage: 1,
     inputs: [
       {
         name: "prompt",
@@ -155,12 +163,24 @@ export class StableDiffusionXLBase10Node extends ExecutableNode {
         throw new Error("Received empty image data from the API");
       }
 
-      return this.createSuccessResult({
-        image: {
-          data: uint8Array,
-          mimeType: "image/jpeg",
+      // Calculate usage based on prompt and image size
+      // Estimate image as output bytes / 1000 (rough approximation)
+      const imageTokenEstimate = Math.ceil(uint8Array.length / 1000);
+      const usage = calculateTokenUsage(
+        prompt || "",
+        imageTokenEstimate,
+        PRICING
+      );
+
+      return this.createSuccessResult(
+        {
+          image: {
+            data: uint8Array,
+            mimeType: "image/jpeg",
+          },
         },
-      });
+        usage
+      );
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"

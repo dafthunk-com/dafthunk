@@ -1,7 +1,15 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
+import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
+
+// https://developers.cloudflare.com/workers-ai/platform/pricing/
+// Cloudflare Workers AI: DETR-ResNet-50 object detection
+const PRICING: TokenPricing = {
+  inputCostPerMillion: 0.05,
+  outputCostPerMillion: 0.05,
+};
 
 /**
  * DETR-ResNet-50 node implementation for object detection
@@ -19,7 +27,7 @@ export class DetrResnet50Node extends ExecutableNode {
       "This node detects and locates objects in images using the DETR-ResNet-50 model with bounding box coordinates.",
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/detr-resnet-50/",
-    usage: 10,
+    usage: 1,
     inputs: [
       {
         name: "image",
@@ -59,9 +67,12 @@ export class DetrResnet50Node extends ExecutableNode {
         context.env.AI_OPTIONS
       );
 
-      return this.createSuccessResult({
-        detections,
-      });
+      // Calculate usage based on image size
+      // Estimate input as image bytes / 100 (rough approximation)
+      const imageTokenEstimate = Math.ceil(image.data.length / 100);
+      const usage = calculateTokenUsage(imageTokenEstimate, "", PRICING);
+
+      return this.createSuccessResult({ detections }, usage);
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"

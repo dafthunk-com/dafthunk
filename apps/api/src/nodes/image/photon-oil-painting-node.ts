@@ -17,6 +17,7 @@ export class PhotonOilPaintingNode extends ExecutableNode {
     documentation:
       "This node applies an oil painting effect to an image using Photon.",
     inlinable: true,
+    usage: 10,
     inputs: [
       {
         name: "image",

@@ -1,7 +1,15 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
+import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
+
+// https://developers.cloudflare.com/workers-ai/platform/pricing/
+// Cloudflare Workers AI: translation model (1.2B parameters)
+const PRICING: TokenPricing = {
+  inputCostPerMillion: 0.05,
+  outputCostPerMillion: 0.1,
+};
 /**
  * Translation node implementation using m2m100-1.2b model
  */
@@ -17,7 +25,7 @@ export class M2m10012bNode extends ExecutableNode {
       "This node translates text between languages using Meta's M2M100 1.2B model.",
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/m2m100-1.2b/",
-    usage: 10,
+    usage: 1,
     asTool: true,
     inputs: [
       {
@@ -76,9 +84,10 @@ export class M2m10012bNode extends ExecutableNode {
         );
       }
 
-      return this.createSuccessResult({
-        translatedText,
-      });
+      // Calculate usage based on text length estimation
+      const usage = calculateTokenUsage(text || "", translatedText, PRICING);
+
+      return this.createSuccessResult({ translatedText }, usage);
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"

@@ -18,6 +18,7 @@ export class FetchNode extends ExecutableNode {
     documentation:
       "This node fetches data from a URL using the Fetch API with support for custom methods, headers, query parameters, and timeouts.",
     asTool: true,
+    usage: 10,
     inputs: [
       {
         name: "url",

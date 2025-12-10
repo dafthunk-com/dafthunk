@@ -16,7 +16,7 @@ export class GetGuildDiscordNode extends ExecutableNode {
     icon: "server",
     documentation:
       "This node retrieves detailed information about a Discord guild. Requires a connected Discord integration with guilds scope.",
-    usage: 5,
+    usage: 10,
     inputs: [
       {
         name: "integrationId",

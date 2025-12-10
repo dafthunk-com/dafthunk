@@ -1,5 +1,6 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
+import { calculateBrowserUsage } from "../../utils/usage";
 import { ExecutableNode, NodeContext } from "../types";
 
 /**
@@ -84,6 +85,7 @@ export class CloudflareBrowserPdfNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
+    const startTime = Date.now();
     const {
       url,
       html,
@@ -150,13 +152,18 @@ export class CloudflareBrowserPdfNode extends ExecutableNode {
           "Cloudflare API error: No valid PDF data returned"
         );
       }
-      return this.createSuccessResult({
-        pdf: {
-          data: pdfBuffer,
-          mimeType: "application/pdf",
+      const usage = calculateBrowserUsage(Date.now() - startTime);
+
+      return this.createSuccessResult(
+        {
+          pdf: {
+            data: pdfBuffer,
+            mimeType: "application/pdf",
+          },
+          status,
         },
-        status,
-      });
+        usage
+      );
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : String(error)
