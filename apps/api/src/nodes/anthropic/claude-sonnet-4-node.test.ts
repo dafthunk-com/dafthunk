@@ -11,6 +11,7 @@ describe("ClaudeSonnet4Node", () => {
       messages = {
         create: vi.fn().mockResolvedValue({
           content: [{ type: "text", text: "mocked response" }],
+          usage: { input_tokens: 10, output_tokens: 20 },
         }),
       };
       constructor() {}
