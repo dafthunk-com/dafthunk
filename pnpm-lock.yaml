@@ -42,8 +42,8 @@ importers:
         specifier: ^0.0.6
         version: 0.0.6
       '@cf-wasm/resvg':
-        specifier: ^0.1.24
-        version: 0.1.24
+        specifier: ^0.3.3
+        version: 0.3.3
       '@cloudflare/ai-utils':
         specifier: ^1.0.1
         version: 1.0.1
@@ -863,8 +863,8 @@ packages:
   '@cf-wasm/quickjs@0.0.6':
     resolution: {integrity: sha512-nE4Lpkob4Dd/opvNOLg1xr+WuF/CcjIRRcM/FA/AqpuscHJE6TUyZKAnXjvzeJ5pSlQnUEbfczHYw8Pvidl3LQ==}
 
-  '@cf-wasm/resvg@0.1.24':
-    resolution: {integrity: sha512-UOlAz4xDbBSgoy/KvMxLaoqS6CeVajqBaKNZ0kMt0AeHVRbdm9FzdelrndKGs2j9CymlXGu5m8oy+tHOZOoSQA==}
+  '@cf-wasm/resvg@0.3.3':
+    resolution: {integrity: sha512-UN0cr048AZd0mtJ13ULWgFxlE0nAiBOETTON4r+VEHaaGpDk0oaak2Qurs6mfiBCVKKf2bQmXe8534WJ+o+B+w==}
 
   '@cloudflare/ai-utils@1.0.1':
     resolution: {integrity: sha512-gmn16AvVqtMLcaBYvPkwEWui39E4hlcFPqXuVamKbGleIDO6hVpvAy3KCvbnoPVT7KqRcfdLLpHRIBQDwI9tWQ==}
@@ -6482,10 +6482,10 @@ snapshots:
       '@jitl/quickjs-wasmfile-release-sync': 0.31.0
       quickjs-emscripten-core: 0.31.0
 
-  '@cf-wasm/resvg@0.1.24':
+  '@cf-wasm/resvg@0.3.3':
     dependencies:
       '@resvg/resvg-wasm': 2.6.2
-      '@resvg/resvg-wasm-2.4.1': '@resvg/resvg-wasm@2.4.1'
+      '@resvg/resvg-wasm-legacy': '@resvg/resvg-wasm@2.4.1'
 
   '@cloudflare/ai-utils@1.0.1':
     dependencies:
