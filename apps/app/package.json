@@ -96,7 +96,7 @@
     "tsx": "^4.19.4",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.31.1",
-    "vite": "^6.3.4",
+    "vite": "^6.4.1",
     "vitest": "^3.1.2",
     "wrangler": "^4.26.1"
   }
