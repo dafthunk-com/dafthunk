@@ -16,6 +16,7 @@ import { PRO_INCLUDED_CREDITS, TRIAL_CREDITS } from "../constants/billing";
 import type { ApiContext } from "../context";
 import { createDatabase, organizations } from "../db";
 import { createStripeService } from "../services/stripe-service";
+import { getOrganizationComputeUsage } from "../utils/credits";
 
 const billing = new Hono<ApiContext>();
 
@@ -40,39 +41,11 @@ billing.get("/", async (c) => {
     return c.json({ error: "Organization not found" }, 404);
   }
 
-  // Query current period usage from Analytics Engine
-  let usageThisPeriod = 0;
-  const stripeService = createStripeService(c.env);
-
-  // Only query usage if we have valid billing period dates and Analytics Engine is configured
-  const periodStart = org.currentPeriodStart
-    ? new Date(org.currentPeriodStart)
-    : null;
-  const periodEnd = org.currentPeriodEnd
-    ? new Date(org.currentPeriodEnd)
-    : null;
-
-  const canQueryUsage =
-    stripeService &&
-    periodStart &&
-    periodEnd &&
-    !isNaN(periodStart.getTime()) &&
-    !isNaN(periodEnd.getTime()) &&
-    c.env.CLOUDFLARE_ACCOUNT_ID &&
-    c.env.CLOUDFLARE_API_TOKEN;
-
-  if (canQueryUsage) {
-    try {
-      usageThisPeriod = await stripeService.queryPeriodUsage(
-        organizationId,
-        periodStart,
-        periodEnd
-      );
-    } catch (error) {
-      // Analytics Engine query may fail in development - log but don't block
-      console.warn("Failed to query period usage (expected in dev):", error);
-    }
-  }
+  // Get current usage from KV storage
+  const usageThisPeriod = await getOrganizationComputeUsage(
+    c.env.KV,
+    organizationId
+  );
 
   // Determine plan - Pro if has active subscription OR canceled but still in period
   const hasProAccess =
