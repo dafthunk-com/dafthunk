@@ -19,12 +19,22 @@ interface WorkflowData {
 }
 
 /**
+ * Attachment data for email simulation
+ */
+interface EmailAttachment {
+  filename: string;
+  mimeType: string;
+  data: string; // base64 encoded
+}
+
+/**
  * Parameters for email_message workflow type
  */
 interface EmailMessageParameters {
   from?: string;
   subject?: string;
   emailBody?: string;
+  attachments?: EmailAttachment[];
 }
 
 /**
@@ -132,7 +142,12 @@ function buildParameters(
   if (workflowType === "email_message") {
     // For email workflows, try to parse JSON body for email parameters
     let parsedEmail:
-      | { from?: string; subject?: string; body?: string }
+      | {
+          from?: string;
+          subject?: string;
+          body?: string;
+          attachments?: EmailAttachment[];
+        }
       | undefined;
     if (data.body && data.body.mimeType.includes("application/json")) {
       try {
@@ -146,6 +161,7 @@ function buildParameters(
       from: parsedEmail?.from,
       subject: parsedEmail?.subject,
       emailBody: parsedEmail?.body,
+      attachments: parsedEmail?.attachments,
     };
   } else if (
     workflowType === "http_webhook" ||

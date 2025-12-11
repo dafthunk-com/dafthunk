@@ -21,6 +21,59 @@ export function BlobField({
   uploadError,
   value,
 }: FileFieldProps) {
+  // Check if this is a repeated (array) output
+  const isRepeated = parameter.repeated === true;
+
+  // Handle array of object references for repeated outputs
+  if (isRepeated && Array.isArray(value)) {
+    const validRefs = value.filter(isObjectReference) as ObjectReference[];
+
+    if (disabled && validRefs.length === 0) {
+      return (
+        <div
+          className={cn(
+            "text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border",
+            className
+          )}
+        >
+          {connected ? "Connected" : "No files"}
+        </div>
+      );
+    }
+
+    if (validRefs.length > 0) {
+      return (
+        <div className={cn("space-y-2", className)}>
+          {validRefs.map((ref, index) => {
+            const url = createObjectUrl ? createObjectUrl(ref) : null;
+            const filename = ref.filename || `File ${index + 1}`;
+            return (
+              <div
+                key={ref.id}
+                className="flex items-center gap-2 p-2 bg-muted/50 rounded-md border border-border"
+              >
+                <File className="h-4 w-4 flex-shrink-0 text-neutral-500" />
+                <span className="text-xs truncate flex-1" title={filename}>
+                  {filename}
+                </span>
+                {url && (
+                  <a
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-blue-500 hover:underline flex-shrink-0"
+                  >
+                    View
+                  </a>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+  }
+
   // File fields check for object references
   const hasValue = value !== undefined && isObjectReference(value);
 
@@ -210,22 +263,28 @@ export function BlobField({
       );
     }
 
-    // Other blob types - show download link only
+    // Other blob types - show filename with view link
+    const filename =
+      (value as ObjectReference)?.filename ||
+      `File (${mimeType?.split("/")[1] || "unknown"})`;
     return (
       <div
         className={cn(
-          "relative p-2 bg-muted/50 rounded-md border border-border",
+          "flex items-center gap-2 p-2 bg-muted/50 rounded-md border border-border",
           className
         )}
       >
+        <File className="h-4 w-4 flex-shrink-0 text-neutral-500" />
+        <span className="text-xs truncate flex-1" title={filename}>
+          {filename}
+        </span>
         <a
           href={objectUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-xs text-blue-500 hover:underline flex items-center gap-1"
+          className="text-xs text-blue-500 hover:underline flex-shrink-0"
         >
-          <File className="h-3 w-3" />
-          View File ({mimeType?.split("/")[1] || "unknown"})
+          View
         </a>
       </div>
     );

@@ -683,13 +683,30 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     for (const [name, value] of Object.entries(outputs)) {
       const output = node.outputs.find((o) => o.name === name);
       const parameterType = output?.type ?? "string";
-      processed[name] = await nodeToApiParameter(
-        parameterType,
-        value,
-        objectStore,
-        organizationId,
-        executionId
-      );
+
+      // Handle repeated outputs (arrays of values)
+      if (output?.repeated && Array.isArray(value)) {
+        const transformedArray = await Promise.all(
+          value.map((v) =>
+            nodeToApiParameter(
+              parameterType,
+              v,
+              objectStore,
+              organizationId,
+              executionId
+            )
+          )
+        );
+        processed[name] = transformedArray;
+      } else {
+        processed[name] = await nodeToApiParameter(
+          parameterType,
+          value,
+          objectStore,
+          organizationId,
+          executionId
+        );
+      }
     }
     return processed;
   }
@@ -734,7 +751,14 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         const sourceOutputs = nodeOutputs[edge.source];
         if (sourceOutputs && sourceOutputs[edge.sourceOutput] !== undefined) {
           const value = sourceOutputs[edge.sourceOutput];
-          if (isRuntimeValue(value)) {
+          // If the source output is an array (repeated output), flatten it into values
+          if (Array.isArray(value)) {
+            for (const item of value) {
+              if (isRuntimeValue(item)) {
+                values.push(item);
+              }
+            }
+          } else if (isRuntimeValue(value)) {
             values.push(value);
           }
         }

@@ -39,6 +39,28 @@ export function AnyField({
     );
   }
 
+  // Array of object references (repeated blobs) - delegate to BlobField
+  if (
+    hasValue &&
+    Array.isArray(value) &&
+    value.length > 0 &&
+    value.every(isObjectReference)
+  ) {
+    return (
+      <BlobField
+        className={className}
+        connected={connected}
+        createObjectUrl={createObjectUrl}
+        disabled
+        onFileUpload={async () => {}}
+        onChange={noop}
+        onClear={noop}
+        parameter={{ ...parameter, repeated: true }}
+        value={value}
+      />
+    );
+  }
+
   // Objects and arrays - delegate to JsonField
   if (hasValue && (Array.isArray(value) || typeof value === "object")) {
     return (

@@ -116,12 +116,17 @@ export class ExecutionManager {
   private buildEmailParameters(
     parameters: Record<string, unknown>
   ): WorkflowExecutorParameters {
-    const { from, subject, body } = parameters as {
+    const { from, subject, body, attachments } = parameters as {
       from?: string;
       subject?: string;
       body?: string;
+      attachments?: Array<{
+        filename: string;
+        mimeType: string;
+        data: string;
+      }>;
     };
-    return { from, subject, emailBody: body };
+    return { from, subject, emailBody: body, attachments };
   }
 
   /**

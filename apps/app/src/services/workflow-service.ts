@@ -607,18 +607,13 @@ export function useWorkflowExecution(
       if (!executionContext) return;
 
       const { id, onExecution } = executionContext;
-      // Construct the parameters as expected by the backend for an email trigger
-      // This might involve a specific structure, e.g., an "email" object
-      // For now, let's assume it takes these parameters directly, or nested under an "email" key.
-      // Adjust this based on how the backend expects to receive email trigger data.
+      // Send email parameters at top level for WebSocket path
+      // The HTTP path will receive these via JSON body parsing
       const parameters = {
-        // Example: could be flat, or nested like { email: emailData }
-        // Based on typical HTTP triggers, they might be expected as top-level form data or a JSON body.
-        // If it's like a webhook, it might be JSON.
-        // Let's assume for now the backend expects these as direct parameters.
         from: emailData.from,
         subject: emailData.subject,
         body: emailData.body,
+        attachments: emailData.attachments,
       };
       performExecutionAndPoll(id, onExecution, { parameters });
       setIsEmailFormDialogVisible(false);

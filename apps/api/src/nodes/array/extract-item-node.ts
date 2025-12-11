@@ -11,7 +11,8 @@ export class ExtractItemNode extends ExecutableNode {
     id: "extract-item",
     name: "Extract Item",
     type: "extract-item",
-    description: "Extracts a single item from a repeated input at the specified index",
+    description:
+      "Extracts a single item from a repeated input at the specified index",
     tags: ["Data", "Array", "Extract"],
     icon: "list-filter",
     documentation:
@@ -70,8 +71,7 @@ export class ExtractItemNode extends ExecutableNode {
       }
 
       // Calculate actual index (support negative indices)
-      const actualIndex =
-        index < 0 ? valuesArray.length + index : index;
+      const actualIndex = index < 0 ? valuesArray.length + index : index;
 
       // Validate bounds
       if (actualIndex < 0 || actualIndex >= valuesArray.length) {

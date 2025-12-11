@@ -33,11 +33,18 @@ export interface WorkflowExecutorOptions {
   env: Bindings;
 }
 
+export interface EmailAttachment {
+  filename: string;
+  mimeType: string;
+  data: string; // base64 encoded
+}
+
 export interface WorkflowExecutorParameters {
   // For email workflows
   from?: string;
   subject?: string;
   emailBody?: string;
+  attachments?: EmailAttachment[];
   // For HTTP workflows
   url?: string;
   method?: string;
@@ -100,6 +107,7 @@ export class WorkflowExecutor {
           from: parameters?.from,
           subject: parameters?.subject,
           body: parameters?.emailBody,
+          attachments: parameters?.attachments,
           organizationId,
           workflowHandleOrId: workflow.handle || workflow.id,
         }),
