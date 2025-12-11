@@ -21,6 +21,7 @@ import { ToolReference } from "./tool-types";
 export type BlobParameter = {
   data: Uint8Array;
   mimeType: string;
+  filename?: string;
 };
 
 /**

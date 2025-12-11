@@ -1,4 +1,4 @@
-import { Node, NodeExecution, NodeType } from "@dafthunk/types";
+import { NodeExecution, NodeType } from "@dafthunk/types";
 import { ParsedMail, simpleParser } from "mailparser";
 
 import { ExecutableNode, NodeContext } from "../types";
@@ -28,11 +28,11 @@ export class ParseEmailNode extends ExecutableNode {
     name: "Parse Email",
     type: "parse-email",
     description:
-      "Parses raw email content and extracts key fields like subject, body, sender, recipients, and attachments.",
+      "Parses raw email content and extracts key fields like subject, body, sender, and recipients.",
     tags: ["Social", "Email", "Parse"],
     icon: "mail",
     documentation:
-      "This node parses raw email content and extracts key fields like subject, body, sender, recipients, and attachments.",
+      "This node parses raw email content and extracts key fields like subject, body, sender, and recipients. Use the Extract Email Attachments node to get attachments.",
     compatibility: ["email_message"],
     inlinable: true,
     inputs: [
@@ -116,14 +116,8 @@ export class ParseEmailNode extends ExecutableNode {
         description: "The priority of the email.",
         hidden: true,
       },
-      // Consider adding attachments if needed in the future
-      // { name: "attachments", type: "json", description: "List of attachments." },
     ],
   };
-
-  constructor(node: Node) {
-    super(node);
-  }
 
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {

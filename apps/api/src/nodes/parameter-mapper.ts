@@ -114,11 +114,13 @@ const converters = {
       const blob = new Blob([value.data], { type: value.mimeType });
       const buffer = await blob.arrayBuffer();
       const data = new Uint8Array(buffer);
+      const blobParam = value as NodeBlobParameter;
       return await objectStore.writeObject(
         data,
         blob.type,
         organizationId,
-        executionId
+        executionId,
+        blobParam.filename
       );
     },
     apiToNode: async (value: ApiParameterValue, objectStore: ObjectStore) => {
@@ -131,10 +133,15 @@ const converters = {
         return undefined;
       const result = await objectStore.readObject(value as ObjectReference);
       if (!result) return undefined;
-      return {
+      const objRef = value as ObjectReference;
+      const blobParam: NodeBlobParameter = {
         data: result.data,
-        mimeType: (value as ObjectReference).mimeType,
-      } as NodeBlobParameter;
+        mimeType: objRef.mimeType,
+      };
+      if (objRef.filename) {
+        blobParam.filename = objRef.filename;
+      }
+      return blobParam;
     },
   },
   image: {
@@ -148,11 +155,13 @@ const converters = {
       const blob = new Blob([value.data], { type: value.mimeType });
       const buffer = await blob.arrayBuffer();
       const data = new Uint8Array(buffer);
+      const imageParam = value as NodeImageParameter;
       return await objectStore.writeObject(
         data,
         blob.type,
         organizationId,
-        executionId
+        executionId,
+        imageParam.filename
       );
     },
     apiToNode: async (value: ApiParameterValue, objectStore: ObjectStore) => {
@@ -165,10 +174,15 @@ const converters = {
         return undefined;
       const result = await objectStore.readObject(value as ObjectReference);
       if (!result) return undefined;
-      return {
+      const objRef = value as ObjectReference;
+      const imageParam: NodeImageParameter = {
         data: result.data,
-        mimeType: (value as ObjectReference).mimeType,
-      } as NodeImageParameter;
+        mimeType: objRef.mimeType,
+      };
+      if (objRef.filename) {
+        imageParam.filename = objRef.filename;
+      }
+      return imageParam;
     },
   },
   document: {
@@ -182,11 +196,13 @@ const converters = {
       const blob = new Blob([value.data], { type: value.mimeType });
       const buffer = await blob.arrayBuffer();
       const data = new Uint8Array(buffer);
+      const docParam = value as NodeDocumentParameter;
       return await objectStore.writeObject(
         data,
         blob.type,
         organizationId,
-        executionId
+        executionId,
+        docParam.filename
       );
     },
     apiToNode: async (value: ApiParameterValue, objectStore: ObjectStore) => {
@@ -199,10 +215,15 @@ const converters = {
         return undefined;
       const result = await objectStore.readObject(value as ObjectReference);
       if (!result) return undefined;
-      return {
+      const objRef = value as ObjectReference;
+      const docParam: NodeDocumentParameter = {
         data: result.data,
-        mimeType: (value as ObjectReference).mimeType,
-      } as NodeDocumentParameter;
+        mimeType: objRef.mimeType,
+      };
+      if (objRef.filename) {
+        docParam.filename = objRef.filename;
+      }
+      return docParam;
     },
   },
   audio: {
@@ -216,11 +237,13 @@ const converters = {
       const blob = new Blob([value.data], { type: value.mimeType });
       const buffer = await blob.arrayBuffer();
       const data = new Uint8Array(buffer);
+      const audioParam = value as NodeAudioParameter;
       return await objectStore.writeObject(
         data,
         blob.type,
         organizationId,
-        executionId
+        executionId,
+        audioParam.filename
       );
     },
     apiToNode: async (value: ApiParameterValue, objectStore: ObjectStore) => {
@@ -233,10 +256,15 @@ const converters = {
         return undefined;
       const result = await objectStore.readObject(value as ObjectReference);
       if (!result) return undefined;
-      return {
+      const objRef = value as ObjectReference;
+      const audioParam: NodeAudioParameter = {
         data: result.data,
-        mimeType: (value as ObjectReference).mimeType,
-      } as NodeAudioParameter;
+        mimeType: objRef.mimeType,
+      };
+      if (objRef.filename) {
+        audioParam.filename = objRef.filename;
+      }
+      return audioParam;
     },
   },
   gltf: {
@@ -250,11 +278,13 @@ const converters = {
       const blob = new Blob([value.data], { type: value.mimeType });
       const buffer = await blob.arrayBuffer();
       const data = new Uint8Array(buffer);
+      const gltfParam = value as NodeGltfParameter;
       return await objectStore.writeObject(
         data,
         blob.type,
         organizationId,
-        executionId
+        executionId,
+        gltfParam.filename
       );
     },
     apiToNode: async (value: ApiParameterValue, objectStore: ObjectStore) => {
@@ -267,10 +297,15 @@ const converters = {
         return undefined;
       const result = await objectStore.readObject(value as ObjectReference);
       if (!result) return undefined;
-      return {
+      const objRef = value as ObjectReference;
+      const gltfParam: NodeGltfParameter = {
         data: result.data,
-        mimeType: (value as ObjectReference).mimeType,
-      } as NodeGltfParameter;
+        mimeType: objRef.mimeType,
+      };
+      if (objRef.filename) {
+        gltfParam.filename = objRef.filename;
+      }
+      return gltfParam;
     },
   },
   json: {
@@ -400,29 +435,23 @@ const converters = {
           const result = await objectStore.readObject(value as ObjectReference);
           if (!result) return undefined;
 
-          const mimeType = (value as ObjectReference).mimeType;
-          if (mimeType.startsWith("image/")) {
-            return {
-              data: result.data,
-              mimeType,
-            } as NodeImageParameter;
-          }
-          if (mimeType.startsWith("audio/")) {
-            return {
-              data: result.data,
-              mimeType,
-            } as NodeAudioParameter;
-          }
-          if (mimeType === "model/gltf-binary") {
-            return {
-              data: result.data,
-              mimeType,
-            } as NodeGltfParameter;
-          }
-          return {
+          const objRef = value as ObjectReference;
+          const mimeType = objRef.mimeType;
+          const baseParam = {
             data: result.data,
             mimeType,
-          } as NodeDocumentParameter;
+            ...(objRef.filename && { filename: objRef.filename }),
+          };
+          if (mimeType.startsWith("image/")) {
+            return baseParam as NodeImageParameter;
+          }
+          if (mimeType.startsWith("audio/")) {
+            return baseParam as NodeAudioParameter;
+          }
+          if (mimeType === "model/gltf-binary") {
+            return baseParam as NodeGltfParameter;
+          }
+          return baseParam as NodeDocumentParameter;
         })();
       }
 

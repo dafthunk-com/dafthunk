@@ -4,6 +4,7 @@
 export interface ObjectReference {
   id: string;
   mimeType: string;
+  filename?: string;
 }
 
 /**

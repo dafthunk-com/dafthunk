@@ -30,7 +30,8 @@ export class ObjectStore {
     data: Uint8Array,
     mimeType: string,
     organizationId: string,
-    executionId?: string
+    executionId?: string,
+    filename?: string
   ): Promise<ObjectReference> {
     const id = uuid();
     return this.writeObjectWithId(
@@ -38,7 +39,8 @@ export class ObjectStore {
       data,
       mimeType,
       organizationId,
-      executionId
+      executionId,
+      filename
     );
   }
 
@@ -47,7 +49,8 @@ export class ObjectStore {
     data: Uint8Array,
     mimeType: string,
     organizationId: string,
-    executionId?: string
+    executionId?: string,
+    filename?: string
   ): Promise<ObjectReference> {
     const customMetadata: Record<string, string> = {
       id,
@@ -56,6 +59,9 @@ export class ObjectStore {
     };
     if (executionId) {
       customMetadata.executionId = executionId;
+    }
+    if (filename) {
+      customMetadata.filename = filename;
     }
 
     await this.writeToR2(
@@ -71,7 +77,11 @@ export class ObjectStore {
       "writeObjectWithId"
     );
 
-    return { id, mimeType };
+    const result: ObjectReference = { id, mimeType };
+    if (filename) {
+      result.filename = filename;
+    }
+    return result;
   }
 
   async readObject(reference: ObjectReference): Promise<{

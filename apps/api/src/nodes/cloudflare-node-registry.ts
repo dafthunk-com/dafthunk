@@ -80,6 +80,7 @@ import { ListUserGuildsDiscordNode } from "./discord/list-user-guilds-discord-no
 import { SendDMDiscordNode } from "./discord/send-dm-discord-node";
 import { SendMessageDiscordNode } from "./discord/send-message-discord-node";
 import { ToMarkdownNode } from "./document/to-markdown-node";
+import { ExtractEmailAttachmentsNode } from "./email/extract-email-attachments-node";
 import { ParseEmailNode } from "./email/parse-email-node";
 import { ReceiveEmailNode } from "./email/receive-email-node";
 import { SendEmailNode } from "./email/send-email-node";
@@ -454,6 +455,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(ReceiveEmailNode);
     this.registerImplementation(ReceiveScheduledTriggerNode);
     this.registerImplementation(ParseEmailNode);
+    this.registerImplementation(ExtractEmailAttachmentsNode);
     this.registerImplementation(AdditionNode);
     this.registerImplementation(SubtractionNode);
     this.registerImplementation(MultiplicationNode);

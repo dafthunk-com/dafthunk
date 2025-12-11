@@ -5,10 +5,19 @@ import { NodeContext } from "../types";
 import { ParseEmailNode } from "./parse-email-node";
 
 describe("ParseEmailNode", () => {
+  const createContext = (inputs: Record<string, unknown>): NodeContext =>
+    ({
+      nodeId: "parse-email",
+      inputs,
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
+      env: {},
+    }) as unknown as NodeContext;
+
   it("should parse basic email content", async () => {
-    const nodeId = "parse-email";
     const node = new ParseEmailNode({
-      nodeId,
+      nodeId: "parse-email",
     } as unknown as Node);
 
     const rawEmail = `From: sender@example.com
@@ -18,16 +27,7 @@ Content-Type: text/plain
 
 This is the email body.`;
 
-    const context = {
-      nodeId,
-      inputs: {
-        raw: rawEmail,
-      },
-      getIntegration: async () => {
-        throw new Error("No integrations in test");
-      },
-      env: {},
-    } as unknown as NodeContext;
+    const context = createContext({ raw: rawEmail });
 
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -107,83 +107,32 @@ Email body.`;
     expect(Array.isArray(result.outputs?.cc)).toBe(true);
   });
 
-  it("should parse email with attachments", async () => {
-    const nodeId = "parse-email";
+  it("should handle missing raw email content", async () => {
     const node = new ParseEmailNode({
-      nodeId,
+      nodeId: "parse-email",
     } as unknown as Node);
 
-    const rawEmail = `From: sender@example.com
-To: recipient@example.com
-Subject: Email with Attachment
-Content-Type: multipart/mixed; boundary="boundary"
-
---boundary
-Content-Type: text/plain
-
-Email body.
-
---boundary
-Content-Type: application/pdf
-Content-Disposition: attachment; filename="document.pdf
-
---boundary--`;
-
-    const context = {
-      nodeId,
-      inputs: {
-        raw: rawEmail,
-      },
-      getIntegration: async () => {
-        throw new Error("No integrations in test");
-      },
-      env: {},
-    } as unknown as NodeContext;
-
-    const result = await node.execute(context);
-    expect(result.status).toBe("completed");
-    expect(result.outputs?.text).toBe("Test plain text content");
-    expect(result.outputs?.subject).toBe("Test Subject");
+    const result = await node.execute(createContext({}));
+    expect(result.status).toBe("error");
+    expect(result.error).toContain("required");
   });
 
-  it("should handle missing raw email content", async () => {
-    const nodeId = "parse-email";
+  it("should return error for invalid input type", async () => {
     const node = new ParseEmailNode({
-      nodeId,
+      nodeId: "parse-email",
     } as unknown as Node);
 
-    const context = {
-      nodeId,
-      inputs: {},
-      getIntegration: async () => {
-        throw new Error("No integrations in test");
-      },
-      env: {},
-    } as unknown as NodeContext;
-
-    const result = await node.execute(context);
+    const result = await node.execute(createContext({ raw: 123 }));
     expect(result.status).toBe("error");
-    expect(result.error).toBeDefined();
+    expect(result.error).toContain("required");
   });
 
   it("should handle empty raw email content", async () => {
-    const nodeId = "parse-email";
     const node = new ParseEmailNode({
-      nodeId,
+      nodeId: "parse-email",
     } as unknown as Node);
 
-    const context = {
-      nodeId,
-      inputs: {
-        raw: "",
-      },
-      getIntegration: async () => {
-        throw new Error("No integrations in test");
-      },
-      env: {},
-    } as unknown as NodeContext;
-
-    const result = await node.execute(context);
+    const result = await node.execute(createContext({ raw: "" }));
     expect(result.status).toBe("completed");
     expect(result.outputs?.subject).toBe("Test Subject");
     expect(result.outputs?.text).toBe("Test plain text content");

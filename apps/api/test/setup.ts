@@ -18,6 +18,7 @@ vi.mock("mailparser", () => ({
     inReplyTo: null,
     references: [],
     priority: "normal",
+    attachments: [],
   }),
   ParsedMail: vi.fn(),
 }));

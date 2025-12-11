@@ -130,7 +130,7 @@ export const TypeBadge = ({
   return (
     <div className="relative inline-flex items-center justify-center">
       {/* Multiple connections indicator background ring */}
-      {isInput && repeated && (
+      {repeated && (
         <div
           className={cn(
             "absolute inset-0 rounded-lg border shadow-sm bg-background",
