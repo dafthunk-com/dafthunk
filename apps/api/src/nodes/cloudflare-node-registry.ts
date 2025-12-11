@@ -283,6 +283,7 @@ import { WebcamInputNode } from "./input/webcam-input-node";
 import { JavascriptScriptNode } from "./javascript/javascript-script-node";
 import { JsonAggNode } from "./json/json-agg-node";
 import { JsonArrayLengthNode } from "./json/json-array-length-node";
+import { ExtractItemNode } from "./array/extract-item-node";
 import { JsonContainsNode } from "./json/json-contains-node";
 import { JsonContainsPathNode } from "./json/json-contains-path-node";
 import { JsonExecuteJavascriptNode } from "./json/json-execute-javascript-node";
@@ -504,6 +505,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(StableDiffusionV15Img2ImgNode);
     this.registerImplementation(StableDiffusionV15InpaintingNode);
     this.registerImplementation(JsonAggNode);
+    this.registerImplementation(ExtractItemNode);
     this.registerImplementation(JsonExtractStringNode);
     this.registerImplementation(JsonExtractBooleanNode);
     this.registerImplementation(JsonExtractNumberNode);
