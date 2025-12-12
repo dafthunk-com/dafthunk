@@ -32,7 +32,7 @@ export function YouTubeFacade({ videoId, title }: YouTubeFacadeProps) {
         src={`https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`}
         alt={title}
         className="w-full h-full object-cover"
-        loading="lazy"
+        fetchPriority="high"
       />
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="w-16 h-16 md:w-20 md:h-20 bg-white/90 rounded-full flex items-center justify-center shadow-lg group-hover:bg-white group-hover:scale-105 transition-all">
