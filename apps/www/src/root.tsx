@@ -9,6 +9,7 @@ export const links = () => [
     type: "font/woff2",
     crossOrigin: "anonymous",
   },
+  { rel: "preload", href: stylesheet, as: "style" },
   { rel: "stylesheet", href: stylesheet },
   { rel: "icon", href: "/icon.svg", type: "image/svg+xml" },
 ];
