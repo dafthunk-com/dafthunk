@@ -2,6 +2,13 @@ import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
 import stylesheet from "./app.css?url";
 
 export const links = () => [
+  {
+    rel: "preload",
+    href: "/fonts/InterVariable.woff2",
+    as: "font",
+    type: "font/woff2",
+    crossOrigin: "anonymous",
+  },
   { rel: "stylesheet", href: stylesheet },
   { rel: "icon", href: "/icon.svg", type: "image/svg+xml" },
 ];
