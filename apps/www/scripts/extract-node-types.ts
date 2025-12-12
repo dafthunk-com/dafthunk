@@ -53,7 +53,10 @@ async function main() {
   for (const category of categories) {
     const categoryDir = join(API_NODES_DIR, category);
     const nodeFiles = readdirSync(categoryDir).filter(
-      (f) => f.endsWith("-node.ts") && !f.includes(".test.") && !f.includes(".integration.")
+      (f) =>
+        f.endsWith("-node.ts") &&
+        !f.includes(".test.") &&
+        !f.includes(".integration.")
     );
 
     for (const file of nodeFiles) {
@@ -106,7 +109,10 @@ async function main() {
   console.log(`Extracted ${Object.keys(nodes).length} nodes to ${OUTPUT_PATH}`);
 }
 
-function extractStringField(content: string, field: string): string | undefined {
+function extractStringField(
+  content: string,
+  field: string
+): string | undefined {
   const patterns = [
     new RegExp(`${field}:\\s*"([^"]*)"`, "s"),
     new RegExp(`${field}:\\s*'([^']*)'`, "s"),
@@ -123,12 +129,18 @@ function extractStringField(content: string, field: string): string | undefined 
   return undefined;
 }
 
-function extractNumberField(content: string, field: string): number | undefined {
+function extractNumberField(
+  content: string,
+  field: string
+): number | undefined {
   const match = content.match(new RegExp(`${field}:\\s*(\\d+)`));
   return match ? parseInt(match[1], 10) : undefined;
 }
 
-function extractArrayField(content: string, field: string): string[] | undefined {
+function extractArrayField(
+  content: string,
+  field: string
+): string[] | undefined {
   const match = content.match(new RegExp(`${field}:\\s*\\[([^\\]]+)\\]`));
   if (!match) return undefined;
 
@@ -141,7 +153,9 @@ function extractArrayField(content: string, field: string): string[] | undefined
 function extractParametersField(
   content: string,
   field: string
-): { name: string; type: string; description?: string; required?: boolean }[] | undefined {
+):
+  | { name: string; type: string; description?: string; required?: boolean }[]
+  | undefined {
   const fieldStart = content.indexOf(`${field}:`);
   if (fieldStart === -1) return undefined;
 
@@ -160,7 +174,12 @@ function extractParametersField(
   }
 
   const arrayContent = content.slice(bracketStart, bracketEnd + 1);
-  const params: { name: string; type: string; description?: string; required?: boolean }[] = [];
+  const params: {
+    name: string;
+    type: string;
+    description?: string;
+    required?: boolean;
+  }[] = [];
 
   const objectMatches = arrayContent.matchAll(/\{([^}]+)\}/g);
   for (const objMatch of objectMatches) {

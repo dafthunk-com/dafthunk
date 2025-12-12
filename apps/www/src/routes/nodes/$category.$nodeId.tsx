@@ -47,7 +47,9 @@ export async function loader({ params }: LoaderFunctionArgs) {
     throw data({ message: "Missing parameters" }, { status: 400 });
   }
 
-  const category = categories.categories.find((c: Category) => c.id === categoryId);
+  const category = categories.categories.find(
+    (c: Category) => c.id === categoryId
+  );
   if (!category) {
     throw data({ message: "Category not found" }, { status: 404 });
   }
@@ -70,7 +72,9 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 
   const { category, node } = data;
   const title = `${node.name} - ${category.name} Workflow Node - Dafthunk`;
-  const description = node.description || `Use ${node.name} in your Dafthunk workflow automation.`;
+  const description =
+    node.description ||
+    `Use ${node.name} in your Dafthunk workflow automation.`;
   const url = `https://www.dafthunk.com/nodes/${category.id}/${node.id}`;
   const keywords = [...node.tags, "workflow automation", "Dafthunk"].join(", ");
 
@@ -154,16 +158,12 @@ export default function NodePage({ loaderData }: { loaderData: LoaderData }) {
               <IconComponent className="w-8 h-8 text-gray-600" />
             </div>
             <div>
-              <h1 className="text-6xl font-light text-gray-900">
-                {node.name}
-              </h1>
+              <h1 className="text-6xl font-light text-gray-900">{node.name}</h1>
             </div>
           </div>
 
           {node.documentation && (
-            <p className="text-3xl text-gray-500 mb-6">
-              {node.documentation}
-            </p>
+            <p className="text-3xl text-gray-500 mb-6">{node.documentation}</p>
           )}
 
           <div className="flex flex-wrap gap-2">

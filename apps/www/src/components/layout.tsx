@@ -123,7 +123,9 @@ export function Layout({ children, navigation }: LayoutProps) {
             </a>
           </div>
           <div className="flex flex-col gap-3">
-            <h3 className="text-white text-base font-semibold mb-1">Capabilities</h3>
+            <h3 className="text-white text-base font-semibold mb-1">
+              Capabilities
+            </h3>
             {categories.categories.map((category) => (
               <a
                 key={category.id}

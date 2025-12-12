@@ -46,7 +46,9 @@ export async function loader({ params }: LoaderFunctionArgs) {
     throw data({ message: "Category not specified" }, { status: 400 });
   }
 
-  const category = categories.categories.find((c: Category) => c.id === categoryId);
+  const category = categories.categories.find(
+    (c: Category) => c.id === categoryId
+  );
   if (!category) {
     throw data({ message: "Category not found" }, { status: 404 });
   }
@@ -69,7 +71,10 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
     { title },
     { name: "description", content: description },
-    { name: "keywords", content: `${category.name}, workflow automation, AI nodes, Dafthunk` },
+    {
+      name: "keywords",
+      content: `${category.name}, workflow automation, AI nodes, Dafthunk`,
+    },
     { property: "og:type", content: "website" },
     { property: "og:url", content: url },
     { property: "og:title", content: title },
@@ -111,7 +116,11 @@ interface LoaderData {
   nodes: NodeData[];
 }
 
-export default function CategoryPage({ loaderData }: { loaderData: LoaderData }) {
+export default function CategoryPage({
+  loaderData,
+}: {
+  loaderData: LoaderData;
+}) {
   const { category, nodes } = loaderData;
 
   return (
@@ -128,9 +137,7 @@ export default function CategoryPage({ loaderData }: { loaderData: LoaderData })
           <h1 className="text-6xl font-light text-gray-900 mb-6">
             {category.name} Workflow Nodes
           </h1>
-          <p className="text-3xl text-gray-500 mb-6">
-            {category.description}
-          </p>
+          <p className="text-3xl text-gray-500 mb-6">{category.description}</p>
           <div className="flex flex-wrap gap-2">
             {category.tags.map((tag) => (
               <span
