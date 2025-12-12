@@ -160,9 +160,9 @@ export default function NodePage({ loaderData }: { loaderData: LoaderData }) {
             </div>
           </div>
 
-          {node.description && (
+          {node.documentation && (
             <p className="text-3xl text-gray-500 mb-6">
-              {node.description}
+              {node.documentation}
             </p>
           )}
 
@@ -177,19 +177,6 @@ export default function NodePage({ loaderData }: { loaderData: LoaderData }) {
             ))}
           </div>
         </div>
-
-        {node.documentation && (
-          <section className="mb-12">
-            <h2 className="text-2xl font-light text-gray-900 mb-4">
-              Documentation
-            </h2>
-            <div className="bg-white rounded-xl p-6 shadow-sm">
-              <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                {node.documentation}
-              </p>
-            </div>
-          </section>
-        )}
 
         {node.inputs.length > 0 && (
           <section className="mb-12">

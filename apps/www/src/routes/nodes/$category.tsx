@@ -34,6 +34,7 @@ interface Category {
   name: string;
   summary: string;
   description: string;
+  tags: string[];
   nodeIds: string[];
 }
 
@@ -127,9 +128,19 @@ export default function CategoryPage({ loaderData }: { loaderData: LoaderData })
           <h1 className="text-6xl font-light text-gray-900 mb-6">
             {category.name} Workflow Nodes
           </h1>
-          <p className="text-3xl text-gray-500">
+          <p className="text-3xl text-gray-500 mb-6">
             {category.description}
           </p>
+          <div className="flex flex-wrap gap-2">
+            {category.tags.map((tag) => (
+              <span
+                key={tag}
+                className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-sm"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
