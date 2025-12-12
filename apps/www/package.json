@@ -5,6 +5,8 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
+    "extract-nodes": "npx tsx scripts/extract-node-types.ts",
+    "prebuild": "pnpm run extract-nodes",
     "build": "react-router build",
     "dev": "react-router dev",
     "lint": "pnpm run format:check && eslint .",

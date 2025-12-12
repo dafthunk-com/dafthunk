@@ -1,0 +1,22 @@
+{
+  "categories": [
+    {
+      "id": "anthropic",
+      "name": "Anthropic Claude",
+      "description": "Claude AI models by Anthropic for text generation, analysis, and reasoning",
+      "nodeIds": ["claude-35-sonnet", "claude-35-haiku", "claude-3-opus", "claude-37-sonnet", "claude-opus-4", "claude-opus-41", "claude-sonnet-4"]
+    },
+    {
+      "id": "openai",
+      "name": "OpenAI GPT",
+      "description": "GPT models by OpenAI for advanced language understanding and generation",
+      "nodeIds": ["gpt-4.1", "gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-oss-20b", "gpt-oss-120b"]
+    },
+    {
+      "id": "gemini",
+      "name": "Google Gemini",
+      "description": "Gemini multimodal AI models by Google for text, image, and audio tasks",
+      "nodeIds": ["gemini-2-5-flash", "gemini-2-5-pro", "gemini-2-5-flash-image-preview", "gemini-3-pro-image-preview", "gemini-2-5-flash-tts", "gemini-2-5-flash-audio-understanding", "gemini-2-5-flash-image-understanding", "imagen"]
+    }
+  ]
+}
