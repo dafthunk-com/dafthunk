@@ -146,7 +146,7 @@ export function DashboardPage() {
               <CardTitle className="flex items-center gap-2">
                 Usage
                 <Badge variant={isPro ? "default" : "secondary"}>
-                  {isPro ? "Pro" : "Trial"}
+                  {isPro ? "Early Adopter" : "Trial"}
                 </Badge>
               </CardTitle>
               <CardDescription>

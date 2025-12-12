@@ -179,7 +179,7 @@ export function BillingPage() {
     if (isPro && isActive) {
       return "$10/month base + pay-as-you-go for usage beyond included credits";
     }
-    return "Upgrade to Pro for included monthly credits and usage-based billing";
+    return "Upgrade to Early Adopter plan for included monthly credits and usage-based billing";
   };
 
   // Helper to get status line
@@ -207,7 +207,7 @@ export function BillingPage() {
                 <CardTitle className="flex items-center gap-2">
                   Current Plan
                   <Badge variant={isPro ? "default" : "secondary"}>
-                    {isPro ? "Pro" : "Trial"}
+                    {isPro ? "Early Adopter" : "Trial"}
                   </Badge>
                   {isCanceled && <Badge variant="destructive">Canceled</Badge>}
                 </CardTitle>
@@ -242,7 +242,9 @@ export function BillingPage() {
                 {!isPro && (
                   <Button onClick={handleUpgrade} disabled={isUpgrading}>
                     <Sparkles className="mr-2 h-4 w-4" />
-                    {isUpgrading ? "Redirecting..." : "Upgrade to Pro"}
+                    {isUpgrading
+                      ? "Redirecting..."
+                      : "Upgrade to Early Adopter"}
                   </Button>
                 )}
               </div>
@@ -394,7 +396,7 @@ export function BillingPage() {
         {!isPro && (
           <Card>
             <CardHeader>
-              <CardTitle>Pro Plan</CardTitle>
+              <CardTitle>Early Adopter Plan</CardTitle>
               <CardDescription>
                 $10/month base subscription with usage-based billing
               </CardDescription>
