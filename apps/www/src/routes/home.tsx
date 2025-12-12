@@ -1,5 +1,6 @@
 import { Link } from "react-router";
 import { Layout } from "../components/layout";
+import { YouTubeFacade } from "../components/youtube-facade";
 import categories from "../../data/categories.json";
 
 export function meta() {
@@ -83,13 +84,7 @@ export default function Home() {
             </a>
           </div>
           <div className="lg:col-span-3 aspect-video bg-gray-900 rounded-xl overflow-hidden shadow-xl">
-            <iframe
-              className="w-full h-full"
-              src="https://www.youtube-nocookie.com/embed/5EjJz1Dhtz0?rel=0&modestbranding=1"
-              title="Dafthunk Demo"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            ></iframe>
+            <YouTubeFacade videoId="5EjJz1Dhtz0" title="Dafthunk Demo" />
           </div>
         </div>
       </section>
