@@ -1,4 +1,3 @@
-import File from "lucide-react/icons/file";
 import Upload from "lucide-react/icons/upload";
 
 import { isObjectReference } from "@/services/object-service";
@@ -9,12 +8,10 @@ import type { FileFieldProps, ObjectReference } from "./types";
 
 export function GltfField({
   className,
-  clearable,
   connected,
   createObjectUrl,
   disabled,
   isUploading,
-  onClear,
   onFileUpload,
   parameter,
   uploadError,
@@ -41,7 +38,7 @@ export function GltfField({
     return (
       <div
         className={cn(
-          "h-[320px] text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border",
+          "h-[320px] text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border flex items-start",
           className
         )}
       >
@@ -50,53 +47,23 @@ export function GltfField({
     );
   }
 
-  // Disabled state with value - show 3D model viewer
-  if (disabled && hasValue) {
-    if (objectUrl) {
-      return (
-        <div
-          className={cn(
-            "h-[320px] overflow-hidden rounded-md border border-border",
-            className
-          )}
-        >
-          <ModelViewer parameter={parameter} objectUrl={objectUrl} />
-        </div>
-      );
-    }
-  }
-
-  // Enabled state with value - show download link
+  // Has value - show 3D model viewer
   if (hasValue) {
     return (
       <div
         className={cn(
-          "h-[320px] flex flex-col items-center justify-center space-y-2 p-3 rounded-md border border-neutral-300 dark:border-neutral-700",
+          "relative h-[320px] rounded-md overflow-hidden",
+          disabled && "bg-muted/50 border border-border",
+          !disabled &&
+            "bg-white dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700",
           className
         )}
       >
-        <File className="h-5 w-5 text-neutral-400" />
         {objectUrl && (
-          <a
-            href={objectUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs text-blue-500 hover:text-blue-600"
-          >
-            Download
-          </a>
-        )}
-        {!disabled && clearable && (
-          <button
-            type="button"
-            onClick={onClear}
-            className="text-xs text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
-          >
-            Clear
-          </button>
+          <ModelViewer parameter={parameter} objectUrl={objectUrl} />
         )}
         {uploadError && (
-          <p className="text-xs text-red-600 dark:text-red-400">
+          <p className="absolute bottom-1 left-1 text-xs text-red-600 dark:text-red-400 bg-white/80 dark:bg-neutral-900/80 rounded px-1">
             {uploadError}
           </p>
         )}
@@ -108,7 +75,7 @@ export function GltfField({
   return (
     <div
       className={cn(
-        "h-[320px] flex flex-col items-center justify-center space-y-2 p-3 rounded-md border border-neutral-300 dark:border-neutral-700",
+        "relative h-[320px] flex flex-col items-center justify-center space-y-2 p-3 rounded-md border border-neutral-300 dark:border-neutral-700",
         className
       )}
     >
@@ -131,7 +98,9 @@ export function GltfField({
         accept=".gltf,.glb"
       />
       {uploadError && (
-        <p className="text-xs text-red-600 dark:text-red-400">{uploadError}</p>
+        <p className="absolute bottom-2 text-xs text-red-600 dark:text-red-400">
+          {uploadError}
+        </p>
       )}
     </div>
   );

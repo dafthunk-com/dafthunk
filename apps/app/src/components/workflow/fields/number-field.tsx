@@ -18,7 +18,21 @@ export function NumberField({
   const stringValue = String(value ?? "");
   const hasValue = value !== undefined && value !== "";
 
-  // Render editable input
+  // Disabled state without value - show placeholder message
+  if (disabled && !hasValue) {
+    return (
+      <div
+        className={cn(
+          "text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border",
+          className
+        )}
+      >
+        {connected ? "Connected" : "No number"}
+      </div>
+    );
+  }
+
+  // Has value or enabled - render input
   return (
     <div className={cn("relative", className)}>
       <Input
@@ -27,14 +41,19 @@ export function NumberField({
         onChange={(e) => onChange(e.target.value)}
         placeholder={connected ? "Connected" : "Enter number"}
         disabled={disabled}
-        className="rounded-md border border-neutral-300 dark:border-neutral-700"
+        className={cn(
+          "rounded-md",
+          disabled && "bg-muted/50 border border-border",
+          !disabled && "border border-neutral-300 dark:border-neutral-700"
+        )}
         autoFocus={autoFocus}
       />
-      {!disabled && clearable && hasValue && (
+      {clearable && hasValue && (
         <ClearButton
           onClick={onClear}
           label="Clear number"
           className="absolute top-2 right-1"
+          disabled={disabled}
         />
       )}
     </div>

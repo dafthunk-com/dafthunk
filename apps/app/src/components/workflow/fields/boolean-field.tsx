@@ -19,8 +19,12 @@ export function BooleanField({
     <div
       className={cn("flex items-center justify-start gap-2 w-full", className)}
     >
-      {!disabled && clearable && hasValue && (
-        <ClearButton onClick={onClear} label="Clear boolean" />
+      {clearable && hasValue && (
+        <ClearButton
+          onClick={onClear}
+          label="Clear boolean"
+          disabled={disabled}
+        />
       )}
       <Switch
         checked={boolValue}

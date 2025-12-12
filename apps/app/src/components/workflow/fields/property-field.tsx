@@ -4,6 +4,7 @@ import BoxIcon from "lucide-react/icons/box";
 import BracesIcon from "lucide-react/icons/braces";
 import CalendarIcon from "lucide-react/icons/calendar";
 import CheckIcon from "lucide-react/icons/check";
+import DownloadIcon from "lucide-react/icons/download";
 import EyeIcon from "lucide-react/icons/eye";
 import EyeOffIcon from "lucide-react/icons/eye-off";
 import FileIcon from "lucide-react/icons/file";
@@ -16,6 +17,7 @@ import MusicIcon from "lucide-react/icons/music";
 import TypeIcon from "lucide-react/icons/type";
 
 import { Toggle } from "@/components/ui/toggle";
+import { isObjectReference } from "@/services/object-service";
 
 import type { InputOutputType, WorkflowParameter } from "../workflow-types";
 import { ClearButton } from "./clear-button";
@@ -55,6 +57,15 @@ export interface PropertyFieldProps {
   autoFocus?: boolean;
 }
 
+// File types that support download
+const FILE_TYPES: InputOutputType[] = [
+  "image",
+  "audio",
+  "gltf",
+  "blob",
+  "document",
+];
+
 export function PropertyField({
   parameter,
   value,
@@ -67,6 +78,13 @@ export function PropertyField({
   createObjectUrl,
   autoFocus = false,
 }: PropertyFieldProps) {
+  // Check if this is a downloadable file type with a value
+  const isFileType = FILE_TYPES.includes(parameter.type);
+  const hasFileValue = isFileType && isObjectReference(value);
+  const downloadUrl = hasFileValue
+    ? createObjectUrl(value as ObjectReference)
+    : null;
+
   return (
     <div className="text-sm space-y-1">
       <div className="flex items-center justify-between">
@@ -82,22 +100,31 @@ export function PropertyField({
           </span>
         </div>
         <div className="flex items-center gap-1 shrink-0">
-          {!disabled && (
-            <>
-              {connected && onDisconnect ? (
-                <UnplugButton
-                  onClick={onDisconnect}
-                  label={`Disconnect ${parameter.name}`}
-                />
-              ) : (
-                value !== undefined && (
-                  <ClearButton
-                    onClick={onClear}
-                    label={`Clear ${parameter.name} value`}
-                  />
-                )
-              )}
-            </>
+          {downloadUrl && (
+            <a
+              href={downloadUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group px-1 h-8 w-8 flex items-center justify-center"
+              title={`Download ${parameter.name}`}
+            >
+              <DownloadIcon className="h-3 w-3 text-neutral-400 group-hover:text-neutral-700 dark:text-neutral-500 dark:group-hover:text-neutral-300" />
+            </a>
+          )}
+          {connected && onDisconnect ? (
+            <UnplugButton
+              onClick={onDisconnect}
+              label={`Disconnect ${parameter.name}`}
+              disabled={disabled}
+            />
+          ) : (
+            value !== undefined && (
+              <ClearButton
+                onClick={onClear}
+                label={`Clear ${parameter.name} value`}
+                disabled={disabled}
+              />
+            )
           )}
           <Toggle
             size="sm"

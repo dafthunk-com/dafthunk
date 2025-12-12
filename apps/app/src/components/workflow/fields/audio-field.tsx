@@ -3,17 +3,14 @@ import Upload from "lucide-react/icons/upload";
 import { isObjectReference } from "@/services/object-service";
 import { cn } from "@/utils/utils";
 
-import { ClearButton } from "./clear-button";
 import type { FileFieldProps, ObjectReference } from "./types";
 
 export function AudioField({
   className,
-  clearable,
   connected,
   createObjectUrl,
   disabled,
   isUploading,
-  onClear,
   onFileUpload,
   parameter,
   uploadError,
@@ -55,27 +52,19 @@ export function AudioField({
   // Has value (disabled or enabled) - show audio player
   if (hasValue) {
     return (
-      <div className={cn(className)}>
-        <div
-          className={cn(
-            "relative rounded-md p-2",
-            disabled && "bg-muted/50 border border-border",
-            !disabled && "border border-neutral-300 dark:border-neutral-700"
-          )}
-        >
-          {objectUrl && (
-            <audio controls className="w-full text-xs" preload="metadata">
-              <source src={objectUrl} type={mimeType} />
-            </audio>
-          )}
-          {!disabled && clearable && (
-            <ClearButton
-              onClick={onClear}
-              label="Clear audio"
-              className="absolute top-2 right-1"
-            />
-          )}
-        </div>
+      <div
+        className={cn(
+          "relative rounded-md p-2",
+          disabled && "bg-muted/50 border border-border",
+          !disabled && "border border-neutral-300 dark:border-neutral-700",
+          className
+        )}
+      >
+        {objectUrl && (
+          <audio controls className="w-full text-xs" preload="metadata">
+            <source src={objectUrl} type={mimeType} />
+          </audio>
+        )}
         {uploadError && (
           <p className="text-xs text-red-600 dark:text-red-400 mt-1">
             {uploadError}

@@ -18,23 +18,42 @@ export function TextField({
   const stringValue = String(value ?? "");
   const hasValue = value !== undefined && value !== "";
 
-  // Render editable textarea
+  // Disabled state without value - show placeholder message
+  if (disabled && !hasValue) {
+    return (
+      <div
+        className={cn(
+          "text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border",
+          className
+        )}
+      >
+        {connected ? "Connected" : "No text"}
+      </div>
+    );
+  }
+
+  // Has value or enabled - render textarea
   return (
     <div className={cn("relative", className)}>
       <Textarea
         value={stringValue}
         onChange={(e) => onChange(e.target.value || undefined)}
         placeholder={connected ? "Connected" : "Enter text"}
-        className="resize-y rounded-md border border-neutral-300 dark:border-neutral-700"
+        className={cn(
+          "resize-y rounded-md",
+          disabled && "bg-muted/50 border border-border",
+          !disabled && "border border-neutral-300 dark:border-neutral-700"
+        )}
         disabled={disabled}
         readOnly={disabled}
         autoFocus={autoFocus}
       />
-      {!disabled && clearable && hasValue && (
+      {clearable && hasValue && (
         <ClearButton
           onClick={onClear}
           label="Clear text"
           className="absolute top-2 right-1"
+          disabled={disabled}
         />
       )}
     </div>

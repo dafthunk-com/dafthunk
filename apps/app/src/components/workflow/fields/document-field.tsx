@@ -4,17 +4,14 @@ import Upload from "lucide-react/icons/upload";
 import { isObjectReference } from "@/services/object-service";
 import { cn } from "@/utils/utils";
 
-import { ClearButton } from "./clear-button";
 import type { FileFieldProps, ObjectReference } from "./types";
 
 export function DocumentField({
   className,
-  clearable,
   connected,
   createObjectUrl,
   disabled,
   isUploading,
-  onClear,
   onFileUpload,
   parameter,
   uploadError,
@@ -53,8 +50,8 @@ export function DocumentField({
     );
   }
 
-  // Disabled state with value - show preview based on document type
-  if (disabled && hasValue) {
+  // Has value - show preview based on document type
+  if (hasValue) {
     // No URL available for preview
     if (!objectUrl) {
       return (
@@ -74,25 +71,13 @@ export function DocumentField({
       return (
         <div
           className={cn(
-            "relative p-2 bg-muted/50 rounded-md border border-border",
+            "relative rounded-md overflow-hidden border",
+            disabled && "bg-muted/50 border-border",
+            !disabled && "border-neutral-300 dark:border-neutral-700",
             className
           )}
         >
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-neutral-500">PDF Document</span>
-            <a
-              href={objectUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-blue-500 hover:underline"
-            >
-              View
-            </a>
-          </div>
-          <iframe
-            src={objectUrl}
-            className="w-full h-64 border nowheel rounded-md"
-          />
+          <iframe src={objectUrl} className="w-full h-64 nowheel" />
         </div>
       );
     }
@@ -102,107 +87,67 @@ export function DocumentField({
       return (
         <div
           className={cn(
-            "relative p-2 bg-muted/50 rounded-md border border-border",
+            "relative rounded-md overflow-hidden border",
+            disabled && "bg-muted/50 border-border",
+            !disabled && "border-neutral-300 dark:border-neutral-700",
             className
           )}
         >
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-neutral-500">Document (Image)</span>
-            <a
-              href={objectUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-blue-500 hover:underline"
-            >
-              View
-            </a>
-          </div>
-          <img
-            src={objectUrl}
-            alt="Document"
-            className="w-full border rounded-md"
-          />
+          <img src={objectUrl} alt="Document" className="w-full object-cover" />
         </div>
       );
     }
 
-    // Other document types - show download link only
+    // Other document types - show filename
+    const filename =
+      (value as ObjectReference)?.filename ||
+      `Document (${mimeType?.split("/")[1] || "unknown"})`;
     return (
       <div
         className={cn(
-          "relative p-2 bg-muted/50 rounded-md border border-border",
+          "flex items-center gap-2 p-2 rounded-md border",
+          disabled && "bg-muted/50 border-border",
+          !disabled && "border-neutral-300 dark:border-neutral-700",
           className
         )}
       >
-        <a
-          href={objectUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-xs text-blue-500 hover:underline flex items-center gap-1"
+        <File className="h-4 w-4 flex-shrink-0 text-neutral-500" />
+        <span
+          className="text-xs text-neutral-700 dark:text-neutral-300 truncate flex-1"
+          title={filename}
         >
-          <File className="h-3 w-3" />
-          View Document ({mimeType?.split("/")[1] || "unknown"})
-        </a>
-      </div>
-    );
-  }
-
-  // Enabled state with value - show download link
-  if (hasValue) {
-    return (
-      <div className={cn(className)}>
-        <div className="relative flex items-center gap-2 p-2 rounded-md border border-neutral-300 dark:border-neutral-700">
-          <File className="h-4 w-4 flex-shrink-0 text-neutral-500" />
-          {objectUrl && (
-            <a
-              href={objectUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-blue-500 hover:text-blue-600 truncate flex-1"
-            >
-              Download
-            </a>
-          )}
-          {!disabled && clearable && (
-            <ClearButton
-              onClick={onClear}
-              label="Clear document"
-              className="absolute top-2 right-1"
-            />
-          )}
-        </div>
-        {uploadError && (
-          <p className="text-xs text-red-600 dark:text-red-400 mt-1">
-            {uploadError}
-          </p>
-        )}
+          {filename}
+        </span>
       </div>
     );
   }
 
   // No value - show upload zone
   return (
-    <div className={cn(className)}>
-      <div className="flex flex-col items-center justify-center space-y-2 p-3 rounded-md border border-neutral-300 dark:border-neutral-700">
-        <Upload className="h-5 w-5 text-neutral-400" />
-        <label
-          htmlFor={`document-upload-${parameter.id}`}
-          className={cn(
-            "text-xs text-blue-500 hover:text-blue-600 cursor-pointer",
-            (isUploading || disabled) && "opacity-50 pointer-events-none"
-          )}
-        >
-          {isUploading ? "Uploading..." : "Upload"}
-        </label>
-        <input
-          id={`document-upload-${parameter.id}`}
-          type="file"
-          className="hidden"
-          onChange={onFileUpload}
-          disabled={isUploading || disabled}
-          accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.html,.xml"
-        />
-      </div>
+    <div
+      className={cn(
+        "flex flex-col items-center justify-center space-y-2 p-3 rounded-md border border-neutral-300 dark:border-neutral-700",
+        className
+      )}
+    >
+      <Upload className="h-5 w-5 text-neutral-400" />
+      <label
+        htmlFor={`document-upload-${parameter.id}`}
+        className={cn(
+          "text-xs text-blue-500 hover:text-blue-600 cursor-pointer",
+          (isUploading || disabled) && "opacity-50 pointer-events-none"
+        )}
+      >
+        {isUploading ? "Uploading..." : "Upload"}
+      </label>
+      <input
+        id={`document-upload-${parameter.id}`}
+        type="file"
+        className="hidden"
+        onChange={onFileUpload}
+        disabled={isUploading || disabled}
+        accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.html,.xml"
+      />
       {uploadError && (
         <p className="text-xs text-red-600 dark:text-red-400 mt-1">
           {uploadError}

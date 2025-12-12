@@ -3,17 +3,14 @@ import Upload from "lucide-react/icons/upload";
 import { isObjectReference } from "@/services/object-service";
 import { cn } from "@/utils/utils";
 
-import { ClearButton } from "./clear-button";
 import type { FileFieldProps, ObjectReference } from "./types";
 
 export function ImageField({
   className,
-  clearable,
   connected,
   createObjectUrl,
   disabled,
   isUploading,
-  onClear,
   onFileUpload,
   parameter,
   uploadError,
@@ -52,35 +49,27 @@ export function ImageField({
   // Has value (disabled or enabled) - show image preview
   if (hasValue) {
     return (
-      <div className={cn(className)}>
-        <div
-          className={cn(
-            "relative rounded-md overflow-hidden",
-            disabled && "bg-muted/50 border border-border",
-            !disabled &&
-              "bg-white dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700"
-          )}
-        >
-          {objectUrl && (
-            <img
-              src={objectUrl}
-              alt="Uploaded image"
-              className="w-full object-cover"
-              onError={(e) => {
-                e.currentTarget.style.display = "none";
-              }}
-            />
-          )}
-          {!disabled && clearable && (
-            <ClearButton
-              onClick={onClear}
-              label="Clear image"
-              className="absolute top-2 right-1"
-            />
-          )}
-        </div>
+      <div
+        className={cn(
+          "relative rounded-md overflow-hidden",
+          disabled && "bg-muted/50 border border-border",
+          !disabled &&
+            "bg-white dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700",
+          className
+        )}
+      >
+        {objectUrl && (
+          <img
+            src={objectUrl}
+            alt="Uploaded image"
+            className="w-full object-cover"
+            onError={(e) => {
+              e.currentTarget.style.display = "none";
+            }}
+          />
+        )}
         {uploadError && (
-          <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+          <p className="absolute bottom-1 left-1 text-xs text-red-600 dark:text-red-400 bg-white/80 dark:bg-neutral-900/80 rounded px-1">
             {uploadError}
           </p>
         )}
