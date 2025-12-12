@@ -1,6 +1,6 @@
 import categories from "../../data/categories.json";
 
-export async function loader() {
+export function loader() {
   const baseUrl = "https://www.dafthunk.com";
   const today = new Date().toISOString().split("T")[0];
 

@@ -39,7 +39,7 @@ interface NodeType {
 const API_NODES_DIR = join(__dirname, "../../api/src/nodes");
 const OUTPUT_PATH = join(__dirname, "../data/nodes.json");
 
-async function main() {
+function main() {
   const nodes: Record<string, NodeType> = {};
 
   // Get all subdirectories in the nodes folder
@@ -198,4 +198,4 @@ function extractParametersField(
   return params;
 }
 
-main().catch(console.error);
+main();

@@ -39,11 +39,12 @@ interface Category {
 
 const nodesMap = allNodes as Record<string, NodeData>;
 
-export async function loader({ params }: LoaderFunctionArgs) {
+export function loader({ params }: LoaderFunctionArgs) {
   const categoryId = params.category;
   const nodeId = params.nodeId;
 
   if (!categoryId || !nodeId) {
+    // eslint-disable-next-line @typescript-eslint/only-throw-error
     throw data({ message: "Missing parameters" }, { status: 400 });
   }
 
@@ -51,11 +52,13 @@ export async function loader({ params }: LoaderFunctionArgs) {
     (c: Category) => c.id === categoryId
   );
   if (!category) {
+    // eslint-disable-next-line @typescript-eslint/only-throw-error
     throw data({ message: "Category not found" }, { status: 404 });
   }
 
   const node = nodesMap[nodeId];
   if (!node || !category.nodeIds.includes(nodeId)) {
+    // eslint-disable-next-line @typescript-eslint/only-throw-error
     throw data({ message: "Node not found" }, { status: 404 });
   }
 

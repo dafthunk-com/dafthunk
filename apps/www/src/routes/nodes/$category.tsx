@@ -40,9 +40,10 @@ interface Category {
 
 const nodesMap = allNodes as Record<string, NodeData>;
 
-export async function loader({ params }: LoaderFunctionArgs) {
+export function loader({ params }: LoaderFunctionArgs) {
   const categoryId = params.category;
   if (!categoryId) {
+    // eslint-disable-next-line @typescript-eslint/only-throw-error
     throw data({ message: "Category not specified" }, { status: 400 });
   }
 
@@ -50,6 +51,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
     (c: Category) => c.id === categoryId
   );
   if (!category) {
+    // eslint-disable-next-line @typescript-eslint/only-throw-error
     throw data({ message: "Category not found" }, { status: 404 });
   }
 
