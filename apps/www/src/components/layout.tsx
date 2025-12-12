@@ -1,5 +1,6 @@
 import { Menu, X } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import categories from "../../data/categories.json";
 
 interface NavigationItem {
   href: string;
@@ -93,7 +94,7 @@ export function Layout({ children, navigation }: LayoutProps) {
       <main className="flex-1 max-w-screen-2xl mx-auto w-full">{children}</main>
 
       <footer className="w-full bg-black text-gray-300 px-6 py-12">
-        <div className="grid grid-cols-5 gap-8 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 mb-8">
           <div>
             <a href="/">
               <img
@@ -120,6 +121,18 @@ export function Layout({ children, navigation }: LayoutProps) {
             <a href="#open-source" className="text-base hover:text-white">
               Open Source
             </a>
+          </div>
+          <div className="flex flex-col gap-3">
+            <h3 className="text-white text-base font-semibold mb-1">Capabilities</h3>
+            {categories.categories.map((category) => (
+              <a
+                key={category.id}
+                href={`/nodes/${category.id}`}
+                className="text-base hover:text-white"
+              >
+                {category.name}
+              </a>
+            ))}
           </div>
           <div className="flex flex-col gap-3">
             <h3 className="text-white text-base font-semibold mb-1">

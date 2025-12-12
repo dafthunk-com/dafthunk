@@ -32,6 +32,7 @@ interface NodeData {
 interface Category {
   id: string;
   name: string;
+  summary: string;
   description: string;
   nodeIds: string[];
 }
@@ -61,7 +62,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 
   const { category } = data;
   const title = `${category.name} Workflow Nodes - Dafthunk`;
-  const description = category.description;
+  const description = category.summary;
   const url = `https://www.dafthunk.com/nodes/${category.id}`;
 
   return [
@@ -116,10 +117,10 @@ export default function CategoryPage({ loaderData }: { loaderData: LoaderData })
     <Layout navigation={navigation}>
       <main className="px-6 py-32">
         <Link
-          to="/nodes"
+          to="/"
           className="inline-flex items-center text-base text-gray-600 hover:text-gray-900 mb-8"
         >
-          &larr; Back to Node Categories
+          &larr; Back to Home
         </Link>
 
         <div className="mb-32">

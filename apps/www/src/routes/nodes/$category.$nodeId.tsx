@@ -32,6 +32,7 @@ interface NodeData {
 interface Category {
   id: string;
   name: string;
+  summary: string;
   description: string;
   nodeIds: string[];
 }

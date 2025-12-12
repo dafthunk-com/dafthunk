@@ -1,22 +1,129 @@
 {
   "categories": [
     {
-      "id": "anthropic",
-      "name": "Anthropic Claude",
-      "description": "Claude AI models by Anthropic for text generation, analysis, and reasoning",
-      "nodeIds": ["claude-35-sonnet", "claude-35-haiku", "claude-3-opus", "claude-37-sonnet", "claude-opus-4", "claude-opus-41", "claude-sonnet-4"]
+      "id": "ai",
+      "name": "Artificial Intelligence",
+      "summary": "Text generation, vision AI, and natural language processing with Claude, GPT, Gemini, and Workers AI",
+      "description": "Build AI workflow automation integrating Anthropic Claude, OpenAI GPT, Google Gemini, and Workers AI for text generation, natural language processing, sentiment analysis, and intelligent automation. Create AI and RAG powered workflows that leverage large language models for content creation, data extraction, translation, summarization, and vision AI capabilities. Automate complex reasoning tasks and build intelligent agents that understand and generate human-like responses.",
+      "tags": ["Claude", "GPT", "Gemini", "Text generation", "Vision AI", "NLP", "LLM"],
+      "nodeIds": [
+        "claude-opus-41",
+        "claude-sonnet-4",
+        "claude-37-sonnet",
+        "gpt-5",
+        "gpt-5-mini",
+        "gemini-2-5-pro",
+        "gemini-2-5-flash",
+        "llama-4-scout-17b-16e-instruct",
+        "llama-3-3-70b-instruct-fp8-fast",
+        "deepseek-r1-distill-qwen-32b",
+        "mistral-small-3-1-24b-instruct",
+        "hermes-2-pro-mistral-7b"
+      ]
     },
     {
-      "id": "openai",
-      "name": "OpenAI GPT",
-      "description": "GPT models by OpenAI for advanced language understanding and generation",
-      "nodeIds": ["gpt-4.1", "gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-oss-20b", "gpt-oss-120b"]
+      "id": "browser",
+      "name": "Browser Automation",
+      "summary": "Web scraping, screenshots, PDF generation, and data extraction with headless browsers",
+      "description": "Automate web scraping, data extraction, screenshot capture, and PDF generation powered by Browser Rendering at the edge. Extract structured data from websites, monitor web pages for changes, capture full-page screenshots, convert web pages to PDF documents, and interact with dynamic JavaScript-heavy sites. Build headless browser automation workflows that run globally with low latency and handle complex web scraping tasks at scale.",
+      "tags": ["Web scraping", "Screenshots", "PDF generation", "Cloudflare", "Headless browser"],
+      "nodeIds": [
+        "cloudflare-browser-scrape",
+        "cloudflare-browser-markdown",
+        "cloudflare-browser-json",
+        "cloudflare-browser-links",
+        "cloudflare-browser-content",
+        "cloudflare-browser-screenshot",
+        "cloudflare-browser-pdf",
+        "cloudflare-browser-snapshot"
+      ]
     },
     {
-      "id": "gemini",
-      "name": "Google Gemini",
-      "description": "Gemini multimodal AI models by Google for text, image, and audio tasks",
-      "nodeIds": ["gemini-2-5-flash", "gemini-2-5-pro", "gemini-2-5-flash-image-preview", "gemini-3-pro-image-preview", "gemini-2-5-flash-tts", "gemini-2-5-flash-audio-understanding", "gemini-2-5-flash-image-understanding", "imagen"]
+      "id": "data",
+      "name": "Data Processing",
+      "summary": "JSON manipulation, CSV parsing, text operations, and data transformations",
+      "description": "Transform and process data in your workflow automation with comprehensive JSON manipulation, CSV parsing and generation, text operations, string formatting, and mathematical computations. Parse, validate, transform, and merge data from multiple sources. Filter, sort, aggregate, and reshape datasets. Perform data cleansing, normalization, and enrichment. Build pipelines that handle complex data transformations and prepare data for analytics, machine learning, or storage.",
+      "tags": ["JSON", "CSV", "Text processing", "Math operations", "ETL"],
+      "nodeIds": [
+        "json-extract-string",
+        "json-extract-object",
+        "json-merge",
+        "json-template",
+        "json-flatten",
+        "csv-parse",
+        "csv-stringify",
+        "csv-extract-column",
+        "csv-filter-rows",
+        "regex-extract",
+        "regex-replace",
+        "regex-match",
+        "string-concat",
+        "calculator"
+      ]
+    },
+    {
+      "id": "media",
+      "name": "Media Generation",
+      "summary": "Image generation, audio processing, 3D models, and document creation",
+      "description": "Generate and manipulate images, audio files, documents, and 3D models in your workflow automation for creative content production. Create AI-generated images, edit and transform existing images with Photon, process and convert audio formats, generate PDF documents from templates, and create 3D models programmatically. Build automated media workflow pipelines for marketing materials, social media content, podcasts, documentation, and digital assets at scale.",
+      "tags": ["Image generation", "Audio processing", "3D models", "Documents", "PDF"],
+      "nodeIds": [
+        "flux-1-schnell",
+        "stable-diffusion-xl-lightning",
+        "imagen",
+        "gemini-2-5-flash-image-preview",
+        "photon-resize",
+        "photon-crop",
+        "photon-gaussian-blur",
+        "photon-grayscale",
+        "whisper-large-v3-turbo",
+        "gemini-2-5-flash-tts",
+        "melotts",
+        "trellis",
+        "to-markdown"
+      ]
+    },
+    {
+      "id": "integrations",
+      "name": "Integrations",
+      "summary": "Connect with GitHub, Discord, LinkedIn, Reddit, Google Calendar, and Gmail",
+      "description": "Connect your workflow automation with popular platforms including GitHub for repository management, Discord for community engagement and bot interactions, LinkedIn for professional networking and content publishing, Reddit for community monitoring and content posting, Google Calendar for event scheduling and meeting automation, and Gmail for email management and automated communications. Sync data across platforms and build cross-platform workflow integrations.",
+      "tags": ["GitHub", "Discord", "LinkedIn", "Reddit", "Google Calendar", "Gmail"],
+      "nodeIds": [
+        "create-issue-github",
+        "search-repositories-github",
+        "list-user-repositories-github",
+        "send-message-discord",
+        "send-dm-discord",
+        "share-post-linkedin",
+        "get-profile-linkedin",
+        "list-posts-reddit",
+        "submit-post-reddit",
+        "create-event-google-calendar",
+        "list-events-google-calendar",
+        "send-email-google-mail",
+        "read-inbox-google-mail"
+      ]
+    },
+    {
+      "id": "developer",
+      "name": "Developer Tools",
+      "summary": "JavaScript execution, HTTP requests, database queries, and workflow logic",
+      "description": "Execute custom JavaScript code within your workflow automation, make HTTP and REST API requests to any service, work with SQL databases and textual datasets, implement conditional logic and branching, persist data, iterate with queues, handle errors and retries, and build complex workflow orchestration. Integrate with any API, transform data programmatically, implement custom business logic, and extend workflow automation capabilities with code when visual nodes aren't enough.",
+      "tags": ["JavaScript", "HTTP/API", "Database", "Logic flows", "REST API"],
+      "nodeIds": [
+        "javascript-script",
+        "http-request",
+        "fetch",
+        "database-query",
+        "database-execute",
+        "conditional-fork",
+        "conditional-join",
+        "queue-send",
+        "queue-message",
+        "aggregate-items",
+        "extract-item"
+      ]
     }
   ]
 }

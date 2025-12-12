@@ -1,4 +1,6 @@
+import { Link } from "react-router";
 import { Layout } from "../components/layout";
+import categories from "../../data/categories.json";
 
 export function meta() {
   return [
@@ -184,247 +186,44 @@ export default function Home() {
         </div>
 
         <div className="space-y-24">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
-            <div className="lg:col-span-12 xl:col-span-3">
-              <h3 className="text-4xl font-light text-gray-900">
-                AI & Machine Learning
-              </h3>
-            </div>
-            <div className="lg:col-span-8 xl:col-span-6">
-              <p className="text-xl text-gray-600 leading-relaxed">
-                Build AI workflow automation integrating Anthropic Claude,
-                OpenAI GPT, Google Gemini, and Workers AI for text generation,
-                natural language processing, sentiment analysis, and intelligent
-                automation. Create AI and RAG powered workflows that leverage
-                large language models for content creation, data extraction,
-                translation, summarization, and vision AI capabilities. Automate
-                complex reasoning tasks and build intelligent agents that
-                understand and generate human-like responses.
-              </p>
-            </div>
-            <div className="lg:col-span-4 xl:col-span-3">
-              <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  Claude
-                </span>
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  GPT
-                </span>
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  Gemini
-                </span>
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  Text generation
-                </span>
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  Vision AI
-                </span>
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  NLP
-                </span>
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  LLM
-                </span>
+          {categories.categories.map((category) => (
+            <div
+              key={category.id}
+              className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16"
+            >
+              <div className="lg:col-span-12 xl:col-span-3">
+                <Link
+                  to={`/nodes/${category.id}`}
+                  className="text-4xl font-light text-gray-900 hover:text-black transition-colors"
+                >
+                  {category.name}
+                </Link>
+              </div>
+              <div className="lg:col-span-8 xl:col-span-6">
+                <p className="text-xl text-gray-600 leading-relaxed mb-4">
+                  {category.description}
+                </p>
+                <Link
+                  to={`/nodes/${category.id}`}
+                  className="inline-flex items-center text-gray-900 hover:text-black font-medium"
+                >
+                  View {category.nodeIds.length} nodes &rarr;
+                </Link>
+              </div>
+              <div className="lg:col-span-4 xl:col-span-3">
+                <div className="flex flex-wrap gap-2">
+                  {category.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
-            <div className="lg:col-span-12 xl:col-span-3">
-              <h3 className="text-4xl font-light text-gray-900">
-                Browser Automation
-              </h3>
-            </div>
-            <div className="lg:col-span-8 xl:col-span-6">
-              <p className="text-xl text-gray-600 leading-relaxed">
-                Automate web scraping, data extraction, screenshot capture, and
-                PDF generation powered by Browser Rendering at the edge. Extract
-                structured data from websites, monitor web pages for changes,
-                capture full-page screenshots, convert web pages to PDF
-                documents, and interact with dynamic JavaScript-heavy sites.
-                Build headless browser automation workflows that run globally
-                with low latency and handle complex web scraping tasks at scale.
-              </p>
-            </div>
-            <div className="lg:col-span-4 xl:col-span-3">
-              <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  Web scraping
-                </span>
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  Screenshots
-                </span>
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  PDF generation
-                </span>
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  Cloudflare
-                </span>
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  Headless browser
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
-            <div className="lg:col-span-12 xl:col-span-3">
-              <h3 className="text-4xl font-light text-gray-900">
-                Data Processing
-              </h3>
-            </div>
-            <div className="lg:col-span-8 xl:col-span-6">
-              <p className="text-xl text-gray-600 leading-relaxed">
-                Transform and process data in your workflow automation with
-                comprehensive JSON manipulation, CSV parsing and generation,
-                text operations, string formatting, and mathematical
-                computations. Parse, validate, transform, and merge data from
-                multiple sources. Filter, sort, aggregate, and reshape datasets.
-                Perform data cleansing, normalization, and enrichment. Build
-                pipelines that handle complex data transformations and prepare
-                data for analytics, machine learning, or storage.
-              </p>
-            </div>
-            <div className="lg:col-span-4 xl:col-span-3">
-              <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  JSON
-                </span>
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  CSV
-                </span>
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  Text processing
-                </span>
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  Math operations
-                </span>
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  ETL
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
-            <div className="lg:col-span-12 xl:col-span-3">
-              <h3 className="text-4xl font-light text-gray-900">
-                Media Generation
-              </h3>
-            </div>
-            <div className="lg:col-span-8 xl:col-span-6">
-              <p className="text-xl text-gray-600 leading-relaxed">
-                Generate and manipulate images, audio files, documents, and 3D
-                models in your workflow automation for creative content
-                production. Create AI-generated images, edit and transform
-                existing images with Photon, process and convert audio formats,
-                generate PDF documents from templates, and create 3D models
-                programmatically. Build automated media workflow pipelines for
-                marketing materials, social media content, podcasts,
-                documentation, and digital assets at scale.
-              </p>
-            </div>
-            <div className="lg:col-span-4 xl:col-span-3">
-              <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  Image generation
-                </span>
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  Audio processing
-                </span>
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  3D models
-                </span>
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  Documents
-                </span>
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  PDF
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
-            <div className="lg:col-span-12 xl:col-span-3">
-              <h3 className="text-4xl font-light text-gray-900">
-                Integrations
-              </h3>
-            </div>
-            <div className="lg:col-span-8 xl:col-span-6">
-              <p className="text-xl text-gray-600 leading-relaxed">
-                Connect your workflow automation with popular platforms
-                including GitHub for repository management, Discord for
-                community engagement and bot interactions, LinkedIn for
-                professional networking and content publishing, Reddit for
-                community monitoring and content posting, Google Calendar for
-                event scheduling and meeting automation, and Gmail for email
-                management and automated communications. Sync data across
-                platforms and build cross-platform workflow integrations.
-              </p>
-            </div>
-            <div className="lg:col-span-4 xl:col-span-3">
-              <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  GitHub
-                </span>
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  Discord
-                </span>
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  LinkedIn
-                </span>
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  Reddit
-                </span>
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  Google Calendar
-                </span>
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  Gmail
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
-            <div className="lg:col-span-12 xl:col-span-3">
-              <h3 className="text-4xl font-light text-gray-900">
-                Developer Tools
-              </h3>
-            </div>
-            <div className="lg:col-span-8 xl:col-span-6">
-              <p className="text-xl text-gray-600 leading-relaxed">
-                Execute custom JavaScript code within your workflow automation,
-                make HTTP and REST API requests to any service, work with SQL
-                databases and textual datasets, implement conditional logic and
-                branching, persist data, iterate with queues, handle errors and
-                retries, and build complex workflow orchestration. Integrate
-                with any API, transform data programmatically, implement custom
-                business logic, and extend workflow automation capabilities with
-                code when visual nodes aren't enough.
-              </p>
-            </div>
-            <div className="lg:col-span-4 xl:col-span-3">
-              <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  JavaScript
-                </span>
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  HTTP/API
-                </span>
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  Database
-                </span>
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  Logic flows
-                </span>
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  REST API
-                </span>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
       </section>
 
