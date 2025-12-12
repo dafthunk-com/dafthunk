@@ -2,14 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Self-hosted Inter variable font */
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/InterVariable.woff2") format("woff2-variations");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/InterVariable-Italic.woff2") format("woff2-variations");
+}
+
 @layer base {
   body {
     font-family: "Inter", sans-serif;
-  }
-
-  @supports (font-variation-settings: normal) {
-    body {
-      font-family: "Inter var", sans-serif;
-    }
   }
 }
