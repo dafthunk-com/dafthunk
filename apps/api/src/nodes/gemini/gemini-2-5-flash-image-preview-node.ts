@@ -40,7 +40,7 @@ export class Gemini25FlashImagePreviewNode extends ExecutableNode {
         description:
           "Optional first input image to use as reference for generation",
         required: false,
-        hidden: true,
+        hidden: false,
       },
       {
         name: "image2",
@@ -48,7 +48,7 @@ export class Gemini25FlashImagePreviewNode extends ExecutableNode {
         description:
           "Optional second input image for multi-image composition or style transfer",
         required: false,
-        hidden: true,
+        hidden: false,
       },
       {
         name: "image3",
@@ -56,16 +56,7 @@ export class Gemini25FlashImagePreviewNode extends ExecutableNode {
         description:
           "Optional third input image for multi-image composition (works best with up to 3 images)",
         required: false,
-        hidden: true,
-      },
-      {
-        name: "thinking_budget",
-        type: "number",
-        description:
-          "Thinking budget (0-1000). Higher values enable more reasoning but increase cost and latency",
-        required: false,
-        value: 100,
-        hidden: true,
+        hidden: false,
       },
     ],
     outputs: [
@@ -109,8 +100,7 @@ export class Gemini25FlashImagePreviewNode extends ExecutableNode {
     let response: any;
 
     try {
-      const { prompt, image1, image2, image3, thinking_budget } =
-        context.inputs;
+      const { prompt, image1, image2, image3 } = context.inputs;
 
       if (!prompt) {
         return this.createErrorResult("Prompt is required");
@@ -121,15 +111,6 @@ export class Gemini25FlashImagePreviewNode extends ExecutableNode {
         apiKey: "gateway-managed",
         ...getGoogleAIConfig(context.env),
       });
-
-      const config: any = {};
-
-      // Configure thinking budget if provided
-      if (thinking_budget !== undefined && thinking_budget !== null) {
-        config.thinkingConfig = {
-          thinkingBudget: thinking_budget,
-        };
-      }
 
       // Prepare the prompt data
       const promptData: any[] = [{ text: prompt }];
@@ -168,7 +149,6 @@ export class Gemini25FlashImagePreviewNode extends ExecutableNode {
       response = await ai.models.generateContent({
         model: "gemini-2.5-flash-image-preview",
         contents: promptData,
-        config,
       });
 
       // Extract all needed data immediately to avoid circular references

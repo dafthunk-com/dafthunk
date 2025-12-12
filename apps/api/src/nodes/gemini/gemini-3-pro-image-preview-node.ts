@@ -75,15 +75,6 @@ export class Gemini3ProImagePreviewNode extends ExecutableNode {
         hidden: true,
         value: "1K",
       },
-      {
-        name: "thinking_budget",
-        type: "number",
-        description:
-          "Thinking budget (0-1000). Higher values enable more reasoning but increase cost and latency",
-        required: false,
-        value: 100,
-        hidden: true,
-      },
     ],
     outputs: [
       {
@@ -118,15 +109,8 @@ export class Gemini3ProImagePreviewNode extends ExecutableNode {
     let response: any;
 
     try {
-      const {
-        prompt,
-        image1,
-        image2,
-        image3,
-        aspectRatio,
-        imageSize,
-        thinking_budget,
-      } = context.inputs;
+      const { prompt, image1, image2, image3, aspectRatio, imageSize } =
+        context.inputs;
 
       if (!prompt) {
         return this.createErrorResult("Prompt is required");
@@ -166,13 +150,6 @@ export class Gemini3ProImagePreviewNode extends ExecutableNode {
       });
 
       const config: any = {};
-
-      // Configure thinking budget if provided
-      if (thinking_budget !== undefined && thinking_budget !== null) {
-        config.thinkingConfig = {
-          thinkingBudget: thinking_budget,
-        };
-      }
 
       // Configure image generation options
       if (aspectRatio || imageSize) {

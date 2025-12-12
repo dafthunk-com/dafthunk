@@ -98,15 +98,6 @@ export class Gemini25FlashTtsNode extends ExecutableNode {
         required: false,
         hidden: true,
       },
-      {
-        name: "thinking_budget",
-        type: "number",
-        description:
-          "Thinking budget (0-1000). Higher values enable more reasoning but increase cost and latency",
-        required: false,
-        value: 100,
-        hidden: true,
-      },
     ],
     outputs: [
       {
@@ -135,8 +126,7 @@ export class Gemini25FlashTtsNode extends ExecutableNode {
     let response: any;
 
     try {
-      const { text, voice_name, multi_speaker_config, thinking_budget } =
-        context.inputs;
+      const { text, voice_name, multi_speaker_config } = context.inputs;
 
       if (!text) {
         return this.createErrorResult("Text is required");
@@ -151,13 +141,6 @@ export class Gemini25FlashTtsNode extends ExecutableNode {
       const config: any = {
         responseModalities: ["AUDIO"],
       };
-
-      // Configure thinking budget if provided
-      if (thinking_budget !== undefined && thinking_budget !== null) {
-        config.thinkingConfig = {
-          thinkingBudget: thinking_budget,
-        };
-      }
 
       // Configure speech settings
       if (multi_speaker_config && multi_speaker_config.speakers) {
