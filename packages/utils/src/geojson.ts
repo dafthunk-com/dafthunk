@@ -1,6 +1,31 @@
 import type { GeoPath } from "d3-geo";
 import { geoIdentity, geoPath } from "d3-geo";
 
+/**
+ * Sanitizes a color value to prevent SVG attribute injection.
+ * Only allows safe CSS color formats: hex, rgb/rgba, hsl/hsla, and named colors.
+ */
+function sanitizeColor(color: string, defaultColor: string): string {
+  if (typeof color !== "string") return defaultColor;
+
+  const trimmed = color.trim();
+
+  // Hex colors: #RGB, #RRGGBB, #RRGGBBAA
+  if (/^#[0-9a-f]{3,8}$/i.test(trimmed)) return trimmed;
+
+  // RGB/RGBA: rgb(r, g, b) or rgba(r, g, b, a)
+  if (/^rgba?\(\s*[\d.%,\s/]+\s*\)$/i.test(trimmed)) return trimmed;
+
+  // HSL/HSLA: hsl(h, s%, l%) or hsla(h, s%, l%, a)
+  if (/^hsla?\(\s*[\d.%,\s/]+\s*\)$/i.test(trimmed)) return trimmed;
+
+  // Named colors (letters only, no special chars)
+  if (/^[a-z]+$/i.test(trimmed)) return trimmed;
+
+  // Reject anything else (potential injection)
+  return defaultColor;
+}
+
 // Basic GeoJSON type definitions
 interface GeoJSONGeometry {
   type: string;
@@ -291,11 +316,16 @@ export function geojsonToSvg(
   const {
     width = 400,
     height = 300,
-    strokeColor = "#3b82f6",
+    strokeColor: rawStrokeColor = "#3b82f6",
     strokeWidth = 2,
-    fillColor = "rgba(59, 130, 246, 0.2)",
-    backgroundColor = "#f8fafc",
+    fillColor: rawFillColor = "rgba(59, 130, 246, 0.2)",
+    backgroundColor: rawBackgroundColor = "#f8fafc",
   } = options;
+
+  // Sanitize color inputs to prevent SVG attribute injection
+  const strokeColor = sanitizeColor(rawStrokeColor, "#3b82f6");
+  const fillColor = sanitizeColor(rawFillColor, "rgba(59, 130, 246, 0.2)");
+  const backgroundColor = sanitizeColor(rawBackgroundColor, "#f8fafc");
 
   if (!geojson) {
     return {
