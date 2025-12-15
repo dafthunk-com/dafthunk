@@ -15,6 +15,12 @@ export interface UseTemplates {
   mutateTemplates: () => Promise<WorkflowTemplate[] | undefined>;
 }
 
+export interface UseTemplate {
+  template: WorkflowTemplate | null;
+  templateError: Error | null;
+  isTemplateLoading: boolean;
+}
+
 /**
  * Hook to fetch available workflow templates
  */
@@ -30,5 +36,21 @@ export const useTemplates = (): UseTemplates => {
     templatesError: error || null,
     isTemplatesLoading: isLoading,
     mutateTemplates: mutate,
+  };
+};
+
+/**
+ * Hook to fetch a single workflow template by ID
+ */
+export const useTemplate = (templateId: string | undefined): UseTemplate => {
+  const { data, error, isLoading } = useSWR(
+    templateId ? `${API_ENDPOINT}/${templateId}` : null,
+    async () => makeRequest<WorkflowTemplate>(`${API_ENDPOINT}/${templateId}`)
+  );
+
+  return {
+    template: data || null,
+    templateError: error || null,
+    isTemplateLoading: isLoading,
   };
 };

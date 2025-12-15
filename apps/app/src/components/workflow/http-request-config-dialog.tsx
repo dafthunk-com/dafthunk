@@ -1,4 +1,4 @@
-import { File as FileIcon, Plus, Trash2, Upload } from "lucide-react";
+import { File as FileIcon, PlusCircle, Trash2, Upload } from "lucide-react";
 import { useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -115,7 +115,7 @@ function KeyValueEditor({
         className="text-muted-foreground"
         onClick={addRow}
       >
-        <Plus className="w-4 h-4 mr-1" />
+        <PlusCircle className="w-4 h-4 mr-1" />
         Add
       </Button>
     </div>

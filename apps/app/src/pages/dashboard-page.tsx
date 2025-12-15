@@ -1,9 +1,18 @@
+import type {
+  CreateWorkflowRequest,
+  WorkflowTemplate,
+  WorkflowType,
+} from "@dafthunk/types";
+import FileDown from "lucide-react/icons/file-down";
 import Logs from "lucide-react/icons/logs";
+import PlusCircle from "lucide-react/icons/plus-circle";
 import Target from "lucide-react/icons/target";
 import Workflow from "lucide-react/icons/workflow";
-import { useEffect } from "react";
-import { Link } from "react-router";
+import Zap from "lucide-react/icons/zap";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router";
 
+import { useAuth } from "@/components/auth-context";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
@@ -16,17 +25,46 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { CreateWorkflowDialog } from "@/components/workflow/create-workflow-dialog";
+import { ImportTemplateDialog } from "@/components/workflow/import-template-dialog";
 import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { useBilling } from "@/services/billing-service";
 import { useDashboard } from "@/services/dashboard-service";
+import { createWorkflow, useWorkflows } from "@/services/workflow-service";
 
 export function DashboardPage() {
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const navigate = useNavigate();
+  const { organization } = useAuth();
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const { dashboardStats, dashboardStatsError, isDashboardStatsLoading } =
     useDashboard();
   const { billing, billingError, isBillingLoading } = useBilling();
   const { getOrgUrl } = useOrgUrl();
+  const { mutateWorkflows } = useWorkflows();
+  const orgHandle = organization?.handle || "";
+
+  const handleCreateWorkflow = async (name: string, type: WorkflowType) => {
+    if (!orgHandle) return;
+
+    const request: CreateWorkflowRequest = {
+      name,
+      type,
+      nodes: [],
+      edges: [],
+    };
+
+    const newWorkflow = await createWorkflow(request, orgHandle);
+    mutateWorkflows();
+    setIsCreateDialogOpen(false);
+    navigate(getOrgUrl(`workflows/${newWorkflow.id}`));
+  };
+
+  const handleImportTemplate = async (template: WorkflowTemplate) => {
+    navigate(getOrgUrl(`templates/${template.id}`));
+  };
 
   useEffect(() => {
     setBreadcrumbs([{ label: "Dashboard" }]);
@@ -70,6 +108,34 @@ export function DashboardPage() {
 
   return (
     <InsetLayout title="Dashboard">
+      {/* Getting Started */}
+      <Card className="mb-6 bg-secondary">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Zap className="size-5" />
+            Getting Started
+          </CardTitle>
+          <CardDescription>
+            Create a new workflow or import a template to get started
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-3">
+            <Button onClick={() => setIsCreateDialogOpen(true)}>
+              <PlusCircle className="mr-2 size-4" />
+              Create Workflow
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setIsImportDialogOpen(true)}
+            >
+              <FileDown className="mr-2 size-4" />
+              Import Template
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
         <Card>
@@ -223,6 +289,17 @@ export function DashboardPage() {
           )}
         </CardContent>
       </Card>
+
+      <CreateWorkflowDialog
+        open={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
+        onCreateWorkflow={handleCreateWorkflow}
+      />
+      <ImportTemplateDialog
+        open={isImportDialogOpen}
+        onOpenChange={setIsImportDialogOpen}
+        onImportTemplate={handleImportTemplate}
+      />
     </InsetLayout>
   );
 }

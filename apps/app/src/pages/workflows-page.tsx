@@ -5,9 +5,9 @@ import type {
   WorkflowWithMetadata,
 } from "@dafthunk/types";
 import { ColumnDef } from "@tanstack/react-table";
-import Import from "lucide-react/icons/import";
+import FileDown from "lucide-react/icons/file-down";
 import MoreHorizontal from "lucide-react/icons/more-horizontal";
-import Plus from "lucide-react/icons/plus";
+import PlusCircle from "lucide-react/icons/plus-circle";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 
@@ -443,24 +443,8 @@ export function WorkflowsPage() {
   };
 
   const handleImportTemplate = async (template: WorkflowTemplate) => {
-    if (!orgHandle) return;
-
-    try {
-      const request: CreateWorkflowRequest = {
-        name: template.name,
-        type: template.type,
-        nodes: template.nodes,
-        edges: template.edges,
-      };
-
-      const newWorkflow = await createWorkflow(request, orgHandle);
-
-      mutateWorkflows();
-      navigate(getOrgUrl(`workflows/${newWorkflow.id}`));
-    } catch (error) {
-      console.error("Failed to import template:", error);
-      // Optionally show a toast here
-    }
+    // Navigate to template detail page where user can preview and import
+    navigate(getOrgUrl(`templates/${template.id}`));
   };
 
   if (isWorkflowsLoading) {
@@ -480,12 +464,15 @@ export function WorkflowsPage() {
           </div>
           <div className="flex gap-2">
             <Button onClick={() => setIsCreateDialogOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Create New Workflow
+              <PlusCircle className="mr-2 size-4" />
+              Create Workflow
             </Button>
-            <Button onClick={() => setIsImportDialogOpen(true)}>
-              <Import className="mr-2 h-4 w-4" />
-              Import Workflow Template
+            <Button
+              variant="outline"
+              onClick={() => setIsImportDialogOpen(true)}
+            >
+              <FileDown className="mr-2 size-4" />
+              Import Template
             </Button>
           </div>
         </div>

@@ -2,7 +2,7 @@ import { Secret } from "@dafthunk/types";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import MoreHorizontal from "lucide-react/icons/more-horizontal";
-import Plus from "lucide-react/icons/plus";
+import PlusCircle from "lucide-react/icons/plus-circle";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -262,7 +262,7 @@ export function SecretsPage() {
           Store encrypted secrets for your workflows.
         </div>
         <Button onClick={() => setIsCreateDialogOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
+          <PlusCircle className="mr-2 h-4 w-4" />
           Create Secret
         </Button>
       </div>

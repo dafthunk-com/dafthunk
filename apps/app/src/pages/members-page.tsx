@@ -3,7 +3,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import Clock from "lucide-react/icons/clock";
 import MoreHorizontal from "lucide-react/icons/more-horizontal";
-import Plus from "lucide-react/icons/plus";
+import PlusCircle from "lucide-react/icons/plus-circle";
 import X from "lucide-react/icons/x";
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router";
@@ -516,7 +516,7 @@ export function MembersPage() {
           Manage organization members and invitations.
         </div>
         <Button onClick={() => setIsInviteMemberDialogOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
+          <PlusCircle className="mr-2 h-4 w-4" />
           Invite Member
         </Button>
       </div>

@@ -1,4 +1,4 @@
-import Plus from "lucide-react/icons/plus";
+import PlusCircle from "lucide-react/icons/plus-circle";
 import { useEffect, useState } from "react";
 
 import { InsetError } from "@/components/inset-error";
@@ -80,7 +80,7 @@ export function IntegrationsPage() {
           Connect third-party services to use in your workflows.
         </div>
         <Button onClick={() => setIsCreateDialogOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
+          <PlusCircle className="mr-2 h-4 w-4" />
           Add Integration
         </Button>
       </div>

@@ -1,6 +1,6 @@
 import { ColumnDef } from "@tanstack/react-table";
 import MoreHorizontal from "lucide-react/icons/more-horizontal";
-import Plus from "lucide-react/icons/plus";
+import PlusCircle from "lucide-react/icons/plus-circle";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 
@@ -213,7 +213,7 @@ export function DatasetsPage() {
             Create and manage datasets for your workflows.
           </div>
           <Button onClick={() => setIsCreateDialogOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
+            <PlusCircle className="mr-2 h-4 w-4" />
             Create New Dataset
           </Button>
         </div>

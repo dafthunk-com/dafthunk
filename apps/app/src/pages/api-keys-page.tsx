@@ -3,7 +3,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import Copy from "lucide-react/icons/copy";
 import MoreHorizontal from "lucide-react/icons/more-horizontal";
-import Plus from "lucide-react/icons/plus";
+import PlusCircle from "lucide-react/icons/plus-circle";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -226,7 +226,7 @@ export function ApiKeysPage() {
           Manage API keys to access your workflows programmatically.
         </div>
         <Button onClick={() => setIsCreateDialogOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
+          <PlusCircle className="mr-2 h-4 w-4" />
           Create API Key
         </Button>
       </div>
