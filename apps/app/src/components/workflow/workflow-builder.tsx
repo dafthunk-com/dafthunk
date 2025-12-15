@@ -66,6 +66,7 @@ export interface WorkflowBuilderProps {
   wsExecuteWorkflow?: (options?: {
     parameters?: Record<string, unknown>;
   }) => void;
+  showSidebar?: boolean;
 }
 
 // Helper: Apply initial execution state to nodes
@@ -120,8 +121,9 @@ export function WorkflowBuilder({
   deploymentVersions: _deploymentVersions = [],
   mutateDeploymentHistory: _mutateDeploymentHistory,
   wsExecuteWorkflow,
+  showSidebar = true,
 }: WorkflowBuilderProps) {
-  const [isSidebarVisible, setIsSidebarVisible] = useState(true);
+  const [isSidebarVisible, setIsSidebarVisible] = useState(showSidebar);
   const [workflowStatus, setWorkflowStatus] = useState<WorkflowExecutionStatus>(
     initialWorkflowExecution?.status || "idle"
   );

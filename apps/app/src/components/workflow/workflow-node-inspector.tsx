@@ -167,7 +167,7 @@ export function WorkflowNodeInspector({
             className="group w-full px-4 py-3 flex items-center justify-between"
           >
             <h2 className="text-base font-semibold text-foreground">
-              {disabled ? "Node Properties (Read-only)" : "Node Properties"}
+              Node Properties
             </h2>
             <ChevronDownIcon
               className={`h-4 w-4 ${

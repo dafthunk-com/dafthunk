@@ -1,0 +1,40 @@
+{
+  "workflows": [
+    {
+      "id": "image-generation",
+      "name": "Image Generation",
+      "summary": "Generate images from text prompts using AI",
+      "description": "Generate images from text prompts using AI models like Flux, Stable Diffusion, and Imagen. Create unique visuals for marketing campaigns, social media posts, blog illustrations, or creative projects. Build automated pipelines that combine text generation with image creation, allowing you to produce complete visual content from simple inputs. Supports various styles, aspect ratios, and output formats for different use cases from thumbnails to high-resolution artwork.",
+      "icon": "image",
+      "type": "manual",
+      "tags": ["image", "generation", "ai"]
+    },
+    {
+      "id": "speech-to-text",
+      "name": "Speech to Text",
+      "summary": "Transcribe audio to text using Whisper AI",
+      "description": "Transcribe audio files to text using Whisper AI with support for multiple languages and accents. Convert podcasts, meeting recordings, interviews, voice memos, and any audio content into searchable, editable text. Build automated workflows that process incoming audio files, generate accurate transcripts, and pipe the text into downstream nodes for summarization, translation, or analysis. Perfect for podcast production, meeting documentation, content repurposing, and accessibility compliance.",
+      "icon": "mic",
+      "type": "manual",
+      "tags": ["audio", "transcription", "ai"]
+    },
+    {
+      "id": "web-screenshot",
+      "name": "Web Screenshot",
+      "summary": "Capture screenshots of web pages",
+      "description": "Capture full-page screenshots of any website using headless browser automation powered by Cloudflare Browser Rendering. Build monitoring workflows that automatically capture visual snapshots of web pages, track visual changes over time, and generate reports. Ideal for competitive analysis, compliance monitoring, archiving web content, and automated visual testing of websites and applications.",
+      "icon": "globe",
+      "type": "manual",
+      "tags": ["browser", "screenshot", "automation"]
+    },
+    {
+      "id": "text-summarization",
+      "name": "Text Summarization",
+      "summary": "Summarize long text content using AI",
+      "description": "Summarize long text content using AI models like Claude, GPT, and Gemini. Extract key points and condense articles, documents, reports, or any text into concise summaries. Build workflows that automatically process incoming content, identify the most important information, and generate summaries tailored to different audiences or formats. Perfect for content curation, research pipelines, news aggregation, and information processing workflows that need to handle large volumes of text efficiently.",
+      "icon": "file-text",
+      "type": "manual",
+      "tags": ["text", "summarization", "ai"]
+    }
+  ]
+}

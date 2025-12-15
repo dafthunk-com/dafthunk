@@ -1,4 +1,5 @@
 import categories from "../../data/categories.json";
+import workflowsData from "../../data/workflows.json";
 
 export function loader() {
   const baseUrl = "https://www.dafthunk.com";
@@ -36,7 +37,19 @@ export function loader() {
     }))
   );
 
-  const allPages = [...staticPages, ...categoryPages, ...nodePages];
+  const workflowPages = workflowsData.workflows.map((workflow) => ({
+    loc: `/workflows/${workflow.id}`,
+    lastmod: today,
+    changefreq: "weekly",
+    priority: "0.7",
+  }));
+
+  const allPages = [
+    ...staticPages,
+    ...categoryPages,
+    ...nodePages,
+    ...workflowPages,
+  ];
 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

@@ -2,6 +2,7 @@ import { Link } from "react-router";
 import { Layout } from "../components/layout";
 import { YouTubeFacade } from "../components/youtube-facade";
 import categories from "../../data/categories.json";
+import workflowsData from "../../data/workflows.json";
 
 export function meta() {
   return [
@@ -163,6 +164,65 @@ export default function Home() {
       </section>
 
       <section
+        id="use-cases"
+        className="px-6 py-32"
+        aria-labelledby="use-cases-heading"
+      >
+        <div className="mb-32">
+          <h2
+            id="use-cases-heading"
+            className="text-6xl font-light text-gray-900 mb-6"
+          >
+            Automation use cases
+          </h2>
+          <p className="text-3xl text-gray-500">
+            What you can build with workflow automation
+          </p>
+        </div>
+
+        <div className="space-y-24">
+          {workflowsData.workflows.map((workflow) => (
+            <div
+              key={workflow.id}
+              className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16"
+            >
+              <div className="lg:col-span-12 xl:col-span-3">
+                <Link
+                  to={`/workflows/${workflow.id}`}
+                  className="text-4xl font-light text-gray-900 hover:text-black transition-colors"
+                >
+                  {workflow.name}
+                </Link>
+              </div>
+              <div className="lg:col-span-8 xl:col-span-6">
+                <p className="text-xl text-gray-600 leading-relaxed mb-4">
+                  {workflow.description}
+                </p>
+                <Link
+                  to={`/workflows/${workflow.id}`}
+                  className="inline-flex items-center text-gray-900 hover:text-black font-medium"
+                >
+                  View workflow &rarr;
+                </Link>
+              </div>
+              <div className="lg:col-span-4 xl:col-span-3">
+                <div className="flex flex-wrap gap-2">
+                  {workflow.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section
         id="capabilities"
         className="px-6 py-32"
         aria-labelledby="capabilities-heading"
@@ -172,7 +232,7 @@ export default function Home() {
             id="capabilities-heading"
             className="text-6xl font-light text-gray-900 mb-6"
           >
-            Workflow automation capabilities
+            Automation capabilities
           </h2>
           <p className="text-3xl text-gray-500">
             Workflow nodes across AI, browser automation, data processing,
@@ -219,137 +279,6 @@ export default function Home() {
               </div>
             </div>
           ))}
-        </div>
-      </section>
-
-      <section
-        id="use-cases"
-        className="px-6 py-32"
-        aria-labelledby="use-cases-heading"
-      >
-        <div className="mb-32">
-          <h2
-            id="use-cases-heading"
-            className="text-6xl font-light text-gray-900 mb-6"
-          >
-            Automation use cases
-          </h2>
-          <p className="text-3xl text-gray-500">
-            What you can build with workflow automation
-          </p>
-        </div>
-
-        <div className="space-y-24">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
-            <div className="lg:col-span-12 xl:col-span-3">
-              <h3 className="text-4xl font-light text-gray-900">
-                Content Generation & Publishing
-              </h3>
-            </div>
-            <div className="lg:col-span-8 xl:col-span-6">
-              <p className="text-xl text-gray-600 leading-relaxed">
-                Generate blog posts, social media content, and marketing
-                materials using AI models. Automatically publish to multiple
-                platforms, create images and media assets, and schedule content
-                distribution across channels. Build workflows that combine AI
-                text generation with image creation, formatting, and
-                multi-platform publishing for complete content automation.
-              </p>
-            </div>
-            <div className="lg:col-span-4 xl:col-span-3">
-              <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  Blog automation
-                </span>
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  Social media
-                </span>
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  Marketing
-                </span>
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  AI content
-                </span>
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  Publishing
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
-            <div className="lg:col-span-12 xl:col-span-3">
-              <h3 className="text-4xl font-light text-gray-900">
-                Data Collection & Monitoring
-              </h3>
-            </div>
-            <div className="lg:col-span-8 xl:col-span-6">
-              <p className="text-xl text-gray-600 leading-relaxed">
-                Scrape websites for product prices, news, or market data.
-                Monitor APIs and web pages for changes. Extract structured data
-                from documents and PDFs. Build data collection workflows that
-                automatically gather information, transform it into structured
-                formats, store it in databases, and trigger alerts when patterns
-                or changes are detected.
-              </p>
-            </div>
-            <div className="lg:col-span-4 xl:col-span-3">
-              <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  Web scraping
-                </span>
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  Price monitoring
-                </span>
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  Data extraction
-                </span>
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  Alerts
-                </span>
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  Transformation pipelines
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
-            <div className="lg:col-span-12 xl:col-span-3">
-              <h3 className="text-4xl font-light text-gray-900">
-                Automation & Integration
-              </h3>
-            </div>
-            <div className="lg:col-span-8 xl:col-span-6">
-              <p className="text-xl text-gray-600 leading-relaxed">
-                Connect disparate systems and automate business processes. Sync
-                data between platforms, trigger actions based on events, process
-                webhooks, and orchestrate complex multi-step workflows across
-                different services and APIs. Build integration workflows that
-                eliminate manual data entry, automate notifications, synchronize
-                records, and coordinate actions across your entire tool stack.
-              </p>
-            </div>
-            <div className="lg:col-span-4 xl:col-span-3">
-              <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  API integration
-                </span>
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  Webhooks
-                </span>
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  Data sync
-                </span>
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  Business process
-                </span>
-                <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base">
-                  Orchestration
-                </span>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 

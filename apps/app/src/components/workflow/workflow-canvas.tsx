@@ -754,12 +754,13 @@ export function WorkflowCanvas({
           className="stroke-foreground/5 opacity-50"
         />
 
-        {/* Status Bar */}
-        <StatusBar
-          workflowStatus={workflowStatus}
-          errorMessage={workflowErrorMessage}
-          disabled={disabled}
-        />
+        {/* Status Bar - hidden in read-only mode */}
+        {!disabled && (
+          <StatusBar
+            workflowStatus={workflowStatus}
+            errorMessage={workflowErrorMessage}
+          />
+        )}
 
         {/* Action Bars */}
         {(onAction ||
@@ -884,8 +885,8 @@ export function WorkflowCanvas({
             )}
           </ActionBarGroup>
 
-          {/* Workflow-related buttons group */}
-          {(onApplyLayout || onFitToScreen) && (
+          {/* Workflow-related buttons group - hidden in read-only mode */}
+          {!disabled && (onApplyLayout || onFitToScreen) && (
             <ActionBarGroup vertical>
               {onApplyLayout && (
                 <ApplyLayoutButton

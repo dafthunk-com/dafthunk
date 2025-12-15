@@ -7,4 +7,5 @@ export default [
   route("sitemap.xml", "routes/sitemap[.]xml.tsx"),
   route("nodes/:category", "routes/nodes/$category.tsx"),
   route("nodes/:category/:nodeId", "routes/nodes/$category.$nodeId.tsx"),
+  route("workflows/:workflowId", "routes/workflows/$workflowId.tsx"),
 ] satisfies RouteConfig;

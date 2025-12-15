@@ -39,6 +39,7 @@ import { OrganizationsPage } from "./pages/organizations-page";
 import { ProfilePage } from "./pages/profile-page";
 import { QueuesPage } from "./pages/queues-page";
 import { SecretsPage } from "./pages/secrets-page";
+import { TemplatePreviewPage } from "./pages/template-preview-page";
 import { WorkflowsPage } from "./pages/workflows-page";
 
 export interface RouteHandle {
@@ -496,6 +497,13 @@ export const routes: AppRouteObject[] = [
       </OrgLayout>
     ),
     handle: { head: <HeadSeo title="Edit Workflow - Dafthunk" /> },
+  },
+  {
+    path: "/embed/templates/:templateId",
+    element: <TemplatePreviewPage />,
+    handle: {
+      head: <HeadSeo title="Template Preview - Dafthunk" />,
+    },
   },
   {
     path: "*",

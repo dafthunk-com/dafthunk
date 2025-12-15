@@ -169,7 +169,7 @@ export default function NodePage({ loaderData }: { loaderData: LoaderData }) {
             <p className="text-3xl text-gray-500 mb-6">{node.documentation}</p>
           )}
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 mb-8">
             {node.tags.map((tag) => (
               <span
                 key={tag}
@@ -179,6 +179,13 @@ export default function NodePage({ loaderData }: { loaderData: LoaderData }) {
               </span>
             ))}
           </div>
+
+          <a
+            href={import.meta.env.VITE_APP_URL}
+            className="inline-block text-lg bg-black text-white px-8 py-4 rounded-lg hover:bg-gray-800 transition-colors"
+          >
+            Use this node
+          </a>
         </div>
 
         {node.inputs.length > 0 && (

@@ -14,7 +14,7 @@ export interface WorkflowEdgeInspectorProps {
 
 export function WorkflowEdgeInspector({
   edge,
-  disabled = false,
+  disabled: _disabled = false,
 }: WorkflowEdgeInspectorProps) {
   // Collapsible section state
   const [propertiesExpanded, setPropertiesExpanded] = useState(true);
@@ -32,9 +32,7 @@ export function WorkflowEdgeInspector({
             className="w-full px-4 py-3 flex items-center justify-between"
           >
             <h2 className="text-base font-semibold text-foreground">
-              {disabled
-                ? "Connection Properties (Read-only)"
-                : "Connection Properties"}
+              Connection Properties
             </h2>
             <ChevronDownIcon
               className={`h-4 w-4 text-muted-foreground ${

@@ -1,6 +1,7 @@
 import { Menu, X } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import categories from "../../data/categories.json";
+import workflowsData from "../../data/workflows.json";
 
 interface NavigationItem {
   href: string;
@@ -124,6 +125,20 @@ export function Layout({ children, navigation }: LayoutProps) {
           </div>
           <div className="flex flex-col gap-3">
             <h3 className="text-white text-base font-semibold mb-1">
+              Use Cases
+            </h3>
+            {workflowsData.workflows.map((workflow) => (
+              <a
+                key={workflow.id}
+                href={`/workflows/${workflow.id}`}
+                className="text-base hover:text-white"
+              >
+                {workflow.name}
+              </a>
+            ))}
+          </div>
+          <div className="flex flex-col gap-3">
+            <h3 className="text-white text-base font-semibold mb-1">
               Capabilities
             </h3>
             {categories.categories.map((category) => (
@@ -175,15 +190,6 @@ export function Layout({ children, navigation }: LayoutProps) {
           </div>
           <div className="flex flex-col gap-3">
             <h3 className="text-white text-base font-semibold mb-1">About</h3>
-            <a href="/legal" className="text-base hover:text-white">
-              Privacy and Terms
-            </a>
-            <a href="/cookies" className="text-base hover:text-white">
-              Cookie Policy
-            </a>
-          </div>
-          <div className="flex flex-col gap-3">
-            <h3 className="text-white text-base font-semibold mb-1">Social</h3>
             <a
               href="https://github.com/dafthunk-com/dafthunk"
               target="_blank"
@@ -199,6 +205,12 @@ export function Layout({ children, navigation }: LayoutProps) {
               className="text-base hover:text-white"
             >
               Discord
+            </a>
+            <a href="/legal" className="text-base hover:text-white">
+              Privacy and Terms
+            </a>
+            <a href="/cookies" className="text-base hover:text-white">
+              Cookie Policy
             </a>
           </div>
         </div>
