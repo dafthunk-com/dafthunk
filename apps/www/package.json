@@ -10,6 +10,7 @@
     "build": "react-router build",
     "dev": "react-router dev",
     "lint": "pnpm run format:check && eslint .",
+    "pretypecheck": "pnpm run extract-nodes",
     "typecheck": "tsc --noEmit",
     "fix": "eslint --fix . && pnpm run format",
     "preview": "vite preview",
