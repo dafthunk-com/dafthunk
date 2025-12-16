@@ -46,6 +46,7 @@ export function AppHeader() {
                 to={"/settings"}
                 className={navLinkClasses}
                 activeClassName={activeNavLinkClasses}
+                data-tour="settings-link"
               >
                 <Settings className="h-4 w-4 mr-1.5" />
                 <span>Settings</span>
@@ -65,6 +66,7 @@ export function AppHeader() {
             to="/docs"
             className={navLinkClasses}
             activeClassName={activeNavLinkClasses}
+            data-tour="documentation-link"
           >
             <BookOpen className="h-4 w-4 mr-1.5" />
             <span>Documentation</span>

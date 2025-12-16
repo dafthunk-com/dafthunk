@@ -109,7 +109,7 @@ export function DashboardPage() {
   return (
     <InsetLayout title="Dashboard">
       {/* Getting Started */}
-      <Card className="mb-6 bg-secondary">
+      <Card className="mb-6 bg-secondary" data-tour="getting-started-card">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Zap className="size-5" />
@@ -121,13 +121,17 @@ export function DashboardPage() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-3">
-            <Button onClick={() => setIsCreateDialogOpen(true)}>
+            <Button
+              onClick={() => setIsCreateDialogOpen(true)}
+              data-tour="create-workflow-button"
+            >
               <PlusCircle className="mr-2 size-4" />
               Create Workflow
             </Button>
             <Button
               variant="outline"
               onClick={() => setIsImportDialogOpen(true)}
+              data-tour="import-template-button"
             >
               <FileDown className="mr-2 size-4" />
               Import Template
@@ -138,7 +142,7 @@ export function DashboardPage() {
 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
-        <Card>
+        <Card data-tour="workflows-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
             <CardTitle className="text-xl">Workflows</CardTitle>
             <Workflow className="size-8 text-muted-foreground" />
@@ -158,7 +162,7 @@ export function DashboardPage() {
             </Button>
           </CardContent>
         </Card>
-        <Card>
+        <Card data-tour="deployments-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
             <CardTitle className="text-xl">Deployments</CardTitle>
             <Target className="size-8 text-muted-foreground" />
@@ -180,7 +184,7 @@ export function DashboardPage() {
             </Button>
           </CardContent>
         </Card>
-        <Card>
+        <Card data-tour="executions-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
             <CardTitle className="text-xl">Executions</CardTitle>
             <Logs className="size-8 text-muted-foreground" />

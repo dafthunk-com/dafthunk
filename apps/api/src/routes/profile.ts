@@ -50,6 +50,7 @@ profile.get("/", async (c) => {
       plan: user.plan,
       role: user.role,
       developerMode: user.developerMode,
+      tourCompleted: user.tourCompleted,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
@@ -64,15 +65,22 @@ profile.get("/", async (c) => {
 /**
  * PATCH /auth/profile
  *
- * Update developerMode only
+ * Update developerMode and/or tourCompleted
  */
 profile.patch(
   "/",
   zValidator(
     "json",
-    z.object({
-      developerMode: z.boolean(),
-    }) as z.ZodType<UpdateProfileRequest>
+    z
+      .object({
+        developerMode: z.boolean().optional(),
+        tourCompleted: z.boolean().optional(),
+      })
+      .refine(
+        (data) =>
+          data.developerMode !== undefined || data.tourCompleted !== undefined,
+        { message: "At least one field must be provided" }
+      ) as z.ZodType<UpdateProfileRequest>
   ),
   async (c) => {
     const jwtPayload = c.get("jwtPayload");
@@ -81,7 +89,7 @@ profile.patch(
     }
 
     const db = createDatabase(c.env.DB);
-    const { developerMode } = c.req.valid("json");
+    const { developerMode, tourCompleted } = c.req.valid("json");
 
     try {
       const [user] = await db
@@ -92,14 +100,22 @@ profile.patch(
         return c.json({ error: "User not found" }, 404);
       }
 
+      const updateData: Partial<{
+        developerMode: boolean;
+        tourCompleted: boolean;
+      }> = {};
+      if (developerMode !== undefined) updateData.developerMode = developerMode;
+      if (tourCompleted !== undefined) updateData.tourCompleted = tourCompleted;
+
       await db
         .update(users)
-        .set({ developerMode })
+        .set(updateData)
         .where(eq(users.id, jwtPayload.sub));
 
       const response: UpdateProfileResponse = {
         success: true,
-        developerMode,
+        ...(developerMode !== undefined && { developerMode }),
+        ...(tourCompleted !== undefined && { tourCompleted }),
       };
 
       return c.json(response);

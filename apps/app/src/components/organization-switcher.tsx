@@ -33,6 +33,7 @@ export function OrganizationSwitcher() {
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
+          data-tour="organization-switcher"
           className={`h-8 px-2 text-sm font-medium ${
             isOrgScope
               ? "bg-neutral-300/50 hover:bg-neutral-300/50 dark:bg-neutral-600/50 dark:hover:bg-neutral-600/50"

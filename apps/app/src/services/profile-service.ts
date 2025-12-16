@@ -51,3 +51,10 @@ export const updateProfile = async (
 
   return response;
 };
+
+/**
+ * Mark the product tour as completed
+ */
+export const markTourCompleted = async (): Promise<UpdateProfileResponse> => {
+  return updateProfile({ tourCompleted: true });
+};

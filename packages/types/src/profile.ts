@@ -13,16 +13,18 @@ export interface UserProfile {
   plan: string;
   role: string;
   developerMode: boolean;
+  tourCompleted: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
 
 /**
  * Request to update a user's profile
- * Currently only allows updating developerMode
+ * Allows updating developerMode and tourCompleted
  */
 export interface UpdateProfileRequest {
-  developerMode: boolean;
+  developerMode?: boolean;
+  tourCompleted?: boolean;
 }
 
 /**
@@ -35,5 +37,6 @@ export type GetProfileResponse = UserProfile;
  */
 export interface UpdateProfileResponse {
   success: boolean;
-  developerMode: boolean;
+  developerMode?: boolean;
+  tourCompleted?: boolean;
 }

@@ -17,6 +17,7 @@ import { useParams } from "react-router";
 
 import { useAuth } from "@/components/auth-context";
 import { AppLayout } from "@/components/layouts/app-layout";
+import { TourProvider } from "@/components/tour";
 import { useOrganizations } from "@/services/organizations-service";
 
 interface OrgLayoutProps {
@@ -55,6 +56,21 @@ export const getDashboardSidebarGroups = (orgHandle: string) => [
     ],
   },
   {
+    label: "Triggers",
+    items: [
+      {
+        title: "Emails",
+        url: `/org/${orgHandle}/emails`,
+        icon: Mail,
+      },
+      {
+        title: "Queues",
+        url: `/org/${orgHandle}/queues`,
+        icon: Inbox,
+      },
+    ],
+  },
+  {
     label: "Resources",
     items: [
       {
@@ -68,21 +84,6 @@ export const getDashboardSidebarGroups = (orgHandle: string) => [
         icon: Database,
       },
       {
-        title: "Queues",
-        url: `/org/${orgHandle}/queues`,
-        icon: Inbox,
-      },
-      {
-        title: "Emails",
-        url: `/org/${orgHandle}/emails`,
-        icon: Mail,
-      },
-    ],
-  },
-  {
-    label: "Settings",
-    items: [
-      {
         title: "Integrations",
         url: `/org/${orgHandle}/integrations`,
         icon: Plug,
@@ -92,6 +93,11 @@ export const getDashboardSidebarGroups = (orgHandle: string) => [
         url: `/org/${orgHandle}/secrets`,
         icon: Lock,
       },
+    ],
+  },
+  {
+    label: "Settings",
+    items: [
       {
         title: "API Keys",
         url: `/org/${orgHandle}/api-keys`,
@@ -149,7 +155,7 @@ export const OrgLayout: React.FC<OrgLayoutProps> = ({ children, title }) => {
         footerItems: [],
       }}
     >
-      {children}
+      <TourProvider>{children}</TourProvider>
     </AppLayout>
   );
 };

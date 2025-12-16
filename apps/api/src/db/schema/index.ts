@@ -174,6 +174,9 @@ export const users = sqliteTable(
     developerMode: integer("developer_mode", { mode: "boolean" })
       .notNull()
       .default(false),
+    tourCompleted: integer("tour_completed", { mode: "boolean" })
+      .notNull()
+      .default(false),
     createdAt: createCreatedAt(),
     updatedAt: createUpdatedAt(),
   },

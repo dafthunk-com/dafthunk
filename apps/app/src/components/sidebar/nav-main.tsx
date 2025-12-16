@@ -27,9 +27,25 @@ interface NavMainGroup {
   items: NavMainItem[];
 }
 
+const NAV_ITEM_TOUR_MAP: Record<string, string> = {
+  Deployments: "deployments-nav",
+  Executions: "executions-nav",
+  Emails: "emails-nav",
+  Queues: "queues-nav",
+  Datasets: "datasets-nav",
+  Databases: "databases-nav",
+  Integrations: "integrations-nav",
+  Secrets: "secrets-nav",
+  "API Keys": "api-keys-nav",
+  Members: "members-nav",
+  Billing: "billing-nav",
+};
+
 function NavMainItem({ item, open }: { item: NavMainItem; open: boolean }) {
+  const dataTour = NAV_ITEM_TOUR_MAP[item.title];
+
   return (
-    <SidebarMenuItem>
+    <SidebarMenuItem data-tour={dataTour}>
       <SidebarMenuButton
         asChild
         tooltip={item.title}
@@ -71,6 +87,9 @@ export function NavMain({ groups, footerItems }: NavMainProps) {
           <SidebarGroup
             key={group.label || index}
             className="bg-transparent p-0"
+            data-tour={
+              group.label === "Workflows" ? "workflows-nav-group" : undefined
+            }
           >
             {group.label && (
               <SidebarGroupLabel className="text-xs text-neutral-500 dark:text-neutral-400 px-2">
