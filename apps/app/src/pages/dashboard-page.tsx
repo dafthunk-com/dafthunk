@@ -5,6 +5,7 @@ import type {
 } from "@dafthunk/types";
 import FileDown from "lucide-react/icons/file-down";
 import Logs from "lucide-react/icons/logs";
+import Play from "lucide-react/icons/play";
 import PlusCircle from "lucide-react/icons/plus-circle";
 import Target from "lucide-react/icons/target";
 import Workflow from "lucide-react/icons/workflow";
@@ -16,6 +17,7 @@ import { useAuth } from "@/components/auth-context";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
+import { useTour } from "@/components/tour";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -44,6 +46,7 @@ export function DashboardPage() {
   const { billing, billingError, isBillingLoading } = useBilling();
   const { getOrgUrl } = useOrgUrl();
   const { mutateWorkflows } = useWorkflows();
+  const { start: startTour } = useTour();
   const orgHandle = organization?.handle || "";
 
   const handleCreateWorkflow = async (name: string, type: WorkflowType) => {
@@ -121,7 +124,11 @@ export function DashboardPage() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-3">
-            <Button
+            <Button onClick={startTour}>
+              <Play className="mr-2 size-4" />
+              Start Tour
+            </Button>
+            <Button variant="outline"
               onClick={() => setIsCreateDialogOpen(true)}
               data-tour="create-workflow-button"
             >

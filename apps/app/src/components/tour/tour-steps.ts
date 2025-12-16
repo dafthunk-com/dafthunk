@@ -11,7 +11,7 @@ export const TOUR_STEPS: TourStep[] = [
     id: "organization",
     title: "Organization",
     content:
-      "This is your current organization. You can switch between organizations or create new ones to manage different projects.",
+      "This is your current organization. You can switch between organizations or create new ones to manage different contexts.",
     targetSelector: '[data-tour="organization-switcher"]',
     spotlightPadding: 2,
   },
@@ -59,7 +59,7 @@ export const TOUR_STEPS: TourStep[] = [
     id: "emails",
     title: "Emails",
     content:
-      "Set up email triggers to start workflows when emails are received. Each email address can trigger a specific workflow.",
+      "Set up email triggers to start workflows when emails are received. Each email address can trigger one or more specific workflows.",
     targetSelector: '[data-tour="emails-nav"]',
     spotlightPadding: 2,
   },
@@ -67,7 +67,7 @@ export const TOUR_STEPS: TourStep[] = [
     id: "queues",
     title: "Queues",
     content:
-      "Create message queues to trigger workflows asynchronously. Queues are great for processing tasks in the background.",
+      "Create message queues to trigger workflows asynchronously. Queues are great for processing tasks and iterating in the background.",
     targetSelector: '[data-tour="queues-nav"]',
     spotlightPadding: 2,
   },
@@ -75,7 +75,7 @@ export const TOUR_STEPS: TourStep[] = [
     id: "datasets",
     title: "Datasets",
     content:
-      "Store and manage files that your workflows can access. Upload CSVs, images, documents, and more.",
+      "Store and manage files that your workflows can access. Upload CSVs, images, documents, and more. Datasets are automatically indexed for retrieval-aumented generation.",
     targetSelector: '[data-tour="datasets-nav"]',
     spotlightPadding: 2,
   },
@@ -123,7 +123,7 @@ export const TOUR_STEPS: TourStep[] = [
     id: "billing",
     title: "Billing",
     content:
-      "View your usage and manage your subscription. Upgrade to Pro for more executions and advanced features.",
+      "View your usage and manage your subscription. Upgrade your plan for more executions and advanced features.",
     targetSelector: '[data-tour="billing-nav"]',
     spotlightPadding: 2,
   },
