@@ -206,8 +206,11 @@ export function Layout({ children, navigation }: LayoutProps) {
             >
               Discord
             </a>
-            <a href="/legal" className="text-base hover:text-white">
-              Privacy and Terms
+            <a href="/terms" className="text-base hover:text-white">
+              Terms of Service
+            </a>
+            <a href="/privacy" className="text-base hover:text-white">
+              Privacy Policy
             </a>
             <a href="/cookies" className="text-base hover:text-white">
               Cookie Policy

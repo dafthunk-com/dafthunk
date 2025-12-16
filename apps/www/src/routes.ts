@@ -2,7 +2,8 @@ import { type RouteConfig, index, route } from "@react-router/dev/routes";
 
 export default [
   index("routes/home.tsx"),
-  route("legal", "routes/legal.tsx"),
+  route("terms", "routes/terms.tsx"),
+  route("privacy", "routes/privacy.tsx"),
   route("cookies", "routes/cookies.tsx"),
   route("sitemap.xml", "routes/sitemap[.]xml.tsx"),
   route("nodes/:category", "routes/nodes/$category.tsx"),

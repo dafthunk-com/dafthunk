@@ -2,36 +2,36 @@ import { Layout } from "../components/layout";
 
 export function meta() {
   return [
-    { title: "Terms of Service & Privacy Policy - Dafthunk" },
+    { title: "Privacy Policy - Dafthunk" },
     {
       name: "description",
       content:
-        "Read our Terms of Service and Privacy Policy. Learn how Dafthunk collects, uses, and protects your personal information and workflow data.",
+        "Read our Privacy Policy. Learn how Dafthunk collects, uses, and protects your personal information and workflow data.",
     },
     { property: "og:type", content: "website" },
-    { property: "og:url", content: "https://dafthunk.com/legal" },
+    { property: "og:url", content: "https://dafthunk.com/privacy" },
     {
       property: "og:title",
-      content: "Terms of Service & Privacy Policy - Dafthunk",
+      content: "Privacy Policy - Dafthunk",
     },
     {
       property: "og:description",
       content:
-        "Read our Terms of Service and Privacy Policy. Learn how Dafthunk collects, uses, and protects your personal information and workflow data.",
+        "Read our Privacy Policy. Learn how Dafthunk collects, uses, and protects your personal information and workflow data.",
     },
     { property: "og:site_name", content: "Dafthunk" },
     { name: "twitter:card", content: "summary" },
-    { name: "twitter:url", content: "https://dafthunk.com/legal" },
+    { name: "twitter:url", content: "https://dafthunk.com/privacy" },
     {
       name: "twitter:title",
-      content: "Terms of Service & Privacy Policy - Dafthunk",
+      content: "Privacy Policy - Dafthunk",
     },
     {
       name: "twitter:description",
       content:
-        "Read our Terms of Service and Privacy Policy. Learn how Dafthunk collects, uses, and protects your personal information and workflow data.",
+        "Read our Privacy Policy. Learn how Dafthunk collects, uses, and protects your personal information and workflow data.",
     },
-    { tagName: "link", rel: "canonical", href: "https://dafthunk.com/legal" },
+    { tagName: "link", rel: "canonical", href: "https://dafthunk.com/privacy" },
     { name: "robots", content: "index, follow" },
   ];
 }
@@ -49,7 +49,7 @@ const navigation = [
   },
 ];
 
-export default function Legal() {
+export default function Privacy() {
   return (
     <Layout navigation={navigation}>
       <main className="px-6 py-32">
@@ -61,7 +61,7 @@ export default function Legal() {
             ← Back to Home
           </a>
           <h1 className="text-6xl font-light text-gray-900 mb-6">
-            Terms of Service & Privacy Policy
+            Privacy Policy
           </h1>
           <p className="text-xl text-gray-600 mb-16">
             Effective Date: June 9, 2025
@@ -70,46 +70,26 @@ export default function Legal() {
           <div className="space-y-16">
             <div>
               <p className="text-xl text-gray-600 leading-relaxed mb-6">
-                These Terms of Service and Privacy Policy explains how we
-                collect, use, and share your personal information when you use
-                our service, and your rights regarding that information.
+                This Privacy Policy explains how we collect, use, and share your
+                personal information when you use our service, and your rights
+                regarding that information.
               </p>
               <p className="text-xl text-gray-600 leading-relaxed">
-                By using Dafthunk, you agree to these Terms of Service and
-                Privacy Policy.
+                By using Dafthunk, you agree to this Privacy Policy. Please also
+                review our{" "}
+                <a
+                  href="/terms"
+                  className="text-gray-900 underline hover:no-underline"
+                >
+                  Terms of Service
+                </a>
+                .
               </p>
             </div>
 
             <div>
               <h2 className="text-3xl font-light text-gray-900 mb-6">
-                1. Alpha Release and AI-Generated Components
-              </h2>
-              <p className="text-xl text-gray-600 leading-relaxed mb-6">
-                Dafthunk is currently in an <strong>alpha release stage</strong>{" "}
-                and is under active development. Parts of the service, including
-                its core functionalities, are developed using{" "}
-                <strong>generative AI technologies</strong>. As such:
-              </p>
-              <ul className="list-disc list-outside space-y-3 text-xl text-gray-600 leading-relaxed ml-6 mb-6">
-                <li>
-                  The service may contain bugs, errors, or unexpected behaviors.
-                </li>
-                <li>
-                  We make no guarantees regarding the availability, accuracy,
-                  completeness, or suitability of the service for any particular
-                  purpose.
-                </li>
-              </ul>
-              <p className="text-xl text-gray-600 leading-relaxed">
-                By using Dafthunk, you acknowledge and accept these limitations
-                and understand that you are using the service{" "}
-                <strong>at your own risk</strong>.
-              </p>
-            </div>
-
-            <div>
-              <h2 className="text-3xl font-light text-gray-900 mb-6">
-                2. Information We Collect
+                1. Information We Collect
               </h2>
               <p className="text-xl text-gray-600 leading-relaxed mb-6">
                 We collect the following personal information:
@@ -133,6 +113,14 @@ export default function Legal() {
                   <strong>Billing Information:</strong> Collected and processed
                   by Stripe (see Section 5).
                 </li>
+                <li>
+                  <strong>Third-Party Integration Data:</strong> When you connect
+                  third-party services (such as Google, Slack, or other
+                  integrations), data from those services may be processed and
+                  stored by Dafthunk as part of your workflow executions. You are
+                  solely responsible for ensuring you have the appropriate rights
+                  and permissions to use and process such data through Dafthunk.
+                </li>
               </ul>
               <p className="text-xl text-gray-600 leading-relaxed">
                 We do not collect sensitive personal data unless it is
@@ -145,7 +133,7 @@ export default function Legal() {
 
             <div>
               <h2 className="text-3xl font-light text-gray-900 mb-6">
-                3. How We Collect Information
+                2. How We Collect Information
               </h2>
               <p className="text-xl text-gray-600 leading-relaxed mb-6">
                 We collect personal information when you:
@@ -165,7 +153,7 @@ export default function Legal() {
 
             <div>
               <h2 className="text-3xl font-light text-gray-900 mb-6">
-                4. How We Use Your Information
+                3. How We Use Your Information
               </h2>
               <p className="text-xl text-gray-600 leading-relaxed mb-6">
                 We use your personal information to:
@@ -187,7 +175,7 @@ export default function Legal() {
 
             <div>
               <h2 className="text-3xl font-light text-gray-900 mb-6">
-                5. Legal Basis for Processing
+                4. Legal Basis for Processing
               </h2>
               <p className="text-xl text-gray-600 leading-relaxed mb-6">
                 We process your personal information, including Workflow and
@@ -217,7 +205,7 @@ export default function Legal() {
 
             <div>
               <h2 className="text-3xl font-light text-gray-900 mb-6">
-                6. Sharing of Information
+                5. Sharing of Information
               </h2>
               <p className="text-xl text-gray-600 leading-relaxed mb-6">
                 We may share your information with:
@@ -239,7 +227,7 @@ export default function Legal() {
 
             <div>
               <h2 className="text-3xl font-light text-gray-900 mb-6">
-                7. International Data Transfers
+                6. International Data Transfers
               </h2>
               <p className="text-xl text-gray-600 leading-relaxed">
                 As our service is accessible worldwide, your personal
@@ -250,7 +238,7 @@ export default function Legal() {
 
             <div>
               <h2 className="text-3xl font-light text-gray-900 mb-6">
-                8. Data Retention
+                7. Data Retention
               </h2>
               <p className="text-xl text-gray-600 leading-relaxed">
                 We retain your personal information for as long as your account
@@ -262,7 +250,7 @@ export default function Legal() {
 
             <div>
               <h2 className="text-3xl font-light text-gray-900 mb-6">
-                9. Security
+                8. Security
               </h2>
               <p className="text-xl text-gray-600 leading-relaxed mb-6">
                 We implement appropriate technical and organizational measures
@@ -282,7 +270,7 @@ export default function Legal() {
 
             <div>
               <h2 className="text-3xl font-light text-gray-900 mb-6">
-                10. Your Rights
+                9. Your Rights
               </h2>
               <p className="text-xl text-gray-600 leading-relaxed mb-6">
                 Depending on your location, you may have the following rights
@@ -309,7 +297,7 @@ export default function Legal() {
 
             <div>
               <h2 className="text-3xl font-light text-gray-900 mb-6">
-                11. Children's Privacy
+                10. Children's Privacy
               </h2>
               <p className="text-xl text-gray-600 leading-relaxed">
                 Dafthunk is not intended for use by children under the age of 13
@@ -320,70 +308,7 @@ export default function Legal() {
 
             <div>
               <h2 className="text-3xl font-light text-gray-900 mb-6">
-                12. Acceptable Use and Prohibited Activities
-              </h2>
-              <p className="text-xl text-gray-600 leading-relaxed mb-6">
-                You agree to use Dafthunk in compliance with all applicable laws
-                and regulations and not to engage in any of the following
-                prohibited activities:
-              </p>
-              <ul className="list-disc list-outside space-y-3 text-xl text-gray-600 leading-relaxed ml-6 mb-6">
-                <li>
-                  Using the service to create, distribute, or facilitate
-                  workflows that expose, misuse, or unlawfully process personal
-                  data of third parties without proper consent.
-                </li>
-                <li>
-                  Using the service to generate or distribute illegal content,
-                  including but not limited to material that infringes
-                  intellectual property rights, incites violence, promotes hate
-                  or discrimination, or contains sexually inappropriate content.
-                </li>
-                <li>
-                  Using AI models or any other functionalities of the service to
-                  produce content that violates applicable laws or the rights of
-                  others.
-                </li>
-                <li>
-                  Engaging in any activity that may harm the service or its
-                  users, including but not limited to distributing malware or
-                  attempting to gain unauthorized access to the service.
-                </li>
-                <li>
-                  Using the service to send unsolicited messages, spam, or other
-                  forms of unauthorized communications.
-                </li>
-              </ul>
-              <p className="text-xl text-gray-600 leading-relaxed">
-                We reserve the right to suspend or terminate accounts that
-                violate these terms or engage in illegal, unethical, or abusive
-                activities.
-              </p>
-            </div>
-
-            <div>
-              <h2 className="text-3xl font-light text-gray-900 mb-6">
-                13. Business Transfers
-              </h2>
-              <p className="text-xl text-gray-600 leading-relaxed mb-6">
-                If we are involved in a merger, acquisition, financing, due
-                diligence, reorganization, bankruptcy, receivership, sale of
-                assets, or transition of service to another provider, your
-                personal information and Workflow and Execution Data may be
-                transferred as part of that transaction.
-              </p>
-              <p className="text-xl text-gray-600 leading-relaxed">
-                We will take reasonable steps to ensure that any successor
-                entity honors the terms of this Privacy Policy and Terms of
-                Service with respect to your personal information. Where
-                required by applicable law, we will notify you of any such
-                transfer and your related rights.
-              </p>
-            </div>
-
-            <div>
-              <h2 className="text-3xl font-light text-gray-900 mb-6">
-                14. Changes to This Policy
+                11. Changes to This Policy
               </h2>
               <p className="text-xl text-gray-600 leading-relaxed mb-6">
                 We may update this Privacy Policy from time to time. If we make
@@ -397,12 +322,11 @@ export default function Legal() {
 
             <div>
               <h2 className="text-3xl font-light text-gray-900 mb-6">
-                15. Contact Us
+                12. Contact Us
               </h2>
               <p className="text-xl text-gray-600 leading-relaxed mb-6">
-                If you have any questions about these Terms of Service and
-                Privacy Policy or how we handle your personal information,
-                please contact us at:
+                If you have any questions about this Privacy Policy or how we
+                handle your personal information, please contact us at:
               </p>
               <p className="text-xl text-gray-600 leading-relaxed mb-2">
                 <strong>Email:</strong>{" "}

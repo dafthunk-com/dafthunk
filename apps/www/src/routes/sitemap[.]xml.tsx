@@ -8,8 +8,14 @@ export function loader() {
   const staticPages = [
     { loc: "/", lastmod: today, changefreq: "weekly", priority: "1.0" },
     {
-      loc: "/legal",
-      lastmod: "2025-11-23",
+      loc: "/terms",
+      lastmod: today,
+      changefreq: "monthly",
+      priority: "0.3",
+    },
+    {
+      loc: "/privacy",
+      lastmod: today,
       changefreq: "monthly",
       priority: "0.3",
     },
