@@ -128,7 +128,8 @@ export function DashboardPage() {
               <Play className="mr-2 size-4" />
               Start Tour
             </Button>
-            <Button variant="outline"
+            <Button
+              variant="outline"
               onClick={() => setIsCreateDialogOpen(true)}
               data-tour="create-workflow-button"
             >

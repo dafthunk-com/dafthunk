@@ -467,10 +467,7 @@ export function WorkflowsPage() {
               <PlusCircle className="mr-2 size-4" />
               Create Workflow
             </Button>
-            <Button
-              variant="outline"
-              onClick={() => setIsImportDialogOpen(true)}
-            >
+            <Button onClick={() => setIsImportDialogOpen(true)}>
               <FileDown className="mr-2 size-4" />
               Import Template
             </Button>
