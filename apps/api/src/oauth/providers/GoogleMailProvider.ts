@@ -13,7 +13,6 @@ export class GoogleMailProvider extends OAuthProvider<GoogleToken, GoogleUser> {
     "email",
     "profile",
     "https://www.googleapis.com/auth/gmail.send",
-    "https://www.googleapis.com/auth/gmail.compose",
   ];
 
   // Token refresh configuration
