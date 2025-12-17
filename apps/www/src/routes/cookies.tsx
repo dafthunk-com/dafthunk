@@ -109,10 +109,21 @@ export default function Cookies() {
               <h3 className="text-2xl font-light text-gray-900 mb-4">
                 Payment Cookies (Essential During Checkout)
               </h3>
-              <p className="text-xl text-gray-600 leading-relaxed">
+              <p className="text-xl text-gray-600 leading-relaxed mb-8">
                 When you proceed to checkout, you are redirected to a secure
                 page hosted by our payment processor. This service uses its own
                 cookies for fraud prevention and payment session management.
+              </p>
+
+              <h3 className="text-2xl font-light text-gray-900 mb-4">
+                Analytics Cookies (Optional)
+              </h3>
+              <p className="text-xl text-gray-600 leading-relaxed">
+                With your consent, we use Google Analytics to understand how
+                visitors interact with our website. These cookies help us
+                improve our services by collecting anonymous usage data. You can
+                accept or reject analytics cookies using the consent banner that
+                appears when you first visit our site.
               </p>
             </div>
 
@@ -149,6 +160,18 @@ export default function Cookies() {
                     Stripe Privacy Policy
                   </a>
                 </li>
+                <li>
+                  <strong>Google Analytics:</strong> With your consent, we use
+                  Google Analytics to collect anonymous data about site usage.{" "}
+                  <a
+                    href="https://policies.google.com/privacy"
+                    className="text-gray-900 underline hover:no-underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Google Privacy Policy
+                  </a>
+                </li>
               </ul>
             </div>
 
@@ -156,12 +179,19 @@ export default function Cookies() {
               <h2 className="text-3xl font-light text-gray-900 mb-6">
                 4. Your Cookie Choices
               </h2>
+              <p className="text-xl text-gray-600 leading-relaxed mb-6">
+                When you first visit our website, you will see a consent banner
+                asking you to accept or reject analytics cookies. Your choice is
+                saved and remembered for future visits.
+              </p>
+              <p className="text-xl text-gray-600 leading-relaxed mb-6">
+                <strong>Essential cookies</strong> cannot be disabled as they
+                are required for security, performance, and payment processing.
+              </p>
               <p className="text-xl text-gray-600 leading-relaxed">
-                Our website uses only essential cookies that are necessary for
-                the site to function properly. These cookies cannot be disabled
-                as they are required for security, performance, and payment
-                processing. We do not use optional marketing, analytics, or
-                tracking cookies.
+                <strong>Analytics cookies</strong> are optional and only
+                activated if you click "Accept" on the consent banner. If you
+                reject them, no analytics data will be collected.
               </p>
             </div>
 

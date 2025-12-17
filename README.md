@@ -453,6 +453,10 @@ echo "YOUR_SECRET_ACCESS_KEY" | pnpm wrangler secret put R2_SECRET_ACCESS_KEY --
 
 These secrets, combined with `CLOUDFLARE_ACCOUNT_ID` (already configured), enable generating presigned URLs for secure, temporary access to R2 objects.
 
+#### 5. Website (www) Configuration
+
+See [apps/www/README.md](apps/www/README.md) for website-specific configuration and deployment instructions.
+
 ### Manual Deployment
 
 ```bash
@@ -461,6 +465,9 @@ pnpm --filter '@dafthunk/api' deploy
 
 # Deploy web app to Cloudflare Pages
 pnpm --filter '@dafthunk/web' deploy
+
+# Deploy marketing website to Cloudflare Workers
+pnpm --filter '@dafthunk/www' deploy
 ```
 
 ## 🤝 Contributing

@@ -1,4 +1,5 @@
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
+import { CookieConsent } from "./components/cookie-consent";
 import stylesheet from "./app.css?url";
 
 export const links = () => [
@@ -15,6 +16,8 @@ export const links = () => [
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  const gaMeasurementId = import.meta.env.VITE_GA_MEASUREMENT_ID;
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
@@ -72,6 +75,44 @@ export function Layout({ children }: { children: React.ReactNode }) {
           href="https://www.youtube-nocookie.com"
           crossOrigin="anonymous"
         />
+        {gaMeasurementId && (
+          <>
+            <link
+              rel="preconnect"
+              href="https://www.googletagmanager.com"
+              crossOrigin="anonymous"
+            />
+            {/* Google Consent Mode v2 - Default denied, updated by consent banner */}
+            <script
+              dangerouslySetInnerHTML={{
+                __html: `
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag(){dataLayer.push(arguments);}
+                  gtag('consent', 'default', {
+                    'ad_storage': 'denied',
+                    'ad_user_data': 'denied',
+                    'ad_personalization': 'denied',
+                    'analytics_storage': 'denied'
+                  });
+                `,
+              }}
+            />
+            <script
+              async
+              src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`}
+            />
+            <script
+              dangerouslySetInnerHTML={{
+                __html: `
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag(){dataLayer.push(arguments);}
+                  gtag('js', new Date());
+                  gtag('config', '${gaMeasurementId}');
+                `,
+              }}
+            />
+          </>
+        )}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -81,6 +122,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body className="font-sans">
         {children}
+        <CookieConsent />
         <ScrollRestoration />
         <Scripts />
       </body>

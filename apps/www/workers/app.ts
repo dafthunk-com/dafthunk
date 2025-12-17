@@ -5,6 +5,7 @@ interface Env {
   VITE_WEBSITE_URL: string;
   VITE_APP_URL: string;
   VITE_CONTACT_EMAIL: string;
+  VITE_GA_MEASUREMENT_ID?: string;
 }
 
 declare module "react-router" {

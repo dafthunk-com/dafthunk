@@ -94,7 +94,7 @@ export function Layout({ children, navigation }: LayoutProps) {
 
       <main className="flex-1 max-w-screen-2xl mx-auto w-full">{children}</main>
 
-      <footer className="w-full bg-black text-gray-300 px-6 py-12">
+      <footer className="w-full bg-black text-gray-300 px-6 pt-12 pb-24">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 mb-8">
           <div>
             <a href="/">
