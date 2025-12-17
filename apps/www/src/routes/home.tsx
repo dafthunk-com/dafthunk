@@ -71,11 +71,12 @@ export default function Home() {
               automation
             </h1>
             <p className="text-2xl text-gray-600 mb-10 leading-relaxed">
-              Build serverless workflow automation with a React Flow editor that
-              runs on Cloudflare's edge infrastructure. Deploy AI workflows, web
-              scraping pipelines, data transformations, and API integrations
-              globally in seconds, where infrastructure is someone else's
-              problem entirely.
+              Dafthunk is a visual workflow automation platform. Build and
+              deploy serverless workflows by connecting AI models, web scraping
+              tools, data transformations, and APIs through a drag-and-drop
+              editor. Your workflows run on Cloudflare's global edge network
+              with built-in durability and scaling. Open source and
+              self-hostable.
             </p>
             <a
               href={import.meta.env.VITE_APP_URL}
@@ -83,6 +84,17 @@ export default function Home() {
             >
               Automate something
             </a>
+            <p className="mt-6 text-sm text-gray-500">
+              By signing up, you agree to our{" "}
+              <Link to="/terms" className="underline hover:text-gray-700">
+                Terms of Service
+              </Link>{" "}
+              and{" "}
+              <Link to="/privacy" className="underline hover:text-gray-700">
+                Privacy Policy
+              </Link>
+              .
+            </p>
           </div>
           <div className="lg:col-span-3 aspect-video bg-gray-900 rounded-xl overflow-hidden shadow-xl">
             <YouTubeFacade videoId="5EjJz1Dhtz0" title="Dafthunk Demo" />
