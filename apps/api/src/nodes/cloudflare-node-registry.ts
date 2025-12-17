@@ -646,19 +646,24 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     }
 
     if (hasGoogleMail) {
+      // Non-restricted scopes (gmail.send, gmail.compose)
       this.registerImplementation(SendEmailGoogleMailNode);
-      this.registerImplementation(ReadInboxGoogleMailNode);
       this.registerImplementation(CreateReplyDraftGoogleMailNode);
       this.registerImplementation(CheckDraftGoogleMailNode);
       this.registerImplementation(SendDraftGoogleMailNode);
       this.registerImplementation(DeleteDraftGoogleMailNode);
       this.registerImplementation(UpdateDraftGoogleMailNode);
-      this.registerImplementation(MarkMessageGoogleMailNode);
-      this.registerImplementation(ModifyLabelsGoogleMailNode);
-      this.registerImplementation(SearchMessagesGoogleMailNode);
-      this.registerImplementation(GetMessageGoogleMailNode);
-      this.registerImplementation(ArchiveMessageGoogleMailNode);
-      this.registerImplementation(TrashMessageGoogleMailNode);
+
+      // Restricted scopes (gmail.readonly, gmail.modify, gmail.labels) - require Google security audit
+      if (this.developerMode) {
+        this.registerImplementation(ReadInboxGoogleMailNode);
+        this.registerImplementation(MarkMessageGoogleMailNode);
+        this.registerImplementation(ModifyLabelsGoogleMailNode);
+        this.registerImplementation(SearchMessagesGoogleMailNode);
+        this.registerImplementation(GetMessageGoogleMailNode);
+        this.registerImplementation(ArchiveMessageGoogleMailNode);
+        this.registerImplementation(TrashMessageGoogleMailNode);
+      }
     }
 
     if (hasGoogleCalendar) {
