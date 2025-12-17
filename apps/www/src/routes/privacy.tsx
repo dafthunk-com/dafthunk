@@ -114,12 +114,13 @@ export default function Privacy() {
                   by Stripe (see Section 5).
                 </li>
                 <li>
-                  <strong>Third-Party Integration Data:</strong> When you connect
-                  third-party services (such as Google, Slack, or other
+                  <strong>Third-Party Integration Data:</strong> When you
+                  connect third-party services (such as Google, Slack, or other
                   integrations), data from those services may be processed and
-                  stored by Dafthunk as part of your workflow executions. You are
-                  solely responsible for ensuring you have the appropriate rights
-                  and permissions to use and process such data through Dafthunk.
+                  stored by Dafthunk as part of your workflow executions. You
+                  are solely responsible for ensuring you have the appropriate
+                  rights and permissions to use and process such data through
+                  Dafthunk.
                 </li>
               </ul>
               <p className="text-xl text-gray-600 leading-relaxed">

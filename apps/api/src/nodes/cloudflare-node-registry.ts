@@ -646,18 +646,6 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     }
 
     if (hasGoogleMail) {
-<<<<<<< HEAD
-      // Non-restricted scopes (gmail.send, gmail.compose)
-      this.registerImplementation(SendEmailGoogleMailNode);
-      this.registerImplementation(CreateReplyDraftGoogleMailNode);
-      this.registerImplementation(CheckDraftGoogleMailNode);
-      this.registerImplementation(SendDraftGoogleMailNode);
-      this.registerImplementation(DeleteDraftGoogleMailNode);
-      this.registerImplementation(UpdateDraftGoogleMailNode);
-
-      // Restricted scopes (gmail.readonly, gmail.modify, gmail.labels) - require Google security audit
-      if (this.developerMode) {
-=======
       // gmail.send scope only (non-restricted)
       this.registerImplementation(SendEmailGoogleMailNode);
 
@@ -668,7 +656,6 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
         this.registerImplementation(SendDraftGoogleMailNode);
         this.registerImplementation(DeleteDraftGoogleMailNode);
         this.registerImplementation(UpdateDraftGoogleMailNode);
->>>>>>> bde73942 (feat: update Google Mail provider scopes and adjust node registration for restricted access)
         this.registerImplementation(ReadInboxGoogleMailNode);
         this.registerImplementation(MarkMessageGoogleMailNode);
         this.registerImplementation(ModifyLabelsGoogleMailNode);

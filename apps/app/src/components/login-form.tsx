@@ -41,7 +41,7 @@ export function LoginForm({
             </a>
           </CardTitle>
           <CardDescription>
-            Break it, fix it, prompt it, automatic, automatic, ...
+            Build and deploy serverless workflows visually.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -68,14 +68,19 @@ export function LoginForm({
         </CardContent>
       </Card>
       <div className="text-balance text-center text-xs text-muted-foreground">
-        By signing in, you agree to our{" "}
+        By signing up, you agree to our{" "}
         <a
-          href={`${import.meta.env.VITE_WEBSITE_URL}/legal`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="underline underline-offset-4 hover:text-primary"
+          href={`${import.meta.env.VITE_WEBSITE_URL}/terms`}
+          className="underline hover:text-gray-700"
         >
-          Terms of Service and Privacy Policy
+          Terms of Service
+        </a>{" "}
+        and{" "}
+        <a
+          href={`${import.meta.env.VITE_WEBSITE_URL}/privacy`}
+          className="underline hover:text-gray-700"
+        >
+          Privacy Policy
         </a>
         .
       </div>
