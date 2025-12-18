@@ -32,13 +32,13 @@ Configure build-time secrets in the Cloudflare dashboard:
 1. Go to **Workers & Pages** > Your Worker > **Settings** > **Build**
 2. Add **Build variables and secrets**:
 
-| Variable | Description |
-|----------|-------------|
-| `VITE_API_HOST` | API URL (e.g., `https://api.dafthunk.com`) |
-| `VITE_APP_URL` | App URL (e.g., `https://app.dafthunk.com`) |
-| `VITE_WEBSITE_URL` | Website URL (e.g., `https://www.dafthunk.com`) |
-| `VITE_CONTACT_EMAIL` | Contact email |
-| `VITE_GA_MEASUREMENT_ID` | Google Analytics 4 Measurement ID (optional) |
+| Variable                 | Description                                    |
+| ------------------------ | ---------------------------------------------- |
+| `VITE_API_HOST`          | API URL (e.g., `https://api.dafthunk.com`)     |
+| `VITE_APP_URL`           | App URL (e.g., `https://app.dafthunk.com`)     |
+| `VITE_WEBSITE_URL`       | Website URL (e.g., `https://www.dafthunk.com`) |
+| `VITE_CONTACT_EMAIL`     | Contact email                                  |
+| `VITE_GA_MEASUREMENT_ID` | Google Analytics 4 Measurement ID (optional)   |
 
 These are injected during the build process and not stored in the repository.
 

@@ -37,7 +37,7 @@ This invite expires on ${expiresFormatted}.
 
 —
 Dafthunk · Visual workflow automation
-https://dafthunk.com`;
+https://www.dafthunk.com`;
 
   const html = `<p>${inviterName} invited you to join ${organizationName} on Dafthunk as a ${role}.</p>
 <p><a href="${invitationsUrl}">View Invitation</a></p>

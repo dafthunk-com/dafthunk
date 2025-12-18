@@ -9,7 +9,7 @@ export function meta() {
         "Read our Terms of Service. Learn about the acceptable use, limitations, and conditions for using Dafthunk's workflow automation platform.",
     },
     { property: "og:type", content: "website" },
-    { property: "og:url", content: "https://dafthunk.com/terms" },
+    { property: "og:url", content: "https://www.dafthunk.com/terms" },
     {
       property: "og:title",
       content: "Terms of Service - Dafthunk",
@@ -21,7 +21,7 @@ export function meta() {
     },
     { property: "og:site_name", content: "Dafthunk" },
     { name: "twitter:card", content: "summary" },
-    { name: "twitter:url", content: "https://dafthunk.com/terms" },
+    { name: "twitter:url", content: "https://www.dafthunk.com/terms" },
     {
       name: "twitter:title",
       content: "Terms of Service - Dafthunk",
@@ -31,7 +31,11 @@ export function meta() {
       content:
         "Read our Terms of Service. Learn about the acceptable use, limitations, and conditions for using Dafthunk's workflow automation platform.",
     },
-    { tagName: "link", rel: "canonical", href: "https://dafthunk.com/terms" },
+    {
+      tagName: "link",
+      rel: "canonical",
+      href: "https://www.dafthunk.com/terms",
+    },
     { name: "robots", content: "index, follow" },
   ];
 }

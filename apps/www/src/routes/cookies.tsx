@@ -9,7 +9,7 @@ export function meta() {
         "Learn about how Dafthunk uses cookies, including essential cookies for security and performance, and third-party cookies from Cloudflare and Stripe.",
     },
     { property: "og:type", content: "website" },
-    { property: "og:url", content: "https://dafthunk.com/cookies" },
+    { property: "og:url", content: "https://www.dafthunk.com/cookies" },
     { property: "og:title", content: "Cookie Policy - Dafthunk" },
     {
       property: "og:description",
@@ -18,7 +18,7 @@ export function meta() {
     },
     { property: "og:site_name", content: "Dafthunk" },
     { name: "twitter:card", content: "summary" },
-    { name: "twitter:url", content: "https://dafthunk.com/cookies" },
+    { name: "twitter:url", content: "https://www.dafthunk.com/cookies" },
     { name: "twitter:title", content: "Cookie Policy - Dafthunk" },
     {
       name: "twitter:description",
@@ -28,7 +28,7 @@ export function meta() {
     {
       tagName: "link",
       rel: "canonical",
-      href: "https://dafthunk.com/cookies",
+      href: "https://www.dafthunk.com/cookies",
     },
     { name: "robots", content: "index, follow" },
   ];

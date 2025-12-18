@@ -9,7 +9,7 @@ export function meta() {
         "Read our Privacy Policy. Learn how Dafthunk collects, uses, and protects your personal information and workflow data.",
     },
     { property: "og:type", content: "website" },
-    { property: "og:url", content: "https://dafthunk.com/privacy" },
+    { property: "og:url", content: "https://www.dafthunk.com/privacy" },
     {
       property: "og:title",
       content: "Privacy Policy - Dafthunk",
@@ -21,7 +21,7 @@ export function meta() {
     },
     { property: "og:site_name", content: "Dafthunk" },
     { name: "twitter:card", content: "summary" },
-    { name: "twitter:url", content: "https://dafthunk.com/privacy" },
+    { name: "twitter:url", content: "https://www.dafthunk.com/privacy" },
     {
       name: "twitter:title",
       content: "Privacy Policy - Dafthunk",
@@ -31,7 +31,11 @@ export function meta() {
       content:
         "Read our Privacy Policy. Learn how Dafthunk collects, uses, and protects your personal information and workflow data.",
     },
-    { tagName: "link", rel: "canonical", href: "https://dafthunk.com/privacy" },
+    {
+      tagName: "link",
+      rel: "canonical",
+      href: "https://www.dafthunk.com/privacy",
+    },
     { name: "robots", content: "index, follow" },
   ];
 }
@@ -121,6 +125,28 @@ export default function Privacy() {
                   are solely responsible for ensuring you have the appropriate
                   rights and permissions to use and process such data through
                   Dafthunk.
+                  <ul className="list-disc list-outside space-y-2 mt-3 ml-6">
+                    <li>
+                      <strong>Google Mail:</strong> When you connect your Google
+                      Mail account and include Gmail nodes in your workflows, we
+                      access your Gmail only during workflow execution to
+                      perform the actions you configured (such as sending
+                      emails, reading messages, or managing drafts). We do not
+                      access your Gmail data outside of workflow executions.
+                      Email content and metadata processed through workflows may
+                      be stored in execution logs.
+                    </li>
+                    <li>
+                      <strong>Google Calendar:</strong> When you connect your
+                      Google Calendar account and include Calendar nodes in your
+                      workflows, we access your calendars only during workflow
+                      execution to perform the actions you configured (such as
+                      creating, reading, updating, or deleting events). We do
+                      not access your calendar data outside of workflow
+                      executions. Calendar data processed through workflows may
+                      be stored in execution logs.
+                    </li>
+                  </ul>
                 </li>
               </ul>
               <p className="text-xl text-gray-600 leading-relaxed">
