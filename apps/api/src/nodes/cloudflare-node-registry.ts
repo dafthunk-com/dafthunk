@@ -258,6 +258,12 @@ import { PhotonSepiaNode } from "./image/photon-sepia-node";
 import { PhotonSharpenNode } from "./image/photon-sharpen-node";
 import { PhotonThresholdNode } from "./image/photon-threshold-node";
 import { PhotonWatermarkNode } from "./image/photon-watermark-node";
+import { Recraft20bNode } from "./image/recraft-20b";
+import { Recraft20bSvgNode } from "./image/recraft-20b-svg";
+import { RecraftCreativeUpscaleNode } from "./image/recraft-creative-upscale";
+import { RecraftCrispUpscaleNode } from "./image/recraft-crisp-upscale";
+import { RecraftRemoveBackgroundNode } from "./image/recraft-remove-background";
+import { RecraftV3Node } from "./image/recraft-v3";
 import { RecraftV3SvgNode } from "./image/recraft-v3-svg";
 import { RecraftVectorizeNode } from "./image/recraft-vectorize";
 import { Resnet50Node } from "./image/resnet-50-node";
@@ -603,6 +609,12 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(PhotonSharpenNode);
     this.registerImplementation(PhotonThresholdNode);
     this.registerImplementation(PhotonWatermarkNode);
+    this.registerImplementation(Recraft20bNode);
+    this.registerImplementation(Recraft20bSvgNode);
+    this.registerImplementation(RecraftCreativeUpscaleNode);
+    this.registerImplementation(RecraftCrispUpscaleNode);
+    this.registerImplementation(RecraftRemoveBackgroundNode);
+    this.registerImplementation(RecraftV3Node);
     this.registerImplementation(RecraftV3SvgNode);
     this.registerImplementation(RecraftVectorizeNode);
 

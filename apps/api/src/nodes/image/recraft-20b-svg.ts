@@ -15,11 +15,37 @@ interface ReplicatePrediction {
 }
 
 const STYLE_OPTIONS = [
-  "any",
-  "engraving",
-  "line_art",
-  "line_circuit",
-  "linocut",
+  "vector_illustration",
+  "vector_illustration/bold_stroke",
+  "vector_illustration/chemistry",
+  "vector_illustration/colored_stencil",
+  "vector_illustration/contour_pop_art",
+  "vector_illustration/cosmics",
+  "vector_illustration/cutout",
+  "vector_illustration/depressive",
+  "vector_illustration/editorial",
+  "vector_illustration/emotional_flat",
+  "vector_illustration/infographical",
+  "vector_illustration/marker_outline",
+  "vector_illustration/mosaic",
+  "vector_illustration/naivector",
+  "vector_illustration/roundish_flat",
+  "vector_illustration/segmented_colors",
+  "vector_illustration/sharp_contrast",
+  "vector_illustration/thin",
+  "vector_illustration/vector_photo",
+  "vector_illustration/vivid_shapes",
+  "icon",
+  "icon/broken_line",
+  "icon/colored_outline",
+  "icon/colored_shapes",
+  "icon/colored_shapes_gradient",
+  "icon/doodle_fill",
+  "icon/doodle_offset_fill",
+  "icon/offset_fill",
+  "icon/outline",
+  "icon/outline_gradient",
+  "icon/uneven_fill",
 ] as const;
 
 const SIZE_OPTIONS = [
@@ -60,23 +86,24 @@ const ASPECT_RATIO_OPTIONS = [
 ] as const;
 
 /**
- * Recraft V3 SVG node for generating SVG images from text prompts using Replicate API.
- * @see https://replicate.com/recraft-ai/recraft-v3-svg
+ * Recraft 20B SVG node for generating SVG images from text prompts using Replicate API.
+ * Optimized for vector illustrations and icons.
+ * @see https://replicate.com/recraft-ai/recraft-20b-svg
  */
-export class RecraftV3SvgNode extends ExecutableNode {
+export class Recraft20bSvgNode extends ExecutableNode {
   private static readonly inputSchema = z.object({
     prompt: z.string().min(1),
-    style: z.enum(STYLE_OPTIONS).optional().default("any"),
+    style: z.enum(STYLE_OPTIONS).optional().default("vector_illustration"),
     size: z.enum(SIZE_OPTIONS).optional().default("1024x1024"),
     aspect_ratio: z.enum(ASPECT_RATIO_OPTIONS).optional().default(""),
   });
 
   public static readonly nodeType: NodeType = {
-    id: "recraft-v3-svg",
-    name: "Text to SVG (Recraft V3)",
-    type: "recraft-v3-svg",
+    id: "recraft-20b-svg",
+    name: "Text to SVG (Recraft 20B)",
+    type: "recraft-20b-svg",
     description:
-      "Generates SVG vector graphics from text prompts using Recraft V3 AI",
+      "Generates SVG vector graphics and icons from text prompts using Recraft 20B AI",
     tags: [
       "AI",
       "Image",
@@ -85,13 +112,14 @@ export class RecraftV3SvgNode extends ExecutableNode {
       "Vector",
       "Generate",
       "Text-to-Image",
+      "Icon",
     ],
     icon: "pen-tool",
     documentation:
-      "This node generates scalable vector graphics (SVG) from text prompts using the Recraft V3 SVG model via Replicate. Supports multiple styles including engraving, line art, and linocut.",
-    referenceUrl: "https://replicate.com/recraft-ai/recraft-v3-svg",
+      "This node generates scalable vector graphics (SVG) from text prompts using the Recraft 20B SVG model via Replicate. Optimized for vector illustrations and icons with multiple substyles.",
+    referenceUrl: "https://replicate.com/recraft-ai/recraft-20b-svg",
     inlinable: false,
-    usage: 80,
+    usage: 44,
     inputs: [
       {
         name: "prompt",
@@ -103,8 +131,8 @@ export class RecraftV3SvgNode extends ExecutableNode {
         name: "style",
         type: "string",
         description:
-          "Style of the generated image: any, engraving, line_art, line_circuit, linocut",
-        value: "any",
+          "Style: vector_illustration, icon, or substyles like vector_illustration/bold_stroke, icon/outline",
+        value: "vector_illustration",
       },
       {
         name: "size",
@@ -133,7 +161,9 @@ export class RecraftV3SvgNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const validatedInput = RecraftV3SvgNode.inputSchema.parse(context.inputs);
+      const validatedInput = Recraft20bSvgNode.inputSchema.parse(
+        context.inputs
+      );
 
       // Get Replicate API token from environment
       const { REPLICATE_API_TOKEN } = context.env;
@@ -148,7 +178,7 @@ export class RecraftV3SvgNode extends ExecutableNode {
       const maxWaitTime = 300000; // 5 minutes total
       const startTime = Date.now();
 
-      console.log("RecraftV3SvgNode: Creating prediction");
+      console.log("Recraft20bSvgNode: Creating prediction");
 
       // Build input object, only including aspect_ratio if set
       const input: Record<string, string> = {
@@ -171,20 +201,23 @@ export class RecraftV3SvgNode extends ExecutableNode {
           },
           body: JSON.stringify({
             version:
-              "df041379628fa1d16bd406409930775b0904dc2bc0f3e3f38ecd2a4389e9329d",
+              "666dcf90f18786723e083609cee6c84a0f162cc73d7066fd2d3ad3cb6ba88b1c",
             input,
           }),
         }
       );
 
       console.log(
-        "RecraftV3SvgNode: Create response status:",
+        "Recraft20bSvgNode: Create response status:",
         createResponse.status
       );
 
       if (!createResponse.ok) {
         const errorText = await createResponse.text();
-        console.error("RecraftV3SvgNode: Create prediction failed:", errorText);
+        console.error(
+          "Recraft20bSvgNode: Create prediction failed:",
+          errorText
+        );
         return this.createErrorResult(
           `Failed to create Replicate prediction: ${createResponse.status} ${errorText}`
         );
@@ -192,7 +225,7 @@ export class RecraftV3SvgNode extends ExecutableNode {
 
       let prediction = (await createResponse.json()) as ReplicatePrediction;
       console.log(
-        "RecraftV3SvgNode: Initial prediction:",
+        "Recraft20bSvgNode: Initial prediction:",
         JSON.stringify({
           id: prediction.id,
           status: prediction.status,
@@ -213,7 +246,7 @@ export class RecraftV3SvgNode extends ExecutableNode {
 
         // Poll Replicate API for prediction status
         const pollUrl = `https://api.replicate.com/v1/predictions/${prediction.id}`;
-        console.log("RecraftV3SvgNode: Polling:", pollUrl);
+        console.log("Recraft20bSvgNode: Polling:", pollUrl);
 
         const pollResponse = await fetch(pollUrl, {
           method: "GET",
@@ -225,13 +258,13 @@ export class RecraftV3SvgNode extends ExecutableNode {
         });
 
         console.log(
-          "RecraftV3SvgNode: Poll response status:",
+          "Recraft20bSvgNode: Poll response status:",
           pollResponse.status
         );
 
         if (!pollResponse.ok) {
           const errorText = await pollResponse.text();
-          console.error("RecraftV3SvgNode: Poll failed:", errorText);
+          console.error("Recraft20bSvgNode: Poll failed:", errorText);
           return this.createErrorResult(
             `Failed to poll prediction status: ${pollResponse.status} ${errorText}`
           );
@@ -239,7 +272,7 @@ export class RecraftV3SvgNode extends ExecutableNode {
 
         prediction = (await pollResponse.json()) as ReplicatePrediction;
         console.log(
-          "RecraftV3SvgNode: Poll result:",
+          "Recraft20bSvgNode: Poll result:",
           JSON.stringify({
             id: prediction.id,
             status: prediction.status,
@@ -250,23 +283,25 @@ export class RecraftV3SvgNode extends ExecutableNode {
 
       if (prediction.status === "failed") {
         return this.createErrorResult(
-          `Recraft V3 SVG generation failed: ${prediction.error || "Unknown error"}`
+          `Recraft 20B SVG generation failed: ${prediction.error || "Unknown error"}`
         );
       }
 
       if (prediction.status === "canceled") {
-        return this.createErrorResult("Recraft V3 SVG generation was canceled");
+        return this.createErrorResult(
+          "Recraft 20B SVG generation was canceled"
+        );
       }
 
       if (prediction.status !== "succeeded") {
         return this.createErrorResult(
-          `Recraft V3 SVG generation timed out after ${maxWaitTime / 60000} minutes`
+          `Recraft 20B SVG generation timed out after ${maxWaitTime / 60000} minutes`
         );
       }
 
       if (!prediction.output) {
         return this.createErrorResult(
-          "Recraft V3 SVG generation succeeded but no output was returned"
+          "Recraft 20B SVG generation succeeded but no output was returned"
         );
       }
 

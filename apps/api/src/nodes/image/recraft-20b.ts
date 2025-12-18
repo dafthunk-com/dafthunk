@@ -15,11 +15,31 @@ interface ReplicatePrediction {
 }
 
 const STYLE_OPTIONS = [
-  "any",
-  "engraving",
-  "line_art",
-  "line_circuit",
-  "linocut",
+  "realistic_image",
+  "realistic_image/b_and_w",
+  "realistic_image/enterprise",
+  "realistic_image/hard_flash",
+  "realistic_image/hdr",
+  "realistic_image/motion_blur",
+  "realistic_image/natural_light",
+  "realistic_image/studio_portrait",
+  "digital_illustration",
+  "digital_illustration/2d_art_poster",
+  "digital_illustration/3d",
+  "digital_illustration/80s",
+  "digital_illustration/engraving_color",
+  "digital_illustration/glow",
+  "digital_illustration/grain",
+  "digital_illustration/hand_drawn",
+  "digital_illustration/hand_drawn_outline",
+  "digital_illustration/handmade_3d",
+  "digital_illustration/infantile_sketch",
+  "digital_illustration/kawaii",
+  "digital_illustration/pixel_art",
+  "digital_illustration/psychedelic",
+  "digital_illustration/seamless",
+  "digital_illustration/voxel",
+  "digital_illustration/watercolor",
 ] as const;
 
 const SIZE_OPTIONS = [
@@ -60,51 +80,43 @@ const ASPECT_RATIO_OPTIONS = [
 ] as const;
 
 /**
- * Recraft V3 SVG node for generating SVG images from text prompts using Replicate API.
- * @see https://replicate.com/recraft-ai/recraft-v3-svg
+ * Recraft 20B node for generating images from text prompts using Replicate API.
+ * @see https://replicate.com/recraft-ai/recraft-20b
  */
-export class RecraftV3SvgNode extends ExecutableNode {
+export class Recraft20bNode extends ExecutableNode {
   private static readonly inputSchema = z.object({
     prompt: z.string().min(1),
-    style: z.enum(STYLE_OPTIONS).optional().default("any"),
+    style: z.enum(STYLE_OPTIONS).optional().default("realistic_image"),
     size: z.enum(SIZE_OPTIONS).optional().default("1024x1024"),
     aspect_ratio: z.enum(ASPECT_RATIO_OPTIONS).optional().default(""),
   });
 
   public static readonly nodeType: NodeType = {
-    id: "recraft-v3-svg",
-    name: "Text to SVG (Recraft V3)",
-    type: "recraft-v3-svg",
+    id: "recraft-20b",
+    name: "Image Generation (Recraft 20B)",
+    type: "recraft-20b",
     description:
-      "Generates SVG vector graphics from text prompts using Recraft V3 AI",
-    tags: [
-      "AI",
-      "Image",
-      "Replicate",
-      "SVG",
-      "Vector",
-      "Generate",
-      "Text-to-Image",
-    ],
-    icon: "pen-tool",
+      "Generates images from text prompts using Recraft 20B AI with realistic and illustration styles",
+    tags: ["AI", "Image", "Replicate", "Generate", "Text-to-Image", "Recraft"],
+    icon: "image",
     documentation:
-      "This node generates scalable vector graphics (SVG) from text prompts using the Recraft V3 SVG model via Replicate. Supports multiple styles including engraving, line art, and linocut.",
-    referenceUrl: "https://replicate.com/recraft-ai/recraft-v3-svg",
+      "This node generates images from text prompts using the Recraft 20B model via Replicate. Supports realistic images and digital illustrations with multiple substyles.",
+    referenceUrl: "https://replicate.com/recraft-ai/recraft-20b",
     inlinable: false,
-    usage: 80,
+    usage: 22,
     inputs: [
       {
         name: "prompt",
         type: "string",
-        description: "Text prompt describing the SVG to generate",
+        description: "Text prompt describing the image to generate",
         required: true,
       },
       {
         name: "style",
         type: "string",
         description:
-          "Style of the generated image: any, engraving, line_art, line_circuit, linocut",
-        value: "any",
+          "Style: realistic_image, digital_illustration, or substyles like realistic_image/hdr, digital_illustration/pixel_art",
+        value: "realistic_image",
       },
       {
         name: "size",
@@ -124,16 +136,16 @@ export class RecraftV3SvgNode extends ExecutableNode {
     ],
     outputs: [
       {
-        name: "svg",
-        type: "blob",
-        description: "Generated SVG vector graphic",
+        name: "image",
+        type: "image",
+        description: "Generated image",
       },
     ],
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const validatedInput = RecraftV3SvgNode.inputSchema.parse(context.inputs);
+      const validatedInput = Recraft20bNode.inputSchema.parse(context.inputs);
 
       // Get Replicate API token from environment
       const { REPLICATE_API_TOKEN } = context.env;
@@ -148,14 +160,15 @@ export class RecraftV3SvgNode extends ExecutableNode {
       const maxWaitTime = 300000; // 5 minutes total
       const startTime = Date.now();
 
-      console.log("RecraftV3SvgNode: Creating prediction");
+      console.log("Recraft20bNode: Creating prediction");
 
-      // Build input object, only including aspect_ratio if set
+      // Build input object
       const input: Record<string, string> = {
         prompt: validatedInput.prompt,
         style: validatedInput.style,
         size: validatedInput.size,
       };
+
       if (validatedInput.aspect_ratio) {
         input.aspect_ratio = validatedInput.aspect_ratio;
       }
@@ -171,20 +184,20 @@ export class RecraftV3SvgNode extends ExecutableNode {
           },
           body: JSON.stringify({
             version:
-              "df041379628fa1d16bd406409930775b0904dc2bc0f3e3f38ecd2a4389e9329d",
+              "c303fbbc72c026aa4315e5efc5dd9d8a1dfb60927c84c8c32214cd1d39028701",
             input,
           }),
         }
       );
 
       console.log(
-        "RecraftV3SvgNode: Create response status:",
+        "Recraft20bNode: Create response status:",
         createResponse.status
       );
 
       if (!createResponse.ok) {
         const errorText = await createResponse.text();
-        console.error("RecraftV3SvgNode: Create prediction failed:", errorText);
+        console.error("Recraft20bNode: Create prediction failed:", errorText);
         return this.createErrorResult(
           `Failed to create Replicate prediction: ${createResponse.status} ${errorText}`
         );
@@ -192,7 +205,7 @@ export class RecraftV3SvgNode extends ExecutableNode {
 
       let prediction = (await createResponse.json()) as ReplicatePrediction;
       console.log(
-        "RecraftV3SvgNode: Initial prediction:",
+        "Recraft20bNode: Initial prediction:",
         JSON.stringify({
           id: prediction.id,
           status: prediction.status,
@@ -213,7 +226,7 @@ export class RecraftV3SvgNode extends ExecutableNode {
 
         // Poll Replicate API for prediction status
         const pollUrl = `https://api.replicate.com/v1/predictions/${prediction.id}`;
-        console.log("RecraftV3SvgNode: Polling:", pollUrl);
+        console.log("Recraft20bNode: Polling:", pollUrl);
 
         const pollResponse = await fetch(pollUrl, {
           method: "GET",
@@ -225,13 +238,13 @@ export class RecraftV3SvgNode extends ExecutableNode {
         });
 
         console.log(
-          "RecraftV3SvgNode: Poll response status:",
+          "Recraft20bNode: Poll response status:",
           pollResponse.status
         );
 
         if (!pollResponse.ok) {
           const errorText = await pollResponse.text();
-          console.error("RecraftV3SvgNode: Poll failed:", errorText);
+          console.error("Recraft20bNode: Poll failed:", errorText);
           return this.createErrorResult(
             `Failed to poll prediction status: ${pollResponse.status} ${errorText}`
           );
@@ -239,7 +252,7 @@ export class RecraftV3SvgNode extends ExecutableNode {
 
         prediction = (await pollResponse.json()) as ReplicatePrediction;
         console.log(
-          "RecraftV3SvgNode: Poll result:",
+          "Recraft20bNode: Poll result:",
           JSON.stringify({
             id: prediction.id,
             status: prediction.status,
@@ -250,39 +263,43 @@ export class RecraftV3SvgNode extends ExecutableNode {
 
       if (prediction.status === "failed") {
         return this.createErrorResult(
-          `Recraft V3 SVG generation failed: ${prediction.error || "Unknown error"}`
+          `Recraft 20B generation failed: ${prediction.error || "Unknown error"}`
         );
       }
 
       if (prediction.status === "canceled") {
-        return this.createErrorResult("Recraft V3 SVG generation was canceled");
+        return this.createErrorResult("Recraft 20B generation was canceled");
       }
 
       if (prediction.status !== "succeeded") {
         return this.createErrorResult(
-          `Recraft V3 SVG generation timed out after ${maxWaitTime / 60000} minutes`
+          `Recraft 20B generation timed out after ${maxWaitTime / 60000} minutes`
         );
       }
 
       if (!prediction.output) {
         return this.createErrorResult(
-          "Recraft V3 SVG generation succeeded but no output was returned"
+          "Recraft 20B generation succeeded but no output was returned"
         );
       }
 
-      // Download the SVG file
-      const svgResponse = await fetch(prediction.output);
-      if (!svgResponse.ok) {
+      // Download the image file
+      const imageResponse = await fetch(prediction.output);
+      if (!imageResponse.ok) {
         return this.createErrorResult(
-          `Failed to download SVG file: ${svgResponse.status}`
+          `Failed to download image file: ${imageResponse.status}`
         );
       }
-      const svgData = new Uint8Array(await svgResponse.arrayBuffer());
+      const imageData = new Uint8Array(await imageResponse.arrayBuffer());
+
+      // Determine mime type from response or default to webp
+      const contentType =
+        imageResponse.headers.get("content-type") || "image/webp";
 
       return this.createSuccessResult({
-        svg: {
-          data: svgData,
-          mimeType: "image/svg+xml",
+        image: {
+          data: imageData,
+          mimeType: contentType,
         },
       });
     } catch (error) {
