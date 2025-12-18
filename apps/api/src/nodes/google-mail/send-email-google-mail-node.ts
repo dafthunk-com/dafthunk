@@ -92,9 +92,17 @@ export class SendEmailGoogleMailNode extends ExecutableNode {
       const integration = await context.getIntegration(integrationId);
 
       const accessToken = integration.token;
+      const fromEmail = integration.metadata?.email;
+
+      if (!fromEmail) {
+        return this.createErrorResult(
+          "Could not determine sender email from integration. Please reconnect your Google Mail integration."
+        );
+      }
 
       // Create RFC 2822 formatted email
       const emailLines = [
+        `From: ${fromEmail}`,
         `To: ${to}`,
         `Subject: ${subject}`,
         "Content-Type: text/html; charset=utf-8",
