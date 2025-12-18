@@ -570,10 +570,12 @@ export const integrations = sqliteTable(
     index("integrations_status_idx").on(table.status),
     index("integrations_organization_id_idx").on(table.organizationId),
     index("integrations_created_at_idx").on(table.createdAt),
-    // Ensure unique integration names per organization
-    uniqueIndex("integrations_organization_id_name_unique_idx").on(
+    // Ensure unique integration names per organization per provider
+    // This allows the same name (e.g., email) across different providers
+    uniqueIndex("integrations_organization_id_name_provider_unique_idx").on(
       table.organizationId,
-      table.name
+      table.name,
+      table.provider
     ),
   ]
 );
