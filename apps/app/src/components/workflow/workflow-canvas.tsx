@@ -17,7 +17,7 @@ import {
   ReactFlow,
   ReactFlowInstance,
 } from "@xyflow/react";
-import { PanelRightClose, PanelRightOpen } from "lucide-react";
+import { PanelRightClose, PanelRightOpen, Plus } from "lucide-react";
 import ArrowUpToLine from "lucide-react/icons/arrow-up-to-line";
 import ClipboardPaste from "lucide-react/icons/clipboard-paste";
 import Clock from "lucide-react/icons/clock";
@@ -28,7 +28,6 @@ import Mail from "lucide-react/icons/mail";
 import Maximize from "lucide-react/icons/maximize";
 import Network from "lucide-react/icons/network";
 import Play from "lucide-react/icons/play";
-import PlusCircle from "lucide-react/icons/plus-circle";
 import Scissors from "lucide-react/icons/scissors";
 import Square from "lucide-react/icons/square";
 import Trash2 from "lucide-react/icons/trash-2";
@@ -457,7 +456,7 @@ function AddNodeButton({
       )}
       tooltipSide="right"
     >
-      <PlusCircle className="!size-5" />
+      <Plus className="!size-5" />
     </ActionBarButton>
   );
 }
