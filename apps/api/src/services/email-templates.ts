@@ -9,6 +9,7 @@ export interface InvitationEmailParams {
   role: string;
   expiresAt: Date;
   appUrl: string;
+  websiteUrl: string;
 }
 
 /**
@@ -19,7 +20,8 @@ export function getInvitationEmail(params: InvitationEmailParams): {
   text: string;
   html: string;
 } {
-  const { organizationName, inviterName, role, expiresAt, appUrl } = params;
+  const { organizationName, inviterName, role, expiresAt, appUrl, websiteUrl } =
+    params;
   const invitationsUrl = `${appUrl}/settings/invitations`;
   const expiresFormatted = expiresAt.toLocaleDateString("en-US", {
     month: "long",
@@ -37,7 +39,7 @@ This invite expires on ${expiresFormatted}.
 
 —
 Dafthunk · Visual workflow automation
-https://www.dafthunk.com`;
+${websiteUrl}`;
 
   const html = `<p>${inviterName} invited you to join ${organizationName} on Dafthunk as a ${role}.</p>
 <p><a href="${invitationsUrl}">View Invitation</a></p>

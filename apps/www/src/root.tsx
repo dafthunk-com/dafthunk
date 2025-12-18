@@ -17,18 +17,19 @@ export const links = () => [
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const gaMeasurementId = import.meta.env.VITE_GA_MEASUREMENT_ID;
+  const websiteUrl = import.meta.env.VITE_WEBSITE_URL;
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
       {
         "@type": "Organization",
-        "@id": "https://www.dafthunk.com/#organization",
+        "@id": `${websiteUrl}/#organization`,
         name: "Dafthunk",
-        url: "https://www.dafthunk.com",
+        url: websiteUrl,
         logo: {
           "@type": "ImageObject",
-          url: "https://www.dafthunk.com/icon.svg",
+          url: `${websiteUrl}/icon.svg`,
         },
         sameAs: ["https://github.com/dafthunk-com/dafthunk"],
         contactPoint: {
@@ -39,18 +40,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
       },
       {
         "@type": "WebSite",
-        "@id": "https://www.dafthunk.com/#website",
-        url: "https://www.dafthunk.com",
+        "@id": `${websiteUrl}/#website`,
+        url: websiteUrl,
         name: "Dafthunk",
         description:
           "Visual workflow automation platform for building serverless workflows on edge infrastructure",
         publisher: {
-          "@id": "https://www.dafthunk.com/#organization",
+          "@id": `${websiteUrl}/#organization`,
         },
       },
       {
         "@type": "SoftwareApplication",
-        "@id": "https://www.dafthunk.com/#application",
+        "@id": `${websiteUrl}/#application`,
         name: "Dafthunk",
         applicationCategory: "BusinessApplication",
         operatingSystem: "Web",

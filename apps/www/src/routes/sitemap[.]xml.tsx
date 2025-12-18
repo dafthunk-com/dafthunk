@@ -1,8 +1,10 @@
 import categories from "../../data/categories.json";
 import workflowsData from "../../data/workflows.json";
 
+const websiteUrl = import.meta.env.VITE_WEBSITE_URL;
+
 export function loader() {
-  const baseUrl = "https://www.dafthunk.com";
+  const baseUrl = websiteUrl;
   const today = new Date().toISOString().split("T")[0];
 
   const staticPages = [

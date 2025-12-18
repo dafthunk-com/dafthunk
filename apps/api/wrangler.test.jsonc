@@ -84,6 +84,7 @@
   },
   "vars": {
     "WEB_HOST": "https://test.dafthunk.com",
+    "WEBSITE_URL": "https://www.dafthunk.com",
     "CLOUDFLARE_ENV": "test",
     "CLOUDFLARE_ACCOUNT_ID": "test-account-id",
     "CLOUDFLARE_API_TOKEN": "test-api-token"

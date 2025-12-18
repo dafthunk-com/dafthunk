@@ -421,6 +421,7 @@ organizationRoutes.post(
             role: role.charAt(0).toUpperCase() + role.slice(1),
             expiresAt: invitation.expiresAt,
             appUrl: c.env.WEB_HOST,
+            websiteUrl: c.env.WEBSITE_URL,
           });
 
           const emailResult = await emailService.send({

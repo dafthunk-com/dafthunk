@@ -4,6 +4,8 @@ import { YouTubeFacade } from "../components/youtube-facade";
 import categories from "../../data/categories.json";
 import workflowsData from "../../data/workflows.json";
 
+const websiteUrl = import.meta.env.VITE_WEBSITE_URL;
+
 export function meta() {
   return [
     {
@@ -15,7 +17,7 @@ export function meta() {
         "Build serverless workflow automation with a React Flow editor. Deploy AI workflows, web scraping pipelines, data transformations, and integrations on Cloudflare's edge infrastructure.",
     },
     { property: "og:type", content: "website" },
-    { property: "og:url", content: "https://www.dafthunk.com/" },
+    { property: "og:url", content: `${websiteUrl}/` },
     {
       property: "og:title",
       content: "Dafthunk - Visual Workflow Automation Platform",
@@ -25,10 +27,10 @@ export function meta() {
       content:
         "Build serverless workflow automation with a React Flow editor. Deploy AI workflows, web scraping pipelines, data transformations, and integrations on Cloudflare's edge infrastructure.",
     },
-    { property: "og:image", content: "https://www.dafthunk.com/og-image.webp" },
+    { property: "og:image", content: `${websiteUrl}/og-image.webp` },
     { property: "og:site_name", content: "Dafthunk" },
     { name: "twitter:card", content: "summary_large_image" },
-    { name: "twitter:url", content: "https://www.dafthunk.com/" },
+    { name: "twitter:url", content: `${websiteUrl}/` },
     {
       name: "twitter:title",
       content: "Dafthunk - Visual Workflow Automation Platform",
@@ -40,9 +42,9 @@ export function meta() {
     },
     {
       name: "twitter:image",
-      content: "https://www.dafthunk.com/og-image.webp",
+      content: `${websiteUrl}/og-image.webp`,
     },
-    { tagName: "link", rel: "canonical", href: "https://www.dafthunk.com/" },
+    { tagName: "link", rel: "canonical", href: `${websiteUrl}/` },
   ];
 }
 

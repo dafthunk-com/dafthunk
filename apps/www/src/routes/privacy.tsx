@@ -1,5 +1,7 @@
 import { Layout } from "../components/layout";
 
+const websiteUrl = import.meta.env.VITE_WEBSITE_URL;
+
 export function meta() {
   return [
     { title: "Privacy Policy - Dafthunk" },
@@ -9,7 +11,7 @@ export function meta() {
         "Read our Privacy Policy. Learn how Dafthunk collects, uses, and protects your personal information and workflow data.",
     },
     { property: "og:type", content: "website" },
-    { property: "og:url", content: "https://www.dafthunk.com/privacy" },
+    { property: "og:url", content: `${websiteUrl}/privacy` },
     {
       property: "og:title",
       content: "Privacy Policy - Dafthunk",
@@ -21,7 +23,7 @@ export function meta() {
     },
     { property: "og:site_name", content: "Dafthunk" },
     { name: "twitter:card", content: "summary" },
-    { name: "twitter:url", content: "https://www.dafthunk.com/privacy" },
+    { name: "twitter:url", content: `${websiteUrl}/privacy` },
     {
       name: "twitter:title",
       content: "Privacy Policy - Dafthunk",
@@ -34,7 +36,7 @@ export function meta() {
     {
       tagName: "link",
       rel: "canonical",
-      href: "https://www.dafthunk.com/privacy",
+      href: `${websiteUrl}/privacy`,
     },
     { name: "robots", content: "index, follow" },
   ];

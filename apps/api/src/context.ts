@@ -22,6 +22,7 @@ export interface Bindings {
   BROWSER?: Fetcher;
   EXECUTIONS: AnalyticsEngineDataset;
   WEB_HOST: string;
+  WEBSITE_URL: string;
   EMAIL_DOMAIN: string;
   JWT_SECRET: string;
   CLOUDFLARE_ENV: string;

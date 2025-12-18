@@ -1,5 +1,7 @@
 import { Layout } from "../components/layout";
 
+const websiteUrl = import.meta.env.VITE_WEBSITE_URL;
+
 export function meta() {
   return [
     { title: "Terms of Service - Dafthunk" },
@@ -9,7 +11,7 @@ export function meta() {
         "Read our Terms of Service. Learn about the acceptable use, limitations, and conditions for using Dafthunk's workflow automation platform.",
     },
     { property: "og:type", content: "website" },
-    { property: "og:url", content: "https://www.dafthunk.com/terms" },
+    { property: "og:url", content: `${websiteUrl}/terms` },
     {
       property: "og:title",
       content: "Terms of Service - Dafthunk",
@@ -21,7 +23,7 @@ export function meta() {
     },
     { property: "og:site_name", content: "Dafthunk" },
     { name: "twitter:card", content: "summary" },
-    { name: "twitter:url", content: "https://www.dafthunk.com/terms" },
+    { name: "twitter:url", content: `${websiteUrl}/terms` },
     {
       name: "twitter:title",
       content: "Terms of Service - Dafthunk",
@@ -34,7 +36,7 @@ export function meta() {
     {
       tagName: "link",
       rel: "canonical",
-      href: "https://www.dafthunk.com/terms",
+      href: `${websiteUrl}/terms`,
     },
     { name: "robots", content: "index, follow" },
   ];

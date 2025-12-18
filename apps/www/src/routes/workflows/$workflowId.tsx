@@ -6,6 +6,8 @@ import workflowsData from "../../../data/workflows.json";
 import * as icons from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
+const websiteUrl = import.meta.env.VITE_WEBSITE_URL;
+
 interface WorkflowData {
   id: string;
   name: string;
@@ -45,7 +47,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   const description =
     workflow.description ||
     `Learn how to automate ${workflow.name} with Dafthunk workflows.`;
-  const url = `https://www.dafthunk.com/workflows/${workflow.id}`;
+  const url = `${websiteUrl}/workflows/${workflow.id}`;
   const keywords = [...workflow.tags, "workflow automation", "Dafthunk"].join(
     ", "
   );

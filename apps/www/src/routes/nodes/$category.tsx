@@ -6,6 +6,8 @@ import allNodes from "../../../data/nodes.json";
 import * as icons from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
+const websiteUrl = import.meta.env.VITE_WEBSITE_URL;
+
 interface NodeData {
   id: string;
   name: string;
@@ -68,7 +70,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   const { category } = data;
   const title = `${category.name} Workflow Nodes - Dafthunk`;
   const description = category.summary;
-  const url = `https://www.dafthunk.com/nodes/${category.id}`;
+  const url = `${websiteUrl}/nodes/${category.id}`;
 
   return [
     { title },

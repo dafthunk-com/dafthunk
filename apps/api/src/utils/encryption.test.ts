@@ -31,6 +31,7 @@ const createMockEnv = (masterKey?: string): Bindings => ({
   BROWSER: {} as Fetcher,
   EXECUTIONS: {} as AnalyticsEngineDataset,
   WEB_HOST: "",
+  WEBSITE_URL: "",
   EMAIL_DOMAIN: "",
   JWT_SECRET: "",
   CLOUDFLARE_ENV: "",
