@@ -258,6 +258,7 @@ import { PhotonSepiaNode } from "./image/photon-sepia-node";
 import { PhotonSharpenNode } from "./image/photon-sharpen-node";
 import { PhotonThresholdNode } from "./image/photon-threshold-node";
 import { PhotonWatermarkNode } from "./image/photon-watermark-node";
+import { RecraftV3SvgNode } from "./image/recraft-v3-svg";
 import { RecraftVectorizeNode } from "./image/recraft-vectorize";
 import { Resnet50Node } from "./image/resnet-50-node";
 import { StableDiffusionV15Img2ImgNode } from "./image/stable-diffusion-v1-5-img2-img-node";
@@ -602,6 +603,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(PhotonSharpenNode);
     this.registerImplementation(PhotonThresholdNode);
     this.registerImplementation(PhotonWatermarkNode);
+    this.registerImplementation(RecraftV3SvgNode);
     this.registerImplementation(RecraftVectorizeNode);
 
     this.registerImplementation(AudioInputNode);
