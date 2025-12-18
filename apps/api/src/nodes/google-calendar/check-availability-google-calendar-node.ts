@@ -28,14 +28,14 @@ export class CheckAvailabilityGoogleCalendarNode extends ExecutableNode {
       },
       {
         name: "timeMin",
-        type: "string",
-        description: "Start of time range (ISO 8601 format)",
+        type: "date",
+        description: "Start of time range",
         required: true,
       },
       {
         name: "timeMax",
-        type: "string",
-        description: "End of time range (ISO 8601 format)",
+        type: "date",
+        description: "End of time range",
         required: true,
       },
     ],

@@ -39,14 +39,14 @@ export class UpdateEventGoogleCalendarNode extends ExecutableNode {
       },
       {
         name: "startDateTime",
-        type: "string",
-        description: "Start date-time (ISO 8601 format, optional)",
+        type: "date",
+        description: "Start date-time",
         required: false,
       },
       {
         name: "endDateTime",
-        type: "string",
-        description: "End date-time (ISO 8601 format, optional)",
+        type: "date",
+        description: "End date-time",
         required: false,
       },
       {

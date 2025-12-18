@@ -33,16 +33,14 @@ export class CreateEventGoogleCalendarNode extends ExecutableNode {
       },
       {
         name: "startDateTime",
-        type: "string",
-        description:
-          "Start date-time (ISO 8601 format, e.g., 2024-01-15T10:00:00)",
+        type: "date",
+        description: "Start date-time",
         required: true,
       },
       {
         name: "endDateTime",
-        type: "string",
-        description:
-          "End date-time (ISO 8601 format, e.g., 2024-01-15T11:00:00)",
+        type: "date",
+        description: "End date-time",
         required: true,
       },
       {

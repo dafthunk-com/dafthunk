@@ -58,14 +58,14 @@ export class ListEventsGoogleCalendarNode extends ExecutableNode {
       },
       {
         name: "timeMin",
-        type: "string",
-        description: "Start date-time (ISO 8601, optional, defaults to now)",
+        type: "date",
+        description: "Start date-time (defaults to now)",
         required: false,
       },
       {
         name: "timeMax",
-        type: "string",
-        description: "End date-time (ISO 8601, optional)",
+        type: "date",
+        description: "End date-time",
         required: false,
       },
     ],
