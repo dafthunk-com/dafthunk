@@ -2,7 +2,7 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "dafthunk-www",
   "main": "./workers/app.ts",
-  "compatibility_date": "2025-04-04",
+  "compatibility_date": "2025-11-17",
   "observability": {
     "enabled": true,
   },

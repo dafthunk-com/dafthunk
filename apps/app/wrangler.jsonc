@@ -1,7 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "dafthunk-app",
-  "compatibility_date": "2024-02-23",
+  "compatibility_date": "2025-11-17",
   "main": "./worker/index.ts",
 
   // Static assets configuration
