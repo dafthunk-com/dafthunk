@@ -13,114 +13,127 @@ interface ReplicatePrediction {
   status: "starting" | "processing" | "succeeded" | "failed" | "canceled";
   output?: {
     model_file?: string;
-    color_video?: string;
-    normal_video?: string;
-    combined_video?: string;
-    gaussian_ply?: string;
-    no_background_images?: string[];
+    video?: string;
+    no_background_image?: string;
   };
   error?: string;
 }
 
 /**
- * Trellis node for generating 3D models from images using Replicate API.
- * Accepts image blobs, uploads them to R2 with presigned URLs for Replicate access.
- * @see https://replicate.com/firtoz/trellis
+ * Trellis 2 node for generating 3D models from images using Replicate API.
+ * Accepts a single image blob, uploads it to R2 with presigned URL for Replicate access.
+ * @see https://replicate.com/fishwowater/trellis2
  */
-export class TrellisNode extends ExecutableNode {
+export class Trellis2Node extends ExecutableNode {
   private static readonly inputSchema = z.object({
-    images: z.array(
-      z.object({
-        data: z.instanceof(Uint8Array),
-        mimeType: z.string(),
-      })
-    ),
-    seed: z.number().int().optional().default(0),
-    randomize_seed: z.boolean().optional().default(true),
-    texture_size: z.number().int().min(512).max(2048).optional().default(1024),
-    mesh_simplify: z.number().min(0.9).max(0.98).optional().default(0.95),
-    ss_sampling_steps: z.number().int().min(1).max(50).optional().default(12),
-    slat_sampling_steps: z.number().int().min(1).max(50).optional().default(12),
-    ss_guidance_strength: z.number().min(0).max(20).optional().default(7.5),
-    slat_guidance_strength: z.number().min(0).max(20).optional().default(3),
+    image: z.object({
+      data: z.instanceof(Uint8Array),
+      mimeType: z.string(),
+    }),
+    seed: z.number().int().optional().default(42),
+    randomize_seed: z.boolean().optional().default(false),
+    pipeline_type: z
+      .enum(["512", "1024", "1024_cascade", "1536_cascade"])
+      .optional()
+      .default("1024_cascade"),
+    texture_size: z.number().int().min(1024).max(8192).optional().default(4096),
+    generate_model: z.boolean().optional().default(true),
+    generate_video: z.boolean().optional().default(true),
+    shape_sampling_steps: z.number().int().min(1).max(100).optional().default(12),
+    shape_guidance_scale: z.number().min(0).max(20).optional().default(7.5),
+    texture_sampling_steps: z.number().int().min(1).max(100).optional().default(12),
+    texture_guidance_scale: z.number().min(0).max(20).optional().default(7.5),
   });
 
   public static readonly nodeType: NodeType = {
-    id: "trellis",
-    name: "3D Generation (Trellis)",
-    type: "trellis",
+    id: "trellis2",
+    name: "3D Generation (Trellis 2)",
+    type: "trellis2",
     description:
-      "Generates 3D models (GLB) from images using the Trellis model on Replicate",
+      "Generates 3D models (GLB) from a single image using the Trellis 2 model on Replicate",
     tags: ["AI", "3D", "Replicate", "Trellis", "Generate"],
     icon: "box",
     documentation:
-      "This node generates 3D models from input images using the Trellis model via Replicate. Outputs a GLB file that can be used in 3D workflows.",
-    referenceUrl: "https://replicate.com/firtoz/trellis",
+      "This node generates 3D models from a single input image using Microsoft's Trellis 2 model via Replicate. Outputs a GLB file and optional video preview.",
+    referenceUrl: "https://replicate.com/fishwowater/trellis2",
     inlinable: false,
     usage: 100,
     inputs: [
       {
-        name: "images",
+        name: "image",
         type: "image",
-        description:
-          "Input images to generate 3D model from (1-4 images for multi-view)",
+        description: "Input image to generate 3D model from",
         required: true,
-        repeated: true,
       },
       {
         name: "seed",
         type: "number",
-        description: "Random seed for generation (default: 0)",
-        value: 0,
+        description: "Random seed for generation (default: 42)",
+        value: 42,
         hidden: true,
       },
       {
         name: "randomize_seed",
         type: "boolean",
-        description: "Randomize seed (default: true)",
-        value: true,
+        description: "Randomize seed (default: false)",
+        value: false,
+        hidden: true,
+      },
+      {
+        name: "pipeline_type",
+        type: "string",
+        description:
+          "Quality/speed tradeoff: 512 (fast), 1024, 1024_cascade, 1536_cascade (best)",
+        value: "1024_cascade",
         hidden: true,
       },
       {
         name: "texture_size",
         type: "number",
-        description: "GLB texture size, 512-2048 (default: 1024)",
-        value: 1024,
+        description: "GLB texture size, 1024-8192 (default: 4096)",
+        value: 4096,
         hidden: true,
       },
       {
-        name: "mesh_simplify",
-        type: "number",
-        description: "Mesh simplification ratio, 0.9-0.98 (default: 0.95)",
-        value: 0.95,
+        name: "generate_model",
+        type: "boolean",
+        description: "Generate 3D model file (default: true)",
+        value: true,
         hidden: true,
       },
       {
-        name: "ss_sampling_steps",
+        name: "generate_video",
+        type: "boolean",
+        description: "Generate video preview (default: true)",
+        value: true,
+        hidden: true,
+      },
+      {
+        name: "shape_sampling_steps",
         type: "number",
-        description: "Sparse structure sampling steps, 1-50 (default: 12)",
+        description: "Shape sampling steps, 1-100 (default: 12)",
         value: 12,
         hidden: true,
       },
       {
-        name: "slat_sampling_steps",
+        name: "shape_guidance_scale",
         type: "number",
-        description: "Structured latent sampling steps, 1-50 (default: 12)",
-        value: 12,
-        hidden: true,
-      },
-      {
-        name: "ss_guidance_strength",
-        type: "number",
-        description: "Sparse structure guidance strength, 0-20 (default: 7.5)",
+        description: "Shape guidance scale, 0-20 (default: 7.5)",
         value: 7.5,
         hidden: true,
       },
       {
-        name: "slat_guidance_strength",
+        name: "texture_sampling_steps",
         type: "number",
-        description: "Structured latent guidance strength, 0-20 (default: 3)",
-        value: 3,
+        description: "Texture sampling steps, 1-100 (default: 12)",
+        value: 12,
+        hidden: true,
+      },
+      {
+        name: "texture_guidance_scale",
+        type: "number",
+        description: "Texture guidance scale, 0-20 (default: 7.5)",
+        value: 7.5,
         hidden: true,
       },
     ],
@@ -133,14 +146,19 @@ export class TrellisNode extends ExecutableNode {
       {
         name: "video",
         type: "blob",
-        description: "Color video preview of the 3D model",
+        description: "Video preview of the 3D model",
+      },
+      {
+        name: "no_background_image",
+        type: "image",
+        description: "Input image with background removed",
       },
     ],
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const validatedInput = TrellisNode.inputSchema.parse(context.inputs);
+      const validatedInput = Trellis2Node.inputSchema.parse(context.inputs);
 
       // Get Replicate API token from environment
       const { REPLICATE_API_TOKEN } = context.env;
@@ -150,26 +168,20 @@ export class TrellisNode extends ExecutableNode {
         );
       }
 
-      // Generate presigned URLs for all input images
-      const imageUrls = await Promise.all(
-        validatedInput.images.map((image) =>
-          this.uploadImageAndGetPresignedUrl(image, context)
-        )
+      // Generate presigned URL for input image
+      const imageUrl = await this.uploadImageAndGetPresignedUrl(
+        validatedInput.image,
+        context
       );
 
-      if (imageUrls.length === 0) {
-        return this.createErrorResult("At least one image is required");
-      }
-
-      console.log("TrellisNode: Uploaded", imageUrls.length, "images");
+      console.log("Trellis2Node: Uploaded image:", imageUrl);
 
       // Create prediction with sync mode (waits up to 60s)
       const syncTimeout = 60;
       const maxWaitTime = 600000; // 10 minutes total
       const startTime = Date.now();
 
-      console.log("TrellisNode: Creating prediction");
-      console.log("TrellisNode: Image URLs:", imageUrls);
+      console.log("Trellis2Node: Creating prediction");
 
       const createResponse = await fetch(
         "https://api.replicate.com/v1/predictions",
@@ -182,34 +194,32 @@ export class TrellisNode extends ExecutableNode {
           },
           body: JSON.stringify({
             version:
-              "e8f6c45206993f297372f5436b90350817bd9b4a0d52d2a76df50c1c8afa2b3c",
+              "52e1ad6852599ea10ce8e257635a3c11485cba51c181ea5173e34d9b2955b226",
             input: {
-              images: imageUrls,
+              image: imageUrl,
               seed: validatedInput.seed,
               randomize_seed: validatedInput.randomize_seed,
-              generate_color: true,
-              generate_normal: false,
-              generate_model: true,
-              save_gaussian_ply: false,
+              pipeline_type: validatedInput.pipeline_type,
               texture_size: validatedInput.texture_size,
-              mesh_simplify: validatedInput.mesh_simplify,
-              ss_sampling_steps: validatedInput.ss_sampling_steps,
-              slat_sampling_steps: validatedInput.slat_sampling_steps,
-              ss_guidance_strength: validatedInput.ss_guidance_strength,
-              slat_guidance_strength: validatedInput.slat_guidance_strength,
+              generate_model: validatedInput.generate_model,
+              generate_video: validatedInput.generate_video,
+              shape_sampling_steps: validatedInput.shape_sampling_steps,
+              shape_guidance_scale: validatedInput.shape_guidance_scale,
+              texture_sampling_steps: validatedInput.texture_sampling_steps,
+              texture_guidance_scale: validatedInput.texture_guidance_scale,
             },
           }),
         }
       );
 
       console.log(
-        "TrellisNode: Create response status:",
+        "Trellis2Node: Create response status:",
         createResponse.status
       );
 
       if (!createResponse.ok) {
         const errorText = await createResponse.text();
-        console.error("TrellisNode: Create prediction failed:", errorText);
+        console.error("Trellis2Node: Create prediction failed:", errorText);
         return this.createErrorResult(
           `Failed to create Replicate prediction: ${createResponse.status} ${errorText}`
         );
@@ -217,7 +227,7 @@ export class TrellisNode extends ExecutableNode {
 
       let prediction = (await createResponse.json()) as ReplicatePrediction;
       console.log(
-        "TrellisNode: Initial prediction:",
+        "Trellis2Node: Initial prediction:",
         JSON.stringify({
           id: prediction.id,
           status: prediction.status,
@@ -238,7 +248,7 @@ export class TrellisNode extends ExecutableNode {
 
         // Poll Replicate API for prediction status
         const pollUrl = `https://api.replicate.com/v1/predictions/${prediction.id}`;
-        console.log("TrellisNode: Polling:", pollUrl);
+        console.log("Trellis2Node: Polling:", pollUrl);
 
         const pollResponse = await fetch(pollUrl, {
           method: "GET",
@@ -249,11 +259,11 @@ export class TrellisNode extends ExecutableNode {
           },
         });
 
-        console.log("TrellisNode: Poll response status:", pollResponse.status);
+        console.log("Trellis2Node: Poll response status:", pollResponse.status);
 
         if (!pollResponse.ok) {
           const errorText = await pollResponse.text();
-          console.error("TrellisNode: Poll failed:", errorText);
+          console.error("Trellis2Node: Poll failed:", errorText);
           return this.createErrorResult(
             `Failed to poll prediction status: ${pollResponse.status} ${errorText}`
           );
@@ -261,7 +271,7 @@ export class TrellisNode extends ExecutableNode {
 
         prediction = (await pollResponse.json()) as ReplicatePrediction;
         console.log(
-          "TrellisNode: Poll result:",
+          "Trellis2Node: Poll result:",
           JSON.stringify({
             id: prediction.id,
             status: prediction.status,
@@ -283,58 +293,70 @@ export class TrellisNode extends ExecutableNode {
 
       if (prediction.status === "failed") {
         return this.createErrorResult(
-          `Trellis generation failed: ${prediction.error || "Unknown error"}`
+          `Trellis 2 generation failed: ${prediction.error || "Unknown error"}`
         );
       }
 
       if (prediction.status === "canceled") {
-        return this.createErrorResult("Trellis generation was canceled");
+        return this.createErrorResult("Trellis 2 generation was canceled");
       }
 
       if (prediction.status !== "succeeded") {
         return this.createErrorResult(
-          `Trellis generation timed out after ${maxWaitTime / 60000} minutes`
+          `Trellis 2 generation timed out after ${maxWaitTime / 60000} minutes`
         );
       }
 
-      if (!prediction.output?.model_file) {
-        return this.createErrorResult(
-          "Trellis generation succeeded but no model file was returned"
-        );
-      }
+      const outputs: Record<string, { data: Uint8Array; mimeType: string }> =
+        {};
 
-      // Download the GLB model file
-      const modelResponse = await fetch(prediction.output.model_file);
-      if (!modelResponse.ok) {
-        return this.createErrorResult(
-          `Failed to download model file: ${modelResponse.status}`
-        );
+      // Download the GLB model file if available
+      if (prediction.output?.model_file) {
+        const modelResponse = await fetch(prediction.output.model_file);
+        if (!modelResponse.ok) {
+          return this.createErrorResult(
+            `Failed to download model file: ${modelResponse.status}`
+          );
+        }
+        outputs.model = {
+          data: new Uint8Array(await modelResponse.arrayBuffer()),
+          mimeType: "model/gltf-binary",
+        };
       }
-      const modelData = new Uint8Array(await modelResponse.arrayBuffer());
 
       // Download video if available
-      let videoData: Uint8Array | undefined;
-      const videoUrl =
-        prediction.output.color_video || prediction.output.combined_video;
-      if (videoUrl) {
-        const videoResponse = await fetch(videoUrl);
+      if (prediction.output?.video) {
+        const videoResponse = await fetch(prediction.output.video);
         if (videoResponse.ok) {
-          videoData = new Uint8Array(await videoResponse.arrayBuffer());
+          outputs.video = {
+            data: new Uint8Array(await videoResponse.arrayBuffer()),
+            mimeType: "video/mp4",
+          };
         }
       }
 
-      return this.createSuccessResult({
-        model: {
-          data: modelData,
-          mimeType: "model/gltf-binary",
-        },
-        ...(videoData && {
-          video: {
-            data: videoData,
-            mimeType: "video/mp4",
-          },
-        }),
-      });
+      // Download no_background_image if available
+      if (prediction.output?.no_background_image) {
+        const imageResponse = await fetch(
+          prediction.output.no_background_image
+        );
+        if (imageResponse.ok) {
+          const contentType =
+            imageResponse.headers.get("content-type") || "image/png";
+          outputs.no_background_image = {
+            data: new Uint8Array(await imageResponse.arrayBuffer()),
+            mimeType: contentType,
+          };
+        }
+      }
+
+      if (Object.keys(outputs).length === 0) {
+        return this.createErrorResult(
+          "Trellis 2 generation succeeded but no outputs were returned"
+        );
+      }
+
+      return this.createSuccessResult(outputs);
     } catch (error) {
       if (error instanceof z.ZodError) {
         const errorMessages = error.issues

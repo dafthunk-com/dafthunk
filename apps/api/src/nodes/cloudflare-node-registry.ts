@@ -18,7 +18,8 @@
 // import { GeoTiffQueryNode } from "./3d/geotiff-query-node";
 // import { GeoTiffTransformNode } from "./3d/geotiff-transform-node";
 // import { GltfWireframeNode } from "./3d/gltf-wireframe-node";
-// import { TrellisNode } from "./3d/trellis-node";
+import { TrellisNode } from "./3d/trellis-node";
+import { Trellis2Node } from "./3d/trellis2-node";
 import { Claude3OpusNode } from "./anthropic/claude-3-opus-node";
 import { Claude35HaikuNode } from "./anthropic/claude-35-haiku-node";
 import { Claude35SonnetNode } from "./anthropic/claude-35-sonnet-node";
@@ -755,7 +756,6 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     //   this.registerImplementation(GeoTiffQueryNode);
     //   this.registerImplementation(GeoTiffTransformNode);
     //   this.registerImplementation(GltfWireframeNode);
-    //   this.registerImplementation(TrellisNode);
     // }
 
     // CSG geometry nodes
@@ -904,6 +904,12 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(Gemini25FlashAudioUnderstandingNode);
     this.registerImplementation(Gemini25FlashImageUnderstandingNode);
     this.registerImplementation(ImagenNode);
+
+    // 3D generation nodes - always register (users can provide API keys via secrets)
+    if (this.developerMode) {
+      this.registerImplementation(TrellisNode);
+      this.registerImplementation(Trellis2Node);
+    }
 
     // Output/Widget nodes - always register (for displaying all parameter types)
     this.registerImplementation(TextOutputNode);
