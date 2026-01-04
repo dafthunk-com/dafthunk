@@ -57,7 +57,7 @@ export class Trellis2Node extends ExecutableNode {
       "This node generates 3D models from a single input image using Microsoft's Trellis 2 model via Replicate. Outputs a GLB file and optional video preview.",
     referenceUrl: "https://replicate.com/fishwowater/trellis2",
     inlinable: false,
-    usage: 100,
+    usage: 1000,
     inputs: [
       {
         name: "image",
