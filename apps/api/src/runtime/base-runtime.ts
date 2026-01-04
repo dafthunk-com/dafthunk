@@ -6,12 +6,6 @@ import type {
   WorkflowExecution,
   WorkflowExecutionStatus,
 } from "@dafthunk/types";
-import {
-  WorkflowEntrypoint,
-  WorkflowEvent,
-  WorkflowStep,
-  WorkflowStepConfig,
-} from "cloudflare:workers";
 import { NonRetryableError } from "cloudflare:workflows";
 
 import { Bindings } from "../context";
@@ -93,30 +87,15 @@ export interface RuntimeDependencies {
  * - executionStore: Persists workflow execution state
  * - monitoringService: Sends real-time execution updates
  */
-export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
-  /**
-   * Default step configuration used across the workflow.
-   */
-  private static readonly defaultStepConfig: WorkflowStepConfig = {
-    retries: {
-      limit: 0,
-      delay: 10_000,
-      backoff: "exponential",
-    },
-    timeout: "10 minutes",
-  };
-
+export abstract class BaseRuntime {
   protected nodeRegistry: BaseNodeRegistry;
   protected resourceProvider: ResourceProvider;
   protected executionStore: ExecutionStore;
   protected monitoringService: MonitoringService;
+  protected env: Bindings;
 
-  constructor(
-    ctx: ExecutionContext,
-    env: Bindings,
-    dependencies?: RuntimeDependencies
-  ) {
-    super(ctx, env);
+  constructor(env: Bindings, dependencies?: RuntimeDependencies) {
+    this.env = env;
 
     // Use injected dependencies or create defaults
     // Note: We can't use CloudflareNodeRegistry here directly because importing it
@@ -158,25 +137,46 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
   }
 
   /**
-   * The main entrypoint called by the Workflows engine.
+   * Abstract method for executing a step with platform-specific durability.
+   * Implementations should wrap the function execution with appropriate
+   * retry/timeout configuration for their platform.
+   *
+   * @param name - Step name for identification and logging
+   * @param fn - Function to execute within the step
+   * @returns The result of the function execution
+   */
+  protected abstract executeStep<T>(
+    name: string,
+    fn: () => Promise<T>
+  ): Promise<T>;
+
+  /**
+   * The main entrypoint for workflow execution.
    *
    * Error handling strategy:
    * - Workflow-level errors (validation, cycles) → throw NonRetryableError
    * - Node execution failures → stored in nodeErrors, workflow continues
    * - Exceptions during node execution → caught, workflow status set to "error"
-   * - All errors transmitted to client via sendExecutionUpdateToSession callbacks
+   * - All errors transmitted to client via monitoring service
    */
-  async run(event: WorkflowEvent<RuntimeParams>, step: WorkflowStep) {
+  async run(
+    params: RuntimeParams,
+    instanceId: string
+  ): Promise<WorkflowExecution> {
     const {
       userId,
       organizationId,
       workflowSessionId,
+      workflow,
+      computeCredits,
+      subscriptionStatus,
+      overageLimit,
+      deploymentId,
       httpRequest,
       emailMessage,
       queueMessage,
       scheduledTrigger,
-    } = event.payload;
-    const instanceId = event.instanceId;
+    } = params;
 
     // Initialise state and execution record
     let executionState: ExecutionState = {
@@ -190,8 +190,8 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
 
     let executionRecord: WorkflowExecution = {
       id: instanceId,
-      workflowId: event.payload.workflow.id,
-      deploymentId: event.payload.deploymentId,
+      workflowId: workflow.id,
+      deploymentId: deploymentId,
       status: "submitted",
       nodeExecutions: [],
       startedAt: new Date(),
@@ -206,17 +206,15 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
 
     try {
       // Initialize workflow first (validation + ordering) to create context
-      // @ts-expect-error - TS2589: Type instantiation depth limitation with Cloudflare Workflows step.do
-      const { context, state } = await step.do(
+      const { context, state } = await this.executeStep(
         "initialise workflow",
-        BaseRuntime.defaultStepConfig,
         () =>
           this.initialiseWorkflow(
-            event.payload.workflow,
-            event.payload.workflow.id,
+            workflow,
+            workflow.id,
             organizationId,
             instanceId,
-            event.payload.deploymentId
+            deploymentId
           )
       );
 
@@ -224,14 +222,14 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       executionState = state;
 
       // Check for credit exhaustion early (before resource loading)
-      const estimatedUsage = this.getNodesUsage(event.payload.workflow.nodes);
+      const estimatedUsage = this.getNodesUsage(workflow.nodes);
       if (
         !(await this.hasEnoughComputeCredits(
           organizationId,
-          event.payload.computeCredits,
+          computeCredits,
           estimatedUsage,
-          event.payload.subscriptionStatus,
-          event.payload.overageLimit
+          subscriptionStatus,
+          overageLimit
         ))
       ) {
         isExhausted = true;
@@ -247,10 +245,8 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       }
 
       // Preload organization resources (secrets + integrations)
-      await step.do(
-        "preload organization resources",
-        BaseRuntime.defaultStepConfig,
-        async () => this.resourceProvider.initialize(organizationId)
+      await this.executeStep("preload organization resources", async () =>
+        this.resourceProvider.initialize(organizationId)
       );
 
       executionRecord.status = getExecutionStatus(
@@ -266,7 +262,6 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       // Execute workflow nodes sequentially
       const { state: finalState, record: finalRecord } =
         await this.executeWorkflowNodes(
-          step,
           executionContext,
           executionState,
           executionRecord,
@@ -303,7 +298,6 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       // Save to execution store only once, at the very end
       if (executionContext) {
         executionRecord = await this.persistFinalState(
-          step,
           executionContext,
           executionState,
           executionRecord,
@@ -582,7 +576,6 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
    * Executes all workflow nodes sequentially, updating state and sending progress notifications.
    */
   private async executeWorkflowNodes(
-    step: WorkflowStep,
     context: WorkflowExecutionContext,
     state: ExecutionState,
     executionRecord: WorkflowExecution,
@@ -597,32 +590,28 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
 
     for (const nodeId of context.orderedNodeIds) {
       // Execute or skip the node
-      // The step returns a result object for introspection by waitForStepResult
-      await step.do(
-        `run node ${nodeId}`,
-        BaseRuntime.defaultStepConfig,
-        async () => {
-          // Execute and get updated state
-          currentState = await this.executeOrSkipNode(
-            context,
-            currentState,
-            nodeId,
-            httpRequest,
-            emailMessage,
-            queueMessage,
-            scheduledTrigger
-          );
+      // The step returns a result object for introspection
+      await this.executeStep(`run node ${nodeId}`, async () => {
+        // Execute and get updated state
+        currentState = await this.executeOrSkipNode(
+          context,
+          currentState,
+          nodeId,
+          httpRequest,
+          emailMessage,
+          queueMessage,
+          scheduledTrigger
+        );
 
-          // Build result object for introspection
-          const nodeExecution = this.buildNodeExecutions(
-            context.workflow,
-            context,
-            currentState
-          ).find((exec) => exec.nodeId === nodeId);
+        // Build result object for introspection
+        const nodeExecution = this.buildNodeExecutions(
+          context.workflow,
+          context,
+          currentState
+        ).find((exec) => exec.nodeId === nodeId);
 
-          return nodeExecution || { nodeId, status: "idle" };
-        }
-      );
+        return nodeExecution || { nodeId, status: "idle" };
+      });
 
       currentRecord = await this.updateAndNotify(
         workflowSessionId,
@@ -859,7 +848,6 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
    * This is the ONLY place where executionStore.save() should be called.
    */
   private async persistFinalState(
-    step: WorkflowStep,
     context: WorkflowExecutionContext,
     state: ExecutionState,
     executionRecord: WorkflowExecution,
@@ -868,47 +856,43 @@ export class BaseRuntime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     instanceId: string,
     isExhausted: boolean
   ): Promise<WorkflowExecution> {
-    return await step.do(
-      "persist final execution record",
-      BaseRuntime.defaultStepConfig,
-      async () => {
-        // Compute final status
-        const finalStatus = isExhausted
-          ? ("exhausted" as any)
-          : getExecutionStatus(context, state);
+    return await this.executeStep("persist final execution record", async () => {
+      // Compute final status
+      const finalStatus = isExhausted
+        ? ("exhausted" as any)
+        : getExecutionStatus(context, state);
 
-        // Update compute credits for all nodes that incurred usage (skip in development and exhausted cases)
-        if (!isExhausted && this.env.CLOUDFLARE_ENV !== "development") {
-          // Sum actual usage from all nodes (executed + errored with usage)
-          const actualTotalUsage = Object.values(state.nodeUsage).reduce(
-            (sum, usage) => sum + usage,
-            0
-          );
-          await updateOrganizationComputeUsage(
-            this.env.KV,
-            organizationId,
-            actualTotalUsage
-          );
-        }
-
-        // Save to execution store - this happens exactly once per execution
-        return this.executionStore.save({
-          id: instanceId,
-          workflowId: context.workflowId,
-          userId,
+      // Update compute credits for all nodes that incurred usage (skip in development and exhausted cases)
+      if (!isExhausted && this.env.CLOUDFLARE_ENV !== "development") {
+        // Sum actual usage from all nodes (executed + errored with usage)
+        const actualTotalUsage = Object.values(state.nodeUsage).reduce(
+          (sum, usage) => sum + usage,
+          0
+        );
+        await updateOrganizationComputeUsage(
+          this.env.KV,
           organizationId,
-          status: finalStatus,
-          nodeExecutions: this.buildNodeExecutions(
-            context.workflow,
-            context,
-            state
-          ),
-          error: this.createErrorReport(state) ?? executionRecord.error,
-          startedAt: executionRecord.startedAt,
-          endedAt: executionRecord.endedAt,
-        });
+          actualTotalUsage
+        );
       }
-    );
+
+      // Save to execution store - this happens exactly once per execution
+      return this.executionStore.save({
+        id: instanceId,
+        workflowId: context.workflowId,
+        userId,
+        organizationId,
+        status: finalStatus,
+        nodeExecutions: this.buildNodeExecutions(
+          context.workflow,
+          context,
+          state
+        ),
+        error: this.createErrorReport(state) ?? executionRecord.error,
+        startedAt: executionRecord.startedAt,
+        endedAt: executionRecord.endedAt,
+      });
+    });
   }
 
   // ==========================================================================
