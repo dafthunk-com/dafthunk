@@ -1,12 +1,14 @@
 /**
  * Cloudflare Runtime
  *
- * Production runtime implementation using Cloudflare services.
+ * Production runtime implementation using Cloudflare Workflows.
  * Provides the full feature set including all 50+ node types and integrations.
  *
  * ## Architecture
  *
- * Extends BaseRuntime with injected Cloudflare-specific dependencies:
+ * Extends WorkflowEntrypoint to provide durable workflow execution.
+ * Uses BaseRuntime for core execution logic via composition.
+ *
  * - **CloudflareNodeRegistry**: Complete node catalog (50+ nodes including geotiff, AI, etc.)
  * - **CloudflareToolRegistry**: Full tool support with all providers
  * - **WorkflowSessionMonitoringService**: Real-time updates via Durable Objects
@@ -27,16 +29,91 @@
  * @see {@link MockRuntime} - Test implementation
  */
 
+import type { WorkflowExecution } from "@dafthunk/types";
+import {
+  WorkflowEntrypoint,
+  WorkflowEvent,
+  WorkflowStep,
+  WorkflowStepConfig,
+} from "cloudflare:workers";
+
 import type { Bindings } from "../context";
 import { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
 import { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
 import { WorkflowSessionMonitoringService } from "../services/monitoring-service";
 import { ExecutionStore } from "../stores/execution-store";
-import { BaseRuntime, type RuntimeDependencies } from "./base-runtime";
+import {
+  BaseRuntime,
+  type RuntimeDependencies,
+  type RuntimeParams,
+} from "./base-runtime";
 import { ResourceProvider } from "./resource-provider";
 
-export class CloudflareRuntime extends BaseRuntime {
+/**
+ * Cloudflare Workflows runtime with step-based execution.
+ * Implements the core workflow execution logic with durable steps.
+ */
+class CloudflareWorkflowRuntime extends BaseRuntime {
+  private currentStep?: WorkflowStep;
+
+  private static readonly defaultStepConfig: WorkflowStepConfig = {
+    retries: {
+      limit: 0,
+      delay: 10_000,
+      backoff: "exponential",
+    },
+    timeout: "10 minutes",
+  };
+
+  /**
+   * Executes the workflow with the given step context.
+   */
+  async executeWithStep(
+    params: RuntimeParams,
+    instanceId: string,
+    step: WorkflowStep
+  ): Promise<WorkflowExecution> {
+    this.currentStep = step;
+    try {
+      return await this.run(params, instanceId);
+    } finally {
+      this.currentStep = undefined;
+    }
+  }
+
+  /**
+   * Implements step execution using Cloudflare Workflows step.do().
+   */
+  protected async executeStep<T>(
+    name: string,
+    fn: () => Promise<T>
+  ): Promise<T> {
+    if (!this.currentStep) {
+      throw new Error("executeStep called without workflow step context");
+    }
+    // Type assertion needed due to Cloudflare Workflows type constraints
+    return (await this.currentStep.do(
+      name,
+      CloudflareWorkflowRuntime.defaultStepConfig,
+      // @ts-expect-error - TS2345: Cloudflare Workflows requires Serializable types
+      fn
+    )) as T;
+  }
+}
+
+/**
+ * Cloudflare Workflows entrypoint.
+ * Adapter that connects Cloudflare Workflows API to the runtime execution engine.
+ */
+class CloudflareWorkflowEntrypoint extends WorkflowEntrypoint<
+  Bindings,
+  RuntimeParams
+> {
+  private runtime: CloudflareWorkflowRuntime;
+
   constructor(ctx: ExecutionContext, env: Bindings) {
+    super(ctx, env);
+
     // Create production dependencies
     const nodeRegistry = new CloudflareNodeRegistry(env, true);
 
@@ -62,7 +139,27 @@ export class CloudflareRuntime extends BaseRuntime {
       ),
     };
 
-    // Call parent constructor with injected dependencies
-    super(ctx, env, dependencies);
+    // Create runtime with dependencies
+    this.runtime = new CloudflareWorkflowRuntime(env, dependencies);
+  }
+
+  /**
+   * Workflow entrypoint called by Cloudflare Workflows engine.
+   */
+  async run(
+    event: WorkflowEvent<RuntimeParams>,
+    step: WorkflowStep
+  ): Promise<WorkflowExecution> {
+    return await this.runtime.executeWithStep(
+      event.payload,
+      event.instanceId,
+      step
+    );
   }
 }
+
+/**
+ * Export as CloudflareRuntime for backward compatibility.
+ * This is the class name referenced in wrangler.jsonc.
+ */
+export const CloudflareRuntime = CloudflareWorkflowEntrypoint;
