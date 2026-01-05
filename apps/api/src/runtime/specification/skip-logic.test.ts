@@ -1,11 +1,10 @@
 import type { Workflow } from "@dafthunk/types";
 import { env } from "cloudflare:test";
-import { introspectWorkflowInstance } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../../context";
 
-import { createInstanceId, createParams } from "./helpers";
+import { createInstanceId, createParams, createTestRuntime } from "./helpers";
 
 /**
  * Tests for skip logic and conditional execution
@@ -50,39 +49,20 @@ import { createInstanceId, createParams } from "./helpers";
       };
 
       const instanceId = createInstanceId("skip-missing");
+      const runtime = createTestRuntime(env as Bindings);
+      const execution = await runtime.run(createParams(workflow), instanceId);
 
-      // Set up workflow introspection
-      await using instance = await introspectWorkflowInstance(
-        (env as Bindings).EXECUTE,
-        instanceId
-      );
-
-      // Create and execute workflow
-      await (env as Bindings).EXECUTE.create({
-        id: instanceId,
-        params: createParams(workflow),
-      });
-
-      // Wait for workflow completion
-      await instance.waitForStatus("complete");
-
-      // Verify num node succeeded
-      const numResult = await instance.waitForStepResult({
-        name: "run node num",
-      });
+      const numResult = execution.nodeExecutions.find(e => e.nodeId === "num");
       expect(numResult).toBeDefined();
 
-      // Verify add node executed (not skipped) - nodes validate their own inputs
-      const addResult = await instance.waitForStepResult({
-        name: "run node add",
-      });
+      const addResult = execution.nodeExecutions.find(e => e.nodeId === "add");
       console.log(
         "Add result (executed with undefined input):",
         JSON.stringify(addResult, null, 2)
       );
       expect(addResult).toBeDefined();
       // Node executed (not skipped) - may complete or fail depending on node implementation
-      expect((addResult as any).status).not.toBe("skipped");
+      expect(addResult?.status).not.toBe("skipped");
     });
 
     it("should recursively skip downstream nodes when upstream node fails", async () => {
@@ -173,42 +153,17 @@ import { createInstanceId, createParams } from "./helpers";
       };
 
       const instanceId = createInstanceId("recursive-skip");
+      const runtime = createTestRuntime(env as Bindings);
+      const execution = await runtime.run(createParams(workflow), instanceId);
 
-      // Set up workflow introspection
-      await using instance = await introspectWorkflowInstance(
-        (env as Bindings).EXECUTE,
-        instanceId
-      );
-
-      // Create and execute workflow
-      await (env as Bindings).EXECUTE.create({
-        id: instanceId,
-        params: createParams(workflow),
-      });
-
-      // Wait for workflow completion
-      await instance.waitForStatus("complete");
-
-      // Verify input nodes succeeded
-      const num1Result = await instance.waitForStepResult({
-        name: "run node num1",
-      });
-      const zeroResult = await instance.waitForStepResult({
-        name: "run node zero",
-      });
+      const num1Result = execution.nodeExecutions.find(e => e.nodeId === "num1");
+      const zeroResult = execution.nodeExecutions.find(e => e.nodeId === "zero");
       expect(num1Result).toBeDefined();
       expect(zeroResult).toBeDefined();
 
-      // All downstream nodes should be skipped due to cascading failures
-      const divResult = await instance.waitForStepResult({
-        name: "run node div",
-      });
-      const add2Result = await instance.waitForStepResult({
-        name: "run node add2",
-      });
-      const add3Result = await instance.waitForStepResult({
-        name: "run node add3",
-      });
+      const divResult = execution.nodeExecutions.find(e => e.nodeId === "div");
+      const add2Result = execution.nodeExecutions.find(e => e.nodeId === "add2");
+      const add3Result = execution.nodeExecutions.find(e => e.nodeId === "add3");
 
       console.log(
         "Recursive skip - div (failed - division by zero):",
@@ -224,15 +179,15 @@ import { createInstanceId, createParams } from "./helpers";
       );
 
       expect(divResult).toBeDefined();
-      expect((divResult as any).status).toBe("error");
+      expect(divResult?.status).toBe("error");
 
       expect(add2Result).toBeDefined();
-      expect((add2Result as any).status).toBe("skipped");
+      expect(add2Result?.status).toBe("skipped");
       expect((add2Result as any).skipReason).toBe("upstream_failure");
       expect((add2Result as any).blockedBy).toContain("div");
 
       expect(add3Result).toBeDefined();
-      expect((add3Result as any).status).toBe("skipped");
+      expect(add3Result?.status).toBe("skipped");
       expect((add3Result as any).skipReason).toBe("upstream_failure");
       expect((add3Result as any).blockedBy).toContain("add2");
     });

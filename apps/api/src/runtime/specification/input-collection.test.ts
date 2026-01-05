@@ -1,11 +1,10 @@
 import type { Workflow } from "@dafthunk/types";
 import { env } from "cloudflare:test";
-import { introspectWorkflowInstance } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../../context";
 
-import { createInstanceId, createParams } from "./helpers";
+import { createInstanceId, createParams, createTestRuntime } from "./helpers";
 
 /**
  * Tests for input collection from static values and edges
@@ -34,26 +33,10 @@ import { createInstanceId, createParams } from "./helpers";
       };
 
       const instanceId = createInstanceId("static-inputs");
+      const runtime = createTestRuntime(env as Bindings);
+      const execution = await runtime.run(createParams(workflow), instanceId);
 
-      // Set up workflow introspection
-      await using instance = await introspectWorkflowInstance(
-        (env as Bindings).EXECUTE,
-        instanceId
-      );
-
-      // Create and execute workflow
-      await (env as Bindings).EXECUTE.create({
-        id: instanceId,
-        params: createParams(workflow),
-      });
-
-      // Wait for workflow completion
-      await instance.waitForStatus("complete");
-
-      // Verify step result
-      const addResult = await instance.waitForStepResult({
-        name: "run node add",
-      });
+      const addResult = execution.nodeExecutions.find(e => e.nodeId === "add");
 
       console.log("Add result:", JSON.stringify(addResult, null, 2));
       expect(addResult).toBeDefined();
@@ -111,26 +94,10 @@ import { createInstanceId, createParams } from "./helpers";
       };
 
       const instanceId = createInstanceId("edge-inputs");
+      const runtime = createTestRuntime(env as Bindings);
+      const execution = await runtime.run(createParams(workflow), instanceId);
 
-      // Set up workflow introspection
-      await using instance = await introspectWorkflowInstance(
-        (env as Bindings).EXECUTE,
-        instanceId
-      );
-
-      // Create and execute workflow
-      await (env as Bindings).EXECUTE.create({
-        id: instanceId,
-        params: createParams(workflow),
-      });
-
-      // Wait for workflow completion
-      await instance.waitForStatus("complete");
-
-      // Verify step result
-      const addResult = await instance.waitForStepResult({
-        name: "run node add",
-      });
+      const addResult = execution.nodeExecutions.find(e => e.nodeId === "add");
 
       console.log("Add result:", JSON.stringify(addResult, null, 2));
       expect(addResult).toBeDefined();
@@ -176,26 +143,10 @@ import { createInstanceId, createParams } from "./helpers";
       };
 
       const instanceId = createInstanceId("input-override");
+      const runtime = createTestRuntime(env as Bindings);
+      const execution = await runtime.run(createParams(workflow), instanceId);
 
-      // Set up workflow introspection
-      await using instance = await introspectWorkflowInstance(
-        (env as Bindings).EXECUTE,
-        instanceId
-      );
-
-      // Create and execute workflow
-      await (env as Bindings).EXECUTE.create({
-        id: instanceId,
-        params: createParams(workflow),
-      });
-
-      // Wait for workflow completion
-      await instance.waitForStatus("complete");
-
-      // Verify step result
-      const addResult = await instance.waitForStepResult({
-        name: "run node add",
-      });
+      const addResult = execution.nodeExecutions.find(e => e.nodeId === "add");
 
       console.log(
         "Add result (edge override):",
@@ -274,26 +225,10 @@ import { createInstanceId, createParams } from "./helpers";
       };
 
       const instanceId = createInstanceId("multiple-edges");
+      const runtime = createTestRuntime(env as Bindings);
+      const execution = await runtime.run(createParams(workflow), instanceId);
 
-      // Set up workflow introspection
-      await using instance = await introspectWorkflowInstance(
-        (env as Bindings).EXECUTE,
-        instanceId
-      );
-
-      // Create and execute workflow
-      await (env as Bindings).EXECUTE.create({
-        id: instanceId,
-        params: createParams(workflow),
-      });
-
-      // Wait for workflow completion
-      await instance.waitForStatus("complete");
-
-      // Verify add node result - last edge (num3 = 15) should be used
-      const addResult = await instance.waitForStepResult({
-        name: "run node add",
-      });
+      const addResult = execution.nodeExecutions.find(e => e.nodeId === "add");
 
       console.log(
         "Add result (multiple edges):",
@@ -341,26 +276,10 @@ import { createInstanceId, createParams } from "./helpers";
       };
 
       const instanceId = createInstanceId("mixed-inputs");
+      const runtime = createTestRuntime(env as Bindings);
+      const execution = await runtime.run(createParams(workflow), instanceId);
 
-      // Set up workflow introspection
-      await using instance = await introspectWorkflowInstance(
-        (env as Bindings).EXECUTE,
-        instanceId
-      );
-
-      // Create and execute workflow
-      await (env as Bindings).EXECUTE.create({
-        id: instanceId,
-        params: createParams(workflow),
-      });
-
-      // Wait for workflow completion
-      await instance.waitForStatus("complete");
-
-      // Verify add node result - 5 (from edge) + 10 (static) = 15
-      const addResult = await instance.waitForStepResult({
-        name: "run node add",
-      });
+      const addResult = execution.nodeExecutions.find(e => e.nodeId === "add");
 
       console.log(
         "Add result (mixed inputs):",

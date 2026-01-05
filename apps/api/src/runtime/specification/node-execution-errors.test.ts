@@ -1,11 +1,10 @@
 import type { Workflow } from "@dafthunk/types";
 import { env } from "cloudflare:test";
-import { introspectWorkflowInstance } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../../context";
 
-import { createInstanceId, createParams } from "./helpers";
+import { createInstanceId, createParams, createTestRuntime } from "./helpers";
 
 /**
  * Tests for node execution errors (unknown types, continue on error)
@@ -31,29 +30,16 @@ import { createInstanceId, createParams } from "./helpers";
       };
 
       const instanceId = createInstanceId("unknown-type");
-
-      // Set up workflow introspection
-      await using instance = await introspectWorkflowInstance(
-        (env as Bindings).EXECUTE,
-        instanceId
-      );
-
-      // Create and execute workflow
-      await (env as Bindings).EXECUTE.create({
-        id: instanceId,
-        params: createParams(workflow),
-      });
-
-      // Wait for workflow to complete (it will complete with node errors)
-      await instance.waitForStatus("complete");
+      const runtime = createTestRuntime(env as Bindings);
+      const execution = await runtime.run(createParams(workflow), instanceId);
 
       // Verify the workflow completed (with node errors tracked internally)
       console.log(
         "Unknown node type test: workflow completed with node errors tracked"
       );
 
-      // The workflow instance should be defined even though it errored
-      expect(instance).toBeDefined();
+      // The execution should be defined even though it errored
+      expect(execution).toBeDefined();
     });
 
     it("should continue execution when one node fails", async () => {
@@ -120,35 +106,13 @@ import { createInstanceId, createParams } from "./helpers";
       };
 
       const instanceId = createInstanceId("continue-error");
+      const runtime = createTestRuntime(env as Bindings);
+      const execution = await runtime.run(createParams(workflow), instanceId);
 
-      // Set up workflow introspection
-      await using instance = await introspectWorkflowInstance(
-        (env as Bindings).EXECUTE,
-        instanceId
-      );
-
-      // Create and execute workflow
-      await (env as Bindings).EXECUTE.create({
-        id: instanceId,
-        params: createParams(workflow),
-      });
-
-      // Wait for workflow completion (status should be 'error')
-      await instance.waitForStatus("complete");
-
-      // Verify num1, zero, num2 succeed but div fails
-      const num1Result = await instance.waitForStepResult({
-        name: "run node num1",
-      });
-      const zeroResult = await instance.waitForStepResult({
-        name: "run node zero",
-      });
-      const num2Result = await instance.waitForStepResult({
-        name: "run node num2",
-      });
-      const divResult = await instance.waitForStepResult({
-        name: "run node div",
-      });
+      const num1Result = execution.nodeExecutions.find(e => e.nodeId === "num1");
+      const zeroResult = execution.nodeExecutions.find(e => e.nodeId === "zero");
+      const num2Result = execution.nodeExecutions.find(e => e.nodeId === "num2");
+      const divResult = execution.nodeExecutions.find(e => e.nodeId === "div");
 
       expect(num1Result).toBeDefined();
       expect(zeroResult).toBeDefined();
