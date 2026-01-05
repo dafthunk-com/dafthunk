@@ -170,6 +170,62 @@ async function extractBody(
 }
 
 /**
+ * Extracts HTTP response from a completed workflow execution
+ */
+export async function extractHttpResponse(
+  execution: WorkflowExecution,
+  env: Bindings
+): Promise<SyncHttpExecutionResult> {
+  // Check execution status
+  if (execution.status === "error" || execution.status === "cancelled") {
+    return {
+      success: false,
+      error: execution.error || `Execution ${execution.status}`,
+    };
+  }
+
+  if (!execution.nodeExecutions) {
+    return { success: false, error: "No node executions found" };
+  }
+
+  // Find the HTTP Response node execution
+  const responseNode = execution.nodeExecutions.find(
+    (ne) =>
+      ne.status === "completed" &&
+      ne.outputs &&
+      "statusCode" in ne.outputs &&
+      "body" in ne.outputs
+  );
+
+  if (!responseNode?.outputs) {
+    // No HTTP Response node found, return default success response
+    return {
+      success: true,
+      statusCode: 200,
+      headers: { "content-type": "application/json" },
+      body: new TextEncoder().encode(
+        JSON.stringify({
+          message: "Workflow completed successfully",
+          executionId: execution.id,
+        })
+      ),
+    };
+  }
+
+  const statusCode = responseNode.outputs.statusCode;
+  const headers =
+    (responseNode.outputs.headers as Record<string, string>) || {};
+  const body = await extractBody(responseNode.outputs.body, headers, env);
+
+  return {
+    success: true,
+    statusCode: typeof statusCode === "number" ? statusCode : 200,
+    headers,
+    body,
+  };
+}
+
+/**
  * Executes a synchronous HTTP workflow and waits for the response
  */
 export async function waitForSyncHttpResponse(
@@ -195,39 +251,13 @@ export async function waitForSyncHttpResponse(
     return { success: false, error: "No node executions found" };
   }
 
-  // Find the HTTP Response node execution
-  const responseNode = pollingResult.nodeExecutions.find(
-    (ne) =>
-      ne.status === "completed" &&
-      ne.outputs &&
-      "statusCode" in ne.outputs &&
-      "body" in ne.outputs
-  );
-
-  if (!responseNode?.outputs) {
-    // No HTTP Response node found, return default success response
-    return {
-      success: true,
-      statusCode: 200,
-      headers: { "content-type": "application/json" },
-      body: new TextEncoder().encode(
-        JSON.stringify({
-          message: "Workflow completed successfully",
-          executionId,
-        })
-      ),
-    };
-  }
-
-  const statusCode = responseNode.outputs.statusCode;
-  const headers =
-    (responseNode.outputs.headers as Record<string, string>) || {};
-  const body = await extractBody(responseNode.outputs.body, headers, env);
-
-  return {
-    success: true,
-    statusCode: typeof statusCode === "number" ? statusCode : 200,
-    headers,
-    body,
+  // Create execution object for response extraction
+  const execution: WorkflowExecution = {
+    id: executionId,
+    workflowId: "", // Not needed for response extraction
+    status: pollingResult.status,
+    nodeExecutions: pollingResult.nodeExecutions,
   };
+
+  return await extractHttpResponse(execution, env);
 }

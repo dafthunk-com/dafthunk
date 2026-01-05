@@ -47,7 +47,7 @@ import {
   isExecutionPreparationError,
   prepareWorkflowExecution,
 } from "../utils/execution-preparation";
-import { waitForSyncHttpResponse } from "../utils/sync-http-execution";
+import { extractHttpResponse } from "../utils/sync-http-execution";
 import { validateWorkflow } from "../utils/workflows";
 
 // Extend the ApiContext with our custom variable
@@ -393,14 +393,11 @@ async function executeWorkflow(
     env: c.env,
   });
 
-  // For synchronous HTTP Request workflows, wait for response
+  // For synchronous HTTP Request workflows, extract and return response
   if (workflowData.type === "http_request") {
-    const syncResult = await waitForSyncHttpResponse(
-      execution.id,
-      organizationId,
-      c.env,
-      10000 // 10 second timeout
-    );
+    // For http_request, WorkerRuntime executes synchronously so execution is already complete
+    // Extract response directly from the completed execution
+    const syncResult = await extractHttpResponse(execution, c.env);
 
     if (syncResult.timeout) {
       return c.json({ error: "Request timeout" }, 504);
