@@ -27,7 +27,7 @@
  * ```
  *
  * @see {@link BaseRuntime} - Base runtime class
- * @see {@link CloudflareRuntime} - Production implementation
+ * @see {@link WorkflowRuntime} - Production implementation
  */
 
 import type { WorkflowExecution } from "@dafthunk/types";

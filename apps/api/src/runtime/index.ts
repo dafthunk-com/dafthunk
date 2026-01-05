@@ -6,7 +6,7 @@
  *
  * Public API:
  * - BaseRuntime: Base workflow execution class with dependency injection
- * - CloudflareRuntime: Production runtime with Cloudflare services
+ * - WorkflowRuntime: Production runtime with Cloudflare Workflows (durable execution)
  * - RuntimeParams: Configuration type for workflow execution
  * - RuntimeDependencies: Injectable dependencies interface
  *
@@ -18,7 +18,7 @@
 // Main runtime classes and types
 export type { RuntimeDependencies, RuntimeParams } from "./base-runtime";
 export { BaseRuntime } from "./base-runtime";
-export { CloudflareRuntime } from "./cloudflare-runtime";
+export { WorkflowRuntimeEntrypoint } from "./workflow-runtime";
 
 // Internal components are NOT exported - they are implementation details:
 // - ExecutionEngine: node execution, skip logic, input collection

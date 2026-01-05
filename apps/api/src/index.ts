@@ -35,8 +35,8 @@ import wsRoutes from "./routes/ws";
 import { handleScheduledEvent } from "./scheduled";
 import { Session } from "./session/session";
 
-// Export CloudflareRuntime as "Runtime" for wrangler config compatibility
-export { CloudflareRuntime as Runtime } from "./runtime/cloudflare-runtime";
+// Export WorkflowRuntime as "Runtime" for wrangler config compatibility
+export { WorkflowRuntime as Runtime } from "./runtime/workflow-runtime";
 
 // Initialize Hono app with types
 const app = new Hono<ApiContext>();

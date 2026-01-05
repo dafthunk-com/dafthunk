@@ -4,12 +4,21 @@ import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../../context";
 
-import { createInstanceId, createParams, createTestRuntime } from "./helpers";
+import {
+  createInstanceId,
+  createParams,
+  type RuntimeFactory,
+} from "./helpers";
 
 /**
- * Tests for multiple concurrent errors and cascading failures
+ * Shared specification tests for multiple concurrent errors and cascading failures.
+ * These tests run against any BaseRuntime implementation.
  */
-  describe("multiple concurrent errors", () => {
+export function testConcurrentErrors(
+  runtimeName: string,
+  createRuntime: RuntimeFactory
+) {
+  describe(`${runtimeName}: multiple concurrent errors`, () => {
     it("should handle multiple independent errors in parallel branches", async () => {
       const workflow: Workflow = {
         id: "test-workflow-multi-error",
@@ -105,7 +114,7 @@ import { createInstanceId, createParams, createTestRuntime } from "./helpers";
       };
 
       const instanceId = createInstanceId("multi-error");
-      const runtime = createTestRuntime(env as Bindings);
+      const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const div1Result = execution.nodeExecutions.find(e => e.nodeId === "div1");
@@ -212,7 +221,7 @@ import { createInstanceId, createParams, createTestRuntime } from "./helpers";
       };
 
       const instanceId = createInstanceId("cascading-errors");
-      const runtime = createTestRuntime(env as Bindings);
+      const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const divResult = execution.nodeExecutions.find(e => e.nodeId === "div");
@@ -248,3 +257,4 @@ import { createInstanceId, createParams, createTestRuntime } from "./helpers";
       expect(multResult?.outputs).toBeNull();
     });
   });
+}

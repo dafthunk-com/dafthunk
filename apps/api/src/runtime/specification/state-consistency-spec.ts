@@ -4,12 +4,21 @@ import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../../context";
 
-import { createInstanceId, createParams, createTestRuntime } from "./helpers";
+import {
+  createInstanceId,
+  createParams,
+  type RuntimeFactory,
+} from "./helpers";
 
 /**
- * Tests for state consistency throughout execution
+ * Shared specification tests for state consistency throughout execution.
+ * These tests run against any BaseRuntime implementation.
  */
-  describe("state consistency", () => {
+export function testStateConsistency(
+  runtimeName: string,
+  createRuntime: RuntimeFactory
+) {
+  describe(`${runtimeName}: state consistency`, () => {
     it("should maintain consistent state throughout execution", async () => {
       const workflow: Workflow = {
         id: "test-workflow-consistency",
@@ -62,7 +71,7 @@ import { createInstanceId, createParams, createTestRuntime } from "./helpers";
       };
 
       const instanceId = createInstanceId("state-consistency");
-      const runtime = createTestRuntime(env as Bindings);
+      const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const addResult = execution.nodeExecutions.find(e => e.nodeId === "add");
@@ -125,7 +134,7 @@ import { createInstanceId, createParams, createTestRuntime } from "./helpers";
       };
 
       const instanceId = createInstanceId("state-isolation");
-      const runtime = createTestRuntime(env as Bindings);
+      const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const divResult = execution.nodeExecutions.find(e => e.nodeId === "div");
@@ -137,3 +146,4 @@ import { createInstanceId, createParams, createTestRuntime } from "./helpers";
       expect(divResult).toBeDefined();
     });
   });
+}

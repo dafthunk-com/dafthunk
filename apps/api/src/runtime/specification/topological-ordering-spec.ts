@@ -4,12 +4,21 @@ import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../../context";
 
-import { createInstanceId, createParams, createTestRuntime } from "./helpers";
+import {
+  createInstanceId,
+  createParams,
+  type RuntimeFactory,
+} from "./helpers";
 
 /**
- * Tests for topological ordering and dependency resolution
+ * Shared specification tests for topological ordering and dependency resolution.
+ * These tests run against any BaseRuntime implementation.
  */
-  describe("topological ordering", () => {
+export function testTopologicalOrdering(
+  runtimeName: string,
+  createRuntime: RuntimeFactory
+) {
+  describe(`${runtimeName}: topological ordering`, () => {
     it("should order nodes in correct execution sequence (linear chain)", async () => {
       // Note: In a real Runtime, topological ordering is computed from edges.
       // TestRuntime uses workflow.nodes order, so we define them in dependency order here.
@@ -68,7 +77,7 @@ import { createInstanceId, createParams, createTestRuntime } from "./helpers";
       };
 
       const instanceId = createInstanceId("topo-linear");
-      const runtime = createTestRuntime(env as Bindings);
+      const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const node3Result = execution.nodeExecutions.find(e => e.nodeId === "node3");
@@ -149,7 +158,7 @@ import { createInstanceId, createParams, createTestRuntime } from "./helpers";
       };
 
       const instanceId = createInstanceId("diamond-pattern");
-      const runtime = createTestRuntime(env as Bindings);
+      const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const dResult = execution.nodeExecutions.find(e => e.nodeId === "D");
@@ -244,7 +253,7 @@ import { createInstanceId, createParams, createTestRuntime } from "./helpers";
       };
 
       const instanceId = createInstanceId("complex-deps");
-      const runtime = createTestRuntime(env as Bindings);
+      const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const eResult = execution.nodeExecutions.find(e => e.nodeId === "E");
@@ -253,3 +262,4 @@ import { createInstanceId, createParams, createTestRuntime } from "./helpers";
       expect(eResult).toBeDefined();
     });
   });
+}

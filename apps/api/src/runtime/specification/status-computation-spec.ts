@@ -4,12 +4,21 @@ import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../../context";
 
-import { createInstanceId, createParams, createTestRuntime } from "./helpers";
+import {
+  createInstanceId,
+  createParams,
+  type RuntimeFactory,
+} from "./helpers";
 
 /**
- * Tests for status computation (executing, completed, error)
+ * Shared specification tests for status computation (executing, completed, error).
+ * These tests run against any BaseRuntime implementation.
  */
-  describe("status computation", () => {
+export function testStatusComputation(
+  runtimeName: string,
+  createRuntime: RuntimeFactory
+) {
+  describe(`${runtimeName}: status computation`, () => {
     it("should compute 'executing' when not all nodes visited", async () => {
       const workflow: Workflow = {
         id: "test-workflow-status-executing",
@@ -38,7 +47,7 @@ import { createInstanceId, createParams, createTestRuntime } from "./helpers";
       };
 
       const instanceId = createInstanceId("status-executing");
-      const runtime = createTestRuntime(env as Bindings);
+      const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const num1Result = execution.nodeExecutions.find(e => e.nodeId === "num1");
@@ -68,7 +77,7 @@ import { createInstanceId, createParams, createTestRuntime } from "./helpers";
       };
 
       const instanceId = createInstanceId("status-completed");
-      const runtime = createTestRuntime(env as Bindings);
+      const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const numResult = execution.nodeExecutions.find(e => e.nodeId === "num");
@@ -134,7 +143,7 @@ import { createInstanceId, createParams, createTestRuntime } from "./helpers";
       };
 
       const instanceId = createInstanceId("status-error");
-      const runtime = createTestRuntime(env as Bindings);
+      const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const divResult = execution.nodeExecutions.find(e => e.nodeId === "div");
@@ -237,7 +246,7 @@ import { createInstanceId, createParams, createTestRuntime } from "./helpers";
       };
 
       const instanceId = createInstanceId("status-conditional-skip");
-      const runtime = createTestRuntime(env as Bindings);
+      const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const forkResult = execution.nodeExecutions.find(e => e.nodeId === "fork");
@@ -352,7 +361,7 @@ import { createInstanceId, createParams, createTestRuntime } from "./helpers";
       };
 
       const instanceId = createInstanceId("status-mixed");
-      const runtime = createTestRuntime(env as Bindings);
+      const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const num1Result = execution.nodeExecutions.find(e => e.nodeId === "num1");
@@ -370,3 +379,4 @@ import { createInstanceId, createParams, createTestRuntime } from "./helpers";
       );
     });
   });
+}

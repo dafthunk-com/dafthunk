@@ -4,12 +4,21 @@ import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../../context";
 
-import { createInstanceId, createParams, createTestRuntime } from "./helpers";
+import {
+  createInstanceId,
+  createParams,
+  type RuntimeFactory,
+} from "./helpers";
 
 /**
- * Tests for node execution errors (unknown types, continue on error)
+ * Shared specification tests for node execution errors (unknown types, continue on error).
+ * These tests run against any BaseRuntime implementation.
  */
-  describe("node execution errors", () => {
+export function testNodeExecutionErrors(
+  runtimeName: string,
+  createRuntime: RuntimeFactory
+) {
+  describe(`${runtimeName}: node execution errors`, () => {
     it("should handle node type not found in registry", async () => {
       const workflow: Workflow = {
         id: "test-workflow-unknown-type",
@@ -30,7 +39,7 @@ import { createInstanceId, createParams, createTestRuntime } from "./helpers";
       };
 
       const instanceId = createInstanceId("unknown-type");
-      const runtime = createTestRuntime(env as Bindings);
+      const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       // Verify the workflow completed (with node errors tracked internally)
@@ -106,7 +115,7 @@ import { createInstanceId, createParams, createTestRuntime } from "./helpers";
       };
 
       const instanceId = createInstanceId("continue-error");
-      const runtime = createTestRuntime(env as Bindings);
+      const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const num1Result = execution.nodeExecutions.find(e => e.nodeId === "num1");
@@ -124,3 +133,4 @@ import { createInstanceId, createParams, createTestRuntime } from "./helpers";
       );
     });
   });
+}

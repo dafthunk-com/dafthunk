@@ -4,12 +4,21 @@ import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../../context";
 
-import { createInstanceId, createParams, createTestRuntime } from "./helpers";
+import {
+  createInstanceId,
+  createParams,
+  type RuntimeFactory,
+} from "./helpers";
 
 /**
- * Tests for input collection from static values and edges
+ * Shared specification tests for input collection from static values and edges.
+ * These tests run against any BaseRuntime implementation.
  */
-  describe("input collection", () => {
+export function testInputCollection(
+  runtimeName: string,
+  createRuntime: RuntimeFactory
+) {
+  describe(`${runtimeName}: input collection`, () => {
     it("should collect inputs from node static values", async () => {
       const workflow: Workflow = {
         id: "test-workflow-static-inputs",
@@ -33,7 +42,7 @@ import { createInstanceId, createParams, createTestRuntime } from "./helpers";
       };
 
       const instanceId = createInstanceId("static-inputs");
-      const runtime = createTestRuntime(env as Bindings);
+      const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const addResult = execution.nodeExecutions.find(e => e.nodeId === "add");
@@ -94,7 +103,7 @@ import { createInstanceId, createParams, createTestRuntime } from "./helpers";
       };
 
       const instanceId = createInstanceId("edge-inputs");
-      const runtime = createTestRuntime(env as Bindings);
+      const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const addResult = execution.nodeExecutions.find(e => e.nodeId === "add");
@@ -143,7 +152,7 @@ import { createInstanceId, createParams, createTestRuntime } from "./helpers";
       };
 
       const instanceId = createInstanceId("input-override");
-      const runtime = createTestRuntime(env as Bindings);
+      const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const addResult = execution.nodeExecutions.find(e => e.nodeId === "add");
@@ -225,7 +234,7 @@ import { createInstanceId, createParams, createTestRuntime } from "./helpers";
       };
 
       const instanceId = createInstanceId("multiple-edges");
-      const runtime = createTestRuntime(env as Bindings);
+      const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const addResult = execution.nodeExecutions.find(e => e.nodeId === "add");
@@ -276,7 +285,7 @@ import { createInstanceId, createParams, createTestRuntime } from "./helpers";
       };
 
       const instanceId = createInstanceId("mixed-inputs");
-      const runtime = createTestRuntime(env as Bindings);
+      const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const addResult = execution.nodeExecutions.find(e => e.nodeId === "add");
@@ -289,3 +298,4 @@ import { createInstanceId, createParams, createTestRuntime } from "./helpers";
       // Expected: 5 (edge) + 10 (static) = 15
     });
   });
+}
