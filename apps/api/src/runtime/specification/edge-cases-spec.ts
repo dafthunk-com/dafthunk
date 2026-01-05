@@ -3,12 +3,7 @@ import { env } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../../context";
-
-import {
-  createInstanceId,
-  createParams,
-  type RuntimeFactory,
-} from "./helpers";
+import { createInstanceId, createParams, type RuntimeFactory } from "./helpers";
 
 /**
  * Shared specification tests for edge cases (optional inputs, deep chains, wide parallel branches).
@@ -115,7 +110,10 @@ export function testEdgeCases(
         (e) => e.nodeId === "add10"
       );
 
-      console.log("Deep chain final result:", JSON.stringify(add10Node, null, 2));
+      console.log(
+        "Deep chain final result:",
+        JSON.stringify(add10Node, null, 2)
+      );
       expect(add10Node).toBeDefined();
       expect(add10Node?.status).toBe("completed");
     });
@@ -187,8 +185,12 @@ export function testEdgeCases(
       expect(execution.nodeExecutions).toHaveLength(15); // 10 num + 5 additions
 
       // Verify some results
-      const add1Node = execution.nodeExecutions.find((e) => e.nodeId === "add1");
-      const add5Node = execution.nodeExecutions.find((e) => e.nodeId === "add5");
+      const add1Node = execution.nodeExecutions.find(
+        (e) => e.nodeId === "add1"
+      );
+      const add5Node = execution.nodeExecutions.find(
+        (e) => e.nodeId === "add5"
+      );
 
       console.log(
         "Wide parallel - add1 result:",

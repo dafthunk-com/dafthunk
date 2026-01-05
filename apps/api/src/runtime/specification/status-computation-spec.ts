@@ -3,12 +3,7 @@ import { env } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../../context";
-
-import {
-  createInstanceId,
-  createParams,
-  type RuntimeFactory,
-} from "./helpers";
+import { createInstanceId, createParams, type RuntimeFactory } from "./helpers";
 
 /**
  * Shared specification tests for status computation (executing, completed, error).
@@ -50,8 +45,12 @@ export function testStatusComputation(
       const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
-      const num1Result = execution.nodeExecutions.find(e => e.nodeId === "num1");
-      const num2Result = execution.nodeExecutions.find(e => e.nodeId === "num2");
+      const num1Result = execution.nodeExecutions.find(
+        (e) => e.nodeId === "num1"
+      );
+      const num2Result = execution.nodeExecutions.find(
+        (e) => e.nodeId === "num2"
+      );
 
       expect(num1Result).toBeDefined();
       expect(num2Result).toBeDefined();
@@ -80,7 +79,9 @@ export function testStatusComputation(
       const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
-      const numResult = execution.nodeExecutions.find(e => e.nodeId === "num");
+      const numResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "num"
+      );
 
       expect(numResult).toBeDefined();
       console.log(
@@ -146,7 +147,9 @@ export function testStatusComputation(
       const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
-      const divResult = execution.nodeExecutions.find(e => e.nodeId === "div");
+      const divResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "div"
+      );
 
       expect(divResult).toBeDefined();
       console.log(
@@ -249,10 +252,18 @@ export function testStatusComputation(
       const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
-      const forkResult = execution.nodeExecutions.find(e => e.nodeId === "fork");
-      const trueAddResult = execution.nodeExecutions.find(e => e.nodeId === "trueAdd");
-      const falseSubResult = execution.nodeExecutions.find(e => e.nodeId === "falseSub");
-      const joinResult = execution.nodeExecutions.find(e => e.nodeId === "join");
+      const forkResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "fork"
+      );
+      const trueAddResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "trueAdd"
+      );
+      const falseSubResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "falseSub"
+      );
+      const joinResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "join"
+      );
 
       console.log("Fork result:", JSON.stringify(forkResult, null, 2));
       console.log("TrueAdd result:", JSON.stringify(trueAddResult, null, 2));
@@ -364,10 +375,18 @@ export function testStatusComputation(
       const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
-      const num1Result = execution.nodeExecutions.find(e => e.nodeId === "num1");
-      const num2Result = execution.nodeExecutions.find(e => e.nodeId === "num2");
-      const addResult = execution.nodeExecutions.find(e => e.nodeId === "add");
-      const divResult = execution.nodeExecutions.find(e => e.nodeId === "div");
+      const num1Result = execution.nodeExecutions.find(
+        (e) => e.nodeId === "num1"
+      );
+      const num2Result = execution.nodeExecutions.find(
+        (e) => e.nodeId === "num2"
+      );
+      const addResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "add"
+      );
+      const divResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "div"
+      );
 
       expect(num1Result).toBeDefined();
       expect(num2Result).toBeDefined();

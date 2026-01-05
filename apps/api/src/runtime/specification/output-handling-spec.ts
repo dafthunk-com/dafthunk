@@ -3,12 +3,7 @@ import { env } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../../context";
-
-import {
-  createInstanceId,
-  createParams,
-  type RuntimeFactory,
-} from "./helpers";
+import { createInstanceId, createParams, type RuntimeFactory } from "./helpers";
 
 /**
  * Shared specification tests for output handling (storage, failed nodes, multiple outputs).
@@ -44,7 +39,9 @@ export function testOutputHandling(
       const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
-      const numResult = execution.nodeExecutions.find(e => e.nodeId === "num");
+      const numResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "num"
+      );
 
       expect(numResult).toBeDefined();
       console.log(
@@ -110,7 +107,9 @@ export function testOutputHandling(
       const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
-      const divResult = execution.nodeExecutions.find(e => e.nodeId === "div");
+      const divResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "div"
+      );
 
       expect(divResult).toBeDefined();
       console.log(
@@ -197,8 +196,12 @@ export function testOutputHandling(
       const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
-      const addResult = execution.nodeExecutions.find(e => e.nodeId === "add");
-      const subResult = execution.nodeExecutions.find(e => e.nodeId === "sub");
+      const addResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "add"
+      );
+      const subResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "sub"
+      );
 
       expect(addResult).toBeDefined();
       expect(subResult).toBeDefined();

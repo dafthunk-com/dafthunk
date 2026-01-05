@@ -3,12 +3,7 @@ import { env } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../../context";
-
-import {
-  createInstanceId,
-  createParams,
-  type RuntimeFactory,
-} from "./helpers";
+import { createInstanceId, createParams, type RuntimeFactory } from "./helpers";
 
 /**
  * Shared specification tests for skip logic and conditional execution.
@@ -61,10 +56,14 @@ export function testSkipLogic(
       const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
-      const numResult = execution.nodeExecutions.find(e => e.nodeId === "num");
+      const numResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "num"
+      );
       expect(numResult).toBeDefined();
 
-      const addResult = execution.nodeExecutions.find(e => e.nodeId === "add");
+      const addResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "add"
+      );
       console.log(
         "Add result (executed with undefined input):",
         JSON.stringify(addResult, null, 2)
@@ -165,14 +164,24 @@ export function testSkipLogic(
       const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
-      const num1Result = execution.nodeExecutions.find(e => e.nodeId === "num1");
-      const zeroResult = execution.nodeExecutions.find(e => e.nodeId === "zero");
+      const num1Result = execution.nodeExecutions.find(
+        (e) => e.nodeId === "num1"
+      );
+      const zeroResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "zero"
+      );
       expect(num1Result).toBeDefined();
       expect(zeroResult).toBeDefined();
 
-      const divResult = execution.nodeExecutions.find(e => e.nodeId === "div");
-      const add2Result = execution.nodeExecutions.find(e => e.nodeId === "add2");
-      const add3Result = execution.nodeExecutions.find(e => e.nodeId === "add3");
+      const divResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "div"
+      );
+      const add2Result = execution.nodeExecutions.find(
+        (e) => e.nodeId === "add2"
+      );
+      const add3Result = execution.nodeExecutions.find(
+        (e) => e.nodeId === "add3"
+      );
 
       console.log(
         "Recursive skip - div (failed - division by zero):",

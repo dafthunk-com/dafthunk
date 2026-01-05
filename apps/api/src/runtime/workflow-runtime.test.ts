@@ -70,7 +70,7 @@ class WorkflowsRuntimeAdapter {
             ...(result as any),
           });
         }
-      } catch (error) {
+      } catch (_error) {
         // Node may have been skipped or not executed
         // Continue to collect other nodes
       }
@@ -109,11 +109,10 @@ const createWorkflowRuntime: RuntimeFactory = (env: Bindings): BaseRuntime => {
 };
 
 // Import all specification test functions
-import { testSuccessfulExecution } from "./specification/successful-execution-spec";
-import { testFailingExecution } from "./specification/failing-execution-spec";
-import { testEdgeCases } from "./specification/edge-cases-spec";
 import { testConcurrentErrors } from "./specification/concurrent-errors-spec";
 import { testConditionalBranching } from "./specification/conditional-branching-spec";
+import { testEdgeCases } from "./specification/edge-cases-spec";
+import { testFailingExecution } from "./specification/failing-execution-spec";
 import { testInputCollection } from "./specification/input-collection-spec";
 import { testMonitoringUpdates } from "./specification/monitoring-updates-spec";
 import { testNodeExecutionErrors } from "./specification/node-execution-errors-spec";
@@ -121,6 +120,7 @@ import { testOutputHandling } from "./specification/output-handling-spec";
 import { testSkipLogic } from "./specification/skip-logic-spec";
 import { testStateConsistency } from "./specification/state-consistency-spec";
 import { testStatusComputation } from "./specification/status-computation-spec";
+import { testSuccessfulExecution } from "./specification/successful-execution-spec";
 import { testTopologicalOrdering } from "./specification/topological-ordering-spec";
 import { testWorkflowValidation } from "./specification/workflow-validation-spec";
 

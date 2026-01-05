@@ -118,10 +118,10 @@ pnpm --filter '@dafthunk/api' test my-runtime
 
 ## Current Runtimes
 
-| Runtime | Type | Test File | Test Status |
-|---------|------|-----------|-------------|
-| **CloudflareWorkerRuntime** | Direct execution (no durability) | `worker-runtime.test.ts` | ✅ Passing (50/50 tests) |
-| **WorkflowRuntime** | Workflows-based (durable execution) | `workflow-runtime.test.ts` | ✅ Passing (50/50 tests) |
+| Runtime                     | Type                                | Test File                  | Test Status              |
+| --------------------------- | ----------------------------------- | -------------------------- | ------------------------ |
+| **CloudflareWorkerRuntime** | Direct execution (no durability)    | `worker-runtime.test.ts`   | ✅ Passing (50/50 tests) |
+| **WorkflowRuntime**         | Workflows-based (durable execution) | `workflow-runtime.test.ts` | ✅ Passing (50/50 tests) |
 
 ### How It Works
 

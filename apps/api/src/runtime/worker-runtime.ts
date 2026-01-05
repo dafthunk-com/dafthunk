@@ -47,7 +47,7 @@ export class WorkerRuntime extends BaseRuntime {
    * No durability or retries - execution is synchronous and ephemeral.
    */
   protected async executeStep<T>(
-    name: string,
+    _name: string,
     fn: () => Promise<T>
   ): Promise<T> {
     // Direct execution without durability

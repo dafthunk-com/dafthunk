@@ -3,12 +3,7 @@ import { env } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../../context";
-
-import {
-  createInstanceId,
-  createParams,
-  type RuntimeFactory,
-} from "./helpers";
+import { createInstanceId, createParams, type RuntimeFactory } from "./helpers";
 
 /**
  * Shared specification tests for node execution errors (unknown types, continue on error).
@@ -118,10 +113,18 @@ export function testNodeExecutionErrors(
       const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
-      const num1Result = execution.nodeExecutions.find(e => e.nodeId === "num1");
-      const zeroResult = execution.nodeExecutions.find(e => e.nodeId === "zero");
-      const num2Result = execution.nodeExecutions.find(e => e.nodeId === "num2");
-      const divResult = execution.nodeExecutions.find(e => e.nodeId === "div");
+      const num1Result = execution.nodeExecutions.find(
+        (e) => e.nodeId === "num1"
+      );
+      const zeroResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "zero"
+      );
+      const num2Result = execution.nodeExecutions.find(
+        (e) => e.nodeId === "num2"
+      );
+      const divResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "div"
+      );
 
       expect(num1Result).toBeDefined();
       expect(zeroResult).toBeDefined();

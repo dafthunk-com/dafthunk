@@ -3,12 +3,7 @@ import { env } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../../context";
-
-import {
-  createInstanceId,
-  createParams,
-  type RuntimeFactory,
-} from "./helpers";
+import { createInstanceId, createParams, type RuntimeFactory } from "./helpers";
 
 /**
  * Shared specification tests for workflow validation (empty workflows, single nodes, isolated nodes).
@@ -62,7 +57,9 @@ export function testWorkflowValidation(
       const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
-      const num1Result = execution.nodeExecutions.find(e => e.nodeId === "num1");
+      const num1Result = execution.nodeExecutions.find(
+        (e) => e.nodeId === "num1"
+      );
 
       console.log("Num1 result:", JSON.stringify(num1Result, null, 2));
       expect(num1Result).toBeDefined();
@@ -111,9 +108,15 @@ export function testWorkflowValidation(
       const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
-      const num1Result = execution.nodeExecutions.find(e => e.nodeId === "num1");
-      const num2Result = execution.nodeExecutions.find(e => e.nodeId === "num2");
-      const num3Result = execution.nodeExecutions.find(e => e.nodeId === "num3");
+      const num1Result = execution.nodeExecutions.find(
+        (e) => e.nodeId === "num1"
+      );
+      const num2Result = execution.nodeExecutions.find(
+        (e) => e.nodeId === "num2"
+      );
+      const num3Result = execution.nodeExecutions.find(
+        (e) => e.nodeId === "num3"
+      );
 
       console.log("Num1 result:", JSON.stringify(num1Result, null, 2));
       console.log("Num2 result:", JSON.stringify(num2Result, null, 2));

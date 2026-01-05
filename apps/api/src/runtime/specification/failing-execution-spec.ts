@@ -3,12 +3,7 @@ import { env } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../../context";
-
-import {
-  createInstanceId,
-  createParams,
-  type RuntimeFactory,
-} from "./helpers";
+import { createInstanceId, createParams, type RuntimeFactory } from "./helpers";
 
 /**
  * Shared specification tests for workflow execution with errors and failures.
@@ -83,8 +78,12 @@ export function testFailingExecution(
       expect(execution.nodeExecutions).toHaveLength(3);
 
       // Verify successful nodes
-      const num1Node = execution.nodeExecutions.find((e) => e.nodeId === "num1");
-      const num2Node = execution.nodeExecutions.find((e) => e.nodeId === "num2");
+      const num1Node = execution.nodeExecutions.find(
+        (e) => e.nodeId === "num1"
+      );
+      const num2Node = execution.nodeExecutions.find(
+        (e) => e.nodeId === "num2"
+      );
 
       expect(num1Node).toBeDefined();
       expect(num1Node?.status).toBe("completed");
@@ -99,7 +98,10 @@ export function testFailingExecution(
       expect(divNode?.status).toBe("error");
       expect(divNode?.error).toBeDefined();
 
-      console.log("Division result (with error):", JSON.stringify(divNode, null, 2));
+      console.log(
+        "Division result (with error):",
+        JSON.stringify(divNode, null, 2)
+      );
     });
 
     it("should handle missing required input", async () => {
@@ -147,7 +149,9 @@ export function testFailingExecution(
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       // Verify successful node
-      const num1Node = execution.nodeExecutions.find((e) => e.nodeId === "num1");
+      const num1Node = execution.nodeExecutions.find(
+        (e) => e.nodeId === "num1"
+      );
       expect(num1Node).toBeDefined();
       expect(num1Node?.status).toBe("completed");
 
@@ -246,14 +250,21 @@ export function testFailingExecution(
       expect(execution.status).toBe("error");
 
       // Verify step results - num1 and num2 should succeed, div should fail, add should skip
-      const num1Node = execution.nodeExecutions.find((e) => e.nodeId === "num1");
-      const num2Node = execution.nodeExecutions.find((e) => e.nodeId === "num2");
+      const num1Node = execution.nodeExecutions.find(
+        (e) => e.nodeId === "num1"
+      );
+      const num2Node = execution.nodeExecutions.find(
+        (e) => e.nodeId === "num2"
+      );
       const divNode = execution.nodeExecutions.find((e) => e.nodeId === "div");
       const addNode = execution.nodeExecutions.find((e) => e.nodeId === "add");
 
       console.log("Num1 result:", JSON.stringify(num1Node, null, 2));
       console.log("Num2 result:", JSON.stringify(num2Node, null, 2));
-      console.log("Div result (division by zero):", JSON.stringify(divNode, null, 2));
+      console.log(
+        "Div result (division by zero):",
+        JSON.stringify(divNode, null, 2)
+      );
       console.log(
         "Add result (skipped due to upstream failure):",
         JSON.stringify(addNode, null, 2)

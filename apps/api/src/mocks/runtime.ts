@@ -106,7 +106,10 @@ class MockWorkflowRuntime extends BaseRuntime {
  * Mock workflow entrypoint for testing.
  * Adapter that connects test infrastructure to the mock runtime.
  */
-class MockWorkflowEntrypoint extends WorkflowEntrypoint<Bindings, RuntimeParams> {
+class MockWorkflowEntrypoint extends WorkflowEntrypoint<
+  Bindings,
+  RuntimeParams
+> {
   private runtime: MockWorkflowRuntime;
 
   constructor(ctx: ExecutionContext, env: Bindings) {
