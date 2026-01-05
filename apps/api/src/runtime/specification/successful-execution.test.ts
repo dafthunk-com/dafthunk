@@ -1,11 +1,10 @@
 import type { Workflow } from "@dafthunk/types";
 import { env } from "cloudflare:test";
-import { introspectWorkflowInstance } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../../context";
 
-import { createInstanceId, createParams } from "./helpers";
+import { createInstanceId, createParams, createTestRuntime } from "./helpers";
 
 /**
  * Tests for successful workflow execution scenarios
@@ -80,40 +79,30 @@ describe("successful execution", () => {
     };
 
     const instanceId = createInstanceId("linear-math");
+    const runtime = createTestRuntime(env as Bindings);
 
-    // Set up workflow introspection
-    await using instance = await introspectWorkflowInstance(
-      (env as Bindings).EXECUTE,
-      instanceId
-    );
+    // Execute workflow
+    const execution = await runtime.run(createParams(workflow), instanceId);
 
-    // Create and execute workflow
-    await (env as Bindings).EXECUTE.create({
-      id: instanceId,
-      params: createParams(workflow),
-    });
+    // Verify execution completed successfully
+    expect(execution.status).toBe("completed");
+    expect(execution.nodeExecutions).toHaveLength(4);
 
-    // Wait for workflow completion
-    await instance.waitForStatus("complete");
+    // Verify node results
+    const addNode = execution.nodeExecutions.find((e) => e.nodeId === "add");
+    const multNode = execution.nodeExecutions.find((e) => e.nodeId === "mult");
 
-    // Verify step results
-    const addResult = await instance.waitForStepResult({
-      name: "run node add",
-    });
-    const multResult = await instance.waitForStepResult({
-      name: "run node mult",
-    });
+    expect(addNode).toBeDefined();
+    expect(addNode?.status).toBe("completed");
+    expect(addNode?.outputs).toBeDefined();
 
-    expect(addResult).toBeDefined();
-    expect(multResult).toBeDefined();
+    expect(multNode).toBeDefined();
+    expect(multNode?.status).toBe("completed");
+    expect(multNode?.outputs).toBeDefined();
 
-    // Note: Results are wrapped in execution state - verify computation
     // Addition: 5 + 3 = 8, Multiplication: 8 * 2 = 16
-    console.log("Addition result:", JSON.stringify(addResult, null, 2));
-    console.log(
-      "Multiplication result:",
-      JSON.stringify(multResult, null, 2)
-    );
+    console.log("Addition result:", JSON.stringify(addNode, null, 2));
+    console.log("Multiplication result:", JSON.stringify(multNode, null, 2));
   });
 
   it("should execute parallel workflow with multiple independent branches", async () => {
@@ -232,41 +221,36 @@ describe("successful execution", () => {
     };
 
     const instanceId = createInstanceId("parallel-math");
+    const runtime = createTestRuntime(env as Bindings);
 
-    // Set up workflow introspection
-    await using instance = await introspectWorkflowInstance(
-      (env as Bindings).EXECUTE,
-      instanceId
-    );
+    // Execute workflow
+    const execution = await runtime.run(createParams(workflow), instanceId);
 
-    // Create and execute workflow
-    await (env as Bindings).EXECUTE.create({
-      id: instanceId,
-      params: createParams(workflow),
-    });
+    // Verify execution completed successfully
+    expect(execution.status).toBe("completed");
+    expect(execution.nodeExecutions).toHaveLength(7);
 
-    // Wait for workflow completion
-    await instance.waitForStatus("complete");
+    // Verify node results for parallel branches
+    const add1Node = execution.nodeExecutions.find((e) => e.nodeId === "add1");
+    const add2Node = execution.nodeExecutions.find((e) => e.nodeId === "add2");
+    const multNode = execution.nodeExecutions.find((e) => e.nodeId === "mult");
 
-    // Verify step results for parallel branches
-    const add1Result = await instance.waitForStepResult({
-      name: "run node add1",
-    });
-    const add2Result = await instance.waitForStepResult({
-      name: "run node add2",
-    });
-    const multResult = await instance.waitForStepResult({
-      name: "run node mult",
-    });
+    expect(add1Node).toBeDefined();
+    expect(add1Node?.status).toBe("completed");
+    expect(add1Node?.outputs).toBeDefined();
 
-    expect(add1Result).toBeDefined();
-    expect(add2Result).toBeDefined();
-    expect(multResult).toBeDefined();
+    expect(add2Node).toBeDefined();
+    expect(add2Node?.status).toBe("completed");
+    expect(add2Node?.outputs).toBeDefined();
+
+    expect(multNode).toBeDefined();
+    expect(multNode?.status).toBe("completed");
+    expect(multNode?.outputs).toBeDefined();
 
     // Parallel execution: add1 = 10 + 5 = 15, add2 = 3 + 2 = 5, mult = 15 * 5 = 75
-    console.log("Add1 result:", JSON.stringify(add1Result, null, 2));
-    console.log("Add2 result:", JSON.stringify(add2Result, null, 2));
-    console.log("Mult result:", JSON.stringify(multResult, null, 2));
+    console.log("Add1 result:", JSON.stringify(add1Node, null, 2));
+    console.log("Add2 result:", JSON.stringify(add2Node, null, 2));
+    console.log("Mult result:", JSON.stringify(multNode, null, 2));
   });
 
   it("should execute workflow with chained operations", async () => {
@@ -355,40 +339,35 @@ describe("successful execution", () => {
     };
 
     const instanceId = createInstanceId("chained-ops");
+    const runtime = createTestRuntime(env as Bindings);
 
-    // Set up workflow introspection
-    await using instance = await introspectWorkflowInstance(
-      (env as Bindings).EXECUTE,
-      instanceId
-    );
+    // Execute workflow
+    const execution = await runtime.run(createParams(workflow), instanceId);
 
-    // Create and execute workflow
-    await (env as Bindings).EXECUTE.create({
-      id: instanceId,
-      params: createParams(workflow),
-    });
+    // Verify execution completed successfully
+    expect(execution.status).toBe("completed");
+    expect(execution.nodeExecutions).toHaveLength(5);
 
-    // Wait for workflow completion
-    await instance.waitForStatus("complete");
+    // Verify node results for chained operations
+    const addNode = execution.nodeExecutions.find((e) => e.nodeId === "add");
+    const multNode = execution.nodeExecutions.find((e) => e.nodeId === "mult");
+    const subNode = execution.nodeExecutions.find((e) => e.nodeId === "sub");
 
-    // Verify step results for chained operations
-    const addResult = await instance.waitForStepResult({
-      name: "run node add",
-    });
-    const multResult = await instance.waitForStepResult({
-      name: "run node mult",
-    });
-    const subResult = await instance.waitForStepResult({
-      name: "run node sub",
-    });
+    expect(addNode).toBeDefined();
+    expect(addNode?.status).toBe("completed");
+    expect(addNode?.outputs).toBeDefined();
 
-    expect(addResult).toBeDefined();
-    expect(multResult).toBeDefined();
-    expect(subResult).toBeDefined();
+    expect(multNode).toBeDefined();
+    expect(multNode?.status).toBe("completed");
+    expect(multNode?.outputs).toBeDefined();
+
+    expect(subNode).toBeDefined();
+    expect(subNode?.status).toBe("completed");
+    expect(subNode?.outputs).toBeDefined();
 
     // Chained operations: num1=2, num2=3, add=5, mult=20, sub=19
-    console.log("Add result:", JSON.stringify(addResult, null, 2));
-    console.log("Mult result:", JSON.stringify(multResult, null, 2));
-    console.log("Sub result:", JSON.stringify(subResult, null, 2));
+    console.log("Add result:", JSON.stringify(addNode, null, 2));
+    console.log("Mult result:", JSON.stringify(multNode, null, 2));
+    console.log("Sub result:", JSON.stringify(subNode, null, 2));
   });
 });

@@ -1,11 +1,10 @@
 import type { Workflow } from "@dafthunk/types";
 import { env } from "cloudflare:test";
-import { introspectWorkflowInstance } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../../context";
 
-import { createInstanceId, createParams } from "./helpers";
+import { createInstanceId, createParams, createTestRuntime } from "./helpers";
 
 /**
  * Tests for monitoring updates and progress tracking
@@ -31,26 +30,10 @@ import { createInstanceId, createParams } from "./helpers";
       };
 
       const instanceId = createInstanceId("monitor-initial");
+      const runtime = createTestRuntime(env as Bindings);
+      const execution = await runtime.run(createParams(workflow), instanceId);
 
-      // Set up workflow introspection
-      await using instance = await introspectWorkflowInstance(
-        (env as Bindings).EXECUTE,
-        instanceId
-      );
-
-      // Create and execute workflow
-      await (env as Bindings).EXECUTE.create({
-        id: instanceId,
-        params: createParams(workflow),
-      });
-
-      // Wait for workflow completion
-      await instance.waitForStatus("complete");
-
-      // Verify workflow executed successfully
-      const numResult = await instance.waitForStepResult({
-        name: "run node num",
-      });
+      const numResult = execution.nodeExecutions.find(e => e.nodeId === "num");
       expect(numResult).toBeDefined();
       console.log(
         "Monitoring test - num result:",
@@ -110,32 +93,12 @@ import { createInstanceId, createParams } from "./helpers";
       };
 
       const instanceId = createInstanceId("monitor-progress");
+      const runtime = createTestRuntime(env as Bindings);
+      const execution = await runtime.run(createParams(workflow), instanceId);
 
-      // Set up workflow introspection
-      await using instance = await introspectWorkflowInstance(
-        (env as Bindings).EXECUTE,
-        instanceId
-      );
-
-      // Create and execute workflow
-      await (env as Bindings).EXECUTE.create({
-        id: instanceId,
-        params: createParams(workflow),
-      });
-
-      // Wait for workflow completion
-      await instance.waitForStatus("complete");
-
-      // Verify all nodes executed successfully
-      const num1Result = await instance.waitForStepResult({
-        name: "run node num1",
-      });
-      const num2Result = await instance.waitForStepResult({
-        name: "run node num2",
-      });
-      const addResult = await instance.waitForStepResult({
-        name: "run node add",
-      });
+      const num1Result = execution.nodeExecutions.find(e => e.nodeId === "num1");
+      const num2Result = execution.nodeExecutions.find(e => e.nodeId === "num2");
+      const addResult = execution.nodeExecutions.find(e => e.nodeId === "add");
 
       expect(num1Result).toBeDefined();
       expect(num2Result).toBeDefined();
@@ -168,26 +131,10 @@ import { createInstanceId, createParams } from "./helpers";
       };
 
       const instanceId = createInstanceId("monitor-outputs");
+      const runtime = createTestRuntime(env as Bindings);
+      const execution = await runtime.run(createParams(workflow), instanceId);
 
-      // Set up workflow introspection
-      await using instance = await introspectWorkflowInstance(
-        (env as Bindings).EXECUTE,
-        instanceId
-      );
-
-      // Create and execute workflow
-      await (env as Bindings).EXECUTE.create({
-        id: instanceId,
-        params: createParams(workflow),
-      });
-
-      // Wait for workflow completion
-      await instance.waitForStatus("complete");
-
-      // Verify node output (value = 42)
-      const numResult = await instance.waitForStepResult({
-        name: "run node num",
-      });
+      const numResult = execution.nodeExecutions.find(e => e.nodeId === "num");
 
       expect(numResult).toBeDefined();
       console.log(
@@ -250,26 +197,10 @@ import { createInstanceId, createParams } from "./helpers";
       };
 
       const instanceId = createInstanceId("monitor-errors");
+      const runtime = createTestRuntime(env as Bindings);
+      const execution = await runtime.run(createParams(workflow), instanceId);
 
-      // Set up workflow introspection
-      await using instance = await introspectWorkflowInstance(
-        (env as Bindings).EXECUTE,
-        instanceId
-      );
-
-      // Create and execute workflow
-      await (env as Bindings).EXECUTE.create({
-        id: instanceId,
-        params: createParams(workflow),
-      });
-
-      // Wait for workflow completion
-      await instance.waitForStatus("complete");
-
-      // Verify division error
-      const divResult = await instance.waitForStepResult({
-        name: "run node div",
-      });
+      const divResult = execution.nodeExecutions.find(e => e.nodeId === "div");
 
       expect(divResult).toBeDefined();
       console.log(
@@ -298,26 +229,10 @@ import { createInstanceId, createParams } from "./helpers";
       };
 
       const instanceId = createInstanceId("final-completed");
+      const runtime = createTestRuntime(env as Bindings);
+      const execution = await runtime.run(createParams(workflow), instanceId);
 
-      // Set up workflow introspection
-      await using instance = await introspectWorkflowInstance(
-        (env as Bindings).EXECUTE,
-        instanceId
-      );
-
-      // Create and execute workflow
-      await (env as Bindings).EXECUTE.create({
-        id: instanceId,
-        params: createParams(workflow),
-      });
-
-      // Wait for workflow completion (should be status 'completed', not 'error')
-      await instance.waitForStatus("complete");
-
-      // Verify num result
-      const numResult = await instance.waitForStepResult({
-        name: "run node num",
-      });
+      const numResult = execution.nodeExecutions.find(e => e.nodeId === "num");
 
       expect(numResult).toBeDefined();
     });
@@ -376,26 +291,10 @@ import { createInstanceId, createParams } from "./helpers";
       };
 
       const instanceId = createInstanceId("final-error");
+      const runtime = createTestRuntime(env as Bindings);
+      const execution = await runtime.run(createParams(workflow), instanceId);
 
-      // Set up workflow introspection
-      await using instance = await introspectWorkflowInstance(
-        (env as Bindings).EXECUTE,
-        instanceId
-      );
-
-      // Create and execute workflow
-      await (env as Bindings).EXECUTE.create({
-        id: instanceId,
-        params: createParams(workflow),
-      });
-
-      // Wait for workflow completion
-      await instance.waitForStatus("complete");
-
-      // Verify division error occurred
-      const divResult = await instance.waitForStepResult({
-        name: "run node div",
-      });
+      const divResult = execution.nodeExecutions.find(e => e.nodeId === "div");
 
       expect(divResult).toBeDefined();
       console.log(

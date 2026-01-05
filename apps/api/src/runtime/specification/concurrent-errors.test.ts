@@ -1,11 +1,10 @@
 import type { Workflow } from "@dafthunk/types";
 import { env } from "cloudflare:test";
-import { introspectWorkflowInstance } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../../context";
 
-import { createInstanceId, createParams } from "./helpers";
+import { createInstanceId, createParams, createTestRuntime } from "./helpers";
 
 /**
  * Tests for multiple concurrent errors and cascading failures
@@ -106,29 +105,11 @@ import { createInstanceId, createParams } from "./helpers";
       };
 
       const instanceId = createInstanceId("multi-error");
+      const runtime = createTestRuntime(env as Bindings);
+      const execution = await runtime.run(createParams(workflow), instanceId);
 
-      // Set up workflow introspection
-      await using instance = await introspectWorkflowInstance(
-        (env as Bindings).EXECUTE,
-        instanceId
-      );
-
-      // Create and execute workflow
-      await (env as Bindings).EXECUTE.create({
-        id: instanceId,
-        params: createParams(workflow),
-      });
-
-      // Wait for workflow completion (status should be 'error')
-      await instance.waitForStatus("complete");
-
-      // Verify step results
-      const div1Result = await instance.waitForStepResult({
-        name: "run node div1",
-      });
-      const div2Result = await instance.waitForStepResult({
-        name: "run node div2",
-      });
+      const div1Result = execution.nodeExecutions.find(e => e.nodeId === "div1");
+      const div2Result = execution.nodeExecutions.find(e => e.nodeId === "div2");
 
       console.log(
         "Div1 result (division by zero):",
@@ -231,32 +212,12 @@ import { createInstanceId, createParams } from "./helpers";
       };
 
       const instanceId = createInstanceId("cascading-errors");
+      const runtime = createTestRuntime(env as Bindings);
+      const execution = await runtime.run(createParams(workflow), instanceId);
 
-      // Set up workflow introspection
-      await using instance = await introspectWorkflowInstance(
-        (env as Bindings).EXECUTE,
-        instanceId
-      );
-
-      // Create and execute workflow
-      await (env as Bindings).EXECUTE.create({
-        id: instanceId,
-        params: createParams(workflow),
-      });
-
-      // Wait for workflow completion
-      await instance.waitForStatus("complete");
-
-      // Verify step results
-      const divResult = await instance.waitForStepResult({
-        name: "run node div",
-      });
-      const addResult = await instance.waitForStepResult({
-        name: "run node add",
-      });
-      const multResult = await instance.waitForStepResult({
-        name: "run node mult",
-      });
+      const divResult = execution.nodeExecutions.find(e => e.nodeId === "div");
+      const addResult = execution.nodeExecutions.find(e => e.nodeId === "add");
+      const multResult = execution.nodeExecutions.find(e => e.nodeId === "mult");
 
       console.log(
         "Div result (division by zero):",
@@ -272,18 +233,18 @@ import { createInstanceId, createParams } from "./helpers";
       );
 
       expect(divResult).toBeDefined();
-      expect((divResult as any).status).toBe("error");
+      expect(divResult?.status).toBe("error");
 
       expect(addResult).toBeDefined();
-      expect((addResult as any).status).toBe("skipped");
+      expect(addResult?.status).toBe("skipped");
       expect((addResult as any).skipReason).toBe("upstream_failure");
       expect((addResult as any).blockedBy).toContain("div");
-      expect((addResult as any).outputs).toBeNull();
+      expect(addResult?.outputs).toBeNull();
 
       expect(multResult).toBeDefined();
-      expect((multResult as any).status).toBe("skipped");
+      expect(multResult?.status).toBe("skipped");
       expect((multResult as any).skipReason).toBe("upstream_failure");
       expect((multResult as any).blockedBy).toContain("add");
-      expect((multResult as any).outputs).toBeNull();
+      expect(multResult?.outputs).toBeNull();
     });
   });

@@ -1,11 +1,10 @@
 import type { Workflow } from "@dafthunk/types";
 import { env } from "cloudflare:test";
-import { introspectWorkflowInstance } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../../context";
 
-import { createInstanceId, createParams } from "./helpers";
+import { createInstanceId, createParams, createTestRuntime } from "./helpers";
 
 /**
  * Tests for state consistency throughout execution
@@ -63,26 +62,10 @@ import { createInstanceId, createParams } from "./helpers";
       };
 
       const instanceId = createInstanceId("state-consistency");
+      const runtime = createTestRuntime(env as Bindings);
+      const execution = await runtime.run(createParams(workflow), instanceId);
 
-      // Set up workflow introspection
-      await using instance = await introspectWorkflowInstance(
-        (env as Bindings).EXECUTE,
-        instanceId
-      );
-
-      // Create and execute workflow
-      await (env as Bindings).EXECUTE.create({
-        id: instanceId,
-        params: createParams(workflow),
-      });
-
-      // Wait for workflow completion
-      await instance.waitForStatus("complete");
-
-      // Verify step results
-      const addResult = await instance.waitForStepResult({
-        name: "run node add",
-      });
+      const addResult = execution.nodeExecutions.find(e => e.nodeId === "add");
 
       console.log("Add result:", JSON.stringify(addResult, null, 2));
       expect(addResult).toBeDefined();
@@ -142,26 +125,10 @@ import { createInstanceId, createParams } from "./helpers";
       };
 
       const instanceId = createInstanceId("state-isolation");
+      const runtime = createTestRuntime(env as Bindings);
+      const execution = await runtime.run(createParams(workflow), instanceId);
 
-      // Set up workflow introspection
-      await using instance = await introspectWorkflowInstance(
-        (env as Bindings).EXECUTE,
-        instanceId
-      );
-
-      // Create and execute workflow
-      await (env as Bindings).EXECUTE.create({
-        id: instanceId,
-        params: createParams(workflow),
-      });
-
-      // Wait for workflow completion
-      await instance.waitForStatus("complete");
-
-      // Verify step results
-      const divResult = await instance.waitForStepResult({
-        name: "run node div",
-      });
+      const divResult = execution.nodeExecutions.find(e => e.nodeId === "div");
 
       console.log(
         "Div result (division by zero):",

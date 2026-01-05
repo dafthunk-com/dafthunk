@@ -1,11 +1,10 @@
 import type { Workflow } from "@dafthunk/types";
 import { env } from "cloudflare:test";
-import { introspectWorkflowInstance } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../../context";
 
-import { createInstanceId, createParams } from "./helpers";
+import { createInstanceId, createParams, createTestRuntime } from "./helpers";
 
 /**
  * Tests for status computation (executing, completed, error)
@@ -39,29 +38,11 @@ import { createInstanceId, createParams } from "./helpers";
       };
 
       const instanceId = createInstanceId("status-executing");
+      const runtime = createTestRuntime(env as Bindings);
+      const execution = await runtime.run(createParams(workflow), instanceId);
 
-      // Set up workflow introspection
-      await using instance = await introspectWorkflowInstance(
-        (env as Bindings).EXECUTE,
-        instanceId
-      );
-
-      // Create and execute workflow
-      await (env as Bindings).EXECUTE.create({
-        id: instanceId,
-        params: createParams(workflow),
-      });
-
-      // Wait for workflow completion
-      await instance.waitForStatus("complete");
-
-      // Verify both nodes executed
-      const num1Result = await instance.waitForStepResult({
-        name: "run node num1",
-      });
-      const num2Result = await instance.waitForStepResult({
-        name: "run node num2",
-      });
+      const num1Result = execution.nodeExecutions.find(e => e.nodeId === "num1");
+      const num2Result = execution.nodeExecutions.find(e => e.nodeId === "num2");
 
       expect(num1Result).toBeDefined();
       expect(num2Result).toBeDefined();
@@ -87,26 +68,10 @@ import { createInstanceId, createParams } from "./helpers";
       };
 
       const instanceId = createInstanceId("status-completed");
+      const runtime = createTestRuntime(env as Bindings);
+      const execution = await runtime.run(createParams(workflow), instanceId);
 
-      // Set up workflow introspection
-      await using instance = await introspectWorkflowInstance(
-        (env as Bindings).EXECUTE,
-        instanceId
-      );
-
-      // Create and execute workflow
-      await (env as Bindings).EXECUTE.create({
-        id: instanceId,
-        params: createParams(workflow),
-      });
-
-      // Wait for workflow completion
-      await instance.waitForStatus("complete");
-
-      // Verify num node result
-      const numResult = await instance.waitForStepResult({
-        name: "run node num",
-      });
+      const numResult = execution.nodeExecutions.find(e => e.nodeId === "num");
 
       expect(numResult).toBeDefined();
       console.log(
@@ -169,26 +134,10 @@ import { createInstanceId, createParams } from "./helpers";
       };
 
       const instanceId = createInstanceId("status-error");
+      const runtime = createTestRuntime(env as Bindings);
+      const execution = await runtime.run(createParams(workflow), instanceId);
 
-      // Set up workflow introspection
-      await using instance = await introspectWorkflowInstance(
-        (env as Bindings).EXECUTE,
-        instanceId
-      );
-
-      // Create and execute workflow
-      await (env as Bindings).EXECUTE.create({
-        id: instanceId,
-        params: createParams(workflow),
-      });
-
-      // Wait for workflow completion
-      await instance.waitForStatus("complete");
-
-      // Verify division error
-      const divResult = await instance.waitForStepResult({
-        name: "run node div",
-      });
+      const divResult = execution.nodeExecutions.find(e => e.nodeId === "div");
 
       expect(divResult).toBeDefined();
       console.log(
@@ -288,32 +237,13 @@ import { createInstanceId, createParams } from "./helpers";
       };
 
       const instanceId = createInstanceId("status-conditional-skip");
+      const runtime = createTestRuntime(env as Bindings);
+      const execution = await runtime.run(createParams(workflow), instanceId);
 
-      await using instance = await introspectWorkflowInstance(
-        (env as Bindings).EXECUTE,
-        instanceId
-      );
-
-      await (env as Bindings).EXECUTE.create({
-        id: instanceId,
-        params: createParams(workflow),
-      });
-
-      await instance.waitForStatus("complete");
-
-      // Verify node statuses
-      const forkResult = await instance.waitForStepResult({
-        name: "run node fork",
-      });
-      const trueAddResult = await instance.waitForStepResult({
-        name: "run node trueAdd",
-      });
-      const falseSubResult = await instance.waitForStepResult({
-        name: "run node falseSub",
-      });
-      const joinResult = await instance.waitForStepResult({
-        name: "run node join",
-      });
+      const forkResult = execution.nodeExecutions.find(e => e.nodeId === "fork");
+      const trueAddResult = execution.nodeExecutions.find(e => e.nodeId === "trueAdd");
+      const falseSubResult = execution.nodeExecutions.find(e => e.nodeId === "falseSub");
+      const joinResult = execution.nodeExecutions.find(e => e.nodeId === "join");
 
       console.log("Fork result:", JSON.stringify(forkResult, null, 2));
       console.log("TrueAdd result:", JSON.stringify(trueAddResult, null, 2));
@@ -321,17 +251,17 @@ import { createInstanceId, createParams } from "./helpers";
       console.log("Join result:", JSON.stringify(joinResult, null, 2));
 
       // Fork should complete with only 'false' output (since condition=false)
-      expect((forkResult as any).status).toBe("completed");
+      expect(forkResult?.status).toBe("completed");
 
       // True branch should be skipped due to conditional logic (NOT an error!)
-      expect((trueAddResult as any).status).toBe("skipped");
+      expect(trueAddResult?.status).toBe("skipped");
       expect((trueAddResult as any).skipReason).toBe("conditional_branch");
 
       // False branch should execute (10 - 5 = 5)
-      expect((falseSubResult as any).status).toBe("completed");
+      expect(falseSubResult?.status).toBe("completed");
 
       // Join should receive only the 'b' input and complete
-      expect((joinResult as any).status).toBe("completed");
+      expect(joinResult?.status).toBe("completed");
 
       // The important assertion: workflow status should be "completed", not "error"
       // (This is validated by the workflow completing successfully)
@@ -422,35 +352,13 @@ import { createInstanceId, createParams } from "./helpers";
       };
 
       const instanceId = createInstanceId("status-mixed");
+      const runtime = createTestRuntime(env as Bindings);
+      const execution = await runtime.run(createParams(workflow), instanceId);
 
-      // Set up workflow introspection
-      await using instance = await introspectWorkflowInstance(
-        (env as Bindings).EXECUTE,
-        instanceId
-      );
-
-      // Create and execute workflow
-      await (env as Bindings).EXECUTE.create({
-        id: instanceId,
-        params: createParams(workflow),
-      });
-
-      // Wait for workflow completion (status should be 'error')
-      await instance.waitForStatus("complete");
-
-      // Verify mixed execution (some succeed, some fail)
-      const num1Result = await instance.waitForStepResult({
-        name: "run node num1",
-      });
-      const num2Result = await instance.waitForStepResult({
-        name: "run node num2",
-      });
-      const addResult = await instance.waitForStepResult({
-        name: "run node add",
-      });
-      const divResult = await instance.waitForStepResult({
-        name: "run node div",
-      });
+      const num1Result = execution.nodeExecutions.find(e => e.nodeId === "num1");
+      const num2Result = execution.nodeExecutions.find(e => e.nodeId === "num2");
+      const addResult = execution.nodeExecutions.find(e => e.nodeId === "add");
+      const divResult = execution.nodeExecutions.find(e => e.nodeId === "div");
 
       expect(num1Result).toBeDefined();
       expect(num2Result).toBeDefined();

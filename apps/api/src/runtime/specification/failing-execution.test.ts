@@ -1,11 +1,10 @@
 import type { Workflow } from "@dafthunk/types";
 import { env } from "cloudflare:test";
-import { introspectWorkflowInstance } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../../context";
 
-import { createInstanceId, createParams } from "./helpers";
+import { createInstanceId, createParams, createTestRuntime } from "./helpers";
 
 /**
  * Tests for workflow execution with errors and failures
@@ -65,44 +64,33 @@ describe("failing execution", () => {
     };
 
     const instanceId = createInstanceId("div-by-zero");
+    const runtime = createTestRuntime(env as Bindings);
 
-    // Set up workflow introspection
-    await using instance = await introspectWorkflowInstance(
-      (env as Bindings).EXECUTE,
-      instanceId
-    );
+    // Execute workflow
+    const execution = await runtime.run(createParams(workflow), instanceId);
 
-    // Create and execute workflow
-    await (env as Bindings).EXECUTE.create({
-      id: instanceId,
-      params: createParams(workflow),
-    });
+    // Verify workflow status is error (division by zero)
+    expect(execution.status).toBe("error");
+    expect(execution.nodeExecutions).toHaveLength(3);
 
-    // Wait for workflow to finish (status should be 'error')
-    await instance.waitForStatus("complete");
+    // Verify successful nodes
+    const num1Node = execution.nodeExecutions.find((e) => e.nodeId === "num1");
+    const num2Node = execution.nodeExecutions.find((e) => e.nodeId === "num2");
 
-    // Verify step results - successful nodes
-    const num1Result = await instance.waitForStepResult({
-      name: "run node num1",
-    });
-    const num2Result = await instance.waitForStepResult({
-      name: "run node num2",
-    });
+    expect(num1Node).toBeDefined();
+    expect(num1Node?.status).toBe("completed");
 
-    expect(num1Result).toBeDefined();
-    expect(num2Result).toBeDefined();
+    expect(num2Node).toBeDefined();
+    expect(num2Node?.status).toBe("completed");
 
     // Division node should have executed and encountered error
-    const divResult = await instance.waitForStepResult({
-      name: "run node div",
-    });
+    const divNode = execution.nodeExecutions.find((e) => e.nodeId === "div");
 
-    // The step will return a result showing the error state
-    console.log(
-      "Division result (with error):",
-      JSON.stringify(divResult, null, 2)
-    );
-    expect(divResult).toBeDefined();
+    expect(divNode).toBeDefined();
+    expect(divNode?.status).toBe("error");
+    expect(divNode?.error).toBeDefined();
+
+    console.log("Division result (with error):", JSON.stringify(divNode, null, 2));
   });
 
   it("should handle missing required input", async () => {
@@ -144,41 +132,29 @@ describe("failing execution", () => {
     };
 
     const instanceId = createInstanceId("missing-input");
+    const runtime = createTestRuntime(env as Bindings);
 
-    // Set up workflow introspection
-    await using instance = await introspectWorkflowInstance(
-      (env as Bindings).EXECUTE,
-      instanceId
-    );
-
-    // Create and execute workflow
-    await (env as Bindings).EXECUTE.create({
-      id: instanceId,
-      params: createParams(workflow),
-    });
-
-    // Wait for workflow to finish
-    await instance.waitForStatus("complete");
+    // Execute workflow
+    const execution = await runtime.run(createParams(workflow), instanceId);
 
     // Verify successful node
-    const num1Result = await instance.waitForStepResult({
-      name: "run node num1",
-    });
-    expect(num1Result).toBeDefined();
+    const num1Node = execution.nodeExecutions.find((e) => e.nodeId === "num1");
+    expect(num1Node).toBeDefined();
+    expect(num1Node?.status).toBe("completed");
 
     // Verify add node executed (nodes are responsible for validating their inputs)
     // The node will receive undefined for input 'b' and should handle it
-    const addResult = await instance.waitForStepResult({
-      name: "run node add",
-    });
+    const addNode = execution.nodeExecutions.find((e) => e.nodeId === "add");
+
+    expect(addNode).toBeDefined();
     console.log(
       "Add result (executed with undefined input):",
-      JSON.stringify(addResult, null, 2)
+      JSON.stringify(addNode, null, 2)
     );
-    expect(addResult).toBeDefined();
+
     // Node may complete with NaN or fail - either is acceptable
     // The important thing is it was not skipped
-    expect((addResult as any).status).not.toBe("skipped");
+    expect(addNode?.status).not.toBe("skipped");
   });
 
   it("should handle error in middle of workflow chain", async () => {
@@ -252,57 +228,42 @@ describe("failing execution", () => {
     };
 
     const instanceId = createInstanceId("error-middle-chain");
+    const runtime = createTestRuntime(env as Bindings);
 
-    // Set up workflow introspection
-    await using instance = await introspectWorkflowInstance(
-      (env as Bindings).EXECUTE,
-      instanceId
-    );
+    // Execute workflow
+    const execution = await runtime.run(createParams(workflow), instanceId);
 
-    // Create and execute workflow
-    await (env as Bindings).EXECUTE.create({
-      id: instanceId,
-      params: createParams(workflow),
-    });
-
-    // Wait for workflow completion
-    await instance.waitForStatus("complete");
+    // Verify workflow status is error
+    expect(execution.status).toBe("error");
 
     // Verify step results - num1 and num2 should succeed, div should fail, add should skip
-    const num1Result = await instance.waitForStepResult({
-      name: "run node num1",
-    });
-    const num2Result = await instance.waitForStepResult({
-      name: "run node num2",
-    });
-    const divResult = await instance.waitForStepResult({
-      name: "run node div",
-    });
-    const addResult = await instance.waitForStepResult({
-      name: "run node add",
-    });
+    const num1Node = execution.nodeExecutions.find((e) => e.nodeId === "num1");
+    const num2Node = execution.nodeExecutions.find((e) => e.nodeId === "num2");
+    const divNode = execution.nodeExecutions.find((e) => e.nodeId === "div");
+    const addNode = execution.nodeExecutions.find((e) => e.nodeId === "add");
 
-    console.log("Num1 result:", JSON.stringify(num1Result, null, 2));
-    console.log("Num2 result:", JSON.stringify(num2Result, null, 2));
-    console.log(
-      "Div result (division by zero):",
-      JSON.stringify(divResult, null, 2)
-    );
+    console.log("Num1 result:", JSON.stringify(num1Node, null, 2));
+    console.log("Num2 result:", JSON.stringify(num2Node, null, 2));
+    console.log("Div result (division by zero):", JSON.stringify(divNode, null, 2));
     console.log(
       "Add result (skipped due to upstream failure):",
-      JSON.stringify(addResult, null, 2)
+      JSON.stringify(addNode, null, 2)
     );
 
-    expect(num1Result).toBeDefined();
-    expect(num2Result).toBeDefined();
-    expect(divResult).toBeDefined();
-    expect((divResult as any).status).toBe("error");
+    expect(num1Node).toBeDefined();
+    expect(num1Node?.status).toBe("completed");
 
-    expect(addResult).toBeDefined();
-    expect((addResult as any).status).toBe("skipped");
-    expect((addResult as any).skipReason).toBe("upstream_failure");
-    expect((addResult as any).blockedBy).toContain("div");
-    expect((addResult as any).outputs).toBeNull();
+    expect(num2Node).toBeDefined();
+    expect(num2Node?.status).toBe("completed");
+
+    expect(divNode).toBeDefined();
+    expect(divNode?.status).toBe("error");
+
+    expect(addNode).toBeDefined();
+    expect(addNode?.status).toBe("skipped");
+    expect((addNode as any).skipReason).toBe("upstream_failure");
+    expect((addNode as any).blockedBy).toContain("div");
+    expect((addNode as any).outputs).toBeNull();
   });
 
   it("should handle workflow with error in middle node blocking dependent nodes", async () => {
@@ -366,51 +327,40 @@ describe("failing execution", () => {
     };
 
     const instanceId = createInstanceId("error-blocking-nodes");
+    const runtime = createTestRuntime(env as Bindings);
 
-    // Set up workflow introspection
-    await using instance = await introspectWorkflowInstance(
-      (env as Bindings).EXECUTE,
-      instanceId
-    );
-
-    // Create and execute workflow
-    await (env as Bindings).EXECUTE.create({
-      id: instanceId,
-      params: createParams(workflow),
-    });
-
-    // Wait for workflow completion
-    await instance.waitForStatus("complete");
+    // Execute workflow
+    const execution = await runtime.run(createParams(workflow), instanceId);
 
     // Verify step results
-    const additionResult = await instance.waitForStepResult({
-      name: "run node addition",
-    });
-    const subtractionResult = await instance.waitForStepResult({
-      name: "run node subtraction",
-    });
-    const multiplicationResult = await instance.waitForStepResult({
-      name: "run node multiplication",
-    });
+    const additionNode = execution.nodeExecutions.find(
+      (e) => e.nodeId === "addition"
+    );
+    const subtractionNode = execution.nodeExecutions.find(
+      (e) => e.nodeId === "subtraction"
+    );
+    const multiplicationNode = execution.nodeExecutions.find(
+      (e) => e.nodeId === "multiplication"
+    );
 
-    console.log("Addition result:", JSON.stringify(additionResult, null, 2));
+    console.log("Addition result:", JSON.stringify(additionNode, null, 2));
     console.log(
       "Subtraction result (executed with undefined input):",
-      JSON.stringify(subtractionResult, null, 2)
+      JSON.stringify(subtractionNode, null, 2)
     );
     console.log(
       "Multiplication result:",
-      JSON.stringify(multiplicationResult, null, 2)
+      JSON.stringify(multiplicationNode, null, 2)
     );
 
-    expect(additionResult).toBeDefined();
-    expect((additionResult as any).status).toBe("completed");
+    expect(additionNode).toBeDefined();
+    expect(additionNode?.status).toBe("completed");
 
-    expect(subtractionResult).toBeDefined();
+    expect(subtractionNode).toBeDefined();
     // Node may complete with NaN or fail - either is acceptable
-    expect((subtractionResult as any).status).not.toBe("skipped");
+    expect(subtractionNode?.status).not.toBe("skipped");
 
-    expect(multiplicationResult).toBeDefined();
+    expect(multiplicationNode).toBeDefined();
     // Multiplication will execute if subtraction completed, skip if subtraction failed
     // The important thing is proper upstream dependency handling
   });

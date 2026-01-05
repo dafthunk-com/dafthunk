@@ -1,11 +1,10 @@
 import type { Workflow } from "@dafthunk/types";
 import { env } from "cloudflare:test";
-import { introspectWorkflowInstance } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../../context";
 
-import { createInstanceId, createParams } from "./helpers";
+import { createInstanceId, createParams, createTestRuntime } from "./helpers";
 
 /**
  * Tests for conditional branching (fork-join patterns)
@@ -72,28 +71,12 @@ import { createInstanceId, createParams } from "./helpers";
       };
 
       const instanceId = createInstanceId("fork-true");
+      const runtime = createTestRuntime(env as Bindings);
+      const execution = await runtime.run(createParams(workflow), instanceId);
 
-      await using instance = await introspectWorkflowInstance(
-        (env as Bindings).EXECUTE,
-        instanceId
-      );
-
-      await (env as Bindings).EXECUTE.create({
-        id: instanceId,
-        params: createParams(workflow),
-      });
-
-      await instance.waitForStatus("complete");
-
-      const forkResult = await instance.waitForStepResult({
-        name: "run node fork",
-      });
-      const trueNodeResult = await instance.waitForStepResult({
-        name: "run node trueNode",
-      });
-      const falseNodeResult = await instance.waitForStepResult({
-        name: "run node falseNode",
-      });
+      const forkResult = execution.nodeExecutions.find(e => e.nodeId === "fork");
+      const trueNodeResult = execution.nodeExecutions.find(e => e.nodeId === "trueNode");
+      const falseNodeResult = execution.nodeExecutions.find(e => e.nodeId === "falseNode");
 
       console.log("Fork result:", JSON.stringify(forkResult, null, 2));
       console.log("True node result:", JSON.stringify(trueNodeResult, null, 2));
@@ -103,13 +86,13 @@ import { createInstanceId, createParams } from "./helpers";
       );
 
       expect(forkResult).toBeDefined();
-      expect((forkResult as any).status).toBe("completed");
+      expect(forkResult?.status).toBe("completed");
 
       expect(trueNodeResult).toBeDefined();
-      expect((trueNodeResult as any).status).toBe("completed");
+      expect(trueNodeResult?.status).toBe("completed");
 
       expect(falseNodeResult).toBeDefined();
-      expect((falseNodeResult as any).status).toBe("skipped");
+      expect(falseNodeResult?.status).toBe("skipped");
       expect((falseNodeResult as any).skipReason).toBe("conditional_branch");
       expect((falseNodeResult as any).blockedBy).toContain("fork");
     });
@@ -180,28 +163,12 @@ import { createInstanceId, createParams } from "./helpers";
       };
 
       const instanceId = createInstanceId("fork-false");
+      const runtime = createTestRuntime(env as Bindings);
+      const execution = await runtime.run(createParams(workflow), instanceId);
 
-      await using instance = await introspectWorkflowInstance(
-        (env as Bindings).EXECUTE,
-        instanceId
-      );
-
-      await (env as Bindings).EXECUTE.create({
-        id: instanceId,
-        params: createParams(workflow),
-      });
-
-      await instance.waitForStatus("complete");
-
-      const forkResult = await instance.waitForStepResult({
-        name: "run node fork",
-      });
-      const trueNodeResult = await instance.waitForStepResult({
-        name: "run node trueNode",
-      });
-      const falseNodeResult = await instance.waitForStepResult({
-        name: "run node falseNode",
-      });
+      const forkResult = execution.nodeExecutions.find(e => e.nodeId === "fork");
+      const trueNodeResult = execution.nodeExecutions.find(e => e.nodeId === "trueNode");
+      const falseNodeResult = execution.nodeExecutions.find(e => e.nodeId === "falseNode");
 
       console.log("Fork result:", JSON.stringify(forkResult, null, 2));
       console.log("True node result:", JSON.stringify(trueNodeResult, null, 2));
@@ -211,15 +178,15 @@ import { createInstanceId, createParams } from "./helpers";
       );
 
       expect(forkResult).toBeDefined();
-      expect((forkResult as any).status).toBe("completed");
+      expect(forkResult?.status).toBe("completed");
 
       expect(trueNodeResult).toBeDefined();
-      expect((trueNodeResult as any).status).toBe("skipped");
+      expect(trueNodeResult?.status).toBe("skipped");
       expect((trueNodeResult as any).skipReason).toBe("conditional_branch");
       expect((trueNodeResult as any).blockedBy).toContain("fork");
 
       expect(falseNodeResult).toBeDefined();
-      expect((falseNodeResult as any).status).toBe("completed");
+      expect(falseNodeResult?.status).toBe("completed");
     });
 
     it("should handle fork-join pattern (true branch)", async () => {
@@ -306,31 +273,13 @@ import { createInstanceId, createParams } from "./helpers";
       };
 
       const instanceId = createInstanceId("fork-join-true");
+      const runtime = createTestRuntime(env as Bindings);
+      const execution = await runtime.run(createParams(workflow), instanceId);
 
-      await using instance = await introspectWorkflowInstance(
-        (env as Bindings).EXECUTE,
-        instanceId
-      );
-
-      await (env as Bindings).EXECUTE.create({
-        id: instanceId,
-        params: createParams(workflow),
-      });
-
-      await instance.waitForStatus("complete");
-
-      const forkResult = await instance.waitForStepResult({
-        name: "run node fork",
-      });
-      const trueNodeResult = await instance.waitForStepResult({
-        name: "run node trueNode",
-      });
-      const falseNodeResult = await instance.waitForStepResult({
-        name: "run node falseNode",
-      });
-      const joinResult = await instance.waitForStepResult({
-        name: "run node join",
-      });
+      const forkResult = execution.nodeExecutions.find(e => e.nodeId === "fork");
+      const trueNodeResult = execution.nodeExecutions.find(e => e.nodeId === "trueNode");
+      const falseNodeResult = execution.nodeExecutions.find(e => e.nodeId === "falseNode");
+      const joinResult = execution.nodeExecutions.find(e => e.nodeId === "join");
 
       console.log("Fork result:", JSON.stringify(forkResult, null, 2));
       console.log("True node result:", JSON.stringify(trueNodeResult, null, 2));
@@ -340,10 +289,10 @@ import { createInstanceId, createParams } from "./helpers";
       );
       console.log("Join result:", JSON.stringify(joinResult, null, 2));
 
-      expect((forkResult as any).status).toBe("completed");
-      expect((trueNodeResult as any).status).toBe("completed");
-      expect((falseNodeResult as any).status).toBe("skipped");
-      expect((joinResult as any).status).toBe("completed");
+      expect(forkResult?.status).toBe("completed");
+      expect(trueNodeResult?.status).toBe("completed");
+      expect(falseNodeResult?.status).toBe("skipped");
+      expect(joinResult?.status).toBe("completed");
     });
 
     it("should handle fork-join pattern (false branch)", async () => {
@@ -435,31 +384,13 @@ import { createInstanceId, createParams } from "./helpers";
       };
 
       const instanceId = createInstanceId("fork-join-false");
+      const runtime = createTestRuntime(env as Bindings);
+      const execution = await runtime.run(createParams(workflow), instanceId);
 
-      await using instance = await introspectWorkflowInstance(
-        (env as Bindings).EXECUTE,
-        instanceId
-      );
-
-      await (env as Bindings).EXECUTE.create({
-        id: instanceId,
-        params: createParams(workflow),
-      });
-
-      await instance.waitForStatus("complete");
-
-      const forkResult = await instance.waitForStepResult({
-        name: "run node fork",
-      });
-      const trueNodeResult = await instance.waitForStepResult({
-        name: "run node trueNode",
-      });
-      const falseNodeResult = await instance.waitForStepResult({
-        name: "run node falseNode",
-      });
-      const joinResult = await instance.waitForStepResult({
-        name: "run node join",
-      });
+      const forkResult = execution.nodeExecutions.find(e => e.nodeId === "fork");
+      const trueNodeResult = execution.nodeExecutions.find(e => e.nodeId === "trueNode");
+      const falseNodeResult = execution.nodeExecutions.find(e => e.nodeId === "falseNode");
+      const joinResult = execution.nodeExecutions.find(e => e.nodeId === "join");
 
       console.log("Fork result:", JSON.stringify(forkResult, null, 2));
       console.log("True node result:", JSON.stringify(trueNodeResult, null, 2));
@@ -469,10 +400,10 @@ import { createInstanceId, createParams } from "./helpers";
       );
       console.log("Join result:", JSON.stringify(joinResult, null, 2));
 
-      expect((forkResult as any).status).toBe("completed");
-      expect((trueNodeResult as any).status).toBe("skipped");
-      expect((falseNodeResult as any).status).toBe("completed");
-      expect((joinResult as any).status).toBe("completed");
+      expect(forkResult?.status).toBe("completed");
+      expect(trueNodeResult?.status).toBe("skipped");
+      expect(falseNodeResult?.status).toBe("completed");
+      expect(joinResult?.status).toBe("completed");
     });
 
     it("should handle chained nodes after conditional fork", async () => {
@@ -553,31 +484,13 @@ import { createInstanceId, createParams } from "./helpers";
       };
 
       const instanceId = createInstanceId("fork-chain");
+      const runtime = createTestRuntime(env as Bindings);
+      const execution = await runtime.run(createParams(workflow), instanceId);
 
-      await using instance = await introspectWorkflowInstance(
-        (env as Bindings).EXECUTE,
-        instanceId
-      );
-
-      await (env as Bindings).EXECUTE.create({
-        id: instanceId,
-        params: createParams(workflow),
-      });
-
-      await instance.waitForStatus("complete");
-
-      const forkResult = await instance.waitForStepResult({
-        name: "run node fork",
-      });
-      const trueNode1Result = await instance.waitForStepResult({
-        name: "run node trueNode1",
-      });
-      const trueNode2Result = await instance.waitForStepResult({
-        name: "run node trueNode2",
-      });
-      const falseNodeResult = await instance.waitForStepResult({
-        name: "run node falseNode",
-      });
+      const forkResult = execution.nodeExecutions.find(e => e.nodeId === "fork");
+      const trueNode1Result = execution.nodeExecutions.find(e => e.nodeId === "trueNode1");
+      const trueNode2Result = execution.nodeExecutions.find(e => e.nodeId === "trueNode2");
+      const falseNodeResult = execution.nodeExecutions.find(e => e.nodeId === "falseNode");
 
       console.log("Fork result:", JSON.stringify(forkResult, null, 2));
       console.log(
@@ -593,10 +506,10 @@ import { createInstanceId, createParams } from "./helpers";
         JSON.stringify(falseNodeResult, null, 2)
       );
 
-      expect((forkResult as any).status).toBe("completed");
-      expect((trueNode1Result as any).status).toBe("completed");
-      expect((trueNode2Result as any).status).toBe("completed");
-      expect((falseNodeResult as any).status).toBe("skipped");
+      expect(forkResult?.status).toBe("completed");
+      expect(trueNode1Result?.status).toBe("completed");
+      expect(trueNode2Result?.status).toBe("completed");
+      expect(falseNodeResult?.status).toBe("skipped");
       expect((falseNodeResult as any).skipReason).toBe("conditional_branch");
     });
 
@@ -656,22 +569,10 @@ import { createInstanceId, createParams } from "./helpers";
       };
 
       const instanceId = createInstanceId("join-both");
+      const runtime = createTestRuntime(env as Bindings);
+      const execution = await runtime.run(createParams(workflow), instanceId);
 
-      await using instance = await introspectWorkflowInstance(
-        (env as Bindings).EXECUTE,
-        instanceId
-      );
-
-      await (env as Bindings).EXECUTE.create({
-        id: instanceId,
-        params: createParams(workflow),
-      });
-
-      await instance.waitForStatus("complete");
-
-      const joinResult = await instance.waitForStepResult({
-        name: "run node join",
-      });
+      const joinResult = execution.nodeExecutions.find(e => e.nodeId === "join");
 
       console.log(
         "Join result (both inputs error):",
@@ -679,8 +580,8 @@ import { createInstanceId, createParams } from "./helpers";
       );
 
       expect(joinResult).toBeDefined();
-      expect((joinResult as any).status).toBe("error");
-      expect((joinResult as any).error).toContain("both");
+      expect(joinResult?.status).toBe("error");
+      expect(joinResult?.error).toContain("both");
     });
 
     it("should error when join receives neither input", async () => {
@@ -706,22 +607,10 @@ import { createInstanceId, createParams } from "./helpers";
       };
 
       const instanceId = createInstanceId("join-neither");
+      const runtime = createTestRuntime(env as Bindings);
+      const execution = await runtime.run(createParams(workflow), instanceId);
 
-      await using instance = await introspectWorkflowInstance(
-        (env as Bindings).EXECUTE,
-        instanceId
-      );
-
-      await (env as Bindings).EXECUTE.create({
-        id: instanceId,
-        params: createParams(workflow),
-      });
-
-      await instance.waitForStatus("complete");
-
-      const joinResult = await instance.waitForStepResult({
-        name: "run node join",
-      });
+      const joinResult = execution.nodeExecutions.find(e => e.nodeId === "join");
 
       console.log(
         "Join result (neither input error):",
@@ -729,7 +618,7 @@ import { createInstanceId, createParams } from "./helpers";
       );
 
       expect(joinResult).toBeDefined();
-      expect((joinResult as any).status).toBe("error");
-      expect((joinResult as any).error).toContain("neither");
+      expect(joinResult?.status).toBe("error");
+      expect(joinResult?.error).toContain("neither");
     });
   });
