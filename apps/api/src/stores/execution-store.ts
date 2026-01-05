@@ -52,8 +52,15 @@ export interface ListExecutionsOptions {
 }
 
 /**
- * Manages execution storage across Analytics Engine (metadata) and R2 (full data).
- * Provides a unified interface for execution persistence operations.
+ * Manages execution storage across Analytics Engine and R2.
+ *
+ * Architecture:
+ * - **R2**: Primary storage for single execution lookups (immediate consistency)
+ * - **Analytics Engine**: Query engine for listing/filtering executions (eventual consistency)
+ *
+ * All writes go to both stores, but reads use the appropriate store:
+ * - `get()` / `getWithData()` → R2 (fast, immediate consistency)
+ * - `list()` → Analytics Engine (powerful querying/filtering)
  */
 export class ExecutionStore {
   constructor(private env: Bindings) {}
@@ -86,40 +93,44 @@ export class ExecutionStore {
   }
 
   /**
-   * Get execution metadata from Analytics Engine
+   * Get execution metadata from R2 (immediate consistency)
    */
   async get(
     id: string,
     organizationId: string
   ): Promise<ExecutionRow | undefined> {
-    return this.readFromAnalytics(id, organizationId);
+    try {
+      const executionData = await this.readFromR2(id, organizationId);
+      return this.executionDataToRow(executionData, organizationId);
+    } catch (error) {
+      console.error(
+        `ExecutionStore.get: Failed to read execution ${id}:`,
+        error
+      );
+      return undefined;
+    }
   }
 
   /**
-   * Get execution metadata from Analytics Engine and full data from R2
+   * Get execution metadata and full data from R2 (immediate consistency)
    */
   async getWithData(
     id: string,
     organizationId: string
   ): Promise<(ExecutionRow & { data: WorkflowExecution }) | undefined> {
-    const execution = await this.readFromAnalytics(id, organizationId);
-
-    if (!execution) {
-      return undefined;
-    }
-
     try {
-      const executionData = await this.readFromR2(execution.id, organizationId);
+      const executionData = await this.readFromR2(id, organizationId);
+      const row = this.executionDataToRow(executionData, organizationId);
       return {
-        ...execution,
+        ...row,
         data: executionData,
       };
     } catch (error) {
       console.error(
-        `ExecutionStore.getWithData: Failed to read execution data from R2 for ${execution.id}:`,
+        `ExecutionStore.getWithData: Failed to read execution ${id}:`,
         error
       );
-      throw error;
+      return undefined;
     }
   }
 
@@ -274,72 +285,38 @@ export class ExecutionStore {
   }
 
   /**
-   * Read execution metadata from Analytics Engine
+   * Convert WorkflowExecution data to ExecutionRow metadata
    */
-  private async readFromAnalytics(
-    id: string,
+  private executionDataToRow(
+    executionData: WorkflowExecution,
     organizationId: string
-  ): Promise<ExecutionRow | undefined> {
-    try {
-      const dataset = this.getDatasetName();
+  ): ExecutionRow {
+    // Calculate usage from node executions
+    const usage =
+      executionData.nodeExecutions?.reduce(
+        (sum, ne) => sum + (ne.usage ?? 0),
+        0
+      ) ?? 0;
 
-      console.log(
-        `ExecutionStore.readFromAnalytics: Querying ${dataset} for execution ${id}`
-      );
+    const now = new Date();
 
-      const sql = `
-        SELECT *
-        FROM ${dataset}
-        WHERE index1 = '${organizationId}'
-          AND blob1 = '${id}'
-        ORDER BY timestamp DESC
-        LIMIT 1
-      `;
-
-      const rows = await this.queryAnalytics(sql);
-
-      if (rows.length === 0) {
-        console.log(
-          `ExecutionStore.readFromAnalytics: No data found for execution ${id}`
-        );
-        return undefined;
-      }
-
-      const row = rows[0];
-      const timestamp = new Date(row.timestamp);
-
-      console.log(
-        `ExecutionStore.readFromAnalytics: Found execution ${id} with status ${row.blob4}`
-      );
-
-      // Read timestamps from doubles array (stored as epoch milliseconds)
-      const startedAt = row.double2 ? new Date(row.double2) : timestamp;
-      const endedAt = row.double3 ? new Date(row.double3) : timestamp;
-
-      return {
-        id: row.blob1,
-        workflowId: row.blob2,
-        deploymentId: row.blob3 || null,
-        organizationId: row.index1,
-        status: row.blob4 as ExecutionStatusType,
-        error: row.blob5 || null,
-        startedAt,
-        endedAt,
-        createdAt: timestamp,
-        updatedAt: timestamp,
-        usage: row.double4 ?? 0,
-      };
-    } catch (error) {
-      console.error(
-        `ExecutionStore.readFromAnalytics: Failed to read ${id}:`,
-        error
-      );
-      throw error;
-    }
+    return {
+      id: executionData.id,
+      workflowId: executionData.workflowId,
+      deploymentId: executionData.deploymentId ?? null,
+      organizationId,
+      status: executionData.status as ExecutionStatusType,
+      error: executionData.error ?? null,
+      startedAt: executionData.startedAt ?? now,
+      endedAt: executionData.endedAt ?? now,
+      createdAt: now,
+      updatedAt: now,
+      usage,
+    };
   }
 
   /**
-   * List executions from Analytics Engine
+   * List executions from Analytics Engine (use Analytics Engine for querying/filtering)
    */
   private async listFromAnalytics(
     organizationId: string,

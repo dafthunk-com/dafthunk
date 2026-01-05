@@ -26,10 +26,10 @@ interface Connection {
 }
 
 export class ConnectionManager {
-  // Primary storage: WebSocket -> Connection
   private connections: Map<WebSocket, Connection> = new Map();
-  // Index: executionId -> Connection (for fast lookup)
   private executionIndex: Map<string, Connection> = new Map();
+  // Buffer execution updates that arrive before WebSocket connects (for synchronous workflows)
+  private executionBuffer: Map<string, WorkflowExecution> = new Map();
 
   /**
    * Recover WebSocket connections after hibernation
@@ -150,7 +150,7 @@ export class ConnectionManager {
   }
 
   /**
-   * Register an execution ID with a WebSocket for tracking
+   * Register execution tracking for a WebSocket and send any buffered updates
    */
   registerExecution(executionId: string, ws: WebSocket): void {
     const connection = this.connections.get(ws);
@@ -163,6 +163,23 @@ export class ConnectionManager {
 
     this.executionIndex.set(executionId, connection);
     ws.serializeAttachment({ executionId });
+
+    // Send buffered updates if execution completed before WebSocket connected
+    const bufferedExecution = this.executionBuffer.get(executionId);
+    if (bufferedExecution) {
+      connection.execution = bufferedExecution;
+      this.send(
+        ws,
+        JSON.stringify({
+          type: "execution_update",
+          executionId: bufferedExecution.id,
+          status: bufferedExecution.status,
+          nodeExecutions: bufferedExecution.nodeExecutions,
+          error: bufferedExecution.error,
+        })
+      );
+      this.executionBuffer.delete(executionId);
+    }
   }
 
   /**
@@ -177,10 +194,16 @@ export class ConnectionManager {
 
     connection.execution = execution;
 
-    // Update index if execution has an ID
     if (execution.id) {
       this.executionIndex.set(execution.id, connection);
     }
+  }
+
+  /**
+   * Buffer execution for delivery when WebSocket connects (for synchronous workflows)
+   */
+  bufferExecution(executionId: string, execution: WorkflowExecution): void {
+    this.executionBuffer.set(executionId, execution);
   }
 
   /**

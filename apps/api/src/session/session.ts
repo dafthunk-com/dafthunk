@@ -193,9 +193,8 @@ export class Session extends DurableObject<Bindings> {
 
       const ws = this.connectionManager.getWebSocketForExecution(execution.id);
       if (!ws) {
-        console.warn(
-          `No WebSocket connection found for execution ${execution.id}`
-        );
+        // Buffer for when WebSocket connects (synchronous workflows complete before WS connects)
+        this.connectionManager.bufferExecution(execution.id, execution);
         return Response.json({ ok: true });
       }
 
