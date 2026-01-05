@@ -9,6 +9,7 @@ import type { Node, WorkflowExecution } from "@dafthunk/types";
 
 import type { Bindings } from "../context";
 import type { BlobParameter } from "../nodes/types";
+import { WorkerRuntime } from "../runtime/worker-runtime";
 import { createSimulatedEmailMessage } from "../utils/email";
 import { createSimulatedHttpRequest } from "../utils/http";
 
@@ -139,7 +140,20 @@ export class WorkflowExecutor {
       };
     }
 
-    // Start workflow execution
+    // Use WorkerRuntime for http_request workflows (synchronous execution)
+    // Use Cloudflare Workflows for all other types (durable execution)
+    if (workflow.type === "http_request") {
+      const workerRuntime = WorkerRuntime.create(env);
+      const execution = await workerRuntime.execute(finalExecutionParams);
+
+      console.log(
+        `Completed http_request workflow execution ${execution.id} for workflow ${workflow.id}`
+      );
+
+      return { executionId: execution.id, execution };
+    }
+
+    // Start workflow execution using Cloudflare Workflows (durable)
     const instance = await env.EXECUTE.create({
       params: finalExecutionParams,
     });
