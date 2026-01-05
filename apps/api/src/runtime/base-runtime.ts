@@ -856,43 +856,46 @@ export abstract class BaseRuntime {
     instanceId: string,
     isExhausted: boolean
   ): Promise<WorkflowExecution> {
-    return await this.executeStep("persist final execution record", async () => {
-      // Compute final status
-      const finalStatus = isExhausted
-        ? ("exhausted" as any)
-        : getExecutionStatus(context, state);
+    return await this.executeStep(
+      "persist final execution record",
+      async () => {
+        // Compute final status
+        const finalStatus = isExhausted
+          ? ("exhausted" as any)
+          : getExecutionStatus(context, state);
 
-      // Update compute credits for all nodes that incurred usage (skip in development and exhausted cases)
-      if (!isExhausted && this.env.CLOUDFLARE_ENV !== "development") {
-        // Sum actual usage from all nodes (executed + errored with usage)
-        const actualTotalUsage = Object.values(state.nodeUsage).reduce(
-          (sum, usage) => sum + usage,
-          0
-        );
-        await updateOrganizationComputeUsage(
-          this.env.KV,
+        // Update compute credits for all nodes that incurred usage (skip in development and exhausted cases)
+        if (!isExhausted && this.env.CLOUDFLARE_ENV !== "development") {
+          // Sum actual usage from all nodes (executed + errored with usage)
+          const actualTotalUsage = Object.values(state.nodeUsage).reduce(
+            (sum, usage) => sum + usage,
+            0
+          );
+          await updateOrganizationComputeUsage(
+            this.env.KV,
+            organizationId,
+            actualTotalUsage
+          );
+        }
+
+        // Save to execution store - this happens exactly once per execution
+        return this.executionStore.save({
+          id: instanceId,
+          workflowId: context.workflowId,
+          userId,
           organizationId,
-          actualTotalUsage
-        );
+          status: finalStatus,
+          nodeExecutions: this.buildNodeExecutions(
+            context.workflow,
+            context,
+            state
+          ),
+          error: this.createErrorReport(state) ?? executionRecord.error,
+          startedAt: executionRecord.startedAt,
+          endedAt: executionRecord.endedAt,
+        });
       }
-
-      // Save to execution store - this happens exactly once per execution
-      return this.executionStore.save({
-        id: instanceId,
-        workflowId: context.workflowId,
-        userId,
-        organizationId,
-        status: finalStatus,
-        nodeExecutions: this.buildNodeExecutions(
-          context.workflow,
-          context,
-          state
-        ),
-        error: this.createErrorReport(state) ?? executionRecord.error,
-        startedAt: executionRecord.startedAt,
-        endedAt: executionRecord.endedAt,
-      });
-    });
+    );
   }
 
   // ==========================================================================

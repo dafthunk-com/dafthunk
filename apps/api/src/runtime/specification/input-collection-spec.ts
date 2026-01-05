@@ -3,12 +3,7 @@ import { env } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../../context";
-
-import {
-  createInstanceId,
-  createParams,
-  type RuntimeFactory,
-} from "./helpers";
+import { createInstanceId, createParams, type RuntimeFactory } from "./helpers";
 
 /**
  * Shared specification tests for input collection from static values and edges.
@@ -45,7 +40,9 @@ export function testInputCollection(
       const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
-      const addResult = execution.nodeExecutions.find(e => e.nodeId === "add");
+      const addResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "add"
+      );
 
       console.log("Add result:", JSON.stringify(addResult, null, 2));
       expect(addResult).toBeDefined();
@@ -106,7 +103,9 @@ export function testInputCollection(
       const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
-      const addResult = execution.nodeExecutions.find(e => e.nodeId === "add");
+      const addResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "add"
+      );
 
       console.log("Add result:", JSON.stringify(addResult, null, 2));
       expect(addResult).toBeDefined();
@@ -155,7 +154,9 @@ export function testInputCollection(
       const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
-      const addResult = execution.nodeExecutions.find(e => e.nodeId === "add");
+      const addResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "add"
+      );
 
       console.log(
         "Add result (edge override):",
@@ -237,7 +238,9 @@ export function testInputCollection(
       const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
-      const addResult = execution.nodeExecutions.find(e => e.nodeId === "add");
+      const addResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "add"
+      );
 
       console.log(
         "Add result (multiple edges):",
@@ -288,7 +291,9 @@ export function testInputCollection(
       const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
-      const addResult = execution.nodeExecutions.find(e => e.nodeId === "add");
+      const addResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "add"
+      );
 
       console.log(
         "Add result (mixed inputs):",

@@ -39,9 +39,21 @@ export class Trellis2Node extends ExecutableNode {
     texture_size: z.number().int().min(1024).max(8192).optional().default(4096),
     generate_model: z.boolean().optional().default(true),
     generate_video: z.boolean().optional().default(true),
-    shape_sampling_steps: z.number().int().min(1).max(100).optional().default(12),
+    shape_sampling_steps: z
+      .number()
+      .int()
+      .min(1)
+      .max(100)
+      .optional()
+      .default(12),
     shape_guidance_scale: z.number().min(0).max(20).optional().default(7.5),
-    texture_sampling_steps: z.number().int().min(1).max(100).optional().default(12),
+    texture_sampling_steps: z
+      .number()
+      .int()
+      .min(1)
+      .max(100)
+      .optional()
+      .default(12),
     texture_guidance_scale: z.number().min(0).max(20).optional().default(7.5),
   });
 

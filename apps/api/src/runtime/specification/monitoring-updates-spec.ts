@@ -3,12 +3,7 @@ import { env } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../../context";
-
-import {
-  createInstanceId,
-  createParams,
-  type RuntimeFactory,
-} from "./helpers";
+import { createInstanceId, createParams, type RuntimeFactory } from "./helpers";
 
 /**
  * Shared specification tests for monitoring updates and progress tracking.
@@ -42,7 +37,9 @@ export function testMonitoringUpdates(
       const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
-      const numResult = execution.nodeExecutions.find(e => e.nodeId === "num");
+      const numResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "num"
+      );
       expect(numResult).toBeDefined();
       console.log(
         "Monitoring test - num result:",
@@ -105,9 +102,15 @@ export function testMonitoringUpdates(
       const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
-      const num1Result = execution.nodeExecutions.find(e => e.nodeId === "num1");
-      const num2Result = execution.nodeExecutions.find(e => e.nodeId === "num2");
-      const addResult = execution.nodeExecutions.find(e => e.nodeId === "add");
+      const num1Result = execution.nodeExecutions.find(
+        (e) => e.nodeId === "num1"
+      );
+      const num2Result = execution.nodeExecutions.find(
+        (e) => e.nodeId === "num2"
+      );
+      const addResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "add"
+      );
 
       expect(num1Result).toBeDefined();
       expect(num2Result).toBeDefined();
@@ -143,7 +146,9 @@ export function testMonitoringUpdates(
       const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
-      const numResult = execution.nodeExecutions.find(e => e.nodeId === "num");
+      const numResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "num"
+      );
 
       expect(numResult).toBeDefined();
       console.log(
@@ -209,7 +214,9 @@ export function testMonitoringUpdates(
       const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
-      const divResult = execution.nodeExecutions.find(e => e.nodeId === "div");
+      const divResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "div"
+      );
 
       expect(divResult).toBeDefined();
       console.log(
@@ -241,7 +248,9 @@ export function testMonitoringUpdates(
       const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
-      const numResult = execution.nodeExecutions.find(e => e.nodeId === "num");
+      const numResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "num"
+      );
 
       expect(numResult).toBeDefined();
     });
@@ -303,7 +312,9 @@ export function testMonitoringUpdates(
       const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
-      const divResult = execution.nodeExecutions.find(e => e.nodeId === "div");
+      const divResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "div"
+      );
 
       expect(divResult).toBeDefined();
       console.log(

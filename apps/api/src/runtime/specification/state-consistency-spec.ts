@@ -3,12 +3,7 @@ import { env } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../../context";
-
-import {
-  createInstanceId,
-  createParams,
-  type RuntimeFactory,
-} from "./helpers";
+import { createInstanceId, createParams, type RuntimeFactory } from "./helpers";
 
 /**
  * Shared specification tests for state consistency throughout execution.
@@ -74,7 +69,9 @@ export function testStateConsistency(
       const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
-      const addResult = execution.nodeExecutions.find(e => e.nodeId === "add");
+      const addResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "add"
+      );
 
       console.log("Add result:", JSON.stringify(addResult, null, 2));
       expect(addResult).toBeDefined();
@@ -137,7 +134,9 @@ export function testStateConsistency(
       const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
-      const divResult = execution.nodeExecutions.find(e => e.nodeId === "div");
+      const divResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "div"
+      );
 
       console.log(
         "Div result (division by zero):",

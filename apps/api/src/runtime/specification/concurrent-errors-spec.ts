@@ -3,12 +3,7 @@ import { env } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../../context";
-
-import {
-  createInstanceId,
-  createParams,
-  type RuntimeFactory,
-} from "./helpers";
+import { createInstanceId, createParams, type RuntimeFactory } from "./helpers";
 
 /**
  * Shared specification tests for multiple concurrent errors and cascading failures.
@@ -117,8 +112,12 @@ export function testConcurrentErrors(
       const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
-      const div1Result = execution.nodeExecutions.find(e => e.nodeId === "div1");
-      const div2Result = execution.nodeExecutions.find(e => e.nodeId === "div2");
+      const div1Result = execution.nodeExecutions.find(
+        (e) => e.nodeId === "div1"
+      );
+      const div2Result = execution.nodeExecutions.find(
+        (e) => e.nodeId === "div2"
+      );
 
       console.log(
         "Div1 result (division by zero):",
@@ -224,9 +223,15 @@ export function testConcurrentErrors(
       const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
-      const divResult = execution.nodeExecutions.find(e => e.nodeId === "div");
-      const addResult = execution.nodeExecutions.find(e => e.nodeId === "add");
-      const multResult = execution.nodeExecutions.find(e => e.nodeId === "mult");
+      const divResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "div"
+      );
+      const addResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "add"
+      );
+      const multResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "mult"
+      );
 
       console.log(
         "Div result (division by zero):",

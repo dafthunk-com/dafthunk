@@ -1,7 +1,7 @@
 import type { Workflow } from "@dafthunk/types";
 
-import type { Bindings } from "../../context";
 import { TRIAL_CREDITS } from "../../constants/billing";
+import type { Bindings } from "../../context";
 import type { BaseRuntime, RuntimeParams } from "../base-runtime";
 import { WorkerRuntime } from "../worker-runtime";
 

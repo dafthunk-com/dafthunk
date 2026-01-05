@@ -3,12 +3,7 @@ import { env } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../../context";
-
-import {
-  createInstanceId,
-  createParams,
-  type RuntimeFactory,
-} from "./helpers";
+import { createInstanceId, createParams, type RuntimeFactory } from "./helpers";
 
 /**
  * Shared specification tests for conditional branching (fork-join patterns).
@@ -83,9 +78,15 @@ export function testConditionalBranching(
       const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
-      const forkResult = execution.nodeExecutions.find(e => e.nodeId === "fork");
-      const trueNodeResult = execution.nodeExecutions.find(e => e.nodeId === "trueNode");
-      const falseNodeResult = execution.nodeExecutions.find(e => e.nodeId === "falseNode");
+      const forkResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "fork"
+      );
+      const trueNodeResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "trueNode"
+      );
+      const falseNodeResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "falseNode"
+      );
 
       console.log("Fork result:", JSON.stringify(forkResult, null, 2));
       console.log("True node result:", JSON.stringify(trueNodeResult, null, 2));
@@ -175,9 +176,15 @@ export function testConditionalBranching(
       const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
-      const forkResult = execution.nodeExecutions.find(e => e.nodeId === "fork");
-      const trueNodeResult = execution.nodeExecutions.find(e => e.nodeId === "trueNode");
-      const falseNodeResult = execution.nodeExecutions.find(e => e.nodeId === "falseNode");
+      const forkResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "fork"
+      );
+      const trueNodeResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "trueNode"
+      );
+      const falseNodeResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "falseNode"
+      );
 
       console.log("Fork result:", JSON.stringify(forkResult, null, 2));
       console.log("True node result:", JSON.stringify(trueNodeResult, null, 2));
@@ -285,10 +292,18 @@ export function testConditionalBranching(
       const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
-      const forkResult = execution.nodeExecutions.find(e => e.nodeId === "fork");
-      const trueNodeResult = execution.nodeExecutions.find(e => e.nodeId === "trueNode");
-      const falseNodeResult = execution.nodeExecutions.find(e => e.nodeId === "falseNode");
-      const joinResult = execution.nodeExecutions.find(e => e.nodeId === "join");
+      const forkResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "fork"
+      );
+      const trueNodeResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "trueNode"
+      );
+      const falseNodeResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "falseNode"
+      );
+      const joinResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "join"
+      );
 
       console.log("Fork result:", JSON.stringify(forkResult, null, 2));
       console.log("True node result:", JSON.stringify(trueNodeResult, null, 2));
@@ -396,10 +411,18 @@ export function testConditionalBranching(
       const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
-      const forkResult = execution.nodeExecutions.find(e => e.nodeId === "fork");
-      const trueNodeResult = execution.nodeExecutions.find(e => e.nodeId === "trueNode");
-      const falseNodeResult = execution.nodeExecutions.find(e => e.nodeId === "falseNode");
-      const joinResult = execution.nodeExecutions.find(e => e.nodeId === "join");
+      const forkResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "fork"
+      );
+      const trueNodeResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "trueNode"
+      );
+      const falseNodeResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "falseNode"
+      );
+      const joinResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "join"
+      );
 
       console.log("Fork result:", JSON.stringify(forkResult, null, 2));
       console.log("True node result:", JSON.stringify(trueNodeResult, null, 2));
@@ -496,10 +519,18 @@ export function testConditionalBranching(
       const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
-      const forkResult = execution.nodeExecutions.find(e => e.nodeId === "fork");
-      const trueNode1Result = execution.nodeExecutions.find(e => e.nodeId === "trueNode1");
-      const trueNode2Result = execution.nodeExecutions.find(e => e.nodeId === "trueNode2");
-      const falseNodeResult = execution.nodeExecutions.find(e => e.nodeId === "falseNode");
+      const forkResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "fork"
+      );
+      const trueNode1Result = execution.nodeExecutions.find(
+        (e) => e.nodeId === "trueNode1"
+      );
+      const trueNode2Result = execution.nodeExecutions.find(
+        (e) => e.nodeId === "trueNode2"
+      );
+      const falseNodeResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "falseNode"
+      );
 
       console.log("Fork result:", JSON.stringify(forkResult, null, 2));
       console.log(
@@ -581,7 +612,9 @@ export function testConditionalBranching(
       const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
-      const joinResult = execution.nodeExecutions.find(e => e.nodeId === "join");
+      const joinResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "join"
+      );
 
       console.log(
         "Join result (both inputs error):",
@@ -619,7 +652,9 @@ export function testConditionalBranching(
       const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
-      const joinResult = execution.nodeExecutions.find(e => e.nodeId === "join");
+      const joinResult = execution.nodeExecutions.find(
+        (e) => e.nodeId === "join"
+      );
 
       console.log(
         "Join result (neither input error):",

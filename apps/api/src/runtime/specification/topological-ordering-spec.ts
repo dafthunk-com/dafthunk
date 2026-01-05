@@ -3,12 +3,7 @@ import { env } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../../context";
-
-import {
-  createInstanceId,
-  createParams,
-  type RuntimeFactory,
-} from "./helpers";
+import { createInstanceId, createParams, type RuntimeFactory } from "./helpers";
 
 /**
  * Shared specification tests for topological ordering and dependency resolution.
@@ -80,7 +75,9 @@ export function testTopologicalOrdering(
       const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
-      const node3Result = execution.nodeExecutions.find(e => e.nodeId === "node3");
+      const node3Result = execution.nodeExecutions.find(
+        (e) => e.nodeId === "node3"
+      );
 
       console.log("Node3 result:", JSON.stringify(node3Result, null, 2));
       expect(node3Result).toBeDefined();
@@ -161,7 +158,7 @@ export function testTopologicalOrdering(
       const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
-      const dResult = execution.nodeExecutions.find(e => e.nodeId === "D");
+      const dResult = execution.nodeExecutions.find((e) => e.nodeId === "D");
 
       console.log("D result:", JSON.stringify(dResult, null, 2));
       expect(dResult).toBeDefined();
@@ -256,7 +253,7 @@ export function testTopologicalOrdering(
       const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
-      const eResult = execution.nodeExecutions.find(e => e.nodeId === "E");
+      const eResult = execution.nodeExecutions.find((e) => e.nodeId === "E");
 
       console.log("E result:", JSON.stringify(eResult, null, 2));
       expect(eResult).toBeDefined();
