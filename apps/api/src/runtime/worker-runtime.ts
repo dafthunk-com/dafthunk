@@ -41,7 +41,7 @@ import { ResourceProvider } from "./resource-provider";
  * Worker-based runtime with direct execution (no durable steps).
  * Executes workflows synchronously in a single Worker request.
  */
-export class CloudflareWorkerRuntime extends BaseRuntime {
+export class WorkerRuntime extends BaseRuntime {
   /**
    * Implements step execution by directly calling the function.
    * No durability or retries - execution is synchronous and ephemeral.
@@ -73,7 +73,7 @@ export class CloudflareWorkerRuntime extends BaseRuntime {
   /**
    * Static factory method to create a Worker runtime with production dependencies.
    */
-  static create(env: Bindings): CloudflareWorkerRuntime {
+  static create(env: Bindings): WorkerRuntime {
     // Create production dependencies
     const nodeRegistry = new CloudflareNodeRegistry(env, true);
 
@@ -99,6 +99,6 @@ export class CloudflareWorkerRuntime extends BaseRuntime {
       ),
     };
 
-    return new CloudflareWorkerRuntime(env, dependencies);
+    return new WorkerRuntime(env, dependencies);
   }
 }

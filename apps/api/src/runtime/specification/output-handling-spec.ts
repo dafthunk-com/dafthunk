@@ -4,12 +4,21 @@ import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../../context";
 
-import { createInstanceId, createParams, createTestRuntime } from "./helpers";
+import {
+  createInstanceId,
+  createParams,
+  type RuntimeFactory,
+} from "./helpers";
 
 /**
- * Tests for output handling (storage, failed nodes, multiple outputs)
+ * Shared specification tests for output handling (storage, failed nodes, multiple outputs).
+ * These tests run against any BaseRuntime implementation.
  */
-  describe("output handling", () => {
+export function testOutputHandling(
+  runtimeName: string,
+  createRuntime: RuntimeFactory
+) {
+  describe(`${runtimeName}: output handling`, () => {
     it("should store outputs from successful nodes", async () => {
       const workflow: Workflow = {
         id: "test-workflow-outputs",
@@ -32,7 +41,7 @@ import { createInstanceId, createParams, createTestRuntime } from "./helpers";
       };
 
       const instanceId = createInstanceId("outputs");
-      const runtime = createTestRuntime(env as Bindings);
+      const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const numResult = execution.nodeExecutions.find(e => e.nodeId === "num");
@@ -98,7 +107,7 @@ import { createInstanceId, createParams, createTestRuntime } from "./helpers";
       };
 
       const instanceId = createInstanceId("no-outputs-error");
-      const runtime = createTestRuntime(env as Bindings);
+      const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const divResult = execution.nodeExecutions.find(e => e.nodeId === "div");
@@ -185,7 +194,7 @@ import { createInstanceId, createParams, createTestRuntime } from "./helpers";
       };
 
       const instanceId = createInstanceId("multi-outputs");
-      const runtime = createTestRuntime(env as Bindings);
+      const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const addResult = execution.nodeExecutions.find(e => e.nodeId === "add");
@@ -203,3 +212,4 @@ import { createInstanceId, createParams, createTestRuntime } from "./helpers";
       );
     });
   });
+}

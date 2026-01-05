@@ -76,7 +76,7 @@ export interface RuntimeDependencies {
  * Provides core execution logic with dependency injection support.
  *
  * This class should not be instantiated directly. Use:
- * - {@link CloudflareRuntime} for production deployments
+ * - {@link WorkflowRuntime} for production deployments
  * - {@link MockRuntime} for testing
  *
  * ## Dependency Injection
@@ -104,7 +104,7 @@ export abstract class BaseRuntime {
     if (!dependencies?.nodeRegistry) {
       throw new Error(
         "BaseRuntime requires a nodeRegistry to be provided via dependencies. " +
-          "Use CloudflareRuntime for production or MockRuntime for tests."
+          "Use WorkflowRuntime for production or MockRuntime for tests."
       );
     }
     this.nodeRegistry = dependencies.nodeRegistry;

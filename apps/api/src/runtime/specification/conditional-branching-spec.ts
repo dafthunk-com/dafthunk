@@ -4,12 +4,21 @@ import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../../context";
 
-import { createInstanceId, createParams, createTestRuntime } from "./helpers";
+import {
+  createInstanceId,
+  createParams,
+  type RuntimeFactory,
+} from "./helpers";
 
 /**
- * Tests for conditional branching (fork-join patterns)
+ * Shared specification tests for conditional branching (fork-join patterns).
+ * These tests run against any BaseRuntime implementation.
  */
-  describe("conditional branching", () => {
+export function testConditionalBranching(
+  runtimeName: string,
+  createRuntime: RuntimeFactory
+) {
+  describe(`${runtimeName}: conditional branching`, () => {
     it("should execute true branch when condition is true", async () => {
       const workflow: Workflow = {
         id: "test-workflow-fork-true",
@@ -71,7 +80,7 @@ import { createInstanceId, createParams, createTestRuntime } from "./helpers";
       };
 
       const instanceId = createInstanceId("fork-true");
-      const runtime = createTestRuntime(env as Bindings);
+      const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const forkResult = execution.nodeExecutions.find(e => e.nodeId === "fork");
@@ -163,7 +172,7 @@ import { createInstanceId, createParams, createTestRuntime } from "./helpers";
       };
 
       const instanceId = createInstanceId("fork-false");
-      const runtime = createTestRuntime(env as Bindings);
+      const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const forkResult = execution.nodeExecutions.find(e => e.nodeId === "fork");
@@ -273,7 +282,7 @@ import { createInstanceId, createParams, createTestRuntime } from "./helpers";
       };
 
       const instanceId = createInstanceId("fork-join-true");
-      const runtime = createTestRuntime(env as Bindings);
+      const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const forkResult = execution.nodeExecutions.find(e => e.nodeId === "fork");
@@ -384,7 +393,7 @@ import { createInstanceId, createParams, createTestRuntime } from "./helpers";
       };
 
       const instanceId = createInstanceId("fork-join-false");
-      const runtime = createTestRuntime(env as Bindings);
+      const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const forkResult = execution.nodeExecutions.find(e => e.nodeId === "fork");
@@ -484,7 +493,7 @@ import { createInstanceId, createParams, createTestRuntime } from "./helpers";
       };
 
       const instanceId = createInstanceId("fork-chain");
-      const runtime = createTestRuntime(env as Bindings);
+      const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const forkResult = execution.nodeExecutions.find(e => e.nodeId === "fork");
@@ -569,7 +578,7 @@ import { createInstanceId, createParams, createTestRuntime } from "./helpers";
       };
 
       const instanceId = createInstanceId("join-both");
-      const runtime = createTestRuntime(env as Bindings);
+      const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const joinResult = execution.nodeExecutions.find(e => e.nodeId === "join");
@@ -607,7 +616,7 @@ import { createInstanceId, createParams, createTestRuntime } from "./helpers";
       };
 
       const instanceId = createInstanceId("join-neither");
-      const runtime = createTestRuntime(env as Bindings);
+      const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const joinResult = execution.nodeExecutions.find(e => e.nodeId === "join");
@@ -622,3 +631,4 @@ import { createInstanceId, createParams, createTestRuntime } from "./helpers";
       expect(joinResult?.error).toContain("neither");
     });
   });
+}

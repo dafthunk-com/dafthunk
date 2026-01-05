@@ -4,12 +4,21 @@ import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../../context";
 
-import { createInstanceId, createParams, createTestRuntime } from "./helpers";
+import {
+  createInstanceId,
+  createParams,
+  type RuntimeFactory,
+} from "./helpers";
 
 /**
- * Tests for skip logic and conditional execution
+ * Shared specification tests for skip logic and conditional execution.
+ * These tests run against any BaseRuntime implementation.
  */
-  describe("skip logic and conditional execution", () => {
+export function testSkipLogic(
+  runtimeName: string,
+  createRuntime: RuntimeFactory
+) {
+  describe(`${runtimeName}: skip logic and conditional execution`, () => {
     it("should execute nodes even when required inputs are missing", async () => {
       const workflow: Workflow = {
         id: "test-workflow-skip-missing",
@@ -49,7 +58,7 @@ import { createInstanceId, createParams, createTestRuntime } from "./helpers";
       };
 
       const instanceId = createInstanceId("skip-missing");
-      const runtime = createTestRuntime(env as Bindings);
+      const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const numResult = execution.nodeExecutions.find(e => e.nodeId === "num");
@@ -153,7 +162,7 @@ import { createInstanceId, createParams, createTestRuntime } from "./helpers";
       };
 
       const instanceId = createInstanceId("recursive-skip");
-      const runtime = createTestRuntime(env as Bindings);
+      const runtime = createRuntime(env as Bindings);
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const num1Result = execution.nodeExecutions.find(e => e.nodeId === "num1");
@@ -192,3 +201,4 @@ import { createInstanceId, createParams, createTestRuntime } from "./helpers";
       expect((add3Result as any).blockedBy).toContain("add2");
     });
   });
+}

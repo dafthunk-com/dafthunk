@@ -1,5 +1,5 @@
 /**
- * Cloudflare Runtime
+ * Workflow Runtime
  *
  * Production runtime implementation using Cloudflare Workflows.
  * Provides the full feature set including all 50+ node types and integrations.
@@ -26,7 +26,7 @@
  * ```
  *
  * @see {@link BaseRuntime} - Base runtime class
- * @see {@link MockRuntime} - Test implementation
+ * @see {@link MockRuntime} - Test implementation (src/mocks/mock-runtime.ts)
  */
 
 import type { WorkflowExecution } from "@dafthunk/types";
@@ -50,10 +50,10 @@ import {
 import { ResourceProvider } from "./resource-provider";
 
 /**
- * Cloudflare Workflows runtime with step-based execution.
+ * Workflow runtime with step-based execution.
  * Implements the core workflow execution logic with durable steps.
  */
-class CloudflareWorkflowRuntime extends BaseRuntime {
+export class WorkflowRuntime extends BaseRuntime {
   private currentStep?: WorkflowStep;
 
   private static readonly defaultStepConfig: WorkflowStepConfig = {
@@ -94,7 +94,7 @@ class CloudflareWorkflowRuntime extends BaseRuntime {
     // Type assertion needed due to Cloudflare Workflows type constraints
     return (await this.currentStep.do(
       name,
-      CloudflareWorkflowRuntime.defaultStepConfig,
+      WorkflowRuntime.defaultStepConfig,
       // @ts-expect-error - TS2345: Cloudflare Workflows requires Serializable types
       fn
     )) as T;
@@ -102,14 +102,14 @@ class CloudflareWorkflowRuntime extends BaseRuntime {
 }
 
 /**
- * Cloudflare Workflows entrypoint.
+ * Workflow entrypoint for Cloudflare Workflows.
  * Adapter that connects Cloudflare Workflows API to the runtime execution engine.
  */
-class CloudflareWorkflowEntrypoint extends WorkflowEntrypoint<
+export class WorkflowRuntimeEntrypoint extends WorkflowEntrypoint<
   Bindings,
   RuntimeParams
 > {
-  private runtime: CloudflareWorkflowRuntime;
+  private runtime: WorkflowRuntime;
 
   constructor(ctx: ExecutionContext, env: Bindings) {
     super(ctx, env);
@@ -140,7 +140,7 @@ class CloudflareWorkflowEntrypoint extends WorkflowEntrypoint<
     };
 
     // Create runtime with dependencies
-    this.runtime = new CloudflareWorkflowRuntime(env, dependencies);
+    this.runtime = new WorkflowRuntime(env, dependencies);
   }
 
   /**
@@ -157,9 +157,3 @@ class CloudflareWorkflowEntrypoint extends WorkflowEntrypoint<
     );
   }
 }
-
-/**
- * Export as CloudflareRuntime for backward compatibility.
- * This is the class name referenced in wrangler.jsonc.
- */
-export const CloudflareRuntime = CloudflareWorkflowEntrypoint;
