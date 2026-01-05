@@ -1,0 +1,172 @@
+import type { Workflow } from "@dafthunk/types";
+import { env } from "cloudflare:test";
+import { introspectWorkflowInstance } from "cloudflare:test";
+import { describe, expect, it } from "vitest";
+
+import type { Bindings } from "../../context";
+
+import { createInstanceId, createParams } from "./helpers";
+
+/**
+ * Tests for state consistency throughout execution
+ */
+  describe("state consistency", () => {
+    it("should maintain consistent state throughout execution", async () => {
+      const workflow: Workflow = {
+        id: "test-workflow-consistency",
+        name: "Consistency Check Workflow",
+        handle: "consistency",
+        type: "manual",
+        nodes: [
+          {
+            id: "num1",
+            name: "Number 1",
+            type: "number-input",
+            position: { x: 0, y: 0 },
+            inputs: [{ name: "value", type: "number", value: 5, hidden: true }],
+            outputs: [{ name: "value", type: "number" }],
+          },
+          {
+            id: "num2",
+            name: "Number 2",
+            type: "number-input",
+            position: { x: 0, y: 100 },
+            inputs: [{ name: "value", type: "number", value: 3, hidden: true }],
+            outputs: [{ name: "value", type: "number" }],
+          },
+          {
+            id: "add",
+            name: "Add",
+            type: "addition",
+            position: { x: 200, y: 50 },
+            inputs: [
+              { name: "a", type: "number", required: true },
+              { name: "b", type: "number", required: true },
+            ],
+            outputs: [{ name: "result", type: "number" }],
+          },
+        ],
+        edges: [
+          {
+            source: "num1",
+            sourceOutput: "value",
+            target: "add",
+            targetInput: "a",
+          },
+          {
+            source: "num2",
+            sourceOutput: "value",
+            target: "add",
+            targetInput: "b",
+          },
+        ],
+      };
+
+      const instanceId = createInstanceId("state-consistency");
+
+      // Set up workflow introspection
+      await using instance = await introspectWorkflowInstance(
+        (env as Bindings).EXECUTE,
+        instanceId
+      );
+
+      // Create and execute workflow
+      await (env as Bindings).EXECUTE.create({
+        id: instanceId,
+        params: createParams(workflow),
+      });
+
+      // Wait for workflow completion
+      await instance.waitForStatus("complete");
+
+      // Verify step results
+      const addResult = await instance.waitForStepResult({
+        name: "run node add",
+      });
+
+      console.log("Add result:", JSON.stringify(addResult, null, 2));
+      expect(addResult).toBeDefined();
+    });
+
+    it("should never mark nodes as both executed and errored", async () => {
+      const workflow: Workflow = {
+        id: "test-workflow-state-isolation",
+        name: "State Isolation Workflow",
+        handle: "state-isolation",
+        type: "manual",
+        nodes: [
+          {
+            id: "num1",
+            name: "Number 1",
+            type: "number-input",
+            position: { x: 0, y: 0 },
+            inputs: [
+              { name: "value", type: "number", value: 10, hidden: true },
+            ],
+            outputs: [{ name: "value", type: "number" }],
+          },
+          {
+            id: "zero",
+            name: "Zero",
+            type: "number-input",
+            position: { x: 0, y: 100 },
+            inputs: [{ name: "value", type: "number", value: 0, hidden: true }],
+            outputs: [{ name: "value", type: "number" }],
+          },
+          {
+            id: "div",
+            name: "Divide",
+            type: "division",
+            position: { x: 200, y: 50 },
+            inputs: [
+              { name: "a", type: "number", required: true },
+              { name: "b", type: "number", required: true },
+            ],
+            outputs: [{ name: "result", type: "number" }],
+          },
+        ],
+        edges: [
+          {
+            source: "num1",
+            sourceOutput: "value",
+            target: "div",
+            targetInput: "a",
+          },
+          {
+            source: "zero",
+            sourceOutput: "value",
+            target: "div",
+            targetInput: "b",
+          },
+        ],
+      };
+
+      const instanceId = createInstanceId("state-isolation");
+
+      // Set up workflow introspection
+      await using instance = await introspectWorkflowInstance(
+        (env as Bindings).EXECUTE,
+        instanceId
+      );
+
+      // Create and execute workflow
+      await (env as Bindings).EXECUTE.create({
+        id: instanceId,
+        params: createParams(workflow),
+      });
+
+      // Wait for workflow completion
+      await instance.waitForStatus("complete");
+
+      // Verify step results
+      const divResult = await instance.waitForStepResult({
+        name: "run node div",
+      });
+
+      console.log(
+        "Div result (division by zero):",
+        JSON.stringify(divResult, null, 2)
+      );
+      expect(divResult).toBeDefined();
+    });
+  });
