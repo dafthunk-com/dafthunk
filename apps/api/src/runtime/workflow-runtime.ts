@@ -1,53 +1,30 @@
 /**
  * Workflow Runtime
  *
- * Production runtime implementation using Cloudflare Workflows.
- * Provides the full feature set including all 50+ node types and integrations.
+ * Runtime implementation for Cloudflare Workflows (durable execution).
+ * Executes workflows with step-based durability using Cloudflare Workflows API.
  *
  * ## Architecture
  *
- * Extends WorkflowEntrypoint to provide durable workflow execution.
- * Uses BaseRuntime for core execution logic via composition.
- *
- * - **CloudflareNodeRegistry**: Complete node catalog (50+ nodes including geotiff, AI, etc.)
- * - **CloudflareToolRegistry**: Full tool support with all providers
- * - **WorkflowSessionMonitoringService**: Real-time updates via Durable Objects
- * - **ExecutionStore**: Persistent storage with D1 + R2
+ * Extends BaseRuntime with durable step execution:
+ * - Each step is persisted and can be retried independently
+ * - Execution survives Worker restarts
+ * - Integrates with Cloudflare Workflows engine
  *
  * ## Usage
  *
- * Exported from `index.ts` as "Runtime" for wrangler production configuration:
- * ```ts
- * // wrangler.jsonc
- * "workflows": [{
- *   "binding": "EXECUTE",
- *   "class_name": "Runtime"
- * }]
- * ```
+ * Used by WorkflowRuntimeEntrypoint for production execution.
+ * For direct testing, use WorkerRuntime instead.
  *
  * @see {@link BaseRuntime} - Base runtime class
- * @see {@link MockRuntime} - Test implementation (src/mocks/mock-runtime.ts)
+ * @see {@link WorkflowRuntimeEntrypoint} - Cloudflare Workflows adapter
+ * @see {@link WorkerRuntime} - Non-durable Worker implementation
  */
 
 import type { WorkflowExecution } from "@dafthunk/types";
-import {
-  WorkflowEntrypoint,
-  WorkflowEvent,
-  WorkflowStep,
-  WorkflowStepConfig,
-} from "cloudflare:workers";
+import { WorkflowStep, WorkflowStepConfig } from "cloudflare:workers";
 
-import type { Bindings } from "../context";
-import { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
-import { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
-import { WorkflowSessionMonitoringService } from "../services/monitoring-service";
-import { ExecutionStore } from "../stores/execution-store";
-import {
-  BaseRuntime,
-  type RuntimeDependencies,
-  type RuntimeParams,
-} from "./base-runtime";
-import { ResourceProvider } from "./resource-provider";
+import { BaseRuntime, type RuntimeParams } from "./base-runtime";
 
 /**
  * Workflow runtime with step-based execution.
@@ -98,62 +75,5 @@ export class WorkflowRuntime extends BaseRuntime {
       // @ts-expect-error - TS2345: Cloudflare Workflows requires Serializable types
       fn
     )) as T;
-  }
-}
-
-/**
- * Workflow entrypoint for Cloudflare Workflows.
- * Adapter that connects Cloudflare Workflows API to the runtime execution engine.
- */
-export class WorkflowRuntimeEntrypoint extends WorkflowEntrypoint<
-  Bindings,
-  RuntimeParams
-> {
-  private runtime: WorkflowRuntime;
-
-  constructor(ctx: ExecutionContext, env: Bindings) {
-    super(ctx, env);
-
-    // Create production dependencies
-    const nodeRegistry = new CloudflareNodeRegistry(env, true);
-
-    // Create tool registry with factory function
-    // eslint-disable-next-line prefer-const -- circular dependency pattern requires let
-    let resourceProvider: ResourceProvider;
-    const toolRegistry = new CloudflareToolRegistry(
-      nodeRegistry,
-      (nodeId: string, inputs: Record<string, any>) =>
-        resourceProvider.createToolContext(nodeId, inputs)
-    );
-
-    // Create ResourceProvider with production tool registry
-    resourceProvider = new ResourceProvider(env, toolRegistry);
-
-    // Create production-ready dependencies
-    const dependencies: RuntimeDependencies = {
-      nodeRegistry,
-      resourceProvider,
-      executionStore: new ExecutionStore(env),
-      monitoringService: new WorkflowSessionMonitoringService(
-        env.WORKFLOW_SESSION
-      ),
-    };
-
-    // Create runtime with dependencies
-    this.runtime = new WorkflowRuntime(env, dependencies);
-  }
-
-  /**
-   * Workflow entrypoint called by Cloudflare Workflows engine.
-   */
-  async run(
-    event: WorkflowEvent<RuntimeParams>,
-    step: WorkflowStep
-  ): Promise<WorkflowExecution> {
-    return await this.runtime.executeWithStep(
-      event.payload,
-      event.instanceId,
-      step
-    );
   }
 }
