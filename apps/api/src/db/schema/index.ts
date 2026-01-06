@@ -107,6 +107,17 @@ export const SubscriptionStatus = {
 export type SubscriptionStatusType =
   (typeof SubscriptionStatus)[keyof typeof SubscriptionStatus];
 
+// Evaluation status types
+export const EvaluationStatus = {
+  PENDING: "pending",
+  RUNNING: "running",
+  COMPLETED: "completed",
+  ERROR: "error",
+} as const;
+
+export type EvaluationStatusType =
+  (typeof EvaluationStatus)[keyof typeof EvaluationStatus];
+
 /**
  * REUSABLE COLUMNS
  */
@@ -357,6 +368,36 @@ export const datasets = sqliteTable(
   ]
 );
 
+// Evaluations - AI evaluation runs for workflows
+export const evaluations = sqliteTable(
+  "evaluations",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    workflowId: text("workflow_id")
+      .notNull()
+      .references(() => workflows.id, { onDelete: "cascade" }),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    status: text("status")
+      .$type<EvaluationStatusType>()
+      .notNull()
+      .default(EvaluationStatus.PENDING),
+    scores: text("scores"), // JSON: { passed, failed, total, passRate, avgScore }
+    error: text("error"),
+    completedAt: integer("completed_at", { mode: "timestamp" }),
+    createdAt: createCreatedAt(),
+    updatedAt: createUpdatedAt(),
+  },
+  (table) => [
+    index("evaluations_workflow_id_idx").on(table.workflowId),
+    index("evaluations_organization_id_idx").on(table.organizationId),
+    index("evaluations_status_idx").on(table.status),
+    index("evaluations_created_at_idx").on(table.createdAt),
+  ]
+);
+
 // Queues - Message queues associated with organizations
 export const queues = sqliteTable(
   "queues",
@@ -600,6 +641,7 @@ export const organizationsRelations = relations(
     deployments: many(deployments),
     apiKeys: many(apiKeys),
     datasets: many(datasets),
+    evaluations: many(evaluations),
     queues: many(queues),
     databases: many(databases),
     emails: many(emails),
@@ -677,6 +719,17 @@ export const datasetsRelations = relations(datasets, ({ one }) => ({
   organization: one(organizations, {
     fields: [datasets.organizationId],
     references: [organizations.id],
+  }),
+}));
+
+export const evaluationsRelations = relations(evaluations, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [evaluations.organizationId],
+    references: [organizations.id],
+  }),
+  workflow: one(workflows, {
+    fields: [evaluations.workflowId],
+    references: [workflows.id],
   }),
 }));
 
@@ -791,6 +844,9 @@ export type ScheduledTriggerInsert = typeof scheduledTriggers.$inferInsert;
 
 export type DatasetRow = typeof datasets.$inferSelect;
 export type DatasetInsert = typeof datasets.$inferInsert;
+
+export type EvaluationRow = typeof evaluations.$inferSelect;
+export type EvaluationInsert = typeof evaluations.$inferInsert;
 
 export type QueueRow = typeof queues.$inferSelect;
 export type QueueInsert = typeof queues.$inferInsert;

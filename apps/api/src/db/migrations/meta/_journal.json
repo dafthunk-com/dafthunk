@@ -197,6 +197,20 @@
       "when": 1734307200000,
       "tag": "0027_add_tour_completed",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "6",
+      "when": 1736035200000,
+      "tag": "0028_fix_integrations_unique_constraint",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "6",
+      "when": 1736120700000,
+      "tag": "0029_add_evaluations_table",
+      "breakpoints": true
     }
   ]
 }

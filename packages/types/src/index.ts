@@ -6,6 +6,7 @@ export * from "./database";
 export * from "./dataset";
 export * from "./deployment";
 export * from "./email";
+export * from "./evaluation";
 export * from "./execution";
 export * from "./integration";
 export * from "./objects";
