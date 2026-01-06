@@ -81,7 +81,8 @@ export const createColumns = (
     accessorKey: "deploymentId",
     header: "Deployment",
     cell: ({ row }) => {
-      const deploymentId = row.getValue("deploymentId") as string;
+      const deploymentId = row.getValue("deploymentId") as string | undefined;
+      if (!deploymentId) return <span className="text-muted-foreground">-</span>;
       return (
         <Link
           to={getOrgUrl(`deployment/${deploymentId}`)}
