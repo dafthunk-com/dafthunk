@@ -26,7 +26,7 @@ evaluationRoutes.post(
     "json",
     z.object({
       name: z.string().min(1, "Evaluation name is required"),
-      workflowId: z.string().uuid("Workflow ID must be a valid UUID"),
+      deploymentId: z.string().uuid("Deployment ID must be a valid UUID"),
       testCases: z.array(
         z.object({
           id: z.string(),
@@ -41,14 +41,14 @@ evaluationRoutes.post(
     const organizationId = c.get("organizationId")!;
     const jwtPayload = c.get("jwtPayload")!;
     const userId = jwtPayload.sub;
-    const { name, workflowId, testCases } = c.req.valid("json");
+    const { name, deploymentId, testCases } = c.req.valid("json");
 
     const evaluationService = new EvaluationService(c.env);
 
     try {
       const evaluation = await evaluationService.createEvaluation(
         name,
-        workflowId,
+        deploymentId,
         testCases,
         organizationId,
         userId
@@ -57,7 +57,7 @@ evaluationRoutes.post(
       const response: CreateEvaluationResponse = {
         id: evaluation.id,
         name: evaluation.name,
-        workflowId: evaluation.workflowId,
+        deploymentId: evaluation.deploymentId,
         status: evaluation.status,
         testCaseCount: testCases.length,
         createdAt: evaluation.createdAt,
@@ -121,7 +121,7 @@ evaluationRoutes.get("/:id", async (c) => {
       evaluation: {
         id: evaluation.id,
         name: evaluation.name,
-        workflowId: evaluation.workflowId,
+        deploymentId: evaluation.deploymentId,
         status: evaluation.status,
         scores,
         error: evaluation.error ?? undefined,
@@ -163,7 +163,7 @@ evaluationRoutes.get("/", async (c) => {
       return {
         id: evaluation.id,
         name: evaluation.name,
-        workflowId: evaluation.workflowId,
+        deploymentId: evaluation.deploymentId,
         status: evaluation.status,
         scores,
         error: evaluation.error ?? undefined,

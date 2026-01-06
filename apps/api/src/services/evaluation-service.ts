@@ -15,23 +15,23 @@ import { createDatabase } from "../db";
 import { evaluations, EvaluationStatus } from "../db/schema";
 import { ExecutionStore } from "../stores/execution-store";
 import { ObjectStore } from "../stores/object-store";
-import { WorkflowStore } from "../stores/workflow-store";
+import { DeploymentStore } from "../stores/deployment-store";
 import { WorkerRuntime } from "../runtime/worker-runtime";
 
 /**
- * Service for running AI evaluations on workflows
+ * Service for running AI evaluations on workflow deployments
  */
 export class EvaluationService {
   private env: Bindings;
   private objectStore: ObjectStore;
   private executionStore: ExecutionStore;
-  private workflowStore: WorkflowStore;
+  private deploymentStore: DeploymentStore;
 
   constructor(env: Bindings) {
     this.env = env;
     this.objectStore = new ObjectStore(env.RESSOURCES);
     this.executionStore = new ExecutionStore(env);
-    this.workflowStore = new WorkflowStore(env);
+    this.deploymentStore = new DeploymentStore(env);
   }
 
   /**
@@ -39,7 +39,7 @@ export class EvaluationService {
    */
   async createEvaluation(
     name: string,
-    workflowId: string,
+    deploymentId: string,
     testCases: EvalTestCase[],
     organizationId: string,
     userId: string
@@ -51,7 +51,7 @@ export class EvaluationService {
     const evaluation: EvaluationInsert = {
       id: evaluationId,
       name,
-      workflowId,
+      deploymentId,
       organizationId,
       status: EvaluationStatus.PENDING,
       createdAt: now,
@@ -65,7 +65,7 @@ export class EvaluationService {
     await this.saveTestCases(evaluationId, organizationId, testCases);
 
     // Start evaluation asynchronously
-    this.runEvaluation(evaluationId, workflowId, organizationId, userId).catch(
+    this.runEvaluation(evaluationId, deploymentId, organizationId, userId).catch(
       (error) => {
         console.error(`Failed to run evaluation ${evaluationId}:`, error);
         this.updateEvaluationStatus(
@@ -178,7 +178,7 @@ export class EvaluationService {
    */
   private async runEvaluation(
     evaluationId: string,
-    workflowId: string,
+    deploymentId: string,
     organizationId: string,
     userId: string
   ): Promise<void> {
@@ -186,15 +186,11 @@ export class EvaluationService {
     await this.updateEvaluationStatus(evaluationId, EvaluationStatus.RUNNING);
 
     try {
-      // Load workflow and test cases
-      const workflowData = await this.workflowStore.getWithData(
-        workflowId,
-        organizationId
-      );
-      if (!workflowData) {
-        throw new Error(`Workflow not found: ${workflowId}`);
+      // Load deployment workflow snapshot from R2
+      const workflow = await this.deploymentStore.readWorkflowSnapshot(deploymentId);
+      if (!workflow) {
+        throw new Error(`Workflow snapshot not found for deployment: ${deploymentId}`);
       }
-      const workflow = workflowData;
 
       const testCases = await this.loadTestCases(evaluationId);
       if (testCases.length === 0) {

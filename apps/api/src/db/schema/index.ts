@@ -368,15 +368,15 @@ export const datasets = sqliteTable(
   ]
 );
 
-// Evaluations - AI evaluation runs for workflows
+// Evaluations - AI evaluation runs for deployments
 export const evaluations = sqliteTable(
   "evaluations",
   {
     id: text("id").primaryKey(),
     name: text("name").notNull(),
-    workflowId: text("workflow_id")
+    deploymentId: text("deployment_id")
       .notNull()
-      .references(() => workflows.id, { onDelete: "cascade" }),
+      .references(() => deployments.id, { onDelete: "cascade" }),
     organizationId: text("organization_id")
       .notNull()
       .references(() => organizations.id, { onDelete: "cascade" }),
@@ -391,7 +391,7 @@ export const evaluations = sqliteTable(
     updatedAt: createUpdatedAt(),
   },
   (table) => [
-    index("evaluations_workflow_id_idx").on(table.workflowId),
+    index("evaluations_deployment_id_idx").on(table.deploymentId),
     index("evaluations_organization_id_idx").on(table.organizationId),
     index("evaluations_status_idx").on(table.status),
     index("evaluations_created_at_idx").on(table.createdAt),
@@ -727,9 +727,9 @@ export const evaluationsRelations = relations(evaluations, ({ one }) => ({
     fields: [evaluations.organizationId],
     references: [organizations.id],
   }),
-  workflow: one(workflows, {
-    fields: [evaluations.workflowId],
-    references: [workflows.id],
+  deployment: one(deployments, {
+    fields: [evaluations.deploymentId],
+    references: [deployments.id],
   }),
 }));
 

@@ -108,7 +108,7 @@ export interface EvaluationScores {
 export interface Evaluation {
   id: string;
   name: string;
-  workflowId: string;
+  deploymentId: string;
   status: EvaluationStatusType;
   scores?: EvaluationScores;
   error?: string;
@@ -121,7 +121,7 @@ export interface Evaluation {
  */
 export interface CreateEvaluationRequest {
   name: string;
-  workflowId: string;
+  deploymentId: string;
   testCases: EvalTestCase[];
 }
 
@@ -131,7 +131,7 @@ export interface CreateEvaluationRequest {
 export interface CreateEvaluationResponse {
   id: string;
   name: string;
-  workflowId: string;
+  deploymentId: string;
   status: EvaluationStatusType;
   testCaseCount: number;
   createdAt: Date;
