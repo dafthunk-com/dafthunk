@@ -151,3 +151,63 @@ export interface GetEvaluationResponse {
 export interface ListEvaluationsResponse {
   evaluations: Evaluation[];
 }
+
+/**
+ * Feedback sentiment types
+ */
+export const FeedbackSentiment = {
+  POSITIVE: "positive",
+  NEGATIVE: "negative",
+} as const;
+
+export type FeedbackSentimentType =
+  (typeof FeedbackSentiment)[keyof typeof FeedbackSentiment];
+
+/**
+ * User feedback on a workflow execution
+ */
+export interface ExecutionFeedback {
+  id: string;
+  executionId: string;
+  deploymentId: string;
+  sentiment: FeedbackSentimentType;
+  comment?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/**
+ * Request to create execution feedback
+ */
+export interface CreateExecutionFeedbackRequest {
+  executionId: string;
+  sentiment: FeedbackSentimentType;
+  comment?: string;
+}
+
+/**
+ * Response when creating execution feedback
+ */
+export interface CreateExecutionFeedbackResponse {
+  id: string;
+  executionId: string;
+  deploymentId: string;
+  sentiment: FeedbackSentimentType;
+  comment?: string;
+  createdAt: Date;
+}
+
+/**
+ * Request to update execution feedback
+ */
+export interface UpdateExecutionFeedbackRequest {
+  sentiment?: FeedbackSentimentType;
+  comment?: string;
+}
+
+/**
+ * Response for listing execution feedback
+ */
+export interface ListExecutionFeedbackResponse {
+  feedback: ExecutionFeedback[];
+}

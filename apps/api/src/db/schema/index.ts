@@ -398,6 +398,49 @@ export const evaluations = sqliteTable(
   ]
 );
 
+// Execution feedback sentiment types
+export const FeedbackSentiment = {
+  POSITIVE: "positive",
+  NEGATIVE: "negative",
+} as const;
+
+export type FeedbackSentimentType =
+  (typeof FeedbackSentiment)[keyof typeof FeedbackSentiment];
+
+// Feedback - User feedback on workflow executions
+export const feedback = sqliteTable(
+  "feedback",
+  {
+    id: text("id").primaryKey(),
+    executionId: text("execution_id").notNull(),
+    deploymentId: text("deployment_id")
+      .notNull()
+      .references(() => deployments.id, { onDelete: "cascade" }),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    sentiment: text("sentiment")
+      .$type<FeedbackSentimentType>()
+      .notNull(),
+    comment: text("comment"),
+    createdAt: createCreatedAt(),
+    updatedAt: createUpdatedAt(),
+  },
+  (table) => [
+    index("feedback_execution_id_idx").on(table.executionId),
+    index("feedback_deployment_id_idx").on(table.deploymentId),
+    index("feedback_organization_id_idx").on(table.organizationId),
+    index("feedback_user_id_idx").on(table.userId),
+    index("feedback_sentiment_idx").on(table.sentiment),
+    index("feedback_created_at_idx").on(table.createdAt),
+    // Only one feedback per execution
+    uniqueIndex("feedback_execution_id_unique").on(table.executionId),
+  ]
+);
+
 // Queues - Message queues associated with organizations
 export const queues = sqliteTable(
   "queues",
@@ -642,6 +685,7 @@ export const organizationsRelations = relations(
     apiKeys: many(apiKeys),
     datasets: many(datasets),
     evaluations: many(evaluations),
+    feedback: many(feedback),
     queues: many(queues),
     databases: many(databases),
     emails: many(emails),
@@ -730,6 +774,21 @@ export const evaluationsRelations = relations(evaluations, ({ one }) => ({
   deployment: one(deployments, {
     fields: [evaluations.deploymentId],
     references: [deployments.id],
+  }),
+}));
+
+export const feedbackRelations = relations(feedback, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [feedback.organizationId],
+    references: [organizations.id],
+  }),
+  deployment: one(deployments, {
+    fields: [feedback.deploymentId],
+    references: [deployments.id],
+  }),
+  user: one(users, {
+    fields: [feedback.userId],
+    references: [users.id],
   }),
 }));
 
@@ -847,6 +906,9 @@ export type DatasetInsert = typeof datasets.$inferInsert;
 
 export type EvaluationRow = typeof evaluations.$inferSelect;
 export type EvaluationInsert = typeof evaluations.$inferInsert;
+
+export type FeedbackRow = typeof feedback.$inferSelect;
+export type FeedbackInsert = typeof feedback.$inferInsert;
 
 export type QueueRow = typeof queues.$inferSelect;
 export type QueueInsert = typeof queues.$inferInsert;

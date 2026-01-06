@@ -1,4 +1,5 @@
 import { WorkflowExecution } from "./workflow";
+import { ExecutionFeedback } from "./evaluation";
 
 /**
  * Execution status types (for database storage)
@@ -36,4 +37,5 @@ export interface ListExecutionsResponse {
  */
 export interface GetExecutionResponse {
   execution: WorkflowExecution;
+  feedback?: ExecutionFeedback;
 }

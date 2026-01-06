@@ -11,6 +11,9 @@ import { apiKeyOrJwtMiddleware, jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
 import { ExecutionStore } from "../stores/execution-store";
 import { WorkflowStore } from "../stores/workflow-store";
+import { createDatabase } from "../db";
+import { feedback } from "../db/schema";
+import { eq } from "drizzle-orm";
 
 const executionRoutes = new Hono<ApiContext>();
 
@@ -37,6 +40,7 @@ executionRoutes.get("/:id", apiKeyOrJwtMiddleware, async (c) => {
   }
 
   const executionStore = new ExecutionStore(c.env);
+  const db = createDatabase(c.env.DB);
 
   try {
     const execution = await executionStore.getWithData(id, organizationId);
@@ -64,7 +68,25 @@ executionRoutes.get("/:id", apiKeyOrJwtMiddleware, async (c) => {
       endedAt: execution.endedAt ?? execution.data.endedAt,
     };
 
-    const response: GetExecutionResponse = { execution: workflowExecution };
+    // Get execution feedback if it exists
+    const feedbackData = await db.query.feedback.findFirst({
+      where: eq(feedback.executionId, id),
+    });
+
+    const response: GetExecutionResponse = {
+      execution: workflowExecution,
+      feedback: feedbackData
+        ? {
+            id: feedbackData.id,
+            executionId: feedbackData.executionId,
+            deploymentId: feedbackData.deploymentId,
+            sentiment: feedbackData.sentiment,
+            comment: feedbackData.comment ?? undefined,
+            createdAt: feedbackData.createdAt,
+            updatedAt: feedbackData.updatedAt,
+          }
+        : undefined,
+    };
     return c.json(response);
   } catch (error) {
     console.error("Error retrieving execution:", error);
