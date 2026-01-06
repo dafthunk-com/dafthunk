@@ -129,7 +129,7 @@ feedbackRoutes.get("/execution/:executionId", async (c) => {
     const response: ExecutionFeedback = {
       id: feedbackData.id,
       executionId: feedbackData.executionId,
-      deploymentId: feedbackData.deploymentId,
+      deploymentId: feedbackData.deploymentId ?? undefined,
       sentiment: feedbackData.sentiment,
       comment: feedbackData.comment ?? undefined,
       createdAt: feedbackData.createdAt,
@@ -195,7 +195,7 @@ feedbackRoutes.patch(
       const response: ExecutionFeedback = {
         id: updated!.id,
         executionId: updated!.executionId,
-        deploymentId: updated!.deploymentId,
+        deploymentId: updated!.deploymentId ?? undefined,
         sentiment: updated!.sentiment,
         comment: updated!.comment ?? undefined,
         createdAt: updated!.createdAt,
@@ -263,7 +263,7 @@ feedbackRoutes.get("/deployment/:deploymentId", async (c) => {
       feedback: feedbackRecords.map((f) => ({
         id: f.id,
         executionId: f.executionId,
-        deploymentId: f.deploymentId,
+        deploymentId: f.deploymentId ?? undefined,
         sentiment: f.sentiment,
         comment: f.comment ?? undefined,
         createdAt: f.createdAt,
@@ -296,7 +296,7 @@ feedbackRoutes.get("/", async (c) => {
       feedback: feedbackRecords.map((f) => ({
         id: f.id,
         executionId: f.executionId,
-        deploymentId: f.deploymentId,
+        deploymentId: f.deploymentId ?? undefined,
         sentiment: f.sentiment,
         comment: f.comment ?? undefined,
         createdAt: f.createdAt,

@@ -79,7 +79,7 @@ executionRoutes.get("/:id", apiKeyOrJwtMiddleware, async (c) => {
         ? {
             id: feedbackData.id,
             executionId: feedbackData.executionId,
-            deploymentId: feedbackData.deploymentId,
+            deploymentId: feedbackData.deploymentId ?? undefined,
             sentiment: feedbackData.sentiment,
             comment: feedbackData.comment ?? undefined,
             createdAt: feedbackData.createdAt,
