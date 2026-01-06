@@ -1,4 +1,5 @@
 import type { OrganizationInfo } from "@dafthunk/types";
+import ClipboardCheck from "lucide-react/icons/clipboard-check";
 import CreditCard from "lucide-react/icons/credit-card";
 import Database from "lucide-react/icons/database";
 import Folder from "lucide-react/icons/folder";
@@ -8,6 +9,7 @@ import LayoutDashboard from "lucide-react/icons/layout-dashboard";
 import Lock from "lucide-react/icons/lock";
 import Logs from "lucide-react/icons/logs";
 import Mail from "lucide-react/icons/mail";
+import MessageSquareText from "lucide-react/icons/message-square-text";
 import Plug from "lucide-react/icons/plug";
 import SquareTerminal from "lucide-react/icons/square-terminal";
 import Target from "lucide-react/icons/target";
@@ -19,83 +21,110 @@ import { useAuth } from "@/components/auth-context";
 import { AppLayout } from "@/components/layouts/app-layout";
 import { TourProvider } from "@/components/tour";
 import { useOrganizations } from "@/services/organizations-service";
+import { useProfile } from "@/services/profile-service";
 
 interface OrgLayoutProps {
   children: React.ReactNode;
   title: string;
 }
 
-export const getDashboardSidebarGroups = (orgHandle: string) => [
-  {
-    items: [
-      {
-        title: "Dashboard",
-        url: `/org/${orgHandle}/dashboard`,
-        icon: LayoutDashboard,
-      },
-    ],
-  },
-  {
-    label: "Workflows",
-    items: [
-      {
-        title: "Workflows",
-        url: `/org/${orgHandle}/workflows`,
-        icon: SquareTerminal,
-      },
-      {
-        title: "Deployments",
-        url: `/org/${orgHandle}/deployments`,
-        icon: Target,
-      },
-      {
-        title: "Executions",
-        url: `/org/${orgHandle}/executions`,
-        icon: Logs,
-      },
-    ],
-  },
-  {
-    label: "Triggers",
-    items: [
-      {
-        title: "Emails",
-        url: `/org/${orgHandle}/emails`,
-        icon: Mail,
-      },
-      {
-        title: "Queues",
-        url: `/org/${orgHandle}/queues`,
-        icon: Inbox,
-      },
-    ],
-  },
-  {
-    label: "Resources",
-    items: [
-      {
-        title: "Datasets",
-        url: `/org/${orgHandle}/datasets`,
-        icon: Folder,
-      },
-      {
-        title: "Databases",
-        url: `/org/${orgHandle}/databases`,
-        icon: Database,
-      },
-      {
-        title: "Integrations",
-        url: `/org/${orgHandle}/integrations`,
-        icon: Plug,
-      },
-      {
-        title: "Secrets",
-        url: `/org/${orgHandle}/secrets`,
-        icon: Lock,
-      },
-    ],
-  },
-  {
+export const getDashboardSidebarGroups = (
+  orgHandle: string,
+  developerMode: boolean = false
+) => {
+  const groups = [
+    {
+      items: [
+        {
+          title: "Dashboard",
+          url: `/org/${orgHandle}/dashboard`,
+          icon: LayoutDashboard,
+        },
+      ],
+    },
+    {
+      label: "Workflows",
+      items: [
+        {
+          title: "Workflows",
+          url: `/org/${orgHandle}/workflows`,
+          icon: SquareTerminal,
+        },
+        {
+          title: "Deployments",
+          url: `/org/${orgHandle}/deployments`,
+          icon: Target,
+        },
+        {
+          title: "Executions",
+          url: `/org/${orgHandle}/executions`,
+          icon: Logs,
+        },
+      ],
+    },
+    {
+      label: "Triggers",
+      items: [
+        {
+          title: "Emails",
+          url: `/org/${orgHandle}/emails`,
+          icon: Mail,
+        },
+        {
+          title: "Queues",
+          url: `/org/${orgHandle}/queues`,
+          icon: Inbox,
+        },
+      ],
+    },
+    {
+      label: "Resources",
+      items: [
+        {
+          title: "Datasets",
+          url: `/org/${orgHandle}/datasets`,
+          icon: Folder,
+        },
+        {
+          title: "Databases",
+          url: `/org/${orgHandle}/databases`,
+          icon: Database,
+        },
+        {
+          title: "Integrations",
+          url: `/org/${orgHandle}/integrations`,
+          icon: Plug,
+        },
+        {
+          title: "Secrets",
+          url: `/org/${orgHandle}/secrets`,
+          icon: Lock,
+        },
+      ],
+    },
+  ];
+
+  // Only add Analytics section if developer mode is enabled
+  if (developerMode) {
+    groups.push({
+      label: "Analytics",
+      items: [
+        {
+          title: "Feedback",
+          url: `/org/${orgHandle}/feedback`,
+          icon: MessageSquareText,
+        },
+        {
+          title: "Evaluations",
+          url: `/org/${orgHandle}/evaluations`,
+          icon: ClipboardCheck,
+        },
+      ],
+    });
+  }
+
+  // Add Settings section
+  groups.push({
     label: "Settings",
     items: [
       {
@@ -114,13 +143,16 @@ export const getDashboardSidebarGroups = (orgHandle: string) => [
         icon: CreditCard,
       },
     ],
-  },
-];
+  });
+
+  return groups;
+};
 
 export const OrgLayout: React.FC<OrgLayoutProps> = ({ children, title }) => {
   const params = useParams<{ handle: string }>();
   const { organization, setSelectedOrganization } = useAuth();
   const { organizations: orgList } = useOrganizations();
+  const { profile } = useProfile();
 
   useEffect(() => {
     if (params.handle && organization?.handle && orgList.length > 0) {
@@ -145,7 +177,10 @@ export const OrgLayout: React.FC<OrgLayoutProps> = ({ children, title }) => {
     return <div>Loading...</div>;
   }
 
-  const sidebarGroups = getDashboardSidebarGroups(organization?.handle);
+  const sidebarGroups = getDashboardSidebarGroups(
+    organization?.handle,
+    profile?.developerMode ?? false
+  );
 
   return (
     <AppLayout

@@ -4,6 +4,7 @@ import { useParams } from "react-router";
 import { toast } from "sonner";
 
 import { useAuth } from "@/components/auth-context";
+import { ExecutionFeedbackCard } from "@/components/executions/execution-feedback-card";
 import { ExecutionInfoCard } from "@/components/executions/execution-info-card";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
@@ -216,6 +217,7 @@ export function ExecutionDetailPage() {
               deploymentId={execution.deploymentId}
               error={execution.error}
             />
+            <ExecutionFeedbackCard executionId={execution.id} />
           </TabsContent>
           <TabsContent value="visualization" className="mt-0">
             <div className="h-[calc(100vh-300px)] border rounded-md relative">
