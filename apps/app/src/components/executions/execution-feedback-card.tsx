@@ -44,7 +44,11 @@ export function ExecutionFeedbackCard({
       setMode("view");
       setSelectedSentiment(feedback.sentiment);
       setComment(feedback.comment || "");
-    } else if (feedbackError && feedbackError.message?.includes("404")) {
+    } else if (
+      feedbackError &&
+      (feedbackError.message?.includes("404") ||
+        feedbackError.message?.includes("not found"))
+    ) {
       // No feedback exists yet (404 is expected)
       setMode("input");
     }
@@ -240,45 +244,44 @@ export function ExecutionFeedbackCard({
               </div>
             </div>
 
-            {selectedSentiment && (
-              <>
-                <div className="space-y-2">
-                  <label
-                    htmlFor="feedback-comment"
-                    className="text-sm font-medium"
-                  >
-                    Add a comment (optional)
-                  </label>
-                  <Textarea
-                    id="feedback-comment"
-                    placeholder="Tell us more about your experience..."
-                    value={comment}
-                    onChange={(e) => setComment(e.target.value)}
-                    rows={3}
-                    disabled={isLoading}
-                  />
-                </div>
+            <div className="space-y-2">
+              <label
+                htmlFor="feedback-comment"
+                className="text-sm font-medium"
+              >
+                Add a comment (optional)
+              </label>
+              <Textarea
+                id="feedback-comment"
+                placeholder="Tell us more about your experience..."
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                rows={3}
+                disabled={isLoading}
+              />
+            </div>
 
-                <div className="flex gap-2 pt-2">
-                  <Button onClick={handleSubmit} disabled={isLoading}>
-                    {isLoading
-                      ? "Submitting..."
-                      : mode === "edit"
-                        ? "Update"
-                        : "Submit"}
-                  </Button>
-                  {(mode === "edit" || selectedSentiment) && (
-                    <Button
-                      variant="outline"
-                      onClick={handleCancel}
-                      disabled={isLoading}
-                    >
-                      Cancel
-                    </Button>
-                  )}
-                </div>
-              </>
-            )}
+            <div className="flex gap-2 pt-2">
+              <Button
+                onClick={handleSubmit}
+                disabled={isLoading || !selectedSentiment}
+              >
+                {isLoading
+                  ? "Submitting..."
+                  : mode === "edit"
+                    ? "Update"
+                    : "Submit"}
+              </Button>
+              {mode === "edit" && (
+                <Button
+                  variant="outline"
+                  onClick={handleCancel}
+                  disabled={isLoading}
+                >
+                  Cancel
+                </Button>
+              )}
+            </div>
           </>
         )}
       </CardContent>
