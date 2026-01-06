@@ -69,7 +69,7 @@ feedbackRoutes.post(
       const feedbackData: FeedbackInsert = {
         id: feedbackId,
         executionId,
-        deploymentId: execution.deploymentId!,
+        deploymentId: execution.deploymentId || null,
         organizationId,
         userId,
         sentiment,
@@ -83,7 +83,7 @@ feedbackRoutes.post(
       const response: CreateExecutionFeedbackResponse = {
         id: feedbackId,
         executionId,
-        deploymentId: execution.deploymentId!,
+        deploymentId: execution.deploymentId || undefined,
         sentiment,
         comment,
         createdAt: now,

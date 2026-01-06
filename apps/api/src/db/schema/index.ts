@@ -413,9 +413,9 @@ export const feedback = sqliteTable(
   {
     id: text("id").primaryKey(),
     executionId: text("execution_id").notNull(),
-    deploymentId: text("deployment_id")
-      .notNull()
-      .references(() => deployments.id, { onDelete: "cascade" }),
+    deploymentId: text("deployment_id").references(() => deployments.id, {
+      onDelete: "cascade",
+    }),
     organizationId: text("organization_id")
       .notNull()
       .references(() => organizations.id, { onDelete: "cascade" }),

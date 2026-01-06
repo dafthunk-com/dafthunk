@@ -169,7 +169,7 @@ export type FeedbackSentimentType =
 export interface ExecutionFeedback {
   id: string;
   executionId: string;
-  deploymentId: string;
+  deploymentId?: string;
   sentiment: FeedbackSentimentType;
   comment?: string;
   createdAt: Date;
@@ -191,7 +191,7 @@ export interface CreateExecutionFeedbackRequest {
 export interface CreateExecutionFeedbackResponse {
   id: string;
   executionId: string;
-  deploymentId: string;
+  deploymentId?: string;
   sentiment: FeedbackSentimentType;
   comment?: string;
   createdAt: Date;
