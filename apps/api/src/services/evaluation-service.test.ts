@@ -1,7 +1,8 @@
-import { describe, expect, it, beforeEach, vi } from "vitest";
 import type { EvalTestCase } from "@dafthunk/types";
-import { EvaluationService } from "./evaluation-service";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import type { Bindings } from "../context";
+import { EvaluationService } from "./evaluation-service";
 
 describe("EvaluationService", () => {
   let mockEnv: Bindings;
@@ -47,40 +48,49 @@ describe("EvaluationService", () => {
   describe("compareOutputs", () => {
     it("should return true for exact matches", () => {
       const actual = {
-        "answer-node": { value: "Hello, World!" }
+        "answer-node": { value: "Hello, World!" },
       };
       const expected = {
-        "answer-node": { value: "Hello, World!" }
+        "answer-node": { value: "Hello, World!" },
       };
 
-      const result = (evaluationService as any).compareOutputs(actual, expected);
+      const result = (evaluationService as any).compareOutputs(
+        actual,
+        expected
+      );
 
       expect(result).toBe(true);
     });
 
     it("should return false for mismatches", () => {
       const actual = {
-        "answer-node": { value: "Hello, World!" }
+        "answer-node": { value: "Hello, World!" },
       };
       const expected = {
-        "answer-node": { value: "Goodbye, World!" }
+        "answer-node": { value: "Goodbye, World!" },
       };
 
-      const result = (evaluationService as any).compareOutputs(actual, expected);
+      const result = (evaluationService as any).compareOutputs(
+        actual,
+        expected
+      );
 
       expect(result).toBe(false);
     });
 
     it("should handle missing nodes", () => {
       const actual = {
-        "answer-node": { value: "Hello" }
+        "answer-node": { value: "Hello" },
       };
       const expected = {
         "answer-node": { value: "Hello" },
-        "missing-node": { value: "field" }
+        "missing-node": { value: "field" },
       };
 
-      const result = (evaluationService as any).compareOutputs(actual, expected);
+      const result = (evaluationService as any).compareOutputs(
+        actual,
+        expected
+      );
 
       expect(result).toBe(false);
     });
@@ -89,17 +99,20 @@ describe("EvaluationService", () => {
       const actual = {
         "result-node": {
           value: "4",
-          confidence: 0.95
-        }
+          confidence: 0.95,
+        },
       };
       const expected = {
         "result-node": {
           value: "4",
-          confidence: 0.95
-        }
+          confidence: 0.95,
+        },
       };
 
-      const result = (evaluationService as any).compareOutputs(actual, expected);
+      const result = (evaluationService as any).compareOutputs(
+        actual,
+        expected
+      );
 
       expect(result).toBe(true);
     });
@@ -107,16 +120,19 @@ describe("EvaluationService", () => {
     it("should handle complex nested objects", () => {
       const actual = {
         "data-node": {
-          result: { nested: { value: 42 } }
-        }
+          result: { nested: { value: 42 } },
+        },
       };
       const expected = {
         "data-node": {
-          result: { nested: { value: 42 } }
-        }
+          result: { nested: { value: 42 } },
+        },
       };
 
-      const result = (evaluationService as any).compareOutputs(actual, expected);
+      const result = (evaluationService as any).compareOutputs(
+        actual,
+        expected
+      );
 
       expect(result).toBe(true);
     });
@@ -206,10 +222,10 @@ describe("EvaluationService", () => {
         {
           id: "test-1",
           input: {
-            "prompt-node": { value: "What is 2+2?" }
+            "prompt-node": { value: "What is 2+2?" },
           },
           expected: {
-            "answer-node": { value: "4" }
+            "answer-node": { value: "4" },
           },
         },
       ];
@@ -241,10 +257,10 @@ describe("EvaluationService", () => {
         {
           id: "test-1",
           input: {
-            "prompt-node": { value: "What is 2+2?" }
+            "prompt-node": { value: "What is 2+2?" },
           },
           expected: {
-            "answer-node": { value: "4" }
+            "answer-node": { value: "4" },
           },
         },
       ];
@@ -298,7 +314,7 @@ describe("EvaluationService", () => {
             position: { x: 0, y: 100 },
             inputs: [
               { name: "temperature", type: "number", value: 0 },
-              { name: "maxTokens", type: "number", value: 100 }
+              { name: "maxTokens", type: "number", value: 100 },
             ],
             outputs: [{ name: "temperature", type: "number" }],
           },
@@ -311,7 +327,10 @@ describe("EvaluationService", () => {
         "settings-node": { temperature: 0.7, maxTokens: 200 },
       };
 
-      const result = (evaluationService as any).injectTestInputs(workflow, inputs);
+      const result = (evaluationService as any).injectTestInputs(
+        workflow,
+        inputs
+      );
 
       expect(result.nodes[0].inputs[0].value).toBe("What is 2+2?");
       expect(result.nodes[1].inputs[0].value).toBe(0.7);

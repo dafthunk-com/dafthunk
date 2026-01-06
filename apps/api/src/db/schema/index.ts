@@ -422,9 +422,7 @@ export const feedback = sqliteTable(
     userId: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    sentiment: text("sentiment")
-      .$type<FeedbackSentimentType>()
-      .notNull(),
+    sentiment: text("sentiment").$type<FeedbackSentimentType>().notNull(),
     comment: text("comment"),
     createdAt: createCreatedAt(),
     updatedAt: createUpdatedAt(),

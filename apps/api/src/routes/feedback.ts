@@ -1,25 +1,20 @@
 import {
   CreateExecutionFeedbackRequest,
   CreateExecutionFeedbackResponse,
+  ExecutionFeedback,
   ListExecutionFeedbackResponse,
   UpdateExecutionFeedbackRequest,
-  ExecutionFeedback,
 } from "@dafthunk/types";
 import { zValidator } from "@hono/zod-validator";
+import { and, desc, eq } from "drizzle-orm";
 import { Hono } from "hono";
-import { z } from "zod";
 import { v7 as uuid } from "uuid";
-import { eq, and, desc } from "drizzle-orm";
+import { z } from "zod";
 
 import { jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
 import { createDatabase } from "../db";
-import {
-  feedback,
-  FeedbackSentiment,
-  type FeedbackRow,
-  type FeedbackInsert,
-} from "../db/schema";
+import { feedback, type FeedbackInsert, type FeedbackRow } from "../db/schema";
 import { ExecutionStore } from "../stores/execution-store";
 
 const feedbackRoutes = new Hono<ApiContext>();
@@ -191,10 +186,7 @@ feedbackRoutes.patch(
         updates.comment = comment || null;
       }
 
-      await db
-        .update(feedback)
-        .set(updates)
-        .where(eq(feedback.id, id));
+      await db.update(feedback).set(updates).where(eq(feedback.id, id));
 
       const updated = await db.query.feedback.findFirst({
         where: eq(feedback.id, id),

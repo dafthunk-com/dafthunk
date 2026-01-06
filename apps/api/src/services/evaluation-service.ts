@@ -5,18 +5,17 @@ import type {
   EvaluationStatusType,
   Workflow,
 } from "@dafthunk/types";
+import { eq } from "drizzle-orm";
 import { v7 as uuid } from "uuid";
 
-import { eq } from "drizzle-orm";
-
 import type { Bindings } from "../context";
-import type { EvaluationInsert, EvaluationRow } from "../db/schema";
 import { createDatabase } from "../db";
+import type { EvaluationInsert, EvaluationRow } from "../db/schema";
 import { evaluations, EvaluationStatus } from "../db/schema";
+import { WorkerRuntime } from "../runtime/worker-runtime";
+import { DeploymentStore } from "../stores/deployment-store";
 import { ExecutionStore } from "../stores/execution-store";
 import { ObjectStore } from "../stores/object-store";
-import { DeploymentStore } from "../stores/deployment-store";
-import { WorkerRuntime } from "../runtime/worker-runtime";
 
 /**
  * Service for running AI evaluations on workflow deployments
@@ -65,16 +64,19 @@ export class EvaluationService {
     await this.saveTestCases(evaluationId, organizationId, testCases);
 
     // Start evaluation asynchronously
-    this.runEvaluation(evaluationId, deploymentId, organizationId, userId).catch(
-      (error) => {
-        console.error(`Failed to run evaluation ${evaluationId}:`, error);
-        this.updateEvaluationStatus(
-          evaluationId,
-          EvaluationStatus.ERROR,
-          error.message
-        ).catch(console.error);
-      }
-    );
+    this.runEvaluation(
+      evaluationId,
+      deploymentId,
+      organizationId,
+      userId
+    ).catch((error) => {
+      console.error(`Failed to run evaluation ${evaluationId}:`, error);
+      this.updateEvaluationStatus(
+        evaluationId,
+        EvaluationStatus.ERROR,
+        error.message
+      ).catch(console.error);
+    });
 
     return evaluation as EvaluationRow;
   }
@@ -187,9 +189,12 @@ export class EvaluationService {
 
     try {
       // Load deployment workflow snapshot from R2
-      const workflow = await this.deploymentStore.readWorkflowSnapshot(deploymentId);
+      const workflow =
+        await this.deploymentStore.readWorkflowSnapshot(deploymentId);
       if (!workflow) {
-        throw new Error(`Workflow snapshot not found for deployment: ${deploymentId}`);
+        throw new Error(
+          `Workflow snapshot not found for deployment: ${deploymentId}`
+        );
       }
 
       const testCases = await this.loadTestCases(evaluationId);
@@ -253,7 +258,9 @@ export class EvaluationService {
       // Find the node in the workflow
       const node = modifiedWorkflow.nodes.find((n) => n.id === nodeId);
       if (!node) {
-        console.warn(`Test case references node "${nodeId}" which does not exist in workflow`);
+        console.warn(
+          `Test case references node "${nodeId}" which does not exist in workflow`
+        );
         continue;
       }
 
@@ -263,7 +270,9 @@ export class EvaluationService {
         if (inputParam) {
           inputParam.value = paramValue;
         } else {
-          console.warn(`Test case references parameter "${paramName}" on node "${nodeId}" which does not exist`);
+          console.warn(
+            `Test case references parameter "${paramName}" on node "${nodeId}" which does not exist`
+          );
         }
       }
     }
@@ -317,7 +326,10 @@ export class EvaluationService {
       const computeCredits = 10000; // TODO: Get from organization
 
       // Inject test case inputs into workflow
-      const workflowWithInputs = this.injectTestInputs(workflow, testCase.input);
+      const workflowWithInputs = this.injectTestInputs(
+        workflow,
+        testCase.input
+      );
 
       // Execute workflow with test case inputs
       const runtime = new WorkerRuntime(this.env);
@@ -333,7 +345,10 @@ export class EvaluationService {
       );
 
       // Extract actual outputs based on expected structure
-      const actual = this.extractTestOutputs(execution.nodeExecutions, testCase.expected);
+      const actual = this.extractTestOutputs(
+        execution.nodeExecutions,
+        testCase.expected
+      );
 
       // Compare with expected outputs
       const passed = this.compareOutputs(actual, testCase.expected);
@@ -379,7 +394,9 @@ export class EvaluationService {
       }
 
       // Check each expected output for this node
-      for (const [outputName, expectedValue] of Object.entries(expectedOutputs)) {
+      for (const [outputName, expectedValue] of Object.entries(
+        expectedOutputs
+      )) {
         const actualValue = actualNodeOutputs[outputName];
 
         // Compare using JSON serialization for deep equality
@@ -448,7 +465,10 @@ export class EvaluationService {
       updates.error = error;
     }
 
-    if (status === EvaluationStatus.COMPLETED || status === EvaluationStatus.ERROR) {
+    if (
+      status === EvaluationStatus.COMPLETED ||
+      status === EvaluationStatus.ERROR
+    ) {
       updates.completedAt = new Date();
     }
 

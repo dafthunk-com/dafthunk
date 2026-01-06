@@ -27,14 +27,16 @@ evaluationRoutes.post(
     z.object({
       name: z.string().min(1, "Evaluation name is required"),
       deploymentId: z.string().uuid("Deployment ID must be a valid UUID"),
-      testCases: z.array(
-        z.object({
-          id: z.string(),
-          input: z.record(z.record(z.any())),
-          expected: z.record(z.record(z.any())),
-          metadata: z.record(z.any()).optional(),
-        })
-      ).min(1, "At least one test case is required"),
+      testCases: z
+        .array(
+          z.object({
+            id: z.string(),
+            input: z.record(z.record(z.any())),
+            expected: z.record(z.record(z.any())),
+            metadata: z.record(z.any()).optional(),
+          })
+        )
+        .min(1, "At least one test case is required"),
     }) as z.ZodType<CreateEvaluationRequest>
   ),
   async (c) => {
@@ -69,7 +71,9 @@ evaluationRoutes.post(
       return c.json(
         {
           error:
-            error instanceof Error ? error.message : "Failed to create evaluation",
+            error instanceof Error
+              ? error.message
+              : "Failed to create evaluation",
         },
         500
       );
@@ -87,7 +91,10 @@ evaluationRoutes.get("/:id", async (c) => {
   const evaluationService = new EvaluationService(c.env);
 
   try {
-    const evaluation = await evaluationService.getEvaluation(id, organizationId);
+    const evaluation = await evaluationService.getEvaluation(
+      id,
+      organizationId
+    );
 
     if (!evaluation) {
       return c.json({ error: "Evaluation not found" }, 404);
