@@ -30,8 +30,9 @@ export function ExecutionDetailPage() {
   const { executionId } = useParams<{ executionId: string }>();
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const { getOrgUrl } = useOrgUrl();
-  const { organization } = useAuth();
+  const { organization, user } = useAuth();
   const orgHandle = organization?.handle || "";
+  const isDeveloperMode = user?.developerMode || false;
 
   const {
     execution,
@@ -217,7 +218,9 @@ export function ExecutionDetailPage() {
               deploymentId={execution.deploymentId}
               error={execution.error}
             />
-            <ExecutionFeedbackCard executionId={execution.id} />
+            {hasDeploymentId && isDeveloperMode && (
+              <ExecutionFeedbackCard executionId={execution.id} />
+            )}
           </TabsContent>
           <TabsContent value="visualization" className="mt-0">
             <div className="h-[calc(100vh-300px)] border rounded-md relative">
