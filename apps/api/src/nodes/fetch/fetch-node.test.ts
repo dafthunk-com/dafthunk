@@ -10,7 +10,7 @@ global.fetch = vi.fn();
 // Helper to convert string to ArrayBuffer
 function stringToArrayBuffer(str: string): ArrayBuffer {
   const encoder = new TextEncoder();
-  return encoder.encode(str).buffer;
+  return encoder.encode(str).buffer as ArrayBuffer;
 }
 
 // Helper to decode BlobParameter to string

@@ -8,17 +8,6 @@ import {
 import { Brush } from "three-bvh-csg";
 
 /**
- * Represents a glTF document with metadata about the mesh
- */
-export interface CSGGLTFResult {
-  document: Document;
-  stats: {
-    vertexCount: number;
-    triangleCount: number;
-  };
-}
-
-/**
  * Convert Brush to glTF GLB binary format
  * Manually constructs glTF using @gltf-transform/core for Workers compatibility
  */
@@ -114,7 +103,7 @@ export async function brushToGLTF(
     const positionAccessor = document
       .createAccessor()
       .setType("VEC3")
-      .setArray(positions)
+      .setArray(positions as Float32Array<ArrayBuffer>)
       .setBuffer(buffer);
 
     // Create primitive with position
@@ -176,7 +165,7 @@ export async function brushToGLTF(
         const normalAccessor = document
           .createAccessor()
           .setType("VEC3")
-          .setArray(normals)
+          .setArray(normals as Float32Array<ArrayBuffer>)
           .setBuffer(buffer);
         primitive.setAttribute("NORMAL", normalAccessor);
       }
@@ -475,43 +464,6 @@ export function extractBrushStats(brush: Brush): {
     }
     return { vertexCount: 0, triangleCount: 0 };
   }
-}
-
-/**
- * Extract vertex and triangle statistics from glTF document
- */
-export function extractMeshStats(document: Document): {
-  vertexCount: number;
-  triangleCount: number;
-} {
-  const scene = document.getRoot().getDefaultScene();
-  if (!scene) {
-    throw new Error("No default scene in glTF document");
-  }
-
-  // Count vertices and triangles from all meshes in the scene
-  const meshes = scene.listChildren().filter((node) => node.getMesh());
-  let vertexCount = 0;
-  let triangleCount = 0;
-
-  for (const node of meshes) {
-    const mesh = node.getMesh();
-    if (!mesh) continue;
-
-    for (const primitive of mesh.listPrimitives()) {
-      const positionAccessor = primitive.getAttribute("POSITION");
-      if (positionAccessor) {
-        vertexCount += positionAccessor.getCount();
-      }
-
-      const indices = primitive.getIndices();
-      if (indices) {
-        triangleCount += indices.getCount() / 3;
-      }
-    }
-  }
-
-  return { vertexCount, triangleCount };
 }
 
 /**

@@ -6,6 +6,6 @@ export default {
   serverBuildFile: "index.js",
   ssr: true,
   future: {
-    unstable_viteEnvironmentApi: true,
+    v8_viteEnvironmentApi: true,
   },
 } satisfies Config;

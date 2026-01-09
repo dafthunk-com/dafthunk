@@ -519,7 +519,7 @@ export class DemToGltfNode extends ExecutableNode {
     return doc
       .createAccessor()
       .setType("VEC3")
-      .setArray(positions)
+      .setArray(positions as Float32Array<ArrayBuffer>)
       .setBuffer(buffer);
   }
 
@@ -531,7 +531,7 @@ export class DemToGltfNode extends ExecutableNode {
     return doc
       .createAccessor()
       .setType("VEC3")
-      .setArray(normals)
+      .setArray(normals as Float32Array<ArrayBuffer>)
       .setBuffer(buffer);
   }
 
@@ -540,7 +540,11 @@ export class DemToGltfNode extends ExecutableNode {
     buffer: Buffer,
     uvs: Float32Array
   ): Accessor {
-    return doc.createAccessor().setType("VEC2").setArray(uvs).setBuffer(buffer);
+    return doc
+      .createAccessor()
+      .setType("VEC2")
+      .setArray(uvs as Float32Array<ArrayBuffer>)
+      .setBuffer(buffer);
   }
 
   private createIndexAccessor(
@@ -551,7 +555,7 @@ export class DemToGltfNode extends ExecutableNode {
     return doc
       .createAccessor()
       .setType("SCALAR")
-      .setArray(indices)
+      .setArray(indices as Uint32Array<ArrayBuffer>)
       .setBuffer(buffer);
   }
 
