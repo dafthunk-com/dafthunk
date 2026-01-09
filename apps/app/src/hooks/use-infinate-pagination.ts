@@ -5,10 +5,8 @@ import useSWRInfinite, {
   SWRInfiniteKeyLoader,
 } from "swr/infinite";
 
-export interface UsePaginationOptions<
-  Data = any,
-  Error = any,
-> extends SWRInfiniteConfiguration<Data[], Error> {
+export interface UsePaginationOptions<Data = any, Error = any>
+  extends SWRInfiniteConfiguration<Data[], Error> {
   pageSize: number;
 }
 

@@ -1,5 +1,5 @@
-import type { Parameter } from "@dafthunk/types";
 import { env } from "cloudflare:test";
+import type { Parameter } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../context";

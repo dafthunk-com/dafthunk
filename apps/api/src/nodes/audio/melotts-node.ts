@@ -1,8 +1,7 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
 import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
-import { NodeContext } from "../types";
-import { ExecutableNode } from "../types";
+import { ExecutableNode, NodeContext } from "../types";
 
 // https://developers.cloudflare.com/workers-ai/platform/pricing/
 // Cloudflare Workers AI: MeloTTS model

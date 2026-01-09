@@ -1,5 +1,5 @@
 import { Menu, X } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import categories from "../../data/categories.json";
 import workflowsData from "../../data/workflows.json";
 

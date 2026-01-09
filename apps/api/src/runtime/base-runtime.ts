@@ -1,3 +1,4 @@
+import { NonRetryableError } from "cloudflare:workflows";
 import type {
   Node,
   QueueMessage,
@@ -6,7 +7,6 @@ import type {
   WorkflowExecution,
   WorkflowExecutionStatus,
 } from "@dafthunk/types";
-import { NonRetryableError } from "cloudflare:workflows";
 
 import { Bindings } from "../context";
 import { BaseNodeRegistry } from "../nodes/base-node-registry";

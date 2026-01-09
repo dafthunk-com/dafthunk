@@ -1,6 +1,6 @@
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
-import { CookieConsent } from "./components/cookie-consent";
 import stylesheet from "./app.css?url";
+import { CookieConsent } from "./components/cookie-consent";
 
 export const links = () => [
   {

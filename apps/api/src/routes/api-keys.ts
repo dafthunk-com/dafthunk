@@ -12,8 +12,13 @@ import { z } from "zod";
 
 import { jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
-import { createDatabase } from "../db";
-import { createApiKey, deleteApiKey, getApiKeys, rollApiKey } from "../db";
+import {
+  createApiKey,
+  createDatabase,
+  deleteApiKey,
+  getApiKeys,
+  rollApiKey,
+} from "../db";
 
 // Create a new Hono instance for API keys endpoints
 const apiKeyRoutes = new Hono<ApiContext>();

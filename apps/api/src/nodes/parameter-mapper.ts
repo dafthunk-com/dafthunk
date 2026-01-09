@@ -1,16 +1,16 @@
 import type {
-  ObjectReference,
   ParameterValue as ApiParameterValue,
+  ObjectReference,
 } from "@dafthunk/types";
 
 import { ObjectStore } from "../stores/object-store";
 import {
+  isObjectReference,
   AudioParameter as NodeAudioParameter,
   BlobParameter as NodeBlobParameter,
   DocumentParameter as NodeDocumentParameter,
   GltfParameter as NodeGltfParameter,
   ImageParameter as NodeImageParameter,
-  isObjectReference,
   ParameterValue as NodeParameterValue,
 } from "./types";
 

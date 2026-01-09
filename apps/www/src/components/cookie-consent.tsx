@@ -46,7 +46,7 @@ export function CookieConsent() {
     } else if (stored === "granted") {
       updateGtagConsent(true);
     }
-  }, [gaMeasurementId]);
+  }, []);
 
   function handleAccept() {
     localStorage.setItem(CONSENT_KEY, "granted");

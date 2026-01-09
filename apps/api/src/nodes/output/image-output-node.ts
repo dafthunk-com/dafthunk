@@ -1,7 +1,5 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
-
-import { ExecutableNode, ImageParameter } from "../types";
-import { NodeContext } from "../types";
+import { ExecutableNode, ImageParameter, NodeContext } from "../types";
 
 /**
  * ImageOutput node implementation

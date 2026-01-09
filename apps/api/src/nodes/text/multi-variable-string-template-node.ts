@@ -1,7 +1,5 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
-
-import { ExecutableNode } from "../types";
-import { NodeContext } from "../types";
+import { ExecutableNode, NodeContext } from "../types";
 
 export class MultiVariableStringTemplateNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -58,11 +56,11 @@ export class MultiVariableStringTemplateNode extends ExecutableNode {
   ): { result: string; missingVariables: string[] } {
     const variableNames = this.extractVariableNames(template);
     const missingVariables = variableNames.filter(
-      (varName) => !variables.hasOwnProperty(varName)
+      (varName) => !Object.hasOwn(variables, varName)
     );
 
     const result = template.replace(/\${([^}]+)}/g, (match, varName) => {
-      if (variables.hasOwnProperty(varName)) {
+      if (Object.hasOwn(variables, varName)) {
         const value = variables[varName];
         return value !== null && value !== undefined ? String(value) : "";
       }

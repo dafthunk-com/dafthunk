@@ -1,7 +1,7 @@
 import {
-  SendEmailCommand,
   SESClient,
   SESServiceException,
+  SendEmailCommand,
 } from "@aws-sdk/client-ses";
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
