@@ -1,21 +1,34 @@
 {
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "ignore": [".claude/skills/**"],
   "workspaces": {
-    "apps/web": {
-      "entry": [
-        "src/entry-client.tsx",
-        "src/entry-server.tsx",
-        "worker/index.ts"
-      ]
+    "apps/app": {
+      "entry": ["src/entry-client.tsx", "worker/index.ts"],
+      "project": ["src/**/*.{ts,tsx}", "worker/**/*.ts"],
+      "paths": {
+        "@/*": ["src/*"]
+      },
+      "ignore": ["src/components/ui/**", "src/services/**"]
+    },
+    "apps/www": {
+      "entry": ["src/routes/**/*.tsx", "workers/app.ts"],
+      "project": ["src/**/*.{ts,tsx}", "workers/**/*.ts"],
+      "ignoreDependencies": ["@react-router/node", "isbot", "@react-router/cloudflare"]
     },
     "apps/api": {
+      "entry": ["src/index.ts"],
+      "project": ["src/**/*.ts"],
       "ignore": [
+        "scripts/**",
         "src/db/schema/index.ts",
-        "scripts/*",
         "src/test-entry.ts",
         "src/mocks/runtime.ts",
         "src/runtime/types.ts"
       ]
     }
   },
-  "ignoreExportsUsedInFile": true
+  "ignoreExportsUsedInFile": true,
+  "rules": {
+    "unlisted": "off"
+  }
 }

@@ -59,8 +59,9 @@ export class DetrResnet50Node extends ExecutableNode {
       }
 
       // Run the DETR-ResNet-50 model for object detection
+      // Note: This model is deprecated but may still work at runtime
       const detections = await context.env.AI.run(
-        "@cf/facebook/detr-resnet-50",
+        "@cf/facebook/detr-resnet-50" as keyof AiModels,
         {
           image: Array.from(image.data),
         },
