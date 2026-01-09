@@ -363,7 +363,7 @@ organizationRoutes.post(
     z.object({
       email: z.string().email("Valid email is required"),
       role: z.enum(["member", "admin"], {
-        errorMap: () => ({ message: "Role must be member or admin" }),
+        error: "Role must be member or admin",
       }),
     }) as z.ZodType<CreateInvitationRequest>
   ),

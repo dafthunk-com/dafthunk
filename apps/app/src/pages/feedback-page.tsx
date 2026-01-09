@@ -82,7 +82,8 @@ export const createColumns = (
     header: "Deployment",
     cell: ({ row }) => {
       const deploymentId = row.getValue("deploymentId") as string | undefined;
-      if (!deploymentId) return <span className="text-muted-foreground">-</span>;
+      if (!deploymentId)
+        return <span className="text-muted-foreground">-</span>;
       return (
         <Link
           to={getOrgUrl(`deployment/${deploymentId}`)}
