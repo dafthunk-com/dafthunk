@@ -1,9 +1,9 @@
 import {
   ConnectionLineComponentProps,
-  Edge as ReactFlowEdge,
   EdgeProps,
   getSmoothStepPath,
   Position,
+  Edge as ReactFlowEdge,
 } from "@xyflow/react";
 import { memo } from "react";
 

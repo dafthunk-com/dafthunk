@@ -1,9 +1,7 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 import type { AllGeoJSON } from "@turf/turf";
 import { area } from "@turf/turf";
-
-import { ExecutableNode } from "../types";
-import { NodeContext } from "../types";
+import { ExecutableNode, NodeContext } from "../types";
 
 export class AreaNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

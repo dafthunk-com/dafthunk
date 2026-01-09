@@ -1,8 +1,6 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 import { centerMedian } from "@turf/turf";
-
-import { ExecutableNode } from "../types";
-import { NodeContext } from "../types";
+import { ExecutableNode, NodeContext } from "../types";
 
 export class CenterMedianNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

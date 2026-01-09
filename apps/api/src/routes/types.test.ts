@@ -1,5 +1,5 @@
-import type { GetNodeTypesResponse, WorkflowType } from "@dafthunk/types";
 import { env } from "cloudflare:test";
+import type { GetNodeTypesResponse, WorkflowType } from "@dafthunk/types";
 import { Hono } from "hono";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -85,32 +85,31 @@ describe("Types Route Tests", () => {
       "scheduled",
     ];
 
-    it.each(workflowTypes)(
-      "should handle workflowType query parameter: %s",
-      async (workflowType) => {
-        const response = await app.request(
-          `/types?workflowType=${workflowType}`,
-          {
-            method: "GET",
-          }
-        );
+    it.each(
+      workflowTypes
+    )("should handle workflowType query parameter: %s", async (workflowType) => {
+      const response = await app.request(
+        `/types?workflowType=${workflowType}`,
+        {
+          method: "GET",
+        }
+      );
 
-        expect(response.status).toBe(200);
+      expect(response.status).toBe(200);
 
-        const data = (await response.json()) as GetNodeTypesResponse;
-        expect(data).toHaveProperty("nodeTypes");
-        expect(Array.isArray(data.nodeTypes)).toBe(true);
+      const data = (await response.json()) as GetNodeTypesResponse;
+      expect(data).toHaveProperty("nodeTypes");
+      expect(Array.isArray(data.nodeTypes)).toBe(true);
 
-        // All returned node types should be compatible with the requested workflow type
-        // or have no compatibility restrictions
-        data.nodeTypes.forEach((nodeType) => {
-          if (nodeType.compatibility) {
-            expect(nodeType.compatibility).toContain(workflowType);
-          }
-          // If no compatibility array, it's compatible with all workflow types
-        });
-      }
-    );
+      // All returned node types should be compatible with the requested workflow type
+      // or have no compatibility restrictions
+      data.nodeTypes.forEach((nodeType) => {
+        if (nodeType.compatibility) {
+          expect(nodeType.compatibility).toContain(workflowType);
+        }
+        // If no compatibility array, it's compatible with all workflow types
+      });
+    });
 
     it("should return different results for different workflow types", async () => {
       // Get node types for manual workflow

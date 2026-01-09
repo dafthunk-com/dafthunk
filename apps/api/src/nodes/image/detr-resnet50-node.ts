@@ -1,8 +1,7 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
 import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
-import { ExecutableNode } from "../types";
-import { NodeContext } from "../types";
+import { ExecutableNode, NodeContext } from "../types";
 
 // https://developers.cloudflare.com/workers-ai/platform/pricing/
 // Cloudflare Workers AI: DETR-ResNet-50 object detection
@@ -59,8 +58,9 @@ export class DetrResnet50Node extends ExecutableNode {
       }
 
       // Run the DETR-ResNet-50 model for object detection
+      // Note: This model is deprecated but may still work at runtime
       const detections = await context.env.AI.run(
-        "@cf/facebook/detr-resnet-50",
+        "@cf/facebook/detr-resnet-50" as keyof AiModels,
         {
           image: Array.from(image.data),
         },

@@ -1,7 +1,5 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
-
-import { ExecutableNode } from "../types";
-import { NodeContext } from "../types";
+import { ExecutableNode, NodeContext } from "../types";
 
 export class JsonTemplateNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -71,13 +69,13 @@ export class JsonTemplateNode extends ExecutableNode {
   ): { result: any; missingVariables: string[] } {
     const variableNames = this.extractVariableNames(template);
     const missingVariables = variableNames.filter(
-      (varName) => !variables.hasOwnProperty(varName)
+      (varName) => !Object.hasOwn(variables, varName)
     );
 
     const replaceValue = (value: any): any => {
       if (typeof value === "string") {
         return value.replace(/\${([^}]+)}/g, (match, varName) => {
-          if (variables.hasOwnProperty(varName)) {
+          if (Object.hasOwn(variables, varName)) {
             const val = variables[varName];
             return val !== null && val !== undefined ? String(val) : "";
           }

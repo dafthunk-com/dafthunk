@@ -1,8 +1,7 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
 import { createDatabase, getDataset } from "../../db";
-import { ExecutableNode } from "../types";
-import { NodeContext } from "../types";
+import { ExecutableNode, NodeContext } from "../types";
 
 /**
  * Dataset Upload File node implementation
@@ -114,9 +113,9 @@ export class DatasetUploadFileNode extends ExecutableNode {
       if (content instanceof ArrayBuffer) {
         arrayBuffer = content;
       } else if (typeof content === "string") {
-        arrayBuffer = new TextEncoder().encode(content).buffer;
+        arrayBuffer = new TextEncoder().encode(content).buffer as ArrayBuffer;
       } else if (content instanceof Uint8Array) {
-        arrayBuffer = content.buffer;
+        arrayBuffer = content.buffer as ArrayBuffer;
       } else {
         return this.createErrorResult("Invalid content type");
       }

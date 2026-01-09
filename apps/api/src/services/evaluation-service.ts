@@ -11,25 +11,19 @@ import { v7 as uuid } from "uuid";
 import type { Bindings } from "../context";
 import { createDatabase } from "../db";
 import type { EvaluationInsert, EvaluationRow } from "../db/schema";
-import { evaluations, EvaluationStatus } from "../db/schema";
+import { EvaluationStatus, evaluations } from "../db/schema";
 import { WorkerRuntime } from "../runtime/worker-runtime";
 import { DeploymentStore } from "../stores/deployment-store";
-import { ExecutionStore } from "../stores/execution-store";
-import { ObjectStore } from "../stores/object-store";
 
 /**
  * Service for running AI evaluations on workflow deployments
  */
 export class EvaluationService {
   private env: Bindings;
-  private objectStore: ObjectStore;
-  private executionStore: ExecutionStore;
   private deploymentStore: DeploymentStore;
 
   constructor(env: Bindings) {
     this.env = env;
-    this.objectStore = new ObjectStore(env.RESSOURCES);
-    this.executionStore = new ExecutionStore(env);
     this.deploymentStore = new DeploymentStore(env);
   }
 

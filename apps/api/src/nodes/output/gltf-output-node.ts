@@ -1,7 +1,5 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
-
-import { ExecutableNode, GltfParameter } from "../types";
-import { NodeContext } from "../types";
+import { ExecutableNode, GltfParameter, NodeContext } from "../types";
 
 /**
  * GltfOutput node implementation

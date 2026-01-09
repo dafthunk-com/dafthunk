@@ -6,16 +6,16 @@ import {
   BackgroundVariant,
   ConnectionMode,
   Controls,
-  Edge as ReactFlowEdge,
   IsValidConnection,
-  Node as ReactFlowNode,
   OnConnect,
   OnConnectEnd,
   OnConnectStart,
   OnEdgesChange,
   OnNodesChange,
   ReactFlow,
+  Edge as ReactFlowEdge,
   ReactFlowInstance,
+  Node as ReactFlowNode,
 } from "@xyflow/react";
 import { PanelRightClose, PanelRightOpen, Plus } from "lucide-react";
 import ArrowUpToLine from "lucide-react/icons/arrow-up-to-line";

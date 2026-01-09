@@ -1,10 +1,10 @@
-import { Link, data } from "react-router";
+import type { LucideIcon } from "lucide-react";
+import * as icons from "lucide-react";
 import type { LoaderFunctionArgs, MetaFunction } from "react-router";
+import { data, Link } from "react-router";
+import workflowsData from "../../../data/workflows.json";
 import { Layout } from "../../components/layout";
 import { WorkflowPreview } from "../../components/workflow-preview";
-import workflowsData from "../../../data/workflows.json";
-import * as icons from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 
 const websiteUrl = import.meta.env.VITE_WEBSITE_URL;
 

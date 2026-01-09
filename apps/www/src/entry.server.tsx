@@ -1,6 +1,6 @@
 import { renderToReadableStream } from "react-dom/server.edge";
-import { ServerRouter } from "react-router";
 import type { EntryContext } from "react-router";
+import { ServerRouter } from "react-router";
 
 export default async function handleRequest(
   request: Request,

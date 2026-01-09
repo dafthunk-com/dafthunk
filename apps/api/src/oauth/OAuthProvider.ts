@@ -12,9 +12,7 @@
 
 import { eq } from "drizzle-orm";
 import type { Context } from "hono";
-
-import type { ApiContext } from "../context";
-import type { Bindings } from "../context";
+import type { ApiContext, Bindings } from "../context";
 import { createDatabase, createIntegration, organizations } from "../db";
 import type {
   OAuthState,

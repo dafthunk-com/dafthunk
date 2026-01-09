@@ -1,8 +1,8 @@
 import { Link } from "react-router";
-import { Layout } from "../components/layout";
-import { YouTubeFacade } from "../components/youtube-facade";
 import categories from "../../data/categories.json";
 import workflowsData from "../../data/workflows.json";
+import { Layout } from "../components/layout";
+import { YouTubeFacade } from "../components/youtube-facade";
 
 const websiteUrl = import.meta.env.VITE_WEBSITE_URL;
 

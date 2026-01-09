@@ -1,10 +1,10 @@
-import { Link, data } from "react-router";
+import type { LucideIcon } from "lucide-react";
+import * as icons from "lucide-react";
 import type { LoaderFunctionArgs, MetaFunction } from "react-router";
-import { Layout } from "../../components/layout";
+import { data, Link } from "react-router";
 import categories from "../../../data/categories.json";
 import allNodes from "../../../data/nodes.json";
-import * as icons from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { Layout } from "../../components/layout";
 
 const websiteUrl = import.meta.env.VITE_WEBSITE_URL;
 

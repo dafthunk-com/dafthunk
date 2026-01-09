@@ -3,10 +3,6 @@
   "name": "dafthunk-api-test",
   "compatibility_date": "2024-10-22",
   "compatibility_flags": ["nodejs_compat"],
-  "ai": {
-    "binding": "AI",
-    "remote": true
-  },
   "d1_databases": [
     {
       "binding": "DB",

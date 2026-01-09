@@ -60,8 +60,6 @@ export class DemToGltfNode extends ExecutableNode {
       })
       .optional(),
   });
-
-  private static readonly ELEVATION_NO_DATA = -9999;
   private static readonly VERTEX_COMPONENTS_3D = 3;
   private static readonly TRIANGLE_VERTICES = 3;
   private static readonly DEFAULT_BASE_COLOR = [1.0, 1.0, 1.0, 1.0] as const;
@@ -519,7 +517,7 @@ export class DemToGltfNode extends ExecutableNode {
     return doc
       .createAccessor()
       .setType("VEC3")
-      .setArray(positions)
+      .setArray(positions as Float32Array<ArrayBuffer>)
       .setBuffer(buffer);
   }
 
@@ -531,7 +529,7 @@ export class DemToGltfNode extends ExecutableNode {
     return doc
       .createAccessor()
       .setType("VEC3")
-      .setArray(normals)
+      .setArray(normals as Float32Array<ArrayBuffer>)
       .setBuffer(buffer);
   }
 
@@ -540,7 +538,11 @@ export class DemToGltfNode extends ExecutableNode {
     buffer: Buffer,
     uvs: Float32Array
   ): Accessor {
-    return doc.createAccessor().setType("VEC2").setArray(uvs).setBuffer(buffer);
+    return doc
+      .createAccessor()
+      .setType("VEC2")
+      .setArray(uvs as Float32Array<ArrayBuffer>)
+      .setBuffer(buffer);
   }
 
   private createIndexAccessor(
@@ -551,7 +553,7 @@ export class DemToGltfNode extends ExecutableNode {
     return doc
       .createAccessor()
       .setType("SCALAR")
-      .setArray(indices)
+      .setArray(indices as Uint32Array<ArrayBuffer>)
       .setBuffer(buffer);
   }
 

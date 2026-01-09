@@ -246,7 +246,7 @@ export class NodeToolProvider implements ToolProvider {
     const result: Record<string, any> = {};
 
     for (const input of nodeInputs) {
-      if (parameters.hasOwnProperty(input.name)) {
+      if (Object.hasOwn(parameters, input.name)) {
         result[input.name] = this.coerceParameterValue(
           parameters[input.name],
           input.type

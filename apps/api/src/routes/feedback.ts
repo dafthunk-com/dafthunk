@@ -14,7 +14,7 @@ import { z } from "zod";
 import { jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
 import { createDatabase } from "../db";
-import { feedback, type FeedbackInsert, type FeedbackRow } from "../db/schema";
+import { type FeedbackInsert, type FeedbackRow, feedback } from "../db/schema";
 import { ExecutionStore } from "../stores/execution-store";
 
 const feedbackRoutes = new Hono<ApiContext>();
