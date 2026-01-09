@@ -25,8 +25,7 @@
     "scripts/**/*",
     "react-router.config.ts",
     "vite.config.ts",
-    "tailwind.config.ts",
-    "eslint.config.js"
+    "tailwind.config.ts"
   ],
   "exclude": [".react-router"]
 }
