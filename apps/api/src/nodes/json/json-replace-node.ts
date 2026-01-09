@@ -1,7 +1,5 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
-
-import { ExecutableNode } from "../types";
-import { NodeContext } from "../types";
+import { ExecutableNode, NodeContext } from "../types";
 
 export class JsonReplaceNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -95,42 +93,6 @@ export class JsonReplaceNode extends ExecutableNode {
       return this.createErrorResult(
         `Error replacing JSON value: ${error.message}`
       );
-    }
-  }
-
-  private pathExists(obj: any, path: string): boolean {
-    try {
-      const pathParts = this.parsePath(path);
-      let current = obj;
-
-      for (const part of pathParts) {
-        if (current === null || current === undefined) {
-          return false;
-        }
-
-        if (typeof part === "string") {
-          if (typeof current !== "object" || Array.isArray(current)) {
-            return false;
-          }
-          if (!(part in current)) {
-            return false;
-          }
-          current = current[part];
-        } else if (typeof part === "number") {
-          if (!Array.isArray(current)) {
-            return false;
-          }
-          const actualIndex = part < 0 ? current.length + part : part;
-          if (actualIndex < 0 || actualIndex >= current.length) {
-            return false;
-          }
-          current = current[actualIndex];
-        }
-      }
-
-      return true;
-    } catch {
-      return false;
     }
   }
 
@@ -279,7 +241,7 @@ export class JsonReplaceNode extends ExecutableNode {
     if (typeof obj === "object") {
       const cloned: Record<string, any> = {};
       for (const key in obj) {
-        if (obj.hasOwnProperty(key)) {
+        if (Object.hasOwn(obj, key)) {
           cloned[key] = this.deepClone(obj[key]);
         }
       }

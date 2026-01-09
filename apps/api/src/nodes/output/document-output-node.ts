@@ -1,7 +1,5 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
-
-import { DocumentParameter, ExecutableNode } from "../types";
-import { NodeContext } from "../types";
+import { DocumentParameter, ExecutableNode, NodeContext } from "../types";
 
 /**
  * DocumentOutput node implementation

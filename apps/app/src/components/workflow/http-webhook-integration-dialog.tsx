@@ -14,8 +14,7 @@ import type {
   WorkflowNodeType,
 } from "@/components/workflow/workflow-types";
 import { getApiBaseUrl } from "@/config/api";
-import { cn } from "@/utils/utils";
-import { extractDialogParametersFromNodes } from "@/utils/utils";
+import { cn, extractDialogParametersFromNodes } from "@/utils/utils";
 
 interface HttpWebhookIntegrationDialogProps {
   isOpen: boolean;

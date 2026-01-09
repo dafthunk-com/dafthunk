@@ -1,7 +1,5 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
-
-import { BlobParameter, ExecutableNode } from "../types";
-import { NodeContext } from "../types";
+import { BlobParameter, ExecutableNode, NodeContext } from "../types";
 
 /**
  * BlobOutput node implementation

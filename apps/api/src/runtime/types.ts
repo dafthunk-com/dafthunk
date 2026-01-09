@@ -265,10 +265,10 @@ export function getNodeType(executable: unknown): NodeType | null {
     return null;
   }
 
-  const constructor = executable.constructor as
+  const constr = executable.constructor as
     | ExecutableNodeConstructor
     | undefined;
-  return constructor?.nodeType ?? null;
+  return constr?.nodeType ?? null;
 }
 
 /**

@@ -7,9 +7,7 @@ import {
   useMemo,
   useState,
 } from "react";
-
-import { useProfile } from "@/services/profile-service";
-import { updateProfile } from "@/services/profile-service";
+import { updateProfile, useProfile } from "@/services/profile-service";
 import { useWorkflows } from "@/services/workflow-service";
 
 import { TourSpotlight } from "./tour-spotlight";

@@ -1,9 +1,9 @@
 // Registry functions
-export type { ProviderName } from "./registry";
-export { getAllProviders, getProvider, isValidProvider } from "./registry";
 
 // Base class
 export { OAuthProvider } from "./OAuthProvider";
+export type { ProviderName } from "./registry";
+export { getAllProviders, getProvider, isValidProvider } from "./registry";
 
 // Types
 export type {

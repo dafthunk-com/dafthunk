@@ -5,13 +5,13 @@
  * Clients connect via WebSocket to sync state and receive realtime execution updates.
  */
 
+import { DurableObject } from "cloudflare:workers";
 import type {
   ClientMessage,
   WorkflowExecuteMessage,
   WorkflowExecution,
   WorkflowUpdateMessage,
 } from "@dafthunk/types";
-import { DurableObject } from "cloudflare:workers";
 
 import type { Bindings } from "../context";
 import { ConnectionManager } from "./connection-manager";
