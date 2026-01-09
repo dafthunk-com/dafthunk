@@ -304,8 +304,8 @@ importers:
         specifier: ^7.57.0
         version: 7.57.0(react@19.1.0)
       react-router:
-        specifier: ^7.6.0
-        version: 7.9.6(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+        specifier: ^7.12.0
+        version: 7.12.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       sonner:
         specifier: ^2.0.3
         version: 2.0.5(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -434,8 +434,8 @@ importers:
         specifier: ^19.1.0
         version: 19.1.0(react@19.1.0)
       react-router:
-        specifier: ^7.9.6
-        version: 7.9.6(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+        specifier: ^7.12.0
+        version: 7.12.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       tailwind-merge:
         specifier: ^3.2.0
         version: 3.3.1
@@ -451,10 +451,10 @@ importers:
         version: 9.29.0
       '@react-router/cloudflare':
         specifier: ^7.9.6
-        version: 7.9.6(@cloudflare/workers-types@4.20250726.0)(react-router@7.9.6(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(typescript@5.8.3)
+        version: 7.9.6(@cloudflare/workers-types@4.20250726.0)(react-router@7.12.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(typescript@5.8.3)
       '@react-router/dev':
         specifier: ^7.9.6
-        version: 7.9.6(@types/node@22.15.31)(jiti@2.5.1)(react-router@7.9.6(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(tsx@4.20.3)(typescript@5.8.3)(vite@7.2.7(@types/node@22.15.31)(jiti@2.5.1)(tsx@4.20.3)(yaml@2.8.0))(wrangler@4.47.0(@cloudflare/workers-types@4.20250726.0))(yaml@2.8.0)
+        version: 7.9.6(@types/node@22.15.31)(jiti@2.5.1)(react-router@7.12.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(tsx@4.20.3)(typescript@5.8.3)(vite@7.2.7(@types/node@22.15.31)(jiti@2.5.1)(tsx@4.20.3)(yaml@2.8.0))(wrangler@4.47.0(@cloudflare/workers-types@4.20250726.0))(yaml@2.8.0)
       '@types/react':
         specifier: ^19.1.2
         version: 19.1.8
@@ -3605,8 +3605,8 @@ packages:
   convert-source-map@2.0.0:
     resolution: {integrity: sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg==}
 
-  cookie@1.0.2:
-    resolution: {integrity: sha512-9Kr/j4O16ISv8zBBhJoi4bXOYNTkFLOqSL3UDB0njXxCXNezjeyVrJyGOWtgfs/q2km1gwBcfH8q1yEGoMYunA==}
+  cookie@1.1.1:
+    resolution: {integrity: sha512-ei8Aos7ja0weRpFzJnEA9UHJ/7XQmqglbRwnf2ATjcB9Wq874VKH9kfjjirM6UhU2/E5fFYadylyhFldcqSidQ==}
     engines: {node: '>=18'}
 
   core-util-is@1.0.3:
@@ -5154,8 +5154,8 @@ packages:
       '@types/react':
         optional: true
 
-  react-router@7.9.6:
-    resolution: {integrity: sha512-Y1tUp8clYRXpfPITyuifmSoE2vncSME18uVLgaqyxh9H35JWpIfzHo+9y3Fzh5odk/jxPW29IgLgzcdwxGqyNA==}
+  react-router@7.12.0:
+    resolution: {integrity: sha512-kTPDYPFzDVGIIGNLS5VJykK0HfHLY5MF3b+xj0/tTyNYL1gF1qs7u67Z9jEhQk2sQ98SUaHxlG31g1JtF7IfVw==}
     engines: {node: '>=20.0.0'}
     peerDependencies:
       react: '>=18'
@@ -5256,6 +5256,7 @@ packages:
 
   scmp@2.1.0:
     resolution: {integrity: sha512-o/mRQGk9Rcer/jEEw/yw4mwo3EU/NvYvp577/Btqrym9Qy5/MdWGBqipbALgd2lrdWTJ5/gqDusxfnQBxOxT2Q==}
+    deprecated: Just use Node.js's crypto.timingSafeEqual()
 
   selderee@0.11.0:
     resolution: {integrity: sha512-5TF+l7p4+OsnP8BCCvSyZiSPc4x4//p5uPwK8TCnVPJYRmU2aYKMpOXvw8zM5a5JvuuCGN1jmsMwuU2W02ukfA==}
@@ -5269,8 +5270,8 @@ packages:
     engines: {node: '>=10'}
     hasBin: true
 
-  set-cookie-parser@2.7.1:
-    resolution: {integrity: sha512-IOc8uWeOZgnb3ptbCURJWNjWUPcO3ZnTTdzsurqERrP6nPyv+paC55vJM0LpOlT2ne+Ix+9+CRG1MNLlyZ4GjQ==}
+  set-cookie-parser@2.7.2:
+    resolution: {integrity: sha512-oeM1lpU/UvhTxw+g3cIfxXHyJRc/uidd3yK1P242gzHds0udQBYzs3y8j4gCCW+ZJ7ad0yctld8RYO+bdurlvw==}
 
   sharp@0.33.5:
     resolution: {integrity: sha512-haPVm1EkS9pgvHrQ/F3Xy+hgcuMV0Wm9vfIBSiwZ05k+xgb0PkBQpGsAA/oWdDobNaZTH5ppvHtzCFbnSEwHVw==}
@@ -7880,14 +7881,14 @@ snapshots:
 
   '@radix-ui/rect@1.1.1': {}
 
-  '@react-router/cloudflare@7.9.6(@cloudflare/workers-types@4.20250726.0)(react-router@7.9.6(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(typescript@5.8.3)':
+  '@react-router/cloudflare@7.9.6(@cloudflare/workers-types@4.20250726.0)(react-router@7.12.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(typescript@5.8.3)':
     dependencies:
       '@cloudflare/workers-types': 4.20250726.0
-      react-router: 7.9.6(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      react-router: 7.12.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
     optionalDependencies:
       typescript: 5.8.3
 
-  '@react-router/dev@7.9.6(@types/node@22.15.31)(jiti@2.5.1)(react-router@7.9.6(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(tsx@4.20.3)(typescript@5.8.3)(vite@7.2.7(@types/node@22.15.31)(jiti@2.5.1)(tsx@4.20.3)(yaml@2.8.0))(wrangler@4.47.0(@cloudflare/workers-types@4.20250726.0))(yaml@2.8.0)':
+  '@react-router/dev@7.9.6(@types/node@22.15.31)(jiti@2.5.1)(react-router@7.12.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(tsx@4.20.3)(typescript@5.8.3)(vite@7.2.7(@types/node@22.15.31)(jiti@2.5.1)(tsx@4.20.3)(yaml@2.8.0))(wrangler@4.47.0(@cloudflare/workers-types@4.20250726.0))(yaml@2.8.0)':
     dependencies:
       '@babel/core': 7.28.5
       '@babel/generator': 7.28.5
@@ -7897,7 +7898,7 @@ snapshots:
       '@babel/traverse': 7.28.5
       '@babel/types': 7.28.5
       '@npmcli/package-json': 4.0.1
-      '@react-router/node': 7.9.6(react-router@7.9.6(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(typescript@5.8.3)
+      '@react-router/node': 7.9.6(react-router@7.12.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(typescript@5.8.3)
       '@remix-run/node-fetch-server': 0.9.0
       arg: 5.0.2
       babel-dead-code-elimination: 1.0.10
@@ -7913,7 +7914,7 @@ snapshots:
       picocolors: 1.1.1
       prettier: 3.6.2
       react-refresh: 0.14.2
-      react-router: 7.9.6(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      react-router: 7.12.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       semver: 7.7.2
       tinyglobby: 0.2.14
       valibot: 1.2.0(typescript@5.8.3)
@@ -7938,10 +7939,10 @@ snapshots:
       - tsx
       - yaml
 
-  '@react-router/node@7.9.6(react-router@7.9.6(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(typescript@5.8.3)':
+  '@react-router/node@7.9.6(react-router@7.12.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(typescript@5.8.3)':
     dependencies:
       '@mjackson/node-fetch-server': 0.2.0
-      react-router: 7.9.6(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      react-router: 7.12.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
     optionalDependencies:
       typescript: 5.8.3
 
@@ -10027,7 +10028,7 @@ snapshots:
 
   convert-source-map@2.0.0: {}
 
-  cookie@1.0.2: {}
+  cookie@1.1.1: {}
 
   core-util-is@1.0.3: {}
 
@@ -11669,11 +11670,11 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.1.8
 
-  react-router@7.9.6(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
+  react-router@7.12.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
     dependencies:
-      cookie: 1.0.2
+      cookie: 1.1.1
       react: 19.1.0
-      set-cookie-parser: 2.7.1
+      set-cookie-parser: 2.7.2
     optionalDependencies:
       react-dom: 19.1.0(react@19.1.0)
 
@@ -11801,7 +11802,7 @@ snapshots:
 
   semver@7.7.2: {}
 
-  set-cookie-parser@2.7.1: {}
+  set-cookie-parser@2.7.2: {}
 
   sharp@0.33.5:
     dependencies:
@@ -12452,7 +12453,7 @@ snapshots:
       '@poppinss/colors': 4.1.5
       '@poppinss/dumper': 0.6.4
       '@speed-highlight/core': 1.2.7
-      cookie: 1.0.2
+      cookie: 1.1.1
       youch-core: 0.3.3
 
   zod-validation-error@3.5.3(zod@3.25.76):
