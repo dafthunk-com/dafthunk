@@ -155,11 +155,11 @@ const binaryDataToBlob = (data: BinaryData, mimeType: string): Blob => {
   if (typeof data === "string") {
     // Assume it's base64 if it's a string
     const bytes = base64ToUint8Array(data);
-    return new Blob([bytes], { type: mimeType });
+    return new Blob([bytes as BlobPart], { type: mimeType });
   }
 
   if (data instanceof Uint8Array || data instanceof ArrayBuffer) {
-    return new Blob([data], { type: mimeType });
+    return new Blob([data as BlobPart], { type: mimeType });
   }
 
   // For number arrays or other array-like objects

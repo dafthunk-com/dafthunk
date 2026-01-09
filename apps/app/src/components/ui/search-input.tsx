@@ -3,8 +3,7 @@ import * as React from "react";
 
 import { cn } from "@/utils/utils";
 
-export interface SearchInputProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {}
+export interface SearchInputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
 
 const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
   ({ className, ...props }, ref) => {

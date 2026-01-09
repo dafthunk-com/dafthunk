@@ -47,7 +47,7 @@ objectRoutes.get("/", apiKeyOrJwtMiddleware, async (c) => {
       return c.text("Forbidden: You do not have access to this object", 403);
     }
 
-    return c.body(data, {
+    return new Response(data, {
       headers: {
         "content-type": mimeType,
         "Cache-Control": "public, max-age=31536000",
