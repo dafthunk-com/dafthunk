@@ -20,7 +20,7 @@
     "knip:fix": "knip --include-libs --fix --allow-remove-files"
   },
   "devDependencies": {
-    "knip": "^5.63.1"
+    "knip": "^5.80.2"
   },
   "pnpm": {
     "overrides": {
@@ -29,7 +29,7 @@
       "vite": ">=6.3.6",
       "glob": ">=10.5.0",
       "valibot": ">=1.2.0",
-      "jws": ">=4.0.1",
+      "jws": ">=4.1.0",
       "js-yaml": ">=4.1.1",
       "mdast-util-to-hast": ">=13.2.1",
       "@eslint/plugin-kit": ">=0.3.4",
