@@ -60,8 +60,6 @@ export class DemToGltfNode extends ExecutableNode {
       })
       .optional(),
   });
-
-  private static readonly ELEVATION_NO_DATA = -9999;
   private static readonly VERTEX_COMPONENTS_3D = 3;
   private static readonly TRIANGLE_VERTICES = 3;
   private static readonly DEFAULT_BASE_COLOR = [1.0, 1.0, 1.0, 1.0] as const;

@@ -1,7 +1,5 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
-
-import { ExecutableNode } from "../types";
-import { NodeContext } from "../types";
+import { ExecutableNode, NodeContext } from "../types";
 
 export class JsonMergeNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -132,7 +130,7 @@ export class JsonMergeNode extends ExecutableNode {
 
   private mergeObject(target: any, source: any): void {
     for (const key in source) {
-      if (source.hasOwnProperty(key)) {
+      if (Object.hasOwn(source, key)) {
         const sourceValue = source[key];
         const targetValue = target[key];
 

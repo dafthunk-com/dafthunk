@@ -14,8 +14,7 @@ import {
   updateNodeName,
   useWorkflow,
 } from "./workflow-context";
-import type { WorkflowNodeType } from "./workflow-types";
-import type { WorkflowParameter } from "./workflow-types";
+import type { WorkflowNodeType, WorkflowParameter } from "./workflow-types";
 
 export interface WorkflowNodeInspectorProps {
   node: ReactFlowNode<WorkflowNodeType> | null;

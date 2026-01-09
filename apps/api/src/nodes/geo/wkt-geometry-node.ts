@@ -1,9 +1,11 @@
-import { NodeExecution, NodeType } from "@dafthunk/types";
-import { Geometry, GeometryCollection } from "@dafthunk/types";
+import {
+  Geometry,
+  GeometryCollection,
+  NodeExecution,
+  NodeType,
+} from "@dafthunk/types";
 import wellknown from "wellknown";
-
-import { ExecutableNode } from "../types";
-import { NodeContext } from "../types";
+import { ExecutableNode, NodeContext } from "../types";
 
 export class WktGeometryNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

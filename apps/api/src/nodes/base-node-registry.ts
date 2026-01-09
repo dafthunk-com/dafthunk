@@ -1,5 +1,4 @@
-import { Node, WorkflowType } from "@dafthunk/types";
-import { NodeType } from "@dafthunk/types";
+import { Node, NodeType, WorkflowType } from "@dafthunk/types";
 
 import { Bindings } from "../context";
 import { ExecutableNode } from "./types";

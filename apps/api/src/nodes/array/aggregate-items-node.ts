@@ -1,7 +1,5 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
-
-import { ExecutableNode } from "../types";
-import { NodeContext } from "../types";
+import { ExecutableNode, NodeContext } from "../types";
 
 /**
  * Aggregate Items node implementation that collects multiple inputs into a repeated output.

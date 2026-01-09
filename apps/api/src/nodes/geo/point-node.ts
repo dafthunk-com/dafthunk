@@ -1,8 +1,6 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 import { point } from "@turf/turf";
-
-import { ExecutableNode } from "../types";
-import { NodeContext } from "../types";
+import { ExecutableNode, NodeContext } from "../types";
 
 export class PointNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

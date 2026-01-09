@@ -13,8 +13,8 @@ import { z } from "zod";
 
 import { jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
-import { createDatabase } from "../db";
 import {
+  createDatabase,
   createSecret,
   deleteSecret,
   getSecret,

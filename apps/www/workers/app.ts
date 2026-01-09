@@ -24,6 +24,7 @@ const requestHandler = createRequestHandler(
 );
 
 export default {
+  // biome-ignore lint/suspicious/useAwait: this is expected
   async fetch(request: Request, env: Env, ctx: ExecutionContext) {
     return requestHandler(request, {
       cloudflare: { env, ctx },

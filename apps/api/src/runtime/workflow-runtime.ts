@@ -21,8 +21,8 @@
  * @see {@link WorkerRuntime} - Non-durable Worker implementation
  */
 
-import type { WorkflowExecution } from "@dafthunk/types";
 import { WorkflowStep, WorkflowStepConfig } from "cloudflare:workers";
+import type { WorkflowExecution } from "@dafthunk/types";
 
 import { BaseRuntime, type RuntimeParams } from "./base-runtime";
 

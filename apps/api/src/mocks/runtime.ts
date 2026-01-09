@@ -30,13 +30,13 @@
  * @see {@link WorkflowRuntime} - Production implementation
  */
 
-import type { WorkflowExecution } from "@dafthunk/types";
 import {
   WorkflowEntrypoint,
   WorkflowEvent,
   WorkflowStep,
   WorkflowStepConfig,
 } from "cloudflare:workers";
+import type { WorkflowExecution } from "@dafthunk/types";
 
 import type { Bindings } from "../context";
 import {

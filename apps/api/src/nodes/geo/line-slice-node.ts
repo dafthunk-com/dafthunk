@@ -1,8 +1,6 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 import { lineSlice } from "@turf/turf";
-
-import { ExecutableNode } from "../types";
-import { NodeContext } from "../types";
+import { ExecutableNode, NodeContext } from "../types";
 
 export class LineSliceNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
