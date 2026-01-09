@@ -31,9 +31,9 @@ evaluationRoutes.post(
         .array(
           z.object({
             id: z.string(),
-            input: z.record(z.record(z.any())),
-            expected: z.record(z.record(z.any())),
-            metadata: z.record(z.any()).optional(),
+            input: z.record(z.string(), z.record(z.string(), z.any())),
+            expected: z.record(z.string(), z.record(z.string(), z.any())),
+            metadata: z.record(z.string(), z.any()).optional(),
           })
         )
         .min(1, "At least one test case is required"),
