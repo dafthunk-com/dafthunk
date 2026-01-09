@@ -183,9 +183,9 @@ organizationRoutes.post(
   zValidator(
     "json",
     z.object({
-      email: z.string().email("Valid email is required"),
+      email: z.email(),
       role: z.enum(["member", "admin"], {
-        errorMap: () => ({ message: "Role must be member or admin" }),
+        error: "Role must be member or admin",
       }),
     }) as z.ZodType<Omit<AddMembershipRequest, "organizationId">>
   ),
@@ -231,9 +231,9 @@ organizationRoutes.put(
   zValidator(
     "json",
     z.object({
-      email: z.string().email("Valid email is required"),
+      email: z.email(),
       role: z.enum(["member", "admin"], {
-        errorMap: () => ({ message: "Role must be member or admin" }),
+        error: "Role must be member or admin",
       }),
     }) as z.ZodType<Omit<UpdateMembershipRequest, "organizationId">>
   ),
@@ -279,7 +279,7 @@ organizationRoutes.delete(
   zValidator(
     "json",
     z.object({
-      email: z.string().email("Valid email is required"),
+      email: z.email(),
     }) as z.ZodType<Omit<RemoveMembershipRequest, "organizationId">>
   ),
   async (c) => {
