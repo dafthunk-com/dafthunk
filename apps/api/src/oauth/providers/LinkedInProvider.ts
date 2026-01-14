@@ -33,15 +33,15 @@ export class LinkedInProvider extends OAuthProvider<
     };
   }
 
-  protected extractAccessToken(token: LinkedInToken): string {
+  extractAccessToken(token: LinkedInToken): string {
     return token.access_token;
   }
 
-  protected extractRefreshToken(token: LinkedInToken): string | undefined {
+  extractRefreshToken(token: LinkedInToken): string | undefined {
     return token.refresh_token;
   }
 
-  protected extractExpiresAt(token: LinkedInToken): Date {
+  extractExpiresAt(token: LinkedInToken): Date {
     return new Date(Date.now() + token.expires_in * 1000);
   }
 }

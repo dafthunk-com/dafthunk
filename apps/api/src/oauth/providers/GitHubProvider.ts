@@ -59,15 +59,15 @@ export class GitHubProvider extends OAuthProvider<GitHubToken, GitHubUser> {
     };
   }
 
-  protected extractAccessToken(token: GitHubToken): string {
+  extractAccessToken(token: GitHubToken): string {
     return token.access_token;
   }
 
-  protected extractRefreshToken(_token: GitHubToken): undefined {
+  extractRefreshToken(_token: GitHubToken): undefined {
     return undefined; // GitHub tokens don't have refresh tokens
   }
 
-  protected extractExpiresAt(_token: GitHubToken): undefined {
+  extractExpiresAt(_token: GitHubToken): undefined {
     return undefined; // GitHub tokens don't expire
   }
 }

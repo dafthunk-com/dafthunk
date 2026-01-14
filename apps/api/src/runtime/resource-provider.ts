@@ -286,6 +286,11 @@ export class ResourceProvider {
 
       console.log(`[OAuth] Token refreshed: ${provider} (${integrationId})`);
 
+      // Extract token data using provider's methods (handles snake_case conversion)
+      const newAccessToken = oauthProvider.extractAccessToken(result);
+      const newRefreshToken = oauthProvider.extractRefreshToken(result);
+      const newExpiresAt = oauthProvider.extractExpiresAt(result);
+
       // Update integration with new tokens
       await updateIntegration(
         db,
@@ -293,14 +298,14 @@ export class ResourceProvider {
         this.organizationId,
         {
           status: "active",
-          token: result.accessToken,
-          tokenExpiresAt: result.expiresAt,
-          ...(result.refreshToken && { refreshToken: result.refreshToken }),
+          token: newAccessToken,
+          tokenExpiresAt: newExpiresAt,
+          ...(newRefreshToken && { refreshToken: newRefreshToken }),
         },
         this.env
       );
 
-      return result.accessToken;
+      return newAccessToken;
     } catch (error) {
       console.error(
         `[OAuth] Failed to refresh: ${provider} (${integrationId})`,

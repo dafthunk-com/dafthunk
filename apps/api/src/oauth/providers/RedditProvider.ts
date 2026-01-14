@@ -99,15 +99,15 @@ export class RedditProvider extends OAuthProvider<RedditToken, RedditUser> {
     };
   }
 
-  protected extractAccessToken(token: RedditToken): string {
+  extractAccessToken(token: RedditToken): string {
     return token.access_token;
   }
 
-  protected extractRefreshToken(token: RedditToken): string {
+  extractRefreshToken(token: RedditToken): string {
     return token.refresh_token;
   }
 
-  protected extractExpiresAt(token: RedditToken): Date {
+  extractExpiresAt(token: RedditToken): Date {
     return new Date(Date.now() + token.expires_in * 1000);
   }
 }

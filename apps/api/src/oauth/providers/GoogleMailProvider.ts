@@ -38,15 +38,15 @@ export class GoogleMailProvider extends OAuthProvider<GoogleToken, GoogleUser> {
     };
   }
 
-  protected extractAccessToken(token: GoogleToken): string {
+  extractAccessToken(token: GoogleToken): string {
     return token.access_token;
   }
 
-  protected extractRefreshToken(token: GoogleToken): string | undefined {
+  extractRefreshToken(token: GoogleToken): string | undefined {
     return token.refresh_token;
   }
 
-  protected extractExpiresAt(token: GoogleToken): Date {
+  extractExpiresAt(token: GoogleToken): Date {
     return new Date(Date.now() + token.expires_in * 1000);
   }
 }

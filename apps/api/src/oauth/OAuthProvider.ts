@@ -442,9 +442,10 @@ export abstract class OAuthProvider<
   // Abstract methods - providers MUST implement
   protected abstract formatIntegrationName(user: TUser): string;
   protected abstract formatUserMetadata(user: TUser): Record<string, any>;
-  protected abstract extractAccessToken(token: TToken): string;
-  protected abstract extractRefreshToken(token: TToken): string | undefined;
-  protected abstract extractExpiresAt(token: TToken): Date | undefined;
+  // Public extract methods - used by ResourceProvider for token refresh
+  abstract extractAccessToken(token: TToken): string;
+  abstract extractRefreshToken(token: TToken): string | undefined;
+  abstract extractExpiresAt(token: TToken): Date | undefined;
 
   // ============================================
   // UTILITIES

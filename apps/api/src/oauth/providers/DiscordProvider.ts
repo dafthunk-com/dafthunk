@@ -28,15 +28,15 @@ export class DiscordProvider extends OAuthProvider<DiscordToken, DiscordUser> {
     };
   }
 
-  protected extractAccessToken(token: DiscordToken): string {
+  extractAccessToken(token: DiscordToken): string {
     return token.access_token;
   }
 
-  protected extractRefreshToken(token: DiscordToken): string {
+  extractRefreshToken(token: DiscordToken): string {
     return token.refresh_token;
   }
 
-  protected extractExpiresAt(token: DiscordToken): Date {
+  extractExpiresAt(token: DiscordToken): Date {
     return new Date(Date.now() + token.expires_in * 1000);
   }
 }
