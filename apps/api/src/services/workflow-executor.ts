@@ -31,6 +31,7 @@ export interface WorkflowExecutorOptions {
   deploymentId?: string;
   workflowSessionId?: string;
   parameters?: WorkflowExecutorParameters;
+  userPlan?: string;
   env: Bindings;
 }
 
@@ -76,6 +77,7 @@ export class WorkflowExecutor {
       deploymentId,
       workflowSessionId,
       parameters,
+      userPlan,
       env,
     } = options;
 
@@ -96,6 +98,7 @@ export class WorkflowExecutor {
       ...(overageLimit !== undefined && { overageLimit }),
       ...(deploymentId && { deploymentId }),
       ...(workflowSessionId && { workflowSessionId }),
+      ...(userPlan && { userPlan }),
     };
 
     // Build type-specific execution parameters

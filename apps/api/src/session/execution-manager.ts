@@ -11,9 +11,12 @@ import type {
   WorkflowState,
 } from "@dafthunk/types";
 
+import { eq } from "drizzle-orm";
+
 import type { Bindings } from "../context";
 import { createDatabase } from "../db/index";
 import { getOrganization, getOrganizationBillingInfo } from "../db/queries";
+import { users } from "../db/schema";
 import type { BlobParameter } from "../nodes/types";
 import {
   WorkflowExecutor,
@@ -39,7 +42,8 @@ export class ExecutionManager {
     state: WorkflowState,
     organizationId: string,
     userId: string,
-    parameters?: Record<string, unknown>
+    parameters?: Record<string, unknown>,
+    userPlan?: string
   ): Promise<{
     executionId: string;
     execution: WorkflowExecution;
@@ -56,6 +60,17 @@ export class ExecutionManager {
       throw new Error("Organization not found");
     }
     const { computeCredits, subscriptionStatus, overageLimit } = billingInfo;
+
+    // Get user's plan if not provided (e.g., for WebSocket-based execution)
+    let resolvedUserPlan = userPlan;
+    if (!resolvedUserPlan) {
+      const [user] = await db
+        .select({ plan: users.plan })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+      resolvedUserPlan = user?.plan;
+    }
 
     validateWorkflowForExecution(state);
 
@@ -82,6 +97,7 @@ export class ExecutionManager {
       overageLimit: overageLimit ?? null,
       workflowSessionId: state.id,
       parameters: executorParameters,
+      userPlan: resolvedUserPlan,
       env: this.env,
     });
   }

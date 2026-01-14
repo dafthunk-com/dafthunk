@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { NodeTags } from "@/components/workflow/node-tags";
+import { SubscriptionBadge } from "@/components/workflow/subscription-badge";
 
 import { NodeDocsDialog } from "./node-docs-dialog";
 
@@ -44,6 +45,7 @@ export function NodeCard({
                     ? highlightMatch(nodeType.name, searchQuery)
                     : nodeType.name}
                 </CardTitle>
+                {nodeType.subscription && <SubscriptionBadge variant="muted" size="lg" />}
                 {nodeType.tags.map((tag, index) => (
                   <Badge
                     key={index}
@@ -108,6 +110,7 @@ export function NodeCard({
                   ? highlightMatch(nodeType.name, searchQuery)
                   : nodeType.name}
               </CardTitle>
+              {nodeType.subscription && <SubscriptionBadge variant="muted" size="lg" />}
             </div>
             <NodeTags
               tags={nodeType.tags}

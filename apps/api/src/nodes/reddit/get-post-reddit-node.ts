@@ -17,6 +17,7 @@ export class GetPostRedditNode extends ExecutableNode {
     documentation:
       "This node retrieves detailed information about a specific Reddit post by ID. Requires a connected Reddit integration.",
     usage: 10,
+    subscription: true,
     inputs: [
       {
         name: "integrationId",

@@ -26,6 +26,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/utils/utils";
 
 import { PropertyField } from "./fields";
+import { SubscriptionBadge } from "./subscription-badge";
 import { registry } from "./widgets";
 import {
   clearNodeInput,
@@ -355,6 +356,9 @@ export const WorkflowNode = memo(
               />
               <h3 className="text-xs font-bold truncate">{data.name}</h3>
             </div>
+            {resolvedNodeType?.subscription && (
+              <SubscriptionBadge variant="muted" size="sm" />
+            )}
             <button
               type="button"
               className={cn(

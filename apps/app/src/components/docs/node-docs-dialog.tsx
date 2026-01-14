@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { NodeTags } from "@/components/workflow/node-tags";
+import { SubscriptionBadge } from "@/components/workflow/subscription-badge";
 
 interface NodeDocsDialogProps {
   nodeType: NodeType;
@@ -43,6 +44,7 @@ export function NodeDocsDialog({
               className="size-4 text-blue-500"
             />
             <span className="truncate leading-normal">{nodeType.name}</span>
+            {nodeType.subscription && <SubscriptionBadge variant="muted" size="lg" />}
           </DialogTitle>
           <div className="mt-2">
             <NodeTags

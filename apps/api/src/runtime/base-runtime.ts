@@ -40,6 +40,7 @@ import {
   isRuntimeValue,
   NodeNotFoundError,
   NodeTypeNotImplementedError,
+  SubscriptionRequiredError,
 } from "./types";
 
 export interface RuntimeParams {
@@ -56,6 +57,7 @@ export interface RuntimeParams {
   readonly emailMessage?: EmailMessage;
   readonly queueMessage?: QueueMessage;
   readonly scheduledTrigger?: ScheduledTrigger;
+  readonly userPlan?: string;
 }
 
 /**
@@ -93,6 +95,7 @@ export abstract class BaseRuntime {
   protected executionStore: ExecutionStore;
   protected monitoringService: MonitoringService;
   protected env: Bindings;
+  protected userPlan?: string;
 
   constructor(env: Bindings, dependencies?: RuntimeDependencies) {
     this.env = env;
@@ -176,7 +179,10 @@ export abstract class BaseRuntime {
       emailMessage,
       queueMessage,
       scheduledTrigger,
+      userPlan,
     } = params;
+
+    this.userPlan = userPlan;
 
     // Initialise state and execution record
     let executionState: ExecutionState = {
@@ -490,6 +496,16 @@ export abstract class BaseRuntime {
         state,
         nodeId,
         new NodeTypeNotImplementedError(nodeId, node.type)
+      );
+      return state;
+    }
+
+    // Check if this is a subscription-only node and user doesn't have a paid plan
+    if (nodeType.subscription && this.userPlan !== "pro") {
+      state = this.recordNodeError(
+        state,
+        nodeId,
+        new SubscriptionRequiredError(nodeId, node.type)
       );
       return state;
     }

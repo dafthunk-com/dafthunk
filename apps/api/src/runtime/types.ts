@@ -366,3 +366,17 @@ export class InsufficientCreditsError extends SystemError {
     );
   }
 }
+
+/**
+ * Subscription required to execute a subscription-only node
+ */
+export class SubscriptionRequiredError extends SystemError {
+  constructor(
+    public readonly nodeId: string,
+    public readonly nodeType: string
+  ) {
+    super(
+      `Subscription required to execute node "${nodeType}". Upgrade your plan to use this feature.`
+    );
+  }
+}

@@ -11,6 +11,7 @@ export interface AuthContext {
   organizationId: string;
   userId: string;
   isApiKey: boolean;
+  userPlan?: string;
 }
 
 /**
@@ -30,6 +31,7 @@ export function getAuthContext(c: Context): AuthContext {
       organizationId,
       userId: jwtPayload.sub || "anonymous",
       isApiKey: false,
+      userPlan: jwtPayload.plan,
     };
   } else {
     // Authentication was via API key

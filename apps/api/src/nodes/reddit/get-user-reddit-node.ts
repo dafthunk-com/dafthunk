@@ -17,6 +17,7 @@ export class GetUserRedditNode extends ExecutableNode {
     documentation:
       "This node retrieves detailed information about a Reddit user. Requires a connected Reddit integration.",
     usage: 10,
+    subscription: true,
     inputs: [
       {
         name: "integrationId",

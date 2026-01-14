@@ -355,7 +355,7 @@ async function executeWorkflow(
   deploymentId: string | undefined
 ): Promise<Response> {
   const db = createDatabase(c.env.DB);
-  const { organizationId, userId } = getAuthContext(c);
+  const { organizationId, userId, userPlan } = getAuthContext(c);
 
   // Get organization billing info
   const billingInfo = await getOrganizationBillingInfo(db, organizationId);
@@ -389,6 +389,7 @@ async function executeWorkflow(
     overageLimit: overageLimit ?? null,
     deploymentId,
     parameters,
+    userPlan,
     env: c.env,
   });
 

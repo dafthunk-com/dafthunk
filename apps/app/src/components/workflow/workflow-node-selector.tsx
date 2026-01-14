@@ -13,6 +13,7 @@ import { normalizeText } from "@/utils/text-normalization";
 import { cn } from "@/utils/utils";
 
 import { NodeTags } from "./node-tags";
+import { SubscriptionBadge } from "./subscription-badge";
 import type { NodeType } from "./workflow-types";
 
 export interface WorkflowNodeSelectorProps {
@@ -344,8 +345,9 @@ export function WorkflowNodeSelector({
                           className="h-5 w-5 text-blue-500 shrink-0 mt-0.5"
                         />
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-base leading-tight mb-2">
+                          <h3 className="font-semibold text-base leading-tight mb-2 flex items-center gap-2">
                             {highlightMatch(template.name, searchTerm)}
+                            {template.subscription && <SubscriptionBadge variant="muted" size="lg" />}
                           </h3>
                           {template.description && (
                             <p className="text-sm text-muted-foreground leading-relaxed">
