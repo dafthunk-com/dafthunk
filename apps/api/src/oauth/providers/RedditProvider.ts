@@ -7,7 +7,14 @@ export class RedditProvider extends OAuthProvider<RedditToken, RedditUser> {
   readonly authorizationEndpoint = "https://www.reddit.com/api/v1/authorize";
   readonly tokenEndpoint = "https://www.reddit.com/api/v1/access_token";
   readonly userInfoEndpoint = "https://oauth.reddit.com/api/v1/me";
-  readonly scopes = ["identity", "submit", "read", "vote", "mysubreddits"];
+  readonly scopes = [
+    "identity",
+    "history",
+    "mysubreddits",
+    "read",
+    "submit",
+    "vote",
+  ];
 
   // Token refresh configuration
   readonly refreshEnabled = true;

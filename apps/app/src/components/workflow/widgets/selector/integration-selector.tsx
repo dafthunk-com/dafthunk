@@ -150,11 +150,17 @@ export const discordWidget = createIntegrationWidget("discord", [
 ]);
 
 export const redditWidget = createIntegrationWidget("reddit", [
-  "submit-post-reddit",
-  "submit-comment-reddit",
+  "get-post-reddit",
   "get-subreddit-reddit",
   "get-user-reddit",
+  "list-comments-reddit",
   "list-posts-reddit",
+  "list-user-comments-reddit",
+  "list-user-posts-reddit",
+  "search-reddit",
+  "search-subreddits-reddit",
+  "submit-comment-reddit",
+  "submit-post-reddit",
   "vote-reddit",
 ]);
 
