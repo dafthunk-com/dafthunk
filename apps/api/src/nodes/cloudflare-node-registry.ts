@@ -367,9 +367,15 @@ import { RandomChoiceNode } from "./random/random-choice-node";
 import { RandomNumberNode } from "./random/random-number-node";
 import { RandomStringNode } from "./random/random-string-node";
 import { RandomUuidNode } from "./random/random-uuid-node";
+import { GetPostRedditNode } from "./reddit/get-post-reddit-node";
 import { GetSubredditRedditNode } from "./reddit/get-subreddit-reddit-node";
 import { GetUserRedditNode } from "./reddit/get-user-reddit-node";
+import { ListCommentsRedditNode } from "./reddit/list-comments-reddit-node";
 import { ListPostsRedditNode } from "./reddit/list-posts-reddit-node";
+import { ListUserCommentsRedditNode } from "./reddit/list-user-comments-reddit-node";
+import { ListUserPostsRedditNode } from "./reddit/list-user-posts-reddit-node";
+import { SearchRedditNode } from "./reddit/search-reddit-node";
+import { SearchSubredditsRedditNode } from "./reddit/search-subreddits-reddit-node";
 import { SubmitCommentRedditNode } from "./reddit/submit-comment-reddit-node";
 import { SubmitPostRedditNode } from "./reddit/submit-post-reddit-node";
 import { VoteRedditNode } from "./reddit/vote-reddit-node";
@@ -708,11 +714,17 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     }
 
     if (hasReddit) {
-      this.registerImplementation(SubmitPostRedditNode);
-      this.registerImplementation(SubmitCommentRedditNode);
+      this.registerImplementation(GetPostRedditNode);
       this.registerImplementation(GetSubredditRedditNode);
       this.registerImplementation(GetUserRedditNode);
+      this.registerImplementation(ListCommentsRedditNode);
       this.registerImplementation(ListPostsRedditNode);
+      this.registerImplementation(ListUserCommentsRedditNode);
+      this.registerImplementation(ListUserPostsRedditNode);
+      this.registerImplementation(SearchRedditNode);
+      this.registerImplementation(SearchSubredditsRedditNode);
+      this.registerImplementation(SubmitCommentRedditNode);
+      this.registerImplementation(SubmitPostRedditNode);
       this.registerImplementation(VoteRedditNode);
     }
 

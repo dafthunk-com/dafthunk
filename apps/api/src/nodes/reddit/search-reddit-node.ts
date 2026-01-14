@@ -3,19 +3,19 @@ import { NodeExecution, NodeType } from "@dafthunk/types";
 import { ExecutableNode, NodeContext } from "../types";
 
 /**
- * Reddit List Posts node implementation
- * Lists posts from a subreddit
+ * Reddit Search node implementation
+ * Searches Reddit posts by keyword/query
  */
-export class ListPostsRedditNode extends ExecutableNode {
+export class SearchRedditNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "list-posts-reddit",
-    name: "List Posts (Reddit)",
-    type: "list-posts-reddit",
-    description: "List posts from a subreddit",
-    tags: ["Social", "Reddit", "Post", "List"],
-    icon: "list",
+    id: "search-reddit",
+    name: "Search (Reddit)",
+    type: "search-reddit",
+    description: "Search Reddit posts by keyword or query",
+    tags: ["Social", "Reddit", "Search"],
+    icon: "search",
     documentation:
-      "This node retrieves posts from a subreddit. Supports filtering by hot, new, top, rising, or controversial. Requires a connected Reddit integration.",
+      "This node searches Reddit for posts matching a query. Can be filtered by subreddit, sort order, time period, and result type. Requires a connected Reddit integration.",
     usage: 10,
     inputs: [
       {
@@ -26,42 +26,54 @@ export class ListPostsRedditNode extends ExecutableNode {
         required: true,
       },
       {
+        name: "query",
+        type: "string",
+        description: "Search query (supports Reddit search syntax)",
+        required: true,
+      },
+      {
         name: "subreddit",
         type: "string",
-        description: "Subreddit name (without r/ prefix)",
-        required: true,
+        description: "Limit search to a specific subreddit (without r/ prefix)",
+        required: false,
       },
       {
         name: "sort",
         type: "string",
-        description: "Sort method: hot, new, top, rising, or controversial",
+        description: "Sort method: relevance, hot, top, new, or comments",
         required: false,
       },
       {
         name: "timeFilter",
         type: "string",
         description:
-          "Time filter for 'top' and 'controversial': hour, day, week, month, year, all",
+          "Time filter for 'top' and 'relevance': hour, day, week, month, year, all",
+        required: false,
+      },
+      {
+        name: "type",
+        type: "string",
+        description: "Filter result type: sr (subreddit), link (post), user",
         required: false,
       },
       {
         name: "limit",
         type: "number",
-        description: "Number of posts to retrieve (1-100, default 25)",
+        description: "Number of results to retrieve (1-100, default 25)",
         required: false,
       },
     ],
     outputs: [
       {
-        name: "posts",
+        name: "results",
         type: "json",
-        description: "Array of post objects",
+        description: "Array of search result objects",
         hidden: false,
       },
       {
         name: "count",
         type: "number",
-        description: "Number of posts returned",
+        description: "Number of results returned",
         hidden: true,
       },
     ],
@@ -69,7 +81,7 @@ export class ListPostsRedditNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const { integrationId, subreddit, sort, timeFilter, limit } =
+      const { integrationId, query, subreddit, sort, timeFilter, type, limit } =
         context.inputs;
       const { organizationId } = context;
 
@@ -80,8 +92,8 @@ export class ListPostsRedditNode extends ExecutableNode {
         );
       }
 
-      if (!subreddit || typeof subreddit !== "string") {
-        return this.createErrorResult("Subreddit is required");
+      if (!query || typeof query !== "string") {
+        return this.createErrorResult("Search query is required");
       }
 
       if (!organizationId || typeof organizationId !== "string") {
@@ -89,23 +101,42 @@ export class ListPostsRedditNode extends ExecutableNode {
       }
 
       // Validate sort parameter
-      const sortMethod = (sort as string) || "hot";
-      const validSorts = ["hot", "new", "top", "rising", "controversial"];
+      const sortMethod = (sort as string) || "relevance";
+      const validSorts = ["relevance", "hot", "top", "new", "comments"];
       if (!validSorts.includes(sortMethod)) {
         return this.createErrorResult(
           `Invalid sort method. Must be one of: ${validSorts.join(", ")}`
         );
       }
 
+      // Validate type parameter if provided
+      if (type && typeof type === "string") {
+        const validTypes = ["sr", "link", "user"];
+        if (!validTypes.includes(type)) {
+          return this.createErrorResult(
+            `Invalid type filter. Must be one of: ${validTypes.join(", ")}`
+          );
+        }
+      }
+
       // Get integration with auto-refreshed token
       const integration = await context.getIntegration(integrationId);
-
       const accessToken = integration.token;
 
-      // Build URL with query parameters
-      const url = new URL(
-        `https://oauth.reddit.com/r/${subreddit}/${sortMethod}`
-      );
+      // Build URL - use subreddit-specific search if subreddit is provided
+      const baseUrl =
+        subreddit && typeof subreddit === "string"
+          ? `https://oauth.reddit.com/r/${subreddit}/search`
+          : "https://oauth.reddit.com/search";
+
+      const url = new URL(baseUrl);
+      url.searchParams.set("q", query);
+      url.searchParams.set("sort", sortMethod);
+
+      // restrict_sr=true when searching within a subreddit
+      if (subreddit && typeof subreddit === "string") {
+        url.searchParams.set("restrict_sr", "true");
+      }
 
       if (limit && typeof limit === "number") {
         url.searchParams.set(
@@ -116,11 +147,7 @@ export class ListPostsRedditNode extends ExecutableNode {
         url.searchParams.set("limit", "25");
       }
 
-      if (
-        (sortMethod === "top" || sortMethod === "controversial") &&
-        timeFilter &&
-        typeof timeFilter === "string"
-      ) {
+      if (timeFilter && typeof timeFilter === "string") {
         const validTimeFilters = [
           "hour",
           "day",
@@ -134,7 +161,11 @@ export class ListPostsRedditNode extends ExecutableNode {
         }
       }
 
-      // List posts via Reddit API
+      if (type && typeof type === "string") {
+        url.searchParams.set("type", type);
+      }
+
+      // Search via Reddit API
       const response = await fetch(url.toString(), {
         method: "GET",
         headers: {
@@ -146,7 +177,7 @@ export class ListPostsRedditNode extends ExecutableNode {
       if (!response.ok) {
         const errorData = await response.text();
         return this.createErrorResult(
-          `Failed to list posts from Reddit API: ${errorData}`
+          `Failed to search Reddit API: ${errorData}`
         );
       }
 
@@ -171,7 +202,7 @@ export class ListPostsRedditNode extends ExecutableNode {
         };
       };
 
-      const posts = result.data.children.map((child) => ({
+      const results = result.data.children.map((child) => ({
         id: child.data.id,
         name: child.data.name,
         title: child.data.title,
@@ -187,14 +218,14 @@ export class ListPostsRedditNode extends ExecutableNode {
       }));
 
       return this.createSuccessResult({
-        posts,
-        count: posts.length,
+        results,
+        count: results.length,
       });
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error
           ? error.message
-          : "Unknown error listing posts from Reddit"
+          : "Unknown error searching Reddit"
       );
     }
   }

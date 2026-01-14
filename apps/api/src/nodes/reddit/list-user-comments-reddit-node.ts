@@ -3,19 +3,19 @@ import { NodeExecution, NodeType } from "@dafthunk/types";
 import { ExecutableNode, NodeContext } from "../types";
 
 /**
- * Reddit List Posts node implementation
- * Lists posts from a subreddit
+ * Reddit List User Comments node implementation
+ * Lists comments made by a Reddit user
  */
-export class ListPostsRedditNode extends ExecutableNode {
+export class ListUserCommentsRedditNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "list-posts-reddit",
-    name: "List Posts (Reddit)",
-    type: "list-posts-reddit",
-    description: "List posts from a subreddit",
-    tags: ["Social", "Reddit", "Post", "List"],
-    icon: "list",
+    id: "list-user-comments-reddit",
+    name: "List User Comments (Reddit)",
+    type: "list-user-comments-reddit",
+    description: "List comments made by a Reddit user",
+    tags: ["Social", "Reddit", "User", "Comment", "List"],
+    icon: "message-circle",
     documentation:
-      "This node retrieves posts from a subreddit. Supports filtering by hot, new, top, rising, or controversial. Requires a connected Reddit integration.",
+      "This node retrieves comments made by a specific Reddit user. Supports sorting by hot, new, top, or controversial. Requires a connected Reddit integration.",
     usage: 10,
     inputs: [
       {
@@ -26,15 +26,15 @@ export class ListPostsRedditNode extends ExecutableNode {
         required: true,
       },
       {
-        name: "subreddit",
+        name: "username",
         type: "string",
-        description: "Subreddit name (without r/ prefix)",
+        description: "Reddit username (without u/ prefix)",
         required: true,
       },
       {
         name: "sort",
         type: "string",
-        description: "Sort method: hot, new, top, rising, or controversial",
+        description: "Sort method: hot, new, top, controversial",
         required: false,
       },
       {
@@ -47,21 +47,21 @@ export class ListPostsRedditNode extends ExecutableNode {
       {
         name: "limit",
         type: "number",
-        description: "Number of posts to retrieve (1-100, default 25)",
+        description: "Number of comments to retrieve (1-100, default 25)",
         required: false,
       },
     ],
     outputs: [
       {
-        name: "posts",
+        name: "comments",
         type: "json",
-        description: "Array of post objects",
+        description: "Array of comment objects",
         hidden: false,
       },
       {
         name: "count",
         type: "number",
-        description: "Number of posts returned",
+        description: "Number of comments returned",
         hidden: true,
       },
     ],
@@ -69,7 +69,7 @@ export class ListPostsRedditNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const { integrationId, subreddit, sort, timeFilter, limit } =
+      const { integrationId, username, sort, timeFilter, limit } =
         context.inputs;
       const { organizationId } = context;
 
@@ -80,8 +80,8 @@ export class ListPostsRedditNode extends ExecutableNode {
         );
       }
 
-      if (!subreddit || typeof subreddit !== "string") {
-        return this.createErrorResult("Subreddit is required");
+      if (!username || typeof username !== "string") {
+        return this.createErrorResult("Username is required");
       }
 
       if (!organizationId || typeof organizationId !== "string") {
@@ -89,8 +89,8 @@ export class ListPostsRedditNode extends ExecutableNode {
       }
 
       // Validate sort parameter
-      const sortMethod = (sort as string) || "hot";
-      const validSorts = ["hot", "new", "top", "rising", "controversial"];
+      const sortMethod = (sort as string) || "new";
+      const validSorts = ["hot", "new", "top", "controversial"];
       if (!validSorts.includes(sortMethod)) {
         return this.createErrorResult(
           `Invalid sort method. Must be one of: ${validSorts.join(", ")}`
@@ -99,13 +99,11 @@ export class ListPostsRedditNode extends ExecutableNode {
 
       // Get integration with auto-refreshed token
       const integration = await context.getIntegration(integrationId);
-
       const accessToken = integration.token;
 
-      // Build URL with query parameters
-      const url = new URL(
-        `https://oauth.reddit.com/r/${subreddit}/${sortMethod}`
-      );
+      // Build URL
+      const url = new URL(`https://oauth.reddit.com/user/${username}/comments`);
+      url.searchParams.set("sort", sortMethod);
 
       if (limit && typeof limit === "number") {
         url.searchParams.set(
@@ -134,7 +132,7 @@ export class ListPostsRedditNode extends ExecutableNode {
         }
       }
 
-      // List posts via Reddit API
+      // List user comments via Reddit API
       const response = await fetch(url.toString(), {
         method: "GET",
         headers: {
@@ -146,7 +144,7 @@ export class ListPostsRedditNode extends ExecutableNode {
       if (!response.ok) {
         const errorData = await response.text();
         return this.createErrorResult(
-          `Failed to list posts from Reddit API: ${errorData}`
+          `Failed to list user comments from Reddit API: ${errorData}`
         );
       }
 
@@ -156,45 +154,43 @@ export class ListPostsRedditNode extends ExecutableNode {
             data: {
               id: string;
               name: string;
-              title: string;
               author: string;
+              body: string;
               subreddit: string;
               score: number;
-              num_comments: number;
               created_utc: number;
               permalink: string;
-              url: string;
-              selftext?: string;
-              over_18: boolean;
+              link_id: string;
+              link_title: string;
+              parent_id: string;
             };
           }>;
         };
       };
 
-      const posts = result.data.children.map((child) => ({
+      const comments = result.data.children.map((child) => ({
         id: child.data.id,
         name: child.data.name,
-        title: child.data.title,
         author: child.data.author,
+        body: child.data.body,
         subreddit: child.data.subreddit,
         score: child.data.score,
-        numComments: child.data.num_comments,
         createdUtc: child.data.created_utc,
         permalink: child.data.permalink,
-        url: child.data.url,
-        selftext: child.data.selftext,
-        over18: child.data.over_18,
+        linkId: child.data.link_id,
+        linkTitle: child.data.link_title,
+        parentId: child.data.parent_id,
       }));
 
       return this.createSuccessResult({
-        posts,
-        count: posts.length,
+        comments,
+        count: comments.length,
       });
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error
           ? error.message
-          : "Unknown error listing posts from Reddit"
+          : "Unknown error listing user comments from Reddit"
       );
     }
   }

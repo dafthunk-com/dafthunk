@@ -3,19 +3,19 @@ import { NodeExecution, NodeType } from "@dafthunk/types";
 import { ExecutableNode, NodeContext } from "../types";
 
 /**
- * Reddit List Posts node implementation
- * Lists posts from a subreddit
+ * Reddit List User Posts node implementation
+ * Lists posts submitted by a Reddit user
  */
-export class ListPostsRedditNode extends ExecutableNode {
+export class ListUserPostsRedditNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "list-posts-reddit",
-    name: "List Posts (Reddit)",
-    type: "list-posts-reddit",
-    description: "List posts from a subreddit",
-    tags: ["Social", "Reddit", "Post", "List"],
-    icon: "list",
+    id: "list-user-posts-reddit",
+    name: "List User Posts (Reddit)",
+    type: "list-user-posts-reddit",
+    description: "List posts submitted by a Reddit user",
+    tags: ["Social", "Reddit", "User", "Post", "List"],
+    icon: "file-text",
     documentation:
-      "This node retrieves posts from a subreddit. Supports filtering by hot, new, top, rising, or controversial. Requires a connected Reddit integration.",
+      "This node retrieves posts submitted by a specific Reddit user. Supports sorting by hot, new, top, or controversial. Requires a connected Reddit integration.",
     usage: 10,
     inputs: [
       {
@@ -26,15 +26,15 @@ export class ListPostsRedditNode extends ExecutableNode {
         required: true,
       },
       {
-        name: "subreddit",
+        name: "username",
         type: "string",
-        description: "Subreddit name (without r/ prefix)",
+        description: "Reddit username (without u/ prefix)",
         required: true,
       },
       {
         name: "sort",
         type: "string",
-        description: "Sort method: hot, new, top, rising, or controversial",
+        description: "Sort method: hot, new, top, controversial",
         required: false,
       },
       {
@@ -69,7 +69,7 @@ export class ListPostsRedditNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const { integrationId, subreddit, sort, timeFilter, limit } =
+      const { integrationId, username, sort, timeFilter, limit } =
         context.inputs;
       const { organizationId } = context;
 
@@ -80,8 +80,8 @@ export class ListPostsRedditNode extends ExecutableNode {
         );
       }
 
-      if (!subreddit || typeof subreddit !== "string") {
-        return this.createErrorResult("Subreddit is required");
+      if (!username || typeof username !== "string") {
+        return this.createErrorResult("Username is required");
       }
 
       if (!organizationId || typeof organizationId !== "string") {
@@ -89,8 +89,8 @@ export class ListPostsRedditNode extends ExecutableNode {
       }
 
       // Validate sort parameter
-      const sortMethod = (sort as string) || "hot";
-      const validSorts = ["hot", "new", "top", "rising", "controversial"];
+      const sortMethod = (sort as string) || "new";
+      const validSorts = ["hot", "new", "top", "controversial"];
       if (!validSorts.includes(sortMethod)) {
         return this.createErrorResult(
           `Invalid sort method. Must be one of: ${validSorts.join(", ")}`
@@ -99,13 +99,13 @@ export class ListPostsRedditNode extends ExecutableNode {
 
       // Get integration with auto-refreshed token
       const integration = await context.getIntegration(integrationId);
-
       const accessToken = integration.token;
 
-      // Build URL with query parameters
+      // Build URL
       const url = new URL(
-        `https://oauth.reddit.com/r/${subreddit}/${sortMethod}`
+        `https://oauth.reddit.com/user/${username}/submitted`
       );
+      url.searchParams.set("sort", sortMethod);
 
       if (limit && typeof limit === "number") {
         url.searchParams.set(
@@ -134,7 +134,7 @@ export class ListPostsRedditNode extends ExecutableNode {
         }
       }
 
-      // List posts via Reddit API
+      // List user posts via Reddit API
       const response = await fetch(url.toString(), {
         method: "GET",
         headers: {
@@ -146,7 +146,7 @@ export class ListPostsRedditNode extends ExecutableNode {
       if (!response.ok) {
         const errorData = await response.text();
         return this.createErrorResult(
-          `Failed to list posts from Reddit API: ${errorData}`
+          `Failed to list user posts from Reddit API: ${errorData}`
         );
       }
 
@@ -194,7 +194,7 @@ export class ListPostsRedditNode extends ExecutableNode {
       return this.createErrorResult(
         error instanceof Error
           ? error.message
-          : "Unknown error listing posts from Reddit"
+          : "Unknown error listing user posts from Reddit"
       );
     }
   }
