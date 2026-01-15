@@ -69,6 +69,7 @@ export type WorkflowNodeExecution = {
 };
 
 export interface WorkflowExecution {
+  id?: string;
   status: WorkflowExecutionStatus;
   nodeExecutions: WorkflowNodeExecution[];
   error?: string;

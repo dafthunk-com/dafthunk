@@ -137,6 +137,9 @@ export function WorkflowBuilder({
   const initializedRef = useRef(false);
   const [sidebarWidth, setSidebarWidth] = useState(384);
   const [isResizing, setIsResizing] = useState(false);
+  const [currentExecutionId, setCurrentExecutionId] = useState<
+    string | undefined
+  >(initialWorkflowExecution?.id);
 
   // Trigger dialog state
   const [isHttpIntegrationDialogOpen, setIsHttpIntegrationDialogOpen] =
@@ -271,6 +274,11 @@ export function WorkflowBuilder({
       // Create the execution callback that will be used when the dialog is submitted
       // Note: We don't set status to "executing" here - that happens when the dialog is submitted
       const executionCallback = (execution: WorkflowExecution) => {
+        // Capture execution ID for feedback
+        if (execution.id) {
+          setCurrentExecutionId(execution.id);
+        }
+
         // Set status to executing on first callback if not already set
         setWorkflowStatus((currentStatus) => {
           if (currentStatus === "idle" || currentStatus === "cancelled") {
@@ -335,6 +343,11 @@ export function WorkflowBuilder({
 
       // Create the callback and store it in the ref so WebSocket wrapper can use it
       const executionCallback = (execution: WorkflowExecution) => {
+        // Capture execution ID for feedback
+        if (execution.id) {
+          setCurrentExecutionId(execution.id);
+        }
+
         // Only update status if the new status is not 'idle' while we are 'executing',
         // or if the local status is not 'executing' anymore (e.g., already completed/errored).
         setWorkflowStatus((currentStatus) => {
@@ -541,6 +554,7 @@ export function WorkflowBuilder({
                   onWorkflowUpdate={disabled ? undefined : onWorkflowUpdate}
                   workflowStatus={workflowStatus}
                   workflowErrorMessage={workflowErrorMessage}
+                  executionId={currentExecutionId}
                 />
               </div>
             </>

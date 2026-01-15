@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 import { WorkflowEdgeInspector } from "./workflow-edge-inspector";
+import { WorkflowFeedbackSection } from "./workflow-feedback-section";
 import { WorkflowNodeInspector } from "./workflow-node-inspector";
 import type {
   WorkflowEdgeType,
@@ -33,6 +34,7 @@ export interface WorkflowSidebarProps {
   onWorkflowUpdate?: (name: string, description?: string) => void;
   workflowStatus?: WorkflowExecutionStatus;
   workflowErrorMessage?: string;
+  executionId?: string;
 }
 
 export function WorkflowSidebar({
@@ -48,6 +50,7 @@ export function WorkflowSidebar({
   onWorkflowUpdate,
   workflowStatus,
   workflowErrorMessage,
+  executionId,
 }: WorkflowSidebarProps) {
   // Determine what to show based on selection
   const totalSelected = selectedNodes.length + selectedEdges.length;
@@ -213,6 +216,12 @@ export function WorkflowSidebar({
               </div>
             )}
           </div>
+
+          {/* Feedback Section - only show when execution is completed or errored */}
+          {executionId &&
+            (workflowStatus === "completed" || workflowStatus === "error") && (
+              <WorkflowFeedbackSection executionId={executionId} />
+            )}
 
           <div className="flex-1 flex flex-col items-center justify-center text-center px-4">
             <Sparkles className="w-12 h-12 text-neutral-400 dark:text-neutral-500 mb-4" />
