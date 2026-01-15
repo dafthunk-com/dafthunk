@@ -155,6 +155,7 @@ export function ExecutionDetailPage() {
     useMemo<WorkflowBuilderExecution | null>(() => {
       if (!execution) return null;
       return {
+        id: execution.id,
         status: execution.status as WorkflowExecution["status"],
         nodeExecutions: (execution.nodeExecutions || []).map(
           (nodeExec: NodeExecution): WorkflowNodeExecution => ({
