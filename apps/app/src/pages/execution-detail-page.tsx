@@ -4,7 +4,6 @@ import { useParams } from "react-router";
 import { toast } from "sonner";
 
 import { useAuth } from "@/components/auth-context";
-import { ExecutionFeedbackCard } from "@/components/executions/execution-feedback-card";
 import { ExecutionInfoCard } from "@/components/executions/execution-info-card";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
@@ -30,9 +29,8 @@ export function ExecutionDetailPage() {
   const { executionId } = useParams<{ executionId: string }>();
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const { getOrgUrl } = useOrgUrl();
-  const { organization, user } = useAuth();
+  const { organization } = useAuth();
   const orgHandle = organization?.handle || "";
-  const isDeveloperMode = user?.developerMode || false;
 
   const {
     execution,
@@ -218,9 +216,6 @@ export function ExecutionDetailPage() {
               deploymentId={execution.deploymentId}
               error={execution.error}
             />
-            {hasDeploymentId && isDeveloperMode && (
-              <ExecutionFeedbackCard executionId={execution.id} />
-            )}
           </TabsContent>
           <TabsContent value="visualization" className="mt-0">
             <div className="h-[calc(100vh-300px)] border rounded-md relative">
