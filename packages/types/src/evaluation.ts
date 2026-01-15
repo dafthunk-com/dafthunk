@@ -169,6 +169,8 @@ export type FeedbackSentimentType =
 export interface ExecutionFeedback {
   id: string;
   executionId: string;
+  workflowId?: string;
+  workflowName?: string;
   deploymentId?: string;
   sentiment: FeedbackSentimentType;
   comment?: string;
@@ -191,6 +193,7 @@ export interface CreateExecutionFeedbackRequest {
 export interface CreateExecutionFeedbackResponse {
   id: string;
   executionId: string;
+  workflowId?: string;
   deploymentId?: string;
   sentiment: FeedbackSentimentType;
   comment?: string;

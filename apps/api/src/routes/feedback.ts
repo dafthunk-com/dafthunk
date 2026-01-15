@@ -69,6 +69,7 @@ feedbackRoutes.post(
       const feedbackData: FeedbackInsert = {
         id: feedbackId,
         executionId,
+        workflowId: execution.workflowId || null,
         deploymentId: execution.deploymentId || null,
         organizationId,
         userId,
@@ -83,6 +84,7 @@ feedbackRoutes.post(
       const response: CreateExecutionFeedbackResponse = {
         id: feedbackId,
         executionId,
+        workflowId: execution.workflowId || undefined,
         deploymentId: execution.deploymentId || undefined,
         sentiment,
         comment,
@@ -120,15 +122,25 @@ feedbackRoutes.get("/execution/:executionId", async (c) => {
         eq(feedback.executionId, executionId),
         eq(feedback.organizationId, organizationId)
       ),
+      with: {
+        workflow: {
+          columns: {
+            name: true,
+          },
+        },
+      },
     });
 
     if (!feedbackData) {
       return c.json({ error: "Execution feedback not found" }, 404);
     }
 
+    const workflow = feedbackData.workflow as { name: string } | null;
     const response: ExecutionFeedback = {
       id: feedbackData.id,
       executionId: feedbackData.executionId,
+      workflowId: feedbackData.workflowId ?? undefined,
+      workflowName: workflow?.name,
       deploymentId: feedbackData.deploymentId ?? undefined,
       sentiment: feedbackData.sentiment,
       comment: feedbackData.comment ?? undefined,
@@ -190,11 +202,21 @@ feedbackRoutes.patch(
 
       const updated = await db.query.feedback.findFirst({
         where: eq(feedback.id, id),
+        with: {
+          workflow: {
+            columns: {
+              name: true,
+            },
+          },
+        },
       });
 
+      const updatedWorkflow = updated!.workflow as { name: string } | null;
       const response: ExecutionFeedback = {
         id: updated!.id,
         executionId: updated!.executionId,
+        workflowId: updated!.workflowId ?? undefined,
+        workflowName: updatedWorkflow?.name,
         deploymentId: updated!.deploymentId ?? undefined,
         sentiment: updated!.sentiment,
         comment: updated!.comment ?? undefined,
@@ -257,18 +279,30 @@ feedbackRoutes.get("/deployment/:deploymentId", async (c) => {
         eq(feedback.organizationId, organizationId)
       ),
       orderBy: [desc(feedback.createdAt)],
+      with: {
+        workflow: {
+          columns: {
+            name: true,
+          },
+        },
+      },
     });
 
     const response: ListExecutionFeedbackResponse = {
-      feedback: feedbackRecords.map((f) => ({
-        id: f.id,
-        executionId: f.executionId,
-        deploymentId: f.deploymentId ?? undefined,
-        sentiment: f.sentiment,
-        comment: f.comment ?? undefined,
-        createdAt: f.createdAt,
-        updatedAt: f.updatedAt,
-      })),
+      feedback: feedbackRecords.map((f) => {
+        const workflow = f.workflow as { name: string } | null;
+        return {
+          id: f.id,
+          executionId: f.executionId,
+          workflowId: f.workflowId ?? undefined,
+          workflowName: workflow?.name,
+          deploymentId: f.deploymentId ?? undefined,
+          sentiment: f.sentiment,
+          comment: f.comment ?? undefined,
+          createdAt: f.createdAt,
+          updatedAt: f.updatedAt,
+        };
+      }),
     };
 
     return c.json(response);
@@ -290,18 +324,30 @@ feedbackRoutes.get("/", async (c) => {
     const feedbackRecords = await db.query.feedback.findMany({
       where: eq(feedback.organizationId, organizationId),
       orderBy: [desc(feedback.createdAt)],
+      with: {
+        workflow: {
+          columns: {
+            name: true,
+          },
+        },
+      },
     });
 
     const response: ListExecutionFeedbackResponse = {
-      feedback: feedbackRecords.map((f) => ({
-        id: f.id,
-        executionId: f.executionId,
-        deploymentId: f.deploymentId ?? undefined,
-        sentiment: f.sentiment,
-        comment: f.comment ?? undefined,
-        createdAt: f.createdAt,
-        updatedAt: f.updatedAt,
-      })),
+      feedback: feedbackRecords.map((f) => {
+        const workflow = f.workflow as { name: string } | null;
+        return {
+          id: f.id,
+          executionId: f.executionId,
+          workflowId: f.workflowId ?? undefined,
+          workflowName: workflow?.name,
+          deploymentId: f.deploymentId ?? undefined,
+          sentiment: f.sentiment,
+          comment: f.comment ?? undefined,
+          createdAt: f.createdAt,
+          updatedAt: f.updatedAt,
+        };
+      }),
     };
 
     return c.json(response);

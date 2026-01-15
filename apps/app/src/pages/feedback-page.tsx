@@ -36,6 +36,24 @@ export const createColumns = (
     },
   },
   {
+    accessorKey: "workflowName",
+    header: "Workflow",
+    cell: ({ row }) => {
+      const workflowId = row.original.workflowId;
+      const workflowName = row.getValue("workflowName") as string | undefined;
+      if (!workflowId)
+        return <span className="text-muted-foreground">-</span>;
+      return (
+        <Link
+          to={getOrgUrl(`workflows/${workflowId}`)}
+          className="hover:underline"
+        >
+          {workflowName || workflowId.slice(0, 8) + "..."}
+        </Link>
+      );
+    },
+  },
+  {
     accessorKey: "sentiment",
     header: "Rating",
     cell: ({ row }) => {

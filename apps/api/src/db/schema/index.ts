@@ -413,6 +413,9 @@ export const feedback = sqliteTable(
   {
     id: text("id").primaryKey(),
     executionId: text("execution_id").notNull(),
+    workflowId: text("workflow_id").references(() => workflows.id, {
+      onDelete: "cascade",
+    }),
     deploymentId: text("deployment_id").references(() => deployments.id, {
       onDelete: "cascade",
     }),
@@ -429,6 +432,7 @@ export const feedback = sqliteTable(
   },
   (table) => [
     index("feedback_execution_id_idx").on(table.executionId),
+    index("feedback_workflow_id_idx").on(table.workflowId),
     index("feedback_deployment_id_idx").on(table.deploymentId),
     index("feedback_organization_id_idx").on(table.organizationId),
     index("feedback_user_id_idx").on(table.userId),
@@ -779,6 +783,10 @@ export const feedbackRelations = relations(feedback, ({ one }) => ({
   organization: one(organizations, {
     fields: [feedback.organizationId],
     references: [organizations.id],
+  }),
+  workflow: one(workflows, {
+    fields: [feedback.workflowId],
+    references: [workflows.id],
   }),
   deployment: one(deployments, {
     fields: [feedback.deploymentId],
