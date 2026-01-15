@@ -307,31 +307,29 @@ export function WorkflowNodeInspector({
           )}
         </div>
 
-        {/* Error Section */}
-        <div className="border-b border-border">
-          <button
-            onClick={() => setErrorExpanded(!errorExpanded)}
-            className="group w-full px-4 py-3 flex items-center justify-between"
-          >
-            <h2 className="text-base font-semibold text-foreground">Error</h2>
-            <ChevronDownIcon
-              className={`h-4 w-4 text-neutral-400 dark:text-neutral-500 ${
-                errorExpanded ? "rotate-0" : "-rotate-90"
-              }`}
-            />
-          </button>
-          {errorExpanded && (
-            <div className="px-4 pb-4">
-              {node.data.error ? (
+        {/* Error Section - only show when there's an error */}
+        {node.data.error && (
+          <div className="border-b border-border">
+            <button
+              onClick={() => setErrorExpanded(!errorExpanded)}
+              className="group w-full px-4 py-3 flex items-center justify-between"
+            >
+              <h2 className="text-base font-semibold text-foreground">Error</h2>
+              <ChevronDownIcon
+                className={`h-4 w-4 text-neutral-400 dark:text-neutral-500 ${
+                  errorExpanded ? "rotate-0" : "-rotate-90"
+                }`}
+              />
+            </button>
+            {errorExpanded && (
+              <div className="px-4 pb-4">
                 <p className="text-sm text-red-600 dark:text-red-400">
                   {node.data.error}
                 </p>
-              ) : (
-                <p className="text-sm text-muted-foreground">No errors</p>
-              )}
-            </div>
-          )}
-        </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

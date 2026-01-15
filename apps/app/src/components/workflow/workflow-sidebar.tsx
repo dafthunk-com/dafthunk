@@ -4,7 +4,6 @@ import type {
   Node as ReactFlowNode,
 } from "@xyflow/react";
 import ChevronDownIcon from "lucide-react/icons/chevron-down";
-import Sparkles from "lucide-react/icons/sparkles";
 import Users from "lucide-react/icons/users";
 import { useEffect, useRef, useState } from "react";
 
@@ -191,48 +190,36 @@ export function WorkflowSidebar({
             )}
           </div>
 
-          {/* Workflow Error Section */}
-          <div className="border-b border-border">
-            <button
-              onClick={() => setErrorExpanded(!errorExpanded)}
-              className="group w-full px-4 py-3 flex items-center justify-between"
-            >
-              <h2 className="text-base font-semibold text-foreground">Error</h2>
-              <ChevronDownIcon
-                className={`h-4 w-4 ${
-                  errorExpanded ? "rotate-0" : "-rotate-90"
-                } text-neutral-400 group-hover:text-neutral-700 dark:text-neutral-500 dark:group-hover:text-neutral-300`}
-              />
-            </button>
-            {errorExpanded && (
-              <div className="px-4 pb-4">
-                {workflowStatus === "error" && workflowErrorMessage ? (
+          {/* Workflow Error Section - only show when there's an error */}
+          {workflowStatus === "error" && workflowErrorMessage && (
+            <div className="border-b border-border">
+              <button
+                onClick={() => setErrorExpanded(!errorExpanded)}
+                className="group w-full px-4 py-3 flex items-center justify-between"
+              >
+                <h2 className="text-base font-semibold text-foreground">
+                  Error
+                </h2>
+                <ChevronDownIcon
+                  className={`h-4 w-4 ${
+                    errorExpanded ? "rotate-0" : "-rotate-90"
+                  } text-neutral-400 group-hover:text-neutral-700 dark:text-neutral-500 dark:group-hover:text-neutral-300`}
+                />
+              </button>
+              {errorExpanded && (
+                <div className="px-4 pb-4">
                   <p className="text-sm text-red-600 dark:text-red-400 break-words">
                     {workflowErrorMessage}
                   </p>
-                ) : (
-                  <p className="text-sm text-muted-foreground">No errors</p>
-                )}
-              </div>
-            )}
-          </div>
+                </div>
+              )}
+            </div>
+          )}
 
-          {/* Feedback Section - only show when execution is completed or errored */}
-          {executionId &&
-            (workflowStatus === "completed" || workflowStatus === "error") && (
-              <WorkflowFeedbackSection executionId={executionId} />
-            )}
-
-          <div className="flex-1 flex flex-col items-center justify-center text-center px-4">
-            <Sparkles className="w-12 h-12 text-neutral-400 dark:text-neutral-500 mb-4" />
-            <h3 className="text-lg font-medium text-neutral-900 dark:text-neutral-100 mb-2">
-              Nothing Selected
-            </h3>
-            <p className="text-neutral-500">
-              Click on a node or edge in the workflow to view and edit its
-              properties.
-            </p>
-          </div>
+          {/* Feedback Section - only show when execution completed successfully */}
+          {executionId && workflowStatus === "completed" && (
+            <WorkflowFeedbackSection executionId={executionId} />
+          )}
         </div>
       )}
       {totalSelected > 1 && (

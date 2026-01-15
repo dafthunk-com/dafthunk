@@ -206,6 +206,7 @@ export function WorkflowBuilder({
     updateEdgeData,
     deleteEdge,
     deleteSelected,
+    deselectAll,
     duplicateSelected,
     applyLayout,
     copySelected,
@@ -385,11 +386,14 @@ export function WorkflowBuilder({
   );
 
   const startExecution = useCallback(() => {
+    // Deselect all nodes/edges so the sidebar shows the workflow view with feedback
+    deselectAll();
+
     handleExecuteRequest((triggerData) => {
       const cleanup = handleExecute(triggerData);
       if (cleanup) cleanupRef.current = cleanup;
     });
-  }, [handleExecute, handleExecuteRequest]);
+  }, [deselectAll, handleExecute, handleExecuteRequest]);
 
   const handleActionButtonClick = useCallback(
     (e: React.MouseEvent) => {
@@ -403,6 +407,8 @@ export function WorkflowBuilder({
         workflowStatus === "submitted" ||
         workflowStatus === "executing"
       ) {
+        // Stop execution
+        deselectAll();
         if (cleanupRef.current) {
           Promise.resolve(cleanupRef.current()).catch((error) =>
             console.error("Error during cleanup:", error)
@@ -411,12 +417,13 @@ export function WorkflowBuilder({
         }
         setWorkflowStatus("cancelled");
       } else {
-        // completed, error, exhausted
+        // completed, error, exhausted - Clear outputs & reset
+        deselectAll();
         resetNodeStates();
         setWorkflowStatus("idle");
       }
     },
-    [workflowStatus, resetNodeStates, startExecution]
+    [workflowStatus, resetNodeStates, startExecution, deselectAll]
   );
 
   const toggleSidebar = useCallback(() => {

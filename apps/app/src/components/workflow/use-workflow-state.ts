@@ -84,6 +84,7 @@ interface UseWorkflowStateReturn {
   deleteNode: (nodeId: string) => void;
   deleteEdge: (edgeId: string) => void;
   deleteSelected: () => void;
+  deselectAll: () => void;
   duplicateNode: (nodeId: string) => void;
   duplicateSelected: () => void;
   applyLayout: () => void;
@@ -851,6 +852,12 @@ export function useWorkflowState({
     }
   }, [disabled, selectedNodes, selectedEdges, deleteNodes, deleteEdges]);
 
+  // Deselect all nodes and edges
+  const deselectAll = useCallback(() => {
+    setNodes((nds) => nds.map((node) => ({ ...node, selected: false })));
+    setEdges((eds) => eds.map((edge) => ({ ...edge, selected: false })));
+  }, [setNodes, setEdges]);
+
   // Duplicate selected elements (nodes and edges)
   const duplicateSelected = useCallback(() => {
     if (disabled || (selectedNodes.length === 0 && selectedEdges.length === 0))
@@ -1195,6 +1202,7 @@ export function useWorkflowState({
     deleteNode: disabled ? () => {} : deleteNode,
     deleteEdge: disabled ? () => {} : deleteEdge,
     deleteSelected: disabled ? () => {} : deleteSelected,
+    deselectAll,
     duplicateNode: disabled ? () => {} : duplicateNode,
     duplicateSelected: disabled ? () => {} : duplicateSelected,
     applyLayout,
