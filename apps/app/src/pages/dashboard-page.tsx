@@ -1,7 +1,7 @@
 import type {
   CreateWorkflowRequest,
   WorkflowTemplate,
-  WorkflowType,
+  WorkflowTrigger,
 } from "@dafthunk/types";
 import FileDown from "lucide-react/icons/file-down";
 import Logs from "lucide-react/icons/logs";
@@ -49,12 +49,15 @@ export function DashboardPage() {
   const { start: startTour } = useTour();
   const orgHandle = organization?.handle || "";
 
-  const handleCreateWorkflow = async (name: string, type: WorkflowType) => {
+  const handleCreateWorkflow = async (
+    name: string,
+    trigger: WorkflowTrigger
+  ) => {
     if (!orgHandle) return;
 
     const request: CreateWorkflowRequest = {
       name,
-      type,
+      trigger,
       nodes: [],
       edges: [],
     };

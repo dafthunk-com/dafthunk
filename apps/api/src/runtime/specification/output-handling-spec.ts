@@ -19,7 +19,7 @@ export function testOutputHandling(
         id: "test-workflow-outputs",
         name: "Node Outputs",
         handle: "outputs",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "num",
@@ -55,7 +55,7 @@ export function testOutputHandling(
         id: "test-workflow-no-outputs-on-error",
         name: "No Outputs on Error",
         handle: "no-outputs-error",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "num",
@@ -123,7 +123,7 @@ export function testOutputHandling(
         id: "test-workflow-multiple-outputs",
         name: "Multiple Outputs",
         handle: "multi-outputs",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "num1",

@@ -1,4 +1,4 @@
-import type { Workflow as WorkflowType } from "@dafthunk/types";
+import type { Workflow } from "@dafthunk/types";
 
 import type { Bindings } from "./context";
 import { createDatabase, getOrganizationComputeCredits } from "./db";
@@ -151,7 +151,7 @@ async function triggerWorkflowForEmail({
 }): Promise<void> {
   const db = createDatabase(env.DB);
 
-  let workflowData: WorkflowType;
+  let workflowData: Workflow;
   let deploymentId: string | undefined;
 
   if (isDevMode) {
@@ -226,7 +226,7 @@ async function triggerWorkflowForEmail({
         id: workflow.id,
         name: workflow.name,
         handle: workflow.handle,
-        type: workflow.type,
+        trigger: workflow.trigger,
         nodes: workflowData.nodes,
         edges: workflowData.edges,
       },

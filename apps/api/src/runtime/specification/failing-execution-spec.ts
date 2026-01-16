@@ -19,7 +19,7 @@ export function testFailingExecution(
         id: "test-workflow-4",
         name: "Division by Zero Workflow",
         handle: "div-by-zero",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "num1",
@@ -109,7 +109,7 @@ export function testFailingExecution(
         id: "test-workflow-5",
         name: "Missing Input Workflow",
         handle: "missing-input",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "num1",
@@ -175,7 +175,7 @@ export function testFailingExecution(
         id: "test-workflow-6",
         name: "Error Chain Workflow",
         handle: "error-chain",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "num1",
@@ -293,7 +293,7 @@ export function testFailingExecution(
         id: "test-workflow-7",
         name: "Stuck Workflow",
         handle: "stuck-workflow",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "addition",

@@ -11,7 +11,7 @@ export const imageProcessingTemplate: WorkflowTemplate = {
   name: "Image Processing",
   description: "Capture a photo and apply a pop art style effect",
   icon: "camera",
-  type: "manual",
+  trigger: "manual",
   tags: ["image", "webcam", "processing", "photon", "pop-art"],
   nodes: [
     WebcamInputNode.create({

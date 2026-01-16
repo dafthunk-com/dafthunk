@@ -1,4 +1,8 @@
-import { GetNodeTypesResponse, NodeType, WorkflowType } from "@dafthunk/types";
+import {
+  GetNodeTypesResponse,
+  NodeType,
+  WorkflowTrigger,
+} from "@dafthunk/types";
 import useSWR, { type SWRConfiguration } from "swr";
 
 import { makeRequest } from "./utils";
@@ -15,19 +19,19 @@ export interface UseNodeTypes {
 
 /**
  * Hook to fetch available node types (now public endpoint)
- * @param workflowType Optional workflow type to filter node types by compatibility
+ * @param workflowTrigger Optional workflow trigger to filter node types by compatibility
  */
 export const useNodeTypes = (
-  workflowType?: WorkflowType,
+  workflowTrigger?: WorkflowTrigger,
   options?: SWRConfiguration<NodeType[]>
 ): UseNodeTypes => {
-  // Create a unique SWR key that includes the workflow type
-  const swrKey = `${API_ENDPOINT_BASE}${workflowType ? `?workflowType=${workflowType}` : ""}`;
+  // Create a unique SWR key that includes the workflow trigger
+  const swrKey = `${API_ENDPOINT_BASE}${workflowTrigger ? `?workflowTrigger=${workflowTrigger}` : ""}`;
 
   const { data, error, isLoading, mutate } = useSWR(
     swrKey,
     async () => {
-      const endpoint = `${API_ENDPOINT_BASE}${workflowType ? `?workflowType=${workflowType}` : ""}`;
+      const endpoint = `${API_ENDPOINT_BASE}${workflowTrigger ? `?workflowTrigger=${workflowTrigger}` : ""}`;
       const response = await makeRequest<GetNodeTypesResponse>(endpoint);
       return response.nodeTypes;
     },

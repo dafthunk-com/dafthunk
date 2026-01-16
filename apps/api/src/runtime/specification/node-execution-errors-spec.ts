@@ -19,7 +19,7 @@ export function testNodeExecutionErrors(
         id: "test-workflow-unknown-type",
         name: "Unknown Node Type",
         handle: "unknown-type",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "unknown",
@@ -51,7 +51,7 @@ export function testNodeExecutionErrors(
         id: "test-workflow-continue-on-error",
         name: "Continue on Error",
         handle: "continue-error",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "num1",

@@ -17,7 +17,7 @@ describe("Image Processing Template", () => {
   it("should have correct template metadata", () => {
     expect(imageProcessingTemplate.id).toBe("image-processing");
     expect(imageProcessingTemplate.name).toBe("Image Processing");
-    expect(imageProcessingTemplate.type).toBe("manual");
+    expect(imageProcessingTemplate.trigger).toBe("manual");
     expect(imageProcessingTemplate.tags).toContain("webcam");
     expect(imageProcessingTemplate.tags).toContain("photon");
     expect(imageProcessingTemplate.tags).toContain("pop-art");

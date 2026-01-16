@@ -70,7 +70,7 @@ export class StateManager {
       id: workflowId,
       name: workflow.name,
       handle: workflow.handle,
-      type: workflow.type,
+      trigger: workflow.trigger,
       nodes: [],
       edges: [],
     };
@@ -79,7 +79,7 @@ export class StateManager {
       id: workflowId,
       name: workflowData.name,
       handle: workflowData.handle,
-      type: workflowData.type as WorkflowState["type"],
+      trigger: workflowData.trigger as WorkflowState["trigger"],
       nodes: workflowData.nodes,
       edges: workflowData.edges,
       timestamp: workflow.updatedAt?.getTime() || Date.now(),
@@ -138,9 +138,9 @@ export class StateManager {
     }
 
     // Validate required fields
-    if (!state.name || !state.handle || !state.type) {
+    if (!state.name || !state.handle || !state.trigger) {
       throw new Error(
-        "Invalid state: missing required fields (name, handle, or type)"
+        "Invalid state: missing required fields (name, handle, or trigger)"
       );
     }
 
@@ -191,7 +191,7 @@ export class StateManager {
         id: this.state.id,
         name: this.state.name,
         handle: this.state.handle,
-        type: this.state.type,
+        trigger: this.state.trigger,
         organizationId: this.organizationId,
         nodes: this.state.nodes,
         edges: this.state.edges,
@@ -202,7 +202,7 @@ export class StateManager {
         // Persist metadata updates
         workflowStore.update(this.state.id, this.organizationId, {
           name: this.state.name,
-          type: this.state.type,
+          trigger: this.state.trigger,
         } as any),
         // Save full data to R2 via store save()
         workflowStore.save(workflowData as any),

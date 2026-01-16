@@ -1,4 +1,8 @@
-import type { ObjectReference } from "@dafthunk/types";
+import type {
+  ObjectReference,
+  WorkflowRuntime,
+  WorkflowTrigger,
+} from "@dafthunk/types";
 import type {
   Edge as ReactFlowEdge,
   Node as ReactFlowNode,
@@ -9,6 +13,13 @@ import { useEffect, useRef, useState } from "react";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
 import { WorkflowEdgeInspector } from "./workflow-edge-inspector";
@@ -30,7 +41,14 @@ export interface WorkflowSidebarProps {
   disabled?: boolean;
   workflowName?: string;
   workflowDescription?: string;
-  onWorkflowUpdate?: (name: string, description?: string) => void;
+  workflowTrigger?: WorkflowTrigger;
+  workflowRuntime?: WorkflowRuntime;
+  onWorkflowUpdate?: (
+    name: string,
+    description?: string,
+    trigger?: WorkflowTrigger,
+    runtime?: WorkflowRuntime
+  ) => void;
   workflowStatus?: WorkflowExecutionStatus;
   workflowErrorMessage?: string;
   executionId?: string;
@@ -46,6 +64,8 @@ export function WorkflowSidebar({
   disabled = false,
   workflowName = "",
   workflowDescription = "",
+  workflowTrigger = "manual",
+  workflowRuntime = "workflow",
   onWorkflowUpdate,
   workflowStatus,
   workflowErrorMessage,
@@ -61,6 +81,10 @@ export function WorkflowSidebar({
   // Local state for workflow properties
   const [localName, setLocalName] = useState(workflowName);
   const [localDescription, setLocalDescription] = useState(workflowDescription);
+  const [localTrigger, setLocalTrigger] =
+    useState<WorkflowTrigger>(workflowTrigger);
+  const [localRuntime, setLocalRuntime] =
+    useState<WorkflowRuntime>(workflowRuntime);
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Collapsible section state
@@ -76,6 +100,14 @@ export function WorkflowSidebar({
     setLocalDescription(workflowDescription || "");
   }, [workflowDescription]);
 
+  useEffect(() => {
+    setLocalTrigger(workflowTrigger);
+  }, [workflowTrigger]);
+
+  useEffect(() => {
+    setLocalRuntime(workflowRuntime);
+  }, [workflowRuntime]);
+
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newName = e.target.value;
     setLocalName(newName);
@@ -86,7 +118,12 @@ export function WorkflowSidebar({
     }
     updateTimeoutRef.current = setTimeout(() => {
       if (onWorkflowUpdate) {
-        onWorkflowUpdate(newName, localDescription || undefined);
+        onWorkflowUpdate(
+          newName,
+          localDescription || undefined,
+          localTrigger,
+          localRuntime
+        );
       }
     }, 500);
   };
@@ -103,9 +140,38 @@ export function WorkflowSidebar({
     }
     updateTimeoutRef.current = setTimeout(() => {
       if (onWorkflowUpdate) {
-        onWorkflowUpdate(localName, newDescription || undefined);
+        onWorkflowUpdate(
+          localName,
+          newDescription || undefined,
+          localTrigger,
+          localRuntime
+        );
       }
     }, 500);
+  };
+
+  const handleTriggerChange = (newTrigger: WorkflowTrigger) => {
+    setLocalTrigger(newTrigger);
+    if (onWorkflowUpdate) {
+      onWorkflowUpdate(
+        localName,
+        localDescription || undefined,
+        newTrigger,
+        localRuntime
+      );
+    }
+  };
+
+  const handleRuntimeChange = (newRuntime: WorkflowRuntime) => {
+    setLocalRuntime(newRuntime);
+    if (onWorkflowUpdate) {
+      onWorkflowUpdate(
+        localName,
+        localDescription || undefined,
+        localTrigger,
+        newRuntime
+      );
+    }
   };
 
   // Cleanup timeout on unmount
@@ -184,6 +250,54 @@ export function WorkflowSidebar({
                       rows={3}
                       disabled={disabled}
                     />
+                  </div>
+                  <div>
+                    <Label htmlFor="workflow-trigger">Trigger Type</Label>
+                    <Select
+                      value={localTrigger}
+                      onValueChange={(value) =>
+                        handleTriggerChange(value as WorkflowTrigger)
+                      }
+                      disabled={disabled}
+                    >
+                      <SelectTrigger id="workflow-trigger" className="mt-2">
+                        <SelectValue placeholder="Select trigger type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="manual">Manual</SelectItem>
+                        <SelectItem value="scheduled">Scheduled</SelectItem>
+                        <SelectItem value="http_webhook">
+                          HTTP Webhook
+                        </SelectItem>
+                        <SelectItem value="http_request">
+                          HTTP Request
+                        </SelectItem>
+                        <SelectItem value="email_message">
+                          Email Message
+                        </SelectItem>
+                        <SelectItem value="queue_message">
+                          Queue Message
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="workflow-runtime">Execution Mode</Label>
+                    <Select
+                      value={localRuntime}
+                      onValueChange={(value) =>
+                        handleRuntimeChange(value as WorkflowRuntime)
+                      }
+                      disabled={disabled}
+                    >
+                      <SelectTrigger id="workflow-runtime" className="mt-2">
+                        <SelectValue placeholder="Select execution mode" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="workflow">Durable</SelectItem>
+                        <SelectItem value="worker">Fast</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </>

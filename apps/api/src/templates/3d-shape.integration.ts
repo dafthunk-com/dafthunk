@@ -60,6 +60,6 @@ describe("3D Shape Template", () => {
   });
 
   it("should be a manual workflow", () => {
-    expect(shape3dTemplate.type).toBe("manual");
+    expect(shape3dTemplate.trigger).toBe("manual");
   });
 });

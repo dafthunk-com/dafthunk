@@ -1,4 +1,4 @@
-import type { WorkflowType } from "@dafthunk/types";
+import type { WorkflowTrigger } from "@dafthunk/types";
 import { Wand } from "lucide-react";
 import { DynamicIcon, iconNames } from "lucide-react/dynamic.mjs";
 import { useMemo, useState } from "react";
@@ -23,7 +23,7 @@ export interface WorkflowNodeSelectorProps {
   templates?: NodeType[];
   workflowName?: string;
   workflowDescription?: string;
-  workflowType?: WorkflowType;
+  workflowTrigger?: WorkflowTrigger;
 }
 
 // Helper function to highlight matching text
@@ -66,24 +66,24 @@ export function WorkflowNodeSelector({
   templates = [],
   workflowName,
   workflowDescription,
-  workflowType,
+  workflowTrigger,
 }: WorkflowNodeSelectorProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
-  // Filter templates by workflow type compatibility
+  // Filter templates by workflow trigger compatibility
   const compatibleTemplates = useMemo(() => {
-    if (!workflowType) return templates;
+    if (!workflowTrigger) return templates;
 
     return templates.filter((template) => {
-      // If node has no compatibility field, it's compatible with all workflow types
+      // If node has no compatibility field, it's compatible with all workflow triggers
       if (!template.compatibility || template.compatibility.length === 0) {
         return true;
       }
-      // Otherwise, check if current workflow type is in the compatibility list
-      return template.compatibility.includes(workflowType);
+      // Otherwise, check if current workflow trigger is in the compatibility list
+      return template.compatibility.includes(workflowTrigger);
     });
-  }, [templates, workflowType]);
+  }, [templates, workflowTrigger]);
 
   // Combined scoring using substring matching (not fuzzy)
   const scoredAndFilteredTemplates = useMemo(() => {

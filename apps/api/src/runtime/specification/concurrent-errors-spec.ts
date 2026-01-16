@@ -19,7 +19,7 @@ export function testConcurrentErrors(
         id: "test-workflow-multi-error",
         name: "Multiple Errors Workflow",
         handle: "multi-error",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "num1",
@@ -137,7 +137,7 @@ export function testConcurrentErrors(
         id: "test-workflow-cascade",
         name: "Cascading Errors Workflow",
         handle: "cascade-error",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "num1",

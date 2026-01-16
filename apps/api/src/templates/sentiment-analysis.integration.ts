@@ -17,7 +17,7 @@ describe("Sentiment Analysis Template", () => {
   it("should have correct template metadata", () => {
     expect(sentimentAnalysisTemplate.id).toBe("sentiment-analysis");
     expect(sentimentAnalysisTemplate.name).toBe("Sentiment Analysis");
-    expect(sentimentAnalysisTemplate.type).toBe("manual");
+    expect(sentimentAnalysisTemplate.trigger).toBe("manual");
     expect(sentimentAnalysisTemplate.tags).toContain("sentiment");
     expect(sentimentAnalysisTemplate.tags).toContain("ai");
   });

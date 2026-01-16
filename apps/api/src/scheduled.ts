@@ -75,7 +75,7 @@ export async function handleScheduledEvent(
             id: workflow.id,
             name: workflow.name,
             handle: workflow.handle,
-            type: workflowData.type,
+            trigger: workflowData.trigger,
             nodes: workflowData.nodes,
             edges: workflowData.edges,
           },

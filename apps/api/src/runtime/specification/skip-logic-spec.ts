@@ -19,7 +19,7 @@ export function testSkipLogic(
         id: "test-workflow-skip-missing",
         name: "Execute with Missing Input",
         handle: "skip-missing",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "num",
@@ -78,7 +78,7 @@ export function testSkipLogic(
         id: "test-workflow-recursive-skip",
         name: "Recursive Skip",
         handle: "recursive-skip",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "num1",

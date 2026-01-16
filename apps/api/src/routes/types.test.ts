@@ -1,5 +1,5 @@
 import { env } from "cloudflare:test";
-import type { GetNodeTypesResponse, WorkflowType } from "@dafthunk/types";
+import type { GetNodeTypesResponse, WorkflowTrigger } from "@dafthunk/types";
 import { Hono } from "hono";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -77,8 +77,8 @@ describe("Types Route Tests", () => {
     });
   });
 
-  describe("Workflow Type Filtering", () => {
-    const workflowTypes: WorkflowType[] = [
+  describe("Workflow Trigger Filtering", () => {
+    const workflowTriggers: WorkflowTrigger[] = [
       "manual",
       "http_request",
       "email_message",
@@ -86,10 +86,10 @@ describe("Types Route Tests", () => {
     ];
 
     it.each(
-      workflowTypes
-    )("should handle workflowType query parameter: %s", async (workflowType) => {
+      workflowTriggers
+    )("should handle workflowTrigger query parameter: %s", async (workflowTrigger) => {
       const response = await app.request(
-        `/types?workflowType=${workflowType}`,
+        `/types?workflowTrigger=${workflowTrigger}`,
         {
           method: "GET",
         }
@@ -101,26 +101,29 @@ describe("Types Route Tests", () => {
       expect(data).toHaveProperty("nodeTypes");
       expect(Array.isArray(data.nodeTypes)).toBe(true);
 
-      // All returned node types should be compatible with the requested workflow type
+      // All returned node types should be compatible with the requested workflow trigger
       // or have no compatibility restrictions
       data.nodeTypes.forEach((nodeType) => {
         if (nodeType.compatibility) {
-          expect(nodeType.compatibility).toContain(workflowType);
+          expect(nodeType.compatibility).toContain(workflowTrigger);
         }
-        // If no compatibility array, it's compatible with all workflow types
+        // If no compatibility array, it's compatible with all workflow triggers
       });
     });
 
-    it("should return different results for different workflow types", async () => {
+    it("should return different results for different workflow triggers", async () => {
       // Get node types for manual workflow
-      const manualResponse = await app.request("/types?workflowType=manual", {
-        method: "GET",
-      });
+      const manualResponse = await app.request(
+        "/types?workflowTrigger=manual",
+        {
+          method: "GET",
+        }
+      );
       const manualData = (await manualResponse.json()) as GetNodeTypesResponse;
 
       // Get node types for email workflow
       const emailResponse = await app.request(
-        "/types?workflowType=email_message",
+        "/types?workflowTrigger=email_message",
         {
           method: "GET",
         }
@@ -141,12 +144,12 @@ describe("Types Route Tests", () => {
       expect(emailData.nodeTypes.length).toBeGreaterThan(0);
     });
 
-    it("should return all node types when no workflowType is specified", async () => {
+    it("should return all node types when no workflowTrigger is specified", async () => {
       const allTypesResponse = await app.request("/types", {
         method: "GET",
       });
       const manualTypesResponse = await app.request(
-        "/types?workflowType=manual",
+        "/types?workflowTrigger=manual",
         {
           method: "GET",
         }
@@ -165,10 +168,13 @@ describe("Types Route Tests", () => {
       );
     });
 
-    it("should handle invalid workflowType gracefully", async () => {
-      const response = await app.request("/types?workflowType=invalid_type", {
-        method: "GET",
-      });
+    it("should handle invalid workflowTrigger gracefully", async () => {
+      const response = await app.request(
+        "/types?workflowTrigger=invalid_type",
+        {
+          method: "GET",
+        }
+      );
 
       // Should still return successfully (invalid types are just ignored)
       expect(response.status).toBe(200);

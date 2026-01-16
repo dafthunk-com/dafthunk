@@ -1,4 +1,4 @@
-import { GetNodeTypesResponse, WorkflowType } from "@dafthunk/types";
+import { GetNodeTypesResponse, WorkflowTrigger } from "@dafthunk/types";
 import { Hono } from "hono";
 
 import { optionalJwtMiddleware } from "../auth";
@@ -14,10 +14,10 @@ typeRoutes.get("/", optionalJwtMiddleware, (c) => {
       c.env,
       jwtPayload?.developerMode ?? false
     );
-    const workflowType = c.req.query("workflowType") as
-      | WorkflowType
+    const workflowTrigger = c.req.query("workflowTrigger") as
+      | WorkflowTrigger
       | undefined;
-    const nodeTypes = registry.getNodeTypes(workflowType);
+    const nodeTypes = registry.getNodeTypes(workflowTrigger);
     return c.json({ nodeTypes } as GetNodeTypesResponse);
   } catch (error) {
     console.error("Error getting node types:", error);

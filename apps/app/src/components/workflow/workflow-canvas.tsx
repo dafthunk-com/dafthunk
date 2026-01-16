@@ -1,6 +1,6 @@
 import "@xyflow/react/dist/style.css";
 
-import { WorkflowType } from "@dafthunk/types";
+import { WorkflowTrigger } from "@dafthunk/types";
 import {
   Background,
   BackgroundVariant,
@@ -146,7 +146,7 @@ export interface WorkflowCanvasProps {
   nodes: ReactFlowNode<WorkflowNodeType>[];
   edges: ReactFlowEdge<WorkflowEdgeType>[];
   connectionValidationState?: ConnectionValidationState;
-  workflowType?: WorkflowType;
+  workflowTrigger?: WorkflowTrigger;
   onNodesChange: OnNodesChange<ReactFlowNode<WorkflowNodeType>>;
   onEdgesChange: OnEdgesChange<ReactFlowEdge<WorkflowEdgeType>>;
   onConnect: OnConnect;
@@ -655,7 +655,7 @@ export function WorkflowCanvas({
   onAddNode,
   onAction,
   onDeploy,
-  workflowType,
+  workflowTrigger,
   onSetSchedule,
   onShowHttpIntegration,
   onShowEmailTrigger,
@@ -786,21 +786,21 @@ export function WorkflowCanvas({
                     }
                   />
                 )}
-                {onSetSchedule && workflowType === "scheduled" && (
+                {onSetSchedule && workflowTrigger === "scheduled" && (
                   <SetScheduleButton
                     onClick={onSetSchedule}
                     disabled={disabled || nodes.length === 0}
                   />
                 )}
                 {onShowHttpIntegration &&
-                  (workflowType === "http_webhook" ||
-                    workflowType === "http_request") && (
+                  (workflowTrigger === "http_webhook" ||
+                    workflowTrigger === "http_request") && (
                     <ShowHttpIntegrationButton
                       onClick={onShowHttpIntegration}
                       disabled={disabled}
                     />
                   )}
-                {onShowEmailTrigger && workflowType === "email_message" && (
+                {onShowEmailTrigger && workflowTrigger === "email_message" && (
                   <ShowEmailTriggerButton
                     onClick={onShowEmailTrigger}
                     disabled={disabled}

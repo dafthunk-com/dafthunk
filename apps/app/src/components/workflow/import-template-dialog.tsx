@@ -221,7 +221,7 @@ export function ImportTemplateDialog({
                             {highlightMatch(template.name, searchQuery)}
                           </h3>
                           <p className="text-xs text-muted-foreground mb-2">
-                            {template.type.replace("_", " ")}
+                            {template.trigger.replace("_", " ")}
                           </p>
                           <p className="text-sm text-muted-foreground leading-relaxed">
                             {highlightMatch(template.description, searchQuery)}

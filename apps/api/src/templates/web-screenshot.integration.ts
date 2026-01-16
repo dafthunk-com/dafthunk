@@ -17,7 +17,7 @@ describe("Web Screenshot Template", () => {
   it("should have correct template metadata", () => {
     expect(webScreenshotTemplate.id).toBe("web-screenshot");
     expect(webScreenshotTemplate.name).toBe("Web Screenshot");
-    expect(webScreenshotTemplate.type).toBe("manual");
+    expect(webScreenshotTemplate.trigger).toBe("manual");
     expect(webScreenshotTemplate.tags).toContain("browser");
     expect(webScreenshotTemplate.tags).toContain("screenshot");
   });

@@ -1,4 +1,4 @@
-import type { DeploymentVersion, WorkflowType } from "@dafthunk/types";
+import type { DeploymentVersion, WorkflowTrigger } from "@dafthunk/types";
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import ArrowDown from "lucide-react/icons/arrow-down";
@@ -170,7 +170,7 @@ export function DeploymentDetailPage() {
     workflowId || null
   );
 
-  const { nodeTypes, isNodeTypesLoading } = useNodeTypes(workflow?.type);
+  const { nodeTypes, isNodeTypesLoading } = useNodeTypes(workflow?.trigger);
 
   const {
     executeWorkflow,
@@ -235,7 +235,7 @@ export function DeploymentDetailPage() {
       },
       adaptDeploymentNodesToReactFlowNodes(currentDeployment.nodes, nodeTypes),
       nodeTypes,
-      workflow.type
+      workflow.trigger
     );
   };
 
@@ -281,7 +281,7 @@ export function DeploymentDetailPage() {
     );
   }
 
-  const typeLabels: Record<WorkflowType, string> = {
+  const triggerLabels: Record<WorkflowTrigger, string> = {
     manual: "Manual",
     http_webhook: "HTTP Webhook",
     http_request: "HTTP Request",
@@ -301,7 +301,7 @@ export function DeploymentDetailPage() {
                   Manage deployments for this workflow
                 </p>
                 <Badge variant="outline" className="text-xs">
-                  {typeLabels[workflow.type]}
+                  {triggerLabels[workflow.trigger]}
                 </Badge>
               </div>
               <div className="flex gap-2">
@@ -309,13 +309,13 @@ export function DeploymentDetailPage() {
                   <Play className="mr-2 h-4 w-4" />
                   Execute Latest
                 </Button>
-                {workflow.type === "http_request" && (
+                {workflow.trigger === "http_request" && (
                   <Button onClick={() => setIsIntegrationDialogOpen(true)}>
                     <Globe className="mr-2 h-4 w-4" />
                     Show HTTP Integration
                   </Button>
                 )}
-                {workflow.type === "email_message" && (
+                {workflow.trigger === "email_message" && (
                   <Button onClick={() => setIsIntegrationDialogOpen(true)}>
                     <Mail className="mr-2 h-4 w-4" />
                     Show Email Trigger
@@ -408,7 +408,7 @@ export function DeploymentDetailPage() {
       </Dialog>
 
       {/* HTTP Webhook Integration Dialog */}
-      {workflow?.type === "http_webhook" && currentDeployment && (
+      {workflow?.trigger === "http_webhook" && currentDeployment && (
         <HttpWebhookIntegrationDialog
           isOpen={isIntegrationDialogOpen}
           onClose={setIsIntegrationDialogOpen}
@@ -424,7 +424,7 @@ export function DeploymentDetailPage() {
       )}
 
       {/* HTTP Request Integration Dialog */}
-      {workflow?.type === "http_request" && currentDeployment && (
+      {workflow?.trigger === "http_request" && currentDeployment && (
         <HttpRequestIntegrationDialog
           isOpen={isIntegrationDialogOpen}
           onClose={setIsIntegrationDialogOpen}
@@ -440,7 +440,7 @@ export function DeploymentDetailPage() {
       )}
 
       {/* Email Trigger Dialog */}
-      {workflow?.type === "email_message" &&
+      {workflow?.trigger === "email_message" &&
         currentDeployment &&
         workflowId && (
           <EmailTriggerDialog
@@ -451,8 +451,8 @@ export function DeploymentDetailPage() {
         )}
 
       {/* HTTP Request Config Dialog - for execution */}
-      {(workflow?.type === "http_request" ||
-        workflow?.type === "http_webhook") && (
+      {(workflow?.trigger === "http_request" ||
+        workflow?.trigger === "http_webhook") && (
         <HttpRequestConfigDialog
           isOpen={isHttpRequestConfigDialogVisible}
           onClose={closeExecutionForm}

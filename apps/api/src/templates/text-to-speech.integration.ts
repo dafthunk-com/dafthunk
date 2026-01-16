@@ -17,7 +17,7 @@ describe("Text to Speech Template", () => {
   it("should have correct template metadata", () => {
     expect(textToSpeechTemplate.id).toBe("text-to-speech");
     expect(textToSpeechTemplate.name).toBe("Text to Speech");
-    expect(textToSpeechTemplate.type).toBe("manual");
+    expect(textToSpeechTemplate.trigger).toBe("manual");
     expect(textToSpeechTemplate.tags).toContain("audio");
     expect(textToSpeechTemplate.tags).toContain("tts");
   });

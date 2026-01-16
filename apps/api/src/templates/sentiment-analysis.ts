@@ -9,7 +9,7 @@ export const sentimentAnalysisTemplate: WorkflowTemplate = {
   name: "Sentiment Analysis",
   description: "Analyze the sentiment of text",
   icon: "smile",
-  type: "manual",
+  trigger: "manual",
   tags: ["text", "sentiment", "ai"],
   nodes: [
     TextInputNode.create({

@@ -9,7 +9,7 @@ export const textTranslationTemplate: WorkflowTemplate = {
   name: "Text Translation",
   description: "Translate text between different languages",
   icon: "languages",
-  type: "manual",
+  trigger: "manual",
   tags: ["text", "translation", "ai"],
   nodes: [
     TextInputNode.create({

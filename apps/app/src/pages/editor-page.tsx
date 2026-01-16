@@ -1,4 +1,8 @@
-import type { WorkflowType, WorkflowWithMetadata } from "@dafthunk/types";
+import type {
+  WorkflowRuntime,
+  WorkflowTrigger,
+  WorkflowWithMetadata,
+} from "@dafthunk/types";
 import type { Connection, Edge, Node } from "@xyflow/react";
 import { ReactFlowProvider } from "@xyflow/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -193,14 +197,25 @@ export function EditorPage() {
   }, []);
 
   const handleWorkflowUpdate = useCallback(
-    async (name: string, description?: string) => {
+    async (
+      name: string,
+      description?: string,
+      trigger?: WorkflowTrigger,
+      runtime?: WorkflowRuntime
+    ) => {
       if (!id || !orgHandle) return;
 
       try {
         const fullWorkflow = await getWorkflow(id, orgHandle);
         await updateWorkflow(
           id,
-          { ...fullWorkflow, name, description },
+          {
+            ...fullWorkflow,
+            name,
+            description,
+            trigger: trigger || fullWorkflow.trigger,
+            runtime: runtime || fullWorkflow.runtime,
+          },
           orgHandle
         );
         const updatedMetadata = await getWorkflow(id, orgHandle);
@@ -277,7 +292,14 @@ export function EditorPage() {
         <div className="h-full w-full flex-grow">
           <WorkflowBuilder
             workflowId={id || ""}
-            workflowType={workflowMetadata?.type as WorkflowType | undefined}
+            workflowTrigger={
+              (httpWorkflowMetadata?.trigger || workflowMetadata?.trigger) as
+                | WorkflowTrigger
+                | undefined
+            }
+            workflowRuntime={
+              httpWorkflowMetadata?.runtime || workflowMetadata?.runtime
+            }
             initialNodes={initialNodesForUI}
             initialEdges={initialEdgesForUI}
             nodeTypes={nodeTypes || []}

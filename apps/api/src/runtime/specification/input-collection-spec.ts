@@ -19,7 +19,7 @@ export function testInputCollection(
         id: "test-workflow-static-inputs",
         name: "Static Inputs",
         handle: "static-inputs",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "add",
@@ -53,7 +53,7 @@ export function testInputCollection(
         id: "test-workflow-edge-inputs",
         name: "Edge Inputs",
         handle: "edge-inputs",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "num1",
@@ -116,7 +116,7 @@ export function testInputCollection(
         id: "test-workflow-override",
         name: "Input Override",
         handle: "input-override",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "num",
@@ -170,7 +170,7 @@ export function testInputCollection(
         id: "test-workflow-multiple-edges",
         name: "Multiple Edges Same Input",
         handle: "multi-edge",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "num1",
@@ -255,7 +255,7 @@ export function testInputCollection(
         id: "test-workflow-mixed-inputs",
         name: "Mixed Inputs",
         handle: "mixed-inputs",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "num",

@@ -9,7 +9,7 @@ export const imageDescriptionTemplate: WorkflowTemplate = {
   name: "Image Description",
   description: "Draw on a canvas and get an AI-generated description",
   icon: "pencil",
-  type: "manual",
+  trigger: "manual",
   tags: ["image", "canvas", "ai", "caption"],
   nodes: [
     CanvasInputNode.create({

@@ -60,6 +60,15 @@ export const WorkflowTriggerType = {
 export type WorkflowTriggerTypeType =
   (typeof WorkflowTriggerType)[keyof typeof WorkflowTriggerType];
 
+// Workflow runtime types
+export const WorkflowRuntime = {
+  WORKER: "worker",
+  WORKFLOW: "workflow",
+} as const;
+
+export type WorkflowRuntimeType =
+  (typeof WorkflowRuntime)[keyof typeof WorkflowRuntime];
+
 // Integration provider types
 export const IntegrationProvider = {
   GOOGLE_MAIL: "google-mail",
@@ -259,10 +268,14 @@ export const workflows = sqliteTable(
     name: text("name").notNull(),
     description: text("description"),
     handle: text("handle").notNull(),
-    type: text("type")
+    trigger: text("trigger")
       .$type<WorkflowTriggerTypeType>()
       .notNull()
       .default(WorkflowTriggerType.MANUAL),
+    runtime: text("runtime")
+      .$type<WorkflowRuntimeType>()
+      .notNull()
+      .default(WorkflowRuntime.WORKFLOW),
     organizationId: text("organization_id")
       .notNull()
       .references(() => organizations.id, { onDelete: "cascade" }),
@@ -276,7 +289,8 @@ export const workflows = sqliteTable(
   },
   (table) => [
     index("workflows_name_idx").on(table.name),
-    index("workflows_type_idx").on(table.type),
+    index("workflows_trigger_idx").on(table.trigger),
+    index("workflows_runtime_idx").on(table.runtime),
     index("workflows_organization_id_idx").on(table.organizationId),
     index("workflows_active_deployment_id_idx").on(table.activeDeploymentId),
     index("workflows_created_at_idx").on(table.createdAt),

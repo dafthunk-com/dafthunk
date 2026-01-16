@@ -9,7 +9,7 @@ export const webScreenshotTemplate: WorkflowTemplate = {
   name: "Web Screenshot",
   description: "Capture a screenshot of any webpage",
   icon: "camera",
-  type: "manual",
+  trigger: "manual",
   tags: ["browser", "screenshot", "web"],
   nodes: [
     TextInputNode.create({

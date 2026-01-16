@@ -19,7 +19,7 @@ export function testMonitoringUpdates(
         id: "test-workflow-monitor-initial",
         name: "Monitor Initial",
         handle: "monitor-initial",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "num",
@@ -52,7 +52,7 @@ export function testMonitoringUpdates(
         id: "test-workflow-monitor-progress",
         name: "Monitor Progress",
         handle: "monitor-progress",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "num1",
@@ -126,7 +126,7 @@ export function testMonitoringUpdates(
         id: "test-workflow-monitor-outputs",
         name: "Monitor Outputs",
         handle: "monitor-outputs",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "num",
@@ -162,7 +162,7 @@ export function testMonitoringUpdates(
         id: "test-workflow-monitor-errors",
         name: "Monitor Errors",
         handle: "monitor-errors",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "num",
@@ -230,7 +230,7 @@ export function testMonitoringUpdates(
         id: "test-workflow-final-completed",
         name: "Final Completed",
         handle: "final-completed",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "num",
@@ -260,7 +260,7 @@ export function testMonitoringUpdates(
         id: "test-workflow-final-error",
         name: "Final Error",
         handle: "final-error",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "num",

@@ -63,7 +63,7 @@ export function TemplateDetailPage() {
       const request: CreateWorkflowRequest = {
         name: template.name,
         description: template.description,
-        type: template.type,
+        trigger: template.trigger,
         nodes: template.nodes,
         edges: template.edges,
       };
@@ -110,7 +110,7 @@ export function TemplateDetailPage() {
         <ReactFlowProvider>
           <WorkflowBuilder
             workflowId={`template-${template.id}`}
-            workflowType={template.type}
+            workflowTrigger={template.trigger}
             initialNodes={nodes}
             initialEdges={edges}
             nodeTypes={nodeTypes}

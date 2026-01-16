@@ -10,13 +10,20 @@ export interface ObjectReference {
 /**
  * Workflow trigger types
  */
-export type WorkflowType =
+export type WorkflowTrigger =
   | "manual"
   | "http_webhook"
   | "http_request"
   | "email_message"
   | "queue_message"
   | "scheduled";
+
+/**
+ * Workflow runtime modes
+ * - worker: Fast, synchronous execution (max 30s)
+ * - workflow: Durable execution with retries and checkpoints
+ */
+export type WorkflowRuntime = "worker" | "workflow";
 
 /**
  * Workflow execution mode
@@ -209,7 +216,7 @@ export interface NodeType {
   asTool?: boolean;
   inputs: Parameter[];
   outputs: Parameter[];
-  compatibility?: WorkflowType[]; // Optional array of workflow types this node is compatible with
+  compatibility?: WorkflowTrigger[]; // Optional array of workflow triggers this node is compatible with
   subscription?: boolean; // Node requires a paid subscription to execute
 }
 
@@ -255,7 +262,8 @@ export interface Workflow {
   name: string;
   description?: string;
   handle: string;
-  type: WorkflowType;
+  trigger: WorkflowTrigger;
+  runtime?: WorkflowRuntime;
   nodes: Node[];
   edges: Edge[];
 }
@@ -330,7 +338,8 @@ export interface WorkflowExecution {
 export interface CreateWorkflowRequest {
   name: string;
   description?: string;
-  type: WorkflowType;
+  trigger: WorkflowTrigger;
+  runtime?: WorkflowRuntime;
   nodes: Node[];
   edges: Edge[];
 }
@@ -358,7 +367,8 @@ export type GetWorkflowResponse = WorkflowWithMetadata;
 export interface UpdateWorkflowRequest {
   name: string;
   description?: string;
-  type: WorkflowType;
+  trigger?: WorkflowTrigger;
+  runtime?: WorkflowRuntime;
   nodes: Node[];
   edges: Edge[];
 }
@@ -473,7 +483,7 @@ export interface WorkflowTemplate {
   name: string;
   description: string;
   icon: string;
-  type: WorkflowType;
+  trigger: WorkflowTrigger;
   tags: string[];
   nodes: Node[];
   edges: Edge[];

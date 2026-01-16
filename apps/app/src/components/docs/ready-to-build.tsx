@@ -1,4 +1,4 @@
-import { CreateWorkflowRequest, WorkflowType } from "@dafthunk/types";
+import { CreateWorkflowRequest, WorkflowTrigger } from "@dafthunk/types";
 import Activity from "lucide-react/icons/activity";
 import CloudUpload from "lucide-react/icons/cloud-upload";
 import LayoutDashboard from "lucide-react/icons/layout-dashboard";
@@ -22,13 +22,16 @@ export function ReadyToBuildBlock() {
   const orgHandle = organization?.handle || "";
   const { mutateWorkflows } = useWorkflows();
 
-  const handleCreateWorkflow = async (name: string, type: WorkflowType) => {
+  const handleCreateWorkflow = async (
+    name: string,
+    trigger: WorkflowTrigger
+  ) => {
     if (!orgHandle) return;
 
     try {
       const request: CreateWorkflowRequest = {
         name,
-        type,
+        trigger,
         nodes: [],
         edges: [],
       };

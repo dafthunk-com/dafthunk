@@ -19,7 +19,7 @@ export function testStateConsistency(
         id: "test-workflow-consistency",
         name: "Consistency Check Workflow",
         handle: "consistency",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "num1",
@@ -82,7 +82,7 @@ export function testStateConsistency(
         id: "test-workflow-state-isolation",
         name: "State Isolation Workflow",
         handle: "state-isolation",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "num1",

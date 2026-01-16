@@ -2,6 +2,7 @@ import type {
   Parameter,
   ParameterType,
   WorkflowExecution,
+  WorkflowRuntime,
 } from "@dafthunk/types";
 import type { Edge, Node } from "@xyflow/react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -42,7 +43,8 @@ export function useEditableWorkflow({
     name: string;
     description?: string;
     handle: string;
-    type: string;
+    trigger: string;
+    runtime?: WorkflowRuntime;
   } | null>(null);
 
   const { organization } = useAuth();
@@ -71,13 +73,14 @@ export function useEditableWorkflow({
       const handleStateUpdate = (state: WorkflowState) => {
         try {
           // Store workflow metadata
-          if (state.id && state.type) {
+          if (state.id && state.trigger) {
             setWorkflowMetadata({
               id: state.id,
               name: state.name || "",
               description: state.description,
               handle: state.handle || "",
-              type: state.type,
+              trigger: state.trigger,
+              runtime: state.runtime as WorkflowRuntime | undefined,
             });
           }
 

@@ -1,4 +1,4 @@
-import type { Deployment, Workflow as WorkflowType } from "@dafthunk/types";
+import type { Deployment, Workflow } from "@dafthunk/types";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
 
@@ -192,7 +192,7 @@ export class DeploymentStore {
       .select({
         workflowId: workflows.id,
         workflowName: workflows.name,
-        workflowType: workflows.type,
+        workflowTrigger: workflows.trigger,
         latestDeploymentId: actualLatestDeployment.id,
         latestVersion: (workflowDeploymentAggregates as any).maxVersion,
         deploymentCount: (workflowDeploymentAggregates as any).deploymentCount,
@@ -228,7 +228,7 @@ export class DeploymentStore {
     return results.map((row) => ({
       workflowId: row.workflowId,
       workflowName: row.workflowName,
-      workflowType: row.workflowType,
+      workflowTrigger: row.workflowTrigger,
       latestDeploymentId: row.latestDeploymentId,
       latestVersion: row.latestVersion as number,
       deploymentCount: row.deploymentCount as number,
@@ -239,7 +239,7 @@ export class DeploymentStore {
   /** Write workflow snapshot JSON for a deployment to R2 */
   async writeWorkflowSnapshot(
     deploymentId: string,
-    workflow: WorkflowType
+    workflow: Workflow
   ): Promise<void> {
     const key = `deployments/${deploymentId}/workflow.json`;
     const result = await this.env.RESSOURCES.put(
@@ -263,14 +263,14 @@ export class DeploymentStore {
   }
 
   /** Read workflow snapshot by deployment id */
-  async readWorkflowSnapshot(deploymentId: string): Promise<WorkflowType> {
+  async readWorkflowSnapshot(deploymentId: string): Promise<Workflow> {
     const key = `deployments/${deploymentId}/workflow.json`;
     const object = await this.env.RESSOURCES.get(key);
     if (!object) {
       throw new Error(`Workflow not found for deployment: ${deploymentId}`);
     }
     const text = await object.text();
-    return JSON.parse(text) as WorkflowType;
+    return JSON.parse(text) as Workflow;
   }
 
   /** Delete workflow snapshot by deployment id */
@@ -283,7 +283,7 @@ export class DeploymentStore {
   async getWithData(
     deploymentId: string,
     organizationIdOrHandle: string
-  ): Promise<(DeploymentRow & { workflowData: WorkflowType }) | undefined> {
+  ): Promise<(DeploymentRow & { workflowData: Workflow }) | undefined> {
     const deployment = await this.get(deploymentId, organizationIdOrHandle);
     if (!deployment) return undefined;
     const workflowData = await this.readWorkflowSnapshot(deployment.id);

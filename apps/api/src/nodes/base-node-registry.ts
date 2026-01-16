@@ -1,4 +1,4 @@
-import { Node, NodeType, WorkflowType } from "@dafthunk/types";
+import { Node, NodeType, WorkflowTrigger } from "@dafthunk/types";
 
 import { Bindings } from "../context";
 import { ExecutableNode } from "./types";
@@ -54,18 +54,19 @@ export abstract class BaseNodeRegistry {
   /**
    * Get all available node types, optionally filtered by workflow type
    */
-  public getNodeTypes(workflowType?: WorkflowType): NodeType[] {
+  public getNodeTypes(workflowTrigger?: WorkflowTrigger): NodeType[] {
     const nodeTypes = Array.from(this.implementations.values()).map(
       (implementation) => implementation.nodeType
     );
 
-    if (!workflowType) {
+    if (!workflowTrigger) {
       return nodeTypes;
     }
 
     return nodeTypes.filter(
       (nodeType) =>
-        !nodeType.compatibility || nodeType.compatibility.includes(workflowType)
+        !nodeType.compatibility ||
+        nodeType.compatibility.includes(workflowTrigger)
     );
   }
 

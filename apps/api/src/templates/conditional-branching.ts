@@ -13,7 +13,7 @@ export const conditionalBranchingTemplate: WorkflowTemplate = {
   name: "Conditional Branching",
   description: "Demonstrate conditional branching with fork and join",
   icon: "git-branch",
-  type: "manual",
+  trigger: "manual",
   tags: ["logic", "demo", "conditional"],
   nodes: [
     BooleanInputNode.create({

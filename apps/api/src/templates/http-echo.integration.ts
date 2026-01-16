@@ -22,7 +22,7 @@ describe("HTTP Echo Template", () => {
   it("should have correct template metadata", () => {
     expect(httpEchoTemplate.id).toBe("http-echo");
     expect(httpEchoTemplate.name).toBe("HTTP Echo");
-    expect(httpEchoTemplate.type).toBe("http_request");
+    expect(httpEchoTemplate.trigger).toBe("http_request");
     expect(httpEchoTemplate.tags).toContain("http");
   });
 

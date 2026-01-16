@@ -41,7 +41,7 @@ describe("workflowValidation", () => {
         id: "test",
         name: "Test Workflow",
         handle: "test-handle",
-        type: "manual",
+        trigger: "manual",
         nodes: [createNode("1"), createNode("2"), createNode("3")],
         edges: [
           createEdge("1", "2", "out1", "in1"),
@@ -58,7 +58,7 @@ describe("workflowValidation", () => {
         id: "test",
         name: "Test Workflow",
         handle: "test-handle",
-        type: "manual",
+        trigger: "manual",
         nodes: [createNode("1"), createNode("2"), createNode("3")],
         edges: [
           createEdge("1", "2", "out1", "in1"),
@@ -82,7 +82,7 @@ describe("workflowValidation", () => {
         id: "test",
         name: "Test Workflow",
         handle: "test-handle",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             ...createNode("1"),
@@ -105,7 +105,7 @@ describe("workflowValidation", () => {
         id: "test",
         name: "Test Workflow",
         handle: "test-handle",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             ...createNode("1"),
@@ -135,7 +135,7 @@ describe("workflowValidation", () => {
         id: "test",
         name: "Test Workflow",
         handle: "test-handle",
-        type: "manual",
+        trigger: "manual",
         nodes: [createNode("1")],
         edges: [createEdge("1", "2", "out1", "in1")],
       };
@@ -156,7 +156,7 @@ describe("workflowValidation", () => {
         id: "test",
         name: "Test Workflow",
         handle: "test-handle",
-        type: "manual",
+        trigger: "manual",
         nodes: [createNode("1"), createNode("2")],
         edges: [createEdge("1", "2", "nonexistent", "in1")],
       };
@@ -179,7 +179,7 @@ describe("workflowValidation", () => {
         id: "test",
         name: "Test Workflow",
         handle: "test-handle",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             ...createNode("1"),
@@ -202,7 +202,7 @@ describe("workflowValidation", () => {
         id: "test",
         name: "Test Workflow",
         handle: "test-handle",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             ...createNode("1"),

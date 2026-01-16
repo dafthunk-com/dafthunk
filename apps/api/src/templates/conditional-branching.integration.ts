@@ -19,7 +19,7 @@ describe("Conditional Branching Template", () => {
   it("should have correct template metadata", () => {
     expect(conditionalBranchingTemplate.id).toBe("conditional-branching");
     expect(conditionalBranchingTemplate.name).toBe("Conditional Branching");
-    expect(conditionalBranchingTemplate.type).toBe("manual");
+    expect(conditionalBranchingTemplate.trigger).toBe("manual");
     expect(conditionalBranchingTemplate.tags).toContain("logic");
   });
 

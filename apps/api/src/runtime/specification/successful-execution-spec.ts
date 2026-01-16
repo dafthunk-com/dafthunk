@@ -19,7 +19,7 @@ export function testSuccessfulExecution(
         id: "test-workflow-1",
         name: "Linear Math Workflow",
         handle: "linear-math",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "num1",
@@ -116,7 +116,7 @@ export function testSuccessfulExecution(
         id: "test-workflow-2",
         name: "Parallel Math Workflow",
         handle: "parallel-math",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "num1",
@@ -270,7 +270,7 @@ export function testSuccessfulExecution(
         id: "test-workflow-3",
         name: "Chained Operations Workflow",
         handle: "chained-ops",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "num1",

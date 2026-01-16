@@ -1,4 +1,4 @@
-import type { DeploymentVersion, WorkflowType } from "@dafthunk/types";
+import type { DeploymentVersion, WorkflowTrigger } from "@dafthunk/types";
 import type { Edge, Node } from "@xyflow/react";
 import Globe from "lucide-react/icons/globe";
 import Mail from "lucide-react/icons/mail";
@@ -60,7 +60,7 @@ export function DeploymentVersionPage() {
   );
 
   const { nodeTypes, isNodeTypesLoading } = useNodeTypes(
-    deploymentVersion?.type || workflow?.type
+    deploymentVersion?.trigger || workflow?.trigger
   );
 
   const {
@@ -157,8 +157,8 @@ export function DeploymentVersionPage() {
 
   const handleExecuteThisVersion = useCallback(() => {
     if (!deploymentVersion?.workflowId) return;
-    const workflowType = deploymentVersion.type || workflow?.type;
-    if (!workflowType) return;
+    const workflowTrigger = deploymentVersion.trigger || workflow?.trigger;
+    if (!workflowTrigger) return;
 
     executeWorkflow(
       deploymentVersion.workflowId,
@@ -177,15 +177,15 @@ export function DeploymentVersionPage() {
       },
       nodes,
       nodeTypes,
-      workflowType
+      workflowTrigger
     );
   }, [
     deploymentVersion?.workflowId,
-    deploymentVersion?.type,
+    deploymentVersion?.trigger,
     executeWorkflow,
     nodes,
     nodeTypes,
-    workflow?.type,
+    workflow?.trigger,
   ]);
 
   if (isDeploymentVersionLoading || isWorkflowLoading || isNodeTypesLoading) {
@@ -207,7 +207,7 @@ export function DeploymentVersionPage() {
     );
   }
 
-  const typeLabels: Record<WorkflowType, string> = {
+  const triggerLabels: Record<WorkflowTrigger, string> = {
     manual: "Manual",
     http_webhook: "HTTP Webhook",
     http_request: "HTTP Request",
@@ -216,7 +216,7 @@ export function DeploymentVersionPage() {
     queue_message: "Queue Message",
   };
 
-  const workflowType = deploymentVersion?.type || workflow?.type;
+  const workflowTrigger = deploymentVersion?.trigger || workflow?.trigger;
 
   return (
     <InsetLayout
@@ -234,9 +234,9 @@ export function DeploymentVersionPage() {
                 <p className="text-muted-foreground">
                   Details for this workflow deployment version
                 </p>
-                {workflowType && (
+                {workflowTrigger && (
                   <Badge variant="outline" className="text-xs">
-                    {typeLabels[workflowType]}
+                    {triggerLabels[workflowTrigger]}
                   </Badge>
                 )}
               </div>
@@ -245,15 +245,15 @@ export function DeploymentVersionPage() {
                   <Play className="mr-2 h-4 w-4" />
                   Execute this Version
                 </Button>
-                {(deploymentVersion?.type === "http_request" ||
-                  workflow?.type === "http_request") && (
+                {(deploymentVersion?.trigger === "http_request" ||
+                  workflow?.trigger === "http_request") && (
                   <Button onClick={() => setIsIntegrationDialogOpen(true)}>
                     <Globe className="mr-2 h-4 w-4" />
                     Show HTTP Integration
                   </Button>
                 )}
-                {(deploymentVersion?.type === "email_message" ||
-                  workflow?.type === "email_message") && (
+                {(deploymentVersion?.trigger === "email_message" ||
+                  workflow?.trigger === "email_message") && (
                   <Button onClick={() => setIsEmailTriggerDialogOpen(true)}>
                     <Mail className="mr-2 h-4 w-4" />
                     Show Email Trigger
@@ -318,8 +318,8 @@ export function DeploymentVersionPage() {
             </TabsContent>
           </Tabs>
 
-          {(deploymentVersion?.type === "email_message" ||
-            workflow?.type === "email_message") && (
+          {(deploymentVersion?.trigger === "email_message" ||
+            workflow?.trigger === "email_message") && (
             <ExecutionEmailDialog
               isOpen={isEmailFormDialogVisible}
               onClose={closeExecutionForm}
@@ -333,8 +333,8 @@ export function DeploymentVersionPage() {
         </div>
       )}
       {/* HTTP Webhook Integration Dialog */}
-      {(deploymentVersion?.type === "http_webhook" ||
-        workflow?.type === "http_webhook") &&
+      {(deploymentVersion?.trigger === "http_webhook" ||
+        workflow?.trigger === "http_webhook") &&
         deploymentVersion && (
           <HttpWebhookIntegrationDialog
             isOpen={isIntegrationDialogOpen}
@@ -347,8 +347,8 @@ export function DeploymentVersionPage() {
           />
         )}
       {/* HTTP Request Integration Dialog */}
-      {(deploymentVersion?.type === "http_request" ||
-        workflow?.type === "http_request") &&
+      {(deploymentVersion?.trigger === "http_request" ||
+        workflow?.trigger === "http_request") &&
         deploymentVersion && (
           <HttpRequestIntegrationDialog
             isOpen={isIntegrationDialogOpen}
@@ -361,8 +361,8 @@ export function DeploymentVersionPage() {
           />
         )}
       {/* Email Trigger Dialog */}
-      {(deploymentVersion?.type === "email_message" ||
-        workflow?.type === "email_message") &&
+      {(deploymentVersion?.trigger === "email_message" ||
+        workflow?.trigger === "email_message") &&
         deploymentVersion && (
           <EmailTriggerDialog
             isOpen={isEmailTriggerDialogOpen}
@@ -372,10 +372,10 @@ export function DeploymentVersionPage() {
         )}
 
       {/* HTTP Request Config Dialog - for execution */}
-      {(deploymentVersion?.type === "http_request" ||
-        deploymentVersion?.type === "http_webhook" ||
-        workflow?.type === "http_request" ||
-        workflow?.type === "http_webhook") && (
+      {(deploymentVersion?.trigger === "http_request" ||
+        deploymentVersion?.trigger === "http_webhook" ||
+        workflow?.trigger === "http_request" ||
+        workflow?.trigger === "http_webhook") && (
         <HttpRequestConfigDialog
           isOpen={isHttpRequestConfigDialogVisible}
           onClose={closeExecutionForm}

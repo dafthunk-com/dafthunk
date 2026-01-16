@@ -1,4 +1,4 @@
-import type { Deployment, WorkflowType } from "@dafthunk/types";
+import type { Deployment, WorkflowTrigger } from "@dafthunk/types";
 import type { ColumnDef } from "@tanstack/react-table";
 import ArrowUpToLine from "lucide-react/icons/arrow-up-to-line";
 import GitCommitHorizontal from "lucide-react/icons/git-commit-horizontal";
@@ -72,11 +72,11 @@ const createColumns = (
     },
   },
   {
-    accessorKey: "workflowType",
-    header: "Workflow Type",
+    accessorKey: "workflowTrigger",
+    header: "Workflow Trigger",
     cell: ({ row }) => {
-      const type = row.getValue("workflowType") as WorkflowType;
-      const typeLabels: Record<WorkflowType, string> = {
+      const trigger = row.getValue("workflowTrigger") as WorkflowTrigger;
+      const triggerLabels: Record<WorkflowTrigger, string> = {
         manual: "Manual",
         http_webhook: "HTTP Webhook",
         http_request: "HTTP Request",
@@ -86,7 +86,7 @@ const createColumns = (
       };
       return (
         <Badge variant="outline" className="text-xs">
-          {typeLabels[type]}
+          {triggerLabels[trigger]}
         </Badge>
       );
     },

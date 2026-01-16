@@ -19,7 +19,7 @@ export function testConditionalBranching(
         id: "test-workflow-fork-true",
         name: "Conditional Fork True",
         handle: "fork-true",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "fork",
@@ -112,7 +112,7 @@ export function testConditionalBranching(
         id: "test-workflow-fork-false",
         name: "Conditional Fork False",
         handle: "fork-false",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "fork",
@@ -210,7 +210,7 @@ export function testConditionalBranching(
         id: "test-workflow-fork-join-true",
         name: "Fork-Join True",
         handle: "fork-join-true",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "fork",
@@ -324,7 +324,7 @@ export function testConditionalBranching(
         id: "test-workflow-fork-join-false",
         name: "Fork-Join False",
         handle: "fork-join-false",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "fork",
@@ -443,7 +443,7 @@ export function testConditionalBranching(
         id: "test-workflow-fork-chain",
         name: "Fork with Chain",
         handle: "fork-chain",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "fork",
@@ -558,7 +558,7 @@ export function testConditionalBranching(
         id: "test-workflow-join-both",
         name: "Join Both Inputs Error",
         handle: "join-both",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "num1",
@@ -631,7 +631,7 @@ export function testConditionalBranching(
         id: "test-workflow-join-neither",
         name: "Join Neither Input Error",
         handle: "join-neither",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "join",

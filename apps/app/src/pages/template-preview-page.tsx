@@ -76,7 +76,7 @@ export function TemplatePreviewPage() {
       <ReactFlowProvider>
         <WorkflowBuilder
           workflowId={`template-${template.id}`}
-          workflowType={template.type}
+          workflowTrigger={template.trigger}
           initialNodes={nodes}
           initialEdges={edges}
           nodeTypes={nodeTypes}

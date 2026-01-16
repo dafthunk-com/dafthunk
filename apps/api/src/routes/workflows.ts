@@ -76,7 +76,8 @@ workflowRoutes.get("/", jwtMiddleware, async (c) => {
       name: workflow.name,
       description: workflow.description ?? undefined,
       handle: workflow.handle,
-      type: workflow.type,
+      trigger: workflow.trigger,
+      runtime: workflow.runtime,
       createdAt: workflow.createdAt,
       updatedAt: workflow.updatedAt,
       nodes: [],
@@ -99,7 +100,8 @@ workflowRoutes.post(
     z.object({
       name: z.string().min(1, "Workflow name is required"),
       description: z.string().optional(),
-      type: z.string(),
+      trigger: z.string(),
+      runtime: z.enum(["worker", "workflow"]).optional().default("workflow"),
       nodes: z.array(z.any()).optional(),
       edges: z.array(z.any()).optional(),
     }) as z.ZodType<CreateWorkflowRequest>
@@ -128,7 +130,8 @@ workflowRoutes.post(
       id: workflowId,
       name: workflowName,
       handle: workflowHandle,
-      type: data.type,
+      trigger: data.trigger,
+      runtime: data.runtime || "workflow",
       nodes,
       edges,
     };
@@ -146,7 +149,8 @@ workflowRoutes.post(
       name: workflowData.name,
       description: data.description,
       handle: workflowData.handle,
-      type: workflowData.type,
+      trigger: workflowData.trigger,
+      runtime: workflowData.runtime,
       organizationId: organizationId,
       nodes: workflowData.nodes,
       edges: workflowData.edges,
@@ -159,7 +163,8 @@ workflowRoutes.post(
       name: savedWorkflow.name,
       description: savedWorkflow.description,
       handle: savedWorkflow.handle,
-      type: savedWorkflow.type,
+      trigger: savedWorkflow.trigger,
+      runtime: savedWorkflow.runtime,
       createdAt: now,
       updatedAt: now,
       nodes: savedWorkflow.nodes,
@@ -196,7 +201,8 @@ workflowRoutes.get("/:id", jwtMiddleware, async (c) => {
       name: workflow.name,
       description: workflow.description ?? undefined,
       handle: workflow.handle,
-      type: workflow.type,
+      trigger: workflow.trigger,
+      runtime: workflow.runtime,
       createdAt: workflow.createdAt || new Date(),
       updatedAt: workflow.updatedAt || new Date(),
       nodes: workflow.data.nodes || [],
@@ -221,7 +227,8 @@ workflowRoutes.put(
     z.object({
       name: z.string().min(1, "Workflow name is required"),
       description: z.string().optional(),
-      type: z.string().optional(),
+      trigger: z.string().optional(),
+      runtime: z.enum(["worker", "workflow"]).optional(),
       nodes: z.array(z.any()).optional(),
       edges: z.array(z.any()).optional(),
     }) as z.ZodType<UpdateWorkflowRequest>
@@ -286,7 +293,7 @@ workflowRoutes.put(
       id: existingWorkflow.id,
       name: data.name ?? existingWorkflow.name,
       handle: existingWorkflow.handle,
-      type: data.type || existingWorkflowData.type,
+      trigger: data.trigger || existingWorkflowData.trigger,
       nodes: sanitizedNodes,
       edges: sanitizedEdges,
     };
@@ -302,7 +309,8 @@ workflowRoutes.put(
       description:
         data.description ?? existingWorkflow.description ?? undefined,
       handle: existingWorkflow.handle,
-      type: data.type || existingWorkflowData.type,
+      trigger: data.trigger || existingWorkflowData.trigger,
+      runtime: data.runtime || existingWorkflow.runtime,
       organizationId: organizationId,
       nodes: sanitizedNodes,
       edges: sanitizedEdges,
@@ -315,7 +323,8 @@ workflowRoutes.put(
       name: updatedWorkflowData.name,
       description: updatedWorkflowData.description ?? undefined,
       handle: updatedWorkflowData.handle,
-      type: updatedWorkflowData.type,
+      trigger: updatedWorkflowData.trigger,
+      runtime: updatedWorkflowData.runtime,
       createdAt: existingWorkflow.createdAt,
       updatedAt: now,
       nodes: updatedWorkflowData.nodes || [],
@@ -378,7 +387,7 @@ async function executeWorkflow(
       id: workflow.id,
       name: workflow.name,
       handle: workflow.handle,
-      type: workflowData.type,
+      trigger: workflowData.trigger,
       nodes: workflowData.nodes,
       edges: workflowData.edges,
     },
@@ -666,7 +675,7 @@ workflowRoutes.put(
       return c.json({ error: "Workflow not found" }, 404);
     }
 
-    if (workflow.type !== "queue_message") {
+    if (workflow.trigger !== "queue_message") {
       return c.json({ error: "Workflow is not a queue message workflow" }, 400);
     }
 

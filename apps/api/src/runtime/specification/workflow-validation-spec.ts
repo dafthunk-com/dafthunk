@@ -19,7 +19,7 @@ export function testWorkflowValidation(
         id: "test-workflow-empty",
         name: "Empty Workflow",
         handle: "empty",
-        type: "manual",
+        trigger: "manual",
         nodes: [],
         edges: [],
       };
@@ -37,7 +37,7 @@ export function testWorkflowValidation(
         id: "test-workflow-single",
         name: "Single Node Workflow",
         handle: "single",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "num1",
@@ -70,7 +70,7 @@ export function testWorkflowValidation(
         id: "test-workflow-isolated",
         name: "Isolated Nodes Workflow",
         handle: "isolated",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "num1",

@@ -19,7 +19,7 @@ export function testEdgeCases(
         id: "test-workflow-optional",
         name: "Optional Inputs Workflow",
         handle: "optional",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "add",
@@ -90,7 +90,7 @@ export function testEdgeCases(
         id: "test-workflow-deep",
         name: "Deep Chain Workflow",
         handle: "deep-chain",
-        type: "manual",
+        trigger: "manual",
         nodes,
         edges,
       };
@@ -169,7 +169,7 @@ export function testEdgeCases(
         id: "test-workflow-wide",
         name: "Wide Parallel Workflow",
         handle: "wide-parallel",
-        type: "manual",
+        trigger: "manual",
         nodes,
         edges,
       };

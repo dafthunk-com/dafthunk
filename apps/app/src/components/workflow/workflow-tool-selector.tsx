@@ -1,5 +1,5 @@
 // @ts-ignore - https://github.com/lucide-icons/lucide/issues/2867#issuecomment-2847105863
-import type { WorkflowType } from "@dafthunk/types";
+import type { WorkflowTrigger } from "@dafthunk/types";
 import { Wrench } from "lucide-react";
 import { DynamicIcon } from "lucide-react/dynamic.mjs";
 import { useMemo, useState } from "react";
@@ -34,7 +34,7 @@ export interface WorkflowToolSelectorProps {
   templates?: NodeType[];
   workflowName?: string;
   workflowDescription?: string;
-  workflowType?: WorkflowType;
+  workflowTrigger?: WorkflowTrigger;
 }
 
 export function WorkflowToolSelector({
@@ -44,7 +44,7 @@ export function WorkflowToolSelector({
   templates = [],
   workflowName,
   workflowDescription,
-  workflowType,
+  workflowTrigger,
 }: WorkflowToolSelectorProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -54,19 +54,19 @@ export function WorkflowToolSelector({
     return templates.filter((template) => template.asTool);
   }, [templates]);
 
-  // Filter tool templates by workflow type compatibility
+  // Filter tool templates by workflow trigger compatibility
   const compatibleToolTemplates = useMemo(() => {
-    if (!workflowType) return toolTemplates;
+    if (!workflowTrigger) return toolTemplates;
 
     return toolTemplates.filter((template) => {
-      // If node has no compatibility field, it's compatible with all workflow types
+      // If node has no compatibility field, it's compatible with all workflow triggers
       if (!template.compatibility || template.compatibility.length === 0) {
         return true;
       }
-      // Otherwise, check if current workflow type is in the compatibility list
-      return template.compatibility.includes(workflowType);
+      // Otherwise, check if current workflow trigger is in the compatibility list
+      return template.compatibility.includes(workflowTrigger);
     });
-  }, [toolTemplates, workflowType]);
+  }, [toolTemplates, workflowTrigger]);
 
   // Combined scoring using substring matching with workflow context
   const scoredAndFilteredTemplates = useMemo(() => {

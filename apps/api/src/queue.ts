@@ -1,4 +1,4 @@
-import type { QueueMessage, Workflow as WorkflowType } from "@dafthunk/types";
+import type { QueueMessage, Workflow } from "@dafthunk/types";
 
 import type { Bindings } from "./context";
 import { createDatabase } from "./db";
@@ -17,7 +17,7 @@ async function executeWorkflow(
     handle: string;
     organizationId: string;
   },
-  workflowData: WorkflowType,
+  workflowData: Workflow,
   deploymentId: string | undefined,
   queueMessage: QueueMessage,
   db: ReturnType<typeof createDatabase>,
@@ -49,7 +49,7 @@ async function executeWorkflow(
           id: workflowInfo.id,
           name: workflowData.name,
           handle: workflowInfo.handle,
-          type: workflowData.type,
+          trigger: workflowData.trigger,
           nodes: workflowData.nodes,
           edges: workflowData.edges,
         },
@@ -113,7 +113,7 @@ export async function handleQueueMessages(
         const workflowCache = new Map<
           string,
           {
-            data: WorkflowType;
+            data: Workflow;
             deploymentId: string | undefined;
             workflow: (typeof triggers)[0]["workflow"];
           }
@@ -136,7 +136,7 @@ export async function handleQueueMessages(
           );
 
           try {
-            let workflowToExecute: WorkflowType | null = null;
+            let workflowToExecute: Workflow | null = null;
             let deploymentIdToExecute: string | undefined = undefined;
 
             if (isDevMode) {

@@ -1,4 +1,8 @@
-import type { ObjectReference, WorkflowType } from "@dafthunk/types";
+import type {
+  ObjectReference,
+  WorkflowRuntime,
+  WorkflowTrigger,
+} from "@dafthunk/types";
 import type {
   Connection,
   Edge as ReactFlowEdge,
@@ -40,7 +44,8 @@ import type {
 
 export interface WorkflowBuilderProps {
   workflowId: string;
-  workflowType?: WorkflowType;
+  workflowTrigger?: WorkflowTrigger;
+  workflowRuntime?: WorkflowRuntime;
   initialNodes?: ReactFlowNode<WorkflowNodeType>[];
   initialEdges?: ReactFlowEdge<WorkflowEdgeType>[];
   nodeTypes?: NodeType[];
@@ -59,7 +64,12 @@ export interface WorkflowBuilderProps {
   expandedOutputs?: boolean;
   workflowName?: string;
   workflowDescription?: string;
-  onWorkflowUpdate?: (name: string, description?: string) => void;
+  onWorkflowUpdate?: (
+    name: string,
+    description?: string,
+    trigger?: WorkflowTrigger,
+    runtime?: WorkflowRuntime
+  ) => void;
   orgHandle: string;
   deploymentVersions?: number[];
   mutateDeploymentHistory?: () => void;
@@ -101,7 +111,8 @@ function applyInitialExecution(
 
 export function WorkflowBuilder({
   workflowId,
-  workflowType,
+  workflowTrigger,
+  workflowRuntime,
   initialNodes = [],
   initialEdges = [],
   nodeTypes = [],
@@ -259,10 +270,10 @@ export function WorkflowBuilder({
     (execute: (triggerData?: unknown) => void) => {
       // For workflows that don't require parameters, execute directly
       if (
-        !workflowType ||
-        workflowType === "manual" ||
-        workflowType === "scheduled" ||
-        workflowType === "queue_message"
+        !workflowTrigger ||
+        workflowTrigger === "manual" ||
+        workflowTrigger === "scheduled" ||
+        workflowTrigger === "queue_message"
       ) {
         execute(undefined);
         return;
@@ -320,12 +331,12 @@ export function WorkflowBuilder({
           executionCallback,
           nodes,
           nodeTypes as any,
-          workflowType
+          workflowTrigger
         );
       }
     },
     [
-      workflowType,
+      workflowTrigger,
       workflowId,
       executeWorkflowWithForm,
       nodes,
@@ -475,7 +486,7 @@ export function WorkflowBuilder({
         disabled={disabled}
         expandedOutputs={expandedOutputs}
         nodeTypes={nodeTypes}
-        workflowType={workflowType}
+        workflowTrigger={workflowTrigger}
       >
         <div className="w-full h-full flex">
           <div
@@ -509,15 +520,15 @@ export function WorkflowBuilder({
               }
               workflowStatus={workflowStatus}
               workflowErrorMessage={workflowErrorMessage}
-              workflowType={workflowType}
+              workflowTrigger={workflowTrigger}
               onShowHttpIntegration={
-                workflowType === "http_webhook" ||
-                workflowType === "http_request"
+                workflowTrigger === "http_webhook" ||
+                workflowTrigger === "http_request"
                   ? () => setIsHttpIntegrationDialogOpen(true)
                   : undefined
               }
               onShowEmailTrigger={
-                workflowType === "email_message"
+                workflowTrigger === "email_message"
                   ? () => setIsEmailTriggerDialogOpen(true)
                   : undefined
               }
@@ -558,6 +569,8 @@ export function WorkflowBuilder({
                   disabled={disabled}
                   workflowName={workflowName}
                   workflowDescription={workflowDescription}
+                  workflowTrigger={workflowTrigger}
+                  workflowRuntime={workflowRuntime}
                   onWorkflowUpdate={disabled ? undefined : onWorkflowUpdate}
                   workflowStatus={workflowStatus}
                   workflowErrorMessage={workflowErrorMessage}
@@ -574,12 +587,12 @@ export function WorkflowBuilder({
             templates={nodeTypes}
             workflowName={workflowName}
             workflowDescription={workflowDescription}
-            workflowType={workflowType}
+            workflowTrigger={workflowTrigger}
           />
         </div>
 
         {/* HTTP Webhook integration dialog */}
-        {workflowType === "http_webhook" && (
+        {workflowTrigger === "http_webhook" && (
           <HttpWebhookIntegrationDialog
             isOpen={isHttpIntegrationDialogOpen}
             onClose={() => setIsHttpIntegrationDialogOpen(false)}
@@ -592,7 +605,7 @@ export function WorkflowBuilder({
         )}
 
         {/* HTTP Request integration dialog */}
-        {workflowType === "http_request" && (
+        {workflowTrigger === "http_request" && (
           <HttpRequestIntegrationDialog
             isOpen={isHttpIntegrationDialogOpen}
             onClose={() => setIsHttpIntegrationDialogOpen(false)}
@@ -604,7 +617,7 @@ export function WorkflowBuilder({
           />
         )}
 
-        {workflowType === "email_message" && (
+        {workflowTrigger === "email_message" && (
           <EmailTriggerDialog
             isOpen={isEmailTriggerDialogOpen}
             onClose={() => setIsEmailTriggerDialogOpen(false)}
@@ -614,8 +627,8 @@ export function WorkflowBuilder({
 
         {/* Execution Dialogs */}
         {/* HTTP Request Config Dialog */}
-        {(workflowType === "http_webhook" ||
-          workflowType === "http_request") && (
+        {(workflowTrigger === "http_webhook" ||
+          workflowTrigger === "http_request") && (
           <HttpRequestConfigDialog
             isOpen={isHttpRequestConfigDialogVisible}
             onClose={closeExecutionForm}
@@ -624,7 +637,7 @@ export function WorkflowBuilder({
         )}
 
         {/* Email Execution Dialog */}
-        {workflowType === "email_message" && (
+        {workflowTrigger === "email_message" && (
           <ExecutionEmailDialog
             isOpen={isEmailFormDialogVisible}
             onClose={closeExecutionForm}

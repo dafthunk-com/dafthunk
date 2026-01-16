@@ -18,7 +18,7 @@ export interface WorkflowExecutorOptions {
     id: string;
     name: string;
     handle: string;
-    type: string;
+    trigger: string;
     nodes: Node[];
     edges: any[];
   };
@@ -87,7 +87,7 @@ export class WorkflowExecutor {
         id: workflow.id,
         name: workflow.name,
         handle: workflow.handle,
-        type: workflow.type,
+        trigger: workflow.trigger,
         nodes: workflow.nodes,
         edges: workflow.edges,
       },
@@ -104,7 +104,7 @@ export class WorkflowExecutor {
     // Build type-specific execution parameters
     let finalExecutionParams: any;
 
-    if (workflow.type === "email_message") {
+    if (workflow.trigger === "email_message") {
       finalExecutionParams = {
         ...baseExecutionParams,
         emailMessage: createSimulatedEmailMessage({
@@ -117,8 +117,8 @@ export class WorkflowExecutor {
         }),
       };
     } else if (
-      workflow.type === "http_webhook" ||
-      workflow.type === "http_request"
+      workflow.trigger === "http_webhook" ||
+      workflow.trigger === "http_request"
     ) {
       finalExecutionParams = {
         ...baseExecutionParams,
@@ -145,7 +145,7 @@ export class WorkflowExecutor {
 
     // Use WorkerRuntime for http_request workflows (synchronous execution)
     // Use Cloudflare Workflows for all other types (durable execution)
-    if (workflow.type === "http_request") {
+    if (workflow.trigger === "http_request") {
       const workerRuntime = WorkerRuntime.create(env);
       const execution = await workerRuntime.execute(finalExecutionParams);
 

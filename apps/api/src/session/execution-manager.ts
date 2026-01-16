@@ -74,7 +74,7 @@ export class ExecutionManager {
     validateWorkflowForExecution(state);
 
     const executorParameters = this.buildExecutorParameters(
-      state.type,
+      state.trigger,
       parameters,
       organization.handle,
       state.handle
@@ -85,7 +85,7 @@ export class ExecutionManager {
         id: state.id,
         name: state.name,
         handle: state.handle,
-        type: state.type,
+        trigger: state.trigger,
         nodes: state.nodes,
         edges: state.edges,
       },
@@ -102,15 +102,15 @@ export class ExecutionManager {
   }
 
   /**
-   * Build executor parameters based on workflow type
+   * Build executor parameters based on workflow trigger
    */
   private buildExecutorParameters(
-    workflowType: string,
+    workflowTrigger: string,
     parameters: Record<string, unknown> | undefined,
     orgHandle: string,
     workflowHandle: string
   ): WorkflowExecutorParameters {
-    switch (workflowType) {
+    switch (workflowTrigger) {
       case "email_message":
         return this.buildEmailParameters(parameters || {});
       case "http_webhook":

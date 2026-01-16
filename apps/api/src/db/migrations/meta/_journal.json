@@ -225,6 +225,34 @@
       "when": 1736121300000,
       "tag": "0031_add_feedback_table",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "6",
+      "when": 1736121600000,
+      "tag": "0032_make_feedback_deployment_id_optional",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "6",
+      "when": 1736121900000,
+      "tag": "0033_add_feedback_workflow_id",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "6",
+      "when": 1736200000000,
+      "tag": "0034_add_workflow_runtime",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "6",
+      "when": 1736300000000,
+      "tag": "0035_rename_type_to_trigger",
+      "breakpoints": true
     }
   ]
 }

@@ -9,7 +9,7 @@ export const imageGenerationTemplate: WorkflowTemplate = {
   name: "Image Generation",
   description: "Generate images from text prompts",
   icon: "image",
-  type: "manual",
+  trigger: "manual",
   tags: ["image", "generation", "ai"],
   nodes: [
     TextInputNode.create({

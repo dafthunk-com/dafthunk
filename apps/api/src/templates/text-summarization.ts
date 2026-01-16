@@ -9,7 +9,7 @@ export const textSummarizationTemplate: WorkflowTemplate = {
   name: "Text Summarization",
   description: "Summarize long text content using AI",
   icon: "file-text",
-  type: "manual",
+  trigger: "manual",
   tags: ["text", "summarization", "ai"],
   nodes: [
     TextInputNode.create({

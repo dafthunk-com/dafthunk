@@ -1,4 +1,4 @@
-import type { Edge, Node, WorkflowType } from "@dafthunk/types";
+import type { Edge, Node, WorkflowTrigger } from "@dafthunk/types";
 import type { Context } from "hono";
 
 import type { BlobParameter } from "../nodes/types";
@@ -13,7 +13,7 @@ import { validateWorkflowForExecution } from "../utils/workflows";
  * Workflow data structure for execution
  */
 interface WorkflowData {
-  type: WorkflowType;
+  trigger: WorkflowTrigger;
   nodes: Node[];
   edges: Edge[];
 }
@@ -114,8 +114,8 @@ export async function prepareWorkflowExecution(
 
   const { body } = parsedRequest;
 
-  // Build parameters based on workflow type
-  const parameters = buildParameters(workflowData.type, {
+  // Build parameters based on workflow trigger
+  const parameters = buildParameters(workflowData.trigger, {
     url,
     method,
     headers,
@@ -127,10 +127,10 @@ export async function prepareWorkflowExecution(
 }
 
 /**
- * Builds execution parameters based on workflow type
+ * Builds execution parameters based on workflow trigger
  */
 function buildParameters(
-  workflowType: WorkflowType,
+  workflowTrigger: WorkflowTrigger,
   data: {
     url: string;
     method: string;
@@ -139,7 +139,7 @@ function buildParameters(
     body?: BlobParameter;
   }
 ): ExecutionParameters {
-  if (workflowType === "email_message") {
+  if (workflowTrigger === "email_message") {
     // For email workflows, try to parse JSON body for email parameters
     let parsedEmail:
       | {
@@ -164,8 +164,8 @@ function buildParameters(
       attachments: parsedEmail?.attachments,
     };
   } else if (
-    workflowType === "http_webhook" ||
-    workflowType === "http_request"
+    workflowTrigger === "http_webhook" ||
+    workflowTrigger === "http_request"
   ) {
     return {
       url: data.url,

@@ -24,7 +24,8 @@ export interface SaveWorkflowRecord {
   name: string;
   description?: string;
   handle: string;
-  type: string;
+  trigger: string;
+  runtime?: string;
   organizationId: string;
   nodes: any[];
   edges: any[];
@@ -204,7 +205,8 @@ export class WorkflowStore {
       name: record.name,
       description: record.description,
       handle: record.handle,
-      type: record.type as any,
+      trigger: record.trigger as any,
+      runtime: (record.runtime as any) || "workflow",
       nodes,
       edges,
     };
@@ -222,7 +224,7 @@ export class WorkflowStore {
     // Auto-sync triggers based on workflow structure
     await this.syncTriggers(
       record.id,
-      record.type,
+      record.trigger,
       record.organizationId,
       nodes
     );
@@ -515,7 +517,8 @@ export class WorkflowStore {
           name: workflows.name,
           description: workflows.description,
           handle: workflows.handle,
-          type: workflows.type,
+          trigger: workflows.trigger,
+          runtime: workflows.runtime,
           organizationId: workflows.organizationId,
           createdAt: workflows.createdAt,
           updatedAt: workflows.updatedAt,
@@ -587,7 +590,7 @@ export class WorkflowStore {
         customMetadata: {
           workflowId: workflow.id,
           name: workflow.name,
-          type: workflow.type,
+          trigger: workflow.trigger,
           updatedAt: new Date().toISOString(),
         },
       });

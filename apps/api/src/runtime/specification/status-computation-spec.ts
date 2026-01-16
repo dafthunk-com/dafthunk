@@ -19,7 +19,7 @@ export function testStatusComputation(
         id: "test-workflow-status-executing",
         name: "Status Executing",
         handle: "status-executing",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "num1",
@@ -61,7 +61,7 @@ export function testStatusComputation(
         id: "test-workflow-status-completed",
         name: "Status Completed",
         handle: "status-completed",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "num",
@@ -95,7 +95,7 @@ export function testStatusComputation(
         id: "test-workflow-status-error",
         name: "Status Error",
         handle: "status-error",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "num",
@@ -165,7 +165,7 @@ export function testStatusComputation(
         id: "test-workflow-status-conditional-skip",
         name: "Status Conditional Skip",
         handle: "status-conditional-skip",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "fork",
@@ -292,7 +292,7 @@ export function testStatusComputation(
         id: "test-workflow-status-mixed",
         name: "Status Mixed",
         handle: "status-mixed",
-        type: "manual",
+        trigger: "manual",
         nodes: [
           {
             id: "num1",

@@ -17,7 +17,7 @@ describe("AI Calculator Template", () => {
   it("should have correct template metadata", () => {
     expect(aiCalculatorTemplate.id).toBe("ai-calculator");
     expect(aiCalculatorTemplate.name).toBe("AI Calculator");
-    expect(aiCalculatorTemplate.type).toBe("manual");
+    expect(aiCalculatorTemplate.trigger).toBe("manual");
     expect(aiCalculatorTemplate.tags).toContain("ai");
     expect(aiCalculatorTemplate.tags).toContain("math");
     expect(aiCalculatorTemplate.tags).toContain("tools");

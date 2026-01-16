@@ -1,7 +1,8 @@
 import type {
   CreateWorkflowRequest,
+  WorkflowRuntime,
   WorkflowTemplate,
-  WorkflowType,
+  WorkflowTrigger,
   WorkflowWithMetadata,
 } from "@dafthunk/types";
 import { ColumnDef } from "@tanstack/react-table";
@@ -98,7 +99,7 @@ function useWorkflowActions() {
         {
           name: renameWorkflowName,
           description: renameWorkflowDescription || undefined,
-          type: fullWorkflow.type,
+          trigger: fullWorkflow.trigger,
           nodes: fullWorkflow.nodes,
           edges: fullWorkflow.edges,
         },
@@ -325,11 +326,11 @@ function createColumns(
       },
     },
     {
-      accessorKey: "type",
-      header: "Workflow Type",
+      accessorKey: "trigger",
+      header: "Workflow Trigger",
       cell: ({ row }) => {
-        const type = row.getValue("type") as WorkflowType;
-        const typeLabels: Record<WorkflowType, string> = {
+        const trigger = row.getValue("trigger") as WorkflowTrigger;
+        const triggerLabels: Record<WorkflowTrigger, string> = {
           manual: "Manual",
           http_webhook: "HTTP Webhook",
           http_request: "HTTP Request",
@@ -339,7 +340,7 @@ function createColumns(
         };
         return (
           <Badge variant="outline" className="text-xs">
-            {typeLabels[type]}
+            {triggerLabels[trigger]}
           </Badge>
         );
       },
@@ -418,8 +419,9 @@ export function WorkflowsPage() {
 
   const handleCreateWorkflow = async (
     name: string,
-    type: WorkflowType,
-    description?: string
+    trigger: WorkflowTrigger,
+    description?: string,
+    runtime?: WorkflowRuntime
   ) => {
     if (!orgHandle) return;
 
@@ -427,7 +429,8 @@ export function WorkflowsPage() {
       const request: CreateWorkflowRequest = {
         name,
         description,
-        type,
+        trigger,
+        runtime,
         nodes: [],
         edges: [],
       };

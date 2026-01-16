@@ -17,7 +17,7 @@ describe("Image Description Template", () => {
   it("should have correct template metadata", () => {
     expect(imageDescriptionTemplate.id).toBe("image-description");
     expect(imageDescriptionTemplate.name).toBe("Image Description");
-    expect(imageDescriptionTemplate.type).toBe("manual");
+    expect(imageDescriptionTemplate.trigger).toBe("manual");
     expect(imageDescriptionTemplate.tags).toContain("canvas");
     expect(imageDescriptionTemplate.tags).toContain("ai");
   });

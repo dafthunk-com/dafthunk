@@ -9,7 +9,7 @@ export const textFormatterTemplate: WorkflowTemplate = {
   name: "Text Formatter",
   description: "Format text using a simple template",
   icon: "text",
-  type: "manual",
+  trigger: "manual",
   tags: ["text", "formatting", "template"],
   nodes: [
     TextInputNode.create({

@@ -67,6 +67,6 @@ describe("Email Reply Template", () => {
   });
 
   it("should be an email_message triggered workflow", () => {
-    expect(emailReplyTemplate.type).toBe("email_message");
+    expect(emailReplyTemplate.trigger).toBe("email_message");
   });
 });

@@ -9,7 +9,7 @@ export const textToSpeechTemplate: WorkflowTemplate = {
   name: "Text to Speech",
   description: "Convert text to natural-sounding speech",
   icon: "mic",
-  type: "manual",
+  trigger: "manual",
   tags: ["audio", "tts", "ai"],
   nodes: [
     TextInputNode.create({

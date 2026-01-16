@@ -64,7 +64,7 @@ deploymentRoutes.get("/version/:deploymentId", jwtMiddleware, async (c) => {
   const deploymentVersion: GetDeploymentVersionResponse = {
     id: deployment.id,
     workflowId: deployment.workflowId || "",
-    type: deployment.workflowData.type,
+    trigger: deployment.workflowData.trigger,
     version: deployment.version,
     createdAt: deployment.createdAt,
     updatedAt: deployment.updatedAt,
@@ -103,7 +103,7 @@ deploymentRoutes.get("/:workflowIdOrHandle", jwtMiddleware, async (c) => {
   const deploymentVersion: GetDeploymentVersionResponse = {
     id: deployment.id,
     workflowId: deployment.workflowId || "",
-    type: workflowData.type,
+    trigger: workflowData.trigger,
     version: deployment.version,
     createdAt: deployment.createdAt,
     updatedAt: deployment.updatedAt,
@@ -170,7 +170,7 @@ deploymentRoutes.post("/:workflowIdOrHandle", jwtMiddleware, async (c) => {
   const deploymentVersion: DeploymentVersion = {
     id: newDeployment.id,
     workflowId: newDeployment.workflowId || "",
-    type: workflowData.type,
+    trigger: workflowData.trigger,
     version: newDeployment.version,
     createdAt: newDeployment.createdAt,
     updatedAt: newDeployment.updatedAt,
@@ -220,7 +220,7 @@ deploymentRoutes.get(
         return {
           id: deployment.id,
           workflowId: deployment.workflowId || "",
-          type: workflowData.type || "manual",
+          trigger: workflowData.trigger || "manual",
           version: deployment.version,
           createdAt: deployment.createdAt,
           updatedAt: deployment.updatedAt,
