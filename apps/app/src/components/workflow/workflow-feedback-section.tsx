@@ -177,7 +177,10 @@ export function WorkflowFeedbackSection({
               )}
 
               <p className="text-xs text-muted-foreground">
-                {format(new Date(feedback.createdAt), "MMM d, yyyy 'at' h:mm a")}
+                {format(
+                  new Date(feedback.createdAt),
+                  "MMM d, yyyy 'at' h:mm a"
+                )}
               </p>
 
               <div className="flex gap-2">

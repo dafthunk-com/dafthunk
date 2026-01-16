@@ -45,7 +45,9 @@ export function NodeCard({
                     ? highlightMatch(nodeType.name, searchQuery)
                     : nodeType.name}
                 </CardTitle>
-                {nodeType.subscription && <SubscriptionBadge variant="muted" size="lg" />}
+                {nodeType.subscription && (
+                  <SubscriptionBadge variant="muted" size="lg" />
+                )}
                 {nodeType.tags.map((tag, index) => (
                   <Badge
                     key={index}
@@ -110,7 +112,9 @@ export function NodeCard({
                   ? highlightMatch(nodeType.name, searchQuery)
                   : nodeType.name}
               </CardTitle>
-              {nodeType.subscription && <SubscriptionBadge variant="muted" size="lg" />}
+              {nodeType.subscription && (
+                <SubscriptionBadge variant="muted" size="lg" />
+              )}
             </div>
             <NodeTags
               tags={nodeType.tags}
