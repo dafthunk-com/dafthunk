@@ -69,14 +69,14 @@ async function executeWorkflow(
       const workerRuntime = WorkerRuntime.create(env);
       const execution = await workerRuntime.execute(executionParams);
       console.log(
-        `Workflow ${workflowInfo.id} completed with execution ID: ${execution.id} (worker runtime)`
+        `[Execution] ${execution.id} workflow=${workflowInfo.id} runtime=worker trigger=queue`
       );
     } else {
       const executionInstance = await env.EXECUTE.create({
         params: executionParams,
       });
       console.log(
-        `Workflow ${workflowInfo.id} started with execution ID: ${executionInstance.id} (workflow runtime)`
+        `[Execution] ${executionInstance.id} workflow=${workflowInfo.id} runtime=workflow trigger=queue`
       );
     }
   } catch (execError) {

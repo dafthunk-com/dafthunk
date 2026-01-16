@@ -149,11 +149,9 @@ export class WorkflowExecutor {
     if (workflow.runtime === "worker") {
       const workerRuntime = WorkerRuntime.create(env);
       const execution = await workerRuntime.execute(finalExecutionParams);
-
       console.log(
-        `Completed worker runtime execution ${execution.id} for workflow ${workflow.id}`
+        `[Execution] ${execution.id} workflow=${workflow.id} runtime=worker trigger=${workflow.trigger}`
       );
-
       return { executionId: execution.id, execution };
     }
 
@@ -162,6 +160,9 @@ export class WorkflowExecutor {
       params: finalExecutionParams,
     });
     const executionId = instance.id;
+    console.log(
+      `[Execution] ${executionId} workflow=${workflow.id} runtime=workflow trigger=${workflow.trigger}`
+    );
 
     // Build initial nodeExecutions
     const nodeExecutions = workflow.nodes.map((node) => ({
@@ -177,10 +178,6 @@ export class WorkflowExecutor {
       status: "submitted",
       nodeExecutions,
     };
-
-    console.log(
-      `Started workflow execution ${executionId} for workflow ${workflow.id}`
-    );
 
     return { executionId, execution };
   }

@@ -3,6 +3,7 @@ import type {
   ParameterType,
   WorkflowExecution,
   WorkflowRuntime,
+  WorkflowTrigger,
 } from "@dafthunk/types";
 import type { Edge, Node } from "@xyflow/react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -262,6 +263,35 @@ export function useEditableWorkflow({
     []
   );
 
+  const updateMetadata = useCallback(
+    (metadata: {
+      name?: string;
+      description?: string;
+      trigger?: WorkflowTrigger;
+      runtime?: WorkflowRuntime;
+    }) => {
+      if (!wsRef.current?.isConnected()) {
+        console.warn("WebSocket is not connected, cannot update metadata");
+        return;
+      }
+      wsRef.current.updateMetadata(metadata);
+
+      // Also update local metadata state for immediate UI feedback
+      if (workflowMetadata) {
+        setWorkflowMetadata({
+          ...workflowMetadata,
+          ...(metadata.name !== undefined && { name: metadata.name }),
+          ...(metadata.description !== undefined && {
+            description: metadata.description,
+          }),
+          ...(metadata.trigger !== undefined && { trigger: metadata.trigger }),
+          ...(metadata.runtime !== undefined && { runtime: metadata.runtime }),
+        });
+      }
+    },
+    [workflowMetadata]
+  );
+
   return {
     nodes,
     edges,
@@ -272,5 +302,6 @@ export function useEditableWorkflow({
     isWSConnected,
     workflowMetadata,
     executeWorkflow,
+    updateMetadata,
   };
 }

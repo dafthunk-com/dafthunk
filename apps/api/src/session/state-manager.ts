@@ -71,6 +71,7 @@ export class StateManager {
       name: workflow.name,
       handle: workflow.handle,
       trigger: workflow.trigger,
+      runtime: workflow.runtime,
       nodes: [],
       edges: [],
     };
@@ -80,6 +81,7 @@ export class StateManager {
       name: workflowData.name,
       handle: workflowData.handle,
       trigger: workflowData.trigger as WorkflowState["trigger"],
+      runtime: workflowData.runtime,
       nodes: workflowData.nodes,
       edges: workflowData.edges,
       timestamp: workflow.updatedAt?.getTime() || Date.now(),
@@ -192,6 +194,7 @@ export class StateManager {
         name: this.state.name,
         handle: this.state.handle,
         trigger: this.state.trigger,
+        runtime: this.state.runtime,
         organizationId: this.organizationId,
         nodes: this.state.nodes,
         edges: this.state.edges,

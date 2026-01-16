@@ -27,7 +27,7 @@ import {
 } from "@/services/deployment-service";
 import { useObjectService } from "@/services/object-service";
 import { useNodeTypes } from "@/services/type-service";
-import { getWorkflow, updateWorkflow } from "@/services/workflow-service";
+import { getWorkflow } from "@/services/workflow-service";
 
 export function EditorPage() {
   const { id } = useParams<{ id: string }>();
@@ -65,6 +65,7 @@ export function EditorPage() {
     isWSConnected: _isWSConnected,
     workflowMetadata,
     executeWorkflow: wsExecuteWorkflow,
+    updateMetadata: wsUpdateMetadata,
   } = useEditableWorkflow({
     workflowId: id,
     nodeTypes: nodeTypes || [],
@@ -197,35 +198,23 @@ export function EditorPage() {
   }, []);
 
   const handleWorkflowUpdate = useCallback(
-    async (
+    (
       name: string,
       description?: string,
       trigger?: WorkflowTrigger,
       runtime?: WorkflowRuntime
     ) => {
-      if (!id || !orgHandle) return;
+      if (!id) return;
 
-      try {
-        const fullWorkflow = await getWorkflow(id, orgHandle);
-        await updateWorkflow(
-          id,
-          {
-            ...fullWorkflow,
-            name,
-            description,
-            trigger: trigger || fullWorkflow.trigger,
-            runtime: runtime || fullWorkflow.runtime,
-          },
-          orgHandle
-        );
-        const updatedMetadata = await getWorkflow(id, orgHandle);
-        setHttpWorkflowMetadata(updatedMetadata);
-      } catch (error) {
-        console.error("Error updating workflow metadata:", error);
-        toast.error("Failed to update workflow metadata");
-      }
+      // Update via WebSocket - this updates the session state and persists to D1/R2
+      wsUpdateMetadata?.({
+        name,
+        description,
+        trigger,
+        runtime,
+      });
     },
-    [id, orgHandle]
+    [id, wsUpdateMetadata]
   );
 
   const handleDeployWorkflow = useCallback(

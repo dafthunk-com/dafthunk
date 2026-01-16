@@ -93,14 +93,14 @@ export async function handleScheduledEvent(
         const workerRuntime = WorkerRuntime.create(env);
         const execution = await workerRuntime.execute(executionParams);
         console.log(
-          `Scheduled workflow ${workflow.id} completed with execution ID: ${execution.id} (worker runtime)`
+          `[Execution] ${execution.id} workflow=${workflow.id} runtime=worker trigger=scheduled`
         );
       } else {
         const executionInstance = await env.EXECUTE.create({
           params: executionParams,
         });
         console.log(
-          `Scheduled workflow ${workflow.id} started with execution ID: ${executionInstance.id} (workflow runtime)`
+          `[Execution] ${executionInstance.id} workflow=${workflow.id} runtime=workflow trigger=scheduled`
         );
       }
     } catch (error) {

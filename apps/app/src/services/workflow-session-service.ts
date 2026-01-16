@@ -4,7 +4,9 @@ import type {
   Node,
   ServerMessage,
   WorkflowExecution,
+  WorkflowRuntime,
   WorkflowState,
+  WorkflowTrigger,
 } from "@dafthunk/types";
 
 import { getApiBaseUrl } from "@/config/api";
@@ -162,7 +164,7 @@ export class WorkflowWebSocket {
   }
 
   /**
-   * Send workflow state update
+   * Send workflow state update (nodes and edges)
    */
   send(nodes: Node[], edges: Edge[]): void {
     if (!this.currentState) {
@@ -182,6 +184,44 @@ export class WorkflowWebSocket {
     const success = this.sendJson(
       { type: "update", state: updatedState },
       "Failed to send state update"
+    );
+
+    if (success) {
+      this.currentState = updatedState;
+    }
+  }
+
+  /**
+   * Update workflow metadata (name, description, trigger, runtime)
+   * This updates the local state and sends it to the server
+   */
+  updateMetadata(metadata: {
+    name?: string;
+    description?: string;
+    trigger?: WorkflowTrigger;
+    runtime?: WorkflowRuntime;
+  }): void {
+    if (!this.currentState) {
+      console.warn(
+        "[WorkflowWS] No current state available, cannot update metadata"
+      );
+      return;
+    }
+
+    const updatedState: WorkflowState = {
+      ...this.currentState,
+      ...(metadata.name !== undefined && { name: metadata.name }),
+      ...(metadata.description !== undefined && {
+        description: metadata.description,
+      }),
+      ...(metadata.trigger !== undefined && { trigger: metadata.trigger }),
+      ...(metadata.runtime !== undefined && { runtime: metadata.runtime }),
+      timestamp: Date.now(),
+    };
+
+    const success = this.sendJson(
+      { type: "update", state: updatedState },
+      "Failed to send metadata update"
     );
 
     if (success) {

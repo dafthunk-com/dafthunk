@@ -80,6 +80,10 @@ export class ExecutionManager {
       state.handle
     );
 
+    console.log(
+      `[WebSocketTrigger] Workflow ${state.id} runtime="${state.runtime ?? "workflow (default)"}" trigger="${state.trigger}"`
+    );
+
     return await WorkflowExecutor.execute({
       workflow: {
         id: state.id,
