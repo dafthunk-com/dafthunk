@@ -86,6 +86,7 @@ export class ExecutionManager {
         name: state.name,
         handle: state.handle,
         trigger: state.trigger,
+        runtime: state.runtime,
         nodes: state.nodes,
         edges: state.edges,
       },

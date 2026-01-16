@@ -2,6 +2,7 @@ import type { Workflow } from "@dafthunk/types";
 
 import type { Bindings } from "./context";
 import { createDatabase, getOrganizationComputeCredits } from "./db";
+import { WorkerRuntime } from "./runtime/worker-runtime";
 import { DeploymentStore } from "./stores/deployment-store";
 import { WorkflowStore } from "./stores/workflow-store";
 
@@ -216,27 +217,42 @@ async function triggerWorkflowForEmail({
     return;
   }
 
-  // Trigger the runtime - it will handle execution persistence
-  await env.EXECUTE.create({
-    params: {
-      userId: "email_trigger",
-      organizationId,
-      computeCredits,
-      workflow: {
-        id: workflow.id,
-        name: workflow.name,
-        handle: workflow.handle,
-        trigger: workflow.trigger,
-        nodes: workflowData.nodes,
-        edges: workflowData.edges,
-      },
-      deploymentId,
-      emailMessage: {
-        from,
-        to,
-        headers,
-        raw: rawContent,
-      },
+  const executionParams = {
+    userId: "email_trigger",
+    organizationId,
+    computeCredits,
+    workflow: {
+      id: workflow.id,
+      name: workflow.name,
+      handle: workflow.handle,
+      trigger: workflow.trigger,
+      runtime: workflowData.runtime,
+      nodes: workflowData.nodes,
+      edges: workflowData.edges,
     },
-  });
+    deploymentId,
+    emailMessage: {
+      from,
+      to,
+      headers,
+      raw: rawContent,
+    },
+  };
+
+  // Use WorkerRuntime for "worker" runtime (synchronous execution)
+  // Use Cloudflare Workflows for "workflow" runtime (durable execution, default)
+  if (workflowData.runtime === "worker") {
+    const workerRuntime = WorkerRuntime.create(env);
+    const execution = await workerRuntime.execute(executionParams);
+    console.log(
+      `Workflow ${workflow.id} completed with execution ID: ${execution.id} (worker runtime)`
+    );
+  } else {
+    const executionInstance = await env.EXECUTE.create({
+      params: executionParams,
+    });
+    console.log(
+      `Workflow ${workflow.id} started with execution ID: ${executionInstance.id} (workflow runtime)`
+    );
+  }
 }

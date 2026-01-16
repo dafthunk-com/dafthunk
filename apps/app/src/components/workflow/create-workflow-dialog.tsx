@@ -63,14 +63,16 @@ const workflowTriggers = [
 const runtimeTypes = [
   {
     type: "workflow" as WorkflowRuntime,
-    title: "Durable",
-    description: "Reliable execution with retries and checkpoints",
+    title: "Resilient",
+    description:
+      "Persisted execution that survives failures. Best for long-running workflows.",
     icon: Layers,
   },
   {
     type: "worker" as WorkflowRuntime,
-    title: "Fast",
-    description: "Low-latency execution without durability, max 30s",
+    title: "Responsive",
+    description:
+      "Immediate execution with lowest latency. Best for quick workflows under 30 seconds.",
     icon: Zap,
   },
 ];

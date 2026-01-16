@@ -5,7 +5,7 @@
  * Handles parameter processing, execution creation, and persistence.
  */
 
-import type { Node, WorkflowExecution } from "@dafthunk/types";
+import type { Node, WorkflowExecution, WorkflowRuntime } from "@dafthunk/types";
 
 import type { Bindings } from "../context";
 import type { BlobParameter } from "../nodes/types";
@@ -19,6 +19,7 @@ export interface WorkflowExecutorOptions {
     name: string;
     handle: string;
     trigger: string;
+    runtime?: WorkflowRuntime;
     nodes: Node[];
     edges: any[];
   };
@@ -143,14 +144,14 @@ export class WorkflowExecutor {
       };
     }
 
-    // Use WorkerRuntime for http_request workflows (synchronous execution)
-    // Use Cloudflare Workflows for all other types (durable execution)
-    if (workflow.trigger === "http_request") {
+    // Use WorkerRuntime for "worker" runtime (synchronous execution)
+    // Use Cloudflare Workflows for "workflow" runtime (durable execution, default)
+    if (workflow.runtime === "worker") {
       const workerRuntime = WorkerRuntime.create(env);
       const execution = await workerRuntime.execute(finalExecutionParams);
 
       console.log(
-        `Completed http_request workflow execution ${execution.id} for workflow ${workflow.id}`
+        `Completed worker runtime execution ${execution.id} for workflow ${workflow.id}`
       );
 
       return { executionId: execution.id, execution };

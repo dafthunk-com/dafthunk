@@ -6,6 +6,7 @@ import {
   getOrganizationComputeCredits,
   getQueueTriggersByQueue,
 } from "./db/queries";
+import { WorkerRuntime } from "./runtime/worker-runtime";
 import { DeploymentStore } from "./stores/deployment-store";
 import { WorkflowStore } from "./stores/workflow-store";
 
@@ -39,34 +40,45 @@ async function executeWorkflow(
       return;
     }
 
-    // Trigger the runtime - it will handle execution persistence
-    const executionInstance = await env.EXECUTE.create({
-      params: {
-        userId: "queue_trigger",
-        organizationId: workflowInfo.organizationId,
-        computeCredits,
-        workflow: {
-          id: workflowInfo.id,
-          name: workflowData.name,
-          handle: workflowInfo.handle,
-          trigger: workflowData.trigger,
-          nodes: workflowData.nodes,
-          edges: workflowData.edges,
-        },
-        deploymentId: deploymentId,
-        queueMessage: {
-          queueId: queueMessage.queueId,
-          organizationId: queueMessage.organizationId,
-          payload: queueMessage.payload,
-          timestamp: queueMessage.timestamp,
-          mode: queueMessage.mode,
-        },
+    const executionParams = {
+      userId: "queue_trigger",
+      organizationId: workflowInfo.organizationId,
+      computeCredits,
+      workflow: {
+        id: workflowInfo.id,
+        name: workflowData.name,
+        handle: workflowInfo.handle,
+        trigger: workflowData.trigger,
+        runtime: workflowData.runtime,
+        nodes: workflowData.nodes,
+        edges: workflowData.edges,
       },
-    });
+      deploymentId: deploymentId,
+      queueMessage: {
+        queueId: queueMessage.queueId,
+        organizationId: queueMessage.organizationId,
+        payload: queueMessage.payload,
+        timestamp: queueMessage.timestamp,
+        mode: queueMessage.mode,
+      },
+    };
 
-    console.log(
-      `Workflow ${workflowInfo.id} started with execution ID: ${executionInstance.id}`
-    );
+    // Use WorkerRuntime for "worker" runtime (synchronous execution)
+    // Use Cloudflare Workflows for "workflow" runtime (durable execution, default)
+    if (workflowData.runtime === "worker") {
+      const workerRuntime = WorkerRuntime.create(env);
+      const execution = await workerRuntime.execute(executionParams);
+      console.log(
+        `Workflow ${workflowInfo.id} completed with execution ID: ${execution.id} (worker runtime)`
+      );
+    } else {
+      const executionInstance = await env.EXECUTE.create({
+        params: executionParams,
+      });
+      console.log(
+        `Workflow ${workflowInfo.id} started with execution ID: ${executionInstance.id} (workflow runtime)`
+      );
+    }
   } catch (execError) {
     console.error(`Error executing workflow ${workflowInfo.id}:`, execError);
   }

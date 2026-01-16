@@ -388,6 +388,7 @@ async function executeWorkflow(
       name: workflow.name,
       handle: workflow.handle,
       trigger: workflowData.trigger,
+      runtime: workflowData.runtime,
       nodes: workflowData.nodes,
       edges: workflowData.edges,
     },

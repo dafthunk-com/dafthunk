@@ -6,6 +6,7 @@ import {
   getActiveScheduledTriggers,
   getOrganizationComputeCredits,
 } from "./db";
+import { WorkerRuntime } from "./runtime/worker-runtime";
 import { DeploymentStore } from "./stores/deployment-store";
 
 export async function handleScheduledEvent(
@@ -65,30 +66,43 @@ export async function handleScheduledEvent(
       );
       if (computeCredits === undefined) continue;
 
-      // Execute workflow with scheduled trigger context
-      await env.EXECUTE.create({
-        params: {
-          userId: "scheduled_trigger",
-          organizationId: workflow.organizationId,
-          computeCredits,
-          workflow: {
-            id: workflow.id,
-            name: workflow.name,
-            handle: workflow.handle,
-            trigger: workflowData.trigger,
-            nodes: workflowData.nodes,
-            edges: workflowData.edges,
-          },
-          deploymentId,
-          scheduledTrigger: {
-            timestamp: now,
-            scheduledTime: scheduledTime.getTime(),
-            scheduleExpression: scheduledTrigger.scheduleExpression,
-          },
+      const executionParams = {
+        userId: "scheduled_trigger",
+        organizationId: workflow.organizationId,
+        computeCredits,
+        workflow: {
+          id: workflow.id,
+          name: workflow.name,
+          handle: workflow.handle,
+          trigger: workflowData.trigger,
+          runtime: workflowData.runtime,
+          nodes: workflowData.nodes,
+          edges: workflowData.edges,
         },
-      });
+        deploymentId,
+        scheduledTrigger: {
+          timestamp: now,
+          scheduledTime: scheduledTime.getTime(),
+          scheduleExpression: scheduledTrigger.scheduleExpression,
+        },
+      };
 
-      console.log(`Scheduled workflow ${workflow.id} started`);
+      // Use WorkerRuntime for "worker" runtime (synchronous execution)
+      // Use Cloudflare Workflows for "workflow" runtime (durable execution, default)
+      if (workflowData.runtime === "worker") {
+        const workerRuntime = WorkerRuntime.create(env);
+        const execution = await workerRuntime.execute(executionParams);
+        console.log(
+          `Scheduled workflow ${workflow.id} completed with execution ID: ${execution.id} (worker runtime)`
+        );
+      } else {
+        const executionInstance = await env.EXECUTE.create({
+          params: executionParams,
+        });
+        console.log(
+          `Scheduled workflow ${workflow.id} started with execution ID: ${executionInstance.id} (workflow runtime)`
+        );
+      }
     } catch (error) {
       console.error(
         `Error executing scheduled workflow ${workflow.id}:`,
