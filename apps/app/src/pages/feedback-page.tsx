@@ -41,8 +41,7 @@ export const createColumns = (
     cell: ({ row }) => {
       const workflowId = row.original.workflowId;
       const workflowName = row.getValue("workflowName") as string | undefined;
-      if (!workflowId)
-        return <span className="text-muted-foreground">-</span>;
+      if (!workflowId) return <span className="text-muted-foreground">-</span>;
       return (
         <Link
           to={getOrgUrl(`workflows/${workflowId}`)}

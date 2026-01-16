@@ -11,7 +11,6 @@ import type {
   WorkflowState,
 } from "@dafthunk/types";
 import { eq } from "drizzle-orm";
-import { eq } from "drizzle-orm";
 
 import type { Bindings } from "../context";
 import { createDatabase } from "../db/index";

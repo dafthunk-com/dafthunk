@@ -44,7 +44,9 @@ export function NodeDocsDialog({
               className="size-4 text-blue-500"
             />
             <span className="truncate leading-normal">{nodeType.name}</span>
-            {nodeType.subscription && <SubscriptionBadge variant="muted" size="lg" />}
+            {nodeType.subscription && (
+              <SubscriptionBadge variant="muted" size="lg" />
+            )}
           </DialogTitle>
           <div className="mt-2">
             <NodeTags
