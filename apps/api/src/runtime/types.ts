@@ -101,6 +101,64 @@ export interface ExecutionState {
 }
 
 /**
+ * Result of executing a single node.
+ * Immutable description of what happened - no state mutation required.
+ * Used to decouple node execution from state management.
+ */
+export type NodeExecutionResult =
+  | {
+      nodeId: string;
+      status: "completed";
+      outputs: NodeRuntimeValues;
+      usage: number;
+    }
+  | {
+      nodeId: string;
+      status: "skipped";
+      /** Skipped nodes don't produce outputs */
+      outputs: null;
+      /** Skipped nodes consume no usage */
+      usage: 0;
+      /** Reason for skipping (included for Workflows introspection API) */
+      skipReason?: "upstream_failure" | "conditional_branch";
+      /** Node IDs that caused this node to be skipped */
+      blockedBy?: string[];
+    }
+  | {
+      nodeId: string;
+      status: "error";
+      error: string;
+      /** Usage consumed before the error (e.g., API call made but parsing failed) */
+      usage?: number;
+    };
+
+/**
+ * Applies a node execution result to the execution state.
+ * Single place where state is mutated after node execution.
+ */
+export function applyNodeResult(
+  state: ExecutionState,
+  result: NodeExecutionResult
+): void {
+  switch (result.status) {
+    case "completed":
+      state.nodeOutputs[result.nodeId] = result.outputs;
+      state.executedNodes.push(result.nodeId);
+      state.nodeUsage[result.nodeId] = result.usage;
+      break;
+    case "skipped":
+      state.skippedNodes.push(result.nodeId);
+      break;
+    case "error":
+      state.nodeErrors[result.nodeId] = result.error;
+      if (result.usage !== undefined && result.usage > 0) {
+        state.nodeUsage[result.nodeId] = result.usage;
+      }
+      break;
+  }
+}
+
+/**
  * Computes the workflow execution status from the current state.
  * This is the single source of truth for status calculation.
  *

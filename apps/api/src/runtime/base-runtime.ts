@@ -28,11 +28,13 @@ import { ResourceProvider } from "./resource-provider";
 import type {
   ExecutionLevel,
   ExecutionState,
+  NodeExecutionResult,
   NodeRuntimeValues,
   RuntimeValue,
   WorkflowExecutionContext,
 } from "./types";
 import {
+  applyNodeResult,
   getExecutionStatus,
   getNodeType,
   isRuntimeValue,
@@ -460,7 +462,7 @@ export abstract class BaseRuntime {
 
   /**
    * Executes or skips a single node based on its dependencies.
-   * Returns updated state with node execution result embedded for introspection.
+   * Returns a result describing what happened - no state mutation.
    */
   private async executeOrSkipNode(
     context: WorkflowExecutionContext,
@@ -470,20 +472,28 @@ export abstract class BaseRuntime {
     emailMessage?: EmailMessage,
     queueMessage?: QueueMessage,
     scheduledTrigger?: ScheduledTrigger
-  ): Promise<ExecutionState> {
+  ): Promise<NodeExecutionResult> {
     // Check if node should be skipped (all upstream dependencies unavailable)
     if (this.shouldSkipNode(context, state, nodeId)) {
-      // Mark as skipped
-      if (!state.skippedNodes.includes(nodeId)) {
-        state.skippedNodes.push(nodeId);
-      }
-      return state;
+      // Include skip reason for Workflows introspection API
+      const skipInfo = this.inferSkipReason(context.workflow, state, nodeId);
+      return {
+        nodeId,
+        status: "skipped",
+        outputs: null,
+        usage: 0,
+        skipReason: skipInfo.skipReason as
+          | "upstream_failure"
+          | "conditional_branch"
+          | undefined,
+        blockedBy: skipInfo.blockedBy,
+      };
     }
 
-    // Execute the node and return updated state
+    // Execute the node and return result
     return await this.executeNode(
       context,
-      state,
+      state.nodeOutputs,
       nodeId,
       httpRequest,
       emailMessage,
@@ -493,57 +503,59 @@ export abstract class BaseRuntime {
   }
 
   /**
-   * Executes a single node and stores its outputs.
+   * Executes a single node and returns the result.
+   * Pure function: reads from nodeOutputs but does not mutate any state.
    */
   private async executeNode(
     context: WorkflowExecutionContext,
-    state: ExecutionState,
+    nodeOutputs: Record<string, NodeRuntimeValues>,
     nodeId: string,
     httpRequest?: HttpRequest,
     emailMessage?: EmailMessage,
     queueMessage?: QueueMessage,
     scheduledTrigger?: ScheduledTrigger
-  ): Promise<ExecutionState> {
+  ): Promise<NodeExecutionResult> {
     const node = this.findNode(context.workflow, nodeId);
     if (!node) {
-      const error = new NodeNotFoundError(nodeId);
-      state = this.recordNodeError(state, nodeId, error);
-      return state;
+      return {
+        nodeId,
+        status: "error",
+        error: new NodeNotFoundError(nodeId).message,
+      };
     }
 
     let nodeType;
     try {
       nodeType = this.nodeRegistry.getNodeType(node.type);
     } catch (_error) {
-      // Node type not found in registry
-      state = this.recordNodeError(
-        state,
+      return {
         nodeId,
-        new NodeTypeNotImplementedError(nodeId, node.type)
-      );
-      return state;
+        status: "error",
+        error: new NodeTypeNotImplementedError(nodeId, node.type).message,
+      };
     }
 
     // Check if this is a subscription-only node and user doesn't have a paid plan
     if (nodeType.subscription && this.userPlan !== "pro") {
-      state = this.recordNodeError(
-        state,
+      return {
         nodeId,
-        new SubscriptionRequiredError(nodeId, node.type)
-      );
-      return state;
+        status: "error",
+        error: new SubscriptionRequiredError(nodeId, node.type).message,
+      };
     }
 
     const executable = this.nodeRegistry.createExecutableNode(node);
     if (!executable) {
-      const error = new NodeTypeNotImplementedError(nodeId, node.type);
-      state = this.recordNodeError(state, nodeId, error);
-      return state;
+      return {
+        nodeId,
+        status: "error",
+        error: new NodeTypeNotImplementedError(nodeId, node.type).message,
+      };
     }
 
     const inputValues = this.collectNodeInputs(
       context.workflow,
-      state.nodeOutputs,
+      nodeOutputs,
       nodeId
     );
 
@@ -581,34 +593,26 @@ export abstract class BaseRuntime {
           context.organizationId,
           context.executionId
         );
-        state.nodeOutputs[nodeId] = outputsForRuntime as NodeRuntimeValues;
-        if (!state.executedNodes.includes(nodeId)) {
-          state.executedNodes.push(nodeId);
-        }
-
-        // Store actual usage from execution result
-        const actualUsage = result.usage ?? nodeType.usage ?? 1;
-        state.nodeUsage[nodeId] = actualUsage;
-
-        // Downstream nodes will be checked by shouldSkipNode when we reach them
+        return {
+          nodeId,
+          status: "completed",
+          outputs: outputsForRuntime as NodeRuntimeValues,
+          usage: result.usage ?? nodeType.usage ?? 1,
+        };
       } else {
-        const failureMessage = result.error ?? "Unknown error";
-        state = this.recordNodeError(state, nodeId, failureMessage);
-
-        // Track usage even for failed nodes (some errors occur after resources are consumed)
-        if (result.usage !== undefined && result.usage > 0) {
-          state.nodeUsage[nodeId] = result.usage;
-        }
+        return {
+          nodeId,
+          status: "error",
+          error: result.error ?? "Unknown error",
+          usage: result.usage,
+        };
       }
-
-      return state;
     } catch (error) {
-      state = this.recordNodeError(
-        state,
+      return {
         nodeId,
-        error instanceof Error ? error : new Error(String(error))
-      );
-      return state;
+        status: "error",
+        error: error instanceof Error ? error.message : String(error),
+      };
     }
   }
 
@@ -616,6 +620,9 @@ export abstract class BaseRuntime {
    * Executes workflow nodes in parallel within each execution level.
    * Nodes at the same level have no dependencies on each other and can run concurrently.
    * Each node gets its own durable step for Cloudflare Workflows compatibility.
+   *
+   * Uses immutable results: each node execution returns a NodeExecutionResult,
+   * which is then applied to the state. No state copying or merging required.
    */
   private async executeWorkflowNodes(
     context: WorkflowExecutionContext,
@@ -627,114 +634,47 @@ export abstract class BaseRuntime {
     scheduledTrigger?: ScheduledTrigger,
     workflowSessionId?: string
   ): Promise<{ state: ExecutionState; record: WorkflowExecution }> {
-    let currentState = state;
     let currentRecord = executionRecord;
 
     for (const level of context.executionLevels) {
-      // Execute all nodes in this level in parallel
+      // Execute all nodes in this level in parallel, collecting results
       const results = await Promise.all(
         level.nodeIds.map(async (nodeId) => {
-          // Create a copy of state for this parallel execution
-          // (executeOrSkipNode mutates state in-place)
-          let nodeState: ExecutionState = {
-            nodeOutputs: { ...currentState.nodeOutputs },
-            executedNodes: [...currentState.executedNodes],
-            skippedNodes: [...currentState.skippedNodes],
-            nodeErrors: { ...currentState.nodeErrors },
-            nodeUsage: { ...currentState.nodeUsage },
-          };
-
           // Each node gets its own durable step
-          // Step returns node execution object for Workflows introspection API
-          await this.executeStep(`run node ${nodeId}`, async () => {
-            // Execute or skip the node (mutates nodeState)
-            nodeState = await this.executeOrSkipNode(
-              context,
-              nodeState,
-              nodeId,
-              httpRequest,
-              emailMessage,
-              queueMessage,
-              scheduledTrigger
-            );
-
-            // Build and return the node execution result for introspection
-            const nodeExecution = this.buildNodeExecutions(
-              context.workflow,
-              context,
-              nodeState
-            ).find((exec) => exec.nodeId === nodeId);
-
-            return nodeExecution || { nodeId, status: "idle" };
-          });
-
-          // Send progress update after this node completes
-          currentRecord = await this.updateAndNotify(
-            workflowSessionId,
-            currentRecord,
-            context,
-            nodeState
+          const result = await this.executeStep(
+            `run node ${nodeId}`,
+            async () => {
+              return this.executeOrSkipNode(
+                context,
+                state,
+                nodeId,
+                httpRequest,
+                emailMessage,
+                queueMessage,
+                scheduledTrigger
+              );
+            }
           );
 
-          return { nodeId, state: nodeState };
+          return result;
         })
       );
 
-      // Merge states from parallel executions
-      currentState = this.mergeParallelStates(currentState, results);
+      // Apply all results to state (nodes in same level don't affect each other)
+      for (const result of results) {
+        applyNodeResult(state, result);
+      }
+
+      // Send progress update after level completes
+      currentRecord = await this.updateAndNotify(
+        workflowSessionId,
+        currentRecord,
+        context,
+        state
+      );
     }
 
-    return { state: currentState, record: currentRecord };
-  }
-
-  /**
-   * Merges execution states from parallel node executions into a single state.
-   * Each parallel execution starts from the same base state and only adds its own node's data.
-   * This method extracts each node's contribution and combines them into a unified state.
-   *
-   * Strategy: Create a fresh merged state (immutable approach) by:
-   * 1. Starting with the base state's existing data
-   * 2. Extracting each node's specific additions from its result state
-   * 3. Combining all additions into the merged state
-   */
-  private mergeParallelStates(
-    baseState: ExecutionState,
-    results: Array<{ nodeId: string; state: ExecutionState }>
-  ): ExecutionState {
-    // Start with a fresh copy of the base state
-    const merged: ExecutionState = {
-      nodeOutputs: { ...baseState.nodeOutputs },
-      executedNodes: [...baseState.executedNodes],
-      skippedNodes: [...baseState.skippedNodes],
-      nodeErrors: { ...baseState.nodeErrors },
-      nodeUsage: { ...baseState.nodeUsage },
-    };
-
-    // Extract and merge each node's specific contributions
-    for (const { nodeId, state } of results) {
-      // Merge node outputs (if this node produced output)
-      if (nodeId in state.nodeOutputs) {
-        merged.nodeOutputs[nodeId] = state.nodeOutputs[nodeId];
-      }
-
-      // Track execution status (executed, skipped, or errored)
-      if (state.executedNodes.includes(nodeId)) {
-        merged.executedNodes.push(nodeId);
-      }
-      if (state.skippedNodes.includes(nodeId)) {
-        merged.skippedNodes.push(nodeId);
-      }
-      if (nodeId in state.nodeErrors) {
-        merged.nodeErrors[nodeId] = state.nodeErrors[nodeId];
-      }
-
-      // Merge usage tracking
-      if (nodeId in state.nodeUsage) {
-        merged.nodeUsage[nodeId] = state.nodeUsage[nodeId];
-      }
-    }
-
-    return merged;
+    return { state, record: currentRecord };
   }
 
   private async transformInputs(
@@ -990,16 +930,6 @@ export abstract class BaseRuntime {
   // ==========================================================================
   // ERROR HANDLING
   // ==========================================================================
-
-  private recordNodeError(
-    state: ExecutionState,
-    nodeId: string,
-    error: Error | string
-  ): ExecutionState {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    state.nodeErrors[nodeId] = errorMessage;
-    return state;
-  }
 
   private createErrorReport(state: ExecutionState): string | undefined {
     if (Object.keys(state.nodeErrors).length === 0) {
