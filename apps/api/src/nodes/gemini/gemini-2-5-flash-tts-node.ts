@@ -170,7 +170,7 @@ export class Gemini25FlashTtsNode extends ExecutableNode {
       }
 
       response = await ai.models.generateContent({
-        model: "gemini-2.5-flash-preview-tts",
+        model: "gemini-2.5-flash-tts",
         contents: [{ parts: [{ text }] }],
         config,
       });
