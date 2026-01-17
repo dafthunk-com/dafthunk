@@ -37,6 +37,7 @@ import {
   applyNodeResult,
   getExecutionStatus,
   getNodeType,
+  inferSkipReason,
   isRuntimeValue,
   NodeNotFoundError,
   NodeTypeNotImplementedError,
@@ -147,12 +148,29 @@ export abstract class BaseRuntime {
 
   /**
    * Abstract method for executing a step with platform-specific durability.
-   * Implementations should wrap the function execution with appropriate
-   * retry/timeout configuration for their platform.
    *
-   * @param name - Step name for identification and logging
-   * @param fn - Function to execute within the step
-   * @returns The result of the function execution
+   * ## Contract for Implementations
+   *
+   * **Durability**: The step result should be persisted so that if the workflow
+   * restarts, the step can be skipped and its cached result returned. This is
+   * how Cloudflare Workflows achieves exactly-once semantics.
+   *
+   * **Serialization**: The return type T must be JSON-serializable. Cloudflare
+   * Workflows persists step results to durable storage between executions.
+   * Non-serializable values (functions, classes, circular refs) will fail.
+   *
+   * **Idempotency**: The provided function `fn` should be idempotent or
+   * tolerate retries. Platform implementations may retry on transient failures.
+   *
+   * **Error Handling**: Errors thrown by `fn` should propagate to the caller.
+   * Implementations may add retry logic for transient errors (network timeouts)
+   * but should not swallow or transform application errors.
+   *
+   * @param name - Human-readable step identifier. Used for logging and the
+   *               Cloudflare Workflows introspection API. Convention: lowercase
+   *               with spaces (e.g., "run node abc123", "persist final state").
+   * @param fn - Async function to execute. Must return JSON-serializable value.
+   * @returns The result of fn, either fresh or from durable cache on replay.
    */
   protected abstract executeStep<T>(
     name: string,
@@ -476,17 +494,18 @@ export abstract class BaseRuntime {
     // Check if node should be skipped (all upstream dependencies unavailable)
     if (this.shouldSkipNode(context, state, nodeId)) {
       // Include skip reason for Workflows introspection API
-      const skipInfo = this.inferSkipReason(context.workflow, state, nodeId);
+      const { reason, blockedBy } = inferSkipReason(
+        context.workflow,
+        state,
+        nodeId
+      );
       return {
         nodeId,
         status: "skipped",
         outputs: null,
         usage: 0,
-        skipReason: skipInfo.skipReason as
-          | "upstream_failure"
-          | "conditional_branch"
-          | undefined,
-        blockedBy: skipInfo.blockedBy,
+        skipReason: reason,
+        blockedBy: [...blockedBy],
       };
     }
 
@@ -1072,13 +1091,14 @@ export abstract class BaseRuntime {
       }
       if (state.skippedNodes.includes(node.id)) {
         // Infer skip reason and details from state
-        const skipInfo = this.inferSkipReason(workflow, state, node.id);
+        const { reason, blockedBy } = inferSkipReason(workflow, state, node.id);
         return {
           nodeId: node.id,
           status: "skipped" as const,
           outputs: null,
           usage: 0,
-          ...skipInfo,
+          skipReason: reason,
+          blockedBy: [...blockedBy],
         };
       }
       // If node hasn't been processed yet:
@@ -1090,42 +1110,5 @@ export abstract class BaseRuntime {
         usage: 0,
       };
     });
-  }
-
-  /**
-   * Infers skip reason and details for a skipped node.
-   * Uses the shared upstream analysis to determine if the skip was due to
-   * upstream failures or conditional branches.
-   */
-  private inferSkipReason(
-    workflow: Workflow,
-    state: ExecutionState,
-    nodeId: string
-  ): {
-    skipReason?: string;
-    blockedBy?: string[];
-  } {
-    const node = workflow.nodes.find((n) => n.id === nodeId);
-    if (!node) return {};
-
-    const { erroredUpstream, skippedUpstream, conditionalSkip } =
-      this.analyzeUpstreamDependencies(workflow, state, nodeId);
-
-    // Prioritize upstream failures over conditional branches
-    if (erroredUpstream.length > 0 || skippedUpstream.length > 0) {
-      return {
-        skipReason: "upstream_failure",
-        blockedBy: [...erroredUpstream, ...skippedUpstream],
-      };
-    }
-
-    if (conditionalSkip.length > 0) {
-      return {
-        skipReason: "conditional_branch",
-        blockedBy: conditionalSkip,
-      };
-    }
-
-    return {};
   }
 }

@@ -196,8 +196,8 @@ export function getExecutionStatus(
 
   // Check if any skipped nodes are due to upstream failures (not conditional branching)
   for (const skippedNodeId of skippedNodes) {
-    const skipReason = inferSkipReason(workflow, state, skippedNodeId);
-    if (skipReason === "upstream_failure") {
+    const { reason } = inferSkipReason(workflow, state, skippedNodeId);
+    if (reason === "upstream_failure") {
       return "error";
     }
   }
@@ -211,59 +211,95 @@ export function getExecutionStatus(
  * - "upstream_failure": Node skipped because an upstream node errored or was skipped due to failure
  * - "conditional_branch": Node skipped because it's on an inactive conditional branch (expected)
  */
-type SkipReason = "upstream_failure" | "conditional_branch";
+export type SkipReason = "upstream_failure" | "conditional_branch";
 
 /**
- * Infers the reason a node was skipped.
+ * Result of inferring why a node was skipped.
+ * Includes both the classification and the specific nodes that caused the skip.
+ */
+export interface SkipReasonResult {
+  /** Why the node was skipped */
+  readonly reason: SkipReason;
+  /** Node IDs that directly caused this node to be skipped */
+  readonly blockedBy: readonly string[];
+}
+
+/**
+ * Infers the reason a node was skipped, with full traceability.
+ *
+ * Uses recursion to trace skip chains back to their root cause:
+ * - If an upstream node errored, or was skipped due to an upstream failure,
+ *   this node is classified as "upstream_failure"
+ * - If an upstream node executed but didn't populate the expected output
+ *   (conditional branch), or was skipped due to a conditional branch,
+ *   this node is classified as "conditional_branch"
+ *
  * Every skipped node must have a determinable reason - if we can't find one,
  * we default to "upstream_failure" to be conservative (treat as error).
  */
-function inferSkipReason(
+export function inferSkipReason(
   workflow: Workflow,
   state: ExecutionState,
   nodeId: string
-): SkipReason {
+): SkipReasonResult {
   const inboundEdges = workflow.edges.filter((edge) => edge.target === nodeId);
 
-  // First pass: check for upstream failures (errors or cascading failure skips)
+  const failureBlockers: string[] = [];
+  const conditionalBlockers: string[] = [];
+
+  // Analyze each upstream edge
   for (const edge of inboundEdges) {
     // Upstream errored directly
     if (edge.source in state.nodeErrors) {
-      return "upstream_failure";
+      failureBlockers.push(edge.source);
+      continue;
     }
-    // Upstream was skipped - check if it was due to failure (cascading)
-    if (state.skippedNodes.includes(edge.source)) {
-      if (
-        inferSkipReason(workflow, state, edge.source) === "upstream_failure"
-      ) {
-        return "upstream_failure";
-      }
-    }
-  }
 
-  // Second pass: check for conditional branch skips
-  for (const edge of inboundEdges) {
+    // Upstream was skipped - recursively determine why
+    if (state.skippedNodes.includes(edge.source)) {
+      const upstreamResult = inferSkipReason(workflow, state, edge.source);
+      if (upstreamResult.reason === "upstream_failure") {
+        failureBlockers.push(edge.source);
+      } else {
+        conditionalBlockers.push(edge.source);
+      }
+      continue;
+    }
+
     // Upstream executed but didn't populate this specific output (conditional fork)
     if (state.executedNodes.includes(edge.source)) {
       const sourceOutputs = state.nodeOutputs[edge.source];
       if (sourceOutputs && !(edge.sourceOutput in sourceOutputs)) {
-        return "conditional_branch";
+        conditionalBlockers.push(edge.source);
+        continue;
       }
     }
-    // Upstream was conditionally skipped (cascading conditional skip)
-    if (state.skippedNodes.includes(edge.source)) {
-      if (
-        inferSkipReason(workflow, state, edge.source) === "conditional_branch"
-      ) {
-        return "conditional_branch";
-      }
-    }
+
+    // This edge has available data - doesn't contribute to skip
+  }
+
+  // Prioritize upstream failures over conditional branches
+  if (failureBlockers.length > 0) {
+    return {
+      reason: "upstream_failure",
+      blockedBy: failureBlockers,
+    };
+  }
+
+  if (conditionalBlockers.length > 0) {
+    return {
+      reason: "conditional_branch",
+      blockedBy: conditionalBlockers,
+    };
   }
 
   // If we reach here, we couldn't determine a specific reason.
   // This shouldn't happen in a well-formed workflow, but if it does,
   // treat it as a failure to be conservative (don't mask potential bugs).
-  return "upstream_failure";
+  return {
+    reason: "upstream_failure",
+    blockedBy: [],
+  };
 }
 
 /**
