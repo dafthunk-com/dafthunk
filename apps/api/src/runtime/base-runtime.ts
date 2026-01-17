@@ -29,6 +29,7 @@ import {
 import { validateWorkflow } from "../utils/workflows";
 import { ResourceProvider } from "./resource-provider";
 import type {
+  ExecutionLevel,
   ExecutionState,
   NodeRuntimeValues,
   RuntimeValue,
@@ -324,7 +325,7 @@ export abstract class BaseRuntime {
   }
 
   /**
-   * Validates the workflow and creates a sequential execution order.
+   * Validates the workflow and creates execution levels for parallel execution.
    * Returns separated immutable context and mutable state.
    */
   private async initialiseWorkflow(
@@ -343,16 +344,20 @@ export abstract class BaseRuntime {
       );
     }
 
-    const orderedNodeIds = this.createTopologicalOrder(workflow);
-    if (orderedNodeIds.length === 0 && workflow.nodes.length > 0) {
+    const executionLevels = this.createTopologicalLevels(workflow);
+    if (executionLevels.length === 0 && workflow.nodes.length > 0) {
       throw new NonRetryableError(
         "Unable to derive execution order. The graph may contain a cycle."
       );
     }
 
+    // Derive flat ordered list from levels (for getExecutionStatus compatibility)
+    const orderedNodeIds = executionLevels.flatMap((level) => level.nodeIds);
+
     // Immutable context
     const context: WorkflowExecutionContext = {
       workflow,
+      executionLevels,
       orderedNodeIds,
       workflowId,
       organizationId,
@@ -376,9 +381,15 @@ export abstract class BaseRuntime {
   }
 
   /**
-   * Calculates a topological ordering of nodes. Returns an empty array if a cycle is detected.
+   * Calculates a topological ordering of nodes grouped by execution level.
+   * Nodes within the same level have no dependencies on each other and can execute in parallel.
+   * Returns an empty array if a cycle is detected.
+   *
+   * Uses a modified Kahn's algorithm that tracks levels instead of a flat queue:
+   * - Level 0: All nodes with in-degree 0 (no dependencies)
+   * - Level N: Nodes whose dependencies are all in levels 0 to N-1
    */
-  private createTopologicalOrder(workflow: Workflow): string[] {
+  private createTopologicalLevels(workflow: Workflow): ExecutionLevel[] {
     const inDegree: Record<string, number> = {};
     const adjacency: Record<string, string[]> = {};
 
@@ -392,25 +403,35 @@ export abstract class BaseRuntime {
       inDegree[edge.target] += 1;
     }
 
-    const queue: string[] = Object.keys(inDegree).filter(
+    // Start with all nodes that have no dependencies (in-degree 0)
+    let currentLevel: string[] = Object.keys(inDegree).filter(
       (id) => inDegree[id] === 0
     );
-    const ordered: string[] = [];
 
-    while (queue.length > 0) {
-      const current = queue.shift()!;
-      ordered.push(current);
+    const levels: ExecutionLevel[] = [];
+    let processedCount = 0;
 
-      for (const neighbour of adjacency[current]) {
-        inDegree[neighbour] -= 1;
-        if (inDegree[neighbour] === 0) {
-          queue.push(neighbour);
+    while (currentLevel.length > 0) {
+      levels.push({ nodeIds: [...currentLevel] });
+      processedCount += currentLevel.length;
+
+      // Find next level: nodes whose in-degree becomes 0 after processing current level
+      const nextLevel: string[] = [];
+
+      for (const nodeId of currentLevel) {
+        for (const neighbour of adjacency[nodeId]) {
+          inDegree[neighbour] -= 1;
+          if (inDegree[neighbour] === 0) {
+            nextLevel.push(neighbour);
+          }
         }
       }
+
+      currentLevel = nextLevel;
     }
 
-    // If ordering missed nodes, a cycle exists.
-    return ordered.length === workflow.nodes.length ? ordered : [];
+    // If we didn't process all nodes, a cycle exists
+    return processedCount === workflow.nodes.length ? levels : [];
   }
 
   /**
@@ -589,7 +610,9 @@ export abstract class BaseRuntime {
   }
 
   /**
-   * Executes all workflow nodes sequentially, updating state and sending progress notifications.
+   * Executes workflow nodes in parallel within each execution level.
+   * Nodes at the same level have no dependencies on each other and can run concurrently.
+   * Each node gets its own durable step for Cloudflare Workflows compatibility.
    */
   private async executeWorkflowNodes(
     context: WorkflowExecutionContext,
@@ -604,40 +627,111 @@ export abstract class BaseRuntime {
     let currentState = state;
     let currentRecord = executionRecord;
 
-    for (const nodeId of context.orderedNodeIds) {
-      // Execute or skip the node
-      // The step returns a result object for introspection
-      await this.executeStep(`run node ${nodeId}`, async () => {
-        // Execute and get updated state
-        currentState = await this.executeOrSkipNode(
-          context,
-          currentState,
-          nodeId,
-          httpRequest,
-          emailMessage,
-          queueMessage,
-          scheduledTrigger
-        );
+    for (const level of context.executionLevels) {
+      // Execute all nodes in this level in parallel
+      const results = await Promise.all(
+        level.nodeIds.map(async (nodeId) => {
+          // Create a copy of state for this parallel execution
+          // (executeOrSkipNode mutates state in-place)
+          let nodeState: ExecutionState = {
+            nodeOutputs: { ...currentState.nodeOutputs },
+            executedNodes: [...currentState.executedNodes],
+            skippedNodes: [...currentState.skippedNodes],
+            nodeErrors: { ...currentState.nodeErrors },
+            nodeUsage: { ...currentState.nodeUsage },
+          };
 
-        // Build result object for introspection
-        const nodeExecution = this.buildNodeExecutions(
-          context.workflow,
-          context,
-          currentState
-        ).find((exec) => exec.nodeId === nodeId);
+          // Each node gets its own durable step
+          // Step returns node execution object for Workflows introspection API
+          await this.executeStep(`run node ${nodeId}`, async () => {
+            // Execute or skip the node (mutates nodeState)
+            nodeState = await this.executeOrSkipNode(
+              context,
+              nodeState,
+              nodeId,
+              httpRequest,
+              emailMessage,
+              queueMessage,
+              scheduledTrigger
+            );
 
-        return nodeExecution || { nodeId, status: "idle" };
-      });
+            // Build and return the node execution result for introspection
+            const nodeExecution = this.buildNodeExecutions(
+              context.workflow,
+              context,
+              nodeState
+            ).find((exec) => exec.nodeId === nodeId);
 
-      currentRecord = await this.updateAndNotify(
-        workflowSessionId,
-        currentRecord,
-        context,
-        currentState
+            return nodeExecution || { nodeId, status: "idle" };
+          });
+
+          // Send progress update after this node completes
+          currentRecord = await this.updateAndNotify(
+            workflowSessionId,
+            currentRecord,
+            context,
+            nodeState
+          );
+
+          return { nodeId, state: nodeState };
+        })
       );
+
+      // Merge states from parallel executions
+      currentState = this.mergeParallelStates(currentState, results);
     }
 
     return { state: currentState, record: currentRecord };
+  }
+
+  /**
+   * Merges execution states from parallel node executions into a single state.
+   * Each parallel execution starts from the same base state and only adds its own node's data.
+   * This method extracts each node's contribution and combines them into a unified state.
+   *
+   * Strategy: Create a fresh merged state (immutable approach) by:
+   * 1. Starting with the base state's existing data
+   * 2. Extracting each node's specific additions from its result state
+   * 3. Combining all additions into the merged state
+   */
+  private mergeParallelStates(
+    baseState: ExecutionState,
+    results: Array<{ nodeId: string; state: ExecutionState }>
+  ): ExecutionState {
+    // Start with a fresh copy of the base state
+    const merged: ExecutionState = {
+      nodeOutputs: { ...baseState.nodeOutputs },
+      executedNodes: [...baseState.executedNodes],
+      skippedNodes: [...baseState.skippedNodes],
+      nodeErrors: { ...baseState.nodeErrors },
+      nodeUsage: { ...baseState.nodeUsage },
+    };
+
+    // Extract and merge each node's specific contributions
+    for (const { nodeId, state } of results) {
+      // Merge node outputs (if this node produced output)
+      if (nodeId in state.nodeOutputs) {
+        merged.nodeOutputs[nodeId] = state.nodeOutputs[nodeId];
+      }
+
+      // Track execution status (executed, skipped, or errored)
+      if (state.executedNodes.includes(nodeId)) {
+        merged.executedNodes.push(nodeId);
+      }
+      if (state.skippedNodes.includes(nodeId)) {
+        merged.skippedNodes.push(nodeId);
+      }
+      if (nodeId in state.nodeErrors) {
+        merged.nodeErrors[nodeId] = state.nodeErrors[nodeId];
+      }
+
+      // Merge usage tracking
+      if (nodeId in state.nodeUsage) {
+        merged.nodeUsage[nodeId] = state.nodeUsage[nodeId];
+      }
+    }
+
+    return merged;
   }
 
   private async transformInputs(

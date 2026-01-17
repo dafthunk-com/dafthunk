@@ -49,14 +49,24 @@ export type NodeRuntimeValues = Record<string, RuntimeValue | RuntimeValue[]>;
 export type WorkflowRuntimeState = Record<string, NodeRuntimeValues>;
 
 /**
+ * A group of node IDs that can be executed in parallel.
+ * Nodes within the same level have no dependencies on each other.
+ */
+export interface ExecutionLevel {
+  readonly nodeIds: readonly string[];
+}
+
+/**
  * Immutable execution context.
- * Contains workflow definition and ordered node IDs that never change during execution.
+ * Contains workflow definition and execution levels that never change during execution.
  * Created once at initialization, passed by reference throughout execution.
  */
 export interface WorkflowExecutionContext {
   /** The workflow definition being executed (immutable) */
   readonly workflow: Workflow;
-  /** Ordered list of node IDs to execute (computed once, never modified) */
+  /** Execution levels - nodes grouped by dependency level for parallel execution */
+  readonly executionLevels: readonly ExecutionLevel[];
+  /** Flattened list of all node IDs (derived from executionLevels, for convenience) */
   readonly orderedNodeIds: readonly string[];
   /** Workflow ID for reference */
   readonly workflowId: string;
