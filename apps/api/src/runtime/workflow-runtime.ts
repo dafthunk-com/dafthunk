@@ -24,7 +24,17 @@
 import { WorkflowStep, WorkflowStepConfig } from "cloudflare:workers";
 import type { WorkflowExecution } from "@dafthunk/types";
 
-import { BaseRuntime, type RuntimeParams } from "./base-runtime";
+import type { Bindings } from "../context";
+import { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
+import { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
+import { WorkflowSessionMonitoringService } from "../services/monitoring-service";
+import { ExecutionStore } from "../stores/execution-store";
+import {
+  BaseRuntime,
+  type RuntimeDependencies,
+  type RuntimeParams,
+} from "./base-runtime";
+import { ResourceProvider } from "./resource-provider";
 
 /**
  * Workflow runtime with step-based execution.
@@ -41,6 +51,41 @@ export class WorkflowRuntime extends BaseRuntime {
     },
     timeout: "10 minutes",
   };
+
+  /**
+   * Static factory method to create a WorkflowRuntime with production dependencies.
+   *
+   * Use this factory when instantiating WorkflowRuntime outside of tests.
+   * For testing, inject mock dependencies via the constructor directly.
+   */
+  static create(env: Bindings): WorkflowRuntime {
+    // Create production dependencies
+    const nodeRegistry = new CloudflareNodeRegistry(env, true);
+
+    // Create tool registry with factory function
+    // eslint-disable-next-line prefer-const -- circular dependency pattern requires let
+    let resourceProvider: ResourceProvider;
+    const toolRegistry = new CloudflareToolRegistry(
+      nodeRegistry,
+      (nodeId: string, inputs: Record<string, any>) =>
+        resourceProvider.createToolContext(nodeId, inputs)
+    );
+
+    // Create ResourceProvider with production tool registry
+    resourceProvider = new ResourceProvider(env, toolRegistry);
+
+    // Create production-ready dependencies
+    const dependencies: RuntimeDependencies = {
+      nodeRegistry,
+      resourceProvider,
+      executionStore: new ExecutionStore(env),
+      monitoringService: new WorkflowSessionMonitoringService(
+        env.WORKFLOW_SESSION
+      ),
+    };
+
+    return new WorkflowRuntime(env, dependencies);
+  }
 
   /**
    * Executes the workflow with the given step context.

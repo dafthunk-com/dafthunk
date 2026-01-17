@@ -33,12 +33,7 @@ import {
 import type { WorkflowExecution } from "@dafthunk/types";
 
 import type { Bindings } from "../context";
-import { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
-import { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
-import { WorkflowSessionMonitoringService } from "../services/monitoring-service";
-import { ExecutionStore } from "../stores/execution-store";
-import type { RuntimeDependencies, RuntimeParams } from "./base-runtime";
-import { ResourceProvider } from "./resource-provider";
+import type { RuntimeParams } from "./base-runtime";
 import { WorkflowRuntime } from "./workflow-runtime";
 
 /**
@@ -53,34 +48,7 @@ export class WorkflowRuntimeEntrypoint extends WorkflowEntrypoint<
 
   constructor(ctx: ExecutionContext, env: Bindings) {
     super(ctx, env);
-
-    // Create production dependencies
-    const nodeRegistry = new CloudflareNodeRegistry(env, true);
-
-    // Create tool registry with factory function
-    // eslint-disable-next-line prefer-const -- circular dependency pattern requires let
-    let resourceProvider: ResourceProvider;
-    const toolRegistry = new CloudflareToolRegistry(
-      nodeRegistry,
-      (nodeId: string, inputs: Record<string, any>) =>
-        resourceProvider.createToolContext(nodeId, inputs)
-    );
-
-    // Create ResourceProvider with production tool registry
-    resourceProvider = new ResourceProvider(env, toolRegistry);
-
-    // Create production-ready dependencies
-    const dependencies: RuntimeDependencies = {
-      nodeRegistry,
-      resourceProvider,
-      executionStore: new ExecutionStore(env),
-      monitoringService: new WorkflowSessionMonitoringService(
-        env.WORKFLOW_SESSION
-      ),
-    };
-
-    // Create runtime with dependencies
-    this.runtime = new WorkflowRuntime(env, dependencies);
+    this.runtime = WorkflowRuntime.create(env);
   }
 
   /**
