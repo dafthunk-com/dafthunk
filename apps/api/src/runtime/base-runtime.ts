@@ -22,7 +22,7 @@ import {
 import { ExecutionStore } from "../stores/execution-store";
 import { ObjectStore } from "../stores/object-store";
 import { validateWorkflow } from "../utils/workflows";
-import { CreditService, KVCreditService } from "./credit-service";
+import { CreditService } from "./credit-service";
 import { ResourceProvider } from "./resource-provider";
 import type {
   ExecutionLevel,
@@ -142,7 +142,7 @@ export abstract class BaseRuntime {
 
     this.creditService =
       dependencies?.creditService ??
-      new KVCreditService(env.KV, env.CLOUDFLARE_ENV === "development");
+      new CreditService(env.KV, env.CLOUDFLARE_ENV === "development");
   }
 
   /**

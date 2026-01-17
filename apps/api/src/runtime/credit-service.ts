@@ -19,35 +19,10 @@ export interface CreditCheckParams {
 }
 
 /**
- * Service for managing compute credit checks and usage tracking.
- *
- * Abstracts credit-related logic from the workflow runtime, enabling:
- * - Easier testing with mock implementations
- * - Separation of billing concerns from execution logic
- * - Potential for different credit strategies (KV, database, etc.)
- */
-export interface CreditService {
-  /**
-   * Checks if organization has enough credits to execute a workflow.
-   *
-   * Credit logic:
-   * - Pro users (active subscription): Allowed unless overage limit is set and exceeded
-   * - Trial users: Limited to computeCredits (blocks when cumulative usage exceeds allowance)
-   */
-  hasEnoughCredits(params: CreditCheckParams): Promise<boolean>;
-
-  /**
-   * Records compute usage after workflow execution completes.
-   * Called once per execution with the total actual usage.
-   */
-  recordUsage(organizationId: string, usage: number): Promise<void>;
-}
-
-/**
- * KV-backed credit service implementation.
+ * Credit service for managing compute credit checks and usage tracking.
  * Uses Cloudflare KV for storing organization usage counters.
  */
-export class KVCreditService implements CreditService {
+export class CreditService {
   constructor(
     private readonly kv: KVNamespace,
     private readonly isDevelopment: boolean = false

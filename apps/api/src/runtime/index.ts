@@ -20,9 +20,9 @@
 // Main runtime classes and types
 export type { RuntimeDependencies, RuntimeParams } from "./base-runtime";
 export { BaseRuntime } from "./base-runtime";
-// Credit service interface for dependency injection
-export type { CreditCheckParams, CreditService } from "./credit-service";
-export { KVCreditService } from "./credit-service";
+// Credit service for compute usage tracking
+export type { CreditCheckParams } from "./credit-service";
+export { CreditService } from "./credit-service";
 // Runtime interface and implementations
 export type { Runtime } from "./types";
 export { WorkflowRuntime } from "./workflow-runtime";
