@@ -5,7 +5,6 @@ import type {
   ScheduledTrigger,
   Workflow,
   WorkflowExecution,
-  WorkflowExecutionStatus,
 } from "@dafthunk/types";
 
 import { Bindings } from "../context";
@@ -180,6 +179,13 @@ export abstract class BaseRuntime {
   /**
    * The main entrypoint for workflow execution.
    *
+   * Orchestrates the complete workflow lifecycle:
+   * 1. Validates workflow and creates execution levels (topological sort)
+   * 2. Checks compute credit availability
+   * 3. Preloads organization resources (secrets + integrations)
+   * 4. Executes nodes level-by-level with parallel execution within levels
+   * 5. Persists final state with credit usage
+   *
    * Error handling strategy:
    * - Workflow-level errors (validation, cycles) → throw NonRetryableError
    * - Node execution failures → stored in nodeErrors, workflow continues
@@ -216,7 +222,6 @@ export abstract class BaseRuntime {
       nodeErrors: {},
       nodeUsage: {},
     };
-    this.logTransition("idle", "submitted");
 
     let executionRecord: WorkflowExecution = {
       id: instanceId,
@@ -235,46 +240,94 @@ export abstract class BaseRuntime {
     let isExhausted = false;
 
     try {
-      // Initialize workflow first (validation + ordering) to create context
+      // ========================================================================
+      // STEP 1: Validate workflow and create execution levels
+      // ========================================================================
       const { context, state } = await this.executeStep(
         "initialise workflow",
-        () =>
-          this.initialiseWorkflow(
+        async () => {
+          const validationErrors = validateWorkflow(workflow);
+          if (validationErrors.length > 0) {
+            throw new NonRetryableError(
+              `Workflow validation failed: ${validationErrors
+                .map((e) => e.message)
+                .join(", ")}`
+            );
+          }
+
+          const executionLevels = this.createTopologicalLevels(workflow);
+          if (executionLevels.length === 0 && workflow.nodes.length > 0) {
+            throw new NonRetryableError(
+              "Unable to derive execution order. The graph may contain a cycle."
+            );
+          }
+
+          // Derive flat ordered list from levels (for getExecutionStatus compatibility)
+          const orderedNodeIds = executionLevels.flatMap(
+            (level) => level.nodeIds
+          );
+
+          // Immutable context
+          const context: WorkflowExecutionContext = {
             workflow,
-            workflow.id,
+            executionLevels,
+            orderedNodeIds,
+            workflowId: workflow.id,
             organizationId,
-            instanceId,
-            deploymentId
-          )
+            executionId: instanceId,
+            deploymentId,
+          };
+
+          // Mutable state
+          const state: ExecutionState = {
+            nodeOutputs: {},
+            executedNodes: [],
+            skippedNodes: [],
+            nodeErrors: {},
+            nodeUsage: {},
+          };
+
+          return { context, state };
+        }
       );
 
       executionContext = context;
       executionState = state;
 
-      // Check for credit exhaustion early (before resource loading)
-      const estimatedUsage = this.getNodesUsage(workflow.nodes);
-      if (
-        !(await this.hasEnoughComputeCredits(
-          organizationId,
-          computeCredits,
-          estimatedUsage,
-          subscriptionStatus,
-          overageLimit
-        ))
-      ) {
+      // ========================================================================
+      // STEP 2: Check compute credit availability
+      // ========================================================================
+      const estimatedUsage = workflow.nodes.reduce((acc, node) => {
+        try {
+          const nodeType = this.nodeRegistry.getNodeType(node.type);
+          return acc + (nodeType.usage ?? 1);
+        } catch (_error) {
+          return acc + 1;
+        }
+      }, 0);
+
+      const hasCredits = await this.creditService.hasEnoughCredits({
+        organizationId,
+        computeCredits,
+        estimatedUsage,
+        subscriptionStatus,
+        overageLimit,
+      });
+
+      if (!hasCredits) {
         isExhausted = true;
         executionRecord.status = "exhausted" as any;
         executionRecord.error = "Insufficient compute credits";
-        this.logTransition("submitted", "exhausted");
         await this.monitoringService.sendUpdate(
           workflowSessionId,
           executionRecord
         );
-        // Skip to finally block to save
         return executionRecord;
       }
 
-      // Preload organization resources (secrets + integrations)
+      // ========================================================================
+      // STEP 3: Preload organization resources (secrets + integrations)
+      // ========================================================================
       await this.executeStep("preload organization resources", async () =>
         this.resourceProvider.initialize(organizationId)
       );
@@ -283,15 +336,16 @@ export abstract class BaseRuntime {
         executionContext,
         executionState
       );
-
       await this.monitoringService.sendUpdate(
         workflowSessionId,
         executionRecord
       );
 
-      // Execute workflow nodes sequentially
+      // ========================================================================
+      // STEP 4: Execute workflow nodes level-by-level
+      // ========================================================================
       const { state: finalState, record: finalRecord } =
-        await this.executeWorkflowNodes(
+        await this.executeWorkflowLevels(
           executionContext,
           executionState,
           executionRecord,
@@ -305,12 +359,6 @@ export abstract class BaseRuntime {
       executionState = finalState;
       executionRecord = finalRecord;
     } catch (error) {
-      if (executionContext) {
-        this.logTransition(
-          getExecutionStatus(executionContext, executionState),
-          "error"
-        );
-      }
       executionRecord = {
         ...executionRecord,
         status: executionContext
@@ -325,16 +373,51 @@ export abstract class BaseRuntime {
     } finally {
       executionRecord.endedAt = new Date();
 
-      // Save to execution store only once, at the very end
+      // ========================================================================
+      // STEP 5: Persist final state with credit usage
+      // ========================================================================
       if (executionContext) {
-        executionRecord = await this.persistFinalState(
-          executionContext,
-          executionState,
-          executionRecord,
-          userId,
-          organizationId,
-          instanceId,
-          isExhausted
+        executionRecord = await this.executeStep(
+          "persist final execution record",
+          async () => {
+            const finalStatus = isExhausted
+              ? ("exhausted" as any)
+              : getExecutionStatus(executionContext!, executionState);
+
+            // Record actual usage
+            if (!isExhausted) {
+              const actualTotalUsage = Object.values(
+                executionState.nodeUsage
+              ).reduce((sum, usage) => sum + usage, 0);
+              await this.creditService.recordUsage(
+                organizationId,
+                actualTotalUsage
+              );
+            }
+
+            // Create error report if there are node errors
+            const errorReport =
+              Object.keys(executionState.nodeErrors).length > 0
+                ? "Workflow execution failed"
+                : undefined;
+
+            // Save to execution store - this happens exactly once per execution
+            return this.executionStore.save({
+              id: instanceId,
+              workflowId: executionContext!.workflowId,
+              userId,
+              organizationId,
+              status: finalStatus,
+              nodeExecutions: this.buildNodeExecutions(
+                executionContext!.workflow,
+                executionContext!,
+                executionState
+              ),
+              error: errorReport ?? executionRecord.error,
+              startedAt: executionRecord.startedAt,
+              endedAt: executionRecord.endedAt,
+            });
+          }
         );
       }
 
@@ -347,61 +430,343 @@ export abstract class BaseRuntime {
     return executionRecord;
   }
 
+  // ==========================================================================
+  // PRIVATE - Main execution logic
+  // ==========================================================================
+
   /**
-   * Validates the workflow and creates execution levels for parallel execution.
-   * Returns separated immutable context and mutable state.
+   * Executes workflow nodes in parallel within each execution level.
+   * Nodes at the same level have no dependencies on each other and can run concurrently.
+   * Each node gets its own durable step for Cloudflare Workflows compatibility.
    */
-  private async initialiseWorkflow(
-    workflow: Workflow,
-    workflowId: string,
-    organizationId: string,
-    executionId: string,
-    deploymentId?: string
-  ): Promise<{ context: WorkflowExecutionContext; state: ExecutionState }> {
-    const validationErrors = validateWorkflow(workflow);
-    if (validationErrors.length > 0) {
-      throw new NonRetryableError(
-        `Workflow validation failed: ${validationErrors
-          .map((e) => e.message)
-          .join(", ")}`
+  private async executeWorkflowLevels(
+    context: WorkflowExecutionContext,
+    state: ExecutionState,
+    executionRecord: WorkflowExecution,
+    httpRequest?: HttpRequest,
+    emailMessage?: EmailMessage,
+    queueMessage?: QueueMessage,
+    scheduledTrigger?: ScheduledTrigger,
+    workflowSessionId?: string
+  ): Promise<{ state: ExecutionState; record: WorkflowExecution }> {
+    let currentRecord = executionRecord;
+
+    for (const level of context.executionLevels) {
+      // Execute all nodes in this level in parallel, collecting results
+      const results = await Promise.all(
+        level.nodeIds.map(async (nodeId) => {
+          // Each node gets its own durable step
+          return this.executeStep(`run node ${nodeId}`, async () => {
+            return this.executeSingleNode(
+              context,
+              state,
+              nodeId,
+              httpRequest,
+              emailMessage,
+              queueMessage,
+              scheduledTrigger
+            );
+          });
+        })
       );
+
+      // Apply all results to state (nodes in same level don't affect each other)
+      for (const result of results) {
+        applyNodeResult(state, result);
+      }
+
+      // Update execution record with current state and send monitoring notification
+      currentRecord = {
+        ...currentRecord,
+        status: getExecutionStatus(context, state),
+        nodeExecutions: this.buildNodeExecutions(
+          context.workflow,
+          context,
+          state
+        ),
+      };
+      await this.monitoringService.sendUpdate(workflowSessionId, currentRecord);
     }
 
-    const executionLevels = this.createTopologicalLevels(workflow);
-    if (executionLevels.length === 0 && workflow.nodes.length > 0) {
-      throw new NonRetryableError(
-        "Unable to derive execution order. The graph may contain a cycle."
-      );
-    }
-
-    // Derive flat ordered list from levels (for getExecutionStatus compatibility)
-    const orderedNodeIds = executionLevels.flatMap((level) => level.nodeIds);
-
-    // Immutable context
-    const context: WorkflowExecutionContext = {
-      workflow,
-      executionLevels,
-      orderedNodeIds,
-      workflowId,
-      organizationId,
-      executionId,
-      deploymentId,
-    };
-
-    // Mutable state
-    const state: ExecutionState = {
-      nodeOutputs: {},
-      executedNodes: [],
-      skippedNodes: [],
-      nodeErrors: {},
-      nodeUsage: {},
-    };
-
-    // Log transition to executing
-    this.logTransition(getExecutionStatus(context, state), "executing");
-
-    return { context, state };
+    return { state, record: currentRecord };
   }
+
+  /**
+   * Executes a single node, including skip detection and I/O transforms.
+   * Returns a result describing what happened - no state mutation.
+   */
+  private async executeSingleNode(
+    context: WorkflowExecutionContext,
+    state: ExecutionState,
+    nodeId: string,
+    httpRequest?: HttpRequest,
+    emailMessage?: EmailMessage,
+    queueMessage?: QueueMessage,
+    scheduledTrigger?: ScheduledTrigger
+  ): Promise<NodeExecutionResult> {
+    // ========================================================================
+    // Check if node should be skipped
+    // ========================================================================
+
+    // Already skipped or errored
+    if (state.skippedNodes.includes(nodeId) || nodeId in state.nodeErrors) {
+      const { reason, blockedBy } = inferSkipReason(
+        context.workflow,
+        state,
+        nodeId
+      );
+      return {
+        nodeId,
+        status: "skipped",
+        outputs: null,
+        usage: 0,
+        skipReason: reason,
+        blockedBy: [...blockedBy],
+      };
+    }
+
+    const node = this.findNode(context.workflow, nodeId);
+    if (!node) {
+      return {
+        nodeId,
+        status: "error",
+        error: new NodeNotFoundError(nodeId).message,
+      };
+    }
+
+    // Analyze upstream dependencies to determine if node should skip
+    const inboundEdges = context.workflow.edges.filter(
+      (edge) => edge.target === nodeId
+    );
+
+    if (inboundEdges.length > 0) {
+      let unavailableCount = 0;
+
+      for (const edge of inboundEdges) {
+        // Upstream errored
+        if (edge.source in state.nodeErrors) {
+          unavailableCount++;
+          continue;
+        }
+        // Upstream was skipped
+        if (state.skippedNodes.includes(edge.source)) {
+          unavailableCount++;
+          continue;
+        }
+        // Upstream executed but didn't populate this specific output (conditional branch)
+        if (state.executedNodes.includes(edge.source)) {
+          const sourceOutputs = state.nodeOutputs[edge.source];
+          if (sourceOutputs && !(edge.sourceOutput in sourceOutputs)) {
+            unavailableCount++;
+            continue;
+          }
+        }
+      }
+
+      // Skip if ALL upstream dependencies are unavailable
+      if (unavailableCount === inboundEdges.length) {
+        const { reason, blockedBy } = inferSkipReason(
+          context.workflow,
+          state,
+          nodeId
+        );
+        return {
+          nodeId,
+          status: "skipped",
+          outputs: null,
+          usage: 0,
+          skipReason: reason,
+          blockedBy: [...blockedBy],
+        };
+      }
+    }
+
+    // ========================================================================
+    // Get node type and validate
+    // ========================================================================
+
+    let nodeType;
+    try {
+      nodeType = this.nodeRegistry.getNodeType(node.type);
+    } catch (_error) {
+      return {
+        nodeId,
+        status: "error",
+        error: new NodeTypeNotImplementedError(nodeId, node.type).message,
+      };
+    }
+
+    // Check if this is a subscription-only node and user doesn't have a paid plan
+    if (nodeType.subscription && this.userPlan !== "pro") {
+      return {
+        nodeId,
+        status: "error",
+        error: new SubscriptionRequiredError(nodeId, node.type).message,
+      };
+    }
+
+    const executable = this.nodeRegistry.createExecutableNode(node);
+    if (!executable) {
+      return {
+        nodeId,
+        status: "error",
+        error: new NodeTypeNotImplementedError(nodeId, node.type).message,
+      };
+    }
+
+    // ========================================================================
+    // Collect and transform inputs
+    // ========================================================================
+
+    // Collect inputs from node defaults and upstream edges
+    const inputs: NodeRuntimeValues = {};
+
+    for (const input of node.inputs) {
+      if (input.value !== undefined && isRuntimeValue(input.value)) {
+        inputs[input.name] = input.value;
+      }
+    }
+
+    const edgesByInput = new Map<string, typeof inboundEdges>();
+    for (const edge of inboundEdges) {
+      const inputName = edge.targetInput;
+      if (!edgesByInput.has(inputName)) {
+        edgesByInput.set(inputName, []);
+      }
+      edgesByInput.get(inputName)!.push(edge);
+    }
+
+    for (const [inputName, edges] of edgesByInput) {
+      const nodeTypeInput = getNodeType(executable)?.inputs?.find(
+        (input) => input.name === inputName
+      );
+      const acceptsMultiple = nodeTypeInput?.repeated ?? false;
+
+      const values: RuntimeValue[] = [];
+      for (const edge of edges) {
+        const sourceOutputs = state.nodeOutputs[edge.source];
+        if (sourceOutputs && sourceOutputs[edge.sourceOutput] !== undefined) {
+          const value = sourceOutputs[edge.sourceOutput];
+          // If the source output is an array (repeated output), flatten it into values
+          if (Array.isArray(value)) {
+            for (const item of value) {
+              if (isRuntimeValue(item)) {
+                values.push(item);
+              }
+            }
+          } else if (isRuntimeValue(value)) {
+            values.push(value);
+          }
+        }
+      }
+
+      if (values.length > 0) {
+        inputs[inputName] = acceptsMultiple
+          ? values
+          : values[values.length - 1];
+      }
+    }
+
+    // Transform inputs for node execution
+    const objectStore = new ObjectStore(this.env.RESSOURCES);
+    const processedInputs: Record<string, any> = {};
+
+    for (const [name, value] of Object.entries(inputs)) {
+      const input = node.inputs.find((i) => i.name === name);
+      const parameterType = input?.type ?? "string";
+
+      if (Array.isArray(value)) {
+        const transformedArray = await Promise.all(
+          value.map((v) => apiToNodeParameter(parameterType, v, objectStore))
+        );
+        processedInputs[name] = transformedArray;
+      } else {
+        processedInputs[name] = await apiToNodeParameter(
+          parameterType,
+          value,
+          objectStore
+        );
+      }
+    }
+
+    // ========================================================================
+    // Execute node
+    // ========================================================================
+
+    try {
+      const nodeContext = this.resourceProvider.createNodeContext(
+        nodeId,
+        context.workflowId,
+        context.organizationId,
+        processedInputs,
+        httpRequest,
+        emailMessage,
+        queueMessage,
+        scheduledTrigger,
+        context.deploymentId
+      );
+
+      const result = await executable.execute(nodeContext);
+
+      if (result.status === "completed") {
+        // Transform outputs for runtime storage
+        const outputs = result.outputs ?? {};
+        const outputsForRuntime: Record<string, RuntimeValue> = {};
+
+        for (const [name, value] of Object.entries(outputs)) {
+          const output = node.outputs.find((o) => o.name === name);
+          const parameterType = output?.type ?? "string";
+
+          if (output?.repeated && Array.isArray(value)) {
+            const transformedArray = await Promise.all(
+              value.map((v) =>
+                nodeToApiParameter(
+                  parameterType,
+                  v,
+                  objectStore,
+                  context.organizationId,
+                  context.executionId
+                )
+              )
+            );
+            outputsForRuntime[name] = transformedArray;
+          } else {
+            outputsForRuntime[name] = await nodeToApiParameter(
+              parameterType,
+              value,
+              objectStore,
+              context.organizationId,
+              context.executionId
+            );
+          }
+        }
+
+        return {
+          nodeId,
+          status: "completed",
+          outputs: outputsForRuntime as NodeRuntimeValues,
+          usage: result.usage ?? nodeType.usage ?? 1,
+        };
+      } else {
+        return {
+          nodeId,
+          status: "error",
+          error: result.error ?? "Unknown error",
+          usage: result.usage,
+        };
+      }
+    } catch (error) {
+      return {
+        nodeId,
+        status: "error",
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  }
+
+  // ==========================================================================
+  // PRIVATE - Utilities (reused or complex algorithms)
+  // ==========================================================================
 
   /**
    * Calculates a topological ordering of nodes grouped by execution level.
@@ -458,606 +823,11 @@ export abstract class BaseRuntime {
   }
 
   /**
-   * Logs state transitions (currently disabled for minimal logging).
-   */
-  private logTransition(
-    _from: WorkflowExecutionStatus | "idle",
-    _to: WorkflowExecutionStatus | "idle"
-  ): void {
-    // Logging disabled for minimal output
-  }
-
-  /**
    * Finds a node in the workflow by its ID.
    */
   private findNode(workflow: Workflow, nodeId: string): Node | undefined {
     return workflow.nodes.find((n) => n.id === nodeId);
   }
-
-  // ==========================================================================
-  // NODE EXECUTION (from ExecutionEngine)
-  // ==========================================================================
-
-  /**
-   * Executes or skips a single node based on its dependencies.
-   * Returns a result describing what happened - no state mutation.
-   */
-  private async executeOrSkipNode(
-    context: WorkflowExecutionContext,
-    state: ExecutionState,
-    nodeId: string,
-    httpRequest?: HttpRequest,
-    emailMessage?: EmailMessage,
-    queueMessage?: QueueMessage,
-    scheduledTrigger?: ScheduledTrigger
-  ): Promise<NodeExecutionResult> {
-    // Check if node should be skipped (all upstream dependencies unavailable)
-    if (this.shouldSkipNode(context, state, nodeId)) {
-      // Include skip reason for Workflows introspection API
-      const { reason, blockedBy } = inferSkipReason(
-        context.workflow,
-        state,
-        nodeId
-      );
-      return {
-        nodeId,
-        status: "skipped",
-        outputs: null,
-        usage: 0,
-        skipReason: reason,
-        blockedBy: [...blockedBy],
-      };
-    }
-
-    // Execute the node and return result
-    return await this.executeNode(
-      context,
-      state.nodeOutputs,
-      nodeId,
-      httpRequest,
-      emailMessage,
-      queueMessage,
-      scheduledTrigger
-    );
-  }
-
-  /**
-   * Executes a single node and returns the result.
-   * Pure function: reads from nodeOutputs but does not mutate any state.
-   */
-  private async executeNode(
-    context: WorkflowExecutionContext,
-    nodeOutputs: Record<string, NodeRuntimeValues>,
-    nodeId: string,
-    httpRequest?: HttpRequest,
-    emailMessage?: EmailMessage,
-    queueMessage?: QueueMessage,
-    scheduledTrigger?: ScheduledTrigger
-  ): Promise<NodeExecutionResult> {
-    const node = this.findNode(context.workflow, nodeId);
-    if (!node) {
-      return {
-        nodeId,
-        status: "error",
-        error: new NodeNotFoundError(nodeId).message,
-      };
-    }
-
-    let nodeType;
-    try {
-      nodeType = this.nodeRegistry.getNodeType(node.type);
-    } catch (_error) {
-      return {
-        nodeId,
-        status: "error",
-        error: new NodeTypeNotImplementedError(nodeId, node.type).message,
-      };
-    }
-
-    // Check if this is a subscription-only node and user doesn't have a paid plan
-    if (nodeType.subscription && this.userPlan !== "pro") {
-      return {
-        nodeId,
-        status: "error",
-        error: new SubscriptionRequiredError(nodeId, node.type).message,
-      };
-    }
-
-    const executable = this.nodeRegistry.createExecutableNode(node);
-    if (!executable) {
-      return {
-        nodeId,
-        status: "error",
-        error: new NodeTypeNotImplementedError(nodeId, node.type).message,
-      };
-    }
-
-    const inputValues = this.collectNodeInputs(
-      context.workflow,
-      nodeOutputs,
-      nodeId
-    );
-
-    try {
-      const objectStore = new ObjectStore(this.env.RESSOURCES);
-      const processedInputs = await this.transformInputs(
-        context.workflow,
-        nodeId,
-        inputValues,
-        objectStore,
-        context.organizationId,
-        context.executionId
-      );
-
-      const nodeContext = this.resourceProvider.createNodeContext(
-        nodeId,
-        context.workflowId,
-        context.organizationId,
-        processedInputs,
-        httpRequest,
-        emailMessage,
-        queueMessage,
-        scheduledTrigger,
-        context.deploymentId
-      );
-
-      const result = await executable.execute(nodeContext);
-
-      if (result.status === "completed") {
-        const outputsForRuntime = await this.transformOutputs(
-          context.workflow,
-          nodeId,
-          result.outputs ?? {},
-          objectStore,
-          context.organizationId,
-          context.executionId
-        );
-        return {
-          nodeId,
-          status: "completed",
-          outputs: outputsForRuntime as NodeRuntimeValues,
-          usage: result.usage ?? nodeType.usage ?? 1,
-        };
-      } else {
-        return {
-          nodeId,
-          status: "error",
-          error: result.error ?? "Unknown error",
-          usage: result.usage,
-        };
-      }
-    } catch (error) {
-      return {
-        nodeId,
-        status: "error",
-        error: error instanceof Error ? error.message : String(error),
-      };
-    }
-  }
-
-  /**
-   * Executes workflow nodes in parallel within each execution level.
-   * Nodes at the same level have no dependencies on each other and can run concurrently.
-   * Each node gets its own durable step for Cloudflare Workflows compatibility.
-   *
-   * Uses immutable results: each node execution returns a NodeExecutionResult,
-   * which is then applied to the state. No state copying or merging required.
-   */
-  private async executeWorkflowNodes(
-    context: WorkflowExecutionContext,
-    state: ExecutionState,
-    executionRecord: WorkflowExecution,
-    httpRequest?: HttpRequest,
-    emailMessage?: EmailMessage,
-    queueMessage?: QueueMessage,
-    scheduledTrigger?: ScheduledTrigger,
-    workflowSessionId?: string
-  ): Promise<{ state: ExecutionState; record: WorkflowExecution }> {
-    let currentRecord = executionRecord;
-
-    for (const level of context.executionLevels) {
-      // Execute all nodes in this level in parallel, collecting results
-      const results = await Promise.all(
-        level.nodeIds.map(async (nodeId) => {
-          // Each node gets its own durable step
-          const result = await this.executeStep(
-            `run node ${nodeId}`,
-            async () => {
-              return this.executeOrSkipNode(
-                context,
-                state,
-                nodeId,
-                httpRequest,
-                emailMessage,
-                queueMessage,
-                scheduledTrigger
-              );
-            }
-          );
-
-          return result;
-        })
-      );
-
-      // Apply all results to state (nodes in same level don't affect each other)
-      for (const result of results) {
-        applyNodeResult(state, result);
-      }
-
-      // Send progress update after level completes
-      currentRecord = await this.updateAndNotify(
-        workflowSessionId,
-        currentRecord,
-        context,
-        state
-      );
-    }
-
-    return { state, record: currentRecord };
-  }
-
-  private async transformInputs(
-    workflow: Workflow,
-    nodeId: string,
-    inputValues: NodeRuntimeValues,
-    objectStore: ObjectStore,
-    _organizationId: string,
-    _executionId: string
-  ): Promise<Record<string, any>> {
-    const node = this.findNode(workflow, nodeId);
-    if (!node) return {};
-
-    const processed: Record<string, any> = {};
-    for (const [name, value] of Object.entries(inputValues)) {
-      const input = node.inputs.find((i) => i.name === name);
-      const parameterType = input?.type ?? "string";
-
-      // Handle repeated inputs (arrays of values)
-      if (Array.isArray(value)) {
-        const transformedArray = await Promise.all(
-          value.map((v) => apiToNodeParameter(parameterType, v, objectStore))
-        );
-        processed[name] = transformedArray;
-      } else {
-        processed[name] = await apiToNodeParameter(
-          parameterType,
-          value,
-          objectStore
-        );
-      }
-    }
-    return processed;
-  }
-
-  private async transformOutputs(
-    workflow: Workflow,
-    nodeId: string,
-    outputs: Record<string, any>,
-    objectStore: ObjectStore,
-    organizationId: string,
-    executionId: string
-  ): Promise<Record<string, RuntimeValue>> {
-    const node = this.findNode(workflow, nodeId);
-    if (!node) return {};
-
-    const processed: Record<string, RuntimeValue> = {};
-    for (const [name, value] of Object.entries(outputs)) {
-      const output = node.outputs.find((o) => o.name === name);
-      const parameterType = output?.type ?? "string";
-
-      // Handle repeated outputs (arrays of values)
-      if (output?.repeated && Array.isArray(value)) {
-        const transformedArray = await Promise.all(
-          value.map((v) =>
-            nodeToApiParameter(
-              parameterType,
-              v,
-              objectStore,
-              organizationId,
-              executionId
-            )
-          )
-        );
-        processed[name] = transformedArray;
-      } else {
-        processed[name] = await nodeToApiParameter(
-          parameterType,
-          value,
-          objectStore,
-          organizationId,
-          executionId
-        );
-      }
-    }
-    return processed;
-  }
-
-  private collectNodeInputs(
-    workflow: Workflow,
-    nodeOutputs: Record<string, NodeRuntimeValues>,
-    nodeId: string
-  ): NodeRuntimeValues {
-    const inputs: NodeRuntimeValues = {};
-    const node = this.findNode(workflow, nodeId);
-    if (!node) return inputs;
-
-    for (const input of node.inputs) {
-      if (input.value !== undefined && isRuntimeValue(input.value)) {
-        inputs[input.name] = input.value;
-      }
-    }
-
-    const inboundEdges = workflow.edges.filter(
-      (edge): boolean => edge.target === nodeId
-    );
-    const edgesByInput = new Map<string, typeof inboundEdges>();
-    for (const edge of inboundEdges) {
-      const inputName = edge.targetInput;
-      if (!edgesByInput.has(inputName)) {
-        edgesByInput.set(inputName, []);
-      }
-      edgesByInput.get(inputName)!.push(edge);
-    }
-
-    for (const [inputName, edges] of edgesByInput) {
-      const executable = this.nodeRegistry.createExecutableNode(node);
-      const nodeType = getNodeType(executable);
-      const nodeTypeInput = nodeType?.inputs?.find(
-        (input) => input.name === inputName
-      );
-      const acceptsMultiple = nodeTypeInput?.repeated ?? false;
-
-      const values: RuntimeValue[] = [];
-      for (const edge of edges) {
-        const sourceOutputs = nodeOutputs[edge.source];
-        if (sourceOutputs && sourceOutputs[edge.sourceOutput] !== undefined) {
-          const value = sourceOutputs[edge.sourceOutput];
-          // If the source output is an array (repeated output), flatten it into values
-          if (Array.isArray(value)) {
-            for (const item of value) {
-              if (isRuntimeValue(item)) {
-                values.push(item);
-              }
-            }
-          } else if (isRuntimeValue(value)) {
-            values.push(value);
-          }
-        }
-      }
-
-      if (values.length > 0) {
-        inputs[inputName] = acceptsMultiple
-          ? values
-          : values[values.length - 1];
-      }
-    }
-
-    return inputs;
-  }
-
-  /**
-   * Updates execution record with current state and sends monitoring notification.
-   */
-  private async updateAndNotify(
-    sessionId: string | undefined,
-    executionRecord: WorkflowExecution,
-    context: WorkflowExecutionContext,
-    state: ExecutionState
-  ): Promise<WorkflowExecution> {
-    const updated = {
-      ...executionRecord,
-      status: getExecutionStatus(context, state),
-      nodeExecutions: this.buildNodeExecutions(
-        context.workflow,
-        context,
-        state
-      ),
-    };
-    await this.monitoringService.sendUpdate(sessionId, updated);
-    return updated;
-  }
-
-  // ==========================================================================
-  // CREDIT MANAGEMENT
-  // ==========================================================================
-
-  /**
-   * Checks if the organization has enough compute credits to execute a workflow.
-   * Delegates to the injected CreditService for actual credit logic.
-   */
-  private async hasEnoughComputeCredits(
-    organizationId: string,
-    computeCredits: number,
-    estimatedUsage: number,
-    subscriptionStatus?: string,
-    overageLimit?: number | null
-  ): Promise<boolean> {
-    return this.creditService.hasEnoughCredits({
-      organizationId,
-      computeCredits,
-      estimatedUsage,
-      subscriptionStatus,
-      overageLimit,
-    });
-  }
-
-  /**
-   * Returns the estimated usage for a list of nodes.
-   */
-  private getNodesUsage(nodes: Node[]): number {
-    return nodes.reduce((acc, node) => {
-      try {
-        const nodeType = this.nodeRegistry.getNodeType(node.type);
-        return acc + (nodeType.usage ?? 1);
-      } catch (_error) {
-        // Node type not found in registry, use default usage
-        return acc + 1;
-      }
-    }, 0);
-  }
-
-  /**
-   * Persists the final execution state with credit updates.
-   * This is the ONLY place where executionStore.save() should be called.
-   */
-  private async persistFinalState(
-    context: WorkflowExecutionContext,
-    state: ExecutionState,
-    executionRecord: WorkflowExecution,
-    userId: string,
-    organizationId: string,
-    instanceId: string,
-    isExhausted: boolean
-  ): Promise<WorkflowExecution> {
-    return await this.executeStep(
-      "persist final execution record",
-      async () => {
-        // Compute final status
-        const finalStatus = isExhausted
-          ? ("exhausted" as any)
-          : getExecutionStatus(context, state);
-
-        // Record actual usage (creditService handles dev mode check internally)
-        if (!isExhausted) {
-          const actualTotalUsage = Object.values(state.nodeUsage).reduce(
-            (sum, usage) => sum + usage,
-            0
-          );
-          await this.creditService.recordUsage(organizationId, actualTotalUsage);
-        }
-
-        // Save to execution store - this happens exactly once per execution
-        return this.executionStore.save({
-          id: instanceId,
-          workflowId: context.workflowId,
-          userId,
-          organizationId,
-          status: finalStatus,
-          nodeExecutions: this.buildNodeExecutions(
-            context.workflow,
-            context,
-            state
-          ),
-          error: this.createErrorReport(state) ?? executionRecord.error,
-          startedAt: executionRecord.startedAt,
-          endedAt: executionRecord.endedAt,
-        });
-      }
-    );
-  }
-
-  // ==========================================================================
-  // ERROR HANDLING
-  // ==========================================================================
-
-  private createErrorReport(state: ExecutionState): string | undefined {
-    if (Object.keys(state.nodeErrors).length === 0) {
-      return undefined;
-    }
-    return "Workflow execution failed";
-  }
-
-  /**
-   * Analysis result for a node's upstream dependencies.
-   * Used by both skip detection and skip reason inference.
-   */
-  private analyzeUpstreamDependencies(
-    workflow: Workflow,
-    state: ExecutionState,
-    nodeId: string
-  ): {
-    allUnavailable: boolean;
-    erroredUpstream: string[];
-    skippedUpstream: string[];
-    conditionalSkip: string[];
-  } {
-    const inboundEdges = workflow.edges.filter(
-      (edge) => edge.target === nodeId
-    );
-
-    // No dependencies means the node can execute
-    if (inboundEdges.length === 0) {
-      return {
-        allUnavailable: false,
-        erroredUpstream: [],
-        skippedUpstream: [],
-        conditionalSkip: [],
-      };
-    }
-
-    const erroredUpstream: string[] = [];
-    const skippedUpstream: string[] = [];
-    const conditionalSkip: string[] = [];
-
-    for (const edge of inboundEdges) {
-      // Upstream errored
-      if (edge.source in state.nodeErrors) {
-        erroredUpstream.push(edge.source);
-        continue;
-      }
-
-      // Upstream was skipped
-      if (state.skippedNodes.includes(edge.source)) {
-        skippedUpstream.push(edge.source);
-        continue;
-      }
-
-      // Upstream executed but didn't populate this specific output (conditional branch)
-      if (state.executedNodes.includes(edge.source)) {
-        const sourceOutputs = state.nodeOutputs[edge.source];
-        if (sourceOutputs && !(edge.sourceOutput in sourceOutputs)) {
-          conditionalSkip.push(edge.source);
-          continue;
-        }
-      }
-
-      // This edge has available data - not all upstream are unavailable
-    }
-
-    const unavailableCount =
-      erroredUpstream.length + skippedUpstream.length + conditionalSkip.length;
-
-    return {
-      allUnavailable: unavailableCount === inboundEdges.length,
-      erroredUpstream,
-      skippedUpstream,
-      conditionalSkip,
-    };
-  }
-
-  /**
-   * Determines if a node should be skipped.
-   * A node is skipped if:
-   * - It has already been marked as skipped or errored
-   * - ALL upstream dependencies are unavailable (errored, skipped, or didn't populate outputs)
-   *
-   * This logic allows nodes like ConditionalJoin to execute with partial inputs when some
-   * branches are inactive, while still propagating errors and cascading skips.
-   */
-  private shouldSkipNode(
-    context: WorkflowExecutionContext,
-    state: ExecutionState,
-    nodeId: string
-  ): boolean {
-    // Already skipped or errored
-    if (state.skippedNodes.includes(nodeId) || nodeId in state.nodeErrors) {
-      return true;
-    }
-
-    const node = this.findNode(context.workflow, nodeId);
-    if (!node) return false;
-
-    const analysis = this.analyzeUpstreamDependencies(
-      context.workflow,
-      state,
-      nodeId
-    );
-    return analysis.allUnavailable;
-  }
-
-  // ==========================================================================
-  // NODE EXECUTION LIST BUILDER
-  // ==========================================================================
 
   /**
    * Builds node execution list from execution state.

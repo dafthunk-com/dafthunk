@@ -1,4 +1,10 @@
-import { Edge, Node, Workflow, WorkflowRuntime, WorkflowTrigger } from "./workflow";
+import {
+  Edge,
+  Node,
+  Workflow,
+  WorkflowRuntime,
+  WorkflowTrigger,
+} from "./workflow";
 
 /**
  * Represents a group of deployments for a workflow
