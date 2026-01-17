@@ -20,6 +20,10 @@ export type { RuntimeDependencies, RuntimeParams } from "./base-runtime";
 export { BaseRuntime } from "./base-runtime";
 export { WorkflowRuntimeEntrypoint } from "./workflow-runtime-entrypoint";
 
+// Credit service interface for dependency injection
+export type { CreditService, CreditCheckParams } from "./credit-service";
+export { KVCreditService } from "./credit-service";
+
 // Internal components are NOT exported - they are implementation details:
 // - ExecutionEngine: node execution, skip logic, input collection
 // - ExecutionPersistence: database storage

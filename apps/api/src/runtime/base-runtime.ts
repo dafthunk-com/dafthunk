@@ -22,11 +22,8 @@ import {
 } from "../services/monitoring-service";
 import { ExecutionStore } from "../stores/execution-store";
 import { ObjectStore } from "../stores/object-store";
-import {
-  getOrganizationComputeUsage,
-  updateOrganizationComputeUsage,
-} from "../utils/credits";
 import { validateWorkflow } from "../utils/workflows";
+import { CreditService, KVCreditService } from "./credit-service";
 import { ResourceProvider } from "./resource-provider";
 import type {
   ExecutionLevel,
@@ -70,6 +67,7 @@ export interface RuntimeDependencies {
   resourceProvider?: ResourceProvider;
   executionStore?: ExecutionStore;
   monitoringService?: MonitoringService;
+  creditService?: CreditService;
 }
 
 /**
@@ -95,6 +93,7 @@ export abstract class BaseRuntime {
   protected resourceProvider: ResourceProvider;
   protected executionStore: ExecutionStore;
   protected monitoringService: MonitoringService;
+  protected creditService: CreditService;
   protected env: Bindings;
   protected userPlan?: string;
 
@@ -138,6 +137,10 @@ export abstract class BaseRuntime {
     this.monitoringService =
       dependencies?.monitoringService ??
       new WorkflowSessionMonitoringService(env.WORKFLOW_SESSION);
+
+    this.creditService =
+      dependencies?.creditService ??
+      new KVCreditService(env.KV, env.CLOUDFLARE_ENV === "development");
   }
 
   /**
@@ -901,9 +904,7 @@ export abstract class BaseRuntime {
 
   /**
    * Checks if the organization has enough compute credits to execute a workflow.
-   * - Pro users (active subscription): Allowed unless overage limit is set and exceeded
-   * - Trial users: Limited to computeCredits (one-time allowance, blocks when exhausted)
-   * - Credit limits are not enforced in development mode
+   * Delegates to the injected CreditService for actual credit logic.
    */
   private async hasEnoughComputeCredits(
     organizationId: string,
@@ -912,30 +913,13 @@ export abstract class BaseRuntime {
     subscriptionStatus?: string,
     overageLimit?: number | null
   ): Promise<boolean> {
-    // Skip credit limit enforcement in development mode
-    if (this.env.CLOUDFLARE_ENV === "development") {
-      return true;
-    }
-
-    // Get current cumulative usage
-    const currentUsage = await getOrganizationComputeUsage(
-      this.env.KV,
-      organizationId
-    );
-
-    // Pro users with active subscription
-    if (subscriptionStatus === "active") {
-      // If no overage limit is set, allow execution (unlimited overage)
-      if (overageLimit == null) {
-        return true;
-      }
-      // Block if current overage already at or exceeds limit
-      const currentOverage = Math.max(0, currentUsage - computeCredits);
-      return currentOverage < overageLimit;
-    }
-
-    // Trial users: check cumulative usage against one-time allowance
-    return currentUsage + estimatedUsage <= computeCredits;
+    return this.creditService.hasEnoughCredits({
+      organizationId,
+      computeCredits,
+      estimatedUsage,
+      subscriptionStatus,
+      overageLimit,
+    });
   }
 
   /**
@@ -974,18 +958,13 @@ export abstract class BaseRuntime {
           ? ("exhausted" as any)
           : getExecutionStatus(context, state);
 
-        // Update compute credits for all nodes that incurred usage (skip in development and exhausted cases)
-        if (!isExhausted && this.env.CLOUDFLARE_ENV !== "development") {
-          // Sum actual usage from all nodes (executed + errored with usage)
+        // Record actual usage (creditService handles dev mode check internally)
+        if (!isExhausted) {
           const actualTotalUsage = Object.values(state.nodeUsage).reduce(
             (sum, usage) => sum + usage,
             0
           );
-          await updateOrganizationComputeUsage(
-            this.env.KV,
-            organizationId,
-            actualTotalUsage
-          );
+          await this.creditService.recordUsage(organizationId, actualTotalUsage);
         }
 
         // Save to execution store - this happens exactly once per execution
