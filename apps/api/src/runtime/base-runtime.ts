@@ -1030,6 +1030,74 @@ export abstract class BaseRuntime {
   }
 
   /**
+   * Analysis result for a node's upstream dependencies.
+   * Used by both skip detection and skip reason inference.
+   */
+  private analyzeUpstreamDependencies(
+    workflow: Workflow,
+    state: ExecutionState,
+    nodeId: string
+  ): {
+    allUnavailable: boolean;
+    erroredUpstream: string[];
+    skippedUpstream: string[];
+    conditionalSkip: string[];
+  } {
+    const inboundEdges = workflow.edges.filter(
+      (edge) => edge.target === nodeId
+    );
+
+    // No dependencies means the node can execute
+    if (inboundEdges.length === 0) {
+      return {
+        allUnavailable: false,
+        erroredUpstream: [],
+        skippedUpstream: [],
+        conditionalSkip: [],
+      };
+    }
+
+    const erroredUpstream: string[] = [];
+    const skippedUpstream: string[] = [];
+    const conditionalSkip: string[] = [];
+
+    for (const edge of inboundEdges) {
+      // Upstream errored
+      if (edge.source in state.nodeErrors) {
+        erroredUpstream.push(edge.source);
+        continue;
+      }
+
+      // Upstream was skipped
+      if (state.skippedNodes.includes(edge.source)) {
+        skippedUpstream.push(edge.source);
+        continue;
+      }
+
+      // Upstream executed but didn't populate this specific output (conditional branch)
+      if (state.executedNodes.includes(edge.source)) {
+        const sourceOutputs = state.nodeOutputs[edge.source];
+        if (sourceOutputs && !(edge.sourceOutput in sourceOutputs)) {
+          conditionalSkip.push(edge.source);
+          continue;
+        }
+      }
+
+      // This edge has available data - not all upstream are unavailable
+    }
+
+    const unavailableCount =
+      erroredUpstream.length + skippedUpstream.length + conditionalSkip.length;
+
+    return {
+      allUnavailable: unavailableCount === inboundEdges.length,
+      erroredUpstream,
+      skippedUpstream,
+      conditionalSkip,
+    };
+  }
+
+  /**
    * Determines if a node should be skipped.
    * A node is skipped if:
    * - It has already been marked as skipped or errored
@@ -1051,42 +1119,12 @@ export abstract class BaseRuntime {
     const node = this.findNode(context.workflow, nodeId);
     if (!node) return false;
 
-    // Get all inbound edges
-    const inboundEdges = context.workflow.edges.filter(
-      (edge) => edge.target === nodeId
+    const analysis = this.analyzeUpstreamDependencies(
+      context.workflow,
+      state,
+      nodeId
     );
-
-    // If no inbound edges, node can execute (uses only static inputs)
-    if (inboundEdges.length === 0) {
-      return false;
-    }
-
-    // Check if ALL upstream dependencies are unavailable
-    // This allows join nodes to execute with partial inputs while still cascading errors
-    const allUpstreamUnavailable = inboundEdges.every((edge) => {
-      // Upstream errored
-      if (edge.source in state.nodeErrors) {
-        return true;
-      }
-
-      // Upstream was skipped
-      if (state.skippedNodes.includes(edge.source)) {
-        return true;
-      }
-
-      // Upstream executed but didn't populate this specific output (conditional branch)
-      if (state.executedNodes.includes(edge.source)) {
-        const sourceOutputs = state.nodeOutputs[edge.source];
-        if (sourceOutputs && !(edge.sourceOutput in sourceOutputs)) {
-          return true;
-        }
-      }
-
-      // Upstream executed and populated output - this input is available
-      return false;
-    });
-
-    return allUpstreamUnavailable;
+    return analysis.allUnavailable;
   }
 
   // ==========================================================================
@@ -1147,10 +1185,8 @@ export abstract class BaseRuntime {
 
   /**
    * Infers skip reason and details for a skipped node.
-   * Checks for:
-   * - Upstream errors
-   * - Upstream skips (cascading)
-   * - Conditional branches (upstream node succeeded but didn't populate the connected output)
+   * Uses the shared upstream analysis to determine if the skip was due to
+   * upstream failures or conditional branches.
    */
   private inferSkipReason(
     workflow: Workflow,
@@ -1163,33 +1199,10 @@ export abstract class BaseRuntime {
     const node = workflow.nodes.find((n) => n.id === nodeId);
     if (!node) return {};
 
-    // Check for upstream errors, skips, and conditional branches
-    const inboundEdges = workflow.edges.filter(
-      (edge) => edge.target === nodeId
-    );
-    const erroredUpstream: string[] = [];
-    const skippedUpstream: string[] = [];
-    const conditionalSkip: string[] = [];
+    const { erroredUpstream, skippedUpstream, conditionalSkip } =
+      this.analyzeUpstreamDependencies(workflow, state, nodeId);
 
-    for (const edge of inboundEdges) {
-      // Upstream error
-      if (edge.source in state.nodeErrors) {
-        erroredUpstream.push(edge.source);
-      }
-      // Upstream was skipped (cascading skip)
-      else if (state.skippedNodes.includes(edge.source)) {
-        skippedUpstream.push(edge.source);
-      }
-      // Conditional skip (upstream succeeded but didn't populate this output)
-      else if (state.executedNodes.includes(edge.source)) {
-        const sourceOutputs = state.nodeOutputs[edge.source];
-        if (sourceOutputs && !(edge.sourceOutput in sourceOutputs)) {
-          conditionalSkip.push(edge.source);
-        }
-      }
-    }
-
-    // Prioritize upstream errors, then cascading skips, then conditional branches
+    // Prioritize upstream failures over conditional branches
     if (erroredUpstream.length > 0 || skippedUpstream.length > 0) {
       return {
         skipReason: "upstream_failure",
