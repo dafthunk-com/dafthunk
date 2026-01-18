@@ -3,7 +3,8 @@ import Bot from "lucide-react/icons/bot";
 import Building from "lucide-react/icons/building";
 import Github from "lucide-react/icons/github";
 import Settings from "lucide-react/icons/settings";
-import { Link } from "react-router";
+import Shield from "lucide-react/icons/shield";
+import { Link, useLocation } from "react-router";
 
 import { OrganizationSwitcher } from "@/components/organization-switcher";
 import { UserProfile } from "@/components/user-profile";
@@ -14,7 +15,11 @@ import { NavLink } from "./nav-link";
 import { ThemeToggle } from "./theme-toggle";
 
 export function AppHeader() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const location = useLocation();
+  const isAdminSection = location.pathname.startsWith("/admin");
+  const isSettingsSection = location.pathname.startsWith("/settings");
+  const isDocsSection = location.pathname.startsWith("/docs");
 
   const navLinkClasses =
     "px-2.5 py-1 text-sm rounded-md hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50 transition-colors flex items-center whitespace-nowrap";
@@ -27,7 +32,22 @@ export function AppHeader() {
         <Link to="/" className="flex items-center gap-2">
           <Bot className="h-6 w-6" />
         </Link>
-        {isAuthenticated && <OrganizationSwitcher />}
+        {isAuthenticated &&
+          (isAdminSection ? (
+            <span className="h-8 px-2 text-sm font-semibold flex items-center rounded-md bg-neutral-300/50 dark:bg-neutral-600/50">
+              Administration
+            </span>
+          ) : isSettingsSection ? (
+            <span className="h-8 px-2 text-sm font-semibold flex items-center rounded-md bg-neutral-300/50 dark:bg-neutral-600/50">
+              Settings
+            </span>
+          ) : isDocsSection ? (
+            <span className="h-8 px-2 text-sm font-semibold flex items-center rounded-md bg-neutral-300/50 dark:bg-neutral-600/50">
+              Documentation
+            </span>
+          ) : (
+            <OrganizationSwitcher />
+          ))}
         <AppHeaderBreadcrumb />
       </div>
       <div className="flex items-center gap-2">
@@ -51,6 +71,16 @@ export function AppHeader() {
                 <Settings className="h-4 w-4 mr-1.5" />
                 <span>Settings</span>
               </NavLink>
+              {user?.role === "admin" && (
+                <NavLink
+                  to="/admin"
+                  className={navLinkClasses}
+                  activeClassName={activeNavLinkClasses}
+                >
+                  <Shield className="h-4 w-4 mr-1.5" />
+                  <span>Administration</span>
+                </NavLink>
+              )}
             </>
           ) : (
             <NavLink

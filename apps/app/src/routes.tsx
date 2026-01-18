@@ -5,12 +5,26 @@ import React from "react";
 import type { RouteObject, RouterState } from "react-router";
 import { Navigate } from "react-router";
 
+import { AdminProtectedRoute } from "./components/admin-protected-route";
 import { HeadSeo } from "./components/head-seo";
+import { AdminLayout } from "./components/layouts/admin-layout";
 import { AppLayout } from "./components/layouts/app-layout";
 import { DocsLayout } from "./components/layouts/docs-layout";
 import { OrgLayout } from "./components/org-layout";
 import { OrgRedirect } from "./components/org-redirect";
 import { ProtectedRoute } from "./components/protected-route";
+import { AdminDashboardPage } from "./pages/admin/admin-dashboard-page";
+import { AdminDatabasesPage } from "./pages/admin/admin-databases-page";
+import { AdminDatasetsPage } from "./pages/admin/admin-datasets-page";
+import { AdminDeploymentsPage } from "./pages/admin/admin-deployments-page";
+import { AdminEmailsPage } from "./pages/admin/admin-emails-page";
+import { AdminExecutionsPage } from "./pages/admin/admin-executions-page";
+import { AdminOrganizationDetailPage } from "./pages/admin/admin-organization-detail-page";
+import { AdminOrganizationsPage } from "./pages/admin/admin-organizations-page";
+import { AdminQueuesPage } from "./pages/admin/admin-queues-page";
+import { AdminUserDetailPage } from "./pages/admin/admin-user-detail-page";
+import { AdminUsersPage } from "./pages/admin/admin-users-page";
+import { AdminWorkflowsPage } from "./pages/admin/admin-workflows-page";
 import { ApiKeysPage } from "./pages/api-keys-page";
 import { BillingPage } from "./pages/billing-page";
 import { DashboardPage } from "./pages/dashboard-page";
@@ -119,6 +133,141 @@ export const routes: AppRouteObject[] = [
       </AppLayout>
     ),
     handle: { head: <HeadSeo title="Profile - Settings - Dafthunk" /> },
+  },
+  // Admin routes
+  {
+    path: "/admin",
+    element: (
+      <AdminLayout>
+        <AdminProtectedRoute>
+          <AdminDashboardPage />
+        </AdminProtectedRoute>
+      </AdminLayout>
+    ),
+    handle: { head: <HeadSeo title="Admin Dashboard - Dafthunk" /> },
+  },
+  {
+    path: "/admin/users",
+    element: (
+      <AdminLayout>
+        <AdminProtectedRoute>
+          <AdminUsersPage />
+        </AdminProtectedRoute>
+      </AdminLayout>
+    ),
+    handle: { head: <HeadSeo title="Users - Admin - Dafthunk" /> },
+  },
+  {
+    path: "/admin/users/:userId",
+    element: (
+      <AdminLayout>
+        <AdminProtectedRoute>
+          <AdminUserDetailPage />
+        </AdminProtectedRoute>
+      </AdminLayout>
+    ),
+    handle: { head: <HeadSeo title="User Details - Admin - Dafthunk" /> },
+  },
+  {
+    path: "/admin/organizations",
+    element: (
+      <AdminLayout>
+        <AdminProtectedRoute>
+          <AdminOrganizationsPage />
+        </AdminProtectedRoute>
+      </AdminLayout>
+    ),
+    handle: { head: <HeadSeo title="Organizations - Admin - Dafthunk" /> },
+  },
+  {
+    path: "/admin/organizations/:organizationId",
+    element: (
+      <AdminLayout>
+        <AdminProtectedRoute>
+          <AdminOrganizationDetailPage />
+        </AdminProtectedRoute>
+      </AdminLayout>
+    ),
+    handle: {
+      head: <HeadSeo title="Organization Details - Admin - Dafthunk" />,
+    },
+  },
+  {
+    path: "/admin/workflows",
+    element: (
+      <AdminLayout>
+        <AdminProtectedRoute>
+          <AdminWorkflowsPage />
+        </AdminProtectedRoute>
+      </AdminLayout>
+    ),
+    handle: { head: <HeadSeo title="Workflows - Admin - Dafthunk" /> },
+  },
+  {
+    path: "/admin/deployments",
+    element: (
+      <AdminLayout>
+        <AdminProtectedRoute>
+          <AdminDeploymentsPage />
+        </AdminProtectedRoute>
+      </AdminLayout>
+    ),
+    handle: { head: <HeadSeo title="Deployments - Admin - Dafthunk" /> },
+  },
+  {
+    path: "/admin/executions",
+    element: (
+      <AdminLayout>
+        <AdminProtectedRoute>
+          <AdminExecutionsPage />
+        </AdminProtectedRoute>
+      </AdminLayout>
+    ),
+    handle: { head: <HeadSeo title="Executions - Admin - Dafthunk" /> },
+  },
+  {
+    path: "/admin/emails",
+    element: (
+      <AdminLayout>
+        <AdminProtectedRoute>
+          <AdminEmailsPage />
+        </AdminProtectedRoute>
+      </AdminLayout>
+    ),
+    handle: { head: <HeadSeo title="Emails - Admin - Dafthunk" /> },
+  },
+  {
+    path: "/admin/queues",
+    element: (
+      <AdminLayout>
+        <AdminProtectedRoute>
+          <AdminQueuesPage />
+        </AdminProtectedRoute>
+      </AdminLayout>
+    ),
+    handle: { head: <HeadSeo title="Queues - Admin - Dafthunk" /> },
+  },
+  {
+    path: "/admin/datasets",
+    element: (
+      <AdminLayout>
+        <AdminProtectedRoute>
+          <AdminDatasetsPage />
+        </AdminProtectedRoute>
+      </AdminLayout>
+    ),
+    handle: { head: <HeadSeo title="Datasets - Admin - Dafthunk" /> },
+  },
+  {
+    path: "/admin/databases",
+    element: (
+      <AdminLayout>
+        <AdminProtectedRoute>
+          <AdminDatabasesPage />
+        </AdminProtectedRoute>
+      </AdminLayout>
+    ),
+    handle: { head: <HeadSeo title="Databases - Admin - Dafthunk" /> },
   },
   {
     path: "/org",

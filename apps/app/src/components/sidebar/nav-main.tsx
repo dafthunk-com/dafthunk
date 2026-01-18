@@ -20,6 +20,7 @@ interface NavMainItem {
   url: string;
   icon?: LucideIcon;
   isActive?: boolean;
+  end?: boolean;
 }
 
 interface NavMainGroup {
@@ -53,6 +54,7 @@ function NavMainItem({ item, open }: { item: NavMainItem; open: boolean }) {
       >
         <NavLink
           to={item.url}
+          end={item.end}
           className="whitespace-nowrap"
           activeClassName="[&>span]:!text-foreground bg-neutral-300/50 dark:bg-neutral-600/50 hover:bg-neutral-300/50 dark:hover:bg-neutral-600/50 focus:bg-neutral-300/50 dark:focus:bg-neutral-600/50 active:bg-neutral-300/50 dark:active:bg-neutral-600/50"
         >

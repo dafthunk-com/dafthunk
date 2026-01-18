@@ -7,6 +7,7 @@ interface NavLinkProps extends React.ComponentProps<typeof Link> {
   children: React.ReactNode;
   activeClassName?: string;
   isActive?: (pathname: string) => boolean;
+  end?: boolean;
 }
 
 export function NavLink({
@@ -14,6 +15,7 @@ export function NavLink({
   className,
   activeClassName,
   isActive: isActiveCustom,
+  end,
   ...props
 }: NavLinkProps) {
   const { pathname } = useLocation();
@@ -22,8 +24,12 @@ export function NavLink({
     if (isActiveCustom) {
       return isActiveCustom(pathname);
     }
-    return pathname.startsWith(props.to.toString());
-  }, [isActiveCustom, props.to, pathname]);
+    const to = props.to.toString();
+    if (end) {
+      return pathname === to;
+    }
+    return pathname.startsWith(to);
+  }, [isActiveCustom, props.to, pathname, end]);
 
   return (
     <Link className={cn(className, isActive && activeClassName)} {...props}>

@@ -6,6 +6,7 @@ import { Link, useLocation } from "react-router";
 
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/utils/utils";
 
 import { AppLayout } from "./app-layout";
@@ -138,17 +139,22 @@ export function DocsLayout({ children }: DocsLayoutProps) {
 
   return (
     <AppLayout>
-      <div className="flex h-[calc(100vh-4rem)] overflow-hidden">
-        {/* Desktop Sidebar */}
-        <div className="hidden md:block">
-          <DocsSidebar />
-        </div>
+      <TooltipProvider>
+        <div className="flex h-[calc(100vh-4rem)] overflow-hidden">
+          {/* Desktop Sidebar */}
+          <div className="hidden md:block">
+            <DocsSidebar />
+          </div>
 
-        {/* Main Content */}
-        <main className="flex-1 min-w-0 overflow-y-auto" data-docs-main-content>
-          <div className="max-w-5xl mx-auto py-10 px-6">{children}</div>
-        </main>
-      </div>
+          {/* Main Content */}
+          <main
+            className="flex-1 min-w-0 overflow-y-auto"
+            data-docs-main-content
+          >
+            <div className="max-w-5xl mx-auto py-10 px-6">{children}</div>
+          </main>
+        </div>
+      </TooltipProvider>
     </AppLayout>
   );
 }

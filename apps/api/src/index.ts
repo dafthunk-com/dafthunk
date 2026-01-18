@@ -7,6 +7,7 @@ import { handleIncomingEmail } from "./email";
 import { corsMiddleware } from "./middleware/cors";
 import { createRateLimitMiddleware } from "./middleware/rate-limit";
 import { handleQueueMessages } from "./queue";
+import adminRoutes from "./routes/admin";
 import apiKeyRoutes from "./routes/api-keys";
 import billingRoutes from "./routes/billing";
 import dashboardRoutes from "./routes/dashboard";
@@ -66,6 +67,7 @@ app.use("*", async (c, next) => {
 // Mount routes
 app.route("/health", health);
 app.route("/auth", auth);
+app.route("/admin", adminRoutes);
 app.route("/oauth", oauthRoutes);
 app.route("/profile", profileRoutes);
 app.route("/organizations", organizationRoutes);
