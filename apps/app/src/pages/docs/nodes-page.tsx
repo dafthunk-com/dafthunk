@@ -1,11 +1,7 @@
-import { NodesBrowser } from "@/components/docs/nodes-browser";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 
 export function DocsNodesPage() {
-  usePageBreadcrumbs([
-    { label: "Documentation", to: "/docs" },
-    { label: "Nodes" },
-  ]);
+  usePageBreadcrumbs([{ label: "Nodes Reference" }]);
 
   return (
     <>
@@ -134,15 +130,6 @@ export function DocsNodesPage() {
             processes nodes based on these dependencies.
           </li>
         </ol>
-
-        <h2 id="node-browser">Node Library</h2>
-        <p>
-          Explore and search through all available nodes using our interactive
-          browser. You can filter by tag, name, and description in real-time to
-          quickly find the tools you need:
-        </p>
-
-        <NodesBrowser />
       </div>
     </>
   );

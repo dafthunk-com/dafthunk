@@ -3,7 +3,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import Check from "lucide-react/icons/check";
 import X from "lucide-react/icons/x";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { InsetLoading } from "@/components/inset-loading";
@@ -22,6 +22,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
+import { usePageBreadcrumbs } from "@/hooks/use-page";
 import {
   acceptInvitation,
   declineInvitation,
@@ -137,9 +138,15 @@ const invitationColumns: ColumnDef<UserInvitation>[] = [
 ];
 
 export function InvitationsPage() {
+  const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const { invitations, isInvitationsLoading, mutateInvitations } =
     useUserInvitations();
   const { mutateOrganizations } = useOrganizations();
+
+  // Set breadcrumbs on component mount
+  useEffect(() => {
+    setBreadcrumbs([{ label: "Invitations" }]);
+  }, [setBreadcrumbs]);
 
   const [isAcceptDialogOpen, setIsAcceptDialogOpen] = useState(false);
   const [isDeclineDialogOpen, setIsDeclineDialogOpen] = useState(false);

@@ -1,26 +1,16 @@
 import BookOpen from "lucide-react/icons/book-open";
 import Code from "lucide-react/icons/code";
+import LayoutGrid from "lucide-react/icons/layout-grid";
 import Sparkles from "lucide-react/icons/sparkles";
-import React, { useEffect } from "react";
-import { Link, useLocation } from "react-router";
+import { useEffect } from "react";
+import { useLocation } from "react-router";
+import { Toaster } from "sonner";
 
-import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { cn } from "@/utils/utils";
-
-import { AppLayout } from "./app-layout";
-
-export interface DocsSection {
-  title: string;
-  href: string;
-  icon: React.ComponentType<{ className?: string }>;
-  badge?: string;
-  subsections?: {
-    title: string;
-    href: string;
-  }[];
-}
+import { AppHeader } from "@/components/app-header";
+import { PageProvider } from "@/components/page-context";
+import type { DocsSection } from "@/components/sidebar/docs-nav-main";
+import { DocsSidebar } from "@/components/sidebar/docs-sidebar";
+import * as Sidebar from "@/components/ui/sidebar";
 
 interface DocsLayoutProps {
   children: React.ReactNode;
@@ -48,8 +38,12 @@ const docsSections: DocsSection[] = [
       { title: "Anatomy of a Node", href: "#node-anatomy" },
       { title: "Node Categories", href: "#node-categories" },
       { title: "Connecting Nodes", href: "#connecting-nodes" },
-      { title: "Node Library", href: "#node-browser" },
     ],
+  },
+  {
+    title: "Node Library",
+    href: "/docs/nodes-library",
+    icon: LayoutGrid,
   },
   {
     title: "API Reference",
@@ -75,53 +69,6 @@ const docsSections: DocsSection[] = [
   },
 ];
 
-function DocsSidebar() {
-  const location = useLocation();
-
-  return (
-    <div className="w-56 border-r h-[calc(100vh-4rem)]">
-      <ScrollArea className="h-full">
-        <div className="p-4 space-y-2">
-          {docsSections.map((section) => (
-            <div key={section.href} className="space-y-1">
-              <Link
-                to={section.href}
-                className={cn(
-                  "flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors hover:bg-accent whitespace-nowrap",
-                  location.pathname === section.href
-                    ? "bg-accent text-accent-foreground font-medium"
-                    : "text-muted-foreground"
-                )}
-              >
-                <section.icon className="size-4" />
-                {section.title}
-                {section.badge && (
-                  <Badge variant="secondary" className="ml-auto text-xs">
-                    {section.badge}
-                  </Badge>
-                )}
-              </Link>
-              {section.subsections && location.pathname === section.href && (
-                <div className="ml-6 space-y-1">
-                  {section.subsections.map((subsection) => (
-                    <a
-                      key={subsection.href}
-                      href={subsection.href}
-                      className="block px-3 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      {subsection.title}
-                    </a>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </ScrollArea>
-    </div>
-  );
-}
-
 export function DocsLayout({ children }: DocsLayoutProps) {
   const location = useLocation();
 
@@ -138,23 +85,24 @@ export function DocsLayout({ children }: DocsLayoutProps) {
   }, [location.pathname]);
 
   return (
-    <AppLayout>
-      <TooltipProvider>
-        <div className="flex h-[calc(100vh-4rem)] overflow-hidden">
-          {/* Desktop Sidebar */}
-          <div className="hidden md:block">
-            <DocsSidebar />
-          </div>
-
-          {/* Main Content */}
-          <main
-            className="flex-1 min-w-0 overflow-y-auto"
-            data-docs-main-content
-          >
-            <div className="max-w-5xl mx-auto py-10 px-6">{children}</div>
-          </main>
+    <PageProvider>
+      <div className="flex h-screen w-screen overflow-hidden flex-col">
+        <AppHeader />
+        <Toaster />
+        <div className="flex flex-1 overflow-hidden">
+          <Sidebar.SidebarProvider>
+            <DocsSidebar sections={docsSections} />
+            <Sidebar.SidebarInset>
+              <div
+                className="h-full w-full overflow-y-auto"
+                data-docs-main-content
+              >
+                <div className="max-w-5xl mx-auto py-10 px-6">{children}</div>
+              </div>
+            </Sidebar.SidebarInset>
+          </Sidebar.SidebarProvider>
         </div>
-      </TooltipProvider>
-    </AppLayout>
+      </div>
+    </PageProvider>
   );
 }

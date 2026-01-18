@@ -8,10 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 
 export function DocsApiPage() {
-  usePageBreadcrumbs([
-    { label: "Documentation", to: "/docs" },
-    { label: "API" },
-  ]);
+  usePageBreadcrumbs([{ label: "API Reference" }]);
 
   const BASE_URL = "https://api.dafthunk.com";
 

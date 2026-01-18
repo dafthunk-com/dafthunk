@@ -17,7 +17,7 @@ import {
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 
 export function DocsPage() {
-  usePageBreadcrumbs([{ label: "Documentation" }]);
+  usePageBreadcrumbs([]);
 
   return (
     <>

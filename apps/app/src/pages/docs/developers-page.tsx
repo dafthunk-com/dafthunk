@@ -1,10 +1,7 @@
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 
 export function DocsDevelopersPage() {
-  usePageBreadcrumbs([
-    { label: "Documentation", to: "/docs" },
-    { label: "Developers" },
-  ]);
+  usePageBreadcrumbs([{ label: "Developers Guide" }]);
 
   return (
     <>
