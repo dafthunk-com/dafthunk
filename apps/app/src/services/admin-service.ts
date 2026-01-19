@@ -621,3 +621,73 @@ export const useAdminDatabases = (
     mutateDatabases: mutate,
   };
 };
+
+// Types for workflow/deployment structure
+export interface AdminWorkflowStructure {
+  id: string;
+  name: string;
+  description: string | null;
+  handle: string;
+  trigger: string;
+  runtime: string;
+  nodes: any[];
+  edges: any[];
+}
+
+export interface AdminDeploymentStructure {
+  id: string;
+  version: number;
+  workflowId: string;
+  nodes: any[];
+  edges: any[];
+}
+
+/**
+ * Hook to fetch admin workflow structure (nodes/edges)
+ */
+export const useAdminWorkflowStructure = (
+  workflowId: string | null,
+  organizationId: string | null
+) => {
+  const swrKey =
+    workflowId && organizationId
+      ? `${ADMIN_API_ENDPOINT}/workflows/${workflowId}/structure?organizationId=${organizationId}`
+      : null;
+
+  const { data, error, isLoading, mutate } = useSWR<AdminWorkflowStructure>(
+    swrKey,
+    swrKey ? async () => makeRequest<AdminWorkflowStructure>(swrKey) : null
+  );
+
+  return {
+    workflowStructure: data || null,
+    workflowStructureError: error || null,
+    isWorkflowStructureLoading: isLoading,
+    mutateWorkflowStructure: mutate,
+  };
+};
+
+/**
+ * Hook to fetch admin deployment structure (nodes/edges)
+ */
+export const useAdminDeploymentStructure = (
+  deploymentId: string | null,
+  organizationId: string | null
+) => {
+  const swrKey =
+    deploymentId && organizationId
+      ? `${ADMIN_API_ENDPOINT}/deployments/${deploymentId}/structure?organizationId=${organizationId}`
+      : null;
+
+  const { data, error, isLoading, mutate } = useSWR<AdminDeploymentStructure>(
+    swrKey,
+    swrKey ? async () => makeRequest<AdminDeploymentStructure>(swrKey) : null
+  );
+
+  return {
+    deploymentStructure: data || null,
+    deploymentStructureError: error || null,
+    isDeploymentStructureLoading: isLoading,
+    mutateDeploymentStructure: mutate,
+  };
+};

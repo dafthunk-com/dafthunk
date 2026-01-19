@@ -1,4 +1,9 @@
-import type { NodeExecution, WorkflowExecution } from "@dafthunk/types";
+import type {
+  NodeExecution,
+  WorkflowExecution,
+  WorkflowRuntime,
+  WorkflowTrigger,
+} from "@dafthunk/types";
 import { ReactFlowProvider } from "@xyflow/react";
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "react-router";
@@ -11,12 +16,14 @@ import type {
   WorkflowExecution as WorkflowBuilderExecution,
   WorkflowNodeExecution,
 } from "@/components/workflow/workflow-types";
-import { useAdminExecutionDetail } from "@/services/admin-service";
-import { useDeploymentVersionWithOrgHandle } from "@/services/deployment-service";
+import {
+  useAdminDeploymentStructure,
+  useAdminExecutionDetail,
+  useAdminWorkflowStructure,
+} from "@/services/admin-service";
 import { useObjectService } from "@/services/object-service";
 import {
   convertToReactFlowEdges,
-  useWorkflowWithOrgHandle,
   validateConnection,
 } from "@/services/workflow-service";
 
@@ -34,55 +41,45 @@ export function AdminExecutionDetailPage() {
   // Use empty node templates array since we're in readonly mode
   const nodeTypes: never[] = [];
 
-  // Get the organization handle from the execution
-  const orgHandle = execution?.organizationHandle || null;
-
-  // Fetch workflow metadata for name/description
-  const {
-    workflow: workflowMetadata,
-    isWorkflowLoading: isWorkflowMetadataLoading,
-  } = useWorkflowWithOrgHandle(execution?.workflowId || null, orgHandle);
-
-  // Handle the case when deploymentId might be undefined
-  const deploymentId = execution?.deploymentId || "";
+  // Determine what to fetch based on whether we have a deployment
   const hasDeploymentId = !!execution?.deploymentId;
 
-  // Fetch deployment structure if there's a deployment
-  const {
-    deploymentVersion: deploymentStructureSource,
-    isDeploymentVersionLoading: isDeploymentStructureLoading,
-  } = useDeploymentVersionWithOrgHandle(deploymentId, orgHandle);
+  // Fetch workflow structure using admin endpoint (for metadata and when no deployment)
+  const { workflowStructure, isWorkflowStructureLoading } =
+    useAdminWorkflowStructure(
+      execution?.workflowId || null,
+      organizationId || null
+    );
 
-  // Fetch workflow structure if there's no deployment
-  const {
-    workflow: workflowStructureSourceFromDetails,
-    isWorkflowLoading: isWorkflowStructureDetailsLoading,
-  } = useWorkflowWithOrgHandle(
-    execution?.deploymentId ? null : execution?.workflowId || null,
-    orgHandle
-  );
+  // Fetch deployment structure using admin endpoint (when we have a deployment)
+  const { deploymentStructure, isDeploymentStructureLoading } =
+    useAdminDeploymentStructure(
+      execution?.deploymentId || null,
+      organizationId || null
+    );
 
+  // Use deployment structure if available, otherwise use workflow structure
   const finalStructure = useMemo(() => {
-    // If we have a deploymentId, use the deployment structure.
-    // Otherwise, use the workflow structure.
-    return hasDeploymentId
-      ? deploymentStructureSource
-      : workflowStructureSourceFromDetails;
-  }, [
-    hasDeploymentId,
-    deploymentStructureSource,
-    workflowStructureSourceFromDetails,
-  ]);
+    if (hasDeploymentId && deploymentStructure) {
+      return {
+        nodes: deploymentStructure.nodes || [],
+        edges: deploymentStructure.edges || [],
+      };
+    }
+    if (workflowStructure) {
+      return {
+        nodes: workflowStructure.nodes || [],
+        edges: workflowStructure.edges || [],
+      };
+    }
+    return null;
+  }, [hasDeploymentId, deploymentStructure, workflowStructure]);
 
   const isStructureOverallLoading = useMemo(() => {
     if (execution?.deploymentId) return isDeploymentStructureLoading;
-    if (execution?.workflowId) return isWorkflowStructureDetailsLoading;
+    if (execution?.workflowId) return isWorkflowStructureLoading;
     return false;
-  }, [
-    execution,
-    isDeploymentStructureLoading,
-    isWorkflowStructureDetailsLoading,
-  ]);
+  }, [execution, isDeploymentStructureLoading, isWorkflowStructureLoading]);
 
   const [reactFlowNodes, setReactFlowNodes] = useState<any[]>([]);
   const [reactFlowEdges, setReactFlowEdges] = useState<any[]>([]);
@@ -102,7 +99,7 @@ export function AdminExecutionDetailPage() {
         execMap.set(n.nodeId, n as NodeExecution);
       }
 
-      const rNodes = (finalStructure.nodes || []).map((node: any) => ({
+      const rNodes = finalStructure.nodes.map((node: any) => ({
         id: node.id,
         type: "workflowNode",
         position: node.position,
@@ -134,9 +131,7 @@ export function AdminExecutionDetailPage() {
       }));
       setReactFlowNodes(rNodes);
 
-      const rEdges = Array.from(
-        convertToReactFlowEdges(finalStructure.edges || [])
-      );
+      const rEdges = Array.from(convertToReactFlowEdges(finalStructure.edges));
       setReactFlowEdges(rEdges);
     } else {
       setReactFlowNodes([]);
@@ -176,11 +171,7 @@ export function AdminExecutionDetailPage() {
     );
   }
 
-  if (
-    isExecutionLoading ||
-    isStructureOverallLoading ||
-    isWorkflowMetadataLoading
-  ) {
+  if (isExecutionLoading || isStructureOverallLoading) {
     return <InsetLoading title="Execution Details" />;
   }
 
@@ -211,10 +202,14 @@ export function AdminExecutionDetailPage() {
           nodeTypes !== undefined ? (
             <WorkflowBuilder
               workflowId={execution.workflowId || execution.id}
-              workflowName={workflowMetadata?.name || execution.workflowName}
-              workflowDescription={workflowMetadata?.description}
-              workflowTrigger={workflowMetadata?.trigger}
-              workflowRuntime={workflowMetadata?.runtime}
+              workflowName={workflowStructure?.name || execution.workflowName}
+              workflowDescription={workflowStructure?.description ?? undefined}
+              workflowTrigger={
+                workflowStructure?.trigger as WorkflowTrigger | undefined
+              }
+              workflowRuntime={
+                workflowStructure?.runtime as WorkflowRuntime | undefined
+              }
               initialNodes={reactFlowNodes}
               initialEdges={reactFlowEdges}
               nodeTypes={nodeTypes}
@@ -223,7 +218,7 @@ export function AdminExecutionDetailPage() {
               createObjectUrl={createObjectUrl}
               disabledWorkflow={true}
               disabledFeedback={true}
-              orgHandle={orgHandle || ""}
+              orgHandle={execution.organizationHandle || ""}
             />
           ) : (
             <div className="flex flex-col items-center justify-center h-full">

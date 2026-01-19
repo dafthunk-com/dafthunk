@@ -10,6 +10,7 @@ import {
   organizations,
   workflows,
 } from "../../db";
+import { DeploymentStore } from "../../stores/deployment-store";
 
 const adminDeploymentsRoutes = new Hono<ApiContext>();
 
@@ -107,6 +108,48 @@ adminDeploymentsRoutes.get(
     } catch (error) {
       console.error("Error fetching admin deployments:", error);
       return c.json({ error: "Failed to fetch deployments" }, 500);
+    }
+  }
+);
+
+/**
+ * GET /admin/deployments/:id/structure
+ *
+ * Get deployment structure (nodes/edges) for admin view
+ */
+adminDeploymentsRoutes.get(
+  "/:id/structure",
+  zValidator(
+    "query",
+    z.object({
+      organizationId: z.string(),
+    })
+  ),
+  async (c) => {
+    const deploymentId = c.req.param("id");
+    const { organizationId } = c.req.valid("query");
+
+    try {
+      const deploymentStore = new DeploymentStore(c.env);
+      const deployment = await deploymentStore.getWithData(
+        deploymentId,
+        organizationId
+      );
+
+      if (!deployment) {
+        return c.json({ error: "Deployment not found" }, 404);
+      }
+
+      return c.json({
+        id: deployment.id,
+        version: deployment.version,
+        workflowId: deployment.workflowId,
+        nodes: deployment.workflowData.nodes || [],
+        edges: deployment.workflowData.edges || [],
+      });
+    } catch (error) {
+      console.error("Error fetching admin deployment structure:", error);
+      return c.json({ error: "Failed to fetch deployment structure" }, 500);
     }
   }
 );
