@@ -130,12 +130,15 @@ export function AdminExecutionsPage() {
             {executions.map((execution) => (
               <TableRow key={execution.id}>
                 <TableCell>
-                  <div>
+                  <Link
+                    to={`/admin/executions/${execution.id}?organizationId=${execution.organizationId}`}
+                    className="block hover:underline"
+                  >
                     <div className="font-medium">{execution.workflowName}</div>
                     <div className="text-xs text-muted-foreground font-mono">
                       {execution.id.substring(0, 8)}...
                     </div>
-                  </div>
+                  </Link>
                 </TableCell>
                 <TableCell>
                   <Link
