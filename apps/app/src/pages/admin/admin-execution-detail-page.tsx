@@ -1,61 +1,24 @@
-import { useEffect } from "react";
-import { Link, useParams, useSearchParams } from "react-router";
+import type { NodeExecution, WorkflowExecution } from "@dafthunk/types";
+import { ReactFlowProvider } from "@xyflow/react";
+import { useEffect, useMemo, useState } from "react";
+import { useParams, useSearchParams } from "react-router";
 
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
-import { InsetLayout } from "@/components/layouts/inset-layout";
 import { useBreadcrumbsSetter } from "@/components/page-context";
-import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
+import type {
+  WorkflowExecution as WorkflowBuilderExecution,
+  WorkflowNodeExecution,
+} from "@/components/workflow/workflow-types";
 import { useAdminExecutionDetail } from "@/services/admin-service";
-
-function getStatusVariant(status: string) {
-  switch (status) {
-    case "completed":
-      return "default";
-    case "running":
-    case "executing":
-      return "secondary";
-    case "error":
-      return "destructive";
-    case "cancelled":
-    case "skipped":
-      return "outline";
-    default:
-      return "outline";
-  }
-}
-
-function formatDate(date: Date | string | undefined) {
-  if (!date) return "-";
-  return new Date(date).toLocaleString();
-}
-
-function calculateDuration(startedAt?: Date | string, endedAt?: Date | string) {
-  if (!startedAt) return "-";
-  const start = new Date(startedAt);
-  const end = endedAt ? new Date(endedAt) : new Date();
-  const durationMs = end.getTime() - start.getTime();
-  const seconds = Math.floor(durationMs / 1000);
-  if (seconds < 60) return `${seconds}s`;
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
-  return `${minutes}m ${remainingSeconds}s`;
-}
+import { useDeploymentVersionWithOrgHandle } from "@/services/deployment-service";
+import { useObjectService } from "@/services/object-service";
+import {
+  convertToReactFlowEdges,
+  useWorkflowWithOrgHandle,
+  validateConnection,
+} from "@/services/workflow-service";
 
 export function AdminExecutionDetailPage() {
   const { executionId } = useParams<{ executionId: string }>();
@@ -66,6 +29,64 @@ export function AdminExecutionDetailPage() {
     useAdminExecutionDetail(executionId, organizationId);
   const setBreadcrumbs = useBreadcrumbsSetter();
 
+  const { createObjectUrl } = useObjectService();
+
+  // Use empty node templates array since we're in readonly mode
+  const nodeTypes: never[] = [];
+
+  // Get the organization handle from the execution
+  const orgHandle = execution?.organizationHandle || null;
+
+  // Fetch workflow metadata for name/description
+  const {
+    workflow: workflowMetadata,
+    isWorkflowLoading: isWorkflowMetadataLoading,
+  } = useWorkflowWithOrgHandle(execution?.workflowId || null, orgHandle);
+
+  // Handle the case when deploymentId might be undefined
+  const deploymentId = execution?.deploymentId || "";
+  const hasDeploymentId = !!execution?.deploymentId;
+
+  // Fetch deployment structure if there's a deployment
+  const {
+    deploymentVersion: deploymentStructureSource,
+    isDeploymentVersionLoading: isDeploymentStructureLoading,
+  } = useDeploymentVersionWithOrgHandle(deploymentId, orgHandle);
+
+  // Fetch workflow structure if there's no deployment
+  const {
+    workflow: workflowStructureSourceFromDetails,
+    isWorkflowLoading: isWorkflowStructureDetailsLoading,
+  } = useWorkflowWithOrgHandle(
+    execution?.deploymentId ? null : execution?.workflowId || null,
+    orgHandle
+  );
+
+  const finalStructure = useMemo(() => {
+    // If we have a deploymentId, use the deployment structure.
+    // Otherwise, use the workflow structure.
+    return hasDeploymentId
+      ? deploymentStructureSource
+      : workflowStructureSourceFromDetails;
+  }, [
+    hasDeploymentId,
+    deploymentStructureSource,
+    workflowStructureSourceFromDetails,
+  ]);
+
+  const isStructureOverallLoading = useMemo(() => {
+    if (execution?.deploymentId) return isDeploymentStructureLoading;
+    if (execution?.workflowId) return isWorkflowStructureDetailsLoading;
+    return false;
+  }, [
+    execution,
+    isDeploymentStructureLoading,
+    isWorkflowStructureDetailsLoading,
+  ]);
+
+  const [reactFlowNodes, setReactFlowNodes] = useState<any[]>([]);
+  const [reactFlowEdges, setReactFlowEdges] = useState<any[]>([]);
+
   useEffect(() => {
     setBreadcrumbs([
       { label: "Executions", to: "/admin/executions" },
@@ -73,6 +94,78 @@ export function AdminExecutionDetailPage() {
     ]);
     return () => setBreadcrumbs([]);
   }, [setBreadcrumbs, executionId]);
+
+  useEffect(() => {
+    if (finalStructure && execution?.nodeExecutions) {
+      const execMap = new Map<string, NodeExecution>();
+      for (const n of execution.nodeExecutions || []) {
+        execMap.set(n.nodeId, n as NodeExecution);
+      }
+
+      const rNodes = (finalStructure.nodes || []).map((node: any) => ({
+        id: node.id,
+        type: "workflowNode",
+        position: node.position,
+        data: {
+          name: node.name,
+          inputs: (node.inputs || []).map((input: any) => ({
+            id: input.name,
+            type: input.type,
+            name: input.name,
+            value:
+              (execMap.get(node.id) as any)?.input?.[input.name] ?? input.value,
+            hidden: input.hidden,
+            required: input.required,
+            repeated: input.repeated,
+          })),
+          outputs: (node.outputs || []).map((output: any) => ({
+            id: output.name,
+            type: output.type,
+            name: output.name,
+            value: execMap.get(node.id)?.outputs?.[output.name],
+            hidden: output.hidden,
+            repeated: output.repeated,
+          })),
+          executionState: execMap.get(node.id)?.status || "idle",
+          error: execMap.get(node.id)?.error,
+          nodeType: node.type,
+          icon: node.icon,
+        },
+      }));
+      setReactFlowNodes(rNodes);
+
+      const rEdges = Array.from(
+        convertToReactFlowEdges(finalStructure.edges || [])
+      );
+      setReactFlowEdges(rEdges);
+    } else {
+      setReactFlowNodes([]);
+      setReactFlowEdges([]);
+    }
+  }, [finalStructure, execution]);
+
+  const workflowBuilderExecution =
+    useMemo<WorkflowBuilderExecution | null>(() => {
+      if (!execution) return null;
+      return {
+        id: execution.id,
+        status: execution.status as WorkflowExecution["status"],
+        nodeExecutions: (execution.nodeExecutions || []).map(
+          (nodeExec): WorkflowNodeExecution => ({
+            nodeId: nodeExec.nodeId,
+            status: nodeExec.status as any,
+            outputs: nodeExec.outputs || {},
+            error: nodeExec.error,
+          })
+        ),
+      };
+    }, [execution]);
+
+  const handleValidateConnection = useMemo(
+    () => (connection: any) =>
+      validateConnection(connection, reactFlowEdges).status === "valid",
+    [reactFlowEdges]
+  );
 
   if (!organizationId) {
     return (
@@ -83,7 +176,11 @@ export function AdminExecutionDetailPage() {
     );
   }
 
-  if (isExecutionLoading) {
+  if (
+    isExecutionLoading ||
+    isStructureOverallLoading ||
+    isWorkflowMetadataLoading
+  ) {
     return <InsetLoading title="Execution Details" />;
   }
 
@@ -105,187 +202,40 @@ export function AdminExecutionDetailPage() {
     );
   }
 
-  const failedNodes = execution.nodeExecutions.filter(
-    (n) => n.status === "error"
-  );
-
   return (
-    <InsetLayout title="Execution Details">
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>{execution.workflowName}</CardTitle>
-                <CardDescription className="font-mono text-xs">
-                  {execution.id}
-                </CardDescription>
-              </div>
-              <Badge variant={getStatusVariant(execution.status)}>
-                {execution.status}
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <div className="text-muted-foreground">Organization</div>
-                <Link
-                  to={`/admin/organizations/${execution.organizationId}`}
-                  className="hover:underline text-primary"
-                >
-                  {execution.organizationName}
-                </Link>
-              </div>
-              <div>
-                <div className="text-muted-foreground">Workflow ID</div>
-                <div className="font-mono text-xs">{execution.workflowId}</div>
-              </div>
-              {execution.deploymentId && (
-                <div>
-                  <div className="text-muted-foreground">Deployment ID</div>
-                  <div className="font-mono text-xs">
-                    {execution.deploymentId}
-                  </div>
-                </div>
-              )}
-              <div>
-                <div className="text-muted-foreground">Usage</div>
-                <div>{execution.usage}</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Timing</CardTitle>
-            <CardDescription>Execution timeline</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <div className="text-muted-foreground">Started At</div>
-                <div>{formatDate(execution.startedAt)}</div>
-              </div>
-              <div>
-                <div className="text-muted-foreground">Ended At</div>
-                <div>{formatDate(execution.endedAt)}</div>
-              </div>
-              <div>
-                <div className="text-muted-foreground">Duration</div>
-                <div>
-                  {calculateDuration(execution.startedAt, execution.endedAt)}
-                </div>
-              </div>
-              <div>
-                <div className="text-muted-foreground">Nodes Executed</div>
-                <div>{execution.nodeExecutions.length}</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {execution.error && (
-        <Card className="mt-6 border-destructive/50">
-          <CardHeader>
-            <CardTitle className="text-destructive">Execution Error</CardTitle>
-            <CardDescription>
-              The workflow execution failed with the following error
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <pre className="text-sm font-mono whitespace-pre-wrap bg-destructive/10 p-4 rounded-md overflow-x-auto">
-              {execution.error}
-            </pre>
-          </CardContent>
-        </Card>
-      )}
-
-      {failedNodes.length > 0 && (
-        <Card className="mt-6 border-destructive/50">
-          <CardHeader>
-            <CardTitle className="text-destructive">Failed Nodes</CardTitle>
-            <CardDescription>
-              {failedNodes.length} node{failedNodes.length !== 1 ? "s" : ""}{" "}
-              failed during execution
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {failedNodes.map((node) => (
-              <div
-                key={node.nodeId}
-                className="border border-destructive/30 rounded-md p-4"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-mono text-sm">{node.nodeId}</span>
-                  <Badge variant="destructive">{node.status}</Badge>
-                </div>
-                {node.error && (
-                  <pre className="text-sm font-mono whitespace-pre-wrap bg-destructive/10 p-3 rounded-md overflow-x-auto">
-                    {node.error}
-                  </pre>
-                )}
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
-
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle>Node Executions</CardTitle>
-          <CardDescription>
-            Status of each node in the workflow (
-            {execution.nodeExecutions.length} nodes)
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {execution.nodeExecutions.length === 0 ? (
-            <p className="text-muted-foreground text-sm">
-              No node executions recorded.
-            </p>
+    <ReactFlowProvider>
+      <div className="h-full w-full flex flex-col relative">
+        <div className="h-full w-full flex-grow">
+          {reactFlowNodes.length > 0 &&
+          workflowBuilderExecution &&
+          nodeTypes !== undefined ? (
+            <WorkflowBuilder
+              workflowId={execution.workflowId || execution.id}
+              workflowName={workflowMetadata?.name || execution.workflowName}
+              workflowDescription={workflowMetadata?.description}
+              workflowTrigger={workflowMetadata?.trigger}
+              workflowRuntime={workflowMetadata?.runtime}
+              initialNodes={reactFlowNodes}
+              initialEdges={reactFlowEdges}
+              nodeTypes={nodeTypes}
+              validateConnection={handleValidateConnection}
+              initialWorkflowExecution={workflowBuilderExecution}
+              createObjectUrl={createObjectUrl}
+              disabledWorkflow={true}
+              disabledFeedback={true}
+              orgHandle={orgHandle || ""}
+            />
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Node ID</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Usage</TableHead>
-                  <TableHead>Error</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {execution.nodeExecutions.map((node) => (
-                  <TableRow key={node.nodeId}>
-                    <TableCell className="font-mono text-xs">
-                      {node.nodeId}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={getStatusVariant(node.status)}>
-                        {node.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{node.usage}</TableCell>
-                    <TableCell className="max-w-md">
-                      {node.error ? (
-                        <span className="text-destructive text-sm truncate block">
-                          {node.error.length > 100
-                            ? `${node.error.substring(0, 100)}...`
-                            : node.error}
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <div className="flex flex-col items-center justify-center h-full">
+              <p className="text-muted-foreground">
+                {isStructureOverallLoading
+                  ? "Loading workflow data..."
+                  : "No workflow structure available or still loading components."}
+              </p>
+            </div>
           )}
-        </CardContent>
-      </Card>
-    </InsetLayout>
+        </div>
+      </div>
+    </ReactFlowProvider>
   );
 }

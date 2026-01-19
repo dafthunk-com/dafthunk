@@ -223,7 +223,7 @@ adminExecutionsRoutes.get(
         .where(eq(workflows.id, execution.workflowId));
 
       const [org] = await db
-        .select({ name: organizations.name })
+        .select({ name: organizations.name, handle: organizations.handle })
         .from(organizations)
         .where(eq(organizations.id, organizationId));
 
@@ -235,6 +235,7 @@ adminExecutionsRoutes.get(
           deploymentId: execution.deploymentId,
           organizationId,
           organizationName: org?.name || "Unknown Organization",
+          organizationHandle: org?.handle || "",
           status: execution.status,
           error: execution.error,
           startedAt: execution.startedAt,

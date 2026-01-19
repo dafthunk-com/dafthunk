@@ -117,6 +117,40 @@ export const useWorkflow = (
 };
 
 /**
+ * Hook to get a specific workflow by ID with explicit orgHandle (for admin context)
+ */
+export const useWorkflowWithOrgHandle = (
+  id: string | null,
+  orgHandle: string | null,
+  options?: SWRConfiguration<WorkflowWithMetadata>
+) => {
+  // Create a unique SWR key that includes the organization handle and workflow ID
+  const swrKey =
+    orgHandle && id ? `/${orgHandle}${API_ENDPOINT_BASE}/${id}` : null;
+
+  const { data, error, isLoading, mutate } = useSWR(
+    swrKey,
+    swrKey && orgHandle && id
+      ? async () => {
+          return await makeOrgRequest<GetWorkflowResponse>(
+            orgHandle,
+            API_ENDPOINT_BASE,
+            `/${id}`
+          );
+        }
+      : null,
+    options
+  );
+
+  return {
+    workflow: data,
+    workflowError: error || null,
+    isWorkflowLoading: isLoading,
+    mutateWorkflow: mutate,
+  };
+};
+
+/**
  * Create a new workflow for the current organization
  */
 export const createWorkflow = async (

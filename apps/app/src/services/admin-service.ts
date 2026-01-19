@@ -108,6 +108,7 @@ export interface AdminExecution {
   deploymentId?: string;
   organizationId: string;
   organizationName: string;
+  organizationHandle: string;
   status: string;
   error?: string;
   startedAt: Date;

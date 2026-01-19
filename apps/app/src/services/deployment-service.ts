@@ -145,6 +145,40 @@ export const useDeploymentVersion = (
 };
 
 /**
+ * Hook to get a specific deployment version with explicit orgHandle (for admin context)
+ */
+export const useDeploymentVersionWithOrgHandle = (
+  deploymentId: string,
+  orgHandle: string | null
+): UseDeploymentVersion => {
+  // Create a unique SWR key that includes the organization handle and deployment ID
+  const swrKey =
+    orgHandle && deploymentId
+      ? `/${orgHandle}${API_ENDPOINT_BASE}/version/${deploymentId}`
+      : null;
+
+  const { data, error, isLoading, mutate } = useSWR(
+    swrKey,
+    swrKey && orgHandle
+      ? async () => {
+          return await makeOrgRequest<GetDeploymentVersionResponse>(
+            orgHandle,
+            API_ENDPOINT_BASE,
+            `/version/${deploymentId}`
+          );
+        }
+      : null
+  );
+
+  return {
+    deploymentVersion: data || null,
+    deploymentVersionError: error || null,
+    isDeploymentVersionLoading: isLoading,
+    mutateDeploymentVersion: mutate,
+  };
+};
+
+/**
  * Create a new deployment for a workflow
  * @param workflowId - ID of the workflow to deploy
  * @param orgHandle - Organization handle
