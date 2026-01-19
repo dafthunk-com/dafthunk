@@ -98,7 +98,10 @@ export function AdminExecutionDetailPage() {
 
   if (!execution) {
     return (
-      <InsetError title="Execution Details" errorMessage="Execution not found" />
+      <InsetError
+        title="Execution Details"
+        errorMessage="Execution not found"
+      />
     );
   }
 
@@ -234,8 +237,8 @@ export function AdminExecutionDetailPage() {
         <CardHeader>
           <CardTitle>Node Executions</CardTitle>
           <CardDescription>
-            Status of each node in the workflow ({execution.nodeExecutions.length}{" "}
-            nodes)
+            Status of each node in the workflow (
+            {execution.nodeExecutions.length} nodes)
           </CardDescription>
         </CardHeader>
         <CardContent>

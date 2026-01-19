@@ -1,14 +1,12 @@
 import type { NodeExecution, WorkflowExecution } from "@dafthunk/types";
+import { ReactFlowProvider } from "@xyflow/react";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router";
 import { toast } from "sonner";
 
 import { useAuth } from "@/components/auth-context";
-import { ExecutionInfoCard } from "@/components/executions/execution-info-card";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
-import { InsetLayout } from "@/components/layouts/inset-layout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import type {
   WorkflowExecution as WorkflowBuilderExecution,
@@ -43,7 +41,10 @@ export function ExecutionDetailPage() {
   // Use empty node templates array since we're in readonly mode
   const nodeTypes = [];
 
-  const { workflow: workflowInfo } = useWorkflow(execution?.workflowId || null);
+  // Fetch workflow metadata for name/description
+  const { workflow: workflowMetadata } = useWorkflow(
+    execution?.workflowId || null
+  );
 
   // Handle the case when deploymentId might be undefined
   const deploymentId = execution?.deploymentId || "";
@@ -187,66 +188,47 @@ export function ExecutionDetailPage() {
 
   if (!execution) {
     return (
-      <InsetLayout title="Execution Not Found">
-        <div className="text-center py-10">
-          <p className="text-lg">Execution not found or an error occurred.</p>
-        </div>
-      </InsetLayout>
+      <div className="h-full w-full flex items-center justify-center">
+        <p className="text-lg text-muted-foreground">
+          Execution not found or an error occurred.
+        </p>
+      </div>
     );
   }
 
   return (
-    <InsetLayout title={`${executionId}`}>
-      <div className="space-y-6">
-        <Tabs defaultValue="status">
-          <div className="flex justify-between items-center mb-4">
-            <TabsList>
-              <TabsTrigger value="status">Status</TabsTrigger>
-              <TabsTrigger value="visualization">Visualization</TabsTrigger>
-            </TabsList>
-            {execution && <div className="flex items-center space-x-2"></div>}
-          </div>
-          <TabsContent value="status" className="space-y-6 mt-0">
-            <ExecutionInfoCard
-              id={execution.id}
-              status={execution.status}
-              startedAt={execution.startedAt}
-              endedAt={execution.endedAt}
-              workflowId={execution.workflowId}
-              workflowName={workflowInfo?.name}
-              deploymentId={execution.deploymentId}
-              error={execution.error}
+    <ReactFlowProvider>
+      <div className="h-full w-full flex flex-col relative">
+        <div className="h-full w-full flex-grow">
+          {reactFlowNodes.length > 0 &&
+          workflowBuilderExecution &&
+          nodeTypes !== undefined ? (
+            <WorkflowBuilder
+              workflowId={execution.workflowId || execution.id}
+              workflowName={workflowMetadata?.name}
+              workflowDescription={workflowMetadata?.description}
+              workflowTrigger={workflowMetadata?.trigger}
+              workflowRuntime={workflowMetadata?.runtime}
+              initialNodes={reactFlowNodes}
+              initialEdges={reactFlowEdges}
+              nodeTypes={nodeTypes}
+              validateConnection={handleValidateConnection}
+              initialWorkflowExecution={workflowBuilderExecution}
+              createObjectUrl={createObjectUrl}
+              disabledWorkflow={true}
+              orgHandle={orgHandle}
             />
-          </TabsContent>
-          <TabsContent value="visualization" className="mt-0">
-            <div className="h-[calc(100vh-300px)] border rounded-md relative">
-              {reactFlowNodes.length > 0 &&
-              workflowBuilderExecution &&
-              nodeTypes !== undefined ? (
-                <WorkflowBuilder
-                  workflowId={execution.workflowId || execution.id}
-                  initialNodes={reactFlowNodes}
-                  initialEdges={reactFlowEdges}
-                  nodeTypes={nodeTypes}
-                  validateConnection={handleValidateConnection}
-                  initialWorkflowExecution={workflowBuilderExecution}
-                  createObjectUrl={createObjectUrl}
-                  disabledWorkflow={true}
-                  orgHandle={orgHandle}
-                />
-              ) : (
-                <div className="flex flex-col items-center justify-center h-full">
-                  <p className="text-muted-foreground">
-                    {isStructureOverallLoading
-                      ? "Loading workflow data..."
-                      : "No workflow structure available or still loading components."}
-                  </p>
-                </div>
-              )}
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full">
+              <p className="text-muted-foreground">
+                {isStructureOverallLoading
+                  ? "Loading workflow data..."
+                  : "No workflow structure available or still loading components."}
+              </p>
             </div>
-          </TabsContent>
-        </Tabs>
+          )}
+        </div>
       </div>
-    </InsetLayout>
+    </ReactFlowProvider>
   );
 }
