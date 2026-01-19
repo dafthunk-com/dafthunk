@@ -58,7 +58,8 @@ export interface WorkflowBuilderProps {
     triggerData?: unknown
   ) => void | (() => void | Promise<void>);
   initialWorkflowExecution?: WorkflowExecution;
-  disabled?: boolean;
+  disabledWorkflow?: boolean;
+  disabledFeedback?: boolean;
   onDeployWorkflow?: (e: React.MouseEvent) => void;
   createObjectUrl: (objectReference: ObjectReference) => string;
   expandedOutputs?: boolean;
@@ -121,7 +122,8 @@ export function WorkflowBuilder({
   validateConnection,
   executeWorkflow,
   initialWorkflowExecution,
-  disabled = false,
+  disabledWorkflow = false,
+  disabledFeedback = false,
   onDeployWorkflow,
   createObjectUrl,
   expandedOutputs = false,
@@ -232,7 +234,7 @@ export function WorkflowBuilder({
     onEdgesChangePersist: onEdgesChangeFromParent,
     validateConnection,
     createObjectUrl,
-    disabled,
+    disabled: disabledWorkflow,
   });
 
   // Apply initial workflow execution state once
@@ -479,11 +481,11 @@ export function WorkflowBuilder({
   return (
     <ReactFlowProvider>
       <WorkflowProvider
-        updateNodeData={disabled ? undefined : updateNodeData}
-        updateEdgeData={disabled ? undefined : updateEdgeData}
-        deleteEdge={disabled ? undefined : deleteEdge}
+        updateNodeData={disabledWorkflow ? undefined : updateNodeData}
+        updateEdgeData={disabledWorkflow ? undefined : updateEdgeData}
+        deleteEdge={disabledWorkflow ? undefined : deleteEdge}
         edges={edges}
-        disabled={disabled}
+        disabled={disabledWorkflow}
         expandedOutputs={expandedOutputs}
         nodeTypes={nodeTypes}
         workflowTrigger={workflowTrigger}
@@ -502,21 +504,21 @@ export function WorkflowBuilder({
               edges={edges}
               connectionValidationState={connectionValidationState}
               onNodesChange={onNodesChange}
-              onEdgesChange={disabled ? () => {} : onEdgesChange}
-              onConnect={disabled ? () => {} : onConnect}
-              onConnectStart={disabled ? () => {} : onConnectStart}
-              onConnectEnd={disabled ? () => {} : onConnectEnd}
+              onEdgesChange={disabledWorkflow ? () => {} : onEdgesChange}
+              onConnect={disabledWorkflow ? () => {} : onConnect}
+              onConnectStart={disabledWorkflow ? () => {} : onConnectStart}
+              onConnectEnd={disabledWorkflow ? () => {} : onConnectEnd}
               onNodeDoubleClick={handleNodeDoubleClick}
               onNodeDragStop={onNodeDragStop}
               onInit={setReactFlowInstance}
-              onAddNode={disabled ? undefined : handleAddNode}
+              onAddNode={disabledWorkflow ? undefined : handleAddNode}
               onAction={
-                !disabled && executeWorkflow
+                !disabledWorkflow && executeWorkflow
                   ? handleActionButtonClick
                   : undefined
               }
               onDeploy={
-                !disabled && onDeployWorkflow ? onDeployWorkflow : undefined
+                !disabledWorkflow && onDeployWorkflow ? onDeployWorkflow : undefined
               }
               workflowStatus={workflowStatus}
               workflowErrorMessage={workflowErrorMessage}
@@ -535,16 +537,16 @@ export function WorkflowBuilder({
               onToggleSidebar={toggleSidebar}
               isSidebarVisible={isSidebarVisible}
               isValidConnection={isValidConnection}
-              disabled={disabled}
+              disabled={disabledWorkflow}
               onFitToScreen={handleFitToScreen}
               selectedNodes={selectedNodes}
               selectedEdges={selectedEdges}
-              onDeleteSelected={disabled ? undefined : deleteSelected}
-              onDuplicateSelected={disabled ? undefined : duplicateSelected}
-              onApplyLayout={disabled ? undefined : applyLayout}
-              onCopySelected={disabled ? undefined : copySelected}
-              onCutSelected={disabled ? undefined : cutSelected}
-              onPasteFromClipboard={disabled ? undefined : pasteFromClipboard}
+              onDeleteSelected={disabledWorkflow ? undefined : deleteSelected}
+              onDuplicateSelected={disabledWorkflow ? undefined : duplicateSelected}
+              onApplyLayout={disabledWorkflow ? undefined : applyLayout}
+              onCopySelected={disabledWorkflow ? undefined : copySelected}
+              onCutSelected={disabledWorkflow ? undefined : cutSelected}
+              onPasteFromClipboard={disabledWorkflow ? undefined : pasteFromClipboard}
               hasClipboardData={hasClipboardData}
             />
           </div>
@@ -563,15 +565,16 @@ export function WorkflowBuilder({
                   nodes={nodes}
                   selectedNodes={selectedNodes}
                   selectedEdges={selectedEdges}
-                  onNodeUpdate={disabled ? undefined : updateNodeData}
-                  onEdgeUpdate={disabled ? undefined : updateEdgeData}
+                  onNodeUpdate={disabledWorkflow ? undefined : updateNodeData}
+                  onEdgeUpdate={disabledWorkflow ? undefined : updateEdgeData}
                   createObjectUrl={createObjectUrl}
-                  disabled={disabled}
+                  disabledWorkflow={disabledWorkflow}
+                  disabledFeedback={disabledFeedback}
                   workflowName={workflowName}
                   workflowDescription={workflowDescription}
                   workflowTrigger={workflowTrigger}
                   workflowRuntime={workflowRuntime}
-                  onWorkflowUpdate={disabled ? undefined : onWorkflowUpdate}
+                  onWorkflowUpdate={disabledWorkflow ? undefined : onWorkflowUpdate}
                   workflowStatus={workflowStatus}
                   workflowErrorMessage={workflowErrorMessage}
                   executionId={currentExecutionId}
@@ -581,7 +584,7 @@ export function WorkflowBuilder({
           )}
 
           <WorkflowNodeSelector
-            open={disabled ? false : handleIsNodeSelectorOpen}
+            open={disabledWorkflow ? false : handleIsNodeSelectorOpen}
             onSelect={handleNodeSelect}
             onClose={() => handleSetIsNodeSelectorOpen(false)}
             templates={nodeTypes}

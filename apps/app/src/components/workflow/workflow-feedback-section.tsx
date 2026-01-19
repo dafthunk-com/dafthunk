@@ -19,10 +19,12 @@ import { cn } from "@/utils/utils";
 
 interface WorkflowFeedbackSectionProps {
   executionId: string;
+  disabled?: boolean;
 }
 
 export function WorkflowFeedbackSection({
   executionId,
+  disabled = false,
 }: WorkflowFeedbackSectionProps) {
   const { user } = useAuth();
   const isDeveloperMode = user?.developerMode ?? false;
@@ -38,8 +40,18 @@ export function WorkflowFeedbackSection({
     useState<FeedbackSentimentType | null>(null);
   const [comment, setComment] = useState("");
 
-  // Initialize mode based on feedback existence
+  // Initialize mode based on feedback existence and disabled state
   useEffect(() => {
+    if (disabled) {
+      // When disabled, always show view mode (or nothing if no feedback)
+      setMode("view");
+      if (feedback) {
+        setSelectedSentiment(feedback.sentiment);
+        setComment(feedback.comment || "");
+      }
+      return;
+    }
+
     if (feedback) {
       setMode("view");
       setSelectedSentiment(feedback.sentiment);
@@ -51,7 +63,7 @@ export function WorkflowFeedbackSection({
     ) {
       setMode("input");
     }
-  }, [feedback, feedbackError]);
+  }, [feedback, feedbackError, disabled]);
 
   // Only show feedback section for users with developer mode enabled
   if (!isDeveloperMode) {
@@ -183,26 +195,28 @@ export function WorkflowFeedbackSection({
                 )}
               </p>
 
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleEdit}
-                  disabled={isLoading}
-                >
-                  Edit
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleDelete}
-                  disabled={isLoading}
-                >
-                  Delete
-                </Button>
-              </div>
+              {!disabled && (
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleEdit}
+                    disabled={isLoading}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleDelete}
+                    disabled={isLoading}
+                  >
+                    Delete
+                  </Button>
+                </div>
+              )}
             </>
-          ) : (
+          ) : !disabled ? (
             // Input/Edit mode
             <>
               <p className="text-sm text-muted-foreground">
@@ -271,6 +285,9 @@ export function WorkflowFeedbackSection({
                 )}
               </div>
             </>
+          ) : (
+            // When disabled and no feedback, show nothing
+            <p className="text-sm text-muted-foreground">No feedback</p>
           )}
         </div>
       )}

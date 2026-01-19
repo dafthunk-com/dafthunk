@@ -38,7 +38,8 @@ export interface WorkflowSidebarProps {
   onNodeUpdate?: (nodeId: string, data: Partial<WorkflowNodeType>) => void;
   onEdgeUpdate?: (edgeId: string, data: Partial<WorkflowEdgeType>) => void;
   createObjectUrl: (objectReference: ObjectReference) => string;
-  disabled?: boolean;
+  disabledWorkflow?: boolean;
+  disabledFeedback?: boolean;
   workflowName?: string;
   workflowDescription?: string;
   workflowTrigger?: WorkflowTrigger;
@@ -61,7 +62,8 @@ export function WorkflowSidebar({
   onNodeUpdate,
   onEdgeUpdate,
   createObjectUrl,
-  disabled = false,
+  disabledWorkflow = false,
+  disabledFeedback = false,
   workflowName = "",
   workflowDescription = "",
   workflowTrigger = "manual",
@@ -190,7 +192,7 @@ export function WorkflowSidebar({
           node={singleSelectedNode}
           nodes={nodes}
           onNodeUpdate={onNodeUpdate}
-          disabled={disabled}
+          disabled={disabledWorkflow}
           createObjectUrl={createObjectUrl}
         />
       )}
@@ -198,7 +200,7 @@ export function WorkflowSidebar({
         <WorkflowEdgeInspector
           edge={singleSelectedEdge}
           onEdgeUpdate={onEdgeUpdate}
-          disabled={disabled}
+          disabled={disabledWorkflow}
         />
       )}
       {totalSelected === 0 && (
@@ -233,7 +235,7 @@ export function WorkflowSidebar({
                       onChange={handleNameChange}
                       placeholder="Enter workflow name"
                       className="mt-2"
-                      disabled={disabled}
+                      disabled={disabledWorkflow}
                     />
                   </div>
                   <div>
@@ -248,7 +250,7 @@ export function WorkflowSidebar({
                       className="mt-2"
                       maxLength={256}
                       rows={3}
-                      disabled={disabled}
+                      disabled={disabledWorkflow}
                     />
                   </div>
                   <div>
@@ -258,7 +260,7 @@ export function WorkflowSidebar({
                       onValueChange={(value) =>
                         handleTriggerChange(value as WorkflowTrigger)
                       }
-                      disabled={disabled}
+                      disabled={disabledWorkflow}
                     >
                       <SelectTrigger id="workflow-trigger" className="mt-2">
                         <SelectValue placeholder="Select trigger type" />
@@ -288,7 +290,7 @@ export function WorkflowSidebar({
                       onValueChange={(value) =>
                         handleRuntimeChange(value as WorkflowRuntime)
                       }
-                      disabled={disabled}
+                      disabled={disabledWorkflow}
                     >
                       <SelectTrigger id="workflow-runtime" className="mt-2">
                         <SelectValue placeholder="Select execution mode" />
@@ -332,7 +334,10 @@ export function WorkflowSidebar({
 
           {/* Feedback Section - only show when execution completed successfully */}
           {executionId && workflowStatus === "completed" && (
-            <WorkflowFeedbackSection executionId={executionId} />
+            <WorkflowFeedbackSection
+              executionId={executionId}
+              disabled={disabledFeedback}
+            />
           )}
         </div>
       )}

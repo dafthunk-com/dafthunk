@@ -80,7 +80,7 @@ export function TemplatePreviewPage() {
           initialNodes={nodes}
           initialEdges={edges}
           nodeTypes={nodeTypes}
-          disabled={true}
+          disabledWorkflow={true}
           expandedOutputs={false}
           createObjectUrl={() => ""}
           orgHandle=""
