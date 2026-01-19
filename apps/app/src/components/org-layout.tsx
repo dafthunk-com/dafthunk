@@ -11,6 +11,7 @@ import Logs from "lucide-react/icons/logs";
 import Mail from "lucide-react/icons/mail";
 import MessageSquareText from "lucide-react/icons/message-square-text";
 import Plug from "lucide-react/icons/plug";
+import Server from "lucide-react/icons/server";
 import SquareTerminal from "lucide-react/icons/square-terminal";
 import Target from "lucide-react/icons/target";
 import Users from "lucide-react/icons/users";
@@ -124,25 +125,36 @@ export const getDashboardSidebarGroups = (
   }
 
   // Add Settings section
+  const settingsItems = [
+    {
+      title: "API Keys",
+      url: `/org/${orgHandle}/api-keys`,
+      icon: KeyRound,
+    },
+    {
+      title: "Members",
+      url: `/org/${orgHandle}/members`,
+      icon: Users,
+    },
+    {
+      title: "Billing",
+      url: `/org/${orgHandle}/billing`,
+      icon: CreditCard,
+    },
+  ];
+
+  // Add MCP Server to settings only if developer mode is enabled
+  if (developerMode) {
+    settingsItems.push({
+      title: "MCP Server",
+      url: `/org/${orgHandle}/mcp`,
+      icon: Server,
+    });
+  }
+
   groups.push({
     label: "Settings",
-    items: [
-      {
-        title: "API Keys",
-        url: `/org/${orgHandle}/api-keys`,
-        icon: KeyRound,
-      },
-      {
-        title: "Members",
-        url: `/org/${orgHandle}/members`,
-        icon: Users,
-      },
-      {
-        title: "Billing",
-        url: `/org/${orgHandle}/billing`,
-        icon: CreditCard,
-      },
-    ],
+    items: settingsItems,
   });
 
   return groups;

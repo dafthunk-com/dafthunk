@@ -236,6 +236,51 @@ export async function getOrganization(
   return result[0] || null;
 }
 
+/**
+ * Get organization settings by ID or handle
+ */
+export async function getOrganizationSettings(
+  db: ReturnType<typeof createDatabase>,
+  organizationIdOrHandle: string
+) {
+  const result = await db
+    .select({
+      mcpEnabled: organizations.mcpEnabled,
+    })
+    .from(organizations)
+    .where(getOrganizationCondition(organizationIdOrHandle))
+    .limit(1);
+
+  return result[0] || null;
+}
+
+/**
+ * Update organization settings by ID or handle
+ */
+export async function updateOrganizationSettings(
+  db: ReturnType<typeof createDatabase>,
+  organizationIdOrHandle: string,
+  settings: { mcpEnabled?: boolean }
+) {
+  const updateData: Record<string, unknown> = {
+    updatedAt: new Date(),
+  };
+
+  if (settings.mcpEnabled !== undefined) {
+    updateData.mcpEnabled = settings.mcpEnabled;
+  }
+
+  const result = await db
+    .update(organizations)
+    .set(updateData)
+    .where(getOrganizationCondition(organizationIdOrHandle))
+    .returning({
+      mcpEnabled: organizations.mcpEnabled,
+    });
+
+  return result[0] || null;
+}
+
 export function getWorkflowCondition(workflowIdOrHandle: string) {
   if (isUUID(workflowIdOrHandle)) {
     return eq(workflows.id, workflowIdOrHandle);

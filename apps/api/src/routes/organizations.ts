@@ -7,6 +7,7 @@ import type {
   CreateOrganizationResponse,
   DeleteInvitationResponse,
   DeleteOrganizationResponse,
+  GetOrganizationSettingsResponse,
   ListInvitationsResponse,
   ListMembershipsResponse,
   ListOrganizationsResponse,
@@ -14,6 +15,8 @@ import type {
   RemoveMembershipResponse,
   UpdateMembershipRequest,
   UpdateMembershipResponse,
+  UpdateOrganizationSettingsRequest,
+  UpdateOrganizationSettingsResponse,
 } from "@dafthunk/types";
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
@@ -32,7 +35,9 @@ import {
   getOrganization,
   getOrganizationInvitations,
   getOrganizationMembershipsWithUsers,
+  getOrganizationSettings,
   getUserOrganizations,
+  updateOrganizationSettings,
 } from "../db/queries";
 import { createEmailService } from "../services/email-service";
 import { getInvitationEmail } from "../services/email-templates";
@@ -496,5 +501,85 @@ organizationRoutes.delete("/:id/invitations/:invitationId", async (c) => {
     return c.json({ error: "Failed to delete invitation" }, 500);
   }
 });
+
+/**
+ * GET /api/organizations/:id/settings
+ *
+ * Get organization settings
+ */
+organizationRoutes.get("/:id/settings", async (c) => {
+  const jwtPayload = c.get("jwtPayload");
+  if (!jwtPayload) {
+    return c.json({ error: "Unauthorized" }, 401);
+  }
+
+  const db = createDatabase(c.env.DB);
+  const organizationIdOrHandle = c.req.param("id");
+
+  try {
+    const settings = await getOrganizationSettings(db, organizationIdOrHandle);
+
+    if (!settings) {
+      return c.json({ error: "Organization not found" }, 404);
+    }
+
+    const response: GetOrganizationSettingsResponse = {
+      settings: {
+        mcpEnabled: settings.mcpEnabled,
+      },
+    };
+    return c.json(response);
+  } catch (error) {
+    console.error("Error fetching organization settings:", error);
+    return c.json({ error: "Failed to fetch organization settings" }, 500);
+  }
+});
+
+/**
+ * PATCH /api/organizations/:id/settings
+ *
+ * Update organization settings
+ */
+organizationRoutes.patch(
+  "/:id/settings",
+  zValidator(
+    "json",
+    z.object({
+      mcpEnabled: z.boolean().optional(),
+    }) as z.ZodType<UpdateOrganizationSettingsRequest>
+  ),
+  async (c) => {
+    const jwtPayload = c.get("jwtPayload");
+    if (!jwtPayload) {
+      return c.json({ error: "Unauthorized" }, 401);
+    }
+
+    const db = createDatabase(c.env.DB);
+    const organizationIdOrHandle = c.req.param("id");
+    const updates = c.req.valid("json");
+
+    try {
+      const settings = await updateOrganizationSettings(
+        db,
+        organizationIdOrHandle,
+        updates
+      );
+
+      if (!settings) {
+        return c.json({ error: "Organization not found" }, 404);
+      }
+
+      const response: UpdateOrganizationSettingsResponse = {
+        settings: {
+          mcpEnabled: settings.mcpEnabled,
+        },
+      };
+      return c.json(response);
+    } catch (error) {
+      console.error("Error updating organization settings:", error);
+      return c.json({ error: "Failed to update organization settings" }, 500);
+    }
+  }
+);
 
 export default organizationRoutes;

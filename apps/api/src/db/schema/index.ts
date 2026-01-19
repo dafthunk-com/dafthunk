@@ -160,6 +160,9 @@ export const organizations = sqliteTable(
     currentPeriodStart: integer("current_period_start", { mode: "timestamp" }),
     currentPeriodEnd: integer("current_period_end", { mode: "timestamp" }),
     overageLimit: integer("overage_limit"), // null = unlimited
+    mcpEnabled: integer("mcp_enabled", { mode: "boolean" })
+      .notNull()
+      .default(true),
     createdAt: createCreatedAt(),
     updatedAt: createUpdatedAt(),
   },
@@ -172,6 +175,7 @@ export const organizations = sqliteTable(
       table.stripeSubscriptionId
     ),
     index("organizations_subscription_status_idx").on(table.subscriptionStatus),
+    index("organizations_mcp_enabled_idx").on(table.mcpEnabled),
   ]
 );
 
