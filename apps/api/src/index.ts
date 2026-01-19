@@ -22,6 +22,7 @@ import health from "./routes/health";
 import integrationRoutes from "./routes/integrations";
 import invitationRoutes from "./routes/invitations";
 import llmsRoutes from "./routes/llms";
+import mcpRoutes from "./routes/mcp";
 import oauthRoutes from "./routes/oauth";
 import objectRoutes from "./routes/objects";
 import organizationRoutes from "./routes/organizations";
@@ -99,6 +100,7 @@ app.route("/:organizationIdOrHandle/workflows", workflowRoutes);
 app.route("/:organizationIdOrHandle/objects", objectRoutes);
 app.route("/:organizationIdOrHandle/usage", usageRoutes);
 app.route("/:organizationIdOrHandle/ws", wsRoutes);
+app.route("/:organizationIdOrHandle/mcp", mcpRoutes);
 
 // Export Durable Objects
 export { Session as WorkflowSession };

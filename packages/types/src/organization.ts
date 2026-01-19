@@ -168,3 +168,23 @@ export interface DeclineInvitationResponse {
 export interface DeleteInvitationResponse {
   success: boolean;
 }
+
+/**
+ * Organization settings types
+ */
+
+export interface OrganizationSettings {
+  mcpEnabled: boolean;
+}
+
+export interface GetOrganizationSettingsResponse {
+  settings: OrganizationSettings;
+}
+
+export interface UpdateOrganizationSettingsRequest {
+  mcpEnabled?: boolean;
+}
+
+export interface UpdateOrganizationSettingsResponse {
+  settings: OrganizationSettings;
+}

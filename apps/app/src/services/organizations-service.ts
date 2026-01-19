@@ -9,15 +9,19 @@ import type {
   DeclineInvitationResponse,
   DeleteInvitationResponse,
   DeleteOrganizationResponse,
+  GetOrganizationSettingsResponse,
   Invitation,
   ListInvitationsResponse,
   ListMembershipsResponse,
   ListOrganizationsResponse,
   ListUserInvitationsResponse,
+  OrganizationSettings,
   RemoveMembershipRequest,
   RemoveMembershipResponse,
   UpdateMembershipRequest,
   UpdateMembershipResponse,
+  UpdateOrganizationSettingsRequest,
+  UpdateOrganizationSettingsResponse,
   UserInvitation,
 } from "@dafthunk/types";
 import useSWR from "swr";
@@ -323,4 +327,55 @@ export const declineInvitation = async (
   );
 
   return response.success;
+};
+
+// Organization Settings Services
+
+interface UseOrganizationSettings {
+  settings: OrganizationSettings | null;
+  settingsError: Error | null;
+  isSettingsLoading: boolean;
+  mutateSettings: () => Promise<unknown>;
+}
+
+/**
+ * Hook to get organization settings
+ */
+export const useOrganizationSettings = (
+  organizationIdOrHandle: string
+): UseOrganizationSettings => {
+  const swrKey = organizationIdOrHandle
+    ? `${API_ENDPOINT_BASE}/${organizationIdOrHandle}/settings`
+    : null;
+
+  const { data, error, isLoading, mutate } = useSWR(swrKey, async () => {
+    if (!swrKey) return null;
+    const response = await makeRequest<GetOrganizationSettingsResponse>(swrKey);
+    return response.settings;
+  });
+
+  return {
+    settings: data || null,
+    settingsError: error || null,
+    isSettingsLoading: isLoading,
+    mutateSettings: mutate,
+  };
+};
+
+/**
+ * Update organization settings
+ */
+export const updateOrganizationSettings = async (
+  organizationIdOrHandle: string,
+  request: UpdateOrganizationSettingsRequest
+): Promise<UpdateOrganizationSettingsResponse> => {
+  const response = await makeRequest<UpdateOrganizationSettingsResponse>(
+    `${API_ENDPOINT_BASE}/${organizationIdOrHandle}/settings`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(request),
+    }
+  );
+
+  return response;
 };
