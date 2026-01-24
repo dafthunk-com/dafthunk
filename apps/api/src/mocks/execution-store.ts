@@ -13,7 +13,7 @@ import type {
   ExecutionStore,
   ListExecutionsOptions,
   SaveExecutionRecord,
-} from "../stores/execution-store";
+} from "../runtime/ports";
 
 export class MockExecutionStore implements ExecutionStore {
   private executions: Map<string, WorkflowExecution> = new Map();

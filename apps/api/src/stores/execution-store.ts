@@ -1,87 +1,12 @@
-import type {
-  ExecutionStatusType,
-  NodeExecution,
-  WorkflowExecution,
-} from "@dafthunk/types";
+import type { ExecutionStatusType, WorkflowExecution } from "@dafthunk/types";
 
 import type { Bindings } from "../context";
-
-/**
- * Execution metadata row structure
- */
-export interface ExecutionRow {
-  id: string;
-  workflowId: string;
-  deploymentId: string | null;
-  organizationId: string;
-  status: ExecutionStatusType;
-  error: string | null;
-  startedAt: Date | null;
-  endedAt: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
-  usage: number;
-}
-
-/**
- * Data required to save an execution record
- */
-export interface SaveExecutionRecord {
-  id: string;
-  workflowId: string;
-  deploymentId?: string;
-  userId: string;
-  organizationId: string;
-  status: ExecutionStatusType;
-  nodeExecutions: NodeExecution[];
-  error?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
-  startedAt?: Date;
-  endedAt?: Date;
-}
-
-/**
- * Options for listing executions
- */
-export interface ListExecutionsOptions {
-  workflowId?: string;
-  deploymentId?: string;
-  limit?: number;
-  offset?: number;
-}
-
-/**
- * Interface for execution storage operations.
- * Handles saving, retrieving, and listing workflow executions.
- */
-export interface ExecutionStore {
-  /**
-   * Save execution metadata and full data.
-   */
-  save(record: SaveExecutionRecord): Promise<WorkflowExecution>;
-
-  /**
-   * Get execution metadata by ID.
-   */
-  get(id: string, organizationId: string): Promise<ExecutionRow | undefined>;
-
-  /**
-   * Get execution metadata and full data by ID.
-   */
-  getWithData(
-    id: string,
-    organizationId: string
-  ): Promise<(ExecutionRow & { data: WorkflowExecution }) | undefined>;
-
-  /**
-   * List executions with optional filtering and pagination.
-   */
-  list(
-    organizationId: string,
-    options?: ListExecutionsOptions
-  ): Promise<ExecutionRow[]>;
-}
+import type {
+  ExecutionRow,
+  ExecutionStore,
+  ListExecutionsOptions,
+  SaveExecutionRecord,
+} from "../runtime/ports";
 
 /**
  * Cloudflare implementation of ExecutionStore.

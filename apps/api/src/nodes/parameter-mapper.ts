@@ -3,7 +3,7 @@ import type {
   ObjectReference,
 } from "@dafthunk/types";
 
-import type { ObjectStore } from "../stores/object-store";
+import type { ObjectStore } from "../runtime/ports";
 import {
   isObjectReference,
   AudioParameter as NodeAudioParameter,

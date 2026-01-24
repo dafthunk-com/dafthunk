@@ -7,11 +7,9 @@ import { Hono } from "hono";
 
 import { jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
+import type { ExecutionRow } from "../runtime/ports";
 import { DeploymentStore } from "../stores/deployment-store";
-import {
-  CloudflareExecutionStore,
-  type ExecutionRow,
-} from "../stores/execution-store";
+import { CloudflareExecutionStore } from "../stores/execution-store";
 import { WorkflowStore } from "../stores/workflow-store";
 
 const dashboard = new Hono<ApiContext>();

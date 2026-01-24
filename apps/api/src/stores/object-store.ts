@@ -2,92 +2,11 @@ import type { ObjectReference } from "@dafthunk/types";
 import { AwsClient } from "aws4fetch";
 import { v7 as uuid } from "uuid";
 
-export interface PresignedUrlConfig {
-  accountId: string;
-  bucketName: string;
-  accessKeyId: string;
-  secretAccessKey: string;
-}
-
-/**
- * Information about a stored object.
- */
-export interface ObjectInfo {
-  id: string;
-  mimeType: string;
-  size: number;
-  createdAt: Date;
-  organizationId: string;
-  executionId?: string;
-}
-
-/**
- * Interface for object storage operations.
- * Handles writing, reading, and managing binary objects.
- */
-export interface ObjectStore {
-  /**
-   * Write an object with auto-generated ID.
-   */
-  writeObject(
-    data: Uint8Array,
-    mimeType: string,
-    organizationId: string,
-    executionId?: string,
-    filename?: string
-  ): Promise<ObjectReference>;
-
-  /**
-   * Write an object with a specific ID.
-   */
-  writeObjectWithId(
-    id: string,
-    data: Uint8Array,
-    mimeType: string,
-    organizationId: string,
-    executionId?: string,
-    filename?: string
-  ): Promise<ObjectReference>;
-
-  /**
-   * Read an object by reference.
-   */
-  readObject(reference: ObjectReference): Promise<{
-    data: Uint8Array;
-    metadata: Record<string, string>;
-  } | null>;
-
-  /**
-   * Delete an object by reference.
-   */
-  deleteObject(reference: ObjectReference): Promise<void>;
-
-  /**
-   * Generate a presigned URL for downloading an object.
-   */
-  getPresignedUrl(
-    reference: ObjectReference,
-    expiresInSeconds?: number
-  ): Promise<string>;
-
-  /**
-   * Generate a presigned URL for uploading an object.
-   */
-  getPresignedUploadUrl(
-    reference: ObjectReference,
-    expiresInSeconds?: number
-  ): Promise<string>;
-
-  /**
-   * List all objects for an organization.
-   */
-  listObjects(organizationId: string): Promise<ObjectInfo[]>;
-
-  /**
-   * Configure S3-compatible credentials for generating presigned URLs.
-   */
-  configurePresignedUrls(config: PresignedUrlConfig): void;
-}
+import type {
+  ObjectInfo,
+  ObjectStore,
+  PresignedUrlConfig,
+} from "../runtime/ports";
 
 /**
  * R2 implementation of ObjectStore.

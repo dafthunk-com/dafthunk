@@ -14,9 +14,7 @@ import {
   nodeToApiParameter,
 } from "../nodes/parameter-mapper";
 import type { EmailMessage, HttpRequest } from "../nodes/types";
-import type { MonitoringService } from "../services/monitoring-service";
-import type { ExecutionStore } from "../stores/execution-store";
-import type { ObjectStore } from "../stores/object-store";
+import type { ExecutionStore, MonitoringService, ObjectStore } from "./ports";
 import { validateWorkflow } from "../utils/workflows";
 import type { CreditService } from "./credit-service";
 import type { ResourceProvider } from "./resource-provider";

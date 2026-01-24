@@ -10,7 +10,7 @@ import type {
   WorkflowMode,
 } from "@dafthunk/types";
 
-import type { ObjectStore } from "../stores/object-store";
+import type { ObjectStore } from "../runtime/ports";
 import { BaseToolRegistry } from "./base-tool-registry";
 import { ToolReference } from "./tool-types";
 
