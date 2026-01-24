@@ -10,6 +10,7 @@ import type {
   WorkflowMode,
 } from "@dafthunk/types";
 
+import type { ObjectStore } from "../stores/object-store";
 import { BaseToolRegistry } from "./base-tool-registry";
 import { ToolReference } from "./tool-types";
 
@@ -189,6 +190,8 @@ export interface NodeContext {
   queueMessage?: QueueMessage;
   scheduledTrigger?: ScheduledTrigger;
   toolRegistry?: BaseToolRegistry;
+  // Object storage abstraction for reading/writing blobs
+  objectStore?: ObjectStore;
   // Callback-based access to sensitive data (improves security and isolation)
   getSecret?: (secretName: string) => Promise<string | undefined>;
   getIntegration: (integrationId: string) => Promise<IntegrationInfo>;

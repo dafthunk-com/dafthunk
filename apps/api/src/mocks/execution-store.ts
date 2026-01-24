@@ -11,10 +11,11 @@ import type { WorkflowExecution } from "@dafthunk/types";
 import type {
   ExecutionRow,
   ExecutionStore,
+  ListExecutionsOptions,
   SaveExecutionRecord,
 } from "../stores/execution-store";
 
-export class MockExecutionStore implements Partial<ExecutionStore> {
+export class MockExecutionStore implements ExecutionStore {
   private executions: Map<string, WorkflowExecution> = new Map();
   private rows: Map<string, ExecutionRow> = new Map();
 
@@ -44,7 +45,7 @@ export class MockExecutionStore implements Partial<ExecutionStore> {
       id: record.id,
       workflowId: record.workflowId,
       deploymentId: record.deploymentId,
-      status: record.status as any,
+      status: record.status as WorkflowExecution["status"],
       nodeExecutions: record.nodeExecutions,
       error: record.error,
       startedAt: record.startedAt,
@@ -62,6 +63,53 @@ export class MockExecutionStore implements Partial<ExecutionStore> {
     return row?.organizationId === organizationId ? row : undefined;
   }
 
+  async getWithData(
+    id: string,
+    organizationId: string
+  ): Promise<(ExecutionRow & { data: WorkflowExecution }) | undefined> {
+    const row = this.rows.get(id);
+    if (!row || row.organizationId !== organizationId) {
+      return undefined;
+    }
+    const execution = this.executions.get(id);
+    if (!execution) {
+      return undefined;
+    }
+    return {
+      ...row,
+      data: execution,
+    };
+  }
+
+  async list(
+    organizationId: string,
+    options?: ListExecutionsOptions
+  ): Promise<ExecutionRow[]> {
+    let results = Array.from(this.rows.values()).filter(
+      (row) => row.organizationId === organizationId
+    );
+
+    if (options?.workflowId) {
+      results = results.filter((row) => row.workflowId === options.workflowId);
+    }
+
+    if (options?.deploymentId) {
+      results = results.filter(
+        (row) => row.deploymentId === options.deploymentId
+      );
+    }
+
+    // Sort by createdAt descending (newest first)
+    results.sort(
+      (a, b) => (b.createdAt?.getTime() ?? 0) - (a.createdAt?.getTime() ?? 0)
+    );
+
+    const offset = options?.offset ?? 0;
+    const limit = options?.limit ?? 20;
+
+    return results.slice(offset, offset + limit);
+  }
+
   /**
    * Get all saved executions for test verification
    */
@@ -74,5 +122,6 @@ export class MockExecutionStore implements Partial<ExecutionStore> {
    */
   clear(): void {
     this.executions.clear();
+    this.rows.clear();
   }
 }

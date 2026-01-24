@@ -11,22 +11,59 @@ import {
 import type { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
 import type { EmailMessage, HttpRequest, NodeContext } from "../nodes/types";
 import { getProvider } from "../oauth";
+import type { ObjectStore } from "../stores/object-store";
 import type { IntegrationData } from "./types";
 
 /**
+ * Interface for providing organization resources to workflow nodes.
+ * Handles initialization, context creation for nodes and tools.
+ */
+export interface ResourceProvider {
+  /**
+   * Preloads all organization secrets and integrations for synchronous access.
+   */
+  initialize(organizationId: string): Promise<void>;
+
+  /**
+   * Creates a NodeContext for node execution with access to secrets and integrations.
+   */
+  createNodeContext(
+    nodeId: string,
+    workflowId: string,
+    organizationId: string,
+    inputs: Record<string, unknown>,
+    httpRequest?: HttpRequest,
+    emailMessage?: EmailMessage,
+    queueMessage?: QueueMessage,
+    scheduledTrigger?: ScheduledTrigger,
+    deploymentId?: string
+  ): NodeContext;
+
+  /**
+   * Creates a NodeContext for tool execution (system-level, no org resources).
+   */
+  createToolContext(
+    nodeId: string,
+    inputs: Record<string, unknown>
+  ): NodeContext;
+}
+
+/**
+ * Cloudflare implementation of ResourceProvider.
  * Provides unified access to organization resources (secrets and integrations).
  * Hides complexity of preloading, encryption/decryption, and token refresh.
  *
  * Deep module: Simple API that manages rich internal logic for resource access.
  */
-export class ResourceProvider {
+export class CloudflareResourceProvider implements ResourceProvider {
   private organizationId: string | null = null;
   private secrets: Record<string, string> = {};
   private integrations: Record<string, IntegrationData> = {};
 
   constructor(
     private env: Bindings,
-    private toolRegistry: CloudflareToolRegistry
+    private toolRegistry: CloudflareToolRegistry,
+    private objectStore: ObjectStore
   ) {}
 
   /**
@@ -153,6 +190,7 @@ export class ResourceProvider {
       scheduledTrigger,
       onProgress: () => {},
       toolRegistry: this.toolRegistry,
+      objectStore: this.objectStore,
       // Callback-based access to secrets (lazy, secure)
       getSecret: async (secretName: string) => {
         return this.secrets?.[secretName];
@@ -205,6 +243,7 @@ export class ResourceProvider {
       mode: "dev",
       inputs,
       toolRegistry: this.toolRegistry,
+      objectStore: this.objectStore,
       // Tool executions don't have access to organization secrets/integrations
       getSecret: async (secretName: string) => {
         throw new Error(

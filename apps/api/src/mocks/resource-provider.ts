@@ -5,17 +5,22 @@
  * Provides empty secrets and integrations for testing workflows that don't need them.
  */
 
+import type { QueueMessage, ScheduledTrigger } from "@dafthunk/types";
+
 import type { Bindings } from "../context";
-import type { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
+import type { BaseToolRegistry } from "../nodes/base-tool-registry";
 import type { EmailMessage, HttpRequest, NodeContext } from "../nodes/types";
+import type { ResourceProvider } from "../runtime/resource-provider";
+import type { ObjectStore } from "../stores/object-store";
 
 /**
  * Minimal mock that avoids database access
  */
-export class MockResourceProvider {
+export class MockResourceProvider implements ResourceProvider {
   constructor(
     private env: Bindings,
-    private toolRegistry: CloudflareToolRegistry
+    private toolRegistry: BaseToolRegistry,
+    private objectStore: ObjectStore
   ) {}
 
   /**
@@ -34,18 +39,25 @@ export class MockResourceProvider {
     organizationId: string,
     inputs: Record<string, unknown>,
     httpRequest?: HttpRequest,
-    emailMessage?: EmailMessage
+    emailMessage?: EmailMessage,
+    queueMessage?: QueueMessage,
+    scheduledTrigger?: ScheduledTrigger,
+    deploymentId?: string
   ): NodeContext {
     return {
       nodeId,
       workflowId,
       organizationId,
-      mode: "dev",
+      mode: deploymentId ? "prod" : "dev",
+      deploymentId,
       inputs,
       httpRequest,
       emailMessage,
+      queueMessage,
+      scheduledTrigger,
       onProgress: () => {},
       toolRegistry: this.toolRegistry,
+      objectStore: this.objectStore,
       getSecret: async (_secretName: string) => {
         return undefined;
       },
@@ -72,6 +84,7 @@ export class MockResourceProvider {
       mode: "dev",
       inputs,
       toolRegistry: this.toolRegistry,
+      objectStore: this.objectStore,
       getSecret: async (secretName: string) => {
         throw new Error(
           `Secret access not available in tool execution context. Secret '${secretName}' cannot be accessed.`

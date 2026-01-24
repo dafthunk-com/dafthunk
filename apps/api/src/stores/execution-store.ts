@@ -52,6 +52,39 @@ export interface ListExecutionsOptions {
 }
 
 /**
+ * Interface for execution storage operations.
+ * Handles saving, retrieving, and listing workflow executions.
+ */
+export interface ExecutionStore {
+  /**
+   * Save execution metadata and full data.
+   */
+  save(record: SaveExecutionRecord): Promise<WorkflowExecution>;
+
+  /**
+   * Get execution metadata by ID.
+   */
+  get(id: string, organizationId: string): Promise<ExecutionRow | undefined>;
+
+  /**
+   * Get execution metadata and full data by ID.
+   */
+  getWithData(
+    id: string,
+    organizationId: string
+  ): Promise<(ExecutionRow & { data: WorkflowExecution }) | undefined>;
+
+  /**
+   * List executions with optional filtering and pagination.
+   */
+  list(
+    organizationId: string,
+    options?: ListExecutionsOptions
+  ): Promise<ExecutionRow[]>;
+}
+
+/**
+ * Cloudflare implementation of ExecutionStore.
  * Manages execution storage across Analytics Engine and R2.
  *
  * Architecture:
@@ -62,7 +95,7 @@ export interface ListExecutionsOptions {
  * - `get()` / `getWithData()` → R2 (fast, immediate consistency)
  * - `list()` → Analytics Engine (powerful querying/filtering)
  */
-export class ExecutionStore {
+export class CloudflareExecutionStore implements ExecutionStore {
   constructor(private env: Bindings) {}
 
   /**

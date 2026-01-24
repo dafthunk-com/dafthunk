@@ -21,8 +21,8 @@
 export type { RuntimeDependencies, RuntimeParams } from "./base-runtime";
 export { BaseRuntime } from "./base-runtime";
 // Credit service for compute usage tracking
-export type { CreditCheckParams } from "./credit-service";
-export { CreditService } from "./credit-service";
+export type { CreditCheckParams, CreditService } from "./credit-service";
+export { CloudflareCreditService } from "./credit-service";
 // Runtime interface and implementations
 export type { Runtime } from "./types";
 export { WorkflowRuntime } from "./workflow-runtime";

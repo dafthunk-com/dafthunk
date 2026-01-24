@@ -44,9 +44,11 @@ import {
   type RuntimeDependencies,
   type RuntimeParams,
 } from "../runtime/base-runtime";
+import { MockCreditService } from "./credit-service";
 import { MockExecutionStore } from "./execution-store";
 import { MockMonitoringService } from "./monitoring-service";
 import { MockNodeRegistry } from "./node-registry";
+import { MockObjectStore } from "./object-store";
 import { MockResourceProvider } from "./resource-provider";
 import { MockToolRegistry } from "./tool-registry";
 
@@ -117,25 +119,28 @@ class MockWorkflowEntrypoint extends WorkflowEntrypoint<
 
     // Create mock dependencies
     const nodeRegistry = new MockNodeRegistry(env, true);
+    const objectStore = new MockObjectStore();
 
     // Create tool registry with factory function
     // eslint-disable-next-line prefer-const -- circular dependency pattern requires let
     let resourceProvider: MockResourceProvider;
-    const toolRegistry: any = new MockToolRegistry(
+    const toolRegistry = new MockToolRegistry(
       nodeRegistry,
       (nodeId: string, inputs: Record<string, any>) =>
         resourceProvider.createToolContext(nodeId, inputs)
     );
 
-    // Create MockResourceProvider with test tool registry (no database access)
-    resourceProvider = new MockResourceProvider(env, toolRegistry);
+    // Create MockResourceProvider with test tool registry and object store
+    resourceProvider = new MockResourceProvider(env, toolRegistry, objectStore);
 
     // Create test-friendly dependencies
     const dependencies: RuntimeDependencies = {
       nodeRegistry,
-      resourceProvider: resourceProvider as any,
-      executionStore: new MockExecutionStore() as any,
+      resourceProvider,
+      executionStore: new MockExecutionStore(),
+      objectStore,
       monitoringService: new MockMonitoringService(),
+      creditService: new MockCreditService(),
     };
 
     // Create runtime with dependencies

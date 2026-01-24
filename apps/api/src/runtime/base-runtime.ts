@@ -7,23 +7,19 @@ import type {
   WorkflowExecution,
 } from "@dafthunk/types";
 
-import { Bindings } from "../context";
+import type { Bindings } from "../context";
 import { BaseNodeRegistry } from "../nodes/base-node-registry";
-import { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
 import {
   apiToNodeParameter,
   nodeToApiParameter,
 } from "../nodes/parameter-mapper";
-import { EmailMessage, HttpRequest } from "../nodes/types";
-import {
-  MonitoringService,
-  WorkflowSessionMonitoringService,
-} from "../services/monitoring-service";
-import { ExecutionStore } from "../stores/execution-store";
-import { ObjectStore } from "../stores/object-store";
+import type { EmailMessage, HttpRequest } from "../nodes/types";
+import type { MonitoringService } from "../services/monitoring-service";
+import type { ExecutionStore } from "../stores/execution-store";
+import type { ObjectStore } from "../stores/object-store";
 import { validateWorkflow } from "../utils/workflows";
-import { CreditService } from "./credit-service";
-import { ResourceProvider } from "./resource-provider";
+import type { CreditService } from "./credit-service";
+import type { ResourceProvider } from "./resource-provider";
 import type {
   ExecutionLevel,
   ExecutionState,
@@ -61,15 +57,17 @@ export interface RuntimeParams {
 }
 
 /**
- * Injectable dependencies for BaseRuntime.
- * Allows overriding default implementations for testing.
+ * Required dependencies for BaseRuntime.
+ * All dependencies must be provided - no defaults are created internally.
+ * Use factory methods (e.g., WorkflowRuntime.create()) for production setup.
  */
 export interface RuntimeDependencies {
-  nodeRegistry?: BaseNodeRegistry;
-  resourceProvider?: ResourceProvider;
-  executionStore?: ExecutionStore;
-  monitoringService?: MonitoringService;
-  creditService?: CreditService;
+  nodeRegistry: BaseNodeRegistry;
+  resourceProvider: ResourceProvider;
+  executionStore: ExecutionStore;
+  objectStore: ObjectStore;
+  monitoringService: MonitoringService;
+  creditService: CreditService;
 }
 
 /**
@@ -91,58 +89,23 @@ export interface RuntimeDependencies {
  * - monitoringService: Sends real-time execution updates
  */
 export abstract class BaseRuntime {
-  protected nodeRegistry: BaseNodeRegistry;
-  protected resourceProvider: ResourceProvider;
-  protected executionStore: ExecutionStore;
-  protected monitoringService: MonitoringService;
-  protected creditService: CreditService;
-  protected env: Bindings;
+  protected readonly nodeRegistry: BaseNodeRegistry;
+  protected readonly resourceProvider: ResourceProvider;
+  protected readonly executionStore: ExecutionStore;
+  protected readonly objectStore: ObjectStore;
+  protected readonly monitoringService: MonitoringService;
+  protected readonly creditService: CreditService;
+  protected readonly env: Bindings;
   protected userPlan?: string;
 
-  constructor(env: Bindings, dependencies?: RuntimeDependencies) {
+  constructor(env: Bindings, dependencies: RuntimeDependencies) {
     this.env = env;
-
-    // Use injected dependencies or create defaults
-    // Note: We can't use CloudflareNodeRegistry here directly because importing it
-    // would pull in all node types (including geotiff with node:https).
-    // Instead, we require nodeRegistry to be provided when using BaseRuntime.
-    if (!dependencies?.nodeRegistry) {
-      throw new Error(
-        "BaseRuntime requires a nodeRegistry to be provided via dependencies. " +
-          "Use WorkflowRuntime for production or MockRuntime for tests."
-      );
-    }
     this.nodeRegistry = dependencies.nodeRegistry;
-
-    if (dependencies?.resourceProvider) {
-      this.resourceProvider = dependencies.resourceProvider;
-    } else {
-      // Create tool registry with a factory function for tool contexts
-      // We'll pass this to ResourceProvider constructor
-      let resourceProvider: ResourceProvider;
-      const toolRegistry = new CloudflareToolRegistry(
-        this.nodeRegistry,
-        (nodeId: string, inputs: Record<string, any>) =>
-          resourceProvider.createToolContext(nodeId, inputs)
-      );
-
-      // Create ResourceProvider with toolRegistry
-      this.resourceProvider = resourceProvider = new ResourceProvider(
-        env,
-        toolRegistry
-      );
-    }
-
-    this.executionStore =
-      dependencies?.executionStore ?? new ExecutionStore(env);
-
-    this.monitoringService =
-      dependencies?.monitoringService ??
-      new WorkflowSessionMonitoringService(env.WORKFLOW_SESSION);
-
-    this.creditService =
-      dependencies?.creditService ??
-      new CreditService(env.KV, env.CLOUDFLARE_ENV === "development");
+    this.resourceProvider = dependencies.resourceProvider;
+    this.executionStore = dependencies.executionStore;
+    this.objectStore = dependencies.objectStore;
+    this.monitoringService = dependencies.monitoringService;
+    this.creditService = dependencies.creditService;
   }
 
   /**
@@ -668,7 +631,6 @@ export abstract class BaseRuntime {
     }
 
     // Transform inputs for node execution
-    const objectStore = new ObjectStore(this.env.RESSOURCES);
     const processedInputs: Record<string, any> = {};
 
     for (const [name, value] of Object.entries(inputs)) {
@@ -677,14 +639,16 @@ export abstract class BaseRuntime {
 
       if (Array.isArray(value)) {
         const transformedArray = await Promise.all(
-          value.map((v) => apiToNodeParameter(parameterType, v, objectStore))
+          value.map((v) =>
+            apiToNodeParameter(parameterType, v, this.objectStore)
+          )
         );
         processedInputs[name] = transformedArray;
       } else {
         processedInputs[name] = await apiToNodeParameter(
           parameterType,
           value,
-          objectStore
+          this.objectStore
         );
       }
     }
@@ -723,7 +687,7 @@ export abstract class BaseRuntime {
                 nodeToApiParameter(
                   parameterType,
                   v,
-                  objectStore,
+                  this.objectStore,
                   context.organizationId,
                   context.executionId
                 )
@@ -734,7 +698,7 @@ export abstract class BaseRuntime {
             outputsForRuntime[name] = await nodeToApiParameter(
               parameterType,
               value,
-              objectStore,
+              this.objectStore,
               context.organizationId,
               context.executionId
             );

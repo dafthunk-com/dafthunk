@@ -19,10 +19,26 @@ export interface CreditCheckParams {
 }
 
 /**
- * Credit service for managing compute credit checks and usage tracking.
+ * Interface for credit management operations.
+ * Implementations handle compute credit checks and usage tracking.
+ */
+export interface CreditService {
+  /**
+   * Check if organization has enough credits for workflow execution.
+   */
+  hasEnoughCredits(params: CreditCheckParams): Promise<boolean>;
+
+  /**
+   * Record compute usage for an organization.
+   */
+  recordUsage(organizationId: string, usage: number): Promise<void>;
+}
+
+/**
+ * Cloudflare implementation of CreditService.
  * Uses Cloudflare KV for storing organization usage counters.
  */
-export class CreditService {
+export class CloudflareCreditService implements CreditService {
   constructor(
     private readonly kv: KVNamespace,
     private readonly isDevelopment: boolean = false

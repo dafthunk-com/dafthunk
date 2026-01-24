@@ -8,8 +8,10 @@ import { Hono } from "hono";
 import { jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
 import { DeploymentStore } from "../stores/deployment-store";
-import type { ExecutionRow } from "../stores/execution-store";
-import { ExecutionStore } from "../stores/execution-store";
+import {
+  CloudflareExecutionStore,
+  type ExecutionRow,
+} from "../stores/execution-store";
 import { WorkflowStore } from "../stores/workflow-store";
 
 const dashboard = new Hono<ApiContext>();
@@ -25,7 +27,7 @@ dashboard.use("*", jwtMiddleware);
 dashboard.get("/", async (c) => {
   const organizationId = c.get("organizationId")!;
 
-  const executionStore = new ExecutionStore(c.env);
+  const executionStore = new CloudflareExecutionStore(c.env);
   const workflowStore = new WorkflowStore(c.env);
   const deploymentStore = new DeploymentStore(c.env);
 

@@ -29,13 +29,15 @@ import type { Bindings } from "../context";
 import { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
 import { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
 import { WorkflowSessionMonitoringService } from "../services/monitoring-service";
-import { ExecutionStore } from "../stores/execution-store";
+import { CloudflareExecutionStore } from "../stores/execution-store";
+import { R2ObjectStore } from "../stores/object-store";
 import {
   BaseRuntime,
   type RuntimeDependencies,
   type RuntimeParams,
 } from "./base-runtime";
-import { ResourceProvider } from "./resource-provider";
+import { CloudflareCreditService } from "./credit-service";
+import { CloudflareResourceProvider } from "./resource-provider";
 
 /**
  * Worker-based runtime with direct execution (no durable steps).
@@ -77,25 +79,37 @@ export class WorkerRuntime extends BaseRuntime {
     // Create production dependencies
     const nodeRegistry = new CloudflareNodeRegistry(env, true);
 
+    // Create object store for blob storage
+    const objectStore = new R2ObjectStore(env.RESSOURCES);
+
     // Create tool registry with factory function
     // eslint-disable-next-line prefer-const -- circular dependency pattern requires let
-    let resourceProvider: ResourceProvider;
+    let resourceProvider: CloudflareResourceProvider;
     const toolRegistry = new CloudflareToolRegistry(
       nodeRegistry,
       (nodeId: string, inputs: Record<string, any>) =>
         resourceProvider.createToolContext(nodeId, inputs)
     );
 
-    // Create ResourceProvider with production tool registry
-    resourceProvider = new ResourceProvider(env, toolRegistry);
+    // Create CloudflareResourceProvider with production tool registry and object store
+    resourceProvider = new CloudflareResourceProvider(
+      env,
+      toolRegistry,
+      objectStore
+    );
 
     // Create production-ready dependencies
     const dependencies: RuntimeDependencies = {
       nodeRegistry,
       resourceProvider,
-      executionStore: new ExecutionStore(env),
+      executionStore: new CloudflareExecutionStore(env),
+      objectStore,
       monitoringService: new WorkflowSessionMonitoringService(
         env.WORKFLOW_SESSION
+      ),
+      creditService: new CloudflareCreditService(
+        env.KV,
+        env.CLOUDFLARE_ENV === "development"
       ),
     };
 
