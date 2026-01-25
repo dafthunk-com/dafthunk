@@ -8,13 +8,23 @@
  * - Runtime defines what it needs (interfaces)
  * - Stores/Services provide implementations
  * - Dependency arrow points toward runtime, not away from it
+ *
+ * This file is designed to have ZERO external dependencies except @dafthunk/types,
+ * making it extractable to a separate package.
  */
 
 import type {
   ExecutionStatusType,
+  Node,
   NodeExecution,
+  NodeType,
   ObjectReference,
+  ParameterValue as ApiParameterValue,
+  QueueMessage,
+  ScheduledTrigger,
+  Workflow,
   WorkflowExecution,
+  WorkflowMode,
 } from "@dafthunk/types";
 
 // =============================================================================
@@ -211,4 +221,237 @@ export interface MonitoringService {
     sessionId: string | undefined,
     execution: WorkflowExecution
   ): Promise<void>;
+}
+
+// =============================================================================
+// NODE CONTEXT & TRIGGERS
+// =============================================================================
+
+/**
+ * HTTP request data available to trigger nodes.
+ */
+export interface HttpRequest {
+  url?: string;
+  path?: string;
+  method?: string;
+  headers?: Record<string, string>;
+  query?: Record<string, string>;
+  queryParams?: Record<string, string>;
+  body?: BlobParameter;
+}
+
+/**
+ * Email message data available to email trigger nodes.
+ */
+export interface EmailMessage {
+  from: string;
+  to: string;
+  headers: Record<string, string>;
+  raw: string;
+}
+
+/**
+ * Generic blob parameter type for binary data.
+ */
+export interface BlobParameter {
+  data: Uint8Array;
+  mimeType: string;
+  filename?: string;
+}
+
+/**
+ * Minimal integration information exposed to nodes.
+ * Token is automatically refreshed if expired when accessed via getIntegration.
+ */
+export interface IntegrationInfo {
+  id: string;
+  name: string;
+  provider: string;
+  token: string;
+  metadata?: Record<string, unknown>;
+}
+
+/**
+ * Context passed to each node during execution.
+ * Provides access to inputs, secrets, integrations, and platform services.
+ */
+export interface NodeContext {
+  nodeId: string;
+  workflowId: string;
+  organizationId: string;
+  mode: WorkflowMode;
+  deploymentId?: string;
+  inputs: Record<string, unknown>;
+  onProgress?: (progress: number) => void;
+  httpRequest?: HttpRequest;
+  emailMessage?: EmailMessage;
+  queueMessage?: QueueMessage;
+  scheduledTrigger?: ScheduledTrigger;
+  toolRegistry?: ToolRegistry;
+  objectStore?: ObjectStore;
+  getSecret?: (secretName: string) => Promise<string | undefined>;
+  getIntegration: (integrationId: string) => Promise<IntegrationInfo>;
+}
+
+// =============================================================================
+// NODE REGISTRY
+// =============================================================================
+
+/**
+ * Interface for executable node instances.
+ * This is what the runtime calls to execute a node.
+ */
+export interface ExecutableNode {
+  readonly node: Node;
+  execute(context: NodeContext): Promise<NodeExecution>;
+}
+
+/**
+ * Interface for node type resolution and instantiation.
+ * Runtime uses this to look up node types and create executable instances.
+ */
+export interface NodeRegistry {
+  /** Get metadata for a node type */
+  getNodeType(nodeType: string): NodeType;
+
+  /** Create an executable instance from a node definition */
+  createExecutableNode(node: Node): ExecutableNode | undefined;
+}
+
+/**
+ * Interface for tool registry (function calling support).
+ * Provides tool definitions for LLM nodes.
+ */
+export interface ToolRegistry {
+  getToolDefinitions(references: ToolReference[]): Promise<ToolDefinition[]>;
+}
+
+/**
+ * Reference to a tool for function calling.
+ */
+export interface ToolReference {
+  type: string;
+  identifier: string;
+}
+
+/**
+ * Tool definition for LLM function calling.
+ */
+export interface ToolDefinition {
+  name: string;
+  description: string;
+  parameters: Record<string, unknown>;
+}
+
+// =============================================================================
+// PARAMETER MAPPER
+// =============================================================================
+
+/**
+ * Interface for transforming values between API format and node format.
+ * Handles blob storage/retrieval during transformation.
+ */
+export interface ParameterMapper {
+  /**
+   * Transform node output to API format.
+   * May write blobs to ObjectStore and return references.
+   */
+  nodeToApi(
+    type: string,
+    value: unknown,
+    organizationId: string,
+    executionId?: string
+  ): Promise<ApiParameterValue>;
+
+  /**
+   * Transform API input to node format.
+   * May read blobs from ObjectStore and return data.
+   */
+  apiToNode(type: string, value: ApiParameterValue): Promise<unknown>;
+}
+
+// =============================================================================
+// WORKFLOW VALIDATOR
+// =============================================================================
+
+/**
+ * Validation error from workflow validation.
+ */
+export interface ValidationError {
+  type: string;
+  message: string;
+  details: Record<string, unknown>;
+}
+
+/**
+ * Interface for workflow validation before execution.
+ */
+export interface WorkflowValidator {
+  /** Validate a workflow and return any errors */
+  validate(workflow: Workflow): ValidationError[];
+}
+
+// =============================================================================
+// RESOURCE PROVIDER
+// =============================================================================
+
+/**
+ * Interface for providing organization resources to workflow nodes.
+ * Handles initialization, context creation for nodes.
+ */
+export interface ResourceProvider {
+  /**
+   * Preloads all organization secrets and integrations for synchronous access.
+   */
+  initialize(organizationId: string): Promise<void>;
+
+  /**
+   * Creates a NodeContext for node execution with access to secrets and integrations.
+   */
+  createNodeContext(
+    nodeId: string,
+    workflowId: string,
+    organizationId: string,
+    inputs: Record<string, unknown>,
+    httpRequest?: HttpRequest,
+    emailMessage?: EmailMessage,
+    queueMessage?: QueueMessage,
+    scheduledTrigger?: ScheduledTrigger,
+    deploymentId?: string
+  ): NodeContext;
+}
+
+// =============================================================================
+// CREDIT SERVICE
+// =============================================================================
+
+/**
+ * Parameters for credit availability check.
+ */
+export interface CreditCheckParams {
+  organizationId: string;
+  /** Included credits for the organization's plan */
+  computeCredits: number;
+  /** Estimated usage for the workflow */
+  estimatedUsage: number;
+  /** Subscription status (e.g., "active" for Pro users) */
+  subscriptionStatus?: string;
+  /** Maximum overage allowed beyond included credits. null = unlimited */
+  overageLimit?: number | null;
+}
+
+/**
+ * Interface for credit management operations.
+ * Implementations handle compute credit checks and usage tracking.
+ */
+export interface CreditService {
+  /**
+   * Check if organization has enough credits for workflow execution.
+   */
+  hasEnoughCredits(params: CreditCheckParams): Promise<boolean>;
+
+  /**
+   * Record compute usage for an organization.
+   */
+  recordUsage(organizationId: string, usage: number): Promise<void>;
 }

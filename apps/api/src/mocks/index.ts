@@ -27,8 +27,13 @@
  * ```
  */
 
+export { MockCreditService } from "./credit-service";
 export { MockExecutionStore } from "./execution-store";
 export { MockMonitoringService } from "./monitoring-service";
 export { MockNodeRegistry } from "./node-registry";
+export { MockObjectStore } from "./object-store";
+export { MockParameterMapper } from "./parameter-mapper";
+export { MockResourceProvider } from "./resource-provider";
 export { MockRuntime } from "./runtime";
 export { MockToolRegistry } from "./tool-registry";
+export { MockWorkflowValidator } from "./workflow-validator";

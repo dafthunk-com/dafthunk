@@ -35,6 +35,10 @@ import {
   type RuntimeDependencies,
   type RuntimeParams,
 } from "./base-runtime";
+import {
+  CloudflareParameterMapper,
+  CloudflareWorkflowValidator,
+} from "./cloudflare-adapters";
 import { CloudflareCreditService } from "./credit-service";
 import { CloudflareResourceProvider } from "./resource-provider";
 
@@ -86,6 +90,8 @@ export class WorkflowRuntime extends BaseRuntime {
     // Create production-ready dependencies
     const dependencies: RuntimeDependencies = {
       nodeRegistry,
+      parameterMapper: new CloudflareParameterMapper(objectStore),
+      workflowValidator: new CloudflareWorkflowValidator(),
       resourceProvider,
       executionStore: new CloudflareExecutionStore(env),
       objectStore,
@@ -98,7 +104,7 @@ export class WorkflowRuntime extends BaseRuntime {
       ),
     };
 
-    return new WorkflowRuntime(env, dependencies);
+    return new WorkflowRuntime(dependencies);
   }
 
   /**

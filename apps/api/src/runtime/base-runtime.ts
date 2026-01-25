@@ -7,17 +7,18 @@ import type {
   WorkflowExecution,
 } from "@dafthunk/types";
 
-import type { Bindings } from "../context";
-import { BaseNodeRegistry } from "../nodes/base-node-registry";
-import {
-  apiToNodeParameter,
-  nodeToApiParameter,
-} from "../nodes/parameter-mapper";
-import type { EmailMessage, HttpRequest } from "../nodes/types";
-import type { ExecutionStore, MonitoringService, ObjectStore } from "./ports";
-import { validateWorkflow } from "../utils/workflows";
-import type { CreditService } from "./credit-service";
-import type { ResourceProvider } from "./resource-provider";
+import type {
+  CreditService,
+  EmailMessage,
+  ExecutionStore,
+  HttpRequest,
+  MonitoringService,
+  NodeRegistry,
+  ObjectStore,
+  ParameterMapper,
+  ResourceProvider,
+  WorkflowValidator,
+} from "./ports";
 import type {
   ExecutionLevel,
   ExecutionState,
@@ -60,7 +61,9 @@ export interface RuntimeParams {
  * Use factory methods (e.g., WorkflowRuntime.create()) for production setup.
  */
 export interface RuntimeDependencies {
-  nodeRegistry: BaseNodeRegistry;
+  nodeRegistry: NodeRegistry;
+  parameterMapper: ParameterMapper;
+  workflowValidator: WorkflowValidator;
   resourceProvider: ResourceProvider;
   executionStore: ExecutionStore;
   objectStore: ObjectStore;
@@ -80,25 +83,31 @@ export interface RuntimeDependencies {
  *
  * ## Dependency Injection
  *
- * Accepts optional RuntimeDependencies to override default implementations:
+ * Accepts RuntimeDependencies to provide all required implementations:
  * - nodeRegistry: Registry of available node types
- * - resourceProvider: Manages external resources (AI models, secrets, integrations)
+ * - parameterMapper: Transforms values between API and node formats
+ * - workflowValidator: Validates workflow structure before execution
+ * - resourceProvider: Manages external resources (secrets, integrations)
  * - executionStore: Persists workflow execution state
+ * - objectStore: Stores binary objects (images, documents)
  * - monitoringService: Sends real-time execution updates
+ * - creditService: Manages compute credit checks and usage
  */
 export abstract class BaseRuntime {
-  protected readonly nodeRegistry: BaseNodeRegistry;
+  protected readonly nodeRegistry: NodeRegistry;
+  protected readonly parameterMapper: ParameterMapper;
+  protected readonly workflowValidator: WorkflowValidator;
   protected readonly resourceProvider: ResourceProvider;
   protected readonly executionStore: ExecutionStore;
   protected readonly objectStore: ObjectStore;
   protected readonly monitoringService: MonitoringService;
   protected readonly creditService: CreditService;
-  protected readonly env: Bindings;
   protected userPlan?: string;
 
-  constructor(env: Bindings, dependencies: RuntimeDependencies) {
-    this.env = env;
+  constructor(dependencies: RuntimeDependencies) {
     this.nodeRegistry = dependencies.nodeRegistry;
+    this.parameterMapper = dependencies.parameterMapper;
+    this.workflowValidator = dependencies.workflowValidator;
     this.resourceProvider = dependencies.resourceProvider;
     this.executionStore = dependencies.executionStore;
     this.objectStore = dependencies.objectStore;
@@ -207,11 +216,11 @@ export abstract class BaseRuntime {
       const { context, state } = await this.executeStep(
         "initialise workflow",
         async () => {
-          const validationErrors = validateWorkflow(workflow);
+          const validationErrors = this.workflowValidator.validate(workflow);
           if (validationErrors.length > 0) {
             throw new NonRetryableError(
               `Workflow validation failed: ${validationErrors
-                .map((e) => e.message)
+                .map((e: { message: string }) => e.message)
                 .join(", ")}`
             );
           }
@@ -637,16 +646,13 @@ export abstract class BaseRuntime {
 
       if (Array.isArray(value)) {
         const transformedArray = await Promise.all(
-          value.map((v) =>
-            apiToNodeParameter(parameterType, v, this.objectStore)
-          )
+          value.map((v) => this.parameterMapper.apiToNode(parameterType, v))
         );
         processedInputs[name] = transformedArray;
       } else {
-        processedInputs[name] = await apiToNodeParameter(
+        processedInputs[name] = await this.parameterMapper.apiToNode(
           parameterType,
-          value,
-          this.objectStore
+          value
         );
       }
     }
@@ -682,10 +688,9 @@ export abstract class BaseRuntime {
           if (output?.repeated && Array.isArray(value)) {
             const transformedArray = await Promise.all(
               value.map((v) =>
-                nodeToApiParameter(
+                this.parameterMapper.nodeToApi(
                   parameterType,
                   v,
-                  this.objectStore,
                   context.organizationId,
                   context.executionId
                 )
@@ -693,10 +698,9 @@ export abstract class BaseRuntime {
             );
             outputsForRuntime[name] = transformedArray;
           } else {
-            outputsForRuntime[name] = await nodeToApiParameter(
+            outputsForRuntime[name] = await this.parameterMapper.nodeToApi(
               parameterType,
               value,
-              this.objectStore,
               context.organizationId,
               context.executionId
             );

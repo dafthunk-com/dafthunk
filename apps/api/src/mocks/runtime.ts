@@ -49,8 +49,10 @@ import { MockExecutionStore } from "./execution-store";
 import { MockMonitoringService } from "./monitoring-service";
 import { MockNodeRegistry } from "./node-registry";
 import { MockObjectStore } from "./object-store";
+import { MockParameterMapper } from "./parameter-mapper";
 import { MockResourceProvider } from "./resource-provider";
 import { MockToolRegistry } from "./tool-registry";
+import { MockWorkflowValidator } from "./workflow-validator";
 
 /**
  * Mock workflow runtime with step-based execution for testing.
@@ -136,6 +138,8 @@ class MockWorkflowEntrypoint extends WorkflowEntrypoint<
     // Create test-friendly dependencies
     const dependencies: RuntimeDependencies = {
       nodeRegistry,
+      parameterMapper: new MockParameterMapper(),
+      workflowValidator: new MockWorkflowValidator(),
       resourceProvider,
       executionStore: new MockExecutionStore(),
       objectStore,
@@ -144,7 +148,7 @@ class MockWorkflowEntrypoint extends WorkflowEntrypoint<
     };
 
     // Create runtime with dependencies
-    this.runtime = new MockWorkflowRuntime(env, dependencies);
+    this.runtime = new MockWorkflowRuntime(dependencies);
   }
 
   /**
