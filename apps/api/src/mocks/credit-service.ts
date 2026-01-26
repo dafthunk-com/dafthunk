@@ -5,10 +5,7 @@
  * Always allows execution (unlimited credits) by default.
  */
 
-import type {
-  CreditCheckParams,
-  CreditService,
-} from "../runtime/credit-service";
+import type { CreditCheckParams, CreditService } from "@dafthunk/runtime";
 
 export class MockCreditService implements CreditService {
   private usageByOrg: Map<string, number> = new Map();

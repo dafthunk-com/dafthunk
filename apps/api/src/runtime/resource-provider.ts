@@ -11,8 +11,7 @@ import {
 import type { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
 import type { EmailMessage, HttpRequest, NodeContext } from "../nodes/types";
 import { getProvider } from "../oauth";
-import type { ObjectStore } from "./ports";
-import type { IntegrationData } from "./types";
+import type { IntegrationData, ObjectStore } from "@dafthunk/runtime";
 
 /**
  * Interface for providing organization resources to workflow nodes.

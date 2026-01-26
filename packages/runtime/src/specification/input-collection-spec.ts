@@ -1,13 +1,11 @@
-import { env } from "cloudflare:test";
 import type { Workflow } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
-import type { Bindings } from "../../context";
 import { createInstanceId, createParams, type RuntimeFactory } from "./helpers";
 
 /**
  * Shared specification tests for input collection from static values and edges.
- * These tests run against any BaseRuntime implementation.
+ * These tests run against any Runtime implementation.
  */
 export function testInputCollection(
   runtimeName: string,
@@ -37,7 +35,7 @@ export function testInputCollection(
       };
 
       const instanceId = createInstanceId("static-inputs");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const addResult = execution.nodeExecutions.find(
@@ -100,7 +98,7 @@ export function testInputCollection(
       };
 
       const instanceId = createInstanceId("edge-inputs");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const addResult = execution.nodeExecutions.find(
@@ -151,7 +149,7 @@ export function testInputCollection(
       };
 
       const instanceId = createInstanceId("input-override");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const addResult = execution.nodeExecutions.find(
@@ -235,7 +233,7 @@ export function testInputCollection(
       };
 
       const instanceId = createInstanceId("multiple-edges");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const addResult = execution.nodeExecutions.find(
@@ -288,7 +286,7 @@ export function testInputCollection(
       };
 
       const instanceId = createInstanceId("mixed-inputs");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const addResult = execution.nodeExecutions.find(

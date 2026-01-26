@@ -11,7 +11,7 @@ import type { Bindings } from "../context";
 import type { BaseToolRegistry } from "../nodes/base-tool-registry";
 import type { EmailMessage, HttpRequest, NodeContext } from "../nodes/types";
 import type { ResourceProvider } from "../runtime/resource-provider";
-import type { ObjectStore } from "../runtime/ports";
+import type { ObjectStore } from "@dafthunk/runtime";
 
 /**
  * Minimal mock that avoids database access

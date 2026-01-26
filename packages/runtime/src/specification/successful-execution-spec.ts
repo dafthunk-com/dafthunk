@@ -1,13 +1,11 @@
-import { env } from "cloudflare:test";
 import type { Workflow } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
-import type { Bindings } from "../../context";
 import { createInstanceId, createParams, type RuntimeFactory } from "./helpers";
 
 /**
  * Shared specification tests for successful workflow execution.
- * These tests run against any BaseRuntime implementation.
+ * These tests run against any Runtime implementation.
  */
 export function testSuccessfulExecution(
   runtimeName: string,
@@ -83,7 +81,7 @@ export function testSuccessfulExecution(
       };
 
       const instanceId = createInstanceId("linear-math");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
 
       // Execute workflow
       const execution = await runtime.run(createParams(workflow), instanceId);
@@ -227,7 +225,7 @@ export function testSuccessfulExecution(
       };
 
       const instanceId = createInstanceId("parallel-math");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
 
       // Execute workflow
       const execution = await runtime.run(createParams(workflow), instanceId);
@@ -351,7 +349,7 @@ export function testSuccessfulExecution(
       };
 
       const instanceId = createInstanceId("chained-ops");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
 
       // Execute workflow
       const execution = await runtime.run(createParams(workflow), instanceId);

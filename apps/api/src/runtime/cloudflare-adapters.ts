@@ -17,7 +17,7 @@ import type {
   ParameterMapper,
   ValidationError,
   WorkflowValidator,
-} from "./ports";
+} from "@dafthunk/runtime";
 
 /**
  * Cloudflare implementation of ParameterMapper.

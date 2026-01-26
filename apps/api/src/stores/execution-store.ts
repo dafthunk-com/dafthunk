@@ -6,7 +6,7 @@ import type {
   ExecutionStore,
   ListExecutionsOptions,
   SaveExecutionRecord,
-} from "../runtime/ports";
+} from "@dafthunk/runtime";
 
 /**
  * Cloudflare implementation of ExecutionStore.

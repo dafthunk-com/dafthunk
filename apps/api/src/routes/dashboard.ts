@@ -7,7 +7,7 @@ import { Hono } from "hono";
 
 import { jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
-import type { ExecutionRow } from "../runtime/ports";
+import type { ExecutionRow } from "@dafthunk/runtime";
 import { DeploymentStore } from "../stores/deployment-store";
 import { CloudflareExecutionStore } from "../stores/execution-store";
 import { WorkflowStore } from "../stores/workflow-store";

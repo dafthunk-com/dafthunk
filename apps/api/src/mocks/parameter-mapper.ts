@@ -7,7 +7,7 @@
 
 import type { ParameterValue as ApiParameterValue } from "@dafthunk/types";
 
-import type { ParameterMapper } from "../runtime/ports";
+import type { ParameterMapper } from "@dafthunk/runtime";
 
 /**
  * Mock implementation of ParameterMapper.

@@ -12,7 +12,7 @@ import type {
   ObjectInfo,
   ObjectStore,
   PresignedUrlConfig,
-} from "../runtime/ports";
+} from "@dafthunk/runtime";
 
 interface StoredObject {
   data: Uint8Array;

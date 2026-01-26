@@ -7,7 +7,7 @@
 
 import type { Workflow } from "@dafthunk/types";
 
-import type { ValidationError, WorkflowValidator } from "../runtime/ports";
+import type { ValidationError, WorkflowValidator } from "@dafthunk/runtime";
 
 /**
  * Mock implementation of WorkflowValidator.

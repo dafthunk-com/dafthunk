@@ -7,7 +7,7 @@
 
 import type { WorkflowExecution } from "@dafthunk/types";
 
-import type { MonitoringService } from "../runtime/ports";
+import type { MonitoringService } from "@dafthunk/runtime";
 
 export class MockMonitoringService implements MonitoringService {
   public readonly updates: WorkflowExecution[] = [];

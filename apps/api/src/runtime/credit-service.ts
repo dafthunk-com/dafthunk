@@ -1,38 +1,9 @@
+import type { CreditCheckParams, CreditService } from "@dafthunk/runtime";
+
 import {
   getOrganizationComputeUsage,
   updateOrganizationComputeUsage,
 } from "../utils/credits";
-
-/**
- * Parameters for credit availability check.
- */
-export interface CreditCheckParams {
-  organizationId: string;
-  /** Included credits for the organization's plan */
-  computeCredits: number;
-  /** Estimated usage for the workflow */
-  estimatedUsage: number;
-  /** Subscription status (e.g., "active" for Pro users) */
-  subscriptionStatus?: string;
-  /** Maximum overage allowed beyond included credits. null = unlimited */
-  overageLimit?: number | null;
-}
-
-/**
- * Interface for credit management operations.
- * Implementations handle compute credit checks and usage tracking.
- */
-export interface CreditService {
-  /**
-   * Check if organization has enough credits for workflow execution.
-   */
-  hasEnoughCredits(params: CreditCheckParams): Promise<boolean>;
-
-  /**
-   * Record compute usage for an organization.
-   */
-  recordUsage(organizationId: string, usage: number): Promise<void>;
-}
 
 /**
  * Cloudflare implementation of CreditService.

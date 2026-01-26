@@ -7,7 +7,7 @@
  * ## Architecture
  *
  * Extends WorkflowEntrypoint for test integration with Cloudflare Workflows testing APIs.
- * Uses BaseRuntime for core execution logic via composition.
+ * Uses Runtime for core execution logic via composition.
  *
  * - **MockNodeRegistry**: Basic math nodes only (no heavy dependencies like geotiff)
  * - **MockToolRegistry**: Simplified tool registry for testing
@@ -26,7 +26,7 @@
  * }
  * ```
  *
- * @see {@link BaseRuntime} - Base runtime class
+ * @see {@link Runtime} - Abstract runtime class
  * @see {@link WorkflowRuntime} - Production implementation
  */
 
@@ -40,10 +40,10 @@ import type { WorkflowExecution } from "@dafthunk/types";
 
 import type { Bindings } from "../context";
 import {
-  BaseRuntime,
+  Runtime,
   type RuntimeDependencies,
   type RuntimeParams,
-} from "../runtime/base-runtime";
+} from "@dafthunk/runtime";
 import { MockCreditService } from "./credit-service";
 import { MockExecutionStore } from "./execution-store";
 import { MockMonitoringService } from "./monitoring-service";
@@ -58,7 +58,7 @@ import { MockWorkflowValidator } from "./workflow-validator";
  * Mock workflow runtime with step-based execution for testing.
  * Implements the core workflow execution logic with test-friendly dependencies.
  */
-class MockWorkflowRuntime extends BaseRuntime {
+class MockWorkflowRuntime extends Runtime {
   private currentStep?: WorkflowStep;
 
   private static readonly defaultStepConfig: WorkflowStepConfig = {

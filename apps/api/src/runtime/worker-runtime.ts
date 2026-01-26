@@ -6,7 +6,7 @@
  *
  * ## Architecture
  *
- * Extends BaseRuntime with direct execution (no durable steps):
+ * Extends Runtime with direct execution (no durable steps):
  * - **CloudflareNodeRegistry**: Complete node catalog (50+ nodes)
  * - **CloudflareToolRegistry**: Full tool support with all providers
  * - **WorkflowSessionMonitoringService**: Real-time updates via Durable Objects
@@ -19,7 +19,7 @@
  * - Don't require durable execution or retries
  * - Need lower latency than Workflows
  *
- * @see {@link BaseRuntime} - Base runtime class
+ * @see {@link Runtime} - Abstract runtime class
  * @see {@link CloudflareWorkflowRuntime} - Durable Workflows implementation
  */
 
@@ -32,10 +32,10 @@ import { WorkflowSessionMonitoringService } from "../services/monitoring-service
 import { CloudflareExecutionStore } from "../stores/execution-store";
 import { R2ObjectStore } from "../stores/object-store";
 import {
-  BaseRuntime,
+  Runtime,
   type RuntimeDependencies,
   type RuntimeParams,
-} from "./base-runtime";
+} from "@dafthunk/runtime";
 import {
   CloudflareParameterMapper,
   CloudflareWorkflowValidator,
@@ -47,7 +47,7 @@ import { CloudflareResourceProvider } from "./resource-provider";
  * Worker-based runtime with direct execution (no durable steps).
  * Executes workflows synchronously in a single Worker request.
  */
-export class WorkerRuntime extends BaseRuntime {
+export class WorkerRuntime extends Runtime {
   /**
    * Implements step execution by directly calling the function.
    * No durability or retries - execution is synchronous and ephemeral.

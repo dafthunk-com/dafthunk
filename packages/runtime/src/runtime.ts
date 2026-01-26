@@ -56,7 +56,7 @@ export interface RuntimeParams {
 }
 
 /**
- * Required dependencies for BaseRuntime.
+ * Required dependencies for Runtime.
  * All dependencies must be provided - no defaults are created internally.
  * Use factory methods (e.g., WorkflowRuntime.create()) for production setup.
  */
@@ -93,7 +93,7 @@ export interface RuntimeDependencies {
  * - monitoringService: Sends real-time execution updates
  * - creditService: Manages compute credit checks and usage
  */
-export abstract class BaseRuntime {
+export abstract class Runtime {
   protected readonly nodeRegistry: NodeRegistry;
   protected readonly parameterMapper: ParameterMapper;
   protected readonly workflowValidator: WorkflowValidator;

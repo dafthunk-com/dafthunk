@@ -1,6 +1,6 @@
 import type { WorkflowExecution } from "@dafthunk/types";
 
-import type { MonitoringService } from "../runtime/ports";
+import type { MonitoringService } from "@dafthunk/runtime";
 import type { Session } from "../session/session";
 
 /**

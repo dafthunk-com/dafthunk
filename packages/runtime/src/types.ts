@@ -8,12 +8,12 @@ import type {
   WorkflowExecutionStatus,
 } from "@dafthunk/types";
 
-import type { RuntimeParams } from "./base-runtime";
+import type { RuntimeParams } from "./runtime";
 
 /**
  * Common interface for workflow runtime implementations.
  *
- * Both WorkerRuntime and WorkflowRuntime implement this interface via BaseRuntime.
+ * Both WorkerRuntime and WorkflowRuntime implement this interface via Runtime.
  * The interface documents the shared execution contract while allowing each
  * implementation to expose platform-specific entry points:
  *

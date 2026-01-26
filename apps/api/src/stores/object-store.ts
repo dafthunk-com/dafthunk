@@ -6,7 +6,7 @@ import type {
   ObjectInfo,
   ObjectStore,
   PresignedUrlConfig,
-} from "../runtime/ports";
+} from "@dafthunk/runtime";
 
 /**
  * R2 implementation of ObjectStore.

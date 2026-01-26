@@ -1,8 +1,6 @@
-import { env } from "cloudflare:test";
 import type { Workflow } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
-import type { Bindings } from "../../context";
 import { createInstanceId, createParams, type RuntimeFactory } from "./helpers";
 
 /**
@@ -81,7 +79,7 @@ export function testParallelExecution(
       };
 
       const instanceId = createInstanceId("parallel-branches");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       expect(execution.status).toBe("completed");
@@ -194,7 +192,7 @@ export function testParallelExecution(
       };
 
       const instanceId = createInstanceId("state-isolation");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       expect(execution.status).toBe("completed");
@@ -255,7 +253,7 @@ export function testParallelExecution(
       };
 
       const instanceId = createInstanceId("wide-parallel");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       expect(execution.status).toBe("completed");
@@ -370,7 +368,7 @@ export function testParallelExecution(
       };
 
       const instanceId = createInstanceId("multi-level-parallel");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       expect(execution.status).toBe("completed");
@@ -502,7 +500,7 @@ export function testParallelExecution(
       };
 
       const instanceId = createInstanceId("parallel-error");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       // Overall status should be error due to C's failure

@@ -1,6 +1,6 @@
 # Runtime Specification Tests
 
-This directory contains **runtime-agnostic specification tests** for workflow execution. These tests verify that any `BaseRuntime` implementation correctly executes workflows according to the specification.
+This directory contains **runtime-agnostic specification tests** for workflow execution. These tests verify that any `Runtime` implementation correctly executes workflows according to the specification.
 
 ## Architecture
 
@@ -129,11 +129,11 @@ pnpm --filter '@dafthunk/api' test my-runtime
 
 **WorkflowRuntime**: Uses EXECUTE binding + Workflows introspection API to test durable execution with `step.do()`. The `WorkflowsRuntimeAdapter` reconstructs the `WorkflowExecution` result from workflow step results. Implemented in `workflow-runtime.ts`.
 
-Both runtimes extend `BaseRuntime` and share the same core execution logic - only the step wrapper differs (`step.do()` vs direct execution). All 50 specification tests pass for both implementations, verifying consistent behavior.
+Both runtimes extend `Runtime` and share the same core execution logic - only the step wrapper differs (`step.do()` vs direct execution). All 50 specification tests pass for both implementations, verifying consistent behavior.
 
 ## Benefits
 
-✅ **Runtime-agnostic** - Same tests work for any `BaseRuntime` implementation
+✅ **Runtime-agnostic** - Same tests work for any `Runtime` implementation
 ✅ **DRY** - Write test logic once, run against multiple runtimes
 ✅ **Maintainable** - Update specification in one place (spec files)
 ✅ **Verifiable** - Ensures all runtimes behave consistently
