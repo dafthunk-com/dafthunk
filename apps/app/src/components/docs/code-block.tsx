@@ -89,7 +89,7 @@ export function CodeBlock({ children, className, language }: CodeBlockProps) {
   }
 
   return (
-    <div className="relative group">
+    <div className="relative group min-w-0 max-w-full">
       <Button
         size="icon"
         variant="ghost"
@@ -100,7 +100,7 @@ export function CodeBlock({ children, className, language }: CodeBlockProps) {
       </Button>
       <div
         className={cn(
-          "overflow-y-auto overflow-x-auto nowheel mb-4 mt-2 text-sm [&_pre]:m-0 [&_pre]:p-4 [&_pre]:!bg-secondary [&_pre]:dark:!bg-neutral-900 [&_code]:whitespace-pre",
+          "mb-4 mt-2 text-sm rounded-lg [&_pre]:m-0 [&_pre]:p-4 [&_pre]:overflow-x-auto [&_pre]:!bg-secondary [&_pre]:dark:!bg-neutral-900 [&_code]:whitespace-pre",
           className
         )}
         dangerouslySetInnerHTML={{ __html: highlightedCode }}
