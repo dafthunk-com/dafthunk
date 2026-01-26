@@ -29,7 +29,6 @@
     "@types/three": "^0.181.0",
     "@types/wellknown": "^0.5.8",
     "drizzle-kit": "0.31.1",
-    "globals": "^15.15.0",
     "typescript": "^5.9.3",
     "vitest": "^3.2.4",
     "wrangler": "^4.59.2"

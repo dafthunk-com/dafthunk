@@ -148,9 +148,6 @@ importers:
       drizzle-kit:
         specifier: 0.31.1
         version: 0.31.1
-      globals:
-        specifier: ^15.15.0
-        version: 15.15.0
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -314,9 +311,6 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
-      globals:
-        specifier: ^15.15.0
-        version: 15.15.0
       postcss:
         specifier: 8.5.3
         version: 8.5.3
@@ -393,9 +387,6 @@ importers:
       autoprefixer:
         specifier: ^10.4.23
         version: 10.4.23(postcss@8.5.6)
-      globals:
-        specifier: ^15.15.0
-        version: 15.15.0
       postcss:
         specifier: ^8.5.6
         version: 8.5.6
@@ -433,9 +424,6 @@ importers:
 
   packages/types:
     devDependencies:
-      globals:
-        specifier: ^15.15.0
-        version: 15.15.0
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -449,9 +437,6 @@ importers:
       '@types/d3-geo':
         specifier: ^3.1.0
         version: 3.1.0
-      globals:
-        specifier: ^15.15.0
-        version: 15.15.0
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -4002,10 +3987,6 @@ packages:
   glob@10.5.0:
     resolution: {integrity: sha512-DfXN8DfhJ7NH3Oe7cFmu3NCu1wKbkReJ8TorzSAFbSKrlNaQSKfIzqYqVY8zlbs2NLBbWpRiU52GX2PbaBVNkg==}
     hasBin: true
-
-  globals@15.15.0:
-    resolution: {integrity: sha512-7ACyT3wmyp3I61S4fG682L0VA2RGD9otkqGJIwNUMF1SWUombIIk+af1unuDYgMm082aHYwD+mzJvv9Iu8dsgg==}
-    engines: {node: '>=18'}
 
   google-auth-library@10.5.0:
     resolution: {integrity: sha512-7ABviyMOlX5hIVD60YOfHw4/CxOfBhyduaYB+wbFWCWoni4N7SLcV46hrVRktuBbZjFC9ONyqamZITN7q3n32w==}
@@ -9908,8 +9889,6 @@ snapshots:
       minipass: 7.1.2
       package-json-from-dist: 1.0.1
       path-scurry: 1.11.1
-
-  globals@15.15.0: {}
 
   google-auth-library@10.5.0:
     dependencies:
