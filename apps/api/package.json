@@ -63,7 +63,7 @@
     "jsonpath-plus": "^10.3.0",
     "mailparser": "^3.9.1",
     "openai": "^6.16.0",
-    "stripe": "^20.1.2",
+    "stripe": "^20.2.0",
     "three": "^0.182.0",
     "three-bvh-csg": "^0.0.17",
     "twilio": "^5.11.2",
