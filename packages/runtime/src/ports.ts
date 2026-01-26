@@ -14,12 +14,12 @@
  */
 
 import type {
+  ParameterValue as ApiParameterValue,
   ExecutionStatusType,
   Node,
   NodeExecution,
   NodeType,
   ObjectReference,
-  ParameterValue as ApiParameterValue,
   QueueMessage,
   ScheduledTrigger,
   Workflow,

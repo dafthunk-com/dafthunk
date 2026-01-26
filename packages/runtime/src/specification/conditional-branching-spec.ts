@@ -101,8 +101,8 @@ export function testConditionalBranching(
 
       expect(falseNodeResult).toBeDefined();
       expect(falseNodeResult?.status).toBe("skipped");
-      expect((falseNodeResult as any).skipReason).toBe("conditional_branch");
-      expect((falseNodeResult as any).blockedBy).toContain("fork");
+      expect(falseNodeResult?.skipReason).toBe("conditional_branch");
+      expect(falseNodeResult?.blockedBy).toContain("fork");
     });
 
     it("should execute false branch when condition is false", async () => {
@@ -196,8 +196,8 @@ export function testConditionalBranching(
 
       expect(trueNodeResult).toBeDefined();
       expect(trueNodeResult?.status).toBe("skipped");
-      expect((trueNodeResult as any).skipReason).toBe("conditional_branch");
-      expect((trueNodeResult as any).blockedBy).toContain("fork");
+      expect(trueNodeResult?.skipReason).toBe("conditional_branch");
+      expect(trueNodeResult?.blockedBy).toContain("fork");
 
       expect(falseNodeResult).toBeDefined();
       expect(falseNodeResult?.status).toBe("completed");
@@ -548,7 +548,7 @@ export function testConditionalBranching(
       expect(trueNode1Result?.status).toBe("completed");
       expect(trueNode2Result?.status).toBe("completed");
       expect(falseNodeResult?.status).toBe("skipped");
-      expect((falseNodeResult as any).skipReason).toBe("conditional_branch");
+      expect(falseNodeResult?.skipReason).toBe("conditional_branch");
     });
 
     it("should error when join receives both inputs", async () => {

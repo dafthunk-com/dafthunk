@@ -6,14 +6,13 @@
  * rather than persistence.
  */
 
-import type { WorkflowExecution } from "@dafthunk/types";
-
 import type {
   ExecutionRow,
   ExecutionStore,
   ListExecutionsOptions,
   SaveExecutionRecord,
 } from "@dafthunk/runtime";
+import type { WorkflowExecution } from "@dafthunk/types";
 
 export class MockExecutionStore implements ExecutionStore {
   private executions: Map<string, WorkflowExecution> = new Map();

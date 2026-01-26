@@ -9,7 +9,7 @@
  * Extends Runtime with direct execution (no durable steps):
  * - **CloudflareNodeRegistry**: Complete node catalog (50+ nodes)
  * - **CloudflareToolRegistry**: Full tool support with all providers
- * - **WorkflowSessionMonitoringService**: Real-time updates via Durable Objects
+ * - **CloudflareMonitoringService**: Real-time updates via Durable Objects
  * - **ExecutionStore**: Persistent storage with D1 + R2
  *
  * ## Usage
@@ -23,25 +23,24 @@
  * @see {@link CloudflareWorkflowRuntime} - Durable Workflows implementation
  */
 
-import type { WorkflowExecution } from "@dafthunk/types";
-
-import type { Bindings } from "../context";
-import { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
-import { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
-import { WorkflowSessionMonitoringService } from "../services/monitoring-service";
-import { CloudflareExecutionStore } from "../stores/execution-store";
-import { R2ObjectStore } from "../stores/object-store";
 import {
   Runtime,
   type RuntimeDependencies,
   type RuntimeParams,
 } from "@dafthunk/runtime";
+import type { WorkflowExecution } from "@dafthunk/types";
+import type { Bindings } from "../context";
+import { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
+import { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
 import {
+  CloudflareCreditService,
+  CloudflareExecutionStore,
+  CloudflareMonitoringService,
+  CloudflareObjectStore,
   CloudflareParameterMapper,
+  CloudflareResourceProvider,
   CloudflareWorkflowValidator,
-} from "./cloudflare-adapters";
-import { CloudflareCreditService } from "./credit-service";
-import { CloudflareResourceProvider } from "./resource-provider";
+} from "./adapters";
 
 /**
  * Worker-based runtime with direct execution (no durable steps).
@@ -84,7 +83,7 @@ export class WorkerRuntime extends Runtime {
     const nodeRegistry = new CloudflareNodeRegistry(env, true);
 
     // Create object store for blob storage
-    const objectStore = new R2ObjectStore(env.RESSOURCES);
+    const objectStore = new CloudflareObjectStore(env.RESSOURCES);
 
     // Create tool registry with factory function
     // eslint-disable-next-line prefer-const -- circular dependency pattern requires let
@@ -110,9 +109,7 @@ export class WorkerRuntime extends Runtime {
       resourceProvider,
       executionStore: new CloudflareExecutionStore(env),
       objectStore,
-      monitoringService: new WorkflowSessionMonitoringService(
-        env.WORKFLOW_SESSION
-      ),
+      monitoringService: new CloudflareMonitoringService(env.WORKFLOW_SESSION),
       creditService: new CloudflareCreditService(
         env.KV,
         env.CLOUDFLARE_ENV === "development"

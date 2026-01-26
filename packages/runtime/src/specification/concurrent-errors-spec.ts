@@ -249,14 +249,14 @@ export function testConcurrentErrors(
 
       expect(addResult).toBeDefined();
       expect(addResult?.status).toBe("skipped");
-      expect((addResult as any).skipReason).toBe("upstream_failure");
-      expect((addResult as any).blockedBy).toContain("div");
+      expect(addResult?.skipReason).toBe("upstream_failure");
+      expect(addResult?.blockedBy).toContain("div");
       expect(addResult?.outputs).toBeNull();
 
       expect(multResult).toBeDefined();
       expect(multResult?.status).toBe("skipped");
-      expect((multResult as any).skipReason).toBe("upstream_failure");
-      expect((multResult as any).blockedBy).toContain("add");
+      expect(multResult?.skipReason).toBe("upstream_failure");
+      expect(multResult?.blockedBy).toContain("add");
       expect(multResult?.outputs).toBeNull();
     });
   });

@@ -10,6 +10,7 @@ export const ExecutionStatus = {
   COMPLETED: "completed",
   ERROR: "error",
   CANCELLED: "cancelled",
+  EXHAUSTED: "exhausted",
 } as const;
 
 export type ExecutionStatusType =

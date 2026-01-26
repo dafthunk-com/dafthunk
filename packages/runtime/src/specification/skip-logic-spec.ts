@@ -199,13 +199,13 @@ export function testSkipLogic(
 
       expect(add2Result).toBeDefined();
       expect(add2Result?.status).toBe("skipped");
-      expect((add2Result as any).skipReason).toBe("upstream_failure");
-      expect((add2Result as any).blockedBy).toContain("div");
+      expect(add2Result?.skipReason).toBe("upstream_failure");
+      expect(add2Result?.blockedBy).toContain("div");
 
       expect(add3Result).toBeDefined();
       expect(add3Result?.status).toBe("skipped");
-      expect((add3Result as any).skipReason).toBe("upstream_failure");
-      expect((add3Result as any).blockedBy).toContain("add2");
+      expect(add3Result?.skipReason).toBe("upstream_failure");
+      expect(add3Result?.blockedBy).toContain("add2");
     });
   });
 }

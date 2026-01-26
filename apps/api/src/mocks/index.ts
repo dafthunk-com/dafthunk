@@ -27,13 +27,19 @@
  * ```
  */
 
-export { MockCreditService } from "./credit-service";
-export { MockExecutionStore } from "./execution-store";
-export { MockMonitoringService } from "./monitoring-service";
+// Mock adapters (implementations of @dafthunk/runtime interfaces)
+export {
+  MockCreditService,
+  MockExecutionStore,
+  MockMonitoringService,
+  MockObjectStore,
+  MockParameterMapper,
+  MockResourceProvider,
+  MockWorkflowValidator,
+} from "./adapters";
+
+// Mock registries (mirror nodes/ structure)
 export { MockNodeRegistry } from "./node-registry";
-export { MockObjectStore } from "./object-store";
-export { MockParameterMapper } from "./parameter-mapper";
-export { MockResourceProvider } from "./resource-provider";
+// Mock runtime
 export { MockRuntime } from "./runtime";
 export { MockToolRegistry } from "./tool-registry";
-export { MockWorkflowValidator } from "./workflow-validator";

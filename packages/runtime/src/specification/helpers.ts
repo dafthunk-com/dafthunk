@@ -7,7 +7,10 @@ import type { RuntimeParams } from "../runtime";
  * Platform-agnostic - implementations provide their own runtime creation.
  */
 export interface TestableRuntime {
-  run(params: RuntimeParams, instanceId: string): Promise<import("@dafthunk/types").WorkflowExecution>;
+  run(
+    params: RuntimeParams,
+    instanceId: string
+  ): Promise<import("@dafthunk/types").WorkflowExecution>;
 }
 
 /**

@@ -10,6 +10,7 @@
 import { env } from "cloudflare:test";
 
 import {
+  type RuntimeFactory,
   testConcurrentErrors,
   testConditionalBranching,
   testEdgeCases,
@@ -25,7 +26,6 @@ import {
   testSuccessfulExecution,
   testTopologicalOrdering,
   testWorkflowValidation,
-  type RuntimeFactory,
 } from "@dafthunk/runtime";
 
 import type { Bindings } from "../context";

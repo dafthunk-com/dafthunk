@@ -22,6 +22,7 @@ export function testNodeExecutionErrors(
           {
             id: "unknown",
             name: "Unknown",
+            // biome-ignore lint/suspicious/noExplicitAny: Intentionally testing unknown node type handling
             type: "nonexistent-node-type" as any,
             position: { x: 0, y: 0 },
             inputs: [],

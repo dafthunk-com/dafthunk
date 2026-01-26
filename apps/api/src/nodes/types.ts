@@ -1,4 +1,6 @@
 // Types for workflows
+
+import type { ObjectStore } from "@dafthunk/runtime";
 import type {
   GeoJSON,
   Node,
@@ -9,8 +11,6 @@ import type {
   ScheduledTrigger,
   WorkflowMode,
 } from "@dafthunk/types";
-
-import type { ObjectStore } from "@dafthunk/runtime";
 import { BaseToolRegistry } from "./base-tool-registry";
 import { ToolReference } from "./tool-types";
 

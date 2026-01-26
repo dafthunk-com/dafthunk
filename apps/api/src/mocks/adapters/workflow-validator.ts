@@ -5,9 +5,8 @@
  * Passes validation without checks.
  */
 
-import type { Workflow } from "@dafthunk/types";
-
 import type { ValidationError, WorkflowValidator } from "@dafthunk/runtime";
+import type { Workflow } from "@dafthunk/types";
 
 /**
  * Mock implementation of WorkflowValidator.

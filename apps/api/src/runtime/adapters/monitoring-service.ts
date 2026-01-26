@@ -1,13 +1,12 @@
-import type { WorkflowExecution } from "@dafthunk/types";
-
 import type { MonitoringService } from "@dafthunk/runtime";
-import type { Session } from "../session/session";
+import type { WorkflowExecution } from "@dafthunk/types";
+import type { Session } from "../../session/session";
 
 /**
  * Production implementation that sends updates to Workflow Session Durable Objects.
  * Used by Runtime to communicate execution progress to connected clients.
  */
-export class WorkflowSessionMonitoringService implements MonitoringService {
+export class CloudflareMonitoringService implements MonitoringService {
   constructor(
     private readonly workflowSession: DurableObjectNamespace<Session>
   ) {}

@@ -5,14 +5,13 @@
  * Stores objects in memory without requiring R2 bucket access.
  */
 
-import type { ObjectReference } from "@dafthunk/types";
-import { v7 as uuid } from "uuid";
-
 import type {
   ObjectInfo,
   ObjectStore,
   PresignedUrlConfig,
 } from "@dafthunk/runtime";
+import type { ObjectReference } from "@dafthunk/types";
+import { v7 as uuid } from "uuid";
 
 interface StoredObject {
   data: Uint8Array;

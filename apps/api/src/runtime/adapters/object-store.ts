@@ -1,19 +1,18 @@
-import type { ObjectReference } from "@dafthunk/types";
-import { AwsClient } from "aws4fetch";
-import { v7 as uuid } from "uuid";
-
 import type {
   ObjectInfo,
   ObjectStore,
   PresignedUrlConfig,
 } from "@dafthunk/runtime";
+import type { ObjectReference } from "@dafthunk/types";
+import { AwsClient } from "aws4fetch";
+import { v7 as uuid } from "uuid";
 
 /**
  * R2 implementation of ObjectStore.
  * Manages R2 storage for objects, workflows, and executions.
  * Uses helper methods to eliminate duplication in logging and error handling.
  */
-export class R2ObjectStore implements ObjectStore {
+export class CloudflareObjectStore implements ObjectStore {
   private presignedUrlConfig: PresignedUrlConfig | null = null;
 
   constructor(private bucket: R2Bucket) {}

@@ -54,48 +54,15 @@ export type {
   ValidationError,
   WorkflowValidator,
 } from "./ports";
-
-// Runtime types - execution state and values
-export type {
-  ExecutableNodeConstructor,
-  ExecutionLevel,
-  ExecutionState,
-  IntegrationData,
-  NodeExecutionResult,
-  NodeRuntimeValues,
-  RuntimeValue,
-  SkipReason,
-  SkipReasonResult,
-  WorkflowExecutionContext,
-  WorkflowRuntimeState,
-} from "./types";
-
-// Runtime utilities
-export {
-  applyNodeResult,
-  CyclicGraphError,
-  getExecutionStatus,
-  getNodeType,
-  inferSkipReason,
-  InsufficientCreditsError,
-  isRuntimeValue,
-  NodeExecutionError,
-  NodeNotFoundError,
-  NodeTypeNotImplementedError,
-  SubscriptionRequiredError,
-  SystemError,
-  WorkflowError,
-  WorkflowValidationError,
-} from "./types";
-
+export type { RuntimeDependencies, RuntimeParams } from "./runtime";
 // Runtime class
 export { Runtime } from "./runtime";
-export type { RuntimeDependencies, RuntimeParams } from "./runtime";
-
 // Specification tests - platform-agnostic test suite
 export {
   createInstanceId,
   createParams,
+  type RuntimeFactory,
+  type TestableRuntime,
   testConcurrentErrors,
   testConditionalBranching,
   testEdgeCases,
@@ -111,6 +78,35 @@ export {
   testSuccessfulExecution,
   testTopologicalOrdering,
   testWorkflowValidation,
-  type RuntimeFactory,
-  type TestableRuntime,
 } from "./specification";
+// Runtime types - execution state and values
+export type {
+  ExecutableNodeConstructor,
+  ExecutionLevel,
+  ExecutionState,
+  IntegrationData,
+  NodeExecutionResult,
+  NodeRuntimeValues,
+  RuntimeValue,
+  SkipReason,
+  SkipReasonResult,
+  WorkflowExecutionContext,
+  WorkflowRuntimeState,
+} from "./types";
+// Runtime utilities
+export {
+  applyNodeResult,
+  CyclicGraphError,
+  getExecutionStatus,
+  getNodeType,
+  InsufficientCreditsError,
+  inferSkipReason,
+  isRuntimeValue,
+  NodeExecutionError,
+  NodeNotFoundError,
+  NodeTypeNotImplementedError,
+  SubscriptionRequiredError,
+  SystemError,
+  WorkflowError,
+  WorkflowValidationError,
+} from "./types";

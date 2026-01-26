@@ -279,9 +279,9 @@ export function testFailingExecution(
 
       expect(addNode).toBeDefined();
       expect(addNode?.status).toBe("skipped");
-      expect((addNode as any).skipReason).toBe("upstream_failure");
-      expect((addNode as any).blockedBy).toContain("div");
-      expect((addNode as any).outputs).toBeNull();
+      expect(addNode?.skipReason).toBe("upstream_failure");
+      expect(addNode?.blockedBy).toContain("div");
+      expect(addNode?.outputs).toBeNull();
     });
 
     it("should handle workflow with error in middle node blocking dependent nodes", async () => {

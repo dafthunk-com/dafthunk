@@ -5,9 +5,8 @@
  * Passes values through without transformation.
  */
 
-import type { ParameterValue as ApiParameterValue } from "@dafthunk/types";
-
 import type { ParameterMapper } from "@dafthunk/runtime";
+import type { ParameterValue as ApiParameterValue } from "@dafthunk/types";
 
 /**
  * Mock implementation of ParameterMapper.

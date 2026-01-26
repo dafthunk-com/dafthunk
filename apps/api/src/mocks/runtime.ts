@@ -36,23 +36,24 @@ import {
   WorkflowStep,
   WorkflowStepConfig,
 } from "cloudflare:workers";
-import type { WorkflowExecution } from "@dafthunk/types";
-
-import type { Bindings } from "../context";
 import {
   Runtime,
   type RuntimeDependencies,
   type RuntimeParams,
 } from "@dafthunk/runtime";
-import { MockCreditService } from "./credit-service";
-import { MockExecutionStore } from "./execution-store";
-import { MockMonitoringService } from "./monitoring-service";
+import type { WorkflowExecution } from "@dafthunk/types";
+import type { Bindings } from "../context";
+import {
+  MockCreditService,
+  MockExecutionStore,
+  MockMonitoringService,
+  MockObjectStore,
+  MockParameterMapper,
+  MockResourceProvider,
+  MockWorkflowValidator,
+} from "./adapters";
 import { MockNodeRegistry } from "./node-registry";
-import { MockObjectStore } from "./object-store";
-import { MockParameterMapper } from "./parameter-mapper";
-import { MockResourceProvider } from "./resource-provider";
 import { MockToolRegistry } from "./tool-registry";
-import { MockWorkflowValidator } from "./workflow-validator";
 
 /**
  * Mock workflow runtime with step-based execution for testing.

@@ -15,7 +15,7 @@ import { jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
 import { createDatabase } from "../db";
 import { type FeedbackInsert, type FeedbackRow, feedback } from "../db/schema";
-import { CloudflareExecutionStore } from "../stores/execution-store";
+import { CloudflareExecutionStore } from "../runtime/adapters";
 
 const feedbackRoutes = new Hono<ApiContext>();
 

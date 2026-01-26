@@ -16,6 +16,11 @@
  * ```
  */
 
+// Specification tests
+export { testConcurrentErrors } from "./concurrent-errors-spec";
+export { testConditionalBranching } from "./conditional-branching-spec";
+export { testEdgeCases } from "./edge-cases-spec";
+export { testFailingExecution } from "./failing-execution-spec";
 // Helpers and types
 export {
   createInstanceId,
@@ -23,12 +28,6 @@ export {
   type RuntimeFactory,
   type TestableRuntime,
 } from "./helpers";
-
-// Specification tests
-export { testConcurrentErrors } from "./concurrent-errors-spec";
-export { testConditionalBranching } from "./conditional-branching-spec";
-export { testEdgeCases } from "./edge-cases-spec";
-export { testFailingExecution } from "./failing-execution-spec";
 export { testInputCollection } from "./input-collection-spec";
 export { testMonitoringUpdates } from "./monitoring-updates-spec";
 export { testNodeExecutionErrors } from "./node-execution-errors-spec";

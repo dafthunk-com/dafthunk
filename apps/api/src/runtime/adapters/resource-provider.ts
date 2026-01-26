@@ -1,17 +1,16 @@
+import type { IntegrationData, ObjectStore } from "@dafthunk/runtime";
 import type { QueueMessage, ScheduledTrigger } from "@dafthunk/types";
-
-import type { Bindings } from "../context";
+import type { Bindings } from "../../context";
 import {
   createDatabase,
   getAllIntegrationsWithTokens,
   getAllSecretsWithValues,
   getIntegrationById,
   updateIntegration,
-} from "../db";
-import type { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
-import type { EmailMessage, HttpRequest, NodeContext } from "../nodes/types";
-import { getProvider } from "../oauth";
-import type { IntegrationData, ObjectStore } from "@dafthunk/runtime";
+} from "../../db";
+import type { CloudflareToolRegistry } from "../../nodes/cloudflare-tool-registry";
+import type { EmailMessage, HttpRequest, NodeContext } from "../../nodes/types";
+import { getProvider } from "../../oauth";
 
 /**
  * Interface for providing organization resources to workflow nodes.
@@ -381,7 +380,7 @@ export class CloudflareResourceProvider implements ResourceProvider {
     organizationId: string
   ): Promise<string> {
     // Import decryptSecret here to avoid circular dependency issues
-    const { decryptSecret } = await import("../utils/encryption");
+    const { decryptSecret } = await import("../../utils/encryption");
 
     if (!encryptedValue) {
       throw new Error("Cannot decrypt empty value");

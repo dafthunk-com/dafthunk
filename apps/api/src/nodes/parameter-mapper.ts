@@ -1,9 +1,8 @@
+import type { ObjectStore } from "@dafthunk/runtime";
 import type {
   ParameterValue as ApiParameterValue,
   ObjectReference,
 } from "@dafthunk/types";
-
-import type { ObjectStore } from "@dafthunk/runtime";
 import {
   isObjectReference,
   AudioParameter as NodeAudioParameter,

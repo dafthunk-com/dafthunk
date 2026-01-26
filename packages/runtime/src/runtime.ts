@@ -1,6 +1,8 @@
 import { NonRetryableError } from "cloudflare:workflows";
 import type {
+  ExecutionStatusType,
   Node,
+  NodeType,
   QueueMessage,
   ScheduledTrigger,
   Workflow,
@@ -286,7 +288,7 @@ export abstract class Runtime {
 
       if (!hasCredits) {
         isExhausted = true;
-        executionRecord.status = "exhausted" as any;
+        executionRecord.status = "exhausted";
         executionRecord.error = "Insufficient compute credits";
         await this.monitoringService.sendUpdate(
           workflowSessionId,
@@ -347,12 +349,18 @@ export abstract class Runtime {
       // STEP 5: Persist final state with credit usage
       // ========================================================================
       if (executionContext) {
+        // Capture for async callback (TypeScript narrows here but loses it in async)
+        const ctx = executionContext;
         executionRecord = await this.executeStep(
           "persist final execution record",
           async () => {
-            const finalStatus = isExhausted
-              ? ("exhausted" as any)
-              : getExecutionStatus(executionContext!, executionState);
+            // getExecutionStatus returns only "executing"/"completed"/"error" (subset of ExecutionStatusType)
+            const finalStatus: ExecutionStatusType = isExhausted
+              ? "exhausted"
+              : (getExecutionStatus(
+                  ctx,
+                  executionState
+                ) as ExecutionStatusType);
 
             // Record actual usage
             if (!isExhausted) {
@@ -374,13 +382,13 @@ export abstract class Runtime {
             // Save to execution store - this happens exactly once per execution
             return this.executionStore.save({
               id: instanceId,
-              workflowId: executionContext!.workflowId,
+              workflowId: ctx.workflowId,
               userId,
               organizationId,
               status: finalStatus,
               nodeExecutions: this.buildNodeExecutions(
-                executionContext!.workflow,
-                executionContext!,
+                ctx.workflow,
+                ctx,
                 executionState
               ),
               error: errorReport ?? executionRecord.error,
@@ -528,7 +536,6 @@ export abstract class Runtime {
           const sourceOutputs = state.nodeOutputs[edge.source];
           if (sourceOutputs && !(edge.sourceOutput in sourceOutputs)) {
             unavailableCount++;
-            continue;
           }
         }
       }
@@ -555,7 +562,7 @@ export abstract class Runtime {
     // Get node type and validate
     // ========================================================================
 
-    let nodeType;
+    let nodeType: NodeType;
     try {
       nodeType = this.nodeRegistry.getNodeType(node.type);
     } catch (_error) {
@@ -600,10 +607,12 @@ export abstract class Runtime {
     const edgesByInput = new Map<string, typeof inboundEdges>();
     for (const edge of inboundEdges) {
       const inputName = edge.targetInput;
-      if (!edgesByInput.has(inputName)) {
-        edgesByInput.set(inputName, []);
+      let inputEdges = edgesByInput.get(inputName);
+      if (!inputEdges) {
+        inputEdges = [];
+        edgesByInput.set(inputName, inputEdges);
       }
-      edgesByInput.get(inputName)!.push(edge);
+      inputEdges.push(edge);
     }
 
     for (const [inputName, edges] of edgesByInput) {
@@ -638,7 +647,7 @@ export abstract class Runtime {
     }
 
     // Transform inputs for node execution
-    const processedInputs: Record<string, any> = {};
+    const processedInputs: Record<string, unknown> = {};
 
     for (const [name, value] of Object.entries(inputs)) {
       const input = node.inputs.find((i) => i.name === name);

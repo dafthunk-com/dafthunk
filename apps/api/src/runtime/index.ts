@@ -11,7 +11,7 @@
  *
  * Public API:
  * - From @dafthunk/runtime: Runtime, RuntimeParams, RuntimeDependencies, ports
- * - Cloudflare implementations: WorkflowRuntime, WorkerRuntime, CloudflareCreditService
+ * - Cloudflare adapters: All implementations in runtime/adapters/
  * - Cloudflare entrypoint: WorkflowRuntimeEntrypoint
  *
  * Note: MockRuntime is exported from src/mocks/ instead of here.
@@ -19,18 +19,17 @@
 
 // Re-export everything from the runtime package
 export * from "@dafthunk/runtime";
-
-// Cloudflare-specific adapters
+export type { ResourceProvider } from "./adapters";
+// Cloudflare-specific adapters (all implementations of @dafthunk/runtime interfaces)
 export {
+  CloudflareCreditService,
+  CloudflareExecutionStore,
+  CloudflareMonitoringService,
+  CloudflareObjectStore,
   CloudflareParameterMapper,
+  CloudflareResourceProvider,
   CloudflareWorkflowValidator,
-} from "./cloudflare-adapters";
-
-// Cloudflare credit service
-export { CloudflareCreditService } from "./credit-service";
-
-// Cloudflare resource provider
-export { CloudflareResourceProvider } from "./resource-provider";
+} from "./adapters";
 
 // Cloudflare runtime implementations
 export { WorkerRuntime } from "./worker-runtime";

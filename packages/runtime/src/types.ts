@@ -302,7 +302,6 @@ export function inferSkipReason(
       const sourceOutputs = state.nodeOutputs[edge.source];
       if (sourceOutputs && !(edge.sourceOutput in sourceOutputs)) {
         conditionalBlockers.push(edge.source);
-        continue;
       }
     }
 
@@ -429,11 +428,7 @@ export abstract class WorkflowError extends Error {
  * Workflow validation errors - stop execution immediately
  * These are non-retryable and indicate the workflow structure is invalid.
  */
-export class WorkflowValidationError extends WorkflowError {
-  constructor(message: string) {
-    super(message);
-  }
-}
+export class WorkflowValidationError extends WorkflowError {}
 
 /**
  * Cyclic graph error - workflow contains a cycle
@@ -482,11 +477,7 @@ export class NodeTypeNotImplementedError extends NodeExecutionError {
  * System errors - stop execution
  * These indicate infrastructure or resource issues.
  */
-export class SystemError extends WorkflowError {
-  constructor(message: string) {
-    super(message);
-  }
-}
+export class SystemError extends WorkflowError {}
 
 /**
  * Insufficient compute credits to run workflow

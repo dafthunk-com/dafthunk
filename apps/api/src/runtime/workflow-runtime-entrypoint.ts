@@ -30,9 +30,8 @@ import {
   WorkflowEvent,
   WorkflowStep,
 } from "cloudflare:workers";
-import type { WorkflowExecution } from "@dafthunk/types";
-
 import type { RuntimeParams } from "@dafthunk/runtime";
+import type { WorkflowExecution } from "@dafthunk/types";
 
 import type { Bindings } from "../context";
 import { WorkflowRuntime } from "./workflow-runtime";

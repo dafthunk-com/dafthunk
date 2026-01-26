@@ -273,7 +273,7 @@ export function testStatusComputation(
 
       // True branch should be skipped due to conditional logic (NOT an error!)
       expect(trueAddResult?.status).toBe("skipped");
-      expect((trueAddResult as any).skipReason).toBe("conditional_branch");
+      expect(trueAddResult?.skipReason).toBe("conditional_branch");
 
       // False branch should execute (10 - 5 = 5)
       expect(falseSubResult?.status).toBe("completed");

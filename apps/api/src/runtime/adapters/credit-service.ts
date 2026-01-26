@@ -3,7 +3,7 @@ import type { CreditCheckParams, CreditService } from "@dafthunk/runtime";
 import {
   getOrganizationComputeUsage,
   updateOrganizationComputeUsage,
-} from "../utils/credits";
+} from "../../utils/credits";
 
 /**
  * Cloudflare implementation of CreditService.

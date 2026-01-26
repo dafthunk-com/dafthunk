@@ -5,13 +5,12 @@
  * Provides empty secrets and integrations for testing workflows that don't need them.
  */
 
-import type { QueueMessage, ScheduledTrigger } from "@dafthunk/types";
-
-import type { Bindings } from "../context";
-import type { BaseToolRegistry } from "../nodes/base-tool-registry";
-import type { EmailMessage, HttpRequest, NodeContext } from "../nodes/types";
-import type { ResourceProvider } from "../runtime/resource-provider";
 import type { ObjectStore } from "@dafthunk/runtime";
+import type { QueueMessage, ScheduledTrigger } from "@dafthunk/types";
+import type { Bindings } from "../../context";
+import type { BaseToolRegistry } from "../../nodes/base-tool-registry";
+import type { EmailMessage, HttpRequest, NodeContext } from "../../nodes/types";
+import type { ResourceProvider } from "../../runtime/adapters/resource-provider";
 
 /**
  * Minimal mock that avoids database access
