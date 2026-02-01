@@ -28,7 +28,6 @@ import type { WorkflowExecution } from "@dafthunk/types";
 import type { Bindings } from "../context";
 import { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
 import { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
-import { WorkflowSessionMonitoringService } from "./monitoring-service";
 import { ExecutionStore } from "../stores/execution-store";
 import {
   BaseRuntime,
@@ -36,6 +35,7 @@ import {
   type RuntimeParams,
 } from "./base-runtime";
 import { CredentialService } from "./credential-service";
+import { WorkflowSessionMonitoringService } from "./monitoring-service";
 
 /**
  * Worker-based runtime with direct execution (no durable steps).

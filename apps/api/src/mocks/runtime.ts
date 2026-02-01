@@ -44,10 +44,10 @@ import {
   type RuntimeDependencies,
   type RuntimeParams,
 } from "../runtime/base-runtime";
+import { MockCredentialService } from "./credential-service";
 import { MockExecutionStore } from "./execution-store";
 import { MockMonitoringService } from "./monitoring-service";
 import { MockNodeRegistry } from "./node-registry";
-import { MockCredentialService } from "./credential-service";
 import { MockToolRegistry } from "./tool-registry";
 
 /**
