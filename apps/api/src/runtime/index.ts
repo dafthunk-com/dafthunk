@@ -32,7 +32,7 @@ export { WorkflowRuntimeEntrypoint } from "./workflow-runtime-entrypoint";
 // - ExecutionEngine: node execution, skip logic, input collection
 // - ExecutionPersistence: database storage
 // - ExecutionMonitoring: real-time updates
-// - ResourceProvider: secrets, integrations, OAuth
+// - CredentialService: secrets, integrations, OAuth
 // - ErrorHandler: error classification and handling
 // - CreditManager: compute credit tracking
 // - types.ts: internal type definitions

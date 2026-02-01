@@ -23,7 +23,7 @@ import { ExecutionStore } from "../stores/execution-store";
 import { ObjectStore } from "../stores/object-store";
 import { validateWorkflow } from "../utils/workflows";
 import { CreditService } from "./credit-service";
-import { ResourceProvider } from "./resource-provider";
+import { CredentialService } from "./credential-service";
 import type {
   ExecutionLevel,
   ExecutionState,
@@ -66,7 +66,7 @@ export interface RuntimeParams {
  */
 export interface RuntimeDependencies {
   nodeRegistry?: BaseNodeRegistry;
-  resourceProvider?: ResourceProvider;
+  credentialProvider?: CredentialService;
   executionStore?: ExecutionStore;
   monitoringService?: MonitoringService;
   creditService?: CreditService;
@@ -86,13 +86,13 @@ export interface RuntimeDependencies {
  *
  * Accepts optional RuntimeDependencies to override default implementations:
  * - nodeRegistry: Registry of available node types
- * - resourceProvider: Manages external resources (AI models, secrets, integrations)
+ * - credentialProvider: Manages credentials (secrets, integrations, OAuth tokens)
  * - executionStore: Persists workflow execution state
  * - monitoringService: Sends real-time execution updates
  */
 export abstract class BaseRuntime {
   protected nodeRegistry: BaseNodeRegistry;
-  protected resourceProvider: ResourceProvider;
+  protected credentialProvider: CredentialService;
   protected executionStore: ExecutionStore;
   protected monitoringService: MonitoringService;
   protected creditService: CreditService;
@@ -114,20 +114,20 @@ export abstract class BaseRuntime {
     }
     this.nodeRegistry = dependencies.nodeRegistry;
 
-    if (dependencies?.resourceProvider) {
-      this.resourceProvider = dependencies.resourceProvider;
+    if (dependencies?.credentialProvider) {
+      this.credentialProvider = dependencies.credentialProvider;
     } else {
       // Create tool registry with a factory function for tool contexts
-      // We'll pass this to ResourceProvider constructor
-      let resourceProvider: ResourceProvider;
+      // We'll pass this to CredentialService constructor
+      let credentialProvider: CredentialService;
       const toolRegistry = new CloudflareToolRegistry(
         this.nodeRegistry,
         (nodeId: string, inputs: Record<string, any>) =>
-          resourceProvider.createToolContext(nodeId, inputs)
+          credentialProvider.createToolContext(nodeId, inputs)
       );
 
-      // Create ResourceProvider with toolRegistry
-      this.resourceProvider = resourceProvider = new ResourceProvider(
+      // Create CredentialService with toolRegistry
+      this.credentialProvider = credentialProvider = new CredentialService(
         env,
         toolRegistry
       );
@@ -329,7 +329,7 @@ export abstract class BaseRuntime {
       // STEP 3: Preload organization resources (secrets + integrations)
       // ========================================================================
       await this.executeStep("preload organization resources", async () =>
-        this.resourceProvider.initialize(organizationId)
+        this.credentialProvider.initialize(organizationId)
       );
 
       executionRecord.status = getExecutionStatus(
@@ -694,7 +694,7 @@ export abstract class BaseRuntime {
     // ========================================================================
 
     try {
-      const nodeContext = this.resourceProvider.createNodeContext(
+      const nodeContext = this.credentialProvider.createNodeContext(
         nodeId,
         context.workflowId,
         context.organizationId,

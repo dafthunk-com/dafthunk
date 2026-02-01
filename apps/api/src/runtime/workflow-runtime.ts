@@ -34,7 +34,7 @@ import {
   type RuntimeDependencies,
   type RuntimeParams,
 } from "./base-runtime";
-import { ResourceProvider } from "./resource-provider";
+import { CredentialService } from "./credential-service";
 
 /**
  * Workflow runtime with step-based execution.
@@ -64,20 +64,20 @@ export class WorkflowRuntime extends BaseRuntime {
 
     // Create tool registry with factory function
     // eslint-disable-next-line prefer-const -- circular dependency pattern requires let
-    let resourceProvider: ResourceProvider;
+    let credentialProvider: CredentialService;
     const toolRegistry = new CloudflareToolRegistry(
       nodeRegistry,
       (nodeId: string, inputs: Record<string, any>) =>
-        resourceProvider.createToolContext(nodeId, inputs)
+        credentialProvider.createToolContext(nodeId, inputs)
     );
 
-    // Create ResourceProvider with production tool registry
-    resourceProvider = new ResourceProvider(env, toolRegistry);
+    // Create CredentialService with production tool registry
+    credentialProvider = new CredentialService(env, toolRegistry);
 
     // Create production-ready dependencies
     const dependencies: RuntimeDependencies = {
       nodeRegistry,
-      resourceProvider,
+      credentialProvider,
       executionStore: new ExecutionStore(env),
       monitoringService: new WorkflowSessionMonitoringService(
         env.WORKFLOW_SESSION

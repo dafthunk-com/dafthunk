@@ -1,7 +1,7 @@
 /**
- * Mock Resource Provider
+ * Mock Credential Service
  *
- * Test implementation of ResourceProvider that doesn't access database tables.
+ * Test implementation of CredentialService that doesn't access database tables.
  * Provides empty secrets and integrations for testing workflows that don't need them.
  */
 
@@ -12,7 +12,7 @@ import type { EmailMessage, HttpRequest, NodeContext } from "../nodes/types";
 /**
  * Minimal mock that avoids database access
  */
-export class MockResourceProvider {
+export class MockCredentialService {
   constructor(
     private env: Bindings,
     private toolRegistry: CloudflareToolRegistry

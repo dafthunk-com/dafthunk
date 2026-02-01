@@ -14,12 +14,12 @@ import { getProvider } from "../oauth";
 import type { IntegrationData } from "./types";
 
 /**
- * Provides unified access to organization resources (secrets and integrations).
+ * Provides unified access to organization credentials (secrets and integrations).
  * Hides complexity of preloading, encryption/decryption, and token refresh.
  *
- * Deep module: Simple API that manages rich internal logic for resource access.
+ * Deep module: Simple API that manages rich internal logic for credential access.
  */
-export class ResourceProvider {
+export class CredentialService {
   private organizationId: string | null = null;
   private secrets: Record<string, string> = {};
   private integrations: Record<string, IntegrationData> = {};
