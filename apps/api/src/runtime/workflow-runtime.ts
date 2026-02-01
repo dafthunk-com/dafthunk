@@ -27,7 +27,7 @@ import type { WorkflowExecution } from "@dafthunk/types";
 import type { Bindings } from "../context";
 import { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
 import { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
-import { WorkflowSessionMonitoringService } from "../services/monitoring-service";
+import { WorkflowSessionMonitoringService } from "./monitoring-service";
 import { ExecutionStore } from "../stores/execution-store";
 import {
   BaseRuntime,

@@ -18,7 +18,7 @@ import { EmailMessage, HttpRequest } from "../nodes/types";
 import {
   MonitoringService,
   WorkflowSessionMonitoringService,
-} from "../services/monitoring-service";
+} from "./monitoring-service";
 import { ExecutionStore } from "../stores/execution-store";
 import { ObjectStore } from "../stores/object-store";
 import { validateWorkflow } from "../utils/workflows";
