@@ -7,7 +7,7 @@
  * ## Architecture
  *
  * Extends WorkflowEntrypoint for test integration with Cloudflare Workflows testing APIs.
- * Uses BaseRuntime for core execution logic via composition.
+ * Uses Runtime for core execution logic via composition.
  *
  * - **MockNodeRegistry**: Basic math nodes only (no heavy dependencies like geotiff)
  * - **MockToolRegistry**: Simplified tool registry for testing
@@ -26,7 +26,7 @@
  * }
  * ```
  *
- * @see {@link BaseRuntime} - Base runtime class
+ * @see {@link Runtime} - Abstract runtime class
  * @see {@link WorkflowRuntime} - Production implementation
  */
 
@@ -36,25 +36,30 @@ import {
   WorkflowStep,
   WorkflowStepConfig,
 } from "cloudflare:workers";
-import type { WorkflowExecution } from "@dafthunk/types";
-
-import type { Bindings } from "../context";
 import {
-  BaseRuntime,
+  Runtime,
   type RuntimeDependencies,
   type RuntimeParams,
-} from "../runtime/base-runtime";
-import { MockExecutionStore } from "./execution-store";
-import { MockMonitoringService } from "./monitoring-service";
+} from "@dafthunk/runtime";
+import type { WorkflowExecution } from "@dafthunk/types";
+import type { Bindings } from "../context";
+import {
+  MockCreditService,
+  MockExecutionStore,
+  MockMonitoringService,
+  MockObjectStore,
+  MockParameterMapper,
+  MockResourceProvider,
+  MockWorkflowValidator,
+} from "./adapters";
 import { MockNodeRegistry } from "./node-registry";
-import { MockResourceProvider } from "./resource-provider";
 import { MockToolRegistry } from "./tool-registry";
 
 /**
  * Mock workflow runtime with step-based execution for testing.
  * Implements the core workflow execution logic with test-friendly dependencies.
  */
-class MockWorkflowRuntime extends BaseRuntime {
+class MockWorkflowRuntime extends Runtime {
   private currentStep?: WorkflowStep;
 
   private static readonly defaultStepConfig: WorkflowStepConfig = {
@@ -117,29 +122,34 @@ class MockWorkflowEntrypoint extends WorkflowEntrypoint<
 
     // Create mock dependencies
     const nodeRegistry = new MockNodeRegistry(env, true);
+    const objectStore = new MockObjectStore();
 
     // Create tool registry with factory function
     // eslint-disable-next-line prefer-const -- circular dependency pattern requires let
     let resourceProvider: MockResourceProvider;
-    const toolRegistry: any = new MockToolRegistry(
+    const toolRegistry = new MockToolRegistry(
       nodeRegistry,
       (nodeId: string, inputs: Record<string, any>) =>
         resourceProvider.createToolContext(nodeId, inputs)
     );
 
-    // Create MockResourceProvider with test tool registry (no database access)
-    resourceProvider = new MockResourceProvider(env, toolRegistry);
+    // Create MockResourceProvider with test tool registry and object store
+    resourceProvider = new MockResourceProvider(env, toolRegistry, objectStore);
 
     // Create test-friendly dependencies
     const dependencies: RuntimeDependencies = {
       nodeRegistry,
-      resourceProvider: resourceProvider as any,
-      executionStore: new MockExecutionStore() as any,
+      parameterMapper: new MockParameterMapper(),
+      workflowValidator: new MockWorkflowValidator(),
+      resourceProvider,
+      executionStore: new MockExecutionStore(),
+      objectStore,
       monitoringService: new MockMonitoringService(),
+      creditService: new MockCreditService(),
     };
 
     // Create runtime with dependencies
-    this.runtime = new MockWorkflowRuntime(env, dependencies);
+    this.runtime = new MockWorkflowRuntime(dependencies);
   }
 
   /**

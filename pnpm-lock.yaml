@@ -42,6 +42,9 @@ importers:
       '@cloudflare/ai-utils':
         specifier: ^1.0.1
         version: 1.0.1
+      '@dafthunk/runtime':
+        specifier: workspace:*
+        version: link:../../packages/runtime
       '@dafthunk/types':
         specifier: workspace:*
         version: link:../../packages/types
@@ -56,13 +59,13 @@ importers:
         version: 1.37.0
       '@hono-rate-limiter/cloudflare':
         specifier: ^0.2.2
-        version: 0.2.2(@cloudflare/workers-types@4.20260116.0)(hono@4.11.4)
+        version: 0.2.2(@cloudflare/workers-types@4.20260116.0)(hono@4.11.7)
       '@hono/oauth-providers':
         specifier: ^0.8.5
-        version: 0.8.5(hono@4.11.4)
+        version: 0.8.5(hono@4.11.7)
       '@hono/zod-validator':
         specifier: ^0.7.6
-        version: 0.7.6(hono@4.11.4)(zod@4.3.5)
+        version: 0.7.6(hono@4.11.7)(zod@4.3.5)
       '@mapbox/martini':
         specifier: ^0.2.0
         version: 0.2.0
@@ -91,8 +94,8 @@ importers:
         specifier: ^2.1.3
         version: 2.1.3
       hono:
-        specifier: ^4.11.4
-        version: 4.11.4
+        specifier: ^4.11.7
+        version: 4.11.7
       jose:
         specifier: ^6.1.3
         version: 6.1.3
@@ -145,9 +148,6 @@ importers:
       drizzle-kit:
         specifier: 0.31.1
         version: 0.31.1
-      globals:
-        specifier: ^15.15.0
-        version: 15.15.0
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -311,9 +311,6 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
-      globals:
-        specifier: ^15.15.0
-        version: 15.15.0
       postcss:
         specifier: 8.5.3
         version: 8.5.3
@@ -390,9 +387,6 @@ importers:
       autoprefixer:
         specifier: ^10.4.23
         version: 10.4.23(postcss@8.5.6)
-      globals:
-        specifier: ^15.15.0
-        version: 15.15.0
       postcss:
         specifier: ^8.5.6
         version: 8.5.6
@@ -412,11 +406,24 @@ importers:
         specifier: ^4.59.2
         version: 4.59.2(@cloudflare/workers-types@4.20260116.0)
 
+  packages/runtime:
+    dependencies:
+      '@dafthunk/types':
+        specifier: workspace:*
+        version: link:../types
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20250410.0
+        version: 4.20260116.0
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.0.4
+        version: 3.2.4(@types/debug@4.1.12)(@types/node@22.19.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.2)
+
   packages/types:
     devDependencies:
-      globals:
-        specifier: ^15.15.0
-        version: 15.15.0
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -430,9 +437,6 @@ importers:
       '@types/d3-geo':
         specifier: ^3.1.0
         version: 3.1.0
-      globals:
-        specifier: ^15.15.0
-        version: 15.15.0
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -3984,10 +3988,6 @@ packages:
     resolution: {integrity: sha512-DfXN8DfhJ7NH3Oe7cFmu3NCu1wKbkReJ8TorzSAFbSKrlNaQSKfIzqYqVY8zlbs2NLBbWpRiU52GX2PbaBVNkg==}
     hasBin: true
 
-  globals@15.15.0:
-    resolution: {integrity: sha512-7ACyT3wmyp3I61S4fG682L0VA2RGD9otkqGJIwNUMF1SWUombIIk+af1unuDYgMm082aHYwD+mzJvv9Iu8dsgg==}
-    engines: {node: '>=18'}
-
   google-auth-library@10.5.0:
     resolution: {integrity: sha512-7ABviyMOlX5hIVD60YOfHw4/CxOfBhyduaYB+wbFWCWoni4N7SLcV46hrVRktuBbZjFC9ONyqamZITN7q3n32w==}
     engines: {node: '>=18'}
@@ -4029,8 +4029,8 @@ packages:
     resolution: {integrity: sha512-F/1DnUGPopORZi0ni+CvrCgHQ5FyEAHRLSApuYWMmrbSwoN2Mn/7k+Gl38gJnR7yyDZk6WLXwiGod1JOWNDKGw==}
     hasBin: true
 
-  hono@4.11.4:
-    resolution: {integrity: sha512-U7tt8JsyrxSRKspfhtLET79pU8K+tInj5QZXs1jSugO1Vq5dFj3kmZsRldo29mTBfcjDRVRXrEZ6LS63Cog9ZA==}
+  hono@4.11.7:
+    resolution: {integrity: sha512-l7qMiNee7t82bH3SeyUCt9UF15EVmaBvsppY2zQtrbIhl/yzBTny+YUxsVjSjQ6gaqaeVtZmGocom8TzBlA4Yw==}
     engines: {node: '>=16.9.0'}
 
   html-to-text@9.0.5:
@@ -6512,18 +6512,18 @@ snapshots:
       lit: 3.3.2
       three: 0.182.0
 
-  '@hono-rate-limiter/cloudflare@0.2.2(@cloudflare/workers-types@4.20260116.0)(hono@4.11.4)':
+  '@hono-rate-limiter/cloudflare@0.2.2(@cloudflare/workers-types@4.20260116.0)(hono@4.11.7)':
     dependencies:
       '@cloudflare/workers-types': 4.20260116.0
-      hono: 4.11.4
+      hono: 4.11.7
 
-  '@hono/oauth-providers@0.8.5(hono@4.11.4)':
+  '@hono/oauth-providers@0.8.5(hono@4.11.7)':
     dependencies:
-      hono: 4.11.4
+      hono: 4.11.7
 
-  '@hono/zod-validator@0.7.6(hono@4.11.4)(zod@4.3.5)':
+  '@hono/zod-validator@0.7.6(hono@4.11.7)(zod@4.3.5)':
     dependencies:
-      hono: 4.11.4
+      hono: 4.11.7
       zod: 4.3.5
 
   '@img/colour@1.0.0': {}
@@ -9890,8 +9890,6 @@ snapshots:
       package-json-from-dist: 1.0.1
       path-scurry: 1.11.1
 
-  globals@15.15.0: {}
-
   google-auth-library@10.5.0:
     dependencies:
       base64-js: 1.5.1
@@ -9965,7 +9963,7 @@ snapshots:
 
   he@1.2.0: {}
 
-  hono@4.11.4: {}
+  hono@4.11.7: {}
 
   html-to-text@9.0.5:
     dependencies:

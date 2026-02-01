@@ -116,11 +116,3 @@ export function getGoogleAIConfig(env: GatewayEnv): {
     },
   };
 }
-
-/**
- * Returns Replicate API configuration with gateway support.
- * Returns the base URL for Replicate models endpoint and authentication headers.
- */
-export function getReplicateConfig(env: GatewayEnv): GatewayConfig | undefined {
-  return getGatewayConfig(env, "replicate");
-}

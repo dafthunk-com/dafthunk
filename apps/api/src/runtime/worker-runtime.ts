@@ -6,10 +6,10 @@
  *
  * ## Architecture
  *
- * Extends BaseRuntime with direct execution (no durable steps):
+ * Extends Runtime with direct execution (no durable steps):
  * - **CloudflareNodeRegistry**: Complete node catalog (50+ nodes)
  * - **CloudflareToolRegistry**: Full tool support with all providers
- * - **WorkflowSessionMonitoringService**: Real-time updates via Durable Objects
+ * - **CloudflareMonitoringService**: Real-time updates via Durable Objects
  * - **ExecutionStore**: Persistent storage with D1 + R2
  *
  * ## Usage
@@ -19,29 +19,34 @@
  * - Don't require durable execution or retries
  * - Need lower latency than Workflows
  *
- * @see {@link BaseRuntime} - Base runtime class
+ * @see {@link Runtime} - Abstract runtime class
  * @see {@link CloudflareWorkflowRuntime} - Durable Workflows implementation
  */
 
+import {
+  Runtime,
+  type RuntimeDependencies,
+  type RuntimeParams,
+} from "@dafthunk/runtime";
 import type { WorkflowExecution } from "@dafthunk/types";
-
 import type { Bindings } from "../context";
 import { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
 import { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
-import { WorkflowSessionMonitoringService } from "../services/monitoring-service";
-import { ExecutionStore } from "../stores/execution-store";
 import {
-  BaseRuntime,
-  type RuntimeDependencies,
-  type RuntimeParams,
-} from "./base-runtime";
-import { ResourceProvider } from "./resource-provider";
+  CloudflareCreditService,
+  CloudflareExecutionStore,
+  CloudflareMonitoringService,
+  CloudflareObjectStore,
+  CloudflareParameterMapper,
+  CloudflareResourceProvider,
+  CloudflareWorkflowValidator,
+} from "./adapters";
 
 /**
  * Worker-based runtime with direct execution (no durable steps).
  * Executes workflows synchronously in a single Worker request.
  */
-export class WorkerRuntime extends BaseRuntime {
+export class WorkerRuntime extends Runtime {
   /**
    * Implements step execution by directly calling the function.
    * No durability or retries - execution is synchronous and ephemeral.
@@ -77,28 +82,40 @@ export class WorkerRuntime extends BaseRuntime {
     // Create production dependencies
     const nodeRegistry = new CloudflareNodeRegistry(env, true);
 
+    // Create object store for blob storage
+    const objectStore = new CloudflareObjectStore(env.RESSOURCES);
+
     // Create tool registry with factory function
     // eslint-disable-next-line prefer-const -- circular dependency pattern requires let
-    let resourceProvider: ResourceProvider;
+    let resourceProvider: CloudflareResourceProvider;
     const toolRegistry = new CloudflareToolRegistry(
       nodeRegistry,
       (nodeId: string, inputs: Record<string, any>) =>
         resourceProvider.createToolContext(nodeId, inputs)
     );
 
-    // Create ResourceProvider with production tool registry
-    resourceProvider = new ResourceProvider(env, toolRegistry);
+    // Create CloudflareResourceProvider with production tool registry and object store
+    resourceProvider = new CloudflareResourceProvider(
+      env,
+      toolRegistry,
+      objectStore
+    );
 
     // Create production-ready dependencies
     const dependencies: RuntimeDependencies = {
       nodeRegistry,
+      parameterMapper: new CloudflareParameterMapper(objectStore),
+      workflowValidator: new CloudflareWorkflowValidator(),
       resourceProvider,
-      executionStore: new ExecutionStore(env),
-      monitoringService: new WorkflowSessionMonitoringService(
-        env.WORKFLOW_SESSION
+      executionStore: new CloudflareExecutionStore(env),
+      objectStore,
+      monitoringService: new CloudflareMonitoringService(env.WORKFLOW_SESSION),
+      creditService: new CloudflareCreditService(
+        env.KV,
+        env.CLOUDFLARE_ENV === "development"
       ),
     };
 
-    return new WorkerRuntime(env, dependencies);
+    return new WorkerRuntime(dependencies);
   }
 }

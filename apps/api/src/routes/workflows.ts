@@ -38,9 +38,9 @@ import {
   workflows,
 } from "../db";
 import { createRateLimitMiddleware } from "../middleware/rate-limit";
+import { CloudflareExecutionStore } from "../runtime/adapters";
 import { WorkflowExecutor } from "../services/workflow-executor";
 import { DeploymentStore } from "../stores/deployment-store";
-import { ExecutionStore } from "../stores/execution-store";
 import { WorkflowStore } from "../stores/workflow-store";
 import { getAuthContext } from "../utils/auth-context";
 import {
@@ -528,7 +528,7 @@ workflowRoutes.post(
   async (c) => {
     const organizationId = c.get("organizationId")!;
     const executionId = c.req.param("executionId");
-    const executionStore = new ExecutionStore(c.env);
+    const executionStore = new CloudflareExecutionStore(c.env);
 
     // Get the execution to verify it exists and belongs to this organization
     const execution = await executionStore.getWithData(

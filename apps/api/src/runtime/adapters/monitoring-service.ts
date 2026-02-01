@@ -1,0 +1,40 @@
+import type { MonitoringService } from "@dafthunk/runtime";
+import type { WorkflowExecution } from "@dafthunk/types";
+import type { Session } from "../../session/session";
+
+/**
+ * Production implementation that sends updates to Workflow Session Durable Objects.
+ * Used by Runtime to communicate execution progress to connected clients.
+ */
+export class CloudflareMonitoringService implements MonitoringService {
+  constructor(
+    private readonly workflowSession: DurableObjectNamespace<Session>
+  ) {}
+
+  async sendUpdate(
+    sessionId: string | undefined,
+    execution: WorkflowExecution
+  ): Promise<void> {
+    if (!sessionId) {
+      return;
+    }
+
+    try {
+      const id = this.workflowSession.idFromName(sessionId);
+      const stub = this.workflowSession.get(id);
+
+      await stub.fetch(`https://workflow-session/execution`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(execution),
+      });
+    } catch (error) {
+      console.error(
+        `Failed to send execution update to session ${sessionId}:`,
+        error
+      );
+    }
+  }
+}

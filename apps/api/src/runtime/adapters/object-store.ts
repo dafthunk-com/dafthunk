@@ -1,0 +1,303 @@
+import type {
+  ObjectInfo,
+  ObjectStore,
+  PresignedUrlConfig,
+} from "@dafthunk/runtime";
+import type { ObjectReference } from "@dafthunk/types";
+import { AwsClient } from "aws4fetch";
+import { v7 as uuid } from "uuid";
+
+/**
+ * R2 implementation of ObjectStore.
+ * Manages R2 storage for objects, workflows, and executions.
+ * Uses helper methods to eliminate duplication in logging and error handling.
+ */
+export class CloudflareObjectStore implements ObjectStore {
+  private presignedUrlConfig: PresignedUrlConfig | null = null;
+
+  constructor(private bucket: R2Bucket) {}
+
+  /**
+   * Configure S3-compatible credentials for generating presigned URLs.
+   * Without this, getPresignedUrl will throw an error.
+   */
+  configurePresignedUrls(config: PresignedUrlConfig): void {
+    this.presignedUrlConfig = config;
+  }
+
+  async writeObject(
+    data: Uint8Array,
+    mimeType: string,
+    organizationId: string,
+    executionId?: string,
+    filename?: string
+  ): Promise<ObjectReference> {
+    const id = uuid();
+    return this.writeObjectWithId(
+      id,
+      data,
+      mimeType,
+      organizationId,
+      executionId,
+      filename
+    );
+  }
+
+  async writeObjectWithId(
+    id: string,
+    data: Uint8Array,
+    mimeType: string,
+    organizationId: string,
+    executionId?: string,
+    filename?: string
+  ): Promise<ObjectReference> {
+    const customMetadata: Record<string, string> = {
+      id,
+      createdAt: new Date().toISOString(),
+      organizationId,
+    };
+    if (executionId) {
+      customMetadata.executionId = executionId;
+    }
+    if (filename) {
+      customMetadata.filename = filename;
+    }
+
+    await this.writeToR2(
+      `objects/${id}/object.data`,
+      data,
+      {
+        httpMetadata: {
+          contentType: mimeType,
+          cacheControl: "public, max-age=31536000",
+        },
+        customMetadata,
+      },
+      "writeObjectWithId"
+    );
+
+    const result: ObjectReference = { id, mimeType };
+    if (filename) {
+      result.filename = filename;
+    }
+    return result;
+  }
+
+  async readObject(reference: ObjectReference): Promise<{
+    data: Uint8Array;
+    metadata: Record<string, string>;
+  } | null> {
+    const object = await this.readFromR2(
+      `objects/${reference.id}/object.data`,
+      "readObject"
+    );
+
+    if (!object) return null;
+
+    const arrayBuffer = await object.arrayBuffer();
+    return {
+      data: new Uint8Array(arrayBuffer),
+      metadata: object.customMetadata ?? {},
+    };
+  }
+
+  async deleteObject(reference: ObjectReference): Promise<void> {
+    await this.deleteFromR2(
+      `objects/${reference.id}/object.data`,
+      "deleteObject"
+    );
+  }
+
+  /**
+   * Generate a presigned URL for downloading an object.
+   * Requires configurePresignedUrls to be called first with S3 credentials.
+   *
+   * @param reference - The object reference
+   * @param expiresInSeconds - URL expiration time (default: 3600, max: 604800 = 7 days)
+   * @returns Presigned URL string
+   */
+  async getPresignedUrl(
+    reference: ObjectReference,
+    expiresInSeconds: number = 3600
+  ): Promise<string> {
+    if (!this.presignedUrlConfig) {
+      throw new Error(
+        "Presigned URL configuration not set. Call configurePresignedUrls first."
+      );
+    }
+
+    const { accountId, bucketName, accessKeyId, secretAccessKey } =
+      this.presignedUrlConfig;
+
+    const client = new AwsClient({
+      accessKeyId,
+      secretAccessKey,
+    });
+
+    const key = `objects/${reference.id}/object.data`;
+    const url = new URL(
+      `https://${bucketName}.${accountId}.r2.cloudflarestorage.com/${key}`
+    );
+    url.searchParams.set("X-Amz-Expires", String(expiresInSeconds));
+
+    const signed = await client.sign(new Request(url, { method: "GET" }), {
+      aws: { signQuery: true },
+    });
+
+    return signed.url;
+  }
+
+  /**
+   * Generate a presigned URL for uploading an object.
+   * Requires configurePresignedUrls to be called first with S3 credentials.
+   *
+   * @param reference - The object reference (id must be pre-generated)
+   * @param expiresInSeconds - URL expiration time (default: 3600, max: 604800 = 7 days)
+   * @returns Presigned URL string for PUT request
+   */
+  async getPresignedUploadUrl(
+    reference: ObjectReference,
+    expiresInSeconds: number = 3600
+  ): Promise<string> {
+    if (!this.presignedUrlConfig) {
+      throw new Error(
+        "Presigned URL configuration not set. Call configurePresignedUrls first."
+      );
+    }
+
+    const { accountId, bucketName, accessKeyId, secretAccessKey } =
+      this.presignedUrlConfig;
+
+    const client = new AwsClient({
+      accessKeyId,
+      secretAccessKey,
+    });
+
+    const key = `objects/${reference.id}/object.data`;
+    const url = new URL(
+      `https://${bucketName}.${accountId}.r2.cloudflarestorage.com/${key}`
+    );
+    url.searchParams.set("X-Amz-Expires", String(expiresInSeconds));
+
+    const signed = await client.sign(new Request(url, { method: "PUT" }), {
+      aws: { signQuery: true },
+    });
+
+    return signed.url;
+  }
+
+  async listObjects(organizationId: string): Promise<ObjectInfo[]> {
+    const objects = await this.listFromR2("objects/", "listObjects");
+
+    return objects.objects
+      .filter((obj) => obj.customMetadata?.organizationId === organizationId)
+      .map((obj) => {
+        const id = obj.key.split("/")[1];
+        return {
+          id,
+          mimeType: obj.httpMetadata?.contentType || "application/octet-stream",
+          size: obj.size,
+          createdAt: obj.customMetadata?.createdAt
+            ? new Date(obj.customMetadata.createdAt)
+            : new Date(),
+          organizationId,
+          executionId: obj.customMetadata?.executionId,
+        };
+      });
+  }
+
+  private async writeToR2(
+    key: string,
+    data: string | ArrayBuffer | Uint8Array,
+    options: R2PutOptions,
+    operation: string
+  ): Promise<void> {
+    try {
+      console.log(`ObjectStore.${operation}: Writing to ${key}`);
+
+      if (!this.bucket) {
+        throw new Error("R2 bucket is not initialized");
+      }
+
+      const result = await this.bucket.put(key, data, options);
+      console.log(
+        `ObjectStore.${operation}: Success, etag: ${result?.etag || "unknown"}`
+      );
+    } catch (error) {
+      console.error(`ObjectStore.${operation}: Failed to write ${key}:`, error);
+      throw error;
+    }
+  }
+
+  private async readFromR2(
+    key: string,
+    operation: string
+  ): Promise<R2ObjectBody | null> {
+    try {
+      console.log(`ObjectStore.${operation}: Reading from ${key}`);
+
+      if (!this.bucket) {
+        throw new Error("R2 bucket is not initialized");
+      }
+
+      const object = await this.bucket.get(key);
+
+      if (!object) {
+        console.log(`ObjectStore.${operation}: Not found at ${key}`);
+        return null;
+      }
+
+      console.log(
+        `ObjectStore.${operation}: Success, size: ${object.size} bytes`
+      );
+      return object;
+    } catch (error) {
+      console.error(`ObjectStore.${operation}: Failed to read ${key}:`, error);
+      throw error;
+    }
+  }
+
+  private async deleteFromR2(key: string, operation: string): Promise<void> {
+    try {
+      console.log(`ObjectStore.${operation}: Deleting ${key}`);
+
+      if (!this.bucket) {
+        throw new Error("R2 bucket is not initialized");
+      }
+
+      await this.bucket.delete(key);
+      console.log(`ObjectStore.${operation}: Successfully deleted ${key}`);
+    } catch (error) {
+      console.error(
+        `ObjectStore.${operation}: Failed to delete ${key}:`,
+        error
+      );
+      throw error;
+    }
+  }
+
+  private async listFromR2(
+    prefix: string,
+    operation: string
+  ): Promise<R2Objects> {
+    try {
+      console.log(`ObjectStore.${operation}: Listing with prefix ${prefix}`);
+
+      if (!this.bucket) {
+        throw new Error("R2 bucket is not initialized");
+      }
+
+      const objects = await this.bucket.list({ prefix });
+      console.log(
+        `ObjectStore.${operation}: Found ${objects.objects.length} objects`
+      );
+      return objects;
+    } catch (error) {
+      console.error(
+        `ObjectStore.${operation}: Failed to list with prefix ${prefix}:`,
+        error
+      );
+      throw error;
+    }
+  }
+}

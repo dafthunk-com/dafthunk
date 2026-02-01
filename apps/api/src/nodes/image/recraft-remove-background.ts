@@ -2,7 +2,6 @@ import type { NodeExecution, NodeType } from "@dafthunk/types";
 import { v7 as uuid } from "uuid";
 import { z } from "zod";
 
-import { ObjectStore } from "../../stores/object-store";
 import type { ImageParameter, NodeContext } from "../types";
 import { ExecutableNode } from "../types";
 
@@ -247,7 +246,6 @@ export class RecraftRemoveBackgroundNode extends ExecutableNode {
       R2_ACCESS_KEY_ID,
       R2_SECRET_ACCESS_KEY,
       R2_BUCKET_NAME,
-      RESSOURCES,
     } = context.env;
 
     // Validate required credentials
@@ -262,8 +260,11 @@ export class RecraftRemoveBackgroundNode extends ExecutableNode {
       );
     }
 
-    // Create object store and configure presigned URLs
-    const objectStore = new ObjectStore(RESSOURCES);
+    // Get object store from context and configure presigned URLs
+    const objectStore = context.objectStore;
+    if (!objectStore) {
+      throw new Error("ObjectStore not available in context");
+    }
     objectStore.configurePresignedUrls({
       accountId: CLOUDFLARE_ACCOUNT_ID,
       bucketName: R2_BUCKET_NAME,

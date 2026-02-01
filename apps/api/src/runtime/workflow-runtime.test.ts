@@ -12,16 +12,37 @@
  *
  * In production: Uses WorkflowRuntime with full node catalog and integrations.
  */
+import { env } from "cloudflare:test";
+
+import {
+  type RuntimeFactory,
+  type RuntimeParams,
+  type TestableRuntime,
+  testConcurrentErrors,
+  testConditionalBranching,
+  testEdgeCases,
+  testFailingExecution,
+  testInputCollection,
+  testMonitoringUpdates,
+  testNodeExecutionErrors,
+  testOutputHandling,
+  testParallelExecution,
+  testSkipLogic,
+  testStateConsistency,
+  testStatusComputation,
+  testSuccessfulExecution,
+  testTopologicalOrdering,
+  testWorkflowValidation,
+} from "@dafthunk/runtime";
+
 import type { Bindings } from "../context";
-import type { BaseRuntime, RuntimeParams } from "./base-runtime";
-import type { RuntimeFactory } from "./specification/helpers";
 
 /**
  * Adapter to use Cloudflare Workflows EXECUTE binding with the RuntimeFactory pattern.
- * Wraps the workflow execution to provide a BaseRuntime-compatible interface.
+ * Wraps the workflow execution to provide a TestableRuntime-compatible interface.
  * Reconstructs WorkflowExecution from workflow steps using introspection API.
  */
-class WorkflowsRuntimeAdapter {
+class WorkflowsRuntimeAdapter implements TestableRuntime {
   constructor(private executeBinding: any) {}
 
   async run(
@@ -94,36 +115,20 @@ class WorkflowsRuntimeAdapter {
 
 /**
  * Factory for Workflow Runtime (Workflows-based execution with durability).
+ * Captures the Cloudflare test environment in a closure.
  * In test environment, this uses MockRuntime (configured in test-entry.ts).
  * In production, this would use WorkflowRuntime.
  * Tests durable execution with step.do() via EXECUTE binding.
  */
-const createWorkflowRuntime: RuntimeFactory = (env: Bindings): BaseRuntime => {
-  const executeBinding = (env as any).EXECUTE;
+const createWorkflowRuntime: RuntimeFactory = () => {
+  const executeBinding = (env as Bindings as any).EXECUTE;
   if (!executeBinding) {
     throw new Error(
       "EXECUTE binding not found. Make sure Workflows are configured in wrangler.test.jsonc"
     );
   }
-  return new WorkflowsRuntimeAdapter(executeBinding) as any as BaseRuntime;
+  return new WorkflowsRuntimeAdapter(executeBinding);
 };
-
-// Import all specification test functions
-import { testConcurrentErrors } from "./specification/concurrent-errors-spec";
-import { testConditionalBranching } from "./specification/conditional-branching-spec";
-import { testEdgeCases } from "./specification/edge-cases-spec";
-import { testFailingExecution } from "./specification/failing-execution-spec";
-import { testInputCollection } from "./specification/input-collection-spec";
-import { testMonitoringUpdates } from "./specification/monitoring-updates-spec";
-import { testNodeExecutionErrors } from "./specification/node-execution-errors-spec";
-import { testOutputHandling } from "./specification/output-handling-spec";
-import { testParallelExecution } from "./specification/parallel-execution-spec";
-import { testSkipLogic } from "./specification/skip-logic-spec";
-import { testStateConsistency } from "./specification/state-consistency-spec";
-import { testStatusComputation } from "./specification/status-computation-spec";
-import { testSuccessfulExecution } from "./specification/successful-execution-spec";
-import { testTopologicalOrdering } from "./specification/topological-ordering-spec";
-import { testWorkflowValidation } from "./specification/workflow-validation-spec";
 
 // Run all specifications against Workflow Runtime
 const runtimeName = "WorkflowRuntime";

@@ -1,4 +1,6 @@
 // Types for workflows
+
+import type { ObjectStore } from "@dafthunk/runtime";
 import type {
   GeoJSON,
   Node,
@@ -9,7 +11,6 @@ import type {
   ScheduledTrigger,
   WorkflowMode,
 } from "@dafthunk/types";
-
 import { BaseToolRegistry } from "./base-tool-registry";
 import { ToolReference } from "./tool-types";
 
@@ -189,6 +190,8 @@ export interface NodeContext {
   queueMessage?: QueueMessage;
   scheduledTrigger?: ScheduledTrigger;
   toolRegistry?: BaseToolRegistry;
+  // Object storage abstraction for reading/writing blobs
+  objectStore?: ObjectStore;
   // Callback-based access to sensitive data (improves security and isolation)
   getSecret?: (secretName: string) => Promise<string | undefined>;
   getIntegration: (integrationId: string) => Promise<IntegrationInfo>;

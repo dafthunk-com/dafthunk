@@ -296,6 +296,10 @@ export interface NodeExecution {
   error?: string;
   outputs?: Record<string, ParameterValue> | null;
   usage: number;
+  /** Reason for skipping (only set when status is "skipped") */
+  skipReason?: "upstream_failure" | "conditional_branch";
+  /** Node IDs that caused this node to be skipped (only set when status is "skipped") */
+  blockedBy?: string[];
 }
 
 /**

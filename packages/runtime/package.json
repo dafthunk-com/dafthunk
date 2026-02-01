@@ -1,0 +1,29 @@
+{
+  "name": "@dafthunk/runtime",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": ["dist/**"],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check",
+    "fix": "biome check --write",
+    "format": "biome format --write",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@dafthunk/types": "workspace:*"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250410.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.0.4"
+  }
+}

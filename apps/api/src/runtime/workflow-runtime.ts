@@ -6,7 +6,7 @@
  *
  * ## Architecture
  *
- * Extends BaseRuntime with durable step execution:
+ * Extends Runtime with durable step execution:
  * - Each step is persisted and can be retried independently
  * - Execution survives Worker restarts
  * - Integrates with Cloudflare Workflows engine
@@ -16,31 +16,36 @@
  * Used by WorkflowRuntimeEntrypoint for production execution.
  * For direct testing, use WorkerRuntime instead.
  *
- * @see {@link BaseRuntime} - Base runtime class
+ * @see {@link Runtime} - Abstract runtime class
  * @see {@link WorkflowRuntimeEntrypoint} - Cloudflare Workflows adapter
  * @see {@link WorkerRuntime} - Non-durable Worker implementation
  */
 
 import { WorkflowStep, WorkflowStepConfig } from "cloudflare:workers";
+import {
+  Runtime,
+  type RuntimeDependencies,
+  type RuntimeParams,
+} from "@dafthunk/runtime";
 import type { WorkflowExecution } from "@dafthunk/types";
-
 import type { Bindings } from "../context";
 import { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
 import { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
-import { WorkflowSessionMonitoringService } from "../services/monitoring-service";
-import { ExecutionStore } from "../stores/execution-store";
 import {
-  BaseRuntime,
-  type RuntimeDependencies,
-  type RuntimeParams,
-} from "./base-runtime";
-import { ResourceProvider } from "./resource-provider";
+  CloudflareCreditService,
+  CloudflareExecutionStore,
+  CloudflareMonitoringService,
+  CloudflareObjectStore,
+  CloudflareParameterMapper,
+  CloudflareResourceProvider,
+  CloudflareWorkflowValidator,
+} from "./adapters";
 
 /**
  * Workflow runtime with step-based execution.
  * Implements the core workflow execution logic with durable steps.
  */
-export class WorkflowRuntime extends BaseRuntime {
+export class WorkflowRuntime extends Runtime {
   private currentStep?: WorkflowStep;
 
   private static readonly defaultStepConfig: WorkflowStepConfig = {
@@ -62,29 +67,41 @@ export class WorkflowRuntime extends BaseRuntime {
     // Create production dependencies
     const nodeRegistry = new CloudflareNodeRegistry(env, true);
 
+    // Create object store for blob storage
+    const objectStore = new CloudflareObjectStore(env.RESSOURCES);
+
     // Create tool registry with factory function
     // eslint-disable-next-line prefer-const -- circular dependency pattern requires let
-    let resourceProvider: ResourceProvider;
+    let resourceProvider: CloudflareResourceProvider;
     const toolRegistry = new CloudflareToolRegistry(
       nodeRegistry,
       (nodeId: string, inputs: Record<string, any>) =>
         resourceProvider.createToolContext(nodeId, inputs)
     );
 
-    // Create ResourceProvider with production tool registry
-    resourceProvider = new ResourceProvider(env, toolRegistry);
+    // Create CloudflareResourceProvider with production tool registry and object store
+    resourceProvider = new CloudflareResourceProvider(
+      env,
+      toolRegistry,
+      objectStore
+    );
 
     // Create production-ready dependencies
     const dependencies: RuntimeDependencies = {
       nodeRegistry,
+      parameterMapper: new CloudflareParameterMapper(objectStore),
+      workflowValidator: new CloudflareWorkflowValidator(),
       resourceProvider,
-      executionStore: new ExecutionStore(env),
-      monitoringService: new WorkflowSessionMonitoringService(
-        env.WORKFLOW_SESSION
+      executionStore: new CloudflareExecutionStore(env),
+      objectStore,
+      monitoringService: new CloudflareMonitoringService(env.WORKFLOW_SESSION),
+      creditService: new CloudflareCreditService(
+        env.KV,
+        env.CLOUDFLARE_ENV === "development"
       ),
     };
 
-    return new WorkflowRuntime(env, dependencies);
+    return new WorkflowRuntime(dependencies);
   }
 
   /**
