@@ -11,6 +11,7 @@ import {
 import type { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
 import type { EmailMessage, HttpRequest, NodeContext } from "../nodes/types";
 import { getProvider } from "../oauth";
+import { ObjectStore } from "../stores/object-store";
 import type { IntegrationData } from "./types";
 
 /**
@@ -140,6 +141,19 @@ export class CredentialService {
       };
     }
 
+    // Build ObjectStore with presigned URL support when R2 credentials are available
+    const { CLOUDFLARE_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME } = this.env;
+    const presignedUrlConfig =
+      CLOUDFLARE_ACCOUNT_ID && R2_ACCESS_KEY_ID && R2_SECRET_ACCESS_KEY && R2_BUCKET_NAME
+        ? {
+            accountId: CLOUDFLARE_ACCOUNT_ID,
+            bucketName: R2_BUCKET_NAME,
+            accessKeyId: R2_ACCESS_KEY_ID,
+            secretAccessKey: R2_SECRET_ACCESS_KEY,
+          }
+        : undefined;
+    const objectStore = new ObjectStore(this.env.RESSOURCES, presignedUrlConfig);
+
     return {
       nodeId,
       workflowId,
@@ -153,6 +167,7 @@ export class CredentialService {
       scheduledTrigger,
       onProgress: () => {},
       toolRegistry: this.toolRegistry,
+      objectStore,
       // Callback-based access to secrets (lazy, secure)
       getSecret: async (secretName: string) => {
         return this.secrets?.[secretName];
@@ -205,6 +220,7 @@ export class CredentialService {
       mode: "dev",
       inputs,
       toolRegistry: this.toolRegistry,
+      objectStore: new ObjectStore(this.env.RESSOURCES),
       // Tool executions don't have access to organization secrets/integrations
       getSecret: async (secretName: string) => {
         throw new Error(

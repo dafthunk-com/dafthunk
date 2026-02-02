@@ -10,6 +10,7 @@ import type {
   WorkflowMode,
 } from "@dafthunk/types";
 
+import type { ObjectStore } from "../stores/object-store";
 import { BaseToolRegistry } from "./base-tool-registry";
 import { ToolReference } from "./tool-types";
 
@@ -189,6 +190,7 @@ export interface NodeContext {
   queueMessage?: QueueMessage;
   scheduledTrigger?: ScheduledTrigger;
   toolRegistry?: BaseToolRegistry;
+  objectStore?: ObjectStore;
   // Callback-based access to sensitive data (improves security and isolation)
   getSecret?: (secretName: string) => Promise<string | undefined>;
   getIntegration: (integrationId: string) => Promise<IntegrationInfo>;
@@ -214,9 +216,6 @@ export interface NodeContext {
     SES_DEFAULT_FROM?: string;
     HUGGINGFACE_API_KEY?: string;
     REPLICATE_API_TOKEN?: string;
-    R2_ACCESS_KEY_ID?: string;
-    R2_SECRET_ACCESS_KEY?: string;
-    R2_BUCKET_NAME?: string;
   };
 }
 

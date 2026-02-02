@@ -143,7 +143,7 @@ describe("Trellis2Node", () => {
       );
 
       expect(result.status).toBe("error");
-      expect(result.error).toContain("R2 presigned URL credentials");
+      expect(result.error).toContain("ObjectStore not available in context");
     });
 
     it("should validate pipeline_type enum", async () => {

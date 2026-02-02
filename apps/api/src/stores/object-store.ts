@@ -14,17 +14,10 @@ export interface PresignedUrlConfig {
  * Uses helper methods to eliminate duplication in logging and error handling.
  */
 export class ObjectStore {
-  private presignedUrlConfig: PresignedUrlConfig | null = null;
-
-  constructor(private bucket: R2Bucket) {}
-
-  /**
-   * Configure S3-compatible credentials for generating presigned URLs.
-   * Without this, getPresignedUrl will throw an error.
-   */
-  configurePresignedUrls(config: PresignedUrlConfig): void {
-    this.presignedUrlConfig = config;
-  }
+  constructor(
+    private bucket: R2Bucket,
+    private presignedUrlConfig?: PresignedUrlConfig
+  ) {}
 
   async writeObject(
     data: Uint8Array,
@@ -111,7 +104,7 @@ export class ObjectStore {
 
   /**
    * Generate a presigned URL for downloading an object.
-   * Requires configurePresignedUrls to be called first with S3 credentials.
+   * Requires presignedUrlConfig to be set via the constructor.
    *
    * @param reference - The object reference
    * @param expiresInSeconds - URL expiration time (default: 3600, max: 604800 = 7 days)
@@ -123,7 +116,7 @@ export class ObjectStore {
   ): Promise<string> {
     if (!this.presignedUrlConfig) {
       throw new Error(
-        "Presigned URL configuration not set. Call configurePresignedUrls first."
+        "Presigned URL configuration not set. Pass PresignedUrlConfig to the ObjectStore constructor."
       );
     }
 
@@ -149,42 +142,21 @@ export class ObjectStore {
   }
 
   /**
-   * Generate a presigned URL for uploading an object.
-   * Requires configurePresignedUrls to be called first with S3 credentials.
-   *
-   * @param reference - The object reference (id must be pre-generated)
-   * @param expiresInSeconds - URL expiration time (default: 3600, max: 604800 = 7 days)
-   * @returns Presigned URL string for PUT request
+   * Write data to R2 and return a presigned download URL in one step.
+   * Combines writeObject + getPresignedUrl to eliminate boilerplate in nodes.
    */
-  async getPresignedUploadUrl(
-    reference: ObjectReference,
+  async writeAndPresign(
+    data: Uint8Array,
+    mimeType: string,
+    organizationId: string,
     expiresInSeconds: number = 3600
   ): Promise<string> {
-    if (!this.presignedUrlConfig) {
-      throw new Error(
-        "Presigned URL configuration not set. Call configurePresignedUrls first."
-      );
-    }
-
-    const { accountId, bucketName, accessKeyId, secretAccessKey } =
-      this.presignedUrlConfig;
-
-    const client = new AwsClient({
-      accessKeyId,
-      secretAccessKey,
-    });
-
-    const key = `objects/${reference.id}/object.data`;
-    const url = new URL(
-      `https://${bucketName}.${accountId}.r2.cloudflarestorage.com/${key}`
+    const reference = await this.writeObject(
+      data,
+      mimeType,
+      organizationId
     );
-    url.searchParams.set("X-Amz-Expires", String(expiresInSeconds));
-
-    const signed = await client.sign(new Request(url, { method: "PUT" }), {
-      aws: { signQuery: true },
-    });
-
-    return signed.url;
+    return this.getPresignedUrl(reference, expiresInSeconds);
   }
 
   async listObjects(organizationId: string): Promise<

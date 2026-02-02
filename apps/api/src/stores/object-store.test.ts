@@ -200,6 +200,58 @@ describe("ObjectStore", () => {
     });
   });
 
+  describe("writeAndPresign", () => {
+      it("should write object and return presigned URL", async () => {
+        const store = new ObjectStore(mockBucket, {
+          accountId: "test-account",
+          bucketName: "test-bucket",
+          accessKeyId: "test-key",
+          secretAccessKey: "test-secret",
+        });
+        const data = new Uint8Array([1, 2, 3]);
+
+        // writeAndPresign calls writeObject then getPresignedUrl
+        // getPresignedUrl uses AwsClient which needs real crypto, so we spy on it
+        const writeObjectSpy = vi
+          .spyOn(store, "writeObject")
+          .mockResolvedValue({ id: "mock-id", mimeType: "image/png" });
+        const getPresignedUrlSpy = vi
+          .spyOn(store, "getPresignedUrl")
+          .mockResolvedValue("https://presigned.example.com/mock");
+
+        const url = await store.writeAndPresign(
+          data,
+          "image/png",
+          "org-123",
+          7200
+        );
+
+        expect(writeObjectSpy).toHaveBeenCalledWith(data, "image/png", "org-123");
+        expect(getPresignedUrlSpy).toHaveBeenCalledWith(
+          { id: "mock-id", mimeType: "image/png" },
+          7200
+        );
+        expect(url).toBe("https://presigned.example.com/mock");
+      });
+
+      it("should throw when presigned URL config is missing", async () => {
+        const store = new ObjectStore(mockBucket);
+
+        vi.spyOn(store, "writeObject").mockResolvedValue({
+          id: "mock-id",
+          mimeType: "image/png",
+        });
+
+        await expect(
+          store.writeAndPresign(
+            new Uint8Array([1, 2, 3]),
+            "image/png",
+            "org-123"
+          )
+        ).rejects.toThrow("Presigned URL configuration not set");
+      });
+    });
+
   describe("Error Handling", () => {
     it("should throw error when bucket not initialized", async () => {
       const store = new ObjectStore(null as any);

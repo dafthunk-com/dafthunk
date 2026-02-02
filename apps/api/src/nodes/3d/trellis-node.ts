@@ -1,9 +1,8 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
-import { v7 as uuid } from "uuid";
 import { z } from "zod";
 
-import { ObjectStore } from "../../stores/object-store";
-import { ExecutableNode, ImageParameter, NodeContext } from "../types";
+import type { ImageParameter } from "../types";
+import { ExecutableNode, NodeContext } from "../types";
 
 /**
  * Response shape from Replicate predictions API
@@ -150,10 +149,20 @@ export class TrellisNode extends ExecutableNode {
         );
       }
 
+      if (!context.objectStore) {
+        return this.createErrorResult(
+          "ObjectStore not available in context"
+        );
+      }
+
       // Generate presigned URLs for all input images
       const imageUrls = await Promise.all(
         validatedInput.images.map((image) =>
-          this.uploadImageAndGetPresignedUrl(image, context)
+          context.objectStore!.writeAndPresign(
+            image.data,
+            image.mimeType,
+            context.organizationId
+          )
         )
       );
 
@@ -349,58 +358,4 @@ export class TrellisNode extends ExecutableNode {
     }
   }
 
-  /**
-   * Upload image to R2 and generate a presigned URL for external access.
-   * The URL expires after 1 hour (sufficient for Trellis processing).
-   */
-  private async uploadImageAndGetPresignedUrl(
-    image: ImageParameter,
-    context: NodeContext
-  ): Promise<string> {
-    const {
-      CLOUDFLARE_ACCOUNT_ID,
-      R2_ACCESS_KEY_ID,
-      R2_SECRET_ACCESS_KEY,
-      R2_BUCKET_NAME,
-      RESSOURCES,
-    } = context.env;
-
-    // Validate required credentials
-    if (
-      !CLOUDFLARE_ACCOUNT_ID ||
-      !R2_ACCESS_KEY_ID ||
-      !R2_SECRET_ACCESS_KEY ||
-      !R2_BUCKET_NAME
-    ) {
-      throw new Error(
-        "R2 presigned URL credentials not configured. Required: CLOUDFLARE_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME"
-      );
-    }
-
-    // Create object store and configure presigned URLs
-    const objectStore = new ObjectStore(RESSOURCES);
-    objectStore.configurePresignedUrls({
-      accountId: CLOUDFLARE_ACCOUNT_ID,
-      bucketName: R2_BUCKET_NAME,
-      accessKeyId: R2_ACCESS_KEY_ID,
-      secretAccessKey: R2_SECRET_ACCESS_KEY,
-    });
-
-    // Generate a unique ID for the temporary image
-    const imageId = uuid();
-    const reference = { id: imageId, mimeType: image.mimeType };
-
-    // Write the image to R2
-    await objectStore.writeObjectWithId(
-      imageId,
-      image.data,
-      image.mimeType,
-      context.organizationId
-    );
-
-    // Generate presigned URL (1 hour expiry)
-    const presignedUrl = await objectStore.getPresignedUrl(reference, 3600);
-
-    return presignedUrl;
-  }
 }
