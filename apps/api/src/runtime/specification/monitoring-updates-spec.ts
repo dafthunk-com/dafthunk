@@ -7,7 +7,7 @@ import { createInstanceId, createParams, type RuntimeFactory } from "./helpers";
 
 /**
  * Shared specification tests for monitoring updates and progress tracking.
- * These tests run against any BaseRuntime implementation.
+ * These tests run against any Runtime implementation.
  */
 export function testMonitoringUpdates(
   runtimeName: string,

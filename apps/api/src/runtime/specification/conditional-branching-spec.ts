@@ -7,7 +7,7 @@ import { createInstanceId, createParams, type RuntimeFactory } from "./helpers";
 
 /**
  * Shared specification tests for conditional branching (fork-join patterns).
- * These tests run against any BaseRuntime implementation.
+ * These tests run against any Runtime implementation.
  */
 export function testConditionalBranching(
   runtimeName: string,

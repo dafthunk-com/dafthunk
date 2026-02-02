@@ -151,11 +151,7 @@ export class ObjectStore {
     organizationId: string,
     expiresInSeconds: number = 3600
   ): Promise<string> {
-    const reference = await this.writeObject(
-      data,
-      mimeType,
-      organizationId
-    );
+    const reference = await this.writeObject(data, mimeType, organizationId);
     return this.getPresignedUrl(reference, expiresInSeconds);
   }
 

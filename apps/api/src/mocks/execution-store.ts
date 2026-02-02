@@ -12,7 +12,7 @@ import type {
   ExecutionRow,
   ExecutionStore,
   SaveExecutionRecord,
-} from "../stores/execution-store";
+} from "../runtime/execution-store";
 
 export class MockExecutionStore implements Partial<ExecutionStore> {
   private executions: Map<string, WorkflowExecution> = new Map();

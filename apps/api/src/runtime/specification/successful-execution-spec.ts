@@ -7,7 +7,7 @@ import { createInstanceId, createParams, type RuntimeFactory } from "./helpers";
 
 /**
  * Shared specification tests for successful workflow execution.
- * These tests run against any BaseRuntime implementation.
+ * These tests run against any Runtime implementation.
  */
 export function testSuccessfulExecution(
   runtimeName: string,

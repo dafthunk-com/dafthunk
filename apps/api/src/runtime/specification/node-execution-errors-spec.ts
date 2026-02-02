@@ -7,7 +7,7 @@ import { createInstanceId, createParams, type RuntimeFactory } from "./helpers";
 
 /**
  * Shared specification tests for node execution errors (unknown types, continue on error).
- * These tests run against any BaseRuntime implementation.
+ * These tests run against any Runtime implementation.
  */
 export function testNodeExecutionErrors(
   runtimeName: string,

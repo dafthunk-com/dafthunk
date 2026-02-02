@@ -4,39 +4,8 @@ import type {
   NodeType,
   ObjectReference,
   Workflow,
-  WorkflowExecution,
   WorkflowExecutionStatus,
 } from "@dafthunk/types";
-
-import type { RuntimeParams } from "./base-runtime";
-
-/**
- * Common interface for workflow runtime implementations.
- *
- * Both WorkerRuntime and WorkflowRuntime implement this interface via BaseRuntime.
- * The interface documents the shared execution contract while allowing each
- * implementation to expose platform-specific entry points:
- *
- * - WorkerRuntime.execute(): Direct execution, generates instanceId if not provided
- * - WorkflowRuntime.executeWithStep(): Requires Cloudflare Workflows step context
- *
- * Use this interface when you need to work with any runtime implementation
- * without coupling to a specific execution model.
- */
-export interface Runtime {
-  /**
-   * Executes a workflow and returns the result.
-   *
-   * This is the core execution method that orchestrates the complete workflow
-   * lifecycle: validation, credit checks, resource preloading, node execution,
-   * and state persistence.
-   *
-   * @param params - Workflow execution parameters
-   * @param instanceId - Unique identifier for this execution instance
-   * @returns The workflow execution result with status, node outputs, and metadata
-   */
-  run(params: RuntimeParams, instanceId: string): Promise<WorkflowExecution>;
-}
 
 /**
  * Runtime value types - JSON-serializable values used during workflow execution.

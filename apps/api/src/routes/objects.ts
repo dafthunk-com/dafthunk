@@ -10,7 +10,7 @@ import { Hono } from "hono";
 
 import { apiKeyOrJwtMiddleware, jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
-import { ObjectStore } from "../stores/object-store";
+import { ObjectStore } from "../runtime/object-store";
 
 const objectRoutes = new Hono<ApiContext>();
 

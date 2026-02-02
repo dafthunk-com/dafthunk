@@ -10,9 +10,9 @@ import {
 } from "../db";
 import type { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
 import { getProvider } from "../oauth";
-import { ObjectStore } from "../stores/object-store";
+import { ObjectStore } from "./object-store";
+import type { IntegrationData } from "./execution-types";
 import type { EmailMessage, HttpRequest, NodeContext } from "./node-types";
-import type { IntegrationData } from "./types";
 
 /**
  * Provides unified access to organization credentials (secrets and integrations).

@@ -11,7 +11,7 @@ import type {
 } from "@dafthunk/types";
 import { BaseToolRegistry } from "../nodes/base-tool-registry";
 import { ToolReference } from "../nodes/tool-types";
-import type { ObjectStore } from "../stores/object-store";
+import type { ObjectStore } from "./object-store";
 
 /**
  * Generic blob parameter type that accepts any MIME type.

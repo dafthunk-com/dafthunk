@@ -10,17 +10,11 @@ import type {
 import { Bindings } from "../context";
 import { BaseNodeRegistry } from "../nodes/base-node-registry";
 import { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
-import { ExecutionStore } from "../stores/execution-store";
-import { ObjectStore } from "../stores/object-store";
+import { ExecutionStore } from "./execution-store";
+import { ObjectStore } from "./object-store";
 import { validateWorkflow } from "../utils/workflows";
 import { CredentialService } from "./credential-service";
 import { CreditService } from "./credit-service";
-import {
-  MonitoringService,
-  WorkflowSessionMonitoringService,
-} from "./monitoring-service";
-import { EmailMessage, HttpRequest } from "./node-types";
-import { apiToNodeParameter, nodeToApiParameter } from "./parameter-mapper";
 import type {
   ExecutionLevel,
   ExecutionState,
@@ -28,7 +22,7 @@ import type {
   NodeRuntimeValues,
   RuntimeValue,
   WorkflowExecutionContext,
-} from "./types";
+} from "./execution-types";
 import {
   applyNodeResult,
   getExecutionStatus,
@@ -38,7 +32,13 @@ import {
   NodeNotFoundError,
   NodeTypeNotImplementedError,
   SubscriptionRequiredError,
-} from "./types";
+} from "./execution-types";
+import {
+  MonitoringService,
+  WorkflowSessionMonitoringService,
+} from "./monitoring-service";
+import { EmailMessage, HttpRequest } from "./node-types";
+import { apiToNodeParameter, nodeToApiParameter } from "./parameter-mapper";
 
 export interface RuntimeParams {
   readonly workflow: Workflow;
@@ -58,7 +58,7 @@ export interface RuntimeParams {
 }
 
 /**
- * Injectable dependencies for BaseRuntime.
+ * Injectable dependencies for Runtime.
  * Allows overriding default implementations for testing.
  */
 export interface RuntimeDependencies {
@@ -70,7 +70,7 @@ export interface RuntimeDependencies {
 }
 
 /**
- * Base Runtime - Abstract Workflow Execution Engine
+ * Abstract Workflow Execution Engine
  *
  * Base class for executing Workflow instances from start to finish.
  * Provides core execution logic with dependency injection support.
@@ -87,7 +87,7 @@ export interface RuntimeDependencies {
  * - executionStore: Persists workflow execution state
  * - monitoringService: Sends real-time execution updates
  */
-export abstract class BaseRuntime {
+export abstract class Runtime {
   protected nodeRegistry: BaseNodeRegistry;
   protected credentialProvider: CredentialService;
   protected executionStore: ExecutionStore;
@@ -102,10 +102,10 @@ export abstract class BaseRuntime {
     // Use injected dependencies or create defaults
     // Note: We can't use CloudflareNodeRegistry here directly because importing it
     // would pull in all node types (including geotiff with node:https).
-    // Instead, we require nodeRegistry to be provided when using BaseRuntime.
+    // Instead, we require nodeRegistry to be provided when using Runtime.
     if (!dependencies?.nodeRegistry) {
       throw new Error(
-        "BaseRuntime requires a nodeRegistry to be provided via dependencies. " +
+        "Runtime requires a nodeRegistry to be provided via dependencies. " +
           "Use WorkflowRuntime for production or MockRuntime for tests."
       );
     }

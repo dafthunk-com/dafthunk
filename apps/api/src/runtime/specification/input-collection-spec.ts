@@ -7,7 +7,7 @@ import { createInstanceId, createParams, type RuntimeFactory } from "./helpers";
 
 /**
  * Shared specification tests for input collection from static values and edges.
- * These tests run against any BaseRuntime implementation.
+ * These tests run against any Runtime implementation.
  */
 export function testInputCollection(
   runtimeName: string,

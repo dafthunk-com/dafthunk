@@ -2,7 +2,7 @@ import type { Workflow } from "@dafthunk/types";
 
 import { TRIAL_CREDITS } from "../../constants/billing";
 import type { Bindings } from "../../context";
-import type { BaseRuntime, RuntimeParams } from "../base-runtime";
+import type { Runtime, RuntimeParams } from "../base-runtime";
 import { WorkerRuntime } from "../worker-runtime";
 
 /**
@@ -25,13 +25,13 @@ export const createParams = (workflow: Workflow): RuntimeParams => ({
  * Runtime factory type for creating test runtime instances.
  * Allows testing different runtime implementations with the same specification.
  */
-export type RuntimeFactory = (env: Bindings) => BaseRuntime;
+export type RuntimeFactory = (env: Bindings) => Runtime;
 
 /**
  * Helper to create a test runtime instance.
  * Uses CloudflareWorkerRuntime for direct, non-durable execution.
  * This allows testing without depending on the EXECUTE binding or Workflows infrastructure.
  */
-export const createTestRuntime = (env: Bindings): BaseRuntime => {
+export const createTestRuntime = (env: Bindings): Runtime => {
   return WorkerRuntime.create(env);
 };

@@ -8,14 +8,14 @@
  * Both test files run the same 50 specification tests to ensure consistent behavior.
  */
 import type { Bindings } from "../context";
-import type { BaseRuntime } from "./base-runtime";
+import type { Runtime } from "./base-runtime";
 import type { RuntimeFactory } from "./specification/helpers";
 import { WorkerRuntime } from "./worker-runtime";
 
 /**
  * Factory for CloudflareWorkerRuntime (direct execution, no durability)
  */
-const createWorkerRuntime: RuntimeFactory = (env: Bindings): BaseRuntime => {
+const createWorkerRuntime: RuntimeFactory = (env: Bindings): Runtime => {
   return WorkerRuntime.create(env);
 };
 

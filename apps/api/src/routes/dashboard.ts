@@ -8,8 +8,8 @@ import { Hono } from "hono";
 import { jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
 import { DeploymentStore } from "../stores/deployment-store";
-import type { ExecutionRow } from "../stores/execution-store";
-import { ExecutionStore } from "../stores/execution-store";
+import type { ExecutionRow } from "../runtime/execution-store";
+import { ExecutionStore } from "../runtime/execution-store";
 import { WorkflowStore } from "../stores/workflow-store";
 
 const dashboard = new Hono<ApiContext>();

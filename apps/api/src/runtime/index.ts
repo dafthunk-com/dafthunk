@@ -5,8 +5,7 @@
  * Deep module design: exposes minimal public API while hiding implementation complexity.
  *
  * Public API:
- * - Runtime: Common interface for workflow runtime implementations
- * - BaseRuntime: Base workflow execution class with dependency injection
+ * - Runtime: Abstract base class for workflow execution with dependency injection
  * - WorkflowRuntime: Durable workflow execution with step-based persistence
  * - WorkflowRuntimeEntrypoint: Cloudflare Workflows entrypoint (durable execution)
  * - RuntimeParams: Configuration type for workflow execution
@@ -18,13 +17,15 @@
  */
 
 // Main runtime classes and types
-export type { RuntimeDependencies, RuntimeParams } from "./base-runtime";
-export { BaseRuntime } from "./base-runtime";
+export {
+  Runtime,
+  type RuntimeDependencies,
+  type RuntimeParams,
+} from "./base-runtime";
 // Credit service for compute usage tracking
 export type { CreditCheckParams } from "./credit-service";
 export { CreditService } from "./credit-service";
-// Runtime interface and implementations
-export type { Runtime } from "./types";
+// Runtime implementations
 export { WorkflowRuntime } from "./workflow-runtime";
 export { WorkflowRuntimeEntrypoint } from "./workflow-runtime-entrypoint";
 
@@ -35,7 +36,7 @@ export { WorkflowRuntimeEntrypoint } from "./workflow-runtime-entrypoint";
 // - CredentialService: secrets, integrations, OAuth
 // - ErrorHandler: error classification and handling
 // - CreditManager: compute credit tracking
-// - types.ts: internal type definitions
+// - execution-types.ts: execution state, context, errors, and status computation
 // - node-types.ts: node domain model (ExecutableNode, NodeContext, BlobParameter, etc.)
 // - parameter-mapper.ts: API ↔ node parameter conversion
 // All complexity is pushed down into these deep modules with simple interfaces

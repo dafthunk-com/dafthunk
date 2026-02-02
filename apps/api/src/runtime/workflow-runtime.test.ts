@@ -13,12 +13,12 @@
  * In production: Uses WorkflowRuntime with full node catalog and integrations.
  */
 import type { Bindings } from "../context";
-import type { BaseRuntime, RuntimeParams } from "./base-runtime";
+import type { Runtime, RuntimeParams } from "./base-runtime";
 import type { RuntimeFactory } from "./specification/helpers";
 
 /**
  * Adapter to use Cloudflare Workflows EXECUTE binding with the RuntimeFactory pattern.
- * Wraps the workflow execution to provide a BaseRuntime-compatible interface.
+ * Wraps the workflow execution to provide a Runtime-compatible interface.
  * Reconstructs WorkflowExecution from workflow steps using introspection API.
  */
 class WorkflowsRuntimeAdapter {
@@ -98,14 +98,14 @@ class WorkflowsRuntimeAdapter {
  * In production, this would use WorkflowRuntime.
  * Tests durable execution with step.do() via EXECUTE binding.
  */
-const createWorkflowRuntime: RuntimeFactory = (env: Bindings): BaseRuntime => {
+const createWorkflowRuntime: RuntimeFactory = (env: Bindings): Runtime => {
   const executeBinding = (env as any).EXECUTE;
   if (!executeBinding) {
     throw new Error(
       "EXECUTE binding not found. Make sure Workflows are configured in wrangler.test.jsonc"
     );
   }
-  return new WorkflowsRuntimeAdapter(executeBinding) as any as BaseRuntime;
+  return new WorkflowsRuntimeAdapter(executeBinding) as any as Runtime;
 };
 
 // Import all specification test functions

@@ -6,7 +6,7 @@
  *
  * ## Architecture
  *
- * Extends BaseRuntime with durable step execution:
+ * Extends Runtime with durable step execution:
  * - Each step is persisted and can be retried independently
  * - Execution survives Worker restarts
  * - Integrates with Cloudflare Workflows engine
@@ -16,7 +16,7 @@
  * Used by WorkflowRuntimeEntrypoint for production execution.
  * For direct testing, use WorkerRuntime instead.
  *
- * @see {@link BaseRuntime} - Base runtime class
+ * @see {@link Runtime} - Base runtime class
  * @see {@link WorkflowRuntimeEntrypoint} - Cloudflare Workflows adapter
  * @see {@link WorkerRuntime} - Non-durable Worker implementation
  */
@@ -27,9 +27,9 @@ import type { WorkflowExecution } from "@dafthunk/types";
 import type { Bindings } from "../context";
 import { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
 import { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
-import { ExecutionStore } from "../stores/execution-store";
+import { ExecutionStore } from "./execution-store";
 import {
-  BaseRuntime,
+  Runtime,
   type RuntimeDependencies,
   type RuntimeParams,
 } from "./base-runtime";
@@ -40,7 +40,7 @@ import { WorkflowSessionMonitoringService } from "./monitoring-service";
  * Workflow runtime with step-based execution.
  * Implements the core workflow execution logic with durable steps.
  */
-export class WorkflowRuntime extends BaseRuntime {
+export class WorkflowRuntime extends Runtime {
   private currentStep?: WorkflowStep;
 
   private static readonly defaultStepConfig: WorkflowStepConfig = {
