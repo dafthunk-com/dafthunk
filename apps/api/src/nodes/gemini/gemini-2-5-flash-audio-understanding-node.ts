@@ -1,9 +1,8 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 import { GoogleGenAI } from "@google/genai";
-
+import { ExecutableNode, NodeContext } from "../../runtime/node-types";
 import { getGoogleAIConfig } from "../../utils/ai-gateway";
 import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
-import { ExecutableNode, NodeContext } from "../types";
 
 // https://ai.google.dev/pricing (Gemini 2.5 Flash with audio input: $1.00 per MTok)
 const PRICING: TokenPricing = {

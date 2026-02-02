@@ -3,7 +3,7 @@ import { BoxGeometry } from "three";
 import { Brush } from "three-bvh-csg";
 import { z } from "zod";
 
-import { ExecutableNode, NodeContext } from "../types";
+import { ExecutableNode, NodeContext } from "../../runtime/node-types";
 import { brushToGLTF, extractBrushStats } from "./csg-utils";
 
 /**

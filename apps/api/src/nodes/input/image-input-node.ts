@@ -1,7 +1,7 @@
 import type { NodeExecution, NodeType } from "@dafthunk/types";
 
-import type { NodeContext } from "../types";
-import { ExecutableNode } from "../types";
+import type { NodeContext } from "../../runtime/node-types";
+import { ExecutableNode } from "../../runtime/node-types";
 
 /**
  * ImageInput node implementation

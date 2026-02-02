@@ -1,7 +1,7 @@
 import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
-import { NodeContext } from "../types";
+import { NodeContext } from "../../runtime/node-types";
 import { ReceiveEmailNode } from "./receive-email-node";
 
 describe("ReceiveEmailNode", () => {

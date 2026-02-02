@@ -1,7 +1,11 @@
 import { inc_brightness, PhotonImage } from "@cf-wasm/photon";
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
-import { ExecutableNode, ImageParameter, NodeContext } from "../types";
+import {
+  ExecutableNode,
+  ImageParameter,
+  NodeContext,
+} from "../../runtime/node-types";
 
 /**
  * This node adds noise-like effects to an input image using the Photon library.

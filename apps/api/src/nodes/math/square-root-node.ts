@@ -1,5 +1,5 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
-import { ExecutableNode, NodeContext } from "../types";
+import { ExecutableNode, NodeContext } from "../../runtime/node-types";
 
 /**
  * Square Root node implementation

@@ -2,7 +2,7 @@ import { NodeExecution, NodeType } from "@dafthunk/types";
 import { Document, NodeIO, Primitive } from "@gltf-transform/core";
 import { z } from "zod";
 
-import { ExecutableNode, NodeContext } from "../types";
+import { ExecutableNode, NodeContext } from "../../runtime/node-types";
 
 /**
  * Adds wireframe edge geometry to a glTF model

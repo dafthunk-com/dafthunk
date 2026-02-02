@@ -5,7 +5,11 @@ import {
 } from "@cf-wasm/photon";
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
-import { ExecutableNode, ImageParameter, NodeContext } from "../types";
+import {
+  ExecutableNode,
+  ImageParameter,
+  NodeContext,
+} from "../../runtime/node-types";
 
 /**
  * This node applies a threshold to an image, converting it to black and white,

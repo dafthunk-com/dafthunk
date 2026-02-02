@@ -1,7 +1,7 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 import { Units } from "@turf/helpers";
 import { sector } from "@turf/turf";
-import { ExecutableNode, NodeContext } from "../types";
+import { ExecutableNode, NodeContext } from "../../runtime/node-types";
 
 export class SectorNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

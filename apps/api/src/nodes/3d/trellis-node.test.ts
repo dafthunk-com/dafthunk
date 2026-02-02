@@ -1,7 +1,7 @@
 import { Node } from "@dafthunk/types";
 import { describe, expect, it, vi } from "vitest";
 
-import { NodeContext } from "../types";
+import { NodeContext } from "../../runtime/node-types";
 import { TrellisNode } from "./trellis-node";
 
 describe("TrellisNode", () => {

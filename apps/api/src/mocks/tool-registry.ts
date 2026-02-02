@@ -1,6 +1,6 @@
 import { BaseToolRegistry } from "../nodes/base-tool-registry";
 import { NodeToolProvider } from "../nodes/node-tool-provider";
-import type { NodeContext } from "../nodes/types";
+import type { NodeContext } from "../runtime/node-types";
 import type { MockNodeRegistry } from "./node-registry";
 
 /**

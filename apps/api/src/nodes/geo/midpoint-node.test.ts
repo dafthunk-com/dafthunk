@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { NodeContext } from "../types";
+import { NodeContext } from "../../runtime/node-types";
 import { MidpointNode } from "./midpoint-node";
 
 describe("MidpointNode", () => {

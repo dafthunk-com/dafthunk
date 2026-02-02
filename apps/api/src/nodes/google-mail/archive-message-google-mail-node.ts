@@ -1,6 +1,6 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
-import { ExecutableNode, NodeContext } from "../types";
+import { ExecutableNode, NodeContext } from "../../runtime/node-types";
 
 /**
  * Gmail Archive Message node implementation

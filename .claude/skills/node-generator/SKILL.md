@@ -60,7 +60,7 @@ Only ask for information you cannot reasonably infer or research. The goal is to
 
 ```typescript
 import { NodeExecution, NodeType } from "@dafthunk/types";
-import { ExecutableNode, NodeContext } from "../types";
+import { ExecutableNode, NodeContext } from "../../runtime/node-types";
 
 export class [NodeClassName]Node extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -143,7 +143,7 @@ export class [NodeClassName]Node extends ExecutableNode {
 ```typescript
 import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
-import { NodeContext } from "../types";
+import { NodeContext } from "../../runtime/node-types";
 import { [NodeClassName]Node } from "./<node-id>";
 
 describe("[NodeClassName]Node", () => {

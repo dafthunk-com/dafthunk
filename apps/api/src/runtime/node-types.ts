@@ -9,10 +9,9 @@ import type {
   ScheduledTrigger,
   WorkflowMode,
 } from "@dafthunk/types";
-
+import { BaseToolRegistry } from "../nodes/base-tool-registry";
+import { ToolReference } from "../nodes/tool-types";
 import type { ObjectStore } from "../stores/object-store";
-import { BaseToolRegistry } from "./base-tool-registry";
-import { ToolReference } from "./tool-types";
 
 /**
  * Generic blob parameter type that accepts any MIME type.

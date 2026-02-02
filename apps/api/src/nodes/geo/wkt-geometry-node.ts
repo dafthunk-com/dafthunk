@@ -5,7 +5,7 @@ import {
   NodeType,
 } from "@dafthunk/types";
 import wellknown from "wellknown";
-import { ExecutableNode, NodeContext } from "../types";
+import { ExecutableNode, NodeContext } from "../../runtime/node-types";
 
 export class WktGeometryNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

@@ -1,13 +1,13 @@
 import type { NodeExecution, NodeType, Table } from "@dafthunk/types";
 
 import { createDatabase, getDatabase } from "../../db";
+import { ExecutableNode, NodeContext } from "../../runtime/node-types";
 import { DatabaseStore } from "../../stores/database-store";
 import {
   generateCheckTableExistsSQL,
   generateCreateTableSQL,
   generateInsertSQL,
 } from "../../utils/database-table";
-import { ExecutableNode, NodeContext } from "../types";
 
 export class DatabaseImportTableNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

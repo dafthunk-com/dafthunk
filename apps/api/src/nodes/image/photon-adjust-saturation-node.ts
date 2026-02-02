@@ -1,7 +1,11 @@
 import { PhotonImage, saturate_hsl } from "@cf-wasm/photon";
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
-import { ExecutableNode, ImageParameter, NodeContext } from "../types";
+import {
+  ExecutableNode,
+  ImageParameter,
+  NodeContext,
+} from "../../runtime/node-types";
 
 /**
  * This node adjusts the saturation of an input image using the HSL color space via Photon library.

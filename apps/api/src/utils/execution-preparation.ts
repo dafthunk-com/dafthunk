@@ -1,7 +1,7 @@
 import type { Edge, Node, WorkflowTrigger } from "@dafthunk/types";
 import type { Context } from "hono";
 
-import type { BlobParameter } from "../nodes/types";
+import type { BlobParameter } from "../runtime/node-types";
 import {
   isParseError,
   type ParseRequestError,

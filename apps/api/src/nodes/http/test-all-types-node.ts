@@ -1,6 +1,10 @@
 import { Node, NodeExecution, NodeType } from "@dafthunk/types";
 
-import { ExecutableNode, NodeContext, ParameterValue } from "../types";
+import {
+  ExecutableNode,
+  NodeContext,
+  ParameterValue,
+} from "../../runtime/node-types";
 
 /**
  * Test All Types Node

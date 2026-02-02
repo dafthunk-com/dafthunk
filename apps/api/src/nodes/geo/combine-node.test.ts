@@ -1,7 +1,7 @@
 import { combine } from "@turf/turf";
 import { describe, expect, it } from "vitest";
 
-import { NodeContext } from "../types";
+import { NodeContext } from "../../runtime/node-types";
 import { CombineNode } from "./combine-node";
 
 describe("CombineNode", () => {

@@ -1,7 +1,7 @@
 import { booleanCrosses } from "@turf/turf";
 import { describe, expect, it } from "vitest";
 
-import { NodeContext } from "../types";
+import { NodeContext } from "../../runtime/node-types";
 import { BooleanCrossesNode } from "./boolean-crosses-node";
 
 describe("BooleanCrossesNode", () => {

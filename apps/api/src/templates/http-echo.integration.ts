@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import type { Bindings } from "../context";
 import { HttpRequestNode } from "../nodes/http/http-request-node";
 import { HttpResponseNode } from "../nodes/http/http-response-node";
-import type { NodeContext } from "../nodes/types";
+import type { NodeContext } from "../runtime/node-types";
 import { httpEchoTemplate } from "./http-echo";
 
 describe("HTTP Echo Template", () => {

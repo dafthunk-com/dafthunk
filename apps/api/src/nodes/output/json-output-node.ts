@@ -1,5 +1,5 @@
 import { JsonObject, NodeExecution, NodeType } from "@dafthunk/types";
-import { ExecutableNode, NodeContext } from "../types";
+import { ExecutableNode, NodeContext } from "../../runtime/node-types";
 
 /**
  * JsonOutput node implementation

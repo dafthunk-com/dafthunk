@@ -10,11 +10,6 @@ import type {
 import { Bindings } from "../context";
 import { BaseNodeRegistry } from "../nodes/base-node-registry";
 import { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
-import {
-  apiToNodeParameter,
-  nodeToApiParameter,
-} from "../nodes/parameter-mapper";
-import { EmailMessage, HttpRequest } from "../nodes/types";
 import { ExecutionStore } from "../stores/execution-store";
 import { ObjectStore } from "../stores/object-store";
 import { validateWorkflow } from "../utils/workflows";
@@ -24,6 +19,8 @@ import {
   MonitoringService,
   WorkflowSessionMonitoringService,
 } from "./monitoring-service";
+import { EmailMessage, HttpRequest } from "./node-types";
+import { apiToNodeParameter, nodeToApiParameter } from "./parameter-mapper";
 import type {
   ExecutionLevel,
   ExecutionState,

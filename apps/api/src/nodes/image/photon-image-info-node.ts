@@ -1,7 +1,11 @@
 import { PhotonImage } from "@cf-wasm/photon";
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
-import { ExecutableNode, ImageParameter, NodeContext } from "../types";
+import {
+  ExecutableNode,
+  ImageParameter,
+  NodeContext,
+} from "../../runtime/node-types";
 
 /**
  * This node extracts basic information (width, height, mime type, estimated filesize)

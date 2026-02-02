@@ -5,7 +5,7 @@ import type {
   TableField,
 } from "@dafthunk/types";
 
-import { ExecutableNode, NodeContext } from "../types";
+import { ExecutableNode, NodeContext } from "../../runtime/node-types";
 
 export class DatabaseBuildTableNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

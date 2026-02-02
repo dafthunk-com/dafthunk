@@ -1,4 +1,4 @@
-import { BlobParameter, HttpRequest } from "../nodes/types";
+import { BlobParameter, HttpRequest } from "../runtime/node-types";
 
 export interface SimulateHttpRequestParams {
   url?: string;

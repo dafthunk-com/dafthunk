@@ -2,7 +2,7 @@ import { env } from "cloudflare:test";
 import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
-import { NodeContext } from "../types";
+import { NodeContext } from "../../runtime/node-types";
 import { M2m10012bNode } from "./m2m100-1-2b-node";
 
 describe("M2m10012bNode", () => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { NodeContext } from "../types";
+import { NodeContext } from "../../runtime/node-types";
 import { NearestPointOnLineNode } from "./nearest-point-on-line-node";
 
 describe("NearestPointOnLineNode", () => {

@@ -2,7 +2,7 @@ import { encode } from "@cf-wasm/png";
 import { NodeExecution, NodeType } from "@dafthunk/types";
 import { fromUrl } from "geotiff";
 
-import { ExecutableNode, NodeContext } from "../types";
+import { ExecutableNode, NodeContext } from "../../runtime/node-types";
 
 type TypedArray = Uint8Array | Uint16Array | Int16Array | Float32Array;
 

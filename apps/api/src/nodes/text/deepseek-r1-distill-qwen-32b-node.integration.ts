@@ -2,7 +2,7 @@ import { env } from "cloudflare:test";
 import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
-import { NodeContext } from "../types";
+import { NodeContext } from "../../runtime/node-types";
 import { DeepseekR1DistillQwen32BNode } from "./deepseek-r1-distill-qwen-32b-node";
 
 describe("DeepseekR1DistillQwen32BNode", () => {

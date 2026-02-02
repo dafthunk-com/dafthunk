@@ -12,7 +12,7 @@ import {
   GltfParameter as NodeGltfParameter,
   ImageParameter as NodeImageParameter,
   ParameterValue as NodeParameterValue,
-} from "./types";
+} from "./node-types";
 
 /**
  * Type guard for native BlobParameter (Uint8Array only).

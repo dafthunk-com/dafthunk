@@ -1,5 +1,5 @@
 import { NodeType, Parameter } from "@dafthunk/types";
-
+import { NodeContext } from "../runtime/node-types";
 import { BaseNodeRegistry } from "./base-node-registry";
 import {
   JSONSchema,
@@ -7,7 +7,6 @@ import {
   ToolProvider,
   ToolResult,
 } from "./tool-types";
-import { NodeContext } from "./types";
 
 /**
  * Tool provider that exposes workflow nodes as tools

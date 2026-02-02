@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { NodeContext } from "../types";
+import { NodeContext } from "../../runtime/node-types";
 import { BooleanOverlapNode } from "./boolean-overlap-node";
 
 describe("BooleanOverlapNode", () => {

@@ -1,7 +1,7 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 import { z } from "zod";
 
-import { ExecutableNode, NodeContext } from "../types";
+import { ExecutableNode, NodeContext } from "../../runtime/node-types";
 import { brushToGLTF, extractBrushStats, glTFToBrush } from "./csg-utils";
 
 export class CgsApplyMaterialNode extends ExecutableNode {

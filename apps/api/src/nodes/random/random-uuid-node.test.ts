@@ -2,7 +2,7 @@ import { Node } from "@dafthunk/types";
 import { validate as uuidValidate, version as uuidVersion } from "uuid";
 import { describe, expect, it } from "vitest";
 
-import { NodeContext } from "../types";
+import { NodeContext } from "../../runtime/node-types";
 import { RandomUuidNode } from "./random-uuid-node";
 
 describe("RandomUuidNode", () => {

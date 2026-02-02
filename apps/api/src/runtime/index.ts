@@ -36,4 +36,6 @@ export { WorkflowRuntimeEntrypoint } from "./workflow-runtime-entrypoint";
 // - ErrorHandler: error classification and handling
 // - CreditManager: compute credit tracking
 // - types.ts: internal type definitions
+// - node-types.ts: node domain model (ExecutableNode, NodeContext, BlobParameter, etc.)
+// - parameter-mapper.ts: API ↔ node parameter conversion
 // All complexity is pushed down into these deep modules with simple interfaces

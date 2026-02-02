@@ -7,7 +7,11 @@
 
 import type { Bindings } from "../context";
 import type { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
-import type { EmailMessage, HttpRequest, NodeContext } from "../nodes/types";
+import type {
+  EmailMessage,
+  HttpRequest,
+  NodeContext,
+} from "../runtime/node-types";
 
 /**
  * Minimal mock that avoids database access

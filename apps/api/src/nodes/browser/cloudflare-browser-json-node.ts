@@ -1,7 +1,6 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
-
+import { ExecutableNode, NodeContext } from "../../runtime/node-types";
 import { calculateBrowserUsage } from "../../utils/usage";
-import { ExecutableNode, NodeContext } from "../types";
 
 /**
  * Cloudflare Browser Rendering JSON Node (REST API version)

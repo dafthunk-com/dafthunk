@@ -1,6 +1,10 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
-import { BlobParameter, ExecutableNode, NodeContext } from "../types";
+import {
+  BlobParameter,
+  ExecutableNode,
+  NodeContext,
+} from "../../runtime/node-types";
 
 export class BlobToJsonNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

@@ -2,7 +2,7 @@ import { env } from "cloudflare:test";
 import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
-import { NodeContext } from "../types";
+import { NodeContext } from "../../runtime/node-types";
 import { StableDiffusionXLBase10Node } from "./stable-diffusion-xl-base-1-0-node";
 
 describe("StableDiffusionXLBase10Node", () => {

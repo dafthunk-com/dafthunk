@@ -1,5 +1,9 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
-import { AudioParameter, ExecutableNode, NodeContext } from "../types";
+import {
+  AudioParameter,
+  ExecutableNode,
+  NodeContext,
+} from "../../runtime/node-types";
 
 /**
  * AudioOutput node implementation

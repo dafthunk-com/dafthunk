@@ -1,7 +1,11 @@
 import { Resvg } from "@cf-wasm/resvg";
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
-import { ExecutableNode, ImageParameter, NodeContext } from "../types";
+import {
+  ExecutableNode,
+  ImageParameter,
+  NodeContext,
+} from "../../runtime/node-types";
 
 /**
  * This node renders SVG content to PNG using the Resvg library.

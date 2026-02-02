@@ -1,4 +1,4 @@
-import { EmailMessage } from "../nodes/types";
+import { EmailMessage } from "../runtime/node-types";
 
 export interface EmailAttachment {
   filename: string;

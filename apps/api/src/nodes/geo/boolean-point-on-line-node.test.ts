@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { NodeContext } from "../types";
+import { NodeContext } from "../../runtime/node-types";
 import { BooleanPointOnLineNode } from "./boolean-point-on-line-node";
 
 describe("BooleanPointOnLineNode", () => {

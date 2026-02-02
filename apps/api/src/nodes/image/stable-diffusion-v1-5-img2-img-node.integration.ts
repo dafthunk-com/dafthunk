@@ -3,7 +3,7 @@ import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
 import { testImageData } from "../../../test/fixtures/image-fixtures";
-import { NodeContext } from "../types";
+import { NodeContext } from "../../runtime/node-types";
 import { StableDiffusionV15Img2ImgNode } from "./stable-diffusion-v1-5-img2-img-node";
 
 describe("StableDiffusionV15Img2ImgNode", () => {

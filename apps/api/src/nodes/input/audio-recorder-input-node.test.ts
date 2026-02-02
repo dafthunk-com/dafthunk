@@ -2,7 +2,7 @@ import type { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
 import { testAudioData } from "../../../test/fixtures/audio-fixtures";
-import type { NodeContext } from "../types";
+import type { NodeContext } from "../../runtime/node-types";
 import { AudioRecorderInputNode } from "./audio-recorder-input-node";
 
 describe("AudioRecorderInputNode", () => {

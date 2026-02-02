@@ -3,7 +3,7 @@ import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
 import { testPdfData } from "../../../test/fixtures/pdf-fixtures";
-import { NodeContext } from "../types";
+import { NodeContext } from "../../runtime/node-types";
 import { ToMarkdownNode } from "./to-markdown-node";
 
 describe("ToMarkdownNode", () => {

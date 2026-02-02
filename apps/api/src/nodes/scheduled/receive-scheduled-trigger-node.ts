@@ -1,6 +1,6 @@
 import { Node, NodeExecution, NodeType } from "@dafthunk/types";
 
-import { ExecutableNode, NodeContext } from "../types";
+import { ExecutableNode, NodeContext } from "../../runtime/node-types";
 
 export class ReceiveScheduledTriggerNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

@@ -6,7 +6,7 @@
 
 import type { Context } from "hono";
 
-import type { BlobParameter } from "../nodes/types";
+import type { BlobParameter } from "../runtime/node-types";
 
 export interface ParsedRequest {
   body?: BlobParameter;

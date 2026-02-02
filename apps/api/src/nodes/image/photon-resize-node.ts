@@ -1,7 +1,11 @@
 import { PhotonImage, resize, SamplingFilter } from "@cf-wasm/photon";
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
-import { ExecutableNode, ImageParameter, NodeContext } from "../types";
+import {
+  ExecutableNode,
+  ImageParameter,
+  NodeContext,
+} from "../../runtime/node-types";
 
 /**
  * This node resizes an input image to a specified width and height using the Photon library.

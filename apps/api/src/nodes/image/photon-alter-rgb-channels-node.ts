@@ -1,7 +1,11 @@
 import { alter_channels, PhotonImage } from "@cf-wasm/photon";
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
-import { ExecutableNode, ImageParameter, NodeContext } from "../types";
+import {
+  ExecutableNode,
+  ImageParameter,
+  NodeContext,
+} from "../../runtime/node-types";
 
 /**
  * This node alters the Red, Green, and Blue channels of an input image by specified amounts using the Photon library.

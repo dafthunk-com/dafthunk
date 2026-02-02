@@ -1,8 +1,7 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 import { z } from "zod";
 
-import type { ImageParameter } from "../types";
-import { ExecutableNode, NodeContext } from "../types";
+import { ExecutableNode, NodeContext } from "../../runtime/node-types";
 
 /**
  * Response shape from Replicate predictions API
@@ -150,9 +149,7 @@ export class TrellisNode extends ExecutableNode {
       }
 
       if (!context.objectStore) {
-        return this.createErrorResult(
-          "ObjectStore not available in context"
-        );
+        return this.createErrorResult("ObjectStore not available in context");
       }
 
       // Generate presigned URLs for all input images
@@ -357,5 +354,4 @@ export class TrellisNode extends ExecutableNode {
       );
     }
   }
-
 }

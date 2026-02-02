@@ -2,7 +2,7 @@ import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
 import { testImageData } from "../../../test/fixtures/image-fixtures";
-import { NodeContext } from "../types";
+import { NodeContext } from "../../runtime/node-types";
 import { PhotonAdjustContrastNode } from "./photon-adjust-contrast-node";
 
 describe("PhotonAdjustContrastNode", () => {

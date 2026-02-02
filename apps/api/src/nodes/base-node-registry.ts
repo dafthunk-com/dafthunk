@@ -1,7 +1,7 @@
 import { Node, NodeType, WorkflowTrigger } from "@dafthunk/types";
 
 import { Bindings } from "../context";
-import { ExecutableNode } from "./types";
+import { ExecutableNode } from "../runtime/node-types";
 
 export interface NodeImplementationConstructor {
   new (node: Node, env?: Record<string, any>): ExecutableNode;

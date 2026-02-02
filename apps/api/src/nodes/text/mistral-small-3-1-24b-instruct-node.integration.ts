@@ -2,7 +2,7 @@ import { env } from "cloudflare:test";
 import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
-import { NodeContext } from "../types";
+import { NodeContext } from "../../runtime/node-types";
 import { MistralSmall31_24BInstructNode } from "./mistral-small-3-1-24b-instruct-node";
 
 describe("MistralSmall31_24BInstructNode", () => {

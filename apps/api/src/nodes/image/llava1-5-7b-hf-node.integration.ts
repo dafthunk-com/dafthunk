@@ -3,7 +3,7 @@ import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
 import { testImageData } from "../../../test/fixtures/image-fixtures";
-import { NodeContext } from "../types";
+import { NodeContext } from "../../runtime/node-types";
 import { LLaVA157BHFNode } from "./llava1-5-7b-hf-node";
 
 describe("LLaVA157BHFNode", () => {

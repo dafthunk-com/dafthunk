@@ -9,9 +9,9 @@ import {
   updateIntegration,
 } from "../db";
 import type { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
-import type { EmailMessage, HttpRequest, NodeContext } from "../nodes/types";
 import { getProvider } from "../oauth";
 import { ObjectStore } from "../stores/object-store";
+import type { EmailMessage, HttpRequest, NodeContext } from "./node-types";
 import type { IntegrationData } from "./types";
 
 /**
@@ -142,9 +142,17 @@ export class CredentialService {
     }
 
     // Build ObjectStore with presigned URL support when R2 credentials are available
-    const { CLOUDFLARE_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME } = this.env;
+    const {
+      CLOUDFLARE_ACCOUNT_ID,
+      R2_ACCESS_KEY_ID,
+      R2_SECRET_ACCESS_KEY,
+      R2_BUCKET_NAME,
+    } = this.env;
     const presignedUrlConfig =
-      CLOUDFLARE_ACCOUNT_ID && R2_ACCESS_KEY_ID && R2_SECRET_ACCESS_KEY && R2_BUCKET_NAME
+      CLOUDFLARE_ACCOUNT_ID &&
+      R2_ACCESS_KEY_ID &&
+      R2_SECRET_ACCESS_KEY &&
+      R2_BUCKET_NAME
         ? {
             accountId: CLOUDFLARE_ACCOUNT_ID,
             bucketName: R2_BUCKET_NAME,
@@ -152,7 +160,10 @@ export class CredentialService {
             secretAccessKey: R2_SECRET_ACCESS_KEY,
           }
         : undefined;
-    const objectStore = new ObjectStore(this.env.RESSOURCES, presignedUrlConfig);
+    const objectStore = new ObjectStore(
+      this.env.RESSOURCES,
+      presignedUrlConfig
+    );
 
     return {
       nodeId,

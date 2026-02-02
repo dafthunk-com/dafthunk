@@ -3,7 +3,7 @@ import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
 import { testAudioData } from "../../../test/fixtures/audio-fixtures";
-import { NodeContext } from "../types";
+import { NodeContext } from "../../runtime/node-types";
 import { WhisperTinyEnNode } from "./whisper-tiny-en-node";
 
 describe("WhisperTinyEnNode", () => {

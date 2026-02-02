@@ -8,7 +8,7 @@
 import type { Node, WorkflowExecution, WorkflowRuntime } from "@dafthunk/types";
 
 import type { Bindings } from "../context";
-import type { BlobParameter } from "../nodes/types";
+import type { BlobParameter } from "../runtime/node-types";
 import { WorkerRuntime } from "../runtime/worker-runtime";
 import { createSimulatedEmailMessage } from "../utils/email";
 import { createSimulatedHttpRequest } from "../utils/http";

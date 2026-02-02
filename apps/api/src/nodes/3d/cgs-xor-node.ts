@@ -2,7 +2,7 @@ import { NodeExecution, NodeType } from "@dafthunk/types";
 import { ADDITION, Brush, Evaluator, SUBTRACTION } from "three-bvh-csg";
 import { z } from "zod";
 
-import { ExecutableNode, NodeContext } from "../types";
+import { ExecutableNode, NodeContext } from "../../runtime/node-types";
 import { brushToGLTF, extractBrushStats, glTFToBrush } from "./csg-utils";
 
 interface CSGOperationResult {

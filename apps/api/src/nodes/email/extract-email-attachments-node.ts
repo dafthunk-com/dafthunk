@@ -1,7 +1,7 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 import { ParsedMail, simpleParser } from "mailparser";
 
-import { ExecutableNode, NodeContext } from "../types";
+import { ExecutableNode, NodeContext } from "../../runtime/node-types";
 
 export class ExtractEmailAttachmentsNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

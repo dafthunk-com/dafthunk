@@ -1,6 +1,6 @@
 import { getQuickJSWASMModule, QuickJSContext } from "@cf-wasm/quickjs";
 import { NodeExecution, NodeType } from "@dafthunk/types";
-import { ExecutableNode, NodeContext } from "../types";
+import { ExecutableNode, NodeContext } from "../../runtime/node-types";
 
 /**
  * Calculator node implementation

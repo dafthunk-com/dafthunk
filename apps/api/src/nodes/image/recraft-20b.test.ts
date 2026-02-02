@@ -1,7 +1,7 @@
 import type { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
-import type { NodeContext } from "../types";
+import type { NodeContext } from "../../runtime/node-types";
 import { Recraft20bNode } from "./recraft-20b";
 
 describe("Recraft20bNode", () => {

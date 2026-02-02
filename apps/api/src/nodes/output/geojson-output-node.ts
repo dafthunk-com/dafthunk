@@ -1,5 +1,5 @@
 import { GeoJSON, NodeExecution, NodeType } from "@dafthunk/types";
-import { ExecutableNode, NodeContext } from "../types";
+import { ExecutableNode, NodeContext } from "../../runtime/node-types";
 
 /**
  * GeoJSONOutput node implementation

@@ -1,8 +1,8 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
 import { createDatabase, getDatabase } from "../../db";
+import { ExecutableNode, NodeContext } from "../../runtime/node-types";
 import { DatabaseStore } from "../../stores/database-store";
-import { ExecutableNode, NodeContext } from "../types";
 
 export class DatabaseQueryNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
