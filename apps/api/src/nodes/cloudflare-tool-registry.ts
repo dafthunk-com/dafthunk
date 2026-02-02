@@ -1,7 +1,7 @@
+import { BaseNodeRegistry } from "../runtime/base-node-registry";
+import { BaseToolRegistry } from "../runtime/base-tool-registry";
+import { NodeToolProvider } from "../runtime/node-tool-provider";
 import { NodeContext } from "../runtime/node-types";
-import { BaseNodeRegistry } from "./base-node-registry";
-import { BaseToolRegistry } from "./base-tool-registry";
-import { NodeToolProvider } from "./node-tool-provider";
 
 /**
  * Cloudflare-specific tool registry implementation

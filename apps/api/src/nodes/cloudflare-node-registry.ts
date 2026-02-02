@@ -35,7 +35,7 @@ import { Nova3Node } from "./audio/nova-3-node";
 import { WhisperLargeV3TurboNode } from "./audio/whisper-large-v3-turbo-node";
 import { WhisperNode } from "./audio/whisper-node";
 import { WhisperTinyEnNode } from "./audio/whisper-tiny-en-node";
-import { BaseNodeRegistry } from "./base-node-registry";
+import { BaseNodeRegistry } from "../runtime/base-node-registry";
 import { BlobToFormDataNode } from "./blob/blob-to-form-data-node";
 import { BlobToJsonNode } from "./blob/blob-to-json-node";
 import { BlobToTextNode } from "./blob/blob-to-text-node";

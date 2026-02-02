@@ -8,7 +8,7 @@ import type {
 } from "@dafthunk/types";
 
 import { Bindings } from "../context";
-import { BaseNodeRegistry } from "../nodes/base-node-registry";
+import { BaseNodeRegistry } from "./base-node-registry";
 import { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
 import { ExecutionStore } from "./execution-store";
 import { ObjectStore } from "./object-store";

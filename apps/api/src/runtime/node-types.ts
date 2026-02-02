@@ -9,8 +9,8 @@ import type {
   ScheduledTrigger,
   WorkflowMode,
 } from "@dafthunk/types";
-import { BaseToolRegistry } from "../nodes/base-tool-registry";
-import { ToolReference } from "../nodes/tool-types";
+import { BaseToolRegistry } from "./base-tool-registry";
+import { ToolReference } from "./tool-types";
 import type { ObjectStore } from "./object-store";
 
 /**

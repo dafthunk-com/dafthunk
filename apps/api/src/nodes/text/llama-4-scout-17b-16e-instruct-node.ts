@@ -2,8 +2,8 @@ import { runWithTools } from "@cloudflare/ai-utils";
 import { NodeExecution, NodeType } from "@dafthunk/types";
 import { ExecutableNode, NodeContext } from "../../runtime/node-types";
 import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
-import { ToolCallTracker } from "../base-tool-registry";
-import { ToolReference } from "../tool-types";
+import { ToolCallTracker } from "../../runtime/base-tool-registry";
+import { ToolReference } from "../../runtime/tool-types";
 
 // https://developers.cloudflare.com/workers-ai/platform/pricing/
 // Cloudflare Workers AI: ~$0.011 per 1000 neurons, estimated for 17B MoE model
