@@ -97,7 +97,6 @@
         "photon-gaussian-blur",
         "photon-grayscale",
         "whisper-large-v3-turbo",
-        "gemini-2-5-flash-tts",
         "melotts",
         "trellis",
         "to-markdown"

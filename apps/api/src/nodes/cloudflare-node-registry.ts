@@ -92,7 +92,6 @@ import { Gemini25FlashAudioUnderstandingNode } from "./gemini/gemini-2-5-flash-a
 import { Gemini25FlashImagePreviewNode } from "./gemini/gemini-2-5-flash-image-preview-node";
 import { Gemini25FlashImageUnderstandingNode } from "./gemini/gemini-2-5-flash-image-understanding-node";
 import { Gemini25FlashNode } from "./gemini/gemini-2-5-flash-node";
-import { Gemini25FlashTtsNode } from "./gemini/gemini-2-5-flash-tts-node";
 import { Gemini25ProNode } from "./gemini/gemini-2-5-pro-node";
 import { Gemini3ProImagePreviewNode } from "./gemini/gemini-3-pro-image-preview-node";
 import { ImagenNode } from "./gemini/imagen-node";
@@ -912,7 +911,6 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(Gemini25ProNode);
     this.registerImplementation(Gemini25FlashImagePreviewNode);
     this.registerImplementation(Gemini3ProImagePreviewNode);
-    this.registerImplementation(Gemini25FlashTtsNode);
     this.registerImplementation(Gemini25FlashAudioUnderstandingNode);
     this.registerImplementation(Gemini25FlashImageUnderstandingNode);
     this.registerImplementation(ImagenNode);
