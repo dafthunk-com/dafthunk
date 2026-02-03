@@ -8,13 +8,24 @@ import type {
 } from "@dafthunk/types";
 
 import { Bindings } from "../context";
-import { BaseNodeRegistry } from "./base-node-registry";
 import { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
-import { ExecutionStore } from "./execution-store";
-import { ObjectStore } from "./object-store";
 import { validateWorkflow } from "../utils/workflows";
+import { BaseNodeRegistry } from "./base-node-registry";
 import { CredentialService } from "./credential-service";
 import { CreditService } from "./credit-service";
+import {
+  NodeNotFoundError,
+  NodeTypeNotImplementedError,
+  SubscriptionRequiredError,
+} from "./execution-errors";
+import {
+  applyNodeResult,
+  getExecutionStatus,
+  getNodeType,
+  inferSkipReason,
+  isRuntimeValue,
+} from "./execution-state";
+import { ExecutionStore } from "./execution-store";
 import type {
   ExecutionLevel,
   ExecutionState,
@@ -24,20 +35,11 @@ import type {
   WorkflowExecutionContext,
 } from "./execution-types";
 import {
-  applyNodeResult,
-  getExecutionStatus,
-  getNodeType,
-  inferSkipReason,
-  isRuntimeValue,
-  NodeNotFoundError,
-  NodeTypeNotImplementedError,
-  SubscriptionRequiredError,
-} from "./execution-types";
-import {
   MonitoringService,
   WorkflowSessionMonitoringService,
 } from "./monitoring-service";
 import { EmailMessage, HttpRequest } from "./node-types";
+import { ObjectStore } from "./object-store";
 import { apiToNodeParameter, nodeToApiParameter } from "./parameter-mapper";
 
 export interface RuntimeParams {
@@ -501,10 +503,55 @@ export abstract class Runtime {
     queueMessage?: QueueMessage,
     scheduledTrigger?: ScheduledTrigger
   ): Promise<NodeExecutionResult> {
-    // ========================================================================
-    // Check if node should be skipped
-    // ========================================================================
+    // Check if node should be skipped (upstream failures, conditional branches)
+    const skipResult = this.checkSkipCondition(context, state, nodeId);
+    if (skipResult) return skipResult;
 
+    const node = this.findNode(context.workflow, nodeId)!;
+
+    // Resolve executable node instance and validate subscription
+    const resolved = this.resolveExecutable(node);
+    if ("status" in resolved) return resolved;
+
+    const { executable, nodeType } = resolved;
+
+    // Collect inputs from defaults + upstream edges, transform for node execution
+    const inboundEdges = context.workflow.edges.filter(
+      (edge) => edge.target === nodeId
+    );
+    const objectStore = new ObjectStore(this.env.RESSOURCES);
+    const processedInputs = await this.collectAndTransformInputs(
+      node,
+      state,
+      executable,
+      inboundEdges,
+      objectStore
+    );
+
+    // Execute the node and transform outputs for runtime storage
+    return this.executeAndTransformOutputs(
+      executable,
+      nodeType,
+      node,
+      context,
+      objectStore,
+      processedInputs,
+      httpRequest,
+      emailMessage,
+      queueMessage,
+      scheduledTrigger
+    );
+  }
+
+  /**
+   * Checks if a node should be skipped based on upstream dependencies.
+   * Returns a skip/error result if the node should not execute, or null to proceed.
+   */
+  private checkSkipCondition(
+    context: WorkflowExecutionContext,
+    state: ExecutionState,
+    nodeId: string
+  ): NodeExecutionResult | null {
     // Already skipped or errored
     if (state.skippedNodes.includes(nodeId) || nodeId in state.nodeErrors) {
       const { reason, blockedBy } = inferSkipReason(
@@ -540,17 +587,14 @@ export abstract class Runtime {
       let unavailableCount = 0;
 
       for (const edge of inboundEdges) {
-        // Upstream errored
         if (edge.source in state.nodeErrors) {
           unavailableCount++;
           continue;
         }
-        // Upstream was skipped
         if (state.skippedNodes.includes(edge.source)) {
           unavailableCount++;
           continue;
         }
-        // Upstream executed but didn't populate this specific output (conditional branch)
         if (state.executedNodes.includes(edge.source)) {
           const sourceOutputs = state.nodeOutputs[edge.source];
           if (sourceOutputs && !(edge.sourceOutput in sourceOutputs)) {
@@ -578,44 +622,63 @@ export abstract class Runtime {
       }
     }
 
-    // ========================================================================
-    // Get node type and validate
-    // ========================================================================
+    return null;
+  }
 
+  /**
+   * Looks up node type in registry, validates subscription, and creates executable.
+   * Returns the executable + nodeType on success, or a NodeExecutionResult on failure.
+   */
+  private resolveExecutable(node: Node):
+    | {
+        executable: ReturnType<BaseNodeRegistry["createExecutableNode"]> &
+          object;
+        nodeType: import("@dafthunk/types").NodeType;
+      }
+    | NodeExecutionResult {
     let nodeType;
     try {
       nodeType = this.nodeRegistry.getNodeType(node.type);
     } catch (_error) {
       return {
-        nodeId,
+        nodeId: node.id,
         status: "error",
-        error: new NodeTypeNotImplementedError(nodeId, node.type).message,
+        error: new NodeTypeNotImplementedError(node.id, node.type).message,
       };
     }
 
-    // Check if this is a subscription-only node and user doesn't have a paid plan
     if (nodeType.subscription && this.userPlan !== "pro") {
       return {
-        nodeId,
+        nodeId: node.id,
         status: "error",
-        error: new SubscriptionRequiredError(nodeId, node.type).message,
+        error: new SubscriptionRequiredError(node.id, node.type).message,
       };
     }
 
     const executable = this.nodeRegistry.createExecutableNode(node);
     if (!executable) {
       return {
-        nodeId,
+        nodeId: node.id,
         status: "error",
-        error: new NodeTypeNotImplementedError(nodeId, node.type).message,
+        error: new NodeTypeNotImplementedError(node.id, node.type).message,
       };
     }
 
-    // ========================================================================
-    // Collect and transform inputs
-    // ========================================================================
+    return { executable, nodeType };
+  }
 
-    // Collect inputs from node defaults and upstream edges
+  /**
+   * Collects inputs from node defaults and upstream edges, then transforms them
+   * from API format to node-native format for execution.
+   */
+  private async collectAndTransformInputs(
+    node: Node,
+    state: ExecutionState,
+    executable: object,
+    inboundEdges: Workflow["edges"],
+    objectStore: ObjectStore
+  ): Promise<Record<string, any>> {
+    // Collect inputs from node defaults
     const inputs: NodeRuntimeValues = {};
 
     for (const input of node.inputs) {
@@ -624,6 +687,7 @@ export abstract class Runtime {
       }
     }
 
+    // Group edges by target input name
     const edgesByInput = new Map<string, typeof inboundEdges>();
     for (const edge of inboundEdges) {
       const inputName = edge.targetInput;
@@ -633,6 +697,7 @@ export abstract class Runtime {
       edgesByInput.get(inputName)!.push(edge);
     }
 
+    // Resolve upstream edge values
     for (const [inputName, edges] of edgesByInput) {
       const nodeTypeInput = getNodeType(executable)?.inputs?.find(
         (input) => input.name === inputName
@@ -644,7 +709,6 @@ export abstract class Runtime {
         const sourceOutputs = state.nodeOutputs[edge.source];
         if (sourceOutputs && sourceOutputs[edge.sourceOutput] !== undefined) {
           const value = sourceOutputs[edge.sourceOutput];
-          // If the source output is an array (repeated output), flatten it into values
           if (Array.isArray(value)) {
             for (const item of value) {
               if (isRuntimeValue(item)) {
@@ -664,8 +728,7 @@ export abstract class Runtime {
       }
     }
 
-    // Transform inputs for node execution
-    const objectStore = new ObjectStore(this.env.RESSOURCES);
+    // Transform inputs from API format to node-native format
     const processedInputs: Record<string, any> = {};
 
     for (const [name, value] of Object.entries(inputs)) {
@@ -686,13 +749,28 @@ export abstract class Runtime {
       }
     }
 
-    // ========================================================================
-    // Execute node
-    // ========================================================================
+    return processedInputs;
+  }
 
+  /**
+   * Calls executable.execute(), then transforms outputs from node-native format
+   * to API/runtime format for storage.
+   */
+  private async executeAndTransformOutputs(
+    executable: { execute: (ctx: any) => Promise<any> },
+    nodeType: import("@dafthunk/types").NodeType,
+    node: Node,
+    context: WorkflowExecutionContext,
+    objectStore: ObjectStore,
+    processedInputs: Record<string, any>,
+    httpRequest?: HttpRequest,
+    emailMessage?: EmailMessage,
+    queueMessage?: QueueMessage,
+    scheduledTrigger?: ScheduledTrigger
+  ): Promise<NodeExecutionResult> {
     try {
       const nodeContext = this.credentialProvider.createNodeContext(
-        nodeId,
+        node.id,
         context.workflowId,
         context.organizationId,
         processedInputs,
@@ -706,7 +784,6 @@ export abstract class Runtime {
       const result = await executable.execute(nodeContext);
 
       if (result.status === "completed") {
-        // Transform outputs for runtime storage
         const outputs = result.outputs ?? {};
         const outputsForRuntime: Record<string, RuntimeValue> = {};
 
@@ -739,14 +816,14 @@ export abstract class Runtime {
         }
 
         return {
-          nodeId,
+          nodeId: node.id,
           status: "completed",
           outputs: outputsForRuntime as NodeRuntimeValues,
           usage: result.usage ?? nodeType.usage ?? 1,
         };
       } else {
         return {
-          nodeId,
+          nodeId: node.id,
           status: "error",
           error: result.error ?? "Unknown error",
           usage: result.usage,
@@ -754,7 +831,7 @@ export abstract class Runtime {
       }
     } catch (error) {
       return {
-        nodeId,
+        nodeId: node.id,
         status: "error",
         error: error instanceof Error ? error.message : String(error),
       };

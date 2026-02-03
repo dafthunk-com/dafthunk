@@ -2,8 +2,6 @@ import type {
   ParameterValue as ApiParameterValue,
   ObjectReference,
 } from "@dafthunk/types";
-
-import { ObjectStore } from "./object-store";
 import {
   isObjectReference,
   AudioParameter as NodeAudioParameter,
@@ -13,6 +11,7 @@ import {
   ImageParameter as NodeImageParameter,
   ParameterValue as NodeParameterValue,
 } from "./node-types";
+import { ObjectStore } from "./object-store";
 
 /**
  * Type guard for native BlobParameter (Uint8Array only).
@@ -64,6 +63,54 @@ const typeValidatingApiToNode =
   (expectedType: string) => (value: ApiParameterValue) =>
     typeof value === expectedType ? value : undefined;
 
+// Factory functions for blob-like converters (blob, image, document, audio, gltf)
+// All blob types share identical read/write logic; only the type guard differs.
+function createBlobNodeToApi(
+  typeGuard: (value: unknown) => value is NodeBlobParameter
+) {
+  return async (
+    value: NodeParameterValue,
+    objectStore: ObjectStore,
+    organizationId: string,
+    executionId?: string
+  ) => {
+    if (!typeGuard(value)) return undefined;
+    const blob = new Blob([value.data], { type: value.mimeType });
+    const buffer = await blob.arrayBuffer();
+    const data = new Uint8Array(buffer);
+    return await objectStore.writeObject(
+      data,
+      blob.type,
+      organizationId,
+      executionId,
+      value.filename
+    );
+  };
+}
+
+function createBlobApiToNode() {
+  return async (value: ApiParameterValue, objectStore: ObjectStore) => {
+    if (
+      !value ||
+      typeof value !== "object" ||
+      !("id" in value) ||
+      !("mimeType" in value)
+    )
+      return undefined;
+    const result = await objectStore.readObject(value as ObjectReference);
+    if (!result) return undefined;
+    const objRef = value as ObjectReference;
+    const param: NodeBlobParameter = {
+      data: result.data,
+      mimeType: objRef.mimeType,
+    };
+    if (objRef.filename) {
+      param.filename = objRef.filename;
+    }
+    return param;
+  };
+}
+
 // Static mapping of converters
 const converters = {
   string: {
@@ -104,209 +151,24 @@ const converters = {
     apiToNode: typeValidatingApiToNode("boolean"),
   },
   blob: {
-    nodeToApi: async (
-      value: NodeParameterValue,
-      objectStore: ObjectStore,
-      organizationId: string,
-      executionId?: string
-    ) => {
-      if (!isNativeBlobParameter(value)) return undefined;
-      const blob = new Blob([value.data], { type: value.mimeType });
-      const buffer = await blob.arrayBuffer();
-      const data = new Uint8Array(buffer);
-      const blobParam = value as NodeBlobParameter;
-      return await objectStore.writeObject(
-        data,
-        blob.type,
-        organizationId,
-        executionId,
-        blobParam.filename
-      );
-    },
-    apiToNode: async (value: ApiParameterValue, objectStore: ObjectStore) => {
-      if (
-        !value ||
-        typeof value !== "object" ||
-        !("id" in value) ||
-        !("mimeType" in value)
-      )
-        return undefined;
-      const result = await objectStore.readObject(value as ObjectReference);
-      if (!result) return undefined;
-      const objRef = value as ObjectReference;
-      const blobParam: NodeBlobParameter = {
-        data: result.data,
-        mimeType: objRef.mimeType,
-      };
-      if (objRef.filename) {
-        blobParam.filename = objRef.filename;
-      }
-      return blobParam;
-    },
+    nodeToApi: createBlobNodeToApi(isNativeBlobParameter),
+    apiToNode: createBlobApiToNode(),
   },
   image: {
-    nodeToApi: async (
-      value: NodeParameterValue,
-      objectStore: ObjectStore,
-      organizationId: string,
-      executionId?: string
-    ) => {
-      if (!isImageParameter(value)) return undefined;
-      const blob = new Blob([value.data], { type: value.mimeType });
-      const buffer = await blob.arrayBuffer();
-      const data = new Uint8Array(buffer);
-      const imageParam = value as NodeImageParameter;
-      return await objectStore.writeObject(
-        data,
-        blob.type,
-        organizationId,
-        executionId,
-        imageParam.filename
-      );
-    },
-    apiToNode: async (value: ApiParameterValue, objectStore: ObjectStore) => {
-      if (
-        !value ||
-        typeof value !== "object" ||
-        !("id" in value) ||
-        !("mimeType" in value)
-      )
-        return undefined;
-      const result = await objectStore.readObject(value as ObjectReference);
-      if (!result) return undefined;
-      const objRef = value as ObjectReference;
-      const imageParam: NodeImageParameter = {
-        data: result.data,
-        mimeType: objRef.mimeType,
-      };
-      if (objRef.filename) {
-        imageParam.filename = objRef.filename;
-      }
-      return imageParam;
-    },
+    nodeToApi: createBlobNodeToApi(isImageParameter),
+    apiToNode: createBlobApiToNode(),
   },
   document: {
-    nodeToApi: async (
-      value: NodeParameterValue,
-      objectStore: ObjectStore,
-      organizationId: string,
-      executionId?: string
-    ) => {
-      if (!isDocumentParameter(value)) return undefined;
-      const blob = new Blob([value.data], { type: value.mimeType });
-      const buffer = await blob.arrayBuffer();
-      const data = new Uint8Array(buffer);
-      const docParam = value as NodeDocumentParameter;
-      return await objectStore.writeObject(
-        data,
-        blob.type,
-        organizationId,
-        executionId,
-        docParam.filename
-      );
-    },
-    apiToNode: async (value: ApiParameterValue, objectStore: ObjectStore) => {
-      if (
-        !value ||
-        typeof value !== "object" ||
-        !("id" in value) ||
-        !("mimeType" in value)
-      )
-        return undefined;
-      const result = await objectStore.readObject(value as ObjectReference);
-      if (!result) return undefined;
-      const objRef = value as ObjectReference;
-      const docParam: NodeDocumentParameter = {
-        data: result.data,
-        mimeType: objRef.mimeType,
-      };
-      if (objRef.filename) {
-        docParam.filename = objRef.filename;
-      }
-      return docParam;
-    },
+    nodeToApi: createBlobNodeToApi(isDocumentParameter),
+    apiToNode: createBlobApiToNode(),
   },
   audio: {
-    nodeToApi: async (
-      value: NodeParameterValue,
-      objectStore: ObjectStore,
-      organizationId: string,
-      executionId?: string
-    ) => {
-      if (!isAudioParameter(value)) return undefined;
-      const blob = new Blob([value.data], { type: value.mimeType });
-      const buffer = await blob.arrayBuffer();
-      const data = new Uint8Array(buffer);
-      const audioParam = value as NodeAudioParameter;
-      return await objectStore.writeObject(
-        data,
-        blob.type,
-        organizationId,
-        executionId,
-        audioParam.filename
-      );
-    },
-    apiToNode: async (value: ApiParameterValue, objectStore: ObjectStore) => {
-      if (
-        !value ||
-        typeof value !== "object" ||
-        !("id" in value) ||
-        !("mimeType" in value)
-      )
-        return undefined;
-      const result = await objectStore.readObject(value as ObjectReference);
-      if (!result) return undefined;
-      const objRef = value as ObjectReference;
-      const audioParam: NodeAudioParameter = {
-        data: result.data,
-        mimeType: objRef.mimeType,
-      };
-      if (objRef.filename) {
-        audioParam.filename = objRef.filename;
-      }
-      return audioParam;
-    },
+    nodeToApi: createBlobNodeToApi(isAudioParameter),
+    apiToNode: createBlobApiToNode(),
   },
   gltf: {
-    nodeToApi: async (
-      value: NodeParameterValue,
-      objectStore: ObjectStore,
-      organizationId: string,
-      executionId?: string
-    ) => {
-      if (!isGltfParameter(value)) return undefined;
-      const blob = new Blob([value.data], { type: value.mimeType });
-      const buffer = await blob.arrayBuffer();
-      const data = new Uint8Array(buffer);
-      const gltfParam = value as NodeGltfParameter;
-      return await objectStore.writeObject(
-        data,
-        blob.type,
-        organizationId,
-        executionId,
-        gltfParam.filename
-      );
-    },
-    apiToNode: async (value: ApiParameterValue, objectStore: ObjectStore) => {
-      if (
-        !value ||
-        typeof value !== "object" ||
-        !("id" in value) ||
-        !("mimeType" in value)
-      )
-        return undefined;
-      const result = await objectStore.readObject(value as ObjectReference);
-      if (!result) return undefined;
-      const objRef = value as ObjectReference;
-      const gltfParam: NodeGltfParameter = {
-        data: result.data,
-        mimeType: objRef.mimeType,
-      };
-      if (objRef.filename) {
-        gltfParam.filename = objRef.filename;
-      }
-      return gltfParam;
-    },
+    nodeToApi: createBlobNodeToApi(isGltfParameter),
+    apiToNode: createBlobApiToNode(),
   },
   json: {
     nodeToApi: createJsonParsingNodeToApi(),

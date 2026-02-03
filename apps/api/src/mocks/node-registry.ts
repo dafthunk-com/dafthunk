@@ -1,4 +1,3 @@
-import { BaseNodeRegistry } from "../runtime/base-node-registry";
 import { NumberInputNode } from "../nodes/input/number-input-node";
 import { ConditionalForkNode } from "../nodes/logic/conditional-fork-node";
 import { ConditionalJoinNode } from "../nodes/logic/conditional-join-node";
@@ -11,6 +10,7 @@ import { MinNode } from "../nodes/math/min-node";
 import { MultiplicationNode } from "../nodes/math/multiplication-node";
 import { SubtractionNode } from "../nodes/math/subtraction-node";
 import { SumNode } from "../nodes/math/sum-node";
+import { BaseNodeRegistry } from "../runtime/base-node-registry";
 
 /**
  * Mock Node Registry

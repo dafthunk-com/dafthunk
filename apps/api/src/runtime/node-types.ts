@@ -10,8 +10,8 @@ import type {
   WorkflowMode,
 } from "@dafthunk/types";
 import { BaseToolRegistry } from "./base-tool-registry";
-import { ToolReference } from "./tool-types";
 import type { ObjectStore } from "./object-store";
+import { ToolReference } from "./tool-types";
 
 /**
  * Generic blob parameter type that accepts any MIME type.
@@ -299,47 +299,7 @@ export abstract class ExecutableNode {
     functionCalls: ToolReference[],
     context: NodeContext
   ): Promise<any[]> {
-    if (
-      !functionCalls ||
-      !Array.isArray(functionCalls) ||
-      functionCalls.length === 0
-    ) {
-      return [];
-    }
-
-    if (!context.toolRegistry) {
-      console.warn(
-        "Tool registry not available in context, cannot resolve tools"
-      );
-      return [];
-    }
-
-    try {
-      // Validate all items are proper ToolReference objects
-      for (const item of functionCalls) {
-        if (
-          !item ||
-          typeof item !== "object" ||
-          !item.type ||
-          !item.identifier
-        ) {
-          throw new Error(
-            `Invalid tool reference format. Expected ToolReference with type and identifier: ${JSON.stringify(item)}`
-          );
-        }
-      }
-
-      // Get tool definitions (now returns Cloudflare embedded format)
-      const toolDefinitions =
-        await context.toolRegistry.getToolDefinitions(functionCalls);
-      return toolDefinitions;
-    } catch (error) {
-      console.error(
-        "Failed to convert function calls to tool definitions:",
-        error
-      );
-      return [];
-    }
+    return this.resolveToolDefinitions(functionCalls, context);
   }
 
   /**
@@ -347,6 +307,25 @@ export abstract class ExecutableNode {
    * Returns Gemini-specific function declarations for function calling
    */
   protected async convertFunctionCallsToGeminiDeclarations(
+    functionCalls: ToolReference[],
+    context: NodeContext
+  ): Promise<any[]> {
+    const toolDefinitions = await this.resolveToolDefinitions(
+      functionCalls,
+      context
+    );
+    return toolDefinitions.map((tool) => ({
+      name: tool.name,
+      description: tool.description,
+      parameters: tool.parameters,
+    }));
+  }
+
+  /**
+   * Resolves tool references to tool definitions via the tool registry.
+   * Shared logic for both Cloudflare and Gemini tool formats.
+   */
+  private async resolveToolDefinitions(
     functionCalls: ToolReference[],
     context: NodeContext
   ): Promise<any[]> {
@@ -366,7 +345,6 @@ export abstract class ExecutableNode {
     }
 
     try {
-      // Validate all items are proper ToolReference objects
       for (const item of functionCalls) {
         if (
           !item ||
@@ -380,21 +358,9 @@ export abstract class ExecutableNode {
         }
       }
 
-      // Get tool definitions
-      const toolDefinitions =
-        await context.toolRegistry.getToolDefinitions(functionCalls);
-
-      // Convert to Gemini function declarations format
-      return toolDefinitions.map((tool) => ({
-        name: tool.name,
-        description: tool.description,
-        parameters: tool.parameters,
-      }));
+      return await context.toolRegistry.getToolDefinitions(functionCalls);
     } catch (error) {
-      console.error(
-        "Failed to convert function calls to Gemini declarations:",
-        error
-      );
+      console.error("Failed to resolve tool definitions:", error);
       return [];
     }
   }

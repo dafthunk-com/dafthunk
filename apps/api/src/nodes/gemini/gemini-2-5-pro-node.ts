@@ -1,9 +1,9 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 import { GoogleGenAI } from "@google/genai";
 import { ExecutableNode, NodeContext } from "../../runtime/node-types";
+import { ToolReference } from "../../runtime/tool-types";
 import { getGoogleAIConfig } from "../../utils/ai-gateway";
 import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
-import { ToolReference } from "../../runtime/tool-types";
 
 // https://ai.google.dev/pricing
 const PRICING: TokenPricing = {

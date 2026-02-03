@@ -18,6 +18,8 @@
 // import { GeoTiffQueryNode } from "./3d/geotiff-query-node";
 // import { GeoTiffTransformNode } from "./3d/geotiff-transform-node";
 // import { GltfWireframeNode } from "./3d/gltf-wireframe-node";
+
+import { BaseNodeRegistry } from "../runtime/base-node-registry";
 import { TrellisNode } from "./3d/trellis-node";
 import { Trellis2Node } from "./3d/trellis2-node";
 import { Claude3OpusNode } from "./anthropic/claude-3-opus-node";
@@ -35,7 +37,6 @@ import { Nova3Node } from "./audio/nova-3-node";
 import { WhisperLargeV3TurboNode } from "./audio/whisper-large-v3-turbo-node";
 import { WhisperNode } from "./audio/whisper-node";
 import { WhisperTinyEnNode } from "./audio/whisper-tiny-en-node";
-import { BaseNodeRegistry } from "../runtime/base-node-registry";
 import { BlobToFormDataNode } from "./blob/blob-to-form-data-node";
 import { BlobToJsonNode } from "./blob/blob-to-json-node";
 import { BlobToTextNode } from "./blob/blob-to-text-node";
