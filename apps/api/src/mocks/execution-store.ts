@@ -44,7 +44,7 @@ export class MockExecutionStore implements Partial<ExecutionStore> {
       id: record.id,
       workflowId: record.workflowId,
       deploymentId: record.deploymentId,
-      status: record.status as any,
+      status: record.status,
       nodeExecutions: record.nodeExecutions,
       error: record.error,
       startedAt: record.startedAt,

@@ -1,7 +1,7 @@
 import type {
-  ExecutionStatusType,
   NodeExecution,
   WorkflowExecution,
+  WorkflowExecutionStatus,
 } from "@dafthunk/types";
 
 import type { Bindings } from "../context";
@@ -14,7 +14,7 @@ export interface ExecutionRow {
   workflowId: string;
   deploymentId: string | null;
   organizationId: string;
-  status: ExecutionStatusType;
+  status: WorkflowExecutionStatus;
   error: string | null;
   startedAt: Date | null;
   endedAt: Date | null;
@@ -32,7 +32,7 @@ export interface SaveExecutionRecord {
   deploymentId?: string;
   userId: string;
   organizationId: string;
-  status: ExecutionStatusType;
+  status: WorkflowExecutionStatus;
   nodeExecutions: NodeExecution[];
   error?: string;
   createdAt?: Date;
@@ -49,6 +49,23 @@ export interface ListExecutionsOptions {
   deploymentId?: string;
   limit?: number;
   offset?: number;
+}
+
+/**
+ * Row shape returned by Analytics Engine SQL queries
+ */
+interface AnalyticsRow {
+  timestamp: string;
+  index1: string;
+  blob1: string;
+  blob2: string;
+  blob3: string;
+  blob4: string;
+  blob5: string;
+  double1: number;
+  double2: number;
+  double3: number;
+  double4: number;
 }
 
 /**
@@ -76,7 +93,7 @@ export class ExecutionStore {
       id: record.id,
       workflowId: record.workflowId,
       deploymentId: record.deploymentId,
-      status: record.status as any,
+      status: record.status,
       nodeExecutions,
       error: record.error,
       startedAt: record.startedAt,
@@ -218,7 +235,7 @@ export class ExecutionStore {
   /**
    * Query Analytics Engine using SQL API
    */
-  private async queryAnalytics(sql: string): Promise<any[]> {
+  private async queryAnalytics(sql: string): Promise<AnalyticsRow[]> {
     // Validate required credentials
     if (!this.env.CLOUDFLARE_ACCOUNT_ID || !this.env.CLOUDFLARE_API_TOKEN) {
       console.error(
@@ -266,7 +283,7 @@ export class ExecutionStore {
         );
       }
 
-      const result = (await response.json()) as { data?: any[] };
+      const result = (await response.json()) as { data?: AnalyticsRow[] };
       return result.data || [];
     } catch (error) {
       console.error(`ExecutionStore.queryAnalytics: Query failed:`, error);
@@ -305,7 +322,7 @@ export class ExecutionStore {
       workflowId: executionData.workflowId,
       deploymentId: executionData.deploymentId ?? null,
       organizationId,
-      status: executionData.status as ExecutionStatusType,
+      status: executionData.status,
       error: executionData.error ?? null,
       startedAt: executionData.startedAt ?? now,
       endedAt: executionData.endedAt ?? now,
@@ -368,7 +385,7 @@ export class ExecutionStore {
           workflowId: row.blob2,
           deploymentId: row.blob3 || null,
           organizationId: row.index1,
-          status: row.blob4 as ExecutionStatusType,
+          status: row.blob4 as WorkflowExecutionStatus,
           error: row.blob5 || null,
           startedAt,
           endedAt,

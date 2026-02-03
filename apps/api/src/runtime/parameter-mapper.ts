@@ -349,8 +349,14 @@ export async function nodeToApiParameter(
   const fn = converter.nodeToApi;
 
   // Special handling for 'any' type - it decides internally whether it needs objectStore
+  // Access converters.any directly so TypeScript can resolve the specific signature
   if (type === "any") {
-    const result = (fn as any)(value, objectStore, organizationId, executionId);
+    const result = converters.any.nodeToApi(
+      value,
+      objectStore,
+      organizationId,
+      executionId
+    );
     return await Promise.resolve(result);
   }
 
@@ -401,14 +407,22 @@ export async function apiToNodeParameter(
   if (!converter) throw new Error(`No converter for type: ${type}`);
 
   // Special handling for 'any' type - it decides internally whether it needs objectStore
+  // Access converters.any directly so TypeScript can resolve the specific signature
   if (type === "any") {
-    const result = (converter.apiToNode as any)(value, objectStore);
+    const result = converters.any.apiToNode(value, objectStore);
     return await Promise.resolve(result);
   }
 
   if (converter.apiToNode.length === 2) {
     if (!objectStore) throw new Error(`ObjectStore required for type: ${type}`);
-    return await (converter.apiToNode as any)(value, objectStore);
+    return await (
+      converter.apiToNode as (
+        v: ApiParameterValue,
+        os: ObjectStore
+      ) => Promise<NodeParameterValue>
+    )(value, objectStore);
   }
-  return await (converter.apiToNode as any)(value);
+  return (converter.apiToNode as (v: ApiParameterValue) => NodeParameterValue)(
+    value
+  );
 }

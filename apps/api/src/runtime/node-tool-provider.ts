@@ -16,7 +16,7 @@ export class NodeToolProvider implements ToolProvider {
     private nodeRegistry: BaseNodeRegistry,
     private createNodeContext: (
       nodeId: string,
-      inputs: Record<string, any>
+      inputs: Record<string, unknown>
     ) => NodeContext
   ) {}
 
@@ -209,7 +209,7 @@ export class NodeToolProvider implements ToolProvider {
       case "string":
         return { ...baseProperty, type: "string" };
       case "date":
-        return { ...baseProperty, type: "string", format: "date-time" } as any;
+        return { ...baseProperty, type: "string", format: "date-time" };
       case "number":
         return { ...baseProperty, type: "number" };
       case "boolean":

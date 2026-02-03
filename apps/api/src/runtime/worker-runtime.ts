@@ -82,7 +82,7 @@ export class WorkerRuntime extends Runtime {
     let credentialProvider: CredentialService;
     const toolRegistry = new CloudflareToolRegistry(
       nodeRegistry,
-      (nodeId: string, inputs: Record<string, any>) =>
+      (nodeId: string, inputs: Record<string, unknown>) =>
         credentialProvider.createToolContext(nodeId, inputs)
     );
 

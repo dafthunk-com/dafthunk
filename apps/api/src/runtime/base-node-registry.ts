@@ -1,10 +1,10 @@
 import { Node, NodeType, WorkflowTrigger } from "@dafthunk/types";
 
-import { Bindings } from "../context";
+import type { Bindings } from "../context";
 import { ExecutableNode } from "./node-types";
 
 export interface NodeImplementationConstructor {
-  new (node: Node, env?: Record<string, any>): ExecutableNode;
+  new (node: Node, env?: Bindings): ExecutableNode;
   readonly nodeType: NodeType;
 }
 

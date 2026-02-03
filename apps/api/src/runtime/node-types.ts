@@ -11,7 +11,7 @@ import type {
 } from "@dafthunk/types";
 import { BaseToolRegistry } from "./base-tool-registry";
 import type { ObjectStore } from "./object-store";
-import { ToolReference } from "./tool-types";
+import type { ToolDefinition, ToolReference } from "./tool-types";
 
 /**
  * Generic blob parameter type that accepts any MIME type.
@@ -173,7 +173,7 @@ export interface IntegrationInfo {
   name: string;
   provider: string;
   token: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface NodeContext {
@@ -298,7 +298,7 @@ export abstract class ExecutableNode {
   protected async convertFunctionCallsToToolDefinitions(
     functionCalls: ToolReference[],
     context: NodeContext
-  ): Promise<any[]> {
+  ): Promise<ToolDefinition[]> {
     return this.resolveToolDefinitions(functionCalls, context);
   }
 
@@ -309,7 +309,13 @@ export abstract class ExecutableNode {
   protected async convertFunctionCallsToGeminiDeclarations(
     functionCalls: ToolReference[],
     context: NodeContext
-  ): Promise<any[]> {
+  ): Promise<
+    Array<{
+      name: string;
+      description: string;
+      parameters: ToolDefinition["parameters"];
+    }>
+  > {
     const toolDefinitions = await this.resolveToolDefinitions(
       functionCalls,
       context
@@ -328,7 +334,7 @@ export abstract class ExecutableNode {
   private async resolveToolDefinitions(
     functionCalls: ToolReference[],
     context: NodeContext
-  ): Promise<any[]> {
+  ): Promise<ToolDefinition[]> {
     if (
       !functionCalls ||
       !Array.isArray(functionCalls) ||

@@ -3,6 +3,7 @@ import type {
   JsonObject,
   NodeType,
   ObjectReference,
+  Workflow,
 } from "@dafthunk/types";
 
 /**

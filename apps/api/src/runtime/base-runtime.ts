@@ -38,7 +38,7 @@ import {
   MonitoringService,
   WorkflowSessionMonitoringService,
 } from "./monitoring-service";
-import { EmailMessage, HttpRequest } from "./node-types";
+import { EmailMessage, ExecutableNode, HttpRequest } from "./node-types";
 import { ObjectStore } from "./object-store";
 import { apiToNodeParameter, nodeToApiParameter } from "./parameter-mapper";
 
@@ -121,7 +121,7 @@ export abstract class Runtime {
       let credentialProvider: CredentialService;
       const toolRegistry = new CloudflareToolRegistry(
         this.nodeRegistry,
-        (nodeId: string, inputs: Record<string, any>) =>
+        (nodeId: string, inputs: Record<string, unknown>) =>
           credentialProvider.createToolContext(nodeId, inputs)
       );
 
@@ -315,7 +315,7 @@ export abstract class Runtime {
 
       if (!hasCredits) {
         isExhausted = true;
-        executionRecord.status = "exhausted" as any;
+        executionRecord.status = "exhausted";
         executionRecord.error = "Insufficient compute credits";
         await this.monitoringService.sendUpdate(
           workflowSessionId,
@@ -380,7 +380,7 @@ export abstract class Runtime {
           "persist final execution record",
           async () => {
             const finalStatus = isExhausted
-              ? ("exhausted" as any)
+              ? ("exhausted" as const)
               : getExecutionStatus(executionContext!, executionState);
 
             // Record actual usage
@@ -677,7 +677,7 @@ export abstract class Runtime {
     executable: object,
     inboundEdges: Workflow["edges"],
     objectStore: ObjectStore
-  ): Promise<Record<string, any>> {
+  ): Promise<Record<string, unknown>> {
     // Collect inputs from node defaults
     const inputs: NodeRuntimeValues = {};
 
@@ -729,7 +729,7 @@ export abstract class Runtime {
     }
 
     // Transform inputs from API format to node-native format
-    const processedInputs: Record<string, any> = {};
+    const processedInputs: Record<string, unknown> = {};
 
     for (const [name, value] of Object.entries(inputs)) {
       const input = node.inputs.find((i) => i.name === name);
@@ -757,12 +757,12 @@ export abstract class Runtime {
    * to API/runtime format for storage.
    */
   private async executeAndTransformOutputs(
-    executable: { execute: (ctx: any) => Promise<any> },
+    executable: ExecutableNode,
     nodeType: import("@dafthunk/types").NodeType,
     node: Node,
     context: WorkflowExecutionContext,
     objectStore: ObjectStore,
-    processedInputs: Record<string, any>,
+    processedInputs: Record<string, unknown>,
     httpRequest?: HttpRequest,
     emailMessage?: EmailMessage,
     queueMessage?: QueueMessage,
