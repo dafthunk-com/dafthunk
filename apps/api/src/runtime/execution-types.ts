@@ -3,8 +3,12 @@ import type {
   JsonObject,
   NodeType,
   ObjectReference,
+  QueueMessage,
+  ScheduledTrigger,
   Workflow,
 } from "@dafthunk/types";
+
+import type { EmailMessage, HttpRequest } from "./node-types";
 
 /**
  * Runtime value types - JSON-serializable values used during workflow execution.
@@ -75,6 +79,16 @@ export interface WorkflowExecutionContext {
   readonly executionId: string;
   /** Deployment ID if executing a deployed version */
   readonly deploymentId?: string;
+  /** Incoming HTTP request (for webhook-triggered workflows) */
+  readonly httpRequest?: HttpRequest;
+  /** Incoming email message (for email-triggered workflows) */
+  readonly emailMessage?: EmailMessage;
+  /** Incoming queue message (for queue-triggered workflows) */
+  readonly queueMessage?: QueueMessage;
+  /** Incoming scheduled trigger (for cron-triggered workflows) */
+  readonly scheduledTrigger?: ScheduledTrigger;
+  /** Session ID for real-time monitoring updates */
+  readonly workflowSessionId?: string;
 }
 
 /**

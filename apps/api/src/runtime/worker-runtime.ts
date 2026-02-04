@@ -74,10 +74,8 @@ export class WorkerRuntime extends Runtime {
    * Static factory method to create a Worker runtime with production dependencies.
    */
   static create(env: Bindings): WorkerRuntime {
-    // Create production dependencies
     const nodeRegistry = new CloudflareNodeRegistry(env, true);
 
-    // Create tool registry with factory function
     // eslint-disable-next-line prefer-const -- circular dependency pattern requires let
     let credentialProvider: CredentialService;
     const toolRegistry = new CloudflareToolRegistry(
@@ -85,11 +83,8 @@ export class WorkerRuntime extends Runtime {
       (nodeId: string, inputs: Record<string, unknown>) =>
         credentialProvider.createToolContext(nodeId, inputs)
     );
-
-    // Create CredentialService with production tool registry
     credentialProvider = new CredentialService(env, toolRegistry);
 
-    // Create production-ready dependencies
     const dependencies: RuntimeDependencies = {
       nodeRegistry,
       credentialProvider,

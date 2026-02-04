@@ -59,22 +59,17 @@ export class WorkflowRuntime extends Runtime {
    * For testing, inject mock dependencies via the constructor directly.
    */
   static create(env: Bindings): WorkflowRuntime {
-    // Create production dependencies
     const nodeRegistry = new CloudflareNodeRegistry(env, true);
 
-    // Create tool registry with factory function
     // eslint-disable-next-line prefer-const -- circular dependency pattern requires let
     let credentialProvider: CredentialService;
     const toolRegistry = new CloudflareToolRegistry(
       nodeRegistry,
-      (nodeId: string, inputs: Record<string, any>) =>
+      (nodeId: string, inputs: Record<string, unknown>) =>
         credentialProvider.createToolContext(nodeId, inputs)
     );
-
-    // Create CredentialService with production tool registry
     credentialProvider = new CredentialService(env, toolRegistry);
 
-    // Create production-ready dependencies
     const dependencies: RuntimeDependencies = {
       nodeRegistry,
       credentialProvider,

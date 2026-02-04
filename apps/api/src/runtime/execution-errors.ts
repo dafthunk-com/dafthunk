@@ -1,112 +1,27 @@
 /**
- * Error types for workflow runtime execution.
- * Categorizes errors by their handling strategy:
- * - Validation errors → stop execution immediately (non-retryable)
- * - Node errors → continue execution (other nodes can still run)
- * - System errors → stop execution (infrastructure/resource issues)
+ * Error message formatters for workflow runtime execution.
+ *
+ * These functions produce the error strings stored in node execution results.
+ * They are not thrown or caught — they generate messages for the execution record.
  */
 
-/**
- * Base class for all workflow-related errors
- */
-export abstract class WorkflowError extends Error {
-  constructor(
-    message: string,
-    public readonly nodeId?: string
-  ) {
-    super(message);
-    this.name = this.constructor.name;
-    Object.setPrototypeOf(this, new.target.prototype);
-  }
+/** Message for a node ID that doesn't exist in the workflow graph. */
+export function nodeNotFoundMessage(nodeId: string): string {
+  return `Node not found: ${nodeId}`;
 }
 
-/**
- * Workflow validation errors - stop execution immediately
- * These are non-retryable and indicate the workflow structure is invalid.
- */
-export class WorkflowValidationError extends WorkflowError {
-  constructor(message: string) {
-    super(message);
-  }
+/** Message for a node whose type has no registered implementation. */
+export function nodeTypeNotImplementedMessage(
+  nodeId: string,
+  nodeType: string
+): string {
+  return `Node type not implemented: ${nodeType}`;
 }
 
-/**
- * Cyclic graph error - workflow contains a cycle
- */
-export class CyclicGraphError extends WorkflowError {
-  constructor(
-    message: string = "Unable to derive execution order. The graph may contain a cycle."
-  ) {
-    super(message);
-  }
-}
-
-/**
- * Node execution errors - continue execution
- * These errors are recoverable at the workflow level - other nodes can still execute.
- */
-export class NodeExecutionError extends WorkflowError {
-  constructor(
-    nodeId: string,
-    message: string,
-    public readonly cause?: Error
-  ) {
-    super(message, nodeId);
-  }
-}
-
-/**
- * Node not found in workflow
- */
-export class NodeNotFoundError extends NodeExecutionError {
-  constructor(nodeId: string) {
-    super(nodeId, `Node not found: ${nodeId}`);
-  }
-}
-
-/**
- * Node type not implemented in registry
- */
-export class NodeTypeNotImplementedError extends NodeExecutionError {
-  constructor(nodeId: string, nodeType: string) {
-    super(nodeId, `Node type not implemented: ${nodeType}`);
-  }
-}
-
-/**
- * System errors - stop execution
- * These indicate infrastructure or resource issues.
- */
-export class SystemError extends WorkflowError {
-  constructor(message: string) {
-    super(message);
-  }
-}
-
-/**
- * Insufficient compute credits to run workflow
- */
-export class InsufficientCreditsError extends SystemError {
-  constructor(
-    public readonly required: number,
-    public readonly available: number
-  ) {
-    super(
-      `Insufficient compute credits. Required: ${required}, Available: ${available}`
-    );
-  }
-}
-
-/**
- * Subscription required to execute a subscription-only node
- */
-export class SubscriptionRequiredError extends SystemError {
-  constructor(
-    public readonly nodeId: string,
-    public readonly nodeType: string
-  ) {
-    super(
-      `Subscription required to execute node "${nodeType}". Upgrade your plan to use this feature.`
-    );
-  }
+/** Message for a subscription-gated node when the user lacks a subscription. */
+export function subscriptionRequiredMessage(
+  nodeId: string,
+  nodeType: string
+): string {
+  return `Subscription required to execute node "${nodeType}". Upgrade your plan to use this feature.`;
 }

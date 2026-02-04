@@ -14,9 +14,9 @@ import { BaseNodeRegistry } from "./base-node-registry";
 import { CredentialService } from "./credential-service";
 import { CreditService } from "./credit-service";
 import {
-  NodeNotFoundError,
-  NodeTypeNotImplementedError,
-  SubscriptionRequiredError,
+  nodeNotFoundMessage,
+  nodeTypeNotImplementedMessage,
+  subscriptionRequiredMessage,
 } from "./execution-errors";
 import {
   applyNodeResult,
@@ -275,6 +275,11 @@ export abstract class Runtime {
             organizationId,
             executionId: instanceId,
             deploymentId,
+            httpRequest,
+            emailMessage,
+            queueMessage,
+            scheduledTrigger,
+            workflowSessionId,
           };
 
           // Mutable state
@@ -347,12 +352,7 @@ export abstract class Runtime {
         await this.executeWorkflowLevels(
           executionContext,
           executionState,
-          executionRecord,
-          httpRequest,
-          emailMessage,
-          queueMessage,
-          scheduledTrigger,
-          workflowSessionId
+          executionRecord
         );
 
       executionState = finalState;
@@ -441,12 +441,7 @@ export abstract class Runtime {
   private async executeWorkflowLevels(
     context: WorkflowExecutionContext,
     state: ExecutionState,
-    executionRecord: WorkflowExecution,
-    httpRequest?: HttpRequest,
-    emailMessage?: EmailMessage,
-    queueMessage?: QueueMessage,
-    scheduledTrigger?: ScheduledTrigger,
-    workflowSessionId?: string
+    executionRecord: WorkflowExecution
   ): Promise<{ state: ExecutionState; record: WorkflowExecution }> {
     let currentRecord = executionRecord;
 
@@ -456,15 +451,7 @@ export abstract class Runtime {
         level.nodeIds.map(async (nodeId) => {
           // Each node gets its own durable step
           return this.executeStep(`run node ${nodeId}`, async () => {
-            return this.executeSingleNode(
-              context,
-              state,
-              nodeId,
-              httpRequest,
-              emailMessage,
-              queueMessage,
-              scheduledTrigger
-            );
+            return this.executeSingleNode(context, state, nodeId);
           });
         })
       );
@@ -484,7 +471,10 @@ export abstract class Runtime {
           state
         ),
       };
-      await this.monitoringService.sendUpdate(workflowSessionId, currentRecord);
+      await this.monitoringService.sendUpdate(
+        context.workflowSessionId,
+        currentRecord
+      );
     }
 
     return { state, record: currentRecord };
@@ -497,11 +487,7 @@ export abstract class Runtime {
   private async executeSingleNode(
     context: WorkflowExecutionContext,
     state: ExecutionState,
-    nodeId: string,
-    httpRequest?: HttpRequest,
-    emailMessage?: EmailMessage,
-    queueMessage?: QueueMessage,
-    scheduledTrigger?: ScheduledTrigger
+    nodeId: string
   ): Promise<NodeExecutionResult> {
     // Check if node should be skipped (upstream failures, conditional branches)
     const skipResult = this.checkSkipCondition(context, state, nodeId);
@@ -535,11 +521,7 @@ export abstract class Runtime {
       node,
       context,
       objectStore,
-      processedInputs,
-      httpRequest,
-      emailMessage,
-      queueMessage,
-      scheduledTrigger
+      processedInputs
     );
   }
 
@@ -574,7 +556,7 @@ export abstract class Runtime {
       return {
         nodeId,
         status: "error",
-        error: new NodeNotFoundError(nodeId).message,
+        error: nodeNotFoundMessage(nodeId),
       };
     }
 
@@ -643,7 +625,7 @@ export abstract class Runtime {
       return {
         nodeId: node.id,
         status: "error",
-        error: new NodeTypeNotImplementedError(node.id, node.type).message,
+        error: nodeTypeNotImplementedMessage(node.id, node.type),
       };
     }
 
@@ -651,7 +633,7 @@ export abstract class Runtime {
       return {
         nodeId: node.id,
         status: "error",
-        error: new SubscriptionRequiredError(node.id, node.type).message,
+        error: subscriptionRequiredMessage(node.id, node.type),
       };
     }
 
@@ -660,7 +642,7 @@ export abstract class Runtime {
       return {
         nodeId: node.id,
         status: "error",
-        error: new NodeTypeNotImplementedError(node.id, node.type).message,
+        error: nodeTypeNotImplementedMessage(node.id, node.type),
       };
     }
 
@@ -762,11 +744,7 @@ export abstract class Runtime {
     node: Node,
     context: WorkflowExecutionContext,
     objectStore: ObjectStore,
-    processedInputs: Record<string, unknown>,
-    httpRequest?: HttpRequest,
-    emailMessage?: EmailMessage,
-    queueMessage?: QueueMessage,
-    scheduledTrigger?: ScheduledTrigger
+    processedInputs: Record<string, unknown>
   ): Promise<NodeExecutionResult> {
     try {
       const nodeContext = this.credentialProvider.createNodeContext(
@@ -774,10 +752,10 @@ export abstract class Runtime {
         context.workflowId,
         context.organizationId,
         processedInputs,
-        httpRequest,
-        emailMessage,
-        queueMessage,
-        scheduledTrigger,
+        context.httpRequest,
+        context.emailMessage,
+        context.queueMessage,
+        context.scheduledTrigger,
         context.deploymentId
       );
 
