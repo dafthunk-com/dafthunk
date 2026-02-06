@@ -70,11 +70,14 @@ function createBlobNodeToApi(
 ) {
   return async (
     value: NodeParameterValue,
-    objectStore: ObjectStore,
-    organizationId: string,
+    objectStore?: ObjectStore,
+    organizationId?: string,
     executionId?: string
   ) => {
     if (!typeGuard(value)) return undefined;
+    if (!objectStore || !organizationId) {
+      throw new Error("ObjectStore and organizationId required for blob type");
+    }
     const blob = new Blob([value.data], { type: value.mimeType });
     const buffer = await blob.arrayBuffer();
     const data = new Uint8Array(buffer);
@@ -89,7 +92,7 @@ function createBlobNodeToApi(
 }
 
 function createBlobApiToNode() {
-  return async (value: ApiParameterValue, objectStore: ObjectStore) => {
+  return async (value: ApiParameterValue, objectStore?: ObjectStore) => {
     if (
       !value ||
       typeof value !== "object" ||
@@ -97,6 +100,9 @@ function createBlobApiToNode() {
       !("mimeType" in value)
     )
       return undefined;
+    if (!objectStore) {
+      throw new Error("ObjectStore required for blob type");
+    }
     const result = await objectStore.readObject(value as ObjectReference);
     if (!result) return undefined;
     const objRef = value as ObjectReference;
@@ -111,8 +117,23 @@ function createBlobApiToNode() {
   };
 }
 
+// Uniform converter interface — all converters share the same signature.
+// Value converters ignore the extra params; blob converters validate them internally.
+interface Converter {
+  nodeToApi: (
+    value: NodeParameterValue,
+    objectStore?: ObjectStore,
+    organizationId?: string,
+    executionId?: string
+  ) => Promise<ApiParameterValue> | ApiParameterValue;
+  apiToNode: (
+    value: ApiParameterValue,
+    objectStore?: ObjectStore
+  ) => Promise<NodeParameterValue> | NodeParameterValue;
+}
+
 // Static mapping of converters
-const converters = {
+const converters: Record<string, Converter> = {
   string: {
     nodeToApi: typeValidatingNodeToApi("string"),
     apiToNode: typeValidatingApiToNode("string"),
@@ -332,7 +353,7 @@ const converters = {
       return value as NodeParameterValue;
     },
   },
-} as const;
+};
 
 type ParameterType = keyof typeof converters;
 
@@ -345,57 +366,9 @@ export async function nodeToApiParameter(
 ): Promise<ApiParameterValue> {
   const converter = converters[type];
   if (!converter) throw new Error(`No converter for type: ${type}`);
-
-  const fn = converter.nodeToApi;
-
-  // Special handling for 'any' type - it decides internally whether it needs objectStore
-  // Access converters.any directly so TypeScript can resolve the specific signature
-  if (type === "any") {
-    const result = converters.any.nodeToApi(
-      value,
-      objectStore,
-      organizationId,
-      executionId
-    );
-    return await Promise.resolve(result);
-  }
-
-  if (fn.length >= 3) {
-    if (!objectStore) throw new Error(`ObjectStore required for type: ${type}`);
-    if (!organizationId)
-      throw new Error(
-        `organizationId required for object storage for type: ${type}`
-      );
-
-    if (
-      type === "blob" ||
-      type === "image" ||
-      type === "document" ||
-      type === "audio" ||
-      type === "gltf"
-    ) {
-      return await (
-        fn as (
-          v: NodeParameterValue,
-          os: ObjectStore,
-          orgId: string,
-          execId?: string
-        ) => Promise<ApiParameterValue>
-      )(value, objectStore, organizationId, executionId);
-    }
-  } else if (fn.length === 2) {
-    if (!objectStore) throw new Error(`ObjectStore required for type: ${type}`);
-    return await (
-      fn as (
-        v: NodeParameterValue,
-        os: ObjectStore
-      ) => Promise<ApiParameterValue>
-    )(value, objectStore);
-  } else {
-    return await (fn as (v: NodeParameterValue) => Promise<ApiParameterValue>)(
-      value
-    );
-  }
+  return Promise.resolve(
+    converter.nodeToApi(value, objectStore, organizationId, executionId)
+  );
 }
 
 export async function apiToNodeParameter(
@@ -405,24 +378,5 @@ export async function apiToNodeParameter(
 ): Promise<NodeParameterValue> {
   const converter = converters[type];
   if (!converter) throw new Error(`No converter for type: ${type}`);
-
-  // Special handling for 'any' type - it decides internally whether it needs objectStore
-  // Access converters.any directly so TypeScript can resolve the specific signature
-  if (type === "any") {
-    const result = converters.any.apiToNode(value, objectStore);
-    return await Promise.resolve(result);
-  }
-
-  if (converter.apiToNode.length === 2) {
-    if (!objectStore) throw new Error(`ObjectStore required for type: ${type}`);
-    return await (
-      converter.apiToNode as (
-        v: ApiParameterValue,
-        os: ObjectStore
-      ) => Promise<NodeParameterValue>
-    )(value, objectStore);
-  }
-  return (converter.apiToNode as (v: ApiParameterValue) => NodeParameterValue)(
-    value
-  );
+  return Promise.resolve(converter.apiToNode(value, objectStore));
 }

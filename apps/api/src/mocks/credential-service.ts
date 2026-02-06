@@ -7,11 +7,8 @@
 
 import type { Bindings } from "../context";
 import type { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
-import type {
-  EmailMessage,
-  HttpRequest,
-  NodeContext,
-} from "../runtime/node-types";
+import type { WorkflowExecutionContext } from "../runtime/execution-types";
+import type { NodeContext } from "../runtime/node-types";
 
 /**
  * Minimal mock that avoids database access
@@ -34,20 +31,30 @@ export class MockCredentialService {
    */
   createNodeContext(
     nodeId: string,
-    workflowId: string,
-    organizationId: string,
-    inputs: Record<string, unknown>,
-    httpRequest?: HttpRequest,
-    emailMessage?: EmailMessage
+    context: WorkflowExecutionContext,
+    inputs: Record<string, unknown>
   ): NodeContext {
+    const {
+      workflowId,
+      organizationId,
+      deploymentId,
+      httpRequest,
+      emailMessage,
+      queueMessage,
+      scheduledTrigger,
+    } = context;
+
     return {
       nodeId,
       workflowId,
       organizationId,
-      mode: "dev",
+      mode: deploymentId ? "prod" : "dev",
+      deploymentId,
       inputs,
       httpRequest,
       emailMessage,
+      queueMessage,
+      scheduledTrigger,
       onProgress: () => {},
       toolRegistry: this.toolRegistry,
       getSecret: async (_secretName: string) => {

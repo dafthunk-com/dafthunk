@@ -749,14 +749,8 @@ export abstract class Runtime {
     try {
       const nodeContext = this.credentialProvider.createNodeContext(
         node.id,
-        context.workflowId,
-        context.organizationId,
-        processedInputs,
-        context.httpRequest,
-        context.emailMessage,
-        context.queueMessage,
-        context.scheduledTrigger,
-        context.deploymentId
+        context,
+        processedInputs
       );
 
       const result = await executable.execute(nodeContext);

@@ -1,5 +1,3 @@
-import type { QueueMessage, ScheduledTrigger } from "@dafthunk/types";
-
 import type { Bindings } from "../context";
 import {
   createDatabase,
@@ -10,8 +8,8 @@ import {
 } from "../db";
 import type { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
 import { getProvider } from "../oauth";
-import type { IntegrationData } from "./execution-types";
-import type { EmailMessage, HttpRequest, NodeContext } from "./node-types";
+import type { IntegrationData, WorkflowExecutionContext } from "./execution-types";
+import type { NodeContext } from "./node-types";
 import { ObjectStore } from "./object-store";
 
 /**
@@ -55,9 +53,6 @@ export class CredentialService {
           );
         }
       }
-      console.log(
-        `Preloaded ${Object.keys(this.secrets).length} secrets for organization ${organizationId}`
-      );
     } catch (error) {
       console.error(
         `Failed to preload secrets for organization ${organizationId}:`,
@@ -122,15 +117,19 @@ export class CredentialService {
    */
   createNodeContext(
     nodeId: string,
-    workflowId: string,
-    organizationId: string,
-    inputs: Record<string, unknown>,
-    httpRequest?: HttpRequest,
-    emailMessage?: EmailMessage,
-    queueMessage?: QueueMessage,
-    scheduledTrigger?: ScheduledTrigger,
-    deploymentId?: string
+    context: WorkflowExecutionContext,
+    inputs: Record<string, unknown>
   ): NodeContext {
+    const {
+      workflowId,
+      organizationId,
+      deploymentId,
+      httpRequest,
+      emailMessage,
+      queueMessage,
+      scheduledTrigger,
+    } = context;
+
     // Configure AI Gateway options
     const aiOptions: AiOptions = {};
     const gatewayId = this.env.CLOUDFLARE_AI_GATEWAY_ID;

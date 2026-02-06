@@ -30,13 +30,12 @@ export { WorkflowRuntime } from "./workflow-runtime";
 export { WorkflowRuntimeEntrypoint } from "./workflow-runtime-entrypoint";
 
 // Internal components are NOT exported - they are implementation details:
-// - ExecutionEngine: node execution, skip logic, input collection
-// - ExecutionPersistence: database storage
-// - ExecutionMonitoring: real-time updates
-// - CredentialService: secrets, integrations, OAuth
-// - ErrorHandler: error classification and handling
-// - CreditManager: compute credit tracking
-// - execution-types.ts: execution state, context, errors, and status computation
-// - node-types.ts: node domain model (ExecutableNode, NodeContext, BlobParameter, etc.)
-// - parameter-mapper.ts: API ↔ node parameter conversion
-// All complexity is pushed down into these deep modules with simple interfaces
+// - credential-service.ts: secrets, integrations, OAuth
+// - monitoring-service.ts: real-time execution updates
+// - execution-state.ts: pure functions for state management
+// - execution-store.ts: execution persistence (R2 + Analytics Engine)
+// - execution-errors.ts: error message formatters
+// - execution-types.ts: execution state, context, and type definitions
+// - node-types.ts: node domain model (ExecutableNode, NodeContext, BlobParameter)
+// - parameter-mapper.ts: API <-> node parameter conversion
+// - object-store.ts: R2 storage for binary objects

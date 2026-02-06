@@ -199,22 +199,8 @@ export class ExecutionStore {
         doubles: [durationMs, startedAtMs, endedAtMs, usage],
       };
 
-      console.log(
-        `ExecutionStore.writeToAnalytics: Writing execution ${record.id} (status: ${record.status}) to dataset ${this.getDatasetName()}`,
-        JSON.stringify({
-          orgId: record.organizationId,
-          executionId: record.id,
-          workflowId: record.workflowId,
-          status: record.status,
-          durationMs,
-        })
-      );
-
       try {
         this.env.EXECUTIONS.writeDataPoint(dataPoint);
-        console.log(
-          `ExecutionStore.writeToAnalytics: Successfully called writeDataPoint for ${record.id}`
-        );
       } catch (writeError) {
         console.error(
           `ExecutionStore.writeToAnalytics: writeDataPoint failed for ${record.id}:`,
@@ -250,10 +236,6 @@ export class ExecutionStore {
 
     try {
       const url = `https://api.cloudflare.com/client/v4/accounts/${this.env.CLOUDFLARE_ACCOUNT_ID}/analytics_engine/sql`;
-
-      console.log(
-        `ExecutionStore.queryAnalytics: Querying dataset with account ID ${this.env.CLOUDFLARE_ACCOUNT_ID.substring(0, 8)}...`
-      );
 
       const response = await fetch(url, {
         method: "POST",
@@ -355,10 +337,6 @@ export class ExecutionStore {
       const limit = options?.limit ?? 20;
       const offset = options?.offset ?? 0;
 
-      console.log(
-        `ExecutionStore.listFromAnalytics: Querying ${dataset} for org ${organizationId.substring(0, 8)}... (limit: ${limit}, offset: ${offset})`
-      );
-
       const sql = `
         SELECT *
         FROM ${dataset}
@@ -368,10 +346,6 @@ export class ExecutionStore {
       `;
 
       const rows = await this.queryAnalytics(sql);
-
-      console.log(
-        `ExecutionStore.listFromAnalytics: Found ${rows.length} executions`
-      );
 
       return rows.map((row) => {
         const timestamp = new Date(row.timestamp);

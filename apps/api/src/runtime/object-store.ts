@@ -57,18 +57,13 @@ export class ObjectStore {
       customMetadata.filename = filename;
     }
 
-    await this.writeToR2(
-      `objects/${id}/object.data`,
-      data,
-      {
-        httpMetadata: {
-          contentType: mimeType,
-          cacheControl: "public, max-age=31536000",
-        },
-        customMetadata,
+    await this.writeToR2(`objects/${id}/object.data`, data, {
+      httpMetadata: {
+        contentType: mimeType,
+        cacheControl: "public, max-age=31536000",
       },
-      "writeObjectWithId"
-    );
+      customMetadata,
+    });
 
     const result: ObjectReference = { id, mimeType };
     if (filename) {
@@ -82,8 +77,7 @@ export class ObjectStore {
     metadata: R2Object["customMetadata"];
   } | null> {
     const object = await this.readFromR2(
-      `objects/${reference.id}/object.data`,
-      "readObject"
+      `objects/${reference.id}/object.data`
     );
 
     if (!object) return null;
@@ -96,10 +90,7 @@ export class ObjectStore {
   }
 
   async deleteObject(reference: ObjectReference): Promise<void> {
-    await this.deleteFromR2(
-      `objects/${reference.id}/object.data`,
-      "deleteObject"
-    );
+    await this.deleteFromR2(`objects/${reference.id}/object.data`);
   }
 
   /**
@@ -165,7 +156,7 @@ export class ObjectStore {
       executionId?: string;
     }[]
   > {
-    const objects = await this.listFromR2("objects/", "listObjects");
+    const objects = await this.listFromR2("objects/");
 
     return objects.objects
       .filter((obj) => obj.customMetadata?.organizationId === organizationId)
@@ -187,92 +178,56 @@ export class ObjectStore {
   private async writeToR2(
     key: string,
     data: string | ArrayBuffer | Uint8Array,
-    options: R2PutOptions,
-    operation: string
+    options: R2PutOptions
   ): Promise<void> {
     try {
-      console.log(`ObjectStore.${operation}: Writing to ${key}`);
-
       if (!this.bucket) {
         throw new Error("R2 bucket is not initialized");
       }
 
-      const result = await this.bucket.put(key, data, options);
-      console.log(
-        `ObjectStore.${operation}: Success, etag: ${result?.etag || "unknown"}`
-      );
+      await this.bucket.put(key, data, options);
     } catch (error) {
-      console.error(`ObjectStore.${operation}: Failed to write ${key}:`, error);
+      console.error(`ObjectStore: Failed to write ${key}:`, error);
       throw error;
     }
   }
 
-  private async readFromR2(
-    key: string,
-    operation: string
-  ): Promise<R2ObjectBody | null> {
+  private async readFromR2(key: string): Promise<R2ObjectBody | null> {
     try {
-      console.log(`ObjectStore.${operation}: Reading from ${key}`);
-
       if (!this.bucket) {
         throw new Error("R2 bucket is not initialized");
       }
 
-      const object = await this.bucket.get(key);
-
-      if (!object) {
-        console.log(`ObjectStore.${operation}: Not found at ${key}`);
-        return null;
-      }
-
-      console.log(
-        `ObjectStore.${operation}: Success, size: ${object.size} bytes`
-      );
-      return object;
+      return await this.bucket.get(key);
     } catch (error) {
-      console.error(`ObjectStore.${operation}: Failed to read ${key}:`, error);
+      console.error(`ObjectStore: Failed to read ${key}:`, error);
       throw error;
     }
   }
 
-  private async deleteFromR2(key: string, operation: string): Promise<void> {
+  private async deleteFromR2(key: string): Promise<void> {
     try {
-      console.log(`ObjectStore.${operation}: Deleting ${key}`);
-
       if (!this.bucket) {
         throw new Error("R2 bucket is not initialized");
       }
 
       await this.bucket.delete(key);
-      console.log(`ObjectStore.${operation}: Successfully deleted ${key}`);
     } catch (error) {
-      console.error(
-        `ObjectStore.${operation}: Failed to delete ${key}:`,
-        error
-      );
+      console.error(`ObjectStore: Failed to delete ${key}:`, error);
       throw error;
     }
   }
 
-  private async listFromR2(
-    prefix: string,
-    operation: string
-  ): Promise<R2Objects> {
+  private async listFromR2(prefix: string): Promise<R2Objects> {
     try {
-      console.log(`ObjectStore.${operation}: Listing with prefix ${prefix}`);
-
       if (!this.bucket) {
         throw new Error("R2 bucket is not initialized");
       }
 
-      const objects = await this.bucket.list({ prefix });
-      console.log(
-        `ObjectStore.${operation}: Found ${objects.objects.length} objects`
-      );
-      return objects;
+      return await this.bucket.list({ prefix });
     } catch (error) {
       console.error(
-        `ObjectStore.${operation}: Failed to list with prefix ${prefix}:`,
+        `ObjectStore: Failed to list with prefix ${prefix}:`,
         error
       );
       throw error;

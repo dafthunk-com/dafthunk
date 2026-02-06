@@ -194,13 +194,19 @@ export function isRuntimeValue(
 
   // Objects (ObjectReference, JsonObject, JsonArray)
   if (valueType === "object") {
-    // ObjectReference check
+    // ObjectReference: has id + mimeType
     if ("id" in (value as object) && "mimeType" in (value as object)) {
       return true;
     }
-
-    // JsonArray or JsonObject
-    return true;
+    // JsonArray
+    if (Array.isArray(value)) {
+      return true;
+    }
+    // JsonObject: plain object (not a class instance like Date, Uint8Array, etc.)
+    if (Object.getPrototypeOf(value) === Object.prototype) {
+      return true;
+    }
+    return false;
   }
 
   return false;
