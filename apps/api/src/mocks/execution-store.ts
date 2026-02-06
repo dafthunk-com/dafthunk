@@ -11,10 +11,11 @@ import type { WorkflowExecution } from "@dafthunk/types";
 import type {
   ExecutionRow,
   ExecutionStore,
+  ListExecutionsOptions,
   SaveExecutionRecord,
 } from "../runtime/execution-store";
 
-export class MockExecutionStore implements Partial<ExecutionStore> {
+export class MockExecutionStore implements ExecutionStore {
   private executions: Map<string, WorkflowExecution> = new Map();
   private rows: Map<string, ExecutionRow> = new Map();
 
@@ -60,6 +61,27 @@ export class MockExecutionStore implements Partial<ExecutionStore> {
   ): Promise<ExecutionRow | undefined> {
     const row = this.rows.get(id);
     return row?.organizationId === organizationId ? row : undefined;
+  }
+
+  async getWithData(
+    id: string,
+    organizationId: string
+  ): Promise<(ExecutionRow & { data: WorkflowExecution }) | undefined> {
+    const row = this.rows.get(id);
+    const execution = this.executions.get(id);
+    if (!row || !execution || row.organizationId !== organizationId) {
+      return undefined;
+    }
+    return { ...row, data: execution };
+  }
+
+  async list(
+    organizationId: string,
+    _options?: ListExecutionsOptions
+  ): Promise<ExecutionRow[]> {
+    return Array.from(this.rows.values()).filter(
+      (row) => row.organizationId === organizationId
+    );
   }
 
   /**

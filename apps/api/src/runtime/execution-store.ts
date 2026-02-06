@@ -69,6 +69,23 @@ interface AnalyticsRow {
 }
 
 /**
+ * Execution store abstraction for persisting and querying workflow executions.
+ */
+export interface ExecutionStore {
+  save(record: SaveExecutionRecord): Promise<WorkflowExecution>;
+  get(id: string, organizationId: string): Promise<ExecutionRow | undefined>;
+  getWithData(
+    id: string,
+    organizationId: string
+  ): Promise<(ExecutionRow & { data: WorkflowExecution }) | undefined>;
+  list(
+    organizationId: string,
+    options?: ListExecutionsOptions
+  ): Promise<ExecutionRow[]>;
+}
+
+/**
+ * Cloudflare-backed implementation of ExecutionStore.
  * Manages execution storage across Analytics Engine and R2.
  *
  * Architecture:
@@ -79,7 +96,7 @@ interface AnalyticsRow {
  * - `get()` / `getWithData()` → R2 (fast, immediate consistency)
  * - `list()` → Analytics Engine (powerful querying/filtering)
  */
-export class ExecutionStore {
+export class CloudflareExecutionStore implements ExecutionStore {
   constructor(private env: Bindings) {}
 
   /**

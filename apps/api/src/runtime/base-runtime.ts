@@ -8,11 +8,10 @@ import type {
 } from "@dafthunk/types";
 
 import { Bindings } from "../context";
-import { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
 import { validateWorkflow } from "../utils/workflows";
 import { BaseNodeRegistry } from "./base-node-registry";
-import { CredentialService } from "./credential-service";
-import { CreditService } from "./credit-service";
+import type { CredentialService } from "./credential-service";
+import type { CreditService } from "./credit-service";
 import {
   nodeNotFoundMessage,
   nodeTypeNotImplementedMessage,
@@ -25,7 +24,7 @@ import {
   inferSkipReason,
   isRuntimeValue,
 } from "./execution-state";
-import { ExecutionStore } from "./execution-store";
+import type { ExecutionStore } from "./execution-store";
 import type {
   ExecutionLevel,
   ExecutionState,
@@ -34,12 +33,9 @@ import type {
   RuntimeValue,
   WorkflowExecutionContext,
 } from "./execution-types";
-import {
-  MonitoringService,
-  WorkflowSessionMonitoringService,
-} from "./monitoring-service";
+import type { MonitoringService } from "./monitoring-service";
 import { EmailMessage, ExecutableNode, HttpRequest } from "./node-types";
-import { ObjectStore } from "./object-store";
+import type { ObjectStore } from "./object-store";
 import { apiToNodeParameter, nodeToApiParameter } from "./parameter-mapper";
 
 export interface RuntimeParams {
@@ -61,14 +57,16 @@ export interface RuntimeParams {
 
 /**
  * Injectable dependencies for Runtime.
- * Allows overriding default implementations for testing.
+ * All dependencies are required — concrete wiring happens in factory methods
+ * (e.g. WorkflowRuntime.create(), WorkerRuntime.create()).
  */
 export interface RuntimeDependencies {
-  nodeRegistry?: BaseNodeRegistry;
-  credentialProvider?: CredentialService;
-  executionStore?: ExecutionStore;
-  monitoringService?: MonitoringService;
-  creditService?: CreditService;
+  nodeRegistry: BaseNodeRegistry;
+  credentialProvider: CredentialService;
+  executionStore: ExecutionStore;
+  monitoringService: MonitoringService;
+  creditService: CreditService;
+  objectStore: ObjectStore;
 }
 
 /**
@@ -95,53 +93,18 @@ export abstract class Runtime {
   protected executionStore: ExecutionStore;
   protected monitoringService: MonitoringService;
   protected creditService: CreditService;
+  protected objectStore: ObjectStore;
   protected env: Bindings;
   protected userPlan?: string;
 
-  constructor(env: Bindings, dependencies?: RuntimeDependencies) {
+  constructor(env: Bindings, dependencies: RuntimeDependencies) {
     this.env = env;
-
-    // Use injected dependencies or create defaults
-    // Note: We can't use CloudflareNodeRegistry here directly because importing it
-    // would pull in all node types (including geotiff with node:https).
-    // Instead, we require nodeRegistry to be provided when using Runtime.
-    if (!dependencies?.nodeRegistry) {
-      throw new Error(
-        "Runtime requires a nodeRegistry to be provided via dependencies. " +
-          "Use WorkflowRuntime for production or MockRuntime for tests."
-      );
-    }
     this.nodeRegistry = dependencies.nodeRegistry;
-
-    if (dependencies?.credentialProvider) {
-      this.credentialProvider = dependencies.credentialProvider;
-    } else {
-      // Create tool registry with a factory function for tool contexts
-      // We'll pass this to CredentialService constructor
-      let credentialProvider: CredentialService;
-      const toolRegistry = new CloudflareToolRegistry(
-        this.nodeRegistry,
-        (nodeId: string, inputs: Record<string, unknown>) =>
-          credentialProvider.createToolContext(nodeId, inputs)
-      );
-
-      // Create CredentialService with toolRegistry
-      this.credentialProvider = credentialProvider = new CredentialService(
-        env,
-        toolRegistry
-      );
-    }
-
-    this.executionStore =
-      dependencies?.executionStore ?? new ExecutionStore(env);
-
-    this.monitoringService =
-      dependencies?.monitoringService ??
-      new WorkflowSessionMonitoringService(env.WORKFLOW_SESSION);
-
-    this.creditService =
-      dependencies?.creditService ??
-      new CreditService(env.KV, env.CLOUDFLARE_ENV === "development");
+    this.credentialProvider = dependencies.credentialProvider;
+    this.executionStore = dependencies.executionStore;
+    this.monitoringService = dependencies.monitoringService;
+    this.creditService = dependencies.creditService;
+    this.objectStore = dependencies.objectStore;
   }
 
   /**
@@ -505,13 +468,12 @@ export abstract class Runtime {
     const inboundEdges = context.workflow.edges.filter(
       (edge) => edge.target === nodeId
     );
-    const objectStore = new ObjectStore(this.env.RESSOURCES);
     const processedInputs = await this.collectAndTransformInputs(
       node,
       state,
       executable,
       inboundEdges,
-      objectStore
+      this.objectStore
     );
 
     // Execute the node and transform outputs for runtime storage
@@ -520,7 +482,7 @@ export abstract class Runtime {
       nodeType,
       node,
       context,
-      objectStore,
+      this.objectStore,
       processedInputs
     );
   }

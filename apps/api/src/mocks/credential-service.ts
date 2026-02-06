@@ -7,13 +7,14 @@
 
 import type { Bindings } from "../context";
 import type { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
+import type { CredentialService } from "../runtime/credential-service";
 import type { WorkflowExecutionContext } from "../runtime/execution-types";
 import type { NodeContext } from "../runtime/node-types";
 
 /**
  * Minimal mock that avoids database access
  */
-export class MockCredentialService {
+export class MockCredentialService implements CredentialService {
   constructor(
     private env: Bindings,
     private toolRegistry: CloudflareToolRegistry

@@ -10,15 +10,32 @@ import type { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
 import { getProvider } from "../oauth";
 import type { IntegrationData, WorkflowExecutionContext } from "./execution-types";
 import type { NodeContext } from "./node-types";
-import { ObjectStore } from "./object-store";
+import { CloudflareObjectStore } from "./object-store";
 
 /**
+ * Credential service abstraction for accessing organization secrets and integrations.
+ */
+export interface CredentialService {
+  initialize(organizationId: string): Promise<void>;
+  createNodeContext(
+    nodeId: string,
+    context: WorkflowExecutionContext,
+    inputs: Record<string, unknown>
+  ): NodeContext;
+  createToolContext(
+    nodeId: string,
+    inputs: Record<string, unknown>
+  ): NodeContext;
+}
+
+/**
+ * Cloudflare-backed implementation of CredentialService.
  * Provides unified access to organization credentials (secrets and integrations).
  * Hides complexity of preloading, encryption/decryption, and token refresh.
  *
  * Deep module: Simple API that manages rich internal logic for credential access.
  */
-export class CredentialService {
+export class CloudflareCredentialService implements CredentialService {
   private organizationId: string | null = null;
   private secrets: Record<string, string> = {};
   private integrations: Record<string, IntegrationData> = {};
@@ -159,7 +176,7 @@ export class CredentialService {
             secretAccessKey: R2_SECRET_ACCESS_KEY,
           }
         : undefined;
-    const objectStore = new ObjectStore(
+    const objectStore = new CloudflareObjectStore(
       this.env.RESSOURCES,
       presignedUrlConfig
     );
@@ -230,7 +247,7 @@ export class CredentialService {
       mode: "dev",
       inputs,
       toolRegistry: this.toolRegistry,
-      objectStore: new ObjectStore(this.env.RESSOURCES),
+      objectStore: new CloudflareObjectStore(this.env.RESSOURCES),
       // Tool executions don't have access to organization secrets/integrations
       getSecret: async (secretName: string) => {
         throw new Error(

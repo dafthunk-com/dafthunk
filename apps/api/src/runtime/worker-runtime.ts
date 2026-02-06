@@ -9,7 +9,7 @@
  * Extends Runtime with direct execution (no durable steps):
  * - **CloudflareNodeRegistry**: Complete node catalog (50+ nodes)
  * - **CloudflareToolRegistry**: Full tool support with all providers
- * - **WorkflowSessionMonitoringService**: Real-time updates via Durable Objects
+ * - **CloudflareMonitoringService**: Real-time updates via Durable Objects
  * - **ExecutionStore**: Persistent storage with D1 + R2
  *
  * ## Usage
@@ -33,9 +33,11 @@ import {
   type RuntimeDependencies,
   type RuntimeParams,
 } from "./base-runtime";
-import { CredentialService } from "./credential-service";
-import { ExecutionStore } from "./execution-store";
-import { WorkflowSessionMonitoringService } from "./monitoring-service";
+import { CloudflareCreditService } from "./credit-service";
+import { CloudflareCredentialService } from "./credential-service";
+import { CloudflareExecutionStore } from "./execution-store";
+import { CloudflareMonitoringService } from "./monitoring-service";
+import { CloudflareObjectStore } from "./object-store";
 
 /**
  * Worker-based runtime with direct execution (no durable steps).
@@ -77,21 +79,26 @@ export class WorkerRuntime extends Runtime {
     const nodeRegistry = new CloudflareNodeRegistry(env, true);
 
     // eslint-disable-next-line prefer-const -- circular dependency pattern requires let
-    let credentialProvider: CredentialService;
+    let credentialProvider: CloudflareCredentialService;
     const toolRegistry = new CloudflareToolRegistry(
       nodeRegistry,
       (nodeId: string, inputs: Record<string, unknown>) =>
         credentialProvider.createToolContext(nodeId, inputs)
     );
-    credentialProvider = new CredentialService(env, toolRegistry);
+    credentialProvider = new CloudflareCredentialService(env, toolRegistry);
 
     const dependencies: RuntimeDependencies = {
       nodeRegistry,
       credentialProvider,
-      executionStore: new ExecutionStore(env),
-      monitoringService: new WorkflowSessionMonitoringService(
+      executionStore: new CloudflareExecutionStore(env),
+      monitoringService: new CloudflareMonitoringService(
         env.WORKFLOW_SESSION
       ),
+      creditService: new CloudflareCreditService(
+        env.KV,
+        env.CLOUDFLARE_ENV === "development"
+      ),
+      objectStore: new CloudflareObjectStore(env.RESSOURCES),
     };
 
     return new WorkerRuntime(env, dependencies);

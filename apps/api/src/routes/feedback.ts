@@ -15,7 +15,7 @@ import { jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
 import { createDatabase } from "../db";
 import { type FeedbackInsert, type FeedbackRow, feedback } from "../db/schema";
-import { ExecutionStore } from "../runtime/execution-store";
+import { CloudflareExecutionStore } from "../runtime/execution-store";
 
 const feedbackRoutes = new Hono<ApiContext>();
 
@@ -42,7 +42,7 @@ feedbackRoutes.post(
     const { executionId, sentiment, comment } = c.req.valid("json");
 
     const db = createDatabase(c.env.DB);
-    const executionStore = new ExecutionStore(c.env);
+    const executionStore = new CloudflareExecutionStore(c.env);
 
     try {
       // Get execution to find deploymentId and verify access

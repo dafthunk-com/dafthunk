@@ -11,7 +11,7 @@ import {
   ImageParameter as NodeImageParameter,
   ParameterValue as NodeParameterValue,
 } from "./node-types";
-import { ObjectStore } from "./object-store";
+import type { ObjectStore } from "./object-store";
 
 /**
  * Type guard for native BlobParameter (Uint8Array only).

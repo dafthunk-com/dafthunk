@@ -326,7 +326,7 @@ export class EvaluationService {
       );
 
       // Execute workflow with test case inputs
-      const runtime = new WorkerRuntime(this.env);
+      const runtime = WorkerRuntime.create(this.env);
       const execution = await runtime.run(
         {
           workflow: workflowWithInputs,

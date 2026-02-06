@@ -6,7 +6,7 @@ import { z } from "zod";
 
 import { ApiContext } from "../../context";
 import { createDatabase, organizations, workflows } from "../../db";
-import { ExecutionStore } from "../../runtime/execution-store";
+import { CloudflareExecutionStore } from "../../runtime/execution-store";
 
 const adminExecutionsRoutes = new Hono<ApiContext>();
 
@@ -204,7 +204,7 @@ adminExecutionsRoutes.get(
     const { organizationId } = c.req.valid("query");
 
     try {
-      const executionStore = new ExecutionStore(c.env);
+      const executionStore = new CloudflareExecutionStore(c.env);
       const execution = await executionStore.getWithData(
         executionId,
         organizationId

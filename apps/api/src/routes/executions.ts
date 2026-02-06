@@ -12,7 +12,7 @@ import { apiKeyOrJwtMiddleware, jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
 import { createDatabase } from "../db";
 import { feedback } from "../db/schema";
-import { ExecutionStore } from "../runtime/execution-store";
+import { CloudflareExecutionStore } from "../runtime/execution-store";
 import { WorkflowStore } from "../stores/workflow-store";
 
 const executionRoutes = new Hono<ApiContext>();
@@ -39,7 +39,7 @@ executionRoutes.get("/:id", apiKeyOrJwtMiddleware, async (c) => {
     return c.json({ error: "Invalid execution ID format" }, 400);
   }
 
-  const executionStore = new ExecutionStore(c.env);
+  const executionStore = new CloudflareExecutionStore(c.env);
   const db = createDatabase(c.env.DB);
 
   try {
@@ -95,7 +95,7 @@ executionRoutes.get("/:id", apiKeyOrJwtMiddleware, async (c) => {
 });
 
 executionRoutes.get("/", jwtMiddleware, async (c) => {
-  const executionStore = new ExecutionStore(c.env);
+  const executionStore = new CloudflareExecutionStore(c.env);
   const workflowStore = new WorkflowStore(c.env);
   const { workflowId, deploymentId, limit, offset } = c.req.query();
 

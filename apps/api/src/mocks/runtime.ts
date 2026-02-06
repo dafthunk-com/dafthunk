@@ -44,6 +44,7 @@ import {
   type RuntimeDependencies,
   type RuntimeParams,
 } from "../runtime/base-runtime";
+import { CloudflareObjectStore } from "../runtime/object-store";
 import { MockCredentialService } from "./credential-service";
 import { MockExecutionStore } from "./execution-store";
 import { MockMonitoringService } from "./monitoring-service";
@@ -133,9 +134,14 @@ class MockWorkflowEntrypoint extends WorkflowEntrypoint<
     // Create test-friendly dependencies
     const dependencies: RuntimeDependencies = {
       nodeRegistry,
-      credentialProvider: credentialProvider as any,
-      executionStore: new MockExecutionStore() as any,
+      credentialProvider,
+      executionStore: new MockExecutionStore(),
       monitoringService: new MockMonitoringService(),
+      creditService: {
+        hasEnoughCredits: async () => true,
+        recordUsage: async () => {},
+      },
+      objectStore: new CloudflareObjectStore(env.RESSOURCES),
     };
 
     // Create runtime with dependencies

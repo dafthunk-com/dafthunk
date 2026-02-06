@@ -10,10 +10,62 @@ export interface PresignedUrlConfig {
 }
 
 /**
+ * Metadata for a stored object.
+ */
+export interface ObjectMetadata {
+  id: string;
+  mimeType: string;
+  size: number;
+  createdAt: Date;
+  organizationId: string;
+  executionId?: string;
+}
+
+/**
+ * Object store abstraction for binary object storage and retrieval.
+ */
+export interface ObjectStore {
+  writeObject(
+    data: Uint8Array,
+    mimeType: string,
+    organizationId: string,
+    executionId?: string,
+    filename?: string
+  ): Promise<ObjectReference>;
+  writeObjectWithId(
+    id: string,
+    data: Uint8Array,
+    mimeType: string,
+    organizationId: string,
+    executionId?: string,
+    filename?: string
+  ): Promise<ObjectReference>;
+  readObject(
+    reference: ObjectReference
+  ): Promise<{
+    data: Uint8Array;
+    metadata: Record<string, string> | undefined;
+  } | null>;
+  deleteObject(reference: ObjectReference): Promise<void>;
+  getPresignedUrl(
+    reference: ObjectReference,
+    expiresInSeconds?: number
+  ): Promise<string>;
+  writeAndPresign(
+    data: Uint8Array,
+    mimeType: string,
+    organizationId: string,
+    expiresInSeconds?: number
+  ): Promise<string>;
+  listObjects(organizationId: string): Promise<ObjectMetadata[]>;
+}
+
+/**
+ * R2-backed implementation of ObjectStore.
  * Manages R2 storage for objects, workflows, and executions.
  * Uses helper methods to eliminate duplication in logging and error handling.
  */
-export class ObjectStore {
+export class CloudflareObjectStore implements ObjectStore {
   constructor(
     private bucket: R2Bucket,
     private presignedUrlConfig?: PresignedUrlConfig
@@ -74,7 +126,7 @@ export class ObjectStore {
 
   async readObject(reference: ObjectReference): Promise<{
     data: Uint8Array;
-    metadata: R2Object["customMetadata"];
+    metadata: Record<string, string> | undefined;
   } | null> {
     const object = await this.readFromR2(
       `objects/${reference.id}/object.data`
@@ -146,16 +198,7 @@ export class ObjectStore {
     return this.getPresignedUrl(reference, expiresInSeconds);
   }
 
-  async listObjects(organizationId: string): Promise<
-    {
-      id: string;
-      mimeType: string;
-      size: number;
-      createdAt: Date;
-      organizationId: string;
-      executionId?: string;
-    }[]
-  > {
+  async listObjects(organizationId: string): Promise<ObjectMetadata[]> {
     const objects = await this.listFromR2("objects/");
 
     return objects.objects

@@ -1,7 +1,7 @@
 import type { ObjectReference } from "@dafthunk/types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ObjectStore } from "./object-store";
+import { CloudflareObjectStore } from "./object-store";
 
 describe("ObjectStore", () => {
   let mockBucket: any;
@@ -18,7 +18,7 @@ describe("ObjectStore", () => {
   describe("Binary Object Storage", () => {
     describe("writeObject", () => {
       it("should write object and return reference with generated ID", async () => {
-        const store = new ObjectStore(mockBucket);
+        const store = new CloudflareObjectStore(mockBucket);
         const data = new Uint8Array([1, 2, 3]);
 
         const result = await store.writeObject(
@@ -44,7 +44,7 @@ describe("ObjectStore", () => {
 
     describe("writeObjectWithId", () => {
       it("should write object with specific ID", async () => {
-        const store = new ObjectStore(mockBucket);
+        const store = new CloudflareObjectStore(mockBucket);
         const data = new Uint8Array([1, 2, 3]);
 
         const result = await store.writeObjectWithId(
@@ -69,7 +69,7 @@ describe("ObjectStore", () => {
       });
 
       it("should include executionId when provided", async () => {
-        const store = new ObjectStore(mockBucket);
+        const store = new CloudflareObjectStore(mockBucket);
         const data = new Uint8Array([1, 2, 3]);
 
         await store.writeObjectWithId(
@@ -101,7 +101,7 @@ describe("ObjectStore", () => {
           customMetadata: { organizationId: "org-123" },
         });
 
-        const store = new ObjectStore(mockBucket);
+        const store = new CloudflareObjectStore(mockBucket);
         const reference: ObjectReference = {
           id: "obj-123",
           mimeType: "image/png",
@@ -120,7 +120,7 @@ describe("ObjectStore", () => {
       it("should return null when object not found", async () => {
         mockBucket.get.mockResolvedValue(null);
 
-        const store = new ObjectStore(mockBucket);
+        const store = new CloudflareObjectStore(mockBucket);
         const reference: ObjectReference = {
           id: "obj-123",
           mimeType: "image/png",
@@ -134,7 +134,7 @@ describe("ObjectStore", () => {
 
     describe("deleteObject", () => {
       it("should delete object", async () => {
-        const store = new ObjectStore(mockBucket);
+        const store = new CloudflareObjectStore(mockBucket);
         const reference: ObjectReference = {
           id: "obj-123",
           mimeType: "image/png",
@@ -183,7 +183,7 @@ describe("ObjectStore", () => {
           ],
         });
 
-        const store = new ObjectStore(mockBucket);
+        const store = new CloudflareObjectStore(mockBucket);
         const result = await store.listObjects("org-123");
 
         expect(result).toHaveLength(2);
@@ -202,7 +202,7 @@ describe("ObjectStore", () => {
 
   describe("writeAndPresign", () => {
     it("should write object and return presigned URL", async () => {
-      const store = new ObjectStore(mockBucket, {
+      const store = new CloudflareObjectStore(mockBucket, {
         accountId: "test-account",
         bucketName: "test-bucket",
         accessKeyId: "test-key",
@@ -235,7 +235,7 @@ describe("ObjectStore", () => {
     });
 
     it("should throw when presigned URL config is missing", async () => {
-      const store = new ObjectStore(mockBucket);
+      const store = new CloudflareObjectStore(mockBucket);
 
       vi.spyOn(store, "writeObject").mockResolvedValue({
         id: "mock-id",
@@ -250,7 +250,7 @@ describe("ObjectStore", () => {
 
   describe("Error Handling", () => {
     it("should throw error when bucket not initialized", async () => {
-      const store = new ObjectStore(null as any);
+      const store = new CloudflareObjectStore(null as any);
 
       await expect(
         store.writeObject(new Uint8Array([1, 2, 3]), "image/png", "org-123")
@@ -260,7 +260,7 @@ describe("ObjectStore", () => {
     it("should handle bucket put failure", async () => {
       mockBucket.put.mockRejectedValue(new Error("Storage error"));
 
-      const store = new ObjectStore(mockBucket);
+      const store = new CloudflareObjectStore(mockBucket);
 
       await expect(
         store.writeObject(new Uint8Array([1, 2, 3]), "image/png", "org-123")
@@ -270,7 +270,7 @@ describe("ObjectStore", () => {
     it("should handle bucket get failure", async () => {
       mockBucket.get.mockRejectedValue(new Error("Read error"));
 
-      const store = new ObjectStore(mockBucket);
+      const store = new CloudflareObjectStore(mockBucket);
       const reference: ObjectReference = {
         id: "obj-123",
         mimeType: "image/png",

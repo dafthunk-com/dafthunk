@@ -32,9 +32,11 @@ import {
   type RuntimeDependencies,
   type RuntimeParams,
 } from "./base-runtime";
-import { CredentialService } from "./credential-service";
-import { ExecutionStore } from "./execution-store";
-import { WorkflowSessionMonitoringService } from "./monitoring-service";
+import { CloudflareCreditService } from "./credit-service";
+import { CloudflareCredentialService } from "./credential-service";
+import { CloudflareExecutionStore } from "./execution-store";
+import { CloudflareMonitoringService } from "./monitoring-service";
+import { CloudflareObjectStore } from "./object-store";
 
 /**
  * Workflow runtime with step-based execution.
@@ -62,21 +64,26 @@ export class WorkflowRuntime extends Runtime {
     const nodeRegistry = new CloudflareNodeRegistry(env, true);
 
     // eslint-disable-next-line prefer-const -- circular dependency pattern requires let
-    let credentialProvider: CredentialService;
+    let credentialProvider: CloudflareCredentialService;
     const toolRegistry = new CloudflareToolRegistry(
       nodeRegistry,
       (nodeId: string, inputs: Record<string, unknown>) =>
         credentialProvider.createToolContext(nodeId, inputs)
     );
-    credentialProvider = new CredentialService(env, toolRegistry);
+    credentialProvider = new CloudflareCredentialService(env, toolRegistry);
 
     const dependencies: RuntimeDependencies = {
       nodeRegistry,
       credentialProvider,
-      executionStore: new ExecutionStore(env),
-      monitoringService: new WorkflowSessionMonitoringService(
+      executionStore: new CloudflareExecutionStore(env),
+      monitoringService: new CloudflareMonitoringService(
         env.WORKFLOW_SESSION
       ),
+      creditService: new CloudflareCreditService(
+        env.KV,
+        env.CLOUDFLARE_ENV === "development"
+      ),
+      objectStore: new CloudflareObjectStore(env.RESSOURCES),
     };
 
     return new WorkflowRuntime(env, dependencies);
