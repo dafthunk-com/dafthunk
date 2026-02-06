@@ -32,8 +32,8 @@ import {
   type RuntimeDependencies,
   type RuntimeParams,
 } from "./base-runtime";
-import { CloudflareCreditService } from "./credit-service";
 import { CloudflareCredentialService } from "./credential-service";
+import { CloudflareCreditService } from "./credit-service";
 import { CloudflareExecutionStore } from "./execution-store";
 import { CloudflareMonitoringService } from "./monitoring-service";
 import { CloudflareObjectStore } from "./object-store";
@@ -76,9 +76,7 @@ export class WorkflowRuntime extends Runtime {
       nodeRegistry,
       credentialProvider,
       executionStore: new CloudflareExecutionStore(env),
-      monitoringService: new CloudflareMonitoringService(
-        env.WORKFLOW_SESSION
-      ),
+      monitoringService: new CloudflareMonitoringService(env.WORKFLOW_SESSION),
       creditService: new CloudflareCreditService(
         env.KV,
         env.CLOUDFLARE_ENV === "development"

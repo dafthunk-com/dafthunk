@@ -40,9 +40,7 @@ export interface ObjectStore {
     executionId?: string,
     filename?: string
   ): Promise<ObjectReference>;
-  readObject(
-    reference: ObjectReference
-  ): Promise<{
+  readObject(reference: ObjectReference): Promise<{
     data: Uint8Array;
     metadata: Record<string, string> | undefined;
   } | null>;
@@ -128,9 +126,7 @@ export class CloudflareObjectStore implements ObjectStore {
     data: Uint8Array;
     metadata: Record<string, string> | undefined;
   } | null> {
-    const object = await this.readFromR2(
-      `objects/${reference.id}/object.data`
-    );
+    const object = await this.readFromR2(`objects/${reference.id}/object.data`);
 
     if (!object) return null;
 
