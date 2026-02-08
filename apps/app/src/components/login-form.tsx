@@ -17,11 +17,7 @@ interface LoginFormProps extends React.ComponentPropsWithoutRef<"div"> {
   returnTo?: string;
 }
 
-export function LoginForm({
-  className,
-  returnTo,
-  ...props
-}: LoginFormProps) {
+export function LoginForm({ className, returnTo, ...props }: LoginFormProps) {
   const { login } = useAuth();
 
   const handleLoginClick = async (provider: "github" | "google") => {

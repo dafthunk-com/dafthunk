@@ -1,7 +1,4 @@
-import type {
-  CreateWorkflowRequest,
-  WorkflowTrigger,
-} from "@dafthunk/types";
+import type { CreateWorkflowRequest, WorkflowTrigger } from "@dafthunk/types";
 import FileDown from "lucide-react/icons/file-down";
 import Logs from "lucide-react/icons/logs";
 import Play from "lucide-react/icons/play";

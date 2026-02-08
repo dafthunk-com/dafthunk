@@ -16,8 +16,7 @@ export function TemplateTryPage() {
   const { organization } = useAuth();
   const orgHandle = organization?.handle || "";
 
-  const { template, templateError, isTemplateLoading } =
-    useTemplate(templateId);
+  const { template, templateError } = useTemplate(templateId);
 
   const creatingRef = useRef(false);
 
@@ -46,9 +45,7 @@ export function TemplateTryPage() {
   }, [template, orgHandle, navigate, getOrgUrl]);
 
   if (templateError) {
-    return (
-      <InsetError title="Template" errorMessage={templateError.message} />
-    );
+    return <InsetError title="Template" errorMessage={templateError.message} />;
   }
 
   return <InsetLoading title="Creating workflow..." />;

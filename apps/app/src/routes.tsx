@@ -58,9 +58,9 @@ import { ProfilePage } from "./pages/profile-page";
 import { QueuesPage } from "./pages/queues-page";
 import { SecretsPage } from "./pages/secrets-page";
 import { TemplateDetailPage } from "./pages/template-detail-page";
-import { TemplatesPage } from "./pages/templates-page";
 import { TemplatePreviewPage } from "./pages/template-preview-page";
 import { TemplateTryPage } from "./pages/template-try-page";
+import { TemplatesPage } from "./pages/templates-page";
 import { WorkflowsPage } from "./pages/workflows-page";
 
 export interface RouteHandle {
