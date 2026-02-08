@@ -1,7 +1,6 @@
 import type {
   CreateWorkflowRequest,
   WorkflowRuntime,
-  WorkflowTemplate,
   WorkflowTrigger,
   WorkflowWithMetadata,
 } from "@dafthunk/types";
@@ -39,7 +38,6 @@ import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { CreateWorkflowDialog } from "@/components/workflow/create-workflow-dialog";
-import { ImportTemplateDialog } from "@/components/workflow/import-template-dialog";
 import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { createDeployment } from "@/services/deployment-service";
@@ -386,7 +384,6 @@ function createColumns(
 
 export function WorkflowsPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const navigate = useNavigate();
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const { organization } = useAuth();
@@ -445,11 +442,6 @@ export function WorkflowsPage() {
     }
   };
 
-  const handleImportTemplate = async (template: WorkflowTemplate) => {
-    // Navigate to template detail page where user can preview and import
-    navigate(getOrgUrl(`templates/${template.id}`));
-  };
-
   if (isWorkflowsLoading) {
     return <InsetLoading title="Workflows" />;
   } else if (workflowsError) {
@@ -470,9 +462,11 @@ export function WorkflowsPage() {
               <PlusCircle className="mr-2 size-4" />
               Create Workflow
             </Button>
-            <Button onClick={() => setIsImportDialogOpen(true)}>
-              <FileDown className="mr-2 size-4" />
-              Import Template
+            <Button asChild>
+              <Link to={getOrgUrl("templates")}>
+                <FileDown className="mr-2 size-4" />
+                Browse Templates
+              </Link>
             </Button>
           </div>
         </div>
@@ -488,11 +482,6 @@ export function WorkflowsPage() {
           open={isCreateDialogOpen}
           onOpenChange={setIsCreateDialogOpen}
           onCreateWorkflow={handleCreateWorkflow}
-        />
-        <ImportTemplateDialog
-          open={isImportDialogOpen}
-          onOpenChange={setIsImportDialogOpen}
-          onImportTemplate={handleImportTemplate}
         />
         {deleteDialog}
         {renameDialog}

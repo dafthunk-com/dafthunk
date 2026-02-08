@@ -1,6 +1,5 @@
 import type {
   CreateWorkflowRequest,
-  WorkflowTemplate,
   WorkflowTrigger,
 } from "@dafthunk/types";
 import FileDown from "lucide-react/icons/file-down";
@@ -28,7 +27,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { CreateWorkflowDialog } from "@/components/workflow/create-workflow-dialog";
-import { ImportTemplateDialog } from "@/components/workflow/import-template-dialog";
 import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { useBilling } from "@/services/billing-service";
@@ -37,7 +35,6 @@ import { createWorkflow, useWorkflows } from "@/services/workflow-service";
 
 export function DashboardPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const navigate = useNavigate();
   const { organization } = useAuth();
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
@@ -66,10 +63,6 @@ export function DashboardPage() {
     mutateWorkflows();
     setIsCreateDialogOpen(false);
     navigate(getOrgUrl(`workflows/${newWorkflow.id}`));
-  };
-
-  const handleImportTemplate = async (template: WorkflowTemplate) => {
-    navigate(getOrgUrl(`templates/${template.id}`));
   };
 
   useEffect(() => {
@@ -141,11 +134,13 @@ export function DashboardPage() {
             </Button>
             <Button
               variant="outline"
-              onClick={() => setIsImportDialogOpen(true)}
+              asChild
               data-tour="import-template-button"
             >
-              <FileDown className="mr-2 size-4" />
-              Import Template
+              <Link to={getOrgUrl("templates")}>
+                <FileDown className="mr-2 size-4" />
+                Browse Templates
+              </Link>
             </Button>
           </div>
         </CardContent>
@@ -309,11 +304,6 @@ export function DashboardPage() {
         open={isCreateDialogOpen}
         onOpenChange={setIsCreateDialogOpen}
         onCreateWorkflow={handleCreateWorkflow}
-      />
-      <ImportTemplateDialog
-        open={isImportDialogOpen}
-        onOpenChange={setIsImportDialogOpen}
-        onImportTemplate={handleImportTemplate}
       />
     </InsetLayout>
   );

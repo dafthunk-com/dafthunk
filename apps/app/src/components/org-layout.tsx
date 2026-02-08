@@ -12,6 +12,7 @@ import Mail from "lucide-react/icons/mail";
 import MessageSquareText from "lucide-react/icons/message-square-text";
 import Plug from "lucide-react/icons/plug";
 import SquareTerminal from "lucide-react/icons/square-terminal";
+import Wand from "lucide-react/icons/wand";
 import Target from "lucide-react/icons/target";
 import Users from "lucide-react/icons/users";
 import React, { useEffect } from "react";
@@ -49,6 +50,11 @@ export const getDashboardSidebarGroups = (
           title: "Workflows",
           url: `/org/${orgHandle}/workflows`,
           icon: SquareTerminal,
+        },
+        {
+          title: "Templates",
+          url: `/org/${orgHandle}/templates`,
+          icon: Wand,
         },
         {
           title: "Deployments",
