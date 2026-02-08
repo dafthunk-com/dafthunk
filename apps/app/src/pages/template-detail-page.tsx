@@ -103,7 +103,7 @@ export function TemplateDetailPage() {
           ) : (
             <Import className="h-4 w-4 mr-2" />
           )}
-          Import as Workflow
+          Create Workflow
         </Button>
       </div>
       <div className="flex-1 min-h-0">

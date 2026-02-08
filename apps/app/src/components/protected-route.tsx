@@ -20,8 +20,8 @@ export function ProtectedRoute({
   }
 
   if (!isAuthenticated) {
-    // Save the current location they were trying to go to
-    return <Navigate to={redirectTo} state={{ from: location }} replace />;
+    const returnTo = encodeURIComponent(location.pathname);
+    return <Navigate to={`${redirectTo}?returnTo=${returnTo}`} replace />;
   }
 
   return <>{children}</>;

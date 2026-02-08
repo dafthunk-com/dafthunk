@@ -28,7 +28,7 @@ type AuthContextType = {
   readonly loginError: Error | null;
   readonly organization: OrganizationInfo | null;
   setSelectedOrganization: (org: OrganizationInfo | null) => void;
-  login: (provider: AuthProvider) => Promise<void>;
+  login: (provider: AuthProvider, returnTo?: string) => Promise<void>;
   logout: () => Promise<void>;
   logoutAllSessions: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -175,17 +175,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [mutateUser]);
 
-  const login = useCallback(async (provider: AuthProvider): Promise<void> => {
-    setLoginError(null);
-    try {
-      await authService.loginWithProvider(provider);
-    } catch (err) {
-      console.error("Login process error:", err);
-      const error = err instanceof Error ? err : new Error(String(err));
-      setLoginError(error);
-      throw error;
-    }
-  }, []);
+  const login = useCallback(
+    async (provider: AuthProvider, returnTo?: string): Promise<void> => {
+      setLoginError(null);
+      try {
+        await authService.loginWithProvider(provider, returnTo);
+      } catch (err) {
+        console.error("Login process error:", err);
+        const error = err instanceof Error ? err : new Error(String(err));
+        setLoginError(error);
+        throw error;
+      }
+    },
+    []
+  );
 
   const logout = useCallback(async (): Promise<void> => {
     try {

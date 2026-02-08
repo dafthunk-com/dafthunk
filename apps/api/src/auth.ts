@@ -21,6 +21,8 @@ export const JWT_ACCESS_TOKEN_NAME = "access_token";
 const JWT_REFRESH_TOKEN_NAME = "refresh_token";
 const JWT_ACCESS_TOKEN_DURATION = 300; // 5 minutes
 const JWT_REFRESH_TOKEN_DURATION = 86400; // 1 days
+const OAUTH_RETURN_TO_COOKIE = "oauth_return_to";
+const OAUTH_RETURN_TO_MAX_AGE = 300; // 5 minutes
 
 // Security validation
 const validateJWTSecret = (secret: string): void => {
@@ -151,6 +153,41 @@ const setCookieOptions = (c: Context<ApiContext>, maxAge: number) => ({
   maxAge,
   path: "/",
 });
+
+// Validate returnTo is a safe relative path (prevents open redirects)
+const isValidReturnTo = (returnTo: string): boolean => {
+  return (
+    returnTo.startsWith("/") &&
+    !returnTo.startsWith("//") &&
+    !returnTo.includes("://")
+  );
+};
+
+// Store returnTo in a cookie before OAuth redirect
+const storeReturnTo = (c: Context<ApiContext>) => {
+  const returnTo = c.req.query("returnTo");
+  if (returnTo && isValidReturnTo(returnTo)) {
+    setCookie(c, OAUTH_RETURN_TO_COOKIE, returnTo, {
+      httpOnly: true,
+      secure: c.env.CLOUDFLARE_ENV !== "development",
+      sameSite: "Lax",
+      maxAge: OAUTH_RETURN_TO_MAX_AGE,
+      path: "/",
+    });
+  }
+};
+
+// Read and clear returnTo cookie, returning the redirect URL
+const consumeReturnTo = (c: Context<ApiContext>): string => {
+  const returnTo = getCookie(c, OAUTH_RETURN_TO_COOKIE);
+  if (returnTo) {
+    deleteCookie(c, OAUTH_RETURN_TO_COOKIE, { path: "/" });
+    if (isValidReturnTo(returnTo)) {
+      return c.env.WEB_HOST + returnTo;
+    }
+  }
+  return c.env.WEB_HOST;
+};
 
 // Auth middleware
 export const jwtMiddleware = async (
@@ -436,6 +473,7 @@ auth.post("/logout", (c) => {
 auth.get(
   "/login/github",
   (c, next) => {
+    storeReturnTo(c);
     const githubAuthHandler = githubAuth({
       client_id: c.env.GITHUB_CLIENT_ID,
       client_secret: c.env.GITHUB_CLIENT_SECRET,
@@ -505,7 +543,7 @@ auth.get(
 
       await setAuthTokens(c, accessPayload, refreshPayload);
 
-      return c.redirect(c.env.WEB_HOST);
+      return c.redirect(consumeReturnTo(c));
     } catch (error) {
       console.error("GitHub authentication error:", error);
       return c.json({ error: "Authentication failed" }, 400);
@@ -516,6 +554,7 @@ auth.get(
 auth.get(
   "/login/google",
   (c, next) => {
+    storeReturnTo(c);
     const googleAuthHandler = googleAuth({
       client_id: c.env.GOOGLE_CLIENT_ID,
       client_secret: c.env.GOOGLE_CLIENT_SECRET,
@@ -584,7 +623,7 @@ auth.get(
 
       await setAuthTokens(c, accessPayload, refreshPayload);
 
-      return c.redirect(c.env.WEB_HOST);
+      return c.redirect(consumeReturnTo(c));
     } catch (error) {
       console.error("Google authentication error:", error);
       return c.json({ error: "Authentication failed" }, 400);

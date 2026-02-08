@@ -13,14 +13,19 @@ import { cn } from "@/utils/utils";
 
 import { useAuth } from "./auth-context";
 
+interface LoginFormProps extends React.ComponentPropsWithoutRef<"div"> {
+  returnTo?: string;
+}
+
 export function LoginForm({
   className,
+  returnTo,
   ...props
-}: React.ComponentPropsWithoutRef<"div">) {
+}: LoginFormProps) {
   const { login } = useAuth();
 
   const handleLoginClick = async (provider: "github" | "google") => {
-    await login(provider);
+    await login(provider, returnTo);
   };
 
   return (

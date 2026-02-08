@@ -96,7 +96,10 @@ export const authService = {
   },
 
   // Login with a provider
-  async loginWithProvider(provider: AuthProvider): Promise<void> {
+  async loginWithProvider(
+    provider: AuthProvider,
+    returnTo?: string
+  ): Promise<void> {
     try {
       // Validate provider
       if (!["github", "google"].includes(provider)) {
@@ -108,7 +111,11 @@ export const authService = {
         throw new AuthError("API base URL not configured");
       }
 
-      window.location.href = `${baseUrl}/auth/login/${provider}`;
+      const loginUrl = new URL(`${baseUrl}/auth/login/${provider}`);
+      if (returnTo) {
+        loginUrl.searchParams.set("returnTo", returnTo);
+      }
+      window.location.href = loginUrl.toString();
     } catch (error) {
       console.error("Login initiation failed:", error);
       throw error;

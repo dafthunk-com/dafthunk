@@ -142,7 +142,7 @@ export default function WorkflowPage({
           </div>
 
           <a
-            href={import.meta.env.VITE_APP_URL}
+            href={`${import.meta.env.VITE_APP_URL}/templates/${workflow.id}/try`}
             className="inline-block text-lg bg-black text-white px-8 py-4 rounded-lg hover:bg-gray-800 transition-colors"
           >
             Try this workflow
