@@ -12,7 +12,7 @@ export const shape3dTemplate: WorkflowTemplate = {
   description: "Create a 3D shape by subtracting a sphere from a cube",
   icon: "box",
   trigger: "manual",
-  tags: ["3d", "csg", "geometry"],
+  tags: ["3d"],
   nodes: [
     CgsCubeNode.create({
       id: "cube",

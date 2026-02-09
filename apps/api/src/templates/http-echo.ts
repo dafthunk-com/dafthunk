@@ -9,7 +9,7 @@ export const httpEchoTemplate: WorkflowTemplate = {
   description: "Echo the request body back in the response",
   icon: "repeat",
   trigger: "http_request",
-  tags: ["http", "demo", "api"],
+  tags: ["api"],
   nodes: [
     HttpRequestNode.create({
       id: "request",

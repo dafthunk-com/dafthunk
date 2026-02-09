@@ -771,137 +771,140 @@ export function WorkflowCanvas({
             onDeploy ||
             onSetSchedule ||
             (onToggleSidebar && isSidebarVisible !== undefined)) && (
-          <div className="absolute top-4 right-4 flex items-center gap-3 z-50">
-            {/* Runtime Actions Group - Execute + Triggers */}
-            {(onAction ||
-              onSetSchedule ||
-              onShowHttpIntegration ||
-              onShowEmailTrigger) && (
-              <ActionBarGroup>
-                {onAction && (
-                  <ActionButton
-                    onClick={onAction}
-                    workflowStatus={workflowStatus}
-                    disabled={
-                      disabled ||
-                      ((workflowStatus === "idle" ||
-                        workflowStatus === "submitted" ||
-                        workflowStatus === "executing") &&
-                        nodes.length === 0)
-                    }
+            <div className="absolute top-4 right-4 flex items-center gap-3 z-50">
+              {/* Runtime Actions Group - Execute + Triggers */}
+              {(onAction ||
+                onSetSchedule ||
+                onShowHttpIntegration ||
+                onShowEmailTrigger) && (
+                <ActionBarGroup>
+                  {onAction && (
+                    <ActionButton
+                      onClick={onAction}
+                      workflowStatus={workflowStatus}
+                      disabled={
+                        disabled ||
+                        ((workflowStatus === "idle" ||
+                          workflowStatus === "submitted" ||
+                          workflowStatus === "executing") &&
+                          nodes.length === 0)
+                      }
+                    />
+                  )}
+                  {onSetSchedule && workflowTrigger === "scheduled" && (
+                    <SetScheduleButton
+                      onClick={onSetSchedule}
+                      disabled={disabled || nodes.length === 0}
+                    />
+                  )}
+                  {onShowHttpIntegration &&
+                    (workflowTrigger === "http_webhook" ||
+                      workflowTrigger === "http_request") && (
+                      <ShowHttpIntegrationButton
+                        onClick={onShowHttpIntegration}
+                        disabled={disabled}
+                      />
+                    )}
+                  {onShowEmailTrigger &&
+                    workflowTrigger === "email_message" && (
+                      <ShowEmailTriggerButton
+                        onClick={onShowEmailTrigger}
+                        disabled={disabled}
+                      />
+                    )}
+                </ActionBarGroup>
+              )}
+
+              {/* Publishing Actions Group - Deploy */}
+              {onDeploy && (
+                <ActionBarGroup>
+                  <DeployButton
+                    onClick={onDeploy}
+                    disabled={disabled || nodes.length === 0}
                   />
-                )}
-                {onSetSchedule && workflowTrigger === "scheduled" && (
-                  <SetScheduleButton
-                    onClick={onSetSchedule}
+                </ActionBarGroup>
+              )}
+
+              {/* View Controls Group - Sidebar */}
+              {onToggleSidebar && isSidebarVisible !== undefined && (
+                <ActionBarGroup>
+                  <SidebarToggle
+                    onClick={onToggleSidebar}
+                    isSidebarVisible={isSidebarVisible}
+                  />
+                </ActionBarGroup>
+              )}
+            </div>
+          )}
+
+        {showControls && (
+          <div
+            className={cn(
+              "absolute top-4 left-4 z-50 flex flex-col items-center gap-2"
+            )}
+          >
+            {/* Node-related buttons group */}
+            <ActionBarGroup vertical>
+              {onAddNode && (
+                <AddNodeButton onClick={onAddNode} disabled={disabled} />
+              )}
+            </ActionBarGroup>
+
+            {/* Edit operations group */}
+            <ActionBarGroup vertical>
+              {onCopySelected && (
+                <CopyButton
+                  onClick={onCopySelected}
+                  disabled={disabled || !hasSelectedNodes}
+                />
+              )}
+              {onCutSelected && (
+                <CutButton
+                  onClick={onCutSelected}
+                  disabled={disabled || !hasSelectedNodes}
+                />
+              )}
+              {onPasteFromClipboard && (
+                <PasteButton
+                  onClick={onPasteFromClipboard}
+                  disabled={disabled || !hasClipboardData}
+                />
+              )}
+              {onDuplicateSelected && (
+                <DuplicateButton
+                  onClick={onDuplicateSelected}
+                  disabled={
+                    disabled || (!hasSelectedNodes && !selectedNodes.length)
+                  }
+                />
+              )}
+              {onDeleteSelected && (
+                <DeleteButton
+                  onClick={onDeleteSelected}
+                  disabled={
+                    disabled ||
+                    (!hasSelectedElements &&
+                      !selectedNodes.length &&
+                      !selectedEdges.length)
+                  }
+                />
+              )}
+            </ActionBarGroup>
+
+            {/* Workflow-related buttons group - hidden in read-only mode */}
+            {!disabled && (onApplyLayout || onFitToScreen) && (
+              <ActionBarGroup vertical>
+                {onApplyLayout && (
+                  <ApplyLayoutButton
+                    onClick={() => onApplyLayout()}
                     disabled={disabled || nodes.length === 0}
                   />
                 )}
-                {onShowHttpIntegration &&
-                  (workflowTrigger === "http_webhook" ||
-                    workflowTrigger === "http_request") && (
-                    <ShowHttpIntegrationButton
-                      onClick={onShowHttpIntegration}
-                      disabled={disabled}
-                    />
-                  )}
-                {onShowEmailTrigger && workflowTrigger === "email_message" && (
-                  <ShowEmailTriggerButton
-                    onClick={onShowEmailTrigger}
-                    disabled={disabled}
-                  />
-                )}
-              </ActionBarGroup>
-            )}
-
-            {/* Publishing Actions Group - Deploy */}
-            {onDeploy && (
-              <ActionBarGroup>
-                <DeployButton
-                  onClick={onDeploy}
-                  disabled={disabled || nodes.length === 0}
-                />
-              </ActionBarGroup>
-            )}
-
-            {/* View Controls Group - Sidebar */}
-            {onToggleSidebar && isSidebarVisible !== undefined && (
-              <ActionBarGroup>
-                <SidebarToggle
-                  onClick={onToggleSidebar}
-                  isSidebarVisible={isSidebarVisible}
-                />
+                {onFitToScreen && <FitToScreenButton onClick={onFitToScreen} />}
               </ActionBarGroup>
             )}
           </div>
         )}
-
-        {showControls && <div
-          className={cn(
-            "absolute top-4 left-4 z-50 flex flex-col items-center gap-2"
-          )}
-        >
-          {/* Node-related buttons group */}
-          <ActionBarGroup vertical>
-            {onAddNode && (
-              <AddNodeButton onClick={onAddNode} disabled={disabled} />
-            )}
-          </ActionBarGroup>
-
-          {/* Edit operations group */}
-          <ActionBarGroup vertical>
-            {onCopySelected && (
-              <CopyButton
-                onClick={onCopySelected}
-                disabled={disabled || !hasSelectedNodes}
-              />
-            )}
-            {onCutSelected && (
-              <CutButton
-                onClick={onCutSelected}
-                disabled={disabled || !hasSelectedNodes}
-              />
-            )}
-            {onPasteFromClipboard && (
-              <PasteButton
-                onClick={onPasteFromClipboard}
-                disabled={disabled || !hasClipboardData}
-              />
-            )}
-            {onDuplicateSelected && (
-              <DuplicateButton
-                onClick={onDuplicateSelected}
-                disabled={
-                  disabled || (!hasSelectedNodes && !selectedNodes.length)
-                }
-              />
-            )}
-            {onDeleteSelected && (
-              <DeleteButton
-                onClick={onDeleteSelected}
-                disabled={
-                  disabled ||
-                  (!hasSelectedElements &&
-                    !selectedNodes.length &&
-                    !selectedEdges.length)
-                }
-              />
-            )}
-          </ActionBarGroup>
-
-          {/* Workflow-related buttons group - hidden in read-only mode */}
-          {!disabled && (onApplyLayout || onFitToScreen) && (
-            <ActionBarGroup vertical>
-              {onApplyLayout && (
-                <ApplyLayoutButton
-                  onClick={() => onApplyLayout()}
-                  disabled={disabled || nodes.length === 0}
-                />
-              )}
-              {onFitToScreen && <FitToScreenButton onClick={onFitToScreen} />}
-            </ActionBarGroup>
-          )}
-        </div>}
       </ReactFlow>
     </TooltipProvider>
   );

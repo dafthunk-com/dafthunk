@@ -27,43 +27,35 @@ export function TourStepPopover({
   return (
     <div
       className={cn(
-        "fixed left-1/2 bottom-8 -translate-x-1/2",
-        "z-[60] w-96 max-w-[calc(100vw-2rem)] rounded-lg border bg-popover p-5 text-popover-foreground shadow-lg",
-        "animate-in fade-in-0 zoom-in-95"
+        "fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2",
+        "z-[60] w-[560px] h-[380px] rounded-lg border bg-popover p-10 text-popover-foreground shadow-lg",
+        "animate-in fade-in-0 zoom-in-95",
+        "flex flex-col justify-center"
       )}
     >
-      <div className="space-y-4">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="font-semibold text-lg leading-tight">{step.title}</h3>
-          <span className="text-sm text-muted-foreground whitespace-nowrap">
-            {stepNumber} / {totalSteps}
-          </span>
+      <div className="flex flex-col h-full">
+        {/* Progress bar */}
+        <div className="h-1 bg-muted rounded-full overflow-hidden mb-6">
+          <div
+            className="h-full bg-primary transition-all duration-300 rounded-full"
+            style={{ width: `${(stepNumber / totalSteps) * 100}%` }}
+          />
         </div>
 
-        {/* Content */}
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          {step.content}
-        </p>
-
-        {/* Step indicators */}
-        <div className="flex justify-center gap-1 py-1">
-          {Array.from({ length: totalSteps }).map((_, i) => (
-            <div
-              key={i}
-              className={cn(
-                "h-1.5 w-1.5 rounded-full transition-all",
-                i === stepNumber - 1 ? "bg-primary" : "bg-muted-foreground/30"
-              )}
-            />
-          ))}
+        {/* Title + Content (centered in remaining space) */}
+        <div className="flex-1 flex flex-col items-center justify-center space-y-4">
+          <h3 className="font-semibold text-3xl leading-tight text-center">
+            {step.title}
+          </h3>
+          <p className="text-lg text-muted-foreground leading-relaxed text-center">
+            {step.content}
+          </p>
         </div>
 
         {/* Navigation */}
-        <div className="flex items-center justify-between pt-1">
+        <div className="flex items-center justify-between pt-4">
           <Button
             variant="ghost"
-            size="sm"
             onClick={onSkip}
             className="text-muted-foreground hover:text-foreground"
           >
@@ -71,13 +63,11 @@ export function TourStepPopover({
           </Button>
           <div className="flex gap-2">
             {!isFirst && (
-              <Button variant="outline" size="sm" onClick={onPrev}>
+              <Button variant="outline" onClick={onPrev}>
                 Previous
               </Button>
             )}
-            <Button size="sm" onClick={onNext}>
-              {isLast ? "Finish" : "Next"}
-            </Button>
+            <Button onClick={onNext}>{isLast ? "Finish" : "Next"}</Button>
           </div>
         </div>
       </div>

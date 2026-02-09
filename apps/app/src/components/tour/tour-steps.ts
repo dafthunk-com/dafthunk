@@ -16,35 +16,27 @@ export const TOUR_STEPS: TourStep[] = [
     spotlightPadding: 2,
   },
   {
-    id: "create-workflow",
-    title: "Create Workflow",
+    id: "templates",
+    title: "Templates",
     content:
-      "Create a new workflow from scratch. Choose from manual triggers, scheduled runs, HTTP webhooks, and more.",
-    targetSelector: '[data-tour="create-workflow-button"]',
-    spotlightPadding: 2,
-  },
-  {
-    id: "import-template",
-    title: "Import Template",
-    content:
-      "Start faster by importing from our template library. Templates include pre-built workflows for common use cases.",
-    targetSelector: '[data-tour="import-template-button"]',
+      "Browse pre-built templates to get started quickly. Templates include ready-made workflows for common use cases.",
+    targetSelector: '[data-tour="templates-nav"]',
     spotlightPadding: 2,
   },
   {
     id: "workflows",
     title: "Workflows",
     content:
-      "Track how many workflows you've created. Workflows are the building blocks of your automations.",
-    targetSelector: '[data-tour="workflows-card"]',
+      "Manage your workflows here. Workflows are the building blocks of your automations.",
+    targetSelector: '[data-tour="workflows-nav"]',
     spotlightPadding: 2,
   },
   {
     id: "deployments",
     title: "Deployments",
     content:
-      "See your active deployments. Deploy workflows to run on schedules, respond to webhooks, or process messages.",
-    targetSelector: '[data-tour="deployments-card"]',
+      "Deploy workflows to run on schedules, respond to webhooks, or process messages.",
+    targetSelector: '[data-tour="deployments-nav"]',
     spotlightPadding: 2,
   },
   {
@@ -52,7 +44,7 @@ export const TOUR_STEPS: TourStep[] = [
     title: "Executions",
     content:
       "Monitor your workflow executions. Track run history, check outputs, and debug any issues.",
-    targetSelector: '[data-tour="executions-card"]',
+    targetSelector: '[data-tour="executions-nav"]',
     spotlightPadding: 2,
   },
   {

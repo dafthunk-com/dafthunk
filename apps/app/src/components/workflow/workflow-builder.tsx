@@ -530,9 +530,7 @@ export function WorkflowBuilder({
                   : undefined
               }
               onDeploy={
-                !readOnly && onDeployWorkflow
-                  ? onDeployWorkflow
-                  : undefined
+                !readOnly && onDeployWorkflow ? onDeployWorkflow : undefined
               }
               workflowStatus={workflowStatus}
               workflowErrorMessage={workflowErrorMessage}
@@ -556,15 +554,11 @@ export function WorkflowBuilder({
               selectedNodes={selectedNodes}
               selectedEdges={selectedEdges}
               onDeleteSelected={readOnly ? undefined : deleteSelected}
-              onDuplicateSelected={
-                readOnly ? undefined : duplicateSelected
-              }
+              onDuplicateSelected={readOnly ? undefined : duplicateSelected}
               onApplyLayout={readOnly ? undefined : applyLayout}
               onCopySelected={readOnly ? undefined : copySelected}
               onCutSelected={readOnly ? undefined : cutSelected}
-              onPasteFromClipboard={
-                readOnly ? undefined : pasteFromClipboard
-              }
+              onPasteFromClipboard={readOnly ? undefined : pasteFromClipboard}
               hasClipboardData={hasClipboardData}
               showControls={interactive}
             />
@@ -593,9 +587,7 @@ export function WorkflowBuilder({
                   workflowDescription={workflowDescription}
                   workflowTrigger={workflowTrigger}
                   workflowRuntime={workflowRuntime}
-                  onWorkflowUpdate={
-                    readOnly ? undefined : onWorkflowUpdate
-                  }
+                  onWorkflowUpdate={readOnly ? undefined : onWorkflowUpdate}
                   workflowStatus={workflowStatus}
                   workflowErrorMessage={workflowErrorMessage}
                   executionId={currentExecutionId}

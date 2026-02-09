@@ -1,19 +1,13 @@
-import type { CreateWorkflowRequest, WorkflowTrigger } from "@dafthunk/types";
-import FileDown from "lucide-react/icons/file-down";
 import Logs from "lucide-react/icons/logs";
 import Play from "lucide-react/icons/play";
-import PlusCircle from "lucide-react/icons/plus-circle";
 import Target from "lucide-react/icons/target";
 import Workflow from "lucide-react/icons/workflow";
-import Zap from "lucide-react/icons/zap";
-import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { useEffect } from "react";
+import { Link, Navigate } from "react-router";
 
-import { useAuth } from "@/components/auth-context";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
-import { useTour } from "@/components/tour";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,44 +17,17 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { CreateWorkflowDialog } from "@/components/workflow/create-workflow-dialog";
 import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { useBilling } from "@/services/billing-service";
 import { useDashboard } from "@/services/dashboard-service";
-import { createWorkflow, useWorkflows } from "@/services/workflow-service";
 
 export function DashboardPage() {
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const navigate = useNavigate();
-  const { organization } = useAuth();
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const { dashboardStats, dashboardStatsError, isDashboardStatsLoading } =
     useDashboard();
   const { billing, billingError, isBillingLoading } = useBilling();
   const { getOrgUrl } = useOrgUrl();
-  const { mutateWorkflows } = useWorkflows();
-  const { start: startTour } = useTour();
-  const orgHandle = organization?.handle || "";
-
-  const handleCreateWorkflow = async (
-    name: string,
-    trigger: WorkflowTrigger
-  ) => {
-    if (!orgHandle) return;
-
-    const request: CreateWorkflowRequest = {
-      name,
-      trigger,
-      nodes: [],
-      edges: [],
-    };
-
-    const newWorkflow = await createWorkflow(request, orgHandle);
-    mutateWorkflows();
-    setIsCreateDialogOpen(false);
-    navigate(getOrgUrl(`workflows/${newWorkflow.id}`));
-  };
 
   useEffect(() => {
     setBreadcrumbs([{ label: "Dashboard" }]);
@@ -91,6 +58,10 @@ export function DashboardPage() {
     );
   }
 
+  if (dashboardStats.workflows === 0) {
+    return <Navigate to={getOrgUrl("onboarding")} replace />;
+  }
+
   const isPro = billing?.plan === "pro";
   const usageThisPeriod = billing?.usageThisPeriod ?? 0;
   const includedCredits = billing?.includedCredits ?? 0;
@@ -105,41 +76,20 @@ export function DashboardPage() {
   return (
     <InsetLayout title="Dashboard">
       {/* Getting Started */}
-      <Card className="mb-6 bg-secondary" data-tour="getting-started-card">
+      <Card className="mb-6 bg-secondary">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Zap className="size-5" />
+            <Play className="size-5" />
             Getting Started
           </CardTitle>
           <CardDescription>
-            Create a new workflow or import a template to get started
+            Explore templates, take a tour, or learn how to build workflows
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap gap-3">
-            <Button onClick={startTour}>
-              <Play className="mr-2 size-4" />
-              Start Tour
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setIsCreateDialogOpen(true)}
-              data-tour="create-workflow-button"
-            >
-              <PlusCircle className="mr-2 size-4" />
-              Create Workflow
-            </Button>
-            <Button
-              variant="outline"
-              asChild
-              data-tour="import-template-button"
-            >
-              <Link to={getOrgUrl("templates")}>
-                <FileDown className="mr-2 size-4" />
-                Browse Templates
-              </Link>
-            </Button>
-          </div>
+          <Button variant="outline" asChild>
+            <Link to={getOrgUrl("onboarding")}>Onboard</Link>
+          </Button>
         </CardContent>
       </Card>
 
@@ -296,12 +246,6 @@ export function DashboardPage() {
           )}
         </CardContent>
       </Card>
-
-      <CreateWorkflowDialog
-        open={isCreateDialogOpen}
-        onOpenChange={setIsCreateDialogOpen}
-        onCreateWorkflow={handleCreateWorkflow}
-      />
     </InsetLayout>
   );
 }

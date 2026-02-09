@@ -47,14 +47,14 @@ export const getDashboardSidebarGroups = (
       label: "Workflows",
       items: [
         {
-          title: "Workflows",
-          url: `/org/${orgHandle}/workflows`,
-          icon: SquareTerminal,
-        },
-        {
           title: "Templates",
           url: `/org/${orgHandle}/templates`,
           icon: Wand,
+        },
+        {
+          title: "Workflows",
+          url: `/org/${orgHandle}/workflows`,
+          icon: SquareTerminal,
         },
         {
           title: "Deployments",

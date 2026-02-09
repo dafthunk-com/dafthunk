@@ -10,7 +10,7 @@ export const aiCalculatorTemplate: WorkflowTemplate = {
   description: "Use AI with a calculator tool to solve math problems",
   icon: "calculator",
   trigger: "manual",
-  tags: ["ai", "math", "tools", "llm"],
+  tags: ["ai"],
   nodes: [
     TextInputNode.create({
       id: "problem-input",

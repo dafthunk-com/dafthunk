@@ -10,7 +10,7 @@ export const speechToTextTemplate: WorkflowTemplate = {
   description: "Record audio and transcribe it to text",
   icon: "mic",
   trigger: "manual",
-  tags: ["audio", "stt", "ai", "transcription"],
+  tags: ["audio", "ai"],
   nodes: [
     AudioRecorderInputNode.create({
       id: "audio-recorder",

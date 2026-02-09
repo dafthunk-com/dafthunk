@@ -29,6 +29,8 @@ interface NavMainGroup {
 }
 
 const NAV_ITEM_TOUR_MAP: Record<string, string> = {
+  Templates: "templates-nav",
+  Workflows: "workflows-nav",
   Deployments: "deployments-nav",
   Executions: "executions-nav",
   Emails: "emails-nav",

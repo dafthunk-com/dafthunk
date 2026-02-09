@@ -10,7 +10,7 @@ export const webScreenshotTemplate: WorkflowTemplate = {
   description: "Capture a screenshot of any webpage",
   icon: "camera",
   trigger: "manual",
-  tags: ["browser", "screenshot", "web"],
+  tags: ["browser"],
   nodes: [
     TextInputNode.create({
       id: "url-input",

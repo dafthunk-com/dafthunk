@@ -12,7 +12,7 @@ export const emailReplyTemplate: WorkflowTemplate = {
     "Receive emails, search a dataset using RAG, and auto-reply with the result",
   icon: "mail",
   trigger: "email_message",
-  tags: ["email", "rag", "ai", "automation"],
+  tags: ["email", "ai"],
   nodes: [
     ReceiveEmailNode.create({
       id: "receive-email",
