@@ -732,12 +732,16 @@ export function WorkflowCanvas({
         className={cn("bg-neutral-100/50", {
           "cursor-default": disabled,
         })}
-        nodesDraggable={!disabled}
-        nodesConnectable={!disabled}
-        elementsSelectable={true}
-        selectNodesOnDrag={!disabled}
-        multiSelectionKeyCode="Shift"
-        panOnDrag={true}
+        nodesDraggable={!disabled && showControls}
+        nodesConnectable={!disabled && showControls}
+        elementsSelectable={showControls}
+        selectNodesOnDrag={!disabled && showControls}
+        multiSelectionKeyCode={showControls ? "Shift" : undefined}
+        panOnDrag={showControls}
+        zoomOnScroll={showControls}
+        zoomOnPinch={showControls}
+        zoomOnDoubleClick={showControls}
+        preventScrolling={showControls}
       >
         {showControls && (
           <Controls
@@ -762,10 +766,11 @@ export function WorkflowCanvas({
         )}
 
         {/* Action Bars */}
-        {(onAction ||
-          onDeploy ||
-          onSetSchedule ||
-          (onToggleSidebar && isSidebarVisible !== undefined)) && (
+        {showControls &&
+          (onAction ||
+            onDeploy ||
+            onSetSchedule ||
+            (onToggleSidebar && isSidebarVisible !== undefined)) && (
           <div className="absolute top-4 right-4 flex items-center gap-3 z-50">
             {/* Runtime Actions Group - Execute + Triggers */}
             {(onAction ||
@@ -831,7 +836,7 @@ export function WorkflowCanvas({
           </div>
         )}
 
-        <div
+        {showControls && <div
           className={cn(
             "absolute top-4 left-4 z-50 flex flex-col items-center gap-2"
           )}
@@ -896,7 +901,7 @@ export function WorkflowCanvas({
               {onFitToScreen && <FitToScreenButton onClick={onFitToScreen} />}
             </ActionBarGroup>
           )}
-        </div>
+        </div>}
       </ReactFlow>
     </TooltipProvider>
   );

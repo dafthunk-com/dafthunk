@@ -42,6 +42,14 @@ import type {
   WorkflowNodeType,
 } from "./workflow-types";
 
+/**
+ * Controls the builder's interaction level:
+ * - "edit"     — Full editing: drag, connect, add/remove nodes, sidebar, controls
+ * - "readonly" — Can zoom/pan/inspect, but cannot modify the workflow
+ * - "preview"  — Completely static: no interaction, no sidebar, no controls
+ */
+type WorkflowBuilderMode = "edit" | "readonly" | "preview";
+
 export interface WorkflowBuilderProps {
   workflowId: string;
   workflowTrigger?: WorkflowTrigger;
@@ -58,7 +66,7 @@ export interface WorkflowBuilderProps {
     triggerData?: unknown
   ) => void | (() => void | Promise<void>);
   initialWorkflowExecution?: WorkflowExecution;
-  disabledWorkflow?: boolean;
+  mode?: WorkflowBuilderMode;
   disabledFeedback?: boolean;
   onDeployWorkflow?: (e: React.MouseEvent) => void;
   createObjectUrl: (objectReference: ObjectReference) => string;
@@ -122,7 +130,7 @@ export function WorkflowBuilder({
   validateConnection,
   executeWorkflow,
   initialWorkflowExecution,
-  disabledWorkflow = false,
+  mode = "edit",
   disabledFeedback = false,
   onDeployWorkflow,
   createObjectUrl,
@@ -134,9 +142,13 @@ export function WorkflowBuilder({
   deploymentVersions: _deploymentVersions = [],
   mutateDeploymentHistory: _mutateDeploymentHistory,
   wsExecuteWorkflow,
-  showSidebar = true,
+  showSidebar,
 }: WorkflowBuilderProps) {
-  const [isSidebarVisible, setIsSidebarVisible] = useState(showSidebar);
+  const readOnly = mode !== "edit";
+  const interactive = mode !== "preview";
+  const sidebarEnabled = showSidebar ?? interactive;
+
+  const [isSidebarVisible, setIsSidebarVisible] = useState(sidebarEnabled);
   const [workflowStatus, setWorkflowStatus] = useState<WorkflowExecutionStatus>(
     initialWorkflowExecution?.status || "idle"
   );
@@ -234,7 +246,7 @@ export function WorkflowBuilder({
     onEdgesChangePersist: onEdgesChangeFromParent,
     validateConnection,
     createObjectUrl,
-    disabled: disabledWorkflow,
+    disabled: readOnly,
   });
 
   // Apply initial workflow execution state once
@@ -481,11 +493,11 @@ export function WorkflowBuilder({
   return (
     <ReactFlowProvider>
       <WorkflowProvider
-        updateNodeData={disabledWorkflow ? undefined : updateNodeData}
-        updateEdgeData={disabledWorkflow ? undefined : updateEdgeData}
-        deleteEdge={disabledWorkflow ? undefined : deleteEdge}
+        updateNodeData={readOnly ? undefined : updateNodeData}
+        updateEdgeData={readOnly ? undefined : updateEdgeData}
+        deleteEdge={readOnly ? undefined : deleteEdge}
         edges={edges}
-        disabled={disabledWorkflow}
+        disabled={readOnly}
         expandedOutputs={expandedOutputs}
         nodeTypes={nodeTypes}
         workflowTrigger={workflowTrigger}
@@ -504,21 +516,21 @@ export function WorkflowBuilder({
               edges={edges}
               connectionValidationState={connectionValidationState}
               onNodesChange={onNodesChange}
-              onEdgesChange={disabledWorkflow ? () => {} : onEdgesChange}
-              onConnect={disabledWorkflow ? () => {} : onConnect}
-              onConnectStart={disabledWorkflow ? () => {} : onConnectStart}
-              onConnectEnd={disabledWorkflow ? () => {} : onConnectEnd}
+              onEdgesChange={readOnly ? () => {} : onEdgesChange}
+              onConnect={readOnly ? () => {} : onConnect}
+              onConnectStart={readOnly ? () => {} : onConnectStart}
+              onConnectEnd={readOnly ? () => {} : onConnectEnd}
               onNodeDoubleClick={handleNodeDoubleClick}
               onNodeDragStop={onNodeDragStop}
               onInit={setReactFlowInstance}
-              onAddNode={disabledWorkflow ? undefined : handleAddNode}
+              onAddNode={readOnly ? undefined : handleAddNode}
               onAction={
-                !disabledWorkflow && executeWorkflow
+                !readOnly && executeWorkflow
                   ? handleActionButtonClick
                   : undefined
               }
               onDeploy={
-                !disabledWorkflow && onDeployWorkflow
+                !readOnly && onDeployWorkflow
                   ? onDeployWorkflow
                   : undefined
               }
@@ -536,24 +548,25 @@ export function WorkflowBuilder({
                   ? () => setIsEmailTriggerDialogOpen(true)
                   : undefined
               }
-              onToggleSidebar={toggleSidebar}
-              isSidebarVisible={isSidebarVisible}
+              onToggleSidebar={sidebarEnabled ? toggleSidebar : undefined}
+              isSidebarVisible={sidebarEnabled ? isSidebarVisible : false}
               isValidConnection={isValidConnection}
-              disabled={disabledWorkflow}
+              disabled={readOnly}
               onFitToScreen={handleFitToScreen}
               selectedNodes={selectedNodes}
               selectedEdges={selectedEdges}
-              onDeleteSelected={disabledWorkflow ? undefined : deleteSelected}
+              onDeleteSelected={readOnly ? undefined : deleteSelected}
               onDuplicateSelected={
-                disabledWorkflow ? undefined : duplicateSelected
+                readOnly ? undefined : duplicateSelected
               }
-              onApplyLayout={disabledWorkflow ? undefined : applyLayout}
-              onCopySelected={disabledWorkflow ? undefined : copySelected}
-              onCutSelected={disabledWorkflow ? undefined : cutSelected}
+              onApplyLayout={readOnly ? undefined : applyLayout}
+              onCopySelected={readOnly ? undefined : copySelected}
+              onCutSelected={readOnly ? undefined : cutSelected}
               onPasteFromClipboard={
-                disabledWorkflow ? undefined : pasteFromClipboard
+                readOnly ? undefined : pasteFromClipboard
               }
               hasClipboardData={hasClipboardData}
+              showControls={interactive}
             />
           </div>
 
@@ -571,17 +584,17 @@ export function WorkflowBuilder({
                   nodes={nodes}
                   selectedNodes={selectedNodes}
                   selectedEdges={selectedEdges}
-                  onNodeUpdate={disabledWorkflow ? undefined : updateNodeData}
-                  onEdgeUpdate={disabledWorkflow ? undefined : updateEdgeData}
+                  onNodeUpdate={readOnly ? undefined : updateNodeData}
+                  onEdgeUpdate={readOnly ? undefined : updateEdgeData}
                   createObjectUrl={createObjectUrl}
-                  disabledWorkflow={disabledWorkflow}
+                  disabledWorkflow={readOnly}
                   disabledFeedback={disabledFeedback}
                   workflowName={workflowName}
                   workflowDescription={workflowDescription}
                   workflowTrigger={workflowTrigger}
                   workflowRuntime={workflowRuntime}
                   onWorkflowUpdate={
-                    disabledWorkflow ? undefined : onWorkflowUpdate
+                    readOnly ? undefined : onWorkflowUpdate
                   }
                   workflowStatus={workflowStatus}
                   workflowErrorMessage={workflowErrorMessage}
@@ -592,7 +605,7 @@ export function WorkflowBuilder({
           )}
 
           <WorkflowNodeSelector
-            open={disabledWorkflow ? false : handleIsNodeSelectorOpen}
+            open={readOnly ? false : handleIsNodeSelectorOpen}
             onSelect={handleNodeSelect}
             onClose={() => handleSetIsNodeSelectorOpen(false)}
             templates={nodeTypes}

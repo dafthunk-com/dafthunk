@@ -114,7 +114,7 @@ export function TemplateDetailPage() {
             initialNodes={nodes}
             initialEdges={edges}
             nodeTypes={nodeTypes}
-            disabledWorkflow={true}
+            mode="readonly"
             expandedOutputs={false}
             createObjectUrl={() => ""}
             orgHandle={orgHandle}

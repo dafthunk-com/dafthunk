@@ -80,11 +80,10 @@ export function TemplatePreviewPage() {
           initialNodes={nodes}
           initialEdges={edges}
           nodeTypes={nodeTypes}
-          disabledWorkflow={true}
+          mode="preview"
           expandedOutputs={false}
           createObjectUrl={() => ""}
           orgHandle=""
-          showSidebar={false}
         />
       </ReactFlowProvider>
     </div>

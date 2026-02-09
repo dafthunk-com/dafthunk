@@ -303,7 +303,7 @@ export function DeploymentVersionPage() {
                     nodeTypes={nodeTypes || []}
                     validateConnection={validateConnection}
                     createObjectUrl={createObjectUrl}
-                    disabledWorkflow={true}
+                    mode="readonly"
                     orgHandle={orgHandle}
                   />
                 )}

@@ -215,7 +215,7 @@ export function ExecutionDetailPage() {
               validateConnection={handleValidateConnection}
               initialWorkflowExecution={workflowBuilderExecution}
               createObjectUrl={createObjectUrl}
-              disabledWorkflow={true}
+              mode="readonly"
               orgHandle={orgHandle}
             />
           ) : (
