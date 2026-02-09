@@ -76,10 +76,10 @@ export function DashboardPage() {
   return (
     <InsetLayout title="Dashboard">
       {/* Getting Started */}
-      <Card className="mb-6 bg-secondary">
+      <Card className="mb-6 bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Play className="size-5" />
+            <Play className="size-5 text-red-600 dark:text-red-400" />
             Getting Started
           </CardTitle>
           <CardDescription>
@@ -95,7 +95,9 @@ export function DashboardPage() {
 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
-        <Card data-tour="workflows-card">
+        <Card
+          data-tour="workflows-card"
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
             <CardTitle className="text-xl">Workflows</CardTitle>
             <Workflow className="size-8 text-muted-foreground" />
@@ -115,7 +117,9 @@ export function DashboardPage() {
             </Button>
           </CardContent>
         </Card>
-        <Card data-tour="deployments-card">
+        <Card
+          data-tour="deployments-card"
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
             <CardTitle className="text-xl">Deployments</CardTitle>
             <Target className="size-8 text-muted-foreground" />
@@ -137,7 +141,9 @@ export function DashboardPage() {
             </Button>
           </CardContent>
         </Card>
-        <Card data-tour="executions-card">
+        <Card
+          data-tour="executions-card"
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
             <CardTitle className="text-xl">Executions</CardTitle>
             <Logs className="size-8 text-muted-foreground" />

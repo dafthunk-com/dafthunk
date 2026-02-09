@@ -30,6 +30,7 @@ const FEATURED_TEMPLATE_IDS = [
   "sentiment-analysis",
   "text-translation",
   "web-screenshot",
+  "ai-calculator",
 ];
 
 export function OnboardingPage() {
@@ -145,26 +146,26 @@ export function OnboardingPage() {
                 </CardContent>
               </Card>
             ))}
-            <Card
-              className="bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900"
-              data-tour="import-template-button"
-            >
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Library className="size-5 text-blue-600 dark:text-blue-400" />
-                  More Templates
-                </CardTitle>
-                <CardDescription>
-                  Explore our full library of templates
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button asChild>
-                  <Link to={getOrgUrl("templates")}>Browse Templates</Link>
-                </Button>
-              </CardContent>
-            </Card>
           </div>
+          <Card
+            className="mt-4 bg-purple-50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-900"
+            data-tour="import-template-button"
+          >
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Library className="size-5 text-purple-600 dark:text-purple-400" />
+                More Templates
+              </CardTitle>
+              <CardDescription>
+                Explore our full library of templates
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button asChild>
+                <Link to={getOrgUrl("templates")}>Browse Templates</Link>
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       )}
 
