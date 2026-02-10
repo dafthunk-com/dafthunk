@@ -24,13 +24,12 @@ export function convertTemplateNodeToReactFlowNode(
       inputs: node.inputs.map((input) => ({
         ...input,
         id: input.name,
-        hidden: false,
       })),
       outputs: node.outputs.map((output) => ({
         ...output,
         id: output.name,
-        hidden: false,
       })),
+      functionCalling: node.functionCalling,
       executionState: "idle",
       createObjectUrl: () => "",
     },
