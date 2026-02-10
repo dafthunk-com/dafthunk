@@ -738,9 +738,7 @@ export function WorkflowCanvas({
             (onToggleSidebar && isSidebarVisible !== undefined)) && (
             <div className="absolute top-4 right-4 flex items-center gap-3 z-50">
               {/* Runtime Actions Group - Execute + Triggers */}
-              {(onAction ||
-                onShowHttpIntegration ||
-                onShowEmailTrigger) && (
+              {(onAction || onShowHttpIntegration || onShowEmailTrigger) && (
                 <ActionBarGroup>
                   {onAction && (
                     <ActionButton

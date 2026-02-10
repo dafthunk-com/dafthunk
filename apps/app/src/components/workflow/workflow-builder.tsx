@@ -322,9 +322,7 @@ export function WorkflowBuilder({
           nodes={nodes}
           nodeTypes={nodeTypes}
           isHttpIntegrationDialogOpen={isHttpIntegrationDialogOpen}
-          onCloseHttpIntegration={() =>
-            setIsHttpIntegrationDialogOpen(false)
-          }
+          onCloseHttpIntegration={() => setIsHttpIntegrationDialogOpen(false)}
           isEmailTriggerDialogOpen={isEmailTriggerDialogOpen}
           onCloseEmailTrigger={() => setIsEmailTriggerDialogOpen(false)}
           isEmailFormDialogVisible={execution.isEmailFormDialogVisible}

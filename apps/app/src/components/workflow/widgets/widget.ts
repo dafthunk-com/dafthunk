@@ -1,3 +1,4 @@
+import type { ParameterValue } from "@dafthunk/types";
 import { useCallback, useEffect, useRef } from "react";
 
 import type { WorkflowParameter } from "../workflow-types";
@@ -6,7 +7,7 @@ import type { WorkflowParameter } from "../workflow-types";
  * Base props that all widgets receive
  */
 export interface BaseWidgetProps {
-  onChange: (value: any) => void;
+  onChange: (value: ParameterValue) => void;
   readonly?: boolean;
   className?: string;
 }
@@ -42,7 +43,7 @@ export function createWidget(descriptor: WidgetDescriptor): WidgetDescriptor {
 /**
  * Helper to find input value by ID
  */
-export function getInputValue<T = any>(
+export function getInputValue<T = ParameterValue>(
   inputs: WorkflowParameter[],
   id: string,
   defaultValue?: T
@@ -56,11 +57,11 @@ export function getInputValue<T = any>(
  * Updates immediately in the UI but debounces the actual node data update.
  */
 export function useDebouncedChange(
-  onChange: (value: any) => void,
+  onChange: (value: ParameterValue) => void,
   delay = 300
 ) {
   const timeoutRef = useRef<number | null>(null);
-  const previousValueRef = useRef<any>(undefined);
+  const previousValueRef = useRef<ParameterValue>(undefined);
 
   // Clear timeout on unmount
   useEffect(() => {
@@ -72,7 +73,7 @@ export function useDebouncedChange(
   }, []);
 
   const debouncedOnChange = useCallback(
-    (value: any) => {
+    (value: ParameterValue) => {
       // Clear any pending timeout
       if (timeoutRef.current !== null) {
         clearTimeout(timeoutRef.current);

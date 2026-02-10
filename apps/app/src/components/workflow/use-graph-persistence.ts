@@ -1,4 +1,7 @@
-import type { Edge as ReactFlowEdge, Node as ReactFlowNode } from "@xyflow/react";
+import type {
+  Edge as ReactFlowEdge,
+  Node as ReactFlowNode,
+} from "@xyflow/react";
 import { useEffect, useRef } from "react";
 
 import type { WorkflowEdgeType, WorkflowNodeType } from "./workflow-types";

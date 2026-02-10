@@ -1,5 +1,5 @@
 import Logs from "lucide-react/icons/logs";
-import Play from "lucide-react/icons/play";
+import Rocket from "lucide-react/icons/rocket";
 import Target from "lucide-react/icons/target";
 import Workflow from "lucide-react/icons/workflow";
 import { useEffect } from "react";
@@ -8,6 +8,7 @@ import { Link, Navigate } from "react-router";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
+import { useTour } from "@/components/tour";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,6 +29,7 @@ export function DashboardPage() {
     useDashboard();
   const { billing, billingError, isBillingLoading } = useBilling();
   const { getOrgUrl } = useOrgUrl();
+  const { start: startTour } = useTour();
 
   useEffect(() => {
     setBreadcrumbs([{ label: "Dashboard" }]);
@@ -76,28 +78,29 @@ export function DashboardPage() {
   return (
     <InsetLayout title="Dashboard">
       {/* Getting Started */}
-      <Card className="mb-6 bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900">
+      <Card className="mb-6 bg-neutral-50 dark:bg-neutral-950/20 border-neutral-200 dark:border-neutral-800">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Play className="size-5 text-red-600 dark:text-red-400" />
-            Getting Started
+            <Rocket className="size-5 text-neutral-600 dark:text-neutral-400" />
+            Onboarding
           </CardTitle>
           <CardDescription>
             Explore templates, take a tour, or learn how to build workflows
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <Button variant="outline" asChild>
-            <Link to={getOrgUrl("onboarding")}>Onboard</Link>
+        <CardContent className="flex gap-2">
+          <Button variant="default" asChild>
+            <Link to={getOrgUrl("onboarding")}>Get Started</Link>
+          </Button>
+          <Button variant="outline" onClick={startTour}>
+            Start Tour
           </Button>
         </CardContent>
       </Card>
 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
-        <Card
-          data-tour="workflows-card"
-        >
+        <Card data-tour="workflows-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
             <CardTitle className="text-xl">Workflows</CardTitle>
             <Workflow className="size-8 text-muted-foreground" />
@@ -117,9 +120,7 @@ export function DashboardPage() {
             </Button>
           </CardContent>
         </Card>
-        <Card
-          data-tour="deployments-card"
-        >
+        <Card data-tour="deployments-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
             <CardTitle className="text-xl">Deployments</CardTitle>
             <Target className="size-8 text-muted-foreground" />
@@ -141,9 +142,7 @@ export function DashboardPage() {
             </Button>
           </CardContent>
         </Card>
-        <Card
-          data-tour="executions-card"
-        >
+        <Card data-tour="executions-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
             <CardTitle className="text-xl">Executions</CardTitle>
             <Logs className="size-8 text-muted-foreground" />

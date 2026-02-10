@@ -8,7 +8,6 @@ import { twMerge } from "tailwind-merge";
 
 import type {
   DialogFormParameter,
-  InputOutputType,
   NodeType,
   WorkflowNodeType,
   WorkflowParameter,
@@ -41,12 +40,16 @@ export function extractDialogParametersFromNodes(
     .filter((node) => node.data.nodeType?.startsWith("form-data-"))
     .map((node) => {
       const requiredInput = node.data.inputs.find((i) => i.id === "required");
-      const isRequired = (requiredInput?.value as boolean) ?? true;
+      const isRequired =
+        requiredInput?.type === "boolean"
+          ? (requiredInput.value ?? true)
+          : true;
 
       // Original logic for form-data parameters
       const nameInput = node.data.inputs.find((i) => i.id === "name");
 
-      const fieldName = nameInput?.value as string;
+      const fieldName =
+        nameInput?.type === "string" ? nameInput.value : undefined;
       if (!fieldName) {
         console.warn(
           `Node ${node.id} (${node.data.name}) is a parameter type but missing 'name' value. Skipping for form.`
@@ -90,33 +93,17 @@ export function adaptDeploymentNodesToReactFlowNodes(
 ): Node<WorkflowNodeType>[] {
   return (backendNodes || []).map((depNode) => {
     const adaptedInputs: WorkflowParameter[] = (depNode.inputs || []).map(
-      (param: BackendParameter) => {
-        return {
-          id: param.name,
-          name: param.name,
-          type: param.type as InputOutputType,
-          value: param.value,
-          required: param.required,
-          description: param.description,
-          hidden: param.hidden,
-          repeated: param.repeated,
-        };
-      }
+      (param: BackendParameter) => ({
+        id: param.name,
+        ...param,
+      })
     );
 
     const adaptedOutputs: WorkflowParameter[] = (depNode.outputs || []).map(
-      (param: BackendParameter) => {
-        return {
-          id: param.name,
-          name: param.name,
-          type: param.type as InputOutputType,
-          value: param.value,
-          required: param.required,
-          description: param.description,
-          hidden: param.hidden,
-          repeated: param.repeated,
-        };
-      }
+      (param: BackendParameter) => ({
+        id: param.name,
+        ...param,
+      })
     );
 
     // Find the icon from nodeTypes by matching the node type

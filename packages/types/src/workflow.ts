@@ -176,6 +176,10 @@ export type ParameterType =
       value?: string; // Secret name reference, not the actual secret value
     }
   | {
+      type: "buffergeometry";
+      value?: ObjectReference;
+    }
+  | {
       type: "any";
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       value?: any;

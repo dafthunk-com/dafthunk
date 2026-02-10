@@ -102,7 +102,11 @@ export const ModelViewer = React.memo(
             </div>
           </div>
           <div className="text-xs text-neutral-500">
-            glTF Model ({(parameter.value as { mimeType?: string } | undefined)?.mimeType ?? "model/gltf-binary"})
+            glTF Model (
+            {parameter.type === "gltf"
+              ? (parameter.value?.mimeType ?? "model/gltf-binary")
+              : "model/gltf-binary"}
+            )
           </div>
           <a
             href={objectUrl}

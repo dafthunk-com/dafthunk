@@ -1,4 +1,4 @@
-import type { NodeType, ParameterType } from "@dafthunk/types";
+import type { NodeType, Parameter, ParameterType } from "@dafthunk/types";
 
 // Re-export NodeType for convenience
 export type { NodeType };
@@ -14,17 +14,8 @@ export type NodeExecutionState =
 // Define InputOutputType using ParameterType
 export type InputOutputType = ParameterType["type"];
 
-// Parameter Types
-export interface WorkflowParameter {
-  id: string;
-  type: InputOutputType;
-  name: string;
-  description?: string;
-  value?: unknown;
-  hidden?: boolean;
-  required?: boolean;
-  repeated?: boolean;
-}
+// Parameter type with an id field for React Flow usage
+export type WorkflowParameter = { id: string } & Parameter;
 
 export interface WorkflowNodeType extends Record<string, unknown> {
   name: string;

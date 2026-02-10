@@ -13,6 +13,7 @@ import type {
   WorkflowExecution,
   WorkflowExecutionStatus,
   WorkflowNodeType,
+  WorkflowParameter,
 } from "./workflow-types";
 
 interface UseWorkflowExecutionStateProps {
@@ -63,7 +64,7 @@ function applyInitialExecution(
     const updatedOutputs = node.data.outputs.map((output) => {
       const outputValue =
         nodeExec.outputs?.[output.id] ?? nodeExec.outputs?.[output.name];
-      return { ...output, value: outputValue };
+      return { ...output, value: outputValue } as WorkflowParameter;
     });
 
     const executionState =
@@ -93,10 +94,9 @@ export function useWorkflowExecutionState({
   updateNodeData,
   deselectAll,
 }: UseWorkflowExecutionStateProps): UseWorkflowExecutionStateReturn {
-  const [workflowStatus, setWorkflowStatus] =
-    useState<WorkflowExecutionStatus>(
-      initialWorkflowExecution?.status || "idle"
-    );
+  const [workflowStatus, setWorkflowStatus] = useState<WorkflowExecutionStatus>(
+    initialWorkflowExecution?.status || "idle"
+  );
   const [workflowErrorMessage, setWorkflowErrorMessage] = useState<
     string | undefined
   >(initialWorkflowExecution?.error);

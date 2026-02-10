@@ -1,4 +1,7 @@
-import type { Edge as ReactFlowEdge, Node as ReactFlowNode } from "@xyflow/react";
+import type {
+  Edge as ReactFlowEdge,
+  Node as ReactFlowNode,
+} from "@xyflow/react";
 import { useEffect } from "react";
 
 import type { WorkflowEdgeType, WorkflowNodeType } from "./workflow-types";
@@ -61,8 +64,7 @@ export function useKeyboardShortcuts({
         return;
       }
 
-      const hasSelection =
-        selectedNodes.length > 0 || selectedEdges.length > 0;
+      const hasSelection = selectedNodes.length > 0 || selectedEdges.length > 0;
 
       switch (event.key.toLowerCase()) {
         case "c":

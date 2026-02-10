@@ -105,7 +105,7 @@ export const updateNodeInput = (
   deleteEdge?: DeleteEdgeFn
 ): readonly WorkflowParameter[] => {
   const updatedInputs = inputs.map((input) =>
-    input.id === inputId ? { ...input, value } : input
+    input.id === inputId ? ({ ...input, value } as WorkflowParameter) : input
   );
 
   // Delete any edges connected to this input when manually setting a value
@@ -127,7 +127,9 @@ export const clearNodeInput = (
   updateNodeData?: UpdateNodeFn
 ): readonly WorkflowParameter[] => {
   const updatedInputs = inputs.map((input) =>
-    input.id === inputId ? { ...input, value: undefined } : input
+    input.id === inputId
+      ? ({ ...input, value: undefined } as WorkflowParameter)
+      : input
   );
 
   updateNodeData?.(nodeId, { inputs: updatedInputs });

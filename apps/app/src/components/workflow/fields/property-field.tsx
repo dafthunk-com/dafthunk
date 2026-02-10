@@ -35,6 +35,7 @@ const getTypeIcon = (type: InputOutputType) => {
     document: <FileTextIcon className={iconSize} />,
     audio: <MusicIcon className={iconSize} />,
     gltf: <BoxIcon className={iconSize} />,
+    buffergeometry: <BoxIcon className={iconSize} />,
     json: <BracesIcon className={iconSize} />,
     date: <CalendarIcon className={iconSize} />,
     geojson: <GlobeIcon className={iconSize} />,

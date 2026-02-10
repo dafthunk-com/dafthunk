@@ -27,6 +27,7 @@ import type {
   NodeType,
   WorkflowEdgeType,
   WorkflowNodeType,
+  WorkflowParameter,
 } from "./workflow-types";
 
 // --- Pure helper functions ---
@@ -89,10 +90,13 @@ function updateNodesWithExecutionOutputs(
           ...node,
           data: {
             ...node.data,
-            outputs: node.data.outputs.map((output) => ({
-              ...output,
-              value: outputs[output.id] ?? outputs[output.name],
-            })),
+            outputs: node.data.outputs.map(
+              (output) =>
+                ({
+                  ...output,
+                  value: outputs[output.id] ?? outputs[output.name],
+                }) as WorkflowParameter
+            ),
           },
         }
       : node
@@ -311,89 +315,91 @@ export function useGraphOperations({
   }, [disabled]);
 
   // Connection validation
-  const isValidConnection: IsValidConnection<ReactFlowEdge<WorkflowEdgeType>> = useCallback(
-    (connection) => {
-      if (disabled) return false;
-      if (!connection.source || !connection.target) return false;
+  const isValidConnection: IsValidConnection<ReactFlowEdge<WorkflowEdgeType>> =
+    useCallback(
+      (connection) => {
+        if (disabled) return false;
+        if (!connection.source || !connection.target) return false;
 
-      // Normalize to Connection shape (Edge has optional sourceHandle/targetHandle)
-      const conn: Connection = {
-        source: connection.source,
-        target: connection.target,
-        sourceHandle: connection.sourceHandle ?? null,
-        targetHandle: connection.targetHandle ?? null,
-      };
+        // Normalize to Connection shape (Edge has optional sourceHandle/targetHandle)
+        const conn: Connection = {
+          source: connection.source,
+          target: connection.target,
+          sourceHandle: connection.sourceHandle ?? null,
+          targetHandle: connection.targetHandle ?? null,
+        };
 
-      const sourceNode = nodes.find((node) => node.id === conn.source);
-      const targetNode = nodes.find((node) => node.id === conn.target);
-      if (!sourceNode || !targetNode) return false;
+        const sourceNode = nodes.find((node) => node.id === conn.source);
+        const targetNode = nodes.find((node) => node.id === conn.target);
+        if (!sourceNode || !targetNode) return false;
 
-      const sourceOutput = sourceNode.data.outputs.find(
-        (output) => output.id === conn.sourceHandle
-      );
-      const sourceInput = sourceNode.data.inputs.find(
-        (input) => input.id === conn.sourceHandle
-      );
-
-      const targetInput = targetNode.data.inputs.find(
-        (input) => input.id === conn.targetHandle
-      );
-      const targetOutput = targetNode.data.outputs.find(
-        (output) => output.id === conn.targetHandle
-      );
-
-      let inputParam, outputParam, inputNodeId, inputHandleId;
-
-      if (sourceOutput && targetInput) {
-        outputParam = sourceOutput;
-        inputParam = targetInput;
-        inputNodeId = conn.target;
-        inputHandleId = conn.targetHandle;
-      } else if (sourceInput && targetOutput) {
-        outputParam = targetOutput;
-        inputParam = sourceInput;
-        inputNodeId = conn.source;
-        inputHandleId = conn.sourceHandle;
-      } else {
-        setConnectionValidationState("invalid");
-        return false;
-      }
-
-      const blobTypes = new Set([
-        "image",
-        "audio",
-        "document",
-        "buffergeometry",
-        "gltf",
-      ]);
-
-      const exactMatch = outputParam.type === inputParam.type;
-      const anyTypeMatch =
-        outputParam.type === "any" || inputParam.type === "any";
-      const blobCompatible =
-        (outputParam.type === "blob" && blobTypes.has(inputParam.type)) ||
-        (inputParam.type === "blob" && blobTypes.has(outputParam.type));
-
-      const typesMatch = exactMatch || anyTypeMatch || blobCompatible;
-
-      if (!inputParam.repeated) {
-        const hasExistingConnection = edges.some(
-          (edge) =>
-            (edge.target === inputNodeId &&
-              edge.targetHandle === inputHandleId) ||
-            (edge.source === inputNodeId && edge.sourceHandle === inputHandleId)
+        const sourceOutput = sourceNode.data.outputs.find(
+          (output) => output.id === conn.sourceHandle
         );
-        if (hasExistingConnection) {
+        const sourceInput = sourceNode.data.inputs.find(
+          (input) => input.id === conn.sourceHandle
+        );
+
+        const targetInput = targetNode.data.inputs.find(
+          (input) => input.id === conn.targetHandle
+        );
+        const targetOutput = targetNode.data.outputs.find(
+          (output) => output.id === conn.targetHandle
+        );
+
+        let inputParam, outputParam, inputNodeId, inputHandleId;
+
+        if (sourceOutput && targetInput) {
+          outputParam = sourceOutput;
+          inputParam = targetInput;
+          inputNodeId = conn.target;
+          inputHandleId = conn.targetHandle;
+        } else if (sourceInput && targetOutput) {
+          outputParam = targetOutput;
+          inputParam = sourceInput;
+          inputNodeId = conn.source;
+          inputHandleId = conn.sourceHandle;
+        } else {
           setConnectionValidationState("invalid");
           return false;
         }
-      }
 
-      setConnectionValidationState(typesMatch ? "valid" : "invalid");
-      return typesMatch && validateConnection(conn);
-    },
-    [nodes, edges, validateConnection, disabled]
-  );
+        const blobTypes = new Set([
+          "image",
+          "audio",
+          "document",
+          "buffergeometry",
+          "gltf",
+        ]);
+
+        const exactMatch = outputParam.type === inputParam.type;
+        const anyTypeMatch =
+          outputParam.type === "any" || inputParam.type === "any";
+        const blobCompatible =
+          (outputParam.type === "blob" && blobTypes.has(inputParam.type)) ||
+          (inputParam.type === "blob" && blobTypes.has(outputParam.type));
+
+        const typesMatch = exactMatch || anyTypeMatch || blobCompatible;
+
+        if (!inputParam.repeated) {
+          const hasExistingConnection = edges.some(
+            (edge) =>
+              (edge.target === inputNodeId &&
+                edge.targetHandle === inputHandleId) ||
+              (edge.source === inputNodeId &&
+                edge.sourceHandle === inputHandleId)
+          );
+          if (hasExistingConnection) {
+            setConnectionValidationState("invalid");
+            return false;
+          }
+        }
+
+        setConnectionValidationState(typesMatch ? "valid" : "invalid");
+        return typesMatch && validateConnection(conn);
+      },
+      [nodes, edges, validateConnection, disabled]
+    );
 
   // Handle connection
   const onConnect = useCallback(
