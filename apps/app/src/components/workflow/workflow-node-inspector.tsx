@@ -1,12 +1,13 @@
 import type { ObjectReference } from "@dafthunk/types";
 import type { Node as ReactFlowNode } from "@xyflow/react";
 import ChevronDownIcon from "lucide-react/icons/chevron-down";
-import { useEffect, useState } from "react";
+import { createElement, useEffect, useState } from "react";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 import { PropertyField } from "./fields";
+import { registry } from "./widgets";
 import {
   clearNodeInput,
   convertValueByType,
@@ -155,6 +156,23 @@ export function WorkflowNodeInspector({
     connectedEdges.forEach((edge) => deleteEdge(edge.id));
   };
 
+  const nodeType = node.data.nodeType || node.type;
+  const widget = nodeType
+    ? registry.for(nodeType, node.id, [...localInputs], [...localOutputs])
+    : null;
+
+  const handleWidgetChange = (value: unknown) => {
+    if (disabled || !updateNodeData || !widget) return;
+    const updatedInputs = updateNodeInput(
+      node.id,
+      widget.inputField,
+      value,
+      localInputs,
+      updateNodeData
+    );
+    setLocalInputs(updatedInputs);
+  };
+
   return (
     <div className="flex flex-col h-full bg-card">
       {/* Content */}
@@ -229,6 +247,19 @@ export function WorkflowNodeInspector({
             <div className="px-4 pb-4 space-y-3">
               {localInputs.length > 0 ? (
                 localInputs.map((input) => {
+                  if (widget && input.id === widget.inputField) {
+                    return (
+                      <div key={input.id} className="[&_button]:h-9 [&_button]:text-sm [&_select]:h-9 [&_select]:text-sm">
+                        {createElement(widget.Component, {
+                          ...widget.config,
+                          onChange: !disabled ? handleWidgetChange : () => {},
+                          disabled,
+                          createObjectUrl,
+                          className: "p-0",
+                        })}
+                      </div>
+                    );
+                  }
                   const isConnected = isInputConnected(input.id);
                   return (
                     <PropertyField

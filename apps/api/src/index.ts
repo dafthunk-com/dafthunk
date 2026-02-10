@@ -25,6 +25,7 @@ import llmsRoutes from "./routes/llms";
 import oauthRoutes from "./routes/oauth";
 import objectRoutes from "./routes/objects";
 import organizationRoutes from "./routes/organizations";
+import playgroundRoutes from "./routes/playground";
 import profileRoutes from "./routes/profile";
 import queueRoutes from "./routes/queues";
 import robotsRoutes from "./routes/robots";
@@ -97,6 +98,7 @@ app.route("/:organizationIdOrHandle/queues", queueRoutes);
 app.route("/:organizationIdOrHandle/secrets", secretRoutes);
 app.route("/:organizationIdOrHandle/workflows", workflowRoutes);
 app.route("/:organizationIdOrHandle/objects", objectRoutes);
+app.route("/:organizationIdOrHandle/playground", playgroundRoutes);
 app.route("/:organizationIdOrHandle/usage", usageRoutes);
 app.route("/:organizationIdOrHandle/ws", wsRoutes);
 

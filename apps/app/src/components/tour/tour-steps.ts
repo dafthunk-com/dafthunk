@@ -16,14 +16,6 @@ export const TOUR_STEPS: TourStep[] = [
     spotlightPadding: 2,
   },
   {
-    id: "templates",
-    title: "Templates",
-    content:
-      "Browse pre-built templates to get started quickly. Templates include ready-made workflows for common use cases.",
-    targetSelector: '[data-tour="templates-nav"]',
-    spotlightPadding: 2,
-  },
-  {
     id: "workflows",
     title: "Workflows",
     content:
@@ -45,6 +37,22 @@ export const TOUR_STEPS: TourStep[] = [
     content:
       "Monitor your workflow executions. Track run history, check outputs, and debug any issues.",
     targetSelector: '[data-tour="executions-nav"]',
+    spotlightPadding: 2,
+  },
+  {
+    id: "templates",
+    title: "Templates",
+    content:
+      "Browse pre-built templates to get started quickly. Templates include ready-made workflows for common use cases.",
+    targetSelector: '[data-tour="templates-nav"]',
+    spotlightPadding: 2,
+  },
+  {
+    id: "playground",
+    title: "Playground",
+    content:
+      "Test individual nodes in isolation. Pick any node type, fill in its inputs, and execute it to see the results instantly.",
+    targetSelector: '[data-tour="playground-nav"]',
     spotlightPadding: 2,
   },
   {

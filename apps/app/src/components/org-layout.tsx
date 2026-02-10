@@ -2,6 +2,7 @@ import type { OrganizationInfo } from "@dafthunk/types";
 import ClipboardCheck from "lucide-react/icons/clipboard-check";
 import CreditCard from "lucide-react/icons/credit-card";
 import Database from "lucide-react/icons/database";
+import FlaskConical from "lucide-react/icons/flask-conical";
 import Folder from "lucide-react/icons/folder";
 import Inbox from "lucide-react/icons/inbox";
 import KeyRound from "lucide-react/icons/key-round";
@@ -47,11 +48,6 @@ export const getDashboardSidebarGroups = (
       label: "Workflows",
       items: [
         {
-          title: "Templates",
-          url: `/org/${orgHandle}/templates`,
-          icon: Wand,
-        },
-        {
           title: "Workflows",
           url: `/org/${orgHandle}/workflows`,
           icon: SquareTerminal,
@@ -65,6 +61,16 @@ export const getDashboardSidebarGroups = (
           title: "Executions",
           url: `/org/${orgHandle}/executions`,
           icon: Logs,
+        },
+        {
+          title: "Templates",
+          url: `/org/${orgHandle}/templates`,
+          icon: Wand,
+        },
+        {
+          title: "Playground",
+          url: `/org/${orgHandle}/playground`,
+          icon: FlaskConical,
         },
       ],
     },

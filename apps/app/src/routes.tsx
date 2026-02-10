@@ -55,6 +55,8 @@ import { MembersPage } from "./pages/members-page";
 import { NotFoundPage } from "./pages/not-found-page";
 import { OnboardingPage } from "./pages/onboarding-page";
 import { OrganizationsPage } from "./pages/organizations-page";
+import { PlaygroundExecutePage } from "./pages/playground-execute-page";
+import { PlaygroundPage } from "./pages/playground-page";
 import { ProfilePage } from "./pages/profile-page";
 import { QueuesPage } from "./pages/queues-page";
 import { SecretsPage } from "./pages/secrets-page";
@@ -758,6 +760,28 @@ export const routes: AppRouteObject[] = [
     handle: {
       head: <HeadSeo title="Execution Details - Workflows - Dafthunk" />,
     },
+  },
+  {
+    path: "/org/:handle/playground",
+    element: (
+      <OrgLayout title="Workflows">
+        <ProtectedRoute>
+          <PlaygroundPage />
+        </ProtectedRoute>
+      </OrgLayout>
+    ),
+    handle: { head: <HeadSeo title="Playground - Workflows - Dafthunk" /> },
+  },
+  {
+    path: "/org/:handle/playground/:nodeType",
+    element: (
+      <OrgLayout title="Workflows">
+        <ProtectedRoute>
+          <PlaygroundExecutePage />
+        </ProtectedRoute>
+      </OrgLayout>
+    ),
+    handle: { head: <HeadSeo title="Playground - Workflows - Dafthunk" /> },
   },
   {
     path: "/org/:handle/workflows/:id",

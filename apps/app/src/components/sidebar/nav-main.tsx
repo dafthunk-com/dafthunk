@@ -33,6 +33,7 @@ const NAV_ITEM_TOUR_MAP: Record<string, string> = {
   Workflows: "workflows-nav",
   Deployments: "deployments-nav",
   Executions: "executions-nav",
+  Playground: "playground-nav",
   Emails: "emails-nav",
   Queues: "queues-nav",
   Datasets: "datasets-nav",
