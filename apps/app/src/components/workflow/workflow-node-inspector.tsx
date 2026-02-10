@@ -249,7 +249,10 @@ export function WorkflowNodeInspector({
                 localInputs.map((input) => {
                   if (widget && input.id === widget.inputField) {
                     return (
-                      <div key={input.id} className="[&_button]:h-9 [&_button]:text-sm [&_select]:h-9 [&_select]:text-sm">
+                      <div
+                        key={input.id}
+                        className="[&_button]:h-9 [&_button]:text-sm [&_select]:h-9 [&_select]:text-sm"
+                      >
                         {createElement(widget.Component, {
                           ...widget.config,
                           onChange: !disabled ? handleWidgetChange : () => {},

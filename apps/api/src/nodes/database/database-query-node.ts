@@ -19,7 +19,7 @@ export class DatabaseQueryNode extends ExecutableNode {
     inputs: [
       {
         name: "databaseId",
-        type: "string",
+        type: "database",
         description: "Database ID or handle.",
         required: true,
         hidden: true,

@@ -40,19 +40,6 @@ import { numberOutputWidget } from "./output/number-output";
 import { secretOutputWidget } from "./output/secret-output";
 import { textOutputWidget } from "./output/text-output";
 import { registry } from "./registry";
-// Selector widgets
-import { databaseSelectorWidget } from "./selector/database-selector";
-import { datasetSelectorWidget } from "./selector/dataset-selector";
-import { emailSelectorWidget } from "./selector/email-selector";
-import {
-  discordWidget,
-  githubWidget,
-  googleCalendarWidget,
-  googleMailWidget,
-  linkedInWidget,
-  redditWidget,
-} from "./selector/integration-selector";
-import { queueSelectorWidget } from "./selector/queue-selector";
 
 // Register all widgets
 const widgets = [
@@ -93,20 +80,6 @@ const widgets = [
   buffergeometryOutputWidget,
   jsonOutputWidget,
   geojsonOutputWidget,
-
-  // Selector widgets
-  datasetSelectorWidget,
-  databaseSelectorWidget,
-  queueSelectorWidget,
-  emailSelectorWidget,
-
-  // Integration widgets
-  googleMailWidget,
-  googleCalendarWidget,
-  discordWidget,
-  redditWidget,
-  linkedInWidget,
-  githubWidget,
 ];
 
 widgets.forEach((widget) => registry.register(widget));

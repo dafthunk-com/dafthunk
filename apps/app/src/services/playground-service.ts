@@ -12,13 +12,8 @@ export const executeNode = async (
   inputs: Record<string, ParameterValue>,
   orgHandle: string
 ): Promise<ExecuteNodeResponse> => {
-  return makeOrgRequest<ExecuteNodeResponse>(
-    orgHandle,
-    API_ENDPOINT_BASE,
-    "",
-    {
-      method: "POST",
-      body: JSON.stringify({ nodeType, inputs }),
-    }
-  );
+  return makeOrgRequest<ExecuteNodeResponse>(orgHandle, API_ENDPOINT_BASE, "", {
+    method: "POST",
+    body: JSON.stringify({ nodeType, inputs }),
+  });
 };

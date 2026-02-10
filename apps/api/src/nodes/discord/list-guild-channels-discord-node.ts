@@ -20,7 +20,8 @@ export class ListGuildChannelsDiscordNode extends ExecutableNode {
     inputs: [
       {
         name: "integrationId",
-        type: "string",
+        type: "integration",
+        provider: "discord",
         description: "Discord integration to use",
         hidden: true,
         required: true,

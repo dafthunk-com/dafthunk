@@ -18,7 +18,7 @@ export class ReceiveQueueMessageNode extends ExecutableNode {
     inputs: [
       {
         name: "queueId",
-        type: "string",
+        type: "queue",
         description: "The queue ID to listen to for messages.",
         required: true,
         hidden: true,

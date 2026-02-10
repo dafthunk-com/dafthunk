@@ -21,7 +21,8 @@ export class SearchRedditNode extends ExecutableNode {
     inputs: [
       {
         name: "integrationId",
-        type: "string",
+        type: "integration",
+        provider: "reddit",
         description: "Reddit integration to use",
         hidden: true,
         required: true,

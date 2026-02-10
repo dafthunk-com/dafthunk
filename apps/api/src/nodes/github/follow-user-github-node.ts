@@ -20,7 +20,8 @@ export class FollowUserGithubNode extends ExecutableNode {
     inputs: [
       {
         name: "integrationId",
-        type: "string",
+        type: "integration",
+        provider: "github",
         description: "GitHub integration to use",
         hidden: true,
         required: true,

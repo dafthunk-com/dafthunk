@@ -6,8 +6,11 @@ import { AnyField } from "./any-field";
 import { AudioField } from "./audio-field";
 import { BlobField } from "./blob-field";
 import { BooleanField } from "./boolean-field";
+import { DatabaseField } from "./database-field";
+import { DatasetField } from "./dataset-field";
 import { DateField } from "./date-field";
 import { DocumentField } from "./document-field";
+import { EmailField } from "./email-field";
 import {
   createFileUploadHandler,
   fileValidators,
@@ -17,8 +20,10 @@ import { GenericField } from "./generic-field";
 import { GeoJSONField } from "./geojson-field";
 import { GltfField } from "./gltf-field";
 import { ImageField } from "./image-field";
+import { IntegrationField } from "./integration-field";
 import { JsonField } from "./json-field";
 import { NumberField } from "./number-field";
+import { QueueField } from "./queue-field";
 import { SecretField } from "./secret-field";
 import { TextField } from "./text-field";
 import type { FieldProps, ObjectReference } from "./types";
@@ -102,6 +107,16 @@ export function Field(props: FieldRouterProps) {
       return <JsonField {...props} />;
     case "secret":
       return <SecretField {...props} />;
+    case "database":
+      return <DatabaseField {...props} />;
+    case "dataset":
+      return <DatasetField {...props} />;
+    case "queue":
+      return <QueueField {...props} />;
+    case "email":
+      return <EmailField {...props} />;
+    case "integration":
+      return <IntegrationField {...props} />;
     case "blob":
       return (
         <BlobField

@@ -30,7 +30,7 @@ export class DatasetSearchNode extends ExecutableNode {
       },
       {
         name: "datasetId",
-        type: "string",
+        type: "dataset",
         description: "Selected dataset ID for the search",
         hidden: true,
         required: true,

@@ -40,7 +40,8 @@ export class ReadInboxGoogleMailNode extends ExecutableNode {
     inputs: [
       {
         name: "integrationId",
-        type: "string",
+        type: "integration",
+        provider: "google-mail",
         description: "Google Mail integration to use",
         hidden: true,
         required: true,

@@ -20,7 +20,8 @@ export class AddAttendeesGoogleCalendarNode extends ExecutableNode {
     inputs: [
       {
         name: "integrationId",
-        type: "string",
+        type: "integration",
+        provider: "google-calendar",
         description: "Google Calendar integration to use",
         hidden: true,
         required: true,

@@ -22,7 +22,7 @@ export class DatasetListFilesNode extends ExecutableNode {
     inputs: [
       {
         name: "datasetId",
-        type: "string",
+        type: "dataset",
         description: "Selected dataset ID",
         hidden: true,
         required: true,

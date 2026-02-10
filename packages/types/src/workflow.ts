@@ -176,6 +176,27 @@ export type ParameterType =
       value?: string; // Secret name reference, not the actual secret value
     }
   | {
+      type: "database";
+      value?: string; // Database ID reference
+    }
+  | {
+      type: "dataset";
+      value?: string; // Dataset ID reference
+    }
+  | {
+      type: "queue";
+      value?: string; // Queue ID reference
+    }
+  | {
+      type: "email";
+      value?: string; // Email inbox ID reference
+    }
+  | {
+      type: "integration";
+      provider: string; // Integration provider name (e.g. "google-mail", "discord")
+      value?: string; // Integration ID reference
+    }
+  | {
       type: "buffergeometry";
       value?: ObjectReference;
     }

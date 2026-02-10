@@ -84,20 +84,12 @@ export function DeploymentVersionPage() {
             data: {
               name: node.name,
               inputs: node.inputs.map((input) => ({
+                ...input,
                 id: input.name,
-                type: input.type,
-                name: input.name,
-                value: input.value,
-                hidden: input.hidden,
-                required: input.required,
-                repeated: input.repeated,
               })),
               outputs: node.outputs.map((output) => ({
+                ...output,
                 id: output.name,
-                type: output.type,
-                name: output.name,
-                hidden: output.hidden,
-                repeated: output.repeated,
               })),
               executionState: "idle" as const,
               nodeType: node.type,

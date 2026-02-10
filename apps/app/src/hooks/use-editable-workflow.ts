@@ -1,6 +1,5 @@
 import type {
   Parameter,
-  ParameterType,
   WorkflowExecution,
   WorkflowRuntime,
   WorkflowTrigger,
@@ -199,30 +198,24 @@ export function useEditableWorkflow({
                 const isConnected = incomingEdges.some(
                   (edge) => edge.targetHandle === input.id
                 );
-                const parameterBase: Omit<Parameter, "value"> & {
-                  value?: any;
-                } = {
+                const { id: _id, value: inputValue, ...rest } = input;
+                const parameter = {
+                  ...rest,
                   name: input.id,
-                  type: input.type as ParameterType["type"],
                   description: input.name,
-                  hidden: input.hidden,
-                  required: input.required,
-                  repeated: input.repeated,
-                };
-                if (!isConnected && typeof input.value !== "undefined") {
-                  parameterBase.value = input.value;
+                } as Parameter & { value?: unknown };
+                if (!isConnected && typeof inputValue !== "undefined") {
+                  parameter.value = inputValue;
                 }
-                return parameterBase as Parameter;
+                return parameter as Parameter;
               }),
               outputs: node.data.outputs.map((output) => {
-                const parameter: Parameter = {
+                const { id: _id, ...rest } = output;
+                return {
+                  ...rest,
                   name: output.id,
-                  type: output.type as ParameterType["type"],
                   description: output.name,
-                  hidden: output.hidden,
-                  repeated: output.repeated,
-                };
-                return parameter;
+                } as Parameter;
               }),
             };
           });

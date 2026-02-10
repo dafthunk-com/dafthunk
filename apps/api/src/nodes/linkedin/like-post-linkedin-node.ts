@@ -20,7 +20,8 @@ export class LikePostLinkedInNode extends ExecutableNode {
     inputs: [
       {
         name: "integrationId",
-        type: "string",
+        type: "integration",
+        provider: "linkedin",
         description: "LinkedIn integration to use",
         hidden: true,
         required: true,

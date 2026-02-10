@@ -4,15 +4,20 @@ import BoxIcon from "lucide-react/icons/box";
 import BracesIcon from "lucide-react/icons/braces";
 import CalendarIcon from "lucide-react/icons/calendar";
 import CheckIcon from "lucide-react/icons/check";
+import DatabaseIcon from "lucide-react/icons/database";
 import DownloadIcon from "lucide-react/icons/download";
 import EyeIcon from "lucide-react/icons/eye";
 import EyeOffIcon from "lucide-react/icons/eye-off";
 import FileIcon from "lucide-react/icons/file";
 import FileTextIcon from "lucide-react/icons/file-text";
+import FolderSearchIcon from "lucide-react/icons/folder-search";
 import GlobeIcon from "lucide-react/icons/globe";
 import HashIcon from "lucide-react/icons/hash";
 import ImageIcon from "lucide-react/icons/image";
+import LayersIcon from "lucide-react/icons/layers";
+import LinkIcon from "lucide-react/icons/link";
 import LockIcon from "lucide-react/icons/lock";
+import MailIcon from "lucide-react/icons/mail";
 import MusicIcon from "lucide-react/icons/music";
 import TypeIcon from "lucide-react/icons/type";
 
@@ -40,6 +45,11 @@ const getTypeIcon = (type: InputOutputType) => {
     date: <CalendarIcon className={iconSize} />,
     geojson: <GlobeIcon className={iconSize} />,
     secret: <LockIcon className={iconSize} />,
+    database: <DatabaseIcon className={iconSize} />,
+    dataset: <FolderSearchIcon className={iconSize} />,
+    queue: <LayersIcon className={iconSize} />,
+    email: <MailIcon className={iconSize} />,
+    integration: <LinkIcon className={iconSize} />,
     any: <AsteriskIcon className={iconSize} />,
   };
   return icons[type] || icons.any;

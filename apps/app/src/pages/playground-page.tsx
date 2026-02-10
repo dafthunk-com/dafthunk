@@ -93,7 +93,10 @@ export function PlaygroundPage() {
   };
 
   return (
-    <InsetLayout title="Playground" childrenClassName="flex flex-col h-[calc(100%-theme(spacing.12))]">
+    <InsetLayout
+      title="Playground"
+      childrenClassName="flex flex-col h-[calc(100%-theme(spacing.12))]"
+    >
       <div className="flex flex-col gap-4 min-h-0 h-full">
         {/* Search */}
         <div className="relative shrink-0">
@@ -172,8 +175,7 @@ export function PlaygroundPage() {
                 totalCount={searchFilteredNodeTypes.length}
               />
               <div className="text-xs text-muted-foreground/60 pt-3 text-right">
-                {filteredNodeTypes.length} of {executableNodeTypes.length}{" "}
-                nodes
+                {filteredNodeTypes.length} of {executableNodeTypes.length} nodes
               </div>
             </div>
           )}

@@ -230,6 +230,12 @@ export class NodeToolProvider implements ToolProvider {
           type: "object",
           description: `${parameter.description} (GeoJSON format)`,
         };
+      case "database":
+      case "dataset":
+      case "queue":
+      case "email":
+      case "integration":
+        return { ...baseProperty, type: "string" };
       default:
         return { ...baseProperty, type: "string" };
     }

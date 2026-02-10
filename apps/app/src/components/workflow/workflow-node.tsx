@@ -8,12 +8,17 @@ import BracesIcon from "lucide-react/icons/braces";
 import CalendarIcon from "lucide-react/icons/calendar";
 import CheckIcon from "lucide-react/icons/check";
 import CircleHelp from "lucide-react/icons/circle-help";
+import DatabaseIcon from "lucide-react/icons/database";
 import FileIcon from "lucide-react/icons/file";
 import FileTextIcon from "lucide-react/icons/file-text";
+import FolderSearchIcon from "lucide-react/icons/folder-search";
 import GlobeIcon from "lucide-react/icons/globe";
 import HashIcon from "lucide-react/icons/hash";
 import ImageIcon from "lucide-react/icons/image";
+import LayersIcon from "lucide-react/icons/layers";
+import LinkIcon from "lucide-react/icons/link";
 import LockIcon from "lucide-react/icons/lock";
+import MailIcon from "lucide-react/icons/mail";
 import MusicIcon from "lucide-react/icons/music";
 import TypeIcon from "lucide-react/icons/type";
 import WrenchIcon from "lucide-react/icons/wrench";
@@ -24,8 +29,8 @@ import { NodeDocsDialog } from "@/components/docs/node-docs-dialog";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/utils/utils";
-
 import { PropertyField } from "./fields";
+import { Field } from "./fields/field";
 import { SubscriptionBadge } from "./subscription-badge";
 import { registry } from "./widgets";
 import {
@@ -97,6 +102,11 @@ export const TypeBadge = ({
     date: <CalendarIcon className={iconSize} />,
     geojson: <GlobeIcon className={iconSize} />,
     secret: <LockIcon className={iconSize} />,
+    database: <DatabaseIcon className={iconSize} />,
+    dataset: <FolderSearchIcon className={iconSize} />,
+    queue: <LayersIcon className={iconSize} />,
+    email: <MailIcon className={iconSize} />,
+    integration: <LinkIcon className={iconSize} />,
     any: <AsteriskIcon className={iconSize} />,
   } satisfies Record<InputOutputType, React.ReactNode>;
 
@@ -243,6 +253,18 @@ export const WorkflowNode = memo(
         updateNodeInput(id, input.id, value, data.inputs, updateNodeData);
       }
     };
+
+    // Find hidden inputs with resource types to render as inline selectors
+    const resourceTypes = new Set([
+      "database",
+      "dataset",
+      "queue",
+      "email",
+      "integration",
+    ]);
+    const resourceInputs = data.inputs.filter(
+      (input) => input.hidden && resourceTypes.has(input.type)
+    );
 
     const handleToolSelectorClose = () => {
       setIsToolSelectorOpen(false);
@@ -391,6 +413,40 @@ export const WorkflowNode = memo(
                 onChange: !disabled ? handleWidgetChange : () => {},
                 disabled,
                 createObjectUrl: data.createObjectUrl,
+              })}
+            </div>
+          )}
+
+          {/* Resource Selectors (database, dataset, queue, email, integration) */}
+          {resourceInputs.length > 0 && (
+            <div className="px-2 py-2 nodrag border-b space-y-1 [&_button]:text-xs [&_button]:h-7">
+              {resourceInputs.map((input) => {
+                const isConnected = edges.some(
+                  (edge) => edge.target === id && edge.targetHandle === input.id
+                );
+                return (
+                  <Field
+                    key={input.id}
+                    parameter={input}
+                    value={input.value}
+                    onChange={(value) => {
+                      if (disabled || !updateNodeData) return;
+                      updateNodeInput(
+                        id,
+                        input.id,
+                        value,
+                        data.inputs,
+                        updateNodeData
+                      );
+                    }}
+                    onClear={() => {
+                      if (disabled || !updateNodeData) return;
+                      clearNodeInput(id, input.id, data.inputs, updateNodeData);
+                    }}
+                    disabled={disabled}
+                    connected={isConnected}
+                  />
+                );
               })}
             </div>
           )}

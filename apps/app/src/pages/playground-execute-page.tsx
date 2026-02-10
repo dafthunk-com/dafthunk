@@ -5,13 +5,13 @@ import { createElement, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router";
 
 import { useAuth } from "@/components/auth-context";
-import { convertValueByType } from "@/components/workflow/workflow-context";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { PropertyField } from "@/components/workflow/fields/property-field";
 import { registry } from "@/components/workflow/widgets";
+import { convertValueByType } from "@/components/workflow/workflow-context";
 import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { useObjectService } from "@/services/object-service";
@@ -202,11 +202,16 @@ export function PlaygroundExecutePage() {
               {visibleInputs.length > 0 ? (
                 visibleInputs.map((input) =>
                   widget && input.id === widget.inputField ? (
-                    <div key={input.id} className="text-sm space-y-1 [&_button]:h-9 [&_button]:text-sm [&_select]:h-9 [&_select]:text-sm">
+                    <div
+                      key={input.id}
+                      className="text-sm space-y-1 [&_button]:h-9 [&_button]:text-sm [&_select]:h-9 [&_select]:text-sm"
+                    >
                       <span className="text-foreground font-medium font-mono">
                         {input.name}
                         {input.required && (
-                          <span className="text-red-500 dark:text-red-400 ml-0.5">*</span>
+                          <span className="text-red-500 dark:text-red-400 ml-0.5">
+                            *
+                          </span>
                         )}
                       </span>
                       {createElement(widget.Component, {
@@ -281,4 +286,3 @@ export function PlaygroundExecutePage() {
     </InsetLayout>
   );
 }
-

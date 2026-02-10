@@ -243,6 +243,26 @@ const converters: Record<string, Converter> = {
     nodeToApi: typeValidatingNodeToApi("string"),
     apiToNode: typeValidatingApiToNode("string"),
   },
+  database: {
+    nodeToApi: typeValidatingNodeToApi("string"),
+    apiToNode: typeValidatingApiToNode("string"),
+  },
+  dataset: {
+    nodeToApi: typeValidatingNodeToApi("string"),
+    apiToNode: typeValidatingApiToNode("string"),
+  },
+  queue: {
+    nodeToApi: typeValidatingNodeToApi("string"),
+    apiToNode: typeValidatingApiToNode("string"),
+  },
+  email: {
+    nodeToApi: typeValidatingNodeToApi("string"),
+    apiToNode: typeValidatingApiToNode("string"),
+  },
+  integration: {
+    nodeToApi: typeValidatingNodeToApi("string"),
+    apiToNode: typeValidatingApiToNode("string"),
+  },
   any: {
     nodeToApi: (
       value: NodeParameterValue,

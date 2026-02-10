@@ -18,7 +18,7 @@ export class ReceiveEmailNode extends ExecutableNode {
     inputs: [
       {
         name: "emailId",
-        type: "string",
+        type: "email",
         description: "Email inbox to receive from",
         required: false,
         hidden: true,
