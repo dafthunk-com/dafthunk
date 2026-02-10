@@ -20,10 +20,10 @@ export interface WorkflowParameter {
   type: InputOutputType;
   name: string;
   description?: string;
-  value?: any;
+  value?: unknown;
   hidden?: boolean;
   required?: boolean;
-  repeated?: boolean; // Flag for parameters that can accept multiple connections
+  repeated?: boolean;
 }
 
 export interface WorkflowNodeType extends Record<string, unknown> {
@@ -60,13 +60,20 @@ export type WorkflowExecutionStatus =
   | "paused"
   | "exhausted";
 
+// Update payload for node execution state changes
+export interface NodeExecutionUpdate {
+  state?: NodeExecutionState;
+  outputs?: Record<string, unknown>;
+  error?: string;
+}
+
 // Simplified local execution type to use in the workflow builder
-export type WorkflowNodeExecution = {
+export interface WorkflowNodeExecution {
   nodeId: string;
   status: NodeExecutionState;
-  outputs?: Record<string, any> | null;
+  outputs?: Record<string, unknown> | null;
   error?: string;
-};
+}
 
 export interface WorkflowExecution {
   id?: string;
@@ -76,11 +83,11 @@ export interface WorkflowExecution {
 }
 
 // Dialog Form Parameter Type
-export type DialogFormParameter = {
-  nodeId: string; // Unique ID of the node
-  nameForForm: string; // The key to use in the form data object, e.g., 'customer_email'
-  label: string; // User-friendly label for the form input, e.g., "Customer Email"
-  nodeName: string; // Original name of the workflow node, for context
-  isRequired: boolean; // Whether this parameter is required
-  type: string; // Parameter type, e.g., 'form-data-string', 'form-data-number'
-};
+export interface DialogFormParameter {
+  nodeId: string;
+  nameForForm: string;
+  label: string;
+  nodeName: string;
+  isRequired: boolean;
+  type: string;
+}

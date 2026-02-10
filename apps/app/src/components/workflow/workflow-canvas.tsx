@@ -1,21 +1,23 @@
 import "@xyflow/react/dist/style.css";
 
-import { WorkflowTrigger } from "@dafthunk/types";
-import {
-  Background,
-  BackgroundVariant,
-  ConnectionMode,
-  Controls,
+import type { WorkflowTrigger } from "@dafthunk/types";
+import type {
   IsValidConnection,
   OnConnect,
   OnConnectEnd,
   OnConnectStart,
   OnEdgesChange,
   OnNodesChange,
-  ReactFlow,
   Edge as ReactFlowEdge,
   ReactFlowInstance,
   Node as ReactFlowNode,
+} from "@xyflow/react";
+import {
+  Background,
+  BackgroundVariant,
+  ConnectionMode,
+  Controls,
+  ReactFlow,
 } from "@xyflow/react";
 import { PanelRightClose, PanelRightOpen, Plus } from "lucide-react";
 import ArrowUpToLine from "lucide-react/icons/arrow-up-to-line";
@@ -32,7 +34,7 @@ import Scissors from "lucide-react/icons/scissors";
 import Square from "lucide-react/icons/square";
 import Trash2 from "lucide-react/icons/trash-2";
 import X from "lucide-react/icons/x";
-import React, { useEffect } from "react";
+import React from "react";
 
 import { ActionBarButton, ActionBarGroup } from "@/components/ui/action-bar";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -61,10 +63,9 @@ const actionBarButtonOutlineClassName =
 interface StatusBarProps {
   workflowStatus: WorkflowExecutionStatus;
   errorMessage?: string;
-  disabled?: boolean;
 }
 
-function StatusBar({ workflowStatus, errorMessage, disabled }: StatusBarProps) {
+function StatusBar({ workflowStatus, errorMessage }: StatusBarProps) {
   const statusConfig = {
     idle: {
       color: "text-neutral-600 dark:text-neutral-400",
@@ -117,24 +118,12 @@ function StatusBar({ workflowStatus, errorMessage, disabled }: StatusBarProps) {
           </span>
         </div>
 
-        {(workflowStatus === "error" && errorMessage) || disabled ? (
+        {workflowStatus === "error" && errorMessage ? (
           <>
             <div className="w-px h-4 bg-neutral-300 dark:bg-neutral-600" />
-            <div className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
-              {workflowStatus === "error" && errorMessage ? (
-                <span className="text-red-600 dark:text-red-400 max-w-md truncate">
-                  {errorMessage}
-                </span>
-              ) : null}
-              {disabled && (
-                <>
-                  {workflowStatus === "error" && errorMessage && <span>•</span>}
-                  <span className="text-amber-600 dark:text-amber-400">
-                    Read-only
-                  </span>
-                </>
-              )}
-            </div>
+            <span className="text-sm text-red-600 dark:text-red-400 max-w-md truncate">
+              {errorMessage}
+            </span>
           </>
         ) : null}
       </div>
@@ -166,7 +155,6 @@ export interface WorkflowCanvasProps {
   onAddNode?: () => void;
   onAction?: (e: React.MouseEvent) => void;
   onDeploy?: (e: React.MouseEvent) => void;
-  onSetSchedule?: () => void;
   onShowHttpIntegration?: () => void;
   onShowEmailTrigger?: () => void;
   workflowStatus?: WorkflowExecutionStatus;
@@ -188,14 +176,14 @@ export interface WorkflowCanvasProps {
   hasClipboardData?: boolean;
 }
 
-type ActionButtonProps = {
+interface ActionButtonProps {
   onClick: (e: React.MouseEvent) => void;
   workflowStatus?: WorkflowExecutionStatus;
   disabled?: boolean;
   className?: string;
   text?: string;
   showTooltip?: boolean;
-};
+}
 
 export function ActionButton({
   onClick,
@@ -317,10 +305,10 @@ export function DeployButton({
   );
 }
 
-type SidebarToggleProps = {
+interface SidebarToggleProps {
   onClick: (e: React.MouseEvent) => void;
   isSidebarVisible: boolean;
-};
+}
 
 function SidebarToggle({ onClick, isSidebarVisible }: SidebarToggleProps) {
   return (
@@ -656,7 +644,6 @@ export function WorkflowCanvas({
   onAction,
   onDeploy,
   workflowTrigger,
-  onSetSchedule,
   onShowHttpIntegration,
   onShowEmailTrigger,
   workflowStatus = "idle",
@@ -682,37 +669,16 @@ export function WorkflowCanvas({
     selectedNodes.length > 0 || selectedEdges.length > 0;
   const hasSelectedNodes = selectedNodes.length > 0;
 
-  // Keyboard shortcut handling
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      // Cmd+Enter (Mac) or Ctrl+Enter (Windows/Linux) - Execute workflow
-      if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
-        event.preventDefault();
-        if (onAction && !disabled && nodes.length > 0) {
-          const syntheticEvent = new MouseEvent("click", {
-            bubbles: true,
-            cancelable: true,
-          }) as unknown as React.MouseEvent;
-          onAction(syntheticEvent);
-        }
-        return;
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [onAction, disabled, nodes.length]);
-
   return (
     <TooltipProvider>
       <ReactFlow
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
-        onEdgesChange={disabled ? () => {} : onEdgesChange}
-        onConnect={disabled ? () => {} : onConnect}
-        onConnectStart={disabled ? () => {} : onConnectStart}
-        onConnectEnd={disabled ? () => {} : onConnectEnd}
+        onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
+        onConnectStart={onConnectStart}
+        onConnectEnd={onConnectEnd}
         onNodeDoubleClick={onNodeDoubleClick}
         onNodeDragStop={onNodeDragStop}
         nodeTypes={nodeTypes}
@@ -769,12 +735,10 @@ export function WorkflowCanvas({
         {showControls &&
           (onAction ||
             onDeploy ||
-            onSetSchedule ||
             (onToggleSidebar && isSidebarVisible !== undefined)) && (
             <div className="absolute top-4 right-4 flex items-center gap-3 z-50">
               {/* Runtime Actions Group - Execute + Triggers */}
               {(onAction ||
-                onSetSchedule ||
                 onShowHttpIntegration ||
                 onShowEmailTrigger) && (
                 <ActionBarGroup>
@@ -789,12 +753,6 @@ export function WorkflowCanvas({
                           workflowStatus === "executing") &&
                           nodes.length === 0)
                       }
-                    />
-                  )}
-                  {onSetSchedule && workflowTrigger === "scheduled" && (
-                    <SetScheduleButton
-                      onClick={onSetSchedule}
-                      disabled={disabled || nodes.length === 0}
                     />
                   )}
                   {onShowHttpIntegration &&
@@ -873,20 +831,13 @@ export function WorkflowCanvas({
               {onDuplicateSelected && (
                 <DuplicateButton
                   onClick={onDuplicateSelected}
-                  disabled={
-                    disabled || (!hasSelectedNodes && !selectedNodes.length)
-                  }
+                  disabled={disabled || !hasSelectedNodes}
                 />
               )}
               {onDeleteSelected && (
                 <DeleteButton
                   onClick={onDeleteSelected}
-                  disabled={
-                    disabled ||
-                    (!hasSelectedElements &&
-                      !selectedNodes.length &&
-                      !selectedEdges.length)
-                  }
+                  disabled={disabled || !hasSelectedElements}
                 />
               )}
             </ActionBarGroup>

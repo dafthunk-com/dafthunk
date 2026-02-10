@@ -9,36 +9,23 @@ import type {
   Node as ReactFlowNode,
 } from "@xyflow/react";
 import { ReactFlowProvider } from "@xyflow/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { useWorkflowExecution } from "@/services/workflow-service";
 import { cn } from "@/utils/utils";
 
-import { EmailTriggerDialog } from "./email-trigger-dialog";
-import { ExecutionEmailDialog } from "./execution-email-dialog";
-import { HttpRequestConfigDialog } from "./http-request-config-dialog";
-import { HttpRequestIntegrationDialog } from "./http-request-integration-dialog";
-import { HttpWebhookIntegrationDialog } from "./http-webhook-integration-dialog";
+import { useKeyboardShortcuts } from "./use-keyboard-shortcuts";
+import { useResizableSidebar } from "./use-resizable-sidebar";
+import { useWorkflowExecutionState } from "./use-workflow-execution-state";
 import { useWorkflowState } from "./use-workflow-state";
 import { WorkflowCanvas } from "./workflow-canvas";
 import { WorkflowProvider } from "./workflow-context";
+import { WorkflowDialogs } from "./workflow-dialogs";
 import { WorkflowNodeSelector } from "./workflow-node-selector";
 import { WorkflowSidebar } from "./workflow-sidebar";
 import type {
-  NodeExecutionState,
   NodeType,
   WorkflowEdgeType,
   WorkflowExecution,
-  WorkflowExecutionStatus,
   WorkflowNodeType,
 } from "./workflow-types";
 
@@ -88,36 +75,6 @@ export interface WorkflowBuilderProps {
   showSidebar?: boolean;
 }
 
-// Helper: Apply initial execution state to nodes
-function applyInitialExecution(
-  execution: WorkflowExecution,
-  nodes: ReactFlowNode<WorkflowNodeType>[],
-  updateNodeData: (nodeId: string, data: Partial<WorkflowNodeType>) => void
-) {
-  execution.nodeExecutions.forEach((nodeExec) => {
-    const node = nodes.find((n) => n.id === nodeExec.nodeId);
-    if (!node) return;
-
-    const updatedOutputs = node.data.outputs.map((output) => {
-      const outputValue =
-        nodeExec.outputs?.[output.id] ?? nodeExec.outputs?.[output.name];
-      return { ...output, value: outputValue };
-    });
-
-    const executionState =
-      nodeExec.status === "idle" &&
-      updatedOutputs.some((o) => o.value !== undefined)
-        ? "completed"
-        : nodeExec.status;
-
-    updateNodeData(nodeExec.nodeId, {
-      outputs: updatedOutputs,
-      executionState,
-      error: nodeExec.error,
-    });
-  });
-}
-
 export function WorkflowBuilder({
   workflowId,
   workflowTrigger,
@@ -148,73 +105,14 @@ export function WorkflowBuilder({
   const interactive = mode !== "preview";
   const sidebarEnabled = showSidebar ?? interactive;
 
-  const [isSidebarVisible, setIsSidebarVisible] = useState(sidebarEnabled);
-  const [workflowStatus, setWorkflowStatus] = useState<WorkflowExecutionStatus>(
-    initialWorkflowExecution?.status || "idle"
-  );
-  const [workflowErrorMessage, setWorkflowErrorMessage] = useState<
-    string | undefined
-  >(initialWorkflowExecution?.error);
-  const [errorDialogOpen, setErrorDialogOpen] = useState(
-    initialWorkflowExecution?.status === "exhausted"
-  );
-  const cleanupRef = useRef<(() => void | Promise<void>) | null>(null);
-  const initializedRef = useRef(false);
-  const [sidebarWidth, setSidebarWidth] = useState(384);
-  const [isResizing, setIsResizing] = useState(false);
-  const [currentExecutionId, setCurrentExecutionId] = useState<
-    string | undefined
-  >(initialWorkflowExecution?.id);
-
-  // Trigger dialog state
-  const [isHttpIntegrationDialogOpen, setIsHttpIntegrationDialogOpen] =
-    useState(false);
-  const [isEmailTriggerDialogOpen, setIsEmailTriggerDialogOpen] =
-    useState(false);
-
-  // Store the current execution callback so the WebSocket wrapper can use it
-  const executionCallbackRef = useRef<
-    ((execution: WorkflowExecution) => void) | null
-  >(null);
-
-  // Create a wrapper that properly connects WebSocket execution to the workflow-builder callback
-  const wsExecuteWorkflowWrapper = useCallback(
-    (options?: { parameters?: Record<string, unknown> }) => {
-      // Call the provided executeWorkflow function which should set up callbacks properly
-      if (executeWorkflow && executionCallbackRef.current) {
-        executeWorkflow(
-          workflowId,
-          executionCallbackRef.current,
-          options?.parameters
-        );
-      } else if (wsExecuteWorkflow) {
-        // Fallback to direct WebSocket execution if no wrapper provided
-        wsExecuteWorkflow(options);
-      }
-    },
-    [executeWorkflow, wsExecuteWorkflow, workflowId]
-  );
-
-  // Use workflow execution hook for execution dialogs
-  const {
-    executeWorkflow: executeWorkflowWithForm,
-    isEmailFormDialogVisible,
-    isHttpRequestConfigDialogVisible,
-    submitHttpRequestConfig,
-    submitEmailFormData,
-    closeExecutionForm,
-  } = useWorkflowExecution(orgHandle, wsExecuteWorkflowWrapper);
-
-  // Execution coordination
-  const executeRef = useRef<((triggerData?: unknown) => void) | null>(null);
-
+  // Graph state & operations
   const {
     nodes,
     edges,
     selectedNodes,
     selectedEdges,
-    isNodeSelectorOpen: handleIsNodeSelectorOpen,
-    setIsNodeSelectorOpen: handleSetIsNodeSelectorOpen,
+    isNodeSelectorOpen,
+    setIsNodeSelectorOpen,
     onNodesChange,
     onEdgesChange,
     onConnect,
@@ -249,246 +147,56 @@ export function WorkflowBuilder({
     disabled: readOnly,
   });
 
-  // Apply initial workflow execution state once
-  useEffect(() => {
-    if (
-      initialWorkflowExecution &&
-      !initializedRef.current &&
-      nodes.length > 0
-    ) {
-      initializedRef.current = true;
-      setWorkflowStatus(initialWorkflowExecution.status);
-      applyInitialExecution(initialWorkflowExecution, nodes, updateNodeData);
+  // Execution state
+  const execution = useWorkflowExecutionState({
+    workflowId,
+    workflowTrigger,
+    orgHandle,
+    nodes,
+    nodeTypes,
+    initialWorkflowExecution,
+    executeWorkflow,
+    wsExecuteWorkflow,
+    updateNodeExecution,
+    updateNodeData,
+    deselectAll,
+  });
 
-      if (initialWorkflowExecution.status === "exhausted") {
-        setErrorDialogOpen(true);
-      }
-    }
-  }, [initialWorkflowExecution, nodes, updateNodeData]);
+  // Sidebar
+  const sidebar = useResizableSidebar({ initialVisible: sidebarEnabled });
 
-  const resetNodeStates = useCallback(
-    (state: NodeExecutionState = "idle") => {
-      nodes.forEach((node) => {
-        updateNodeExecution(node.id, {
-          state,
-          outputs: {},
-          error: undefined,
-        });
-      });
-      setWorkflowErrorMessage(undefined);
-    },
-    [nodes, updateNodeExecution]
-  );
+  // Trigger dialog state (shared between canvas buttons and dialog component)
+  const [isHttpIntegrationDialogOpen, setIsHttpIntegrationDialogOpen] =
+    useState(false);
+  const [isEmailTriggerDialogOpen, setIsEmailTriggerDialogOpen] =
+    useState(false);
 
-  const handleExecuteRequest = useCallback(
-    (execute: (triggerData?: unknown) => void) => {
-      // For workflows that don't require parameters, execute directly
-      if (
-        !workflowTrigger ||
-        workflowTrigger === "manual" ||
-        workflowTrigger === "scheduled" ||
-        workflowTrigger === "queue_message"
-      ) {
-        execute(undefined);
-        return;
-      }
+  // Keyboard shortcuts (Cmd+C/X/V/D + Cmd+Enter)
+  const handleActionButtonClick =
+    !readOnly && executeWorkflow
+      ? execution.handleActionButtonClick
+      : undefined;
 
-      // For http_webhook, http_request and email_message workflows that require dialogs:
-      // Store the execute callback for later use when dialog is submitted
-      executeRef.current = execute;
-
-      // Create the execution callback that will be used when the dialog is submitted
-      // Note: We don't set status to "executing" here - that happens when the dialog is submitted
-      const executionCallback = (execution: WorkflowExecution) => {
-        // Capture execution ID for feedback
-        if (execution.id) {
-          setCurrentExecutionId(execution.id);
-        }
-
-        // Set status to executing on first callback if not already set
-        setWorkflowStatus((currentStatus) => {
-          if (currentStatus === "idle" || currentStatus === "cancelled") {
-            resetNodeStates("executing");
-            return "executing";
-          }
-          if (
-            currentStatus === "executing" &&
-            execution.status === "submitted"
-          ) {
-            return currentStatus;
-          }
-          return execution.status;
-        });
-
-        setWorkflowErrorMessage(execution.error);
-
-        execution.nodeExecutions.forEach((nodeExecution) => {
-          updateNodeExecution(nodeExecution.nodeId, {
-            state: nodeExecution.status,
-            outputs: nodeExecution.outputs || {},
-            error: nodeExecution.error,
-          });
-        });
-
-        if (execution.status === "exhausted") {
-          setErrorDialogOpen(true);
-        }
-      };
-
-      // Store callback in ref so WebSocket wrapper can access it
-      executionCallbackRef.current = executionCallback;
-
-      if (workflowId) {
-        // http_webhook, http_request or email_message - check for parameters and show dialog
-        executeWorkflowWithForm(
-          workflowId,
-          executionCallback,
-          nodes,
-          nodeTypes as any,
-          workflowTrigger
-        );
-      }
-    },
-    [
-      workflowTrigger,
-      workflowId,
-      executeWorkflowWithForm,
-      nodes,
-      nodeTypes,
-      resetNodeStates,
-      updateNodeExecution,
-    ]
-  );
-
-  const handleExecute = useCallback(
-    (triggerData?: unknown) => {
-      if (!executeWorkflow) return null;
-
-      resetNodeStates("executing");
-      setWorkflowStatus("executing"); // Local immediate update
-
-      // Create the callback and store it in the ref so WebSocket wrapper can use it
-      const executionCallback = (execution: WorkflowExecution) => {
-        // Capture execution ID for feedback
-        if (execution.id) {
-          setCurrentExecutionId(execution.id);
-        }
-
-        // Only update status if the new status is not 'idle' while we are 'executing',
-        // or if the local status is not 'executing' anymore (e.g., already completed/errored).
-        setWorkflowStatus((currentStatus) => {
-          if (
-            currentStatus === "executing" &&
-            execution.status === "submitted"
-          ) {
-            return currentStatus; // Ignore initial idle updates while executing
-          }
-          return execution.status; // Apply other status updates
-        });
-
-        // Update workflow error message
-        setWorkflowErrorMessage(execution.error);
-
-        execution.nodeExecutions.forEach((nodeExecution) => {
-          updateNodeExecution(nodeExecution.nodeId, {
-            state: nodeExecution.status,
-            outputs: nodeExecution.outputs || {},
-            error: nodeExecution.error,
-          });
-        });
-
-        if (execution.status === "exhausted") {
-          setErrorDialogOpen(true);
-        }
-      };
-
-      // Store callback in ref so WebSocket wrapper can access it
-      executionCallbackRef.current = executionCallback;
-
-      return executeWorkflow(workflowId, executionCallback, triggerData);
-    },
-    [executeWorkflow, workflowId, resetNodeStates, updateNodeExecution]
-  );
-
-  const startExecution = useCallback(() => {
-    // Deselect all nodes/edges so the sidebar shows the workflow view with feedback
-    deselectAll();
-
-    handleExecuteRequest((triggerData) => {
-      const cleanup = handleExecute(triggerData);
-      if (cleanup) cleanupRef.current = cleanup;
-    });
-  }, [deselectAll, handleExecute, handleExecuteRequest]);
-
-  const handleActionButtonClick = useCallback(
-    (e: React.MouseEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-
-      if (workflowStatus === "idle" || workflowStatus === "cancelled") {
-        if (workflowStatus === "cancelled") resetNodeStates();
-        startExecution();
-      } else if (
-        workflowStatus === "submitted" ||
-        workflowStatus === "executing"
-      ) {
-        // Stop execution
-        deselectAll();
-        if (cleanupRef.current) {
-          Promise.resolve(cleanupRef.current()).catch((error) =>
-            console.error("Error during cleanup:", error)
-          );
-          cleanupRef.current = null;
-        }
-        setWorkflowStatus("cancelled");
-      } else {
-        // completed, error, exhausted - Clear outputs & reset
-        deselectAll();
-        resetNodeStates();
-        setWorkflowStatus("idle");
-      }
-    },
-    [workflowStatus, resetNodeStates, startExecution, deselectAll]
-  );
-
-  const toggleSidebar = useCallback(() => {
-    setIsSidebarVisible((prev) => !prev);
-  }, []);
+  useKeyboardShortcuts({
+    disabled: readOnly,
+    selectedNodes,
+    selectedEdges,
+    hasClipboardData,
+    copySelected,
+    cutSelected,
+    pasteFromClipboard,
+    duplicateSelected,
+    onAction: handleActionButtonClick,
+    nodeCount: nodes.length,
+  });
 
   const handleFitToScreen = useCallback(() => {
     reactFlowInstance?.fitView({ padding: 0.25, duration: 200, maxZoom: 2 });
   }, [reactFlowInstance]);
 
   const handleNodeDoubleClick = useCallback(() => {
-    setIsSidebarVisible(true);
-  }, []);
-
-  const handleResizeStart = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsResizing(true);
-  }, []);
-
-  useEffect(() => {
-    if (!isResizing) return;
-
-    const handleMouseMove = (e: MouseEvent) => {
-      const newWidth = window.innerWidth - e.clientX;
-      // Min width: 320px, Max width: 800px
-      setSidebarWidth(Math.min(Math.max(newWidth, 320), 800));
-    };
-
-    const handleMouseUp = () => {
-      setIsResizing(false);
-    };
-
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp);
-
-    return () => {
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, [isResizing]);
+    sidebar.setIsSidebarVisible(true);
+  }, [sidebar]);
 
   return (
     <ReactFlowProvider>
@@ -506,8 +214,8 @@ export function WorkflowBuilder({
           <div
             className="h-full overflow-hidden relative"
             style={{
-              width: isSidebarVisible
-                ? `calc(100% - ${sidebarWidth}px)`
+              width: sidebar.isSidebarVisible
+                ? `calc(100% - ${sidebar.sidebarWidth}px)`
                 : "100%",
             }}
           >
@@ -516,24 +224,20 @@ export function WorkflowBuilder({
               edges={edges}
               connectionValidationState={connectionValidationState}
               onNodesChange={onNodesChange}
-              onEdgesChange={readOnly ? () => {} : onEdgesChange}
-              onConnect={readOnly ? () => {} : onConnect}
-              onConnectStart={readOnly ? () => {} : onConnectStart}
-              onConnectEnd={readOnly ? () => {} : onConnectEnd}
+              onEdgesChange={onEdgesChange}
+              onConnect={onConnect}
+              onConnectStart={onConnectStart}
+              onConnectEnd={onConnectEnd}
               onNodeDoubleClick={handleNodeDoubleClick}
               onNodeDragStop={onNodeDragStop}
               onInit={setReactFlowInstance}
               onAddNode={readOnly ? undefined : handleAddNode}
-              onAction={
-                !readOnly && executeWorkflow
-                  ? handleActionButtonClick
-                  : undefined
-              }
+              onAction={handleActionButtonClick}
               onDeploy={
                 !readOnly && onDeployWorkflow ? onDeployWorkflow : undefined
               }
-              workflowStatus={workflowStatus}
-              workflowErrorMessage={workflowErrorMessage}
+              workflowStatus={execution.workflowStatus}
+              workflowErrorMessage={execution.workflowErrorMessage}
               workflowTrigger={workflowTrigger}
               onShowHttpIntegration={
                 workflowTrigger === "http_webhook" ||
@@ -546,8 +250,12 @@ export function WorkflowBuilder({
                   ? () => setIsEmailTriggerDialogOpen(true)
                   : undefined
               }
-              onToggleSidebar={sidebarEnabled ? toggleSidebar : undefined}
-              isSidebarVisible={sidebarEnabled ? isSidebarVisible : false}
+              onToggleSidebar={
+                sidebarEnabled ? sidebar.toggleSidebar : undefined
+              }
+              isSidebarVisible={
+                sidebarEnabled ? sidebar.isSidebarVisible : false
+              }
               isValidConnection={isValidConnection}
               disabled={readOnly}
               onFitToScreen={handleFitToScreen}
@@ -564,16 +272,16 @@ export function WorkflowBuilder({
             />
           </div>
 
-          {isSidebarVisible && (
+          {sidebar.isSidebarVisible && (
             <>
               <div
                 className={cn(
                   "w-1 bg-background border-l border-border cursor-col-resize",
-                  isResizing && "bg-muted"
+                  sidebar.isResizing && "bg-muted"
                 )}
-                onMouseDown={handleResizeStart}
+                onMouseDown={sidebar.handleResizeStart}
               />
-              <div style={{ width: `${sidebarWidth}px` }}>
+              <div style={{ width: `${sidebar.sidebarWidth}px` }}>
                 <WorkflowSidebar
                   nodes={nodes}
                   selectedNodes={selectedNodes}
@@ -588,18 +296,18 @@ export function WorkflowBuilder({
                   workflowTrigger={workflowTrigger}
                   workflowRuntime={workflowRuntime}
                   onWorkflowUpdate={readOnly ? undefined : onWorkflowUpdate}
-                  workflowStatus={workflowStatus}
-                  workflowErrorMessage={workflowErrorMessage}
-                  executionId={currentExecutionId}
+                  workflowStatus={execution.workflowStatus}
+                  workflowErrorMessage={execution.workflowErrorMessage}
+                  executionId={execution.currentExecutionId}
                 />
               </div>
             </>
           )}
 
           <WorkflowNodeSelector
-            open={readOnly ? false : handleIsNodeSelectorOpen}
+            open={readOnly ? false : isNodeSelectorOpen}
             onSelect={handleNodeSelect}
-            onClose={() => handleSetIsNodeSelectorOpen(false)}
+            onClose={() => setIsNodeSelectorOpen(false)}
             templates={nodeTypes}
             workflowName={workflowName}
             workflowDescription={workflowDescription}
@@ -607,79 +315,29 @@ export function WorkflowBuilder({
           />
         </div>
 
-        {/* HTTP Webhook integration dialog */}
-        {workflowTrigger === "http_webhook" && (
-          <HttpWebhookIntegrationDialog
-            isOpen={isHttpIntegrationDialogOpen}
-            onClose={() => setIsHttpIntegrationDialogOpen(false)}
-            orgHandle={orgHandle}
-            workflowId={workflowId}
-            deploymentVersion="dev"
-            nodes={nodes}
-            nodeTypes={nodeTypes || []}
-          />
-        )}
-
-        {/* HTTP Request integration dialog */}
-        {workflowTrigger === "http_request" && (
-          <HttpRequestIntegrationDialog
-            isOpen={isHttpIntegrationDialogOpen}
-            onClose={() => setIsHttpIntegrationDialogOpen(false)}
-            orgHandle={orgHandle}
-            workflowId={workflowId}
-            deploymentVersion="dev"
-            nodes={nodes}
-            nodeTypes={nodeTypes || []}
-          />
-        )}
-
-        {workflowTrigger === "email_message" && (
-          <EmailTriggerDialog
-            isOpen={isEmailTriggerDialogOpen}
-            onClose={() => setIsEmailTriggerDialogOpen(false)}
-            workflowId={workflowId}
-          />
-        )}
-
-        {/* Execution Dialogs */}
-        {/* HTTP Request Config Dialog */}
-        {(workflowTrigger === "http_webhook" ||
-          workflowTrigger === "http_request") && (
-          <HttpRequestConfigDialog
-            isOpen={isHttpRequestConfigDialogVisible}
-            onClose={closeExecutionForm}
-            onSubmit={submitHttpRequestConfig}
-          />
-        )}
-
-        {/* Email Execution Dialog */}
-        {workflowTrigger === "email_message" && (
-          <ExecutionEmailDialog
-            isOpen={isEmailFormDialogVisible}
-            onClose={closeExecutionForm}
-            onCancel={() => {
-              closeExecutionForm();
-              executeRef.current = null;
-            }}
-            onSubmit={submitEmailFormData}
-          />
-        )}
-
-        <Dialog open={errorDialogOpen} onOpenChange={setErrorDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Workflow Execution Error</DialogTitle>
-              <DialogDescription>
-                You have run out of compute credits. Thanks for checking out the
-                preview. The code is available at
-                https://github.com/dafthunk-com/dafthunk.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button onClick={() => setErrorDialogOpen(false)}>Close</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <WorkflowDialogs
+          workflowId={workflowId}
+          workflowTrigger={workflowTrigger}
+          orgHandle={orgHandle}
+          nodes={nodes}
+          nodeTypes={nodeTypes}
+          isHttpIntegrationDialogOpen={isHttpIntegrationDialogOpen}
+          onCloseHttpIntegration={() =>
+            setIsHttpIntegrationDialogOpen(false)
+          }
+          isEmailTriggerDialogOpen={isEmailTriggerDialogOpen}
+          onCloseEmailTrigger={() => setIsEmailTriggerDialogOpen(false)}
+          isEmailFormDialogVisible={execution.isEmailFormDialogVisible}
+          isHttpRequestConfigDialogVisible={
+            execution.isHttpRequestConfigDialogVisible
+          }
+          submitHttpRequestConfig={execution.submitHttpRequestConfig}
+          submitEmailFormData={execution.submitEmailFormData}
+          closeExecutionForm={execution.closeExecutionForm}
+          executeRef={execution.executeRef}
+          errorDialogOpen={execution.errorDialogOpen}
+          setErrorDialogOpen={execution.setErrorDialogOpen}
+        />
       </WorkflowProvider>
     </ReactFlowProvider>
   );
