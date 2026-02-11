@@ -762,6 +762,14 @@ export const routes: AppRouteObject[] = [
     },
   },
   {
+    path: "/playground",
+    element: <OrgRedirect to="/org/:handle/playground" />,
+  },
+  {
+    path: "/playground/:nodeType",
+    element: <OrgRedirect to="/org/:handle/playground/:nodeType" />,
+  },
+  {
     path: "/org/:handle/playground",
     element: (
       <OrgLayout title="Workflows">

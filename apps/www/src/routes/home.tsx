@@ -192,10 +192,16 @@ export default function Home() {
           <p className="text-3xl text-gray-500">
             What you can build with workflow automation
           </p>
+          <Link
+            to="/workflows"
+            className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 hover:border-gray-400 rounded-lg px-4 py-2 mt-6 transition-colors"
+          >
+            View all use cases &rarr;
+          </Link>
         </div>
 
         <div className="space-y-24">
-          {workflowsData.workflows.map((workflow) => (
+          {workflowsData.workflows.filter((workflow) => workflow.featured).map((workflow) => (
             <div
               key={workflow.id}
               className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16"
@@ -214,7 +220,7 @@ export default function Home() {
                 </p>
                 <Link
                   to={`/workflows/${workflow.id}`}
-                  className="inline-flex items-center text-gray-900 hover:text-black font-medium"
+                  className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 hover:border-gray-400 rounded-lg px-4 py-2 transition-colors"
                 >
                   View workflow &rarr;
                 </Link>
@@ -234,6 +240,7 @@ export default function Home() {
             </div>
           ))}
         </div>
+
       </section>
 
       <section
@@ -252,10 +259,16 @@ export default function Home() {
             Workflow nodes across AI, browser automation, data processing,
             media, and integrations
           </p>
+          <Link
+            to="/nodes"
+            className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 hover:border-gray-400 rounded-lg px-4 py-2 mt-6 transition-colors"
+          >
+            View all categories &rarr;
+          </Link>
         </div>
 
         <div className="space-y-24">
-          {categories.categories.map((category) => (
+          {categories.categories.filter((category) => category.featured).map((category) => (
             <div
               key={category.id}
               className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16"
@@ -274,7 +287,7 @@ export default function Home() {
                 </p>
                 <Link
                   to={`/nodes/${category.id}`}
-                  className="inline-flex items-center text-gray-900 hover:text-black font-medium"
+                  className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 hover:border-gray-400 rounded-lg px-4 py-2 transition-colors"
                 >
                   View {category.nodeIds.length} nodes &rarr;
                 </Link>

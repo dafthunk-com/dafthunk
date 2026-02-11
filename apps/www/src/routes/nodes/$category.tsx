@@ -131,10 +131,10 @@ export default function CategoryPage({
     <Layout navigation={navigation}>
       <main className="px-6 py-32">
         <Link
-          to="/"
+          to="/nodes"
           className="inline-flex items-center text-base text-gray-600 hover:text-gray-900 mb-8"
         >
-          &larr; Back to Home
+          &larr; All nodes
         </Link>
 
         <div className="mb-32">

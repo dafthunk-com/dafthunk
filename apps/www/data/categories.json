@@ -27,7 +27,8 @@
         "deepseek-r1-distill-qwen-32b",
         "mistral-small-3-1-24b-instruct",
         "hermes-2-pro-mistral-7b"
-      ]
+      ],
+      "featured": true
     },
     {
       "id": "browser",
@@ -50,7 +51,8 @@
         "cloudflare-browser-screenshot",
         "cloudflare-browser-pdf",
         "cloudflare-browser-snapshot"
-      ]
+      ],
+      "featured": true
     },
     {
       "id": "data",
@@ -73,7 +75,8 @@
         "regex-match",
         "string-concat",
         "calculator"
-      ]
+      ],
+      "featured": false
     },
     {
       "id": "media",
@@ -100,7 +103,8 @@
         "melotts",
         "trellis",
         "to-markdown"
-      ]
+      ],
+      "featured": true
     },
     {
       "id": "integrations",
@@ -129,7 +133,8 @@
         "list-events-google-calendar",
         "send-email-google-mail",
         "read-inbox-google-mail"
-      ]
+      ],
+      "featured": true
     },
     {
       "id": "developer",
@@ -149,7 +154,8 @@
         "queue-message",
         "aggregate-items",
         "extract-item"
-      ]
+      ],
+      "featured": false
     }
   ]
 }

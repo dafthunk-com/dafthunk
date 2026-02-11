@@ -7,7 +7,8 @@
       "description": "Generate images from text prompts using AI models like Flux, Stable Diffusion, and Imagen. Create unique visuals for marketing campaigns, social media posts, blog illustrations, or creative projects. Build automated pipelines that combine text generation with image creation, allowing you to produce complete visual content from simple inputs. Supports various styles, aspect ratios, and output formats for different use cases from thumbnails to high-resolution artwork.",
       "icon": "image",
       "type": "manual",
-      "tags": ["image", "generation", "ai"]
+      "tags": ["image", "generation", "ai"],
+      "featured": true
     },
     {
       "id": "speech-to-text",
@@ -16,7 +17,8 @@
       "description": "Transcribe audio files to text using Whisper AI with support for multiple languages and accents. Convert podcasts, meeting recordings, interviews, voice memos, and any audio content into searchable, editable text. Build automated workflows that process incoming audio files, generate accurate transcripts, and pipe the text into downstream nodes for summarization, translation, or analysis. Perfect for podcast production, meeting documentation, content repurposing, and accessibility compliance.",
       "icon": "mic",
       "type": "manual",
-      "tags": ["audio", "transcription", "ai"]
+      "tags": ["audio", "transcription", "ai"],
+      "featured": true
     },
     {
       "id": "web-screenshot",
@@ -25,7 +27,8 @@
       "description": "Capture full-page screenshots of any website using headless browser automation powered by Cloudflare Browser Rendering. Build monitoring workflows that automatically capture visual snapshots of web pages, track visual changes over time, and generate reports. Ideal for competitive analysis, compliance monitoring, archiving web content, and automated visual testing of websites and applications.",
       "icon": "globe",
       "type": "manual",
-      "tags": ["browser", "screenshot", "automation"]
+      "tags": ["browser", "screenshot", "automation"],
+      "featured": false
     },
     {
       "id": "text-summarization",
@@ -34,7 +37,68 @@
       "description": "Summarize long text content using AI models like Claude, GPT, and Gemini. Extract key points and condense articles, documents, reports, or any text into concise summaries. Build workflows that automatically process incoming content, identify the most important information, and generate summaries tailored to different audiences or formats. Perfect for content curation, research pipelines, news aggregation, and information processing workflows that need to handle large volumes of text efficiently.",
       "icon": "file-text",
       "type": "manual",
-      "tags": ["text", "summarization", "ai"]
+      "tags": ["text", "summarization", "ai"],
+      "featured": true
+    },
+    {
+      "id": "text-translation",
+      "name": "Text Translation",
+      "summary": "Translate text between languages using AI",
+      "description": "Translate text between over 100 languages using AI-powered translation models. Automate content localization for websites, apps, marketing materials, and customer communications. Build multilingual workflows that accept text in any language, detect the source language automatically, and produce accurate translations in one or more target languages. Ideal for international businesses, content localization pipelines, multilingual customer support, and cross-border communication workflows that need reliable, on-demand translation.",
+      "icon": "languages",
+      "type": "manual",
+      "tags": ["text", "translation", "ai"],
+      "featured": true
+    },
+    {
+      "id": "text-to-speech",
+      "name": "Text to Speech",
+      "summary": "Convert text to natural-sounding speech",
+      "description": "Convert written text into natural-sounding speech audio using AI voice synthesis. Generate voiceovers for videos, podcasts, e-learning modules, and accessibility features without recording equipment. Build workflows that transform blog posts into audio articles, create automated voice responses, or produce multilingual audio content from text inputs. Perfect for content creators, accessibility compliance, IVR systems, and any application that needs to deliver information through spoken audio.",
+      "icon": "volume-2",
+      "type": "manual",
+      "tags": ["audio", "speech", "ai"],
+      "featured": false
+    },
+    {
+      "id": "sentiment-analysis",
+      "name": "Sentiment Analysis",
+      "summary": "Analyze text sentiment and emotional tone",
+      "description": "Analyze the sentiment and emotional tone of text using AI classification models. Score customer reviews, social media mentions, survey responses, and support tickets as positive, negative, or neutral. Build automated monitoring workflows that process incoming text, assign sentiment scores, and route content based on emotional tone. Ideal for brand reputation monitoring, customer feedback analysis, social media listening, product review aggregation, and any pipeline where understanding audience sentiment drives decision-making.",
+      "icon": "smile",
+      "type": "manual",
+      "tags": ["text", "sentiment", "ai"],
+      "featured": false
+    },
+    {
+      "id": "image-description",
+      "name": "Image Description",
+      "summary": "Generate text descriptions from images using AI",
+      "description": "Generate accurate text descriptions from images using AI vision models. Automatically caption photos, create alt text for accessibility, catalog visual assets, and extract information from screenshots or documents. Build workflows that process uploaded images, produce detailed descriptions, and feed that text into downstream nodes for search indexing, content tagging, or report generation. Perfect for accessibility compliance, digital asset management, e-commerce product cataloging, and content moderation pipelines.",
+      "icon": "scan-eye",
+      "type": "manual",
+      "tags": ["image", "description", "ai"],
+      "featured": false
+    },
+    {
+      "id": "image-processing",
+      "name": "Image Processing",
+      "summary": "Apply filters and effects to images",
+      "description": "Apply filters, effects, and transformations to images using a visual processing pipeline. Chain together operations like contrast adjustment, color inversion, pixelation, resizing, and format conversion to create custom image processing workflows. Capture photos from a webcam or upload images, then process them through multiple transformation steps with real-time preview. Ideal for batch image processing, automated thumbnail generation, photo effect pipelines, social media asset creation, and any workflow that needs consistent image transformations at scale.",
+      "icon": "image-plus",
+      "type": "manual",
+      "tags": ["image", "processing", "automation"],
+      "featured": false
+    },
+    {
+      "id": "ai-calculator",
+      "name": "AI Calculator",
+      "summary": "Solve math problems using AI with tool use",
+      "description": "Solve complex math problems by combining large language models with a built-in calculator tool. The AI interprets natural-language math questions, breaks them into steps, and calls the calculator for precise arithmetic, so you get both the reasoning and the correct numerical answer. Build workflows that accept math problems as text, process them through an AI model with tool-use capabilities, and return step-by-step solutions. Ideal for educational platforms, scientific computation pipelines, homework assistance tools, and any application that needs to combine natural-language understanding with accurate calculation.",
+      "icon": "calculator",
+      "type": "manual",
+      "tags": ["math", "calculation", "ai"],
+      "featured": false
     }
   ]
 }

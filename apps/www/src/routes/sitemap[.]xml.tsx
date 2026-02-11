@@ -29,6 +29,13 @@ export function loader() {
     },
   ];
 
+  const nodesIndexPage = {
+    loc: "/nodes",
+    lastmod: today,
+    changefreq: "weekly",
+    priority: "0.8",
+  };
+
   const categoryPages = categories.categories.map((category) => ({
     loc: `/nodes/${category.id}`,
     lastmod: today,
@@ -45,6 +52,13 @@ export function loader() {
     }))
   );
 
+  const workflowIndexPage = {
+    loc: "/workflows",
+    lastmod: today,
+    changefreq: "weekly",
+    priority: "0.8",
+  };
+
   const workflowPages = workflowsData.workflows.map((workflow) => ({
     loc: `/workflows/${workflow.id}`,
     lastmod: today,
@@ -54,8 +68,10 @@ export function loader() {
 
   const allPages = [
     ...staticPages,
+    nodesIndexPage,
     ...categoryPages,
     ...nodePages,
+    workflowIndexPage,
     ...workflowPages,
   ];
 

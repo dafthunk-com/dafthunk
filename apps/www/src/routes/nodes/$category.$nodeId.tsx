@@ -183,10 +183,10 @@ export default function NodePage({ loaderData }: { loaderData: LoaderData }) {
           </div>
 
           <a
-            href={import.meta.env.VITE_APP_URL}
+            href={`${import.meta.env.VITE_APP_URL}/playground/${node.type}`}
             className="inline-block text-lg bg-black text-white px-8 py-4 rounded-lg hover:bg-gray-800 transition-colors"
           >
-            Use this node
+            Try this node
           </a>
         </div>
 
