@@ -1,10 +1,12 @@
 import type { ExecuteNodeResponse, ParameterValue } from "@dafthunk/types";
 import { DynamicIcon, iconNames } from "lucide-react/dynamic.mjs";
+import CircleHelp from "lucide-react/icons/circle-help";
 import Play from "lucide-react/icons/play";
 import { createElement, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router";
 
 import { useAuth } from "@/components/auth-context";
+import { NodeDocsDialog } from "@/components/docs/node-docs-dialog";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,6 +43,7 @@ export function PlaygroundExecutePage() {
 
   const [inputValues, setInputValues] = useState<Record<string, unknown>>({});
   const [defaultsInitialized, setDefaultsInitialized] = useState(false);
+  const [isDocsOpen, setIsDocsOpen] = useState(false);
   const [isExecuting, setIsExecuting] = useState(false);
   const [result, setResult] = useState<ExecuteNodeResponse | null>(null);
 
@@ -177,6 +180,10 @@ export function PlaygroundExecutePage() {
               </p>
             )}
           </div>
+          <Button variant="outline" onClick={() => setIsDocsOpen(true)}>
+            <CircleHelp className="mr-2 size-4" />
+            Help
+          </Button>
           <Button onClick={handleExecute} disabled={isExecuting}>
             {isExecuting ? (
               <>
@@ -283,6 +290,11 @@ export function PlaygroundExecutePage() {
           )}
         </div>
       </div>
+      <NodeDocsDialog
+        nodeType={selectedNodeType}
+        isOpen={isDocsOpen}
+        onOpenChange={setIsDocsOpen}
+      />
     </InsetLayout>
   );
 }
