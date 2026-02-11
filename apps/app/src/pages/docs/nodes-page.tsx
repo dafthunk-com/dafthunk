@@ -1,3 +1,5 @@
+import { Link } from "react-router";
+
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 
 export function DocsNodesPage() {
@@ -21,6 +23,22 @@ export function DocsNodesPage() {
 
       {/* Content */}
       <div className="prose prose-slate dark:prose-invert max-w-none docs-content space-y-8">
+        <h2 id="explore-nodes">Explore Nodes</h2>
+        <p>
+          The{" "}
+          <Link
+            to="/playground"
+            className="text-primary underline underline-offset-4 hover:text-primary/80"
+          >
+            Playground
+          </Link>{" "}
+          is an interactive environment where you can explore the full node
+          library. Browse nodes by category, search for specific functionality,
+          and see detailed information about each node's inputs, outputs, and
+          parameters. You can also test nodes directly with sample data to
+          understand how they work before adding them to your workflows.
+        </p>
+
         <h2 id="node-anatomy">Anatomy of a Node</h2>
         <p>
           Each node in Dafthunk, regardless of its specific function, shares a

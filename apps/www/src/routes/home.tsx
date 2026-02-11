@@ -201,46 +201,47 @@ export default function Home() {
         </div>
 
         <div className="space-y-24">
-          {workflowsData.workflows.filter((workflow) => workflow.featured).map((workflow) => (
-            <div
-              key={workflow.id}
-              className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16"
-            >
-              <div className="lg:col-span-12 xl:col-span-3">
-                <Link
-                  to={`/workflows/${workflow.id}`}
-                  className="text-4xl font-light text-gray-900 hover:text-black transition-colors"
-                >
-                  {workflow.name}
-                </Link>
-              </div>
-              <div className="lg:col-span-8 xl:col-span-6">
-                <p className="text-xl text-gray-600 leading-relaxed mb-4">
-                  {workflow.description}
-                </p>
-                <Link
-                  to={`/workflows/${workflow.id}`}
-                  className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 hover:border-gray-400 rounded-lg px-4 py-2 transition-colors"
-                >
-                  View workflow &rarr;
-                </Link>
-              </div>
-              <div className="lg:col-span-4 xl:col-span-3">
-                <div className="flex flex-wrap gap-2">
-                  {workflow.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base"
-                    >
-                      {tag}
-                    </span>
-                  ))}
+          {workflowsData.workflows
+            .filter((workflow) => workflow.featured)
+            .map((workflow) => (
+              <div
+                key={workflow.id}
+                className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16"
+              >
+                <div className="lg:col-span-12 xl:col-span-3">
+                  <Link
+                    to={`/workflows/${workflow.id}`}
+                    className="text-4xl font-light text-gray-900 hover:text-black transition-colors"
+                  >
+                    {workflow.name}
+                  </Link>
+                </div>
+                <div className="lg:col-span-8 xl:col-span-6">
+                  <p className="text-xl text-gray-600 leading-relaxed mb-4">
+                    {workflow.description}
+                  </p>
+                  <Link
+                    to={`/workflows/${workflow.id}`}
+                    className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 hover:border-gray-400 rounded-lg px-4 py-2 transition-colors"
+                  >
+                    View workflow &rarr;
+                  </Link>
+                </div>
+                <div className="lg:col-span-4 xl:col-span-3">
+                  <div className="flex flex-wrap gap-2">
+                    {workflow.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
-
       </section>
 
       <section
@@ -268,44 +269,46 @@ export default function Home() {
         </div>
 
         <div className="space-y-24">
-          {categories.categories.filter((category) => category.featured).map((category) => (
-            <div
-              key={category.id}
-              className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16"
-            >
-              <div className="lg:col-span-12 xl:col-span-3">
-                <Link
-                  to={`/nodes/${category.id}`}
-                  className="text-4xl font-light text-gray-900 hover:text-black transition-colors"
-                >
-                  {category.name}
-                </Link>
-              </div>
-              <div className="lg:col-span-8 xl:col-span-6">
-                <p className="text-xl text-gray-600 leading-relaxed mb-4">
-                  {category.description}
-                </p>
-                <Link
-                  to={`/nodes/${category.id}`}
-                  className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 hover:border-gray-400 rounded-lg px-4 py-2 transition-colors"
-                >
-                  View {category.nodeIds.length} nodes &rarr;
-                </Link>
-              </div>
-              <div className="lg:col-span-4 xl:col-span-3">
-                <div className="flex flex-wrap gap-2">
-                  {category.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base"
-                    >
-                      {tag}
-                    </span>
-                  ))}
+          {categories.categories
+            .filter((category) => category.featured)
+            .map((category) => (
+              <div
+                key={category.id}
+                className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16"
+              >
+                <div className="lg:col-span-12 xl:col-span-3">
+                  <Link
+                    to={`/nodes/${category.id}`}
+                    className="text-4xl font-light text-gray-900 hover:text-black transition-colors"
+                  >
+                    {category.name}
+                  </Link>
+                </div>
+                <div className="lg:col-span-8 xl:col-span-6">
+                  <p className="text-xl text-gray-600 leading-relaxed mb-4">
+                    {category.description}
+                  </p>
+                  <Link
+                    to={`/nodes/${category.id}`}
+                    className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 hover:border-gray-400 rounded-lg px-4 py-2 transition-colors"
+                  >
+                    View {category.nodeIds.length} nodes &rarr;
+                  </Link>
+                </div>
+                <div className="lg:col-span-4 xl:col-span-3">
+                  <div className="flex flex-wrap gap-2">
+                    {category.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       </section>
 

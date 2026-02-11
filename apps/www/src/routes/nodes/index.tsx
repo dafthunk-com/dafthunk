@@ -75,8 +75,8 @@ export default function NodesPage() {
             Automation capabilities
           </h1>
           <p className="text-3xl text-gray-500">
-            Workflow nodes across AI, browser automation, data processing, media,
-            and integrations
+            Workflow nodes across AI, browser automation, data processing,
+            media, and integrations
           </p>
         </div>
 

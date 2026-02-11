@@ -1,6 +1,5 @@
 import BookOpen from "lucide-react/icons/book-open";
 import Code from "lucide-react/icons/code";
-import LayoutGrid from "lucide-react/icons/layout-grid";
 import Sparkles from "lucide-react/icons/sparkles";
 import { useEffect } from "react";
 import { useLocation } from "react-router";
@@ -35,15 +34,11 @@ const docsSections: DocsSection[] = [
     href: "/docs/nodes",
     icon: Sparkles,
     subsections: [
+      { title: "Explore Nodes", href: "#explore-nodes" },
       { title: "Anatomy of a Node", href: "#node-anatomy" },
       { title: "Node Categories", href: "#node-categories" },
       { title: "Connecting Nodes", href: "#connecting-nodes" },
     ],
-  },
-  {
-    title: "Node Library",
-    href: "/docs/nodes-library",
-    icon: LayoutGrid,
   },
   {
     title: "API Reference",

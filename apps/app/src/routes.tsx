@@ -39,7 +39,6 @@ import { DeploymentsPage } from "./pages/deployments-page";
 import { DocsApiPage } from "./pages/docs/api-page";
 import { DocsOverviewPage } from "./pages/docs/concepts-page";
 import { DocsDevelopersPage } from "./pages/docs/developers-page";
-import { DocsNodesLibraryPage } from "./pages/docs/nodes-library-page";
 import { DocsNodesPage } from "./pages/docs/nodes-page";
 import { DocsPage } from "./pages/docs-page";
 import { EditorPage } from "./pages/editor-page";
@@ -588,22 +587,6 @@ export const routes: AppRouteObject[] = [
         <HeadSeo
           title="Nodes Reference - Documentation - Dafthunk"
           description="Comprehensive reference for all 50+ node types available in Dafthunk."
-        />
-      ),
-    },
-  },
-  {
-    path: "/docs/nodes-library",
-    element: (
-      <DocsLayout>
-        <DocsNodesLibraryPage />
-      </DocsLayout>
-    ),
-    handle: {
-      head: (
-        <HeadSeo
-          title="Node Library - Documentation - Dafthunk"
-          description="Browse and search all available nodes in Dafthunk's extensive library."
         />
       ),
     },
