@@ -1,8 +1,5 @@
-import type { NodeExecution, NodeType } from "@dafthunk/types";
-
-import { createDatabase, getDatabase } from "../../db";
 import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
-import { DatabaseStore } from "../../stores/database-store";
+import type { NodeExecution, NodeType } from "@dafthunk/types";
 
 export class DatabaseListTablesNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -42,25 +39,23 @@ export class DatabaseListTablesNode extends ExecutableNode {
     }
 
     try {
-      // Get database from D1 to verify it exists and belongs to the organization
-      const db = createDatabase(context.env.DB);
-      const database = await getDatabase(
-        db,
+      if (!context.databaseService) {
+        return this.createErrorResult("Database service not available.");
+      }
+
+      const connection = await context.databaseService.resolve(
         databaseIdOrHandle,
         context.organizationId
       );
 
-      if (!database) {
+      if (!connection) {
         return this.createErrorResult(
           `Database '${databaseIdOrHandle}' not found or does not belong to your organization.`
         );
       }
 
-      const databaseStore = new DatabaseStore(context.env);
-
       // Query sqlite_master for all tables
-      const result = await databaseStore.query(
-        database.handle,
+      const result = await connection.query(
         "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
       );
 

@@ -1,7 +1,6 @@
+import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
 import { NodeExecution, NodeType } from "@dafthunk/types";
 import { fromUrl } from "geotiff";
-
-import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
 
 export class GeoTiffMetadataReaderNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

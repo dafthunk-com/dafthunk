@@ -1,9 +1,8 @@
 import { env } from "cloudflare:test";
+import { NodeContext } from "@dafthunk/runtime";
 import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
-
 import { testPdfData } from "../../../test/fixtures/pdf-fixtures";
-import { NodeContext } from "@dafthunk/runtime";
 import { ToMarkdownNode } from "./to-markdown-node";
 
 describe("ToMarkdownNode", () => {

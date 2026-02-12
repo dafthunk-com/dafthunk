@@ -1,6 +1,5 @@
-import type { NodeExecution, NodeType, Table } from "@dafthunk/types";
-
 import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
+import type { NodeExecution, NodeType, Table } from "@dafthunk/types";
 
 type FilterOperator =
   | "equals"

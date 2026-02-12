@@ -1,6 +1,5 @@
-import { describe, expect, it } from "vitest";
-
 import { NodeContext } from "@dafthunk/runtime";
+import { describe, expect, it } from "vitest";
 import { DemToGltfNode } from "./dem-to-gltf-node";
 
 // Helper to create mock NodeContext

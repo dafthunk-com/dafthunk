@@ -1,6 +1,6 @@
+import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
 import { NodeExecution, NodeType } from "@dafthunk/types";
 import { rhumbDestination } from "@turf/turf";
-import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
 
 export class RhumbDestinationNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

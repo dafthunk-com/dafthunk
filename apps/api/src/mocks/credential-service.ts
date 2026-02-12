@@ -5,10 +5,14 @@
  * Provides empty secrets and integrations for testing workflows that don't need them.
  */
 
+import type {
+  CredentialService,
+  DatabaseService,
+  NodeContext,
+  WorkflowExecutionContext,
+} from "@dafthunk/runtime";
 import type { Bindings } from "../context";
 import type { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
-import type { CredentialService } from "@dafthunk/runtime";
-import type { WorkflowExecutionContext, NodeContext } from "@dafthunk/runtime";
 
 /**
  * Minimal mock that avoids database access
@@ -16,7 +20,8 @@ import type { WorkflowExecutionContext, NodeContext } from "@dafthunk/runtime";
 export class MockCredentialService implements CredentialService {
   constructor(
     private env: Bindings,
-    private toolRegistry: CloudflareToolRegistry
+    private toolRegistry: CloudflareToolRegistry,
+    private databaseService?: DatabaseService
   ) {}
 
   /**
@@ -57,6 +62,7 @@ export class MockCredentialService implements CredentialService {
       scheduledTrigger,
       onProgress: () => {},
       toolRegistry: this.toolRegistry,
+      databaseService: this.databaseService,
       getSecret: async (_secretName: string) => {
         return undefined;
       },

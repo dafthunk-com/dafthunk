@@ -1,8 +1,7 @@
+import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
 import { NodeExecution, NodeType } from "@dafthunk/types";
 import { Brush, Evaluator, INTERSECTION } from "three-bvh-csg";
 import { z } from "zod";
-
-import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
 import { brushToGLTF, extractBrushStats, glTFToBrush } from "./csg-utils";
 
 interface CSGOperationResult {

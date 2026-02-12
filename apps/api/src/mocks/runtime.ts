@@ -36,16 +36,16 @@ import {
   WorkflowStep,
   WorkflowStepConfig,
 } from "cloudflare:workers";
-import type { WorkflowExecution } from "@dafthunk/types";
-
-import type { Bindings } from "../context";
 import {
   Runtime,
   type RuntimeDependencies,
   type RuntimeParams,
 } from "@dafthunk/runtime";
+import type { WorkflowExecution } from "@dafthunk/types";
+import type { Bindings } from "../context";
 import { CloudflareObjectStore } from "../runtime/object-store";
 import { MockCredentialService } from "./credential-service";
+import { MockDatabaseService } from "./database-service";
 import { MockExecutionStore } from "./execution-store";
 import { MockMonitoringService } from "./monitoring-service";
 import { MockNodeRegistry } from "./node-registry";
@@ -129,7 +129,12 @@ class MockWorkflowEntrypoint extends WorkflowEntrypoint<
     );
 
     // Create MockCredentialService with test tool registry (no database access)
-    credentialProvider = new MockCredentialService(env, toolRegistry);
+    const databaseService = new MockDatabaseService();
+    credentialProvider = new MockCredentialService(
+      env,
+      toolRegistry,
+      databaseService
+    );
 
     // Create test-friendly dependencies
     const dependencies: RuntimeDependencies<Bindings> = {
@@ -142,6 +147,7 @@ class MockWorkflowEntrypoint extends WorkflowEntrypoint<
         recordUsage: async () => {},
       },
       objectStore: new CloudflareObjectStore(env.RESSOURCES),
+      databaseService,
     };
 
     // Create runtime with dependencies

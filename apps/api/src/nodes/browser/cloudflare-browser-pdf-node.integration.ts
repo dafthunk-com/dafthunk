@@ -1,8 +1,7 @@
 import { env } from "cloudflare:test";
+import { NodeContext } from "@dafthunk/runtime";
 import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
-
-import { NodeContext } from "@dafthunk/runtime";
 import { CloudflareBrowserPdfNode } from "./cloudflare-browser-pdf-node";
 
 describe("CloudflareBrowserPdfNode", () => {

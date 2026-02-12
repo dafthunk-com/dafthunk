@@ -1,11 +1,10 @@
+import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
 import type {
   NodeExecution,
   NodeType,
   Table,
   TableField,
 } from "@dafthunk/types";
-
-import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
 
 export class DatabaseBuildTableNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

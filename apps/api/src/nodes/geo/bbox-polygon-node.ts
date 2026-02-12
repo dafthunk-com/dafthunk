@@ -1,6 +1,6 @@
+import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
 import { NodeExecution, NodeType } from "@dafthunk/types";
 import { bboxPolygon } from "@turf/turf";
-import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
 
 export class BboxPolygonNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

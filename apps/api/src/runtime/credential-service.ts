@@ -1,5 +1,6 @@
 import type {
   CredentialService,
+  DatabaseService,
   IntegrationData,
   NodeContext,
   WorkflowExecutionContext,
@@ -31,7 +32,8 @@ export class CloudflareCredentialService implements CredentialService {
 
   constructor(
     private env: Bindings,
-    private toolRegistry: CloudflareToolRegistry
+    private toolRegistry: CloudflareToolRegistry,
+    private databaseService?: DatabaseService
   ) {}
 
   /**
@@ -184,6 +186,7 @@ export class CloudflareCredentialService implements CredentialService {
       onProgress: () => {},
       toolRegistry: this.toolRegistry,
       objectStore,
+      databaseService: this.databaseService,
       // Callback-based access to secrets (lazy, secure)
       getSecret: async (secretName: string) => {
         return this.secrets?.[secretName];

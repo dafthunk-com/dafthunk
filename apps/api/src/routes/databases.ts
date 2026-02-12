@@ -25,7 +25,7 @@ import {
   getDatabases,
   updateDatabaseRecord,
 } from "../db";
-import { DatabaseStore } from "../stores/database-store";
+import { CloudflareDatabaseService } from "../runtime/database-service";
 import { getAuthContext } from "../utils/auth-context";
 
 // Extend the ApiContext with our custom variable
@@ -198,14 +198,17 @@ databaseRoutes.post(
   async (c) => {
     const databaseIdOrHandle = c.req.param("databaseIdOrHandle");
     const { sql, params } = c.req.valid("json");
-    const db = createDatabase(c.env.DB);
 
     // Get auth context from either JWT or API key
     const { organizationId } = getAuthContext(c);
 
-    // Verify database exists and belongs to organization
-    const database = await getDatabase(db, databaseIdOrHandle, organizationId);
-    if (!database) {
+    // Resolve database via service (verifies ownership)
+    const databaseService = new CloudflareDatabaseService(c.env);
+    const connection = await databaseService.resolve(
+      databaseIdOrHandle,
+      organizationId
+    );
+    if (!connection) {
       return c.json(
         { error: "Database not found or does not belong to your organization" },
         404
@@ -213,8 +216,7 @@ databaseRoutes.post(
     }
 
     try {
-      const databaseStore = new DatabaseStore(c.env);
-      const result = await databaseStore.query(database.handle, sql, params);
+      const result = await connection.query(sql, params);
 
       const response: DatabaseQueryResponse = result;
       return c.json(response);

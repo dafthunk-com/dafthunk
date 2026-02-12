@@ -4,12 +4,12 @@ import type {
 } from "@dafthunk/types";
 import {
   isObjectReference,
-  AudioParameter as NodeAudioParameter,
-  BlobParameter as NodeBlobParameter,
-  DocumentParameter as NodeDocumentParameter,
-  GltfParameter as NodeGltfParameter,
-  ImageParameter as NodeImageParameter,
-  ParameterValue as NodeParameterValue,
+  type AudioParameter as NodeAudioParameter,
+  type BlobParameter as NodeBlobParameter,
+  type DocumentParameter as NodeDocumentParameter,
+  type GltfParameter as NodeGltfParameter,
+  type ImageParameter as NodeImageParameter,
+  type ParameterValue as NodeParameterValue,
 } from "./node-types";
 import type { ObjectStore } from "./object-store";
 

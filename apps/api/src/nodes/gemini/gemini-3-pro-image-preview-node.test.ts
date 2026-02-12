@@ -1,7 +1,6 @@
+import { NodeContext } from "@dafthunk/runtime";
 import { Node } from "@dafthunk/types";
 import { describe, expect, it, vi } from "vitest";
-
-import { NodeContext } from "@dafthunk/runtime";
 import { Gemini3ProImagePreviewNode } from "./gemini-3-pro-image-preview-node";
 
 describe("Gemini3ProImagePreviewNode", () => {

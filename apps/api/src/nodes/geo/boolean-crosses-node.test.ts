@@ -1,7 +1,6 @@
+import { NodeContext } from "@dafthunk/runtime";
 import { booleanCrosses } from "@turf/turf";
 import { describe, expect, it } from "vitest";
-
-import { NodeContext } from "@dafthunk/runtime";
 import { BooleanCrossesNode } from "./boolean-crosses-node";
 
 describe("BooleanCrossesNode", () => {

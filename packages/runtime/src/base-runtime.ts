@@ -7,9 +7,10 @@ import type {
   WorkflowExecution,
 } from "@dafthunk/types";
 
-import { BaseNodeRegistry } from "./base-node-registry";
+import type { BaseNodeRegistry } from "./base-node-registry";
 import type { CredentialService } from "./credential-service";
 import type { CreditService } from "./credit-service";
+import type { DatabaseService } from "./database-service";
 import {
   nodeNotFoundMessage,
   nodeTypeNotImplementedMessage,
@@ -32,8 +33,7 @@ import type {
   WorkflowExecutionContext,
 } from "./execution-types";
 import type { MonitoringService } from "./monitoring-service";
-import type { EmailMessage, HttpRequest } from "./node-types";
-import { ExecutableNode } from "./node-types";
+import type { EmailMessage, ExecutableNode, HttpRequest } from "./node-types";
 import type { ObjectStore } from "./object-store";
 import { apiToNodeParameter, nodeToApiParameter } from "./parameter-mapper";
 import { validateWorkflow } from "./validate-workflow";
@@ -67,6 +67,7 @@ export interface RuntimeDependencies<Env = unknown> {
   monitoringService: MonitoringService;
   creditService: CreditService;
   objectStore: ObjectStore;
+  databaseService?: DatabaseService;
 }
 
 /**
@@ -94,6 +95,7 @@ export abstract class Runtime<Env = unknown> {
   protected monitoringService: MonitoringService;
   protected creditService: CreditService;
   protected objectStore: ObjectStore;
+  protected databaseService?: DatabaseService;
   protected env: Env;
   protected userPlan?: string;
 
@@ -105,6 +107,7 @@ export abstract class Runtime<Env = unknown> {
     this.monitoringService = dependencies.monitoringService;
     this.creditService = dependencies.creditService;
     this.objectStore = dependencies.objectStore;
+    this.databaseService = dependencies.databaseService;
   }
 
   /**
@@ -543,7 +546,6 @@ export abstract class Runtime<Env = unknown> {
           const sourceOutputs = state.nodeOutputs[edge.source];
           if (sourceOutputs && !(edge.sourceOutput in sourceOutputs)) {
             unavailableCount++;
-            continue;
           }
         }
       }

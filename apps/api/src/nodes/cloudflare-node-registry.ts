@@ -19,8 +19,8 @@
 // import { GeoTiffTransformNode } from "./3d/geotiff-transform-node";
 // import { GltfWireframeNode } from "./3d/gltf-wireframe-node";
 
-import type { Bindings } from "../context";
 import { BaseNodeRegistry } from "@dafthunk/runtime";
+import type { Bindings } from "../context";
 import { TrellisNode } from "./3d/trellis-node";
 import { Trellis2Node } from "./3d/trellis2-node";
 import { Claude3OpusNode } from "./anthropic/claude-3-opus-node";

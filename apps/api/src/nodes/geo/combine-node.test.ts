@@ -1,7 +1,6 @@
+import { NodeContext } from "@dafthunk/runtime";
 import { combine } from "@turf/turf";
 import { describe, expect, it } from "vitest";
-
-import { NodeContext } from "@dafthunk/runtime";
 import { CombineNode } from "./combine-node";
 
 describe("CombineNode", () => {

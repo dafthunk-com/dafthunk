@@ -1,9 +1,8 @@
+import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
 import { NodeExecution, NodeType } from "@dafthunk/types";
 import { BoxGeometry } from "three";
 import { Brush } from "three-bvh-csg";
 import { z } from "zod";
-
-import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
 import { brushToGLTF, extractBrushStats } from "./csg-utils";
 
 /**

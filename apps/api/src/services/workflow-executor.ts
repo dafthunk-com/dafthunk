@@ -5,10 +5,9 @@
  * Handles parameter processing, execution creation, and persistence.
  */
 
-import type { Node, WorkflowExecution, WorkflowRuntime } from "@dafthunk/types";
-
-import type { Bindings } from "../context";
 import type { BlobParameter } from "@dafthunk/runtime";
+import type { Node, WorkflowExecution, WorkflowRuntime } from "@dafthunk/types";
+import type { Bindings } from "../context";
 import { createWorkerRuntime } from "../runtime/worker-runtime";
 import { createSimulatedEmailMessage } from "../utils/email";
 import { createSimulatedHttpRequest } from "../utils/http";

@@ -1,8 +1,5 @@
-import { NodeExecution, NodeType } from "@dafthunk/types";
-
-import { createDatabase, getDatabase } from "../../db";
 import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
-import { DatabaseStore } from "../../stores/database-store";
+import type { NodeExecution, NodeType } from "@dafthunk/types";
 
 export class DatabaseExecuteNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -76,28 +73,23 @@ export class DatabaseExecuteNode extends ExecutableNode {
     }
 
     try {
-      // Get database from D1 to verify it exists and belongs to the organization
-      const db = createDatabase(context.env.DB);
-      const database = await getDatabase(
-        db,
+      if (!context.databaseService) {
+        return this.createErrorResult("Database service not available.");
+      }
+
+      const connection = await context.databaseService.resolve(
         databaseIdOrHandle,
         context.organizationId
       );
 
-      if (!database) {
+      if (!connection) {
         return this.createErrorResult(
           `Database '${databaseIdOrHandle}' not found or does not belong to your organization.`
         );
       }
 
-      // Execute command via Durable Object
-      const databaseStore = new DatabaseStore(context.env);
       const queryParams = Array.isArray(params) ? params : [];
-      const result = await databaseStore.execute(
-        database.handle,
-        sql,
-        queryParams
-      );
+      const result = await connection.execute(sql, queryParams);
 
       return this.createSuccessResult({
         success: true,

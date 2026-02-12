@@ -1,6 +1,5 @@
-import { describe, expect, it } from "vitest";
-
 import { NodeContext } from "@dafthunk/runtime";
+import { describe, expect, it } from "vitest";
 import { LineSliceAlongNode } from "./line-slice-along-node";
 
 describe("LineSliceAlongNode", () => {

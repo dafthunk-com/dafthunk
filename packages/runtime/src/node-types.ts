@@ -9,7 +9,8 @@ import type {
   ScheduledTrigger,
   WorkflowMode,
 } from "@dafthunk/types";
-import { BaseToolRegistry } from "./base-tool-registry";
+import type { BaseToolRegistry } from "./base-tool-registry";
+import type { DatabaseService } from "./database-service";
 import type { ObjectStore } from "./object-store";
 import type { ToolDefinition, ToolReference } from "./tool-types";
 
@@ -215,6 +216,7 @@ export interface NodeContext {
   scheduledTrigger?: ScheduledTrigger;
   toolRegistry?: BaseToolRegistry;
   objectStore?: ObjectStore;
+  databaseService?: DatabaseService;
   // Callback-based access to sensitive data (improves security and isolation)
   getSecret?: (secretName: string) => Promise<string | undefined>;
   getIntegration: (integrationId: string) => Promise<IntegrationInfo>;
@@ -247,7 +249,7 @@ export abstract class ExecutableNode {
    * Creates a Node definition from this class's nodeType
    */
   static create(options: CreateNodeOptions): Node {
-    const nodeType = this.nodeType;
+    const nodeType = ExecutableNode.nodeType;
 
     const inputs = nodeType.inputs.map((input) => {
       const override = options.inputs?.[input.name];

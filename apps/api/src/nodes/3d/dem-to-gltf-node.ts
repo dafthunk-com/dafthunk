@@ -1,4 +1,5 @@
 import { decode } from "@cf-wasm/png";
+import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
 import { NodeExecution, NodeType } from "@dafthunk/types";
 import {
   Accessor,
@@ -10,8 +11,6 @@ import {
 // @ts-ignore – no types available
 import Martini from "@mapbox/martini";
 import { z } from "zod";
-
-import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
 
 export class DemToGltfNode extends ExecutableNode {
   private static readonly elevationDataShape = {

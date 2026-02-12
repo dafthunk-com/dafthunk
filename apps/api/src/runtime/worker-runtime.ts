@@ -18,6 +18,7 @@ import { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
 import { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
 import { CloudflareCredentialService } from "./credential-service";
 import { CloudflareCreditService } from "./credit-service";
+import { CloudflareDatabaseService } from "./database-service";
 import { CloudflareExecutionStore } from "./execution-store";
 import { CloudflareMonitoringService } from "./monitoring-service";
 import { CloudflareObjectStore } from "./object-store";
@@ -37,7 +38,8 @@ export function createWorkerRuntime(env: Bindings): WorkerRuntime<Bindings> {
     (nodeId: string, inputs: Record<string, unknown>) =>
       credentialProvider.createToolContext(nodeId, inputs)
   );
-  credentialProvider = new CloudflareCredentialService(env, toolRegistry);
+  const databaseService = new CloudflareDatabaseService(env);
+  credentialProvider = new CloudflareCredentialService(env, toolRegistry, databaseService);
 
   const dependencies: RuntimeDependencies<Bindings> = {
     nodeRegistry,
@@ -49,6 +51,7 @@ export function createWorkerRuntime(env: Bindings): WorkerRuntime<Bindings> {
       env.CLOUDFLARE_ENV === "development"
     ),
     objectStore: new CloudflareObjectStore(env.RESSOURCES),
+    databaseService,
   };
 
   return new WorkerRuntime(env, dependencies);

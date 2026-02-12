@@ -1,5 +1,5 @@
-import { NodeExecution, NodeType } from "@dafthunk/types";
 import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
+import { NodeExecution, NodeType } from "@dafthunk/types";
 
 /**
  * Extract Item node implementation that extracts a single item from a repeated input

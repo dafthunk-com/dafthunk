@@ -1,8 +1,5 @@
-import type { NodeExecution, NodeType, Table } from "@dafthunk/types";
-
-import { createDatabase, getDatabase } from "../../db";
 import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
-import { DatabaseStore } from "../../stores/database-store";
+import type { NodeExecution, NodeType, Table } from "@dafthunk/types";
 import {
   generateCheckTableExistsSQL,
   generateCreateTableSQL,
@@ -102,26 +99,24 @@ export class DatabaseImportTableNode extends ExecutableNode {
     }
 
     try {
-      // Get database from D1 to verify it exists and belongs to the organization
-      const db = createDatabase(context.env.DB);
-      const database = await getDatabase(
-        db,
+      if (!context.databaseService) {
+        return this.createErrorResult("Database service not available.");
+      }
+
+      const connection = await context.databaseService.resolve(
         databaseIdOrHandle,
         context.organizationId
       );
 
-      if (!database) {
+      if (!connection) {
         return this.createErrorResult(
           `Database '${databaseIdOrHandle}' not found or does not belong to your organization.`
         );
       }
 
-      const databaseStore = new DatabaseStore(context.env);
-
       // Check if table exists
       const checkTableSQL = generateCheckTableExistsSQL(table.name);
-      const checkResult = await databaseStore.query(
-        database.handle,
+      const checkResult = await connection.query(
         checkTableSQL.sql,
         checkTableSQL.params
       );
@@ -131,16 +126,13 @@ export class DatabaseImportTableNode extends ExecutableNode {
 
       // Handle replace mode: drop existing table
       if (importMode === "replace" && tableExists) {
-        await databaseStore.execute(
-          database.handle,
-          `DROP TABLE ${table.name}`
-        );
+        await connection.execute(`DROP TABLE ${table.name}`);
       }
 
       // Create table if it doesn't exist or was dropped
       if (!tableExists || importMode === "replace") {
         const createTableSQL = generateCreateTableSQL(table);
-        await databaseStore.execute(database.handle, createTableSQL);
+        await connection.execute(createTableSQL);
         tableCreated = !tableExists; // Only true if table didn't exist before
       }
 
@@ -151,11 +143,7 @@ export class DatabaseImportTableNode extends ExecutableNode {
 
         // Insert each row
         for (const rowParams of params) {
-          const result = await databaseStore.execute(
-            database.handle,
-            sql,
-            rowParams
-          );
+          const result = await connection.execute(sql, rowParams);
           rowsInserted += result.meta?.rowsAffected ?? 0;
         }
       }

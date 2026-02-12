@@ -1,11 +1,10 @@
-import { NodeExecution, NodeType } from "@dafthunk/types";
-
 import {
   BlobParameter,
   ExecutableNode,
   NodeContext,
   ParameterValue,
 } from "@dafthunk/runtime";
+import { NodeExecution, NodeType } from "@dafthunk/types";
 
 export class FetchNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

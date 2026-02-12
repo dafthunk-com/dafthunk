@@ -1,7 +1,7 @@
-import { NodeType, Parameter } from "@dafthunk/types";
-import { BaseNodeRegistry } from "./base-node-registry";
-import { NodeContext } from "./node-types";
-import {
+import type { NodeType, Parameter } from "@dafthunk/types";
+import type { BaseNodeRegistry } from "./base-node-registry";
+import type { NodeContext } from "./node-types";
+import type {
   JSONSchema,
   ToolDefinition,
   ToolProvider,

@@ -1,6 +1,5 @@
-import { describe, expect, it } from "vitest";
-
 import { NodeContext } from "@dafthunk/runtime";
+import { describe, expect, it } from "vitest";
 import { BooleanPointInPolygonNode } from "./boolean-point-in-polygon-node";
 
 describe("BooleanPointInPolygonNode", () => {

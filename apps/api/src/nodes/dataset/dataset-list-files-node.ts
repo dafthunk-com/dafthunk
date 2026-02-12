@@ -1,7 +1,6 @@
-import { NodeExecution, NodeType } from "@dafthunk/types";
-
-import { createDatabase, getDataset } from "../../db";
 import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
+import { NodeExecution, NodeType } from "@dafthunk/types";
+import { createDatabase, getDataset } from "../../db";
 
 /**
  * Dataset List Files node implementation

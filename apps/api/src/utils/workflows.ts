@@ -1,9 +1,9 @@
 // Re-export validation functions from @dafthunk/runtime
 export {
-  validateWorkflow,
   detectCycles,
-  validateTypeCompatibility,
   type ValidationError,
+  validateTypeCompatibility,
+  validateWorkflow,
 } from "@dafthunk/runtime";
 
 /**

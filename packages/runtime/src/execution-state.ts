@@ -139,7 +139,6 @@ export function inferSkipReason(
       const sourceOutputs = state.nodeOutputs[edge.source];
       if (sourceOutputs && !(edge.sourceOutput in sourceOutputs)) {
         conditionalBlockers.push(edge.source);
-        continue;
       }
     }
 

@@ -1,6 +1,6 @@
 import type { Node, NodeType, WorkflowTrigger } from "@dafthunk/types";
 
-import { ExecutableNode } from "./node-types";
+import type { ExecutableNode } from "./node-types";
 
 export interface NodeImplementationConstructor<Env = unknown> {
   new (node: Node, env?: Env): ExecutableNode;

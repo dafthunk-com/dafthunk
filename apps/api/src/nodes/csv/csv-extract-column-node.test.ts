@@ -1,7 +1,6 @@
+import { NodeContext } from "@dafthunk/runtime";
 import { Node, Table } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
-
-import { NodeContext } from "@dafthunk/runtime";
 import { CsvExtractColumnNode } from "./csv-extract-column-node";
 
 describe("CsvExtractColumnNode", () => {

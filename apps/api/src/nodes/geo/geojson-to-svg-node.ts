@@ -1,6 +1,6 @@
+import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
 import { NodeExecution, NodeType } from "@dafthunk/types";
 import { type GeoJSONSvgOptions, geojsonToSvg } from "@dafthunk/utils";
-import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
 
 export class GeoJsonToSvgNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

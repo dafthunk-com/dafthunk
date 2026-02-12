@@ -1,6 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import { NodeContext } from "@dafthunk/runtime";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { BooleanDisjointNode } from "./boolean-disjoint-node";
 
 // Mock the Turf.js booleanDisjoint function

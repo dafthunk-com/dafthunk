@@ -1,7 +1,6 @@
+import { BlobParameter, NodeContext } from "@dafthunk/runtime";
 import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
-
-import { BlobParameter, NodeContext } from "@dafthunk/runtime";
 import { BlobToTextNode } from "./blob-to-text-node";
 
 describe("BlobToTextNode", () => {

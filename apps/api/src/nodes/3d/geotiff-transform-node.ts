@@ -1,6 +1,5 @@
-import { NodeExecution, NodeType } from "@dafthunk/types";
-
 import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
+import { NodeExecution, NodeType } from "@dafthunk/types";
 
 // Import projection utilities from 3dtiles package
 // These will need to be available in the API context

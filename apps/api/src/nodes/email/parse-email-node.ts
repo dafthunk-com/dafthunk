@@ -1,7 +1,6 @@
+import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
 import { NodeExecution, NodeType } from "@dafthunk/types";
 import { ParsedMail, simpleParser } from "mailparser";
-
-import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
 
 // Helper to ensure addresses are in the expected format
 const formatAddresses = (addresses: any) => {

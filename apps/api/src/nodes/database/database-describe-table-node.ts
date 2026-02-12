@@ -1,8 +1,5 @@
-import type { NodeExecution, NodeType, TableField } from "@dafthunk/types";
-
-import { createDatabase, getDatabase } from "../../db";
 import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
-import { DatabaseStore } from "../../stores/database-store";
+import type { NodeExecution, NodeType, TableField } from "@dafthunk/types";
 import { mapSqliteToType } from "../../utils/database-table";
 
 export class DatabaseDescribeTableNode extends ExecutableNode {
@@ -56,25 +53,23 @@ export class DatabaseDescribeTableNode extends ExecutableNode {
     }
 
     try {
-      // Get database from D1 to verify it exists and belongs to the organization
-      const db = createDatabase(context.env.DB);
-      const database = await getDatabase(
-        db,
+      if (!context.databaseService) {
+        return this.createErrorResult("Database service not available.");
+      }
+
+      const connection = await context.databaseService.resolve(
         databaseIdOrHandle,
         context.organizationId
       );
 
-      if (!database) {
+      if (!connection) {
         return this.createErrorResult(
           `Database '${databaseIdOrHandle}' not found or does not belong to your organization.`
         );
       }
 
-      const databaseStore = new DatabaseStore(context.env);
-
       // Use PRAGMA table_info to get schema information
-      const schemaResult = await databaseStore.query(
-        database.handle,
+      const schemaResult = await connection.query(
         `PRAGMA table_info(${tableName})`
       );
 

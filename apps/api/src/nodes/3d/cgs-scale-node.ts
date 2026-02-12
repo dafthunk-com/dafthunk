@@ -1,7 +1,6 @@
+import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
 import { NodeExecution, NodeType } from "@dafthunk/types";
 import { z } from "zod";
-
-import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
 import { brushToGLTF, extractBrushStats, glTFToBrush } from "./csg-utils";
 
 export class CgsScaleNode extends ExecutableNode {

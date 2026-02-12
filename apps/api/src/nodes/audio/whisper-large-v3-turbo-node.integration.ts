@@ -1,9 +1,8 @@
 import { env } from "cloudflare:test";
+import { NodeContext } from "@dafthunk/runtime";
 import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
-
 import { testAudioData } from "../../../test/fixtures/audio-fixtures";
-import { NodeContext } from "@dafthunk/runtime";
 import { WhisperLargeV3TurboNode } from "./whisper-large-v3-turbo-node";
 
 describe("WhisperLargeV3TurboNode", () => {
