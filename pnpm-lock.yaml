@@ -42,6 +42,9 @@ importers:
       '@cloudflare/ai-utils':
         specifier: ^1.0.1
         version: 1.0.1
+      '@dafthunk/runtime':
+        specifier: workspace:*
+        version: link:../../packages/runtime
       '@dafthunk/types':
         specifier: workspace:*
         version: link:../../packages/types
@@ -411,6 +414,25 @@ importers:
       wrangler:
         specifier: ^4.59.2
         version: 4.59.2(@cloudflare/workers-types@4.20260116.0)
+
+  packages/runtime:
+    dependencies:
+      '@dafthunk/types':
+        specifier: workspace:*
+        version: link:../types
+      uuid:
+        specifier: ^13.0.0
+        version: 13.0.0
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20260116.0
+        version: 4.20260116.0
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.4(@types/debug@4.1.12)(@types/node@22.19.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.2)
 
   packages/types:
     devDependencies:

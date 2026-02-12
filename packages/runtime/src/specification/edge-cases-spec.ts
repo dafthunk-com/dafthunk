@@ -1,8 +1,6 @@
-import { env } from "cloudflare:test";
 import type { Workflow } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
-import type { Bindings } from "../../context";
 import { createInstanceId, createParams, type RuntimeFactory } from "./helpers";
 
 /**
@@ -37,7 +35,7 @@ export function testEdgeCases(
       };
 
       const instanceId = createInstanceId("optional-inputs");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
 
       // Execute workflow
       const execution = await runtime.run(createParams(workflow), instanceId);
@@ -96,7 +94,7 @@ export function testEdgeCases(
       };
 
       const instanceId = createInstanceId("deep-chain");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
 
       // Execute workflow
       const execution = await runtime.run(createParams(workflow), instanceId);
@@ -175,7 +173,7 @@ export function testEdgeCases(
       };
 
       const instanceId = createInstanceId("wide-parallel");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
 
       // Execute workflow
       const execution = await runtime.run(createParams(workflow), instanceId);

@@ -1,7 +1,7 @@
 import { NodeExecution, NodeType, QueueMessage } from "@dafthunk/types";
 
 import { createDatabase, getQueue } from "../../db";
-import { ExecutableNode, NodeContext } from "../../runtime/node-types";
+import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
 
 export class SendQueueBatchNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

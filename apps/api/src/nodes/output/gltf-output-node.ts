@@ -3,7 +3,7 @@ import {
   ExecutableNode,
   GltfParameter,
   NodeContext,
-} from "../../runtime/node-types";
+} from "@dafthunk/runtime";
 
 /**
  * GltfOutput node implementation

@@ -5,7 +5,7 @@ import {
   ExecutableNode,
   ImageParameter,
   NodeContext,
-} from "../../runtime/node-types";
+} from "@dafthunk/runtime";
 
 /**
  * This node renders SVG content to PNG using the Resvg library.

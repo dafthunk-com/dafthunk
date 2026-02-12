@@ -1,7 +1,7 @@
 import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
-import { NodeContext } from "../../runtime/node-types";
+import { NodeContext } from "@dafthunk/runtime";
 import { StringIncludesNode } from "./string-includes-node";
 
 describe("StringIncludesNode", () => {

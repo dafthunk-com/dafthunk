@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { NodeContext } from "../../runtime/node-types";
+import { NodeContext } from "@dafthunk/runtime";
 import { TransformTranslateNode } from "./transform-translate-node";
 
 describe("TransformTranslateNode", () => {

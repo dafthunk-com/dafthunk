@@ -7,8 +7,6 @@ import type {
   WorkflowExecution,
 } from "@dafthunk/types";
 
-import { Bindings } from "../context";
-import { validateWorkflow } from "../utils/workflows";
 import { BaseNodeRegistry } from "./base-node-registry";
 import type { CredentialService } from "./credential-service";
 import type { CreditService } from "./credit-service";
@@ -34,9 +32,11 @@ import type {
   WorkflowExecutionContext,
 } from "./execution-types";
 import type { MonitoringService } from "./monitoring-service";
-import { EmailMessage, ExecutableNode, HttpRequest } from "./node-types";
+import type { EmailMessage, HttpRequest } from "./node-types";
+import { ExecutableNode } from "./node-types";
 import type { ObjectStore } from "./object-store";
 import { apiToNodeParameter, nodeToApiParameter } from "./parameter-mapper";
+import { validateWorkflow } from "./validate-workflow";
 
 export interface RuntimeParams {
   readonly workflow: Workflow;
@@ -58,10 +58,10 @@ export interface RuntimeParams {
 /**
  * Injectable dependencies for Runtime.
  * All dependencies are required — concrete wiring happens in factory methods
- * (e.g. WorkflowRuntime.create(), WorkerRuntime.create()).
+ * (e.g. createWorkflowRuntime(), createWorkerRuntime()).
  */
-export interface RuntimeDependencies {
-  nodeRegistry: BaseNodeRegistry;
+export interface RuntimeDependencies<Env = unknown> {
+  nodeRegistry: BaseNodeRegistry<Env>;
   credentialProvider: CredentialService;
   executionStore: ExecutionStore;
   monitoringService: MonitoringService;
@@ -87,17 +87,17 @@ export interface RuntimeDependencies {
  * - executionStore: Persists workflow execution state
  * - monitoringService: Sends real-time execution updates
  */
-export abstract class Runtime {
-  protected nodeRegistry: BaseNodeRegistry;
+export abstract class Runtime<Env = unknown> {
+  protected nodeRegistry: BaseNodeRegistry<Env>;
   protected credentialProvider: CredentialService;
   protected executionStore: ExecutionStore;
   protected monitoringService: MonitoringService;
   protected creditService: CreditService;
   protected objectStore: ObjectStore;
-  protected env: Bindings;
+  protected env: Env;
   protected userPlan?: string;
 
-  constructor(env: Bindings, dependencies: RuntimeDependencies) {
+  constructor(env: Env, dependencies: RuntimeDependencies<Env>) {
     this.env = env;
     this.nodeRegistry = dependencies.nodeRegistry;
     this.credentialProvider = dependencies.credentialProvider;

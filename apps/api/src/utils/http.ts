@@ -1,4 +1,4 @@
-import { BlobParameter, HttpRequest } from "../runtime/node-types";
+import { BlobParameter, HttpRequest } from "@dafthunk/runtime";
 
 export interface SimulateHttpRequestParams {
   url?: string;

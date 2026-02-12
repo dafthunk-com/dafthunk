@@ -2,7 +2,7 @@ import { env } from "cloudflare:test";
 import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
-import { NodeContext } from "../../runtime/node-types";
+import { NodeContext } from "@dafthunk/runtime";
 import { DistilbertSst2Int8Node } from "./distilbert-sst-2-int8-node";
 
 describe("DistilbertSst2Int8Node", () => {

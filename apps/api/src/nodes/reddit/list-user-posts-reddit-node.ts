@@ -1,6 +1,6 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
-import { ExecutableNode, NodeContext } from "../../runtime/node-types";
+import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
 
 /**
  * Reddit List User Posts node implementation

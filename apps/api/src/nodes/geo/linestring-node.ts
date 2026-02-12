@@ -1,6 +1,6 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 import { lineString } from "@turf/turf";
-import { ExecutableNode, NodeContext } from "../../runtime/node-types";
+import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
 
 export class LineStringNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

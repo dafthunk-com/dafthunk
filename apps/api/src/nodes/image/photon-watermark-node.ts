@@ -5,7 +5,7 @@ import {
   ExecutableNode,
   ImageParameter,
   NodeContext,
-} from "../../runtime/node-types";
+} from "@dafthunk/runtime";
 
 /**
  * This node adds a watermark to an input image at specified coordinates using the Photon library.

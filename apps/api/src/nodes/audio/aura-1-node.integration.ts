@@ -2,7 +2,7 @@ import { env } from "cloudflare:test";
 import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
-import { NodeContext } from "../../runtime/node-types";
+import { NodeContext } from "@dafthunk/runtime";
 import { Aura1Node } from "./aura-1-node";
 
 describe("Aura1Node", () => {

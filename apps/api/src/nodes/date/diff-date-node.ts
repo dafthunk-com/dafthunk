@@ -1,7 +1,7 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
 import { normalizeUnit, type Unit } from "../../node-utils";
-import { ExecutableNode, NodeContext } from "../../runtime/node-types";
+import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
 
 function diffInUnit(
   aIso: string,

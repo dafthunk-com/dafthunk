@@ -10,12 +10,9 @@ import type { ApiContext } from "../context";
 import { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
 import { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
 import { CloudflareCredentialService } from "../runtime/credential-service";
-import type { WorkflowExecutionContext } from "../runtime/execution-types";
+import type { WorkflowExecutionContext } from "@dafthunk/runtime";
+import { apiToNodeParameter, nodeToApiParameter } from "@dafthunk/runtime";
 import { CloudflareObjectStore } from "../runtime/object-store";
-import {
-  apiToNodeParameter,
-  nodeToApiParameter,
-} from "../runtime/parameter-mapper";
 
 const playgroundRoutes = new Hono<ApiContext>();
 

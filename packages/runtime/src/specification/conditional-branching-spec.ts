@@ -1,8 +1,6 @@
-import { env } from "cloudflare:test";
 import type { Workflow } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
-import type { Bindings } from "../../context";
 import { createInstanceId, createParams, type RuntimeFactory } from "./helpers";
 
 /**
@@ -75,7 +73,7 @@ export function testConditionalBranching(
       };
 
       const instanceId = createInstanceId("fork-true");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const forkResult = execution.nodeExecutions.find(
@@ -173,7 +171,7 @@ export function testConditionalBranching(
       };
 
       const instanceId = createInstanceId("fork-false");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const forkResult = execution.nodeExecutions.find(
@@ -289,7 +287,7 @@ export function testConditionalBranching(
       };
 
       const instanceId = createInstanceId("fork-join-true");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const forkResult = execution.nodeExecutions.find(
@@ -408,7 +406,7 @@ export function testConditionalBranching(
       };
 
       const instanceId = createInstanceId("fork-join-false");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const forkResult = execution.nodeExecutions.find(
@@ -516,7 +514,7 @@ export function testConditionalBranching(
       };
 
       const instanceId = createInstanceId("fork-chain");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const forkResult = execution.nodeExecutions.find(
@@ -609,7 +607,7 @@ export function testConditionalBranching(
       };
 
       const instanceId = createInstanceId("join-both");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const joinResult = execution.nodeExecutions.find(
@@ -649,7 +647,7 @@ export function testConditionalBranching(
       };
 
       const instanceId = createInstanceId("join-neither");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const joinResult = execution.nodeExecutions.find(

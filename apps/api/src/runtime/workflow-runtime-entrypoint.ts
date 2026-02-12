@@ -33,8 +33,8 @@ import {
 import type { WorkflowExecution } from "@dafthunk/types";
 
 import type { Bindings } from "../context";
-import type { RuntimeParams } from "./base-runtime";
-import { WorkflowRuntime } from "./workflow-runtime";
+import type { RuntimeParams } from "@dafthunk/runtime";
+import { createWorkflowRuntime, type WorkflowRuntime } from "./workflow-runtime";
 
 /**
  * Workflow entrypoint for Cloudflare Workflows.
@@ -44,11 +44,11 @@ export class WorkflowRuntimeEntrypoint extends WorkflowEntrypoint<
   Bindings,
   RuntimeParams
 > {
-  private runtime: WorkflowRuntime;
+  private runtime: WorkflowRuntime<Bindings>;
 
   constructor(ctx: ExecutionContext, env: Bindings) {
     super(ctx, env);
-    this.runtime = WorkflowRuntime.create(env);
+    this.runtime = createWorkflowRuntime(env);
   }
 
   /**

@@ -1,6 +1,6 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 import { multiPolygon } from "@turf/turf";
-import { ExecutableNode, NodeContext } from "../../runtime/node-types";
+import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
 
 export class MultiPolygonNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

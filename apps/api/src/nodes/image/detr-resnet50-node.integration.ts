@@ -3,7 +3,7 @@ import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
 import { testImageData } from "../../../test/fixtures/image-fixtures";
-import { NodeContext } from "../../runtime/node-types";
+import { NodeContext } from "@dafthunk/runtime";
 import { DetrResnet50Node } from "./detr-resnet50-node";
 
 describe("DetrResnet50Node", () => {

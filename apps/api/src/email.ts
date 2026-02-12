@@ -2,7 +2,7 @@ import type { Workflow } from "@dafthunk/types";
 
 import type { Bindings } from "./context";
 import { createDatabase, getOrganizationComputeCredits } from "./db";
-import { WorkerRuntime } from "./runtime/worker-runtime";
+import { createWorkerRuntime } from "./runtime/worker-runtime";
 import { DeploymentStore } from "./stores/deployment-store";
 import { WorkflowStore } from "./stores/workflow-store";
 
@@ -242,7 +242,7 @@ async function triggerWorkflowForEmail({
   // Use WorkerRuntime for "worker" runtime (synchronous execution)
   // Use Cloudflare Workflows for "workflow" runtime (durable execution, default)
   if (workflowData.runtime === "worker") {
-    const workerRuntime = WorkerRuntime.create(env);
+    const workerRuntime = createWorkerRuntime(env);
     const execution = await workerRuntime.execute(executionParams);
     console.log(
       `[Execution] ${execution.id} workflow=${workflow.id} runtime=worker trigger=email`

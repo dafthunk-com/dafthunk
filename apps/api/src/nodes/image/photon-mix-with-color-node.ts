@@ -9,7 +9,7 @@ import {
   ExecutableNode,
   ImageParameter,
   NodeContext,
-} from "../../runtime/node-types";
+} from "@dafthunk/runtime";
 
 /**
  * This node mixes an input image with a specified solid color using a given opacity, via the Photon library.

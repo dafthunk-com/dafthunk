@@ -1,6 +1,6 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 import { GoogleGenAI } from "@google/genai";
-import { ExecutableNode, NodeContext } from "../../runtime/node-types";
+import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
 import { getGoogleAIConfig } from "../../utils/ai-gateway";
 import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
 

@@ -1,6 +1,6 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 import { booleanPointInPolygon } from "@turf/turf";
-import { ExecutableNode, NodeContext } from "../../runtime/node-types";
+import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
 
 export class BooleanPointInPolygonNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

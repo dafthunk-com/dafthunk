@@ -1,8 +1,6 @@
-import { env } from "cloudflare:test";
 import type { Workflow } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
-import type { Bindings } from "../../context";
 import { createInstanceId, createParams, type RuntimeFactory } from "./helpers";
 
 /**
@@ -68,7 +66,7 @@ export function testFailingExecution(
       };
 
       const instanceId = createInstanceId("div-by-zero");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
 
       // Execute workflow
       const execution = await runtime.run(createParams(workflow), instanceId);
@@ -143,7 +141,7 @@ export function testFailingExecution(
       };
 
       const instanceId = createInstanceId("missing-input");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
 
       // Execute workflow
       const execution = await runtime.run(createParams(workflow), instanceId);
@@ -241,7 +239,7 @@ export function testFailingExecution(
       };
 
       const instanceId = createInstanceId("error-middle-chain");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
 
       // Execute workflow
       const execution = await runtime.run(createParams(workflow), instanceId);
@@ -347,7 +345,7 @@ export function testFailingExecution(
       };
 
       const instanceId = createInstanceId("error-blocking-nodes");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
 
       // Execute workflow
       const execution = await runtime.run(createParams(workflow), instanceId);

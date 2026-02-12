@@ -5,7 +5,7 @@ import {
   ExecutableNode,
   ImageParameter,
   NodeContext,
-} from "../../runtime/node-types";
+} from "@dafthunk/runtime";
 
 /**
  * This node applies an emboss effect to an input image using the Photon library.

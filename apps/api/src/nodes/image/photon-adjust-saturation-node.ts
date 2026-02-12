@@ -5,7 +5,7 @@ import {
   ExecutableNode,
   ImageParameter,
   NodeContext,
-} from "../../runtime/node-types";
+} from "@dafthunk/runtime";
 
 /**
  * This node adjusts the saturation of an input image using the HSL color space via Photon library.

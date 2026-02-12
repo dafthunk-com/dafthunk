@@ -43,7 +43,7 @@ import {
   Runtime,
   type RuntimeDependencies,
   type RuntimeParams,
-} from "../runtime/base-runtime";
+} from "@dafthunk/runtime";
 import { CloudflareObjectStore } from "../runtime/object-store";
 import { MockCredentialService } from "./credential-service";
 import { MockExecutionStore } from "./execution-store";
@@ -55,7 +55,7 @@ import { MockToolRegistry } from "./tool-registry";
  * Mock workflow runtime with step-based execution for testing.
  * Implements the core workflow execution logic with test-friendly dependencies.
  */
-class MockWorkflowRuntime extends Runtime {
+class MockWorkflowRuntime extends Runtime<Bindings> {
   private currentStep?: WorkflowStep;
 
   private static readonly defaultStepConfig: WorkflowStepConfig = {
@@ -132,7 +132,7 @@ class MockWorkflowEntrypoint extends WorkflowEntrypoint<
     credentialProvider = new MockCredentialService(env, toolRegistry);
 
     // Create test-friendly dependencies
-    const dependencies: RuntimeDependencies = {
+    const dependencies: RuntimeDependencies<Bindings> = {
       nodeRegistry,
       credentialProvider,
       executionStore: new MockExecutionStore(),

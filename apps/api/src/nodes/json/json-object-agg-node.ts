@@ -1,5 +1,5 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
-import { ExecutableNode, NodeContext } from "../../runtime/node-types";
+import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
 
 /**
  * JSON Object Aggregation node implementation that aggregates key-value pairs into a JSON object

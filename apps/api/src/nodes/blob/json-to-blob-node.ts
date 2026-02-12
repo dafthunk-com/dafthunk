@@ -4,7 +4,7 @@ import {
   BlobParameter,
   ExecutableNode,
   NodeContext,
-} from "../../runtime/node-types";
+} from "@dafthunk/runtime";
 
 export class JsonToBlobNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

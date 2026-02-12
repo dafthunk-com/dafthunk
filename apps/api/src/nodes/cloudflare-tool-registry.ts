@@ -1,14 +1,13 @@
-import { BaseNodeRegistry } from "../runtime/base-node-registry";
-import { BaseToolRegistry } from "../runtime/base-tool-registry";
-import { NodeToolProvider } from "../runtime/node-tool-provider";
-import { NodeContext } from "../runtime/node-types";
+import { BaseNodeRegistry, BaseToolRegistry, NodeToolProvider } from "@dafthunk/runtime";
+import type { NodeContext } from "@dafthunk/runtime";
 
 /**
  * Cloudflare-specific tool registry implementation
  */
 export class CloudflareToolRegistry extends BaseToolRegistry {
   constructor(
-    private nodeRegistry: BaseNodeRegistry,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    private nodeRegistry: BaseNodeRegistry<any>,
     private createNodeContextFn: (
       nodeId: string,
       inputs: Record<string, any>

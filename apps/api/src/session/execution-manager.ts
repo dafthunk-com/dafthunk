@@ -16,7 +16,7 @@ import type { Bindings } from "../context";
 import { createDatabase } from "../db/index";
 import { getOrganization, getOrganizationBillingInfo } from "../db/queries";
 import { users } from "../db/schema";
-import type { BlobParameter } from "../runtime/node-types";
+import type { BlobParameter } from "@dafthunk/runtime";
 import {
   WorkflowExecutor,
   type WorkflowExecutorParameters,

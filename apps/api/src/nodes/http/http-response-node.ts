@@ -7,7 +7,7 @@ import {
   NodeContext,
   ParameterValue,
   toUint8Array,
-} from "../../runtime/node-types";
+} from "@dafthunk/runtime";
 
 export class HttpResponseNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

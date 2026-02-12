@@ -1,7 +1,7 @@
 import { Node } from "@dafthunk/types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BlobParameter, NodeContext } from "../../runtime/node-types";
+import { BlobParameter, NodeContext } from "@dafthunk/runtime";
 import { FetchNode } from "./fetch-node";
 
 // Mock fetch

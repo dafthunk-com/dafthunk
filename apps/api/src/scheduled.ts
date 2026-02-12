@@ -6,7 +6,7 @@ import {
   getActiveScheduledTriggers,
   getOrganizationComputeCredits,
 } from "./db";
-import { WorkerRuntime } from "./runtime/worker-runtime";
+import { createWorkerRuntime } from "./runtime/worker-runtime";
 import { DeploymentStore } from "./stores/deployment-store";
 
 export async function handleScheduledEvent(
@@ -90,7 +90,7 @@ export async function handleScheduledEvent(
       // Use WorkerRuntime for "worker" runtime (synchronous execution)
       // Use Cloudflare Workflows for "workflow" runtime (durable execution, default)
       if (workflowData.runtime === "worker") {
-        const workerRuntime = WorkerRuntime.create(env);
+        const workerRuntime = createWorkerRuntime(env);
         const execution = await workerRuntime.execute(executionParams);
         console.log(
           `[Execution] ${execution.id} workflow=${workflow.id} runtime=worker trigger=scheduled`

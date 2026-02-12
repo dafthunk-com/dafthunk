@@ -1,55 +1,17 @@
 import type {
-  NodeExecution,
+  ExecutionRow,
+  ExecutionStore,
+  ListExecutionsOptions,
+  SaveExecutionRecord,
+} from "@dafthunk/runtime";
+import type {
   WorkflowExecution,
   WorkflowExecutionStatus,
 } from "@dafthunk/types";
 
 import type { Bindings } from "../context";
 
-/**
- * Execution metadata row structure
- */
-export interface ExecutionRow {
-  id: string;
-  workflowId: string;
-  deploymentId: string | null;
-  organizationId: string;
-  status: WorkflowExecutionStatus;
-  error: string | null;
-  startedAt: Date | null;
-  endedAt: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
-  usage: number;
-}
-
-/**
- * Data required to save an execution record
- */
-export interface SaveExecutionRecord {
-  id: string;
-  workflowId: string;
-  deploymentId?: string;
-  userId: string;
-  organizationId: string;
-  status: WorkflowExecutionStatus;
-  nodeExecutions: NodeExecution[];
-  error?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
-  startedAt?: Date;
-  endedAt?: Date;
-}
-
-/**
- * Options for listing executions
- */
-export interface ListExecutionsOptions {
-  workflowId?: string;
-  deploymentId?: string;
-  limit?: number;
-  offset?: number;
-}
+export type { ExecutionRow, ExecutionStore, ListExecutionsOptions, SaveExecutionRecord };
 
 /**
  * Row shape returned by Analytics Engine SQL queries
@@ -66,22 +28,6 @@ interface AnalyticsRow {
   double2: number;
   double3: number;
   double4: number;
-}
-
-/**
- * Execution store abstraction for persisting and querying workflow executions.
- */
-export interface ExecutionStore {
-  save(record: SaveExecutionRecord): Promise<WorkflowExecution>;
-  get(id: string, organizationId: string): Promise<ExecutionRow | undefined>;
-  getWithData(
-    id: string,
-    organizationId: string
-  ): Promise<(ExecutionRow & { data: WorkflowExecution }) | undefined>;
-  list(
-    organizationId: string,
-    options?: ListExecutionsOptions
-  ): Promise<ExecutionRow[]>;
 }
 
 /**

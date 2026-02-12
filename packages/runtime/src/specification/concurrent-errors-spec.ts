@@ -1,8 +1,6 @@
-import { env } from "cloudflare:test";
 import type { Workflow } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
-import type { Bindings } from "../../context";
 import { createInstanceId, createParams, type RuntimeFactory } from "./helpers";
 
 /**
@@ -109,7 +107,7 @@ export function testConcurrentErrors(
       };
 
       const instanceId = createInstanceId("multi-error");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const div1Result = execution.nodeExecutions.find(
@@ -220,7 +218,7 @@ export function testConcurrentErrors(
       };
 
       const instanceId = createInstanceId("cascading-errors");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const divResult = execution.nodeExecutions.find(

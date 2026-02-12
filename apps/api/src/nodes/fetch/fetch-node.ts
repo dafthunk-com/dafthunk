@@ -5,7 +5,7 @@ import {
   ExecutableNode,
   NodeContext,
   ParameterValue,
-} from "../../runtime/node-types";
+} from "@dafthunk/runtime";
 
 export class FetchNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

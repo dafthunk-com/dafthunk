@@ -19,7 +19,8 @@
 // import { GeoTiffTransformNode } from "./3d/geotiff-transform-node";
 // import { GltfWireframeNode } from "./3d/gltf-wireframe-node";
 
-import { BaseNodeRegistry } from "../runtime/base-node-registry";
+import type { Bindings } from "../context";
+import { BaseNodeRegistry } from "@dafthunk/runtime";
 import { TrellisNode } from "./3d/trellis-node";
 import { Trellis2Node } from "./3d/trellis2-node";
 import { Claude3OpusNode } from "./anthropic/claude-3-opus-node";
@@ -409,7 +410,7 @@ import { ToJsonNode } from "./text/to-json-node";
 import { ToStringNode } from "./text/to-string-node";
 import { TwilioSmsNode } from "./text/twilio-sms-node";
 
-export class CloudflareNodeRegistry extends BaseNodeRegistry {
+export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
   protected registerNodes(): void {
     // Initialize environment feature flags as local variables
     const hasCloudflare = !!(

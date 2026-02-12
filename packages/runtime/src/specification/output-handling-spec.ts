@@ -1,8 +1,6 @@
-import { env } from "cloudflare:test";
 import type { Workflow } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
-import type { Bindings } from "../../context";
 import { createInstanceId, createParams, type RuntimeFactory } from "./helpers";
 
 /**
@@ -36,7 +34,7 @@ export function testOutputHandling(
       };
 
       const instanceId = createInstanceId("outputs");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const numResult = execution.nodeExecutions.find(
@@ -104,7 +102,7 @@ export function testOutputHandling(
       };
 
       const instanceId = createInstanceId("no-outputs-error");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const divResult = execution.nodeExecutions.find(
@@ -193,7 +191,7 @@ export function testOutputHandling(
       };
 
       const instanceId = createInstanceId("multi-outputs");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const addResult = execution.nodeExecutions.find(

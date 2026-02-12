@@ -3,7 +3,7 @@ import {
   DocumentParameter,
   ExecutableNode,
   NodeContext,
-} from "../../runtime/node-types";
+} from "@dafthunk/runtime";
 
 /**
  * DocumentOutput node implementation

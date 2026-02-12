@@ -12,7 +12,7 @@ import type { Bindings } from "../context";
 import { createDatabase } from "../db";
 import type { EvaluationInsert, EvaluationRow } from "../db/schema";
 import { EvaluationStatus, evaluations } from "../db/schema";
-import { WorkerRuntime } from "../runtime/worker-runtime";
+import { createWorkerRuntime } from "../runtime/worker-runtime";
 import { DeploymentStore } from "../stores/deployment-store";
 
 /**
@@ -326,7 +326,7 @@ export class EvaluationService {
       );
 
       // Execute workflow with test case inputs
-      const runtime = WorkerRuntime.create(this.env);
+      const runtime = createWorkerRuntime(this.env);
       const execution = await runtime.run(
         {
           workflow: workflowWithInputs,

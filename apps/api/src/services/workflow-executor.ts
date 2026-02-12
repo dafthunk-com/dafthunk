@@ -8,8 +8,8 @@
 import type { Node, WorkflowExecution, WorkflowRuntime } from "@dafthunk/types";
 
 import type { Bindings } from "../context";
-import type { BlobParameter } from "../runtime/node-types";
-import { WorkerRuntime } from "../runtime/worker-runtime";
+import type { BlobParameter } from "@dafthunk/runtime";
+import { createWorkerRuntime } from "../runtime/worker-runtime";
 import { createSimulatedEmailMessage } from "../utils/email";
 import { createSimulatedHttpRequest } from "../utils/http";
 
@@ -147,7 +147,7 @@ export class WorkflowExecutor {
     // Use WorkerRuntime for "worker" runtime (synchronous execution)
     // Use Cloudflare Workflows for "workflow" runtime (durable execution, default)
     if (workflow.runtime === "worker") {
-      const workerRuntime = WorkerRuntime.create(env);
+      const workerRuntime = createWorkerRuntime(env);
       const execution = await workerRuntime.execute(finalExecutionParams);
       console.log(
         `[Execution] ${execution.id} workflow=${workflow.id} runtime=worker trigger=${workflow.trigger}`

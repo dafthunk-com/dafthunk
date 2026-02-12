@@ -1,7 +1,7 @@
 import { JWTTokenPayload } from "@dafthunk/types";
 
 import { DatabaseDO } from "./durable-objects/database-do";
-import type { RuntimeParams } from "./runtime";
+import type { RuntimeParams } from "@dafthunk/runtime";
 import { Session } from "./session/session";
 
 export interface Bindings {

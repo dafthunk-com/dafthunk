@@ -1,3 +1,10 @@
+import type {
+  CredentialService,
+  IntegrationData,
+  NodeContext,
+  WorkflowExecutionContext,
+} from "@dafthunk/runtime";
+
 import type { Bindings } from "../context";
 import {
   createDatabase,
@@ -8,28 +15,7 @@ import {
 } from "../db";
 import type { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
 import { getProvider } from "../oauth";
-import type {
-  IntegrationData,
-  WorkflowExecutionContext,
-} from "./execution-types";
-import type { NodeContext } from "./node-types";
 import { CloudflareObjectStore } from "./object-store";
-
-/**
- * Credential service abstraction for accessing organization secrets and integrations.
- */
-export interface CredentialService {
-  initialize(organizationId: string): Promise<void>;
-  createNodeContext(
-    nodeId: string,
-    context: WorkflowExecutionContext,
-    inputs: Record<string, unknown>
-  ): NodeContext;
-  createToolContext(
-    nodeId: string,
-    inputs: Record<string, unknown>
-  ): NodeContext;
-}
 
 /**
  * Cloudflare-backed implementation of CredentialService.

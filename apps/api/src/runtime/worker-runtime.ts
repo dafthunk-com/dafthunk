@@ -1,104 +1,55 @@
 /**
  * Worker Runtime
  *
- * Runtime implementation for Cloudflare Workers (without Workflows).
- * Executes workflows synchronously in a single request without durability.
+ * Re-exports WorkerRuntime from @dafthunk/runtime and provides a Cloudflare-specific
+ * factory function that wires production dependencies.
  *
- * ## Architecture
- *
- * Extends Runtime with direct execution (no durable steps):
- * - **CloudflareNodeRegistry**: Complete node catalog (50+ nodes)
- * - **CloudflareToolRegistry**: Full tool support with all providers
- * - **CloudflareMonitoringService**: Real-time updates via Durable Objects
- * - **ExecutionStore**: Persistent storage with D1 + R2
- *
- * ## Usage
- *
- * Use for workflows that:
- * - Complete in under 30 seconds (CPU time limit)
- * - Don't require durable execution or retries
- * - Need lower latency than Workflows
- *
- * @see {@link Runtime} - Base runtime class
- * @see {@link CloudflareWorkflowRuntime} - Durable Workflows implementation
+ * @see {@link WorkerRuntime} - Base runtime class
+ * @see {@link createWorkerRuntime} - Factory for Cloudflare Workers
  */
 
-import type { WorkflowExecution } from "@dafthunk/types";
+import {
+  WorkerRuntime,
+  type RuntimeDependencies,
+} from "@dafthunk/runtime";
 
 import type { Bindings } from "../context";
 import { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
 import { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
-import {
-  Runtime,
-  type RuntimeDependencies,
-  type RuntimeParams,
-} from "./base-runtime";
 import { CloudflareCredentialService } from "./credential-service";
 import { CloudflareCreditService } from "./credit-service";
 import { CloudflareExecutionStore } from "./execution-store";
 import { CloudflareMonitoringService } from "./monitoring-service";
 import { CloudflareObjectStore } from "./object-store";
 
+export { WorkerRuntime } from "@dafthunk/runtime";
+
 /**
- * Worker-based runtime with direct execution (no durable steps).
- * Executes workflows synchronously in a single Worker request.
+ * Creates a WorkerRuntime with Cloudflare production dependencies.
  */
-export class WorkerRuntime extends Runtime {
-  /**
-   * Implements step execution by directly calling the function.
-   * No durability or retries - execution is synchronous and ephemeral.
-   */
-  protected async executeStep<T>(
-    _name: string,
-    fn: () => Promise<T>
-  ): Promise<T> {
-    // Direct execution without durability
-    return await fn();
-  }
+export function createWorkerRuntime(env: Bindings): WorkerRuntime<Bindings> {
+  const nodeRegistry = new CloudflareNodeRegistry(env, true);
 
-  /**
-   * Executes a workflow and returns the result.
-   * This is the main entry point for Worker-based execution.
-   *
-   * @param params - Workflow execution parameters
-   * @param instanceId - Optional execution ID (generates one if not provided)
-   * @returns The workflow execution result
-   */
-  async execute(
-    params: RuntimeParams,
-    instanceId?: string
-  ): Promise<WorkflowExecution> {
-    const executionId = instanceId ?? crypto.randomUUID();
-    return await this.run(params, executionId);
-  }
+  // eslint-disable-next-line prefer-const -- circular dependency pattern requires let
+  let credentialProvider: CloudflareCredentialService;
+  const toolRegistry = new CloudflareToolRegistry(
+    nodeRegistry,
+    (nodeId: string, inputs: Record<string, unknown>) =>
+      credentialProvider.createToolContext(nodeId, inputs)
+  );
+  credentialProvider = new CloudflareCredentialService(env, toolRegistry);
 
-  /**
-   * Static factory method to create a Worker runtime with production dependencies.
-   */
-  static create(env: Bindings): WorkerRuntime {
-    const nodeRegistry = new CloudflareNodeRegistry(env, true);
+  const dependencies: RuntimeDependencies<Bindings> = {
+    nodeRegistry,
+    credentialProvider,
+    executionStore: new CloudflareExecutionStore(env),
+    monitoringService: new CloudflareMonitoringService(env.WORKFLOW_SESSION),
+    creditService: new CloudflareCreditService(
+      env.KV,
+      env.CLOUDFLARE_ENV === "development"
+    ),
+    objectStore: new CloudflareObjectStore(env.RESSOURCES),
+  };
 
-    // eslint-disable-next-line prefer-const -- circular dependency pattern requires let
-    let credentialProvider: CloudflareCredentialService;
-    const toolRegistry = new CloudflareToolRegistry(
-      nodeRegistry,
-      (nodeId: string, inputs: Record<string, unknown>) =>
-        credentialProvider.createToolContext(nodeId, inputs)
-    );
-    credentialProvider = new CloudflareCredentialService(env, toolRegistry);
-
-    const dependencies: RuntimeDependencies = {
-      nodeRegistry,
-      credentialProvider,
-      executionStore: new CloudflareExecutionStore(env),
-      monitoringService: new CloudflareMonitoringService(env.WORKFLOW_SESSION),
-      creditService: new CloudflareCreditService(
-        env.KV,
-        env.CLOUDFLARE_ENV === "development"
-      ),
-      objectStore: new CloudflareObjectStore(env.RESSOURCES),
-    };
-
-    return new WorkerRuntime(env, dependencies);
-  }
+  return new WorkerRuntime(env, dependencies);
 }

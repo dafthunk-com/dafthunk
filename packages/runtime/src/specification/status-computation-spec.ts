@@ -1,8 +1,6 @@
-import { env } from "cloudflare:test";
 import type { Workflow } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
-import type { Bindings } from "../../context";
 import { createInstanceId, createParams, type RuntimeFactory } from "./helpers";
 
 /**
@@ -42,7 +40,7 @@ export function testStatusComputation(
       };
 
       const instanceId = createInstanceId("status-executing");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const num1Result = execution.nodeExecutions.find(
@@ -76,7 +74,7 @@ export function testStatusComputation(
       };
 
       const instanceId = createInstanceId("status-completed");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const numResult = execution.nodeExecutions.find(
@@ -144,7 +142,7 @@ export function testStatusComputation(
       };
 
       const instanceId = createInstanceId("status-error");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const divResult = execution.nodeExecutions.find(
@@ -249,7 +247,7 @@ export function testStatusComputation(
       };
 
       const instanceId = createInstanceId("status-conditional-skip");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const forkResult = execution.nodeExecutions.find(
@@ -372,7 +370,7 @@ export function testStatusComputation(
       };
 
       const instanceId = createInstanceId("status-mixed");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const num1Result = execution.nodeExecutions.find(

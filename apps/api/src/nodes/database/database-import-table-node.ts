@@ -1,7 +1,7 @@
 import type { NodeExecution, NodeType, Table } from "@dafthunk/types";
 
 import { createDatabase, getDatabase } from "../../db";
-import { ExecutableNode, NodeContext } from "../../runtime/node-types";
+import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
 import { DatabaseStore } from "../../stores/database-store";
 import {
   generateCheckTableExistsSQL,

@@ -1,10 +1,9 @@
-import { Node, NodeType, WorkflowTrigger } from "@dafthunk/types";
+import type { Node, NodeType, WorkflowTrigger } from "@dafthunk/types";
 
-import type { Bindings } from "../context";
 import { ExecutableNode } from "./node-types";
 
-export interface NodeImplementationConstructor {
-  new (node: Node, env?: Bindings): ExecutableNode;
+export interface NodeImplementationConstructor<Env = unknown> {
+  new (node: Node, env?: Env): ExecutableNode;
   readonly nodeType: NodeType;
 }
 
@@ -12,12 +11,12 @@ export interface NodeImplementationConstructor {
  * Abstract base class for node registries that provides common functionality
  * for managing node implementations and node operations.
  */
-export abstract class BaseNodeRegistry {
-  protected implementations: Map<string, NodeImplementationConstructor> =
+export abstract class BaseNodeRegistry<Env = unknown> {
+  protected implementations: Map<string, NodeImplementationConstructor<Env>> =
     new Map();
 
   public constructor(
-    protected env: Bindings,
+    protected env: Env,
     protected developerMode: boolean
   ) {
     this.registerNodes();
@@ -32,7 +31,7 @@ export abstract class BaseNodeRegistry {
    * Register a node implementation
    */
   public registerImplementation(
-    Implementation: NodeImplementationConstructor
+    Implementation: NodeImplementationConstructor<Env>
   ): void {
     if (!Implementation?.nodeType?.type) {
       throw new Error("NodeType is not defined");

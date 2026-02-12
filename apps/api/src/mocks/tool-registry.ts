@@ -1,6 +1,5 @@
-import { BaseToolRegistry } from "../runtime/base-tool-registry";
-import { NodeToolProvider } from "../runtime/node-tool-provider";
-import type { NodeContext } from "../runtime/node-types";
+import { BaseToolRegistry, NodeToolProvider } from "@dafthunk/runtime";
+import type { NodeContext } from "@dafthunk/runtime";
 import type { MockNodeRegistry } from "./node-registry";
 
 /**

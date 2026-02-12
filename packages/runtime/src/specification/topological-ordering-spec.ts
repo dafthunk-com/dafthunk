@@ -1,8 +1,6 @@
-import { env } from "cloudflare:test";
 import type { Workflow } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
-import type { Bindings } from "../../context";
 import { createInstanceId, createParams, type RuntimeFactory } from "./helpers";
 
 /**
@@ -72,7 +70,7 @@ export function testTopologicalOrdering(
       };
 
       const instanceId = createInstanceId("topo-linear");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const node3Result = execution.nodeExecutions.find(
@@ -155,7 +153,7 @@ export function testTopologicalOrdering(
       };
 
       const instanceId = createInstanceId("diamond-pattern");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const dResult = execution.nodeExecutions.find((e) => e.nodeId === "D");
@@ -250,7 +248,7 @@ export function testTopologicalOrdering(
       };
 
       const instanceId = createInstanceId("complex-deps");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const eResult = execution.nodeExecutions.find((e) => e.nodeId === "E");

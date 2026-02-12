@@ -6,7 +6,7 @@ import {
   isBlobParameter,
   NodeContext,
   toUint8Array,
-} from "../../runtime/node-types";
+} from "@dafthunk/runtime";
 
 export class HttpRequestNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

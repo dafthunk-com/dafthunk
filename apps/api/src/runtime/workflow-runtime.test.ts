@@ -12,9 +12,29 @@
  *
  * In production: Uses WorkflowRuntime with full node catalog and integrations.
  */
+import { env } from "cloudflare:test";
+
 import type { Bindings } from "../context";
-import type { Runtime, RuntimeParams } from "./base-runtime";
-import type { RuntimeFactory } from "./specification/helpers";
+import type { RuntimeParams } from "@dafthunk/runtime";
+
+import {
+  type RuntimeFactory,
+  testConcurrentErrors,
+  testConditionalBranching,
+  testEdgeCases,
+  testFailingExecution,
+  testInputCollection,
+  testMonitoringUpdates,
+  testNodeExecutionErrors,
+  testOutputHandling,
+  testParallelExecution,
+  testSkipLogic,
+  testStateConsistency,
+  testStatusComputation,
+  testSuccessfulExecution,
+  testTopologicalOrdering,
+  testWorkflowValidation,
+} from "@dafthunk/runtime";
 
 /**
  * Adapter to use Cloudflare Workflows EXECUTE binding with the RuntimeFactory pattern.
@@ -98,36 +118,18 @@ class WorkflowsRuntimeAdapter {
  * In production, this would use WorkflowRuntime.
  * Tests durable execution with step.do() via EXECUTE binding.
  */
-const createWorkflowRuntime: RuntimeFactory = (env: Bindings): Runtime => {
-  const executeBinding = (env as any).EXECUTE;
+const factory: RuntimeFactory = () => {
+  const executeBinding = (env as any as Bindings).EXECUTE;
   if (!executeBinding) {
     throw new Error(
       "EXECUTE binding not found. Make sure Workflows are configured in wrangler.test.jsonc"
     );
   }
-  return new WorkflowsRuntimeAdapter(executeBinding) as any as Runtime;
+  return new WorkflowsRuntimeAdapter(executeBinding) as any;
 };
-
-// Import all specification test functions
-import { testConcurrentErrors } from "./specification/concurrent-errors-spec";
-import { testConditionalBranching } from "./specification/conditional-branching-spec";
-import { testEdgeCases } from "./specification/edge-cases-spec";
-import { testFailingExecution } from "./specification/failing-execution-spec";
-import { testInputCollection } from "./specification/input-collection-spec";
-import { testMonitoringUpdates } from "./specification/monitoring-updates-spec";
-import { testNodeExecutionErrors } from "./specification/node-execution-errors-spec";
-import { testOutputHandling } from "./specification/output-handling-spec";
-import { testParallelExecution } from "./specification/parallel-execution-spec";
-import { testSkipLogic } from "./specification/skip-logic-spec";
-import { testStateConsistency } from "./specification/state-consistency-spec";
-import { testStatusComputation } from "./specification/status-computation-spec";
-import { testSuccessfulExecution } from "./specification/successful-execution-spec";
-import { testTopologicalOrdering } from "./specification/topological-ordering-spec";
-import { testWorkflowValidation } from "./specification/workflow-validation-spec";
 
 // Run all specifications against Workflow Runtime
 const runtimeName = "WorkflowRuntime";
-const factory = createWorkflowRuntime;
 
 testSuccessfulExecution(runtimeName, factory);
 testFailingExecution(runtimeName, factory);

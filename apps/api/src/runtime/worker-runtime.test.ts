@@ -7,38 +7,33 @@
  * This is faster than workflow-runtime.test.ts but doesn't test durable execution.
  * Both test files run the same 50 specification tests to ensure consistent behavior.
  */
+import { env } from "cloudflare:test";
+
 import type { Bindings } from "../context";
-import type { Runtime } from "./base-runtime";
-import type { RuntimeFactory } from "./specification/helpers";
-import { WorkerRuntime } from "./worker-runtime";
+import { createWorkerRuntime } from "./worker-runtime";
 
-/**
- * Factory for CloudflareWorkerRuntime (direct execution, no durability)
- */
-const createWorkerRuntime: RuntimeFactory = (env: Bindings): Runtime => {
-  return WorkerRuntime.create(env);
-};
-
-// Import all specification test functions
-import { testConcurrentErrors } from "./specification/concurrent-errors-spec";
-import { testConditionalBranching } from "./specification/conditional-branching-spec";
-import { testEdgeCases } from "./specification/edge-cases-spec";
-import { testFailingExecution } from "./specification/failing-execution-spec";
-import { testInputCollection } from "./specification/input-collection-spec";
-import { testMonitoringUpdates } from "./specification/monitoring-updates-spec";
-import { testNodeExecutionErrors } from "./specification/node-execution-errors-spec";
-import { testOutputHandling } from "./specification/output-handling-spec";
-import { testParallelExecution } from "./specification/parallel-execution-spec";
-import { testSkipLogic } from "./specification/skip-logic-spec";
-import { testStateConsistency } from "./specification/state-consistency-spec";
-import { testStatusComputation } from "./specification/status-computation-spec";
-import { testSuccessfulExecution } from "./specification/successful-execution-spec";
-import { testTopologicalOrdering } from "./specification/topological-ordering-spec";
-import { testWorkflowValidation } from "./specification/workflow-validation-spec";
+import {
+  type RuntimeFactory,
+  testConcurrentErrors,
+  testConditionalBranching,
+  testEdgeCases,
+  testFailingExecution,
+  testInputCollection,
+  testMonitoringUpdates,
+  testNodeExecutionErrors,
+  testOutputHandling,
+  testParallelExecution,
+  testSkipLogic,
+  testStateConsistency,
+  testStatusComputation,
+  testSuccessfulExecution,
+  testTopologicalOrdering,
+  testWorkflowValidation,
+} from "@dafthunk/runtime";
 
 // Run all specifications against Worker Runtime
 const runtimeName = "WorkerRuntime";
-const factory = createWorkerRuntime;
+const factory: RuntimeFactory = () => createWorkerRuntime(env as Bindings);
 
 testSuccessfulExecution(runtimeName, factory);
 testFailingExecution(runtimeName, factory);

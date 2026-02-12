@@ -1,8 +1,6 @@
-import { env } from "cloudflare:test";
 import type { Workflow } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
-import type { Bindings } from "../../context";
 import { createInstanceId, createParams, type RuntimeFactory } from "./helpers";
 
 /**
@@ -25,7 +23,7 @@ export function testWorkflowValidation(
       };
 
       const instanceId = createInstanceId("empty-workflow");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       console.log("Empty workflow completed successfully");
@@ -54,7 +52,7 @@ export function testWorkflowValidation(
       };
 
       const instanceId = createInstanceId("single-node");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const num1Result = execution.nodeExecutions.find(
@@ -105,7 +103,7 @@ export function testWorkflowValidation(
       };
 
       const instanceId = createInstanceId("multiple-isolated");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const num1Result = execution.nodeExecutions.find(

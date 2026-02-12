@@ -3,7 +3,7 @@ import {
   AudioParameter,
   ExecutableNode,
   NodeContext,
-} from "../../runtime/node-types";
+} from "@dafthunk/runtime";
 
 /**
  * AudioOutput node implementation

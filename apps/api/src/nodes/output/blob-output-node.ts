@@ -3,7 +3,7 @@ import {
   BlobParameter,
   ExecutableNode,
   NodeContext,
-} from "../../runtime/node-types";
+} from "@dafthunk/runtime";
 
 /**
  * BlobOutput node implementation

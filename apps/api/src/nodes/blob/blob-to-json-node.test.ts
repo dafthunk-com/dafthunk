@@ -1,7 +1,7 @@
 import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
-import { BlobParameter, NodeContext } from "../../runtime/node-types";
+import { BlobParameter, NodeContext } from "@dafthunk/runtime";
 import { BlobToJsonNode } from "./blob-to-json-node";
 
 describe("BlobToJsonNode", () => {

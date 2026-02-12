@@ -13,7 +13,8 @@ import {
  */
 export class NodeToolProvider implements ToolProvider {
   constructor(
-    private nodeRegistry: BaseNodeRegistry,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    private nodeRegistry: BaseNodeRegistry<any>,
     private createNodeContext: (
       nodeId: string,
       inputs: Record<string, unknown>

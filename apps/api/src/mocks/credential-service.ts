@@ -7,9 +7,8 @@
 
 import type { Bindings } from "../context";
 import type { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
-import type { CredentialService } from "../runtime/credential-service";
-import type { WorkflowExecutionContext } from "../runtime/execution-types";
-import type { NodeContext } from "../runtime/node-types";
+import type { CredentialService } from "@dafthunk/runtime";
+import type { WorkflowExecutionContext, NodeContext } from "@dafthunk/runtime";
 
 /**
  * Minimal mock that avoids database access

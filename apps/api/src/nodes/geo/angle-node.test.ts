@@ -1,7 +1,7 @@
 import { angle } from "@turf/turf";
 import { describe, expect, it } from "vitest";
 
-import { NodeContext } from "../../runtime/node-types";
+import { NodeContext } from "@dafthunk/runtime";
 import { AngleNode } from "./angle-node";
 
 describe("AngleNode", () => {

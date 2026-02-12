@@ -4,7 +4,7 @@ import {
   ExecutableNode,
   NodeContext,
   ParameterValue,
-} from "../../runtime/node-types";
+} from "@dafthunk/runtime";
 
 /**
  * Conditional Fork Node

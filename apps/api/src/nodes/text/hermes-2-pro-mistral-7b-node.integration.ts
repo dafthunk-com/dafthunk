@@ -2,7 +2,7 @@ import { env } from "cloudflare:test";
 import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
-import { NodeContext } from "../../runtime/node-types";
+import { NodeContext } from "@dafthunk/runtime";
 import { Hermes2ProMistral7BNode } from "./hermes-2-pro-mistral-7b-node";
 
 describe("Hermes2ProMistral7BNode", () => {

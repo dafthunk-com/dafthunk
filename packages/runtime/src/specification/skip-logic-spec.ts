@@ -1,8 +1,6 @@
-import { env } from "cloudflare:test";
 import type { Workflow } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
-import type { Bindings } from "../../context";
 import { createInstanceId, createParams, type RuntimeFactory } from "./helpers";
 
 /**
@@ -53,7 +51,7 @@ export function testSkipLogic(
       };
 
       const instanceId = createInstanceId("skip-missing");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const numResult = execution.nodeExecutions.find(
@@ -161,7 +159,7 @@ export function testSkipLogic(
       };
 
       const instanceId = createInstanceId("recursive-skip");
-      const runtime = createRuntime(env as Bindings);
+      const runtime = createRuntime();
       const execution = await runtime.run(createParams(workflow), instanceId);
 
       const num1Result = execution.nodeExecutions.find(

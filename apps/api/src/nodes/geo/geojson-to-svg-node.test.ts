@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { NodeContext } from "../../runtime/node-types";
+import { NodeContext } from "@dafthunk/runtime";
 import { GeoJsonToSvgNode } from "./geojson-to-svg-node";
 
 describe("GeoJsonToSvgNode", () => {

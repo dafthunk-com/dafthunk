@@ -1,0 +1,20 @@
+{
+  "name": "@dafthunk/runtime",
+  "version": "0.1.0",
+  "private": true,
+  "exports": { ".": "./src/index.ts" },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check",
+    "fix": "biome check --write"
+  },
+  "dependencies": {
+    "@dafthunk/types": "workspace:*",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260116.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}

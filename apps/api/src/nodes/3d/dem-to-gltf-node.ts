@@ -11,7 +11,7 @@ import {
 import Martini from "@mapbox/martini";
 import { z } from "zod";
 
-import { ExecutableNode, NodeContext } from "../../runtime/node-types";
+import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
 
 export class DemToGltfNode extends ExecutableNode {
   private static readonly elevationDataShape = {

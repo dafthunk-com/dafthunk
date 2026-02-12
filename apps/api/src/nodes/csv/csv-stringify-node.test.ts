@@ -1,7 +1,7 @@
 import { Node, Table } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
-import { NodeContext } from "../../runtime/node-types";
+import { NodeContext } from "@dafthunk/runtime";
 import { CsvStringifyNode } from "./csv-stringify-node";
 
 describe("CsvStringifyNode", () => {

@@ -176,6 +176,31 @@ export interface IntegrationInfo {
   metadata?: Record<string, unknown>;
 }
 
+export interface NodeEnv {
+  DB: D1Database;
+  AI: Ai;
+  AI_OPTIONS: AiOptions;
+  RESSOURCES: R2Bucket;
+  DATASETS: R2Bucket;
+  DATASETS_AUTORAG: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  DATABASE: DurableObjectNamespace<any>;
+  WORKFLOW_QUEUE: Queue;
+  EMAIL_DOMAIN: string;
+  CLOUDFLARE_ACCOUNT_ID?: string;
+  CLOUDFLARE_API_TOKEN?: string;
+  CLOUDFLARE_AI_GATEWAY_ID?: string;
+  TWILIO_ACCOUNT_SID?: string;
+  TWILIO_AUTH_TOKEN?: string;
+  TWILIO_PHONE_NUMBER?: string;
+  AWS_ACCESS_KEY_ID?: string;
+  AWS_SECRET_ACCESS_KEY?: string;
+  AWS_REGION?: string;
+  SES_DEFAULT_FROM?: string;
+  HUGGINGFACE_API_KEY?: string;
+  REPLICATE_API_TOKEN?: string;
+}
+
 export interface NodeContext {
   nodeId: string;
   workflowId: string;
@@ -193,29 +218,7 @@ export interface NodeContext {
   // Callback-based access to sensitive data (improves security and isolation)
   getSecret?: (secretName: string) => Promise<string | undefined>;
   getIntegration: (integrationId: string) => Promise<IntegrationInfo>;
-  env: {
-    DB: D1Database;
-    AI: Ai;
-    AI_OPTIONS: AiOptions;
-    RESSOURCES: R2Bucket;
-    DATASETS: R2Bucket;
-    DATASETS_AUTORAG: string;
-    DATABASE: DurableObjectNamespace<any>;
-    WORKFLOW_QUEUE: Queue;
-    EMAIL_DOMAIN: string;
-    CLOUDFLARE_ACCOUNT_ID?: string;
-    CLOUDFLARE_API_TOKEN?: string;
-    CLOUDFLARE_AI_GATEWAY_ID?: string;
-    TWILIO_ACCOUNT_SID?: string;
-    TWILIO_AUTH_TOKEN?: string;
-    TWILIO_PHONE_NUMBER?: string;
-    AWS_ACCESS_KEY_ID?: string;
-    AWS_SECRET_ACCESS_KEY?: string;
-    AWS_REGION?: string;
-    SES_DEFAULT_FROM?: string;
-    HUGGINGFACE_API_KEY?: string;
-    REPLICATE_API_TOKEN?: string;
-  };
+  env: NodeEnv;
 }
 
 /**

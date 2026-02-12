@@ -1,7 +1,7 @@
 import { Node, Table } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
-import { NodeContext } from "../../runtime/node-types";
+import { NodeContext } from "@dafthunk/runtime";
 import { CsvFilterRowsNode } from "./csv-filter-rows-node";
 
 describe("CsvFilterRowsNode", () => {

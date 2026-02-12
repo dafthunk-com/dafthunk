@@ -10,7 +10,8 @@ import { MinNode } from "../nodes/math/min-node";
 import { MultiplicationNode } from "../nodes/math/multiplication-node";
 import { SubtractionNode } from "../nodes/math/subtraction-node";
 import { SumNode } from "../nodes/math/sum-node";
-import { BaseNodeRegistry } from "../runtime/base-node-registry";
+import type { Bindings } from "../context";
+import { BaseNodeRegistry } from "@dafthunk/runtime";
 
 /**
  * Mock Node Registry
@@ -26,7 +27,7 @@ import { BaseNodeRegistry } from "../runtime/base-node-registry";
  * - Sum, Max, Min, Avg, Median
  * - Conditional Fork, Conditional Join
  */
-export class MockNodeRegistry extends BaseNodeRegistry {
+export class MockNodeRegistry extends BaseNodeRegistry<Bindings> {
   protected registerNodes(): void {
     this.registerImplementation(AdditionNode);
     this.registerImplementation(SubtractionNode);

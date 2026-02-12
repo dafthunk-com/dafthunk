@@ -2,7 +2,7 @@ import { env } from "cloudflare:test";
 import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
-import { NodeContext } from "../../runtime/node-types";
+import { NodeContext } from "@dafthunk/runtime";
 import { GptOss20BNode } from "./gpt-oss-20b-node";
 
 describe("GptOss20BNode", () => {
