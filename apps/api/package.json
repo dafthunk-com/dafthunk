@@ -26,7 +26,7 @@
     "@cloudflare/vitest-pool-workers": "^0.12.4",
     "@types/mailparser": "^3.4.6",
     "@types/node": "^22.19.7",
-    "@types/three": "^0.181.0",
+    "@types/three": "^0.182.0",
     "@types/wellknown": "^0.5.8",
     "drizzle-kit": "0.31.1",
     "globals": "^15.15.0",
