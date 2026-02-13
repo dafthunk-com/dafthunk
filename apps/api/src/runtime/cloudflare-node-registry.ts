@@ -93,6 +93,7 @@ import { Gemini25FlashAudioUnderstandingNode } from "@dafthunk/runtime/nodes/gem
 import { Gemini25FlashImagePreviewNode } from "@dafthunk/runtime/nodes/gemini/gemini-2-5-flash-image-preview-node";
 import { Gemini25FlashImageUnderstandingNode } from "@dafthunk/runtime/nodes/gemini/gemini-2-5-flash-image-understanding-node";
 import { Gemini25FlashNode } from "@dafthunk/runtime/nodes/gemini/gemini-2-5-flash-node";
+import { Gemini25FlashTtsNode } from "@dafthunk/runtime/nodes/gemini/gemini-2-5-flash-tts-node";
 import { Gemini25ProNode } from "@dafthunk/runtime/nodes/gemini/gemini-2-5-pro-node";
 import { Gemini3ProImagePreviewNode } from "@dafthunk/runtime/nodes/gemini/gemini-3-pro-image-preview-node";
 import { ImagenNode } from "@dafthunk/runtime/nodes/gemini/imagen-node";
@@ -913,6 +914,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(Gemini3ProImagePreviewNode);
     this.registerImplementation(Gemini25FlashAudioUnderstandingNode);
     this.registerImplementation(Gemini25FlashImageUnderstandingNode);
+    this.registerImplementation(Gemini25FlashTtsNode);
     this.registerImplementation(ImagenNode);
 
     // 3D generation nodes - always register (users can provide API keys via secrets)
