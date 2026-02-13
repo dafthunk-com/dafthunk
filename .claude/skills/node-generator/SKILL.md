@@ -17,7 +17,7 @@ When a user requests a new node, research first, then present a complete specifi
 - Check if the package exists in `apps/api/package.json` or search npm for the latest version
 
 **Check existing patterns:**
-- Search `apps/api/src/nodes/<category>/` for similar nodes
+- Search `packages/runtime/src/nodes/<category>/` for similar nodes
 - Examine 2-3 similar implementations to understand input/output patterns and validation approaches
 
 **Draft complete requirements:**
@@ -56,7 +56,7 @@ Only ask for information you cannot reasonably infer or research. The goal is to
 
 ## Step 2: Create Node Implementation
 
-**File:** `apps/api/src/nodes/<category>/<node-id>.ts`
+**File:** `packages/runtime/src/nodes/<category>/<node-id>.ts`
 
 ```typescript
 import { NodeExecution, NodeType } from "@dafthunk/types";
@@ -138,7 +138,7 @@ export class [NodeClassName]Node extends ExecutableNode {
 
 ## Step 3: Create Test File
 
-**File:** `apps/api/src/nodes/<category>/<node-id>.test.ts`
+**File:** `packages/runtime/src/nodes/<category>/<node-id>.test.ts`
 
 ```typescript
 import { Node } from "@dafthunk/types";
@@ -206,7 +206,7 @@ describe("[NodeClassName]Node", () => {
 
 ## Step 4: Register the Node
 
-**File:** `apps/api/src/nodes/cloudflare-node-registry.ts`
+**File:** `apps/api/src/runtime/cloudflare-node-registry.ts`
 
 Add import (alphabetically within category):
 ```typescript

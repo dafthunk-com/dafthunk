@@ -1,11 +1,10 @@
 import { env } from "cloudflare:test";
+import { TextInputNode } from "@dafthunk/runtime/nodes/input/text-input-node";
+import { TextOutputNode } from "@dafthunk/runtime/nodes/output/text-output-node";
+import { BartLargeCnnNode } from "@dafthunk/runtime/nodes/text/bart-large-cnn-node";
 import type { Parameter } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
-
 import type { Bindings } from "../context";
-import { TextInputNode } from "../nodes/input/text-input-node";
-import { TextOutputNode } from "../nodes/output/text-output-node";
-import { BartLargeCnnNode } from "../nodes/text/bart-large-cnn-node";
 import { textSummarizationTemplate } from "./text-summarization";
 
 describe("Text Summarization Template", () => {

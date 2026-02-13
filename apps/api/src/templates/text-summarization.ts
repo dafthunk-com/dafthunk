@@ -1,8 +1,7 @@
+import { TextInputNode } from "@dafthunk/runtime/nodes/input/text-input-node";
+import { TextOutputNode } from "@dafthunk/runtime/nodes/output/text-output-node";
+import { BartLargeCnnNode } from "@dafthunk/runtime/nodes/text/bart-large-cnn-node";
 import type { WorkflowTemplate } from "@dafthunk/types";
-
-import { TextInputNode } from "../nodes/input/text-input-node";
-import { TextOutputNode } from "../nodes/output/text-output-node";
-import { BartLargeCnnNode } from "../nodes/text/bart-large-cnn-node";
 
 export const textSummarizationTemplate: WorkflowTemplate = {
   id: "text-summarization",

@@ -8,8 +8,8 @@ import type {
 import { Hono } from "hono";
 import { jwtMiddleware } from "../auth";
 import type { ApiContext } from "../context";
-import { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
-import { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
+import { CloudflareNodeRegistry } from "../runtime/cloudflare-node-registry";
+import { CloudflareToolRegistry } from "../runtime/cloudflare-tool-registry";
 import { CloudflareCredentialService } from "../runtime/credential-service";
 import { CloudflareObjectStore } from "../runtime/object-store";
 

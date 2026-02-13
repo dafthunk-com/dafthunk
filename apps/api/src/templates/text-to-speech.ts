@@ -1,8 +1,7 @@
+import { MelottsNode } from "@dafthunk/runtime/nodes/audio/melotts-node";
+import { TextInputNode } from "@dafthunk/runtime/nodes/input/text-input-node";
+import { AudioOutputNode } from "@dafthunk/runtime/nodes/output/audio-output-node";
 import type { WorkflowTemplate } from "@dafthunk/types";
-
-import { MelottsNode } from "../nodes/audio/melotts-node";
-import { TextInputNode } from "../nodes/input/text-input-node";
-import { AudioOutputNode } from "../nodes/output/audio-output-node";
 
 export const textToSpeechTemplate: WorkflowTemplate = {
   id: "text-to-speech",

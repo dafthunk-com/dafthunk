@@ -1,8 +1,7 @@
+import { TextInputNode } from "@dafthunk/runtime/nodes/input/text-input-node";
+import { TextOutputNode } from "@dafthunk/runtime/nodes/output/text-output-node";
+import { SingleVariableStringTemplateNode } from "@dafthunk/runtime/nodes/text/single-variable-string-template-node";
 import type { WorkflowTemplate } from "@dafthunk/types";
-
-import { TextInputNode } from "../nodes/input/text-input-node";
-import { TextOutputNode } from "../nodes/output/text-output-node";
-import { SingleVariableStringTemplateNode } from "../nodes/text/single-variable-string-template-node";
 
 export const textFormatterTemplate: WorkflowTemplate = {
   id: "text-formatter",

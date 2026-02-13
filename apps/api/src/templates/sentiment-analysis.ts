@@ -1,8 +1,7 @@
+import { TextInputNode } from "@dafthunk/runtime/nodes/input/text-input-node";
+import { NumberOutputNode } from "@dafthunk/runtime/nodes/output/number-output-node";
+import { DistilbertSst2Int8Node } from "@dafthunk/runtime/nodes/text/distilbert-sst-2-int8-node";
 import type { WorkflowTemplate } from "@dafthunk/types";
-
-import { TextInputNode } from "../nodes/input/text-input-node";
-import { NumberOutputNode } from "../nodes/output/number-output-node";
-import { DistilbertSst2Int8Node } from "../nodes/text/distilbert-sst-2-int8-node";
 
 export const sentimentAnalysisTemplate: WorkflowTemplate = {
   id: "sentiment-analysis",

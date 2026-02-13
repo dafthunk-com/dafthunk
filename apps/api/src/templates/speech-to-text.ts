@@ -1,8 +1,7 @@
+import { WhisperNode } from "@dafthunk/runtime/nodes/audio/whisper-node";
+import { AudioRecorderInputNode } from "@dafthunk/runtime/nodes/input/audio-recorder-input-node";
+import { TextOutputNode } from "@dafthunk/runtime/nodes/output/text-output-node";
 import type { WorkflowTemplate } from "@dafthunk/types";
-
-import { WhisperNode } from "../nodes/audio/whisper-node";
-import { AudioRecorderInputNode } from "../nodes/input/audio-recorder-input-node";
-import { TextOutputNode } from "../nodes/output/text-output-node";
 
 export const speechToTextTemplate: WorkflowTemplate = {
   id: "speech-to-text",

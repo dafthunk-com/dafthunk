@@ -1,9 +1,8 @@
+import { DatasetAiSearchNode } from "@dafthunk/runtime/nodes/dataset/dataset-ai-search-node";
+import { ParseEmailNode } from "@dafthunk/runtime/nodes/email/parse-email-node";
+import { ReceiveEmailNode } from "@dafthunk/runtime/nodes/email/receive-email-node";
+import { SendEmailNode } from "@dafthunk/runtime/nodes/email/send-email-node";
 import type { WorkflowTemplate } from "@dafthunk/types";
-
-import { DatasetAiSearchNode } from "../nodes/dataset/dataset-ai-search-node";
-import { ParseEmailNode } from "../nodes/email/parse-email-node";
-import { ReceiveEmailNode } from "../nodes/email/receive-email-node";
-import { SendEmailNode } from "../nodes/email/send-email-node";
 
 export const emailReplyTemplate: WorkflowTemplate = {
   id: "email-reply",

@@ -1,10 +1,9 @@
 import { env } from "cloudflare:test";
+import { TextInputNode } from "@dafthunk/runtime/nodes/input/text-input-node";
+import { SingleVariableStringTemplateNode } from "@dafthunk/runtime/nodes/text/single-variable-string-template-node";
 import type { Parameter } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
-
 import type { Bindings } from "../context";
-import { TextInputNode } from "../nodes/input/text-input-node";
-import { SingleVariableStringTemplateNode } from "../nodes/text/single-variable-string-template-node";
 import { textFormatterTemplate } from "./text-formatter";
 
 describe("Text Formatter Template", () => {

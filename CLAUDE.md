@@ -56,9 +56,10 @@ pnpm --filter '@dafthunk/api' db:prod:migrate  # Apply to production
 - `object-store.ts` - Node outputs (R2 + transient storage)
 - Executes nodes by graph topology
 
-**Node System** (`src/nodes/`)
+**Node System** (`packages/runtime/src/nodes/`)
 - node types in category folders: `text/`, `image/`, `audio/`, `browser/`, `logic/`, `math/`, `javascript/`, `anthropic/`, `openai/`, `gemini/`, `3d/`, `date/`, `document/`, `email/`, `geo/`, `json/`, `net/`, `parameter/`, `rag/`
-- Registry: `base-node-registry.ts` and `cloudflare-node-registry.ts`
+- Base registry: `packages/runtime/src/base-node-registry.ts`
+- Cloudflare registry: `apps/api/src/runtime/cloudflare-node-registry.ts`
 - All implement common interface from `packages/types`
 
 ### Frontend: Web (`apps/web/`)

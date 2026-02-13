@@ -14,7 +14,7 @@ import type {
   WorkflowExecutionContext,
 } from "@dafthunk/runtime";
 import type { Bindings } from "../context";
-import type { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
+import type { CloudflareToolRegistry } from "../runtime/cloudflare-tool-registry";
 
 /**
  * Minimal mock that avoids database access

@@ -224,7 +224,7 @@ Navigate to integrations page, click "Connect {Provider}", complete OAuth flow, 
 
 ## Optional: Create Integration Nodes
 
-**File:** `apps/api/src/nodes/{provider-id}/{action}-{provider-id}-node.ts`
+**File:** `packages/runtime/src/nodes/{provider-id}/{action}-{provider-id}-node.ts`
 
 ```typescript
 import { NodeExecution, NodeType } from "@dafthunk/types";
@@ -285,7 +285,7 @@ export class {Action}{Provider}Node extends ExecutableNode {
 }
 ```
 
-Register in `apps/api/src/nodes/cloudflare-node-registry.ts`:
+Register in `apps/api/src/runtime/cloudflare-node-registry.ts`:
 
 ```typescript
 import { {Action}{Provider}Node } from "./{provider-id}/{action}-{provider-id}-node";

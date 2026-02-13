@@ -11,8 +11,8 @@
 import { type RuntimeDependencies, WorkflowRuntime } from "@dafthunk/runtime";
 
 import type { Bindings } from "../context";
-import { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
-import { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
+import { CloudflareNodeRegistry } from "./cloudflare-node-registry";
+import { CloudflareToolRegistry } from "./cloudflare-tool-registry";
 import { CloudflareCredentialService } from "./credential-service";
 import { CloudflareCreditService } from "./credit-service";
 import { CloudflareDatabaseService } from "./database-service";

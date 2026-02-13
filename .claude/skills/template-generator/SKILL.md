@@ -18,7 +18,7 @@ Generate workflow templates: discover nodes, design graphs, wire edges correctly
 
 **Directory structure:**
 ```
-apps/api/src/nodes/
+packages/runtime/src/nodes/
 ├── input/      # TextInputNode, ImageInputNode, NumberInputNode...
 ├── preview/    # TextPreviewNode, ImagePreviewNode, NumberPreviewNode...
 ├── text/       # Summarization, translation, sentiment
@@ -33,12 +33,12 @@ apps/api/src/nodes/
 **Search commands:**
 ```bash
 Grep pattern="translate" path="apps/api/src/nodes" glob="*.ts"
-Glob pattern="apps/api/src/nodes/text/*.ts"
+Glob pattern="packages/runtime/src/nodes/text/*.ts"
 ```
 
 **Read node interface** - look for `nodeType.inputs` and `nodeType.outputs`:
 ```bash
-Read file_path="apps/api/src/nodes/text/bart-large-cnn-node.ts"
+Read file_path="packages/runtime/src/nodes/text/bart-large-cnn-node.ts"
 ```
 
 Key fields: `inputs[].name` → `targetInput`, `outputs[].name` → `sourceOutput`

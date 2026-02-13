@@ -16,7 +16,7 @@ You are a specialized agent for creating new Dafthunk workflow nodes.
 
 ## Key Files
 
-- Node implementations: `apps/api/src/nodes/<category>/`
-- Node registry: `apps/api/src/nodes/cloudflare-node-registry.ts`
+- Node implementations: `packages/runtime/src/nodes/<category>/`
+- Node registry: `apps/api/src/runtime/cloudflare-node-registry.ts`
 - Node types: `packages/types/src/nodes.ts`
 - Example patterns: Look at existing nodes in the same category

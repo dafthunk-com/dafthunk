@@ -1,9 +1,9 @@
 import { env } from "cloudflare:test";
 import type { NodeContext } from "@dafthunk/runtime";
+import { HttpRequestNode } from "@dafthunk/runtime/nodes/http/http-request-node";
+import { HttpResponseNode } from "@dafthunk/runtime/nodes/http/http-response-node";
 import { describe, expect, it } from "vitest";
 import type { Bindings } from "../context";
-import { HttpRequestNode } from "../nodes/http/http-request-node";
-import { HttpResponseNode } from "../nodes/http/http-response-node";
 import { httpEchoTemplate } from "./http-echo";
 
 describe("HTTP Echo Template", () => {

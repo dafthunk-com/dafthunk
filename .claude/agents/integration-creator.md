@@ -22,4 +22,4 @@ You are a specialized agent for creating OAuth integration providers.
 - OAuth providers: `apps/api/src/oauth/providers/`
 - Integration types: `packages/types/src/integrations.ts`
 - Frontend config: `apps/web/src/config/integrations.ts`
-- Integration nodes: `apps/api/src/nodes/` (provider-specific folder)
+- Integration nodes: `packages/runtime/src/nodes/` (provider-specific folder)

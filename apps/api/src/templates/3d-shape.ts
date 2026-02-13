@@ -1,10 +1,9 @@
+import { CgsApplyMaterialNode } from "@dafthunk/runtime/nodes/3d/cgs-apply-material-node";
+import { CgsCubeNode } from "@dafthunk/runtime/nodes/3d/cgs-cube-node";
+import { CgsDifferenceNode } from "@dafthunk/runtime/nodes/3d/cgs-difference-node";
+import { CgsSphereNode } from "@dafthunk/runtime/nodes/3d/cgs-sphere-node";
+import { GltfOutputNode } from "@dafthunk/runtime/nodes/output/gltf-output-node";
 import type { WorkflowTemplate } from "@dafthunk/types";
-
-import { CgsApplyMaterialNode } from "../nodes/3d/cgs-apply-material-node";
-import { CgsCubeNode } from "../nodes/3d/cgs-cube-node";
-import { CgsDifferenceNode } from "../nodes/3d/cgs-difference-node";
-import { CgsSphereNode } from "../nodes/3d/cgs-sphere-node";
-import { GltfOutputNode } from "../nodes/output/gltf-output-node";
 
 export const shape3dTemplate: WorkflowTemplate = {
   id: "3d-shape",

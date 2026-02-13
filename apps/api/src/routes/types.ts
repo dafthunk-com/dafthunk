@@ -3,7 +3,7 @@ import { Hono } from "hono";
 
 import { optionalJwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
-import { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
+import { CloudflareNodeRegistry } from "../runtime/cloudflare-node-registry";
 
 const typeRoutes = new Hono<ApiContext>();
 

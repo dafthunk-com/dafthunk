@@ -1,8 +1,7 @@
+import { UformGen2Qwen500mNode } from "@dafthunk/runtime/nodes/image/uform-gen2-qwen-500m-node";
+import { CanvasInputNode } from "@dafthunk/runtime/nodes/input/canvas-input-node";
+import { TextOutputNode } from "@dafthunk/runtime/nodes/output/text-output-node";
 import type { WorkflowTemplate } from "@dafthunk/types";
-
-import { UformGen2Qwen500mNode } from "../nodes/image/uform-gen2-qwen-500m-node";
-import { CanvasInputNode } from "../nodes/input/canvas-input-node";
-import { TextOutputNode } from "../nodes/output/text-output-node";
 
 export const imageDescriptionTemplate: WorkflowTemplate = {
   id: "image-description",

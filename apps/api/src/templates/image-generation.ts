@@ -1,8 +1,7 @@
+import { StableDiffusionXLLightningNode } from "@dafthunk/runtime/nodes/image/stable-diffusion-xl-lightning-node";
+import { TextInputNode } from "@dafthunk/runtime/nodes/input/text-input-node";
+import { ImageOutputNode } from "@dafthunk/runtime/nodes/output/image-output-node";
 import type { WorkflowTemplate } from "@dafthunk/types";
-
-import { StableDiffusionXLLightningNode } from "../nodes/image/stable-diffusion-xl-lightning-node";
-import { TextInputNode } from "../nodes/input/text-input-node";
-import { ImageOutputNode } from "../nodes/output/image-output-node";
 
 export const imageGenerationTemplate: WorkflowTemplate = {
   id: "image-generation",

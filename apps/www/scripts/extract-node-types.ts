@@ -36,7 +36,7 @@ interface NodeType {
   }[];
 }
 
-const API_NODES_DIR = join(__dirname, "../../api/src/nodes");
+const API_NODES_DIR = join(__dirname, "../../../packages/runtime/src/nodes");
 const OUTPUT_PATH = join(__dirname, "../data/nodes.json");
 
 function main() {

@@ -1,17 +1,17 @@
 import { BaseNodeRegistry } from "@dafthunk/runtime";
+import { NumberInputNode } from "@dafthunk/runtime/nodes/input/number-input-node";
+import { ConditionalForkNode } from "@dafthunk/runtime/nodes/logic/conditional-fork-node";
+import { ConditionalJoinNode } from "@dafthunk/runtime/nodes/logic/conditional-join-node";
+import { AdditionNode } from "@dafthunk/runtime/nodes/math/addition-node";
+import { AvgNode } from "@dafthunk/runtime/nodes/math/avg-node";
+import { DivisionNode } from "@dafthunk/runtime/nodes/math/division-node";
+import { MaxNode } from "@dafthunk/runtime/nodes/math/max-node";
+import { MedianNode } from "@dafthunk/runtime/nodes/math/median-node";
+import { MinNode } from "@dafthunk/runtime/nodes/math/min-node";
+import { MultiplicationNode } from "@dafthunk/runtime/nodes/math/multiplication-node";
+import { SubtractionNode } from "@dafthunk/runtime/nodes/math/subtraction-node";
+import { SumNode } from "@dafthunk/runtime/nodes/math/sum-node";
 import type { Bindings } from "../context";
-import { NumberInputNode } from "../nodes/input/number-input-node";
-import { ConditionalForkNode } from "../nodes/logic/conditional-fork-node";
-import { ConditionalJoinNode } from "../nodes/logic/conditional-join-node";
-import { AdditionNode } from "../nodes/math/addition-node";
-import { AvgNode } from "../nodes/math/avg-node";
-import { DivisionNode } from "../nodes/math/division-node";
-import { MaxNode } from "../nodes/math/max-node";
-import { MedianNode } from "../nodes/math/median-node";
-import { MinNode } from "../nodes/math/min-node";
-import { MultiplicationNode } from "../nodes/math/multiplication-node";
-import { SubtractionNode } from "../nodes/math/subtraction-node";
-import { SumNode } from "../nodes/math/sum-node";
 
 /**
  * Mock Node Registry

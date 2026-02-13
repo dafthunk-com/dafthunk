@@ -1,8 +1,7 @@
+import { TextInputNode } from "@dafthunk/runtime/nodes/input/text-input-node";
+import { TextOutputNode } from "@dafthunk/runtime/nodes/output/text-output-node";
+import { Llama3370BInstructFastNode } from "@dafthunk/runtime/nodes/text/llama-3-3-70b-instruct-fp8-fast-node";
 import type { WorkflowTemplate } from "@dafthunk/types";
-
-import { TextInputNode } from "../nodes/input/text-input-node";
-import { TextOutputNode } from "../nodes/output/text-output-node";
-import { Llama3370BInstructFastNode } from "../nodes/text/llama-3-3-70b-instruct-fp8-fast-node";
 
 export const aiCalculatorTemplate: WorkflowTemplate = {
   id: "ai-calculator",

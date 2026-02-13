@@ -1,11 +1,10 @@
 import { env } from "cloudflare:test";
+import { TextInputNode } from "@dafthunk/runtime/nodes/input/text-input-node";
+import { TextOutputNode } from "@dafthunk/runtime/nodes/output/text-output-node";
+import { M2m10012bNode } from "@dafthunk/runtime/nodes/text/m2m100-1-2b-node";
 import type { Parameter } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
-
 import type { Bindings } from "../context";
-import { TextInputNode } from "../nodes/input/text-input-node";
-import { TextOutputNode } from "../nodes/output/text-output-node";
-import { M2m10012bNode } from "../nodes/text/m2m100-1-2b-node";
 import { textTranslationTemplate } from "./text-translation";
 
 describe("Text Translation Template", () => {

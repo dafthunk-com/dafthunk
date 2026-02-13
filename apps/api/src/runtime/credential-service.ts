@@ -16,8 +16,8 @@ import {
   getIntegrationById,
   updateIntegration,
 } from "../db";
-import type { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
 import { getProvider } from "../oauth";
+import type { CloudflareToolRegistry } from "./cloudflare-tool-registry";
 import { CloudflareObjectStore } from "./object-store";
 
 /**

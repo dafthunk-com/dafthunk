@@ -1,11 +1,10 @@
 import { env } from "cloudflare:test";
+import { StableDiffusionXLLightningNode } from "@dafthunk/runtime/nodes/image/stable-diffusion-xl-lightning-node";
+import { TextInputNode } from "@dafthunk/runtime/nodes/input/text-input-node";
+import { ImageOutputNode } from "@dafthunk/runtime/nodes/output/image-output-node";
 import type { Parameter } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
-
 import type { Bindings } from "../context";
-import { StableDiffusionXLLightningNode } from "../nodes/image/stable-diffusion-xl-lightning-node";
-import { TextInputNode } from "../nodes/input/text-input-node";
-import { ImageOutputNode } from "../nodes/output/image-output-node";
 import { imageGenerationTemplate } from "./image-generation";
 
 describe("Image Generation Template", () => {
