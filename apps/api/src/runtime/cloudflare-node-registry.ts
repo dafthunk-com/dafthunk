@@ -97,6 +97,7 @@ import { Gemini25FlashTtsNode } from "@dafthunk/runtime/nodes/gemini/gemini-2-5-
 import { Gemini25ProNode } from "@dafthunk/runtime/nodes/gemini/gemini-2-5-pro-node";
 import { Gemini3ProImagePreviewNode } from "@dafthunk/runtime/nodes/gemini/gemini-3-pro-image-preview-node";
 import { ImagenNode } from "@dafthunk/runtime/nodes/gemini/imagen-node";
+import { GoogleVisionOcrNode } from "@dafthunk/runtime/nodes/google/google-vision-ocr-node";
 // import { AlongNode } from "@dafthunk/runtime/nodes/geo/along-node";
 // import { AngleNode } from "@dafthunk/runtime/nodes/geo/angle-node";
 // import { AreaNode } from "@dafthunk/runtime/nodes/geo/area-node";
@@ -916,6 +917,9 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(Gemini25FlashImageUnderstandingNode);
     this.registerImplementation(Gemini25FlashTtsNode);
     this.registerImplementation(ImagenNode);
+
+    // Google Vision nodes - always register (users provide API keys via secrets)
+    this.registerImplementation(GoogleVisionOcrNode);
 
     // 3D generation nodes - always register (users can provide API keys via secrets)
     if (this.developerMode) {

@@ -5,11 +5,46 @@ import { getGoogleAIConfig } from "../../utils/ai-gateway";
 import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
 
 // https://ai.google.dev/gemini-api/docs/pricing
-// Gemini 2.5 Flash TTS: $0.50/MTok input, $10.00/MTok output
+// Gemini 2.5 Flash TTS: $0.50/MTok input (text), $10.00/MTok output (audio)
 const PRICING: TokenPricing = {
   inputCostPerMillion: 0.5,
   outputCostPerMillion: 10.0,
 };
+
+const VALID_VOICES = [
+  "Zephyr",
+  "Puck",
+  "Charon",
+  "Kore",
+  "Fenrir",
+  "Leda",
+  "Orus",
+  "Aoede",
+  "Callirrhoe",
+  "Autonoe",
+  "Enceladus",
+  "Iapetus",
+  "Umbriel",
+  "Algieba",
+  "Despina",
+  "Erinome",
+  "Algenib",
+  "Rasalgethi",
+  "Laomedeia",
+  "Achernar",
+  "Alnilam",
+  "Schedar",
+  "Gacrux",
+  "Pulcherrima",
+  "Achird",
+  "Zubenelgenubi",
+  "Vindemiatrix",
+  "Sadachbia",
+  "Sadaltager",
+  "Sulafat",
+] as const;
+
+const VALID_VOICE_SET = new Set<string>(VALID_VOICES);
 
 /**
  * Writes a 4-character ASCII string into a DataView at the given offset.
@@ -22,13 +57,13 @@ function writeString(view: DataView, offset: number, str: string): void {
 
 /**
  * Wraps raw PCM audio data in a WAV container (RIFF header + fmt + data chunks).
- * Gemini TTS outputs 24kHz, 16-bit, mono PCM — this makes it playable.
+ * Gemini TTS outputs 24kHz, 16-bit, mono PCM -- this makes it playable.
  */
 function wrapPcmAsWav(
   pcmData: Uint8Array,
   sampleRate = 24000,
   channels = 1,
-  bitsPerSample = 16
+  bitsPerSample = 16,
 ): Uint8Array {
   const byteRate = sampleRate * channels * (bitsPerSample / 8);
   const blockAlign = channels * (bitsPerSample / 8);
@@ -61,8 +96,8 @@ function wrapPcmAsWav(
 }
 
 /**
- * Gemini 2.5 Flash TTS node — converts text to speech using Google's Gemini TTS model.
- * Supports 30 prebuilt voices and 99+ languages with natural language style control.
+ * Gemini 2.5 Flash TTS node -- converts text to speech using Google's Gemini TTS model.
+ * Supports 30 prebuilt voices and 24kHz 16-bit mono PCM output wrapped as WAV.
  */
 export class Gemini25FlashTtsNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -76,6 +111,8 @@ export class Gemini25FlashTtsNode extends ExecutableNode {
     documentation:
       "This node converts text to speech using Google's Gemini 2.5 Flash TTS model, supporting 30 voices and 99+ languages with controllable style via natural language prompts.",
     referenceUrl: "https://ai.google.dev/gemini-api/docs/speech-generation",
+    inlinable: false,
+    asTool: false,
     usage: 1,
     inputs: [
       {
@@ -112,8 +149,15 @@ export class Gemini25FlashTtsNode extends ExecutableNode {
     try {
       const { text, voice } = context.inputs;
 
-      if (!text) {
+      if (!text || typeof text !== "string") {
         return this.createErrorResult("Text input is required");
+      }
+
+      const voiceName = (voice as string) || "Kore";
+      if (!VALID_VOICE_SET.has(voiceName)) {
+        return this.createErrorResult(
+          `Invalid voice "${voiceName}". Valid voices: ${VALID_VOICES.join(", ")}`,
+        );
       }
 
       // API key is injected by AI Gateway via BYOK (Bring Your Own Keys)
@@ -124,13 +168,13 @@ export class Gemini25FlashTtsNode extends ExecutableNode {
 
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash-preview-tts",
-        contents: [{ text }],
+        contents: [{ parts: [{ text }] }],
         config: {
           responseModalities: ["AUDIO"],
           speechConfig: {
             voiceConfig: {
               prebuiltVoiceConfig: {
-                voiceName: voice || "Kore",
+                voiceName,
               },
             },
           },
@@ -143,12 +187,12 @@ export class Gemini25FlashTtsNode extends ExecutableNode {
 
       const parts = response.candidates[0].content.parts;
       let audioData: Uint8Array | null = null;
-      let mimeType = "audio/wav";
 
-      for (const part of parts as any[]) {
+      for (const part of parts) {
         if (part?.inlineData?.data) {
-          const raw = Uint8Array.from(atob(part.inlineData.data), (c) =>
-            c.charCodeAt(0)
+          // Use Buffer.from for safe base64 decoding (avoids stack overflow on large payloads)
+          const raw = new Uint8Array(
+            Buffer.from(part.inlineData.data, "base64"),
           );
 
           // If the API returns raw PCM, wrap it with a WAV header for playability.
@@ -161,7 +205,6 @@ export class Gemini25FlashTtsNode extends ExecutableNode {
             raw[3] === 0x46;
 
           audioData = isWav ? raw : wrapPcmAsWav(raw);
-          mimeType = "audio/wav";
           break;
         }
       }
@@ -174,14 +217,14 @@ export class Gemini25FlashTtsNode extends ExecutableNode {
       const usage = calculateTokenUsage(
         usageMetadata?.promptTokenCount ?? 0,
         usageMetadata?.candidatesTokenCount ?? 0,
-        PRICING
+        PRICING,
       );
 
       return this.createSuccessResult(
         {
           audio: {
             data: audioData,
-            mimeType,
+            mimeType: "audio/wav",
           },
           ...(usageMetadata && {
             usage_metadata: {
@@ -191,12 +234,12 @@ export class Gemini25FlashTtsNode extends ExecutableNode {
             },
           }),
         },
-        usage
+        usage,
       );
     } catch (error) {
       console.error("Gemini TTS error:", error);
       return this.createErrorResult(
-        error instanceof Error ? error.message : "Unknown error"
+        error instanceof Error ? error.message : "Unknown error",
       );
     }
   }
