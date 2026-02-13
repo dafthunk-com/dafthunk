@@ -1,11 +1,6 @@
 import { fliph, flipv, PhotonImage } from "@cf-wasm/photon";
+import { ExecutableNode, ImageParameter, NodeContext } from "@dafthunk/runtime";
 import { NodeExecution, NodeType } from "@dafthunk/types";
-
-import {
-  ExecutableNode,
-  ImageParameter,
-  NodeContext,
-} from "@dafthunk/runtime";
 
 /**
  * This node flips an input image horizontally or vertically using the Photon library.

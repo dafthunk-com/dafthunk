@@ -1,11 +1,6 @@
 import { adjust_brightness, PhotonImage } from "@cf-wasm/photon";
+import { ExecutableNode, ImageParameter, NodeContext } from "@dafthunk/runtime";
 import { NodeExecution, NodeType } from "@dafthunk/types";
-
-import {
-  ExecutableNode,
-  ImageParameter,
-  NodeContext,
-} from "@dafthunk/runtime";
 
 /**
  * This node adjusts the brightness of an input image using the Photon library.

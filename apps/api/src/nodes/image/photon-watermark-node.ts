@@ -1,11 +1,6 @@
 import { PhotonImage, watermark } from "@cf-wasm/photon";
+import { ExecutableNode, ImageParameter, NodeContext } from "@dafthunk/runtime";
 import { NodeExecution, NodeType } from "@dafthunk/types";
-
-import {
-  ExecutableNode,
-  ImageParameter,
-  NodeContext,
-} from "@dafthunk/runtime";
 
 /**
  * This node adds a watermark to an input image at specified coordinates using the Photon library.

@@ -1,10 +1,5 @@
+import { ExecutableNode, NodeContext, ParameterValue } from "@dafthunk/runtime";
 import { Node, NodeExecution, NodeType } from "@dafthunk/types";
-
-import {
-  ExecutableNode,
-  NodeContext,
-  ParameterValue,
-} from "@dafthunk/runtime";
 
 /**
  * Conditional Fork Node

@@ -1,5 +1,3 @@
-import { Node, NodeExecution, NodeType } from "@dafthunk/types";
-
 import {
   BlobParameter,
   ExecutableNode,
@@ -7,6 +5,7 @@ import {
   NodeContext,
   toUint8Array,
 } from "@dafthunk/runtime";
+import { Node, NodeExecution, NodeType } from "@dafthunk/types";
 
 export class HttpRequestNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

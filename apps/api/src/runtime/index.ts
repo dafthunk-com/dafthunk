@@ -11,6 +11,6 @@
  */
 
 export { CloudflareCreditService } from "./credit-service";
-export { WorkerRuntime, createWorkerRuntime } from "./worker-runtime";
-export { WorkflowRuntime, createWorkflowRuntime } from "./workflow-runtime";
+export { createWorkerRuntime, WorkerRuntime } from "./worker-runtime";
+export { createWorkflowRuntime, WorkflowRuntime } from "./workflow-runtime";
 export { WorkflowRuntimeEntrypoint } from "./workflow-runtime-entrypoint";

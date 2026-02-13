@@ -1,8 +1,7 @@
 import { env } from "cloudflare:test";
+import { NodeContext } from "@dafthunk/runtime";
 import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
-
-import { NodeContext } from "@dafthunk/runtime";
 import { M2m10012bNode } from "./m2m100-1-2b-node";
 
 describe("M2m10012bNode", () => {

@@ -1,9 +1,8 @@
 import { env } from "cloudflare:test";
+import { NodeContext } from "@dafthunk/runtime";
 import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
-
 import { testImageData } from "../../../test/fixtures/image-fixtures";
-import { NodeContext } from "@dafthunk/runtime";
 import { UformGen2Qwen500mNode } from "./uform-gen2-qwen-500m-node";
 
 describe("UformGen2Qwen500mNode", () => {

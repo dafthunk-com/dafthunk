@@ -1,5 +1,5 @@
-import { NodeExecution, NodeType } from "@dafthunk/types";
 import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
+import { NodeExecution, NodeType } from "@dafthunk/types";
 
 /**
  * Sum node implementation that accepts multiple numbers and sums them

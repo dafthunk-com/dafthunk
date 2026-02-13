@@ -11,7 +11,12 @@ import type {
 
 import type { Bindings } from "../context";
 
-export type { ExecutionRow, ExecutionStore, ListExecutionsOptions, SaveExecutionRecord };
+export type {
+  ExecutionRow,
+  ExecutionStore,
+  ListExecutionsOptions,
+  SaveExecutionRecord,
+};
 
 /**
  * Row shape returned by Analytics Engine SQL queries

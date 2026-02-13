@@ -1,7 +1,6 @@
-import type { NodeExecution, NodeType } from "@dafthunk/types";
-
 import type { NodeContext } from "@dafthunk/runtime";
 import { ExecutableNode } from "@dafthunk/runtime";
+import type { NodeExecution, NodeType } from "@dafthunk/types";
 
 /**
  * AudioRecorderInput node implementation

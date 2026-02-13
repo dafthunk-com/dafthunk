@@ -11,7 +11,9 @@ import type {
 } from "@dafthunk/types";
 import type { BaseToolRegistry } from "./base-tool-registry";
 import type { DatabaseService } from "./database-service";
+import type { DatasetService } from "./dataset-service";
 import type { ObjectStore } from "./object-store";
+import type { QueueService } from "./queue-service";
 import type { ToolDefinition, ToolReference } from "./tool-types";
 
 /**
@@ -217,6 +219,8 @@ export interface NodeContext {
   toolRegistry?: BaseToolRegistry;
   objectStore?: ObjectStore;
   databaseService?: DatabaseService;
+  datasetService?: DatasetService;
+  queueService?: QueueService;
   // Callback-based access to sensitive data (improves security and isolation)
   getSecret?: (secretName: string) => Promise<string | undefined>;
   getIntegration: (integrationId: string) => Promise<IntegrationInfo>;
@@ -249,7 +253,7 @@ export abstract class ExecutableNode {
    * Creates a Node definition from this class's nodeType
    */
   static create(options: CreateNodeOptions): Node {
-    const nodeType = ExecutableNode.nodeType;
+    const nodeType = this.nodeType;
 
     const inputs = nodeType.inputs.map((input) => {
       const override = options.inputs?.[input.name];

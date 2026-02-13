@@ -1,6 +1,5 @@
-import { Node, NodeExecution, NodeType } from "@dafthunk/types";
-
 import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
+import { Node, NodeExecution, NodeType } from "@dafthunk/types";
 
 /**
  * Conditional Join Node

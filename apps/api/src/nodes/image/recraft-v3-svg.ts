@@ -1,8 +1,7 @@
-import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { z } from "zod";
-
 import type { NodeContext } from "@dafthunk/runtime";
 import { ExecutableNode } from "@dafthunk/runtime";
+import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { z } from "zod";
 
 /**
  * Response shape from Replicate predictions API

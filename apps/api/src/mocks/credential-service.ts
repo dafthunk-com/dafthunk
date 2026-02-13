@@ -8,7 +8,9 @@
 import type {
   CredentialService,
   DatabaseService,
+  DatasetService,
   NodeContext,
+  QueueService,
   WorkflowExecutionContext,
 } from "@dafthunk/runtime";
 import type { Bindings } from "../context";
@@ -21,7 +23,9 @@ export class MockCredentialService implements CredentialService {
   constructor(
     private env: Bindings,
     private toolRegistry: CloudflareToolRegistry,
-    private databaseService?: DatabaseService
+    private databaseService?: DatabaseService,
+    private datasetService?: DatasetService,
+    private queueService?: QueueService
   ) {}
 
   /**
@@ -63,6 +67,8 @@ export class MockCredentialService implements CredentialService {
       onProgress: () => {},
       toolRegistry: this.toolRegistry,
       databaseService: this.databaseService,
+      datasetService: this.datasetService,
+      queueService: this.queueService,
       getSecret: async (_secretName: string) => {
         return undefined;
       },

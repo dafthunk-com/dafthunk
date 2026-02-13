@@ -1,8 +1,7 @@
 import { env } from "cloudflare:test";
+import { NodeContext } from "@dafthunk/runtime";
 import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
-
-import { NodeContext } from "@dafthunk/runtime";
 import { DeepseekR1DistillQwen32BNode } from "./deepseek-r1-distill-qwen-32b-node";
 
 describe("DeepseekR1DistillQwen32BNode", () => {

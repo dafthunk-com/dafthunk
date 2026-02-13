@@ -1,9 +1,8 @@
 import { env } from "cloudflare:test";
+import { NodeContext } from "@dafthunk/runtime";
 import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
-
 import { testImageData } from "../../../test/fixtures/image-fixtures";
-import { NodeContext } from "@dafthunk/runtime";
 import { Resnet50Node } from "./resnet-50-node";
 
 describe("Resnet50Node", () => {

@@ -19,11 +19,7 @@
 import type { WorkflowStep, WorkflowStepConfig } from "cloudflare:workers";
 import type { WorkflowExecution } from "@dafthunk/types";
 
-import {
-  Runtime,
-  type RuntimeDependencies,
-  type RuntimeParams,
-} from "./base-runtime";
+import { Runtime, type RuntimeParams } from "./base-runtime";
 
 /**
  * Workflow runtime with step-based execution.
@@ -40,10 +36,6 @@ export class WorkflowRuntime<Env = unknown> extends Runtime<Env> {
     },
     timeout: "10 minutes",
   };
-
-  constructor(env: Env, dependencies: RuntimeDependencies<Env>) {
-    super(env, dependencies);
-  }
 
   /**
    * Executes the workflow with the given step context.

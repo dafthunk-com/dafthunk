@@ -1,11 +1,6 @@
+import { ExecutableNode, ImageParameter, NodeContext } from "@dafthunk/runtime";
 import { NodeExecution, NodeType } from "@dafthunk/types";
 import ExifReader from "exifreader";
-
-import {
-  ExecutableNode,
-  ImageParameter,
-  NodeContext,
-} from "@dafthunk/runtime";
 
 /**
  * Extracts EXIF data from an image using the ExifReader library.

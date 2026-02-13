@@ -1,6 +1,5 @@
-import { NodeExecution, NodeType } from "@dafthunk/types";
-
 import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
+import { NodeExecution, NodeType } from "@dafthunk/types";
 
 /**
  * Gmail Update Draft node implementation

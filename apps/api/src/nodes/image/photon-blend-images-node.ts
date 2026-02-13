@@ -1,11 +1,6 @@
 import { blend, PhotonImage } from "@cf-wasm/photon";
+import { ExecutableNode, ImageParameter, NodeContext } from "@dafthunk/runtime";
 import { NodeExecution, NodeType } from "@dafthunk/types";
-
-import {
-  ExecutableNode,
-  ImageParameter,
-  NodeContext,
-} from "@dafthunk/runtime";
 
 /**
  * This node blends two images together using a specified blend mode via the Photon library.

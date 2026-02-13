@@ -1,7 +1,5 @@
-import { NodeExecution, NodeType, QueueMessage } from "@dafthunk/types";
-
-import { createDatabase, getQueue } from "../../db";
 import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
+import { NodeExecution, NodeType } from "@dafthunk/types";
 
 export class SendQueueBatchNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -67,10 +65,15 @@ export class SendQueueBatchNode extends ExecutableNode {
       return this.createErrorResult("'messages' array cannot be empty.");
     }
 
+    if (!context.queueService) {
+      return this.createErrorResult("Queue service is not available.");
+    }
+
     try {
-      // Get queue from database to verify it exists and belongs to the organization
-      const db = createDatabase(context.env.DB);
-      const queue = await getQueue(db, queueIdOrHandle, context.organizationId);
+      const queue = await context.queueService.resolve(
+        queueIdOrHandle,
+        context.organizationId
+      );
 
       if (!queue) {
         return this.createErrorResult(
@@ -78,19 +81,7 @@ export class SendQueueBatchNode extends ExecutableNode {
         );
       }
 
-      // Prepare queue messages
-      const queueMessages: QueueMessage[] = messages.map((message) => ({
-        queueId: queue.id,
-        organizationId: context.organizationId,
-        payload: message,
-        timestamp: Date.now(),
-        mode: context.mode,
-      }));
-
-      // Send all messages to Cloudflare Queue
-      await context.env.WORKFLOW_QUEUE.sendBatch(
-        queueMessages.map((msg) => ({ body: msg }))
-      );
+      await queue.sendBatch(messages, context.mode);
 
       // Generate message IDs
       const messageIds = messages.map(

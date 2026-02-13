@@ -1,8 +1,10 @@
 import type {
   CredentialService,
   DatabaseService,
+  DatasetService,
   IntegrationData,
   NodeContext,
+  QueueService,
   WorkflowExecutionContext,
 } from "@dafthunk/runtime";
 
@@ -33,7 +35,9 @@ export class CloudflareCredentialService implements CredentialService {
   constructor(
     private env: Bindings,
     private toolRegistry: CloudflareToolRegistry,
-    private databaseService?: DatabaseService
+    private databaseService?: DatabaseService,
+    private datasetService?: DatasetService,
+    private queueService?: QueueService
   ) {}
 
   /**
@@ -187,6 +191,8 @@ export class CloudflareCredentialService implements CredentialService {
       toolRegistry: this.toolRegistry,
       objectStore,
       databaseService: this.databaseService,
+      datasetService: this.datasetService,
+      queueService: this.queueService,
       // Callback-based access to secrets (lazy, secure)
       getSecret: async (secretName: string) => {
         return this.secrets?.[secretName];

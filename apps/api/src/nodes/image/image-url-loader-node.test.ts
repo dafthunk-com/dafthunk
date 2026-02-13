@@ -1,7 +1,6 @@
+import { NodeContext } from "@dafthunk/runtime";
 import { Node } from "@dafthunk/types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
-import { NodeContext } from "@dafthunk/runtime";
 import { ImageUrlLoaderNode } from "./image-url-loader-node";
 
 // Mock fetch

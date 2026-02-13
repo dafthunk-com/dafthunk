@@ -22,6 +22,16 @@ export type {
   DatabaseService,
   QueryResult,
 } from "./database-service";
+export type {
+  Dataset,
+  DatasetAiSearchOptions,
+  DatasetAiSearchResult,
+  DatasetFileContent,
+  DatasetFileInfo,
+  DatasetSearchOptions,
+  DatasetSearchResult,
+  DatasetService,
+} from "./dataset-service";
 export {
   nodeNotFoundMessage,
   nodeTypeNotImplementedMessage,
@@ -82,6 +92,7 @@ export {
 export type { ObjectMetadata, ObjectStore } from "./object-store";
 // Pure functions
 export { apiToNodeParameter, nodeToApiParameter } from "./parameter-mapper";
+export type { Queue, QueueService } from "./queue-service";
 export { testConcurrentErrors } from "./specification/concurrent-errors-spec";
 export { testConditionalBranching } from "./specification/conditional-branching-spec";
 export { testEdgeCases } from "./specification/edge-cases-spec";

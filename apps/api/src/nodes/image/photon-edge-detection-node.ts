@@ -1,11 +1,6 @@
 import { edge_detection, PhotonImage } from "@cf-wasm/photon";
+import { ExecutableNode, ImageParameter, NodeContext } from "@dafthunk/runtime";
 import { NodeExecution, NodeType } from "@dafthunk/types";
-
-import {
-  ExecutableNode,
-  ImageParameter,
-  NodeContext,
-} from "@dafthunk/runtime";
 
 /**
  * This node applies edge detection to an input image using the Photon library.

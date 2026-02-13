@@ -11,6 +11,7 @@ import type { BaseNodeRegistry } from "./base-node-registry";
 import type { CredentialService } from "./credential-service";
 import type { CreditService } from "./credit-service";
 import type { DatabaseService } from "./database-service";
+import type { DatasetService } from "./dataset-service";
 import {
   nodeNotFoundMessage,
   nodeTypeNotImplementedMessage,
@@ -36,6 +37,7 @@ import type { MonitoringService } from "./monitoring-service";
 import type { EmailMessage, ExecutableNode, HttpRequest } from "./node-types";
 import type { ObjectStore } from "./object-store";
 import { apiToNodeParameter, nodeToApiParameter } from "./parameter-mapper";
+import type { QueueService } from "./queue-service";
 import { validateWorkflow } from "./validate-workflow";
 
 export interface RuntimeParams {
@@ -68,6 +70,8 @@ export interface RuntimeDependencies<Env = unknown> {
   creditService: CreditService;
   objectStore: ObjectStore;
   databaseService?: DatabaseService;
+  datasetService?: DatasetService;
+  queueService?: QueueService;
 }
 
 /**
@@ -96,6 +100,8 @@ export abstract class Runtime<Env = unknown> {
   protected creditService: CreditService;
   protected objectStore: ObjectStore;
   protected databaseService?: DatabaseService;
+  protected datasetService?: DatasetService;
+  protected queueService?: QueueService;
   protected env: Env;
   protected userPlan?: string;
 
@@ -108,6 +114,8 @@ export abstract class Runtime<Env = unknown> {
     this.creditService = dependencies.creditService;
     this.objectStore = dependencies.objectStore;
     this.databaseService = dependencies.databaseService;
+    this.datasetService = dependencies.datasetService;
+    this.queueService = dependencies.queueService;
   }
 
   /**
@@ -342,12 +350,13 @@ export abstract class Runtime<Env = unknown> {
       // STEP 5: Persist final state with credit usage
       // ========================================================================
       if (executionContext) {
+        const ctx = executionContext;
         executionRecord = await this.executeStep(
           "persist final execution record",
           async () => {
             const finalStatus = isExhausted
               ? ("exhausted" as const)
-              : getExecutionStatus(executionContext!, executionState);
+              : getExecutionStatus(ctx, executionState);
 
             // Record actual usage
             if (!isExhausted) {
@@ -369,13 +378,13 @@ export abstract class Runtime<Env = unknown> {
             // Save to execution store - this happens exactly once per execution
             return this.executionStore.save({
               id: instanceId,
-              workflowId: executionContext!.workflowId,
+              workflowId: ctx.workflowId,
               userId,
               organizationId,
               status: finalStatus,
               nodeExecutions: this.buildNodeExecutions(
-                executionContext!.workflow,
-                executionContext!,
+                ctx.workflow,
+                ctx,
                 executionState
               ),
               error: errorReport ?? executionRecord.error,
@@ -459,7 +468,14 @@ export abstract class Runtime<Env = unknown> {
     const skipResult = this.checkSkipCondition(context, state, nodeId);
     if (skipResult) return skipResult;
 
-    const node = this.findNode(context.workflow, nodeId)!;
+    const node = this.findNode(context.workflow, nodeId);
+    if (!node) {
+      return {
+        nodeId,
+        status: "error",
+        error: nodeNotFoundMessage(nodeId),
+      };
+    }
 
     // Resolve executable node instance and validate subscription
     const resolved = this.resolveExecutable(node);
@@ -582,7 +598,7 @@ export abstract class Runtime<Env = unknown> {
         nodeType: import("@dafthunk/types").NodeType;
       }
     | NodeExecutionResult {
-    let nodeType;
+    let nodeType: import("@dafthunk/types").NodeType;
     try {
       nodeType = this.nodeRegistry.getNodeType(node.type);
     } catch (_error) {
@@ -640,7 +656,7 @@ export abstract class Runtime<Env = unknown> {
       if (!edgesByInput.has(inputName)) {
         edgesByInput.set(inputName, []);
       }
-      edgesByInput.get(inputName)!.push(edge);
+      edgesByInput.get(inputName)?.push(edge);
     }
 
     // Resolve upstream edge values

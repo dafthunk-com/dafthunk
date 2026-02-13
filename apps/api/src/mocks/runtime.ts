@@ -46,9 +46,11 @@ import type { Bindings } from "../context";
 import { CloudflareObjectStore } from "../runtime/object-store";
 import { MockCredentialService } from "./credential-service";
 import { MockDatabaseService } from "./database-service";
+import { MockDatasetService } from "./dataset-service";
 import { MockExecutionStore } from "./execution-store";
 import { MockMonitoringService } from "./monitoring-service";
 import { MockNodeRegistry } from "./node-registry";
+import { MockQueueService } from "./queue-service";
 import { MockToolRegistry } from "./tool-registry";
 
 /**
@@ -130,10 +132,14 @@ class MockWorkflowEntrypoint extends WorkflowEntrypoint<
 
     // Create MockCredentialService with test tool registry (no database access)
     const databaseService = new MockDatabaseService();
+    const datasetService = new MockDatasetService();
+    const queueService = new MockQueueService();
     credentialProvider = new MockCredentialService(
       env,
       toolRegistry,
-      databaseService
+      databaseService,
+      datasetService,
+      queueService
     );
 
     // Create test-friendly dependencies
@@ -148,6 +154,8 @@ class MockWorkflowEntrypoint extends WorkflowEntrypoint<
       },
       objectStore: new CloudflareObjectStore(env.RESSOURCES),
       databaseService,
+      datasetService,
+      queueService,
     };
 
     // Create runtime with dependencies

@@ -1,6 +1,5 @@
 import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
 import { NodeExecution, NodeType } from "@dafthunk/types";
-import { createDatabase, getDataset } from "../../db";
 
 /**
  * Dataset Delete File node implementation
@@ -65,22 +64,22 @@ export class DatasetDeleteFileNode extends ExecutableNode {
         return this.createErrorResult("Organization ID is required");
       }
 
-      // Verify dataset exists and belongs to organization
-      const db = createDatabase(context.env.DB);
-      const dataset = await getDataset(db, datasetId, organizationId);
+      if (!context.datasetService) {
+        return this.createErrorResult("Dataset service not available");
+      }
+      const dataset = await context.datasetService.resolve(
+        datasetId,
+        organizationId
+      );
       if (!dataset) {
         return this.createErrorResult("Dataset not found or access denied");
       }
 
-      // Create the R2 path following the multitenant pattern
-      const r2Path = `${datasetId}/${filename}`;
-
-      // Delete from R2
-      await context.env.DATASETS.delete(r2Path);
+      await dataset.deleteFile(filename);
 
       return this.createSuccessResult({
         success: true,
-        path: r2Path,
+        path: `${datasetId}/${filename}`,
       });
     } catch (error) {
       return this.createErrorResult(

@@ -1,7 +1,6 @@
 import { env } from "cloudflare:test";
-
-import type { Bindings } from "../../context";
 import type { NodeContext } from "@dafthunk/runtime";
+import type { Bindings } from "../../context";
 
 /**
  * Test configuration for Reddit integration tests.

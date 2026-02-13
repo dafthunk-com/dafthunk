@@ -13,10 +13,7 @@
  * In production: Uses WorkflowRuntime with full node catalog and integrations.
  */
 import { env } from "cloudflare:test";
-
-import type { Bindings } from "../context";
 import type { RuntimeParams } from "@dafthunk/runtime";
-
 import {
   type RuntimeFactory,
   testConcurrentErrors,
@@ -35,6 +32,7 @@ import {
   testTopologicalOrdering,
   testWorkflowValidation,
 } from "@dafthunk/runtime";
+import type { Bindings } from "../context";
 
 /**
  * Adapter to use Cloudflare Workflows EXECUTE binding with the RuntimeFactory pattern.

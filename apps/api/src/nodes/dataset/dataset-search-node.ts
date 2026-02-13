@@ -1,6 +1,5 @@
 import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
 import { NodeExecution, NodeType } from "@dafthunk/types";
-import { createDatabase, getDataset } from "../../db";
 
 /**
  * Dataset Search node implementation
@@ -97,74 +96,29 @@ export class DatasetSearchNode extends ExecutableNode {
         return this.createErrorResult("Organization ID is required");
       }
 
-      if (!context.env.AI) {
-        return this.createErrorResult("AI binding is not available");
+      if (!context.datasetService) {
+        return this.createErrorResult("Dataset service not available");
       }
-
-      // Verify dataset exists and belongs to organization
-      const db = createDatabase(context.env.DB);
-      const dataset = await getDataset(db, datasetId, organizationId);
+      const dataset = await context.datasetService.resolve(
+        datasetId,
+        organizationId
+      );
       if (!dataset) {
         return this.createErrorResult("Dataset not found or access denied");
       }
 
-      // Create multi-tenant folder filter
-      const folderPrefix = `${datasetId}/`;
-
-      // Prepare AutoRAG search parameters - only include defined values
-      const searchParams: any = {
-        query: query.trim(),
-      };
-
-      // Only set rewrite_query if explicitly provided
-      if (rewriteQuery !== undefined) {
-        searchParams.rewrite_query = Boolean(rewriteQuery);
-      }
-
-      // Only set max_num_results if provided and valid
-      if (maxResults !== undefined && !isNaN(Number(maxResults))) {
-        const numResults = Math.min(Math.max(Number(maxResults), 1), 50);
-        searchParams.max_num_results = numResults;
-      }
-
-      // Only set ranking_options if scoreThreshold is provided and valid
-      if (scoreThreshold !== undefined && !isNaN(Number(scoreThreshold))) {
-        const threshold = Math.min(Math.max(Number(scoreThreshold), 0), 1);
-        searchParams.ranking_options = {
-          score_threshold: threshold,
-        };
-      }
-
-      // Only set filters if we have a valid folder prefix
-      if (folderPrefix) {
-        searchParams.filters = {
-          type: "eq" as const,
-          key: "folder",
-          value: folderPrefix,
-        };
-      }
-
-      // Execute AutoRAG search (search only, no generation)
-      const autoragInstance = context.env.AI.autorag(
-        context.env.DATASETS_AUTORAG
-      );
-      const result = await autoragInstance.search(searchParams);
-
-      // Handle the response
-      let searchResults = null;
-      let searchQuery = "";
-      let hasMore = false;
-
-      if (result && typeof result === "object") {
-        searchResults = (result as any).data || [];
-        searchQuery = (result as any).search_query || query;
-        hasMore = (result as any).has_more || false;
-      }
+      const result = await dataset.search(query, {
+        rewriteQuery:
+          rewriteQuery !== undefined ? Boolean(rewriteQuery) : undefined,
+        maxResults: maxResults !== undefined ? Number(maxResults) : undefined,
+        scoreThreshold:
+          scoreThreshold !== undefined ? Number(scoreThreshold) : undefined,
+      });
 
       return this.createSuccessResult({
-        searchResults,
-        searchQuery,
-        hasMore,
+        searchResults: result.results,
+        searchQuery: result.searchQuery,
+        hasMore: result.hasMore,
       });
     } catch (error) {
       return this.createErrorResult(

@@ -8,10 +8,7 @@
  * @see {@link createWorkerRuntime} - Factory for Cloudflare Workers
  */
 
-import {
-  WorkerRuntime,
-  type RuntimeDependencies,
-} from "@dafthunk/runtime";
+import { type RuntimeDependencies, WorkerRuntime } from "@dafthunk/runtime";
 
 import type { Bindings } from "../context";
 import { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
@@ -19,9 +16,11 @@ import { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
 import { CloudflareCredentialService } from "./credential-service";
 import { CloudflareCreditService } from "./credit-service";
 import { CloudflareDatabaseService } from "./database-service";
+import { CloudflareDatasetService } from "./dataset-service";
 import { CloudflareExecutionStore } from "./execution-store";
 import { CloudflareMonitoringService } from "./monitoring-service";
 import { CloudflareObjectStore } from "./object-store";
+import { CloudflareQueueService } from "./queue-service";
 
 export { WorkerRuntime } from "@dafthunk/runtime";
 
@@ -39,7 +38,15 @@ export function createWorkerRuntime(env: Bindings): WorkerRuntime<Bindings> {
       credentialProvider.createToolContext(nodeId, inputs)
   );
   const databaseService = new CloudflareDatabaseService(env);
-  credentialProvider = new CloudflareCredentialService(env, toolRegistry, databaseService);
+  const datasetService = new CloudflareDatasetService(env);
+  const queueService = new CloudflareQueueService(env);
+  credentialProvider = new CloudflareCredentialService(
+    env,
+    toolRegistry,
+    databaseService,
+    datasetService,
+    queueService
+  );
 
   const dependencies: RuntimeDependencies<Bindings> = {
     nodeRegistry,
@@ -52,6 +59,8 @@ export function createWorkerRuntime(env: Bindings): WorkerRuntime<Bindings> {
     ),
     objectStore: new CloudflareObjectStore(env.RESSOURCES),
     databaseService,
+    datasetService,
+    queueService,
   };
 
   return new WorkerRuntime(env, dependencies);

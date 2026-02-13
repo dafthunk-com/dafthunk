@@ -1,6 +1,5 @@
-import { NodeExecution, NodeType } from "@dafthunk/types";
-
 import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
+import { NodeExecution, NodeType } from "@dafthunk/types";
 
 /**
  * LinkedIn Get Post Comments node implementation

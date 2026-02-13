@@ -3,13 +3,8 @@ import {
   PhotonImage,
   Rgb, // Import Rgb for creating the mix color
 } from "@cf-wasm/photon";
+import { ExecutableNode, ImageParameter, NodeContext } from "@dafthunk/runtime";
 import { NodeExecution, NodeType } from "@dafthunk/types";
-
-import {
-  ExecutableNode,
-  ImageParameter,
-  NodeContext,
-} from "@dafthunk/runtime";
 
 /**
  * This node mixes an input image with a specified solid color using a given opacity, via the Photon library.

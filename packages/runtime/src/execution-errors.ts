@@ -12,7 +12,7 @@ export function nodeNotFoundMessage(nodeId: string): string {
 
 /** Message for a node whose type has no registered implementation. */
 export function nodeTypeNotImplementedMessage(
-  nodeId: string,
+  _nodeId: string,
   nodeType: string
 ): string {
   return `Node type not implemented: ${nodeType}`;
@@ -20,7 +20,7 @@ export function nodeTypeNotImplementedMessage(
 
 /** Message for a subscription-gated node when the user lacks a subscription. */
 export function subscriptionRequiredMessage(
-  nodeId: string,
+  _nodeId: string,
   nodeType: string
 ): string {
   return `Subscription required to execute node "${nodeType}". Upgrade your plan to use this feature.`;

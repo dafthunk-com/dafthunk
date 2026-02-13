@@ -21,21 +21,13 @@
 
 import type { WorkflowExecution } from "@dafthunk/types";
 
-import {
-  Runtime,
-  type RuntimeDependencies,
-  type RuntimeParams,
-} from "./base-runtime";
+import { Runtime, type RuntimeParams } from "./base-runtime";
 
 /**
  * Worker-based runtime with direct execution (no durable steps).
  * Executes workflows synchronously in a single Worker request.
  */
 export class WorkerRuntime<Env = unknown> extends Runtime<Env> {
-  constructor(env: Env, dependencies: RuntimeDependencies<Env>) {
-    super(env, dependencies);
-  }
-
   /**
    * Implements step execution by directly calling the function.
    * No durability or retries - execution is synchronous and ephemeral.

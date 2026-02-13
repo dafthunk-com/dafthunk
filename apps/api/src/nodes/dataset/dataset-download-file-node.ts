@@ -1,6 +1,5 @@
 import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
 import { NodeExecution, NodeType } from "@dafthunk/types";
-import { createDatabase, getDataset } from "../../db";
 
 /**
  * Dataset Download File node implementation
@@ -74,34 +73,26 @@ export class DatasetDownloadFileNode extends ExecutableNode {
         return this.createErrorResult("Organization ID is required");
       }
 
-      // Verify dataset exists and belongs to organization
-      const db = createDatabase(context.env.DB);
-      const dataset = await getDataset(db, datasetId, organizationId);
+      if (!context.datasetService) {
+        return this.createErrorResult("Dataset service not available");
+      }
+      const dataset = await context.datasetService.resolve(
+        datasetId,
+        organizationId
+      );
       if (!dataset) {
         return this.createErrorResult("Dataset not found or access denied");
       }
 
-      // Create the R2 path following the multitenant pattern
-      const r2Path = `${datasetId}/${filename}`;
-
-      // Get from R2
-      const object = await context.env.DATASETS.get(r2Path);
-
-      if (!object) {
+      const file = await dataset.getFile(filename);
+      if (!file) {
         return this.createErrorResult("File not found");
       }
 
-      // Get the content type from the object's metadata
-      const contentType =
-        object.httpMetadata?.contentType || "application/octet-stream";
-
-      // Get the content as ArrayBuffer
-      const content = await object.arrayBuffer();
-
       return this.createSuccessResult({
-        content,
-        contentType,
-        size: object.size,
+        content: file.data,
+        contentType: file.mimeType,
+        size: file.size,
         filename,
       });
     } catch (error) {

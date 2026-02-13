@@ -1,7 +1,6 @@
+import { NodeContext } from "@dafthunk/runtime";
 import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
-
-import { NodeContext } from "@dafthunk/runtime";
 import { JsonExtractNumberNode } from "./json-extract-number-node";
 
 describe("JsonExtractNumberNode", () => {

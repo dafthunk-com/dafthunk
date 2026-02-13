@@ -23,8 +23,8 @@ function isNativeBlobParameter(value: unknown): value is NodeBlobParameter {
     typeof value === "object" &&
     "data" in value &&
     "mimeType" in value &&
-    value["data"] instanceof Uint8Array &&
-    typeof value["mimeType"] === "string"
+    value.data instanceof Uint8Array &&
+    typeof value.mimeType === "string"
   );
 }
 
@@ -142,23 +142,23 @@ const converters: Record<string, Converter> = {
     nodeToApi: (value: NodeParameterValue) => {
       if (typeof value === "string") {
         const d = new Date(value);
-        return isNaN(d.getTime()) ? undefined : d.toISOString();
+        return Number.isNaN(d.getTime()) ? undefined : d.toISOString();
       }
       if (value instanceof Date) return value.toISOString();
       if (typeof value === "number") {
         const d = new Date(value);
-        return isNaN(d.getTime()) ? undefined : d.toISOString();
+        return Number.isNaN(d.getTime()) ? undefined : d.toISOString();
       }
       return undefined;
     },
     apiToNode: (value: ApiParameterValue) => {
       if (typeof value === "string") {
         const d = new Date(value);
-        return isNaN(d.getTime()) ? undefined : d.toISOString();
+        return Number.isNaN(d.getTime()) ? undefined : d.toISOString();
       }
       if (typeof value === "number") {
         const d = new Date(value);
-        return isNaN(d.getTime()) ? undefined : d.toISOString();
+        return Number.isNaN(d.getTime()) ? undefined : d.toISOString();
       }
       return undefined;
     },

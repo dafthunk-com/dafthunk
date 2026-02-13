@@ -1,8 +1,7 @@
 import { env } from "cloudflare:test";
+import { NodeContext } from "@dafthunk/runtime";
 import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
-
-import { NodeContext } from "@dafthunk/runtime";
 import { Llama318BInstructFastNode } from "./llama-3-1-8b-instruct-fast-node";
 
 describe("Llama318BInstructFastNode", () => {

@@ -1,6 +1,6 @@
+import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
 import { NodeExecution, NodeType } from "@dafthunk/types";
 import OpenAI from "openai";
-import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
 import { getOpenAIConfig } from "../../utils/ai-gateway";
 import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
 

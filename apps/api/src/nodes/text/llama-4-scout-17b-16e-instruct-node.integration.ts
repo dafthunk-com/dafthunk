@@ -1,8 +1,7 @@
 import { env } from "cloudflare:test";
+import { NodeContext } from "@dafthunk/runtime";
 import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
-
-import { NodeContext } from "@dafthunk/runtime";
 import { Llama4Scout17B16EInstructNode } from "./llama-4-scout-17b-16e-instruct-node";
 
 describe("Llama4Scout17B16EInstructNode", () => {

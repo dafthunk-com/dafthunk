@@ -30,11 +30,13 @@ import {
   WorkflowEvent,
   WorkflowStep,
 } from "cloudflare:workers";
-import type { WorkflowExecution } from "@dafthunk/types";
-
-import type { Bindings } from "../context";
 import type { RuntimeParams } from "@dafthunk/runtime";
-import { createWorkflowRuntime, type WorkflowRuntime } from "./workflow-runtime";
+import type { WorkflowExecution } from "@dafthunk/types";
+import type { Bindings } from "../context";
+import {
+  createWorkflowRuntime,
+  type WorkflowRuntime,
+} from "./workflow-runtime";
 
 /**
  * Workflow entrypoint for Cloudflare Workflows.

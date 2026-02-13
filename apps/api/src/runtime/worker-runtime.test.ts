@@ -8,10 +8,6 @@
  * Both test files run the same 50 specification tests to ensure consistent behavior.
  */
 import { env } from "cloudflare:test";
-
-import type { Bindings } from "../context";
-import { createWorkerRuntime } from "./worker-runtime";
-
 import {
   type RuntimeFactory,
   testConcurrentErrors,
@@ -30,6 +26,8 @@ import {
   testTopologicalOrdering,
   testWorkflowValidation,
 } from "@dafthunk/runtime";
+import type { Bindings } from "../context";
+import { createWorkerRuntime } from "./worker-runtime";
 
 // Run all specifications against Worker Runtime
 const runtimeName = "WorkerRuntime";

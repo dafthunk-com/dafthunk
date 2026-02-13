@@ -28,23 +28,26 @@ export class NodeToolProvider implements ToolProvider {
     try {
       const nodeType = await this.getNodeTypeByIdentifier(nodeId);
 
-      const parameters: JSONSchema = {
-        type: "object",
-        properties: {},
-        required: [],
-      };
+      const properties: Record<string, JSONSchema> = {};
+      const required: string[] = [];
 
       // Convert node inputs to JSON Schema properties
       for (const input of nodeType.inputs) {
         if (input.hidden) continue; // Skip hidden inputs
 
-        const property = this.convertParameterToJSONSchemaProperty(input);
-        parameters.properties![input.name] = property;
+        properties[input.name] =
+          this.convertParameterToJSONSchemaProperty(input);
 
         if (input.required !== false) {
-          parameters.required!.push(input.name);
+          required.push(input.name);
         }
       }
+
+      const parameters: JSONSchema = {
+        type: "object",
+        properties,
+        required,
+      };
 
       // Create the executable function that wraps node execution
       const executableFunction = async (args: any): Promise<string> => {
@@ -277,7 +280,7 @@ export class NodeToolProvider implements ToolProvider {
       case "number":
         if (typeof value === "string") {
           const parsed = Number(value);
-          return isNaN(parsed) ? value : parsed;
+          return Number.isNaN(parsed) ? value : parsed;
         }
         return value;
 
@@ -286,11 +289,11 @@ export class NodeToolProvider implements ToolProvider {
         if (value instanceof Date) return value.toISOString();
         if (typeof value === "number") {
           const d = new Date(value);
-          return isNaN(d.getTime()) ? value : d.toISOString();
+          return Number.isNaN(d.getTime()) ? value : d.toISOString();
         }
         if (typeof value === "string") {
           const d = new Date(value);
-          return isNaN(d.getTime()) ? value : d.toISOString();
+          return Number.isNaN(d.getTime()) ? value : d.toISOString();
         }
         return value;
       }
@@ -301,7 +304,7 @@ export class NodeToolProvider implements ToolProvider {
           if (value.toLowerCase() === "false") return false;
           // For numeric strings, treat non-zero as true
           const num = Number(value);
-          if (!isNaN(num)) return num !== 0;
+          if (!Number.isNaN(num)) return num !== 0;
         }
         return Boolean(value);
 
@@ -337,10 +340,6 @@ export class NodeToolProvider implements ToolProvider {
         }
         return value;
 
-      case "string":
-      case "image":
-      case "document":
-      case "audio":
       default:
         // For string types and unknown types, convert to string if not already
         return typeof value === "string" ? value : String(value);

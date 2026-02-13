@@ -1,7 +1,6 @@
+import type { NodeContext } from "@dafthunk/runtime";
 import type { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
-
-import type { NodeContext } from "@dafthunk/runtime";
 import { ListUserCommentsRedditNode } from "./list-user-comments-reddit-node";
 
 describe("ListUserCommentsRedditNode", () => {

@@ -1,6 +1,5 @@
 import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
 import { NodeExecution, NodeType } from "@dafthunk/types";
-import { createDatabase, getDataset } from "../../db";
 
 /**
  * Dataset List Files node implementation
@@ -55,23 +54,18 @@ export class DatasetListFilesNode extends ExecutableNode {
         return this.createErrorResult("Organization ID is required");
       }
 
-      // Verify dataset exists and belongs to organization
-      const db = createDatabase(context.env.DB);
-      const dataset = await getDataset(db, datasetId, organizationId);
+      if (!context.datasetService) {
+        return this.createErrorResult("Dataset service not available");
+      }
+      const dataset = await context.datasetService.resolve(
+        datasetId,
+        organizationId
+      );
       if (!dataset) {
         return this.createErrorResult("Dataset not found or access denied");
       }
 
-      // List objects in the dataset's directory
-      const prefix = `${datasetId}/`;
-      const listed = await context.env.DATASETS.list({ prefix });
-
-      const files = listed.objects.map((obj) => ({
-        key: obj.key,
-        filename: obj.key.replace(prefix, ""),
-        size: obj.size,
-        uploaded: obj.uploaded.toISOString(),
-      }));
+      const files = await dataset.listFiles();
 
       return this.createSuccessResult({
         files,

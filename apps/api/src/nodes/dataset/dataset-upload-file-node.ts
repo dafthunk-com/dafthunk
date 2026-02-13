@@ -1,6 +1,5 @@
 import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
 import { NodeExecution, NodeType } from "@dafthunk/types";
-import { createDatabase, getDataset } from "../../db";
 
 /**
  * Dataset Upload File node implementation
@@ -97,15 +96,16 @@ export class DatasetUploadFileNode extends ExecutableNode {
         return this.createErrorResult("Organization ID is required");
       }
 
-      // Verify dataset exists and belongs to organization
-      const db = createDatabase(context.env.DB);
-      const dataset = await getDataset(db, datasetId, organizationId);
+      if (!context.datasetService) {
+        return this.createErrorResult("Dataset service not available");
+      }
+      const dataset = await context.datasetService.resolve(
+        datasetId,
+        organizationId
+      );
       if (!dataset) {
         return this.createErrorResult("Dataset not found or access denied");
       }
-
-      // Create the R2 path following the multitenant pattern
-      const r2Path = `${datasetId}/${filename}`;
 
       // Convert content to ArrayBuffer if it's not already
       let arrayBuffer: ArrayBuffer;
@@ -119,19 +119,15 @@ export class DatasetUploadFileNode extends ExecutableNode {
         return this.createErrorResult("Invalid content type");
       }
 
-      // Upload to R2
-      await context.env.DATASETS.put(r2Path, arrayBuffer, {
-        httpMetadata: {
-          contentType: contentType || "application/octet-stream",
-        },
-      });
+      const resolvedContentType = contentType || "application/octet-stream";
+      await dataset.uploadFile(filename, arrayBuffer, resolvedContentType);
 
       return this.createSuccessResult({
         success: true,
-        path: r2Path,
+        path: `${datasetId}/${filename}`,
         filename,
         size: arrayBuffer.byteLength,
-        contentType: contentType || "application/octet-stream",
+        contentType: resolvedContentType,
       });
     } catch (error) {
       return this.createErrorResult(

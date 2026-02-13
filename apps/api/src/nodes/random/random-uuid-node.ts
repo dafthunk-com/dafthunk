@@ -1,7 +1,6 @@
+import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
 import { NodeExecution, NodeType } from "@dafthunk/types";
 import { v1 as uuidv1, v4 as uuidv4, v7 as uuidv7 } from "uuid";
-
-import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
 
 /**
  * RandomUUID node implementation

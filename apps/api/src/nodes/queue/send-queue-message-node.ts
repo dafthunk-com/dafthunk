@@ -1,7 +1,5 @@
-import { NodeExecution, NodeType, QueueMessage } from "@dafthunk/types";
-
-import { createDatabase, getQueue } from "../../db";
 import { ExecutableNode, NodeContext } from "@dafthunk/runtime";
+import { NodeExecution, NodeType } from "@dafthunk/types";
 
 export class SendQueueMessageNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -55,10 +53,15 @@ export class SendQueueMessageNode extends ExecutableNode {
       return this.createErrorResult("'message' is a required input.");
     }
 
+    if (!context.queueService) {
+      return this.createErrorResult("Queue service is not available.");
+    }
+
     try {
-      // Get queue from database to verify it exists and belongs to the organization
-      const db = createDatabase(context.env.DB);
-      const queue = await getQueue(db, queueIdOrHandle, context.organizationId);
+      const queue = await context.queueService.resolve(
+        queueIdOrHandle,
+        context.organizationId
+      );
 
       if (!queue) {
         return this.createErrorResult(
@@ -66,17 +69,7 @@ export class SendQueueMessageNode extends ExecutableNode {
         );
       }
 
-      // Prepare the queue message
-      const queueMessage: QueueMessage = {
-        queueId: queue.id,
-        organizationId: context.organizationId,
-        payload: message,
-        timestamp: Date.now(),
-        mode: context.mode,
-      };
-
-      // Send to Cloudflare Queue
-      await context.env.WORKFLOW_QUEUE.send(queueMessage);
+      await queue.send(message, context.mode);
 
       // Generate a pseudo message ID (timestamp-based)
       const messageId = `msg_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;

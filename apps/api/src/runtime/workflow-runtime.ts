@@ -8,10 +8,7 @@
  * @see {@link createWorkflowRuntime} - Factory for Cloudflare Workers
  */
 
-import {
-  WorkflowRuntime,
-  type RuntimeDependencies,
-} from "@dafthunk/runtime";
+import { type RuntimeDependencies, WorkflowRuntime } from "@dafthunk/runtime";
 
 import type { Bindings } from "../context";
 import { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
@@ -19,16 +16,20 @@ import { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
 import { CloudflareCredentialService } from "./credential-service";
 import { CloudflareCreditService } from "./credit-service";
 import { CloudflareDatabaseService } from "./database-service";
+import { CloudflareDatasetService } from "./dataset-service";
 import { CloudflareExecutionStore } from "./execution-store";
 import { CloudflareMonitoringService } from "./monitoring-service";
 import { CloudflareObjectStore } from "./object-store";
+import { CloudflareQueueService } from "./queue-service";
 
 export { WorkflowRuntime } from "@dafthunk/runtime";
 
 /**
  * Creates a WorkflowRuntime with Cloudflare production dependencies.
  */
-export function createWorkflowRuntime(env: Bindings): WorkflowRuntime<Bindings> {
+export function createWorkflowRuntime(
+  env: Bindings
+): WorkflowRuntime<Bindings> {
   const nodeRegistry = new CloudflareNodeRegistry(env, true);
 
   // eslint-disable-next-line prefer-const -- circular dependency pattern requires let
@@ -39,7 +40,15 @@ export function createWorkflowRuntime(env: Bindings): WorkflowRuntime<Bindings> 
       credentialProvider.createToolContext(nodeId, inputs)
   );
   const databaseService = new CloudflareDatabaseService(env);
-  credentialProvider = new CloudflareCredentialService(env, toolRegistry, databaseService);
+  const datasetService = new CloudflareDatasetService(env);
+  const queueService = new CloudflareQueueService(env);
+  credentialProvider = new CloudflareCredentialService(
+    env,
+    toolRegistry,
+    databaseService,
+    datasetService,
+    queueService
+  );
 
   const dependencies: RuntimeDependencies<Bindings> = {
     nodeRegistry,
@@ -52,6 +61,8 @@ export function createWorkflowRuntime(env: Bindings): WorkflowRuntime<Bindings> 
     ),
     objectStore: new CloudflareObjectStore(env.RESSOURCES),
     databaseService,
+    datasetService,
+    queueService,
   };
 
   return new WorkflowRuntime(env, dependencies);
