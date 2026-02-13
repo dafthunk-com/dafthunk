@@ -52,7 +52,7 @@ export class DivisionNode extends ExecutableNode {
       const a = Number(context.inputs.a);
       const b = Number(context.inputs.b);
 
-      if (isNaN(a) || isNaN(b)) {
+      if (Number.isNaN(a) || Number.isNaN(b)) {
         return this.createErrorResult("Both inputs must be numbers");
       }
 

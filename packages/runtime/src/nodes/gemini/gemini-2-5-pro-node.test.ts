@@ -22,7 +22,6 @@ describe("Gemini25ProNode", () => {
           ],
         }),
       };
-      constructor() {}
     },
   }));
 

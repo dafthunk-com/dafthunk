@@ -6,7 +6,7 @@ import {
   getActiveScheduledTriggers,
   getOrganizationComputeCredits,
 } from "./db";
-import { createWorkerRuntime } from "./runtime/worker-runtime";
+import { createWorkerRuntime } from "./runtime/cloudflare-worker-runtime";
 import { DeploymentStore } from "./stores/deployment-store";
 
 export async function handleScheduledEvent(

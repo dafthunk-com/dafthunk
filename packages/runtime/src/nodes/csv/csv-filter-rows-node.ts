@@ -200,28 +200,28 @@ export class CsvFilterRowsNode extends ExecutableNode {
       case "greaterThan": {
         const cellNum = Number(cellValue);
         const filterNum = Number(filterValue);
-        if (isNaN(cellNum) || isNaN(filterNum)) return false;
+        if (Number.isNaN(cellNum) || Number.isNaN(filterNum)) return false;
         return cellNum > filterNum;
       }
 
       case "lessThan": {
         const cellNum = Number(cellValue);
         const filterNum = Number(filterValue);
-        if (isNaN(cellNum) || isNaN(filterNum)) return false;
+        if (Number.isNaN(cellNum) || Number.isNaN(filterNum)) return false;
         return cellNum < filterNum;
       }
 
       case "greaterThanOrEqual": {
         const cellNum = Number(cellValue);
         const filterNum = Number(filterValue);
-        if (isNaN(cellNum) || isNaN(filterNum)) return false;
+        if (Number.isNaN(cellNum) || Number.isNaN(filterNum)) return false;
         return cellNum >= filterNum;
       }
 
       case "lessThanOrEqual": {
         const cellNum = Number(cellValue);
         const filterNum = Number(filterValue);
-        if (isNaN(cellNum) || isNaN(filterNum)) return false;
+        if (Number.isNaN(cellNum) || Number.isNaN(filterNum)) return false;
         return cellNum <= filterNum;
       }
 

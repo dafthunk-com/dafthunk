@@ -22,7 +22,6 @@ describe("Gemini25FlashNode", () => {
           ],
         }),
       };
-      constructor() {}
     },
   }));
 

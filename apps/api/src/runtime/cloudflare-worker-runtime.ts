@@ -11,16 +11,16 @@
 import { type RuntimeDependencies, WorkerRuntime } from "@dafthunk/runtime";
 
 import type { Bindings } from "../context";
+import { CloudflareCredentialService } from "./cloudflare-credential-service";
+import { CloudflareCreditService } from "./cloudflare-credit-service";
+import { CloudflareDatabaseService } from "./cloudflare-database-service";
+import { CloudflareDatasetService } from "./cloudflare-dataset-service";
+import { CloudflareExecutionStore } from "./cloudflare-execution-store";
+import { CloudflareMonitoringService } from "./cloudflare-monitoring-service";
 import { CloudflareNodeRegistry } from "./cloudflare-node-registry";
+import { CloudflareObjectStore } from "./cloudflare-object-store";
+import { CloudflareQueueService } from "./cloudflare-queue-service";
 import { CloudflareToolRegistry } from "./cloudflare-tool-registry";
-import { CloudflareCredentialService } from "./credential-service";
-import { CloudflareCreditService } from "./credit-service";
-import { CloudflareDatabaseService } from "./database-service";
-import { CloudflareDatasetService } from "./dataset-service";
-import { CloudflareExecutionStore } from "./execution-store";
-import { CloudflareMonitoringService } from "./monitoring-service";
-import { CloudflareObjectStore } from "./object-store";
-import { CloudflareQueueService } from "./queue-service";
 
 export { WorkerRuntime } from "@dafthunk/runtime";
 

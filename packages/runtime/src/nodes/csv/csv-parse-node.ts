@@ -187,7 +187,7 @@ export class CsvParseNode extends ExecutableNode {
 
     // Number
     const num = Number(trimmed);
-    if (!isNaN(num) && trimmed !== "") return num;
+    if (!Number.isNaN(num) && trimmed !== "") return num;
 
     // String (default)
     return trimmed;
@@ -208,6 +208,8 @@ export class CsvParseNode extends ExecutableNode {
   private isDateString(value: string): boolean {
     // Simple check for common date formats
     const date = new Date(value);
-    return !isNaN(date.getTime()) && value.match(/\d{4}-\d{2}-\d{2}/) !== null;
+    return (
+      !Number.isNaN(date.getTime()) && value.match(/\d{4}-\d{2}-\d{2}/) !== null
+    );
   }
 }

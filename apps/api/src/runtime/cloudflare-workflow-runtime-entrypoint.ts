@@ -36,7 +36,7 @@ import type { Bindings } from "../context";
 import {
   createWorkflowRuntime,
   type WorkflowRuntime,
-} from "./workflow-runtime";
+} from "./cloudflare-workflow-runtime";
 
 /**
  * Workflow entrypoint for Cloudflare Workflows.

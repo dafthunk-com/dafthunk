@@ -17,8 +17,8 @@ import {
   updateIntegration,
 } from "../db";
 import { getProvider } from "../oauth";
+import { CloudflareObjectStore } from "./cloudflare-object-store";
 import type { CloudflareToolRegistry } from "./cloudflare-tool-registry";
-import { CloudflareObjectStore } from "./object-store";
 
 /**
  * Cloudflare-backed implementation of CredentialService.

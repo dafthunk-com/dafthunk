@@ -157,8 +157,7 @@ export class CloudflareBrowserContentNode extends ExecutableNode {
       const json: any = await response.json();
 
       if (!response.ok) {
-        const errorMsg =
-          (json.errors && json.errors[0]?.message) || response.statusText;
+        const errorMsg = json.errors?.[0]?.message || response.statusText;
         return this.createErrorResult(
           `Cloudflare API error: ${status} - ${errorMsg}`
         );

@@ -69,7 +69,7 @@ export class RandomChoiceNode extends ExecutableNode {
 
       // Validate count
       const countNum = Number(count);
-      if (isNaN(countNum)) {
+      if (Number.isNaN(countNum)) {
         return this.createErrorResult(
           `Invalid count: expected number, got ${typeof count}`
         );

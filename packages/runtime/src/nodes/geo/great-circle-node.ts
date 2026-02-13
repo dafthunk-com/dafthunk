@@ -84,14 +84,18 @@ export class GreatCircleNode extends ExecutableNode {
       }
 
       if (npoints !== undefined && npoints !== null) {
-        if (typeof npoints !== "number" || !isFinite(npoints) || npoints <= 0) {
+        if (
+          typeof npoints !== "number" ||
+          !Number.isFinite(npoints) ||
+          npoints <= 0
+        ) {
           return this.createErrorResult("Npoints must be a positive number");
         }
         options.npoints = npoints;
       }
 
       if (offset !== undefined && offset !== null) {
-        if (typeof offset !== "number" || !isFinite(offset)) {
+        if (typeof offset !== "number" || !Number.isFinite(offset)) {
           return this.createErrorResult("Offset must be a valid number");
         }
         options.offset = offset;

@@ -43,7 +43,7 @@ import {
 } from "@dafthunk/runtime";
 import type { WorkflowExecution } from "@dafthunk/types";
 import type { Bindings } from "../context";
-import { CloudflareObjectStore } from "../runtime/object-store";
+import { CloudflareObjectStore } from "../runtime/cloudflare-object-store";
 import { MockCredentialService } from "./credential-service";
 import { MockDatabaseService } from "./database-service";
 import { MockDatasetService } from "./dataset-service";

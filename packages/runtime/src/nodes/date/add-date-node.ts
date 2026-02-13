@@ -8,7 +8,7 @@ function addToDate(
   unit: Unit
 ): string | undefined {
   const d = new Date(iso);
-  if (isNaN(d.getTime())) return undefined;
+  if (Number.isNaN(d.getTime())) return undefined;
   switch (unit) {
     case "milliseconds":
       d.setTime(d.getTime() + amount);

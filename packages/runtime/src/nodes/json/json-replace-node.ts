@@ -234,7 +234,7 @@ export class JsonReplaceNode extends ExecutableNode {
       return new Date(obj.getTime());
     }
 
-    if (obj instanceof Array) {
+    if (Array.isArray(obj)) {
       return obj.map((item) => this.deepClone(item));
     }
 

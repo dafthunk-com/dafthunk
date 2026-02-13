@@ -66,7 +66,11 @@ export class CircleNode extends ExecutableNode {
         return this.createErrorResult("Missing radius input");
       }
 
-      if (typeof radius !== "number" || !isFinite(radius) || radius <= 0) {
+      if (
+        typeof radius !== "number" ||
+        !Number.isFinite(radius) ||
+        radius <= 0
+      ) {
         return this.createErrorResult("Radius must be a positive number");
       }
 
@@ -74,7 +78,7 @@ export class CircleNode extends ExecutableNode {
       const options: { steps?: number; units?: string; properties?: any } = {};
 
       if (steps !== undefined && steps !== null) {
-        if (typeof steps !== "number" || !isFinite(steps) || steps < 3) {
+        if (typeof steps !== "number" || !Number.isFinite(steps) || steps < 3) {
           return this.createErrorResult("Steps must be a valid number >= 3");
         }
         options.steps = Math.floor(steps);

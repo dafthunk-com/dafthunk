@@ -196,7 +196,11 @@ Expression must contain only numbers, allowed operators, exact function names, c
       evalResult.value.dispose();
 
       // Validate the result
-      if (typeof result !== "number" || isNaN(result) || !isFinite(result)) {
+      if (
+        typeof result !== "number" ||
+        Number.isNaN(result) ||
+        !Number.isFinite(result)
+      ) {
         return this.createErrorResult(
           "Expression evaluation resulted in an invalid number (NaN or Infinity)."
         );

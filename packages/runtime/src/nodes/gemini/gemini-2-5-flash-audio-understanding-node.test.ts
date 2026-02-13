@@ -27,7 +27,6 @@ describe("Gemini25FlashAudioUnderstandingNode", () => {
           },
         }),
       };
-      constructor() {}
     },
   }));
 

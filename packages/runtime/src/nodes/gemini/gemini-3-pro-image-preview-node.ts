@@ -176,10 +176,10 @@ export class Gemini3ProImagePreviewNode extends ExecutableNode {
       };
 
       // Add images to prompt data
-      const images = [image1, image2, image3].filter((img) => img && img.data);
+      const images = [image1, image2, image3].filter((img) => img?.data);
 
       for (const image of images) {
-        if (image && image.data) {
+        if (image?.data) {
           const base64Data = convertImageToBase64(image);
           console.log(
             `Adding image to prompt: mimeType=${image.mimeType}, dataLength=${base64Data.length}`
@@ -299,7 +299,7 @@ export class Gemini3ProImagePreviewNode extends ExecutableNode {
       }
 
       // Return result based on extracted data
-      if (hasError) {
+      if (hasError || !imageData || !imageMimeType) {
         return this.createErrorResult(errorMessage);
       }
 
@@ -313,8 +313,8 @@ export class Gemini3ProImagePreviewNode extends ExecutableNode {
       return this.createSuccessResult(
         {
           image: {
-            data: imageData!,
-            mimeType: imageMimeType!,
+            data: imageData,
+            mimeType: imageMimeType,
           },
           ...(candidate && { candidates: [candidate] }),
           ...(usageMetadata && { usage_metadata: usageMetadata }),

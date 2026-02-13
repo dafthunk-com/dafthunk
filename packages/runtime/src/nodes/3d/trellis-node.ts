@@ -154,7 +154,7 @@ export class TrellisNode extends ExecutableNode {
       // Generate presigned URLs for all input images
       const imageUrls = await Promise.all(
         validatedInput.images.map((image) =>
-          context.objectStore!.writeAndPresign(
+          context.objectStore?.writeAndPresign(
             image.data,
             image.mimeType,
             context.organizationId

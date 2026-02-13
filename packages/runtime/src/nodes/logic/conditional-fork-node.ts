@@ -3,7 +3,7 @@ import {
   type NodeContext,
   type ParameterValue,
 } from "@dafthunk/runtime";
-import type { Node, NodeExecution, NodeType } from "@dafthunk/types";
+import type { NodeExecution, NodeType } from "@dafthunk/types";
 
 /**
  * Conditional Fork Node
@@ -51,10 +51,6 @@ export class ConditionalForkNode extends ExecutableNode {
       },
     ],
   };
-
-  constructor(node: Node) {
-    super(node);
-  }
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     const { condition, value } = context.inputs;

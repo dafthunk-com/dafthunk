@@ -61,13 +61,13 @@ export class RandomNumberNode extends ExecutableNode {
       const minNum = Number(min);
       const maxNum = Number(max);
 
-      if (isNaN(minNum)) {
+      if (Number.isNaN(minNum)) {
         return this.createErrorResult(
           `Invalid min value: expected number, got ${typeof min}`
         );
       }
 
-      if (isNaN(maxNum)) {
+      if (Number.isNaN(maxNum)) {
         return this.createErrorResult(
           `Invalid max value: expected number, got ${typeof max}`
         );

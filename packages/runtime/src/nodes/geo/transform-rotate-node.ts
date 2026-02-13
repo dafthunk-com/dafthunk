@@ -56,7 +56,7 @@ export class TransformRotateNode extends ExecutableNode {
         return this.createErrorResult("Missing angle input");
       }
 
-      if (typeof angle !== "number" || !isFinite(angle)) {
+      if (typeof angle !== "number" || !Number.isFinite(angle)) {
         return this.createErrorResult("Angle must be a valid number");
       }
 

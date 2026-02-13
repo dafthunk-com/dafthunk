@@ -40,7 +40,7 @@ import { handleScheduledEvent } from "./scheduled";
 import { Session } from "./session/session";
 
 // Export WorkflowRuntimeEntrypoint as "Runtime" for wrangler config compatibility
-export { WorkflowRuntimeEntrypoint as Runtime } from "./runtime/workflow-runtime-entrypoint";
+export { WorkflowRuntimeEntrypoint as Runtime } from "./runtime/cloudflare-workflow-runtime-entrypoint";
 
 // Initialize Hono app with types
 const app = new Hono<ApiContext>();

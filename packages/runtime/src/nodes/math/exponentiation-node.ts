@@ -55,7 +55,7 @@ export class ExponentiationNode extends ExecutableNode {
       const base = Number(context.inputs.base);
       const exponent = Number(context.inputs.exponent);
 
-      if (isNaN(base) || isNaN(exponent)) {
+      if (Number.isNaN(base) || Number.isNaN(exponent)) {
         return this.createErrorResult("Both inputs must be numbers");
       }
 

@@ -2,7 +2,7 @@ import type { Workflow } from "@dafthunk/types";
 
 import type { Bindings } from "./context";
 import { createDatabase, getOrganizationComputeCredits } from "./db";
-import { createWorkerRuntime } from "./runtime/worker-runtime";
+import { createWorkerRuntime } from "./runtime/cloudflare-worker-runtime";
 import { DeploymentStore } from "./stores/deployment-store";
 import { WorkflowStore } from "./stores/workflow-store";
 

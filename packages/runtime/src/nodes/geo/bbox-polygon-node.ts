@@ -58,7 +58,7 @@ export class BboxPolygonNode extends ExecutableNode {
 
       // Validate bbox coordinates are numbers
       for (let i = 0; i < bbox.length; i++) {
-        if (typeof bbox[i] !== "number" || !isFinite(bbox[i])) {
+        if (typeof bbox[i] !== "number" || !Number.isFinite(bbox[i])) {
           return this.createErrorResult(
             `Bbox coordinate at index ${i} must be a valid number`
           );

@@ -13,7 +13,7 @@ import type {
   ExecutionStore,
   ListExecutionsOptions,
   SaveExecutionRecord,
-} from "../runtime/execution-store";
+} from "../runtime/cloudflare-execution-store";
 
 export class MockExecutionStore implements ExecutionStore {
   private executions: Map<string, WorkflowExecution> = new Map();

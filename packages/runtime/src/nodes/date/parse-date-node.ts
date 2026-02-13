@@ -38,10 +38,10 @@ export class ParseDateNode extends ExecutableNode {
       if (value instanceof Date) iso = value.toISOString();
       else if (typeof value === "number") {
         const d = new Date(value);
-        iso = isNaN(d.getTime()) ? undefined : d.toISOString();
+        iso = Number.isNaN(d.getTime()) ? undefined : d.toISOString();
       } else if (typeof value === "string") {
         const d = new Date(value);
-        iso = isNaN(d.getTime()) ? undefined : d.toISOString();
+        iso = Number.isNaN(d.getTime()) ? undefined : d.toISOString();
       }
       return this.createSuccessResult({ date: iso });
     } catch (error) {

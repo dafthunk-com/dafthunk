@@ -45,7 +45,7 @@ export class DateInputNode extends ExecutableNode {
       // Validate that it's a valid ISO date string if provided
       if (value) {
         const date = new Date(value);
-        if (isNaN(date.getTime())) {
+        if (Number.isNaN(date.getTime())) {
           return this.createErrorResult("Invalid date format");
         }
       }

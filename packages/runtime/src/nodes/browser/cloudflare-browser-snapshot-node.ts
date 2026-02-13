@@ -141,8 +141,7 @@ export class CloudflareBrowserSnapshotNode extends ExecutableNode {
         !response.ok ||
         (Array.isArray(json.errors) && json.errors.length > 0)
       ) {
-        const errorMsg =
-          (json.errors && json.errors[0]?.message) || response.statusText;
+        const errorMsg = json.errors?.[0]?.message || response.statusText;
         return this.createErrorResult(
           `Cloudflare API error: ${status} - ${errorMsg}`
         );

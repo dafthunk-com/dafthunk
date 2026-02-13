@@ -24,8 +24,7 @@ describe("SubmitCommentRedditNode", () => {
         limit: 1,
       });
 
-      expect(listContext).not.toBeNull();
-      const listResult = await listNode.execute(listContext!);
+      const listResult = await listNode.execute(listContext);
 
       expect(listResult.status).toBe("completed");
       const posts = listResult.outputs?.posts as Array<{ name: string }>;
@@ -47,8 +46,7 @@ describe("SubmitCommentRedditNode", () => {
         text: `Automated test comment at ${new Date().toISOString()}`,
       });
 
-      expect(commentContext).not.toBeNull();
-      const commentResult = await commentNode.execute(commentContext!);
+      const commentResult = await commentNode.execute(commentContext);
 
       expect(commentResult.status).toBe("completed");
       expect(commentResult.outputs?.id).toBeDefined();

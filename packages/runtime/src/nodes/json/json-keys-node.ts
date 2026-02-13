@@ -67,7 +67,7 @@ export class JsonKeysNode extends ExecutableNode {
       if (arrayMatch) {
         const [, key, index] = arrayMatch;
         if (current[key] && Array.isArray(current[key])) {
-          const arrayIndex = parseInt(index);
+          const arrayIndex = parseInt(index, 10);
           if (arrayIndex < 0 || arrayIndex >= current[key].length) {
             return undefined;
           }

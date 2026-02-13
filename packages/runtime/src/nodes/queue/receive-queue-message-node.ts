@@ -1,5 +1,5 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
-import type { Node, NodeExecution, NodeType } from "@dafthunk/types";
+import type { NodeExecution, NodeType } from "@dafthunk/types";
 
 export class ReceiveQueueMessageNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -41,10 +41,6 @@ export class ReceiveQueueMessageNode extends ExecutableNode {
       },
     ],
   };
-
-  constructor(node: Node) {
-    super(node);
-  }
 
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {

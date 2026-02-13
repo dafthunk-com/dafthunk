@@ -41,7 +41,7 @@ export class AbsoluteValueNode extends ExecutableNode {
 
       const value = Number(context.inputs.value);
 
-      if (isNaN(value)) {
+      if (Number.isNaN(value)) {
         return this.createErrorResult("Input must be a number");
       }
 

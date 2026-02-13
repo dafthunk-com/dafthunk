@@ -110,8 +110,8 @@ describe("ReceiveEmailNode", () => {
     expect(result.outputs?.to).toBe(
       "recipient1@example.com, recipient2@example.com"
     );
-    expect(result.outputs?.headers["cc"]).toBe("cc@example.com");
-    expect(result.outputs?.headers["bcc"]).toBe("bcc@example.com");
+    expect(result.outputs?.headers.cc).toBe("cc@example.com");
+    expect(result.outputs?.headers.bcc).toBe("bcc@example.com");
   });
 
   it("should handle missing email message", async () => {
@@ -197,7 +197,7 @@ describe("ReceiveEmailNode", () => {
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs?.from).toBe("sender+tag@example.com");
-    expect(result.outputs?.headers["subject"]).toBe(
+    expect(result.outputs?.headers.subject).toBe(
       "Email with special chars: äöü & symbols"
     );
     expect(result.outputs?.raw).toContain("special chars: äöü & symbols");

@@ -88,7 +88,7 @@ export class BgeRerankerBaseNode extends ExecutableNode {
       // Calculate usage based on text length estimation
       const totalContextsText = contexts.join(" ");
       const usage = calculateTokenUsage(
-        (query || "") + " " + totalContextsText,
+        `${query || ""} ${totalContextsText}`,
         "",
         PRICING
       );

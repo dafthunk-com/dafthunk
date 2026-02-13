@@ -27,7 +27,7 @@ import {
   testWorkflowValidation,
 } from "@dafthunk/runtime";
 import type { Bindings } from "../context";
-import { createWorkerRuntime } from "./worker-runtime";
+import { createWorkerRuntime } from "./cloudflare-worker-runtime";
 
 // Run all specifications against Worker Runtime
 const runtimeName = "WorkerRuntime";

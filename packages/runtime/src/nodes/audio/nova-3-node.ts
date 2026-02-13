@@ -276,16 +276,14 @@ export class Nova3Node extends ExecutableNode {
         params.profanity_filter = profanity_filter;
       if (numerals !== undefined) params.numerals = numerals;
       if (measurements !== undefined) params.measurements = measurements;
-      if (language && language.trim()) params.language = language;
+      if (language?.trim()) params.language = language;
       if (mode && mode !== "general") params.mode = mode;
-      if (encoding && encoding.trim()) params.encoding = encoding;
+      if (encoding?.trim()) params.encoding = encoding;
       if (channels && channels !== 1) params.channels = channels;
       if (multichannel !== undefined) params.multichannel = multichannel;
-      if (keywords && keywords.trim()) params.keywords = keywords;
-      if (custom_topic && custom_topic.trim())
-        params.custom_topic = custom_topic;
-      if (custom_intent && custom_intent.trim())
-        params.custom_intent = custom_intent;
+      if (keywords?.trim()) params.keywords = keywords;
+      if (custom_topic?.trim()) params.custom_topic = custom_topic;
+      if (custom_intent?.trim()) params.custom_intent = custom_intent;
 
       // Call Cloudflare AI Nova-3 model
       const response = await context.env.AI.run(

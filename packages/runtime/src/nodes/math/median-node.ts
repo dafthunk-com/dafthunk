@@ -67,7 +67,7 @@ export class MedianNode extends ExecutableNode {
         // Validate all inputs are numbers
         for (let i = 0; i < numbers.length; i++) {
           const num = Number(numbers[i]);
-          if (isNaN(num)) {
+          if (Number.isNaN(num)) {
             return this.createErrorResult(
               `Invalid input at position ${i}: expected number, got ${typeof numbers[i]}`
             );

@@ -55,7 +55,7 @@ export class AlongNode extends ExecutableNode {
         return this.createErrorResult("Missing distance input");
       }
 
-      if (typeof distance !== "number" || !isFinite(distance)) {
+      if (typeof distance !== "number" || !Number.isFinite(distance)) {
         return this.createErrorResult("Distance must be a valid number");
       }
 

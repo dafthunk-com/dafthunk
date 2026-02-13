@@ -24,8 +24,7 @@ describe("GetPostRedditNode", () => {
         limit: 1,
       });
 
-      expect(listContext).not.toBeNull();
-      const listResult = await listNode.execute(listContext!);
+      const listResult = await listNode.execute(listContext);
 
       expect(listResult.status).toBe("completed");
       const posts = listResult.outputs?.posts as Array<{
@@ -50,8 +49,7 @@ describe("GetPostRedditNode", () => {
         postId,
       });
 
-      expect(getContext).not.toBeNull();
-      const getResult = await getNode.execute(getContext!);
+      const getResult = await getNode.execute(getContext);
 
       expect(getResult.status).toBe("completed");
       expect(getResult.outputs?.id).toBe(postId);

@@ -397,7 +397,7 @@ describe("JsonBodyNode", () => {
 
     const testData = {
       integer: 42,
-      float: 3.14159,
+      float: Math.PI,
       negative: -10,
       zero: 0,
     };

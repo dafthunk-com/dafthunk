@@ -8,10 +8,10 @@ import type {
 import { Hono } from "hono";
 import { jwtMiddleware } from "../auth";
 import type { ApiContext } from "../context";
+import { CloudflareCredentialService } from "../runtime/cloudflare-credential-service";
 import { CloudflareNodeRegistry } from "../runtime/cloudflare-node-registry";
+import { CloudflareObjectStore } from "../runtime/cloudflare-object-store";
 import { CloudflareToolRegistry } from "../runtime/cloudflare-tool-registry";
-import { CloudflareCredentialService } from "../runtime/credential-service";
-import { CloudflareObjectStore } from "../runtime/object-store";
 
 const playgroundRoutes = new Hono<ApiContext>();
 

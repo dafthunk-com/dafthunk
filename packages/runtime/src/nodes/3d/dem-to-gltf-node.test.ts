@@ -247,23 +247,23 @@ describe("DemToGltfNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs).toBeDefined();
-      expect(result.outputs!.gltf).toBeDefined();
-      expect(result.outputs!.gltf.data).toBeInstanceOf(Uint8Array);
-      expect(result.outputs!.gltf.mimeType).toBe("model/gltf-binary");
+      expect(result.outputs?.gltf).toBeDefined();
+      expect(result.outputs?.gltf.data).toBeInstanceOf(Uint8Array);
+      expect(result.outputs?.gltf.mimeType).toBe("model/gltf-binary");
 
       // Verify GLB magic number (0x46546C67 = "glTF")
-      const glbData = result.outputs!.gltf.data;
+      const glbData = result.outputs?.gltf.data;
       expect(glbData[0]).toBe(0x67);
       expect(glbData[1]).toBe(0x6c);
       expect(glbData[2]).toBe(0x54);
       expect(glbData[3]).toBe(0x46);
 
       // Verify metadata
-      expect(result.outputs!.metadata).toBeDefined();
-      expect(result.outputs!.metadata.vertexCount).toBeGreaterThan(0);
-      expect(result.outputs!.metadata.triangleCount).toBeGreaterThan(0);
-      expect(result.outputs!.metadata.hasTexture).toBe(false);
-      expect(result.outputs!.metadata.hasMaterial).toBe(false);
+      expect(result.outputs?.metadata).toBeDefined();
+      expect(result.outputs?.metadata.vertexCount).toBeGreaterThan(0);
+      expect(result.outputs?.metadata.triangleCount).toBeGreaterThan(0);
+      expect(result.outputs?.metadata.hasTexture).toBe(false);
+      expect(result.outputs?.metadata.hasMaterial).toBe(false);
     });
 
     it.skip("should use default martiniError when not provided", async () => {
@@ -301,13 +301,13 @@ describe("DemToGltfNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs).toBeDefined();
-      expect(result.outputs!.gltf).toBeDefined();
-      expect(result.outputs!.gltf.data).toBeInstanceOf(Uint8Array);
-      expect(result.outputs!.gltf.mimeType).toBe("model/gltf-binary");
+      expect(result.outputs?.gltf).toBeDefined();
+      expect(result.outputs?.gltf.data).toBeInstanceOf(Uint8Array);
+      expect(result.outputs?.gltf.mimeType).toBe("model/gltf-binary");
 
       // Verify metadata shows texture was applied
-      expect(result.outputs!.metadata.hasTexture).toBe(true);
-      expect(result.outputs!.metadata.hasMaterial).toBe(true);
+      expect(result.outputs?.metadata.hasTexture).toBe(true);
+      expect(result.outputs?.metadata.hasMaterial).toBe(true);
     });
   });
 
@@ -331,11 +331,11 @@ describe("DemToGltfNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs).toBeDefined();
-      expect(result.outputs!.gltf).toBeDefined();
+      expect(result.outputs?.gltf).toBeDefined();
 
       // Verify metadata shows material was applied
-      expect(result.outputs!.metadata.hasTexture).toBe(false);
-      expect(result.outputs!.metadata.hasMaterial).toBe(true);
+      expect(result.outputs?.metadata.hasTexture).toBe(false);
+      expect(result.outputs?.metadata.hasMaterial).toBe(true);
     });
   });
 
@@ -362,11 +362,11 @@ describe("DemToGltfNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs).toBeDefined();
-      expect(result.outputs!.gltf).toBeDefined();
+      expect(result.outputs?.gltf).toBeDefined();
 
       // Verify metadata shows both were applied
-      expect(result.outputs!.metadata.hasTexture).toBe(true);
-      expect(result.outputs!.metadata.hasMaterial).toBe(true);
+      expect(result.outputs?.metadata.hasTexture).toBe(true);
+      expect(result.outputs?.metadata.hasMaterial).toBe(true);
     });
   });
 

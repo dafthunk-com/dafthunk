@@ -153,7 +153,7 @@ export class GetMessageGoogleMailNode extends ExecutableNode {
         snippet: msg.snippet,
         body: includeBody ? body : undefined,
         labels: msg.labelIds,
-        timestamp: new Date(parseInt(msg.internalDate)).toISOString(),
+        timestamp: new Date(parseInt(msg.internalDate, 10)).toISOString(),
       };
 
       return this.createSuccessResult({

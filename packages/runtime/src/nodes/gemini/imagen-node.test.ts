@@ -32,7 +32,6 @@ describe("ImagenNode", () => {
           },
         }),
       };
-      constructor() {}
     },
   }));
 

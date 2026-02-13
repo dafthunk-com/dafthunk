@@ -5,7 +5,7 @@ import {
   type NodeContext,
   toUint8Array,
 } from "@dafthunk/runtime";
-import type { Node, NodeExecution, NodeType } from "@dafthunk/types";
+import type { NodeExecution, NodeType } from "@dafthunk/types";
 
 export class HttpRequestNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -54,10 +54,6 @@ export class HttpRequestNode extends ExecutableNode {
       },
     ],
   };
-
-  constructor(node: Node) {
-    super(node);
-  }
 
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {

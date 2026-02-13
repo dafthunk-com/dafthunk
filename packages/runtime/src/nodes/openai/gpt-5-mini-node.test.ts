@@ -13,7 +13,6 @@ describe("Gpt5MiniNode", () => {
           }),
         },
       };
-      constructor() {}
     },
   }));
   const nodeId = "gpt-5-mini";

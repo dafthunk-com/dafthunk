@@ -57,7 +57,7 @@ export class TransformScaleNode extends ExecutableNode {
         return this.createErrorResult("Missing factor input");
       }
 
-      if (typeof factor !== "number" || !isFinite(factor)) {
+      if (typeof factor !== "number" || !Number.isFinite(factor)) {
         return this.createErrorResult("Factor must be a valid number");
       }
 

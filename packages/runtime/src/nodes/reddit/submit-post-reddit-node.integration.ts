@@ -24,8 +24,7 @@ describe("SubmitPostRedditNode", () => {
         text: `This is an automated test post created at ${new Date().toISOString()}.\n\nPlease ignore this post.`,
       });
 
-      expect(context).not.toBeNull();
-      const result = await node.execute(context!);
+      const result = await node.execute(context);
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.id).toBeDefined();

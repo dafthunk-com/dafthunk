@@ -196,7 +196,7 @@ export class ImagenNode extends ExecutableNode {
       }
 
       // Return result based on extracted data
-      if (hasError) {
+      if (hasError || !imageData || !imageMimeType) {
         return this.createErrorResult(errorMessage);
       }
 
@@ -210,8 +210,8 @@ export class ImagenNode extends ExecutableNode {
       return this.createSuccessResult(
         {
           image: {
-            data: imageData!,
-            mimeType: imageMimeType!,
+            data: imageData,
+            mimeType: imageMimeType,
           },
           ...(usageMetadata && { usage_metadata: usageMetadata }),
         },

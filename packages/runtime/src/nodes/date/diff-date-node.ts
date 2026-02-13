@@ -9,7 +9,7 @@ function diffInUnit(
 ): number | undefined {
   const a = new Date(aIso);
   const b = new Date(bIso);
-  if (isNaN(a.getTime()) || isNaN(b.getTime())) return undefined;
+  if (Number.isNaN(a.getTime()) || Number.isNaN(b.getTime())) return undefined;
   const ms = a.getTime() - b.getTime();
   switch (unit) {
     case "milliseconds":

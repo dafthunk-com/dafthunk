@@ -93,7 +93,7 @@ export class SliderInputNode extends ExecutableNode {
           : undefined;
 
       // Ensure all inputs are valid numbers
-      if (isNaN(min) || isNaN(max) || isNaN(step)) {
+      if (Number.isNaN(min) || Number.isNaN(max) || Number.isNaN(step)) {
         return this.createErrorResult(
           "Invalid input parameters: min, max, and step must be numbers"
         );

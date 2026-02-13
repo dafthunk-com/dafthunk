@@ -7,7 +7,7 @@
 
 import type { WorkflowExecution } from "@dafthunk/types";
 
-import type { MonitoringService } from "../runtime/monitoring-service";
+import type { MonitoringService } from "../runtime/cloudflare-monitoring-service";
 
 export class MockMonitoringService implements MonitoringService {
   public readonly updates: WorkflowExecution[] = [];

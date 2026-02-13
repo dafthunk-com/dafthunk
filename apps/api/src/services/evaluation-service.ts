@@ -12,7 +12,7 @@ import type { Bindings } from "../context";
 import { createDatabase } from "../db";
 import type { EvaluationInsert, EvaluationRow } from "../db/schema";
 import { EvaluationStatus, evaluations } from "../db/schema";
-import { createWorkerRuntime } from "../runtime/worker-runtime";
+import { createWorkerRuntime } from "../runtime/cloudflare-worker-runtime";
 import { DeploymentStore } from "../stores/deployment-store";
 
 /**

@@ -43,7 +43,7 @@ export class RandomUuidNode extends ExecutableNode {
 
       // Validate version
       const versionNum = Number(version);
-      if (isNaN(versionNum)) {
+      if (Number.isNaN(versionNum)) {
         return this.createErrorResult(
           `Invalid version: expected number, got ${typeof version}`
         );

@@ -98,7 +98,7 @@ export class BlobToFormDataNode extends ExecutableNode {
     if (value.toLowerCase() === "false") return false;
 
     // Check for number
-    if (value !== "" && !isNaN(Number(value))) {
+    if (value !== "" && !Number.isNaN(Number(value))) {
       return Number(value);
     }
 

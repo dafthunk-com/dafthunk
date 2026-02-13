@@ -13,7 +13,6 @@ describe("Gpt5NanoNode", () => {
           }),
         },
       };
-      constructor() {}
     },
   }));
   const nodeId = "gpt-5-nano";

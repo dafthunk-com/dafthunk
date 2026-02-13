@@ -75,7 +75,7 @@ export class RandomStringNode extends ExecutableNode {
       }
 
       const lengthNum = Number(length);
-      if (isNaN(lengthNum)) {
+      if (Number.isNaN(lengthNum)) {
         return this.createErrorResult(
           `Invalid length: expected number, got ${typeof length}`
         );

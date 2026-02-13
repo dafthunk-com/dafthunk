@@ -25,7 +25,7 @@ import {
   getDatabases,
   updateDatabaseRecord,
 } from "../db";
-import { CloudflareDatabaseService } from "../runtime/database-service";
+import { CloudflareDatabaseService } from "../runtime/cloudflare-database-service";
 import { getAuthContext } from "../utils/auth-context";
 
 // Extend the ApiContext with our custom variable

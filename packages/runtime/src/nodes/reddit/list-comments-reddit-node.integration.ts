@@ -24,8 +24,7 @@ describe("ListCommentsRedditNode", () => {
         limit: 5,
       });
 
-      expect(listContext).not.toBeNull();
-      const listResult = await listNode.execute(listContext!);
+      const listResult = await listNode.execute(listContext);
 
       expect(listResult.status).toBe("completed");
       const posts = listResult.outputs?.posts as Array<{
@@ -57,8 +56,7 @@ describe("ListCommentsRedditNode", () => {
         limit: 50,
       });
 
-      expect(commentsContext).not.toBeNull();
-      const commentsResult = await commentsNode.execute(commentsContext!);
+      const commentsResult = await commentsNode.execute(commentsContext);
 
       expect(commentsResult.status).toBe("completed");
       expect(commentsResult.outputs?.comments).toBeDefined();

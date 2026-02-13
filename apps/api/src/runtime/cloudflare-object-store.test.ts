@@ -1,7 +1,7 @@
 import type { ObjectReference } from "@dafthunk/types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { CloudflareObjectStore } from "./object-store";
+import { CloudflareObjectStore } from "./cloudflare-object-store";
 
 describe("ObjectStore", () => {
   let mockBucket: any;

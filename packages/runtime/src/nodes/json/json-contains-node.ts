@@ -68,7 +68,7 @@ export class JsonContainsNode extends ExecutableNode {
       if (arrayMatch) {
         const [, key, index] = arrayMatch;
         if (current[key] && Array.isArray(current[key])) {
-          current = current[key][parseInt(index)];
+          current = current[key][parseInt(index, 10)];
         } else {
           return undefined;
         }

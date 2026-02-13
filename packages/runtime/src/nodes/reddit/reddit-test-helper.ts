@@ -35,16 +35,16 @@ export function createRedditTestIntegration() {
 
 /**
  * Creates a NodeContext for Reddit integration tests.
- * Returns null if REDDIT_TEST_ACCESS_TOKEN is not set.
+ * Throws if REDDIT_TEST_ACCESS_TOKEN is not set.
  */
 export function createRedditTestContext(
   nodeId: string,
   inputs: Record<string, unknown>
-): NodeContext | null {
+): NodeContext {
   const integration = createRedditTestIntegration();
 
   if (!integration) {
-    return null;
+    throw new Error("REDDIT_TEST_ACCESS_TOKEN is not set");
   }
 
   return {

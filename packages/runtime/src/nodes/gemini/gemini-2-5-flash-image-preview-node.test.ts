@@ -24,7 +24,6 @@ describe("Gemini25FlashImagePreviewNode", () => {
           ],
         }),
       };
-      constructor() {}
     },
     Content: class MockContent {},
   }));

@@ -111,7 +111,7 @@ export class ListCommentsRedditNode extends ExecutableNode {
     result: RedditComment[] = []
   ): RedditComment[] {
     for (const comment of comments) {
-      if (comment.data && comment.data.body) {
+      if (comment.data?.body) {
         const { replies, ...raw } = comment.data;
         result.push({
           id: raw.id,

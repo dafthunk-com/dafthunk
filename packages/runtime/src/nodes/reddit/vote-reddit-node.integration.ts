@@ -24,8 +24,7 @@ describe("VoteRedditNode", () => {
         limit: 1,
       });
 
-      expect(listContext).not.toBeNull();
-      const listResult = await listNode.execute(listContext!);
+      const listResult = await listNode.execute(listContext);
 
       expect(listResult.status).toBe("completed");
       const posts = listResult.outputs?.posts as Array<{ name: string }>;
@@ -47,8 +46,7 @@ describe("VoteRedditNode", () => {
         direction: 1,
       });
 
-      expect(upvoteContext).not.toBeNull();
-      const upvoteResult = await voteNode.execute(upvoteContext!);
+      const upvoteResult = await voteNode.execute(upvoteContext);
 
       expect(upvoteResult.status).toBe("completed");
       expect(upvoteResult.outputs?.success).toBe(true);
@@ -59,8 +57,7 @@ describe("VoteRedditNode", () => {
         direction: 0,
       });
 
-      expect(unvoteContext).not.toBeNull();
-      const unvoteResult = await voteNode.execute(unvoteContext!);
+      const unvoteResult = await voteNode.execute(unvoteContext);
 
       expect(unvoteResult.status).toBe("completed");
       expect(unvoteResult.outputs?.success).toBe(true);

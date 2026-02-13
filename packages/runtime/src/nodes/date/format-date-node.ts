@@ -7,7 +7,7 @@ function formatWithPattern(
   locale?: string
 ): string | undefined {
   const d = new Date(iso);
-  if (isNaN(d.getTime())) return undefined;
+  if (Number.isNaN(d.getTime())) return undefined;
   // Simple patterns: YYYY, MM, DD, hh, mm, ss
   const pad = (n: number, w = 2) => String(n).padStart(w, "0");
   const tokens: Record<string, string> = {

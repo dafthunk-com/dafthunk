@@ -68,9 +68,10 @@ export class JsonExtractNumberNode extends ExecutableNode {
 
         // Get the first result that is a number (including integers and floats)
         const numberValue = results.find(
-          (value: any) => typeof value === "number" && !isNaN(value)
+          (value: any) => typeof value === "number" && !Number.isNaN(value)
         );
-        const found = typeof numberValue === "number" && !isNaN(numberValue);
+        const found =
+          typeof numberValue === "number" && !Number.isNaN(numberValue);
 
         return this.createSuccessResult({
           value: found ? numberValue : defaultValue,

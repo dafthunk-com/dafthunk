@@ -1,5 +1,5 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
-import type { Node, NodeExecution, NodeType } from "@dafthunk/types";
+import type { NodeExecution, NodeType } from "@dafthunk/types";
 
 /**
  * Conditional Join Node
@@ -43,10 +43,6 @@ export class ConditionalJoinNode extends ExecutableNode {
       },
     ],
   };
-
-  constructor(node: Node) {
-    super(node);
-  }
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     const { a, b } = context.inputs;

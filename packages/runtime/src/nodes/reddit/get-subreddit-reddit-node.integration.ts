@@ -20,8 +20,7 @@ describe("GetSubredditRedditNode", () => {
         subreddit: REDDIT_TEST_CONFIG.subreddit,
       });
 
-      expect(context).not.toBeNull();
-      const result = await node.execute(context!);
+      const result = await node.execute(context);
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.name).toBe(REDDIT_TEST_CONFIG.subreddit);

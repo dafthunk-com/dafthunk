@@ -24,7 +24,6 @@ describe("Gemini3ProImagePreviewNode", () => {
           ],
         }),
       };
-      constructor() {}
     },
     Content: class MockContent {},
   }));

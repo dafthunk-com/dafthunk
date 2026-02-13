@@ -6,7 +6,7 @@ import {
   getOrganizationComputeCredits,
   getQueueTriggersByQueue,
 } from "./db/queries";
-import { createWorkerRuntime } from "./runtime/worker-runtime";
+import { createWorkerRuntime } from "./runtime/cloudflare-worker-runtime";
 import { DeploymentStore } from "./stores/deployment-store";
 import { WorkflowStore } from "./stores/workflow-store";
 

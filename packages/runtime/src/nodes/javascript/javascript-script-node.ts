@@ -135,31 +135,31 @@ export class JavascriptScriptNode extends ExecutableNode {
 
         if (shouldTryWrapping) {
           const wrappedScript = `(${scriptToExecute})`;
-          const wrappedResult = vm!.evalCode(wrappedScript);
+          const wrappedResult = vm?.evalCode(wrappedScript);
 
           if (wrappedResult.error) {
             // If wrapping failed, dispose the error and try without wrapping
             wrappedResult.error.dispose();
           } else {
             // Wrapping succeeded, use this result
-            const resultOutput = vm!.dump(wrappedResult.value);
+            const resultOutput = vm?.dump(wrappedResult.value);
             wrappedResult.value.dispose();
             return resultOutput;
           }
         }
 
         // Execute the original script (either it didn't start with '{' or wrapping failed)
-        const evalResult = vm!.evalCode(scriptToExecute);
+        const evalResult = vm?.evalCode(scriptToExecute);
 
         if (evalResult.error) {
-          const errorDump = vm!.dump(evalResult.error);
+          const errorDump = vm?.dump(evalResult.error);
           evalResult.error.dispose();
           throw new Error(
             `Script execution error: ${JSON.stringify(errorDump)}`
           );
         }
 
-        const resultOutput = vm!.dump(evalResult.value);
+        const resultOutput = vm?.dump(evalResult.value);
         evalResult.value.dispose();
         return resultOutput;
       })();

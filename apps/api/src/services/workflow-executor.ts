@@ -8,7 +8,7 @@
 import type { BlobParameter } from "@dafthunk/runtime";
 import type { Node, WorkflowExecution, WorkflowRuntime } from "@dafthunk/types";
 import type { Bindings } from "../context";
-import { createWorkerRuntime } from "../runtime/worker-runtime";
+import { createWorkerRuntime } from "../runtime/cloudflare-worker-runtime";
 import { createSimulatedEmailMessage } from "../utils/email";
 import { createSimulatedHttpRequest } from "../utils/http";
 

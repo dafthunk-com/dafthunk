@@ -20,8 +20,7 @@ describe("SearchSubredditsRedditNode", () => {
         limit: 10,
       });
 
-      expect(context).not.toBeNull();
-      const result = await node.execute(context!);
+      const result = await node.execute(context);
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.subreddits).toBeDefined();

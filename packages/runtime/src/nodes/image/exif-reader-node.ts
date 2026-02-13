@@ -53,13 +53,13 @@ export class ExifReaderNode extends ExecutableNode {
       const tags = ExifReader.load(image.data.buffer);
 
       // Remove potentially very large MakerNote tag to avoid large JSON output
-      if (tags["MakerNote"]) {
-        delete tags["MakerNote"];
+      if (tags.MakerNote) {
+        delete tags.MakerNote;
       }
       // Also remove thumbnail data if present
       // Add type assertion to handle complex type of tags["thumbnail"]
-      const thumbnailTag = tags["thumbnail"] as any;
-      if (thumbnailTag && thumbnailTag.image) {
+      const thumbnailTag = tags.thumbnail as any;
+      if (thumbnailTag?.image) {
         delete thumbnailTag.image;
       }
 

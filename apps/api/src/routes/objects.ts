@@ -10,7 +10,7 @@ import { Hono } from "hono";
 
 import { apiKeyOrJwtMiddleware, jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
-import { CloudflareObjectStore } from "../runtime/object-store";
+import { CloudflareObjectStore } from "../runtime/cloudflare-object-store";
 
 const objectRoutes = new Hono<ApiContext>();
 
