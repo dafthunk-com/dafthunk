@@ -5,29 +5,12 @@
  * Provides empty secrets and integrations for testing workflows that don't need them.
  */
 
-import type {
-  CredentialService,
-  DatabaseService,
-  DatasetService,
-  NodeContext,
-  QueueService,
-  WorkflowExecutionContext,
-} from "@dafthunk/runtime";
-import type { Bindings } from "../context";
-import type { CloudflareToolRegistry } from "../runtime/cloudflare-tool-registry";
+import type { CredentialService, IntegrationInfo } from "@dafthunk/runtime";
 
 /**
  * Minimal mock that avoids database access
  */
 export class MockCredentialService implements CredentialService {
-  constructor(
-    private env: Bindings,
-    private toolRegistry: CloudflareToolRegistry,
-    private databaseService?: DatabaseService,
-    private datasetService?: DatasetService,
-    private queueService?: QueueService
-  ) {}
-
   /**
    * Mock initialization - no database access
    */
@@ -36,76 +19,18 @@ export class MockCredentialService implements CredentialService {
   }
 
   /**
-   * Creates a NodeContext for node execution
+   * Returns undefined for all secrets in test environment
    */
-  createNodeContext(
-    nodeId: string,
-    context: WorkflowExecutionContext,
-    inputs: Record<string, unknown>
-  ): NodeContext {
-    const {
-      workflowId,
-      organizationId,
-      deploymentId,
-      httpRequest,
-      emailMessage,
-      queueMessage,
-      scheduledTrigger,
-    } = context;
-
-    return {
-      nodeId,
-      workflowId,
-      organizationId,
-      mode: deploymentId ? "prod" : "dev",
-      deploymentId,
-      inputs,
-      httpRequest,
-      emailMessage,
-      queueMessage,
-      scheduledTrigger,
-      onProgress: () => {},
-      toolRegistry: this.toolRegistry,
-      databaseService: this.databaseService,
-      datasetService: this.datasetService,
-      queueService: this.queueService,
-      getSecret: async (_secretName: string) => {
-        return undefined;
-      },
-      getIntegration: async (integrationId: string) => {
-        throw new Error(
-          `Integration '${integrationId}' not available in test environment`
-        );
-      },
-      env: this.env,
-    };
+  async getSecret(_secretName: string): Promise<string | undefined> {
+    return undefined;
   }
 
   /**
-   * Creates a NodeContext for tool execution
+   * Throws for all integration lookups in test environment
    */
-  createToolContext(
-    nodeId: string,
-    inputs: Record<string, unknown>
-  ): NodeContext {
-    return {
-      nodeId,
-      workflowId: `tool_execution_${Date.now()}`,
-      organizationId: "system",
-      mode: "dev",
-      inputs,
-      toolRegistry: this.toolRegistry,
-      getSecret: async (secretName: string) => {
-        throw new Error(
-          `Secret access not available in tool execution context. Secret '${secretName}' cannot be accessed.`
-        );
-      },
-      getIntegration: async (integrationId: string) => {
-        throw new Error(
-          `Integration access not available in tool execution context. Integration '${integrationId}' cannot be accessed.`
-        );
-      },
-      env: this.env,
-    };
+  async getIntegration(integrationId: string): Promise<IntegrationInfo> {
+    throw new Error(
+      `Integration '${integrationId}' not available in test environment`
+    );
   }
 }

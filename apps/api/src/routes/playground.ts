@@ -1,4 +1,4 @@
-import type { WorkflowExecutionContext } from "@dafthunk/runtime";
+import type { NodeContext, WorkflowExecutionContext } from "@dafthunk/runtime";
 import { apiToNodeParameter, nodeToApiParameter } from "@dafthunk/runtime";
 import type {
   ExecuteNodeResponse,
@@ -12,6 +12,7 @@ import { CloudflareCredentialService } from "../runtime/cloudflare-credential-se
 import { CloudflareNodeRegistry } from "../runtime/cloudflare-node-registry";
 import { CloudflareObjectStore } from "../runtime/cloudflare-object-store";
 import { CloudflareToolRegistry } from "../runtime/cloudflare-tool-registry";
+import { createToolContext } from "../runtime/tool-context";
 
 const playgroundRoutes = new Hono<ApiContext>();
 
@@ -57,17 +58,13 @@ playgroundRoutes.post("/", jwtMiddleware, async (c) => {
   }
 
   // Set up credential service and object store
-  // eslint-disable-next-line prefer-const -- circular dependency pattern requires let
-  let credentialService: CloudflareCredentialService;
+  const objectStore = new CloudflareObjectStore(c.env.RESSOURCES);
   const toolRegistry = new CloudflareToolRegistry(
     nodeRegistry,
-    (nodeId: string, inputs: Record<string, unknown>) =>
-      credentialService.createToolContext(nodeId, inputs)
+    (nodeId, inputs) => createToolContext(nodeId, inputs, c.env, objectStore)
   );
-  credentialService = new CloudflareCredentialService(c.env, toolRegistry);
+  const credentialService = new CloudflareCredentialService(c.env);
   await credentialService.initialize(organizationId);
-
-  const objectStore = new CloudflareObjectStore(c.env.RESSOURCES);
 
   // Transform API inputs to node-level values
   const nodeInputs: Record<string, unknown> = {};
@@ -83,7 +80,7 @@ playgroundRoutes.post("/", jwtMiddleware, async (c) => {
     }
   }
 
-  // Build execution context
+  // Build execution context and node context
   const syntheticContext: WorkflowExecutionContext = {
     workflow: {
       id: "playground",
@@ -100,11 +97,20 @@ playgroundRoutes.post("/", jwtMiddleware, async (c) => {
     executionId: `playground_${Date.now()}`,
   };
 
-  const nodeContext = credentialService.createNodeContext(
-    "playground",
-    syntheticContext,
-    nodeInputs
-  );
+  const nodeContext: NodeContext = {
+    nodeId: "playground",
+    workflowId: syntheticContext.workflowId,
+    organizationId,
+    mode: "dev",
+    inputs: nodeInputs,
+    onProgress: () => {},
+    toolRegistry,
+    objectStore,
+    getSecret: (secretName) => credentialService.getSecret(secretName),
+    getIntegration: (integrationId) =>
+      credentialService.getIntegration(integrationId),
+    env: c.env,
+  };
 
   // Execute the node
   try {

@@ -44,6 +44,7 @@ import {
 import type { WorkflowExecution } from "@dafthunk/types";
 import type { Bindings } from "../context";
 import { CloudflareObjectStore } from "../runtime/cloudflare-object-store";
+import { createToolContext } from "../runtime/tool-context";
 import { MockCredentialService } from "./credential-service";
 import { MockDatabaseService } from "./database-service";
 import { MockDatasetService } from "./dataset-service";
@@ -120,27 +121,16 @@ class MockWorkflowEntrypoint extends WorkflowEntrypoint<
 
     // Create mock dependencies
     const nodeRegistry = new MockNodeRegistry(env, true);
-
-    // Create tool registry with factory function
-    // eslint-disable-next-line prefer-const -- circular dependency pattern requires let
-    let credentialProvider: MockCredentialService;
-    const toolRegistry: any = new MockToolRegistry(
+    const objectStore = new CloudflareObjectStore(env.RESSOURCES);
+    const toolRegistry = new MockToolRegistry(
       nodeRegistry,
-      (nodeId: string, inputs: Record<string, any>) =>
-        credentialProvider.createToolContext(nodeId, inputs)
+      (nodeId: string, inputs: Record<string, unknown>) =>
+        createToolContext(nodeId, inputs, env, objectStore)
     );
-
-    // Create MockCredentialService with test tool registry (no database access)
+    const credentialProvider = new MockCredentialService();
     const databaseService = new MockDatabaseService();
     const datasetService = new MockDatasetService();
     const queueService = new MockQueueService();
-    credentialProvider = new MockCredentialService(
-      env,
-      toolRegistry,
-      databaseService,
-      datasetService,
-      queueService
-    );
 
     // Create test-friendly dependencies
     const dependencies: RuntimeDependencies<Bindings> = {
@@ -152,7 +142,8 @@ class MockWorkflowEntrypoint extends WorkflowEntrypoint<
         hasEnoughCredits: async () => true,
         recordUsage: async () => {},
       },
-      objectStore: new CloudflareObjectStore(env.RESSOURCES),
+      objectStore,
+      toolRegistry,
       databaseService,
       datasetService,
       queueService,

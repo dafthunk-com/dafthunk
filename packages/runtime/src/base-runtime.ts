@@ -8,6 +8,7 @@ import type {
 } from "@dafthunk/types";
 
 import type { BaseNodeRegistry } from "./base-node-registry";
+import type { BaseToolRegistry } from "./base-tool-registry";
 import type { CredentialService } from "./credential-service";
 import type { CreditService } from "./credit-service";
 import type { DatabaseService } from "./database-service";
@@ -34,7 +35,13 @@ import type {
   WorkflowExecutionContext,
 } from "./execution-types";
 import type { MonitoringService } from "./monitoring-service";
-import type { EmailMessage, ExecutableNode, HttpRequest } from "./node-types";
+import type {
+  EmailMessage,
+  ExecutableNode,
+  HttpRequest,
+  NodeContext,
+  NodeEnv,
+} from "./node-types";
 import type { ObjectStore } from "./object-store";
 import { apiToNodeParameter, nodeToApiParameter } from "./parameter-mapper";
 import type { QueueService } from "./queue-service";
@@ -69,6 +76,7 @@ export interface RuntimeDependencies<Env = unknown> {
   monitoringService: MonitoringService;
   creditService: CreditService;
   objectStore: ObjectStore;
+  toolRegistry?: BaseToolRegistry;
   databaseService?: DatabaseService;
   datasetService?: DatasetService;
   queueService?: QueueService;
@@ -99,6 +107,7 @@ export abstract class Runtime<Env = unknown> {
   protected monitoringService: MonitoringService;
   protected creditService: CreditService;
   protected objectStore: ObjectStore;
+  protected toolRegistry?: BaseToolRegistry;
   protected databaseService?: DatabaseService;
   protected datasetService?: DatasetService;
   protected queueService?: QueueService;
@@ -113,6 +122,7 @@ export abstract class Runtime<Env = unknown> {
     this.monitoringService = dependencies.monitoringService;
     this.creditService = dependencies.creditService;
     this.objectStore = dependencies.objectStore;
+    this.toolRegistry = dependencies.toolRegistry;
     this.databaseService = dependencies.databaseService;
     this.datasetService = dependencies.datasetService;
     this.queueService = dependencies.queueService;
@@ -727,11 +737,29 @@ export abstract class Runtime<Env = unknown> {
     processedInputs: Record<string, unknown>
   ): Promise<NodeExecutionResult> {
     try {
-      const nodeContext = this.credentialProvider.createNodeContext(
-        node.id,
-        context,
-        processedInputs
-      );
+      const nodeContext: NodeContext = {
+        nodeId: node.id,
+        workflowId: context.workflowId,
+        organizationId: context.organizationId,
+        mode: context.deploymentId ? "prod" : "dev",
+        deploymentId: context.deploymentId,
+        inputs: processedInputs,
+        httpRequest: context.httpRequest,
+        emailMessage: context.emailMessage,
+        queueMessage: context.queueMessage,
+        scheduledTrigger: context.scheduledTrigger,
+        onProgress: () => {},
+        toolRegistry: this.toolRegistry,
+        objectStore: this.objectStore,
+        databaseService: this.databaseService,
+        datasetService: this.datasetService,
+        queueService: this.queueService,
+        getSecret: (secretName: string) =>
+          this.credentialProvider.getSecret(secretName),
+        getIntegration: (integrationId: string) =>
+          this.credentialProvider.getIntegration(integrationId),
+        env: this.env as NodeEnv,
+      };
 
       const result = await executable.execute(nodeContext);
 

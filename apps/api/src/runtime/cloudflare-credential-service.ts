@@ -1,11 +1,7 @@
 import type {
   CredentialService,
-  DatabaseService,
-  DatasetService,
   IntegrationData,
-  NodeContext,
-  QueueService,
-  WorkflowExecutionContext,
+  IntegrationInfo,
 } from "@dafthunk/runtime";
 
 import type { Bindings } from "../context";
@@ -17,8 +13,6 @@ import {
   updateIntegration,
 } from "../db";
 import { getProvider } from "../oauth";
-import { CloudflareObjectStore } from "./cloudflare-object-store";
-import type { CloudflareToolRegistry } from "./cloudflare-tool-registry";
 
 /**
  * Cloudflare-backed implementation of CredentialService.
@@ -32,13 +26,7 @@ export class CloudflareCredentialService implements CredentialService {
   private secrets: Record<string, string> = {};
   private integrations: Record<string, IntegrationData> = {};
 
-  constructor(
-    private env: Bindings,
-    private toolRegistry: CloudflareToolRegistry,
-    private databaseService?: DatabaseService,
-    private datasetService?: DatasetService,
-    private queueService?: QueueService
-  ) {}
+  constructor(private env: Bindings) {}
 
   /**
    * Preloads all organization secrets and integrations for synchronous access.
@@ -124,140 +112,32 @@ export class CloudflareCredentialService implements CredentialService {
   }
 
   /**
-   * Creates a NodeContext for node execution with access to secrets and integrations.
-   * Single place for NodeContext creation - hides resource access complexity.
+   * Get a secret value by name from the preloaded secrets.
    */
-  createNodeContext(
-    nodeId: string,
-    context: WorkflowExecutionContext,
-    inputs: Record<string, unknown>
-  ): NodeContext {
-    const {
-      workflowId,
-      organizationId,
-      deploymentId,
-      httpRequest,
-      emailMessage,
-      queueMessage,
-      scheduledTrigger,
-    } = context;
-
-    // Configure AI Gateway options
-    const aiOptions: AiOptions = {};
-    const gatewayId = this.env.CLOUDFLARE_AI_GATEWAY_ID;
-    if (gatewayId) {
-      aiOptions.gateway = {
-        id: gatewayId,
-        skipCache: false,
-      };
-    }
-
-    // Build ObjectStore with presigned URL support when R2 credentials are available
-    const {
-      CLOUDFLARE_ACCOUNT_ID,
-      R2_ACCESS_KEY_ID,
-      R2_SECRET_ACCESS_KEY,
-      R2_BUCKET_NAME,
-    } = this.env;
-    const presignedUrlConfig =
-      CLOUDFLARE_ACCOUNT_ID &&
-      R2_ACCESS_KEY_ID &&
-      R2_SECRET_ACCESS_KEY &&
-      R2_BUCKET_NAME
-        ? {
-            accountId: CLOUDFLARE_ACCOUNT_ID,
-            bucketName: R2_BUCKET_NAME,
-            accessKeyId: R2_ACCESS_KEY_ID,
-            secretAccessKey: R2_SECRET_ACCESS_KEY,
-          }
-        : undefined;
-    const objectStore = new CloudflareObjectStore(
-      this.env.RESSOURCES,
-      presignedUrlConfig
-    );
-
-    return {
-      nodeId,
-      workflowId,
-      organizationId,
-      mode: deploymentId ? "prod" : "dev",
-      deploymentId,
-      inputs,
-      httpRequest,
-      emailMessage,
-      queueMessage,
-      scheduledTrigger,
-      onProgress: () => {},
-      toolRegistry: this.toolRegistry,
-      objectStore,
-      databaseService: this.databaseService,
-      datasetService: this.datasetService,
-      queueService: this.queueService,
-      // Callback-based access to secrets (lazy, secure)
-      getSecret: async (secretName: string) => {
-        return this.secrets?.[secretName];
-      },
-      // Callback-based access to integrations (lazy, auto-refreshing)
-      getIntegration: async (integrationId: string) => {
-        const integration = this.integrations?.[integrationId];
-        if (!integration) {
-          throw new Error(
-            `Integration '${integrationId}' not found or access denied. Please check your integration settings.`
-          );
-        }
-
-        // Automatically refresh token if needed
-        const token = await this.getValidAccessToken(integrationId);
-
-        return {
-          id: integration.id,
-          name: integration.name,
-          provider: integration.provider,
-          token,
-          metadata: integration.metadata,
-        };
-      },
-      env: this.env,
-    };
+  async getSecret(secretName: string): Promise<string | undefined> {
+    return this.secrets?.[secretName];
   }
 
   /**
-   * Creates a NodeContext for tool execution (system-level, no org resources)
+   * Get integration info by ID, automatically refreshing tokens if needed.
    */
-  createToolContext(
-    nodeId: string,
-    inputs: Record<string, unknown>
-  ): NodeContext {
-    // Configure AI Gateway options
-    const aiOptions: AiOptions = {};
-    const gatewayId = this.env.CLOUDFLARE_AI_GATEWAY_ID;
-    if (gatewayId) {
-      aiOptions.gateway = {
-        id: gatewayId,
-        skipCache: false,
-      };
+  async getIntegration(integrationId: string): Promise<IntegrationInfo> {
+    const integration = this.integrations?.[integrationId];
+    if (!integration) {
+      throw new Error(
+        `Integration '${integrationId}' not found or access denied. Please check your integration settings.`
+      );
     }
 
+    // Automatically refresh token if needed
+    const token = await this.getValidAccessToken(integrationId);
+
     return {
-      nodeId,
-      workflowId: `tool_execution_${Date.now()}`,
-      organizationId: "system",
-      mode: "dev",
-      inputs,
-      toolRegistry: this.toolRegistry,
-      objectStore: new CloudflareObjectStore(this.env.RESSOURCES),
-      // Tool executions don't have access to organization secrets/integrations
-      getSecret: async (secretName: string) => {
-        throw new Error(
-          `Secret access not available in tool execution context. Secret '${secretName}' cannot be accessed.`
-        );
-      },
-      getIntegration: async (integrationId: string) => {
-        throw new Error(
-          `Integration access not available in tool execution context. Integration '${integrationId}' cannot be accessed.`
-        );
-      },
-      env: this.env,
+      id: integration.id,
+      name: integration.name,
+      provider: integration.provider,
+      token,
+      metadata: integration.metadata,
     };
   }
 

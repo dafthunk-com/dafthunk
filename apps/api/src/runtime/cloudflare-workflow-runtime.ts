@@ -21,6 +21,7 @@ import { CloudflareNodeRegistry } from "./cloudflare-node-registry";
 import { CloudflareObjectStore } from "./cloudflare-object-store";
 import { CloudflareQueueService } from "./cloudflare-queue-service";
 import { CloudflareToolRegistry } from "./cloudflare-tool-registry";
+import { createToolContext } from "./tool-context";
 
 export { WorkflowRuntime } from "@dafthunk/runtime";
 
@@ -31,24 +32,15 @@ export function createWorkflowRuntime(
   env: Bindings
 ): WorkflowRuntime<Bindings> {
   const nodeRegistry = new CloudflareNodeRegistry(env, true);
-
-  // eslint-disable-next-line prefer-const -- circular dependency pattern requires let
-  let credentialProvider: CloudflareCredentialService;
+  const objectStore = new CloudflareObjectStore(env.RESSOURCES);
   const toolRegistry = new CloudflareToolRegistry(
     nodeRegistry,
-    (nodeId: string, inputs: Record<string, unknown>) =>
-      credentialProvider.createToolContext(nodeId, inputs)
+    (nodeId, inputs) => createToolContext(nodeId, inputs, env, objectStore)
   );
+  const credentialProvider = new CloudflareCredentialService(env);
   const databaseService = new CloudflareDatabaseService(env);
   const datasetService = new CloudflareDatasetService(env);
   const queueService = new CloudflareQueueService(env);
-  credentialProvider = new CloudflareCredentialService(
-    env,
-    toolRegistry,
-    databaseService,
-    datasetService,
-    queueService
-  );
 
   const dependencies: RuntimeDependencies<Bindings> = {
     nodeRegistry,
@@ -59,7 +51,8 @@ export function createWorkflowRuntime(
       env.KV,
       env.CLOUDFLARE_ENV === "development"
     ),
-    objectStore: new CloudflareObjectStore(env.RESSOURCES),
+    objectStore,
+    toolRegistry,
     databaseService,
     datasetService,
     queueService,
