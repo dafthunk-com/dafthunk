@@ -177,6 +177,24 @@ export class ExecutionManager {
       query: queryParams,
     };
 
+    // Handle base64-encoded body (from WebSocket file upload)
+    if (
+      parameters.bodyEncoding === "base64" &&
+      typeof parameters.body === "string"
+    ) {
+      const binaryString = atob(parameters.body);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      result.body = {
+        data: bytes,
+        mimeType:
+          (parameters.contentType as string) || "application/octet-stream",
+      };
+      return result;
+    }
+
     // Handle body - check if it's already a BlobParameter
     if (parameters.body && typeof parameters.body === "object") {
       const maybeBlob = parameters.body as {

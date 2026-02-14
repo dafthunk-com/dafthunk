@@ -318,6 +318,29 @@ const wouldCreateIndirectCycle = (
 };
 
 /**
+ * Convert File body to base64 for WebSocket serialization.
+ * File objects have no enumerable properties, so JSON.stringify() loses them.
+ */
+async function serializeForWs(
+  params: Record<string, unknown>
+): Promise<Record<string, unknown>> {
+  if (!(params.body instanceof File)) return params;
+  const buffer = await params.body.arrayBuffer();
+  const bytes = new Uint8Array(buffer);
+  // Chunked to avoid call stack overflow on large files
+  let binary = "";
+  for (let i = 0; i < bytes.length; i += 8192) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + 8192));
+  }
+  return {
+    ...params,
+    contentType: params.contentType || params.body.type || "application/octet-stream",
+    body: btoa(binary),
+    bodyEncoding: "base64",
+  };
+}
+
+/**
  * Hook to manage workflow execution, including parameter forms and status polling.
  */
 export function useWorkflowExecution(
@@ -486,18 +509,21 @@ export function useWorkflowExecution(
   }, [cleanup, cancelWorkflowExecution]);
 
   const performExecutionAndPoll = useCallback(
-    (
+    async (
       id: string,
       onExecutionUpdate: (execution: WorkflowExecution) => void,
       request?: ExecuteWorkflowRequest
-    ): (() => void) => {
+    ): Promise<() => void> => {
       cleanup();
       pollingRef.current.cancelled = false;
 
       if (wsExecuteFn) {
         try {
+          const params = request?.parameters
+            ? await serializeForWs(request.parameters)
+            : request?.parameters;
           wsExecuteFn({
-            parameters: request?.parameters,
+            parameters: params,
           });
         } catch (error) {
           console.error("WebSocket execution failed:", error);
