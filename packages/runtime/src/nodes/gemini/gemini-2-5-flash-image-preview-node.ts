@@ -56,6 +56,22 @@ export class Gemini25FlashImagePreviewNode extends ExecutableNode {
         required: false,
         hidden: false,
       },
+      {
+        name: "aspectRatio",
+        type: "string",
+        description: "Aspect ratio of generated images (1:1, 16:9, 9:16, 4:3, 3:4, 3:2, 2:3, 4:5, 5:4, 21:9)",
+        required: false,
+        hidden: true,
+        value: "1:1",
+      },
+      {
+        name: "imageSize",
+        type: "string",
+        description: "Size of generated images (1K or 2K)",
+        required: false,
+        hidden: true,
+        value: "1K",
+      },
     ],
     outputs: [
       {
@@ -98,17 +114,64 @@ export class Gemini25FlashImagePreviewNode extends ExecutableNode {
     let response: any;
 
     try {
-      const { prompt, image1, image2, image3 } = context.inputs;
+      const { prompt, image1, image2, image3, aspectRatio, imageSize } =
+        context.inputs;
 
       if (!prompt) {
         return this.createErrorResult("Prompt is required");
       }
 
+      // Validate aspect ratio
+      const validAspectRatios = [
+        "1:1",
+        "2:3",
+        "3:2",
+        "3:4",
+        "4:3",
+        "4:5",
+        "5:4",
+        "9:16",
+        "16:9",
+        "21:9",
+      ];
+      if (aspectRatio && !validAspectRatios.includes(aspectRatio)) {
+        return this.createErrorResult(
+          `Invalid aspectRatio. Must be one of: ${validAspectRatios.join(", ")}`
+        );
+      }
+
+      // Validate image size (2.5 Flash supports up to 2K)
+      const validSizes = ["1K", "2K"];
+      if (imageSize && !validSizes.includes(imageSize)) {
+        return this.createErrorResult(
+          `Invalid imageSize. Must be one of: ${validSizes.join(", ")}`
+        );
+      }
+
       // API key is injected by AI Gateway via BYOK (Bring Your Own Keys)
+      const googleConfig = getGoogleAIConfig(context.env);
       ai = new GoogleGenAI({
         apiKey: "gateway-managed",
-        ...getGoogleAIConfig(context.env),
+        httpOptions: {
+          ...googleConfig.httpOptions,
+          timeout: 300_000, // 5 min — image generation can be slow
+        },
       });
+
+      const config: any = {
+        responseModalities: ["TEXT", "IMAGE"],
+      };
+
+      // Configure image generation options
+      if (aspectRatio || imageSize) {
+        config.imageConfig = {};
+        if (aspectRatio) {
+          config.imageConfig.aspectRatio = aspectRatio;
+        }
+        if (imageSize) {
+          config.imageConfig.imageSize = imageSize;
+        }
+      }
 
       // Prepare the prompt data
       const promptData: any[] = [{ text: prompt }];
@@ -147,6 +210,7 @@ export class Gemini25FlashImagePreviewNode extends ExecutableNode {
       response = await ai.models.generateContent({
         model: "gemini-2.5-flash-image",
         contents: promptData,
+        config,
       });
 
       // Extract all needed data immediately to avoid circular references

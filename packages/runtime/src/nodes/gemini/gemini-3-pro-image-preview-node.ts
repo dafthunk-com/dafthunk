@@ -60,7 +60,8 @@ export class Gemini3ProImagePreviewNode extends ExecutableNode {
       {
         name: "aspectRatio",
         type: "string",
-        description: "Aspect ratio of generated images",
+        description:
+          "Aspect ratio of generated images (1:1, 16:9, 9:16, 4:3, 3:4, 3:2, 2:3, 4:5, 5:4, 21:9)",
         required: false,
         hidden: true,
         value: "1:1",
@@ -103,8 +104,7 @@ export class Gemini3ProImagePreviewNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    let ai: any;
-    let response: any;
+    let ai: GoogleGenAI | undefined;
 
     try {
       const { prompt, image1, image2, image3, aspectRatio, imageSize } =
@@ -142,12 +142,18 @@ export class Gemini3ProImagePreviewNode extends ExecutableNode {
       }
 
       // API key is injected by AI Gateway via BYOK (Bring Your Own Keys)
+      const googleConfig = getGoogleAIConfig(context.env);
       ai = new GoogleGenAI({
         apiKey: "gateway-managed",
-        ...getGoogleAIConfig(context.env),
+        httpOptions: {
+          ...googleConfig.httpOptions,
+          timeout: 300_000, // 5 min — image generation can be slow
+        },
       });
 
-      const config: any = {};
+      const config: any = {
+        responseModalities: ["TEXT", "IMAGE"],
+      };
 
       // Configure image generation options
       if (aspectRatio || imageSize) {
@@ -194,116 +200,76 @@ export class Gemini3ProImagePreviewNode extends ExecutableNode {
         }
       }
 
-      response = await ai.models.generateContent({
+      const response = await ai.models.generateContent({
         model: "gemini-3-pro-image-preview",
         contents: promptData,
         config,
       });
 
-      // Extract all needed data immediately to avoid circular references
+      // Process the response to find generated image
+      if (!response?.candidates?.[0]?.content?.parts) {
+        return this.createErrorResult("No response generated from Gemini API");
+      }
+
+      const candidate = response.candidates[0];
+      const content = candidate.content;
+
+      if (!content?.parts) {
+        return this.createErrorResult(
+          "Invalid response structure from Gemini API"
+        );
+      }
+
+      // Look for generated image in response
       let imageData: Uint8Array | null = null;
       let imageMimeType: string | null = null;
-      let usageMetadata: any = null;
-      let promptFeedback: any = null;
-      let finishReason: string | null = null;
-      let candidate: any = null;
-      let hasError = false;
-      let errorMessage = "";
 
-      try {
-        // Process the response to find generated image
-        if (!response?.candidates?.[0]?.content?.parts) {
-          hasError = true;
-          errorMessage = "No response generated from Gemini API";
-        } else {
-          candidate = response.candidates[0];
-          const content = candidate.content;
+      for (const part of content.parts) {
+        if (part?.inlineData?.data) {
+          console.log(
+            `Found generated image: mimeType=${part.inlineData.mimeType}, dataLength=${part.inlineData.data.length}`
+          );
 
-          if (!content?.parts) {
-            hasError = true;
-            errorMessage = "Invalid response structure from Gemini API";
-          } else {
-            // Look for generated image in response
-            for (const part of content.parts) {
-              if (part?.inlineData?.data) {
-                console.log(
-                  `Found generated image: mimeType=${part.inlineData.mimeType}, dataLength=${part.inlineData.data.length}`
-                );
+          // Convert base64 data to Uint8Array for proper object store handling
+          imageData = Uint8Array.from(atob(part.inlineData.data), (c) =>
+            c.charCodeAt(0)
+          );
+          imageMimeType = part.inlineData.mimeType || "image/png";
+          break;
+        }
+      }
 
-                // Convert base64 data to Uint8Array for proper object store handling
-                imageData = Uint8Array.from(atob(part.inlineData.data), (c) =>
-                  c.charCodeAt(0)
-                );
-                imageMimeType = part.inlineData.mimeType || "image/png";
-                break;
-              }
-            }
-
-            if (!imageData) {
-              // If no image found, check for text response
-              for (const part of content.parts) {
-                if (part?.text) {
-                  hasError = true;
-                  errorMessage = `No image generated. Text response: ${part.text}`;
-                  break;
-                }
-              }
-
-              if (!hasError) {
-                hasError = true;
-                errorMessage = "No image or text generated in response";
-              }
-            } else {
-              // Extract metadata safely
-              usageMetadata = response.usageMetadata
-                ? {
-                    promptTokenCount: response.usageMetadata.promptTokenCount,
-                    candidatesTokenCount:
-                      response.usageMetadata.candidatesTokenCount,
-                    totalTokenCount: response.usageMetadata.totalTokenCount,
-                  }
-                : null;
-
-              promptFeedback = response.promptFeedback
-                ? {
-                    blockReason: response.promptFeedback.blockReason,
-                    safetyRatings: response.promptFeedback.safetyRatings,
-                  }
-                : null;
-
-              finishReason = candidate.finishReason || null;
-            }
+      if (!imageData || !imageMimeType) {
+        // Check for text-only response
+        for (const part of content.parts) {
+          if (part?.text) {
+            return this.createErrorResult(
+              `No image generated. Text response: ${part.text}`
+            );
           }
         }
-      } catch (extractError) {
-        hasError = true;
-        errorMessage = "Error extracting response data";
-        console.warn("Error extracting response data:", extractError);
+        return this.createErrorResult("No image or text generated in response");
       }
 
-      // Dispose of response immediately after data extraction
-      try {
-        if (response && typeof (response as any).dispose === "function") {
-          (response as any).dispose();
-        }
-        // Also try to dispose the models object
-        if (ai.models && typeof (ai.models as any).dispose === "function") {
-          (ai.models as any).dispose();
-        }
-        // And the client itself
-        if (ai && typeof (ai as any).dispose === "function") {
-          (ai as any).dispose();
-        }
-      } catch (disposeError) {
-        console.warn("Failed to dispose response:", disposeError);
-      }
+      // Extract metadata safely
+      const usageMetadata = response.usageMetadata
+        ? {
+            promptTokenCount: response.usageMetadata.promptTokenCount,
+            candidatesTokenCount:
+              response.usageMetadata.candidatesTokenCount,
+            totalTokenCount: response.usageMetadata.totalTokenCount,
+          }
+        : null;
 
-      // Return result based on extracted data
-      if (hasError || !imageData || !imageMimeType) {
-        return this.createErrorResult(errorMessage);
-      }
+      const promptFeedback = response.promptFeedback
+        ? {
+            blockReason: response.promptFeedback.blockReason,
+            safetyRatings: response.promptFeedback.safetyRatings,
+          }
+        : null;
 
-      // Calculate usage based on token counts
+      const finishReason = candidate.finishReason || null;
+
       const usage = calculateTokenUsage(
         usageMetadata?.promptTokenCount ?? 0,
         usageMetadata?.candidatesTokenCount ?? 0,
@@ -316,7 +282,6 @@ export class Gemini3ProImagePreviewNode extends ExecutableNode {
             data: imageData,
             mimeType: imageMimeType,
           },
-          ...(candidate && { candidates: [candidate] }),
           ...(usageMetadata && { usage_metadata: usageMetadata }),
           ...(promptFeedback && { prompt_feedback: promptFeedback }),
           ...(finishReason && { finish_reason: finishReason }),
@@ -324,6 +289,19 @@ export class Gemini3ProImagePreviewNode extends ExecutableNode {
         usage
       );
     } catch (error) {
+      // Surface empty-response errors clearly — typically an AI Gateway issue
+      if (
+        error instanceof SyntaxError &&
+        error.message.includes("end of JSON")
+      ) {
+        console.error(
+          "Gemini 3 Pro Image Preview: received empty or truncated response from AI Gateway"
+        );
+        return this.createErrorResult(
+          "Received empty response from AI Gateway. The gateway may not support this model yet — check Cloudflare AI Gateway logs."
+        );
+      }
+
       console.error("Gemini 3 Pro Image Preview error:", error);
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"
