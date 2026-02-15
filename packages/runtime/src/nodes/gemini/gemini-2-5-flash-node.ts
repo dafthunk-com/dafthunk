@@ -42,6 +42,22 @@ export class Gemini25FlashNode extends ExecutableNode {
         required: true,
       },
       {
+        name: "temperature",
+        type: "number",
+        description:
+          "Controls randomness (0.0-2.0). Lower values are more deterministic, higher values more creative",
+        required: false,
+        hidden: true,
+      },
+      {
+        name: "maxOutputTokens",
+        type: "number",
+        description:
+          "Maximum number of tokens in the response. Leave empty for model default",
+        required: false,
+        hidden: true,
+      },
+      {
         name: "thinking_budget",
         type: "number",
         description:
@@ -105,7 +121,7 @@ export class Gemini25FlashNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const { instructions, input, thinking_budget, tools } = context.inputs;
+      const { instructions, input, temperature, maxOutputTokens, thinking_budget, tools } = context.inputs;
 
       if (!input) {
         return this.createErrorResult("Input is required");
@@ -118,6 +134,16 @@ export class Gemini25FlashNode extends ExecutableNode {
       });
 
       const config: any = {};
+
+      // Configure temperature if provided
+      if (temperature !== undefined && temperature !== null) {
+        config.temperature = temperature;
+      }
+
+      // Configure max output tokens if provided
+      if (maxOutputTokens !== undefined && maxOutputTokens !== null) {
+        config.maxOutputTokens = maxOutputTokens;
+      }
 
       // Configure thinking budget if provided
       if (thinking_budget !== undefined && thinking_budget !== null) {

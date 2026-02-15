@@ -59,6 +59,18 @@ export class Gemini25ProAudioUnderstandingNode extends ExecutableNode {
           "Generated text response (transcription, description, or analysis)",
       },
       {
+        name: "usage_metadata",
+        type: "json",
+        description: "Token usage and cost information",
+        hidden: true,
+      },
+      {
+        name: "prompt_feedback",
+        type: "json",
+        description: "Feedback about the prompt quality and safety",
+        hidden: true,
+      },
+      {
         name: "finish_reason",
         type: "string",
         description:
@@ -138,8 +150,26 @@ export class Gemini25ProAudioUnderstandingNode extends ExecutableNode {
         return this.createErrorResult("No text generated in response");
       }
 
+      // Extract metadata safely
+      const usageMetadata = response.usageMetadata
+        ? {
+            promptTokenCount: response.usageMetadata.promptTokenCount,
+            candidatesTokenCount:
+              response.usageMetadata.candidatesTokenCount,
+            totalTokenCount: response.usageMetadata.totalTokenCount,
+          }
+        : null;
+
+      const promptFeedback = response.promptFeedback
+        ? {
+            blockReason: response.promptFeedback.blockReason,
+            safetyRatings: response.promptFeedback.safetyRatings,
+          }
+        : null;
+
+      const finishReason = candidate.finishReason || null;
+
       // Calculate usage based on token counts
-      const usageMetadata = response.usageMetadata;
       const usage = calculateTokenUsage(
         usageMetadata?.promptTokenCount ?? 0,
         usageMetadata?.candidatesTokenCount ?? 0,
@@ -149,7 +179,9 @@ export class Gemini25ProAudioUnderstandingNode extends ExecutableNode {
       return this.createSuccessResult(
         {
           text: textParts,
-          finish_reason: candidate.finishReason || "STOP",
+          ...(usageMetadata && { usage_metadata: usageMetadata }),
+          ...(promptFeedback && { prompt_feedback: promptFeedback }),
+          ...(finishReason && { finish_reason: finishReason }),
         },
         usage
       );

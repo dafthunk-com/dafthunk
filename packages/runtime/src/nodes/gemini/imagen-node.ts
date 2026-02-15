@@ -83,9 +83,6 @@ export class ImagenNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    let ai: any;
-    let response: any;
-
     try {
       const { prompt, aspectRatio, sampleImageSize, personGeneration, model } =
         context.inputs;
@@ -119,7 +116,7 @@ export class ImagenNode extends ExecutableNode {
       }
 
       // API key is injected by AI Gateway via BYOK (Bring Your Own Keys)
-      ai = new GoogleGenAI({
+      const ai = new GoogleGenAI({
         apiKey: "gateway-managed",
         ...getGoogleAIConfig(context.env),
       });
@@ -136,69 +133,35 @@ export class ImagenNode extends ExecutableNode {
         config.sampleImageSize = sampleImageSize;
       }
 
-      response = await ai.models.generateImages({
+      const response = await ai.models.generateImages({
         model: model || "imagen-4.0-generate-001",
         prompt: prompt,
         config: config,
       });
 
-      // Extract all needed data immediately to avoid circular references
-      let imageData: Uint8Array | null = null;
-      let imageMimeType: string | null = null;
-      let usageMetadata: any = null;
-      let hasError = false;
-      let errorMessage = "";
-
-      try {
-        if (!response?.generatedImages?.[0]?.image?.imageBytes) {
-          hasError = true;
-          errorMessage = "No images generated from Imagen API";
-        } else {
-          // Process the single generated image
-          const generatedImage = response.generatedImages[0];
-
-          // Convert base64 data to Uint8Array for proper object store handling
-          imageData = Uint8Array.from(
-            atob(generatedImage.image.imageBytes),
-            (c) => c.charCodeAt(0)
-          );
-          imageMimeType = generatedImage.image.mimeType || "image/png";
-
-          // Extract usage metadata if available
-          usageMetadata = response.usageMetadata
-            ? {
-                promptTokenCount: response.usageMetadata.promptTokenCount,
-                totalTokenCount: response.usageMetadata.totalTokenCount,
-              }
-            : null;
-        }
-      } catch (extractError) {
-        hasError = true;
-        errorMessage = "Error extracting response data";
-        console.warn("Error extracting response data:", extractError);
+      if (!response?.generatedImages?.[0]?.image?.imageBytes) {
+        return this.createErrorResult("No images generated from Imagen API");
       }
 
-      // Dispose of response immediately after data extraction
-      try {
-        if (response && typeof (response as any).dispose === "function") {
-          (response as any).dispose();
-        }
-        // Also try to dispose the models object
-        if (ai.models && typeof (ai.models as any).dispose === "function") {
-          (ai.models as any).dispose();
-        }
-        // And the client itself
-        if (ai && typeof (ai as any).dispose === "function") {
-          (ai as any).dispose();
-        }
-      } catch (disposeError) {
-        console.warn("Failed to dispose response:", disposeError);
-      }
+      // Process the single generated image
+      const generatedImage = response.generatedImages[0];
+      const image = generatedImage.image!;
 
-      // Return result based on extracted data
-      if (hasError || !imageData || !imageMimeType) {
-        return this.createErrorResult(errorMessage);
-      }
+      // Convert base64 data to Uint8Array for proper object store handling
+      const imageData = Uint8Array.from(
+        atob(image.imageBytes!),
+        (c) => c.charCodeAt(0)
+      );
+      const imageMimeType = image.mimeType || "image/png";
+
+      // Extract usage metadata if available
+      const responseAny = response as any;
+      const usageMetadata = responseAny.usageMetadata
+        ? {
+            promptTokenCount: responseAny.usageMetadata.promptTokenCount,
+            totalTokenCount: responseAny.usageMetadata.totalTokenCount,
+          }
+        : null;
 
       // Calculate usage based on token counts
       const usage = calculateTokenUsage(

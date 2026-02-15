@@ -24,14 +24,30 @@ export class Gemini25ProImageUnderstandingNode extends ExecutableNode {
     tags: ["AI", "Image", "Google", "Gemini", "Understanding", "Pro"],
     icon: "eye",
     documentation:
-      "This node uses Google's Gemini 2.5 Pro model for high-quality image analysis with advanced reasoning capabilities.",
+      "This node uses Google's Gemini 2.5 Pro model for high-quality image analysis with advanced reasoning capabilities. Supports up to 3 images for comparison and multi-image analysis.",
     usage: 1,
     inputs: [
       {
         name: "image",
         type: "image",
-        description: "Image file to analyze (PNG, JPEG, WEBP, HEIC, HEIF)",
+        description: "Primary image file to analyze (PNG, JPEG, WEBP, HEIC, HEIF)",
         required: true,
+      },
+      {
+        name: "image2",
+        type: "image",
+        description:
+          "Optional second image for comparison or multi-image analysis",
+        required: false,
+        hidden: true,
+      },
+      {
+        name: "image3",
+        type: "image",
+        description:
+          "Optional third image for multi-image analysis",
+        required: false,
+        hidden: true,
       },
       {
         name: "prompt",
@@ -59,6 +75,18 @@ export class Gemini25ProImageUnderstandingNode extends ExecutableNode {
           "Generated text response (description, analysis, or object detection results)",
       },
       {
+        name: "usage_metadata",
+        type: "json",
+        description: "Token usage and cost information",
+        hidden: true,
+      },
+      {
+        name: "prompt_feedback",
+        type: "json",
+        description: "Feedback about the prompt quality and safety",
+        hidden: true,
+      },
+      {
         name: "finish_reason",
         type: "string",
         description:
@@ -70,7 +98,7 @@ export class Gemini25ProImageUnderstandingNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const { image, prompt, thinking_budget } = context.inputs;
+      const { image, image2, image3, prompt, thinking_budget } = context.inputs;
 
       if (!image) {
         return this.createErrorResult("Image input is required");
@@ -95,24 +123,34 @@ export class Gemini25ProImageUnderstandingNode extends ExecutableNode {
         };
       }
 
-      // Convert image data to base64 safely
+      // Build parts array with prompt text followed by images
+      const parts: any[] = [{ text: prompt }];
+
+      // Add primary image
       const imageBase64 = Buffer.from(image.data).toString("base64");
+      parts.push({
+        inlineData: {
+          mimeType: image.mimeType,
+          data: imageBase64,
+        },
+      });
+
+      // Add optional additional images
+      for (const extraImage of [image2, image3]) {
+        if (extraImage?.data) {
+          const extraBase64 = Buffer.from(extraImage.data).toString("base64");
+          parts.push({
+            inlineData: {
+              mimeType: extraImage.mimeType,
+              data: extraBase64,
+            },
+          });
+        }
+      }
 
       const response = await ai.models.generateContent({
         model: "gemini-2.5-pro",
-        contents: [
-          {
-            parts: [
-              { text: prompt },
-              {
-                inlineData: {
-                  mimeType: image.mimeType,
-                  data: imageBase64,
-                },
-              },
-            ],
-          },
-        ],
+        contents: [{ parts }],
         config,
       });
 
@@ -138,8 +176,26 @@ export class Gemini25ProImageUnderstandingNode extends ExecutableNode {
         return this.createErrorResult("No text generated in response");
       }
 
+      // Extract metadata safely
+      const usageMetadata = response.usageMetadata
+        ? {
+            promptTokenCount: response.usageMetadata.promptTokenCount,
+            candidatesTokenCount:
+              response.usageMetadata.candidatesTokenCount,
+            totalTokenCount: response.usageMetadata.totalTokenCount,
+          }
+        : null;
+
+      const promptFeedback = response.promptFeedback
+        ? {
+            blockReason: response.promptFeedback.blockReason,
+            safetyRatings: response.promptFeedback.safetyRatings,
+          }
+        : null;
+
+      const finishReason = candidate.finishReason || null;
+
       // Calculate usage based on token counts
-      const usageMetadata = response.usageMetadata;
       const usage = calculateTokenUsage(
         usageMetadata?.promptTokenCount ?? 0,
         usageMetadata?.candidatesTokenCount ?? 0,
@@ -149,7 +205,9 @@ export class Gemini25ProImageUnderstandingNode extends ExecutableNode {
       return this.createSuccessResult(
         {
           text: textParts,
-          finish_reason: candidate.finishReason || "STOP",
+          ...(usageMetadata && { usage_metadata: usageMetadata }),
+          ...(promptFeedback && { prompt_feedback: promptFeedback }),
+          ...(finishReason && { finish_reason: finishReason }),
         },
         usage
       );
