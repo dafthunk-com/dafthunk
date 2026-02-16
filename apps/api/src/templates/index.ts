@@ -6,6 +6,7 @@ import { conditionalBranchingTemplate } from "./conditional-branching";
 import { emailReplyTemplate } from "./email-reply";
 import { httpEchoTemplate } from "./http-echo";
 import { imageDescriptionTemplate } from "./image-description";
+import { imageToTextTemplate } from "./image-to-text";
 import { imageGenerationTemplate } from "./image-generation";
 import { imageProcessingTemplate } from "./image-processing";
 import { sentimentAnalysisTemplate } from "./sentiment-analysis";
@@ -32,6 +33,7 @@ export const workflowTemplates: WorkflowTemplate[] = [
   aiCalculatorTemplate,
   conditionalBranchingTemplate,
   httpEchoTemplate,
+  imageToTextTemplate,
 ];
 
 export function getTemplateById(id: string): WorkflowTemplate | undefined {
