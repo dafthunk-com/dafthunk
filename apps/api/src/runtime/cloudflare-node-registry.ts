@@ -385,6 +385,7 @@ import { BartLargeCnnNode } from "@dafthunk/runtime/nodes/text/bart-large-cnn-no
 import { BgeRerankerBaseNode } from "@dafthunk/runtime/nodes/text/bge-reranker-base-node";
 import { DeepseekR1DistillQwen32BNode } from "@dafthunk/runtime/nodes/text/deepseek-r1-distill-qwen-32b-node";
 import { DistilbertSst2Int8Node } from "@dafthunk/runtime/nodes/text/distilbert-sst-2-int8-node";
+import { Glm47FlashNode } from "@dafthunk/runtime/nodes/text/glm-4-7-flash-node";
 import { Hermes2ProMistral7BNode } from "@dafthunk/runtime/nodes/text/hermes-2-pro-mistral-7b-node";
 import { Llama318BInstructFastNode } from "@dafthunk/runtime/nodes/text/llama-3-1-8b-instruct-fast-node";
 import { Llama3370BInstructFastNode } from "@dafthunk/runtime/nodes/text/llama-3-3-70b-instruct-fp8-fast-node";
@@ -508,6 +509,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(Hermes2ProMistral7BNode);
     this.registerImplementation(Llama4Scout17B16EInstructNode);
     this.registerImplementation(MistralSmall31_24BInstructNode);
+    this.registerImplementation(Glm47FlashNode);
     this.registerImplementation(WhisperNode);
     this.registerImplementation(WhisperLargeV3TurboNode);
     this.registerImplementation(WhisperTinyEnNode);
