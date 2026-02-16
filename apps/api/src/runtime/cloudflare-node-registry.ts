@@ -393,6 +393,8 @@ import { Llama4Scout17B16EInstructNode } from "@dafthunk/runtime/nodes/text/llam
 import { M2m10012bNode } from "@dafthunk/runtime/nodes/text/m2m100-1-2b-node";
 import { MistralSmall31_24BInstructNode } from "@dafthunk/runtime/nodes/text/mistral-small-3-1-24b-instruct-node";
 import { MultiVariableStringTemplateNode } from "@dafthunk/runtime/nodes/text/multi-variable-string-template-node";
+import { Qwen330BA3BFp8Node } from "@dafthunk/runtime/nodes/text/qwen3-30b-a3b-fp8-node";
+import { Qwq32BNode } from "@dafthunk/runtime/nodes/text/qwq-32b-node";
 import { RegexExtractNode } from "@dafthunk/runtime/nodes/text/regex-extract-node";
 import { RegexMatchNode } from "@dafthunk/runtime/nodes/text/regex-match-node";
 import { RegexReplaceNode } from "@dafthunk/runtime/nodes/text/regex-replace-node";
@@ -510,6 +512,8 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(Llama4Scout17B16EInstructNode);
     this.registerImplementation(MistralSmall31_24BInstructNode);
     this.registerImplementation(Glm47FlashNode);
+    this.registerImplementation(Qwq32BNode);
+    this.registerImplementation(Qwen330BA3BFp8Node);
     this.registerImplementation(WhisperNode);
     this.registerImplementation(WhisperLargeV3TurboNode);
     this.registerImplementation(WhisperTinyEnNode);

@@ -143,12 +143,15 @@ export class ImagenNode extends ExecutableNode {
         return this.createErrorResult("No images generated from Imagen API");
       }
 
-      // Process the single generated image
-      const generatedImage = response.generatedImages[0];
-      const image = generatedImage.image!;
+      // Process the single generated image — guard above ensures this path exists
+      const image = response.generatedImages[0].image;
+      const imageBytes = image?.imageBytes;
+      if (!image || !imageBytes) {
+        return this.createErrorResult("No images generated from Imagen API");
+      }
 
       // Convert base64 data to Uint8Array for proper object store handling
-      const imageData = Uint8Array.from(atob(image.imageBytes!), (c) =>
+      const imageData = Uint8Array.from(atob(imageBytes), (c) =>
         c.charCodeAt(0)
       );
       const imageMimeType = image.mimeType || "image/png";

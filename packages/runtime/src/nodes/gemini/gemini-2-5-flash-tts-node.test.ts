@@ -4,17 +4,6 @@ import { describe, expect, it, vi } from "vitest";
 import { Gemini25FlashTtsNode } from "./gemini-2-5-flash-tts-node";
 
 describe("Gemini25FlashTtsNode", () => {
-  // Base64 of a minimal fake PCM payload (not a real WAV, so it will get wrapped)
-  const fakePcmBase64 = Buffer.from(new Uint8Array([1, 2, 3, 4, 5])).toString(
-    "base64"
-  );
-
-  // Base64 of a fake WAV payload (starts with RIFF)
-  const fakeWavBytes = new Uint8Array([
-    0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x57, 0x41, 0x56, 0x45,
-  ]);
-  const fakeWavBase64 = Buffer.from(fakeWavBytes).toString("base64");
-
   vi.mock("@google/genai", () => ({
     GoogleGenAI: class MockGoogleGenAI {
       models = {
