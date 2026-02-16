@@ -121,7 +121,14 @@ export class Gemini25ProNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const { instructions, input, temperature, maxOutputTokens, thinking_budget, tools } = context.inputs;
+      const {
+        instructions,
+        input,
+        temperature,
+        maxOutputTokens,
+        thinking_budget,
+        tools,
+      } = context.inputs;
 
       if (!input) {
         return this.createErrorResult("Input is required");

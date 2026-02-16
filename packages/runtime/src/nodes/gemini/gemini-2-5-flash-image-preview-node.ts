@@ -254,8 +254,7 @@ export class Gemini25FlashImagePreviewNode extends ExecutableNode {
       const usageMetadata = response.usageMetadata
         ? {
             promptTokenCount: response.usageMetadata.promptTokenCount,
-            candidatesTokenCount:
-              response.usageMetadata.candidatesTokenCount,
+            candidatesTokenCount: response.usageMetadata.candidatesTokenCount,
             totalTokenCount: response.usageMetadata.totalTokenCount,
           }
         : null;

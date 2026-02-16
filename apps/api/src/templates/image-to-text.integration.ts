@@ -110,8 +110,7 @@ describe("Image to Text Template", () => {
     expect(requestToUnderstanding?.targetInput).toBe("image");
 
     const understandingToTts = edges.find(
-      (e) =>
-        e.source === "image-understanding" && e.target === "text-to-speech"
+      (e) => e.source === "image-understanding" && e.target === "text-to-speech"
     );
     expect(understandingToTts).toBeDefined();
     expect(understandingToTts?.sourceOutput).toBe("text");
@@ -164,9 +163,7 @@ describe("Image to Text Template", () => {
     } as any);
 
     expect(understandingResult.status).toBe("completed");
-    expect(understandingResult.outputs?.text).toBe(
-      "Extracted text from image"
-    );
+    expect(understandingResult.outputs?.text).toBe("Extracted text from image");
 
     // Step 3: Gemini TTS converts extracted text to speech
     const ttsNodeDef = imageToTextTemplate.nodes.find(

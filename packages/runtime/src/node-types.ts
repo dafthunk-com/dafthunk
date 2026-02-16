@@ -253,7 +253,7 @@ export abstract class ExecutableNode {
    * Creates a Node definition from this class's nodeType
    */
   static create(options: CreateNodeOptions): Node {
-    const nodeType = this.nodeType;
+    const nodeType = ExecutableNode.nodeType;
 
     const inputs = nodeType.inputs.map((input) => {
       const override = options.inputs?.[input.name];

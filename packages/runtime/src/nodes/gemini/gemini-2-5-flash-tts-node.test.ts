@@ -6,7 +6,7 @@ import { Gemini25FlashTtsNode } from "./gemini-2-5-flash-tts-node";
 describe("Gemini25FlashTtsNode", () => {
   // Base64 of a minimal fake PCM payload (not a real WAV, so it will get wrapped)
   const fakePcmBase64 = Buffer.from(new Uint8Array([1, 2, 3, 4, 5])).toString(
-    "base64",
+    "base64"
   );
 
   // Base64 of a fake WAV payload (starts with RIFF)
@@ -26,7 +26,7 @@ describe("Gemini25FlashTtsNode", () => {
                   {
                     inlineData: {
                       data: Buffer.from(
-                        new Uint8Array([1, 2, 3, 4, 5]),
+                        new Uint8Array([1, 2, 3, 4, 5])
                       ).toString("base64"),
                       mimeType: "audio/L16;rate=24000",
                     },
@@ -83,7 +83,7 @@ describe("Gemini25FlashTtsNode", () => {
 
     it("should have required text input", () => {
       const textInput = Gemini25FlashTtsNode.nodeType.inputs.find(
-        (i) => i.name === "text",
+        (i) => i.name === "text"
       );
       expect(textInput).toBeDefined();
       expect(textInput?.required).toBe(true);
@@ -92,7 +92,7 @@ describe("Gemini25FlashTtsNode", () => {
 
     it("should have optional voice input with default Kore", () => {
       const voiceInput = Gemini25FlashTtsNode.nodeType.inputs.find(
-        (i) => i.name === "voice",
+        (i) => i.name === "voice"
       );
       expect(voiceInput).toBeDefined();
       expect(voiceInput?.value).toBe("Kore");
@@ -100,10 +100,10 @@ describe("Gemini25FlashTtsNode", () => {
 
     it("should have audio and usage_metadata outputs", () => {
       const audioOutput = Gemini25FlashTtsNode.nodeType.outputs.find(
-        (o) => o.name === "audio",
+        (o) => o.name === "audio"
       );
       const usageOutput = Gemini25FlashTtsNode.nodeType.outputs.find(
-        (o) => o.name === "usage_metadata",
+        (o) => o.name === "usage_metadata"
       );
       expect(audioOutput?.type).toBe("audio");
       expect(usageOutput?.type).toBe("json");
@@ -116,7 +116,7 @@ describe("Gemini25FlashTtsNode", () => {
       const result = await node.execute(
         createContext({
           text: "Hello, how are you today?",
-        }),
+        })
       );
 
       expect(result.status).toBe("completed");
@@ -130,7 +130,7 @@ describe("Gemini25FlashTtsNode", () => {
         createContext({
           text: "Say this in a cheerful tone.",
           voice: "Puck",
-        }),
+        })
       );
 
       expect(result.status).toBe("completed");
@@ -142,7 +142,7 @@ describe("Gemini25FlashTtsNode", () => {
       const result = await node.execute(
         createContext({
           text: "Testing default voice",
-        }),
+        })
       );
 
       expect(result.status).toBe("completed");
@@ -153,7 +153,7 @@ describe("Gemini25FlashTtsNode", () => {
       const result = await node.execute(
         createContext({
           text: "Generate some audio",
-        }),
+        })
       );
 
       expect(result.status).toBe("completed");
@@ -171,7 +171,7 @@ describe("Gemini25FlashTtsNode", () => {
       const result = await node.execute(
         createContext({
           text: "Check usage metadata",
-        }),
+        })
       );
 
       expect(result.status).toBe("completed");
@@ -192,7 +192,7 @@ describe("Gemini25FlashTtsNode", () => {
       const result = await node.execute(
         createContext({
           text: "",
-        }),
+        })
       );
 
       expect(result.status).toBe("error");
@@ -203,7 +203,7 @@ describe("Gemini25FlashTtsNode", () => {
       const result = await node.execute(
         createContext({
           text: 123,
-        }),
+        })
       );
 
       expect(result.status).toBe("error");
@@ -215,7 +215,7 @@ describe("Gemini25FlashTtsNode", () => {
         createContext({
           text: "Hello",
           voice: "InvalidVoice",
-        }),
+        })
       );
 
       expect(result.status).toBe("error");
@@ -241,7 +241,7 @@ describe("Gemini25FlashTtsNode", () => {
           createContext({
             text: "Test voice",
             voice,
-          }),
+          })
         );
 
         expect(result.status).toBe("completed");

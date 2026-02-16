@@ -30,7 +30,8 @@ export class Gemini25FlashImageUnderstandingNode extends ExecutableNode {
       {
         name: "image",
         type: "image",
-        description: "Primary image file to analyze (PNG, JPEG, WEBP, HEIC, HEIF)",
+        description:
+          "Primary image file to analyze (PNG, JPEG, WEBP, HEIC, HEIF)",
         required: true,
       },
       {
@@ -44,8 +45,7 @@ export class Gemini25FlashImageUnderstandingNode extends ExecutableNode {
       {
         name: "image3",
         type: "image",
-        description:
-          "Optional third image for multi-image analysis",
+        description: "Optional third image for multi-image analysis",
         required: false,
         hidden: true,
       },
@@ -180,8 +180,7 @@ export class Gemini25FlashImageUnderstandingNode extends ExecutableNode {
       const usageMetadata = response.usageMetadata
         ? {
             promptTokenCount: response.usageMetadata.promptTokenCount,
-            candidatesTokenCount:
-              response.usageMetadata.candidatesTokenCount,
+            candidatesTokenCount: response.usageMetadata.candidatesTokenCount,
             totalTokenCount: response.usageMetadata.totalTokenCount,
           }
         : null;

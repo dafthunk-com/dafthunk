@@ -59,7 +59,8 @@ export class Glm47FlashNode extends ExecutableNode {
       {
         name: "max_tokens",
         type: "number",
-        description: "Maximum number of tokens to generate (includes reasoning tokens)",
+        description:
+          "Maximum number of tokens to generate (includes reasoning tokens)",
         hidden: true,
         value: 2048,
       },
@@ -158,11 +159,10 @@ export class Glm47FlashNode extends ExecutableNode {
       }
 
       // Check if we have function calls to enable embedded mode
-      const toolsDefinitions =
-        await this.convertFunctionCallsToToolDefinitions(
-          tools as ToolReference[],
-          context
-        );
+      const toolsDefinitions = await this.convertFunctionCallsToToolDefinitions(
+        tools as ToolReference[],
+        context
+      );
 
       let result: any;
       let executedToolCalls: any[] = [];

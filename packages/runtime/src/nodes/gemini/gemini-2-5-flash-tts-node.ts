@@ -63,7 +63,7 @@ function wrapPcmAsWav(
   pcmData: Uint8Array,
   sampleRate = 24000,
   channels = 1,
-  bitsPerSample = 16,
+  bitsPerSample = 16
 ): Uint8Array {
   const byteRate = sampleRate * channels * (bitsPerSample / 8);
   const blockAlign = channels * (bitsPerSample / 8);
@@ -156,7 +156,7 @@ export class Gemini25FlashTtsNode extends ExecutableNode {
       const voiceName = (voice as string) || "Kore";
       if (!VALID_VOICE_SET.has(voiceName)) {
         return this.createErrorResult(
-          `Invalid voice "${voiceName}". Valid voices: ${VALID_VOICES.join(", ")}`,
+          `Invalid voice "${voiceName}". Valid voices: ${VALID_VOICES.join(", ")}`
         );
       }
 
@@ -192,7 +192,7 @@ export class Gemini25FlashTtsNode extends ExecutableNode {
         if (part?.inlineData?.data) {
           // Use Buffer.from for safe base64 decoding (avoids stack overflow on large payloads)
           const raw = new Uint8Array(
-            Buffer.from(part.inlineData.data, "base64"),
+            Buffer.from(part.inlineData.data, "base64")
           );
 
           // If the API returns raw PCM, wrap it with a WAV header for playability.
@@ -217,7 +217,7 @@ export class Gemini25FlashTtsNode extends ExecutableNode {
       const usage = calculateTokenUsage(
         usageMetadata?.promptTokenCount ?? 0,
         usageMetadata?.candidatesTokenCount ?? 0,
-        PRICING,
+        PRICING
       );
 
       return this.createSuccessResult(
@@ -234,12 +234,12 @@ export class Gemini25FlashTtsNode extends ExecutableNode {
             },
           }),
         },
-        usage,
+        usage
       );
     } catch (error) {
       console.error("Gemini TTS error:", error);
       return this.createErrorResult(
-        error instanceof Error ? error.message : "Unknown error",
+        error instanceof Error ? error.message : "Unknown error"
       );
     }
   }

@@ -148,9 +148,8 @@ export class ImagenNode extends ExecutableNode {
       const image = generatedImage.image!;
 
       // Convert base64 data to Uint8Array for proper object store handling
-      const imageData = Uint8Array.from(
-        atob(image.imageBytes!),
-        (c) => c.charCodeAt(0)
+      const imageData = Uint8Array.from(atob(image.imageBytes!), (c) =>
+        c.charCodeAt(0)
       );
       const imageMimeType = image.mimeType || "image/png";
 

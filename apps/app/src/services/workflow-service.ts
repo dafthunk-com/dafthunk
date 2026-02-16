@@ -334,7 +334,8 @@ async function serializeForWs(
   }
   return {
     ...params,
-    contentType: params.contentType || params.body.type || "application/octet-stream",
+    contentType:
+      params.contentType || params.body.type || "application/octet-stream",
     body: btoa(binary),
     bodyEncoding: "base64",
   };
