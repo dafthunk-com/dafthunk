@@ -50,6 +50,7 @@ import { FeedbackPage } from "./pages/feedback-page";
 import { IntegrationsPage } from "./pages/integrations-page";
 import { InvitationsPage } from "./pages/invitations-page";
 import { LoginPage } from "./pages/login-page";
+import { McpPage } from "./pages/mcp-page";
 import { MembersPage } from "./pages/members-page";
 import { NotFoundPage } from "./pages/not-found-page";
 import { OnboardingPage } from "./pages/onboarding-page";
@@ -501,6 +502,17 @@ export const routes: AppRouteObject[] = [
       </OrgLayout>
     ),
     handle: { head: <HeadSeo title="Billing - Settings - Dafthunk" /> },
+  },
+  {
+    path: "/org/:handle/mcp",
+    element: (
+      <OrgLayout title="Settings">
+        <ProtectedRoute>
+          <McpPage />
+        </ProtectedRoute>
+      </OrgLayout>
+    ),
+    handle: { head: <HeadSeo title="MCP Server - Settings - Dafthunk" /> },
   },
   {
     path: "/org/:handle/members",

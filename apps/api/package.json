@@ -51,6 +51,7 @@
     "@hono/oauth-providers": "^0.8.5",
     "@hono/zod-validator": "^0.7.6",
     "@mapbox/martini": "^0.2.0",
+    "@modelcontextprotocol/sdk": "^1.25.2",
     "@turf/helpers": "^7.3.2",
     "@turf/turf": "^7.3.2",
     "aws4fetch": "^1.0.20",

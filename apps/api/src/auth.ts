@@ -14,6 +14,7 @@ import {
   users,
   verifyApiKey,
 } from "./db";
+import { getOrganizationSettings } from "./db/queries";
 import { memberships, organizations } from "./db/schema";
 
 // Constants
@@ -320,6 +321,28 @@ export const apiKeyMiddleware = async (
 
   // Store the validated organization ID in the context for later use
   c.set("organizationId", validatedOrganizationId);
+
+  await next();
+};
+
+// Middleware to check if MCP is enabled for the organization
+// Must be used after apiKeyMiddleware or jwtMiddleware which sets organizationId
+export const mcpEnabledMiddleware = async (
+  c: Context<ApiContext>,
+  next: () => Promise<void>
+) => {
+  const organizationId = c.get("organizationId");
+
+  if (!organizationId) {
+    return c.json({ error: "Organization context required" }, 400);
+  }
+
+  const db = createDatabase(c.env.DB);
+  const settings = await getOrganizationSettings(db, organizationId);
+
+  if (!settings?.mcpEnabled) {
+    return c.json({ error: "MCP is not enabled for this organization" }, 403);
+  }
 
   await next();
 };
