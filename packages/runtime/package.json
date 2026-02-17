@@ -41,7 +41,7 @@
     "zod": "^4.3.5"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20260116.0",
+    "@cloudflare/workers-types": "^4.20260213.0",
     "@types/mailparser": "^3.4.6",
     "@types/three": "^0.181.0",
     "@types/wellknown": "^0.5.8",
