@@ -368,7 +368,7 @@ export class AgentRunner extends DurableObject<Bindings> {
         try {
           const instance = await this.env.EXECUTE.get(executionInstanceId);
           await instance.sendEvent({
-            type: `agent-complete:${nodeId}`,
+            type: `agent-complete-${nodeId}`,
             payload: {
               outputs: {},
               usage: 0,
@@ -396,7 +396,7 @@ export class AgentRunner extends DurableObject<Bindings> {
   ): Promise<void> {
     const instance = await this.env.EXECUTE.get(executionInstanceId);
     await instance.sendEvent({
-      type: `agent-complete:${nodeId}`,
+      type: `agent-complete-${nodeId}`,
       payload: {
         outputs: {
           text: response.text,

@@ -221,7 +221,7 @@ export abstract class BaseAgentNode extends ExecutableNode {
         status: "pending",
         usage: 0,
         pendingEvent: {
-          type: `agent-complete:${context.nodeId}`,
+          type: `agent-complete-${context.nodeId}`,
           timeout: "30 minutes",
         },
       };
