@@ -346,7 +346,9 @@ export function WorkflowNodeSelector({
                         />
                         <div className="flex-1 min-w-0">
                           <h3 className="font-semibold text-base leading-tight mb-2 flex items-center gap-2">
-                            <span>{highlightMatch(template.name, searchTerm)}</span>
+                            <span>
+                              {highlightMatch(template.name, searchTerm)}
+                            </span>
                             {template.subscription && (
                               <SubscriptionBadge variant="muted" size="lg" />
                             )}

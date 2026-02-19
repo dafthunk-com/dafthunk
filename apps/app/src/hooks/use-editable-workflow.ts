@@ -37,6 +37,7 @@ export function useEditableWorkflow({
   const [savingError, setSavingError] = useState<string | null>(null);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const wsRef = useRef<WorkflowWebSocket | null>(null);
+  const isRemoteUpdateRef = useRef(false);
   const [isWSConnected, setIsWSConnected] = useState(false);
   const [workflowMetadata, setWorkflowMetadata] = useState<{
     id: string;
@@ -121,8 +122,16 @@ export function useEditableWorkflow({
           setIsInitializing(false);
         },
         onUpdate: (state: WorkflowState) => {
-          // Handle broadcasts from other users
+          // Handle broadcasts from other users.
+          // Mark as remote so persistence callbacks skip re-saving (breaks echo loop).
+          isRemoteUpdateRef.current = true;
           handleStateUpdate(state);
+          // Wait for React to flush the state update before clearing the flag.
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              isRemoteUpdateRef.current = false;
+            });
+          });
         },
         onExecutionUpdate: (execution: WorkflowExecution) => {
           // Forward execution updates to parent component
@@ -293,6 +302,7 @@ export function useEditableWorkflow({
     connectionError,
     saveWorkflow,
     isWSConnected,
+    isRemoteUpdateRef,
     workflowMetadata,
     executeWorkflow,
     updateMetadata,

@@ -63,6 +63,7 @@ export function EditorPage() {
     connectionError: workflowConnectionError,
     saveWorkflow,
     isWSConnected: _isWSConnected,
+    isRemoteUpdateRef,
     workflowMetadata,
     executeWorkflow: wsExecuteWorkflow,
     updateMetadata: wsUpdateMetadata,
@@ -120,21 +121,21 @@ export function EditorPage() {
   const handleUiNodesChanged = useCallback(
     (nodes: Node<WorkflowNodeType>[]) => {
       nodesRef.current = nodes;
-      if (workflowMetadata) {
+      if (workflowMetadata && !isRemoteUpdateRef.current) {
         saveWorkflow(nodes, edgesRef.current);
       }
     },
-    [saveWorkflow, workflowMetadata]
+    [saveWorkflow, workflowMetadata, isRemoteUpdateRef]
   );
 
   const handleUiEdgesChanged = useCallback(
     (edges: Edge<WorkflowEdgeType>[]) => {
       edgesRef.current = edges;
-      if (workflowMetadata) {
+      if (workflowMetadata && !isRemoteUpdateRef.current) {
         saveWorkflow(nodesRef.current, edges);
       }
     },
-    [saveWorkflow, workflowMetadata]
+    [saveWorkflow, workflowMetadata, isRemoteUpdateRef]
   );
 
   // Fetch workflow metadata via HTTP (for description and other metadata)

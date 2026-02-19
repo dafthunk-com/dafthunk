@@ -272,6 +272,8 @@ export function useGraphOperations({
             ...newNode,
             selected: currentNode.selected,
             dragging: currentNode.dragging,
+            // Preserve the user's active drag position instead of snapping to server state
+            ...(currentNode.dragging && { position: currentNode.position }),
           };
         }
         return newNode;
