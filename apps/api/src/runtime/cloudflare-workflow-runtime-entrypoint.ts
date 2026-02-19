@@ -60,10 +60,6 @@ export class WorkflowRuntimeEntrypoint extends WorkflowEntrypoint<
     event: WorkflowEvent<RuntimeParams>,
     step: WorkflowStep
   ): Promise<WorkflowExecution> {
-    return await this.runtime.executeWithStep(
-      event.payload,
-      event.instanceId,
-      step
-    );
+    return this.runtime.executeWithStep(event.payload, event.instanceId, step);
   }
 }

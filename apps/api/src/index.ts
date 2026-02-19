@@ -105,6 +105,7 @@ app.route("/:organizationIdOrHandle/ws", wsRoutes);
 // Export Durable Objects
 export { Session as WorkflowSession };
 export { DatabaseDO };
+export { AgentRunner } from "./durable-objects/agent-runner";
 
 export default {
   email: handleIncomingEmail,

@@ -41,6 +41,10 @@ export function applyNodeResult(
         state.nodeUsage[result.nodeId] = result.usage;
       }
       break;
+    case "pending":
+      // Pending nodes haven't produced outputs yet — no state mutation needed.
+      // The runtime will resolve them via waitForNodeEvent and apply the final result.
+      break;
   }
 }
 

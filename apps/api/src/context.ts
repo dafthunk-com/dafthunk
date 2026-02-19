@@ -1,5 +1,6 @@
 import type { RuntimeParams } from "@dafthunk/runtime";
 import { JWTTokenPayload } from "@dafthunk/types";
+import type { AgentRunner } from "./durable-objects/agent-runner";
 import { DatabaseDO } from "./durable-objects/database-do";
 import { Session } from "./session/session";
 
@@ -12,6 +13,7 @@ export interface Bindings {
   EXECUTE: Workflow<RuntimeParams>;
   WORKFLOW_SESSION: DurableObjectNamespace<Session>;
   DATABASE: DurableObjectNamespace<DatabaseDO>;
+  AGENT_RUNNER: DurableObjectNamespace<AgentRunner>;
   WORKFLOW_QUEUE: Queue;
   RESSOURCES: R2Bucket;
   DATASETS: R2Bucket;

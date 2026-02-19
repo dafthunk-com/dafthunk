@@ -87,6 +87,15 @@ class MockWorkflowRuntime extends Runtime<Bindings> {
   }
 
   /**
+   * Mock does not support async node execution.
+   */
+  protected async waitForNodeEvent<T>(): Promise<T> {
+    throw new Error(
+      "Async node execution is not supported in MockWorkflowRuntime"
+    );
+  }
+
+  /**
    * Implements step execution using Cloudflare Workflows step.do().
    */
   protected async executeStep<T>(

@@ -177,7 +177,12 @@ export interface UseGraphOperationsReturn {
   handleAddNode: () => void;
   handleNodeSelect: (template: NodeType) => void;
   updateNodeExecution: (nodeId: string, update: NodeExecutionUpdate) => void;
-  updateNodeData: (nodeId: string, data: Partial<WorkflowNodeType>) => void;
+  updateNodeData: (
+    nodeId: string,
+    data:
+      | Partial<WorkflowNodeType>
+      | ((current: WorkflowNodeType) => Partial<WorkflowNodeType>)
+  ) => void;
   updateEdgeData: (edgeId: string, data: Partial<WorkflowEdgeType>) => void;
   deleteNode: (nodeId: string) => void;
   deleteEdge: (edgeId: string) => void;
@@ -562,19 +567,25 @@ export function useGraphOperations({
   );
 
   const updateNodeData = useCallback(
-    (nodeId: string, data: Partial<WorkflowNodeType>) => {
+    (
+      nodeId: string,
+      dataOrFn:
+        | Partial<WorkflowNodeType>
+        | ((current: WorkflowNodeType) => Partial<WorkflowNodeType>)
+    ) => {
       setNodes((nds) =>
-        nds.map((node) =>
-          node.id === nodeId
-            ? {
-                ...node,
-                data: {
-                  ...node.data,
-                  ...data,
-                },
-              }
-            : node
-        )
+        nds.map((node) => {
+          if (node.id !== nodeId) return node;
+          const update =
+            typeof dataOrFn === "function" ? dataOrFn(node.data) : dataOrFn;
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              ...update,
+            },
+          };
+        })
       );
     },
     [setNodes]

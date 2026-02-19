@@ -40,6 +40,7 @@ describe("EvaluationService", () => {
       CLOUDFLARE_ACCOUNT_ID: "test-account",
       CLOUDFLARE_API_TOKEN: "test-token",
       CLOUDFLARE_AI_GATEWAY_ID: "test-gateway",
+      AGENT_RUNNER: {} as any,
     };
 
     evaluationService = new EvaluationService(mockEnv);

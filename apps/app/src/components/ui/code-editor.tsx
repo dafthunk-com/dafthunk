@@ -76,6 +76,7 @@ export function CodeEditor({
   const viewRef = useRef<EditorView | null>(null);
   const onChangeRef = useRef(onChange);
   const readonlyCompartment = useRef(new Compartment());
+  const isProgrammaticUpdate = useRef(false);
 
   // Keep onChange ref up to date
   useEffect(() => {
@@ -97,7 +98,7 @@ export function CodeEditor({
           theme,
           readonlyCompartment.current.of(EditorState.readOnly.of(readonly)),
           EditorView.updateListener.of((update) => {
-            if (update.docChanged) {
+            if (update.docChanged && !isProgrammaticUpdate.current) {
               onChangeRef.current?.(update.state.doc.toString());
             }
           }),
@@ -121,9 +122,11 @@ export function CodeEditor({
 
     const currentValue = view.state.doc.toString();
     if (currentValue !== value) {
+      isProgrammaticUpdate.current = true;
       view.dispatch({
         changes: { from: 0, to: currentValue.length, insert: value },
       });
+      isProgrammaticUpdate.current = false;
     }
   }, [value]);
 

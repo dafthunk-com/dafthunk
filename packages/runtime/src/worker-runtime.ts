@@ -29,6 +29,14 @@ import { Runtime, type RuntimeParams } from "./base-runtime";
  */
 export class WorkerRuntime<Env = unknown> extends Runtime<Env> {
   /**
+   * Worker runtime does not support async node execution.
+   * Agent nodes detect asyncSupported: false and fall back to blocking mode.
+   */
+  protected async waitForNodeEvent<T>(): Promise<T> {
+    throw new Error("Async node execution is not supported in WorkerRuntime");
+  }
+
+  /**
    * Implements step execution by directly calling the function.
    * No durability or retries - execution is synchronous and ephemeral.
    */

@@ -9,7 +9,8 @@ export type NodeExecutionState =
   | "executing"
   | "completed"
   | "error"
-  | "skipped";
+  | "skipped"
+  | "pending";
 
 // Define InputOutputType using ParameterType
 export type InputOutputType = ParameterType["type"];

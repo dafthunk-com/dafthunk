@@ -39,6 +39,7 @@ const createMockEnv = (masterKey?: string): Bindings => ({
   CLOUDFLARE_API_TOKEN: "",
   CLOUDFLARE_AI_GATEWAY_ID: "",
   AI_OPTIONS: {},
+  AGENT_RUNNER: {} as DurableObjectNamespace<any>,
 });
 
 describe("Encryption Utilities", () => {

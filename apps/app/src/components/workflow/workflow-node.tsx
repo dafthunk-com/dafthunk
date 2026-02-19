@@ -148,7 +148,10 @@ export const TypeBadge = ({
             "absolute inset-0 rounded-lg border shadow-sm bg-background",
             {
               "border-border": !selected && executionState === "idle",
-              "border-yellow-400": !selected && executionState === "executing",
+              "border-yellow-400":
+                !selected &&
+                (executionState === "executing" ||
+                  executionState === "pending"),
               "border-green-500": !selected && executionState === "completed",
               "border-red-500": !selected && executionState === "error",
               "border-blue-400": !selected && executionState === "skipped",
@@ -172,7 +175,9 @@ export const TypeBadge = ({
             "!bg-neutral-200 dark:!bg-neutral-700": isActive,
             "!bg-white dark:!bg-neutral-900": !isActive,
             "!border-border": !selected && executionState === "idle",
-            "!border-yellow-400": !selected && executionState === "executing",
+            "!border-yellow-400":
+              !selected &&
+              (executionState === "executing" || executionState === "pending"),
             "!border-green-500": !selected && executionState === "completed",
             "!border-red-500": !selected && executionState === "error",
             "!border-blue-400": !selected && executionState === "skipped",
@@ -273,47 +278,56 @@ export const WorkflowNode = memo(
     const handleToolsSelect = (tool: ToolReference) => {
       if (disabled || !updateNodeData) return;
 
-      // Get current tools and add the new one
-      const currentTools = getCurrentSelectedTools();
-
-      // Check if tool is already in the list
-      if (currentTools.some((t) => t.identifier === tool.identifier)) {
-        return;
-      }
-
-      const updatedTools = [...currentTools, tool];
-
-      // Find the tools input parameter
-      const toolsInput = data.inputs.find((input) => input.id === "tools");
-      if (toolsInput) {
-        updateNodeInput(
-          id,
-          toolsInput.id,
-          updatedTools,
-          data.inputs,
-          updateNodeData
+      // Use functional updater to always read the latest node data,
+      // avoiding stale closure issues with React.memo
+      updateNodeData(id, (currentData) => {
+        const toolsInput = currentData.inputs.find(
+          (input) => input.id === "tools"
         );
-      }
+        if (!toolsInput) return {};
+
+        const currentTools = Array.isArray(toolsInput.value)
+          ? (toolsInput.value as ToolReference[])
+          : [];
+
+        if (currentTools.some((t) => t.identifier === tool.identifier)) {
+          return {};
+        }
+
+        const updatedTools = [...currentTools, tool];
+        const updatedInputs = currentData.inputs.map((input) =>
+          input.id === "tools"
+            ? ({ ...input, value: updatedTools } as WorkflowParameter)
+            : input
+        );
+        return { inputs: updatedInputs };
+      });
     };
 
     const handleRemoveTool = (toolIdentifier: string) => {
       if (disabled || !updateNodeData) return;
 
-      const currentTools = getCurrentSelectedTools();
-      const updatedTools = currentTools.filter(
-        (t) => t.identifier !== toolIdentifier
-      );
-
-      const toolsInput = data.inputs.find((input) => input.id === "tools");
-      if (toolsInput) {
-        updateNodeInput(
-          id,
-          toolsInput.id,
-          updatedTools,
-          data.inputs,
-          updateNodeData
+      updateNodeData(id, (currentData) => {
+        const toolsInput = currentData.inputs.find(
+          (input) => input.id === "tools"
         );
-      }
+        if (!toolsInput) return {};
+
+        const currentTools = Array.isArray(toolsInput.value)
+          ? (toolsInput.value as ToolReference[])
+          : [];
+
+        const updatedTools = currentTools.filter(
+          (t) => t.identifier !== toolIdentifier
+        );
+
+        const updatedInputs = currentData.inputs.map((input) =>
+          input.id === "tools"
+            ? ({ ...input, value: updatedTools } as WorkflowParameter)
+            : input
+        );
+        return { inputs: updatedInputs };
+      });
     };
 
     // Get current selected tools from the tools input
@@ -357,7 +371,9 @@ export const WorkflowNode = memo(
           className={cn("bg-card shadow-sm w-[220px] rounded-md border", {
             "border-border": !selected && data.executionState === "idle",
             "border-yellow-400":
-              !selected && data.executionState === "executing",
+              !selected &&
+              (data.executionState === "executing" ||
+                data.executionState === "pending"),
             "border-green-500":
               !selected && data.executionState === "completed",
             "border-red-500": !selected && data.executionState === "error",

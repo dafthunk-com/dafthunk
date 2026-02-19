@@ -65,7 +65,12 @@ interface UseWorkflowStateReturn {
     > | null
   ) => void;
   updateNodeExecution: (nodeId: string, update: NodeExecutionUpdate) => void;
-  updateNodeData: (nodeId: string, data: Partial<WorkflowNodeType>) => void;
+  updateNodeData: (
+    nodeId: string,
+    data:
+      | Partial<WorkflowNodeType>
+      | ((current: WorkflowNodeType) => Partial<WorkflowNodeType>)
+  ) => void;
   updateEdgeData: (edgeId: string, data: Partial<WorkflowEdgeType>) => void;
   deleteNode: (nodeId: string) => void;
   deleteEdge: (edgeId: string) => void;

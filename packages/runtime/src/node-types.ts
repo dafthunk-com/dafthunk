@@ -188,6 +188,8 @@ export interface NodeEnv {
   DATASETS_AUTORAG: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   DATABASE: DurableObjectNamespace<any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  AGENT_RUNNER: DurableObjectNamespace<any>;
   WORKFLOW_QUEUE: Queue;
   EMAIL_DOMAIN: string;
   CLOUDFLARE_ACCOUNT_ID?: string;
@@ -210,6 +212,10 @@ export interface NodeContext {
   organizationId: string;
   mode: WorkflowMode;
   deploymentId?: string;
+  /** Workflow execution instance ID (for async node completion events) */
+  executionId?: string;
+  /** Whether the runtime supports async node execution via waitForEvent */
+  asyncSupported?: boolean;
   inputs: Record<string, any>;
   onProgress?: (progress: number) => void;
   httpRequest?: HttpRequest;
@@ -253,7 +259,8 @@ export abstract class ExecutableNode {
    * Creates a Node definition from this class's nodeType
    */
   static create(options: CreateNodeOptions): Node {
-    const nodeType = ExecutableNode.nodeType;
+    // biome-ignore lint/complexity/noThisInStatic: `this` is the calling subclass, not ExecutableNode
+    const nodeType = this.nodeType;
 
     const inputs = nodeType.inputs.map((input) => {
       const override = options.inputs?.[input.name];

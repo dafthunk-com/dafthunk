@@ -26,6 +26,7 @@ import { Runtime, type RuntimeParams } from "./base-runtime";
  * Implements the core workflow execution logic with durable steps.
  */
 export class WorkflowRuntime<Env = unknown> extends Runtime<Env> {
+  protected override readonly supportsAsync = true;
   private currentStep?: WorkflowStep;
 
   private static readonly defaultStepConfig: WorkflowStepConfig = {
@@ -70,5 +71,25 @@ export class WorkflowRuntime<Env = unknown> extends Runtime<Env> {
       // @ts-expect-error - TS2345: Cloudflare Workflows requires Serializable types
       fn
     )) as T;
+  }
+
+  /**
+   * Implements async node waiting using Cloudflare Workflows step.waitForEvent().
+   * Parks the workflow with zero compute cost until the event arrives.
+   */
+  protected async waitForNodeEvent<T>(
+    name: string,
+    eventType: string,
+    timeout: string
+  ): Promise<T> {
+    if (!this.currentStep) {
+      throw new Error("waitForNodeEvent called without workflow step context");
+    }
+    // @ts-expect-error - TS2344: Cloudflare Workflows requires Serializable<T> constraint
+    const event = await this.currentStep.waitForEvent<T>(name, {
+      type: eventType,
+      timeout,
+    });
+    return event.payload as T;
   }
 }

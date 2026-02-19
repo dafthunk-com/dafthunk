@@ -143,6 +143,14 @@ export type NodeExecutionResult =
       error: string;
       /** Usage consumed before the error (e.g., API call made but parsing failed) */
       usage?: number;
+    }
+  | {
+      nodeId: string;
+      status: "pending";
+      /** Event type the runtime should wait for (e.g., "agent-complete:nodeId") */
+      eventType: string;
+      /** How long to wait before timing out (e.g., "30 minutes") */
+      timeout: string;
     };
 
 /**

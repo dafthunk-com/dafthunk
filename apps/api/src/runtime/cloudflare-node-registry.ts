@@ -22,6 +22,10 @@
 import { BaseNodeRegistry } from "@dafthunk/runtime";
 import { TrellisNode } from "@dafthunk/runtime/nodes/3d/trellis-node";
 import { Trellis2Node } from "@dafthunk/runtime/nodes/3d/trellis2-node";
+import { AgentClaudeSonnet4Node } from "@dafthunk/runtime/nodes/agent/agent-claude-sonnet-4-node";
+import { AgentGemini25FlashNode } from "@dafthunk/runtime/nodes/agent/agent-gemini-2-5-flash-node";
+import { AgentGpt41Node } from "@dafthunk/runtime/nodes/agent/agent-gpt-41-node";
+import { AgentQwen330BA3BFp8Node } from "@dafthunk/runtime/nodes/agent/agent-qwen3-30b-a3b-fp8-node";
 import { Claude3OpusNode } from "@dafthunk/runtime/nodes/anthropic/claude-3-opus-node";
 import { Claude35HaikuNode } from "@dafthunk/runtime/nodes/anthropic/claude-35-haiku-node";
 import { Claude35SonnetNode } from "@dafthunk/runtime/nodes/anthropic/claude-35-sonnet-node";
@@ -947,5 +951,11 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(GeoJSONOutputNode);
     this.registerImplementation(SecretOutputNode);
     this.registerImplementation(AnyOutputNode);
+
+    // Agent nodes — multi-turn agentic execution via Durable Object
+    this.registerImplementation(AgentClaudeSonnet4Node);
+    this.registerImplementation(AgentGemini25FlashNode);
+    this.registerImplementation(AgentGpt41Node);
+    this.registerImplementation(AgentQwen330BA3BFp8Node);
   }
 }

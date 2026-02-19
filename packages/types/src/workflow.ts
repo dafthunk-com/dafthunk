@@ -310,7 +310,8 @@ export type NodeExecutionStatus =
   | "executing"
   | "completed"
   | "error"
-  | "skipped";
+  | "skipped"
+  | "pending";
 
 /**
  * Represents the execution state of a single node
@@ -321,6 +322,8 @@ export interface NodeExecution {
   error?: string;
   outputs?: Record<string, ParameterValue> | null;
   usage: number;
+  /** Present when status is "pending" — describes the event the runtime should wait for */
+  pendingEvent?: { type: string; timeout?: string };
 }
 
 /**

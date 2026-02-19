@@ -10,11 +10,19 @@ import {
 } from "./workflow-types";
 
 type UpdateNodeFn = (nodeId: string, data: Partial<WorkflowNodeType>) => void;
+
+// Extends UpdateNodeFn with functional updater support (like React's setState)
+type UpdateNodeDataFn = (
+  nodeId: string,
+  data:
+    | Partial<WorkflowNodeType>
+    | ((current: WorkflowNodeType) => Partial<WorkflowNodeType>)
+) => void;
 type UpdateEdgeFn = (edgeId: string, data: Partial<WorkflowEdgeType>) => void;
 type DeleteEdgeFn = (edgeId: string) => void;
 
 export interface WorkflowContextProps {
-  updateNodeData?: UpdateNodeFn;
+  updateNodeData?: UpdateNodeDataFn;
   updateEdgeData?: UpdateEdgeFn;
   deleteEdge?: DeleteEdgeFn;
   edges?: ReactFlowEdge<WorkflowEdgeType>[];
@@ -39,7 +47,7 @@ export const useWorkflow = () => useContext(WorkflowContext);
 
 export interface WorkflowProviderProps {
   readonly children: ReactNode;
-  readonly updateNodeData?: UpdateNodeFn;
+  readonly updateNodeData?: UpdateNodeDataFn;
   readonly updateEdgeData?: UpdateEdgeFn;
   readonly deleteEdge?: DeleteEdgeFn;
   readonly edges?: ReactFlowEdge<WorkflowEdgeType>[];

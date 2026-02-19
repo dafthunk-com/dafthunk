@@ -95,6 +95,11 @@
         "name": "DATABASE",
         "class_name": "DatabaseDO",
         "script_name": "dafthunk-api"
+      },
+      {
+        "name": "AGENT_RUNNER",
+        "class_name": "AgentRunner",
+        "script_name": "dafthunk-api"
       }
     ]
   },
@@ -106,6 +111,10 @@
     {
       "tag": "v2",
       "new_sqlite_classes": ["DatabaseDO"]
+    },
+    {
+      "tag": "v3",
+      "new_sqlite_classes": ["AgentRunner"]
     }
   ],
   "unsafe": {
@@ -210,6 +219,11 @@
             "name": "DATABASE",
             "class_name": "DatabaseDO",
             "script_name": "dafthunk-api"
+          },
+          {
+            "name": "AGENT_RUNNER",
+            "class_name": "AgentRunner",
+            "script_name": "dafthunk-api"
           }
         ]
       },
@@ -221,6 +235,10 @@
         {
           "tag": "v2",
           "new_sqlite_classes": ["DatabaseDO"]
+        },
+        {
+          "tag": "v3",
+          "new_sqlite_classes": ["AgentRunner"]
         }
       ],
       "unsafe": {

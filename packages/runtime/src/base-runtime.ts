@@ -114,6 +114,9 @@ export abstract class Runtime<Env = unknown> {
   protected env: Env;
   protected userPlan?: string;
 
+  /** Whether this runtime supports async node execution via waitForEvent */
+  protected readonly supportsAsync: boolean = false;
+
   constructor(env: Env, dependencies: RuntimeDependencies<Env>) {
     this.env = env;
     this.nodeRegistry = dependencies.nodeRegistry;
@@ -157,6 +160,28 @@ export abstract class Runtime<Env = unknown> {
   protected abstract executeStep<T>(
     name: string,
     fn: () => Promise<T>
+  ): Promise<T>;
+
+  /**
+   * Abstract method for waiting on an external event (async node completion).
+   *
+   * ## Contract for Implementations
+   *
+   * **WorkflowRuntime**: Uses `step.waitForEvent()` to park the workflow with
+   * zero compute cost until the event arrives (up to 365 days).
+   *
+   * **WorkerRuntime**: Throws — async nodes detect `asyncSupported: false` and
+   * fall back to blocking mode, so this is never called.
+   *
+   * @param name - Human-readable step name for logging/introspection
+   * @param eventType - The event type string to wait for
+   * @param timeout - Duration string (e.g., "30 minutes")
+   * @returns The event payload
+   */
+  protected abstract waitForNodeEvent<T>(
+    name: string,
+    eventType: string,
+    timeout: string
   ): Promise<T>;
 
   /**
@@ -441,8 +466,18 @@ export abstract class Runtime<Env = unknown> {
         })
       );
 
+      // Resolve any pending (async) results before applying to state
+      const resolvedResults = await Promise.all(
+        results.map(async (result) => {
+          if (result.status === "pending") {
+            return this.resolveAsyncNode(context, result);
+          }
+          return result;
+        })
+      );
+
       // Apply all results to state (nodes in same level don't affect each other)
-      for (const result of results) {
+      for (const result of resolvedResults) {
         applyNodeResult(state, result);
       }
 
@@ -463,6 +498,91 @@ export abstract class Runtime<Env = unknown> {
     }
 
     return { state, record: currentRecord };
+  }
+
+  /**
+   * Resolves an async (pending) node by waiting for its completion event.
+   * Transforms the event payload into a standard NodeExecutionResult.
+   */
+  private async resolveAsyncNode(
+    context: WorkflowExecutionContext,
+    pendingResult: Extract<NodeExecutionResult, { status: "pending" }>
+  ): Promise<NodeExecutionResult> {
+    try {
+      const event = await this.waitForNodeEvent<{
+        outputs: Record<string, unknown>;
+        usage: number;
+        error?: string;
+      }>(
+        `wait for ${pendingResult.nodeId}`,
+        pendingResult.eventType,
+        pendingResult.timeout
+      );
+
+      if (event.error) {
+        return {
+          nodeId: pendingResult.nodeId,
+          status: "error",
+          error: event.error,
+          usage: event.usage,
+        };
+      }
+
+      // Find the node definition to transform outputs to runtime format
+      const node = context.workflow.nodes.find(
+        (n) => n.id === pendingResult.nodeId
+      );
+      if (!node) {
+        return {
+          nodeId: pendingResult.nodeId,
+          status: "error",
+          error: `Node ${pendingResult.nodeId} not found in workflow`,
+        };
+      }
+
+      // Transform outputs from node-native format to runtime format
+      const outputsForRuntime: Record<string, RuntimeValue> = {};
+      for (const [name, value] of Object.entries(event.outputs)) {
+        const output = node.outputs.find((o) => o.name === name);
+        const parameterType = output?.type ?? "string";
+
+        if (output?.repeated && Array.isArray(value)) {
+          const transformedArray = await Promise.all(
+            value.map((v) =>
+              nodeToApiParameter(
+                parameterType,
+                v,
+                this.objectStore,
+                context.organizationId,
+                context.executionId
+              )
+            )
+          );
+          outputsForRuntime[name] = transformedArray;
+        } else {
+          outputsForRuntime[name] = await nodeToApiParameter(
+            parameterType,
+            value,
+            this.objectStore,
+            context.organizationId,
+            context.executionId
+          );
+        }
+      }
+
+      return {
+        nodeId: pendingResult.nodeId,
+        status: "completed",
+        outputs: outputsForRuntime as NodeRuntimeValues,
+        usage: event.usage,
+      };
+    } catch (error) {
+      return {
+        nodeId: pendingResult.nodeId,
+        status: "error",
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
   }
 
   /**
@@ -743,6 +863,8 @@ export abstract class Runtime<Env = unknown> {
         organizationId: context.organizationId,
         mode: context.deploymentId ? "prod" : "dev",
         deploymentId: context.deploymentId,
+        executionId: context.executionId,
+        asyncSupported: this.supportsAsync,
         inputs: processedInputs,
         httpRequest: context.httpRequest,
         emailMessage: context.emailMessage,
@@ -762,6 +884,16 @@ export abstract class Runtime<Env = unknown> {
       };
 
       const result = await executable.execute(nodeContext);
+
+      // Node signalled async work — return pending for the runtime to wait on
+      if (result.status === "pending" && result.pendingEvent) {
+        return {
+          nodeId: node.id,
+          status: "pending",
+          eventType: result.pendingEvent.type,
+          timeout: result.pendingEvent.timeout ?? "30 minutes",
+        };
+      }
 
       if (result.status === "completed") {
         const outputs = result.outputs ?? {};
