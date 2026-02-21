@@ -523,3 +523,26 @@ export interface WorkflowTemplate {
 export interface ListWorkflowTemplatesResponse {
   templates: WorkflowTemplate[];
 }
+
+/**
+ * Reference to a tool with its type and identifier
+ */
+export interface ToolReference {
+  /**
+   * The type of tool (e.g., "node" for workflow nodes)
+   * Extensible for future tool types like "mcp", "http_api", etc.
+   */
+  type: string;
+
+  /**
+   * Unique identifier for the tool within its type
+   * For nodes: the node ID
+   * For future types: appropriate identifier
+   */
+  identifier: string;
+
+  /**
+   * Optional configuration specific to the tool type
+   */
+  config?: Record<string, unknown>;
+}

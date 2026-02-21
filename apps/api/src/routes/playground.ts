@@ -59,12 +59,13 @@ playgroundRoutes.post("/", jwtMiddleware, async (c) => {
 
   // Set up credential service and object store
   const objectStore = new CloudflareObjectStore(c.env.RESSOURCES);
-  const toolRegistry = new CloudflareToolRegistry(
-    nodeRegistry,
-    (nodeId, inputs) => createToolContext(nodeId, inputs, c.env, objectStore)
-  );
   const credentialService = new CloudflareCredentialService(c.env);
   await credentialService.initialize(organizationId);
+  const toolRegistry = new CloudflareToolRegistry(
+    nodeRegistry,
+    (nodeId, inputs) =>
+      createToolContext(nodeId, inputs, c.env, objectStore, credentialService)
+  );
 
   // Transform API inputs to node-level values
   const nodeInputs: Record<string, unknown> = {};

@@ -78,7 +78,7 @@ class DynamicWorkerExecutor implements CodeModeExecutor {
       "      get: (_, toolName) => async (args) => {",
       "        const resJson = await dispatcher.call(String(toolName), JSON.stringify(args ?? {}));",
       "        const data = JSON.parse(resJson);",
-      '        if (data.error) throw new Error(data.error);',
+      "        if (data.error) throw new Error(data.error);",
       "        return data.result;",
       "      }",
       "    });",
@@ -103,21 +103,16 @@ class DynamicWorkerExecutor implements CodeModeExecutor {
 
     const dispatcher = new ToolDispatcher(fns);
 
-    const worker = this.#loader.get(
-      `codemode-${crypto.randomUUID()}`,
-      () => ({
-        compatibilityDate: "2025-06-01",
-        compatibilityFlags: ["nodejs_compat"],
-        mainModule: "executor.js",
-        modules: { "executor.js": moduleSource },
-        globalOutbound: null, // block outbound fetch/connect
-      })
-    );
+    const worker = this.#loader.get(`codemode-${crypto.randomUUID()}`, () => ({
+      compatibilityDate: "2025-06-01",
+      compatibilityFlags: ["nodejs_compat"],
+      mainModule: "executor.js",
+      modules: { "executor.js": moduleSource },
+      globalOutbound: null, // block outbound fetch/connect
+    }));
 
     const entrypoint = worker.getEntrypoint() as unknown as {
-      evaluate(
-        dispatcher: ToolDispatcher
-      ): Promise<{
+      evaluate(dispatcher: ToolDispatcher): Promise<{
         result: unknown;
         error?: string;
         logs?: string[];
@@ -136,9 +131,7 @@ class DynamicWorkerExecutor implements CodeModeExecutor {
 
 // ── Factory ─────────────────────────────────────────────────────────────
 
-export function createCodeModeExecutor(
-  env: Bindings
-): CodeModeExecutor | null {
+export function createCodeModeExecutor(env: Bindings): CodeModeExecutor | null {
   if (!env.LOADER) return null;
   return new DynamicWorkerExecutor(env.LOADER);
 }

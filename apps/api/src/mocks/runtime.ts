@@ -131,12 +131,12 @@ class MockWorkflowEntrypoint extends WorkflowEntrypoint<
     // Create mock dependencies
     const nodeRegistry = new MockNodeRegistry(env, true);
     const objectStore = new CloudflareObjectStore(env.RESSOURCES);
+    const credentialProvider = new MockCredentialService();
     const toolRegistry = new MockToolRegistry(
       nodeRegistry,
       (nodeId: string, inputs: Record<string, unknown>) =>
-        createToolContext(nodeId, inputs, env, objectStore)
+        createToolContext(nodeId, inputs, env, objectStore, credentialProvider)
     );
-    const credentialProvider = new MockCredentialService();
     const databaseService = new MockDatabaseService();
     const datasetService = new MockDatasetService();
     const queueService = new MockQueueService();

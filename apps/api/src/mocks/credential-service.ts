@@ -11,11 +11,20 @@ import type { CredentialService, IntegrationInfo } from "@dafthunk/runtime";
  * Minimal mock that avoids database access
  */
 export class MockCredentialService implements CredentialService {
+  private organizationId: string | null = null;
+
   /**
    * Mock initialization - no database access
    */
-  async initialize(_organizationId: string): Promise<void> {
-    // No-op - tests don't need secrets or integrations
+  async initialize(organizationId: string): Promise<void> {
+    this.organizationId = organizationId;
+  }
+
+  getOrganizationId(): string {
+    if (!this.organizationId) {
+      throw new Error("Credential service not initialized");
+    }
+    return this.organizationId;
   }
 
   /**

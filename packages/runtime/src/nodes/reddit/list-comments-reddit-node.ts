@@ -44,6 +44,7 @@ export class ListCommentsRedditNode extends ExecutableNode {
       "This node retrieves comments from a Reddit post. Supports sorting by best, top, new, controversial, old, or Q&A. Requires a connected Reddit integration.",
     usage: 10,
     subscription: true,
+    asTool: true,
     inputs: [
       {
         name: "integrationId",

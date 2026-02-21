@@ -17,6 +17,7 @@ export class SubmitPostRedditNode extends ExecutableNode {
       "This node submits a new post to a specified subreddit. Supports both text posts and link posts. Requires a connected Reddit integration.",
     usage: 10,
     subscription: true,
+    asTool: true,
     inputs: [
       {
         name: "integrationId",

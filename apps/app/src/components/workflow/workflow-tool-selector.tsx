@@ -1,5 +1,5 @@
 // @ts-ignore - https://github.com/lucide-icons/lucide/issues/2867#issuecomment-2847105863
-import type { WorkflowTrigger } from "@dafthunk/types";
+import type { ToolReference, WorkflowTrigger } from "@dafthunk/types";
 import { Wrench } from "lucide-react";
 import { DynamicIcon } from "lucide-react/dynamic.mjs";
 import { useMemo, useState } from "react";
@@ -21,11 +21,6 @@ import { normalizeText } from "@/utils/text-normalization";
 import { cn } from "@/utils/utils";
 
 import type { NodeType } from "./workflow-types";
-
-export interface ToolReference {
-  type: "node";
-  identifier: string;
-}
 
 export interface WorkflowToolSelectorProps {
   open: boolean;
@@ -231,6 +226,12 @@ export function WorkflowToolSelector({
     }
   };
 
+  // Handle tool selection — add immediately, user can configure presets via gear icon
+  const handleToolSelect = (template: NodeType) => {
+    onSelect({ type: "node", identifier: template.id });
+    onClose();
+  };
+
   // Use keyboard navigation hook
   const {
     activeElement,
@@ -249,9 +250,7 @@ export function WorkflowToolSelector({
     categoriesCount: selectedTags.length + tagCounts.length + 1, // selected tags + available tags + "All" button
     onClose,
     onSelectItem: (index) => {
-      const template = filteredTemplates[index];
-      onSelect({ type: "node", identifier: template.id });
-      onClose();
+      handleToolSelect(filteredTemplates[index]);
     },
     onCategoryChange: handleTagChange,
     categories: tagCounts,
@@ -299,10 +298,7 @@ export function WorkflowToolSelector({
                         ? "border-primary"
                         : "border-border hover:border-primary/50"
                     )}
-                    onClick={() => {
-                      onSelect({ type: "node", identifier: template.id });
-                      onClose();
-                    }}
+                    onClick={() => handleToolSelect(template)}
                     onMouseEnter={() => {
                       setActiveElement("items");
                       setFocusedIndex(index);

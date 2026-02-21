@@ -122,7 +122,7 @@ export abstract class BaseToolRegistry {
     if (!provider) {
       throw new Error(`No provider registered for tool type: ${toolRef.type}`);
     }
-    return provider.getToolDefinition(toolRef.identifier);
+    return provider.getToolDefinition(toolRef.identifier, toolRef.config);
   }
 
   /**

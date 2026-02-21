@@ -17,6 +17,7 @@ export class ListUserPostsRedditNode extends ExecutableNode {
       "This node retrieves posts submitted by a specific Reddit user. Supports sorting by hot, new, top, or controversial. Requires a connected Reddit integration.",
     usage: 10,
     subscription: true,
+    asTool: true,
     inputs: [
       {
         name: "integrationId",

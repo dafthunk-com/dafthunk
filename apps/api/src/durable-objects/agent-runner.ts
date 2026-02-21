@@ -24,17 +24,17 @@ import {
   getGoogleAIConfig,
   getOpenAIConfig,
 } from "@dafthunk/runtime/utils/ai-gateway";
+import { createCodeModeToolDefinition } from "@dafthunk/runtime/utils/code-mode";
 import type { TokenPricing } from "@dafthunk/runtime/utils/usage";
 import { calculateTokenUsage } from "@dafthunk/runtime/utils/usage";
 import { GoogleGenAI } from "@google/genai";
 import OpenAI from "openai";
 
-import { createCodeModeToolDefinition } from "@dafthunk/runtime/utils/code-mode";
-
 import type { Bindings } from "../context";
-import { createCodeModeExecutor } from "../runtime/code-mode-executor";
+import { CloudflareCredentialService } from "../runtime/cloudflare-credential-service";
 import { CloudflareNodeRegistry } from "../runtime/cloudflare-node-registry";
 import { CloudflareObjectStore } from "../runtime/cloudflare-object-store";
+import { createCodeModeExecutor } from "../runtime/code-mode-executor";
 import { createToolContext } from "../runtime/tool-context";
 
 // ── Request / Response types ─────────────────────────────────────────────
@@ -59,6 +59,8 @@ export interface AgentRunRequest {
   tools: ToolReference[];
   /** Enable code mode for multi-tool orchestration */
   codeMode?: boolean;
+  /** Organization ID for credential access (integrations, secrets) */
+  organizationId: string;
 }
 
 export interface AgentRunResponse {
@@ -111,6 +113,27 @@ export class AgentRunner extends DurableObject<Bindings> {
     this.initialized = true;
   }
 
+  // ── Tool provider setup ──────────────────────────────────────────────
+
+  private async buildNodeToolProvider(
+    organizationId: string
+  ): Promise<NodeToolProvider> {
+    const nodeRegistry = new CloudflareNodeRegistry(this.env, false);
+    const objectStore = new CloudflareObjectStore(this.env.RESSOURCES);
+    const credentialService = new CloudflareCredentialService(this.env);
+    await credentialService.initialize(organizationId);
+
+    return new NodeToolProvider(nodeRegistry, (nodeId, inputs) =>
+      createToolContext(
+        nodeId,
+        inputs,
+        this.env,
+        objectStore,
+        credentialService
+      )
+    );
+  }
+
   // ── Main handler ───────────────────────────────────────────────────────
 
   private async handleRun(request: Request): Promise<Response> {
@@ -139,13 +162,8 @@ export class AgentRunner extends DurableObject<Bindings> {
         runId
       );
 
-      // Build tool infrastructure
-      const nodeRegistry = new CloudflareNodeRegistry(this.env, false);
-      const objectStore = new CloudflareObjectStore(this.env.RESSOURCES);
-      const nodeToolProvider = new NodeToolProvider(
-        nodeRegistry,
-        (nodeId, inputs) =>
-          createToolContext(nodeId, inputs, this.env, objectStore)
+      const nodeToolProvider = await this.buildNodeToolProvider(
+        body.organizationId
       );
 
       // Resolve tool definitions from references and apply code mode
@@ -294,12 +312,8 @@ export class AgentRunner extends DurableObject<Bindings> {
     const { runId, executionInstanceId, nodeId, pricing } = body;
 
     try {
-      // Build tool infrastructure
-      const nodeRegistry = new CloudflareNodeRegistry(this.env, false);
-      const objectStore = new CloudflareObjectStore(this.env.RESSOURCES);
-      const nodeToolProvider = new NodeToolProvider(
-        nodeRegistry,
-        (nId, inputs) => createToolContext(nId, inputs, this.env, objectStore)
+      const nodeToolProvider = await this.buildNodeToolProvider(
+        body.organizationId
       );
 
       const resolvedTools = await this.resolveTools(
@@ -461,7 +475,10 @@ export class AgentRunner extends DurableObject<Bindings> {
     const definitions: ToolDefinition[] = [];
     for (const ref of toolRefs) {
       try {
-        const def = await nodeToolProvider.getToolDefinition(ref.identifier);
+        const def = await nodeToolProvider.getToolDefinition(
+          ref.identifier,
+          ref.config
+        );
         definitions.push(def);
       } catch (error) {
         console.warn(`Failed to resolve tool ${ref.identifier}:`, error);

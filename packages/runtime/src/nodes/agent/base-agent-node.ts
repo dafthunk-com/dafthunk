@@ -212,6 +212,7 @@ export abstract class BaseAgentNode extends ExecutableNode {
           maxSteps: max_steps ?? 10,
           tools: tools ?? [],
           codeMode: code_mode ?? false,
+          organizationId: context.organizationId,
         }),
       });
 
@@ -282,6 +283,7 @@ export abstract class BaseAgentNode extends ExecutableNode {
           maxSteps: max_steps ?? 10,
           tools: tools ?? [],
           codeMode: code_mode ?? false,
+          organizationId: context.organizationId,
         }),
       });
 

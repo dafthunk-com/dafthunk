@@ -17,6 +17,7 @@ export class SearchSubredditsRedditNode extends ExecutableNode {
       "This node searches for subreddits matching a query. Useful for discovering relevant communities. Requires a connected Reddit integration.",
     usage: 10,
     subscription: true,
+    asTool: true,
     inputs: [
       {
         name: "integrationId",

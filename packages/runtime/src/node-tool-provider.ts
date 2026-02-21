@@ -22,9 +22,14 @@ export class NodeToolProvider implements ToolProvider {
   ) {}
 
   /**
-   * Get tool definition for a node identifier
+   * Get tool definition for a node identifier.
+   * When config is provided, preset parameters are excluded from the JSON schema
+   * and merged at execution time (LLM args → config presets → node defaults).
    */
-  async getToolDefinition(nodeId: string): Promise<ToolDefinition> {
+  async getToolDefinition(
+    nodeId: string,
+    config?: Record<string, unknown>
+  ): Promise<ToolDefinition> {
     try {
       const nodeType = await this.getNodeTypeByIdentifier(nodeId);
 
@@ -34,6 +39,7 @@ export class NodeToolProvider implements ToolProvider {
       // Convert node inputs to JSON Schema properties
       for (const input of nodeType.inputs) {
         if (input.hidden) continue; // Skip hidden inputs
+        if (config && Object.hasOwn(config, input.name)) continue; // Skip preset params
 
         properties[input.name] =
           this.convertParameterToJSONSchemaProperty(input);
@@ -55,7 +61,8 @@ export class NodeToolProvider implements ToolProvider {
           // Coerce parameter types before execution so the tracker sees coerced values
           const coercedArgs = this.convertToolParametersToNodeInputs(
             args,
-            nodeType.inputs
+            nodeType.inputs,
+            config
           );
 
           // Use the internal method that skips re-coercion
@@ -246,11 +253,13 @@ export class NodeToolProvider implements ToolProvider {
   }
 
   /**
-   * Convert tool parameters back to node input format
+   * Convert tool parameters back to node input format.
+   * Priority: (1) LLM args → (2) config presets → (3) input.value defaults
    */
   private convertToolParametersToNodeInputs(
     parameters: any,
-    nodeInputs: Parameter[]
+    nodeInputs: Parameter[],
+    config?: Record<string, unknown>
   ): Record<string, any> {
     const result: Record<string, any> = {};
 
@@ -260,6 +269,8 @@ export class NodeToolProvider implements ToolProvider {
           parameters[input.name],
           input.type
         );
+      } else if (config && Object.hasOwn(config, input.name)) {
+        result[input.name] = config[input.name];
       } else if (input.value !== undefined) {
         result[input.name] = input.value;
       }

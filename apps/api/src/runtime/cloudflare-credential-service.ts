@@ -28,6 +28,13 @@ export class CloudflareCredentialService implements CredentialService {
 
   constructor(private env: Bindings) {}
 
+  getOrganizationId(): string {
+    if (!this.organizationId) {
+      throw new Error("Credential service not initialized");
+    }
+    return this.organizationId;
+  }
+
   /**
    * Preloads all organization secrets and integrations for synchronous access.
    * Single initialization step that replaces separate secret/integration preloading.

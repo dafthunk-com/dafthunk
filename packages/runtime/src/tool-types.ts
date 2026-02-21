@@ -2,6 +2,8 @@
  * Tool system types for function calling and external tool integration
  */
 
+export type { ToolReference } from "@dafthunk/types";
+
 /**
  * JSON Schema definition for tool parameters
  */
@@ -27,29 +29,6 @@ export interface ToolDefinition {
 }
 
 /**
- * Reference to a tool with its type and identifier
- */
-export interface ToolReference {
-  /**
-   * The type of tool (e.g., "node" for workflow nodes)
-   * Extensible for future tool types like "mcp", "http_api", etc.
-   */
-  type: string;
-
-  /**
-   * Unique identifier for the tool within its type
-   * For nodes: the node ID
-   * For future types: appropriate identifier
-   */
-  identifier: string;
-
-  /**
-   * Optional configuration specific to the tool type
-   */
-  config?: Record<string, any>;
-}
-
-/**
  * Result of executing a tool
  */
 export interface ToolResult {
@@ -63,9 +42,14 @@ export interface ToolResult {
  */
 export interface ToolProvider {
   /**
-   * Get the tool definition for a given identifier
+   * Get the tool definition for a given identifier.
+   * Config provides parameter presets that are excluded from the LLM schema
+   * and merged at execution time.
    */
-  getToolDefinition(identifier: string): Promise<ToolDefinition>;
+  getToolDefinition(
+    identifier: string,
+    config?: Record<string, unknown>
+  ): Promise<ToolDefinition>;
 
   /**
    * Execute a tool with given parameters

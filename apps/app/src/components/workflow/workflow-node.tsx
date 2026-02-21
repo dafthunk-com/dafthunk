@@ -1,4 +1,4 @@
-import { ObjectReference } from "@dafthunk/types";
+import type { ObjectReference, ToolReference } from "@dafthunk/types";
 import { Handle, Position } from "@xyflow/react";
 import { AsteriskIcon } from "lucide-react";
 // @ts-ignore - https://github.com/lucide-icons/lucide/issues/2867#issuecomment-2847105863
@@ -20,9 +20,10 @@ import LinkIcon from "lucide-react/icons/link";
 import LockIcon from "lucide-react/icons/lock";
 import MailIcon from "lucide-react/icons/mail";
 import MusicIcon from "lucide-react/icons/music";
+import SettingsIcon from "lucide-react/icons/settings";
+import TrashIcon from "lucide-react/icons/trash-2";
 import TypeIcon from "lucide-react/icons/type";
 import WrenchIcon from "lucide-react/icons/wrench";
-import XIcon from "lucide-react/icons/x";
 import { createElement, memo, useState } from "react";
 
 import { NodeDocsDialog } from "@/components/docs/node-docs-dialog";
@@ -32,6 +33,7 @@ import { cn } from "@/utils/utils";
 import { PropertyField } from "./fields";
 import { Field } from "./fields/field";
 import { SubscriptionBadge } from "./subscription-badge";
+import { ToolConfigPanel } from "./tool-config-panel";
 import { registry } from "./widgets";
 import {
   clearNodeInput,
@@ -39,7 +41,7 @@ import {
   updateNodeInput,
   useWorkflow,
 } from "./workflow-context";
-import { ToolReference, WorkflowToolSelector } from "./workflow-tool-selector";
+import { WorkflowToolSelector } from "./workflow-tool-selector";
 import {
   InputOutputType,
   NodeExecutionState,
@@ -229,6 +231,7 @@ export const WorkflowNode = memo(
     const [isDocsOpen, setIsDocsOpen] = useState(false);
     const [activeInputId, setActiveInputId] = useState<string | null>(null);
     const [activeOutputId, setActiveOutputId] = useState<string | null>(null);
+    const [configToolId, setConfigToolId] = useState<string | null>(null);
 
     // Get node type
     const nodeType = data.nodeType || "";
@@ -319,6 +322,40 @@ export const WorkflowNode = memo(
 
         const updatedTools = currentTools.filter(
           (t) => t.identifier !== toolIdentifier
+        );
+
+        const updatedInputs = currentData.inputs.map((input) =>
+          input.id === "tools"
+            ? ({ ...input, value: updatedTools } as WorkflowParameter)
+            : input
+        );
+        return { inputs: updatedInputs };
+      });
+    };
+
+    const handleToolConfigSave = (
+      toolIdentifier: string,
+      config: Record<string, unknown>
+    ) => {
+      if (disabled || !updateNodeData) return;
+
+      updateNodeData(id, (currentData) => {
+        const toolsInput = currentData.inputs.find(
+          (input) => input.id === "tools"
+        );
+        if (!toolsInput) return {};
+
+        const currentTools = Array.isArray(toolsInput.value)
+          ? (toolsInput.value as ToolReference[])
+          : [];
+
+        const updatedTools = currentTools.map((t) =>
+          t.identifier === toolIdentifier
+            ? {
+                ...t,
+                config: Object.keys(config).length > 0 ? config : undefined,
+              }
+            : t
         );
 
         const updatedInputs = currentData.inputs.map((input) =>
@@ -524,18 +561,38 @@ export const WorkflowNode = memo(
                               {tpl?.name || tool.identifier}
                             </span>
                           </div>
-                          <button
-                            type="button"
-                            className="shrink-0 text-neutral-400 hover:text-neutral-900 dark:text-neutral-500 dark:hover:text-neutral-100"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRemoveTool(tool.identifier);
-                            }}
-                            disabled={disabled}
-                            aria-label="Remove tool"
-                          >
-                            <XIcon className="h-3 w-3" />
-                          </button>
+                          <div className="flex items-center gap-0.5 shrink-0">
+                            <button
+                              type="button"
+                              className={cn(
+                                "hover:text-neutral-900 dark:hover:text-neutral-100",
+                                tool.config &&
+                                  Object.keys(tool.config).length > 0
+                                  ? "text-blue-500 dark:text-blue-400"
+                                  : "text-neutral-400 dark:text-neutral-500"
+                              )}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setConfigToolId(tool.identifier);
+                              }}
+                              disabled={disabled}
+                              aria-label="Configure tool"
+                            >
+                              <SettingsIcon className="h-3 w-3" />
+                            </button>
+                            <button
+                              type="button"
+                              className="text-neutral-400 hover:text-neutral-900 dark:text-neutral-500 dark:hover:text-neutral-100"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRemoveTool(tool.identifier);
+                              }}
+                              disabled={disabled}
+                              aria-label="Remove tool"
+                            >
+                              <TrashIcon className="h-3 w-3" />
+                            </button>
+                          </div>
                         </div>
                       );
                     })}
@@ -609,6 +666,28 @@ export const WorkflowNode = memo(
           templates={nodeTypes || []}
           workflowTrigger={workflowTrigger}
         />
+
+        {configToolId &&
+          (() => {
+            const tool = getCurrentSelectedTools().find(
+              (t) => t.identifier === configToolId
+            );
+            const tpl = nodeTypes?.find((t) => t.id === configToolId);
+            if (!tool || !tpl) return null;
+            return (
+              <ToolConfigPanel
+                open={!!configToolId}
+                onClose={() => setConfigToolId(null)}
+                onSave={(config) => {
+                  handleToolConfigSave(configToolId, config);
+                  setConfigToolId(null);
+                }}
+                toolName={tpl.name}
+                inputs={tpl.inputs}
+                currentConfig={tool.config ?? {}}
+              />
+            );
+          })()}
 
         {resolvedNodeType && (
           <NodeDocsDialog

@@ -94,9 +94,7 @@ export function sanitizeName(name: string): string {
  *     tool_name(params: { ... }): Promise<string>;
  *   };
  */
-export function generateToolTypeDeclarations(
-  tools: ToolDefinition[]
-): string {
+export function generateToolTypeDeclarations(tools: ToolDefinition[]): string {
   const methods = tools
     .map((tool) => {
       const name = sanitizeName(tool.name);
@@ -127,10 +125,8 @@ export function createCodeModeToolDefinition(
   const typeDeclarations = generateToolTypeDeclarations(tools);
 
   // Build function map: sanitized name → tool.function
-  const functionMap: Record<
-    string,
-    (...args: unknown[]) => Promise<unknown>
-  > = {};
+  const functionMap: Record<string, (...args: unknown[]) => Promise<unknown>> =
+    {};
   for (const tool of tools) {
     const name = sanitizeName(tool.name);
     functionMap[name] = async (...args: unknown[]) => {
