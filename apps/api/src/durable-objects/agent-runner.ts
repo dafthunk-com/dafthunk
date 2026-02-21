@@ -32,8 +32,11 @@ import OpenAI from "openai";
 
 import type { Bindings } from "../context";
 import { CloudflareCredentialService } from "../runtime/cloudflare-credential-service";
+import { CloudflareDatabaseService } from "../runtime/cloudflare-database-service";
+import { CloudflareDatasetService } from "../runtime/cloudflare-dataset-service";
 import { CloudflareNodeRegistry } from "../runtime/cloudflare-node-registry";
 import { CloudflareObjectStore } from "../runtime/cloudflare-object-store";
+import { CloudflareQueueService } from "../runtime/cloudflare-queue-service";
 import { createCodeModeExecutor } from "../runtime/code-mode-executor";
 import { createToolContext } from "../runtime/tool-context";
 
@@ -122,6 +125,9 @@ export class AgentRunner extends DurableObject<Bindings> {
     const objectStore = new CloudflareObjectStore(this.env.RESSOURCES);
     const credentialService = new CloudflareCredentialService(this.env);
     await credentialService.initialize(organizationId);
+    const databaseService = new CloudflareDatabaseService(this.env);
+    const datasetService = new CloudflareDatasetService(this.env);
+    const queueService = new CloudflareQueueService(this.env);
 
     return new NodeToolProvider(nodeRegistry, (nodeId, inputs) =>
       createToolContext(
@@ -129,7 +135,8 @@ export class AgentRunner extends DurableObject<Bindings> {
         inputs,
         this.env,
         objectStore,
-        credentialService
+        credentialService,
+        { databaseService, datasetService, queueService }
       )
     );
   }

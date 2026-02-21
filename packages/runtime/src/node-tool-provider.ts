@@ -254,7 +254,7 @@ export class NodeToolProvider implements ToolProvider {
 
   /**
    * Convert tool parameters back to node input format.
-   * Priority: (1) LLM args → (2) config presets → (3) input.value defaults
+   * Priority: (1) config presets (fixed) → (2) LLM args → (3) input.value defaults
    */
   private convertToolParametersToNodeInputs(
     parameters: any,
@@ -264,13 +264,13 @@ export class NodeToolProvider implements ToolProvider {
     const result: Record<string, any> = {};
 
     for (const input of nodeInputs) {
-      if (Object.hasOwn(parameters, input.name)) {
+      if (config && Object.hasOwn(config, input.name)) {
+        result[input.name] = config[input.name];
+      } else if (Object.hasOwn(parameters, input.name)) {
         result[input.name] = this.coerceParameterValue(
           parameters[input.name],
           input.type
         );
-      } else if (config && Object.hasOwn(config, input.name)) {
-        result[input.name] = config[input.name];
       } else if (input.value !== undefined) {
         result[input.name] = input.value;
       }

@@ -6,6 +6,13 @@ import type {
 
 import type { Bindings } from "../context";
 
+/** Optional services that tool-executed nodes may need */
+interface ToolContextServices {
+  databaseService?: NodeContext["databaseService"];
+  datasetService?: NodeContext["datasetService"];
+  queueService?: NodeContext["queueService"];
+}
+
 /**
  * Creates a NodeContext for tool execution.
  * Reads organizationId from the credential service (must be initialized).
@@ -15,7 +22,8 @@ export function createToolContext(
   inputs: Record<string, unknown>,
   env: Bindings,
   objectStore: ObjectStore,
-  credentialService: CredentialService
+  credentialService: CredentialService,
+  services?: ToolContextServices
 ): NodeContext {
   return {
     nodeId,
@@ -27,6 +35,9 @@ export function createToolContext(
     getSecret: (secretName: string) => credentialService.getSecret(secretName),
     getIntegration: (integrationId: string) =>
       credentialService.getIntegration(integrationId),
+    databaseService: services?.databaseService,
+    datasetService: services?.datasetService,
+    queueService: services?.queueService,
     env,
   };
 }

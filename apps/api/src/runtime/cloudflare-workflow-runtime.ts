@@ -34,14 +34,18 @@ export function createWorkflowRuntime(
   const nodeRegistry = new CloudflareNodeRegistry(env, true);
   const objectStore = new CloudflareObjectStore(env.RESSOURCES);
   const credentialProvider = new CloudflareCredentialService(env);
-  const toolRegistry = new CloudflareToolRegistry(
-    nodeRegistry,
-    (nodeId, inputs) =>
-      createToolContext(nodeId, inputs, env, objectStore, credentialProvider)
-  );
   const databaseService = new CloudflareDatabaseService(env);
   const datasetService = new CloudflareDatasetService(env);
   const queueService = new CloudflareQueueService(env);
+  const toolRegistry = new CloudflareToolRegistry(
+    nodeRegistry,
+    (nodeId, inputs) =>
+      createToolContext(nodeId, inputs, env, objectStore, credentialProvider, {
+        databaseService,
+        datasetService,
+        queueService,
+      })
+  );
 
   const dependencies: RuntimeDependencies<Bindings> = {
     nodeRegistry,
