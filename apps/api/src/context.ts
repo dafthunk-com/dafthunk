@@ -20,6 +20,7 @@ export interface Bindings {
   DATASETS_AUTORAG: string;
   AI: Ai;
   AI_OPTIONS: AiOptions;
+  LOADER?: any; // worker_loaders binding for Code Mode sandbox
   BROWSER?: Fetcher;
   EXECUTIONS: AnalyticsEngineDataset;
   WEB_HOST: string;

@@ -26,6 +26,7 @@
   "ai": {
     "binding": "AI"
   },
+  "worker_loaders": [{ "binding": "LOADER" }],
   "d1_databases": [
     {
       "binding": "DB",
@@ -177,6 +178,7 @@
       "ai": {
         "binding": "AI"
       },
+      "worker_loaders": [{ "binding": "LOADER" }],
       "d1_databases": [
         {
           "binding": "DB",

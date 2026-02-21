@@ -29,7 +29,10 @@ import { calculateTokenUsage } from "@dafthunk/runtime/utils/usage";
 import { GoogleGenAI } from "@google/genai";
 import OpenAI from "openai";
 
+import { createCodeModeToolDefinition } from "@dafthunk/runtime/utils/code-mode";
+
 import type { Bindings } from "../context";
+import { createCodeModeExecutor } from "../runtime/code-mode-executor";
 import { CloudflareNodeRegistry } from "../runtime/cloudflare-node-registry";
 import { CloudflareObjectStore } from "../runtime/cloudflare-object-store";
 import { createToolContext } from "../runtime/tool-context";
@@ -54,6 +57,8 @@ export interface AgentRunRequest {
   maxSteps: number;
   /** Tool references the agent can call */
   tools: ToolReference[];
+  /** Enable code mode for multi-tool orchestration */
+  codeMode?: boolean;
 }
 
 export interface AgentRunResponse {
@@ -143,10 +148,14 @@ export class AgentRunner extends DurableObject<Bindings> {
           createToolContext(nodeId, inputs, this.env, objectStore)
       );
 
-      // Resolve tool definitions from references
-      const toolDefinitions = await this.resolveTools(
+      // Resolve tool definitions from references and apply code mode
+      const resolvedTools = await this.resolveTools(
         body.tools,
         nodeToolProvider
+      );
+      const toolDefinitions = this.applyCodeMode(
+        resolvedTools,
+        body.codeMode ?? false
       );
 
       // Build the user message (with optional context)
@@ -293,9 +302,13 @@ export class AgentRunner extends DurableObject<Bindings> {
         (nId, inputs) => createToolContext(nId, inputs, this.env, objectStore)
       );
 
-      const toolDefinitions = await this.resolveTools(
+      const resolvedTools = await this.resolveTools(
         body.tools,
         nodeToolProvider
+      );
+      const toolDefinitions = this.applyCodeMode(
+        resolvedTools,
+        body.codeMode ?? false
       );
 
       const userMessage = body.context
@@ -411,6 +424,30 @@ export class AgentRunner extends DurableObject<Bindings> {
         usage,
       },
     });
+  }
+
+  // ── Code Mode wrapping ─────────────────────────────────────────────────
+
+  /**
+   * If code mode is enabled and tools are available, wraps all tool
+   * definitions into a single "codemode" tool. Falls back to the
+   * original tools when the executor binding is unavailable.
+   */
+  private applyCodeMode(
+    tools: ToolDefinition[],
+    codeMode: boolean
+  ): ToolDefinition[] {
+    if (!codeMode || tools.length === 0) return tools;
+
+    const executor = createCodeModeExecutor(this.env);
+    if (!executor) {
+      console.warn(
+        "Code mode requested but LOADER binding is unavailable — falling back to standard tool calling"
+      );
+      return tools;
+    }
+
+    return [createCodeModeToolDefinition(tools, executor)];
   }
 
   // ── Tool resolution ────────────────────────────────────────────────────

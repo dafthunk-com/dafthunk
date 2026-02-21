@@ -53,6 +53,14 @@ const AGENT_INPUTS: NodeType["inputs"] = [
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     value: [] as any,
   },
+  {
+    name: "code_mode",
+    type: "boolean",
+    description:
+      "Enable code mode for multi-tool orchestration in a single step",
+    hidden: true,
+    value: false,
+  },
 ];
 
 /** Standard outputs shared by all agent nodes */
@@ -171,7 +179,8 @@ export abstract class BaseAgentNode extends ExecutableNode {
     config: AgentNodeConfig
   ): Promise<NodeExecution> {
     try {
-      const { instructions, input, max_steps, tools } = context.inputs;
+      const { instructions, input, max_steps, tools, code_mode } =
+        context.inputs;
       const agentContext = context.inputs.context as string | undefined;
 
       if (!input) {
@@ -202,6 +211,7 @@ export abstract class BaseAgentNode extends ExecutableNode {
           input,
           maxSteps: max_steps ?? 10,
           tools: tools ?? [],
+          codeMode: code_mode ?? false,
         }),
       });
 
@@ -242,7 +252,8 @@ export abstract class BaseAgentNode extends ExecutableNode {
     config: AgentNodeConfig
   ): Promise<NodeExecution> {
     try {
-      const { instructions, input, max_steps, tools } = context.inputs;
+      const { instructions, input, max_steps, tools, code_mode } =
+        context.inputs;
       const agentContext = context.inputs.context as string | undefined;
 
       if (!input) {
@@ -270,6 +281,7 @@ export abstract class BaseAgentNode extends ExecutableNode {
           input,
           maxSteps: max_steps ?? 10,
           tools: tools ?? [],
+          codeMode: code_mode ?? false,
         }),
       });
 

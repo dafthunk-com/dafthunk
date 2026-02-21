@@ -86,7 +86,7 @@ importers:
         version: 5.4.0
       drizzle-orm:
         specifier: 0.44.5
-        version: 0.44.5(@cloudflare/workers-types@4.20260116.0)
+        version: 0.44.5(@cloudflare/workers-types@4.20260116.0)(@opentelemetry/api@1.9.0)
       exifreader:
         specifier: ^4.36.0
         version: 4.36.0
@@ -1791,6 +1791,10 @@ packages:
   '@nodelib/fs.walk@1.2.8':
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
+
+  '@opentelemetry/api@1.9.0':
+    resolution: {integrity: sha512-3giAOQvZiH5F9bMlMiv8+GSPMeqg0dbaeo58/0SlA9sxSqZhnUtxzX9/2FzyhS9sWQf5S0GJE0AKBrFqjpeYcg==}
+    engines: {node: '>=8.0.0'}
 
   '@oxc-resolver/binding-android-arm-eabi@11.16.3':
     resolution: {integrity: sha512-CVyWHu6ACDqDcJxR4nmGiG8vDF4TISJHqRNzac5z/gPQycs/QrP/1pDsJBy0MD7jSw8nVq2E5WqeHQKabBG/Jg==}
@@ -6849,6 +6853,9 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.20.1
 
+  '@opentelemetry/api@1.9.0':
+    optional: true
+
   '@oxc-resolver/binding-android-arm-eabi@11.16.3':
     optional: true
 
@@ -9670,9 +9677,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  drizzle-orm@0.44.5(@cloudflare/workers-types@4.20260116.0):
+  drizzle-orm@0.44.5(@cloudflare/workers-types@4.20260116.0)(@opentelemetry/api@1.9.0):
     optionalDependencies:
       '@cloudflare/workers-types': 4.20260116.0
+      '@opentelemetry/api': 1.9.0
 
   dunder-proto@1.0.1:
     dependencies:
