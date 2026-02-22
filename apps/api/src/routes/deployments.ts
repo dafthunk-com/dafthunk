@@ -6,11 +6,14 @@ import {
   GetWorkflowDeploymentsResponse,
   ListDeploymentsResponse,
 } from "@dafthunk/types";
+import { and, eq, isNull } from "drizzle-orm";
 import { Hono } from "hono";
 import { v7 as uuid } from "uuid";
 
 import { jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
+import { createDatabase } from "../db";
+import { type FeedbackCriteriaInsert, feedbackCriteria } from "../db/schema";
 import { DeploymentStore } from "../stores/deployment-store";
 import { WorkflowStore } from "../stores/workflow-store";
 
@@ -167,6 +170,33 @@ deploymentRoutes.post("/:workflowIdOrHandle", jwtMiddleware, async (c) => {
     organizationId,
     deploymentId
   );
+
+  // Freeze workflow-level feedback criteria to this deployment
+  const db = createDatabase(c.env.DB);
+  const workflowCriteria = await db.query.feedbackCriteria.findMany({
+    where: and(
+      eq(feedbackCriteria.workflowId, workflowId),
+      eq(feedbackCriteria.organizationId, organizationId),
+      isNull(feedbackCriteria.deploymentId)
+    ),
+  });
+
+  if (workflowCriteria.length > 0) {
+    const frozenCriteria: FeedbackCriteriaInsert[] = workflowCriteria.map(
+      (criterion) => ({
+        id: uuid(),
+        workflowId,
+        deploymentId,
+        organizationId,
+        question: criterion.question,
+        description: criterion.description,
+        displayOrder: criterion.displayOrder,
+        createdAt: now,
+        updatedAt: now,
+      })
+    );
+    await db.insert(feedbackCriteria).values(frozenCriteria);
+  }
 
   // Transform to match WorkflowDeploymentVersion type
   const deploymentVersion: DeploymentVersion = {

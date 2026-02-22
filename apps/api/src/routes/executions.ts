@@ -68,24 +68,31 @@ executionRoutes.get("/:id", apiKeyOrJwtMiddleware, async (c) => {
       endedAt: execution.endedAt ?? execution.data.endedAt,
     };
 
-    // Get execution feedback if it exists
-    const feedbackData = await db.query.feedback.findFirst({
+    // Get execution feedback (multi-criteria)
+    const feedbackRows = await db.query.feedback.findMany({
       where: eq(feedback.executionId, id),
+      with: {
+        criterion: { columns: { question: true } },
+      },
     });
 
     const response: GetExecutionResponse = {
       execution: workflowExecution,
-      feedback: feedbackData
-        ? {
-            id: feedbackData.id,
-            executionId: feedbackData.executionId,
-            deploymentId: feedbackData.deploymentId ?? undefined,
-            sentiment: feedbackData.sentiment,
-            comment: feedbackData.comment ?? undefined,
-            createdAt: feedbackData.createdAt,
-            updatedAt: feedbackData.updatedAt,
-          }
-        : undefined,
+      feedback:
+        feedbackRows.length > 0
+          ? feedbackRows.map((f) => ({
+              id: f.id,
+              executionId: f.executionId,
+              criterionId: f.criterionId,
+              criterionQuestion: (f.criterion as { question: string } | null)
+                ?.question,
+              deploymentId: f.deploymentId ?? undefined,
+              sentiment: f.sentiment,
+              comment: f.comment ?? undefined,
+              createdAt: f.createdAt,
+              updatedAt: f.updatedAt,
+            }))
+          : undefined,
     };
     return c.json(response);
   } catch (error) {

@@ -1,148 +1,93 @@
-import type { FeedbackSentimentType } from "@dafthunk/types";
-import { format } from "date-fns";
+import type { FeedbackCriterion, FeedbackSentimentType } from "@dafthunk/types";
 import ChevronDownIcon from "lucide-react/icons/chevron-down";
+import MessageCircleIcon from "lucide-react/icons/message-circle";
+import MessageCircleQuestion from "lucide-react/icons/message-circle-question";
 import ThumbsDown from "lucide-react/icons/thumbs-down";
 import ThumbsUp from "lucide-react/icons/thumbs-up";
-import { useEffect, useState } from "react";
+import TrashIcon from "lucide-react/icons/trash-2";
+import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { useAuth } from "@/components/auth-context";
-import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  useCreateFeedback,
   useDeleteFeedback,
+  useDeploymentCriteria,
   useFeedback,
-  useUpdateFeedback,
+  useUpsertFeedback,
+  useWorkflowCriteria,
 } from "@/services/feedback-service";
 import { cn } from "@/utils/utils";
 
 interface WorkflowFeedbackSectionProps {
   executionId: string;
+  workflowId?: string;
+  deploymentId?: string;
   disabled?: boolean;
 }
 
 export function WorkflowFeedbackSection({
   executionId,
+  workflowId,
+  deploymentId,
   disabled = false,
 }: WorkflowFeedbackSectionProps) {
   const { user } = useAuth();
   const isDeveloperMode = user?.developerMode ?? false;
 
-  const { feedback, feedbackError, mutateFeedback } = useFeedback(executionId);
-  const { createFeedback, isCreating } = useCreateFeedback();
-  const { updateFeedback, isUpdating } = useUpdateFeedback();
-  const { deleteFeedback, isDeleting } = useDeleteFeedback();
+  const { criteria: deploymentCriteria } = useDeploymentCriteria(
+    deploymentId || null
+  );
+  const { criteria: workflowCriteria } = useWorkflowCriteria(
+    !deploymentId && workflowId ? workflowId : null
+  );
+  const criteria =
+    deploymentCriteria.length > 0 ? deploymentCriteria : workflowCriteria;
+  const { feedbackList, mutateFeedback } = useFeedback(executionId);
+  const { upsertFeedback } = useUpsertFeedback();
+  const { deleteFeedback } = useDeleteFeedback();
 
   const [expanded, setExpanded] = useState(true);
-  const [mode, setMode] = useState<"view" | "input" | "edit">("input");
-  const [selectedSentiment, setSelectedSentiment] =
-    useState<FeedbackSentimentType | null>(null);
-  const [comment, setComment] = useState("");
 
-  // Initialize mode based on feedback existence and disabled state
-  useEffect(() => {
-    if (disabled) {
-      // When disabled, always show view mode (or nothing if no feedback)
-      setMode("view");
-      if (feedback) {
-        setSelectedSentiment(feedback.sentiment);
-        setComment(feedback.comment || "");
+  // Build a map from criterionId to submitted feedback
+  const feedbackMap = new Map(feedbackList.map((f) => [f.criterionId, f]));
+
+  const handleDelete = useCallback(
+    async (feedbackId: string) => {
+      try {
+        await deleteFeedback(feedbackId);
+        await mutateFeedback();
+      } catch {
+        toast.error("Failed to delete feedback");
       }
-      return;
-    }
+    },
+    [deleteFeedback, mutateFeedback]
+  );
 
-    if (feedback) {
-      setMode("view");
-      setSelectedSentiment(feedback.sentiment);
-      setComment(feedback.comment || "");
-    } else if (
-      feedbackError &&
-      (feedbackError.message?.includes("404") ||
-        feedbackError.message?.includes("not found"))
-    ) {
-      setMode("input");
-    }
-  }, [feedback, feedbackError, disabled]);
-
-  // Only show feedback section for users with developer mode enabled
-  if (!isDeveloperMode) {
-    return null;
-  }
-
-  const handleSentimentClick = (sentiment: FeedbackSentimentType) => {
-    if (mode === "view") return;
-    setSelectedSentiment(sentiment);
-  };
-
-  const handleSubmit = async () => {
-    if (!selectedSentiment) {
-      toast.error("Please select a rating");
-      return;
-    }
-
-    try {
-      if (mode === "input") {
-        await createFeedback({
+  const handleUpsert = useCallback(
+    async (
+      criterionId: string,
+      sentiment: FeedbackSentimentType,
+      comment?: string
+    ) => {
+      try {
+        await upsertFeedback({
           executionId,
-          sentiment: selectedSentiment,
-          comment: comment.trim() || undefined,
+          criterionId,
+          sentiment,
+          comment,
         });
-        toast.success("Feedback submitted");
-      } else if (mode === "edit" && feedback) {
-        await updateFeedback(feedback.id, {
-          sentiment: selectedSentiment,
-          comment: comment.trim() || undefined,
-        });
-        toast.success("Feedback updated");
+        await mutateFeedback();
+      } catch {
+        toast.error("Failed to save feedback");
       }
+    },
+    [executionId, upsertFeedback, mutateFeedback]
+  );
 
-      await mutateFeedback();
-      setMode("view");
-    } catch {
-      toast.error(
-        `Failed to ${mode === "input" ? "submit" : "update"} feedback`
-      );
-    }
-  };
+  if (!isDeveloperMode) return null;
 
-  const handleEdit = () => {
-    if (feedback) {
-      setSelectedSentiment(feedback.sentiment);
-      setComment(feedback.comment || "");
-      setMode("edit");
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!feedback) return;
-
-    if (!confirm("Delete your feedback?")) return;
-
-    try {
-      await deleteFeedback(feedback.id);
-      toast.success("Feedback deleted");
-      setSelectedSentiment(null);
-      setComment("");
-      setMode("input");
-      await mutateFeedback();
-    } catch {
-      toast.error("Failed to delete feedback");
-    }
-  };
-
-  const handleCancel = () => {
-    if (feedback) {
-      setSelectedSentiment(feedback.sentiment);
-      setComment(feedback.comment || "");
-      setMode("view");
-    } else {
-      setSelectedSentiment(null);
-      setComment("");
-    }
-  };
-
-  const isLoading = isCreating || isUpdating || isDeleting;
+  const noCriteria = criteria.length === 0;
 
   return (
     <div className="border-b border-border">
@@ -161,134 +106,148 @@ export function WorkflowFeedbackSection({
 
       {expanded && (
         <div className="px-4 pb-4 space-y-3">
-          {mode === "view" && feedback ? (
-            // View mode - show existing feedback
-            <>
-              <div className="flex items-center gap-2">
-                {feedback.sentiment === "positive" ? (
-                  <>
-                    <ThumbsUp className="h-4 w-4 text-green-600" />
-                    <span className="text-sm font-medium text-green-600">
-                      Good
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <ThumbsDown className="h-4 w-4 text-red-600" />
-                    <span className="text-sm font-medium text-red-600">
-                      Bad
-                    </span>
-                  </>
-                )}
-              </div>
-
-              {feedback.comment && (
-                <div className="p-2 bg-muted rounded text-sm">
-                  {feedback.comment}
-                </div>
-              )}
-
-              <p className="text-xs text-muted-foreground">
-                {format(
-                  new Date(feedback.createdAt),
-                  "MMM d, yyyy 'at' h:mm a"
-                )}
-              </p>
-
-              {!disabled && (
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleEdit}
-                    disabled={isLoading}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleDelete}
-                    disabled={isLoading}
-                  >
-                    Delete
-                  </Button>
-                </div>
-              )}
-            </>
-          ) : !disabled ? (
-            // Input/Edit mode
-            <>
-              <p className="text-sm text-muted-foreground">
-                How was this execution?
-              </p>
-
-              <div className="flex gap-2">
-                <Button
-                  variant={
-                    selectedSentiment === "positive" ? "default" : "outline"
-                  }
-                  size="sm"
-                  className={cn(
-                    selectedSentiment === "positive" &&
-                      "bg-green-600 hover:bg-green-700"
-                  )}
-                  onClick={() => handleSentimentClick("positive")}
-                  disabled={isLoading}
-                >
-                  <ThumbsUp className="h-4 w-4 mr-1" />
-                  Good
-                </Button>
-                <Button
-                  variant={
-                    selectedSentiment === "negative" ? "default" : "outline"
-                  }
-                  size="sm"
-                  className={cn(
-                    selectedSentiment === "negative" &&
-                      "bg-red-600 hover:bg-red-700"
-                  )}
-                  onClick={() => handleSentimentClick("negative")}
-                  disabled={isLoading}
-                >
-                  <ThumbsDown className="h-4 w-4 mr-1" />
-                  Bad
-                </Button>
-              </div>
-
-              <Textarea
-                placeholder="Add a comment (optional)"
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                rows={2}
-                disabled={isLoading}
-                className="text-sm"
-              />
-
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  onClick={handleSubmit}
-                  disabled={isLoading || !selectedSentiment}
-                >
-                  {isLoading ? "..." : mode === "edit" ? "Update" : "Submit"}
-                </Button>
-                {mode === "edit" && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleCancel}
-                    disabled={isLoading}
-                  >
-                    Cancel
-                  </Button>
-                )}
-              </div>
-            </>
+          <p className="text-sm text-muted-foreground">
+            Rate this execution on each criterion.
+          </p>
+          {noCriteria ? (
+            <p className="text-sm text-muted-foreground">
+              No evaluation criteria configured.
+            </p>
           ) : (
-            // When disabled and no feedback, show nothing
-            <p className="text-sm text-muted-foreground">No feedback</p>
+            <div className="space-y-1">
+              {criteria.map((criterion) => {
+                const fb = feedbackMap.get(criterion.id);
+                return (
+                  <CriterionRow
+                    key={criterion.id}
+                    criterion={criterion}
+                    submitted={fb}
+                    onUpsert={handleUpsert}
+                    onDelete={fb ? () => handleDelete(fb.id) : undefined}
+                    disabled={disabled}
+                  />
+                );
+              })}
+            </div>
           )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CriterionRow({
+  criterion,
+  submitted,
+  onUpsert,
+  onDelete,
+  disabled,
+}: {
+  criterion: FeedbackCriterion;
+  submitted?: {
+    sentiment: string;
+    comment?: string;
+  };
+  onUpsert: (
+    criterionId: string,
+    sentiment: FeedbackSentimentType,
+    comment?: string
+  ) => Promise<void>;
+  onDelete?: () => void;
+  disabled: boolean;
+}) {
+  const [showComment, setShowComment] = useState(!!submitted?.comment);
+  const [comment, setComment] = useState(submitted?.comment ?? "");
+  const commentTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const sentiment = submitted
+    ? (submitted.sentiment as FeedbackSentimentType)
+    : null;
+
+  const handleSentiment = (s: FeedbackSentimentType) => {
+    if (disabled) return;
+    onUpsert(criterion.id, s, comment.trim() || undefined);
+  };
+
+  const handleCommentChange = (value: string) => {
+    setComment(value);
+    // Debounce comment saves — only save if sentiment is already set
+    if (!sentiment) return;
+    if (commentTimerRef.current) clearTimeout(commentTimerRef.current);
+    commentTimerRef.current = setTimeout(() => {
+      onUpsert(criterion.id, sentiment, value.trim() || undefined);
+    }, 800);
+  };
+
+  return (
+    <div className="border border-border rounded-md">
+      <div className="flex items-center gap-2 px-3 py-2">
+        <MessageCircleQuestion className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+        <span className="flex-1 text-sm truncate" title={criterion.question}>
+          {criterion.question}
+        </span>
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            onClick={() => handleSentiment("positive")}
+            disabled={disabled}
+            className={cn(
+              "p-1 rounded transition-colors",
+              sentiment === "positive"
+                ? "text-green-600"
+                : "text-muted-foreground/40 hover:text-green-600",
+              disabled && "cursor-default"
+            )}
+          >
+            <ThumbsUp className="h-3.5 w-3.5" />
+          </button>
+          <button
+            onClick={() => handleSentiment("negative")}
+            disabled={disabled}
+            className={cn(
+              "p-1 rounded transition-colors",
+              sentiment === "negative"
+                ? "text-red-600"
+                : "text-muted-foreground/40 hover:text-red-600",
+              disabled && "cursor-default"
+            )}
+          >
+            <ThumbsDown className="h-3.5 w-3.5" />
+          </button>
+          <button
+            onClick={() => setShowComment(!showComment)}
+            className={cn(
+              "p-1 rounded transition-colors",
+              showComment || comment
+                ? "text-foreground"
+                : "text-muted-foreground/40 hover:text-foreground"
+            )}
+          >
+            <MessageCircleIcon className="h-3.5 w-3.5" />
+          </button>
+          <button
+            onClick={onDelete}
+            disabled={disabled || !onDelete}
+            className={cn(
+              "p-1 rounded transition-colors",
+              onDelete && !disabled
+                ? "text-muted-foreground/40 hover:text-red-600"
+                : "text-muted-foreground/20 cursor-default"
+            )}
+          >
+            <TrashIcon className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </div>
+      {showComment && (
+        <div className="px-3 pb-2">
+          <Textarea
+            placeholder="Optional comment..."
+            value={comment}
+            onChange={(e) => handleCommentChange(e.target.value)}
+            rows={2}
+            disabled={disabled}
+            className="text-sm"
+          />
         </div>
       )}
     </div>

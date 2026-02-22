@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
+import { WorkflowCriteriaManager } from "./workflow-criteria-manager";
 import { WorkflowEdgeInspector } from "./workflow-edge-inspector";
 import { WorkflowFeedbackSection } from "./workflow-feedback-section";
 import { WorkflowNodeInspector } from "./workflow-node-inspector";
@@ -40,6 +41,7 @@ export interface WorkflowSidebarProps {
   createObjectUrl: (objectReference: ObjectReference) => string;
   disabledWorkflow?: boolean;
   disabledFeedback?: boolean;
+  workflowId?: string;
   workflowName?: string;
   workflowDescription?: string;
   workflowTrigger?: WorkflowTrigger;
@@ -53,6 +55,7 @@ export interface WorkflowSidebarProps {
   workflowStatus?: WorkflowExecutionStatus;
   workflowErrorMessage?: string;
   executionId?: string;
+  deploymentId?: string;
 }
 
 export function WorkflowSidebar({
@@ -64,6 +67,7 @@ export function WorkflowSidebar({
   createObjectUrl,
   disabledWorkflow = false,
   disabledFeedback = false,
+  workflowId,
   workflowName = "",
   workflowDescription = "",
   workflowTrigger = "manual",
@@ -72,6 +76,7 @@ export function WorkflowSidebar({
   workflowStatus,
   workflowErrorMessage,
   executionId,
+  deploymentId,
 }: WorkflowSidebarProps) {
   // Determine what to show based on selection
   const totalSelected = selectedNodes.length + selectedEdges.length;
@@ -332,12 +337,19 @@ export function WorkflowSidebar({
             </div>
           )}
 
-          {/* Feedback Section - only show when execution completed successfully */}
-          {executionId && workflowStatus === "completed" && (
+          {/* Feedback replaces criteria manager when execution is completed */}
+          {executionId && workflowStatus === "completed" ? (
             <WorkflowFeedbackSection
               executionId={executionId}
+              workflowId={workflowId}
+              deploymentId={deploymentId}
               disabled={disabledFeedback}
             />
+          ) : (
+            workflowId &&
+            !disabledWorkflow && (
+              <WorkflowCriteriaManager workflowId={workflowId} />
+            )
           )}
         </div>
       )}

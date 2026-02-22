@@ -37,5 +37,5 @@ export interface ListExecutionsResponse {
  */
 export interface GetExecutionResponse {
   execution: WorkflowExecution;
-  feedback?: ExecutionFeedback;
+  feedback?: ExecutionFeedback[];
 }

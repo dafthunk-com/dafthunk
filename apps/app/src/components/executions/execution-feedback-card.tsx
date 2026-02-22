@@ -1,11 +1,11 @@
-import type { FeedbackSentimentType } from "@dafthunk/types";
-import { format } from "date-fns";
+import type { FeedbackCriterion, FeedbackSentimentType } from "@dafthunk/types";
+import MessageCircleIcon from "lucide-react/icons/message-circle";
+import MessageCircleQuestion from "lucide-react/icons/message-circle-question";
 import ThumbsDown from "lucide-react/icons/thumbs-down";
 import ThumbsUp from "lucide-react/icons/thumbs-up";
-import { useEffect, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -15,273 +15,172 @@ import {
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  useCreateFeedback,
-  useDeleteFeedback,
+  useDeploymentCriteria,
   useFeedback,
-  useUpdateFeedback,
+  useUpsertFeedback,
+  useWorkflowCriteria,
 } from "@/services/feedback-service";
+import { cn } from "@/utils/utils";
 
 interface ExecutionFeedbackCardProps {
   executionId: string;
+  workflowId?: string;
+  deploymentId?: string;
 }
 
 export function ExecutionFeedbackCard({
   executionId,
+  workflowId,
+  deploymentId,
 }: ExecutionFeedbackCardProps) {
-  const { feedback, feedbackError, mutateFeedback } = useFeedback(executionId);
-  const { createFeedback, isCreating } = useCreateFeedback();
-  const { updateFeedback, isUpdating } = useUpdateFeedback();
-  const { deleteFeedback, isDeleting } = useDeleteFeedback();
+  const { criteria: deploymentCriteria } = useDeploymentCriteria(
+    deploymentId || null
+  );
+  const { criteria: workflowCriteria } = useWorkflowCriteria(
+    !deploymentId && workflowId ? workflowId : null
+  );
+  const criteria =
+    deploymentCriteria.length > 0 ? deploymentCriteria : workflowCriteria;
+  const { feedbackList, mutateFeedback } = useFeedback(executionId);
+  const { upsertFeedback } = useUpsertFeedback();
 
-  const [mode, setMode] = useState<"view" | "input" | "edit">("view");
-  const [selectedSentiment, setSelectedSentiment] =
-    useState<FeedbackSentimentType | null>(null);
-  const [comment, setComment] = useState("");
+  const feedbackMap = new Map(feedbackList.map((f) => [f.criterionId, f]));
+  const noCriteria = criteria.length === 0;
 
-  // Initialize mode based on feedback existence
-  useEffect(() => {
-    if (feedback) {
-      setMode("view");
-      setSelectedSentiment(feedback.sentiment);
-      setComment(feedback.comment || "");
-    } else if (
-      feedbackError &&
-      (feedbackError.message?.includes("404") ||
-        feedbackError.message?.includes("not found"))
-    ) {
-      // No feedback exists yet (404 is expected)
-      setMode("input");
-    }
-  }, [feedback, feedbackError]);
-
-  const handleSentimentClick = (sentiment: FeedbackSentimentType) => {
-    if (mode === "view") return; // Read-only in view mode
-    setSelectedSentiment(sentiment);
-  };
-
-  const handleSubmit = async () => {
-    if (!selectedSentiment) {
-      toast.error("Please select a rating");
-      return;
-    }
-
-    try {
-      if (mode === "input") {
-        // Create new feedback
-        await createFeedback({
-          executionId,
-          sentiment: selectedSentiment,
-          comment: comment.trim() || undefined,
-        });
-        toast.success("Feedback submitted successfully");
-      } else if (mode === "edit" && feedback) {
-        // Update existing feedback
-        await updateFeedback(feedback.id, {
-          sentiment: selectedSentiment,
-          comment: comment.trim() || undefined,
-        });
-        toast.success("Feedback updated successfully");
+  const handleUpsert = useCallback(
+    async (
+      criterionId: string,
+      sentiment: FeedbackSentimentType,
+      comment?: string
+    ) => {
+      try {
+        await upsertFeedback({ executionId, criterionId, sentiment, comment });
+        await mutateFeedback();
+      } catch {
+        toast.error("Failed to save feedback");
       }
-
-      // Refresh feedback data
-      await mutateFeedback();
-      setMode("view");
-    } catch (error) {
-      toast.error(
-        `Failed to ${mode === "input" ? "submit" : "update"} feedback: ${error instanceof Error ? error.message : "Unknown error"}`
-      );
-    }
-  };
-
-  const handleEdit = () => {
-    if (feedback) {
-      setSelectedSentiment(feedback.sentiment);
-      setComment(feedback.comment || "");
-      setMode("edit");
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!feedback) return;
-
-    if (!confirm("Are you sure you want to delete your feedback?")) {
-      return;
-    }
-
-    try {
-      await deleteFeedback(feedback.id);
-      toast.success("Feedback deleted successfully");
-
-      // Reset to input mode
-      setSelectedSentiment(null);
-      setComment("");
-      setMode("input");
-      await mutateFeedback();
-    } catch (error) {
-      toast.error(
-        `Failed to delete feedback: ${error instanceof Error ? error.message : "Unknown error"}`
-      );
-    }
-  };
-
-  const handleCancel = () => {
-    if (feedback) {
-      // Restore original values
-      setSelectedSentiment(feedback.sentiment);
-      setComment(feedback.comment || "");
-      setMode("view");
-    } else {
-      // Clear input
-      setSelectedSentiment(null);
-      setComment("");
-    }
-  };
-
-  const isLoading = isCreating || isUpdating || isDeleting;
+    },
+    [executionId, upsertFeedback, mutateFeedback]
+  );
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-xl">Execution Feedback</CardTitle>
         <CardDescription>
-          {mode === "view"
-            ? "Your feedback helps improve our workflows"
-            : "Help us improve by rating this execution"}
+          {noCriteria
+            ? "No evaluation criteria configured"
+            : "Rate this execution on each criterion"}
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {mode === "view" && feedback ? (
-          // Display Mode
-          <>
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">You rated this:</p>
-              <div className="flex items-center gap-2">
-                {feedback.sentiment === "positive" ? (
-                  <>
-                    <ThumbsUp className="h-5 w-5 text-green-600" />
-                    <span className="font-medium text-green-600">Good</span>
-                  </>
-                ) : (
-                  <>
-                    <ThumbsDown className="h-5 w-5 text-red-600" />
-                    <span className="font-medium text-red-600">Bad</span>
-                  </>
-                )}
-              </div>
-            </div>
-
-            {feedback.comment && (
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">Your comment:</p>
-                <div className="p-3 bg-muted rounded-md">
-                  <p className="text-sm whitespace-pre-wrap">
-                    {feedback.comment}
-                  </p>
-                </div>
-              </div>
-            )}
-
-            <div className="text-sm text-muted-foreground">
-              Submitted on{" "}
-              {format(new Date(feedback.createdAt), "MMM d, yyyy 'at' h:mm a")}
-            </div>
-
-            <div className="flex gap-2 pt-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleEdit}
-                disabled={isLoading}
-              >
-                Edit
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleDelete}
-                disabled={isLoading}
-              >
-                Delete
-              </Button>
-            </div>
-          </>
+      <CardContent className="space-y-1">
+        {noCriteria ? (
+          <p className="text-sm text-muted-foreground">
+            No evaluation criteria have been configured for this workflow.
+          </p>
         ) : (
-          // Input/Edit Mode
-          <>
-            <div className="space-y-2">
-              <p className="text-sm font-medium">How was this execution?</p>
-              <div className="flex gap-3">
-                <Button
-                  variant={
-                    selectedSentiment === "positive" ? "default" : "outline"
-                  }
-                  className={
-                    selectedSentiment === "positive"
-                      ? "bg-green-600 hover:bg-green-700"
-                      : ""
-                  }
-                  onClick={() => handleSentimentClick("positive")}
-                  disabled={isLoading}
-                >
-                  <ThumbsUp className="h-4 w-4 mr-2" />
-                  Good
-                </Button>
-                <Button
-                  variant={
-                    selectedSentiment === "negative" ? "default" : "outline"
-                  }
-                  className={
-                    selectedSentiment === "negative"
-                      ? "bg-red-600 hover:bg-red-700"
-                      : ""
-                  }
-                  onClick={() => handleSentimentClick("negative")}
-                  disabled={isLoading}
-                >
-                  <ThumbsDown className="h-4 w-4 mr-2" />
-                  Bad
-                </Button>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="feedback-comment" className="text-sm font-medium">
-                Add a comment (optional)
-              </label>
-              <Textarea
-                id="feedback-comment"
-                placeholder="Tell us more about your experience..."
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                rows={3}
-                disabled={isLoading}
-              />
-            </div>
-
-            <div className="flex gap-2 pt-2">
-              <Button
-                onClick={handleSubmit}
-                disabled={isLoading || !selectedSentiment}
-              >
-                {isLoading
-                  ? "Submitting..."
-                  : mode === "edit"
-                    ? "Update"
-                    : "Submit"}
-              </Button>
-              {mode === "edit" && (
-                <Button
-                  variant="outline"
-                  onClick={handleCancel}
-                  disabled={isLoading}
-                >
-                  Cancel
-                </Button>
-              )}
-            </div>
-          </>
+          criteria.map((criterion) => (
+            <CriterionInputCard
+              key={criterion.id}
+              criterion={criterion}
+              submitted={feedbackMap.get(criterion.id)}
+              onUpsert={handleUpsert}
+            />
+          ))
         )}
       </CardContent>
     </Card>
+  );
+}
+
+function CriterionInputCard({
+  criterion,
+  submitted,
+  onUpsert,
+}: {
+  criterion: FeedbackCriterion;
+  submitted?: { sentiment: string; comment?: string };
+  onUpsert: (
+    criterionId: string,
+    sentiment: FeedbackSentimentType,
+    comment?: string
+  ) => Promise<void>;
+}) {
+  const [showComment, setShowComment] = useState(!!submitted?.comment);
+  const [comment, setComment] = useState(submitted?.comment ?? "");
+  const commentTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const sentiment = submitted
+    ? (submitted.sentiment as FeedbackSentimentType)
+    : null;
+
+  const handleSentiment = (s: FeedbackSentimentType) => {
+    onUpsert(criterion.id, s, comment.trim() || undefined);
+  };
+
+  const handleCommentChange = (value: string) => {
+    setComment(value);
+    if (!sentiment) return;
+    if (commentTimerRef.current) clearTimeout(commentTimerRef.current);
+    commentTimerRef.current = setTimeout(() => {
+      onUpsert(criterion.id, sentiment, value.trim() || undefined);
+    }, 800);
+  };
+
+  return (
+    <div className="border border-border rounded-md">
+      <div className="flex items-center gap-2 px-3 py-2">
+        <MessageCircleQuestion className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+        <span className="flex-1 text-sm truncate" title={criterion.question}>
+          {criterion.question}
+        </span>
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            onClick={() => handleSentiment("positive")}
+            className={cn(
+              "p-1 rounded transition-colors",
+              sentiment === "positive"
+                ? "text-green-600"
+                : "text-muted-foreground/40 hover:text-green-600"
+            )}
+          >
+            <ThumbsUp className="h-3.5 w-3.5" />
+          </button>
+          <button
+            onClick={() => handleSentiment("negative")}
+            className={cn(
+              "p-1 rounded transition-colors",
+              sentiment === "negative"
+                ? "text-red-600"
+                : "text-muted-foreground/40 hover:text-red-600"
+            )}
+          >
+            <ThumbsDown className="h-3.5 w-3.5" />
+          </button>
+          <button
+            onClick={() => setShowComment(!showComment)}
+            className={cn(
+              "p-1 rounded transition-colors",
+              showComment || comment
+                ? "text-foreground"
+                : "text-muted-foreground/40 hover:text-foreground"
+            )}
+          >
+            <MessageCircleIcon className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </div>
+      {showComment && (
+        <div className="px-3 pb-2">
+          <Textarea
+            placeholder="Optional comment..."
+            value={comment}
+            onChange={(e) => handleCommentChange(e.target.value)}
+            rows={2}
+            className="text-sm"
+          />
+        </div>
+      )}
+    </div>
   );
 }

@@ -420,12 +420,45 @@ export const FeedbackSentiment = {
 export type FeedbackSentimentType =
   (typeof FeedbackSentiment)[keyof typeof FeedbackSentiment];
 
-// Feedback - User feedback on workflow executions
+// Feedback Criteria - Evaluation questions per workflow/deployment
+// workflow-level (deployment_id NULL) = editable templates
+// deployment-level (deployment_id set) = frozen copies created at deploy time
+export const feedbackCriteria = sqliteTable(
+  "feedback_criteria",
+  {
+    id: text("id").primaryKey(),
+    workflowId: text("workflow_id")
+      .notNull()
+      .references(() => workflows.id, { onDelete: "cascade" }),
+    deploymentId: text("deployment_id").references(() => deployments.id, {
+      onDelete: "cascade",
+    }),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    question: text("question").notNull(),
+    description: text("description"),
+    displayOrder: integer("display_order").notNull().default(0),
+    createdAt: createCreatedAt(),
+    updatedAt: createUpdatedAt(),
+  },
+  (table) => [
+    index("feedback_criteria_workflow_id_idx").on(table.workflowId),
+    index("feedback_criteria_deployment_id_idx").on(table.deploymentId),
+    index("feedback_criteria_organization_id_idx").on(table.organizationId),
+    index("feedback_criteria_display_order_idx").on(table.displayOrder),
+  ]
+);
+
+// Feedback - User feedback on workflow executions (per criterion)
 export const feedback = sqliteTable(
   "feedback",
   {
     id: text("id").primaryKey(),
     executionId: text("execution_id").notNull(),
+    criterionId: text("criterion_id")
+      .notNull()
+      .references(() => feedbackCriteria.id, { onDelete: "cascade" }),
     workflowId: text("workflow_id").references(() => workflows.id, {
       onDelete: "cascade",
     }),
@@ -445,14 +478,18 @@ export const feedback = sqliteTable(
   },
   (table) => [
     index("feedback_execution_id_idx").on(table.executionId),
+    index("feedback_criterion_id_idx").on(table.criterionId),
     index("feedback_workflow_id_idx").on(table.workflowId),
     index("feedback_deployment_id_idx").on(table.deploymentId),
     index("feedback_organization_id_idx").on(table.organizationId),
     index("feedback_user_id_idx").on(table.userId),
     index("feedback_sentiment_idx").on(table.sentiment),
     index("feedback_created_at_idx").on(table.createdAt),
-    // Only one feedback per execution
-    uniqueIndex("feedback_execution_id_unique").on(table.executionId),
+    // One feedback per execution per criterion
+    uniqueIndex("feedback_execution_id_criterion_id_unique").on(
+      table.executionId,
+      table.criterionId
+    ),
   ]
 );
 
@@ -700,6 +737,7 @@ export const organizationsRelations = relations(
     apiKeys: many(apiKeys),
     datasets: many(datasets),
     evaluations: many(evaluations),
+    feedbackCriteria: many(feedbackCriteria),
     feedback: many(feedback),
     queues: many(queues),
     databases: many(databases),
@@ -751,9 +789,10 @@ export const workflowsRelations = relations(workflows, ({ one, many }) => ({
     fields: [workflows.id],
     references: [emailTriggers.workflowId],
   }),
+  feedbackCriteria: many(feedbackCriteria),
 }));
 
-export const deploymentsRelations = relations(deployments, ({ one }) => ({
+export const deploymentsRelations = relations(deployments, ({ one, many }) => ({
   organization: one(organizations, {
     fields: [deployments.organizationId],
     references: [organizations.id],
@@ -762,6 +801,7 @@ export const deploymentsRelations = relations(deployments, ({ one }) => ({
     fields: [deployments.workflowId],
     references: [workflows.id],
   }),
+  feedbackCriteria: many(feedbackCriteria),
 }));
 
 export const scheduledTriggersRelations = relations(
@@ -792,6 +832,25 @@ export const evaluationsRelations = relations(evaluations, ({ one }) => ({
   }),
 }));
 
+export const feedbackCriteriaRelations = relations(
+  feedbackCriteria,
+  ({ one, many }) => ({
+    workflow: one(workflows, {
+      fields: [feedbackCriteria.workflowId],
+      references: [workflows.id],
+    }),
+    deployment: one(deployments, {
+      fields: [feedbackCriteria.deploymentId],
+      references: [deployments.id],
+    }),
+    organization: one(organizations, {
+      fields: [feedbackCriteria.organizationId],
+      references: [organizations.id],
+    }),
+    feedbacks: many(feedback),
+  })
+);
+
 export const feedbackRelations = relations(feedback, ({ one }) => ({
   organization: one(organizations, {
     fields: [feedback.organizationId],
@@ -808,6 +867,10 @@ export const feedbackRelations = relations(feedback, ({ one }) => ({
   user: one(users, {
     fields: [feedback.userId],
     references: [users.id],
+  }),
+  criterion: one(feedbackCriteria, {
+    fields: [feedback.criterionId],
+    references: [feedbackCriteria.id],
   }),
 }));
 
@@ -925,6 +988,9 @@ export type DatasetInsert = typeof datasets.$inferInsert;
 
 export type EvaluationRow = typeof evaluations.$inferSelect;
 export type EvaluationInsert = typeof evaluations.$inferInsert;
+
+export type FeedbackCriteriaRow = typeof feedbackCriteria.$inferSelect;
+export type FeedbackCriteriaInsert = typeof feedbackCriteria.$inferInsert;
 
 export type FeedbackRow = typeof feedback.$inferSelect;
 export type FeedbackInsert = typeof feedback.$inferInsert;

@@ -73,6 +73,7 @@ export interface WorkflowBuilderProps {
     parameters?: Record<string, unknown>;
   }) => void;
   showSidebar?: boolean;
+  deploymentId?: string;
 }
 
 export function WorkflowBuilder({
@@ -100,6 +101,7 @@ export function WorkflowBuilder({
   mutateDeploymentHistory: _mutateDeploymentHistory,
   wsExecuteWorkflow,
   showSidebar,
+  deploymentId,
 }: WorkflowBuilderProps) {
   const readOnly = mode !== "edit";
   const interactive = mode !== "preview";
@@ -291,6 +293,7 @@ export function WorkflowBuilder({
                   createObjectUrl={createObjectUrl}
                   disabledWorkflow={readOnly}
                   disabledFeedback={disabledFeedback}
+                  workflowId={workflowId}
                   workflowName={workflowName}
                   workflowDescription={workflowDescription}
                   workflowTrigger={workflowTrigger}
@@ -299,6 +302,7 @@ export function WorkflowBuilder({
                   workflowStatus={execution.workflowStatus}
                   workflowErrorMessage={execution.workflowErrorMessage}
                   executionId={execution.currentExecutionId}
+                  deploymentId={deploymentId}
                 />
               </div>
             </>
