@@ -1,5 +1,4 @@
 import type { OrganizationInfo } from "@dafthunk/types";
-import ClipboardCheck from "lucide-react/icons/clipboard-check";
 import CreditCard from "lucide-react/icons/credit-card";
 import Database from "lucide-react/icons/database";
 import FlaskConical from "lucide-react/icons/flask-conical";
@@ -125,11 +124,6 @@ export const getDashboardSidebarGroups = (
           title: "Feedback",
           url: `/org/${orgHandle}/feedback`,
           icon: MessageSquareText,
-        },
-        {
-          title: "Evaluations",
-          url: `/org/${orgHandle}/evaluations`,
-          icon: ClipboardCheck,
         },
       ],
     });

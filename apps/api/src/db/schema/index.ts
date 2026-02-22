@@ -115,17 +115,6 @@ export const SubscriptionStatus = {
 export type SubscriptionStatusType =
   (typeof SubscriptionStatus)[keyof typeof SubscriptionStatus];
 
-// Evaluation status types
-export const EvaluationStatus = {
-  PENDING: "pending",
-  RUNNING: "running",
-  COMPLETED: "completed",
-  ERROR: "error",
-} as const;
-
-export type EvaluationStatusType =
-  (typeof EvaluationStatus)[keyof typeof EvaluationStatus];
-
 /**
  * REUSABLE COLUMNS
  */
@@ -378,36 +367,6 @@ export const datasets = sqliteTable(
       table.organizationId,
       table.handle
     ),
-  ]
-);
-
-// Evaluations - AI evaluation runs for deployments
-export const evaluations = sqliteTable(
-  "evaluations",
-  {
-    id: text("id").primaryKey(),
-    name: text("name").notNull(),
-    deploymentId: text("deployment_id")
-      .notNull()
-      .references(() => deployments.id, { onDelete: "cascade" }),
-    organizationId: text("organization_id")
-      .notNull()
-      .references(() => organizations.id, { onDelete: "cascade" }),
-    status: text("status")
-      .$type<EvaluationStatusType>()
-      .notNull()
-      .default(EvaluationStatus.PENDING),
-    scores: text("scores"), // JSON: { passed, failed, total, passRate, avgScore }
-    error: text("error"),
-    completedAt: integer("completed_at", { mode: "timestamp" }),
-    createdAt: createCreatedAt(),
-    updatedAt: createUpdatedAt(),
-  },
-  (table) => [
-    index("evaluations_deployment_id_idx").on(table.deploymentId),
-    index("evaluations_organization_id_idx").on(table.organizationId),
-    index("evaluations_status_idx").on(table.status),
-    index("evaluations_created_at_idx").on(table.createdAt),
   ]
 );
 
@@ -736,7 +695,6 @@ export const organizationsRelations = relations(
     deployments: many(deployments),
     apiKeys: many(apiKeys),
     datasets: many(datasets),
-    evaluations: many(evaluations),
     feedbackCriteria: many(feedbackCriteria),
     feedback: many(feedback),
     queues: many(queues),
@@ -818,17 +776,6 @@ export const datasetsRelations = relations(datasets, ({ one }) => ({
   organization: one(organizations, {
     fields: [datasets.organizationId],
     references: [organizations.id],
-  }),
-}));
-
-export const evaluationsRelations = relations(evaluations, ({ one }) => ({
-  organization: one(organizations, {
-    fields: [evaluations.organizationId],
-    references: [organizations.id],
-  }),
-  deployment: one(deployments, {
-    fields: [evaluations.deploymentId],
-    references: [deployments.id],
   }),
 }));
 
@@ -985,9 +932,6 @@ export type ScheduledTriggerInsert = typeof scheduledTriggers.$inferInsert;
 
 export type DatasetRow = typeof datasets.$inferSelect;
 export type DatasetInsert = typeof datasets.$inferInsert;
-
-export type EvaluationRow = typeof evaluations.$inferSelect;
-export type EvaluationInsert = typeof evaluations.$inferInsert;
 
 export type FeedbackCriteriaRow = typeof feedbackCriteria.$inferSelect;
 export type FeedbackCriteriaInsert = typeof feedbackCriteria.$inferInsert;

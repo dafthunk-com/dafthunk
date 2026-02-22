@@ -1,4 +1,4 @@
-import { ExecutionFeedback } from "./evaluation";
+import { ExecutionFeedback } from "./feedback";
 import { WorkflowExecution } from "./workflow";
 
 /**

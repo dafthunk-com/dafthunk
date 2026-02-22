@@ -43,7 +43,6 @@ import { DocsNodesPage } from "./pages/docs/nodes-page";
 import { DocsPage } from "./pages/docs-page";
 import { EditorPage } from "./pages/editor-page";
 import { EmailsPage } from "./pages/emails-page";
-import { EvaluationsPage } from "./pages/evaluations-page";
 import { ExecutionDetailPage } from "./pages/execution-detail-page";
 import { ExecutionsPage } from "./pages/executions-page";
 import { FeedbackPage } from "./pages/feedback-page";
@@ -422,21 +421,6 @@ export const routes: AppRouteObject[] = [
       </OrgLayout>
     ),
     handle: { head: <HeadSeo title="Executions - Workflows - Dafthunk" /> },
-  },
-  {
-    path: "/evaluations",
-    element: <OrgRedirect to="/org/:handle/evaluations" />,
-  },
-  {
-    path: "/org/:handle/evaluations",
-    element: (
-      <OrgLayout title="Analytics">
-        <ProtectedRoute>
-          <EvaluationsPage />
-        </ProtectedRoute>
-      </OrgLayout>
-    ),
-    handle: { head: <HeadSeo title="Evaluations - Analytics - Dafthunk" /> },
   },
   {
     path: "/datasets",
