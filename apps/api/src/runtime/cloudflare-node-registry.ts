@@ -36,6 +36,7 @@ import { ClaudeSonnet4Node } from "@dafthunk/runtime/nodes/anthropic/claude-sonn
 import { AggregateItemsNode } from "@dafthunk/runtime/nodes/array/aggregate-items-node";
 import { ExtractItemNode } from "@dafthunk/runtime/nodes/array/extract-item-node";
 import { Aura1Node } from "@dafthunk/runtime/nodes/audio/aura-1-node";
+import { Kokoro82mNode } from "@dafthunk/runtime/nodes/audio/kokoro-82m-node";
 import { MelottsNode } from "@dafthunk/runtime/nodes/audio/melotts-node";
 import { Nova3Node } from "@dafthunk/runtime/nodes/audio/nova-3-node";
 import { WhisperLargeV3TurboNode } from "@dafthunk/runtime/nodes/audio/whisper-large-v3-turbo-node";
@@ -583,6 +584,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(DreamShaper8LCMNode);
     this.registerImplementation(ExifReaderNode);
     this.registerImplementation(Aura1Node);
+    this.registerImplementation(Kokoro82mNode);
     this.registerImplementation(MelottsNode);
     this.registerImplementation(Nova3Node);
     this.registerImplementation(WebcamInputNode);
