@@ -273,6 +273,10 @@ import { RecraftCrispUpscaleNode } from "@dafthunk/runtime/nodes/image/recraft-c
 import { RecraftRemoveBackgroundNode } from "@dafthunk/runtime/nodes/image/recraft-remove-background";
 import { RecraftV3Node } from "@dafthunk/runtime/nodes/image/recraft-v3";
 import { RecraftV3SvgNode } from "@dafthunk/runtime/nodes/image/recraft-v3-svg";
+import { RecraftV4Node } from "@dafthunk/runtime/nodes/image/recraft-v4";
+import { RecraftV4ProNode } from "@dafthunk/runtime/nodes/image/recraft-v4-pro";
+import { RecraftV4ProSvgNode } from "@dafthunk/runtime/nodes/image/recraft-v4-pro-svg";
+import { RecraftV4SvgNode } from "@dafthunk/runtime/nodes/image/recraft-v4-svg";
 import { RecraftVectorizeNode } from "@dafthunk/runtime/nodes/image/recraft-vectorize";
 import { Resnet50Node } from "@dafthunk/runtime/nodes/image/resnet-50-node";
 import { StableDiffusionV15Img2ImgNode } from "@dafthunk/runtime/nodes/image/stable-diffusion-v1-5-img2-img-node";
@@ -636,6 +640,10 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(RecraftRemoveBackgroundNode);
     this.registerImplementation(RecraftV3Node);
     this.registerImplementation(RecraftV3SvgNode);
+    this.registerImplementation(RecraftV4Node);
+    this.registerImplementation(RecraftV4ProNode);
+    this.registerImplementation(RecraftV4ProSvgNode);
+    this.registerImplementation(RecraftV4SvgNode);
     this.registerImplementation(RecraftVectorizeNode);
 
     this.registerImplementation(AudioInputNode);
