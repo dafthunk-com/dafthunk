@@ -14,21 +14,20 @@ interface ReplicatePrediction {
 }
 
 const SIZE_OPTIONS = [
-  "1024x1024",
-  "1365x1024",
-  "1024x1365",
-  "1536x1024",
-  "1024x1536",
-  "1820x1024",
-  "1024x1820",
-  "1024x2048",
-  "2048x1024",
-  "1434x1024",
-  "1024x1434",
-  "1024x1280",
-  "1280x1024",
-  "1024x1707",
-  "1707x1024",
+  "2048x2048",
+  "3072x1536",
+  "1536x3072",
+  "2560x1664",
+  "1664x2560",
+  "2432x1792",
+  "1792x2432",
+  "2304x1792",
+  "1792x2304",
+  "1664x2688",
+  "2560x1792",
+  "1792x2560",
+  "2688x1536",
+  "1536x2688",
 ] as const;
 
 const ASPECT_RATIO_OPTIONS = [
@@ -42,12 +41,11 @@ const ASPECT_RATIO_OPTIONS = [
   "9:16",
   "1:2",
   "2:1",
-  "7:5",
-  "5:7",
   "4:5",
   "5:4",
-  "3:5",
-  "5:3",
+  "6:10",
+  "14:10",
+  "10:14",
 ] as const;
 
 /**
@@ -57,7 +55,7 @@ const ASPECT_RATIO_OPTIONS = [
 export class RecraftV4ProSvgNode extends ExecutableNode {
   private static readonly inputSchema = z.object({
     prompt: z.string().min(1),
-    size: z.enum(SIZE_OPTIONS).optional().default("1024x1024"),
+    size: z.enum(SIZE_OPTIONS).optional().default("2048x2048"),
     aspect_ratio: z.enum(ASPECT_RATIO_OPTIONS).optional().default(""),
   });
 
@@ -94,7 +92,7 @@ export class RecraftV4ProSvgNode extends ExecutableNode {
         type: "string",
         description:
           "Image dimensions (e.g., 1024x1024). Ignored if aspect_ratio is set.",
-        value: "1024x1024",
+        value: "2048x2048",
         hidden: true,
       },
       {

@@ -88,7 +88,7 @@ describe("RecraftV4SvgNode", () => {
     const result = await node.execute(
       createContext({
         prompt: "A simple logo",
-        size: "1536x1024",
+        size: "1536x768",
       })
     );
 

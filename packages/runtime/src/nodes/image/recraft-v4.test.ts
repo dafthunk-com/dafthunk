@@ -88,7 +88,7 @@ describe("RecraftV4Node", () => {
     const result = await node.execute(
       createContext({
         prompt: "A beautiful landscape",
-        size: "1536x1024",
+        size: "1536x768",
       })
     );
 
