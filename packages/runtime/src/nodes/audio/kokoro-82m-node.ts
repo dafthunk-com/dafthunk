@@ -77,7 +77,7 @@ const VOICE_OPTIONS = [
 
 /**
  * Kokoro 82M text-to-speech node using Replicate API.
- * Based on StyleTTS 2, supports 44 voices across 8 languages.
+ * Based on StyleTTS 2, supports 46 voices across 7 languages.
  * @see https://replicate.com/jaaari/kokoro-82m
  */
 export class Kokoro82mNode extends ExecutableNode {
@@ -92,11 +92,33 @@ export class Kokoro82mNode extends ExecutableNode {
     name: "Text to Speech (Kokoro)",
     type: "kokoro-82m",
     description:
-      "Converts text to natural-sounding speech using Kokoro 82M AI with 44 voices across 8 languages",
+      "Converts text to natural-sounding speech using Kokoro 82M AI with 46 voices across 7 languages",
     tags: ["Audio", "TTS", "Replicate", "Kokoro", "Text-to-Speech"],
     icon: "mic",
-    documentation:
-      "This node converts text to natural-sounding speech using the Kokoro 82M model via Replicate. Based on StyleTTS 2, it supports 44 voices across 8 languages including English, Japanese, Mandarin, Spanish, French, Hindi, Italian, and Brazilian Portuguese.",
+    documentation: [
+      "This node converts text to natural-sounding speech using the Kokoro 82M model via Replicate. Based on StyleTTS 2, it supports 46 voices across 7 languages.",
+      "",
+      "**American English:**",
+      "af_alloy (F, C), af_aoede (F, C+), af_bella (F, A-), af_jessica (F, D), af_kore (F, C+), af_nicole (F, B-), af_nova (F, C), af_river (F, D), af_sarah (F, C+), af_sky (F, C-), am_adam (M, F+), am_echo (M, D), am_eric (M, D), am_fenrir (M, C+), am_liam (M, D), am_michael (M, C+), am_onyx (M, D), am_puck (M, C+)",
+      "",
+      "**British English:**",
+      "bf_alice (F, D), bf_emma (F, B-), bf_isabella (F, C), bf_lily (F, D), bm_daniel (M, D), bm_fable (M, C), bm_george (M, C), bm_lewis (M, D+)",
+      "",
+      "**French:**",
+      "ff_siwis (F, B-)",
+      "",
+      "**Hindi:**",
+      "hf_alpha (F, C), hf_beta (F, C), hm_omega (M, C), hm_psi (M, C)",
+      "",
+      "**Italian:**",
+      "if_sara (F, C), im_nicola (M, C)",
+      "",
+      "**Japanese:**",
+      "jf_alpha (F, C+), jf_gongitsune (F, C), jf_nezumi (F, C-), jf_tebukuro (F, C), jm_kumo (M, C-)",
+      "",
+      "**Mandarin Chinese:**",
+      "zf_xiaobei (F, D), zf_xiaoni (F, D), zf_xiaoxiao (F, D), zf_xiaoyi (F, D), zm_yunjian (M, D), zm_yunxi (M, D), zm_yunxia (M, D), zm_yunyang (M, D)",
+    ].join("\n"),
     referenceUrl: "https://replicate.com/jaaari/kokoro-82m",
     inlinable: false,
     usage: 1,
