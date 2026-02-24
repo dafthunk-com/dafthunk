@@ -36,7 +36,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",
-    "@aws-sdk/client-ses": "^3.970.0",
+    "@aws-sdk/client-ses": "^3.996.0",
     "@cf-wasm/photon": "^0.3.4",
     "@cf-wasm/png": "^0.3.2",
     "@cf-wasm/quickjs": "^0.2.4",
