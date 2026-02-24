@@ -17,95 +17,22 @@ const STYLE_OPTIONS = [
   "any",
   "realistic_image",
   "digital_illustration",
-  "vector_illustration",
-] as const;
-
-const SUBSTYLE_OPTIONS = [
-  "",
-  // realistic_image substyles
-  "b_and_w",
-  "hard_flash",
-  "hdr",
-  "natural_light",
-  "studio_portrait",
-  "enterprise",
-  "motion_blur",
-  "evening_light",
-  "faded_nostalgia",
-  "forest_life",
-  "mystic_naturalism",
-  "natural_tones",
-  "organic_calm",
-  "real_life_glow",
-  "retro_realism",
-  "retro_snapshot",
-  "urban_drama",
-  "village_realism",
-  "warm_folk",
-  // digital_illustration substyles
-  "pixel_art",
-  "hand_drawn",
-  "grain",
-  "infantile_sketch",
-  "2d_art_poster",
-  "handmade_3d",
-  "hand_drawn_outline",
-  "engraving_color",
-  "2d_art_poster_2",
-  "antiquarian",
-  "bold_fantasy",
-  "child_book",
-  "child_books",
-  "cover",
-  "crosshatch",
-  "digital_engraving",
-  "expressionism",
-  "freehand_details",
-  "grain_20",
-  "graphic_intensity",
-  "hard_comics",
-  "long_shadow",
-  "modern_folk",
-  "multicolor",
-  "neon_calm",
-  "noir",
-  "nostalgic_pastel",
-  "outline_details",
-  "pastel_gradient",
-  "pastel_sketch",
-  "pop_art",
-  "pop_renaissance",
-  "street_art",
-  "tablet_sketch",
-  "urban_glow",
-  "urban_sketching",
-  "vanilla_dreams",
-  "young_adult_book",
-  "young_adult_book_2",
-  // vector_illustration substyles
-  "bold_stroke",
-  "chemistry",
-  "colored_stencil",
-  "contour_pop_art",
-  "cosmics",
-  "cutout",
-  "depressive",
-  "editorial",
-  "emotional_flat",
-  "infographical",
-  "marker_outline",
-  "mosaic",
-  "naivector",
-  "roundish_flat",
-  "segmented_colors",
-  "sharp_contrast",
-  "thin",
-  "vector_photo",
-  "vivid_shapes",
-  "engraving",
-  "line_art",
-  "line_circuit",
-  "linocut",
+  "digital_illustration/pixel_art",
+  "digital_illustration/hand_drawn",
+  "digital_illustration/grain",
+  "digital_illustration/infantile_sketch",
+  "digital_illustration/2d_art_poster",
+  "digital_illustration/handmade_3d",
+  "digital_illustration/hand_drawn_outline",
+  "digital_illustration/engraving_color",
+  "digital_illustration/2d_art_poster_2",
+  "realistic_image/b_and_w",
+  "realistic_image/hard_flash",
+  "realistic_image/hdr",
+  "realistic_image/natural_light",
+  "realistic_image/studio_portrait",
+  "realistic_image/enterprise",
+  "realistic_image/motion_blur",
 ] as const;
 
 const SIZE_OPTIONS = [
@@ -153,7 +80,6 @@ export class RecraftV3Node extends ExecutableNode {
   private static readonly inputSchema = z.object({
     prompt: z.string().min(1),
     style: z.enum(STYLE_OPTIONS).optional().default("any"),
-    substyle: z.enum(SUBSTYLE_OPTIONS).optional().default(""),
     size: z.enum(SIZE_OPTIONS).optional().default("1024x1024"),
     aspect_ratio: z.enum(ASPECT_RATIO_OPTIONS).optional().default(""),
   });
@@ -167,7 +93,7 @@ export class RecraftV3Node extends ExecutableNode {
     tags: ["AI", "Image", "Replicate", "Generate", "Text-to-Image", "Recraft"],
     icon: "image",
     documentation:
-      "This node generates images from text prompts using the Recraft V3 model via Replicate. Supports realistic images, digital illustrations, and vector illustrations with 50+ substyles.",
+      "This node generates images from text prompts using the Recraft V3 model via Replicate. Supports realistic images and digital illustrations with multiple style options.",
     referenceUrl: "https://replicate.com/recraft-ai/recraft-v3",
     inlinable: false,
     usage: 40,
@@ -182,16 +108,8 @@ export class RecraftV3Node extends ExecutableNode {
         name: "style",
         type: "string",
         description:
-          "Main style: any, realistic_image, digital_illustration, vector_illustration",
+          "Style of the generated image (e.g., any, realistic_image, digital_illustration/pixel_art)",
         value: "any",
-      },
-      {
-        name: "substyle",
-        type: "string",
-        description:
-          "Substyle for finer control (e.g., pixel_art, hand_drawn, noir, pop_art)",
-        value: "",
-        hidden: true,
       },
       {
         name: "size",
@@ -243,15 +161,7 @@ export class RecraftV3Node extends ExecutableNode {
         size: validatedInput.size,
       };
 
-      // Handle style and substyle
-      if (validatedInput.substyle) {
-        // When substyle is provided, combine with parent style
-        const parentStyle =
-          validatedInput.style === "any"
-            ? this.inferParentStyle(validatedInput.substyle)
-            : validatedInput.style;
-        input.style = `${parentStyle}/${validatedInput.substyle}`;
-      } else if (validatedInput.style !== "any") {
+      if (validatedInput.style !== "any") {
         input.style = validatedInput.style;
       }
 
@@ -402,65 +312,4 @@ export class RecraftV3Node extends ExecutableNode {
     }
   }
 
-  /**
-   * Infer the parent style from a substyle name.
-   */
-  private inferParentStyle(substyle: string): string {
-    const realisticSubstyles = [
-      "b_and_w",
-      "hard_flash",
-      "hdr",
-      "natural_light",
-      "studio_portrait",
-      "enterprise",
-      "motion_blur",
-      "evening_light",
-      "faded_nostalgia",
-      "forest_life",
-      "mystic_naturalism",
-      "natural_tones",
-      "organic_calm",
-      "real_life_glow",
-      "retro_realism",
-      "retro_snapshot",
-      "urban_drama",
-      "village_realism",
-      "warm_folk",
-    ];
-
-    const vectorSubstyles = [
-      "bold_stroke",
-      "chemistry",
-      "colored_stencil",
-      "contour_pop_art",
-      "cosmics",
-      "cutout",
-      "depressive",
-      "editorial",
-      "emotional_flat",
-      "infographical",
-      "marker_outline",
-      "mosaic",
-      "naivector",
-      "roundish_flat",
-      "segmented_colors",
-      "sharp_contrast",
-      "thin",
-      "vector_photo",
-      "vivid_shapes",
-      "engraving",
-      "line_art",
-      "line_circuit",
-      "linocut",
-    ];
-
-    if (realisticSubstyles.includes(substyle)) {
-      return "realistic_image";
-    }
-    if (vectorSubstyles.includes(substyle)) {
-      return "vector_illustration";
-    }
-    // Default to digital_illustration for all other substyles
-    return "digital_illustration";
-  }
 }

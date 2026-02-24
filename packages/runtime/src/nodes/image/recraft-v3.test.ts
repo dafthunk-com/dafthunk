@@ -17,14 +17,13 @@ describe("RecraftV3Node", () => {
   it("should have correct nodeType metadata", () => {
     expect(RecraftV3Node.nodeType.id).toBe("recraft-v3");
     expect(RecraftV3Node.nodeType.name).toBe("Image Generation (Recraft V3)");
-    expect(RecraftV3Node.nodeType.inputs).toHaveLength(5);
+    expect(RecraftV3Node.nodeType.inputs).toHaveLength(4);
     expect(RecraftV3Node.nodeType.inputs[0].name).toBe("prompt");
     expect(RecraftV3Node.nodeType.inputs[0].type).toBe("string");
     expect(RecraftV3Node.nodeType.inputs[0].required).toBe(true);
     expect(RecraftV3Node.nodeType.inputs[1].name).toBe("style");
-    expect(RecraftV3Node.nodeType.inputs[2].name).toBe("substyle");
-    expect(RecraftV3Node.nodeType.inputs[3].name).toBe("size");
-    expect(RecraftV3Node.nodeType.inputs[4].name).toBe("aspect_ratio");
+    expect(RecraftV3Node.nodeType.inputs[2].name).toBe("size");
+    expect(RecraftV3Node.nodeType.inputs[3].name).toBe("aspect_ratio");
     expect(RecraftV3Node.nodeType.outputs).toHaveLength(1);
     expect(RecraftV3Node.nodeType.outputs[0].name).toBe("image");
     expect(RecraftV3Node.nodeType.outputs[0].type).toBe("image");
@@ -97,7 +96,7 @@ describe("RecraftV3Node", () => {
     expect(result.error).toContain("Validation error");
   });
 
-  it("should accept valid style options", async () => {
+  it("should accept valid base style options", async () => {
     const node = new RecraftV3Node({
       nodeId: "recraft-v3",
     } as unknown as Node);
@@ -113,7 +112,7 @@ describe("RecraftV3Node", () => {
     expect(result.error).toContain("REPLICATE_API_TOKEN");
   });
 
-  it("should accept valid substyle options", async () => {
+  it("should accept valid combined style options", async () => {
     const node = new RecraftV3Node({
       nodeId: "recraft-v3",
     } as unknown as Node);
@@ -121,29 +120,12 @@ describe("RecraftV3Node", () => {
     const result = await node.execute(
       createContext({
         prompt: "A beautiful landscape",
-        style: "digital_illustration",
-        substyle: "pixel_art",
+        style: "digital_illustration/pixel_art",
       })
     );
 
     expect(result.status).toBe("error");
     expect(result.error).toContain("REPLICATE_API_TOKEN");
-  });
-
-  it("should return error for invalid substyle option", async () => {
-    const node = new RecraftV3Node({
-      nodeId: "recraft-v3",
-    } as unknown as Node);
-
-    const result = await node.execute(
-      createContext({
-        prompt: "A beautiful landscape",
-        substyle: "invalid_substyle",
-      })
-    );
-
-    expect(result.status).toBe("error");
-    expect(result.error).toContain("Validation error");
   });
 
   it("should accept valid size options", async () => {
