@@ -162,7 +162,7 @@ export class Kokoro82mNode extends ExecutableNode {
       console.log("Kokoro82mNode: Creating prediction");
 
       const createResponse = await fetch(
-        "https://api.replicate.com/v1/models/jaaari/kokoro-82m/predictions",
+        "https://api.replicate.com/v1/predictions",
         {
           method: "POST",
           headers: {
@@ -171,6 +171,8 @@ export class Kokoro82mNode extends ExecutableNode {
             Prefer: `wait=${syncTimeout}`,
           },
           body: JSON.stringify({
+            version:
+              "f559560eb822dc509045f3921a1921234918b91739db4bf3daab2169b71c7a13",
             input: {
               text: validatedInput.text,
               voice: validatedInput.voice,
