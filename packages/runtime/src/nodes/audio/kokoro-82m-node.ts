@@ -15,7 +15,6 @@ interface ReplicatePrediction {
 
 const VOICE_OPTIONS = [
   // American English Female
-  "af_heart",
   "af_alloy",
   "af_aoede",
   "af_bella",
@@ -35,7 +34,6 @@ const VOICE_OPTIONS = [
   "am_michael",
   "am_onyx",
   "am_puck",
-  "am_santa",
   // British English Female
   "bf_alice",
   "bf_emma",
@@ -46,6 +44,18 @@ const VOICE_OPTIONS = [
   "bm_fable",
   "bm_george",
   "bm_lewis",
+  // French Female
+  "ff_siwis",
+  // Hindi Female
+  "hf_alpha",
+  "hf_beta",
+  // Hindi Male
+  "hm_omega",
+  "hm_psi",
+  // Italian Female
+  "if_sara",
+  // Italian Male
+  "im_nicola",
   // Japanese Female
   "jf_alpha",
   "jf_gongitsune",
@@ -63,39 +73,17 @@ const VOICE_OPTIONS = [
   "zm_yunxi",
   "zm_yunxia",
   "zm_yunyang",
-  // Spanish Female
-  "ef_dora",
-  // Spanish Male
-  "em_alex",
-  "em_santa",
-  // French Female
-  "ff_siwis",
-  // Hindi Female
-  "hf_alpha",
-  "hf_beta",
-  // Hindi Male
-  "hm_omega",
-  "hm_psi",
-  // Italian Female
-  "if_sara",
-  // Italian Male
-  "im_nicola",
-  // Brazilian Portuguese Female
-  "pf_dora",
-  // Brazilian Portuguese Male
-  "pm_alex",
-  "pm_santa",
 ] as const;
 
 /**
  * Kokoro 82M text-to-speech node using Replicate API.
- * Based on StyleTTS 2, supports 54 voices across 9 languages.
+ * Based on StyleTTS 2, supports 44 voices across 8 languages.
  * @see https://replicate.com/jaaari/kokoro-82m
  */
 export class Kokoro82mNode extends ExecutableNode {
   private static readonly inputSchema = z.object({
     text: z.string().min(1),
-    voice: z.enum(VOICE_OPTIONS).optional().default("af_heart"),
+    voice: z.enum(VOICE_OPTIONS).optional().default("af_bella"),
     speed: z.coerce.number().min(0.1).max(5.0).optional().default(1.0),
   });
 
@@ -104,11 +92,11 @@ export class Kokoro82mNode extends ExecutableNode {
     name: "Text to Speech (Kokoro)",
     type: "kokoro-82m",
     description:
-      "Converts text to natural-sounding speech using Kokoro 82M AI with 54 voices across 9 languages",
+      "Converts text to natural-sounding speech using Kokoro 82M AI with 44 voices across 8 languages",
     tags: ["Audio", "TTS", "Replicate", "Kokoro", "Text-to-Speech"],
     icon: "mic",
     documentation:
-      "This node converts text to natural-sounding speech using the Kokoro 82M model via Replicate. Based on StyleTTS 2, it supports 54 voices across 9 languages including English, Japanese, Mandarin, Spanish, French, Hindi, Italian, and Brazilian Portuguese.",
+      "This node converts text to natural-sounding speech using the Kokoro 82M model via Replicate. Based on StyleTTS 2, it supports 44 voices across 8 languages including English, Japanese, Mandarin, Spanish, French, Hindi, Italian, and Brazilian Portuguese.",
     referenceUrl: "https://replicate.com/jaaari/kokoro-82m",
     inlinable: false,
     usage: 1,
@@ -123,7 +111,7 @@ export class Kokoro82mNode extends ExecutableNode {
         name: "voice",
         type: "string",
         description: "Voice to use for speech synthesis",
-        value: "af_heart",
+        value: "af_bella",
       },
       {
         name: "speed",
