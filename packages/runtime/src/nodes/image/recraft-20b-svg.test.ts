@@ -139,7 +139,7 @@ describe("Recraft20bSvgNode", () => {
     const result = await node.execute(
       createContext({
         prompt: "A simple logo",
-        style: "vector_illustration/bold_stroke",
+        style: "vector_illustration/cartoon",
       })
     );
 

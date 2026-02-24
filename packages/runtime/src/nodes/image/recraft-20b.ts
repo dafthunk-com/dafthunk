@@ -24,6 +24,7 @@ const STYLE_OPTIONS = [
   "realistic_image/studio_portrait",
   "digital_illustration",
   "digital_illustration/2d_art_poster",
+  "digital_illustration/2d_art_poster_2",
   "digital_illustration/3d",
   "digital_illustration/80s",
   "digital_illustration/engraving_color",
@@ -99,7 +100,7 @@ export class Recraft20bNode extends ExecutableNode {
     tags: ["AI", "Image", "Replicate", "Generate", "Text-to-Image", "Recraft"],
     icon: "image",
     documentation:
-      "This node generates images from text prompts using the Recraft 20B model via Replicate. Supports realistic images and digital illustrations with multiple substyles.",
+      "This node generates images from text prompts using the Recraft 20B model via Replicate. Supports realistic images and digital illustrations with multiple style options.",
     referenceUrl: "https://replicate.com/recraft-ai/recraft-20b",
     inlinable: false,
     usage: 22,
