@@ -24,6 +24,7 @@ import {
   type FeedbackInsert,
   feedback,
   feedbackCriteria,
+  workflows,
 } from "../db/schema";
 import { CloudflareExecutionStore } from "../runtime/cloudflare-execution-store";
 
@@ -53,6 +54,17 @@ feedbackRoutes.post(
     const organizationId = c.get("organizationId")!;
     const body = c.req.valid("json");
     const db = createDatabase(c.env.DB);
+
+    // Verify the workflow belongs to the caller's organization
+    const workflow = await db.query.workflows.findFirst({
+      where: and(
+        eq(workflows.id, body.workflowId),
+        eq(workflows.organizationId, organizationId)
+      ),
+    });
+    if (!workflow) {
+      return c.json({ error: "Workflow not found" }, 404);
+    }
 
     const id = uuid();
     const now = new Date();
