@@ -302,6 +302,7 @@ import { NumberInputNode } from "@dafthunk/runtime/nodes/input/number-input-node
 import { SecretInputNode } from "@dafthunk/runtime/nodes/input/secret-input-node";
 import { SliderInputNode } from "@dafthunk/runtime/nodes/input/slider-input-node";
 import { TextInputNode } from "@dafthunk/runtime/nodes/input/text-input-node";
+import { VideoInputNode } from "@dafthunk/runtime/nodes/input/video-input-node";
 import { WebcamInputNode } from "@dafthunk/runtime/nodes/input/webcam-input-node";
 import { JavascriptScriptNode } from "@dafthunk/runtime/nodes/javascript/javascript-script-node";
 import { JsonAggNode } from "@dafthunk/runtime/nodes/json/json-agg-node";
@@ -370,6 +371,7 @@ import { JsonOutputNode } from "@dafthunk/runtime/nodes/output/json-output-node"
 import { NumberOutputNode } from "@dafthunk/runtime/nodes/output/number-output-node";
 import { SecretOutputNode } from "@dafthunk/runtime/nodes/output/secret-output-node";
 import { TextOutputNode } from "@dafthunk/runtime/nodes/output/text-output-node";
+import { VideoOutputNode } from "@dafthunk/runtime/nodes/output/video-output-node";
 import { ReceiveQueueMessageNode } from "@dafthunk/runtime/nodes/queue/receive-queue-message-node";
 import { SendQueueBatchNode } from "@dafthunk/runtime/nodes/queue/send-queue-batch-node";
 import { SendQueueMessageNode } from "@dafthunk/runtime/nodes/queue/send-queue-message-node";
@@ -421,6 +423,7 @@ import { StringTrimNode } from "@dafthunk/runtime/nodes/text/string-trim-node";
 import { ToJsonNode } from "@dafthunk/runtime/nodes/text/to-json-node";
 import { ToStringNode } from "@dafthunk/runtime/nodes/text/to-string-node";
 import { TwilioSmsNode } from "@dafthunk/runtime/nodes/text/twilio-sms-node";
+import { GrokImagineVideoNode } from "@dafthunk/runtime/nodes/video/grok-imagine-video-node";
 import type { Bindings } from "../context";
 
 export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
@@ -648,6 +651,9 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(RecraftV4SvgNode);
     this.registerImplementation(RecraftVectorizeNode);
 
+    // Video generation nodes - always register (users can provide API keys via secrets)
+    this.registerImplementation(GrokImagineVideoNode);
+
     this.registerImplementation(AudioInputNode);
     this.registerImplementation(AudioRecorderInputNode);
     this.registerImplementation(ImageInputNode);
@@ -655,6 +661,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(DocumentInputNode);
     this.registerImplementation(GltfInputNode);
     this.registerImplementation(GeoJSONInputNode);
+    this.registerImplementation(VideoInputNode);
     this.registerImplementation(SecretInputNode);
 
     this.registerImplementation(CsvExtractColumnNode);
@@ -956,6 +963,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(ImageOutputNode);
     this.registerImplementation(DocumentOutputNode);
     this.registerImplementation(AudioOutputNode);
+    this.registerImplementation(VideoOutputNode);
     this.registerImplementation(GltfOutputNode);
     this.registerImplementation(JsonOutputNode);
     this.registerImplementation(GeoJSONOutputNode);

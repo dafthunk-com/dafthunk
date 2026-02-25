@@ -20,6 +20,7 @@ import LockIcon from "lucide-react/icons/lock";
 import MailIcon from "lucide-react/icons/mail";
 import MusicIcon from "lucide-react/icons/music";
 import TypeIcon from "lucide-react/icons/type";
+import VideoIcon from "lucide-react/icons/video";
 
 import { Toggle } from "@/components/ui/toggle";
 import { isObjectReference } from "@/services/object-service";
@@ -39,6 +40,7 @@ const getTypeIcon = (type: InputOutputType) => {
     image: <ImageIcon className={iconSize} />,
     document: <FileTextIcon className={iconSize} />,
     audio: <MusicIcon className={iconSize} />,
+    video: <VideoIcon className={iconSize} />,
     gltf: <BoxIcon className={iconSize} />,
     buffergeometry: <BoxIcon className={iconSize} />,
     json: <BracesIcon className={iconSize} />,
@@ -72,6 +74,7 @@ export interface PropertyFieldProps {
 const FILE_TYPES: InputOutputType[] = [
   "image",
   "audio",
+  "video",
   "gltf",
   "blob",
   "document",

@@ -10,6 +10,7 @@ import {
   type GltfParameter as NodeGltfParameter,
   type ImageParameter as NodeImageParameter,
   type ParameterValue as NodeParameterValue,
+  type VideoParameter as NodeVideoParameter,
 } from "./node-types";
 import type { ObjectStore } from "./object-store";
 
@@ -41,6 +42,9 @@ const isAudioParameter = isNativeBlobParameter as (
 const isGltfParameter = isNativeBlobParameter as (
   value: unknown
 ) => value is NodeGltfParameter;
+const isVideoParameter = isNativeBlobParameter as (
+  value: unknown
+) => value is NodeVideoParameter;
 
 // Helper functions for common converter patterns
 const createJsonParsingNodeToApi = () => (value: NodeParameterValue) =>
@@ -191,6 +195,10 @@ const converters: Record<string, Converter> = {
     nodeToApi: createBlobNodeToApi(isGltfParameter),
     apiToNode: createBlobApiToNode(),
   },
+  video: {
+    nodeToApi: createBlobNodeToApi(isVideoParameter),
+    apiToNode: createBlobApiToNode(),
+  },
   json: {
     nodeToApi: createJsonParsingNodeToApi(),
     apiToNode: createJsonParsingApiToNode(),
@@ -275,7 +283,8 @@ const converters: Record<string, Converter> = {
         isImageParameter(value) ||
         isDocumentParameter(value) ||
         isAudioParameter(value) ||
-        isGltfParameter(value)
+        isGltfParameter(value) ||
+        isVideoParameter(value)
       ) {
         if (!objectStore || !organizationId) {
           throw new Error(
@@ -308,6 +317,14 @@ const converters: Record<string, Converter> = {
         }
         if (isGltfParameter(value)) {
           return converters.gltf.nodeToApi(
+            value,
+            objectStore,
+            organizationId,
+            executionId
+          );
+        }
+        if (isVideoParameter(value)) {
+          return converters.video.nodeToApi(
             value,
             objectStore,
             organizationId,
@@ -350,6 +367,9 @@ const converters: Record<string, Converter> = {
           }
           if (mimeType.startsWith("audio/")) {
             return baseParam as NodeAudioParameter;
+          }
+          if (mimeType.startsWith("video/")) {
+            return baseParam as NodeVideoParameter;
           }
           if (mimeType === "model/gltf-binary") {
             return baseParam as NodeGltfParameter;

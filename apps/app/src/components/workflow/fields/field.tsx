@@ -27,6 +27,7 @@ import { QueueField } from "./queue-field";
 import { SecretField } from "./secret-field";
 import { TextField } from "./text-field";
 import type { FieldProps, ObjectReference } from "./types";
+import { VideoField } from "./video-field";
 
 export interface FieldRouterProps extends FieldProps {
   createObjectUrl?: (objectReference: ObjectReference) => string;
@@ -76,6 +77,17 @@ export function Field(props: FieldRouterProps) {
     {
       getMimeType: mimeTypeDetectors.gltf,
       errorMessage: "Failed to upload glTF model",
+    },
+    uploadBinaryData,
+    props.onChange,
+    setIsUploading,
+    setUploadError
+  );
+
+  const handleVideoUpload = createFileUploadHandler(
+    {
+      validateFile: fileValidators.video,
+      errorMessage: "Failed to upload video",
     },
     uploadBinaryData,
     props.onChange,
@@ -154,6 +166,16 @@ export function Field(props: FieldRouterProps) {
           isUploading={isUploading}
           uploadError={uploadError}
           onFileUpload={handleAudioUpload}
+          createObjectUrl={createObjectUrl}
+        />
+      );
+    case "video":
+      return (
+        <VideoField
+          {...props}
+          isUploading={isUploading}
+          uploadError={uploadError}
+          onFileUpload={handleVideoUpload}
           createObjectUrl={createObjectUrl}
         />
       );

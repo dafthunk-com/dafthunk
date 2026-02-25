@@ -183,6 +183,7 @@ export function EditorPage() {
     const blobTypes = new Set([
       "image",
       "audio",
+      "video",
       "document",
       "buffergeometry",
       "gltf",

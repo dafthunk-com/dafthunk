@@ -36,6 +36,7 @@ export type ImageParameter = BlobParameter;
 export type AudioParameter = BlobParameter;
 export type DocumentParameter = BlobParameter;
 export type GltfParameter = BlobParameter;
+export type VideoParameter = BlobParameter;
 
 /**
  * Serialized blob parameter - allows for JSON-serialized Uint8Array
@@ -138,6 +139,10 @@ export type ParameterType =
   | {
       type: "gltf";
       value?: GltfParameter;
+    }
+  | {
+      type: "video";
+      value?: VideoParameter;
     }
   | {
       type: "geojson";

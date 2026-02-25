@@ -12,3 +12,4 @@ export { JsonOutputNode } from "./json-output-node";
 export { NumberOutputNode } from "./number-output-node";
 export { SecretOutputNode } from "./secret-output-node";
 export { TextOutputNode } from "./text-output-node";
+export { VideoOutputNode } from "./video-output-node";

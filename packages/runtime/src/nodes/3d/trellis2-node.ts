@@ -154,7 +154,7 @@ export class Trellis2Node extends ExecutableNode {
       },
       {
         name: "video",
-        type: "blob",
+        type: "video",
         description: "Video preview of the 3D model",
       },
       {

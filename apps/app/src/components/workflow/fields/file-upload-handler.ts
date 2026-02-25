@@ -57,6 +57,11 @@ export const fileValidators = {
       throw new Error("Please select a valid audio file");
     }
   },
+  video: (file: File) => {
+    if (!file.type.startsWith("video/")) {
+      throw new Error("Please select a valid video file");
+    }
+  },
   gltf: (file: File) => {
     const fileName = file.name.toLowerCase();
     if (!fileName.endsWith(".gltf") && !fileName.endsWith(".glb")) {

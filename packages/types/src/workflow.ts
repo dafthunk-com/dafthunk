@@ -168,6 +168,10 @@ export type ParameterType =
       value?: ObjectReference;
     }
   | {
+      type: "video";
+      value?: ObjectReference;
+    }
+  | {
       type: "geojson";
       value?: GeoJSON;
     }

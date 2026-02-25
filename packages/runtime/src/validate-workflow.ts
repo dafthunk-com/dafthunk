@@ -106,6 +106,7 @@ export function validateTypeCompatibility(
     const blobTypes = new Set([
       "image",
       "audio",
+      "video",
       "document",
       "buffergeometry",
       "gltf",

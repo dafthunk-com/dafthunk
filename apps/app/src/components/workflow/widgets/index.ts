@@ -24,6 +24,7 @@ import { numberInputWidget } from "./input/number-input";
 import { secretInputWidget } from "./input/secret-input";
 import { sliderInputWidget } from "./input/slider-input";
 import { textInputWidget } from "./input/text-input";
+import { videoInputWidget } from "./input/video-input";
 import { webcamInputWidget } from "./input/webcam-input";
 // Output widgets
 import { audioOutputWidget } from "./output/audio-output";
@@ -39,6 +40,7 @@ import { jsonOutputWidget } from "./output/json-output";
 import { numberOutputWidget } from "./output/number-output";
 import { secretOutputWidget } from "./output/secret-output";
 import { textOutputWidget } from "./output/text-output";
+import { videoOutputWidget } from "./output/video-output";
 import { registry } from "./registry";
 
 // Register all widgets
@@ -52,6 +54,7 @@ const widgets = [
   imageInputWidget,
   blobInputWidget,
   audioInputWidget,
+  videoInputWidget,
   documentInputWidget,
   gltfInputWidget,
   geojsonInputWidget,
@@ -76,6 +79,7 @@ const widgets = [
   imageOutputWidget,
   documentOutputWidget,
   audioOutputWidget,
+  videoOutputWidget,
   gltfOutputWidget,
   buffergeometryOutputWidget,
   jsonOutputWidget,

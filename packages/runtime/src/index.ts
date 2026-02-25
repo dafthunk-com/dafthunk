@@ -81,6 +81,7 @@ export type {
   ParameterType,
   ParameterValue,
   SerializedBlobParameter,
+  VideoParameter,
 } from "./node-types";
 // Node system
 export {
