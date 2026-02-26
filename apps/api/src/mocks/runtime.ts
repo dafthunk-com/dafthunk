@@ -43,7 +43,10 @@ import {
 } from "@dafthunk/runtime";
 import type { WorkflowExecution } from "@dafthunk/types";
 import type { Bindings } from "../context";
-import { CloudflareObjectStore } from "../runtime/cloudflare-object-store";
+import {
+  CloudflareObjectStore,
+  buildPresignedUrlConfig,
+} from "../runtime/cloudflare-object-store";
 import { createToolContext } from "../runtime/tool-context";
 import { MockCredentialService } from "./credential-service";
 import { MockDatabaseService } from "./database-service";
@@ -156,7 +159,10 @@ class MockWorkflowEntrypoint extends WorkflowEntrypoint<
 
     // Create mock dependencies
     const nodeRegistry = new MockNodeRegistry(env, true);
-    const objectStore = new CloudflareObjectStore(env.RESSOURCES);
+    const objectStore = new CloudflareObjectStore(
+      env.RESSOURCES,
+      buildPresignedUrlConfig(env)
+    );
     const credentialProvider = new MockCredentialService();
     const toolRegistry = new MockToolRegistry(
       nodeRegistry,

@@ -432,6 +432,7 @@ import { StringTrimNode } from "@dafthunk/runtime/nodes/text/string-trim-node";
 import { ToJsonNode } from "@dafthunk/runtime/nodes/text/to-json-node";
 import { ToStringNode } from "@dafthunk/runtime/nodes/text/to-string-node";
 import { TwilioSmsNode } from "@dafthunk/runtime/nodes/text/twilio-sms-node";
+import { AppendVideosNode } from "@dafthunk/runtime/nodes/video/append-videos-node";
 import { GrokImagineVideoNode } from "@dafthunk/runtime/nodes/video/grok-imagine-video-node";
 import { Veo31Node } from "@dafthunk/runtime/nodes/video/veo-3-1-node";
 import type { Bindings } from "../context";
@@ -664,6 +665,11 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     // Video generation nodes - always register (users can provide API keys via secrets)
     this.registerImplementation(GrokImagineVideoNode);
     this.registerImplementation(Veo31Node);
+
+    // Video processing nodes (Cloudflare Containers)
+    if (this.env.FFMPEG_CONTAINER) {
+      this.registerImplementation(AppendVideosNode);
+    }
 
     this.registerImplementation(AudioInputNode);
     this.registerImplementation(AudioRecorderInputNode);

@@ -18,7 +18,10 @@ import { CloudflareDatasetService } from "./cloudflare-dataset-service";
 import { CloudflareExecutionStore } from "./cloudflare-execution-store";
 import { CloudflareMonitoringService } from "./cloudflare-monitoring-service";
 import { CloudflareNodeRegistry } from "./cloudflare-node-registry";
-import { CloudflareObjectStore } from "./cloudflare-object-store";
+import {
+  CloudflareObjectStore,
+  buildPresignedUrlConfig,
+} from "./cloudflare-object-store";
 import { CloudflareQueueService } from "./cloudflare-queue-service";
 import { CloudflareToolRegistry } from "./cloudflare-tool-registry";
 import { createToolContext } from "./tool-context";
@@ -32,7 +35,10 @@ export function createWorkflowRuntime(
   env: Bindings
 ): WorkflowRuntime<Bindings> {
   const nodeRegistry = new CloudflareNodeRegistry(env, true);
-  const objectStore = new CloudflareObjectStore(env.RESSOURCES);
+  const objectStore = new CloudflareObjectStore(
+    env.RESSOURCES,
+    buildPresignedUrlConfig(env)
+  );
   const credentialProvider = new CloudflareCredentialService(env);
   const databaseService = new CloudflareDatabaseService(env);
   const datasetService = new CloudflareDatasetService(env);

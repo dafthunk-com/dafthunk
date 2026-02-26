@@ -26,6 +26,14 @@
   "ai": {
     "binding": "AI"
   },
+  "containers": [
+    {
+      "class_name": "FFmpegContainer",
+      "image": "./containers/ffmpeg/Dockerfile",
+      "max_instances": 5,
+      "instance_type": "standard-1"
+    }
+  ],
   "worker_loaders": [{ "binding": "LOADER" }],
   "d1_databases": [
     {
@@ -101,6 +109,10 @@
         "name": "AGENT_RUNNER",
         "class_name": "AgentRunner",
         "script_name": "dafthunk-api"
+      },
+      {
+        "name": "FFMPEG_CONTAINER",
+        "class_name": "FFmpegContainer"
       }
     ]
   },
@@ -116,6 +128,10 @@
     {
       "tag": "v3",
       "new_sqlite_classes": ["AgentRunner"]
+    },
+    {
+      "tag": "v4",
+      "new_sqlite_classes": ["FFmpegContainer"]
     }
   ],
   "unsafe": {
@@ -178,6 +194,14 @@
       "ai": {
         "binding": "AI"
       },
+      "containers": [
+        {
+          "class_name": "FFmpegContainer",
+          "image": "./containers/ffmpeg/Dockerfile",
+          "max_instances": 5,
+          "instance_type": "standard-1"
+        }
+      ],
       // worker_loaders requires closed beta enrollment — re-enable once approved
       // "worker_loaders": [{ "binding": "LOADER" }],
       "d1_databases": [
@@ -227,6 +251,10 @@
             "name": "AGENT_RUNNER",
             "class_name": "AgentRunner",
             "script_name": "dafthunk-api"
+          },
+          {
+            "name": "FFMPEG_CONTAINER",
+            "class_name": "FFmpegContainer"
           }
         ]
       },
@@ -242,6 +270,10 @@
         {
           "tag": "v3",
           "new_sqlite_classes": ["AgentRunner"]
+        },
+        {
+          "tag": "v4",
+          "new_sqlite_classes": ["FFmpegContainer"]
         }
       ],
       "unsafe": {

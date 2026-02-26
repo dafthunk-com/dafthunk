@@ -35,7 +35,10 @@ import { CloudflareCredentialService } from "../runtime/cloudflare-credential-se
 import { CloudflareDatabaseService } from "../runtime/cloudflare-database-service";
 import { CloudflareDatasetService } from "../runtime/cloudflare-dataset-service";
 import { CloudflareNodeRegistry } from "../runtime/cloudflare-node-registry";
-import { CloudflareObjectStore } from "../runtime/cloudflare-object-store";
+import {
+  CloudflareObjectStore,
+  buildPresignedUrlConfig,
+} from "../runtime/cloudflare-object-store";
 import { CloudflareQueueService } from "../runtime/cloudflare-queue-service";
 import { createCodeModeExecutor } from "../runtime/code-mode-executor";
 import { createToolContext } from "../runtime/tool-context";
@@ -122,7 +125,10 @@ export class AgentRunner extends DurableObject<Bindings> {
     organizationId: string
   ): Promise<NodeToolProvider> {
     const nodeRegistry = new CloudflareNodeRegistry(this.env, false);
-    const objectStore = new CloudflareObjectStore(this.env.RESSOURCES);
+    const objectStore = new CloudflareObjectStore(
+      this.env.RESSOURCES,
+      buildPresignedUrlConfig(this.env)
+    );
     const credentialService = new CloudflareCredentialService(this.env);
     await credentialService.initialize(organizationId);
     const databaseService = new CloudflareDatabaseService(this.env);

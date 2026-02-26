@@ -46,6 +46,9 @@ importers:
       '@cloudflare/ai-utils':
         specifier: ^1.0.1
         version: 1.0.1
+      '@cloudflare/containers':
+        specifier: ^0.1.1
+        version: 0.1.1
       '@dafthunk/runtime':
         specifier: workspace:*
         version: link:../../packages/runtime
@@ -888,6 +891,9 @@ packages:
 
   '@cloudflare/ai-utils@1.0.1':
     resolution: {integrity: sha512-gmn16AvVqtMLcaBYvPkwEWui39E4hlcFPqXuVamKbGleIDO6hVpvAy3KCvbnoPVT7KqRcfdLLpHRIBQDwI9tWQ==}
+
+  '@cloudflare/containers@0.1.1':
+    resolution: {integrity: sha512-YTdobRTnTlUOUPMFemufH367A9Z8pDfZ+UboYMLbGpO0VlvEXZDiioSmXPQMHld2vRtkL31mcRii3bcbQU6fdw==}
 
   '@cloudflare/kv-asset-handler@0.4.2':
     resolution: {integrity: sha512-SIOD2DxrRRwQ+jgzlXCqoEFiKOFqaPjhnNTGKXSRLvp1HiOvapLaFG2kEr9dYQTYe8rKrd9uvDUzmAITeNyaHQ==}
@@ -6415,6 +6421,8 @@ snapshots:
     dependencies:
       yaml: 2.8.2
       zod: 3.25.76
+
+  '@cloudflare/containers@0.1.1': {}
 
   '@cloudflare/kv-asset-handler@0.4.2': {}
 

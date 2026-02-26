@@ -10,7 +10,10 @@ import { jwtMiddleware } from "../auth";
 import type { ApiContext } from "../context";
 import { CloudflareCredentialService } from "../runtime/cloudflare-credential-service";
 import { CloudflareNodeRegistry } from "../runtime/cloudflare-node-registry";
-import { CloudflareObjectStore } from "../runtime/cloudflare-object-store";
+import {
+  CloudflareObjectStore,
+  buildPresignedUrlConfig,
+} from "../runtime/cloudflare-object-store";
 import { CloudflareToolRegistry } from "../runtime/cloudflare-tool-registry";
 import { createToolContext } from "../runtime/tool-context";
 
@@ -58,7 +61,10 @@ playgroundRoutes.post("/", jwtMiddleware, async (c) => {
   }
 
   // Set up credential service and object store
-  const objectStore = new CloudflareObjectStore(c.env.RESSOURCES);
+  const objectStore = new CloudflareObjectStore(
+    c.env.RESSOURCES,
+    buildPresignedUrlConfig(c.env)
+  );
   const credentialService = new CloudflareCredentialService(c.env);
   await credentialService.initialize(organizationId);
   const toolRegistry = new CloudflareToolRegistry(

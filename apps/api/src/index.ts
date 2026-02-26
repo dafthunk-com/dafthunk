@@ -104,6 +104,7 @@ app.route("/:organizationIdOrHandle/ws", wsRoutes);
 export { Session as WorkflowSession };
 export { DatabaseDO };
 export { AgentRunner } from "./durable-objects/agent-runner";
+export { FFmpegContainer } from "./containers/ffmpeg-container";
 
 export default {
   email: handleIncomingEmail,

@@ -13,6 +13,31 @@ export interface PresignedUrlConfig {
 }
 
 /**
+ * Build PresignedUrlConfig from environment variables, if all required values are present.
+ */
+export function buildPresignedUrlConfig(env: {
+  CLOUDFLARE_ACCOUNT_ID?: string;
+  R2_ACCESS_KEY_ID?: string;
+  R2_SECRET_ACCESS_KEY?: string;
+  R2_BUCKET_NAME?: string;
+}): PresignedUrlConfig | undefined {
+  if (
+    !env.CLOUDFLARE_ACCOUNT_ID ||
+    !env.R2_ACCESS_KEY_ID ||
+    !env.R2_SECRET_ACCESS_KEY ||
+    !env.R2_BUCKET_NAME
+  ) {
+    return undefined;
+  }
+  return {
+    accountId: env.CLOUDFLARE_ACCOUNT_ID,
+    bucketName: env.R2_BUCKET_NAME,
+    accessKeyId: env.R2_ACCESS_KEY_ID,
+    secretAccessKey: env.R2_SECRET_ACCESS_KEY,
+  };
+}
+
+/**
  * R2-backed implementation of ObjectStore.
  * Manages R2 storage for objects, workflows, and executions.
  * Uses helper methods to eliminate duplication in logging and error handling.

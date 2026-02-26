@@ -195,6 +195,8 @@ export interface NodeEnv {
   DATABASE: DurableObjectNamespace<any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   AGENT_RUNNER: DurableObjectNamespace<any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  FFMPEG_CONTAINER?: DurableObjectNamespace<any>;
   WORKFLOW_QUEUE: Queue;
   EMAIL_DOMAIN: string;
   CLOUDFLARE_ACCOUNT_ID?: string;
