@@ -1,7 +1,7 @@
 import {
-  ExecutableNode,
   type ImageParameter,
-  type NodeContext,
+  MultiStepNode,
+  type MultiStepNodeContext,
   type VideoParameter,
 } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
@@ -46,7 +46,7 @@ const blobSchema = z
  * Supports text-to-video, image-to-video, and video-to-video generation.
  * @see https://replicate.com/xai/grok-imagine-video
  */
-export class GrokImagineVideoNode extends ExecutableNode {
+export class GrokImagineVideoNode extends MultiStepNode {
   private static readonly inputSchema = z.object({
     prompt: z.string().min(1),
     image: blobSchema,
@@ -125,7 +125,9 @@ export class GrokImagineVideoNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  async execute(context: MultiStepNodeContext): Promise<NodeExecution> {
+    const { sleep, doStep } = context;
+
     try {
       const validatedInput = GrokImagineVideoNode.inputSchema.parse(
         context.inputs
@@ -175,139 +177,99 @@ export class GrokImagineVideoNode extends ExecutableNode {
         );
       }
 
-      // Create prediction with sync mode (waits up to 60s)
-      const syncTimeout = 60;
-      const maxWaitTime = 600000; // 10 minutes total
-      const pollDelay = 10000; // 10 seconds between polls
-      const startTime = Date.now();
-
-      console.log("GrokImagineVideoNode: Creating prediction");
-
-      const createResponse = await fetch(
-        "https://api.replicate.com/v1/models/xai/grok-imagine-video/predictions",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${REPLICATE_API_TOKEN}`,
-            "Content-Type": "application/json",
-            Prefer: `wait=${syncTimeout}`,
-          },
-          body: JSON.stringify({ input }),
-        }
-      );
-
-      console.log(
-        "GrokImagineVideoNode: Create response status:",
-        createResponse.status
-      );
-
-      if (!createResponse.ok) {
-        const errorText = await createResponse.text();
-        console.error(
-          "GrokImagineVideoNode: Create prediction failed:",
-          errorText
-        );
-        return this.createErrorResult(
-          `Failed to create Replicate prediction: ${createResponse.status} ${errorText}`
-        );
-      }
-
-      let prediction = (await createResponse.json()) as ReplicatePrediction;
-      console.log(
-        "GrokImagineVideoNode: Initial prediction:",
-        JSON.stringify({
-          id: prediction.id,
-          status: prediction.status,
-        })
-      );
-
-      // Poll until completion or timeout
-      while (
-        prediction.status !== "succeeded" &&
-        prediction.status !== "failed" &&
-        prediction.status !== "canceled" &&
-        Date.now() - startTime < maxWaitTime
-      ) {
-        if (context.onProgress) {
-          const elapsed = Date.now() - startTime;
-          context.onProgress(Math.min(0.9, elapsed / maxWaitTime));
-        }
-
-        // Wait before polling
-        await new Promise((resolve) => setTimeout(resolve, pollDelay));
-
-        // Poll Replicate API for prediction status
-        const pollUrl = `https://api.replicate.com/v1/predictions/${prediction.id}`;
-        console.log("GrokImagineVideoNode: Polling:", pollUrl);
-
-        const pollResponse = await fetch(pollUrl, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${REPLICATE_API_TOKEN}`,
-            "Content-Type": "application/json",
-            Prefer: `wait=${syncTimeout}`,
-          },
-        });
-
-        console.log(
-          "GrokImagineVideoNode: Poll response status:",
-          pollResponse.status
+      // Create prediction (durable step — cached on replay)
+      const prediction = await doStep(async () => {
+        const response = await fetch(
+          "https://api.replicate.com/v1/models/xai/grok-imagine-video/predictions",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${REPLICATE_API_TOKEN}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ input }),
+          }
         );
 
-        if (!pollResponse.ok) {
-          const errorText = await pollResponse.text();
-          console.error("GrokImagineVideoNode: Poll failed:", errorText);
-          return this.createErrorResult(
-            `Failed to poll prediction status: ${pollResponse.status} ${errorText}`
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(
+            `Failed to create Replicate prediction: ${response.status} ${errorText}`
           );
         }
 
-        prediction = (await pollResponse.json()) as ReplicatePrediction;
-        console.log(
-          "GrokImagineVideoNode: Poll result:",
-          JSON.stringify({
-            id: prediction.id,
-            status: prediction.status,
-            hasOutput: !!prediction.output,
-          })
-        );
+        return (await response.json()) as ReplicatePrediction;
+      });
+
+      // Poll with durable sleep (zero compute cost between polls)
+      const maxPolls = 60;
+      let result = prediction;
+      for (
+        let i = 0;
+        i < maxPolls &&
+        result.status !== "succeeded" &&
+        result.status !== "failed" &&
+        result.status !== "canceled";
+        i++
+      ) {
+        await sleep(10_000);
+
+        result = await doStep(async () => {
+          const response = await fetch(
+            `https://api.replicate.com/v1/predictions/${prediction.id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${REPLICATE_API_TOKEN}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(
+              `Failed to poll prediction status: ${response.status} ${errorText}`
+            );
+          }
+
+          return (await response.json()) as ReplicatePrediction;
+        });
       }
 
-      if (prediction.status === "failed") {
+      if (result.status === "failed") {
         return this.createErrorResult(
-          `Grok Imagine Video generation failed: ${prediction.error || "Unknown error"}`
+          `Grok Imagine Video generation failed: ${result.error || "Unknown error"}`
         );
       }
 
-      if (prediction.status === "canceled") {
+      if (result.status === "canceled") {
         return this.createErrorResult(
           "Grok Imagine Video generation was canceled"
         );
       }
 
-      if (prediction.status !== "succeeded") {
+      if (result.status !== "succeeded") {
         return this.createErrorResult(
-          `Grok Imagine Video generation timed out after ${maxWaitTime / 60000} minutes`
+          "Grok Imagine Video generation timed out after 10 minutes"
         );
       }
 
-      if (!prediction.output) {
+      if (!result.output) {
         return this.createErrorResult(
           "Grok Imagine Video generation succeeded but no output was returned"
         );
       }
 
-      // Download the video file
-      const videoResponse = await fetch(prediction.output);
+      // Download the video file (outside doStep — binary data is too large
+      // for SQLite persistence; re-downloading on replay is fine)
+      const videoResponse = await fetch(result.output);
       if (!videoResponse.ok) {
-        return this.createErrorResult(
+        throw new Error(
           `Failed to download video file: ${videoResponse.status}`
         );
       }
       const videoData = new Uint8Array(await videoResponse.arrayBuffer());
-
-      // Determine mime type from response or default to mp4
-      const contentType =
+      const videoMimeType =
         videoResponse.headers.get("content-type") || "video/mp4";
 
       const usage = Math.max(
@@ -319,7 +281,7 @@ export class GrokImagineVideoNode extends ExecutableNode {
         {
           video: {
             data: videoData,
-            mimeType: contentType,
+            mimeType: videoMimeType,
           },
         },
         usage

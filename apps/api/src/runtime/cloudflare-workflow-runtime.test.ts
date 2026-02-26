@@ -144,3 +144,8 @@ testStateConsistency(runtimeName, factory);
 testStatusComputation(runtimeName, factory);
 testTopologicalOrdering(runtimeName, factory);
 testWorkflowValidation(runtimeName, factory);
+// Note: testMultiStepExecution is not included here because the WorkflowsRuntimeAdapter
+// reconstructs results from step introspection (waitForStepResult("run node <id>")),
+// which doesn't work for multi-step nodes — they manage their own sub-steps instead of
+// being wrapped in a single "run node" step. Multi-step behavior is validated by the
+// WorkerRuntime tests which use the actual runtime directly.

@@ -28,6 +28,8 @@ export interface AgentToolCall {
   id: string;
   name: string;
   arguments: Record<string, unknown>;
+  /** Gemini 3.x thought signature — must be echoed back in subsequent turns */
+  thoughtSignature?: string;
 }
 
 export interface AgentStep {

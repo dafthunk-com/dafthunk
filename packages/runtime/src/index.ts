@@ -76,6 +76,7 @@ export type {
   HttpRequest,
   ImageParameter,
   IntegrationInfo,
+  MultiStepNodeContext,
   NodeContext,
   NodeEnv,
   ParameterType,
@@ -88,6 +89,7 @@ export {
   ExecutableNode,
   isBlobParameter,
   isObjectReference,
+  MultiStepNode,
   toUint8Array,
 } from "./node-types";
 export type { ObjectMetadata, ObjectStore } from "./object-store";
@@ -107,6 +109,11 @@ export {
 } from "./specification/helpers";
 export { testInputCollection } from "./specification/input-collection-spec";
 export { testMonitoringUpdates } from "./specification/monitoring-updates-spec";
+export { testMultiStepExecution } from "./specification/multi-step-execution-spec";
+export {
+  FailingMultiStepNode,
+  MultiStepAdditionNode,
+} from "./specification/multi-step-test-nodes";
 export { testNodeExecutionErrors } from "./specification/node-execution-errors-spec";
 export { testOutputHandling } from "./specification/output-handling-spec";
 export { testParallelExecution } from "./specification/parallel-execution-spec";

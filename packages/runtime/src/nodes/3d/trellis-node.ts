@@ -1,4 +1,4 @@
-import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
+import { MultiStepNode, type MultiStepNodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
 import { z } from "zod";
 
@@ -24,7 +24,7 @@ interface ReplicatePrediction {
  * Accepts image blobs, uploads them to R2 with presigned URLs for Replicate access.
  * @see https://replicate.com/firtoz/trellis
  */
-export class TrellisNode extends ExecutableNode {
+export class TrellisNode extends MultiStepNode {
   private static readonly inputSchema = z.object({
     images: z.array(
       z.object({
@@ -135,7 +135,9 @@ export class TrellisNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  async execute(context: MultiStepNodeContext): Promise<NodeExecution> {
+    const { sleep, doStep } = context;
+
     try {
       const validatedInput = TrellisNode.inputSchema.parse(context.inputs);
 
@@ -166,161 +168,119 @@ export class TrellisNode extends ExecutableNode {
         return this.createErrorResult("At least one image is required");
       }
 
-      console.log("TrellisNode: Uploaded", imageUrls.length, "images");
-
-      // Create prediction with sync mode (waits up to 60s)
-      const syncTimeout = 60;
-      const maxWaitTime = 600000; // 10 minutes total
-      const startTime = Date.now();
-
-      console.log("TrellisNode: Creating prediction");
-      console.log("TrellisNode: Image URLs:", imageUrls);
-
-      const createResponse = await fetch(
-        "https://api.replicate.com/v1/predictions",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${REPLICATE_API_TOKEN}`,
-            "Content-Type": "application/json",
-            Prefer: `wait=${syncTimeout}`,
-          },
-          body: JSON.stringify({
-            version:
-              "e8f6c45206993f297372f5436b90350817bd9b4a0d52d2a76df50c1c8afa2b3c",
-            input: {
-              images: imageUrls,
-              seed: validatedInput.seed,
-              randomize_seed: validatedInput.randomize_seed,
-              generate_color: true,
-              generate_normal: false,
-              generate_model: true,
-              save_gaussian_ply: false,
-              texture_size: validatedInput.texture_size,
-              mesh_simplify: validatedInput.mesh_simplify,
-              ss_sampling_steps: validatedInput.ss_sampling_steps,
-              slat_sampling_steps: validatedInput.slat_sampling_steps,
-              ss_guidance_strength: validatedInput.ss_guidance_strength,
-              slat_guidance_strength: validatedInput.slat_guidance_strength,
+      // Create prediction (durable step — cached on replay)
+      const prediction = await doStep(async () => {
+        const response = await fetch(
+          "https://api.replicate.com/v1/predictions",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${REPLICATE_API_TOKEN}`,
+              "Content-Type": "application/json",
             },
-          }),
-        }
-      );
-
-      console.log(
-        "TrellisNode: Create response status:",
-        createResponse.status
-      );
-
-      if (!createResponse.ok) {
-        const errorText = await createResponse.text();
-        console.error("TrellisNode: Create prediction failed:", errorText);
-        return this.createErrorResult(
-          `Failed to create Replicate prediction: ${createResponse.status} ${errorText}`
+            body: JSON.stringify({
+              version:
+                "e8f6c45206993f297372f5436b90350817bd9b4a0d52d2a76df50c1c8afa2b3c",
+              input: {
+                images: imageUrls,
+                seed: validatedInput.seed,
+                randomize_seed: validatedInput.randomize_seed,
+                generate_color: true,
+                generate_normal: false,
+                generate_model: true,
+                save_gaussian_ply: false,
+                texture_size: validatedInput.texture_size,
+                mesh_simplify: validatedInput.mesh_simplify,
+                ss_sampling_steps: validatedInput.ss_sampling_steps,
+                slat_sampling_steps: validatedInput.slat_sampling_steps,
+                ss_guidance_strength: validatedInput.ss_guidance_strength,
+                slat_guidance_strength: validatedInput.slat_guidance_strength,
+              },
+            }),
+          }
         );
-      }
 
-      let prediction = (await createResponse.json()) as ReplicatePrediction;
-      console.log(
-        "TrellisNode: Initial prediction:",
-        JSON.stringify({
-          id: prediction.id,
-          status: prediction.status,
-        })
-      );
-
-      // Poll until completion or timeout
-      while (
-        prediction.status !== "succeeded" &&
-        prediction.status !== "failed" &&
-        prediction.status !== "canceled" &&
-        Date.now() - startTime < maxWaitTime
-      ) {
-        if (context.onProgress) {
-          const elapsed = Date.now() - startTime;
-          context.onProgress(Math.min(0.9, elapsed / maxWaitTime));
-        }
-
-        // Poll Replicate API for prediction status
-        const pollUrl = `https://api.replicate.com/v1/predictions/${prediction.id}`;
-        console.log("TrellisNode: Polling:", pollUrl);
-
-        const pollResponse = await fetch(pollUrl, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${REPLICATE_API_TOKEN}`,
-            "Content-Type": "application/json",
-            Prefer: `wait=${syncTimeout}`,
-          },
-        });
-
-        console.log("TrellisNode: Poll response status:", pollResponse.status);
-
-        if (!pollResponse.ok) {
-          const errorText = await pollResponse.text();
-          console.error("TrellisNode: Poll failed:", errorText);
-          return this.createErrorResult(
-            `Failed to poll prediction status: ${pollResponse.status} ${errorText}`
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(
+            `Failed to create Replicate prediction: ${response.status} ${errorText}`
           );
         }
 
-        prediction = (await pollResponse.json()) as ReplicatePrediction;
-        console.log(
-          "TrellisNode: Poll result:",
-          JSON.stringify({
-            id: prediction.id,
-            status: prediction.status,
-            hasOutput: !!prediction.output,
-          })
-        );
+        return (await response.json()) as ReplicatePrediction;
+      });
 
-        // Add a minimum delay between polls to avoid hitting subrequest limits
-        // The Prefer header should already throttle, but this is a safety net
-        // For 6-7 min execution time, 10s delay = ~42 polls max (well under 1000 paid tier limit)
-        if (
-          prediction.status !== "succeeded" &&
-          prediction.status !== "failed" &&
-          prediction.status !== "canceled"
-        ) {
-          await new Promise((resolve) => setTimeout(resolve, 10000)); // 10 second delay
-        }
+      // Poll with durable sleep (zero compute cost between polls)
+      const maxPolls = 60;
+      let result = prediction;
+      for (
+        let i = 0;
+        i < maxPolls &&
+        result.status !== "succeeded" &&
+        result.status !== "failed" &&
+        result.status !== "canceled";
+        i++
+      ) {
+        await sleep(10_000);
+
+        result = await doStep(async () => {
+          const response = await fetch(
+            `https://api.replicate.com/v1/predictions/${prediction.id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${REPLICATE_API_TOKEN}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(
+              `Failed to poll prediction status: ${response.status} ${errorText}`
+            );
+          }
+
+          return (await response.json()) as ReplicatePrediction;
+        });
       }
 
-      if (prediction.status === "failed") {
+      if (result.status === "failed") {
         return this.createErrorResult(
-          `Trellis generation failed: ${prediction.error || "Unknown error"}`
+          `Trellis generation failed: ${result.error || "Unknown error"}`
         );
       }
 
-      if (prediction.status === "canceled") {
+      if (result.status === "canceled") {
         return this.createErrorResult("Trellis generation was canceled");
       }
 
-      if (prediction.status !== "succeeded") {
+      if (result.status !== "succeeded") {
         return this.createErrorResult(
-          `Trellis generation timed out after ${maxWaitTime / 60000} minutes`
+          "Trellis generation timed out after 10 minutes"
         );
       }
 
-      if (!prediction.output?.model_file) {
+      const modelFileUrl = result.output?.model_file;
+      if (!modelFileUrl) {
         return this.createErrorResult(
           "Trellis generation succeeded but no model file was returned"
         );
       }
 
-      // Download the GLB model file
-      const modelResponse = await fetch(prediction.output.model_file);
+      // Download outputs (outside doStep — binary data is too large
+      // for SQLite persistence; re-downloading on replay is fine)
+      const modelResponse = await fetch(modelFileUrl);
       if (!modelResponse.ok) {
-        return this.createErrorResult(
+        throw new Error(
           `Failed to download model file: ${modelResponse.status}`
         );
       }
       const modelData = new Uint8Array(await modelResponse.arrayBuffer());
 
-      // Download video if available
       let videoData: Uint8Array | undefined;
       const videoUrl =
-        prediction.output.color_video || prediction.output.combined_video;
+        result.output?.color_video || result.output?.combined_video;
       if (videoUrl) {
         const videoResponse = await fetch(videoUrl);
         if (videoResponse.ok) {

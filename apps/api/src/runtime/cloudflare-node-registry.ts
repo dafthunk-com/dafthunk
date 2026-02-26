@@ -19,11 +19,17 @@
 // import { GeoTiffTransformNode } from "@dafthunk/runtime/nodes/3d/geotiff-transform-node";
 // import { GltfWireframeNode } from "@dafthunk/runtime/nodes/3d/gltf-wireframe-node";
 
-import { BaseNodeRegistry } from "@dafthunk/runtime";
+import {
+  BaseNodeRegistry,
+  FailingMultiStepNode,
+  MultiStepAdditionNode,
+} from "@dafthunk/runtime";
 import { TrellisNode } from "@dafthunk/runtime/nodes/3d/trellis-node";
 import { Trellis2Node } from "@dafthunk/runtime/nodes/3d/trellis2-node";
 import { AgentClaudeSonnet4Node } from "@dafthunk/runtime/nodes/agent/agent-claude-sonnet-4-node";
 import { AgentGemini25FlashNode } from "@dafthunk/runtime/nodes/agent/agent-gemini-2-5-flash-node";
+import { AgentGemini31ProNode } from "@dafthunk/runtime/nodes/agent/agent-gemini-3-1-pro-node";
+import { AgentGemini3FlashNode } from "@dafthunk/runtime/nodes/agent/agent-gemini-3-flash-node";
 import { AgentGpt41Node } from "@dafthunk/runtime/nodes/agent/agent-gpt-41-node";
 import { AgentQwen330BA3BFp8Node } from "@dafthunk/runtime/nodes/agent/agent-qwen3-30b-a3b-fp8-node";
 import { Claude3OpusNode } from "@dafthunk/runtime/nodes/anthropic/claude-3-opus-node";
@@ -102,6 +108,9 @@ import { Gemini25FlashTtsNode } from "@dafthunk/runtime/nodes/gemini/gemini-2-5-
 import { Gemini25ProAudioUnderstandingNode } from "@dafthunk/runtime/nodes/gemini/gemini-2-5-pro-audio-understanding-node";
 import { Gemini25ProImageUnderstandingNode } from "@dafthunk/runtime/nodes/gemini/gemini-2-5-pro-image-understanding-node";
 import { Gemini25ProNode } from "@dafthunk/runtime/nodes/gemini/gemini-2-5-pro-node";
+import { Gemini31FlashImagePreviewNode } from "@dafthunk/runtime/nodes/gemini/gemini-3-1-flash-image-preview-node";
+import { Gemini31ProNode } from "@dafthunk/runtime/nodes/gemini/gemini-3-1-pro-node";
+import { Gemini3FlashNode } from "@dafthunk/runtime/nodes/gemini/gemini-3-flash-node";
 import { Gemini3ProImagePreviewNode } from "@dafthunk/runtime/nodes/gemini/gemini-3-pro-image-preview-node";
 import { ImagenNode } from "@dafthunk/runtime/nodes/gemini/imagen-node";
 // import { AlongNode } from "@dafthunk/runtime/nodes/geo/along-node";
@@ -680,6 +689,10 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(FetchNode);
     this.registerImplementation(HttpResponseNode);
 
+    // Specification test nodes (multi-step)
+    this.registerImplementation(MultiStepAdditionNode);
+    this.registerImplementation(FailingMultiStepNode);
+
     // Conditional registrations based on environment
     if (hasCloudflare) {
       this.registerImplementation(CloudflareBrowserContentNode);
@@ -941,7 +954,10 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     // Google Gemini nodes - always register (users can provide API keys via secrets)
     this.registerImplementation(Gemini25FlashNode);
     this.registerImplementation(Gemini25ProNode);
+    this.registerImplementation(Gemini3FlashNode);
+    this.registerImplementation(Gemini31ProNode);
     this.registerImplementation(Gemini25FlashImagePreviewNode);
+    this.registerImplementation(Gemini31FlashImagePreviewNode);
     this.registerImplementation(Gemini3ProImagePreviewNode);
     this.registerImplementation(Gemini25FlashAudioUnderstandingNode);
     this.registerImplementation(Gemini25ProAudioUnderstandingNode);
@@ -975,6 +991,8 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     // Agent nodes — multi-turn agentic execution via Durable Object
     this.registerImplementation(AgentClaudeSonnet4Node);
     this.registerImplementation(AgentGemini25FlashNode);
+    this.registerImplementation(AgentGemini3FlashNode);
+    this.registerImplementation(AgentGemini31ProNode);
     this.registerImplementation(AgentGpt41Node);
     this.registerImplementation(AgentQwen330BA3BFp8Node);
   }

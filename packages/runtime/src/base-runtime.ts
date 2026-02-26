@@ -42,6 +42,7 @@ import type {
   NodeContext,
   NodeEnv,
 } from "./node-types";
+import { MultiStepNode } from "./node-types";
 import type { ObjectStore } from "./object-store";
 import { apiToNodeParameter, nodeToApiParameter } from "./parameter-mapper";
 import type { QueueService } from "./queue-service";
@@ -182,6 +183,30 @@ export abstract class Runtime<Env = unknown> {
     name: string,
     eventType: string,
     timeout: string
+  ): Promise<T>;
+
+  /**
+   * Suspends execution for the given duration with zero compute cost.
+   * Used by multi-step nodes to sleep between polling intervals.
+   *
+   * **WorkflowRuntime**: Delegates to `step.sleep()` (durable, zero compute).
+   * **WorkerRuntime**: Falls back to `setTimeout` (non-durable).
+   */
+  protected abstract executeSleep(
+    name: string,
+    durationMs: number
+  ): Promise<void>;
+
+  /**
+   * Executes a function as a durable sub-step within a multi-step node.
+   * The result is cached and replayed on workflow restart.
+   *
+   * **WorkflowRuntime**: Delegates to `step.do()` (durable, cached).
+   * **WorkerRuntime**: Calls the function directly (no durability).
+   */
+  protected abstract executeSubStep<T>(
+    name: string,
+    fn: () => Promise<T>
   ): Promise<T>;
 
   /**
@@ -459,7 +484,12 @@ export abstract class Runtime<Env = unknown> {
       // Execute all nodes in this level in parallel, collecting results
       const results = await Promise.all(
         level.nodeIds.map(async (nodeId) => {
-          // Each node gets its own durable step
+          const node = context.workflow.nodes.find((n) => n.id === nodeId);
+          if (node && this.nodeRegistry.isMultiStep(node.type)) {
+            // Multi-step: node manages its own steps via context.sleep/doStep
+            return this.executeSingleNode(context, state, nodeId);
+          }
+          // Regular: wrap entire execution in a single durable step
           return this.executeStep(`run node ${nodeId}`, async () => {
             return this.executeSingleNode(context, state, nodeId);
           });
@@ -882,6 +912,21 @@ export abstract class Runtime<Env = unknown> {
           this.credentialProvider.getIntegration(integrationId),
         env: this.env as NodeEnv,
       };
+
+      // Populate step primitives for multi-step nodes
+      if (executable instanceof MultiStepNode) {
+        let sleepCounter = 0;
+        let stepCounter = 0;
+        nodeContext.sleep = async (durationMs: number) => {
+          await this.executeSleep(
+            `${node.id}-sleep-${sleepCounter++}`,
+            durationMs
+          );
+        };
+        nodeContext.doStep = async <T>(fn: () => Promise<T>): Promise<T> => {
+          return this.executeSubStep(`${node.id}-step-${stepCounter++}`, fn);
+        };
+      }
 
       const result = await executable.execute(nodeContext);
 

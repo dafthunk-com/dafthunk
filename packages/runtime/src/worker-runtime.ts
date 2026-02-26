@@ -36,6 +36,20 @@ export class WorkerRuntime<Env = unknown> extends Runtime<Env> {
     throw new Error("Async node execution is not supported in WorkerRuntime");
   }
 
+  protected async executeSleep(
+    _name: string,
+    durationMs: number
+  ): Promise<void> {
+    await new Promise((resolve) => setTimeout(resolve, durationMs));
+  }
+
+  protected async executeSubStep<T>(
+    _name: string,
+    fn: () => Promise<T>
+  ): Promise<T> {
+    return await fn();
+  }
+
   /**
    * Implements step execution by directly calling the function.
    * No durability or retries - execution is synchronous and ephemeral.

@@ -16,6 +16,7 @@ import {
   testFailingExecution,
   testInputCollection,
   testMonitoringUpdates,
+  testMultiStepExecution,
   testNodeExecutionErrors,
   testOutputHandling,
   testParallelExecution,
@@ -48,3 +49,4 @@ testStateConsistency(runtimeName, factory);
 testStatusComputation(runtimeName, factory);
 testTopologicalOrdering(runtimeName, factory);
 testWorkflowValidation(runtimeName, factory);
+testMultiStepExecution(runtimeName, factory);

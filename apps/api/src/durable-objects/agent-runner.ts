@@ -632,6 +632,9 @@ export class AgentRunner extends DurableObject<Bindings> {
           for (const tc of m.toolCalls) {
             parts.push({
               functionCall: { name: tc.name, args: tc.arguments },
+              ...(tc.thoughtSignature && {
+                thoughtSignature: tc.thoughtSignature,
+              }),
             });
           }
         }
@@ -684,6 +687,9 @@ export class AgentRunner extends DurableObject<Bindings> {
             id: `gemini_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
             name: part.functionCall.name,
             arguments: part.functionCall.args ?? {},
+            ...(part.thoughtSignature && {
+              thoughtSignature: part.thoughtSignature,
+            }),
           });
         }
       }

@@ -1,7 +1,7 @@
 import {
-  ExecutableNode,
   type ImageParameter,
-  type NodeContext,
+  MultiStepNode,
+  type MultiStepNodeContext,
 } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
 import { z } from "zod";
@@ -38,7 +38,7 @@ const blobSchema = z
  *
  * @see https://replicate.com/google/veo-3.1
  */
-export class Veo31Node extends ExecutableNode {
+export class Veo31Node extends MultiStepNode {
   private static readonly inputSchema = z.object({
     prompt: z.string().min(1),
     image: blobSchema,
@@ -165,7 +165,9 @@ export class Veo31Node extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  async execute(context: MultiStepNodeContext): Promise<NodeExecution> {
+    const { sleep, doStep } = context;
+
     try {
       const validatedInput = Veo31Node.inputSchema.parse(context.inputs);
 
@@ -246,128 +248,97 @@ export class Veo31Node extends ExecutableNode {
         input.reference_images = referenceImages;
       }
 
-      // Create prediction with sync mode (waits up to 60s)
-      const syncTimeout = 60;
-      const maxWaitTime = 600000; // 10 minutes total
-      const pollDelay = 10000; // 10 seconds between polls
-      const startTime = Date.now();
-
-      console.log("Veo31Node: Creating prediction");
-
-      const createResponse = await fetch(
-        "https://api.replicate.com/v1/models/google/veo-3.1/predictions",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${REPLICATE_API_TOKEN}`,
-            "Content-Type": "application/json",
-            Prefer: `wait=${syncTimeout}`,
-          },
-          body: JSON.stringify({ input }),
-        }
-      );
-
-      console.log("Veo31Node: Create response status:", createResponse.status);
-
-      if (!createResponse.ok) {
-        const errorText = await createResponse.text();
-        console.error("Veo31Node: Create prediction failed:", errorText);
-        return this.createErrorResult(
-          `Failed to create Replicate prediction: ${createResponse.status} ${errorText}`
+      // Create prediction (durable step — cached on replay)
+      const prediction = await doStep(async () => {
+        const response = await fetch(
+          "https://api.replicate.com/v1/models/google/veo-3.1/predictions",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${REPLICATE_API_TOKEN}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ input }),
+          }
         );
-      }
 
-      let prediction = (await createResponse.json()) as ReplicatePrediction;
-      console.log(
-        "Veo31Node: Initial prediction:",
-        JSON.stringify({
-          id: prediction.id,
-          status: prediction.status,
-        })
-      );
-
-      // Poll until completion or timeout
-      while (
-        prediction.status !== "succeeded" &&
-        prediction.status !== "failed" &&
-        prediction.status !== "canceled" &&
-        Date.now() - startTime < maxWaitTime
-      ) {
-        if (context.onProgress) {
-          const elapsed = Date.now() - startTime;
-          context.onProgress(Math.min(0.9, elapsed / maxWaitTime));
-        }
-
-        // Wait before polling
-        await new Promise((resolve) => setTimeout(resolve, pollDelay));
-
-        // Poll Replicate API for prediction status
-        const pollUrl = `https://api.replicate.com/v1/predictions/${prediction.id}`;
-        console.log("Veo31Node: Polling:", pollUrl);
-
-        const pollResponse = await fetch(pollUrl, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${REPLICATE_API_TOKEN}`,
-            "Content-Type": "application/json",
-            Prefer: `wait=${syncTimeout}`,
-          },
-        });
-
-        console.log("Veo31Node: Poll response status:", pollResponse.status);
-
-        if (!pollResponse.ok) {
-          const errorText = await pollResponse.text();
-          console.error("Veo31Node: Poll failed:", errorText);
-          return this.createErrorResult(
-            `Failed to poll prediction status: ${pollResponse.status} ${errorText}`
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(
+            `Failed to create Replicate prediction: ${response.status} ${errorText}`
           );
         }
 
-        prediction = (await pollResponse.json()) as ReplicatePrediction;
-        console.log(
-          "Veo31Node: Poll result:",
-          JSON.stringify({
-            id: prediction.id,
-            status: prediction.status,
-            hasOutput: !!prediction.output,
-          })
-        );
+        return (await response.json()) as ReplicatePrediction;
+      });
+
+      // Poll with durable sleep (zero compute cost between polls)
+      const maxPolls = 60;
+      let result = prediction;
+      for (
+        let i = 0;
+        i < maxPolls &&
+        result.status !== "succeeded" &&
+        result.status !== "failed" &&
+        result.status !== "canceled";
+        i++
+      ) {
+        await sleep(10_000);
+
+        result = await doStep(async () => {
+          const response = await fetch(
+            `https://api.replicate.com/v1/predictions/${prediction.id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${REPLICATE_API_TOKEN}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(
+              `Failed to poll prediction status: ${response.status} ${errorText}`
+            );
+          }
+
+          return (await response.json()) as ReplicatePrediction;
+        });
       }
 
-      if (prediction.status === "failed") {
+      if (result.status === "failed") {
         return this.createErrorResult(
-          `Veo 3.1 video generation failed: ${prediction.error || "Unknown error"}`
+          `Veo 3.1 video generation failed: ${result.error || "Unknown error"}`
         );
       }
 
-      if (prediction.status === "canceled") {
+      if (result.status === "canceled") {
         return this.createErrorResult("Veo 3.1 video generation was canceled");
       }
 
-      if (prediction.status !== "succeeded") {
+      if (result.status !== "succeeded") {
         return this.createErrorResult(
-          `Veo 3.1 video generation timed out after ${maxWaitTime / 60000} minutes`
+          "Veo 3.1 video generation timed out after 10 minutes"
         );
       }
 
-      if (!prediction.output) {
+      if (!result.output) {
         return this.createErrorResult(
           "Veo 3.1 video generation succeeded but no output was returned"
         );
       }
 
-      // Download the video file
-      const videoResponse = await fetch(prediction.output);
+      // Download the video file (outside doStep — binary data is too large
+      // for SQLite persistence; re-downloading on replay is fine)
+      const videoResponse = await fetch(result.output);
       if (!videoResponse.ok) {
-        return this.createErrorResult(
+        throw new Error(
           `Failed to download video file: ${videoResponse.status}`
         );
       }
       const videoData = new Uint8Array(await videoResponse.arrayBuffer());
-
-      // Determine mime type from response or default to mp4
-      const contentType =
+      const videoMimeType =
         videoResponse.headers.get("content-type") || "video/mp4";
 
       const usage = Math.max(
@@ -379,7 +350,7 @@ export class Veo31Node extends ExecutableNode {
         {
           video: {
             data: videoData,
-            mimeType: contentType,
+            mimeType: videoMimeType,
           },
         },
         usage

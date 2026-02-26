@@ -113,6 +113,32 @@ class MockWorkflowRuntime extends Runtime<Bindings> {
       fn
     )) as T;
   }
+
+  protected async executeSleep(
+    name: string,
+    durationMs: number
+  ): Promise<void> {
+    if (!this.currentStep) {
+      throw new Error("executeSleep called without workflow step context");
+    }
+    const seconds = Math.max(1, Math.ceil(durationMs / 1000));
+    await this.currentStep.sleep(name, `${seconds} seconds`);
+  }
+
+  protected async executeSubStep<T>(
+    name: string,
+    fn: () => Promise<T>
+  ): Promise<T> {
+    if (!this.currentStep) {
+      throw new Error("executeSubStep called without workflow step context");
+    }
+    return (await this.currentStep.do(
+      name,
+      MockWorkflowRuntime.defaultStepConfig,
+      // @ts-expect-error - TS2345: Cloudflare Workflows requires Serializable types
+      fn
+    )) as T;
+  }
 }
 
 /**

@@ -1,4 +1,8 @@
-import { BaseNodeRegistry } from "@dafthunk/runtime";
+import {
+  BaseNodeRegistry,
+  FailingMultiStepNode,
+  MultiStepAdditionNode,
+} from "@dafthunk/runtime";
 import { NumberInputNode } from "@dafthunk/runtime/nodes/input/number-input-node";
 import { ConditionalForkNode } from "@dafthunk/runtime/nodes/logic/conditional-fork-node";
 import { ConditionalJoinNode } from "@dafthunk/runtime/nodes/logic/conditional-join-node";
@@ -26,6 +30,7 @@ import type { Bindings } from "../context";
  * - Number Input
  * - Sum, Max, Min, Avg, Median
  * - Conditional Fork, Conditional Join
+ * - Multi-Step Addition, Failing Multi-Step (test nodes)
  */
 export class MockNodeRegistry extends BaseNodeRegistry<Bindings> {
   protected registerNodes(): void {
@@ -41,5 +46,7 @@ export class MockNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(MedianNode);
     this.registerImplementation(ConditionalForkNode);
     this.registerImplementation(ConditionalJoinNode);
+    this.registerImplementation(MultiStepAdditionNode);
+    this.registerImplementation(FailingMultiStepNode);
   }
 }

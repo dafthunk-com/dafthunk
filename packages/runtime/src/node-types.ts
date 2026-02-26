@@ -236,6 +236,18 @@ export interface NodeContext {
   getSecret?: (secretName: string) => Promise<string | undefined>;
   getIntegration: (integrationId: string) => Promise<IntegrationInfo>;
   env: NodeEnv;
+  // Multi-step execution primitives (populated for MultiStepNode instances)
+  sleep?: (durationMs: number) => Promise<void>;
+  doStep?: <T>(fn: () => Promise<T>) => Promise<T>;
+}
+
+/**
+ * Context for multi-step nodes with guaranteed access to step primitives.
+ * Nodes extending MultiStepNode receive this context instead of NodeContext.
+ */
+export interface MultiStepNodeContext extends NodeContext {
+  sleep: (durationMs: number) => Promise<void>;
+  doStep: <T>(fn: () => Promise<T>) => Promise<T>;
 }
 
 /**
@@ -391,4 +403,21 @@ export abstract class ExecutableNode {
       return [];
     }
   }
+}
+
+/**
+ * Base class for nodes that manage their own durable execution steps.
+ *
+ * Multi-step nodes break execution into multiple sub-steps via `doStep()`
+ * and can sleep durably between them via `sleep()`. The runtime skips
+ * the outer durable step wrapper, giving the node fine-grained control
+ * over what gets cached and replayed.
+ *
+ * Subclasses implement `execute(context: MultiStepNodeContext)` where
+ * `sleep` and `doStep` are guaranteed to be present.
+ */
+export abstract class MultiStepNode extends ExecutableNode {
+  public abstract override execute(
+    context: MultiStepNodeContext
+  ): Promise<NodeExecution>;
 }

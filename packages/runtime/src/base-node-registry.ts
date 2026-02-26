@@ -1,6 +1,7 @@
 import type { Node, NodeType, WorkflowTrigger } from "@dafthunk/types";
 
 import type { ExecutableNode } from "./node-types";
+import { MultiStepNode } from "./node-types";
 
 export interface NodeImplementationConstructor<Env = unknown> {
   new (node: Node, env?: Env): ExecutableNode;
@@ -67,6 +68,15 @@ export abstract class BaseNodeRegistry<Env = unknown> {
         !nodeType.compatibility ||
         nodeType.compatibility.includes(workflowTrigger)
     );
+  }
+
+  /**
+   * Check if a node type extends MultiStepNode (manages its own durable steps)
+   */
+  public isMultiStep(type: string): boolean {
+    const Implementation = this.implementations.get(type);
+    if (!Implementation) return false;
+    return Implementation.prototype instanceof MultiStepNode;
   }
 
   /**
