@@ -36,8 +36,8 @@ import { CloudflareDatabaseService } from "../runtime/cloudflare-database-servic
 import { CloudflareDatasetService } from "../runtime/cloudflare-dataset-service";
 import { CloudflareNodeRegistry } from "../runtime/cloudflare-node-registry";
 import {
-  CloudflareObjectStore,
   buildPresignedUrlConfig,
+  CloudflareObjectStore,
 } from "../runtime/cloudflare-object-store";
 import { CloudflareQueueService } from "../runtime/cloudflare-queue-service";
 import { createCodeModeExecutor } from "../runtime/code-mode-executor";

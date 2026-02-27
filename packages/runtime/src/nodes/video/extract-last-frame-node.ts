@@ -117,9 +117,7 @@ export class ExtractLastFrameNode extends MultiStepNode {
         result = await doStep(async () => {
           const id = containerBinding.idFromName("default");
           const stub = containerBinding.get(id);
-          const response = await stub.fetch(
-            `http://container/jobs/${job.id}`
-          );
+          const response = await stub.fetch(`http://container/jobs/${job.id}`);
 
           if (!response.ok) {
             const errorText = await response.text();

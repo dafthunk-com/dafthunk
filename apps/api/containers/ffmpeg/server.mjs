@@ -1,8 +1,8 @@
-import { createServer } from "node:http";
 import { execFile } from "node:child_process";
-import { writeFile, readFile, mkdir, rm } from "node:fs/promises";
-import { join } from "node:path";
 import { randomUUID } from "node:crypto";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { createServer } from "node:http";
+import { join } from "node:path";
 
 const WORK_DIR = "/tmp/ffmpeg-jobs";
 const jobs = new Map();
@@ -53,7 +53,10 @@ const server = createServer(async (req, res) => {
           jobs.delete(id);
           res.writeHead(400, { "Content-Type": "application/json" });
           res.end(
-            JSON.stringify({ error: 'Missing video or invalid position (use "first" or "last")' })
+            JSON.stringify({
+              error:
+                'Missing video or invalid position (use "first" or "last")',
+            })
           );
           return;
         }
@@ -64,7 +67,12 @@ const server = createServer(async (req, res) => {
           await rm(jobDir, { recursive: true, force: true });
           jobs.delete(id);
           res.writeHead(400, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ error: "Missing video or invalid time (must be a non-negative number in seconds)" }));
+          res.end(
+            JSON.stringify({
+              error:
+                "Missing video or invalid time (must be a non-negative number in seconds)",
+            })
+          );
           return;
         }
         processor = processFrameAtTime(id, jobDir, video, time);
@@ -333,7 +341,18 @@ function runFFmpegClip(inputPath, outputPath, start, end, includeAudio) {
 function runFFmpegFrame(inputPath, outputPath, position) {
   const args =
     position === "last"
-      ? ["-sseof", "-0.1", "-i", inputPath, "-vframes", "1", "-q:v", "2", "-y", outputPath]
+      ? [
+          "-sseof",
+          "-0.1",
+          "-i",
+          inputPath,
+          "-vframes",
+          "1",
+          "-q:v",
+          "2",
+          "-y",
+          outputPath,
+        ]
       : ["-i", inputPath, "-vframes", "1", "-q:v", "2", "-y", outputPath];
 
   return new Promise((resolve, reject) => {
@@ -350,11 +369,16 @@ function runFFmpegFrame(inputPath, outputPath, position) {
  */
 function runFFmpegFrameAtTime(inputPath, outputPath, time) {
   const args = [
-    "-ss", String(time),
-    "-i", inputPath,
-    "-vframes", "1",
-    "-q:v", "2",
-    "-y", outputPath,
+    "-ss",
+    String(time),
+    "-i",
+    inputPath,
+    "-vframes",
+    "1",
+    "-q:v",
+    "2",
+    "-y",
+    outputPath,
   ];
 
   return new Promise((resolve, reject) => {
