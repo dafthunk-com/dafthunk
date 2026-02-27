@@ -26,6 +26,10 @@ import {
 } from "@dafthunk/runtime";
 import { TrellisNode } from "@dafthunk/runtime/nodes/3d/trellis-node";
 import { Trellis2Node } from "@dafthunk/runtime/nodes/3d/trellis2-node";
+import { DreamActorM20Node } from "@dafthunk/runtime/nodes/bytedance/dreamactor-m2-0-node";
+import { Seedance15ProNode } from "@dafthunk/runtime/nodes/bytedance/seedance-1-5-pro-node";
+import { Seedream45Node } from "@dafthunk/runtime/nodes/bytedance/seedream-4-5-node";
+import { Seedream5LiteNode } from "@dafthunk/runtime/nodes/bytedance/seedream-5-lite-node";
 import { AgentClaudeSonnet4Node } from "@dafthunk/runtime/nodes/agent/agent-claude-sonnet-4-node";
 import { AgentGemini25FlashNode } from "@dafthunk/runtime/nodes/agent/agent-gemini-2-5-flash-node";
 import { AgentGemini31ProNode } from "@dafthunk/runtime/nodes/agent/agent-gemini-3-1-pro-node";
@@ -555,6 +559,10 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(StableDiffusionXLLightningNode);
     this.registerImplementation(StableDiffusionV15Img2ImgNode);
     this.registerImplementation(StableDiffusionV15InpaintingNode);
+    this.registerImplementation(DreamActorM20Node);
+    this.registerImplementation(Seedance15ProNode);
+    this.registerImplementation(Seedream45Node);
+    this.registerImplementation(Seedream5LiteNode);
     this.registerImplementation(JsonAggNode);
     this.registerImplementation(ExtractItemNode);
     this.registerImplementation(AggregateItemsNode);
