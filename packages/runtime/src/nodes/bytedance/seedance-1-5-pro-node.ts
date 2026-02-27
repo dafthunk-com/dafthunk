@@ -1,7 +1,4 @@
-import type {
-  ImageParameter,
-  MultiStepNodeContext,
-} from "@dafthunk/runtime";
+import type { ImageParameter, MultiStepNodeContext } from "@dafthunk/runtime";
 import { MultiStepNode } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
 import { z } from "zod";
@@ -86,7 +83,8 @@ export class Seedance15ProNode extends MultiStepNode {
       {
         name: "image",
         type: "image",
-        description: "Optional input image used as the first frame for image-to-video generation",
+        description:
+          "Optional input image used as the first frame for image-to-video generation",
       },
       {
         name: "last_frame_image",
@@ -197,8 +195,7 @@ export class Seedance15ProNode extends MultiStepNode {
             "ObjectStore not available in context (required for last_frame_image input)"
           );
         }
-        const lastFrameBlob =
-          validatedInput.last_frame_image as ImageParameter;
+        const lastFrameBlob = validatedInput.last_frame_image as ImageParameter;
         input.last_frame_image = await context.objectStore.writeAndPresign(
           lastFrameBlob.data,
           lastFrameBlob.mimeType,

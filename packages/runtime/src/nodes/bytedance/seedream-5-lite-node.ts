@@ -157,8 +157,7 @@ export class Seedream5LiteNode extends MultiStepNode {
         prompt: validatedInput.prompt,
         size: validatedInput.size,
         aspect_ratio: validatedInput.aspect_ratio,
-        sequential_image_generation:
-          validatedInput.sequential_image_generation,
+        sequential_image_generation: validatedInput.sequential_image_generation,
         max_images: validatedInput.max_images,
         output_format: validatedInput.output_format,
       };

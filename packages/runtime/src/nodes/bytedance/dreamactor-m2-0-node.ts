@@ -195,7 +195,9 @@ export class DreamActorM20Node extends MultiStepNode {
       }
 
       if (result.status === "canceled") {
-        return this.createErrorResult("DreamActor M2.0 generation was canceled");
+        return this.createErrorResult(
+          "DreamActor M2.0 generation was canceled"
+        );
       }
 
       if (result.status !== "succeeded") {

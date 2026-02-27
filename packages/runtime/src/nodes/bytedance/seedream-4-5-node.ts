@@ -164,8 +164,7 @@ export class Seedream45Node extends MultiStepNode {
       const input: Record<string, string | number | string[]> = {
         prompt: validatedInput.prompt,
         size: validatedInput.size,
-        sequential_image_generation:
-          validatedInput.sequential_image_generation,
+        sequential_image_generation: validatedInput.sequential_image_generation,
         max_images: validatedInput.max_images,
       };
 
