@@ -27,6 +27,7 @@ import {
 import { TrellisNode } from "@dafthunk/runtime/nodes/3d/trellis-node";
 import { Trellis2Node } from "@dafthunk/runtime/nodes/3d/trellis2-node";
 import { DreamActorM20Node } from "@dafthunk/runtime/nodes/bytedance/dreamactor-m2-0-node";
+import { OmniHuman15Node } from "@dafthunk/runtime/nodes/bytedance/omni-human-1-5-node";
 import { Seedance15ProNode } from "@dafthunk/runtime/nodes/bytedance/seedance-1-5-pro-node";
 import { Seedream45Node } from "@dafthunk/runtime/nodes/bytedance/seedream-4-5-node";
 import { Seedream5LiteNode } from "@dafthunk/runtime/nodes/bytedance/seedream-5-lite-node";
@@ -560,6 +561,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(StableDiffusionV15Img2ImgNode);
     this.registerImplementation(StableDiffusionV15InpaintingNode);
     this.registerImplementation(DreamActorM20Node);
+    this.registerImplementation(OmniHuman15Node);
     this.registerImplementation(Seedance15ProNode);
     this.registerImplementation(Seedream45Node);
     this.registerImplementation(Seedream5LiteNode);
