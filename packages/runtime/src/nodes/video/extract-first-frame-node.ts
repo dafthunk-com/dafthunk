@@ -13,50 +13,42 @@ interface ContainerJob {
 }
 
 /**
- * Extracts the first or last frame from a video as a JPEG image
+ * Extracts the first frame from a video as a JPEG image
  * using FFmpeg running in a Cloudflare Container.
  */
-export class ExtractFrameNode extends MultiStepNode {
+export class ExtractFirstFrameNode extends MultiStepNode {
   private static readonly inputSchema = z.object({
     video: z.object({
       data: z.instanceof(Uint8Array),
       mimeType: z.string(),
     }),
-    position: z.enum(["first", "last"]),
   });
 
   public static readonly nodeType: NodeType = {
-    id: "extract-frame",
-    name: "Extract Frame",
-    type: "extract-frame",
+    id: "extract-first-frame",
+    name: "Extract First Frame",
+    type: "extract-first-frame",
     description:
-      "Extracts the first or last frame from a video as a JPEG image using FFmpeg in a Cloudflare Container",
+      "Extracts the first frame from a video as a JPEG image using FFmpeg in a Cloudflare Container",
     tags: ["Video", "FFmpeg", "Frame", "Thumbnail", "Image"],
     icon: "image",
     documentation:
-      "This node extracts a single frame from a video and returns it as a JPEG image. Choose 'first' to get the opening frame or 'last' to get the final frame. Useful for generating video thumbnails or extracting key frames for analysis.",
+      "This node extracts the opening frame from a video and returns it as a JPEG image. Useful for generating video thumbnails or extracting the first frame for analysis.",
     inlinable: false,
     usage: 3,
     inputs: [
       {
         name: "video",
         type: "video",
-        description: "Video to extract a frame from",
+        description: "Video to extract the first frame from",
         required: true,
-      },
-      {
-        name: "position",
-        type: "string",
-        description: 'Frame to extract: "first" or "last"',
-        required: true,
-        value: "first",
       },
     ],
     outputs: [
       {
         name: "image",
         type: "image",
-        description: "Extracted frame as JPEG",
+        description: "First frame as JPEG",
       },
     ],
   };
@@ -65,7 +57,9 @@ export class ExtractFrameNode extends MultiStepNode {
     const { sleep, doStep } = context;
 
     try {
-      const validatedInput = ExtractFrameNode.inputSchema.parse(context.inputs);
+      const validatedInput = ExtractFirstFrameNode.inputSchema.parse(
+        context.inputs
+      );
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const containerBinding = (context.env as any).FFMPEG_CONTAINER as
@@ -100,7 +94,7 @@ export class ExtractFrameNode extends MultiStepNode {
           body: JSON.stringify({
             type: "frame",
             video: presignedUrl,
-            position: validatedInput.position,
+            position: "first",
           }),
         });
 

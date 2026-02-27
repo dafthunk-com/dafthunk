@@ -58,6 +58,16 @@ const server = createServer(async (req, res) => {
           return;
         }
         processor = processFrame(id, jobDir, video, position);
+      } else if (type === "frame-at-time") {
+        const { video, time } = payload;
+        if (!video || typeof time !== "number" || time < 0) {
+          await rm(jobDir, { recursive: true, force: true });
+          jobs.delete(id);
+          res.writeHead(400, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ error: "Missing video or invalid time (must be a non-negative number in seconds)" }));
+          return;
+        }
+        processor = processFrameAtTime(id, jobDir, video, time);
       } else {
         await rm(jobDir, { recursive: true, force: true });
         jobs.delete(id);
@@ -213,6 +223,26 @@ async function processFrame(id, jobDir, videoUrl, position) {
   jobs.set(id, { status: "completed", outputPath, mimeType: "image/jpeg" });
 }
 
+// ─── Frame at time ────────────────────────────────────────────────────────────
+
+/**
+ * Download a video and extract a frame at a specific timestamp as JPEG.
+ */
+async function processFrameAtTime(id, jobDir, videoUrl, time) {
+  const response = await fetch(videoUrl);
+  if (!response.ok) {
+    throw new Error(`Failed to download video: HTTP ${response.status}`);
+  }
+  const buffer = Buffer.from(await response.arrayBuffer());
+  const inputPath = join(jobDir, "input");
+  await writeFile(inputPath, buffer);
+
+  const outputPath = join(jobDir, "output.jpg");
+  await runFFmpegFrameAtTime(inputPath, outputPath, time);
+
+  jobs.set(id, { status: "completed", outputPath, mimeType: "image/jpeg" });
+}
+
 // ─── FFmpeg helpers ───────────────────────────────────────────────────────────
 
 /**
@@ -305,6 +335,27 @@ function runFFmpegFrame(inputPath, outputPath, position) {
     position === "last"
       ? ["-sseof", "-0.1", "-i", inputPath, "-vframes", "1", "-q:v", "2", "-y", outputPath]
       : ["-i", inputPath, "-vframes", "1", "-q:v", "2", "-y", outputPath];
+
+  return new Promise((resolve, reject) => {
+    execFile("ffmpeg", args, { timeout: 60_000 }, (err, _stdout, stderr) => {
+      if (err) reject(new Error(stderr || err.message));
+      else resolve();
+    });
+  });
+}
+
+/**
+ * Extract a single frame at a specific timestamp (seconds) as JPEG.
+ * Uses input-seeking (-ss before -i) for fast seeking to the nearest keyframe.
+ */
+function runFFmpegFrameAtTime(inputPath, outputPath, time) {
+  const args = [
+    "-ss", String(time),
+    "-i", inputPath,
+    "-vframes", "1",
+    "-q:v", "2",
+    "-y", outputPath,
+  ];
 
   return new Promise((resolve, reject) => {
     execFile("ffmpeg", args, { timeout: 60_000 }, (err, _stdout, stderr) => {

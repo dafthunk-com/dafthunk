@@ -434,7 +434,9 @@ import { ToStringNode } from "@dafthunk/runtime/nodes/text/to-string-node";
 import { TwilioSmsNode } from "@dafthunk/runtime/nodes/text/twilio-sms-node";
 import { AppendVideosNode } from "@dafthunk/runtime/nodes/video/append-videos-node";
 import { ClipVideoNode } from "@dafthunk/runtime/nodes/video/clip-video-node";
-import { ExtractFrameNode } from "@dafthunk/runtime/nodes/video/extract-frame-node";
+import { ExtractFrameAtTimeNode } from "@dafthunk/runtime/nodes/video/extract-frame-at-time-node";
+import { ExtractFirstFrameNode } from "@dafthunk/runtime/nodes/video/extract-first-frame-node";
+import { ExtractLastFrameNode } from "@dafthunk/runtime/nodes/video/extract-last-frame-node";
 import { GrokImagineVideoNode } from "@dafthunk/runtime/nodes/video/grok-imagine-video-node";
 import { Veo31Node } from "@dafthunk/runtime/nodes/video/veo-3-1-node";
 import type { Bindings } from "../context";
@@ -672,7 +674,9 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     if (this.env.FFMPEG_CONTAINER) {
       this.registerImplementation(AppendVideosNode);
       this.registerImplementation(ClipVideoNode);
-      this.registerImplementation(ExtractFrameNode);
+      this.registerImplementation(ExtractFrameAtTimeNode);
+      this.registerImplementation(ExtractFirstFrameNode);
+      this.registerImplementation(ExtractLastFrameNode);
     }
 
     this.registerImplementation(AudioInputNode);
