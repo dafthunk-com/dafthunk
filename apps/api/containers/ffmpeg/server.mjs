@@ -13,24 +13,60 @@ const server = createServer(async (req, res) => {
   try {
     const url = new URL(req.url, `http://${req.headers.host}`);
 
-    // POST /jobs — start a concat job
+    // POST /jobs — start a job (type: "concat" | "clip" | "frame")
     if (req.method === "POST" && url.pathname === "/jobs") {
       const body = await readBody(req);
-      const { videos } = JSON.parse(body);
-
-      if (!Array.isArray(videos) || videos.length < 2) {
-        res.writeHead(400, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ error: "At least 2 video URLs required" }));
-        return;
-      }
+      const payload = JSON.parse(body);
+      const { type } = payload;
 
       const id = randomUUID();
       const jobDir = join(WORK_DIR, id);
       await mkdir(jobDir, { recursive: true });
-
       jobs.set(id, { status: "processing" });
 
-      processConcat(id, jobDir, videos).catch((err) => {
+      let processor;
+
+      if (type === "concat") {
+        const { videos } = payload;
+        if (!Array.isArray(videos) || videos.length < 2) {
+          await rm(jobDir, { recursive: true, force: true });
+          jobs.delete(id);
+          res.writeHead(400, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ error: "At least 2 video URLs required" }));
+          return;
+        }
+        processor = processConcat(id, jobDir, videos);
+      } else if (type === "clip") {
+        const { video, start, end } = payload;
+        if (!video || start == null || end == null) {
+          await rm(jobDir, { recursive: true, force: true });
+          jobs.delete(id);
+          res.writeHead(400, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ error: "Missing video, start, or end" }));
+          return;
+        }
+        processor = processClip(id, jobDir, video, start, end);
+      } else if (type === "frame") {
+        const { video, position } = payload;
+        if (!video || (position !== "first" && position !== "last")) {
+          await rm(jobDir, { recursive: true, force: true });
+          jobs.delete(id);
+          res.writeHead(400, { "Content-Type": "application/json" });
+          res.end(
+            JSON.stringify({ error: 'Missing video or invalid position (use "first" or "last")' })
+          );
+          return;
+        }
+        processor = processFrame(id, jobDir, video, position);
+      } else {
+        await rm(jobDir, { recursive: true, force: true });
+        jobs.delete(id);
+        res.writeHead(400, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: `Unknown job type: ${type}` }));
+        return;
+      }
+
+      processor.catch((err) => {
         console.error(`Job ${id} failed:`, err);
         jobs.set(id, { status: "failed", error: err.message });
       });
@@ -55,7 +91,7 @@ const server = createServer(async (req, res) => {
       return;
     }
 
-    // GET /jobs/:id/output — download result
+    // GET /jobs/:id/output — download result (content-type varies by job type)
     const outputMatch = url.pathname.match(/^\/jobs\/([^/]+)\/output$/);
     if (req.method === "GET" && outputMatch) {
       const id = outputMatch[1];
@@ -68,7 +104,7 @@ const server = createServer(async (req, res) => {
 
       const data = await readFile(job.outputPath);
       res.writeHead(200, {
-        "Content-Type": "video/mp4",
+        "Content-Type": job.mimeType,
         "Content-Length": data.length,
       });
       res.end(data);
@@ -94,19 +130,18 @@ const server = createServer(async (req, res) => {
   }
 });
 
+// ─── Concat ──────────────────────────────────────────────────────────────────
+
 /**
  * Download videos, probe for resolution/audio, then run ffmpeg concat.
  */
 async function processConcat(id, jobDir, videoUrls) {
   const inputFiles = [];
 
-  // Download all videos
   for (let i = 0; i < videoUrls.length; i++) {
     const response = await fetch(videoUrls[i]);
     if (!response.ok) {
-      throw new Error(
-        `Failed to download video ${i}: HTTP ${response.status}`
-      );
+      throw new Error(`Failed to download video ${i}: HTTP ${response.status}`);
     }
     const buffer = Buffer.from(await response.arrayBuffer());
     const inputPath = join(jobDir, `input_${i}`);
@@ -117,9 +152,7 @@ async function processConcat(id, jobDir, videoUrls) {
   // Probe first video for target resolution
   const probe = await probeVideo(inputFiles[0]);
   const videoStream = probe.streams.find((s) => s.codec_type === "video");
-  if (!videoStream) {
-    throw new Error("First input has no video stream");
-  }
+  if (!videoStream) throw new Error("First input has no video stream");
 
   // Ensure even dimensions (required for h264)
   const width = videoStream.width - (videoStream.width % 2);
@@ -134,24 +167,53 @@ async function processConcat(id, jobDir, videoUrls) {
   const outputPath = join(jobDir, "output.mp4");
   await runFFmpegConcat(inputFiles, outputPath, width, height, allHaveAudio);
 
-  jobs.set(id, { status: "completed", outputPath });
+  jobs.set(id, { status: "completed", outputPath, mimeType: "video/mp4" });
 }
 
+// ─── Clip ─────────────────────────────────────────────────────────────────────
+
 /**
- * Probe a video file for stream information (resolution, audio presence).
+ * Download a video and clip it to [start, end] seconds.
  */
-function probeVideo(filePath) {
-  return new Promise((resolve, reject) => {
-    execFile(
-      "ffprobe",
-      ["-v", "quiet", "-print_format", "json", "-show_streams", filePath],
-      (err, stdout) => {
-        if (err) reject(new Error(`ffprobe failed: ${err.message}`));
-        else resolve(JSON.parse(stdout));
-      }
-    );
-  });
+async function processClip(id, jobDir, videoUrl, start, end) {
+  const response = await fetch(videoUrl);
+  if (!response.ok) {
+    throw new Error(`Failed to download video: HTTP ${response.status}`);
+  }
+  const buffer = Buffer.from(await response.arrayBuffer());
+  const inputPath = join(jobDir, "input");
+  await writeFile(inputPath, buffer);
+
+  const probe = await probeVideo(inputPath);
+  const hasAudio = probe.streams.some((s) => s.codec_type === "audio");
+
+  const outputPath = join(jobDir, "output.mp4");
+  await runFFmpegClip(inputPath, outputPath, start, end, hasAudio);
+
+  jobs.set(id, { status: "completed", outputPath, mimeType: "video/mp4" });
 }
+
+// ─── Frame extraction ─────────────────────────────────────────────────────────
+
+/**
+ * Download a video and extract its first or last frame as JPEG.
+ */
+async function processFrame(id, jobDir, videoUrl, position) {
+  const response = await fetch(videoUrl);
+  if (!response.ok) {
+    throw new Error(`Failed to download video: HTTP ${response.status}`);
+  }
+  const buffer = Buffer.from(await response.arrayBuffer());
+  const inputPath = join(jobDir, "input");
+  await writeFile(inputPath, buffer);
+
+  const outputPath = join(jobDir, "output.jpg");
+  await runFFmpegFrame(inputPath, outputPath, position);
+
+  jobs.set(id, { status: "completed", outputPath, mimeType: "image/jpeg" });
+}
+
+// ─── FFmpeg helpers ───────────────────────────────────────────────────────────
 
 /**
  * Concatenate videos using ffmpeg filter_complex.
@@ -199,6 +261,74 @@ function runFFmpegConcat(inputFiles, outputPath, width, height, includeAudio) {
       if (err) reject(new Error(stderr || err.message));
       else resolve();
     });
+  });
+}
+
+/**
+ * Clip a video to [start, end] seconds using input-seeking for speed.
+ * Probes for audio presence to conditionally include audio encoding.
+ */
+function runFFmpegClip(inputPath, outputPath, start, end, includeAudio) {
+  const duration = end - start;
+  const args = [
+    "-ss",
+    String(start),
+    "-i",
+    inputPath,
+    "-t",
+    String(duration),
+    "-c:v",
+    "libx264",
+    "-preset",
+    "fast",
+    ...(includeAudio ? ["-c:a", "aac"] : ["-an"]),
+    "-movflags",
+    "+faststart",
+    "-y",
+    outputPath,
+  ];
+
+  return new Promise((resolve, reject) => {
+    execFile("ffmpeg", args, { timeout: 300_000 }, (err, _stdout, stderr) => {
+      if (err) reject(new Error(stderr || err.message));
+      else resolve();
+    });
+  });
+}
+
+/**
+ * Extract a single frame from a video as JPEG.
+ * Uses -sseof for last frame (seeks from end) and default for first frame.
+ */
+function runFFmpegFrame(inputPath, outputPath, position) {
+  const args =
+    position === "last"
+      ? ["-sseof", "-0.1", "-i", inputPath, "-vframes", "1", "-q:v", "2", "-y", outputPath]
+      : ["-i", inputPath, "-vframes", "1", "-q:v", "2", "-y", outputPath];
+
+  return new Promise((resolve, reject) => {
+    execFile("ffmpeg", args, { timeout: 60_000 }, (err, _stdout, stderr) => {
+      if (err) reject(new Error(stderr || err.message));
+      else resolve();
+    });
+  });
+}
+
+// ─── Shared utilities ─────────────────────────────────────────────────────────
+
+/**
+ * Probe a video file for stream information (resolution, audio presence).
+ */
+function probeVideo(filePath) {
+  return new Promise((resolve, reject) => {
+    execFile(
+      "ffprobe",
+      ["-v", "quiet", "-print_format", "json", "-show_streams", filePath],
+      (err, stdout) => {
+        if (err) reject(new Error(`ffprobe failed: ${err.message}`));
+        else resolve(JSON.parse(stdout));
+      }
+    );
   });
 }
 

@@ -12,74 +12,60 @@ interface ContainerJob {
   error?: string;
 }
 
-const blobSchema = z.object({
-  data: z.instanceof(Uint8Array),
-  mimeType: z.string(),
-});
-
 /**
- * Concatenates multiple videos into a single video using FFmpeg
- * running in a Cloudflare Container. Scales all inputs to match
- * the first video's resolution and handles audio presence automatically.
+ * Clips a video to a specified time range using FFmpeg
+ * running in a Cloudflare Container. Uses input-seeking for
+ * fast operation on large files.
  */
-export class AppendVideosNode extends MultiStepNode {
+export class ClipVideoNode extends MultiStepNode {
   private static readonly inputSchema = z.object({
-    video_1: blobSchema,
-    video_2: blobSchema,
-    video_3: blobSchema.optional(),
-    video_4: blobSchema.optional(),
-    video_5: blobSchema.optional(),
+    video: z.object({
+      data: z.instanceof(Uint8Array),
+      mimeType: z.string(),
+    }),
+    start_time: z.number().min(0),
+    end_time: z.number().min(0),
   });
 
   public static readonly nodeType: NodeType = {
-    id: "append-videos",
-    name: "Append Videos",
-    type: "append-videos",
+    id: "clip-video",
+    name: "Clip Video",
+    type: "clip-video",
     description:
-      "Concatenates multiple videos into a single video using FFmpeg in a Cloudflare Container",
-    tags: ["Video", "FFmpeg", "Concatenate", "Append", "Merge"],
-    icon: "video",
+      "Clips a video to a specified time range using FFmpeg in a Cloudflare Container",
+    tags: ["Video", "FFmpeg", "Clip", "Trim", "Cut"],
+    icon: "scissors",
     documentation:
-      "This node appends multiple videos end-to-end into a single output video. It uses FFmpeg running in a Cloudflare Container for processing. All inputs are scaled to match the first video's resolution (with letterboxing if aspect ratios differ). Audio is included when all inputs have audio tracks, otherwise the output is video-only. Outputs MP4 with H.264 video and AAC audio.",
+      "This node trims a video to the specified start and end times (in seconds). It uses FFmpeg running in a Cloudflare Container for processing. Input-seeking is used for fast operation — output is MP4 with H.264 video and AAC audio (when audio is present).",
     inlinable: false,
-    usage: 10,
+    usage: 5,
     inputs: [
       {
-        name: "video_1",
+        name: "video",
         type: "video",
-        description: "First video in the sequence",
+        description: "Video to clip",
         required: true,
       },
       {
-        name: "video_2",
-        type: "video",
-        description: "Second video in the sequence",
+        name: "start_time",
+        type: "number",
+        description: "Start time in seconds",
         required: true,
+        value: 0,
       },
       {
-        name: "video_3",
-        type: "video",
-        description: "Third video (optional)",
-        hidden: true,
-      },
-      {
-        name: "video_4",
-        type: "video",
-        description: "Fourth video (optional)",
-        hidden: true,
-      },
-      {
-        name: "video_5",
-        type: "video",
-        description: "Fifth video (optional)",
-        hidden: true,
+        name: "end_time",
+        type: "number",
+        description: "End time in seconds",
+        required: true,
+        value: 10,
       },
     ],
     outputs: [
       {
         name: "video",
         type: "video",
-        description: "Concatenated video",
+        description: "Clipped video",
       },
     ],
   };
@@ -88,7 +74,13 @@ export class AppendVideosNode extends MultiStepNode {
     const { sleep, doStep } = context;
 
     try {
-      const validatedInput = AppendVideosNode.inputSchema.parse(context.inputs);
+      const validatedInput = ClipVideoNode.inputSchema.parse(context.inputs);
+
+      if (validatedInput.end_time <= validatedInput.start_time) {
+        return this.createErrorResult(
+          "end_time must be greater than start_time"
+        );
+      }
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const containerBinding = (context.env as any).FFMPEG_CONTAINER as
@@ -106,34 +98,26 @@ export class AppendVideosNode extends MultiStepNode {
         );
       }
 
-      // Collect video inputs in order
-      const videos: VideoParameter[] = [
-        validatedInput.video_1,
-        validatedInput.video_2,
-      ];
-      if (validatedInput.video_3) videos.push(validatedInput.video_3);
-      if (validatedInput.video_4) videos.push(validatedInput.video_4);
-      if (validatedInput.video_5) videos.push(validatedInput.video_5);
+      const video = validatedInput.video as VideoParameter;
+      const presignedUrl = await context.objectStore.writeAndPresign(
+        video.data,
+        video.mimeType,
+        context.organizationId
+      );
 
-      // Upload videos to R2 for presigned download URLs
-      const presignedUrls: string[] = [];
-      for (const video of videos) {
-        const url = await context.objectStore.writeAndPresign(
-          video.data,
-          video.mimeType,
-          context.organizationId
-        );
-        presignedUrls.push(url);
-      }
-
-      // Start concat job on FFmpeg container (durable step — cached on replay)
+      // Start clip job on FFmpeg container (durable step — cached on replay)
       const job = await doStep(async () => {
         const id = containerBinding.idFromName("default");
         const stub = containerBinding.get(id);
         const response = await stub.fetch("http://container/jobs", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ type: "concat", videos: presignedUrls }),
+          body: JSON.stringify({
+            type: "clip",
+            video: presignedUrl,
+            start: validatedInput.start_time,
+            end: validatedInput.end_time,
+          }),
         });
 
         if (!response.ok) {
@@ -172,18 +156,17 @@ export class AppendVideosNode extends MultiStepNode {
 
       if (result.status === "failed") {
         return this.createErrorResult(
-          `Video concatenation failed: ${result.error || "Unknown error"}`
+          `Video clipping failed: ${result.error || "Unknown error"}`
         );
       }
 
       if (result.status !== "completed") {
         return this.createErrorResult(
-          "Video concatenation timed out after 5 minutes"
+          "Video clipping timed out after 5 minutes"
         );
       }
 
-      // Download the output video (outside doStep — binary data is too large
-      // for SQLite persistence; re-downloading on replay is fine)
+      // Download the output video
       const containerId = containerBinding.idFromName("default");
       const containerStub = containerBinding.get(containerId);
       const videoResponse = await containerStub.fetch(
@@ -192,7 +175,7 @@ export class AppendVideosNode extends MultiStepNode {
 
       if (!videoResponse.ok) {
         throw new Error(
-          `Failed to download concatenated video: ${videoResponse.status}`
+          `Failed to download clipped video: ${videoResponse.status}`
         );
       }
 

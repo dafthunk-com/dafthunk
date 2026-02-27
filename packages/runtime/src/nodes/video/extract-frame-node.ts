@@ -12,74 +12,51 @@ interface ContainerJob {
   error?: string;
 }
 
-const blobSchema = z.object({
-  data: z.instanceof(Uint8Array),
-  mimeType: z.string(),
-});
-
 /**
- * Concatenates multiple videos into a single video using FFmpeg
- * running in a Cloudflare Container. Scales all inputs to match
- * the first video's resolution and handles audio presence automatically.
+ * Extracts the first or last frame from a video as a JPEG image
+ * using FFmpeg running in a Cloudflare Container.
  */
-export class AppendVideosNode extends MultiStepNode {
+export class ExtractFrameNode extends MultiStepNode {
   private static readonly inputSchema = z.object({
-    video_1: blobSchema,
-    video_2: blobSchema,
-    video_3: blobSchema.optional(),
-    video_4: blobSchema.optional(),
-    video_5: blobSchema.optional(),
+    video: z.object({
+      data: z.instanceof(Uint8Array),
+      mimeType: z.string(),
+    }),
+    position: z.enum(["first", "last"]),
   });
 
   public static readonly nodeType: NodeType = {
-    id: "append-videos",
-    name: "Append Videos",
-    type: "append-videos",
+    id: "extract-frame",
+    name: "Extract Frame",
+    type: "extract-frame",
     description:
-      "Concatenates multiple videos into a single video using FFmpeg in a Cloudflare Container",
-    tags: ["Video", "FFmpeg", "Concatenate", "Append", "Merge"],
-    icon: "video",
+      "Extracts the first or last frame from a video as a JPEG image using FFmpeg in a Cloudflare Container",
+    tags: ["Video", "FFmpeg", "Frame", "Thumbnail", "Image"],
+    icon: "image",
     documentation:
-      "This node appends multiple videos end-to-end into a single output video. It uses FFmpeg running in a Cloudflare Container for processing. All inputs are scaled to match the first video's resolution (with letterboxing if aspect ratios differ). Audio is included when all inputs have audio tracks, otherwise the output is video-only. Outputs MP4 with H.264 video and AAC audio.",
+      "This node extracts a single frame from a video and returns it as a JPEG image. Choose 'first' to get the opening frame or 'last' to get the final frame. Useful for generating video thumbnails or extracting key frames for analysis.",
     inlinable: false,
-    usage: 10,
+    usage: 3,
     inputs: [
       {
-        name: "video_1",
+        name: "video",
         type: "video",
-        description: "First video in the sequence",
+        description: "Video to extract a frame from",
         required: true,
       },
       {
-        name: "video_2",
-        type: "video",
-        description: "Second video in the sequence",
+        name: "position",
+        type: "string",
+        description: 'Frame to extract: "first" or "last"',
         required: true,
-      },
-      {
-        name: "video_3",
-        type: "video",
-        description: "Third video (optional)",
-        hidden: true,
-      },
-      {
-        name: "video_4",
-        type: "video",
-        description: "Fourth video (optional)",
-        hidden: true,
-      },
-      {
-        name: "video_5",
-        type: "video",
-        description: "Fifth video (optional)",
-        hidden: true,
+        value: "first",
       },
     ],
     outputs: [
       {
-        name: "video",
-        type: "video",
-        description: "Concatenated video",
+        name: "image",
+        type: "image",
+        description: "Extracted frame as JPEG",
       },
     ],
   };
@@ -88,7 +65,7 @@ export class AppendVideosNode extends MultiStepNode {
     const { sleep, doStep } = context;
 
     try {
-      const validatedInput = AppendVideosNode.inputSchema.parse(context.inputs);
+      const validatedInput = ExtractFrameNode.inputSchema.parse(context.inputs);
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const containerBinding = (context.env as any).FFMPEG_CONTAINER as
@@ -106,34 +83,25 @@ export class AppendVideosNode extends MultiStepNode {
         );
       }
 
-      // Collect video inputs in order
-      const videos: VideoParameter[] = [
-        validatedInput.video_1,
-        validatedInput.video_2,
-      ];
-      if (validatedInput.video_3) videos.push(validatedInput.video_3);
-      if (validatedInput.video_4) videos.push(validatedInput.video_4);
-      if (validatedInput.video_5) videos.push(validatedInput.video_5);
+      const video = validatedInput.video as VideoParameter;
+      const presignedUrl = await context.objectStore.writeAndPresign(
+        video.data,
+        video.mimeType,
+        context.organizationId
+      );
 
-      // Upload videos to R2 for presigned download URLs
-      const presignedUrls: string[] = [];
-      for (const video of videos) {
-        const url = await context.objectStore.writeAndPresign(
-          video.data,
-          video.mimeType,
-          context.organizationId
-        );
-        presignedUrls.push(url);
-      }
-
-      // Start concat job on FFmpeg container (durable step — cached on replay)
+      // Start frame extraction job on FFmpeg container (durable step — cached on replay)
       const job = await doStep(async () => {
         const id = containerBinding.idFromName("default");
         const stub = containerBinding.get(id);
         const response = await stub.fetch("http://container/jobs", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ type: "concat", videos: presignedUrls }),
+          body: JSON.stringify({
+            type: "frame",
+            video: presignedUrl,
+            position: validatedInput.position,
+          }),
         });
 
         if (!response.ok) {
@@ -147,7 +115,7 @@ export class AppendVideosNode extends MultiStepNode {
       });
 
       // Poll for completion with durable sleep (zero compute cost between polls)
-      const maxPolls = 60;
+      const maxPolls = 12;
       let result = job;
       for (let i = 0; i < maxPolls && result.status === "processing"; i++) {
         await sleep(5_000);
@@ -172,36 +140,35 @@ export class AppendVideosNode extends MultiStepNode {
 
       if (result.status === "failed") {
         return this.createErrorResult(
-          `Video concatenation failed: ${result.error || "Unknown error"}`
+          `Frame extraction failed: ${result.error || "Unknown error"}`
         );
       }
 
       if (result.status !== "completed") {
         return this.createErrorResult(
-          "Video concatenation timed out after 5 minutes"
+          "Frame extraction timed out after 1 minute"
         );
       }
 
-      // Download the output video (outside doStep — binary data is too large
-      // for SQLite persistence; re-downloading on replay is fine)
+      // Download the output image
       const containerId = containerBinding.idFromName("default");
       const containerStub = containerBinding.get(containerId);
-      const videoResponse = await containerStub.fetch(
+      const imageResponse = await containerStub.fetch(
         `http://container/jobs/${job.id}/output`
       );
 
-      if (!videoResponse.ok) {
+      if (!imageResponse.ok) {
         throw new Error(
-          `Failed to download concatenated video: ${videoResponse.status}`
+          `Failed to download extracted frame: ${imageResponse.status}`
         );
       }
 
-      const videoData = new Uint8Array(await videoResponse.arrayBuffer());
+      const imageData = new Uint8Array(await imageResponse.arrayBuffer());
 
       return this.createSuccessResult({
-        video: {
-          data: videoData,
-          mimeType: "video/mp4",
+        image: {
+          data: imageData,
+          mimeType: "image/jpeg",
         },
       });
     } catch (error) {
