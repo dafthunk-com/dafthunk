@@ -443,6 +443,7 @@ import { ExtractFirstFrameNode } from "@dafthunk/runtime/nodes/video/extract-fir
 import { ExtractFrameAtTimeNode } from "@dafthunk/runtime/nodes/video/extract-frame-at-time-node";
 import { ExtractLastFrameNode } from "@dafthunk/runtime/nodes/video/extract-last-frame-node";
 import { GrokImagineVideoNode } from "@dafthunk/runtime/nodes/video/grok-imagine-video-node";
+import { Veo31FastNode } from "@dafthunk/runtime/nodes/video/veo-3-1-fast-node";
 import { Veo31Node } from "@dafthunk/runtime/nodes/video/veo-3-1-node";
 import type { Bindings } from "../context";
 
@@ -678,6 +679,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
 
     // Video generation nodes - always register (users can provide API keys via secrets)
     this.registerImplementation(GrokImagineVideoNode);
+    this.registerImplementation(Veo31FastNode);
     this.registerImplementation(Veo31Node);
 
     // Video processing nodes (Cloudflare Containers)
