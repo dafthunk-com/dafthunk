@@ -15,6 +15,8 @@ interface JsonSchemaProperty {
   "x-order"?: number;
   items?: JsonSchemaProperty;
   allOf?: JsonSchemaProperty[];
+  anyOf?: JsonSchemaProperty[];
+  oneOf?: JsonSchemaProperty[];
   properties?: Record<string, JsonSchemaProperty>;
 }
 
@@ -96,6 +98,25 @@ function resolveAllOf(prop: JsonSchemaProperty): JsonSchemaProperty {
 }
 
 /**
+ * Resolve anyOf/oneOf by picking the first non-null alternative.
+ * Replicate commonly wraps optional outputs as { anyOf: [{ type: "null" }, { ...actual }] }.
+ */
+function resolveNullable(prop: JsonSchemaProperty): JsonSchemaProperty {
+  const alternatives = prop.anyOf ?? prop.oneOf;
+  if (!alternatives) return prop;
+  const nonNull = alternatives.find((alt) => alt.type !== "null");
+  if (!nonNull) return prop;
+  const merged = { ...prop };
+  delete merged.anyOf;
+  delete merged.oneOf;
+  Object.assign(merged, nonNull);
+  // Preserve outer description/title if the alternative doesn't have one
+  if (prop.description && !nonNull.description) merged.description = prop.description;
+  if (prop.title && !nonNull.title) merged.title = prop.title;
+  return merged;
+}
+
+/**
  * Map a single JSON Schema property to a Dafthunk Parameter.
  */
 function mapProperty(
@@ -103,7 +124,7 @@ function mapProperty(
   rawProp: JsonSchemaProperty,
   required: boolean
 ): Parameter {
-  const prop = resolveAllOf(rawProp);
+  const prop = resolveNullable(resolveAllOf(rawProp));
   const description = prop.description ?? prop.title;
 
   // URI strings → detect blob type
@@ -226,46 +247,50 @@ function mapOutputSchema(
     return [{ name: "output", type: "any" }];
   }
 
+  // Resolve anyOf/oneOf wrappers — Replicate marks nullable outputs as
+  // { anyOf: [{ type: "null" }, { ...actual }] }
+  const resolved = resolveNullable(resolveAllOf(schema));
+
   // Combine output schema description with model description for better detection
-  const detectionContext = [schema.description, modelDescription]
+  const detectionContext = [resolved.description, modelDescription]
     .filter(Boolean)
     .join(" ");
 
   // Cast needed: detectBlobType returns a dynamic discriminant that TS can't narrow
 
   // URI string → single blob output
-  if (schema.type === "string" && schema.format === "uri") {
+  if (resolved.type === "string" && resolved.format === "uri") {
     const blobType = detectBlobType("output", detectionContext);
     return [
-      { name: "output", type: blobType, description: schema.description },
+      { name: "output", type: blobType, description: resolved.description },
     ] as Parameter[];
   }
 
   // Array of URIs → single blob output (take first element at runtime)
   if (
-    schema.type === "array" &&
-    schema.items?.type === "string" &&
-    schema.items?.format === "uri"
+    resolved.type === "array" &&
+    resolved.items?.type === "string" &&
+    resolved.items?.format === "uri"
   ) {
     const blobType = detectBlobType("output", detectionContext);
     return [
-      { name: "output", type: blobType, description: schema.description },
+      { name: "output", type: blobType, description: resolved.description },
     ] as Parameter[];
   }
 
   // Plain string → string output
-  if (schema.type === "string") {
+  if (resolved.type === "string") {
     return [
-      { name: "output", type: "string", description: schema.description },
+      { name: "output", type: "string", description: resolved.description },
     ];
   }
 
   // Object with named properties → multiple named outputs (e.g. Trellis 2)
-  if (schema.type === "object" && schema.properties) {
-    return Object.entries(schema.properties).map(([name, prop]) => {
-      const resolved = resolveAllOf(prop);
-      const desc = resolved.description ?? resolved.title;
-      if (resolved.type === "string" && resolved.format === "uri") {
+  if (resolved.type === "object" && resolved.properties) {
+    return Object.entries(resolved.properties).map(([name, prop]) => {
+      const r = resolveNullable(resolveAllOf(prop));
+      const desc = r.description ?? r.title;
+      if (r.type === "string" && r.format === "uri") {
         const blobType = detectBlobType(name, desc);
         return { name, type: blobType, description: desc } as Parameter;
       }
@@ -274,12 +299,12 @@ function mapOutputSchema(
   }
 
   // Object without named properties → json output
-  if (schema.type === "object") {
-    return [{ name: "output", type: "json", description: schema.description }];
+  if (resolved.type === "object") {
+    return [{ name: "output", type: "json", description: resolved.description }];
   }
 
   // Fallback
-  return [{ name: "output", type: "any", description: schema.description }];
+  return [{ name: "output", type: "any", description: resolved.description }];
 }
 
 /**

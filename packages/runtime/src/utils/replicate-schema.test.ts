@@ -321,6 +321,82 @@ describe("mapReplicateSchema", () => {
     });
   });
 
+  it("resolves nullable anyOf output wrapper to underlying type (Replicate pattern)", () => {
+    const schema = {
+      components: {
+        schemas: {
+          Input: {
+            type: "object",
+            properties: { prompt: { type: "string", "x-order": 0 } },
+          },
+          // Replicate wraps nullable outputs: { anyOf: [{ type: "null" }, { ...actual }] }
+          Output: {
+            anyOf: [
+              { type: "null" },
+              { type: "string", format: "uri", description: "Generated image" },
+            ],
+          },
+        },
+      },
+    };
+
+    const result = mapReplicateSchema(schema, "A text-to-image model");
+
+    expect(result.outputs).toHaveLength(1);
+    expect(result.outputs[0]).toMatchObject({ name: "output", type: "image" });
+  });
+
+  it("resolves nullable anyOf object output with named URI properties (Trellis 2 real schema pattern)", () => {
+    const schema = {
+      components: {
+        schemas: {
+          Input: {
+            type: "object",
+            required: ["image"],
+            properties: {
+              image: { type: "string", format: "uri", "x-order": 0 },
+            },
+          },
+          Output: {
+            anyOf: [
+              { type: "null" },
+              {
+                type: "object",
+                properties: {
+                  model_file: {
+                    anyOf: [
+                      { type: "null" },
+                      { type: "string", format: "uri", description: "3D model" },
+                    ],
+                  },
+                  video: {
+                    anyOf: [
+                      { type: "null" },
+                      { type: "string", format: "uri", description: "Video preview" },
+                    ],
+                  },
+                  no_background_image: {
+                    anyOf: [
+                      { type: "null" },
+                      { type: "string", format: "uri", description: "Background removed" },
+                    ],
+                  },
+                },
+              },
+            ],
+          },
+        },
+      },
+    };
+
+    const result = mapReplicateSchema(schema);
+
+    expect(result.outputs).toHaveLength(3);
+    expect(result.outputs[0]).toMatchObject({ name: "model_file", type: "blob" });
+    expect(result.outputs[1]).toMatchObject({ name: "video", type: "video" });
+    expect(result.outputs[2]).toMatchObject({ name: "no_background_image", type: "image" });
+  });
+
   it("maps object outputs with named URI properties to multiple named outputs (Trellis 2 pattern)", () => {
     const schema = {
       components: {
