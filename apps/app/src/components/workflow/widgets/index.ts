@@ -21,6 +21,7 @@ import { imageInputWidget } from "./input/image-input";
 import { javascriptInputWidget } from "./input/javascript-input";
 import { jsonInputWidget } from "./input/json-input";
 import { numberInputWidget } from "./input/number-input";
+import { replicateModelInputWidget } from "./input/replicate-model-input";
 import { secretInputWidget } from "./input/secret-input";
 import { sliderInputWidget } from "./input/slider-input";
 import { textInputWidget } from "./input/text-input";
@@ -68,6 +69,7 @@ const widgets = [
   webcamInputWidget,
   audioRecorderInputWidget,
   canvasInputWidget,
+  replicateModelInputWidget,
 
   // Output widgets
   textOutputWidget,

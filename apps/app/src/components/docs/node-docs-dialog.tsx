@@ -69,7 +69,22 @@ export function NodeDocsDialog({
               <div className="space-y-3">
                 <h4 className="text-sm font-semibold">Documentation</h4>
                 <div className="md">
-                  <Markdown>{nodeType.documentation}</Markdown>
+                  <Markdown
+                    components={{
+                      a: ({ children, href, ...props }) => (
+                        <a
+                          href={href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          {...props}
+                        >
+                          {children}
+                        </a>
+                      ),
+                    }}
+                  >
+                    {nodeType.documentation}
+                  </Markdown>
                 </div>
                 {nodeType.referenceUrl && (
                   <div className="pt-1">

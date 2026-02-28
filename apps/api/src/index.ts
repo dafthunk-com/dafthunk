@@ -27,6 +27,7 @@ import organizationRoutes from "./routes/organizations";
 import playgroundRoutes from "./routes/playground";
 import profileRoutes from "./routes/profile";
 import queueRoutes from "./routes/queues";
+import replicateRoutes from "./routes/replicate";
 import robotsRoutes from "./routes/robots";
 import secretRoutes from "./routes/secrets";
 import stripeWebhooks from "./routes/stripe-webhooks";
@@ -77,6 +78,9 @@ app.route("/llms.txt", llmsRoutes);
 
 // Stripe webhooks (no auth, verified by signature)
 app.route("/stripe/webhooks", stripeWebhooks);
+
+// Replicate schema proxy (JWT-authenticated, not org-scoped)
+app.route("/replicate", replicateRoutes);
 
 // Public routes
 app.route("/templates", templateRoutes);

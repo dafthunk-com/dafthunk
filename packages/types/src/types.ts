@@ -1,4 +1,4 @@
-import { NodeType } from "./workflow";
+import type { NodeType, Parameter } from "./workflow";
 
 /**
  * Response for getting all available node types
@@ -33,4 +33,14 @@ export interface Table {
   name: string;
   fields: TableField[];
   data: Record<string, unknown>[];
+}
+
+/**
+ * Response from the Replicate model schema endpoint
+ */
+export interface ReplicateModelSchema {
+  model: string;
+  version: string;
+  inputs: Parameter[];
+  outputs: Parameter[];
 }

@@ -405,6 +405,7 @@ import { SearchSubredditsRedditNode } from "@dafthunk/runtime/nodes/reddit/searc
 import { SubmitCommentRedditNode } from "@dafthunk/runtime/nodes/reddit/submit-comment-reddit-node";
 import { SubmitPostRedditNode } from "@dafthunk/runtime/nodes/reddit/submit-post-reddit-node";
 import { VoteRedditNode } from "@dafthunk/runtime/nodes/reddit/vote-reddit-node";
+import { ReplicateModelNode } from "@dafthunk/runtime/nodes/replicate/replicate-model-node";
 import { ReceiveScheduledTriggerNode } from "@dafthunk/runtime/nodes/scheduled/receive-scheduled-trigger-node";
 import { BartLargeCnnNode } from "@dafthunk/runtime/nodes/text/bart-large-cnn-node";
 import { BgeRerankerBaseNode } from "@dafthunk/runtime/nodes/text/bge-reranker-base-node";
@@ -681,6 +682,9 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(GrokImagineVideoNode);
     this.registerImplementation(Veo31FastNode);
     this.registerImplementation(Veo31Node);
+
+    // Generic Replicate model node
+    this.registerImplementation(ReplicateModelNode);
 
     // Video processing nodes (Cloudflare Containers)
     if (this.env.FFMPEG_CONTAINER) {
