@@ -1,7 +1,8 @@
 import {
-  type BlobParameter,
+  isBlobParameter,
   MultiStepNode,
   type MultiStepNodeContext,
+  toUint8Array,
 } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
 
@@ -110,17 +111,16 @@ For example: \`google/veo-3\`, \`openai/whisper\`, \`xai/grok-imagine-video\`.`,
         const paramDef = this.node.inputs?.find((p) => p.name === key);
         const isBlobType = paramDef && BLOB_TYPES.has(paramDef.type);
 
-        if (isBlobType && typeof value === "object" && "data" in value) {
-          // Upload blob to get a presigned URL
+        if (isBlobType && isBlobParameter(value)) {
           if (!context.objectStore) {
             return this.createErrorResult(
-              `ObjectStore not available (required for ${key} input)`
+              "ObjectStore not available (required for blob inputs)"
             );
           }
-          const blob = value as BlobParameter;
+          const data = toUint8Array(value.data);
           input[key] = await context.objectStore.writeAndPresign(
-            blob.data,
-            blob.mimeType,
+            data,
+            value.mimeType,
             context.organizationId
           );
         } else {

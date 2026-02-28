@@ -4,6 +4,7 @@ import type { Parameter } from "@dafthunk/types";
  * JSON Schema property from Replicate's OpenAPI schema
  */
 interface JsonSchemaProperty {
+  $ref?: string;
   type?: string;
   format?: string;
   title?: string;
@@ -42,6 +43,7 @@ export interface ReplicateOpenApiSchema {
     schemas?: {
       Input?: ReplicateInputSchema;
       Output?: ReplicateOutputSchema;
+      [key: string]: JsonSchemaProperty | ReplicateInputSchema | undefined;
     };
   };
 }
@@ -50,6 +52,9 @@ interface MappedSchema {
   inputs: Parameter[];
   outputs: Parameter[];
 }
+
+/** All named schemas from components.schemas, used for $ref resolution. */
+type SchemaMap = Record<string, JsonSchemaProperty>;
 
 const BLOB_TYPE_KEYWORDS: Record<string, "image" | "audio" | "video"> = {
   image: "image",
@@ -85,35 +90,65 @@ function detectBlobType(
 }
 
 /**
- * Resolve allOf references by merging all items into one property.
+ * Look up a local $ref (e.g. "#/components/schemas/PredictOutput") in the schema map.
  */
-function resolveAllOf(prop: JsonSchemaProperty): JsonSchemaProperty {
-  if (!prop.allOf) return prop;
-  const merged = { ...prop };
-  delete merged.allOf;
-  for (const item of prop.allOf) {
-    Object.assign(merged, item);
-  }
-  return merged;
+function resolveRef(
+  ref: string,
+  schemas: SchemaMap
+): JsonSchemaProperty | undefined {
+  const match = ref.match(/^#\/components\/schemas\/(.+)$/);
+  if (!match) return undefined;
+  return schemas[match[1]];
 }
 
 /**
- * Resolve anyOf/oneOf by picking the first non-null alternative.
- * Replicate commonly wraps optional outputs as { anyOf: [{ type: "null" }, { ...actual }] }.
+ * Fully resolve a schema property: dereference $ref, merge allOf, unwrap nullable anyOf/oneOf.
+ * This handles the three most common Replicate schema patterns in order.
  */
-function resolveNullable(prop: JsonSchemaProperty): JsonSchemaProperty {
-  const alternatives = prop.anyOf ?? prop.oneOf;
-  if (!alternatives) return prop;
-  const nonNull = alternatives.find((alt) => alt.type !== "null");
-  if (!nonNull) return prop;
-  const merged = { ...prop };
-  delete merged.anyOf;
-  delete merged.oneOf;
-  Object.assign(merged, nonNull);
-  // Preserve outer description/title if the alternative doesn't have one
-  if (prop.description && !nonNull.description) merged.description = prop.description;
-  if (prop.title && !nonNull.title) merged.title = prop.title;
-  return merged;
+function resolveSchema(
+  prop: JsonSchemaProperty,
+  schemas: SchemaMap
+): JsonSchemaProperty {
+  // 1. Dereference $ref — e.g. Output: { "$ref": "#/components/schemas/PredictOutput" }
+  let resolved = prop;
+  if (resolved.$ref) {
+    const deref = resolveRef(resolved.$ref, schemas);
+    if (deref) {
+      resolved = { ...deref };
+      // Preserve outer description/title if the target doesn't have one
+      if (!resolved.description && prop.description)
+        resolved.description = prop.description;
+      if (!resolved.title && prop.title) resolved.title = prop.title;
+    }
+  }
+
+  // 2. Merge allOf — e.g. { allOf: [{ type: "string", enum: [...] }] }
+  if (resolved.allOf) {
+    const merged = { ...resolved };
+    delete merged.allOf;
+    for (const item of resolved.allOf) {
+      Object.assign(merged, item);
+    }
+    resolved = merged;
+  }
+
+  // 3. Unwrap nullable anyOf/oneOf — e.g. { anyOf: [{ type: "null" }, { ...actual }] }
+  const alternatives = resolved.anyOf ?? resolved.oneOf;
+  if (alternatives) {
+    const nonNull = alternatives.find((alt) => alt.type !== "null");
+    if (nonNull) {
+      const merged = { ...resolved };
+      delete merged.anyOf;
+      delete merged.oneOf;
+      Object.assign(merged, nonNull);
+      if (prop.description && !nonNull.description)
+        merged.description = prop.description;
+      if (prop.title && !nonNull.title) merged.title = prop.title;
+      resolved = merged;
+    }
+  }
+
+  return resolved;
 }
 
 /**
@@ -122,9 +157,10 @@ function resolveNullable(prop: JsonSchemaProperty): JsonSchemaProperty {
 function mapProperty(
   name: string,
   rawProp: JsonSchemaProperty,
-  required: boolean
+  required: boolean,
+  schemas: SchemaMap
 ): Parameter {
-  const prop = resolveNullable(resolveAllOf(rawProp));
+  const prop = resolveSchema(rawProp, schemas);
   const description = prop.description ?? prop.title;
 
   // URI strings → detect blob type
@@ -240,16 +276,16 @@ function mapProperty(
  * since the output schema's own description is often empty or generic.
  */
 function mapOutputSchema(
-  schema?: ReplicateOutputSchema,
-  modelDescription?: string
+  schema: ReplicateOutputSchema | undefined,
+  modelDescription: string | undefined,
+  schemas: SchemaMap
 ): Parameter[] {
   if (!schema) {
     return [{ name: "output", type: "any" }];
   }
 
-  // Resolve anyOf/oneOf wrappers — Replicate marks nullable outputs as
-  // { anyOf: [{ type: "null" }, { ...actual }] }
-  const resolved = resolveNullable(resolveAllOf(schema));
+  // Fully resolve: $ref → allOf → anyOf/oneOf nullable unwrap
+  const resolved = resolveSchema(schema, schemas);
 
   // Combine output schema description with model description for better detection
   const detectionContext = [resolved.description, modelDescription]
@@ -288,7 +324,7 @@ function mapOutputSchema(
   // Object with named properties → multiple named outputs (e.g. Trellis 2)
   if (resolved.type === "object" && resolved.properties) {
     return Object.entries(resolved.properties).map(([name, prop]) => {
-      const r = resolveNullable(resolveAllOf(prop));
+      const r = resolveSchema(prop, schemas);
       const desc = r.description ?? r.title;
       if (r.type === "string" && r.format === "uri") {
         const blobType = detectBlobType(name, desc);
@@ -300,7 +336,9 @@ function mapOutputSchema(
 
   // Object without named properties → json output
   if (resolved.type === "object") {
-    return [{ name: "output", type: "json", description: resolved.description }];
+    return [
+      { name: "output", type: "json", description: resolved.description },
+    ];
   }
 
   // Fallback
@@ -321,10 +359,13 @@ export function mapReplicateSchema(
   const inputSchema = openApiSchema?.components?.schemas?.Input;
   const outputSchema = openApiSchema?.components?.schemas?.Output;
 
+  // Build a flat schema map for $ref resolution (all named schemas except Input)
+  const schemas = (openApiSchema?.components?.schemas ?? {}) as SchemaMap;
+
   if (!inputSchema?.properties) {
     return {
       inputs: [],
-      outputs: mapOutputSchema(outputSchema, modelDescription),
+      outputs: mapOutputSchema(outputSchema, modelDescription, schemas),
     };
   }
 
@@ -340,8 +381,11 @@ export function mapReplicateSchema(
   });
 
   const inputs = entries.map(([name, prop]) =>
-    mapProperty(name, prop, requiredSet.has(name))
+    mapProperty(name, prop, requiredSet.has(name), schemas)
   );
 
-  return { inputs, outputs: mapOutputSchema(outputSchema, modelDescription) };
+  return {
+    inputs,
+    outputs: mapOutputSchema(outputSchema, modelDescription, schemas),
+  };
 }

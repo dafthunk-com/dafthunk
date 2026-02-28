@@ -321,6 +321,45 @@ describe("mapReplicateSchema", () => {
     });
   });
 
+  it("resolves $ref output schema to the named definition (Replicate trellis2 pattern)", () => {
+    const schema = {
+      components: {
+        schemas: {
+          Input: {
+            type: "object",
+            required: ["image"],
+            properties: {
+              image: { type: "string", format: "uri", "x-order": 0 },
+            },
+          },
+          // Output is a $ref to PredictOutput defined elsewhere in components.schemas
+          Output: { $ref: "#/components/schemas/PredictOutput" },
+          PredictOutput: {
+            type: "object",
+            properties: {
+              model_file: { type: "string", format: "uri" },
+              video: { type: "string", format: "uri" },
+              no_background_image: { type: "string", format: "uri" },
+            },
+          },
+        },
+      },
+    };
+
+    const result = mapReplicateSchema(schema);
+
+    expect(result.outputs).toHaveLength(3);
+    expect(result.outputs[0]).toMatchObject({
+      name: "model_file",
+      type: "blob",
+    });
+    expect(result.outputs[1]).toMatchObject({ name: "video", type: "video" });
+    expect(result.outputs[2]).toMatchObject({
+      name: "no_background_image",
+      type: "image",
+    });
+  });
+
   it("resolves nullable anyOf output wrapper to underlying type (Replicate pattern)", () => {
     const schema = {
       components: {
@@ -366,19 +405,31 @@ describe("mapReplicateSchema", () => {
                   model_file: {
                     anyOf: [
                       { type: "null" },
-                      { type: "string", format: "uri", description: "3D model" },
+                      {
+                        type: "string",
+                        format: "uri",
+                        description: "3D model",
+                      },
                     ],
                   },
                   video: {
                     anyOf: [
                       { type: "null" },
-                      { type: "string", format: "uri", description: "Video preview" },
+                      {
+                        type: "string",
+                        format: "uri",
+                        description: "Video preview",
+                      },
                     ],
                   },
                   no_background_image: {
                     anyOf: [
                       { type: "null" },
-                      { type: "string", format: "uri", description: "Background removed" },
+                      {
+                        type: "string",
+                        format: "uri",
+                        description: "Background removed",
+                      },
                     ],
                   },
                 },
@@ -392,9 +443,15 @@ describe("mapReplicateSchema", () => {
     const result = mapReplicateSchema(schema);
 
     expect(result.outputs).toHaveLength(3);
-    expect(result.outputs[0]).toMatchObject({ name: "model_file", type: "blob" });
+    expect(result.outputs[0]).toMatchObject({
+      name: "model_file",
+      type: "blob",
+    });
     expect(result.outputs[1]).toMatchObject({ name: "video", type: "video" });
-    expect(result.outputs[2]).toMatchObject({ name: "no_background_image", type: "image" });
+    expect(result.outputs[2]).toMatchObject({
+      name: "no_background_image",
+      type: "image",
+    });
   });
 
   it("maps object outputs with named URI properties to multiple named outputs (Trellis 2 pattern)", () => {

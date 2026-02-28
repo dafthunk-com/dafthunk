@@ -61,8 +61,16 @@ function ReplicateModelInputWidget({
           `/replicate/models/${parts[0]}/${parts[1]}/schema`
         );
 
-        // Update the model input value
-        onChange(modelId);
+        // Pin the version into the model identifier so execution uses the
+        // version-specific endpoint (/v1/predictions?version=...) rather than
+        // the model-level endpoint which many community models don't support.
+        const versionedModelId =
+          schema.version && !modelId.includes(":")
+            ? `${modelId}:${schema.version}`
+            : modelId;
+
+        setValue(versionedModelId);
+        onChange(versionedModelId);
 
         // Build new inputs: keep the model param, add schema-derived params
         const modelParam: WorkflowParameter = {
@@ -72,7 +80,7 @@ function ReplicateModelInputWidget({
           description:
             "Replicate model identifier in the format provider/model or provider/model:version",
           required: true,
-          value: modelId,
+          value: versionedModelId,
         };
 
         const schemaInputs: WorkflowParameter[] = schema.inputs.map(
