@@ -15,6 +15,7 @@ interface JsonSchemaProperty {
   "x-order"?: number;
   items?: JsonSchemaProperty;
   allOf?: JsonSchemaProperty[];
+  properties?: Record<string, JsonSchemaProperty>;
 }
 
 /**
@@ -259,7 +260,20 @@ function mapOutputSchema(
     ];
   }
 
-  // Object → json output
+  // Object with named properties → multiple named outputs (e.g. Trellis 2)
+  if (schema.type === "object" && schema.properties) {
+    return Object.entries(schema.properties).map(([name, prop]) => {
+      const resolved = resolveAllOf(prop);
+      const desc = resolved.description ?? resolved.title;
+      if (resolved.type === "string" && resolved.format === "uri") {
+        const blobType = detectBlobType(name, desc);
+        return { name, type: blobType, description: desc } as Parameter;
+      }
+      return { name, type: "string", description: desc };
+    });
+  }
+
+  // Object without named properties → json output
   if (schema.type === "object") {
     return [{ name: "output", type: "json", description: schema.description }];
   }

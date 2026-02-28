@@ -321,6 +321,58 @@ describe("mapReplicateSchema", () => {
     });
   });
 
+  it("maps object outputs with named URI properties to multiple named outputs (Trellis 2 pattern)", () => {
+    const schema = {
+      components: {
+        schemas: {
+          Input: {
+            type: "object",
+            required: ["image"],
+            properties: {
+              image: { type: "string", format: "uri", "x-order": 0 },
+            },
+          },
+          Output: {
+            type: "object",
+            properties: {
+              model_file: {
+                type: "string",
+                format: "uri",
+                description: "Generated 3D model",
+              },
+              video: {
+                type: "string",
+                format: "uri",
+                description: "Video preview",
+              },
+              no_background_image: {
+                type: "string",
+                format: "uri",
+                description: "Image with background removed",
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const result = mapReplicateSchema(schema);
+
+    expect(result.outputs).toHaveLength(3);
+    // "model_file" has no blob keyword → blob
+    expect(result.outputs[0]).toMatchObject({
+      name: "model_file",
+      type: "blob",
+    });
+    // "video" → video
+    expect(result.outputs[1]).toMatchObject({ name: "video", type: "video" });
+    // "no_background_image" → image
+    expect(result.outputs[2]).toMatchObject({
+      name: "no_background_image",
+      type: "image",
+    });
+  });
+
   it("handles object and json outputs", () => {
     const schema = {
       components: {

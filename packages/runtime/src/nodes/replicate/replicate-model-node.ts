@@ -231,6 +231,37 @@ For example: \`google/veo-3\`, \`openai/whisper\`, \`xai/grok-imagine-video\`.`,
     output: string | string[] | Record<string, unknown>,
     outputType: string
   ): Promise<NodeExecution> {
+    // Multi-output: object where each key maps to a named output definition
+    if (
+      typeof output === "object" &&
+      !Array.isArray(output) &&
+      (this.node.outputs?.length ?? 0) > 1
+    ) {
+      const results: Record<string, { data: Uint8Array; mimeType: string }> =
+        {};
+      for (const outputDef of this.node.outputs ?? []) {
+        const value = output[outputDef.name];
+        if (!BLOB_TYPES.has(outputDef.type) || typeof value !== "string")
+          continue;
+        const response = await fetch(value);
+        if (!response.ok) {
+          throw new Error(
+            `Failed to download ${outputDef.name}: ${response.status}`
+          );
+        }
+        results[outputDef.name] = {
+          data: new Uint8Array(await response.arrayBuffer()),
+          mimeType: guessMimeType(
+            response.headers.get("content-type"),
+            outputDef.type
+          ),
+        };
+      }
+      if (Object.keys(results).length > 0) {
+        return this.createSuccessResult(results);
+      }
+    }
+
     // Extract the URL from array outputs (take first element)
     const outputUrl =
       typeof output === "string"
