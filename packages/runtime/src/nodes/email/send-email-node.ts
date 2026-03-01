@@ -1,10 +1,6 @@
-import {
-  SESClient,
-  SESServiceException,
-  SendEmailCommand,
-} from "@aws-sdk/client-ses";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { AwsClient } from "aws4fetch";
 
 export class SendEmailNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -103,65 +99,78 @@ export class SendEmailNode extends ExecutableNode {
     }
 
     try {
-      const sesClient = new SESClient({
-        region,
-        credentials: {
-          accessKeyId,
-          secretAccessKey,
-        },
-      });
-
-      // Convert string inputs to arrays if needed
-      const toArray = typeof to === "string" ? [to] : to;
-      const ccArray = cc ? (typeof cc === "string" ? [cc] : cc) : undefined;
+      const toArray = typeof to === "string" ? [to] : (to as string[]);
+      const ccArray = cc
+        ? typeof cc === "string"
+          ? [cc]
+          : (cc as string[])
+        : [];
       const replyToArray = replyTo
         ? typeof replyTo === "string"
           ? [replyTo]
-          : replyTo
-        : undefined;
+          : (replyTo as string[])
+        : [];
 
-      // Create the email parameters following AWS documentation structure
-      const params = {
-        Source: sender,
-        Destination: {
-          ToAddresses: toArray,
-          CcAddresses: ccArray,
-        },
-        Message: {
-          Subject: {
-            Data: subject,
-            Charset: "UTF-8",
-          },
-          Body: {
-            ...(html && {
-              Html: {
-                Data: html,
-                Charset: "UTF-8",
-              },
-            }),
-            ...(text && {
-              Text: {
-                Data: text,
-                Charset: "UTF-8",
-              },
-            }),
-          },
-        },
-        ...(replyToArray && { ReplyToAddresses: replyToArray }),
-      };
+      const params = new URLSearchParams();
+      params.set("Action", "SendEmail");
+      params.set("Source", sender);
 
-      console.log(
-        "Sending email with SES params:",
-        JSON.stringify(params, null, 2)
+      for (let i = 0; i < toArray.length; i++) {
+        params.set(
+          `Destination.ToAddresses.member.${i + 1}`,
+          toArray[i] as string
+        );
+      }
+      for (let i = 0; i < ccArray.length; i++) {
+        params.set(
+          `Destination.CcAddresses.member.${i + 1}`,
+          ccArray[i] as string
+        );
+      }
+      for (let i = 0; i < replyToArray.length; i++) {
+        params.set(
+          `ReplyToAddresses.member.${i + 1}`,
+          replyToArray[i] as string
+        );
+      }
+
+      params.set("Message.Subject.Data", subject as string);
+      params.set("Message.Subject.Charset", "UTF-8");
+
+      if (html) {
+        params.set("Message.Body.Html.Data", html as string);
+        params.set("Message.Body.Html.Charset", "UTF-8");
+      }
+      if (text) {
+        params.set("Message.Body.Text.Data", text as string);
+        params.set("Message.Body.Text.Charset", "UTF-8");
+      }
+
+      const client = new AwsClient({ accessKeyId, secretAccessKey });
+      const response = await client.fetch(
+        `https://email.${region}.amazonaws.com/`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: params.toString(),
+        }
       );
 
-      const command = new SendEmailCommand(params);
-      const response = await sesClient.send(command);
+      const responseText = await response.text();
 
-      if (response.MessageId) {
-        return this.createSuccessResult({
-          messageId: response.MessageId,
-        });
+      if (!response.ok) {
+        const errorMatch = responseText.match(/<Message>(.*?)<\/Message>/);
+        const errorMessage = errorMatch?.[1] ?? responseText;
+        return this.createErrorResult(
+          `AWS SES Error (${response.status}): ${errorMessage}`
+        );
+      }
+
+      const messageIdMatch = responseText.match(
+        /<MessageId>(.*?)<\/MessageId>/
+      );
+      if (messageIdMatch?.[1]) {
+        return this.createSuccessResult({ messageId: messageIdMatch[1] });
       }
 
       return this.createErrorResult(
@@ -169,15 +178,6 @@ export class SendEmailNode extends ExecutableNode {
       );
     } catch (error) {
       console.error("SES Error:", error);
-      if (error instanceof SESServiceException) {
-        return this.createErrorResult(
-          `AWS SES Error: ${error.name} - ${error.message}${
-            error.$metadata?.requestId
-              ? ` (Request ID: ${error.$metadata.requestId})`
-              : ""
-          }`
-        );
-      }
       return this.createErrorResult(
         error instanceof Error ? error.message : String(error)
       );

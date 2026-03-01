@@ -1,8 +1,4 @@
-import {
-  SESClient,
-  SESServiceException,
-  SendEmailCommand,
-} from "@aws-sdk/client-ses";
+import { AwsClient } from "aws4fetch";
 
 import type { Bindings } from "../context";
 
@@ -25,8 +21,9 @@ export interface EmailResult {
  * Uses Amazon SES with the configured noreply address
  */
 export class EmailService {
-  private sesClient: SESClient;
+  private client: AwsClient;
   private fromAddress: string;
+  private region: string;
 
   constructor(env: Bindings) {
     if (
@@ -43,14 +40,11 @@ export class EmailService {
       throw new Error("SES_DEFAULT_FROM is not configured");
     }
 
-    this.sesClient = new SESClient({
-      region: env.AWS_REGION,
-      credentials: {
-        accessKeyId: env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
-      },
+    this.client = new AwsClient({
+      accessKeyId: env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
     });
-
+    this.region = env.AWS_REGION;
     this.fromAddress = env.SES_DEFAULT_FROM;
   }
 
@@ -80,43 +74,59 @@ export class EmailService {
         ? typeof replyTo === "string"
           ? [replyTo]
           : replyTo
-        : undefined;
+        : [];
 
-      const params = {
-        Source: this.fromAddress,
-        Destination: {
-          ToAddresses: toArray,
-        },
-        Message: {
-          Subject: {
-            Data: subject,
-            Charset: "UTF-8",
-          },
-          Body: {
-            ...(html && {
-              Html: {
-                Data: html,
-                Charset: "UTF-8",
-              },
-            }),
-            ...(text && {
-              Text: {
-                Data: text,
-                Charset: "UTF-8",
-              },
-            }),
-          },
-        },
-        ...(replyToArray && { ReplyToAddresses: replyToArray }),
-      };
+      const params = new URLSearchParams();
+      params.set("Action", "SendEmail");
+      params.set("Source", this.fromAddress);
 
-      const command = new SendEmailCommand(params);
-      const response = await this.sesClient.send(command);
+      for (let i = 0; i < toArray.length; i++) {
+        params.set(`Destination.ToAddresses.member.${i + 1}`, toArray[i]);
+      }
+      for (let i = 0; i < replyToArray.length; i++) {
+        params.set(`ReplyToAddresses.member.${i + 1}`, replyToArray[i]);
+      }
 
-      if (response.MessageId) {
+      params.set("Message.Subject.Data", subject);
+      params.set("Message.Subject.Charset", "UTF-8");
+
+      if (html) {
+        params.set("Message.Body.Html.Data", html);
+        params.set("Message.Body.Html.Charset", "UTF-8");
+      }
+      if (text) {
+        params.set("Message.Body.Text.Data", text);
+        params.set("Message.Body.Text.Charset", "UTF-8");
+      }
+
+      const response = await this.client.fetch(
+        `https://email.${this.region}.amazonaws.com/`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: params.toString(),
+        }
+      );
+
+      const responseText = await response.text();
+
+      if (!response.ok) {
+        const errorMatch = responseText.match(/<Message>(.*?)<\/Message>/);
+        const errorMessage = errorMatch?.[1] ?? responseText;
+        console.error("Email Service SES Error:", errorMessage);
+        return {
+          success: false,
+          error: `AWS SES Error: ${errorMessage}`,
+        };
+      }
+
+      const messageIdMatch = responseText.match(
+        /<MessageId>(.*?)<\/MessageId>/
+      );
+      if (messageIdMatch?.[1]) {
         return {
           success: true,
-          messageId: response.MessageId,
+          messageId: messageIdMatch[1],
         };
       }
 
@@ -126,14 +136,6 @@ export class EmailService {
       };
     } catch (error) {
       console.error("Email Service SES Error:", error);
-
-      if (error instanceof SESServiceException) {
-        return {
-          success: false,
-          error: `AWS SES Error: ${error.name} - ${error.message}`,
-        };
-      }
-
       return {
         success: false,
         error: error instanceof Error ? error.message : String(error),
