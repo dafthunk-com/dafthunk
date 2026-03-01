@@ -564,6 +564,71 @@ describe("mapReplicateSchema", () => {
     });
   });
 
+  it("maps array-of-URI inputs to repeated blob type (e.g. google/nano-banana-pro)", () => {
+    const schema = {
+      components: {
+        schemas: {
+          Input: {
+            type: "object",
+            required: ["image_uris"],
+            properties: {
+              image_uris: {
+                type: "array",
+                items: { type: "string", format: "uri" },
+                description: "Up to 14 image URIs to process",
+                "x-order": 0,
+              },
+            },
+          },
+          Output: { type: "string" },
+        },
+      },
+    };
+
+    const result = mapReplicateSchema(schema);
+
+    expect(result.inputs[0]).toMatchObject({
+      name: "image_uris",
+      type: "image",
+      repeated: true,
+      required: true,
+      hidden: false,
+    });
+  });
+
+  it("maps array-of-URI inputs with $ref items to repeated blob type", () => {
+    const schema = {
+      components: {
+        schemas: {
+          Input: {
+            type: "object",
+            properties: {
+              images: {
+                type: "array",
+                items: { $ref: "#/components/schemas/ImageUri" },
+                description: "Input images",
+                "x-order": 0,
+              },
+            },
+          },
+          ImageUri: {
+            type: "string",
+            format: "uri",
+          },
+          Output: { type: "string" },
+        },
+      },
+    };
+
+    const result = mapReplicateSchema(schema);
+
+    expect(result.inputs[0]).toMatchObject({
+      name: "images",
+      type: "image",
+      repeated: true,
+    });
+  });
+
   it("maps array inputs without URI format to json", () => {
     const schema = {
       components: {

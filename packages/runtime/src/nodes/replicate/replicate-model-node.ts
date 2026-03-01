@@ -74,6 +74,7 @@ For example: \`google/veo-3\`, \`openai/whisper\`, \`xai/grok-imagine-video\`.`,
         description:
           "Replicate model identifier in the format provider/model or provider/model:version",
         required: true,
+        hidden: true,
       },
     ],
     outputs: [],
@@ -102,7 +103,7 @@ For example: \`google/veo-3\`, \`openai/whisper\`, \`xai/grok-imagine-video\`.`,
       const modelPath = ownerName.trim();
 
       // Build input payload from all non-model inputs
-      const input: Record<string, string | number | boolean> = {};
+      const input: Record<string, string | number | boolean | string[]> = {};
 
       for (const [key, value] of Object.entries(context.inputs)) {
         if (key === "model" || value === undefined || value === null) continue;
@@ -111,18 +112,41 @@ For example: \`google/veo-3\`, \`openai/whisper\`, \`xai/grok-imagine-video\`.`,
         const paramDef = this.node.inputs?.find((p) => p.name === key);
         const isBlobType = paramDef && BLOB_TYPES.has(paramDef.type);
 
-        if (isBlobType && isBlobParameter(value)) {
+        // Repeated blob input (array of blobs) → presign each, build URL array
+        if (isBlobType && paramDef?.repeated && Array.isArray(value)) {
+          if (!context.objectStore) {
+            return this.createErrorResult(
+              "ObjectStore not available (required for blob inputs)"
+            );
+          }
+          const urls: string[] = [];
+          for (const item of value) {
+            if (isBlobParameter(item)) {
+              const data = toUint8Array(item.data);
+              urls.push(
+                await context.objectStore.writeAndPresign(
+                  data,
+                  item.mimeType,
+                  context.organizationId
+                )
+              );
+            }
+          }
+          input[key] = urls;
+        } else if (isBlobType && isBlobParameter(value)) {
           if (!context.objectStore) {
             return this.createErrorResult(
               "ObjectStore not available (required for blob inputs)"
             );
           }
           const data = toUint8Array(value.data);
-          input[key] = await context.objectStore.writeAndPresign(
+          const url = await context.objectStore.writeAndPresign(
             data,
             value.mimeType,
             context.organizationId
           );
+          // Wrap in array when the parameter expects a repeated blob
+          input[key] = paramDef?.repeated ? [url] : url;
         } else {
           input[key] = value as string | number | boolean;
         }

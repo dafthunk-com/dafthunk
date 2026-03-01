@@ -238,14 +238,18 @@ function mapProperty(
     };
   }
 
-  // Arrays (of URIs → blob; otherwise → json)
+  // Arrays (of URIs → repeated blob; otherwise → json)
   // Cast needed: detectBlobType returns a dynamic discriminant that TS can't narrow
   if (prop.type === "array") {
-    if (prop.items?.format === "uri") {
+    const resolvedItems = prop.items
+      ? resolveSchema(prop.items, schemas)
+      : undefined;
+    if (resolvedItems?.format === "uri") {
       const blobType = detectBlobType(name, description);
       return {
         name,
         type: blobType,
+        repeated: true,
         description,
         required: required && prop.default === undefined,
         hidden: !required || prop.default !== undefined,
