@@ -43,7 +43,7 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260116.0",
     "@types/mailparser": "^3.4.6",
-    "@types/three": "^0.181.0",
+    "@types/three": "^0.182.0",
     "@types/wellknown": "^0.5.8",
     "typescript": "^5.9.3",
     "vitest": "^3.2.4"
