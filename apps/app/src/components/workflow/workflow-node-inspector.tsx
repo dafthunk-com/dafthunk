@@ -1,7 +1,7 @@
 import type { ObjectReference } from "@dafthunk/types";
 import type { Node as ReactFlowNode } from "@xyflow/react";
 import ChevronDownIcon from "lucide-react/icons/chevron-down";
-import { createElement, useEffect, useState } from "react";
+import { createElement, useState } from "react";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -56,14 +56,38 @@ export function WorkflowNodeInspector({
   const [outputsExpanded, setOutputsExpanded] = useState(true);
   const [errorExpanded, setErrorExpanded] = useState(true);
 
-  // Update local state when node data changes
-  useEffect(() => {
-    if (!node) return;
+  // Track previous node data to detect external changes (e.g., from canvas widget)
+  const [prevNodeData, setPrevNodeData] = useState({
+    inputs: node?.data.inputs,
+    outputs: node?.data.outputs,
+    name: node?.data.name,
+  });
 
-    setLocalName(node.data.name);
-    setLocalInputs(node.data.inputs);
-    setLocalOutputs(node.data.outputs);
-  }, [node?.id, node?.data.name, node?.data.inputs, node?.data.outputs]);
+  // Sync local state when node data changes externally.
+  // Uses React's "adjust state during render" pattern so the stale frame is
+  // never committed — unlike useEffect which runs after the stale render.
+  if (node) {
+    let changed = false;
+    if (node.data.inputs !== prevNodeData.inputs) {
+      setLocalInputs(node.data.inputs);
+      changed = true;
+    }
+    if (node.data.outputs !== prevNodeData.outputs) {
+      setLocalOutputs(node.data.outputs);
+      changed = true;
+    }
+    if (node.data.name !== prevNodeData.name) {
+      setLocalName(node.data.name);
+      changed = true;
+    }
+    if (changed) {
+      setPrevNodeData({
+        inputs: node.data.inputs,
+        outputs: node.data.outputs,
+        name: node.data.name,
+      });
+    }
+  }
 
   if (!node) return null;
 

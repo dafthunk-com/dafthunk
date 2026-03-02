@@ -42,6 +42,13 @@ function ReplicateModelInputWidget({
   const [showConfirm, setShowConfirm] = useState(false);
   const { updateNodeData, edges, deleteEdge } = useWorkflow();
 
+  // Sync local value when model prop changes externally (e.g., from canvas widget)
+  const [prevModel, setPrevModel] = useState(model);
+  if (model !== prevModel) {
+    setPrevModel(model);
+    setValue(model ?? "");
+  }
+
   const applySchema = useCallback(
     async (modelId: string) => {
       // Validate format before making network request
