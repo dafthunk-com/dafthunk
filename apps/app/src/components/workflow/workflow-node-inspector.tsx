@@ -15,7 +15,7 @@ import {
   updateNodeName,
   useWorkflow,
 } from "./workflow-context";
-import type { WorkflowNodeType, WorkflowParameter } from "./workflow-types";
+import type { WorkflowNodeType } from "./workflow-types";
 
 export interface WorkflowNodeInspectorProps {
   node: ReactFlowNode<WorkflowNodeType> | null;
@@ -41,14 +41,13 @@ export function WorkflowNodeInspector({
   // Prefer the context function but fall back to the prop if needed
   const updateNodeData = onNodeUpdate || contextUpdateNodeData;
 
-  // Create local state to immediately reflect changes in the UI
+  // Local state only for the name input (controlled text field needs immediate feedback)
   const [localName, setLocalName] = useState<string>(node?.data.name || "");
-  const [localInputs, setLocalInputs] = useState<readonly WorkflowParameter[]>(
-    node?.data.inputs || []
-  );
-  const [localOutputs, setLocalOutputs] = useState<
-    readonly WorkflowParameter[]
-  >(node?.data.outputs || []);
+  const [prevName, setPrevName] = useState(node?.data.name);
+  if (node && node.data.name !== prevName) {
+    setPrevName(node.data.name);
+    setLocalName(node.data.name);
+  }
 
   // Collapsible section state
   const [propertiesExpanded, setPropertiesExpanded] = useState(true);
@@ -56,40 +55,11 @@ export function WorkflowNodeInspector({
   const [outputsExpanded, setOutputsExpanded] = useState(true);
   const [errorExpanded, setErrorExpanded] = useState(true);
 
-  // Track previous node data to detect external changes (e.g., from canvas widget)
-  const [prevNodeData, setPrevNodeData] = useState({
-    inputs: node?.data.inputs,
-    outputs: node?.data.outputs,
-    name: node?.data.name,
-  });
-
-  // Sync local state when node data changes externally.
-  // Uses React's "adjust state during render" pattern so the stale frame is
-  // never committed — unlike useEffect which runs after the stale render.
-  if (node) {
-    let changed = false;
-    if (node.data.inputs !== prevNodeData.inputs) {
-      setLocalInputs(node.data.inputs);
-      changed = true;
-    }
-    if (node.data.outputs !== prevNodeData.outputs) {
-      setLocalOutputs(node.data.outputs);
-      changed = true;
-    }
-    if (node.data.name !== prevNodeData.name) {
-      setLocalName(node.data.name);
-      changed = true;
-    }
-    if (changed) {
-      setPrevNodeData({
-        inputs: node.data.inputs,
-        outputs: node.data.outputs,
-        name: node.data.name,
-      });
-    }
-  }
-
   if (!node) return null;
+
+  // Read inputs/outputs directly from node data — no intermediate state to get stale
+  const inputs = node.data.inputs;
+  const outputs = node.data.outputs;
 
   // Helper function to check if an input is connected
   // Inputs are always targets, so we only check targetHandle
@@ -127,21 +97,13 @@ export function WorkflowNodeInspector({
 
   const handleClearValue = (inputId: string) => {
     if (disabled || !updateNodeData) return;
-
-    const updatedInputs = clearNodeInput(
-      node.id,
-      inputId,
-      localInputs,
-      updateNodeData
-    );
-
-    setLocalInputs(updatedInputs);
+    clearNodeInput(node.id, inputId, inputs, updateNodeData);
   };
 
   const handleToggleVisibility = (inputId: string) => {
     if (disabled || !updateNodeData) return;
 
-    const updatedInputs = localInputs.map((input) =>
+    const updatedInputs = inputs.map((input) =>
       input.id === inputId ? { ...input, hidden: !input.hidden } : input
     );
 
@@ -149,14 +111,12 @@ export function WorkflowNodeInspector({
       ...node.data,
       inputs: updatedInputs,
     });
-
-    setLocalInputs(updatedInputs);
   };
 
   const handleToggleOutputVisibility = (outputId: string) => {
     if (disabled || !updateNodeData) return;
 
-    const updatedOutputs = localOutputs.map((output) =>
+    const updatedOutputs = outputs.map((output) =>
       output.id === outputId ? { ...output, hidden: !output.hidden } : output
     );
 
@@ -164,8 +124,6 @@ export function WorkflowNodeInspector({
       ...node.data,
       outputs: updatedOutputs,
     });
-
-    setLocalOutputs(updatedOutputs);
   };
 
   const handleDisconnect = (inputId: string) => {
@@ -182,19 +140,12 @@ export function WorkflowNodeInspector({
 
   const nodeType = node.data.nodeType || node.type;
   const widget = nodeType
-    ? registry.for(nodeType, node.id, [...localInputs], [...localOutputs])
+    ? registry.for(nodeType, node.id, [...inputs], [...outputs])
     : null;
 
   const handleWidgetChange = (value: unknown) => {
     if (disabled || !updateNodeData || !widget) return;
-    const updatedInputs = updateNodeInput(
-      node.id,
-      widget.inputField,
-      value,
-      localInputs,
-      updateNodeData
-    );
-    setLocalInputs(updatedInputs);
+    updateNodeInput(node.id, widget.inputField, value, inputs, updateNodeData);
   };
 
   return (
@@ -269,8 +220,8 @@ export function WorkflowNodeInspector({
           </button>
           {inputsExpanded && (
             <div className="px-4 pb-4 space-y-3">
-              {localInputs.length > 0 ? (
-                localInputs.map((input) => {
+              {inputs.length > 0 ? (
+                inputs.map((input) => {
                   if (widget && input.id === widget.inputField) {
                     return (
                       <div key={input.id}>
@@ -311,14 +262,13 @@ export function WorkflowNodeInspector({
                           value as string,
                           input.type || "string"
                         );
-                        const updatedInputs = updateNodeInput(
+                        updateNodeInput(
                           node.id,
                           input.id,
                           typedValue,
-                          localInputs,
+                          inputs,
                           updateNodeData
                         );
-                        setLocalInputs(updatedInputs);
                       }}
                       onClear={() => handleClearValue(input.id)}
                       onDisconnect={() => handleDisconnect(input.id)}
@@ -353,8 +303,8 @@ export function WorkflowNodeInspector({
           </button>
           {outputsExpanded && (
             <div className="px-4 pb-4 space-y-3">
-              {localOutputs.length > 0 ? (
-                localOutputs.map((output) => (
+              {outputs.length > 0 ? (
+                outputs.map((output) => (
                   <PropertyField
                     key={output.id}
                     parameter={output}
