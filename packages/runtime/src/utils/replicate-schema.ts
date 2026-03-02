@@ -103,12 +103,15 @@ function resolveRef(
 
 /**
  * Fully resolve a schema property: dereference $ref, merge allOf, unwrap nullable anyOf/oneOf.
- * This handles the three most common Replicate schema patterns in order.
+ * Recurses up to `maxDepth` to handle nested compositions (e.g. $ref targets containing allOf).
  */
 function resolveSchema(
   prop: JsonSchemaProperty,
-  schemas: SchemaMap
+  schemas: SchemaMap,
+  depth = 0
 ): JsonSchemaProperty {
+  if (depth > 10) return prop;
+
   // 1. Dereference $ref — e.g. Output: { "$ref": "#/components/schemas/PredictOutput" }
   let resolved = prop;
   if (resolved.$ref) {
@@ -119,6 +122,8 @@ function resolveSchema(
       if (!resolved.description && prop.description)
         resolved.description = prop.description;
       if (!resolved.title && prop.title) resolved.title = prop.title;
+      // Recursively resolve the dereferenced schema (it may contain allOf/$ref/anyOf)
+      return resolveSchema(resolved, schemas, depth + 1);
     }
   }
 
@@ -127,7 +132,9 @@ function resolveSchema(
     const merged = { ...resolved };
     delete merged.allOf;
     for (const item of resolved.allOf) {
-      Object.assign(merged, item);
+      // Recursively resolve each allOf member (may contain $ref)
+      const resolvedItem = resolveSchema(item, schemas, depth + 1);
+      Object.assign(merged, resolvedItem);
     }
     resolved = merged;
   }
@@ -140,15 +147,32 @@ function resolveSchema(
       const merged = { ...resolved };
       delete merged.anyOf;
       delete merged.oneOf;
-      Object.assign(merged, nonNull);
-      if (prop.description && !nonNull.description)
+      // Recursively resolve the non-null alternative (may contain $ref/allOf)
+      const resolvedAlt = resolveSchema(nonNull, schemas, depth + 1);
+      Object.assign(merged, resolvedAlt);
+      if (prop.description && !resolvedAlt.description)
         merged.description = prop.description;
-      if (prop.title && !nonNull.title) merged.title = prop.title;
+      if (prop.title && !resolvedAlt.title) merged.title = prop.title;
       resolved = merged;
     }
   }
 
   return resolved;
+}
+
+/**
+ * Collect optional JSON Schema metadata from a resolved property.
+ */
+function collectMetadata(
+  prop: JsonSchemaProperty
+): Partial<Pick<Parameter, "minimum" | "maximum" | "enum" | "format" | "default">> {
+  const meta: Partial<Pick<Parameter, "minimum" | "maximum" | "enum" | "format" | "default">> = {};
+  if (prop.minimum !== undefined) meta.minimum = prop.minimum;
+  if (prop.maximum !== undefined) meta.maximum = prop.maximum;
+  if (prop.enum) meta.enum = prop.enum;
+  if (prop.format) meta.format = prop.format;
+  if (prop.default !== undefined) meta.default = prop.default;
+  return meta;
 }
 
 /**
@@ -162,6 +186,7 @@ function mapProperty(
 ): Parameter {
   const prop = resolveSchema(rawProp, schemas);
   const description = prop.description ?? prop.title;
+  const meta = collectMetadata(prop);
 
   // URI strings → detect blob type
   // Cast needed: detectBlobType returns a dynamic discriminant that TS can't narrow
@@ -173,6 +198,7 @@ function mapProperty(
       description,
       required: required && prop.default === undefined,
       hidden: !required || prop.default !== undefined,
+      ...meta,
     } as Parameter;
   }
 
@@ -188,6 +214,7 @@ function mapProperty(
       value: prop.default !== undefined ? String(prop.default) : prop.enum[0],
       required: required && prop.default === undefined,
       hidden: !required || prop.default !== undefined,
+      ...meta,
     };
   }
 
@@ -200,6 +227,7 @@ function mapProperty(
       ...(prop.default !== undefined ? { value: String(prop.default) } : {}),
       required: required && prop.default === undefined,
       hidden: !required || prop.default !== undefined,
+      ...meta,
     };
   }
 
@@ -212,6 +240,7 @@ function mapProperty(
       ...(prop.default !== undefined ? { value: Number(prop.default) } : {}),
       required: required && prop.default === undefined,
       hidden: !required || prop.default !== undefined,
+      ...meta,
     };
   }
 
@@ -224,6 +253,7 @@ function mapProperty(
       ...(prop.default !== undefined ? { value: Boolean(prop.default) } : {}),
       required: required && prop.default === undefined,
       hidden: !required || prop.default !== undefined,
+      ...meta,
     };
   }
 
@@ -235,6 +265,7 @@ function mapProperty(
       description,
       required: required && prop.default === undefined,
       hidden: !required || prop.default !== undefined,
+      ...meta,
     };
   }
 
@@ -253,6 +284,7 @@ function mapProperty(
         description,
         required: required && prop.default === undefined,
         hidden: !required || prop.default !== undefined,
+        ...meta,
       } as Parameter;
     }
     return {
@@ -261,6 +293,7 @@ function mapProperty(
       description,
       required: required && prop.default === undefined,
       hidden: !required || prop.default !== undefined,
+      ...meta,
     };
   }
 
@@ -271,6 +304,7 @@ function mapProperty(
     description,
     required: required && prop.default === undefined,
     hidden: !required || prop.default !== undefined,
+    ...meta,
   };
 }
 
@@ -316,6 +350,23 @@ function mapOutputSchema(
     return [
       { name: "output", type: blobType, description: resolved.description },
     ] as Parameter[];
+  }
+
+  // Array of objects with named properties → multiple named outputs
+  // e.g. bytedance/piano-transcription: { type: "array", items: { type: "object", properties: { file: ... } } }
+  if (resolved.type === "array" && resolved.items) {
+    const resolvedItems = resolveSchema(resolved.items, schemas);
+    if (resolvedItems.type === "object" && resolvedItems.properties) {
+      return Object.entries(resolvedItems.properties).map(([name, prop]) => {
+        const r = resolveSchema(prop, schemas);
+        const desc = r.description ?? r.title;
+        if (r.type === "string" && r.format === "uri") {
+          const blobType = detectBlobType(name, desc);
+          return { name, type: blobType, description: desc } as Parameter;
+        }
+        return { name, type: "string", description: desc };
+      });
+    }
   }
 
   // Plain string → string output

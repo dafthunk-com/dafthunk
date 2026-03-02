@@ -12,11 +12,24 @@ import type { NodeExecution, NodeType } from "@dafthunk/types";
 interface ReplicatePrediction {
   id: string;
   status: "starting" | "processing" | "succeeded" | "failed" | "canceled";
-  output?: string | string[] | Record<string, unknown>;
+  output?: string | string[] | Record<string, unknown> | Record<string, unknown>[];
   error?: string;
+  metrics?: {
+    predict_time?: number;
+  };
 }
 
 const BLOB_TYPES = new Set(["image", "audio", "video", "blob"]);
+
+const REPLICATE_CREDITS_PER_SEC = 10;
+
+/**
+ * Convert Replicate predict_time (seconds) to usage credits.
+ */
+function calculateReplicateUsage(predictTime: number | undefined): number {
+  if (predictTime === undefined || predictTime <= 0) return 1;
+  return Math.max(1, Math.round(predictTime * REPLICATE_CREDITS_PER_SEC));
+}
 
 /**
  * Detect MIME type from a URL's content-type header or file extension.
@@ -241,9 +254,10 @@ For example: \`google/veo-3\`, \`openai/whisper\`, \`xai/grok-imagine-video\`.`,
 
       // Determine expected output type from node definition
       const outputType = this.node.outputs?.[0]?.type ?? "any";
+      const usage = calculateReplicateUsage(result.metrics?.predict_time);
 
       // Process output based on type
-      return await this.processOutput(result.output, outputType);
+      return await this.processOutput(result.output, outputType, usage);
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"
@@ -251,46 +265,78 @@ For example: \`google/veo-3\`, \`openai/whisper\`, \`xai/grok-imagine-video\`.`,
     }
   }
 
+  /**
+   * Process a multi-output object where each key maps to a named output definition.
+   * Downloads blob-typed values and returns them as binary data.
+   */
+  private async processMultiOutput(
+    obj: Record<string, unknown>,
+    usage: number
+  ): Promise<NodeExecution | null> {
+    const results: Record<string, { data: Uint8Array; mimeType: string }> = {};
+    for (const outputDef of this.node.outputs ?? []) {
+      const value = obj[outputDef.name];
+      if (!BLOB_TYPES.has(outputDef.type) || typeof value !== "string")
+        continue;
+      const response = await fetch(value);
+      if (!response.ok) {
+        throw new Error(
+          `Failed to download ${outputDef.name}: ${response.status}`
+        );
+      }
+      results[outputDef.name] = {
+        data: new Uint8Array(await response.arrayBuffer()),
+        mimeType: guessMimeType(
+          response.headers.get("content-type"),
+          outputDef.type
+        ),
+      };
+    }
+    if (Object.keys(results).length > 0) {
+      return this.createSuccessResult(results, usage);
+    }
+    return null;
+  }
+
   private async processOutput(
-    output: string | string[] | Record<string, unknown>,
-    outputType: string
+    output: string | string[] | Record<string, unknown> | Record<string, unknown>[],
+    outputType: string,
+    usage: number
   ): Promise<NodeExecution> {
+    const hasMultipleOutputDefs = (this.node.outputs?.length ?? 0) > 1;
+
     // Multi-output: object where each key maps to a named output definition
     if (
       typeof output === "object" &&
       !Array.isArray(output) &&
-      (this.node.outputs?.length ?? 0) > 1
+      hasMultipleOutputDefs
     ) {
-      const results: Record<string, { data: Uint8Array; mimeType: string }> =
-        {};
-      for (const outputDef of this.node.outputs ?? []) {
-        const value = output[outputDef.name];
-        if (!BLOB_TYPES.has(outputDef.type) || typeof value !== "string")
-          continue;
-        const response = await fetch(value);
-        if (!response.ok) {
-          throw new Error(
-            `Failed to download ${outputDef.name}: ${response.status}`
-          );
-        }
-        results[outputDef.name] = {
-          data: new Uint8Array(await response.arrayBuffer()),
-          mimeType: guessMimeType(
-            response.headers.get("content-type"),
-            outputDef.type
-          ),
-        };
-      }
-      if (Object.keys(results).length > 0) {
-        return this.createSuccessResult(results);
-      }
+      const result = await this.processMultiOutput(output, usage);
+      if (result) return result;
     }
 
-    // Extract the URL from array outputs (take first element)
+    // Array of objects with multiple output definitions → use first element
+    if (
+      Array.isArray(output) &&
+      hasMultipleOutputDefs &&
+      output.length > 0 &&
+      typeof output[0] === "object" &&
+      output[0] !== null
+    ) {
+      const result = await this.processMultiOutput(
+        output[0] as Record<string, unknown>,
+        usage
+      );
+      if (result) return result;
+    }
+
+    // Extract the URL from array outputs (take first element only if it's a string)
     const outputUrl =
       typeof output === "string"
         ? output
-        : Array.isArray(output) && output.length > 0
+        : Array.isArray(output) &&
+            output.length > 0 &&
+            typeof output[0] === "string"
           ? output[0]
           : null;
 
@@ -307,15 +353,15 @@ For example: \`google/veo-3\`, \`openai/whisper\`, \`xai/grok-imagine-video\`.`,
         outputType
       );
 
-      return this.createSuccessResult({ output: { data, mimeType } });
+      return this.createSuccessResult({ output: { data, mimeType } }, usage);
     }
 
     // String output
     if (typeof outputUrl === "string") {
-      return this.createSuccessResult({ output: outputUrl });
+      return this.createSuccessResult({ output: outputUrl }, usage);
     }
 
     // Object/JSON output
-    return this.createSuccessResult({ output });
+    return this.createSuccessResult({ output }, usage);
   }
 }

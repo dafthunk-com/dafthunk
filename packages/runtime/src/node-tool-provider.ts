@@ -216,6 +216,13 @@ export class NodeToolProvider implements ToolProvider {
       description: parameter.description,
     };
 
+    // Pass through JSON Schema metadata from Parameter
+    if (parameter.minimum !== undefined)
+      baseProperty.minimum = parameter.minimum;
+    if (parameter.maximum !== undefined)
+      baseProperty.maximum = parameter.maximum;
+    if (parameter.enum) baseProperty.enum = parameter.enum;
+
     switch (parameter.type) {
       case "string":
         return { ...baseProperty, type: "string" };

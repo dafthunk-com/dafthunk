@@ -224,6 +224,12 @@ export type Parameter = {
   hidden?: boolean;
   required?: boolean;
   repeated?: boolean; // Flag for parameters that can accept multiple connections
+  // JSON Schema metadata
+  minimum?: number;
+  maximum?: number;
+  enum?: string[];
+  format?: string;
+  default?: string | number | boolean;
 } & ParameterType;
 
 /**

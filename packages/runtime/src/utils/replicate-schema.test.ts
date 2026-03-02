@@ -728,4 +728,181 @@ describe("mapReplicateSchema", () => {
       description: "Generated text",
     });
   });
+
+  it("maps array-of-objects output to multiple named outputs (piano-transcription pattern)", () => {
+    const schema = {
+      components: {
+        schemas: {
+          Input: {
+            type: "object",
+            required: ["audio"],
+            properties: {
+              audio: {
+                type: "string",
+                format: "uri",
+                description: "Audio file",
+                "x-order": 0,
+              },
+            },
+          },
+          Output: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                file: {
+                  type: "string",
+                  format: "uri",
+                  description: "MIDI file",
+                },
+                label: {
+                  type: "string",
+                  description: "Track label",
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const result = mapReplicateSchema(schema);
+
+    expect(result.outputs).toHaveLength(2);
+    expect(result.outputs[0]).toMatchObject({
+      name: "file",
+      type: "blob",
+      description: "MIDI file",
+    });
+    expect(result.outputs[1]).toMatchObject({
+      name: "label",
+      type: "string",
+      description: "Track label",
+    });
+  });
+
+  it("preserves metadata: enum as array, minimum, maximum, default, format", () => {
+    const schema = {
+      components: {
+        schemas: {
+          Input: {
+            type: "object",
+            properties: {
+              scheduler: {
+                type: "string",
+                enum: ["DDIM", "K_EULER", "DPMSolverMultistep"],
+                default: "K_EULER",
+                description: "Scheduler to use",
+                "x-order": 0,
+              },
+              guidance_scale: {
+                type: "number",
+                minimum: 1,
+                maximum: 20,
+                default: 7.5,
+                description: "Guidance scale",
+                "x-order": 1,
+              },
+              output_format: {
+                type: "string",
+                format: "date-time",
+                description: "Timestamp format",
+                "x-order": 2,
+              },
+            },
+          },
+          Output: { type: "string" },
+        },
+      },
+    };
+
+    const result = mapReplicateSchema(schema);
+
+    // Enum metadata preserved
+    expect(result.inputs[0].enum).toEqual([
+      "DDIM",
+      "K_EULER",
+      "DPMSolverMultistep",
+    ]);
+    expect(result.inputs[0].default).toBe("K_EULER");
+
+    // Numeric metadata preserved
+    expect(result.inputs[1].minimum).toBe(1);
+    expect(result.inputs[1].maximum).toBe(20);
+    expect(result.inputs[1].default).toBe(7.5);
+
+    // Format metadata preserved
+    expect(result.inputs[2].format).toBe("date-time");
+  });
+
+  it("resolves nested $ref inside allOf members", () => {
+    const schema = {
+      components: {
+        schemas: {
+          Input: {
+            type: "object",
+            properties: {
+              scheduler: {
+                allOf: [{ $ref: "#/components/schemas/SchedulerEnum" }],
+                description: "Noise scheduler",
+                default: "DDIM",
+                "x-order": 0,
+              },
+            },
+          },
+          SchedulerEnum: {
+            type: "string",
+            enum: ["DDIM", "K_EULER", "PNDM"],
+          },
+          Output: { type: "string" },
+        },
+      },
+    };
+
+    const result = mapReplicateSchema(schema);
+
+    expect(result.inputs[0]).toMatchObject({
+      name: "scheduler",
+      type: "string",
+      value: "DDIM",
+    });
+    expect(result.inputs[0].enum).toEqual(["DDIM", "K_EULER", "PNDM"]);
+  });
+
+  it("resolves recursive anyOf containing $ref", () => {
+    const schema = {
+      components: {
+        schemas: {
+          Input: {
+            type: "object",
+            properties: {
+              prompt: { type: "string", "x-order": 0 },
+            },
+          },
+          Output: {
+            anyOf: [
+              { type: "null" },
+              { $ref: "#/components/schemas/PredictOutput" },
+            ],
+          },
+          PredictOutput: {
+            type: "object",
+            properties: {
+              model_file: { type: "string", format: "uri" },
+              video: { type: "string", format: "uri" },
+            },
+          },
+        },
+      },
+    };
+
+    const result = mapReplicateSchema(schema);
+
+    expect(result.outputs).toHaveLength(2);
+    expect(result.outputs[0]).toMatchObject({
+      name: "model_file",
+      type: "blob",
+    });
+    expect(result.outputs[1]).toMatchObject({ name: "video", type: "video" });
+  });
 });
