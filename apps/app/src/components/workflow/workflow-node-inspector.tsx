@@ -63,7 +63,7 @@ export function WorkflowNodeInspector({
     setLocalName(node.data.name);
     setLocalInputs(node.data.inputs);
     setLocalOutputs(node.data.outputs);
-  }, [node]);
+  }, [node?.id, node?.data.name, node?.data.inputs, node?.data.outputs]);
 
   if (!node) return null;
 

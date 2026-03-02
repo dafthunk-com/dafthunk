@@ -33,7 +33,6 @@ function ReplicateModelInputWidget({
   nodeId,
   model,
   hasSchemaParams,
-  onChange,
   className,
   readonly = false,
 }: ReplicateModelInputProps) {
@@ -70,7 +69,6 @@ function ReplicateModelInputWidget({
             : modelId;
 
         setValue(versionedModelId);
-        onChange(versionedModelId);
 
         // Build new inputs: keep the model param, add schema-derived params
         const modelParam: WorkflowParameter = {
@@ -123,7 +121,7 @@ function ReplicateModelInputWidget({
         setLoading(false);
       }
     },
-    [onChange, updateNodeData, edges, deleteEdge, nodeId]
+    [updateNodeData, edges, deleteEdge, nodeId]
   );
 
   const handleLoad = useCallback(() => {
