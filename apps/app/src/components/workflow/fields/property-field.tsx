@@ -68,6 +68,7 @@ export interface PropertyFieldProps {
   connected?: boolean;
   createObjectUrl: (objectReference: ObjectReference) => string;
   autoFocus?: boolean;
+  headerOnly?: boolean;
 }
 
 // File types that support download
@@ -91,6 +92,7 @@ export function PropertyField({
   connected = false,
   createObjectUrl,
   autoFocus = false,
+  headerOnly = false,
 }: PropertyFieldProps) {
   // Check if this is a downloadable file type with a value
   const isFileType = FILE_TYPES.includes(parameter.type);
@@ -161,19 +163,21 @@ export function PropertyField({
         </div>
       </div>
 
-      <div className="relative">
-        <Field
-          parameter={parameter}
-          value={value}
-          onChange={onChange}
-          onClear={onClear}
-          disabled={disabled || connected}
-          connected={connected}
-          createObjectUrl={createObjectUrl}
-          className="w-full"
-          autoFocus={autoFocus}
-        />
-      </div>
+      {!headerOnly && (
+        <div className="relative">
+          <Field
+            parameter={parameter}
+            value={value}
+            onChange={onChange}
+            onClear={onClear}
+            disabled={disabled || connected}
+            connected={connected}
+            createObjectUrl={createObjectUrl}
+            className="w-full"
+            autoFocus={autoFocus}
+          />
+        </div>
+      )}
     </div>
   );
 }

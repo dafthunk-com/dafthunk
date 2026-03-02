@@ -165,8 +165,12 @@ function resolveSchema(
  */
 function collectMetadata(
   prop: JsonSchemaProperty
-): Partial<Pick<Parameter, "minimum" | "maximum" | "enum" | "format" | "default">> {
-  const meta: Partial<Pick<Parameter, "minimum" | "maximum" | "enum" | "format" | "default">> = {};
+): Partial<
+  Pick<Parameter, "minimum" | "maximum" | "enum" | "format" | "default">
+> {
+  const meta: Partial<
+    Pick<Parameter, "minimum" | "maximum" | "enum" | "format" | "default">
+  > = {};
   if (prop.minimum !== undefined) meta.minimum = prop.minimum;
   if (prop.maximum !== undefined) meta.maximum = prop.maximum;
   if (prop.enum) meta.enum = prop.enum;

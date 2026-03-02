@@ -249,17 +249,28 @@ export function WorkflowNodeInspector({
                 localInputs.map((input) => {
                   if (widget && input.id === widget.inputField) {
                     return (
-                      <div
-                        key={input.id}
-                        className="[&_button]:h-9 [&_button]:text-sm [&_select]:h-9 [&_select]:text-sm"
-                      >
-                        {createElement(widget.Component, {
-                          ...widget.config,
-                          onChange: !disabled ? handleWidgetChange : () => {},
-                          disabled,
-                          createObjectUrl,
-                          className: "p-0",
-                        })}
+                      <div key={input.id}>
+                        <PropertyField
+                          parameter={input}
+                          value={input.value}
+                          onChange={() => {}}
+                          onClear={() => handleClearValue(input.id)}
+                          onToggleVisibility={() =>
+                            handleToggleVisibility(input.id)
+                          }
+                          disabled={disabled}
+                          createObjectUrl={createObjectUrl}
+                          headerOnly
+                        />
+                        <div className="[&_button]:h-9 [&_button]:text-sm [&_select]:h-9 [&_select]:text-sm">
+                          {createElement(widget.Component, {
+                            ...widget.config,
+                            onChange: !disabled ? handleWidgetChange : () => {},
+                            disabled,
+                            createObjectUrl,
+                            className: "p-0",
+                          })}
+                        </div>
                       </div>
                     );
                   }

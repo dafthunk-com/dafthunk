@@ -80,6 +80,7 @@ function ReplicateModelInputWidget({
           description:
             "Replicate model identifier in the format provider/model or provider/model:version",
           required: true,
+          hidden: true,
           value: versionedModelId,
         };
 

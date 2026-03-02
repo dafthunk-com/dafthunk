@@ -6,13 +6,16 @@ import {
 } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
 
-/**
- * Response shape from Replicate predictions API
- */
+type ReplicateOutput =
+  | string
+  | string[]
+  | Record<string, unknown>
+  | Record<string, unknown>[];
+
 interface ReplicatePrediction {
   id: string;
   status: "starting" | "processing" | "succeeded" | "failed" | "canceled";
-  output?: string | string[] | Record<string, unknown> | Record<string, unknown>[];
+  output?: ReplicateOutput;
   error?: string;
   metrics?: {
     predict_time?: number;
@@ -20,29 +23,37 @@ interface ReplicatePrediction {
 }
 
 const BLOB_TYPES = new Set(["image", "audio", "video", "blob"]);
-
 const REPLICATE_CREDITS_PER_SEC = 10;
 
-/**
- * Convert Replicate predict_time (seconds) to usage credits.
- */
-function calculateReplicateUsage(predictTime: number | undefined): number {
-  if (predictTime === undefined || predictTime <= 0) return 1;
-  return Math.max(1, Math.round(predictTime * REPLICATE_CREDITS_PER_SEC));
-}
+// Node config inputs that should not be forwarded to the Replicate API
+const CONFIG_INPUTS = new Set(["model", "timeout", "poll_interval"]);
+
+const MIME_FALLBACKS: Record<string, string> = {
+  image: "image/png",
+  audio: "audio/mpeg",
+  video: "video/mp4",
+  blob: "application/octet-stream",
+};
 
 /**
- * Detect MIME type from a URL's content-type header or file extension.
+ * Download a Replicate output URL and return binary data with MIME type.
+ * Output URLs are temporary, so we download immediately after prediction completes.
  */
-function guessMimeType(contentType: string | null, outputType: string): string {
-  if (contentType) return contentType;
-  const fallbacks: Record<string, string> = {
-    image: "image/png",
-    audio: "audio/mpeg",
-    video: "video/mp4",
-    blob: "application/octet-stream",
+async function downloadBlob(
+  url: string,
+  outputType: string,
+  label: string
+): Promise<{ data: Uint8Array; mimeType: string }> {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to download ${label}: ${response.status}`);
+  }
+  const contentType = response.headers.get("content-type");
+  return {
+    data: new Uint8Array(await response.arrayBuffer()),
+    mimeType:
+      contentType ?? MIME_FALLBACKS[outputType] ?? "application/octet-stream",
   };
-  return fallbacks[outputType] ?? "application/octet-stream";
 }
 
 /**
@@ -89,13 +100,30 @@ For example: \`google/veo-3\`, \`openai/whisper\`, \`xai/grok-imagine-video\`.`,
         required: true,
         hidden: true,
       },
+      {
+        name: "timeout",
+        type: "number",
+        description:
+          "Maximum time to wait for prediction to complete (minutes)",
+        default: 30,
+        minimum: 1,
+        maximum: 120,
+        hidden: true,
+      },
+      {
+        name: "poll_interval",
+        type: "number",
+        description: "Time between status checks (seconds)",
+        default: 10,
+        minimum: 1,
+        maximum: 60,
+        hidden: true,
+      },
     ],
     outputs: [],
   };
 
   async execute(context: MultiStepNodeContext): Promise<NodeExecution> {
-    const { sleep, doStep } = context;
-
     try {
       const modelInput = context.inputs.model;
       if (!modelInput || typeof modelInput !== "string") {
@@ -111,153 +139,30 @@ For example: \`google/veo-3\`, \`openai/whisper\`, \`xai/grok-imagine-video\`.`,
         );
       }
 
-      // Parse model identifier: "owner/name" or "owner/name:version"
-      const [ownerName, explicitVersion] = modelInput.split(":");
-      const modelPath = ownerName.trim();
+      const [ownerName, version] = modelInput.split(":");
+      const timeoutMinutes = Math.max(1, Number(context.inputs.timeout) || 30);
+      const pollIntervalSec = Math.max(
+        1,
+        Number(context.inputs.poll_interval) || 10
+      );
 
-      // Build input payload from all non-model inputs
-      const input: Record<string, string | number | boolean | string[]> = {};
+      const input = await this.buildInput(context);
+      const { output, predictTime } = await this.runPrediction(
+        context,
+        ownerName.trim(),
+        version,
+        REPLICATE_API_TOKEN,
+        input,
+        timeoutMinutes,
+        pollIntervalSec
+      );
 
-      for (const [key, value] of Object.entries(context.inputs)) {
-        if (key === "model" || value === undefined || value === null) continue;
+      const usage =
+        predictTime !== undefined && predictTime > 0
+          ? Math.max(1, Math.round(predictTime * REPLICATE_CREDITS_PER_SEC))
+          : 1;
 
-        // Check if this input is a blob type by looking at the node's input definition
-        const paramDef = this.node.inputs?.find((p) => p.name === key);
-        const isBlobType = paramDef && BLOB_TYPES.has(paramDef.type);
-
-        // Repeated blob input (array of blobs) → presign each, build URL array
-        if (isBlobType && paramDef?.repeated && Array.isArray(value)) {
-          if (!context.objectStore) {
-            return this.createErrorResult(
-              "ObjectStore not available (required for blob inputs)"
-            );
-          }
-          const urls: string[] = [];
-          for (const item of value) {
-            if (isBlobParameter(item)) {
-              const data = toUint8Array(item.data);
-              urls.push(
-                await context.objectStore.writeAndPresign(
-                  data,
-                  item.mimeType,
-                  context.organizationId
-                )
-              );
-            }
-          }
-          input[key] = urls;
-        } else if (isBlobType && isBlobParameter(value)) {
-          if (!context.objectStore) {
-            return this.createErrorResult(
-              "ObjectStore not available (required for blob inputs)"
-            );
-          }
-          const data = toUint8Array(value.data);
-          const url = await context.objectStore.writeAndPresign(
-            data,
-            value.mimeType,
-            context.organizationId
-          );
-          // Wrap in array when the parameter expects a repeated blob
-          input[key] = paramDef?.repeated ? [url] : url;
-        } else {
-          input[key] = value as string | number | boolean;
-        }
-      }
-
-      // Build prediction URL
-      const predictionUrl = explicitVersion
-        ? "https://api.replicate.com/v1/predictions"
-        : `https://api.replicate.com/v1/models/${modelPath}/predictions`;
-
-      const body = explicitVersion
-        ? { version: explicitVersion, input }
-        : { input };
-
-      // Create prediction (durable step)
-      const prediction = await doStep(async () => {
-        const response = await fetch(predictionUrl, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${REPLICATE_API_TOKEN}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(body),
-        });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(
-            `Failed to create Replicate prediction: ${response.status} ${errorText}`
-          );
-        }
-
-        return (await response.json()) as ReplicatePrediction;
-      });
-
-      // Poll with durable sleep (max 60 polls × 10s = 10 minutes)
-      const maxPolls = 60;
-      let result = prediction;
-      for (
-        let i = 0;
-        i < maxPolls &&
-        result.status !== "succeeded" &&
-        result.status !== "failed" &&
-        result.status !== "canceled";
-        i++
-      ) {
-        await sleep(10_000);
-
-        result = await doStep(async () => {
-          const response = await fetch(
-            `https://api.replicate.com/v1/predictions/${prediction.id}`,
-            {
-              headers: {
-                Authorization: `Bearer ${REPLICATE_API_TOKEN}`,
-                "Content-Type": "application/json",
-              },
-            }
-          );
-
-          if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(
-              `Failed to poll prediction status: ${response.status} ${errorText}`
-            );
-          }
-
-          return (await response.json()) as ReplicatePrediction;
-        });
-      }
-
-      if (result.status === "failed") {
-        return this.createErrorResult(
-          `Replicate prediction failed: ${result.error || "Unknown error"}`
-        );
-      }
-
-      if (result.status === "canceled") {
-        return this.createErrorResult("Replicate prediction was canceled");
-      }
-
-      if (result.status !== "succeeded") {
-        return this.createErrorResult(
-          "Replicate prediction timed out after 10 minutes"
-        );
-      }
-
-      if (result.output === undefined || result.output === null) {
-        return this.createErrorResult(
-          "Replicate prediction succeeded but no output was returned"
-        );
-      }
-
-      // Determine expected output type from node definition
-      const outputType = this.node.outputs?.[0]?.type ?? "any";
-      const usage = calculateReplicateUsage(result.metrics?.predict_time);
-
-      // Process output based on type
-      return await this.processOutput(result.output, outputType, usage);
+      return await this.processOutput(output, usage);
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"
@@ -266,71 +171,170 @@ For example: \`google/veo-3\`, \`openai/whisper\`, \`xai/grok-imagine-video\`.`,
   }
 
   /**
-   * Process a multi-output object where each key maps to a named output definition.
-   * Downloads blob-typed values and returns them as binary data.
+   * Build the Replicate API input payload from context inputs.
+   * Handles blob uploads (single and repeated) by presigning through the object store.
    */
-  private async processMultiOutput(
-    obj: Record<string, unknown>,
-    usage: number
-  ): Promise<NodeExecution | null> {
-    const results: Record<string, { data: Uint8Array; mimeType: string }> = {};
-    for (const outputDef of this.node.outputs ?? []) {
-      const value = obj[outputDef.name];
-      if (!BLOB_TYPES.has(outputDef.type) || typeof value !== "string")
+  private async buildInput(
+    context: MultiStepNodeContext
+  ): Promise<Record<string, string | number | boolean | string[]>> {
+    const input: Record<string, string | number | boolean | string[]> = {};
+
+    for (const [key, value] of Object.entries(context.inputs)) {
+      if (CONFIG_INPUTS.has(key) || value === undefined || value === null)
         continue;
-      const response = await fetch(value);
-      if (!response.ok) {
-        throw new Error(
-          `Failed to download ${outputDef.name}: ${response.status}`
-        );
+
+      const paramDef = this.node.inputs?.find((p) => p.name === key);
+      const isBlobType = paramDef && BLOB_TYPES.has(paramDef.type);
+
+      if (isBlobType) {
+        if (!context.objectStore) {
+          throw new Error(
+            "ObjectStore not available (required for blob inputs)"
+          );
+        }
+
+        if (paramDef?.repeated && Array.isArray(value)) {
+          const urls: string[] = [];
+          for (const item of value) {
+            if (isBlobParameter(item)) {
+              urls.push(
+                await context.objectStore.writeAndPresign(
+                  toUint8Array(item.data),
+                  item.mimeType,
+                  context.organizationId
+                )
+              );
+            }
+          }
+          input[key] = urls;
+          continue;
+        }
+
+        if (isBlobParameter(value)) {
+          const url = await context.objectStore.writeAndPresign(
+            toUint8Array(value.data),
+            value.mimeType,
+            context.organizationId
+          );
+          input[key] = paramDef?.repeated ? [url] : url;
+          continue;
+        }
       }
-      results[outputDef.name] = {
-        data: new Uint8Array(await response.arrayBuffer()),
-        mimeType: guessMimeType(
-          response.headers.get("content-type"),
-          outputDef.type
-        ),
-      };
+
+      input[key] = value as string | number | boolean;
     }
-    if (Object.keys(results).length > 0) {
-      return this.createSuccessResult(results, usage);
-    }
-    return null;
+
+    return input;
   }
 
+  /**
+   * Create a prediction, poll until completion, and return the output.
+   * Handles all Replicate API communication and terminal error states.
+   */
+  private async runPrediction(
+    context: MultiStepNodeContext,
+    modelPath: string,
+    version: string | undefined,
+    token: string,
+    input: Record<string, string | number | boolean | string[]>,
+    timeoutMinutes: number,
+    pollIntervalSec: number
+  ): Promise<{ output: ReplicateOutput; predictTime: number | undefined }> {
+    const { sleep, doStep } = context;
+
+    const predictionUrl = version
+      ? "https://api.replicate.com/v1/predictions"
+      : `https://api.replicate.com/v1/models/${modelPath}/predictions`;
+
+    const body = version ? { version, input } : { input };
+
+    const prediction = await doStep(async () => {
+      const response = await fetch(predictionUrl, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(
+          `Failed to create Replicate prediction: ${response.status} ${text}`
+        );
+      }
+      return (await response.json()) as ReplicatePrediction;
+    });
+
+    const maxPolls = Math.ceil((timeoutMinutes * 60) / pollIntervalSec);
+    const pollIntervalMs = pollIntervalSec * 1000;
+
+    let result = prediction;
+    for (
+      let i = 0;
+      i < maxPolls &&
+      result.status !== "succeeded" &&
+      result.status !== "failed" &&
+      result.status !== "canceled";
+      i++
+    ) {
+      await sleep(pollIntervalMs);
+
+      result = await doStep(async () => {
+        const response = await fetch(
+          `https://api.replicate.com/v1/predictions/${prediction.id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(
+            `Failed to poll prediction status: ${response.status} ${text}`
+          );
+        }
+        return (await response.json()) as ReplicatePrediction;
+      });
+    }
+
+    if (result.status === "failed") {
+      throw new Error(
+        `Replicate prediction failed: ${result.error || "Unknown error"}`
+      );
+    }
+    if (result.status === "canceled") {
+      throw new Error("Replicate prediction was canceled");
+    }
+    if (result.status !== "succeeded") {
+      throw new Error(
+        `Replicate prediction timed out after ${timeoutMinutes} minutes`
+      );
+    }
+    if (result.output === undefined || result.output === null) {
+      throw new Error(
+        "Replicate prediction succeeded but no output was returned"
+      );
+    }
+
+    return { output: result.output, predictTime: result.metrics?.predict_time };
+  }
+
+  /**
+   * Convert Replicate output into a NodeExecution result.
+   * Handles multi-output objects, blob downloads, strings, and JSON passthrough.
+   */
   private async processOutput(
-    output: string | string[] | Record<string, unknown> | Record<string, unknown>[],
-    outputType: string,
+    output: ReplicateOutput,
     usage: number
   ): Promise<NodeExecution> {
-    const hasMultipleOutputDefs = (this.node.outputs?.length ?? 0) > 1;
+    // Multi-output: object with keys matching named output definitions
+    const multiResult = await this.tryProcessMultiOutput(output, usage);
+    if (multiResult) return multiResult;
 
-    // Multi-output: object where each key maps to a named output definition
-    if (
-      typeof output === "object" &&
-      !Array.isArray(output) &&
-      hasMultipleOutputDefs
-    ) {
-      const result = await this.processMultiOutput(output, usage);
-      if (result) return result;
-    }
-
-    // Array of objects with multiple output definitions → use first element
-    if (
-      Array.isArray(output) &&
-      hasMultipleOutputDefs &&
-      output.length > 0 &&
-      typeof output[0] === "object" &&
-      output[0] !== null
-    ) {
-      const result = await this.processMultiOutput(
-        output[0] as Record<string, unknown>,
-        usage
-      );
-      if (result) return result;
-    }
-
-    // Extract the URL from array outputs (take first element only if it's a string)
+    // Single output: extract URL string if present
     const outputUrl =
       typeof output === "string"
         ? output
@@ -340,28 +344,59 @@ For example: \`google/veo-3\`, \`openai/whisper\`, \`xai/grok-imagine-video\`.`,
           ? output[0]
           : null;
 
-    // If output type is a blob type and we have a URL, download it.
-    // Replicate output URLs are temporary — we must download immediately.
-    if (BLOB_TYPES.has(outputType) && typeof outputUrl === "string") {
-      const response = await fetch(outputUrl);
-      if (!response.ok) {
-        throw new Error(`Failed to download output file: ${response.status}`);
-      }
-      const data = new Uint8Array(await response.arrayBuffer());
-      const mimeType = guessMimeType(
-        response.headers.get("content-type"),
-        outputType
-      );
+    const outputType = this.node.outputs?.[0]?.type ?? "any";
 
-      return this.createSuccessResult({ output: { data, mimeType } }, usage);
+    // Blob output — download immediately (Replicate URLs are temporary)
+    if (BLOB_TYPES.has(outputType) && outputUrl) {
+      const blob = await downloadBlob(outputUrl, outputType, "output");
+      return this.createSuccessResult({ output: blob }, usage);
     }
 
-    // String output
-    if (typeof outputUrl === "string") {
+    if (outputUrl) {
       return this.createSuccessResult({ output: outputUrl }, usage);
     }
 
-    // Object/JSON output
     return this.createSuccessResult({ output }, usage);
+  }
+
+  /**
+   * Try to interpret output as a multi-output object where each key maps to a
+   * named blob output definition. Returns null if the node has <= 1 output or
+   * no blob outputs were found in the object.
+   */
+  private async tryProcessMultiOutput(
+    output: ReplicateOutput,
+    usage: number
+  ): Promise<NodeExecution | null> {
+    if ((this.node.outputs?.length ?? 0) <= 1) return null;
+
+    // Extract the object: either directly or unwrap first array element
+    const obj =
+      typeof output === "object" && !Array.isArray(output)
+        ? output
+        : Array.isArray(output) &&
+            output.length > 0 &&
+            typeof output[0] === "object" &&
+            output[0] !== null
+          ? (output[0] as Record<string, unknown>)
+          : null;
+
+    if (!obj) return null;
+
+    const results: Record<string, { data: Uint8Array; mimeType: string }> = {};
+    for (const outputDef of this.node.outputs ?? []) {
+      const value = obj[outputDef.name];
+      if (!BLOB_TYPES.has(outputDef.type) || typeof value !== "string")
+        continue;
+      results[outputDef.name] = await downloadBlob(
+        value,
+        outputDef.type,
+        outputDef.name
+      );
+    }
+
+    return Object.keys(results).length > 0
+      ? this.createSuccessResult(results, usage)
+      : null;
   }
 }
