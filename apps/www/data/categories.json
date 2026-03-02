@@ -101,7 +101,6 @@
         "photon-grayscale",
         "whisper-large-v3-turbo",
         "melotts",
-        "trellis",
         "to-markdown"
       ],
       "featured": true

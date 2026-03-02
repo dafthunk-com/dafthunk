@@ -24,8 +24,6 @@ import {
   FailingMultiStepNode,
   MultiStepAdditionNode,
 } from "@dafthunk/runtime";
-import { TrellisNode } from "@dafthunk/runtime/nodes/3d/trellis-node";
-import { Trellis2Node } from "@dafthunk/runtime/nodes/3d/trellis2-node";
 import { AgentClaudeSonnet4Node } from "@dafthunk/runtime/nodes/agent/agent-claude-sonnet-4-node";
 import { AgentGemini25FlashNode } from "@dafthunk/runtime/nodes/agent/agent-gemini-2-5-flash-node";
 import { AgentGemini31ProNode } from "@dafthunk/runtime/nodes/agent/agent-gemini-3-1-pro-node";
@@ -42,7 +40,6 @@ import { ClaudeSonnet4Node } from "@dafthunk/runtime/nodes/anthropic/claude-sonn
 import { AggregateItemsNode } from "@dafthunk/runtime/nodes/array/aggregate-items-node";
 import { ExtractItemNode } from "@dafthunk/runtime/nodes/array/extract-item-node";
 import { Aura1Node } from "@dafthunk/runtime/nodes/audio/aura-1-node";
-import { Kokoro82mNode } from "@dafthunk/runtime/nodes/audio/kokoro-82m-node";
 import { MelottsNode } from "@dafthunk/runtime/nodes/audio/melotts-node";
 import { Nova3Node } from "@dafthunk/runtime/nodes/audio/nova-3-node";
 import { WhisperLargeV3TurboNode } from "@dafthunk/runtime/nodes/audio/whisper-large-v3-turbo-node";
@@ -62,11 +59,6 @@ import { CloudflareBrowserPdfNode } from "@dafthunk/runtime/nodes/browser/cloudf
 import { CloudflareBrowserScrapeNode } from "@dafthunk/runtime/nodes/browser/cloudflare-browser-scrape-node";
 import { CloudflareBrowserScreenshotNode } from "@dafthunk/runtime/nodes/browser/cloudflare-browser-screenshot-node";
 import { CloudflareBrowserSnapshotNode } from "@dafthunk/runtime/nodes/browser/cloudflare-browser-snapshot-node";
-import { DreamActorM20Node } from "@dafthunk/runtime/nodes/bytedance/dreamactor-m2-0-node";
-import { OmniHuman15Node } from "@dafthunk/runtime/nodes/bytedance/omni-human-1-5-node";
-import { Seedance15ProNode } from "@dafthunk/runtime/nodes/bytedance/seedance-1-5-pro-node";
-import { Seedream45Node } from "@dafthunk/runtime/nodes/bytedance/seedream-4-5-node";
-import { Seedream5LiteNode } from "@dafthunk/runtime/nodes/bytedance/seedream-5-lite-node";
 import { CsvExtractColumnNode } from "@dafthunk/runtime/nodes/csv/csv-extract-column-node";
 import { CsvFilterRowsNode } from "@dafthunk/runtime/nodes/csv/csv-filter-rows-node";
 import { CsvParseNode } from "@dafthunk/runtime/nodes/csv/csv-parse-node";
@@ -281,18 +273,6 @@ import { PhotonSepiaNode } from "@dafthunk/runtime/nodes/image/photon-sepia-node
 import { PhotonSharpenNode } from "@dafthunk/runtime/nodes/image/photon-sharpen-node";
 import { PhotonThresholdNode } from "@dafthunk/runtime/nodes/image/photon-threshold-node";
 import { PhotonWatermarkNode } from "@dafthunk/runtime/nodes/image/photon-watermark-node";
-import { Recraft20bNode } from "@dafthunk/runtime/nodes/image/recraft-20b";
-import { Recraft20bSvgNode } from "@dafthunk/runtime/nodes/image/recraft-20b-svg";
-import { RecraftCreativeUpscaleNode } from "@dafthunk/runtime/nodes/image/recraft-creative-upscale";
-import { RecraftCrispUpscaleNode } from "@dafthunk/runtime/nodes/image/recraft-crisp-upscale";
-import { RecraftRemoveBackgroundNode } from "@dafthunk/runtime/nodes/image/recraft-remove-background";
-import { RecraftV3Node } from "@dafthunk/runtime/nodes/image/recraft-v3";
-import { RecraftV3SvgNode } from "@dafthunk/runtime/nodes/image/recraft-v3-svg";
-import { RecraftV4Node } from "@dafthunk/runtime/nodes/image/recraft-v4";
-import { RecraftV4ProNode } from "@dafthunk/runtime/nodes/image/recraft-v4-pro";
-import { RecraftV4ProSvgNode } from "@dafthunk/runtime/nodes/image/recraft-v4-pro-svg";
-import { RecraftV4SvgNode } from "@dafthunk/runtime/nodes/image/recraft-v4-svg";
-import { RecraftVectorizeNode } from "@dafthunk/runtime/nodes/image/recraft-vectorize";
 import { Resnet50Node } from "@dafthunk/runtime/nodes/image/resnet-50-node";
 import { StableDiffusionV15Img2ImgNode } from "@dafthunk/runtime/nodes/image/stable-diffusion-v1-5-img2-img-node";
 import { StableDiffusionV15InpaintingNode } from "@dafthunk/runtime/nodes/image/stable-diffusion-v1-5-inpainting-node";
@@ -443,9 +423,6 @@ import { ClipVideoNode } from "@dafthunk/runtime/nodes/video/clip-video-node";
 import { ExtractFirstFrameNode } from "@dafthunk/runtime/nodes/video/extract-first-frame-node";
 import { ExtractFrameAtTimeNode } from "@dafthunk/runtime/nodes/video/extract-frame-at-time-node";
 import { ExtractLastFrameNode } from "@dafthunk/runtime/nodes/video/extract-last-frame-node";
-import { GrokImagineVideoNode } from "@dafthunk/runtime/nodes/video/grok-imagine-video-node";
-import { Veo31FastNode } from "@dafthunk/runtime/nodes/video/veo-3-1-fast-node";
-import { Veo31Node } from "@dafthunk/runtime/nodes/video/veo-3-1-node";
 import type { Bindings } from "../context";
 
 export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
@@ -562,11 +539,6 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(StableDiffusionXLLightningNode);
     this.registerImplementation(StableDiffusionV15Img2ImgNode);
     this.registerImplementation(StableDiffusionV15InpaintingNode);
-    this.registerImplementation(DreamActorM20Node);
-    this.registerImplementation(OmniHuman15Node);
-    this.registerImplementation(Seedance15ProNode);
-    this.registerImplementation(Seedream45Node);
-    this.registerImplementation(Seedream5LiteNode);
     this.registerImplementation(JsonAggNode);
     this.registerImplementation(ExtractItemNode);
     this.registerImplementation(AggregateItemsNode);
@@ -614,7 +586,6 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(DreamShaper8LCMNode);
     this.registerImplementation(ExifReaderNode);
     this.registerImplementation(Aura1Node);
-    this.registerImplementation(Kokoro82mNode);
     this.registerImplementation(MelottsNode);
     this.registerImplementation(Nova3Node);
     this.registerImplementation(WebcamInputNode);
@@ -665,23 +636,6 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(PhotonSharpenNode);
     this.registerImplementation(PhotonThresholdNode);
     this.registerImplementation(PhotonWatermarkNode);
-    this.registerImplementation(Recraft20bNode);
-    this.registerImplementation(Recraft20bSvgNode);
-    this.registerImplementation(RecraftCreativeUpscaleNode);
-    this.registerImplementation(RecraftCrispUpscaleNode);
-    this.registerImplementation(RecraftRemoveBackgroundNode);
-    this.registerImplementation(RecraftV3Node);
-    this.registerImplementation(RecraftV3SvgNode);
-    this.registerImplementation(RecraftV4Node);
-    this.registerImplementation(RecraftV4ProNode);
-    this.registerImplementation(RecraftV4ProSvgNode);
-    this.registerImplementation(RecraftV4SvgNode);
-    this.registerImplementation(RecraftVectorizeNode);
-
-    // Video generation nodes - always register (users can provide API keys via secrets)
-    this.registerImplementation(GrokImagineVideoNode);
-    this.registerImplementation(Veo31FastNode);
-    this.registerImplementation(Veo31Node);
 
     // Generic Replicate model node
     this.registerImplementation(ReplicateModelNode);
@@ -995,12 +949,6 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(Gemini25ProImageUnderstandingNode);
     this.registerImplementation(Gemini25FlashTtsNode);
     this.registerImplementation(ImagenNode);
-
-    // 3D generation nodes - always register (users can provide API keys via secrets)
-    if (this.developerMode) {
-      this.registerImplementation(TrellisNode);
-      this.registerImplementation(Trellis2Node);
-    }
 
     // Output/Widget nodes - always register (for displaying all parameter types)
     this.registerImplementation(TextOutputNode);
