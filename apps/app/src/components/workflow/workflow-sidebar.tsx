@@ -194,6 +194,7 @@ export function WorkflowSidebar({
     <div className="h-full overflow-y-auto border-s bg-card">
       {singleSelectedNode && totalSelected === 1 && (
         <WorkflowNodeInspector
+          key={singleSelectedNode.id}
           node={singleSelectedNode}
           nodes={nodes}
           onNodeUpdate={onNodeUpdate}
