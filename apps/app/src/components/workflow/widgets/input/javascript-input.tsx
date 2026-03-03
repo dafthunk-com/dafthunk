@@ -14,7 +14,7 @@ function JavaScriptEditorWidget({
   value,
   onChange,
   className,
-  readonly = false,
+  disabled = false,
 }: JavaScriptEditorWidgetProps) {
   const onChangeRef = useRef(onChange);
 
@@ -37,7 +37,7 @@ function JavaScriptEditorWidget({
           value={value}
           onChange={handleChange}
           language="javascript"
-          readonly={readonly}
+          readonly={disabled}
         />
       </div>
     </div>

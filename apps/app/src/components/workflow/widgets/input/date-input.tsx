@@ -12,7 +12,7 @@ function DateInputWidget({
   value,
   onChange,
   className,
-  readonly = false,
+  disabled = false,
 }: DateInputWidgetProps) {
   return (
     <div className={cn("p-2", className)}>
@@ -21,7 +21,7 @@ function DateInputWidget({
         value={value}
         onChange={onChange}
         onClear={() => onChange("")}
-        disabled={readonly}
+        disabled={disabled}
       />
     </div>
   );

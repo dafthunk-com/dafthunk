@@ -19,7 +19,7 @@ function BlobInputWidget({
   value,
   onChange,
   className,
-  readonly = false,
+  disabled = false,
 }: BlobInputWidgetProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -58,7 +58,7 @@ function BlobInputWidget({
         isUploading={isUploading}
         uploadError={uploadError}
         createObjectUrl={createObjectUrl}
-        disabled={readonly}
+        disabled={disabled}
         clearable
       />
     </div>

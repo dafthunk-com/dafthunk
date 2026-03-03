@@ -31,7 +31,7 @@ function CanvasDoodleWidget({
   strokeColor,
   strokeWidth,
   onChange,
-  readonly = false,
+  disabled = false,
 }: CanvasDoodleWidgetProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -96,7 +96,7 @@ function CanvasDoodleWidget({
 
   const saveCanvas = async () => {
     const canvas = canvasRef.current;
-    if (!canvas || readonly || !isAuthenticated || !organization?.handle)
+    if (!canvas || disabled || !isAuthenticated || !organization?.handle)
       return;
 
     try {
@@ -123,7 +123,7 @@ function CanvasDoodleWidget({
   };
 
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (readonly) return;
+    if (disabled) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
@@ -137,7 +137,7 @@ function CanvasDoodleWidget({
   };
 
   const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDrawing || readonly) return;
+    if (!isDrawing || disabled) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
@@ -157,7 +157,7 @@ function CanvasDoodleWidget({
   };
 
   const handleClear = () => {
-    if (readonly) return;
+    if (disabled) return;
 
     setImageReference(null);
     onChange(null);
@@ -178,7 +178,7 @@ function CanvasDoodleWidget({
       <div className="relative w-full">
         <div
           className="absolute bottom-2 left-2 z-10"
-          onMouseEnter={() => !readonly && setIsColorBarOpen(true)}
+          onMouseEnter={() => !disabled && setIsColorBarOpen(true)}
           onMouseLeave={() => setIsColorBarOpen(false)}
         >
           <div className="flex flex-row gap-1">
@@ -198,7 +198,7 @@ function CanvasDoodleWidget({
                   className="size-3 rounded-full"
                   style={{ backgroundColor: color }}
                   aria-label={`Select color ${color}`}
-                  disabled={readonly}
+                  disabled={disabled}
                 />
               ))}
           </div>
@@ -207,7 +207,7 @@ function CanvasDoodleWidget({
           <button
             onClick={handleClear}
             className="inline-flex items-center justify-center size-6 rounded border border-neutral-200 dark:border-neutral-700 bg-white/75 hover:bg-neutral-50/75 text-neutral-600 dark:bg-neutral-900/75 dark:hover:bg-neutral-800/75 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200 transition-colors"
-            disabled={isUploading || readonly}
+            disabled={isUploading || disabled}
             aria-label="Clear"
           >
             <Trash2 className="!size-3" />
@@ -215,7 +215,7 @@ function CanvasDoodleWidget({
           <button
             onClick={saveCanvas}
             className="inline-flex items-center justify-center size-6 rounded border border-neutral-200 dark:border-neutral-700 bg-white/75 hover:bg-neutral-50/75 text-neutral-600 dark:bg-neutral-900/75 dark:hover:bg-neutral-800/75 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200 transition-colors"
-            disabled={isUploading || readonly}
+            disabled={isUploading || disabled}
             aria-label="Save"
           >
             <Save className="!size-3" />

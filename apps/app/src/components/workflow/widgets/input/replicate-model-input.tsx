@@ -34,7 +34,7 @@ function ReplicateModelInputWidget({
   model,
   hasSchemaParams,
   className,
-  readonly = false,
+  disabled = false,
 }: ReplicateModelInputProps) {
   const [value, setValue] = useState(model ?? "");
   const [loading, setLoading] = useState(false);
@@ -133,7 +133,7 @@ function ReplicateModelInputWidget({
 
   const handleLoad = useCallback(() => {
     const trimmed = value.trim();
-    if (!trimmed || readonly || !updateNodeData) return;
+    if (!trimmed || disabled || !updateNodeData) return;
 
     // Validate format
     const [ownerName] = trimmed.split(":");
@@ -149,7 +149,7 @@ function ReplicateModelInputWidget({
     } else {
       applySchema(trimmed);
     }
-  }, [value, readonly, updateNodeData, hasSchemaParams, applySchema]);
+  }, [value, disabled, updateNodeData, hasSchemaParams, applySchema]);
 
   const handleConfirm = useCallback(() => {
     setShowConfirm(false);
@@ -171,13 +171,13 @@ function ReplicateModelInputWidget({
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="provider/model"
-          disabled={readonly || loading}
+          disabled={disabled || loading}
           className="h-auto text-xs font-mono"
         />
         <Button
           variant="outline"
           onClick={handleLoad}
-          disabled={readonly || loading || !value.trim()}
+          disabled={disabled || loading || !value.trim()}
           className="h-auto px-2 shrink-0"
         >
           {loading ? (

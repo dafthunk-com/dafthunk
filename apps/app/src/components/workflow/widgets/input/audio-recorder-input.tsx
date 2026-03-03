@@ -17,7 +17,7 @@ interface AudioRecorderWidgetProps extends BaseWidgetProps {
 function AudioRecorderWidget({
   value,
   onChange,
-  readonly = false,
+  disabled = false,
 }: AudioRecorderWidgetProps) {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -42,7 +42,7 @@ function AudioRecorderWidget({
   }, []);
 
   const startRecording = async () => {
-    if (readonly) return;
+    if (disabled) return;
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -108,7 +108,7 @@ function AudioRecorderWidget({
   };
 
   const clearRecording = () => {
-    if (readonly) return;
+    if (disabled) return;
     setAudioReference(null);
     onChange(null);
   };
@@ -122,7 +122,7 @@ function AudioRecorderWidget({
               onClick={clearRecording}
               className="inline-flex items-center justify-center size-6 rounded border border-neutral-200 dark:border-neutral-700 bg-white/75 hover:bg-neutral-50/75 text-neutral-600 dark:bg-neutral-900/75 dark:hover:bg-neutral-800/75 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200 transition-colors"
               aria-label="Clear recording"
-              disabled={isUploading || readonly}
+              disabled={isUploading || disabled}
             >
               <Trash2 className="!size-3" />
             </button>
@@ -131,7 +131,7 @@ function AudioRecorderWidget({
               onClick={stopRecording}
               className="inline-flex items-center justify-center size-6 rounded border border-neutral-200 dark:border-neutral-700 bg-white/75 hover:bg-neutral-50/75 text-red-600 dark:bg-neutral-900/75 dark:hover:bg-neutral-800/75 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
               aria-label="Stop recording"
-              disabled={isUploading || readonly}
+              disabled={isUploading || disabled}
             >
               <Square className="!size-3" />
             </button>
@@ -140,7 +140,7 @@ function AudioRecorderWidget({
               onClick={startRecording}
               className="inline-flex items-center justify-center size-6 rounded border border-neutral-200 dark:border-neutral-700 bg-white/75 hover:bg-neutral-50/75 text-neutral-600 dark:bg-neutral-900/75 dark:hover:bg-neutral-800/75 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200 transition-colors"
               aria-label="Start recording"
-              disabled={isUploading || readonly}
+              disabled={isUploading || disabled}
             >
               <Mic className="!size-3" />
             </button>

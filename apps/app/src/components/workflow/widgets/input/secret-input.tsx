@@ -12,7 +12,7 @@ function SecretInputWidget({
   value,
   onChange,
   className,
-  readonly = false,
+  disabled = false,
 }: SecretInputWidgetProps) {
   return (
     <div className={cn("p-2 h-full w-full", className)}>
@@ -21,7 +21,7 @@ function SecretInputWidget({
         value={value}
         onChange={onChange}
         onClear={() => onChange(undefined)}
-        disabled={readonly}
+        disabled={disabled}
         clearable
       />
     </div>

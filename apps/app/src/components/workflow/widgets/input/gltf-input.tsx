@@ -20,7 +20,7 @@ function GltfInputWidget({
   value,
   onChange,
   className,
-  readonly = false,
+  disabled = false,
 }: GltfInputWidgetProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -49,7 +49,7 @@ function GltfInputWidget({
         isUploading={isUploading}
         uploadError={uploadError}
         createObjectUrl={createObjectUrl}
-        disabled={readonly}
+        disabled={disabled}
         clearable
         className="!h-[160px]"
       />

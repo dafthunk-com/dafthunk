@@ -17,7 +17,7 @@ interface FileWidgetProps extends BaseWidgetProps {
   value: any;
 }
 
-function FileWidget({ value, onChange, readonly = false }: FileWidgetProps) {
+function FileWidget({ value, onChange, disabled = false }: FileWidgetProps) {
   const [error, setError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const { uploadBinaryData, createObjectUrl } = useObjectService();
@@ -25,7 +25,7 @@ function FileWidget({ value, onChange, readonly = false }: FileWidgetProps) {
   const handleFileChange = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    if (readonly) return;
+    if (disabled) return;
 
     const file = event.target.files?.[0];
     if (!file) return;
@@ -60,7 +60,7 @@ function FileWidget({ value, onChange, readonly = false }: FileWidgetProps) {
   };
 
   const clearFile = () => {
-    if (readonly) return;
+    if (disabled) return;
     onChange(null);
   };
 
@@ -113,7 +113,7 @@ function FileWidget({ value, onChange, readonly = false }: FileWidgetProps) {
                     size="icon"
                     onClick={downloadFile}
                     className="h-8 w-8 bg-white/75 hover:bg-white dark:bg-neutral-900/75 dark:hover:bg-neutral-900 border border-neutral-200 dark:border-neutral-700"
-                    disabled={readonly}
+                    disabled={disabled}
                     title="Download file"
                   >
                     <Download className="h-4 w-4" />
@@ -123,7 +123,7 @@ function FileWidget({ value, onChange, readonly = false }: FileWidgetProps) {
                     size="icon"
                     onClick={clearFile}
                     className="h-8 w-8 bg-white/75 hover:bg-white dark:bg-neutral-900/75 dark:hover:bg-neutral-900 border border-neutral-200 dark:border-neutral-700"
-                    disabled={readonly}
+                    disabled={disabled}
                     title="Remove file"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -167,7 +167,7 @@ function FileWidget({ value, onChange, readonly = false }: FileWidgetProps) {
                         size="icon"
                         onClick={downloadFile}
                         className="h-8 w-8 bg-white/75 hover:bg-white dark:bg-neutral-900/75 dark:hover:bg-neutral-900 border border-neutral-200 dark:border-neutral-700"
-                        disabled={readonly}
+                        disabled={disabled}
                         title="Download file"
                       >
                         <Download className="h-4 w-4" />
@@ -177,7 +177,7 @@ function FileWidget({ value, onChange, readonly = false }: FileWidgetProps) {
                         size="icon"
                         onClick={clearFile}
                         className="h-8 w-8 bg-white/75 hover:bg-white dark:bg-neutral-900/75 dark:hover:bg-neutral-900 border border-neutral-200 dark:border-neutral-700"
-                        disabled={readonly}
+                        disabled={disabled}
                         title="Remove file"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -193,7 +193,7 @@ function FileWidget({ value, onChange, readonly = false }: FileWidgetProps) {
             htmlFor="file-upload"
             className={cn(
               "flex flex-col items-center justify-center w-full h-full cursor-pointer",
-              (isUploading || readonly) && "opacity-50 pointer-events-none"
+              (isUploading || disabled) && "opacity-50 pointer-events-none"
             )}
           >
             <div className="w-full flex items-center justify-center gap-2 border border-dashed border-neutral-300 dark:border-neutral-700 rounded-lg px-4 py-2">
@@ -207,7 +207,7 @@ function FileWidget({ value, onChange, readonly = false }: FileWidgetProps) {
               type="file"
               className="hidden"
               onChange={handleFileChange}
-              disabled={isUploading || readonly}
+              disabled={isUploading || disabled}
               accept="*/*"
             />
           </label>

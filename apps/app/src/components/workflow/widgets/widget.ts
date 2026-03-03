@@ -8,7 +8,7 @@ import type { WorkflowParameter } from "../workflow-types";
  */
 export interface BaseWidgetProps {
   onChange: (value: ParameterValue) => void;
-  readonly?: boolean;
+  disabled?: boolean;
   className?: string;
 }
 

@@ -12,7 +12,7 @@ function GeoJSONInputWidget({
   value,
   onChange,
   className,
-  readonly = false,
+  disabled = false,
 }: GeoJSONInputWidgetProps) {
   return (
     <div className={cn("p-2 h-full w-full", className)}>
@@ -22,7 +22,7 @@ function GeoJSONInputWidget({
           value={value}
           onChange={onChange}
           onClear={() => onChange(undefined)}
-          disabled={readonly}
+          disabled={disabled}
         />
       </div>
     </div>

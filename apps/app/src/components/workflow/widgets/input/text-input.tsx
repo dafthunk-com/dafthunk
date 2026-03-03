@@ -12,7 +12,7 @@ function TextInputWidget({
   value,
   onChange,
   className,
-  readonly = false,
+  disabled = false,
 }: TextInputWidgetProps) {
   return (
     <div className={cn("p-2 h-full w-full", className)}>
@@ -21,7 +21,7 @@ function TextInputWidget({
         value={value ?? ""}
         onChange={onChange}
         onClear={() => onChange("")}
-        disabled={readonly}
+        disabled={disabled}
       />
     </div>
   );

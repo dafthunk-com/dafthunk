@@ -12,7 +12,7 @@ function NumberInputWidget({
   value,
   onChange,
   className,
-  readonly = false,
+  disabled = false,
 }: NumberInputWidgetProps) {
   return (
     <div className={cn("p-2", className)}>
@@ -21,7 +21,7 @@ function NumberInputWidget({
         value={value}
         onChange={onChange}
         onClear={() => onChange(0)}
-        disabled={readonly}
+        disabled={disabled}
       />
     </div>
   );

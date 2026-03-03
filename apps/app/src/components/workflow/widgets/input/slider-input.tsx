@@ -20,7 +20,7 @@ function SliderWidget({
   step,
   onChange,
   className,
-  readonly = false,
+  disabled = false,
 }: SliderWidgetProps) {
   // Use local state for immediate UI updates
   const [localValue, setLocalValue] = useState(value);
@@ -38,7 +38,7 @@ function SliderWidget({
   }, [value]);
 
   const handleValueChange = (values: number[]) => {
-    if (values.length > 0 && !readonly) {
+    if (values.length > 0 && !disabled) {
       const newValue = values[0];
       isUserDraggingRef.current = true;
       setLocalValue(newValue);
@@ -60,7 +60,7 @@ function SliderWidget({
         value={[localValue]}
         onValueChange={handleValueChange}
         className="py-2"
-        disabled={readonly}
+        disabled={disabled}
       />
       <div className="flex justify-between text-neutral-500 text-xs leading-tight">
         <span>{min}</span>

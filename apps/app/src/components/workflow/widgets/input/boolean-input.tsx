@@ -12,7 +12,7 @@ function BooleanInputWidget({
   value,
   onChange,
   className,
-  readonly = false,
+  disabled = false,
 }: BooleanInputWidgetProps) {
   return (
     <div className={cn("p-2", className)}>
@@ -21,7 +21,7 @@ function BooleanInputWidget({
         value={value}
         onChange={(v) => onChange(v === "true")}
         onClear={() => onChange(false)}
-        disabled={readonly}
+        disabled={disabled}
       />
     </div>
   );

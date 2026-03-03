@@ -19,7 +19,7 @@ function AudioInputWidget({
   value,
   onChange,
   className,
-  readonly = false,
+  disabled = false,
 }: AudioInputWidgetProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -47,7 +47,7 @@ function AudioInputWidget({
         isUploading={isUploading}
         uploadError={uploadError}
         createObjectUrl={createObjectUrl}
-        disabled={readonly}
+        disabled={disabled}
         clearable
       />
     </div>

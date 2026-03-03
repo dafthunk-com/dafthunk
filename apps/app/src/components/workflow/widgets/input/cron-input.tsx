@@ -80,7 +80,7 @@ function CronExpressionWidget({
   value,
   onChange,
   className,
-  readonly = false,
+  disabled = false,
 }: CronExpressionWidgetProps) {
   const [cronParts, setCronParts] = useState(() => parseCronExpression(value));
   const [selectedPreset, setSelectedPreset] = useState<string>("");
@@ -129,7 +129,7 @@ function CronExpressionWidget({
       <Select
         value={selectedPreset}
         onValueChange={handlePresetChange}
-        disabled={readonly}
+        disabled={disabled}
       >
         <SelectTrigger className="h-6 text-xs">
           <SelectValue placeholder="Choose preset" />
@@ -154,7 +154,7 @@ function CronExpressionWidget({
             onChange={(e) => handlePartChange("minute", e.target.value)}
             placeholder="*"
             className="h-6 text-xs px-1.5"
-            disabled={readonly}
+            disabled={disabled}
           />
         </div>
         <div className="flex items-center gap-2">
@@ -166,7 +166,7 @@ function CronExpressionWidget({
             onChange={(e) => handlePartChange("hour", e.target.value)}
             placeholder="*"
             className="h-6 text-xs px-1.5"
-            disabled={readonly}
+            disabled={disabled}
           />
         </div>
         <div className="flex items-center gap-2">
@@ -178,7 +178,7 @@ function CronExpressionWidget({
             onChange={(e) => handlePartChange("dayOfMonth", e.target.value)}
             placeholder="*"
             className="h-6 text-xs px-1.5"
-            disabled={readonly}
+            disabled={disabled}
           />
         </div>
         <div className="flex items-center gap-2">
@@ -190,7 +190,7 @@ function CronExpressionWidget({
             onChange={(e) => handlePartChange("month", e.target.value)}
             placeholder="*"
             className="h-6 text-xs px-1.5"
-            disabled={readonly}
+            disabled={disabled}
           />
         </div>
         <div className="flex items-center gap-2">
@@ -202,7 +202,7 @@ function CronExpressionWidget({
             onChange={(e) => handlePartChange("dayOfWeek", e.target.value)}
             placeholder="*"
             className="h-6 text-xs px-1.5"
-            disabled={readonly}
+            disabled={disabled}
           />
         </div>
       </div>

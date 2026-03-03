@@ -12,7 +12,7 @@ function JsonInputWidget({
   value,
   onChange,
   className,
-  readonly = false,
+  disabled = false,
 }: JsonInputWidgetProps) {
   return (
     <div className={cn("p-2 h-full w-full", className)}>
@@ -22,7 +22,7 @@ function JsonInputWidget({
           value={value}
           onChange={onChange}
           onClear={() => onChange("{}")}
-          disabled={readonly}
+          disabled={disabled}
         />
       </div>
     </div>
