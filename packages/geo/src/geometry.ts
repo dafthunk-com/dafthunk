@@ -5,6 +5,7 @@ import {
   radiansToDegrees,
 } from "./constants";
 import {
+  feature,
   featureCollection,
   getCoord,
   lineString,
@@ -17,6 +18,8 @@ import type {
   Coordinate,
   Feature,
   FeatureCollection,
+  Geometry,
+  GeometryCollection,
   LineString,
   Point,
   Polygon,
@@ -297,7 +300,7 @@ function createGreatCircleInterpolator(
 }
 
 export function buffer(
-  geojson: Feature | FeatureCollection,
+  geojson: Feature | FeatureCollection | Geometry | GeometryCollection,
   radius: number,
   options?: { units?: Units; steps?: number }
 ): Feature<Polygon> | FeatureCollection<Polygon> | undefined {
@@ -311,6 +314,16 @@ export function buffer(
       if (buffered) results.push(buffered);
     }
     return featureCollection(results) as FeatureCollection<Polygon>;
+  }
+
+  // Wrap raw Geometry/GeometryCollection in a Feature
+  if (geojson.type !== "Feature") {
+    return bufferFeature(
+      feature(geojson as Geometry) as Feature,
+      radius,
+      units,
+      steps
+    );
   }
 
   return bufferFeature(geojson as Feature, radius, units, steps);
