@@ -1,6 +1,6 @@
+import { lineArc } from "@dafthunk/geo";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { lineArc } from "@dafthunk/runtime/geo";
 
 export class LineArcNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

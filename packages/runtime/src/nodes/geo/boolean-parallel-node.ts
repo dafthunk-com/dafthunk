@@ -1,6 +1,6 @@
+import { booleanParallel } from "@dafthunk/geo";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { booleanParallel } from "@dafthunk/runtime/geo";
 
 export class BooleanParallelNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

@@ -1,6 +1,6 @@
+import { mask } from "@dafthunk/geo";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { mask } from "@dafthunk/runtime/geo";
 
 export class MaskNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

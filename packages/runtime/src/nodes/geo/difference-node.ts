@@ -1,6 +1,6 @@
+import { difference } from "@dafthunk/geo";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { difference } from "@dafthunk/runtime/geo";
 
 export class DifferenceNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -46,7 +46,10 @@ export class DifferenceNode extends ExecutableNode {
       );
     }
     try {
-      const diff = difference(featureCollection.features[0] as any, featureCollection.features[1] as any);
+      const diff = difference(
+        featureCollection.features[0] as any,
+        featureCollection.features[1] as any
+      );
       return this.createSuccessResult({
         difference: diff || null,
       });

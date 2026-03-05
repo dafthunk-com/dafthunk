@@ -1,6 +1,6 @@
+import { length } from "@dafthunk/geo";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { length } from "@dafthunk/runtime/geo";
 
 export class LengthNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

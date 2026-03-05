@@ -1,6 +1,6 @@
+import { polygonToLine } from "@dafthunk/geo";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { polygonToLine } from "@dafthunk/runtime/geo";
 
 export class PolygonToLineNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

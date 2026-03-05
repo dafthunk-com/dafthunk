@@ -1,6 +1,6 @@
+import { rhumbDestination } from "@dafthunk/geo";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { rhumbDestination } from "@dafthunk/runtime/geo";
 
 export class RhumbDestinationNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

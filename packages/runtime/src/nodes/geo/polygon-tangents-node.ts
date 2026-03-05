@@ -1,6 +1,6 @@
+import { polygonTangents } from "@dafthunk/geo";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { polygonTangents } from "@dafthunk/runtime/geo";
 
 export class PolygonTangentsNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

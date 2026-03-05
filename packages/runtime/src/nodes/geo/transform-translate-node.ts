@@ -1,6 +1,6 @@
+import { transformTranslate } from "@dafthunk/geo";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { transformTranslate } from "@dafthunk/runtime/geo";
 
 export class TransformTranslateNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

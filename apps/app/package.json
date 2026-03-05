@@ -11,7 +11,7 @@
     "dev:preview": "tsx watch server.ts",
     "lint": "biome check",
     "typecheck": "tsc --noEmit",
-    "fix": "biome check --write",
+    "check": "biome check --write",
     "test": "vitest run --passWithNoTests",
     "preview": "pnpm run build && wrangler dev --port 3001",
     "deploy": "pnpm run build:production && wrangler deploy --env production",

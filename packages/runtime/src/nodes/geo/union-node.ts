@@ -1,6 +1,6 @@
+import { union } from "@dafthunk/geo";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { union } from "@dafthunk/runtime/geo";
 
 export class UnionNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

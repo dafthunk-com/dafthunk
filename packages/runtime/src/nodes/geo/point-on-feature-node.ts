@@ -1,6 +1,6 @@
+import { pointOnFeature } from "@dafthunk/geo";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { pointOnFeature } from "@dafthunk/runtime/geo";
 
 export class PointOnFeatureNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

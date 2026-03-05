@@ -12,7 +12,7 @@
     "lint": "biome check",
     "pretypecheck": "pnpm run extract-nodes",
     "typecheck": "tsc --noEmit",
-    "fix": "biome check --write",
+    "check": "biome check --write",
     "preview": "vite preview",
     "deploy": "pnpm run build && wrangler deploy",
     "format": "biome format --write"

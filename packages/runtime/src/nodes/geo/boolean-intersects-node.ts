@@ -1,6 +1,6 @@
+import { booleanIntersects } from "@dafthunk/geo";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { booleanIntersects } from "@dafthunk/runtime/geo";
 
 export class BooleanIntersectsNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

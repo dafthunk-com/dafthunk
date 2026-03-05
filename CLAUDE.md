@@ -18,7 +18,7 @@ pnpm dev                                       # Start all services
 pnpm build                                     # Build all packages and apps
 pnpm typecheck                                 # Type check all workspaces
 pnpm lint                                      # Lint and type check
-pnpm fix                                       # Auto-fix linting + format
+pnpm check                                     # Auto-fix linting + format
 pnpm test                                      # Run tests
 
 # Workspace-specific (use --filter)

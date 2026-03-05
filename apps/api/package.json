@@ -8,7 +8,7 @@
     "dev:preview": "wrangler dev --remote --port 3002",
     "lint": "biome check",
     "typecheck": "tsc --noEmit",
-    "fix": "biome check --write",
+    "check": "biome check --write",
     "test": "vitest run",
     "test:integration": "vitest run --config vitest.integration.config.ts --passWithNoTests",
     "deploy": "wrangler deploy --env production",

@@ -1,6 +1,6 @@
+import { cleanCoords } from "@dafthunk/geo";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { cleanCoords } from "@dafthunk/runtime/geo";
 
 export class CleanCoordsNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

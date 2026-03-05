@@ -1,6 +1,6 @@
+import { booleanPointInPolygon } from "@dafthunk/geo";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { booleanPointInPolygon } from "@dafthunk/runtime/geo";
 
 export class BooleanPointInPolygonNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

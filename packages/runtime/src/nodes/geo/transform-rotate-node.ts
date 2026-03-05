@@ -1,6 +1,6 @@
+import { transformRotate } from "@dafthunk/geo";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { transformRotate } from "@dafthunk/runtime/geo";
 
 export class TransformRotateNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

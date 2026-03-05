@@ -1,6 +1,6 @@
+import { envelope } from "@dafthunk/geo";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { envelope } from "@dafthunk/runtime/geo";
 
 export class EnvelopeNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

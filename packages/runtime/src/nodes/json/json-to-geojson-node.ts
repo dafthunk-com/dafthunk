@@ -1,6 +1,6 @@
+import { booleanValid, cleanCoords } from "@dafthunk/geo";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { GeoJSON, NodeExecution, NodeType } from "@dafthunk/types";
-import { booleanValid, cleanCoords } from "@dafthunk/runtime/geo";
 
 /**
  * This node converts JSON data to valid GeoJSON format with validation.

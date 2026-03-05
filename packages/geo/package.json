@@ -1,0 +1,27 @@
+{
+  "name": "@dafthunk/geo",
+  "version": "0.1.0",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check",
+    "check": "biome check --write",
+    "format": "biome format --write"
+  },
+  "dependencies": {
+    "@dafthunk/types": "workspace:*",
+    "d3-delaunay": "^6.0.4",
+    "polyclip-ts": "^0.16.8"
+  },
+  "devDependencies": {
+    "@turf/helpers": "^7.3.2",
+    "@turf/turf": "^7.3.2",
+    "@types/d3-delaunay": "^6.0.4",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}
