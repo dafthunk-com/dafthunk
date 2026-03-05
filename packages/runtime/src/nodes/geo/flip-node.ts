@@ -1,6 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { flip } from "@turf/turf";
+import { flip } from "@dafthunk/runtime/geo";
 
 export class FlipNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

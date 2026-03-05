@@ -1,6 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { bboxClip } from "@turf/turf";
+import { bboxClip } from "@dafthunk/runtime/geo";
 
 export class BboxClipNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

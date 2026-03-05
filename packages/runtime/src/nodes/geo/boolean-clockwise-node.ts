@@ -1,6 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { booleanClockwise } from "@turf/turf";
+import { booleanClockwise } from "@dafthunk/runtime/geo";
 
 export class BooleanClockwiseNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

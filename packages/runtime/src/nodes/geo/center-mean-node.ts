@@ -1,6 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { centerMean } from "@turf/turf";
+import { centerMean } from "@dafthunk/runtime/geo";
 
 export class CenterMeanNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

@@ -1,6 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { featureCollection } from "@turf/turf";
+import { featureCollection } from "@dafthunk/runtime/geo";
 
 export class FeatureCollectionNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

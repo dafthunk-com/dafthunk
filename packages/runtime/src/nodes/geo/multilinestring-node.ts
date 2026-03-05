@@ -1,6 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { multiLineString } from "@turf/turf";
+import { multiLineString } from "@dafthunk/runtime/geo";
 
 export class MultiLineStringNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

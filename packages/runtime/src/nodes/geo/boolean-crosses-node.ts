@@ -1,6 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { booleanCrosses } from "@turf/turf";
+import { booleanCrosses } from "@dafthunk/runtime/geo";
 
 export class BooleanCrossesNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

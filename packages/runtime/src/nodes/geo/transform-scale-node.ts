@@ -1,6 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { transformScale } from "@turf/turf";
+import { transformScale } from "@dafthunk/runtime/geo";
 
 export class TransformScaleNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

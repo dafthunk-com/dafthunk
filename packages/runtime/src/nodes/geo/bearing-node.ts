@@ -1,6 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { bearing } from "@turf/turf";
+import { bearing } from "@dafthunk/runtime/geo";
 
 export class BearingNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

@@ -1,6 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { mask } from "@turf/turf";
+import { mask } from "@dafthunk/runtime/geo";
 
 export class MaskNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -64,7 +64,7 @@ export class MaskNode extends ExecutableNode {
       }
 
       // Delegate everything to Turf.js mask function
-      const maskedPolygon = mask(polygon as any, maskInput as any, options);
+      const maskedPolygon = mask(polygon as any, maskInput as any);
 
       return this.createSuccessResult({
         masked: maskedPolygon,

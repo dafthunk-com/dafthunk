@@ -1,6 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { bbox } from "@turf/turf";
+import { bbox } from "@dafthunk/runtime/geo";
 
 export class BboxNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -58,8 +58,8 @@ export class BboxNode extends ExecutableNode {
         options.recompute = recompute;
       }
 
-      // Calculate the bounding box using Turf.js
-      const boundingBox = bbox(geojson, options);
+      // Calculate the bounding box
+      const boundingBox = bbox(geojson);
 
       return this.createSuccessResult({
         bbox: boundingBox,

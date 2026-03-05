@@ -1,6 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { GeoJSON, NodeExecution, NodeType } from "@dafthunk/types";
-import { booleanValid, cleanCoords } from "@turf/turf";
+import { booleanValid, cleanCoords } from "@dafthunk/runtime/geo";
 
 /**
  * This node converts JSON data to valid GeoJSON format with validation.
@@ -82,26 +82,28 @@ export class JsonToGeojsonNode extends ExecutableNode {
       throw new Error("Input must have a 'type' property");
     }
 
-    // Clean the coordinates using Turf.js cleanCoords
-    const cleaned = cleanCoords(data as any);
-
     // For FeatureCollection, validate each feature individually
-    if (cleaned.type === "FeatureCollection") {
-      if (!Array.isArray(cleaned.features)) {
+    if (data.type === "FeatureCollection") {
+      if (!Array.isArray(data.features)) {
         throw new Error("FeatureCollection must have a 'features' array");
       }
 
-      // Validate each feature in the collection
-      for (const feature of cleaned.features) {
-        if (!booleanValid(feature)) {
+      // Clean and validate each feature in the collection
+      const cleanedFeatures = data.features.map((feature: any) => {
+        const cleaned = cleanCoords(feature);
+        if (!booleanValid(cleaned)) {
           throw new Error("Invalid GeoJSON format in FeatureCollection");
         }
-      }
+        return cleaned;
+      });
 
-      return cleaned as GeoJSON;
+      return { ...data, features: cleanedFeatures } as GeoJSON;
     }
 
-    // For other types, use Turf.js booleanValid
+    // Clean the coordinates
+    const cleaned = cleanCoords(data as any);
+
+    // Validate using booleanValid
     if (!booleanValid(cleaned)) {
       throw new Error("Invalid GeoJSON format");
     }

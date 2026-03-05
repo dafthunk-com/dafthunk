@@ -1,6 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { pointToLineDistance } from "@turf/turf";
+import { pointToLineDistance } from "@dafthunk/runtime/geo";
 
 export class PointToLineDistanceNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

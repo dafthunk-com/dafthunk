@@ -1,6 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { booleanEqual } from "@turf/turf";
+import { booleanEqual } from "@dafthunk/runtime/geo";
 
 export class BooleanEqualNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

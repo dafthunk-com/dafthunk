@@ -1,6 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { round } from "@turf/turf";
+import { round } from "@dafthunk/runtime/geo";
 
 export class RoundNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

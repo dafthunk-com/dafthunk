@@ -1,6 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { lineSlice } from "@turf/turf";
+import { lineSlice } from "@dafthunk/runtime/geo";
 
 export class LineSliceNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

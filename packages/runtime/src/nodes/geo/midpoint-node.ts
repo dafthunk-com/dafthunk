@@ -1,6 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { midpoint } from "@turf/turf";
+import { midpoint } from "@dafthunk/runtime/geo";
 
 export class MidpointNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

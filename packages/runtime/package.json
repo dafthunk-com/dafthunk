@@ -6,9 +6,11 @@
     ".": "./src/index.ts",
     "./nodes/*": "./src/nodes/*.ts",
     "./utils/*": "./src/utils/*.ts",
-    "./node-utils": "./src/node-utils.ts"
+    "./node-utils": "./src/node-utils.ts",
+    "./geo": "./src/geo/index.ts"
   },
   "scripts": {
+    "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "lint": "biome check",
     "fix": "biome check --write"
@@ -26,8 +28,8 @@
     "@gltf-transform/core": "^4.3.0",
     "@google/genai": "^1.37.0",
     "@mapbox/martini": "^0.2.0",
-    "@turf/helpers": "^7.3.2",
-    "@turf/turf": "^7.3.2",
+    "d3-delaunay": "^6.0.4",
+    "polyclip-ts": "^0.16.8",
     "exifreader": "^4.36.0",
     "geotiff": "^2.1.3",
     "jsonpath-plus": "^10.3.0",
@@ -41,7 +43,10 @@
     "zod": "^4.3.5"
   },
   "devDependencies": {
+    "@turf/helpers": "^7.3.2",
+    "@turf/turf": "^7.3.2",
     "@cloudflare/workers-types": "^4.20260116.0",
+    "@types/d3-delaunay": "^6.0.4",
     "@types/mailparser": "^3.4.6",
     "@types/three": "^0.181.0",
     "@types/wellknown": "^0.5.8",

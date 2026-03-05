@@ -1,6 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { circle } from "@turf/turf";
+import { circle } from "@dafthunk/runtime/geo";
 
 export class CircleNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

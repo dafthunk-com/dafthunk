@@ -1,6 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { convex } from "@turf/turf";
+import { convex } from "@dafthunk/runtime/geo";
 
 export class ConvexNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

@@ -1,6 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { simplify } from "@turf/turf";
+import { simplify } from "@dafthunk/runtime/geo";
 
 export class SimplifyNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

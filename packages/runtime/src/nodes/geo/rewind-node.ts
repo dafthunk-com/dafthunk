@@ -1,6 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { rewind } from "@turf/turf";
+import { rewind } from "@dafthunk/runtime/geo";
 
 export class RewindNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

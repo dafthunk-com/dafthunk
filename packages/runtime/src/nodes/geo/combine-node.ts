@@ -1,6 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { combine } from "@turf/turf";
+import { combine } from "@dafthunk/runtime/geo";
 
 export class CombineNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

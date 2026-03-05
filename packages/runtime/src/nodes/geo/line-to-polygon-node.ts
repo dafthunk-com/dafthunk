@@ -1,6 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { lineToPolygon } from "@turf/turf";
+import { lineToPolygon } from "@dafthunk/runtime/geo";
 
 export class LineToPolygonNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

@@ -1,6 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { booleanWithin } from "@turf/turf";
+import { booleanWithin } from "@dafthunk/runtime/geo";
 
 export class BooleanWithinNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

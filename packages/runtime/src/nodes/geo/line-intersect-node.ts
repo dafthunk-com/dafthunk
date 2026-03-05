@@ -1,6 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { lineIntersect } from "@turf/turf";
+import { lineIntersect } from "@dafthunk/runtime/geo";
 
 export class LineIntersectNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

@@ -1,6 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { rhumbDistance } from "@turf/turf";
+import { rhumbDistance } from "@dafthunk/runtime/geo";
 
 export class RhumbDistanceNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

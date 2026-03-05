@@ -1,7 +1,7 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import type { Units } from "@turf/helpers";
-import { nearestPointOnLine } from "@turf/turf";
+import type { Units } from "@dafthunk/runtime/geo";
+import { nearestPointOnLine } from "@dafthunk/runtime/geo";
 
 export class NearestPointOnLineNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

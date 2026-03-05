@@ -1,6 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { lineOffset } from "@turf/turf";
+import { lineOffset } from "@dafthunk/runtime/geo";
 
 export class LineOffsetNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
