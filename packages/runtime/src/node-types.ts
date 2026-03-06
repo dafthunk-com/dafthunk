@@ -1,5 +1,6 @@
 // Types for workflows
 import type {
+  DiscordMessage,
   GeoJSON,
   Node,
   NodeExecution,
@@ -229,6 +230,7 @@ export interface NodeContext {
   emailMessage?: EmailMessage;
   queueMessage?: QueueMessage;
   scheduledTrigger?: ScheduledTrigger;
+  discordMessage?: DiscordMessage;
   toolRegistry?: BaseToolRegistry;
   objectStore?: ObjectStore;
   databaseService?: DatabaseService;

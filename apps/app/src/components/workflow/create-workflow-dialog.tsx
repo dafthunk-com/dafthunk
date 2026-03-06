@@ -4,6 +4,7 @@ import Globe from "lucide-react/icons/globe";
 import Inbox from "lucide-react/icons/inbox";
 import Layers from "lucide-react/icons/layers";
 import Mail from "lucide-react/icons/mail";
+import MessageSquare from "lucide-react/icons/message-square";
 import Play from "lucide-react/icons/play";
 import Webhook from "lucide-react/icons/webhook";
 import Zap from "lucide-react/icons/zap";
@@ -57,6 +58,12 @@ const workflowTriggers = [
     title: "Queue Message",
     description: "Trigger workflows from queue messages",
     icon: Inbox,
+  },
+  {
+    trigger: "discord_event" as WorkflowTrigger,
+    title: "Discord Event",
+    description: "Trigger workflows from Discord messages",
+    icon: MessageSquare,
   },
 ];
 

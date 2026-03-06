@@ -244,6 +244,7 @@ export abstract class Runtime<Env = unknown> {
       emailMessage,
       queueMessage,
       scheduledTrigger,
+      discordMessage,
       userPlan,
     } = params;
 
@@ -315,6 +316,7 @@ export abstract class Runtime<Env = unknown> {
             emailMessage,
             queueMessage,
             scheduledTrigger,
+            discordMessage,
             workflowSessionId,
           };
 
@@ -902,6 +904,7 @@ export abstract class Runtime<Env = unknown> {
         emailMessage: context.emailMessage,
         queueMessage: context.queueMessage,
         scheduledTrigger: context.scheduledTrigger,
+        discordMessage: context.discordMessage,
         onProgress: () => {},
         toolRegistry: this.toolRegistry,
         objectStore: this.objectStore,
