@@ -31,6 +31,7 @@ import replicateRoutes from "./routes/replicate";
 import robotsRoutes from "./routes/robots";
 import secretRoutes from "./routes/secrets";
 import stripeWebhooks from "./routes/stripe-webhooks";
+import telegramWebhook from "./routes/telegram-webhook";
 import templateRoutes from "./routes/templates";
 import typeRoutes from "./routes/types";
 import usageRoutes from "./routes/usage";
@@ -78,6 +79,9 @@ app.route("/llms.txt", llmsRoutes);
 
 // Stripe webhooks (no auth, verified by signature)
 app.route("/stripe/webhooks", stripeWebhooks);
+
+// Telegram webhook (no auth, called by Telegram)
+app.route("/telegram", telegramWebhook);
 
 // Replicate schema proxy (JWT-authenticated, not org-scoped)
 app.route("/replicate", replicateRoutes);

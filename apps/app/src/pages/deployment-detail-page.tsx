@@ -289,6 +289,7 @@ export function DeploymentDetailPage() {
     scheduled: "Scheduled",
     queue_message: "Queue Message",
     discord_event: "Discord Event",
+    telegram_event: "Telegram Event",
   };
 
   return (

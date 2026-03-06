@@ -4,6 +4,7 @@ import type {
   Node,
   QueueMessage,
   ScheduledTrigger,
+  TelegramMessage,
   Workflow,
   WorkflowExecution,
 } from "@dafthunk/types";
@@ -64,6 +65,7 @@ export interface RuntimeParams {
   readonly queueMessage?: QueueMessage;
   readonly scheduledTrigger?: ScheduledTrigger;
   readonly discordMessage?: DiscordMessage;
+  readonly telegramMessage?: TelegramMessage;
   readonly userPlan?: string;
 }
 
@@ -245,6 +247,7 @@ export abstract class Runtime<Env = unknown> {
       queueMessage,
       scheduledTrigger,
       discordMessage,
+      telegramMessage,
       userPlan,
     } = params;
 
@@ -317,6 +320,7 @@ export abstract class Runtime<Env = unknown> {
             queueMessage,
             scheduledTrigger,
             discordMessage,
+            telegramMessage,
             workflowSessionId,
           };
 
@@ -905,6 +909,7 @@ export abstract class Runtime<Env = unknown> {
         queueMessage: context.queueMessage,
         scheduledTrigger: context.scheduledTrigger,
         discordMessage: context.discordMessage,
+        telegramMessage: context.telegramMessage,
         onProgress: () => {},
         toolRegistry: this.toolRegistry,
         objectStore: this.objectStore,

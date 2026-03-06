@@ -207,6 +207,7 @@ export function DeploymentVersionPage() {
     scheduled: "Scheduled",
     queue_message: "Queue Message",
     discord_event: "Discord Event",
+    telegram_event: "Telegram Event",
   };
 
   const workflowTrigger = deploymentVersion?.trigger || workflow?.trigger;

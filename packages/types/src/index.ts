@@ -7,6 +7,7 @@ export * from "./dataset";
 export * from "./deployment";
 export * from "./discord";
 export * from "./email";
+export * from "./telegram";
 export * from "./execution";
 export * from "./feedback";
 export * from "./integration";

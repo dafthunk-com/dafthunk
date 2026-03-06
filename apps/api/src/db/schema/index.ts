@@ -56,6 +56,7 @@ export const WorkflowTriggerType = {
   SCHEDULED: "scheduled",
   QUEUE_MESSAGE: "queue_message",
   DISCORD_EVENT: "discord_event",
+  TELEGRAM_EVENT: "telegram_event",
 } as const;
 
 export type WorkflowTriggerTypeType =
@@ -605,6 +606,36 @@ export const discordTriggers = sqliteTable(
   ]
 );
 
+// Telegram Triggers - Telegram event triggers for workflows
+export const telegramTriggers = sqliteTable(
+  "telegram_triggers",
+  {
+    workflowId: text("workflow_id")
+      .primaryKey()
+      .references(() => workflows.id, { onDelete: "cascade" }),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    chatId: text("chat_id").notNull(),
+    secretToken: text("secret_token"),
+    active: integer("active", { mode: "boolean" }).notNull().default(true),
+    createdAt: createCreatedAt(),
+    updatedAt: createUpdatedAt(),
+  },
+  (table) => [
+    index("telegram_triggers_workflow_id_idx").on(table.workflowId),
+    index("telegram_triggers_organization_id_idx").on(table.organizationId),
+    index("telegram_triggers_chat_id_idx").on(table.chatId),
+    index("telegram_triggers_active_idx").on(table.active),
+    index("telegram_triggers_created_at_idx").on(table.createdAt),
+    index("telegram_triggers_updated_at_idx").on(table.updatedAt),
+    uniqueIndex("telegram_triggers_chat_workflow_unique_idx").on(
+      table.chatId,
+      table.workflowId
+    ),
+  ]
+);
+
 // Secrets - Encrypted secrets associated with organizations
 export const secrets = sqliteTable(
   "secrets",
@@ -783,6 +814,10 @@ export const workflowsRelations = relations(workflows, ({ one, many }) => ({
     fields: [workflows.id],
     references: [discordTriggers.workflowId],
   }),
+  telegramTrigger: one(telegramTriggers, {
+    fields: [workflows.id],
+    references: [telegramTriggers.workflowId],
+  }),
   feedbackCriteria: many(feedbackCriteria),
 }));
 
@@ -912,6 +947,16 @@ export const discordTriggersRelations = relations(
   })
 );
 
+export const telegramTriggersRelations = relations(
+  telegramTriggers,
+  ({ one }) => ({
+    workflow: one(workflows, {
+      fields: [telegramTriggers.workflowId],
+      references: [workflows.id],
+    }),
+  })
+);
+
 export const secretsRelations = relations(secrets, ({ one }) => ({
   organization: one(organizations, {
     fields: [secrets.organizationId],
@@ -1002,6 +1047,9 @@ export type EmailTriggerInsert = typeof emailTriggers.$inferInsert;
 
 export type DiscordTriggerRow = typeof discordTriggers.$inferSelect;
 export type DiscordTriggerInsert = typeof discordTriggers.$inferInsert;
+
+export type TelegramTriggerRow = typeof telegramTriggers.$inferSelect;
+export type TelegramTriggerInsert = typeof telegramTriggers.$inferInsert;
 
 export type SecretRow = typeof secrets.$inferSelect;
 export type SecretInsert = typeof secrets.$inferInsert;

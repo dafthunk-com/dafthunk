@@ -17,7 +17,8 @@ export type WorkflowTrigger =
   | "email_message"
   | "queue_message"
   | "scheduled"
-  | "discord_event";
+  | "discord_event"
+  | "telegram_event";
 
 /**
  * Workflow runtime modes

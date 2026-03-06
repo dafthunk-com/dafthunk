@@ -92,6 +92,11 @@ import { ListUserGuildsDiscordNode } from "@dafthunk/runtime/nodes/discord/list-
 import { ReceiveDiscordMessageNode } from "@dafthunk/runtime/nodes/discord/receive-discord-message-node";
 import { SendDMDiscordNode } from "@dafthunk/runtime/nodes/discord/send-dm-discord-node";
 import { SendMessageDiscordNode } from "@dafthunk/runtime/nodes/discord/send-message-discord-node";
+import { ForwardMessageTelegramNode } from "@dafthunk/runtime/nodes/telegram/forward-message-telegram-node";
+import { GetChatTelegramNode } from "@dafthunk/runtime/nodes/telegram/get-chat-telegram-node";
+import { ReceiveTelegramMessageNode } from "@dafthunk/runtime/nodes/telegram/receive-telegram-message-node";
+import { SendMessageTelegramNode } from "@dafthunk/runtime/nodes/telegram/send-message-telegram-node";
+import { SendPhotoTelegramNode } from "@dafthunk/runtime/nodes/telegram/send-photo-telegram-node";
 import { ToMarkdownNode } from "@dafthunk/runtime/nodes/document/to-markdown-node";
 import { ExtractEmailAttachmentsNode } from "@dafthunk/runtime/nodes/email/extract-email-attachments-node";
 import { ParseEmailNode } from "@dafthunk/runtime/nodes/email/parse-email-node";
@@ -455,6 +460,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
       this.env.INTEGRATION_DISCORD_CLIENT_ID &&
       this.env.INTEGRATION_DISCORD_CLIENT_SECRET
     );
+    const hasTelegram = !!this.env.TELEGRAM_BOT_TOKEN;
     const hasGitHub = !!(
       this.env.INTEGRATION_GITHUB_CLIENT_ID &&
       this.env.INTEGRATION_GITHUB_CLIENT_SECRET
@@ -488,6 +494,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(DatabaseTruncateTableNode);
     this.registerImplementation(ReceiveEmailNode);
     this.registerImplementation(ReceiveDiscordMessageNode);
+    this.registerImplementation(ReceiveTelegramMessageNode);
     this.registerImplementation(ReceiveScheduledTriggerNode);
     this.registerImplementation(ParseEmailNode);
     this.registerImplementation(ExtractEmailAttachmentsNode);
@@ -741,6 +748,13 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
       this.registerImplementation(GetGuildDiscordNode);
       this.registerImplementation(ListUserGuildsDiscordNode);
       this.registerImplementation(AddReactionDiscordNode);
+    }
+
+    if (hasTelegram) {
+      this.registerImplementation(SendMessageTelegramNode);
+      this.registerImplementation(SendPhotoTelegramNode);
+      this.registerImplementation(ForwardMessageTelegramNode);
+      this.registerImplementation(GetChatTelegramNode);
     }
 
     if (hasReddit) {

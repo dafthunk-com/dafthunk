@@ -8,6 +8,7 @@ import type {
   ObjectReference,
   QueueMessage,
   ScheduledTrigger,
+  TelegramMessage,
   WorkflowMode,
 } from "@dafthunk/types";
 import type { BaseToolRegistry } from "./base-tool-registry";
@@ -212,6 +213,7 @@ export interface NodeEnv {
   SES_DEFAULT_FROM?: string;
   HUGGINGFACE_API_KEY?: string;
   REPLICATE_API_TOKEN?: string;
+  TELEGRAM_BOT_TOKEN?: string;
 }
 
 export interface NodeContext {
@@ -231,6 +233,7 @@ export interface NodeContext {
   queueMessage?: QueueMessage;
   scheduledTrigger?: ScheduledTrigger;
   discordMessage?: DiscordMessage;
+  telegramMessage?: TelegramMessage;
   toolRegistry?: BaseToolRegistry;
   objectStore?: ObjectStore;
   databaseService?: DatabaseService;

@@ -4,11 +4,13 @@ import {
   CreateWorkflowResponse,
   DeleteDiscordTriggerResponse,
   DeleteQueueTriggerResponse,
+  DeleteTelegramTriggerResponse,
   DeleteWorkflowResponse,
   ExecuteWorkflowResponse,
   ExecutionStatus,
   GetDiscordTriggerResponse,
   GetEmailTriggerResponse,
+  GetTelegramTriggerResponse,
   GetQueueTriggerResponse,
   GetWorkflowResponse,
   JWTTokenPayload,
@@ -17,6 +19,8 @@ import {
   UpdateWorkflowResponse,
   UpsertDiscordTriggerRequest,
   UpsertDiscordTriggerResponse,
+  UpsertTelegramTriggerRequest,
+  UpsertTelegramTriggerResponse,
   UpsertQueueTriggerRequest,
   UpsertQueueTriggerResponse,
   WorkflowWithMetadata,
@@ -35,15 +39,19 @@ import {
   createHandle,
   deleteDiscordTrigger as deleteDbDiscordTrigger,
   deleteQueueTrigger as deleteDbQueueTrigger,
+  deleteTelegramTrigger as deleteDbTelegramTrigger,
   getDiscordTrigger,
   getDiscordTriggersByGuild,
   getEmailTrigger,
   getIntegrationByProvider,
+  getTelegramTrigger,
+  getTelegramTriggersByChat,
   getOrganizationBillingInfo,
   getQueue,
   getQueueTrigger,
   upsertDiscordTrigger as upsertDbDiscordTrigger,
   upsertQueueTrigger as upsertDbQueueTrigger,
+  upsertTelegramTrigger as upsertDbTelegramTrigger,
   workflows,
 } from "../db";
 import { createRateLimitMiddleware } from "../middleware/rate-limit";
@@ -1072,6 +1080,219 @@ workflowRoutes.delete(
     }
 
     const response: DeleteDiscordTriggerResponse = {
+      workflowId: deletedTrigger.workflowId,
+    };
+    return c.json(response);
+  }
+);
+
+/**
+ * Get telegram trigger for a workflow
+ */
+workflowRoutes.get(
+  "/:workflowIdOrHandle/telegram-trigger",
+  jwtMiddleware,
+  async (c) => {
+    const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
+    const organizationId = c.get("organizationId")!;
+    const workflowStore = new WorkflowStore(c.env);
+    const db = createDatabase(c.env.DB);
+
+    const workflow = await workflowStore.get(
+      workflowIdOrHandle,
+      organizationId
+    );
+    if (!workflow) {
+      return c.json({ error: "Workflow not found" }, 404);
+    }
+
+    const telegramTrigger = await getTelegramTrigger(
+      db,
+      workflow.id,
+      organizationId
+    );
+
+    if (!telegramTrigger) {
+      return c.json(
+        { error: "Telegram trigger not found for this workflow" },
+        404
+      );
+    }
+
+    const response: GetTelegramTriggerResponse = {
+      workflowId: telegramTrigger.workflowId,
+      chatId: telegramTrigger.chatId,
+      active: telegramTrigger.active,
+      createdAt: telegramTrigger.createdAt,
+      updatedAt: telegramTrigger.updatedAt,
+    };
+
+    return c.json(response);
+  }
+);
+
+/**
+ * Upsert (create or update) a telegram trigger for a workflow.
+ */
+const UpsertTelegramTriggerRequestSchema = z.object({
+  chatId: z.string().min(1, "Chat ID is required"),
+  active: z.boolean().optional(),
+}) as z.ZodType<UpsertTelegramTriggerRequest>;
+
+workflowRoutes.put(
+  "/:workflowIdOrHandle/telegram-trigger",
+  jwtMiddleware,
+  zValidator("json", UpsertTelegramTriggerRequestSchema),
+  async (c) => {
+    const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
+    const organizationId = c.get("organizationId")!;
+    const data = c.req.valid("json");
+    const db = createDatabase(c.env.DB);
+    const workflowStore = new WorkflowStore(c.env);
+
+    const workflow = await workflowStore.get(
+      workflowIdOrHandle,
+      organizationId
+    );
+    if (!workflow) {
+      return c.json({ error: "Workflow not found" }, 404);
+    }
+
+    if (workflow.trigger !== "telegram_event") {
+      return c.json(
+        { error: "Workflow is not a telegram_event workflow" },
+        400
+      );
+    }
+
+    const now = new Date();
+    const isActive = data.active ?? true;
+
+    // Generate a secret token for webhook verification
+    const secretToken = crypto.randomUUID();
+
+    try {
+      const upsertedTrigger = await upsertDbTelegramTrigger(db, {
+        workflowId: workflow.id,
+        organizationId,
+        chatId: data.chatId,
+        secretToken,
+        active: isActive,
+        updatedAt: now,
+      });
+
+      if (!upsertedTrigger) {
+        return c.json(
+          { error: "Failed to create or update telegram trigger" },
+          500
+        );
+      }
+
+      // Register webhook with Telegram if trigger is active
+      if (isActive && c.env.TELEGRAM_BOT_TOKEN) {
+        try {
+          const apiHost = new URL(c.req.url).origin;
+          const response = await fetch(
+            `https://api.telegram.org/bot${c.env.TELEGRAM_BOT_TOKEN}/setWebhook`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                url: `${apiHost}/telegram/webhook/${data.chatId}`,
+                secret_token: secretToken,
+                allowed_updates: ["message"],
+              }),
+            }
+          );
+          if (!response.ok) {
+            console.error(
+              "[TelegramTrigger] Failed to set webhook:",
+              await response.text()
+            );
+          }
+        } catch (error) {
+          console.error(
+            "[TelegramTrigger] Failed to register webhook:",
+            error instanceof Error ? error.message : String(error)
+          );
+        }
+      }
+
+      const triggerResponse: UpsertTelegramTriggerResponse = {
+        workflowId: upsertedTrigger.workflowId,
+        chatId: upsertedTrigger.chatId,
+        active: upsertedTrigger.active,
+        createdAt: upsertedTrigger.createdAt,
+        updatedAt: upsertedTrigger.updatedAt,
+      };
+      return c.json(triggerResponse, 200);
+    } catch (dbError: unknown) {
+      console.error("Error upserting telegram trigger:", dbError);
+      return c.json(
+        {
+          error: "Database error while saving telegram trigger",
+          details:
+            dbError instanceof Error ? dbError.message : String(dbError),
+        },
+        500
+      );
+    }
+  }
+);
+
+/**
+ * Delete a telegram trigger for a workflow
+ */
+workflowRoutes.delete(
+  "/:workflowIdOrHandle/telegram-trigger",
+  jwtMiddleware,
+  async (c) => {
+    const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
+    const organizationId = c.get("organizationId")!;
+    const workflowStore = new WorkflowStore(c.env);
+    const db = createDatabase(c.env.DB);
+
+    const workflow = await workflowStore.get(
+      workflowIdOrHandle,
+      organizationId
+    );
+    if (!workflow) {
+      return c.json({ error: "Workflow not found" }, 404);
+    }
+
+    const deletedTrigger = await deleteDbTelegramTrigger(
+      db,
+      workflow.id,
+      organizationId
+    );
+
+    if (!deletedTrigger) {
+      return c.json(
+        { error: "Telegram trigger not found for this workflow" },
+        404
+      );
+    }
+
+    // Check if there are other triggers for this chat — if not, unregister webhook
+    const remainingTriggers = await getTelegramTriggersByChat(
+      db,
+      deletedTrigger.chatId
+    );
+    if (remainingTriggers.length === 0 && c.env.TELEGRAM_BOT_TOKEN) {
+      try {
+        await fetch(
+          `https://api.telegram.org/bot${c.env.TELEGRAM_BOT_TOKEN}/deleteWebhook`,
+          { method: "POST" }
+        );
+      } catch (error) {
+        console.error(
+          "[TelegramTrigger] Failed to unregister webhook:",
+          error instanceof Error ? error.message : String(error)
+        );
+      }
+    }
+
+    const response: DeleteTelegramTriggerResponse = {
       workflowId: deletedTrigger.workflowId,
     };
     return c.json(response);

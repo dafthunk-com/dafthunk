@@ -15,9 +15,12 @@ import {
   type DatasetRow,
   type DiscordTriggerInsert,
   type DiscordTriggerRow,
+  type TelegramTriggerInsert,
+  type TelegramTriggerRow,
   databases,
   datasets,
   discordTriggers,
+  telegramTriggers,
   type EmailInsert,
   type EmailRow,
   type EmailTriggerInsert,
@@ -1344,6 +1347,128 @@ export async function deleteDiscordTrigger(
         eq(discordTriggers.workflowId, workflowId),
         eq(
           discordTriggers.workflowId,
+          db
+            .select({ id: workflows.id })
+            .from(workflows)
+            .where(
+              and(
+                eq(workflows.id, workflowId),
+                eq(workflows.organizationId, organizationId)
+              )
+            )
+        )
+      )
+    )
+    .returning();
+
+  return trigger;
+}
+
+/**
+ * Get a telegram trigger for a workflow
+ */
+export async function getTelegramTrigger(
+  db: ReturnType<typeof createDatabase>,
+  workflowId: string,
+  organizationId: string
+): Promise<TelegramTriggerRow | undefined> {
+  const [trigger] = await db
+    .select()
+    .from(telegramTriggers)
+    .innerJoin(workflows, eq(telegramTriggers.workflowId, workflows.id))
+    .where(
+      and(
+        eq(telegramTriggers.workflowId, workflowId),
+        eq(workflows.organizationId, organizationId)
+      )
+    )
+    .limit(1);
+
+  return trigger?.telegram_triggers;
+}
+
+/**
+ * Get all active telegram triggers for a chat
+ */
+export async function getTelegramTriggersByChat(
+  db: ReturnType<typeof createDatabase>,
+  chatId: string
+) {
+  return await db
+    .select({
+      telegramTrigger: telegramTriggers,
+      workflow: workflows,
+    })
+    .from(telegramTriggers)
+    .innerJoin(workflows, eq(telegramTriggers.workflowId, workflows.id))
+    .where(
+      and(
+        eq(telegramTriggers.chatId, chatId),
+        eq(telegramTriggers.active, true)
+      )
+    );
+}
+
+/**
+ * Get the secret token for a telegram chat trigger (for webhook verification)
+ */
+export async function getTelegramSecretTokenByChat(
+  db: ReturnType<typeof createDatabase>,
+  chatId: string
+): Promise<string | undefined> {
+  const [result] = await db
+    .select({ secretToken: telegramTriggers.secretToken })
+    .from(telegramTriggers)
+    .where(
+      and(
+        eq(telegramTriggers.chatId, chatId),
+        eq(telegramTriggers.active, true)
+      )
+    )
+    .limit(1);
+
+  return result?.secretToken ?? undefined;
+}
+
+/**
+ * Upsert a telegram trigger for a workflow
+ */
+export async function upsertTelegramTrigger(
+  db: ReturnType<typeof createDatabase>,
+  trigger: TelegramTriggerInsert
+): Promise<TelegramTriggerRow> {
+  const [telegramTrigger] = await db
+    .insert(telegramTriggers)
+    .values(trigger)
+    .onConflictDoUpdate({
+      target: telegramTriggers.workflowId,
+      set: {
+        chatId: trigger.chatId,
+        secretToken: trigger.secretToken,
+        active: trigger.active,
+        updatedAt: new Date(),
+      },
+    })
+    .returning();
+
+  return telegramTrigger;
+}
+
+/**
+ * Delete a telegram trigger for a workflow
+ */
+export async function deleteTelegramTrigger(
+  db: ReturnType<typeof createDatabase>,
+  workflowId: string,
+  organizationId: string
+): Promise<TelegramTriggerRow | undefined> {
+  const [trigger] = await db
+    .delete(telegramTriggers)
+    .where(
+      and(
+        eq(telegramTriggers.workflowId, workflowId),
+        eq(
+          telegramTriggers.workflowId,
           db
             .select({ id: workflows.id })
             .from(workflows)
