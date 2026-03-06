@@ -6,6 +6,7 @@ import Layers from "lucide-react/icons/layers";
 import Mail from "lucide-react/icons/mail";
 import MessageSquare from "lucide-react/icons/message-square";
 import Play from "lucide-react/icons/play";
+import Send from "lucide-react/icons/send";
 import Webhook from "lucide-react/icons/webhook";
 import Zap from "lucide-react/icons/zap";
 import { useState } from "react";
@@ -64,6 +65,12 @@ const workflowTriggers = [
     title: "Discord Event",
     description: "Trigger workflows from Discord messages",
     icon: MessageSquare,
+  },
+  {
+    trigger: "telegram_event" as WorkflowTrigger,
+    title: "Telegram Event",
+    description: "Trigger workflows from Telegram messages",
+    icon: Send,
   },
 ];
 
