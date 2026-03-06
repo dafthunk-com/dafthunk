@@ -85,6 +85,9 @@ import { DiffDateNode } from "@dafthunk/runtime/nodes/date/diff-date-node";
 import { NowDateNode } from "@dafthunk/runtime/nodes/date/now-date-node";
 import { ParseDateNode } from "@dafthunk/runtime/nodes/date/parse-date-node";
 import { AddReactionDiscordNode } from "@dafthunk/runtime/nodes/discord/add-reaction-discord-node";
+import { BotAddReactionDiscordNode } from "@dafthunk/runtime/nodes/discord/bot-add-reaction-discord-node";
+import { BotSendDMDiscordNode } from "@dafthunk/runtime/nodes/discord/bot-send-dm-discord-node";
+import { BotSendMessageDiscordNode } from "@dafthunk/runtime/nodes/discord/bot-send-message-discord-node";
 import { GetChannelDiscordNode } from "@dafthunk/runtime/nodes/discord/get-channel-discord-node";
 import { GetGuildDiscordNode } from "@dafthunk/runtime/nodes/discord/get-guild-discord-node";
 import { ListGuildChannelsDiscordNode } from "@dafthunk/runtime/nodes/discord/list-guild-channels-discord-node";
@@ -92,11 +95,6 @@ import { ListUserGuildsDiscordNode } from "@dafthunk/runtime/nodes/discord/list-
 import { ReceiveDiscordMessageNode } from "@dafthunk/runtime/nodes/discord/receive-discord-message-node";
 import { SendDMDiscordNode } from "@dafthunk/runtime/nodes/discord/send-dm-discord-node";
 import { SendMessageDiscordNode } from "@dafthunk/runtime/nodes/discord/send-message-discord-node";
-import { ForwardMessageTelegramNode } from "@dafthunk/runtime/nodes/telegram/forward-message-telegram-node";
-import { GetChatTelegramNode } from "@dafthunk/runtime/nodes/telegram/get-chat-telegram-node";
-import { ReceiveTelegramMessageNode } from "@dafthunk/runtime/nodes/telegram/receive-telegram-message-node";
-import { SendMessageTelegramNode } from "@dafthunk/runtime/nodes/telegram/send-message-telegram-node";
-import { SendPhotoTelegramNode } from "@dafthunk/runtime/nodes/telegram/send-photo-telegram-node";
 import { ToMarkdownNode } from "@dafthunk/runtime/nodes/document/to-markdown-node";
 import { ExtractEmailAttachmentsNode } from "@dafthunk/runtime/nodes/email/extract-email-attachments-node";
 import { ParseEmailNode } from "@dafthunk/runtime/nodes/email/parse-email-node";
@@ -393,6 +391,11 @@ import { SubmitPostRedditNode } from "@dafthunk/runtime/nodes/reddit/submit-post
 import { VoteRedditNode } from "@dafthunk/runtime/nodes/reddit/vote-reddit-node";
 import { ReplicateModelNode } from "@dafthunk/runtime/nodes/replicate/replicate-model-node";
 import { ReceiveScheduledTriggerNode } from "@dafthunk/runtime/nodes/scheduled/receive-scheduled-trigger-node";
+import { BotForwardMessageTelegramNode } from "@dafthunk/runtime/nodes/telegram/bot-forward-message-telegram-node";
+import { BotGetChatTelegramNode } from "@dafthunk/runtime/nodes/telegram/bot-get-chat-telegram-node";
+import { BotSendMessageTelegramNode } from "@dafthunk/runtime/nodes/telegram/bot-send-message-telegram-node";
+import { BotSendPhotoTelegramNode } from "@dafthunk/runtime/nodes/telegram/bot-send-photo-telegram-node";
+import { ReceiveTelegramMessageNode } from "@dafthunk/runtime/nodes/telegram/receive-telegram-message-node";
 import { BartLargeCnnNode } from "@dafthunk/runtime/nodes/text/bart-large-cnn-node";
 import { BgeRerankerBaseNode } from "@dafthunk/runtime/nodes/text/bge-reranker-base-node";
 import { DeepseekR1DistillQwen32BNode } from "@dafthunk/runtime/nodes/text/deepseek-r1-distill-qwen-32b-node";
@@ -460,6 +463,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
       this.env.INTEGRATION_DISCORD_CLIENT_ID &&
       this.env.INTEGRATION_DISCORD_CLIENT_SECRET
     );
+    const hasDiscordBot = !!this.env.DISCORD_BOT_TOKEN;
     const hasTelegram = !!this.env.TELEGRAM_BOT_TOKEN;
     const hasGitHub = !!(
       this.env.INTEGRATION_GITHUB_CLIENT_ID &&
@@ -750,11 +754,17 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
       this.registerImplementation(AddReactionDiscordNode);
     }
 
+    if (hasDiscordBot) {
+      this.registerImplementation(BotSendMessageDiscordNode);
+      this.registerImplementation(BotSendDMDiscordNode);
+      this.registerImplementation(BotAddReactionDiscordNode);
+    }
+
     if (hasTelegram) {
-      this.registerImplementation(SendMessageTelegramNode);
-      this.registerImplementation(SendPhotoTelegramNode);
-      this.registerImplementation(ForwardMessageTelegramNode);
-      this.registerImplementation(GetChatTelegramNode);
+      this.registerImplementation(BotSendMessageTelegramNode);
+      this.registerImplementation(BotSendPhotoTelegramNode);
+      this.registerImplementation(BotForwardMessageTelegramNode);
+      this.registerImplementation(BotGetChatTelegramNode);
     }
 
     if (hasReddit) {

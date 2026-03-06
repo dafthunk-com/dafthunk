@@ -214,6 +214,7 @@ export interface NodeEnv {
   HUGGINGFACE_API_KEY?: string;
   REPLICATE_API_TOKEN?: string;
   TELEGRAM_BOT_TOKEN?: string;
+  DISCORD_BOT_TOKEN?: string;
 }
 
 export interface NodeContext {

@@ -10,8 +10,8 @@ import {
   ExecutionStatus,
   GetDiscordTriggerResponse,
   GetEmailTriggerResponse,
-  GetTelegramTriggerResponse,
   GetQueueTriggerResponse,
+  GetTelegramTriggerResponse,
   GetWorkflowResponse,
   JWTTokenPayload,
   ListWorkflowsResponse,
@@ -19,10 +19,10 @@ import {
   UpdateWorkflowResponse,
   UpsertDiscordTriggerRequest,
   UpsertDiscordTriggerResponse,
-  UpsertTelegramTriggerRequest,
-  UpsertTelegramTriggerResponse,
   UpsertQueueTriggerRequest,
   UpsertQueueTriggerResponse,
+  UpsertTelegramTriggerRequest,
+  UpsertTelegramTriggerResponse,
   WorkflowWithMetadata,
 } from "@dafthunk/types";
 import { zValidator } from "@hono/zod-validator";
@@ -44,11 +44,11 @@ import {
   getDiscordTriggersByGuild,
   getEmailTrigger,
   getIntegrationByProvider,
-  getTelegramTrigger,
-  getTelegramTriggersByChat,
   getOrganizationBillingInfo,
   getQueue,
   getQueueTrigger,
+  getTelegramTrigger,
+  getTelegramTriggersByChat,
   upsertDiscordTrigger as upsertDbDiscordTrigger,
   upsertQueueTrigger as upsertDbQueueTrigger,
   upsertTelegramTrigger as upsertDbTelegramTrigger,
@@ -1231,8 +1231,7 @@ workflowRoutes.put(
       return c.json(
         {
           error: "Database error while saving telegram trigger",
-          details:
-            dbError instanceof Error ? dbError.message : String(dbError),
+          details: dbError instanceof Error ? dbError.message : String(dbError),
         },
         500
       );

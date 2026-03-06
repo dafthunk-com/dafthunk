@@ -1,12 +1,12 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
 
-export class GetChatTelegramNode extends ExecutableNode {
+export class BotGetChatTelegramNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "get-chat-telegram",
-    name: "Get Chat (Telegram)",
+    name: "Bot Get Chat (Telegram)",
     type: "get-chat-telegram",
-    description: "Get information about a Telegram chat",
+    description: "Get information about a Telegram chat via the bot",
     tags: ["Social", "Telegram", "Chat", "Info"],
     icon: "info",
     documentation:

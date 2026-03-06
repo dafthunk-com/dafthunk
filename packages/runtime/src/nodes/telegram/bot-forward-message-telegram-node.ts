@@ -1,55 +1,55 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
 
-export class SendMessageTelegramNode extends ExecutableNode {
+export class BotForwardMessageTelegramNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "send-message-telegram",
-    name: "Send Message (Telegram)",
-    type: "send-message-telegram",
-    description: "Send a text message to a Telegram chat",
-    tags: ["Social", "Telegram", "Message", "Send"],
-    icon: "send",
+    id: "forward-message-telegram",
+    name: "Bot Forward Message (Telegram)",
+    type: "forward-message-telegram",
+    description:
+      "Forward a message from one Telegram chat to another as the bot",
+    tags: ["Social", "Telegram", "Message", "Forward"],
+    icon: "forward",
     documentation:
-      "This node sends text messages to Telegram chats using the Telegram Bot API. Requires TELEGRAM_BOT_TOKEN to be configured.",
+      "This node forwards messages between Telegram chats using the Telegram Bot API. Requires TELEGRAM_BOT_TOKEN.",
     usage: 10,
     inputs: [
       {
         name: "chatId",
         type: "string",
-        description: "Telegram chat ID to send the message to",
+        description: "Target chat ID to forward the message to",
         required: true,
       },
       {
-        name: "text",
+        name: "fromChatId",
         type: "string",
-        description: "Message text (up to 4096 characters)",
+        description: "Source chat ID where the original message was sent",
         required: true,
       },
       {
-        name: "parseMode",
-        type: "string",
-        description: "Text parsing mode",
-        enum: ["Markdown", "MarkdownV2", "HTML"],
-        required: false,
+        name: "messageId",
+        type: "number",
+        description: "ID of the message to forward",
+        required: true,
       },
     ],
     outputs: [
       {
         name: "messageId",
         type: "number",
-        description: "Sent message ID",
+        description: "Forwarded message ID",
         hidden: true,
       },
       {
         name: "chatId",
         type: "number",
-        description: "Chat ID where the message was sent",
+        description: "Chat ID where the message was forwarded to",
         hidden: true,
       },
       {
         name: "date",
         type: "number",
-        description: "Unix timestamp of when the message was sent",
+        description: "Unix timestamp of when the message was forwarded",
         hidden: true,
       },
     ],
@@ -57,7 +57,7 @@ export class SendMessageTelegramNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const { chatId, text, parseMode } = context.inputs;
+      const { chatId, fromChatId, messageId } = context.inputs;
       const botToken = context.env.TELEGRAM_BOT_TOKEN;
 
       if (!botToken) {
@@ -67,41 +67,34 @@ export class SendMessageTelegramNode extends ExecutableNode {
       }
 
       if (!chatId || typeof chatId !== "string") {
-        return this.createErrorResult("Chat ID is required");
+        return this.createErrorResult("Target chat ID is required");
       }
 
-      if (!text || typeof text !== "string") {
-        return this.createErrorResult("Message text is required");
+      if (!fromChatId || typeof fromChatId !== "string") {
+        return this.createErrorResult("Source chat ID is required");
       }
 
-      if (text.length > 4096) {
-        return this.createErrorResult(
-          "Message text must be 4096 characters or less"
-        );
-      }
-
-      const payload: Record<string, string> = {
-        chat_id: chatId,
-        text,
-      };
-
-      if (parseMode && typeof parseMode === "string") {
-        payload.parse_mode = parseMode;
+      if (messageId === undefined || messageId === null) {
+        return this.createErrorResult("Message ID is required");
       }
 
       const response = await fetch(
-        `https://api.telegram.org/bot${botToken}/sendMessage`,
+        `https://api.telegram.org/bot${botToken}/forwardMessage`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
+          body: JSON.stringify({
+            chat_id: chatId,
+            from_chat_id: fromChatId,
+            message_id: Number(messageId),
+          }),
         }
       );
 
       if (!response.ok) {
         const errorData = await response.text();
         return this.createErrorResult(
-          `Failed to send message via Telegram API: ${errorData}`
+          `Failed to forward message via Telegram API: ${errorData}`
         );
       }
 
@@ -122,7 +115,7 @@ export class SendMessageTelegramNode extends ExecutableNode {
       return this.createErrorResult(
         error instanceof Error
           ? error.message
-          : "Unknown error sending message via Telegram"
+          : "Unknown error forwarding message via Telegram"
       );
     }
   }

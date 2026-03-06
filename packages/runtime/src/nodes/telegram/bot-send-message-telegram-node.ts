@@ -1,34 +1,35 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
 
-export class SendPhotoTelegramNode extends ExecutableNode {
+export class BotSendMessageTelegramNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "send-photo-telegram",
-    name: "Send Photo (Telegram)",
-    type: "send-photo-telegram",
-    description: "Send a photo to a Telegram chat",
-    tags: ["Social", "Telegram", "Image", "Send"],
-    icon: "image",
+    id: "send-message-telegram",
+    name: "Bot Send Message (Telegram)",
+    type: "send-message-telegram",
+    description: "Send a text message to a Telegram chat as the bot",
+    tags: ["Social", "Telegram", "Message", "Send"],
+    icon: "send",
     documentation:
-      "This node sends photos to Telegram chats using the Telegram Bot API. Accepts a URL or an image blob. Requires TELEGRAM_BOT_TOKEN.",
+      "This node sends text messages to Telegram chats using the Telegram Bot API. Requires TELEGRAM_BOT_TOKEN to be configured.",
     usage: 10,
     inputs: [
       {
         name: "chatId",
         type: "string",
-        description: "Telegram chat ID to send the photo to",
+        description: "Telegram chat ID to send the message to",
         required: true,
       },
       {
-        name: "photo",
+        name: "text",
         type: "string",
-        description: "Photo URL to send",
+        description: "Message text (up to 4096 characters)",
         required: true,
       },
       {
-        name: "caption",
+        name: "parseMode",
         type: "string",
-        description: "Photo caption (up to 1024 characters)",
+        description: "Text parsing mode",
+        enum: ["Markdown", "MarkdownV2", "HTML"],
         required: false,
       },
     ],
@@ -42,7 +43,13 @@ export class SendPhotoTelegramNode extends ExecutableNode {
       {
         name: "chatId",
         type: "number",
-        description: "Chat ID where the photo was sent",
+        description: "Chat ID where the message was sent",
+        hidden: true,
+      },
+      {
+        name: "date",
+        type: "number",
+        description: "Unix timestamp of when the message was sent",
         hidden: true,
       },
     ],
@@ -50,7 +57,7 @@ export class SendPhotoTelegramNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const { chatId, photo, caption } = context.inputs;
+      const { chatId, text, parseMode } = context.inputs;
       const botToken = context.env.TELEGRAM_BOT_TOKEN;
 
       if (!botToken) {
@@ -63,26 +70,27 @@ export class SendPhotoTelegramNode extends ExecutableNode {
         return this.createErrorResult("Chat ID is required");
       }
 
-      if (!photo || typeof photo !== "string") {
-        return this.createErrorResult("Photo URL is required");
+      if (!text || typeof text !== "string") {
+        return this.createErrorResult("Message text is required");
+      }
+
+      if (text.length > 4096) {
+        return this.createErrorResult(
+          "Message text must be 4096 characters or less"
+        );
       }
 
       const payload: Record<string, string> = {
         chat_id: chatId,
-        photo,
+        text,
       };
 
-      if (caption && typeof caption === "string") {
-        if (caption.length > 1024) {
-          return this.createErrorResult(
-            "Caption must be 1024 characters or less"
-          );
-        }
-        payload.caption = caption;
+      if (parseMode && typeof parseMode === "string") {
+        payload.parse_mode = parseMode;
       }
 
       const response = await fetch(
-        `https://api.telegram.org/bot${botToken}/sendPhoto`,
+        `https://api.telegram.org/bot${botToken}/sendMessage`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -93,7 +101,7 @@ export class SendPhotoTelegramNode extends ExecutableNode {
       if (!response.ok) {
         const errorData = await response.text();
         return this.createErrorResult(
-          `Failed to send photo via Telegram API: ${errorData}`
+          `Failed to send message via Telegram API: ${errorData}`
         );
       }
 
@@ -101,18 +109,20 @@ export class SendPhotoTelegramNode extends ExecutableNode {
         result: {
           message_id: number;
           chat: { id: number };
+          date: number;
         };
       };
 
       return this.createSuccessResult({
         messageId: data.result.message_id,
         chatId: data.result.chat.id,
+        date: data.result.date,
       });
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error
           ? error.message
-          : "Unknown error sending photo via Telegram"
+          : "Unknown error sending message via Telegram"
       );
     }
   }

@@ -4,9 +4,9 @@ import { Hono } from "hono";
 import type { ApiContext } from "../context";
 import {
   createDatabase,
+  getOrganizationComputeCredits,
   getTelegramSecretTokenByChat,
   getTelegramTriggersByChat,
-  getOrganizationComputeCredits,
 } from "../db";
 import { createWorkerRuntime } from "../runtime/cloudflare-worker-runtime";
 import { DeploymentStore } from "../stores/deployment-store";
@@ -113,7 +113,13 @@ async function dispatchWorkflows(
 
   for (const { workflow } of triggers) {
     try {
-      await executeWorkflow(env, workflow, message, workflowStore, deploymentStore);
+      await executeWorkflow(
+        env,
+        workflow,
+        message,
+        workflowStore,
+        deploymentStore
+      );
     } catch (error) {
       console.error(
         `[TelegramWebhook] Failed to trigger workflow ${workflow.id}:`,
