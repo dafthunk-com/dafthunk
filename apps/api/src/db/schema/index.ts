@@ -581,15 +581,18 @@ export const discordTriggers = sqliteTable(
     workflowId: text("workflow_id")
       .primaryKey()
       .references(() => workflows.id, { onDelete: "cascade" }),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
     guildId: text("guild_id").notNull(),
     channelId: text("channel_id"),
-    botTokenSecretName: text("bot_token_secret_name").notNull(),
     active: integer("active", { mode: "boolean" }).notNull().default(true),
     createdAt: createCreatedAt(),
     updatedAt: createUpdatedAt(),
   },
   (table) => [
     index("discord_triggers_workflow_id_idx").on(table.workflowId),
+    index("discord_triggers_organization_id_idx").on(table.organizationId),
     index("discord_triggers_guild_id_idx").on(table.guildId),
     index("discord_triggers_active_idx").on(table.active),
     index("discord_triggers_created_at_idx").on(table.createdAt),

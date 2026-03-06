@@ -27,9 +27,9 @@ import type { Context } from "hono";
 import { Hono } from "hono";
 import { v7 as uuid } from "uuid";
 import { z } from "zod";
-
 import { apiKeyOrJwtMiddleware, jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
+import type { IntegrationProviderType } from "../db";
 import {
   createDatabase,
   createHandle,
@@ -38,10 +38,10 @@ import {
   getDiscordTrigger,
   getDiscordTriggersByGuild,
   getEmailTrigger,
+  getIntegrationByProvider,
   getOrganizationBillingInfo,
   getQueue,
   getQueueTrigger,
-  getSecretByName,
   upsertDiscordTrigger as upsertDbDiscordTrigger,
   upsertQueueTrigger as upsertDbQueueTrigger,
   workflows,
@@ -850,7 +850,6 @@ workflowRoutes.get(
       workflowId: discordTrigger.workflowId,
       guildId: discordTrigger.guildId,
       channelId: discordTrigger.channelId,
-      botTokenSecretName: discordTrigger.botTokenSecretName,
       active: discordTrigger.active,
       createdAt: discordTrigger.createdAt,
       updatedAt: discordTrigger.updatedAt,
@@ -861,12 +860,12 @@ workflowRoutes.get(
 );
 
 /**
- * Upsert (create or update) a discord trigger for a workflow
+ * Upsert (create or update) a discord trigger for a workflow.
+ * Verifies guild ownership via the user's Discord OAuth integration.
  */
 const UpsertDiscordTriggerRequestSchema = z.object({
   guildId: z.string().min(1, "Guild ID is required"),
   channelId: z.string().nullable().optional(),
-  botTokenSecretName: z.string().min(1, "Bot token secret name is required"),
   active: z.boolean().optional(),
 }) as z.ZodType<UpsertDiscordTriggerRequest>;
 
@@ -893,14 +892,66 @@ workflowRoutes.put(
       return c.json({ error: "Workflow is not a discord_event workflow" }, 400);
     }
 
-    // Verify the secret exists
-    const secret = await getSecretByName(
+    // Verify the user has a Discord integration (OAuth)
+    const discordIntegration = await getIntegrationByProvider(
       db,
-      data.botTokenSecretName,
+      "discord" satisfies IntegrationProviderType,
       organizationId
     );
-    if (!secret) {
-      return c.json({ error: "Bot token secret not found" }, 404);
+    if (!discordIntegration) {
+      return c.json(
+        {
+          error:
+            "Discord integration not connected. Please connect Discord in your integration settings.",
+        },
+        400
+      );
+    }
+
+    // Verify guild membership via Discord API using the user's OAuth token
+    const accessToken = await decryptSecret(
+      discordIntegration.encryptedToken,
+      c.env,
+      organizationId
+    );
+
+    const guildsResponse = await fetch(
+      "https://discord.com/api/v10/users/@me/guilds",
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    );
+
+    if (!guildsResponse.ok) {
+      return c.json(
+        {
+          error:
+            "Failed to verify Discord guild membership. Try reconnecting your Discord integration.",
+        },
+        400
+      );
+    }
+
+    const guilds = (await guildsResponse.json()) as Array<{
+      id: string;
+      permissions: string;
+    }>;
+    const guild = guilds.find((g) => g.id === data.guildId);
+
+    if (!guild) {
+      return c.json(
+        { error: "You do not have access to this Discord server" },
+        403
+      );
+    }
+
+    // Verify MANAGE_GUILD permission (bit 5 = 0x20)
+    const permissions = BigInt(guild.permissions);
+    const MANAGE_GUILD = BigInt(0x20);
+    const ADMINISTRATOR = BigInt(0x8);
+    if (!(permissions & MANAGE_GUILD) && !(permissions & ADMINISTRATOR)) {
+      return c.json(
+        { error: "You need Manage Server permission on this Discord server" },
+        403
+      );
     }
 
     const now = new Date();
@@ -909,9 +960,9 @@ workflowRoutes.put(
     try {
       const upsertedTrigger = await upsertDbDiscordTrigger(db, {
         workflowId: workflow.id,
+        organizationId,
         guildId: data.guildId,
         channelId: data.channelId ?? null,
-        botTokenSecretName: data.botTokenSecretName,
         active: isActive,
         updatedAt: now,
       });
@@ -926,21 +977,13 @@ workflowRoutes.put(
       // Connect the DO to Discord Gateway if trigger is active
       if (isActive) {
         try {
-          const botToken = await decryptSecret(
-            secret.encryptedValue,
-            c.env,
-            organizationId
-          );
           const doId = c.env.DISCORD_BOT.idFromName(data.guildId);
           const stub = c.env.DISCORD_BOT.get(doId);
           await stub.fetch(
             new Request("https://discord-bot/connect", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                guildId: data.guildId,
-                botToken,
-              }),
+              body: JSON.stringify({ guildId: data.guildId }),
             })
           );
         } catch (error) {
@@ -955,7 +998,6 @@ workflowRoutes.put(
         workflowId: upsertedTrigger.workflowId,
         guildId: upsertedTrigger.guildId,
         channelId: upsertedTrigger.channelId,
-        botTokenSecretName: upsertedTrigger.botTokenSecretName,
         active: upsertedTrigger.active,
         createdAt: upsertedTrigger.createdAt,
         updatedAt: upsertedTrigger.updatedAt,

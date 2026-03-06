@@ -3,7 +3,8 @@
  *
  * Maintains a persistent WebSocket connection to the Discord Gateway,
  * listening for MESSAGE_CREATE events and dispatching workflow executions.
- * One DO instance per guild (Discord server).
+ * One DO instance per guild (Discord server). Bot token is read from the
+ * DISCORD_BOT_TOKEN environment variable (shared across all guilds).
  */
 
 import { DurableObject } from "cloudflare:workers";
@@ -41,10 +42,13 @@ export class DiscordBot extends DurableObject<Bindings> {
   private heartbeatInterval: ReturnType<typeof setInterval> | null = null;
   private heartbeatAcked = true;
   private guildId: string | null = null;
-  private botToken: string | null = null;
   private sessionId: string | null = null;
   private seq: number | null = null;
   private resumeGatewayUrl: string | null = null;
+
+  private get botToken(): string | undefined {
+    return this.env.DISCORD_BOT_TOKEN;
+  }
 
   async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url);
@@ -63,29 +67,30 @@ export class DiscordBot extends DurableObject<Bindings> {
   }
 
   private async handleConnect(request: Request): Promise<Response> {
-    const body = (await request.json()) as {
-      guildId: string;
-      botToken: string;
-    };
+    const body = (await request.json()) as { guildId: string };
     this.guildId = body.guildId;
-    this.botToken = body.botToken;
 
-    // Persist state in DO SQLite
+    if (!this.botToken) {
+      return new Response(
+        JSON.stringify({ error: "DISCORD_BOT_TOKEN not configured" }),
+        { status: 500, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    // Persist guild in DO SQLite
     this.ctx.storage.sql.exec(
       `CREATE TABLE IF NOT EXISTS gateway_state (
         id INTEGER PRIMARY KEY DEFAULT 1,
         session_id TEXT,
         seq INTEGER,
         resume_gateway_url TEXT,
-        bot_token TEXT NOT NULL,
         guild_id TEXT NOT NULL
       )`
     );
 
     this.ctx.storage.sql.exec(
-      `INSERT OR REPLACE INTO gateway_state (id, bot_token, guild_id, session_id, seq, resume_gateway_url)
-       VALUES (1, ?, ?, NULL, NULL, NULL)`,
-      this.botToken,
+      `INSERT OR REPLACE INTO gateway_state (id, guild_id, session_id, seq, resume_gateway_url)
+       VALUES (1, ?, NULL, NULL, NULL)`,
       this.guildId
     );
 
@@ -115,7 +120,6 @@ export class DiscordBot extends DurableObject<Bindings> {
     this.ctx.storage.sql.exec("DELETE FROM gateway_state WHERE id = 1");
 
     this.guildId = null;
-    this.botToken = null;
     this.sessionId = null;
     this.seq = null;
     this.resumeGatewayUrl = null;
@@ -138,14 +142,12 @@ export class DiscordBot extends DurableObject<Bindings> {
   }
 
   async alarm(): Promise<void> {
-    // Health check: reconnect if WebSocket is dead
-    if (!this.guildId || !this.botToken) {
-      // Load from persisted state if DO was evicted
+    if (!this.guildId) {
       this.loadPersistedState();
-      if (!this.guildId || !this.botToken) {
-        return; // No active connection configured
-      }
+      if (!this.guildId) return;
     }
+
+    if (!this.botToken) return;
 
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
       console.log(
@@ -165,7 +167,6 @@ export class DiscordBot extends DurableObject<Bindings> {
         .toArray();
       if (rows.length > 0) {
         const row = rows[0] as Record<string, unknown>;
-        this.botToken = row.bot_token as string;
         this.guildId = row.guild_id as string;
         this.sessionId = (row.session_id as string) || null;
         this.seq = (row.seq as number) ?? null;
@@ -190,6 +191,8 @@ export class DiscordBot extends DurableObject<Bindings> {
   }
 
   private async connectToGateway(): Promise<void> {
+    if (!this.botToken) return;
+
     const gatewayUrl =
       this.resumeGatewayUrl && this.sessionId
         ? `${this.resumeGatewayUrl}/?v=10&encoding=json`
@@ -246,7 +249,6 @@ export class DiscordBot extends DurableObject<Bindings> {
       case GatewayOpcode.HELLO:
         this.startHeartbeat(d.heartbeat_interval);
         if (this.sessionId && this.seq !== null) {
-          // Resume existing session
           this.sendResume();
         } else {
           this.sendIdentify();
@@ -274,10 +276,8 @@ export class DiscordBot extends DurableObject<Bindings> {
       case GatewayOpcode.INVALID_SESSION:
         console.log(`[DiscordBot] Invalid session, resumable=${d}`);
         if (d === true) {
-          // Can resume — wait briefly then resume
           setTimeout(() => this.sendResume(), 1000 + Math.random() * 4000);
         } else {
-          // Cannot resume — clear session and re-identify
           this.sessionId = null;
           this.seq = null;
           this.persistSessionState();
@@ -326,7 +326,6 @@ export class DiscordBot extends DurableObject<Bindings> {
     const content = (d.content as string) || "";
     const timestamp = d.timestamp as string;
 
-    // Dispatch in the background — don't block the WebSocket handler
     this.ctx.waitUntil(
       this.dispatchWorkflows({
         guildId,
@@ -360,7 +359,6 @@ export class DiscordBot extends DurableObject<Bindings> {
     const deploymentStore = new DeploymentStore(this.env);
 
     for (const { discordTrigger, workflow } of triggers) {
-      // Filter by channel if configured
       if (
         discordTrigger.channelId &&
         discordTrigger.channelId !== message.channelId
@@ -410,7 +408,6 @@ export class DiscordBot extends DurableObject<Bindings> {
     let workflowData: Workflow;
     let deploymentId: string | undefined;
 
-    // Use deployed version if available, otherwise working version
     if (workflow.activeDeploymentId) {
       try {
         workflowData = await deploymentStore.readWorkflowSnapshot(
@@ -541,7 +538,6 @@ export class DiscordBot extends DurableObject<Bindings> {
     this.clearHeartbeat();
     this.heartbeatAcked = true;
 
-    // Send first heartbeat with jitter
     const jitter = Math.random() * intervalMs;
     setTimeout(() => {
       this.sendHeartbeat();

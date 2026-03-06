@@ -68,6 +68,7 @@ export interface Bindings {
   STRIPE_WEBHOOK_SECRET?: string;
   STRIPE_PRICE_ID_PRO?: string;
   STRIPE_METER_ID?: string;
+  DISCORD_BOT_TOKEN?: string;
 }
 
 export interface Variables {

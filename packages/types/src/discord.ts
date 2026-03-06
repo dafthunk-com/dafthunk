@@ -13,7 +13,6 @@ export interface GetDiscordTriggerResponse {
   workflowId: string;
   guildId: string;
   channelId: string | null;
-  botTokenSecretName: string;
   active: boolean;
   createdAt: string | Date;
   updatedAt: string | Date;
@@ -22,7 +21,6 @@ export interface GetDiscordTriggerResponse {
 export interface UpsertDiscordTriggerRequest {
   guildId: string;
   channelId?: string | null;
-  botTokenSecretName: string;
   active?: boolean;
 }
 

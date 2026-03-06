@@ -25,6 +25,7 @@ import {
   emails,
   emailTriggers,
   type IntegrationInsert,
+  type IntegrationProviderType,
   type InvitationInsert,
   type InvitationRow,
   InvitationStatus,
@@ -1319,7 +1320,6 @@ export async function upsertDiscordTrigger(
       set: {
         guildId: trigger.guildId,
         channelId: trigger.channelId,
-        botTokenSecretName: trigger.botTokenSecretName,
         active: trigger.active,
         updatedAt: new Date(),
       },
@@ -1593,31 +1593,6 @@ export async function getSecret(
     })
     .from(secrets)
     .where(and(eq(secrets.id, id), eq(secrets.organizationId, organizationId)))
-    .limit(1);
-
-  return secret || null;
-}
-
-/**
- * Get a secret by name with its encrypted value
- */
-export async function getSecretByName(
-  db: ReturnType<typeof createDatabase>,
-  name: string,
-  organizationId: string
-) {
-  const [secret] = await db
-    .select({
-      id: secrets.id,
-      name: secrets.name,
-      encryptedValue: secrets.encryptedValue,
-      createdAt: secrets.createdAt,
-      updatedAt: secrets.updatedAt,
-    })
-    .from(secrets)
-    .where(
-      and(eq(secrets.name, name), eq(secrets.organizationId, organizationId))
-    )
     .limit(1);
 
   return secret || null;
@@ -1898,6 +1873,41 @@ export async function getIntegrationById(
       and(
         eq(integrations.id, id),
         eq(integrations.organizationId, organizationId)
+      )
+    )
+    .limit(1);
+
+  return integration || null;
+}
+
+/**
+ * Get the first active integration for a provider in an organization (with encrypted token)
+ */
+export async function getIntegrationByProvider(
+  db: ReturnType<typeof createDatabase>,
+  provider: IntegrationProviderType,
+  organizationId: string
+) {
+  const [integration] = await db
+    .select({
+      id: integrations.id,
+      name: integrations.name,
+      provider: integrations.provider,
+      status: integrations.status,
+      encryptedToken: integrations.encryptedToken,
+      encryptedRefreshToken: integrations.encryptedRefreshToken,
+      tokenExpiresAt: integrations.tokenExpiresAt,
+      metadata: integrations.metadata,
+      organizationId: integrations.organizationId,
+      createdAt: integrations.createdAt,
+      updatedAt: integrations.updatedAt,
+    })
+    .from(integrations)
+    .where(
+      and(
+        eq(integrations.provider, provider),
+        eq(integrations.organizationId, organizationId),
+        eq(integrations.status, "active")
       )
     )
     .limit(1);
