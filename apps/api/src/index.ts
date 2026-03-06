@@ -109,6 +109,7 @@ export { Session as WorkflowSession };
 export { DatabaseDO };
 export { FFmpegContainer } from "./containers/ffmpeg-container";
 export { AgentRunner } from "./durable-objects/agent-runner";
+export { DiscordBot } from "./durable-objects/discord-bot";
 
 export default {
   email: handleIncomingEmail,

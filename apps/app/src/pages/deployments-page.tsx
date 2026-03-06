@@ -83,6 +83,7 @@ const createColumns = (
         email_message: "Email Message",
         scheduled: "Scheduled",
         queue_message: "Queue Message",
+        discord_event: "Discord Event",
       };
       return (
         <Badge variant="outline" className="text-xs">

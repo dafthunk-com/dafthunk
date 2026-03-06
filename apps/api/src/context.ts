@@ -3,6 +3,7 @@ import { JWTTokenPayload } from "@dafthunk/types";
 import type { FFmpegContainer } from "./containers/ffmpeg-container";
 import type { AgentRunner } from "./durable-objects/agent-runner";
 import { DatabaseDO } from "./durable-objects/database-do";
+import type { DiscordBot } from "./durable-objects/discord-bot";
 import { Session } from "./session/session";
 
 export interface Bindings {
@@ -15,6 +16,7 @@ export interface Bindings {
   WORKFLOW_SESSION: DurableObjectNamespace<Session>;
   DATABASE: DurableObjectNamespace<DatabaseDO>;
   AGENT_RUNNER: DurableObjectNamespace<AgentRunner>;
+  DISCORD_BOT: DurableObjectNamespace<DiscordBot>;
   FFMPEG_CONTAINER?: DurableObjectNamespace<FFmpegContainer>;
   WORKFLOW_QUEUE: Queue;
   RESSOURCES: R2Bucket;

@@ -13,8 +13,11 @@ import {
   type DatabaseRow,
   type DatasetInsert,
   type DatasetRow,
+  type DiscordTriggerInsert,
+  type DiscordTriggerRow,
   databases,
   datasets,
+  discordTriggers,
   type EmailInsert,
   type EmailRow,
   type EmailTriggerInsert,
@@ -1257,6 +1260,108 @@ export async function deleteEmailTrigger(
 }
 
 /**
+ * Get a discord trigger for a workflow
+ */
+export async function getDiscordTrigger(
+  db: ReturnType<typeof createDatabase>,
+  workflowId: string,
+  organizationId: string
+): Promise<DiscordTriggerRow | undefined> {
+  const [trigger] = await db
+    .select()
+    .from(discordTriggers)
+    .innerJoin(workflows, eq(discordTriggers.workflowId, workflows.id))
+    .where(
+      and(
+        eq(discordTriggers.workflowId, workflowId),
+        eq(workflows.organizationId, organizationId)
+      )
+    )
+    .limit(1);
+
+  return trigger?.discord_triggers;
+}
+
+/**
+ * Get all active discord triggers for a guild
+ */
+export async function getDiscordTriggersByGuild(
+  db: ReturnType<typeof createDatabase>,
+  guildId: string
+) {
+  return await db
+    .select({
+      discordTrigger: discordTriggers,
+      workflow: workflows,
+    })
+    .from(discordTriggers)
+    .innerJoin(workflows, eq(discordTriggers.workflowId, workflows.id))
+    .where(
+      and(
+        eq(discordTriggers.guildId, guildId),
+        eq(discordTriggers.active, true)
+      )
+    );
+}
+
+/**
+ * Upsert a discord trigger for a workflow
+ */
+export async function upsertDiscordTrigger(
+  db: ReturnType<typeof createDatabase>,
+  trigger: DiscordTriggerInsert
+): Promise<DiscordTriggerRow> {
+  const [discordTrigger] = await db
+    .insert(discordTriggers)
+    .values(trigger)
+    .onConflictDoUpdate({
+      target: discordTriggers.workflowId,
+      set: {
+        guildId: trigger.guildId,
+        channelId: trigger.channelId,
+        botTokenSecretName: trigger.botTokenSecretName,
+        active: trigger.active,
+        updatedAt: new Date(),
+      },
+    })
+    .returning();
+
+  return discordTrigger;
+}
+
+/**
+ * Delete a discord trigger for a workflow
+ */
+export async function deleteDiscordTrigger(
+  db: ReturnType<typeof createDatabase>,
+  workflowId: string,
+  organizationId: string
+): Promise<DiscordTriggerRow | undefined> {
+  const [trigger] = await db
+    .delete(discordTriggers)
+    .where(
+      and(
+        eq(discordTriggers.workflowId, workflowId),
+        eq(
+          discordTriggers.workflowId,
+          db
+            .select({ id: workflows.id })
+            .from(workflows)
+            .where(
+              and(
+                eq(workflows.id, workflowId),
+                eq(workflows.organizationId, organizationId)
+              )
+            )
+        )
+      )
+    )
+    .returning();
+
+  return trigger;
+}
+
+/**
  * Get ALL active scheduled triggers (for scheduled worker)
  *
  * @param db Database instance
@@ -1488,6 +1593,31 @@ export async function getSecret(
     })
     .from(secrets)
     .where(and(eq(secrets.id, id), eq(secrets.organizationId, organizationId)))
+    .limit(1);
+
+  return secret || null;
+}
+
+/**
+ * Get a secret by name with its encrypted value
+ */
+export async function getSecretByName(
+  db: ReturnType<typeof createDatabase>,
+  name: string,
+  organizationId: string
+) {
+  const [secret] = await db
+    .select({
+      id: secrets.id,
+      name: secrets.name,
+      encryptedValue: secrets.encryptedValue,
+      createdAt: secrets.createdAt,
+      updatedAt: secrets.updatedAt,
+    })
+    .from(secrets)
+    .where(
+      and(eq(secrets.name, name), eq(secrets.organizationId, organizationId))
+    )
     .limit(1);
 
   return secret || null;

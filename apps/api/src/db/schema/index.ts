@@ -55,6 +55,7 @@ export const WorkflowTriggerType = {
   EMAIL_MESSAGE: "email_message",
   SCHEDULED: "scheduled",
   QUEUE_MESSAGE: "queue_message",
+  DISCORD_EVENT: "discord_event",
 } as const;
 
 export type WorkflowTriggerTypeType =
@@ -573,6 +574,34 @@ export const emailTriggers = sqliteTable(
   ]
 );
 
+// Discord Triggers - Discord event triggers for workflows
+export const discordTriggers = sqliteTable(
+  "discord_triggers",
+  {
+    workflowId: text("workflow_id")
+      .primaryKey()
+      .references(() => workflows.id, { onDelete: "cascade" }),
+    guildId: text("guild_id").notNull(),
+    channelId: text("channel_id"),
+    botTokenSecretName: text("bot_token_secret_name").notNull(),
+    active: integer("active", { mode: "boolean" }).notNull().default(true),
+    createdAt: createCreatedAt(),
+    updatedAt: createUpdatedAt(),
+  },
+  (table) => [
+    index("discord_triggers_workflow_id_idx").on(table.workflowId),
+    index("discord_triggers_guild_id_idx").on(table.guildId),
+    index("discord_triggers_active_idx").on(table.active),
+    index("discord_triggers_created_at_idx").on(table.createdAt),
+    index("discord_triggers_updated_at_idx").on(table.updatedAt),
+    uniqueIndex("discord_triggers_guild_channel_workflow_unique_idx").on(
+      table.guildId,
+      table.channelId,
+      table.workflowId
+    ),
+  ]
+);
+
 // Secrets - Encrypted secrets associated with organizations
 export const secrets = sqliteTable(
   "secrets",
@@ -747,6 +776,10 @@ export const workflowsRelations = relations(workflows, ({ one, many }) => ({
     fields: [workflows.id],
     references: [emailTriggers.workflowId],
   }),
+  discordTrigger: one(discordTriggers, {
+    fields: [workflows.id],
+    references: [discordTriggers.workflowId],
+  }),
   feedbackCriteria: many(feedbackCriteria),
 }));
 
@@ -866,6 +899,16 @@ export const emailTriggersRelations = relations(emailTriggers, ({ one }) => ({
   }),
 }));
 
+export const discordTriggersRelations = relations(
+  discordTriggers,
+  ({ one }) => ({
+    workflow: one(workflows, {
+      fields: [discordTriggers.workflowId],
+      references: [workflows.id],
+    }),
+  })
+);
+
 export const secretsRelations = relations(secrets, ({ one }) => ({
   organization: one(organizations, {
     fields: [secrets.organizationId],
@@ -953,6 +996,9 @@ export type EmailInsert = typeof emails.$inferInsert;
 
 export type EmailTriggerRow = typeof emailTriggers.$inferSelect;
 export type EmailTriggerInsert = typeof emailTriggers.$inferInsert;
+
+export type DiscordTriggerRow = typeof discordTriggers.$inferSelect;
+export type DiscordTriggerInsert = typeof discordTriggers.$inferInsert;
 
 export type SecretRow = typeof secrets.$inferSelect;
 export type SecretInsert = typeof secrets.$inferInsert;

@@ -2,10 +2,12 @@ import {
   CancelWorkflowExecutionResponse,
   CreateWorkflowRequest,
   CreateWorkflowResponse,
+  DeleteDiscordTriggerResponse,
   DeleteQueueTriggerResponse,
   DeleteWorkflowResponse,
   ExecuteWorkflowResponse,
   ExecutionStatus,
+  GetDiscordTriggerResponse,
   GetEmailTriggerResponse,
   GetQueueTriggerResponse,
   GetWorkflowResponse,
@@ -13,6 +15,8 @@ import {
   ListWorkflowsResponse,
   UpdateWorkflowRequest,
   UpdateWorkflowResponse,
+  UpsertDiscordTriggerRequest,
+  UpsertDiscordTriggerResponse,
   UpsertQueueTriggerRequest,
   UpsertQueueTriggerResponse,
   WorkflowWithMetadata,
@@ -29,11 +33,16 @@ import { ApiContext } from "../context";
 import {
   createDatabase,
   createHandle,
+  deleteDiscordTrigger as deleteDbDiscordTrigger,
   deleteQueueTrigger as deleteDbQueueTrigger,
+  getDiscordTrigger,
+  getDiscordTriggersByGuild,
   getEmailTrigger,
   getOrganizationBillingInfo,
   getQueue,
   getQueueTrigger,
+  getSecretByName,
+  upsertDiscordTrigger as upsertDbDiscordTrigger,
   upsertQueueTrigger as upsertDbQueueTrigger,
   workflows,
 } from "../db";
@@ -43,6 +52,7 @@ import { WorkflowExecutor } from "../services/workflow-executor";
 import { DeploymentStore } from "../stores/deployment-store";
 import { WorkflowStore } from "../stores/workflow-store";
 import { getAuthContext } from "../utils/auth-context";
+import { decryptSecret } from "../utils/encryption";
 import {
   isExecutionPreparationError,
   prepareWorkflowExecution,
@@ -799,6 +809,229 @@ workflowRoutes.get(
       updatedAt: emailTrigger.updatedAt,
     };
 
+    return c.json(response);
+  }
+);
+
+/**
+ * Get discord trigger for a workflow
+ */
+workflowRoutes.get(
+  "/:workflowIdOrHandle/discord-trigger",
+  jwtMiddleware,
+  async (c) => {
+    const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
+    const organizationId = c.get("organizationId")!;
+    const workflowStore = new WorkflowStore(c.env);
+    const db = createDatabase(c.env.DB);
+
+    const workflow = await workflowStore.get(
+      workflowIdOrHandle,
+      organizationId
+    );
+    if (!workflow) {
+      return c.json({ error: "Workflow not found" }, 404);
+    }
+
+    const discordTrigger = await getDiscordTrigger(
+      db,
+      workflow.id,
+      organizationId
+    );
+
+    if (!discordTrigger) {
+      return c.json(
+        { error: "Discord trigger not found for this workflow" },
+        404
+      );
+    }
+
+    const response: GetDiscordTriggerResponse = {
+      workflowId: discordTrigger.workflowId,
+      guildId: discordTrigger.guildId,
+      channelId: discordTrigger.channelId,
+      botTokenSecretName: discordTrigger.botTokenSecretName,
+      active: discordTrigger.active,
+      createdAt: discordTrigger.createdAt,
+      updatedAt: discordTrigger.updatedAt,
+    };
+
+    return c.json(response);
+  }
+);
+
+/**
+ * Upsert (create or update) a discord trigger for a workflow
+ */
+const UpsertDiscordTriggerRequestSchema = z.object({
+  guildId: z.string().min(1, "Guild ID is required"),
+  channelId: z.string().nullable().optional(),
+  botTokenSecretName: z.string().min(1, "Bot token secret name is required"),
+  active: z.boolean().optional(),
+}) as z.ZodType<UpsertDiscordTriggerRequest>;
+
+workflowRoutes.put(
+  "/:workflowIdOrHandle/discord-trigger",
+  jwtMiddleware,
+  zValidator("json", UpsertDiscordTriggerRequestSchema),
+  async (c) => {
+    const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
+    const organizationId = c.get("organizationId")!;
+    const data = c.req.valid("json");
+    const db = createDatabase(c.env.DB);
+    const workflowStore = new WorkflowStore(c.env);
+
+    const workflow = await workflowStore.get(
+      workflowIdOrHandle,
+      organizationId
+    );
+    if (!workflow) {
+      return c.json({ error: "Workflow not found" }, 404);
+    }
+
+    if (workflow.trigger !== "discord_event") {
+      return c.json({ error: "Workflow is not a discord_event workflow" }, 400);
+    }
+
+    // Verify the secret exists
+    const secret = await getSecretByName(
+      db,
+      data.botTokenSecretName,
+      organizationId
+    );
+    if (!secret) {
+      return c.json({ error: "Bot token secret not found" }, 404);
+    }
+
+    const now = new Date();
+    const isActive = data.active ?? true;
+
+    try {
+      const upsertedTrigger = await upsertDbDiscordTrigger(db, {
+        workflowId: workflow.id,
+        guildId: data.guildId,
+        channelId: data.channelId ?? null,
+        botTokenSecretName: data.botTokenSecretName,
+        active: isActive,
+        updatedAt: now,
+      });
+
+      if (!upsertedTrigger) {
+        return c.json(
+          { error: "Failed to create or update discord trigger" },
+          500
+        );
+      }
+
+      // Connect the DO to Discord Gateway if trigger is active
+      if (isActive) {
+        try {
+          const botToken = await decryptSecret(
+            secret.encryptedValue,
+            c.env,
+            organizationId
+          );
+          const doId = c.env.DISCORD_BOT.idFromName(data.guildId);
+          const stub = c.env.DISCORD_BOT.get(doId);
+          await stub.fetch(
+            new Request("https://discord-bot/connect", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                guildId: data.guildId,
+                botToken,
+              }),
+            })
+          );
+        } catch (error) {
+          console.error(
+            "[DiscordTrigger] Failed to connect DO:",
+            error instanceof Error ? error.message : String(error)
+          );
+        }
+      }
+
+      const response: UpsertDiscordTriggerResponse = {
+        workflowId: upsertedTrigger.workflowId,
+        guildId: upsertedTrigger.guildId,
+        channelId: upsertedTrigger.channelId,
+        botTokenSecretName: upsertedTrigger.botTokenSecretName,
+        active: upsertedTrigger.active,
+        createdAt: upsertedTrigger.createdAt,
+        updatedAt: upsertedTrigger.updatedAt,
+      };
+      return c.json(response, 200);
+    } catch (dbError: unknown) {
+      console.error("Error upserting discord trigger:", dbError);
+      return c.json(
+        {
+          error: "Database error while saving discord trigger",
+          details: dbError instanceof Error ? dbError.message : String(dbError),
+        },
+        500
+      );
+    }
+  }
+);
+
+/**
+ * Delete a discord trigger for a workflow
+ */
+workflowRoutes.delete(
+  "/:workflowIdOrHandle/discord-trigger",
+  jwtMiddleware,
+  async (c) => {
+    const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
+    const organizationId = c.get("organizationId")!;
+    const workflowStore = new WorkflowStore(c.env);
+    const db = createDatabase(c.env.DB);
+
+    const workflow = await workflowStore.get(
+      workflowIdOrHandle,
+      organizationId
+    );
+    if (!workflow) {
+      return c.json({ error: "Workflow not found" }, 404);
+    }
+
+    const deletedTrigger = await deleteDbDiscordTrigger(
+      db,
+      workflow.id,
+      organizationId
+    );
+
+    if (!deletedTrigger) {
+      return c.json(
+        { error: "Discord trigger not found for this workflow" },
+        404
+      );
+    }
+
+    // Check if there are other triggers for this guild — if not, disconnect the DO
+    const remainingTriggers = await getDiscordTriggersByGuild(
+      db,
+      deletedTrigger.guildId
+    );
+    if (remainingTriggers.length === 0) {
+      try {
+        const doId = c.env.DISCORD_BOT.idFromName(deletedTrigger.guildId);
+        const stub = c.env.DISCORD_BOT.get(doId);
+        await stub.fetch(
+          new Request("https://discord-bot/disconnect", {
+            method: "POST",
+          })
+        );
+      } catch (error) {
+        console.error(
+          "[DiscordTrigger] Failed to disconnect DO:",
+          error instanceof Error ? error.message : String(error)
+        );
+      }
+    }
+
+    const response: DeleteDiscordTriggerResponse = {
+      workflowId: deletedTrigger.workflowId,
+    };
     return c.json(response);
   }
 );

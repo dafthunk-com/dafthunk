@@ -1,5 +1,6 @@
 import { NonRetryableError } from "cloudflare:workflows";
 import type {
+  DiscordMessage,
   Node,
   QueueMessage,
   ScheduledTrigger,
@@ -62,6 +63,7 @@ export interface RuntimeParams {
   readonly emailMessage?: EmailMessage;
   readonly queueMessage?: QueueMessage;
   readonly scheduledTrigger?: ScheduledTrigger;
+  readonly discordMessage?: DiscordMessage;
   readonly userPlan?: string;
 }
 

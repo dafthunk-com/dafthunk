@@ -5,6 +5,7 @@ export * from "./dashboard";
 export * from "./database";
 export * from "./dataset";
 export * from "./deployment";
+export * from "./discord";
 export * from "./email";
 export * from "./execution";
 export * from "./feedback";

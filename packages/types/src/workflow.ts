@@ -16,7 +16,8 @@ export type WorkflowTrigger =
   | "http_request"
   | "email_message"
   | "queue_message"
-  | "scheduled";
+  | "scheduled"
+  | "discord_event";
 
 /**
  * Workflow runtime modes
