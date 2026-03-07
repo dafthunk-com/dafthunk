@@ -60,6 +60,26 @@ export class WorkflowRuntimeEntrypoint extends WorkflowEntrypoint<
     event: WorkflowEvent<RuntimeParams>,
     step: WorkflowStep
   ): Promise<WorkflowExecution> {
-    return this.runtime.executeWithStep(event.payload, event.instanceId, step);
+    const params = event.payload;
+    console.log(
+      `[WorkflowEntrypoint] run instanceId=${event.instanceId} workflow=${params.workflow.id} trigger=${params.workflow.trigger} nodes=${params.workflow.nodes.length} telegramMessage=${!!params.telegramMessage} telegramBotToken=${!!params.telegramBotToken}`
+    );
+    try {
+      const result = await this.runtime.executeWithStep(
+        params,
+        event.instanceId,
+        step
+      );
+      console.log(
+        `[WorkflowEntrypoint] done instanceId=${event.instanceId} status=${result.status} error=${result.error ?? "none"}`
+      );
+      return result;
+    } catch (error) {
+      console.error(
+        `[WorkflowEntrypoint] error instanceId=${event.instanceId}`,
+        error instanceof Error ? error.message : String(error)
+      );
+      throw error;
+    }
   }
 }
