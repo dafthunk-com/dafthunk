@@ -62,7 +62,7 @@ export function TelegramTriggerDialog({
               </p>
               <p>
                 Configure the Receive Telegram Message node to set up this
-                trigger by selecting a bot and entering a chat ID.
+                trigger by selecting a bot.
               </p>
             </div>
           ) : (
@@ -92,7 +92,9 @@ export function TelegramTriggerDialog({
 
               <div className="space-y-1.5">
                 <Label>Chat ID</Label>
-                <p className="text-sm font-mono">{telegramTrigger.chatId}</p>
+                <p className="text-sm font-mono">
+                  {telegramTrigger.chatId ?? "Any chat"}
+                </p>
               </div>
 
               <div className="space-y-1.5">

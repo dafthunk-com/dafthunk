@@ -6,8 +6,8 @@ import {
   createDatabase,
   getOrganizationComputeCredits,
   getTelegramBot,
-  getTelegramSecretTokenByChat,
-  getTelegramTriggersByChat,
+  getTelegramSecretTokenByBot,
+  getTelegramTriggersByBot,
 } from "../db";
 import { createWorkerRuntime } from "../runtime/cloudflare-worker-runtime";
 import { DeploymentStore } from "../stores/deployment-store";
@@ -18,15 +18,15 @@ const telegramWebhook = new Hono<ApiContext>();
 
 /**
  * Public webhook endpoint called by Telegram with updates.
- * Authenticated via the secret_token registered with Telegram's setWebhook API.
+ * Routed by telegramBotId. Authenticated via the secret_token registered with Telegram's setWebhook API.
  */
-telegramWebhook.post("/webhook/:chatId", async (c) => {
-  const chatId = c.req.param("chatId");
+telegramWebhook.post("/webhook/:telegramBotId", async (c) => {
+  const telegramBotId = c.req.param("telegramBotId");
   const db = createDatabase(c.env.DB);
 
   // Verify the secret token sent by Telegram
   const incomingToken = c.req.header("X-Telegram-Bot-Api-Secret-Token");
-  const expectedToken = await getTelegramSecretTokenByChat(db, chatId);
+  const expectedToken = await getTelegramSecretTokenByBot(db, telegramBotId);
 
   if (!expectedToken || incomingToken !== expectedToken) {
     return c.json({ error: "Unauthorized" }, 401);
@@ -62,7 +62,7 @@ telegramWebhook.post("/webhook/:chatId", async (c) => {
     // Dispatch workflows in the background
     const env = c.env;
     c.executionCtx.waitUntil(
-      dispatchWorkflows(env, {
+      dispatchWorkflows(env, telegramBotId, {
         chatId: msg.chat.id,
         messageId: msg.message_id,
         content: msg.text ?? "",
@@ -73,7 +73,6 @@ telegramWebhook.post("/webhook/:chatId", async (c) => {
           isBot: false,
         },
         timestamp: msg.date,
-        chatIdStr: String(msg.chat.id),
       })
     );
 
@@ -99,15 +98,16 @@ interface TelegramMessagePayload {
     isBot: boolean;
   };
   timestamp: number;
-  chatIdStr: string;
 }
 
 async function dispatchWorkflows(
   env: ApiContext["Bindings"],
+  telegramBotId: string,
   message: TelegramMessagePayload
 ): Promise<void> {
   const db = createDatabase(env.DB);
-  const triggers = await getTelegramTriggersByChat(db, message.chatIdStr);
+  const chatIdStr = String(message.chatId);
+  const triggers = await getTelegramTriggersByBot(db, telegramBotId, chatIdStr);
   if (triggers.length === 0) return;
 
   const workflowStore = new WorkflowStore(env);

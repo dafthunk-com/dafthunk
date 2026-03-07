@@ -10,7 +10,7 @@ export interface TelegramMessage {
 
 export interface GetTelegramTriggerResponse {
   workflowId: string;
-  chatId: string;
+  chatId: string | null;
   telegramBotId: string | null;
   active: boolean;
   createdAt: string | Date;
@@ -18,7 +18,7 @@ export interface GetTelegramTriggerResponse {
 }
 
 export interface UpsertTelegramTriggerRequest {
-  chatId: string;
+  chatId?: string;
   telegramBotId: string;
   active?: boolean;
 }

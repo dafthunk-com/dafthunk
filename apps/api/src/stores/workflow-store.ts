@@ -15,8 +15,8 @@ import {
   getOrganizationCondition,
   getTelegramBot,
   getTelegramTrigger,
-  getTelegramTriggersByChat,
   getWorkflowCondition,
+  updateTelegramBotSecretToken,
   upsertDiscordTrigger,
   upsertEmailTrigger,
   upsertQueueTrigger,
@@ -136,7 +136,7 @@ export class WorkflowStore {
    */
   private extractTelegramTriggerConfig(
     nodes: Node[]
-  ): { telegramBotId: string; chatId: string } | null {
+  ): { telegramBotId: string; chatId?: string } | null {
     const node = nodes.find(
       (n) => n.type === "receive-telegram-message"
     );
@@ -149,9 +149,9 @@ export class WorkflowStore {
       (i) => i.name === "chatId"
     )?.value as string | undefined;
 
-    if (!telegramBotId || !chatId) return null;
+    if (!telegramBotId) return null;
 
-    return { telegramBotId, chatId };
+    return { telegramBotId, chatId: chatId || undefined };
   }
 
   /**
@@ -279,7 +279,7 @@ export class WorkflowStore {
       const changed =
         !existing ||
         existing.telegramBotId !== config.telegramBotId ||
-        existing.chatId !== config.chatId;
+        (existing.chatId ?? undefined) !== config.chatId;
 
       if (!changed) return;
 
@@ -320,18 +320,33 @@ export class WorkflowStore {
               organizationId
             );
             try {
-              await fetch(
+              const resp = await fetch(
                 `https://api.telegram.org/bot${botToken}/setWebhook`,
                 {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({
-                    url: `${apiHost}/telegram/webhook/${config.chatId}`,
+                    url: `${apiHost}/telegram/webhook/${config.telegramBotId}`,
                     secret_token: secretToken,
                     allowed_updates: ["message"],
                   }),
                 }
               );
+              const result = await resp.json() as { ok: boolean; description?: string };
+              if (!result.ok) {
+                console.error(
+                  "[TelegramTrigger] Telegram API rejected webhook:",
+                  result.description
+                );
+              } else {
+                // Sync secret token to all triggers using this bot
+                // (Telegram only allows one webhook per bot)
+                await updateTelegramBotSecretToken(
+                  this.db,
+                  config.telegramBotId,
+                  secretToken
+                );
+              }
             } catch (error) {
               console.error(
                 "[TelegramTrigger] Failed to register webhook:",
@@ -342,7 +357,7 @@ export class WorkflowStore {
         }
 
         console.log(
-          `Auto-registered telegram trigger: workflow=${workflowId}, chat=${config.chatId}`
+          `Auto-registered telegram trigger: workflow=${workflowId}, bot=${config.telegramBotId}, chat=${config.chatId ?? "any"}`
         );
       } catch (_error) {
         console.error(

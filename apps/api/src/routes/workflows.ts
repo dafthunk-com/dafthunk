@@ -43,7 +43,7 @@ import {
   getQueueTrigger,
   getTelegramBot,
   getTelegramTrigger,
-  getTelegramTriggersByChat,
+  getTelegramTriggersByBot,
   upsertQueueTrigger as upsertDbQueueTrigger,
   workflows,
 } from "../db";
@@ -1010,11 +1010,10 @@ workflowRoutes.delete(
       );
     }
 
-    // Check if there are other triggers for this chat — if not, unregister webhook
-    const remainingTriggers = await getTelegramTriggersByChat(
-      db,
-      deletedTrigger.chatId
-    );
+    // Check if there are other triggers for this bot — if not, unregister webhook
+    const remainingTriggers = deletedTrigger.telegramBotId
+      ? await getTelegramTriggersByBot(db, deletedTrigger.telegramBotId)
+      : [];
     if (remainingTriggers.length === 0) {
       // Resolve the per-bot token for webhook cleanup
       let cleanupToken: string | undefined;

@@ -1595,13 +1595,15 @@ export async function getTelegramTrigger(
 }
 
 /**
- * Get all active telegram triggers for a chat
+ * Get all active telegram triggers for a bot, optionally filtered by chat ID.
+ * Triggers with no chatId match any chat.
  */
-export async function getTelegramTriggersByChat(
+export async function getTelegramTriggersByBot(
   db: ReturnType<typeof createDatabase>,
-  chatId: string
+  telegramBotId: string,
+  chatId?: string
 ) {
-  return await db
+  const results = await db
     .select({
       telegramTrigger: telegramTriggers,
       workflow: workflows,
@@ -1610,25 +1612,32 @@ export async function getTelegramTriggersByChat(
     .innerJoin(workflows, eq(telegramTriggers.workflowId, workflows.id))
     .where(
       and(
-        eq(telegramTriggers.chatId, chatId),
+        eq(telegramTriggers.telegramBotId, telegramBotId),
         eq(telegramTriggers.active, true)
       )
     );
+
+  if (!chatId) return results;
+
+  // Return triggers that either match the specific chatId or have no chatId filter
+  return results.filter(
+    (r) => !r.telegramTrigger.chatId || r.telegramTrigger.chatId === chatId
+  );
 }
 
 /**
- * Get the secret token for a telegram chat trigger (for webhook verification)
+ * Get the secret token for a telegram bot trigger (for webhook verification)
  */
-export async function getTelegramSecretTokenByChat(
+export async function getTelegramSecretTokenByBot(
   db: ReturnType<typeof createDatabase>,
-  chatId: string
+  telegramBotId: string
 ): Promise<string | undefined> {
   const [result] = await db
     .select({ secretToken: telegramTriggers.secretToken })
     .from(telegramTriggers)
     .where(
       and(
-        eq(telegramTriggers.chatId, chatId),
+        eq(telegramTriggers.telegramBotId, telegramBotId),
         eq(telegramTriggers.active, true)
       )
     )
@@ -1650,7 +1659,7 @@ export async function upsertTelegramTrigger(
     .onConflictDoUpdate({
       target: telegramTriggers.workflowId,
       set: {
-        chatId: trigger.chatId,
+        chatId: trigger.chatId ?? null,
         telegramBotId: trigger.telegramBotId,
         secretToken: trigger.secretToken,
         active: trigger.active,
@@ -1660,6 +1669,21 @@ export async function upsertTelegramTrigger(
     .returning();
 
   return telegramTrigger;
+}
+
+/**
+ * Update the secret token for all triggers using a specific bot.
+ * Needed because Telegram only allows one webhook (and one secret) per bot.
+ */
+export async function updateTelegramBotSecretToken(
+  db: ReturnType<typeof createDatabase>,
+  telegramBotId: string,
+  secretToken: string
+): Promise<void> {
+  await db
+    .update(telegramTriggers)
+    .set({ secretToken, updatedAt: new Date() })
+    .where(eq(telegramTriggers.telegramBotId, telegramBotId));
 }
 
 /**

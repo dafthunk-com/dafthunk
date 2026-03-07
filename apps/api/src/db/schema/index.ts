@@ -676,7 +676,7 @@ export const telegramTriggers = sqliteTable(
     organizationId: text("organization_id")
       .notNull()
       .references(() => organizations.id, { onDelete: "cascade" }),
-    chatId: text("chat_id").notNull(),
+    chatId: text("chat_id"),
     telegramBotId: text("telegram_bot_id").references(() => telegramBots.id, {
       onDelete: "set null",
     }),
