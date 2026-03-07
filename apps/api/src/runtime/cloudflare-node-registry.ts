@@ -464,7 +464,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
       this.env.INTEGRATION_DISCORD_CLIENT_SECRET
     );
     const hasDiscordBot = !!this.env.DISCORD_BOT_TOKEN;
-    const hasTelegram = !!this.env.TELEGRAM_BOT_TOKEN;
+
     const hasGitHub = !!(
       this.env.INTEGRATION_GITHUB_CLIENT_ID &&
       this.env.INTEGRATION_GITHUB_CLIENT_SECRET
@@ -760,12 +760,10 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
       this.registerImplementation(BotAddReactionDiscordNode);
     }
 
-    if (hasTelegram) {
-      this.registerImplementation(BotSendMessageTelegramNode);
-      this.registerImplementation(BotSendPhotoTelegramNode);
-      this.registerImplementation(BotForwardMessageTelegramNode);
-      this.registerImplementation(BotGetChatTelegramNode);
-    }
+    this.registerImplementation(BotSendMessageTelegramNode);
+    this.registerImplementation(BotSendPhotoTelegramNode);
+    this.registerImplementation(BotForwardMessageTelegramNode);
+    this.registerImplementation(BotGetChatTelegramNode);
 
     if (hasReddit) {
       this.registerImplementation(GetPostRedditNode);
