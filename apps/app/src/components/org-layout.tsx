@@ -1,4 +1,5 @@
 import type { OrganizationInfo } from "@dafthunk/types";
+import Bot from "lucide-react/icons/bot";
 import CreditCard from "lucide-react/icons/credit-card";
 import Database from "lucide-react/icons/database";
 import FlaskConical from "lucide-react/icons/flask-conical";
@@ -11,6 +12,7 @@ import Logs from "lucide-react/icons/logs";
 import Mail from "lucide-react/icons/mail";
 import MessageSquareText from "lucide-react/icons/message-square-text";
 import Plug from "lucide-react/icons/plug";
+import Send from "lucide-react/icons/send";
 import SquareTerminal from "lucide-react/icons/square-terminal";
 import Target from "lucide-react/icons/target";
 import Users from "lucide-react/icons/users";
@@ -85,6 +87,16 @@ export const getDashboardSidebarGroups = (
           title: "Queues",
           url: `/org/${orgHandle}/queues`,
           icon: Inbox,
+        },
+        {
+          title: "Discord",
+          url: `/org/${orgHandle}/discord-bots`,
+          icon: Bot,
+        },
+        {
+          title: "Telegram",
+          url: `/org/${orgHandle}/telegram-bots`,
+          icon: Send,
         },
       ],
     },

@@ -6,11 +6,17 @@ import {
   Edge,
   ExecuteWorkflowRequest,
   ExecuteWorkflowResponse,
+  GetDiscordTriggerResponse,
   GetEmailTriggerResponse,
+  GetTelegramTriggerResponse,
   GetWorkflowResponse,
   ListWorkflowsResponse,
   UpdateWorkflowRequest,
   UpdateWorkflowResponse,
+  UpsertDiscordTriggerRequest,
+  UpsertDiscordTriggerResponse,
+  UpsertTelegramTriggerRequest,
+  UpsertTelegramTriggerResponse,
   WorkflowExecution,
   WorkflowWithMetadata,
 } from "@dafthunk/types";
@@ -782,4 +788,166 @@ export const useEmailTrigger = (
     isEmailTriggerLoading: isLoading,
     mutateEmailTrigger: mutate,
   };
+};
+
+/**
+ * Hook to get a Discord trigger for a specific workflow
+ */
+export const useDiscordTrigger = (
+  workflowId: string | null,
+  options?: SWRConfiguration<GetDiscordTriggerResponse | null>
+) => {
+  const { organization } = useAuth();
+  const orgHandle = organization?.handle;
+  const { data, error, isLoading, mutate } =
+    useSWR<GetDiscordTriggerResponse | null>(
+      orgHandle && workflowId
+        ? `/${orgHandle}${API_ENDPOINT_BASE}/${workflowId}/discord-trigger`
+        : null,
+      orgHandle && workflowId
+        ? async () => {
+            try {
+              const response = await makeOrgRequest<GetDiscordTriggerResponse>(
+                orgHandle,
+                API_ENDPOINT_BASE,
+                `/${workflowId}/discord-trigger`
+              );
+              return response;
+            } catch (error) {
+              if (
+                error instanceof Error &&
+                "status" in error &&
+                (error as never as { status: number }).status === 404
+              ) {
+                return null;
+              }
+              throw error;
+            }
+          }
+        : null,
+      options
+    );
+
+  return {
+    discordTrigger: data || null,
+    discordTriggerError: error || null,
+    isDiscordTriggerLoading: isLoading,
+    mutateDiscordTrigger: mutate,
+  };
+};
+
+/**
+ * Upsert a Discord trigger for a workflow
+ */
+export const upsertDiscordTrigger = async (
+  orgHandle: string,
+  workflowId: string,
+  data: UpsertDiscordTriggerRequest
+): Promise<UpsertDiscordTriggerResponse> => {
+  return await makeOrgRequest<UpsertDiscordTriggerResponse>(
+    orgHandle,
+    API_ENDPOINT_BASE,
+    `/${workflowId}/discord-trigger`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    }
+  );
+};
+
+/**
+ * Delete a Discord trigger for a workflow
+ */
+export const deleteDiscordTrigger = async (
+  orgHandle: string,
+  workflowId: string
+): Promise<void> => {
+  await makeOrgRequest(
+    orgHandle,
+    API_ENDPOINT_BASE,
+    `/${workflowId}/discord-trigger`,
+    { method: "DELETE" }
+  );
+};
+
+/**
+ * Hook to get a Telegram trigger for a specific workflow
+ */
+export const useTelegramTrigger = (
+  workflowId: string | null,
+  options?: SWRConfiguration<GetTelegramTriggerResponse | null>
+) => {
+  const { organization } = useAuth();
+  const orgHandle = organization?.handle;
+  const { data, error, isLoading, mutate } =
+    useSWR<GetTelegramTriggerResponse | null>(
+      orgHandle && workflowId
+        ? `/${orgHandle}${API_ENDPOINT_BASE}/${workflowId}/telegram-trigger`
+        : null,
+      orgHandle && workflowId
+        ? async () => {
+            try {
+              const response = await makeOrgRequest<GetTelegramTriggerResponse>(
+                orgHandle,
+                API_ENDPOINT_BASE,
+                `/${workflowId}/telegram-trigger`
+              );
+              return response;
+            } catch (error) {
+              if (
+                error instanceof Error &&
+                "status" in error &&
+                (error as never as { status: number }).status === 404
+              ) {
+                return null;
+              }
+              throw error;
+            }
+          }
+        : null,
+      options
+    );
+
+  return {
+    telegramTrigger: data || null,
+    telegramTriggerError: error || null,
+    isTelegramTriggerLoading: isLoading,
+    mutateTelegramTrigger: mutate,
+  };
+};
+
+/**
+ * Upsert a Telegram trigger for a workflow
+ */
+export const upsertTelegramTrigger = async (
+  orgHandle: string,
+  workflowId: string,
+  data: UpsertTelegramTriggerRequest
+): Promise<UpsertTelegramTriggerResponse> => {
+  return await makeOrgRequest<UpsertTelegramTriggerResponse>(
+    orgHandle,
+    API_ENDPOINT_BASE,
+    `/${workflowId}/telegram-trigger`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    }
+  );
+};
+
+/**
+ * Delete a Telegram trigger for a workflow
+ */
+export const deleteTelegramTrigger = async (
+  orgHandle: string,
+  workflowId: string
+): Promise<void> => {
+  await makeOrgRequest(
+    orgHandle,
+    API_ENDPOINT_BASE,
+    `/${workflowId}/telegram-trigger`,
+    { method: "DELETE" }
+  );
 };

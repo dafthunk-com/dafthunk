@@ -13,10 +13,13 @@ import {
   type DatabaseRow,
   type DatasetInsert,
   type DatasetRow,
+  type DiscordBotInsert,
+  type DiscordBotRow,
   type DiscordTriggerInsert,
   type DiscordTriggerRow,
   databases,
   datasets,
+  discordBots,
   discordTriggers,
   type EmailInsert,
   type EmailRow,
@@ -51,8 +54,11 @@ import {
   type SecretInsert,
   scheduledTriggers,
   secrets,
+  type TelegramBotInsert,
+  type TelegramBotRow,
   type TelegramTriggerInsert,
   type TelegramTriggerRow,
+  telegramBots,
   telegramTriggers,
   UserRole,
   type UserRoleType,
@@ -1264,6 +1270,206 @@ export async function deleteEmailTrigger(
 }
 
 /**
+ * Discord Bot Operations
+ */
+
+export function getDiscordBotCondition(discordBotIdOrHandle: string) {
+  if (isUUID(discordBotIdOrHandle)) {
+    return eq(discordBots.id, discordBotIdOrHandle);
+  } else {
+    return eq(discordBots.handle, discordBotIdOrHandle);
+  }
+}
+
+export async function getDiscordBots(
+  db: ReturnType<typeof createDatabase>,
+  organizationIdOrHandle: string
+) {
+  return await db
+    .select({
+      id: discordBots.id,
+      name: discordBots.name,
+      handle: discordBots.handle,
+      applicationId: discordBots.applicationId,
+      tokenLastFour: discordBots.tokenLastFour,
+      createdAt: discordBots.createdAt,
+      updatedAt: discordBots.updatedAt,
+    })
+    .from(discordBots)
+    .innerJoin(
+      organizations,
+      and(
+        eq(discordBots.organizationId, organizations.id),
+        getOrganizationCondition(organizationIdOrHandle)
+      )
+    );
+}
+
+export async function getDiscordBot(
+  db: ReturnType<typeof createDatabase>,
+  discordBotIdOrHandle: string,
+  organizationIdOrHandle: string
+): Promise<DiscordBotRow | undefined> {
+  const [bot] = await db
+    .select()
+    .from(discordBots)
+    .innerJoin(
+      organizations,
+      and(
+        eq(discordBots.organizationId, organizations.id),
+        getOrganizationCondition(organizationIdOrHandle)
+      )
+    )
+    .where(getDiscordBotCondition(discordBotIdOrHandle))
+    .limit(1);
+  return bot?.discord_bots;
+}
+
+export async function createDiscordBot(
+  db: ReturnType<typeof createDatabase>,
+  newBot: DiscordBotInsert
+): Promise<DiscordBotRow> {
+  const [bot] = await db.insert(discordBots).values(newBot).returning();
+  return bot;
+}
+
+export async function updateDiscordBot(
+  db: ReturnType<typeof createDatabase>,
+  id: string,
+  organizationId: string,
+  data: Partial<DiscordBotRow>
+): Promise<DiscordBotRow> {
+  const [bot] = await db
+    .update(discordBots)
+    .set(data)
+    .where(
+      and(
+        eq(discordBots.id, id),
+        eq(discordBots.organizationId, organizationId)
+      )
+    )
+    .returning();
+  return bot;
+}
+
+export async function deleteDiscordBot(
+  db: ReturnType<typeof createDatabase>,
+  id: string,
+  organizationId: string
+): Promise<DiscordBotRow | undefined> {
+  const [bot] = await db
+    .delete(discordBots)
+    .where(
+      and(
+        eq(discordBots.id, id),
+        eq(discordBots.organizationId, organizationId)
+      )
+    )
+    .returning();
+  return bot;
+}
+
+/**
+ * Telegram Bot Operations
+ */
+
+export function getTelegramBotCondition(telegramBotIdOrHandle: string) {
+  if (isUUID(telegramBotIdOrHandle)) {
+    return eq(telegramBots.id, telegramBotIdOrHandle);
+  } else {
+    return eq(telegramBots.handle, telegramBotIdOrHandle);
+  }
+}
+
+export async function getTelegramBots(
+  db: ReturnType<typeof createDatabase>,
+  organizationIdOrHandle: string
+) {
+  return await db
+    .select({
+      id: telegramBots.id,
+      name: telegramBots.name,
+      handle: telegramBots.handle,
+      botUsername: telegramBots.botUsername,
+      tokenLastFour: telegramBots.tokenLastFour,
+      createdAt: telegramBots.createdAt,
+      updatedAt: telegramBots.updatedAt,
+    })
+    .from(telegramBots)
+    .innerJoin(
+      organizations,
+      and(
+        eq(telegramBots.organizationId, organizations.id),
+        getOrganizationCondition(organizationIdOrHandle)
+      )
+    );
+}
+
+export async function getTelegramBot(
+  db: ReturnType<typeof createDatabase>,
+  telegramBotIdOrHandle: string,
+  organizationIdOrHandle: string
+): Promise<TelegramBotRow | undefined> {
+  const [bot] = await db
+    .select()
+    .from(telegramBots)
+    .innerJoin(
+      organizations,
+      and(
+        eq(telegramBots.organizationId, organizations.id),
+        getOrganizationCondition(organizationIdOrHandle)
+      )
+    )
+    .where(getTelegramBotCondition(telegramBotIdOrHandle))
+    .limit(1);
+  return bot?.telegram_bots;
+}
+
+export async function createTelegramBot(
+  db: ReturnType<typeof createDatabase>,
+  newBot: TelegramBotInsert
+): Promise<TelegramBotRow> {
+  const [bot] = await db.insert(telegramBots).values(newBot).returning();
+  return bot;
+}
+
+export async function updateTelegramBot(
+  db: ReturnType<typeof createDatabase>,
+  id: string,
+  organizationId: string,
+  data: Partial<TelegramBotRow>
+): Promise<TelegramBotRow> {
+  const [bot] = await db
+    .update(telegramBots)
+    .set(data)
+    .where(
+      and(
+        eq(telegramBots.id, id),
+        eq(telegramBots.organizationId, organizationId)
+      )
+    )
+    .returning();
+  return bot;
+}
+
+export async function deleteTelegramBot(
+  db: ReturnType<typeof createDatabase>,
+  id: string,
+  organizationId: string
+): Promise<TelegramBotRow | undefined> {
+  const [bot] = await db
+    .delete(telegramBots)
+    .where(
+      and(
+        eq(telegramBots.id, id),
+        eq(telegramBots.organizationId, organizationId)
+      )
+    )
+    .returning();
+  return bot;
+}
+
+/**
  * Get a discord trigger for a workflow
  */
 export async function getDiscordTrigger(
@@ -1323,6 +1529,7 @@ export async function upsertDiscordTrigger(
       set: {
         guildId: trigger.guildId,
         channelId: trigger.channelId,
+        discordBotId: trigger.discordBotId,
         active: trigger.active,
         updatedAt: new Date(),
       },
@@ -1444,6 +1651,7 @@ export async function upsertTelegramTrigger(
       target: telegramTriggers.workflowId,
       set: {
         chatId: trigger.chatId,
+        telegramBotId: trigger.telegramBotId,
         secretToken: trigger.secretToken,
         active: trigger.active,
         updatedAt: new Date(),

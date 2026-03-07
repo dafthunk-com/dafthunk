@@ -283,6 +283,12 @@ export function WorkflowSidebar({
                         <SelectItem value="email_message">
                           Email Message
                         </SelectItem>
+                        <SelectItem value="discord_event">
+                          Discord Event
+                        </SelectItem>
+                        <SelectItem value="telegram_event">
+                          Telegram Event
+                        </SelectItem>
                         <SelectItem value="queue_message">
                           Queue Message
                         </SelectItem>

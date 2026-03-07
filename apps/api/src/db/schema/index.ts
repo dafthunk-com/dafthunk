@@ -575,6 +575,62 @@ export const emailTriggers = sqliteTable(
   ]
 );
 
+// Discord Bots - User-provided Discord bots associated with organizations
+export const discordBots = sqliteTable(
+  "discord_bots",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    handle: text("handle").notNull(),
+    encryptedBotToken: text("encrypted_bot_token").notNull(),
+    applicationId: text("application_id").notNull(),
+    tokenLastFour: text("token_last_four").notNull(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    createdAt: createCreatedAt(),
+    updatedAt: createUpdatedAt(),
+  },
+  (table) => [
+    index("discord_bots_name_idx").on(table.name),
+    index("discord_bots_handle_idx").on(table.handle),
+    index("discord_bots_organization_id_idx").on(table.organizationId),
+    index("discord_bots_created_at_idx").on(table.createdAt),
+    uniqueIndex("discord_bots_organization_id_handle_unique_idx").on(
+      table.organizationId,
+      table.handle
+    ),
+  ]
+);
+
+// Telegram Bots - User-provided Telegram bots associated with organizations
+export const telegramBots = sqliteTable(
+  "telegram_bots",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    handle: text("handle").notNull(),
+    encryptedBotToken: text("encrypted_bot_token").notNull(),
+    botUsername: text("bot_username"),
+    tokenLastFour: text("token_last_four").notNull(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    createdAt: createCreatedAt(),
+    updatedAt: createUpdatedAt(),
+  },
+  (table) => [
+    index("telegram_bots_name_idx").on(table.name),
+    index("telegram_bots_handle_idx").on(table.handle),
+    index("telegram_bots_organization_id_idx").on(table.organizationId),
+    index("telegram_bots_created_at_idx").on(table.createdAt),
+    uniqueIndex("telegram_bots_organization_id_handle_unique_idx").on(
+      table.organizationId,
+      table.handle
+    ),
+  ]
+);
+
 // Discord Triggers - Discord event triggers for workflows
 export const discordTriggers = sqliteTable(
   "discord_triggers",
@@ -587,6 +643,9 @@ export const discordTriggers = sqliteTable(
       .references(() => organizations.id, { onDelete: "cascade" }),
     guildId: text("guild_id").notNull(),
     channelId: text("channel_id"),
+    discordBotId: text("discord_bot_id").references(() => discordBots.id, {
+      onDelete: "set null",
+    }),
     active: integer("active", { mode: "boolean" }).notNull().default(true),
     createdAt: createCreatedAt(),
     updatedAt: createUpdatedAt(),
@@ -595,6 +654,7 @@ export const discordTriggers = sqliteTable(
     index("discord_triggers_workflow_id_idx").on(table.workflowId),
     index("discord_triggers_organization_id_idx").on(table.organizationId),
     index("discord_triggers_guild_id_idx").on(table.guildId),
+    index("discord_triggers_discord_bot_id_idx").on(table.discordBotId),
     index("discord_triggers_active_idx").on(table.active),
     index("discord_triggers_created_at_idx").on(table.createdAt),
     index("discord_triggers_updated_at_idx").on(table.updatedAt),
@@ -617,6 +677,9 @@ export const telegramTriggers = sqliteTable(
       .notNull()
       .references(() => organizations.id, { onDelete: "cascade" }),
     chatId: text("chat_id").notNull(),
+    telegramBotId: text("telegram_bot_id").references(() => telegramBots.id, {
+      onDelete: "set null",
+    }),
     secretToken: text("secret_token"),
     active: integer("active", { mode: "boolean" }).notNull().default(true),
     createdAt: createCreatedAt(),
@@ -626,6 +689,7 @@ export const telegramTriggers = sqliteTable(
     index("telegram_triggers_workflow_id_idx").on(table.workflowId),
     index("telegram_triggers_organization_id_idx").on(table.organizationId),
     index("telegram_triggers_chat_id_idx").on(table.chatId),
+    index("telegram_triggers_telegram_bot_id_idx").on(table.telegramBotId),
     index("telegram_triggers_active_idx").on(table.active),
     index("telegram_triggers_created_at_idx").on(table.createdAt),
     index("telegram_triggers_updated_at_idx").on(table.updatedAt),
@@ -1044,6 +1108,12 @@ export type EmailInsert = typeof emails.$inferInsert;
 
 export type EmailTriggerRow = typeof emailTriggers.$inferSelect;
 export type EmailTriggerInsert = typeof emailTriggers.$inferInsert;
+
+export type DiscordBotRow = typeof discordBots.$inferSelect;
+export type DiscordBotInsert = typeof discordBots.$inferInsert;
+
+export type TelegramBotRow = typeof telegramBots.$inferSelect;
+export type TelegramBotInsert = typeof telegramBots.$inferInsert;
 
 export type DiscordTriggerRow = typeof discordTriggers.$inferSelect;
 export type DiscordTriggerInsert = typeof discordTriggers.$inferInsert;

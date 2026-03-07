@@ -40,6 +40,7 @@ import {
   deleteDiscordTrigger as deleteDbDiscordTrigger,
   deleteQueueTrigger as deleteDbQueueTrigger,
   deleteTelegramTrigger as deleteDbTelegramTrigger,
+  getDiscordBot,
   getDiscordTrigger,
   getDiscordTriggersByGuild,
   getEmailTrigger,
@@ -47,6 +48,7 @@ import {
   getOrganizationBillingInfo,
   getQueue,
   getQueueTrigger,
+  getTelegramBot,
   getTelegramTrigger,
   getTelegramTriggersByChat,
   upsertDiscordTrigger as upsertDbDiscordTrigger,
@@ -858,6 +860,7 @@ workflowRoutes.get(
       workflowId: discordTrigger.workflowId,
       guildId: discordTrigger.guildId,
       channelId: discordTrigger.channelId,
+      discordBotId: discordTrigger.discordBotId ?? null,
       active: discordTrigger.active,
       createdAt: discordTrigger.createdAt,
       updatedAt: discordTrigger.updatedAt,
@@ -874,6 +877,7 @@ workflowRoutes.get(
 const UpsertDiscordTriggerRequestSchema = z.object({
   guildId: z.string().min(1, "Guild ID is required"),
   channelId: z.string().nullable().optional(),
+  discordBotId: z.string().min(1, "Discord bot is required"),
   active: z.boolean().optional(),
 }) as z.ZodType<UpsertDiscordTriggerRequest>;
 
@@ -966,11 +970,23 @@ workflowRoutes.put(
     const isActive = data.active ?? true;
 
     try {
+      // Resolve per-bot token
+      const bot = await getDiscordBot(db, data.discordBotId, organizationId);
+      if (!bot) {
+        return c.json({ error: "Discord bot not found" }, 404);
+      }
+      const perBotToken = await decryptSecret(
+        bot.encryptedBotToken,
+        c.env,
+        organizationId
+      );
+
       const upsertedTrigger = await upsertDbDiscordTrigger(db, {
         workflowId: workflow.id,
         organizationId,
         guildId: data.guildId,
         channelId: data.channelId ?? null,
+        discordBotId: data.discordBotId,
         active: isActive,
         updatedAt: now,
       });
@@ -985,13 +1001,18 @@ workflowRoutes.put(
       // Connect the DO to Discord Gateway if trigger is active
       if (isActive) {
         try {
-          const doId = c.env.DISCORD_BOT.idFromName(data.guildId);
+          const doKey = `${data.discordBotId}:${data.guildId}`;
+          const doId = c.env.DISCORD_BOT.idFromName(doKey);
           const stub = c.env.DISCORD_BOT.get(doId);
           await stub.fetch(
             new Request("https://discord-bot/connect", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ guildId: data.guildId }),
+              body: JSON.stringify({
+                guildId: data.guildId,
+                botToken: perBotToken,
+                discordBotId: data.discordBotId,
+              }),
             })
           );
         } catch (error) {
@@ -1006,6 +1027,7 @@ workflowRoutes.put(
         workflowId: upsertedTrigger.workflowId,
         guildId: upsertedTrigger.guildId,
         channelId: upsertedTrigger.channelId,
+        discordBotId: upsertedTrigger.discordBotId ?? null,
         active: upsertedTrigger.active,
         createdAt: upsertedTrigger.createdAt,
         updatedAt: upsertedTrigger.updatedAt,
@@ -1057,25 +1079,31 @@ workflowRoutes.delete(
       );
     }
 
-    // Check if there are other triggers for this guild — if not, disconnect the DO
-    const remainingTriggers = await getDiscordTriggersByGuild(
-      db,
-      deletedTrigger.guildId
-    );
-    if (remainingTriggers.length === 0) {
-      try {
-        const doId = c.env.DISCORD_BOT.idFromName(deletedTrigger.guildId);
-        const stub = c.env.DISCORD_BOT.get(doId);
-        await stub.fetch(
-          new Request("https://discord-bot/disconnect", {
-            method: "POST",
-          })
-        );
-      } catch (error) {
-        console.error(
-          "[DiscordTrigger] Failed to disconnect DO:",
-          error instanceof Error ? error.message : String(error)
-        );
+    // Check if there are other triggers for this guild+bot combo — if not, disconnect the DO
+    if (deletedTrigger.discordBotId) {
+      const remainingTriggers = await getDiscordTriggersByGuild(
+        db,
+        deletedTrigger.guildId
+      );
+      const sameDoTriggers = remainingTriggers.filter(
+        (t) => t.discordTrigger.discordBotId === deletedTrigger.discordBotId
+      );
+      if (sameDoTriggers.length === 0) {
+        try {
+          const doKey = `${deletedTrigger.discordBotId}:${deletedTrigger.guildId}`;
+          const doId = c.env.DISCORD_BOT.idFromName(doKey);
+          const stub = c.env.DISCORD_BOT.get(doId);
+          await stub.fetch(
+            new Request("https://discord-bot/disconnect", {
+              method: "POST",
+            })
+          );
+        } catch (error) {
+          console.error(
+            "[DiscordTrigger] Failed to disconnect DO:",
+            error instanceof Error ? error.message : String(error)
+          );
+        }
       }
     }
 
@@ -1122,6 +1150,7 @@ workflowRoutes.get(
     const response: GetTelegramTriggerResponse = {
       workflowId: telegramTrigger.workflowId,
       chatId: telegramTrigger.chatId,
+      telegramBotId: telegramTrigger.telegramBotId ?? null,
       active: telegramTrigger.active,
       createdAt: telegramTrigger.createdAt,
       updatedAt: telegramTrigger.updatedAt,
@@ -1136,6 +1165,7 @@ workflowRoutes.get(
  */
 const UpsertTelegramTriggerRequestSchema = z.object({
   chatId: z.string().min(1, "Chat ID is required"),
+  telegramBotId: z.string().min(1, "Telegram bot is required"),
   active: z.boolean().optional(),
 }) as z.ZodType<UpsertTelegramTriggerRequest>;
 
@@ -1171,11 +1201,26 @@ workflowRoutes.put(
     // Generate a secret token for webhook verification
     const secretToken = crypto.randomUUID();
 
+    // Resolve per-bot token if telegramBotId is provided
+    let telegramBotToken: string | undefined;
+    if (data.telegramBotId) {
+      const bot = await getTelegramBot(db, data.telegramBotId, organizationId);
+      if (!bot) {
+        return c.json({ error: "Telegram bot not found" }, 404);
+      }
+      telegramBotToken = await decryptSecret(
+        bot.encryptedBotToken,
+        c.env,
+        organizationId
+      );
+    }
+
     try {
       const upsertedTrigger = await upsertDbTelegramTrigger(db, {
         workflowId: workflow.id,
         organizationId,
         chatId: data.chatId,
+        telegramBotId: data.telegramBotId ?? null,
         secretToken,
         active: isActive,
         updatedAt: now,
@@ -1189,11 +1234,11 @@ workflowRoutes.put(
       }
 
       // Register webhook with Telegram if trigger is active
-      if (isActive && c.env.TELEGRAM_BOT_TOKEN) {
+      if (isActive && telegramBotToken) {
         try {
           const apiHost = new URL(c.req.url).origin;
           const response = await fetch(
-            `https://api.telegram.org/bot${c.env.TELEGRAM_BOT_TOKEN}/setWebhook`,
+            `https://api.telegram.org/bot${telegramBotToken}/setWebhook`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -1221,6 +1266,7 @@ workflowRoutes.put(
       const triggerResponse: UpsertTelegramTriggerResponse = {
         workflowId: upsertedTrigger.workflowId,
         chatId: upsertedTrigger.chatId,
+        telegramBotId: upsertedTrigger.telegramBotId ?? null,
         active: upsertedTrigger.active,
         createdAt: upsertedTrigger.createdAt,
         updatedAt: upsertedTrigger.updatedAt,
@@ -1277,17 +1323,39 @@ workflowRoutes.delete(
       db,
       deletedTrigger.chatId
     );
-    if (remainingTriggers.length === 0 && c.env.TELEGRAM_BOT_TOKEN) {
-      try {
-        await fetch(
-          `https://api.telegram.org/bot${c.env.TELEGRAM_BOT_TOKEN}/deleteWebhook`,
-          { method: "POST" }
-        );
-      } catch (error) {
-        console.error(
-          "[TelegramTrigger] Failed to unregister webhook:",
-          error instanceof Error ? error.message : String(error)
-        );
+    if (remainingTriggers.length === 0) {
+      // Resolve the per-bot token for webhook cleanup
+      let cleanupToken: string | undefined;
+      if (deletedTrigger.telegramBotId) {
+        try {
+          const bot = await getTelegramBot(
+            db,
+            deletedTrigger.telegramBotId,
+            organizationId
+          );
+          if (bot) {
+            cleanupToken = await decryptSecret(
+              bot.encryptedBotToken,
+              c.env,
+              organizationId
+            );
+          }
+        } catch {
+          // Bot may have been deleted already (ON DELETE SET NULL); webhook becomes stale harmlessly
+        }
+      }
+      if (cleanupToken) {
+        try {
+          await fetch(
+            `https://api.telegram.org/bot${cleanupToken}/deleteWebhook`,
+            { method: "POST" }
+          );
+        } catch (error) {
+          console.error(
+            "[TelegramTrigger] Failed to unregister webhook:",
+            error instanceof Error ? error.message : String(error)
+          );
+        }
       }
     }
 

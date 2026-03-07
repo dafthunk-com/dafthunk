@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+import { DiscordTriggerDialog } from "./discord-trigger-dialog";
 import { EmailTriggerDialog } from "./email-trigger-dialog";
 import type { EmailData } from "./execution-email-dialog";
 import { ExecutionEmailDialog } from "./execution-email-dialog";
@@ -18,6 +19,7 @@ import type { HttpRequestConfig } from "./http-request-config-dialog";
 import { HttpRequestConfigDialog } from "./http-request-config-dialog";
 import { HttpRequestIntegrationDialog } from "./http-request-integration-dialog";
 import { HttpWebhookIntegrationDialog } from "./http-webhook-integration-dialog";
+import { TelegramTriggerDialog } from "./telegram-trigger-dialog";
 import type { NodeType, WorkflowNodeType } from "./workflow-types";
 
 interface WorkflowDialogsProps {
@@ -31,6 +33,10 @@ interface WorkflowDialogsProps {
   onCloseHttpIntegration: () => void;
   isEmailTriggerDialogOpen: boolean;
   onCloseEmailTrigger: () => void;
+  isDiscordTriggerDialogOpen: boolean;
+  onCloseDiscordTrigger: () => void;
+  isTelegramTriggerDialogOpen: boolean;
+  onCloseTelegramTrigger: () => void;
   // Execution form dialogs
   isEmailFormDialogVisible: boolean;
   isHttpRequestConfigDialogVisible: boolean;
@@ -53,6 +59,10 @@ export function WorkflowDialogs({
   onCloseHttpIntegration,
   isEmailTriggerDialogOpen,
   onCloseEmailTrigger,
+  isDiscordTriggerDialogOpen,
+  onCloseDiscordTrigger,
+  isTelegramTriggerDialogOpen,
+  onCloseTelegramTrigger,
   isEmailFormDialogVisible,
   isHttpRequestConfigDialogVisible,
   submitHttpRequestConfig,
@@ -92,6 +102,22 @@ export function WorkflowDialogs({
         <EmailTriggerDialog
           isOpen={isEmailTriggerDialogOpen}
           onClose={onCloseEmailTrigger}
+          workflowId={workflowId}
+        />
+      )}
+
+      {workflowTrigger === "discord_event" && (
+        <DiscordTriggerDialog
+          isOpen={isDiscordTriggerDialogOpen}
+          onClose={onCloseDiscordTrigger}
+          workflowId={workflowId}
+        />
+      )}
+
+      {workflowTrigger === "telegram_event" && (
+        <TelegramTriggerDialog
+          isOpen={isTelegramTriggerDialogOpen}
+          onClose={onCloseTelegramTrigger}
           workflowId={workflowId}
         />
       )}

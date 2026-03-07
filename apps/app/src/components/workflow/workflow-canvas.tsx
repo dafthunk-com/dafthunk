@@ -28,9 +28,11 @@ import Globe from "lucide-react/icons/globe";
 import Layers2 from "lucide-react/icons/layers-2";
 import Mail from "lucide-react/icons/mail";
 import Maximize from "lucide-react/icons/maximize";
+import MessageSquare from "lucide-react/icons/message-square";
 import Network from "lucide-react/icons/network";
 import Play from "lucide-react/icons/play";
 import Scissors from "lucide-react/icons/scissors";
+import Send from "lucide-react/icons/send";
 import Square from "lucide-react/icons/square";
 import Trash2 from "lucide-react/icons/trash-2";
 import X from "lucide-react/icons/x";
@@ -157,6 +159,8 @@ export interface WorkflowCanvasProps {
   onDeploy?: (e: React.MouseEvent) => void;
   onShowHttpIntegration?: () => void;
   onShowEmailTrigger?: () => void;
+  onShowDiscordTrigger?: () => void;
+  onShowTelegramTrigger?: () => void;
   workflowStatus?: WorkflowExecutionStatus;
   workflowErrorMessage?: string;
   onToggleSidebar?: (e: React.MouseEvent) => void;
@@ -530,6 +534,60 @@ export function ShowEmailTriggerButton({
   );
 }
 
+export function ShowDiscordTriggerButton({
+  onClick,
+  disabled,
+  className = "",
+  text = "",
+  tooltip = "Configure Discord Trigger",
+}: {
+  onClick: (e: React.MouseEvent) => void;
+  disabled?: boolean;
+  className?: string;
+  text?: string;
+  tooltip?: string;
+}) {
+  return (
+    <ActionBarButton
+      onClick={onClick}
+      disabled={disabled}
+      className={cn(actionBarButtonOutlineClassName, className)}
+      tooltipSide="bottom"
+      tooltip={tooltip}
+    >
+      <MessageSquare className="!size-4" />
+      {text}
+    </ActionBarButton>
+  );
+}
+
+export function ShowTelegramTriggerButton({
+  onClick,
+  disabled,
+  className = "",
+  text = "",
+  tooltip = "Configure Telegram Trigger",
+}: {
+  onClick: (e: React.MouseEvent) => void;
+  disabled?: boolean;
+  className?: string;
+  text?: string;
+  tooltip?: string;
+}) {
+  return (
+    <ActionBarButton
+      onClick={onClick}
+      disabled={disabled}
+      className={cn(actionBarButtonOutlineClassName, className)}
+      tooltipSide="bottom"
+      tooltip={tooltip}
+    >
+      <Send className="!size-4" />
+      {text}
+    </ActionBarButton>
+  );
+}
+
 function CopyButton({
   onClick,
   disabled,
@@ -646,6 +704,8 @@ export function WorkflowCanvas({
   workflowTrigger,
   onShowHttpIntegration,
   onShowEmailTrigger,
+  onShowDiscordTrigger,
+  onShowTelegramTrigger,
   workflowStatus = "idle",
   workflowErrorMessage,
   onToggleSidebar,
@@ -738,7 +798,11 @@ export function WorkflowCanvas({
             (onToggleSidebar && isSidebarVisible !== undefined)) && (
             <div className="absolute top-4 right-4 flex items-center gap-3 z-50">
               {/* Runtime Actions Group - Execute + Triggers */}
-              {(onAction || onShowHttpIntegration || onShowEmailTrigger) && (
+              {(onAction ||
+                onShowHttpIntegration ||
+                onShowEmailTrigger ||
+                onShowDiscordTrigger ||
+                onShowTelegramTrigger) && (
                 <ActionBarGroup>
                   {onAction && (
                     <ActionButton
@@ -765,6 +829,20 @@ export function WorkflowCanvas({
                     workflowTrigger === "email_message" && (
                       <ShowEmailTriggerButton
                         onClick={onShowEmailTrigger}
+                        disabled={disabled}
+                      />
+                    )}
+                  {onShowDiscordTrigger &&
+                    workflowTrigger === "discord_event" && (
+                      <ShowDiscordTriggerButton
+                        onClick={onShowDiscordTrigger}
+                        disabled={disabled}
+                      />
+                    )}
+                  {onShowTelegramTrigger &&
+                    workflowTrigger === "telegram_event" && (
+                      <ShowTelegramTriggerButton
+                        onClick={onShowTelegramTrigger}
                         disabled={disabled}
                       />
                     )}

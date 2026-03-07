@@ -172,6 +172,10 @@ export function WorkflowBuilder({
     useState(false);
   const [isEmailTriggerDialogOpen, setIsEmailTriggerDialogOpen] =
     useState(false);
+  const [isDiscordTriggerDialogOpen, setIsDiscordTriggerDialogOpen] =
+    useState(false);
+  const [isTelegramTriggerDialogOpen, setIsTelegramTriggerDialogOpen] =
+    useState(false);
 
   // Keyboard shortcuts (Cmd+C/X/V/D + Cmd+Enter)
   const handleActionButtonClick =
@@ -252,6 +256,16 @@ export function WorkflowBuilder({
                   ? () => setIsEmailTriggerDialogOpen(true)
                   : undefined
               }
+              onShowDiscordTrigger={
+                workflowTrigger === "discord_event"
+                  ? () => setIsDiscordTriggerDialogOpen(true)
+                  : undefined
+              }
+              onShowTelegramTrigger={
+                workflowTrigger === "telegram_event"
+                  ? () => setIsTelegramTriggerDialogOpen(true)
+                  : undefined
+              }
               onToggleSidebar={
                 sidebarEnabled ? sidebar.toggleSidebar : undefined
               }
@@ -329,6 +343,10 @@ export function WorkflowBuilder({
           onCloseHttpIntegration={() => setIsHttpIntegrationDialogOpen(false)}
           isEmailTriggerDialogOpen={isEmailTriggerDialogOpen}
           onCloseEmailTrigger={() => setIsEmailTriggerDialogOpen(false)}
+          isDiscordTriggerDialogOpen={isDiscordTriggerDialogOpen}
+          onCloseDiscordTrigger={() => setIsDiscordTriggerDialogOpen(false)}
+          isTelegramTriggerDialogOpen={isTelegramTriggerDialogOpen}
+          onCloseTelegramTrigger={() => setIsTelegramTriggerDialogOpen(false)}
           isEmailFormDialogVisible={execution.isEmailFormDialogVisible}
           isHttpRequestConfigDialogVisible={
             execution.isHttpRequestConfigDialogVisible

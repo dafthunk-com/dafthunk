@@ -36,6 +36,7 @@ import { DatasetsPage } from "./pages/datasets-page";
 import { DeploymentDetailPage } from "./pages/deployment-detail-page";
 import { DeploymentVersionPage } from "./pages/deployment-version-page";
 import { DeploymentsPage } from "./pages/deployments-page";
+import { DiscordBotsPage } from "./pages/discord-bots-page";
 import { DocsApiPage } from "./pages/docs/api-page";
 import { DocsOverviewPage } from "./pages/docs/concepts-page";
 import { DocsDevelopersPage } from "./pages/docs/developers-page";
@@ -58,6 +59,7 @@ import { PlaygroundPage } from "./pages/playground-page";
 import { ProfilePage } from "./pages/profile-page";
 import { QueuesPage } from "./pages/queues-page";
 import { SecretsPage } from "./pages/secrets-page";
+import { TelegramBotsPage } from "./pages/telegram-bots-page";
 import { TemplateDetailPage } from "./pages/template-detail-page";
 import { TemplatePreviewPage } from "./pages/template-preview-page";
 import { TemplateTryPage } from "./pages/template-try-page";
@@ -673,6 +675,36 @@ export const routes: AppRouteObject[] = [
       </OrgLayout>
     ),
     handle: { head: <HeadSeo title="Emails - Emails - Dafthunk" /> },
+  },
+  {
+    path: "/discord-bots",
+    element: <OrgRedirect to="/org/:handle/discord-bots" />,
+  },
+  {
+    path: "/org/:handle/discord-bots",
+    element: (
+      <OrgLayout title="Discord Bots">
+        <ProtectedRoute>
+          <DiscordBotsPage />
+        </ProtectedRoute>
+      </OrgLayout>
+    ),
+    handle: { head: <HeadSeo title="Discord Bots - Dafthunk" /> },
+  },
+  {
+    path: "/telegram-bots",
+    element: <OrgRedirect to="/org/:handle/telegram-bots" />,
+  },
+  {
+    path: "/org/:handle/telegram-bots",
+    element: (
+      <OrgLayout title="Telegram Bots">
+        <ProtectedRoute>
+          <TelegramBotsPage />
+        </ProtectedRoute>
+      </OrgLayout>
+    ),
+    handle: { head: <HeadSeo title="Telegram Bots - Dafthunk" /> },
   },
   {
     path: "/deployments",

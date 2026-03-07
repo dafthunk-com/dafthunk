@@ -3,8 +3,8 @@
  *
  * Maintains a persistent WebSocket connection to the Discord Gateway,
  * listening for MESSAGE_CREATE events and dispatching workflow executions.
- * One DO instance per guild (Discord server). Bot token is read from the
- * DISCORD_BOT_TOKEN environment variable (shared across all guilds).
+ * One DO instance per bot+guild pair. The bot token is provided via the
+ * /connect endpoint and persisted in DO SQLite for reconnection.
  */
 
 import { DurableObject } from "cloudflare:workers";
@@ -46,8 +46,11 @@ export class DiscordBot extends DurableObject<Bindings> {
   private seq: number | null = null;
   private resumeGatewayUrl: string | null = null;
 
+  private storedBotToken: string | null = null;
+  private discordBotId: string | null = null;
+
   private get botToken(): string | undefined {
-    return this.env.DISCORD_BOT_TOKEN;
+    return this.storedBotToken ?? undefined;
   }
 
   async fetch(request: Request): Promise<Response> {
@@ -67,14 +70,24 @@ export class DiscordBot extends DurableObject<Bindings> {
   }
 
   private async handleConnect(request: Request): Promise<Response> {
-    const body = (await request.json()) as { guildId: string };
+    const body = (await request.json()) as {
+      guildId: string;
+      botToken?: string;
+      discordBotId?: string;
+    };
     this.guildId = body.guildId;
+    if (body.botToken) {
+      this.storedBotToken = body.botToken;
+    }
+    if (body.discordBotId) {
+      this.discordBotId = body.discordBotId;
+    }
 
     if (!this.botToken) {
-      return new Response(
-        JSON.stringify({ error: "DISCORD_BOT_TOKEN not configured" }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "No bot token provided" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     // Persist guild in DO SQLite
@@ -84,14 +97,18 @@ export class DiscordBot extends DurableObject<Bindings> {
         session_id TEXT,
         seq INTEGER,
         resume_gateway_url TEXT,
-        guild_id TEXT NOT NULL
+        guild_id TEXT NOT NULL,
+        bot_token TEXT,
+        discord_bot_id TEXT
       )`
     );
 
     this.ctx.storage.sql.exec(
-      `INSERT OR REPLACE INTO gateway_state (id, guild_id, session_id, seq, resume_gateway_url)
-       VALUES (1, ?, NULL, NULL, NULL)`,
-      this.guildId
+      `INSERT OR REPLACE INTO gateway_state (id, guild_id, bot_token, discord_bot_id, session_id, seq, resume_gateway_url)
+       VALUES (1, ?, ?, ?, NULL, NULL, NULL)`,
+      this.guildId,
+      this.storedBotToken,
+      this.discordBotId
     );
 
     // Attempt to restore session state for resume
@@ -120,6 +137,8 @@ export class DiscordBot extends DurableObject<Bindings> {
     this.ctx.storage.sql.exec("DELETE FROM gateway_state WHERE id = 1");
 
     this.guildId = null;
+    this.storedBotToken = null;
+    this.discordBotId = null;
     this.sessionId = null;
     this.seq = null;
     this.resumeGatewayUrl = null;
@@ -168,6 +187,8 @@ export class DiscordBot extends DurableObject<Bindings> {
       if (rows.length > 0) {
         const row = rows[0] as Record<string, unknown>;
         this.guildId = row.guild_id as string;
+        this.storedBotToken = (row.bot_token as string) || null;
+        this.discordBotId = (row.discord_bot_id as string) || null;
         this.sessionId = (row.session_id as string) || null;
         this.seq = (row.seq as number) ?? null;
         this.resumeGatewayUrl = (row.resume_gateway_url as string) || null;
@@ -352,7 +373,11 @@ export class DiscordBot extends DurableObject<Bindings> {
   }): Promise<void> {
     const db = createDatabase(this.env.DB);
 
-    const triggers = await getDiscordTriggersByGuild(db, message.guildId);
+    const allTriggers = await getDiscordTriggersByGuild(db, message.guildId);
+    // Only dispatch triggers that belong to this DO's bot
+    const triggers = allTriggers.filter(
+      (t) => t.discordTrigger.discordBotId === this.discordBotId
+    );
     if (triggers.length === 0) return;
 
     const workflowStore = new WorkflowStore(this.env);

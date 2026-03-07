@@ -5,12 +5,14 @@ import type { ApiContext } from "../context";
 import {
   createDatabase,
   getOrganizationComputeCredits,
+  getTelegramBot,
   getTelegramSecretTokenByChat,
   getTelegramTriggersByChat,
 } from "../db";
 import { createWorkerRuntime } from "../runtime/cloudflare-worker-runtime";
 import { DeploymentStore } from "../stores/deployment-store";
 import { WorkflowStore } from "../stores/workflow-store";
+import { decryptSecret } from "../utils/encryption";
 
 const telegramWebhook = new Hono<ApiContext>();
 
@@ -111,14 +113,49 @@ async function dispatchWorkflows(
   const workflowStore = new WorkflowStore(env);
   const deploymentStore = new DeploymentStore(env);
 
-  for (const { workflow } of triggers) {
+  for (const { telegramTrigger, workflow } of triggers) {
     try {
+      // Resolve per-bot token — required for workflow execution
+      if (!telegramTrigger.telegramBotId) {
+        console.error(
+          `[TelegramWebhook] Trigger for workflow ${workflow.id} has no telegramBotId, skipping`
+        );
+        continue;
+      }
+
+      let perBotToken: string;
+      try {
+        const bot = await getTelegramBot(
+          db,
+          telegramTrigger.telegramBotId,
+          workflow.organizationId
+        );
+        if (!bot) {
+          console.error(
+            `[TelegramWebhook] Bot ${telegramTrigger.telegramBotId} not found for workflow ${workflow.id}, skipping`
+          );
+          continue;
+        }
+        perBotToken = await decryptSecret(
+          bot.encryptedBotToken,
+          env,
+          workflow.organizationId
+        );
+      } catch (error) {
+        console.error(
+          `[TelegramWebhook] Failed to resolve bot token for workflow ${workflow.id}:`,
+          error instanceof Error ? error.message : String(error)
+        );
+        continue;
+      }
+
       await executeWorkflow(
         env,
         workflow,
         message,
         workflowStore,
-        deploymentStore
+        deploymentStore,
+        perBotToken
       );
     } catch (error) {
       console.error(
@@ -141,7 +178,8 @@ async function executeWorkflow(
   },
   message: TelegramMessagePayload,
   workflowStore: WorkflowStore,
-  deploymentStore: DeploymentStore
+  deploymentStore: DeploymentStore,
+  perBotToken?: string
 ): Promise<void> {
   const db = createDatabase(env.DB);
   const organizationId = workflow.organizationId;
@@ -221,6 +259,7 @@ async function executeWorkflow(
       author: message.author,
       timestamp: message.timestamp,
     },
+    ...(perBotToken ? { telegramBotToken: perBotToken } : {}),
   };
 
   if (workflowData.runtime === "worker") {
