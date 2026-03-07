@@ -395,7 +395,7 @@ import { BotForwardMessageTelegramNode } from "@dafthunk/runtime/nodes/telegram/
 import { BotGetChatTelegramNode } from "@dafthunk/runtime/nodes/telegram/bot-get-chat-telegram-node";
 import { BotSendMessageTelegramNode } from "@dafthunk/runtime/nodes/telegram/bot-send-message-telegram-node";
 import { BotSendPhotoTelegramNode } from "@dafthunk/runtime/nodes/telegram/bot-send-photo-telegram-node";
-import { ReceiveTelegramMessageNode } from "@dafthunk/runtime/nodes/telegram/receive-telegram-message-node";
+import { BotReceiveTelegramMessageNode } from "@dafthunk/runtime/nodes/telegram/bot-receive-telegram-message-node";
 import { BartLargeCnnNode } from "@dafthunk/runtime/nodes/text/bart-large-cnn-node";
 import { BgeRerankerBaseNode } from "@dafthunk/runtime/nodes/text/bge-reranker-base-node";
 import { DeepseekR1DistillQwen32BNode } from "@dafthunk/runtime/nodes/text/deepseek-r1-distill-qwen-32b-node";
@@ -497,7 +497,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(DatabaseTruncateTableNode);
     this.registerImplementation(ReceiveEmailNode);
     this.registerImplementation(ReceiveDiscordMessageNode);
-    this.registerImplementation(ReceiveTelegramMessageNode);
+    this.registerImplementation(BotReceiveTelegramMessageNode);
     this.registerImplementation(ReceiveScheduledTriggerNode);
     this.registerImplementation(ParseEmailNode);
     this.registerImplementation(ExtractEmailAttachmentsNode);
