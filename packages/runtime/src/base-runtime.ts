@@ -257,6 +257,10 @@ export abstract class Runtime<Env = unknown> {
     this.userPlan = userPlan;
     this.telegramBotToken = telegramBotToken;
 
+    console.log(
+      `[Runtime] run workflow=${workflow.id} trigger=${workflow.trigger} nodes=${workflow.nodes.length} telegramMessage=${!!telegramMessage} telegramBotToken=${!!telegramBotToken}`
+    );
+
     // Initialise state and execution record
     let executionState: ExecutionState = {
       nodeOutputs: {},
@@ -406,6 +410,10 @@ export abstract class Runtime<Env = unknown> {
       executionRecord = finalRecord;
     } catch (error) {
       caughtError = true;
+      console.error(
+        `[Runtime] Execution error: workflow=${workflow.id}`,
+        error instanceof Error ? error.message : String(error)
+      );
       executionRecord = {
         ...executionRecord,
         status: "error",
@@ -523,6 +531,14 @@ export abstract class Runtime<Env = unknown> {
 
       // Apply all results to state (nodes in same level don't affect each other)
       for (const result of resolvedResults) {
+        if (result.status === "error") {
+          const node = context.workflow.nodes.find(
+            (n) => n.id === result.nodeId
+          );
+          console.error(
+            `[Runtime] Node error: nodeId=${result.nodeId} type=${node?.type} error=${result.error}`
+          );
+        }
         applyNodeResult(state, result);
       }
 
