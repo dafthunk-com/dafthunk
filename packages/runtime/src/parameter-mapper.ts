@@ -271,6 +271,14 @@ const converters: Record<string, Converter> = {
     nodeToApi: typeValidatingNodeToApi("string"),
     apiToNode: typeValidatingApiToNode("string"),
   },
+  telegram: {
+    nodeToApi: typeValidatingNodeToApi("string"),
+    apiToNode: typeValidatingApiToNode("string"),
+  },
+  discord: {
+    nodeToApi: typeValidatingNodeToApi("string"),
+    apiToNode: typeValidatingApiToNode("string"),
+  },
   any: {
     nodeToApi: (
       value: NodeParameterValue,

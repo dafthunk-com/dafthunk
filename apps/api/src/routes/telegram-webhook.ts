@@ -262,10 +262,6 @@ async function executeWorkflow(
     ...(perBotToken ? { telegramBotToken: perBotToken } : {}),
   };
 
-  console.log(
-    `[TelegramWebhook] Executing workflow=${workflow.id} runtime=${workflowData.runtime ?? "workflow"} nodes=${workflowData.nodes.length} telegramMessage=${!!executionParams.telegramMessage} telegramBotToken=${!!perBotToken} deploymentId=${deploymentId ?? "none"}`
-  );
-
   if (workflowData.runtime === "worker") {
     const workerRuntime = createWorkerRuntime(env);
     const execution = await workerRuntime.execute(executionParams);
