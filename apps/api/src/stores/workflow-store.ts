@@ -4,15 +4,26 @@ import { and, desc, eq, inArray } from "drizzle-orm";
 import type { Bindings } from "../context";
 import { createDatabase, Database } from "../db";
 import {
+  deleteDiscordTrigger,
   deleteEmailTrigger,
   deleteQueueTrigger,
   deleteScheduledTrigger,
+  deleteTelegramTrigger,
+  getDiscordBot,
+  getDiscordTrigger,
+  getDiscordTriggersByGuild,
   getOrganizationCondition,
+  getTelegramBot,
+  getTelegramTrigger,
+  getTelegramTriggersByChat,
   getWorkflowCondition,
+  upsertDiscordTrigger,
   upsertEmailTrigger,
   upsertQueueTrigger,
   upsertScheduledTrigger,
+  upsertTelegramTrigger,
 } from "../db/queries";
+import { decryptSecret } from "../utils/encryption";
 import type { WorkflowRow } from "../db/schema";
 import { memberships, organizations, workflows } from "../db/schema";
 
@@ -31,6 +42,7 @@ export interface SaveWorkflowRecord {
   edges: any[];
   createdAt?: Date;
   updatedAt?: Date;
+  apiHost?: string;
 }
 
 /**
@@ -92,14 +104,374 @@ export class WorkflowStore {
   }
 
   /**
-   * Sync triggers for queue_message, email_message, and scheduled workflows
+   * Extract Discord trigger config from workflow nodes
+   */
+  private extractDiscordTriggerConfig(
+    nodes: Node[]
+  ): { discordBotId: string; guildId: string; channelId: string | null } | null {
+    const node = nodes.find(
+      (n) => n.type === "receive-discord-message"
+    );
+    if (!node) return null;
+
+    const discordBotId = node.inputs.find(
+      (i) => i.name === "discordBotId"
+    )?.value as string | undefined;
+    const guildId = node.inputs.find(
+      (i) => i.name === "guildId"
+    )?.value as string | undefined;
+
+    if (!discordBotId || !guildId) return null;
+
+    const channelId =
+      (node.inputs.find((i) => i.name === "channelId")?.value as
+        | string
+        | undefined) || null;
+
+    return { discordBotId, guildId, channelId };
+  }
+
+  /**
+   * Extract Telegram trigger config from workflow nodes
+   */
+  private extractTelegramTriggerConfig(
+    nodes: Node[]
+  ): { telegramBotId: string; chatId: string } | null {
+    const node = nodes.find(
+      (n) => n.type === "receive-telegram-message"
+    );
+    if (!node) return null;
+
+    const telegramBotId = node.inputs.find(
+      (i) => i.name === "telegramBotId"
+    )?.value as string | undefined;
+    const chatId = node.inputs.find(
+      (i) => i.name === "chatId"
+    )?.value as string | undefined;
+
+    if (!telegramBotId || !chatId) return null;
+
+    return { telegramBotId, chatId };
+  }
+
+  /**
+   * Sync Discord trigger: upsert/delete trigger and connect/disconnect Durable Object
+   */
+  private async syncDiscordTrigger(
+    workflowId: string,
+    organizationId: string,
+    nodes: Node[]
+  ): Promise<void> {
+    const config = this.extractDiscordTriggerConfig(nodes);
+    const hasReceiveNode = nodes.some(
+      (n) => n.type === "receive-discord-message"
+    );
+
+    if (config) {
+      // Check if config changed vs existing trigger
+      const existing = await getDiscordTrigger(
+        this.db,
+        workflowId,
+        organizationId
+      );
+      const changed =
+        !existing ||
+        existing.discordBotId !== config.discordBotId ||
+        existing.guildId !== config.guildId ||
+        existing.channelId !== config.channelId;
+
+      if (!changed) return;
+
+      // Disconnect old DO if bot/guild changed
+      if (existing && existing.discordBotId && (
+        existing.discordBotId !== config.discordBotId ||
+        existing.guildId !== config.guildId
+      )) {
+        await this.disconnectDiscordDO(
+          existing.discordBotId,
+          existing.guildId
+        );
+      }
+
+      try {
+        await upsertDiscordTrigger(this.db, {
+          workflowId,
+          organizationId,
+          guildId: config.guildId,
+          channelId: config.channelId,
+          discordBotId: config.discordBotId,
+          active: true,
+          updatedAt: new Date(),
+        });
+
+        // Connect DO with bot token
+        const bot = await getDiscordBot(
+          this.db,
+          config.discordBotId,
+          organizationId
+        );
+        if (bot) {
+          const botToken = await decryptSecret(
+            bot.encryptedBotToken,
+            this.env,
+            organizationId
+          );
+          await this.connectDiscordDO(
+            config.discordBotId,
+            config.guildId,
+            botToken
+          );
+        }
+
+        console.log(
+          `Auto-registered discord trigger: workflow=${workflowId}, guild=${config.guildId}`
+        );
+      } catch (_error) {
+        console.error(
+          `Failed to create discord trigger for workflow ${workflowId}`
+        );
+      }
+    } else if (!hasReceiveNode) {
+      // Node removed entirely — delete trigger
+      try {
+        const existing = await getDiscordTrigger(
+          this.db,
+          workflowId,
+          organizationId
+        );
+        if (existing) {
+          await deleteDiscordTrigger(this.db, workflowId, organizationId);
+          if (existing.discordBotId) {
+            await this.disconnectDiscordDO(
+              existing.discordBotId,
+              existing.guildId
+            );
+          }
+        }
+      } catch (_error) {
+        // Ignore — trigger didn't exist
+      }
+    }
+    // If node exists but inputs are empty, leave existing trigger alone (backward compat)
+  }
+
+  /**
+   * Sync Telegram trigger: upsert/delete trigger and register/unregister webhook
+   */
+  private async syncTelegramTrigger(
+    workflowId: string,
+    organizationId: string,
+    nodes: Node[],
+    apiHost?: string
+  ): Promise<void> {
+    const config = this.extractTelegramTriggerConfig(nodes);
+    const hasReceiveNode = nodes.some(
+      (n) => n.type === "receive-telegram-message"
+    );
+
+    if (config) {
+      // Check if config changed vs existing trigger
+      const existing = await getTelegramTrigger(
+        this.db,
+        workflowId,
+        organizationId
+      );
+      const changed =
+        !existing ||
+        existing.telegramBotId !== config.telegramBotId ||
+        existing.chatId !== config.chatId;
+
+      if (!changed) return;
+
+      // Unregister old webhook if bot changed
+      if (existing && existing.telegramBotId &&
+        existing.telegramBotId !== config.telegramBotId
+      ) {
+        await this.unregisterTelegramWebhook(
+          existing.telegramBotId,
+          organizationId
+        );
+      }
+
+      const secretToken = crypto.randomUUID();
+
+      try {
+        await upsertTelegramTrigger(this.db, {
+          workflowId,
+          organizationId,
+          chatId: config.chatId,
+          telegramBotId: config.telegramBotId,
+          secretToken,
+          active: true,
+          updatedAt: new Date(),
+        });
+
+        // Register webhook
+        if (apiHost) {
+          const bot = await getTelegramBot(
+            this.db,
+            config.telegramBotId,
+            organizationId
+          );
+          if (bot) {
+            const botToken = await decryptSecret(
+              bot.encryptedBotToken,
+              this.env,
+              organizationId
+            );
+            try {
+              await fetch(
+                `https://api.telegram.org/bot${botToken}/setWebhook`,
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    url: `${apiHost}/telegram/webhook/${config.chatId}`,
+                    secret_token: secretToken,
+                    allowed_updates: ["message"],
+                  }),
+                }
+              );
+            } catch (error) {
+              console.error(
+                "[TelegramTrigger] Failed to register webhook:",
+                error instanceof Error ? error.message : String(error)
+              );
+            }
+          }
+        }
+
+        console.log(
+          `Auto-registered telegram trigger: workflow=${workflowId}, chat=${config.chatId}`
+        );
+      } catch (_error) {
+        console.error(
+          `Failed to create telegram trigger for workflow ${workflowId}`
+        );
+      }
+    } else if (!hasReceiveNode) {
+      // Node removed entirely — delete trigger
+      try {
+        const existing = await getTelegramTrigger(
+          this.db,
+          workflowId,
+          organizationId
+        );
+        if (existing) {
+          await deleteTelegramTrigger(this.db, workflowId, organizationId);
+          if (existing.telegramBotId) {
+            await this.unregisterTelegramWebhook(
+              existing.telegramBotId,
+              organizationId
+            );
+          }
+        }
+      } catch (_error) {
+        // Ignore — trigger didn't exist
+      }
+    }
+    // If node exists but inputs are empty, leave existing trigger alone (backward compat)
+  }
+
+  private async connectDiscordDO(
+    discordBotId: string,
+    guildId: string,
+    botToken: string
+  ): Promise<void> {
+    try {
+      const doKey = `${discordBotId}:${guildId}`;
+      const doId = this.env.DISCORD_BOT.idFromName(doKey);
+      const stub = this.env.DISCORD_BOT.get(doId);
+      await stub.fetch(
+        new Request("https://discord-bot/connect", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            guildId,
+            botToken,
+            discordBotId,
+          }),
+        })
+      );
+    } catch (error) {
+      console.error(
+        "[DiscordTrigger] Failed to connect DO:",
+        error instanceof Error ? error.message : String(error)
+      );
+    }
+  }
+
+  private async disconnectDiscordDO(
+    discordBotId: string,
+    guildId: string
+  ): Promise<void> {
+    // Only disconnect if no other triggers use this bot+guild combo
+    const remainingTriggers = await getDiscordTriggersByGuild(
+      this.db,
+      guildId
+    );
+    const sameDoTriggers = remainingTriggers.filter(
+      (t) => t.discordTrigger.discordBotId === discordBotId
+    );
+    if (sameDoTriggers.length <= 1) {
+      try {
+        const doKey = `${discordBotId}:${guildId}`;
+        const doId = this.env.DISCORD_BOT.idFromName(doKey);
+        const stub = this.env.DISCORD_BOT.get(doId);
+        await stub.fetch(
+          new Request("https://discord-bot/disconnect", {
+            method: "POST",
+          })
+        );
+      } catch (error) {
+        console.error(
+          "[DiscordTrigger] Failed to disconnect DO:",
+          error instanceof Error ? error.message : String(error)
+        );
+      }
+    }
+  }
+
+  private async unregisterTelegramWebhook(
+    telegramBotId: string,
+    organizationId: string
+  ): Promise<void> {
+    // Only unregister if no other triggers use this bot
+    try {
+      const bot = await getTelegramBot(
+        this.db,
+        telegramBotId,
+        organizationId
+      );
+      if (bot) {
+        const botToken = await decryptSecret(
+          bot.encryptedBotToken,
+          this.env,
+          organizationId
+        );
+        await fetch(
+          `https://api.telegram.org/bot${botToken}/deleteWebhook`,
+          { method: "POST" }
+        );
+      }
+    } catch (error) {
+      console.error(
+        "[TelegramTrigger] Failed to unregister webhook:",
+        error instanceof Error ? error.message : String(error)
+      );
+    }
+  }
+
+  /**
+   * Sync triggers for queue_message, email_message, scheduled, discord_event, and telegram_event workflows
    * Directly upserts/deletes triggers without additional verification queries
    */
   private async syncTriggers(
     workflowId: string,
     workflowType: string,
     organizationId: string,
-    nodes: Node[]
+    nodes: Node[],
+    apiHost?: string
   ): Promise<void> {
     // Handle queue_message workflows
     if (workflowType === "queue_message") {
@@ -190,6 +562,21 @@ export class WorkflowStore {
         }
       }
     }
+
+    // Handle discord_event workflows
+    if (workflowType === "discord_event") {
+      await this.syncDiscordTrigger(workflowId, organizationId, nodes);
+    }
+
+    // Handle telegram_event workflows
+    if (workflowType === "telegram_event") {
+      await this.syncTelegramTrigger(
+        workflowId,
+        organizationId,
+        nodes,
+        apiHost
+      );
+    }
   }
 
   /**
@@ -226,7 +613,8 @@ export class WorkflowStore {
       record.id,
       record.trigger,
       record.organizationId,
-      nodes
+      nodes,
+      record.apiHost
     );
 
     // Save full data to R2

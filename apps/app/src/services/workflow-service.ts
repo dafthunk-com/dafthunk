@@ -13,10 +13,6 @@ import {
   ListWorkflowsResponse,
   UpdateWorkflowRequest,
   UpdateWorkflowResponse,
-  UpsertDiscordTriggerRequest,
-  UpsertDiscordTriggerResponse,
-  UpsertTelegramTriggerRequest,
-  UpsertTelegramTriggerResponse,
   WorkflowExecution,
   WorkflowWithMetadata,
 } from "@dafthunk/types";
@@ -837,26 +833,6 @@ export const useDiscordTrigger = (
 };
 
 /**
- * Upsert a Discord trigger for a workflow
- */
-export const upsertDiscordTrigger = async (
-  orgHandle: string,
-  workflowId: string,
-  data: UpsertDiscordTriggerRequest
-): Promise<UpsertDiscordTriggerResponse> => {
-  return await makeOrgRequest<UpsertDiscordTriggerResponse>(
-    orgHandle,
-    API_ENDPOINT_BASE,
-    `/${workflowId}/discord-trigger`,
-    {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    }
-  );
-};
-
-/**
  * Delete a Discord trigger for a workflow
  */
 export const deleteDiscordTrigger = async (
@@ -915,26 +891,6 @@ export const useTelegramTrigger = (
     isTelegramTriggerLoading: isLoading,
     mutateTelegramTrigger: mutate,
   };
-};
-
-/**
- * Upsert a Telegram trigger for a workflow
- */
-export const upsertTelegramTrigger = async (
-  orgHandle: string,
-  workflowId: string,
-  data: UpsertTelegramTriggerRequest
-): Promise<UpsertTelegramTriggerResponse> => {
-  return await makeOrgRequest<UpsertTelegramTriggerResponse>(
-    orgHandle,
-    API_ENDPOINT_BASE,
-    `/${workflowId}/telegram-trigger`,
-    {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    }
-  );
 };
 
 /**

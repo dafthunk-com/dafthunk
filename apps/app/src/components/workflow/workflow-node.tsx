@@ -110,6 +110,8 @@ export const TypeBadge = ({
     dataset: <FolderSearchIcon className={iconSize} />,
     queue: <LayersIcon className={iconSize} />,
     email: <MailIcon className={iconSize} />,
+    discord: <LinkIcon className={iconSize} />,
+    telegram: <LinkIcon className={iconSize} />,
     integration: <LinkIcon className={iconSize} />,
     any: <AsteriskIcon className={iconSize} />,
   } satisfies Record<InputOutputType, React.ReactNode>;
@@ -271,6 +273,8 @@ export const WorkflowNode = memo(
       "queue",
       "email",
       "integration",
+      "discord",
+      "telegram",
     ]);
     const resourceInputs = data.inputs.filter(
       (input) => input.hidden && resourceTypes.has(input.type)

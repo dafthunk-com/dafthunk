@@ -9,6 +9,7 @@ import { BooleanField } from "./boolean-field";
 import { DatabaseField } from "./database-field";
 import { DatasetField } from "./dataset-field";
 import { DateField } from "./date-field";
+import { DiscordBotField } from "./discord-bot-field";
 import { DocumentField } from "./document-field";
 import { EmailField } from "./email-field";
 import {
@@ -25,6 +26,7 @@ import { JsonField } from "./json-field";
 import { NumberField } from "./number-field";
 import { QueueField } from "./queue-field";
 import { SecretField } from "./secret-field";
+import { TelegramBotField } from "./telegram-bot-field";
 import { TextField } from "./text-field";
 import type { FieldProps, ObjectReference } from "./types";
 import { VideoField } from "./video-field";
@@ -127,6 +129,10 @@ export function Field(props: FieldRouterProps) {
       return <QueueField {...props} />;
     case "email":
       return <EmailField {...props} />;
+    case "discord":
+      return <DiscordBotField {...props} />;
+    case "telegram":
+      return <TelegramBotField {...props} />;
     case "integration":
       return <IntegrationField {...props} />;
     case "blob":

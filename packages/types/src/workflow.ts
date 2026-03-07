@@ -198,6 +198,14 @@ export type ParameterType =
       value?: string; // Email inbox ID reference
     }
   | {
+      type: "discord";
+      value?: string; // Discord bot ID reference
+    }
+  | {
+      type: "telegram";
+      value?: string; // Telegram bot ID reference
+    }
+  | {
       type: "integration";
       provider: string; // Integration provider name (e.g. "google-mail", "discord")
       value?: string; // Integration ID reference

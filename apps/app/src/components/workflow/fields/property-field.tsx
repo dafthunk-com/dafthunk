@@ -51,6 +51,8 @@ const getTypeIcon = (type: InputOutputType) => {
     dataset: <FolderSearchIcon className={iconSize} />,
     queue: <LayersIcon className={iconSize} />,
     email: <MailIcon className={iconSize} />,
+    discord: <LinkIcon className={iconSize} />,
+    telegram: <LinkIcon className={iconSize} />,
     integration: <LinkIcon className={iconSize} />,
     any: <AsteriskIcon className={iconSize} />,
   };

@@ -14,7 +14,30 @@ export class ReceiveDiscordMessageNode extends ExecutableNode {
       "This node extracts information from incoming Discord messages, providing access to guild ID, channel ID, message content, and author details.",
     compatibility: ["discord_event"],
     inlinable: true,
-    inputs: [],
+    inputs: [
+      {
+        name: "discordBotId",
+        type: "discord",
+        description: "The Discord bot to use for this trigger.",
+        hidden: true,
+        required: false,
+      },
+      {
+        name: "guildId",
+        type: "string",
+        description: "The Discord server (guild) ID to listen on.",
+        hidden: true,
+        required: false,
+      },
+      {
+        name: "channelId",
+        type: "string",
+        description:
+          "The channel ID to filter messages from. Leave empty for all channels.",
+        hidden: true,
+        required: false,
+      },
+    ],
     outputs: [
       {
         name: "guildId",

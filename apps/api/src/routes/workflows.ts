@@ -17,12 +17,8 @@ import {
   ListWorkflowsResponse,
   UpdateWorkflowRequest,
   UpdateWorkflowResponse,
-  UpsertDiscordTriggerRequest,
-  UpsertDiscordTriggerResponse,
   UpsertQueueTriggerRequest,
   UpsertQueueTriggerResponse,
-  UpsertTelegramTriggerRequest,
-  UpsertTelegramTriggerResponse,
   WorkflowWithMetadata,
 } from "@dafthunk/types";
 import { zValidator } from "@hono/zod-validator";
@@ -33,27 +29,22 @@ import { v7 as uuid } from "uuid";
 import { z } from "zod";
 import { apiKeyOrJwtMiddleware, jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
-import type { IntegrationProviderType } from "../db";
 import {
   createDatabase,
   createHandle,
   deleteDiscordTrigger as deleteDbDiscordTrigger,
   deleteQueueTrigger as deleteDbQueueTrigger,
   deleteTelegramTrigger as deleteDbTelegramTrigger,
-  getDiscordBot,
   getDiscordTrigger,
   getDiscordTriggersByGuild,
   getEmailTrigger,
-  getIntegrationByProvider,
   getOrganizationBillingInfo,
   getQueue,
   getQueueTrigger,
   getTelegramBot,
   getTelegramTrigger,
   getTelegramTriggersByChat,
-  upsertDiscordTrigger as upsertDbDiscordTrigger,
   upsertQueueTrigger as upsertDbQueueTrigger,
-  upsertTelegramTrigger as upsertDbTelegramTrigger,
   workflows,
 } from "../db";
 import { createRateLimitMiddleware } from "../middleware/rate-limit";
@@ -176,6 +167,7 @@ workflowRoutes.post(
       edges: workflowData.edges,
       createdAt: now,
       updatedAt: now,
+      apiHost: new URL(c.req.url).origin,
     });
 
     const response: CreateWorkflowResponse = {
@@ -336,6 +328,7 @@ workflowRoutes.put(
       edges: sanitizedEdges,
       createdAt: existingWorkflow.createdAt,
       updatedAt: now,
+      apiHost: new URL(c.req.url).origin,
     });
 
     const response: UpdateWorkflowResponse = {
@@ -871,182 +864,6 @@ workflowRoutes.get(
 );
 
 /**
- * Upsert (create or update) a discord trigger for a workflow.
- * Verifies guild ownership via the user's Discord OAuth integration.
- */
-const UpsertDiscordTriggerRequestSchema = z.object({
-  guildId: z.string().min(1, "Guild ID is required"),
-  channelId: z.string().nullable().optional(),
-  discordBotId: z.string().min(1, "Discord bot is required"),
-  active: z.boolean().optional(),
-}) as z.ZodType<UpsertDiscordTriggerRequest>;
-
-workflowRoutes.put(
-  "/:workflowIdOrHandle/discord-trigger",
-  jwtMiddleware,
-  zValidator("json", UpsertDiscordTriggerRequestSchema),
-  async (c) => {
-    const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
-    const organizationId = c.get("organizationId")!;
-    const data = c.req.valid("json");
-    const db = createDatabase(c.env.DB);
-    const workflowStore = new WorkflowStore(c.env);
-
-    const workflow = await workflowStore.get(
-      workflowIdOrHandle,
-      organizationId
-    );
-    if (!workflow) {
-      return c.json({ error: "Workflow not found" }, 404);
-    }
-
-    if (workflow.trigger !== "discord_event") {
-      return c.json({ error: "Workflow is not a discord_event workflow" }, 400);
-    }
-
-    // Verify the user has a Discord integration (OAuth)
-    const discordIntegration = await getIntegrationByProvider(
-      db,
-      "discord" satisfies IntegrationProviderType,
-      organizationId
-    );
-    if (!discordIntegration) {
-      return c.json(
-        {
-          error:
-            "Discord integration not connected. Please connect Discord in your integration settings.",
-        },
-        400
-      );
-    }
-
-    // Verify guild membership via Discord API using the user's OAuth token
-    const accessToken = await decryptSecret(
-      discordIntegration.encryptedToken,
-      c.env,
-      organizationId
-    );
-
-    const guildsResponse = await fetch(
-      "https://discord.com/api/v10/users/@me/guilds",
-      { headers: { Authorization: `Bearer ${accessToken}` } }
-    );
-
-    if (!guildsResponse.ok) {
-      return c.json(
-        {
-          error:
-            "Failed to verify Discord guild membership. Try reconnecting your Discord integration.",
-        },
-        400
-      );
-    }
-
-    const guilds = (await guildsResponse.json()) as Array<{
-      id: string;
-      permissions: string;
-    }>;
-    const guild = guilds.find((g) => g.id === data.guildId);
-
-    if (!guild) {
-      return c.json(
-        { error: "You do not have access to this Discord server" },
-        403
-      );
-    }
-
-    // Verify MANAGE_GUILD permission (bit 5 = 0x20)
-    const permissions = BigInt(guild.permissions);
-    const MANAGE_GUILD = BigInt(0x20);
-    const ADMINISTRATOR = BigInt(0x8);
-    if (!(permissions & MANAGE_GUILD) && !(permissions & ADMINISTRATOR)) {
-      return c.json(
-        { error: "You need Manage Server permission on this Discord server" },
-        403
-      );
-    }
-
-    const now = new Date();
-    const isActive = data.active ?? true;
-
-    try {
-      // Resolve per-bot token
-      const bot = await getDiscordBot(db, data.discordBotId, organizationId);
-      if (!bot) {
-        return c.json({ error: "Discord bot not found" }, 404);
-      }
-      const perBotToken = await decryptSecret(
-        bot.encryptedBotToken,
-        c.env,
-        organizationId
-      );
-
-      const upsertedTrigger = await upsertDbDiscordTrigger(db, {
-        workflowId: workflow.id,
-        organizationId,
-        guildId: data.guildId,
-        channelId: data.channelId ?? null,
-        discordBotId: data.discordBotId,
-        active: isActive,
-        updatedAt: now,
-      });
-
-      if (!upsertedTrigger) {
-        return c.json(
-          { error: "Failed to create or update discord trigger" },
-          500
-        );
-      }
-
-      // Connect the DO to Discord Gateway if trigger is active
-      if (isActive) {
-        try {
-          const doKey = `${data.discordBotId}:${data.guildId}`;
-          const doId = c.env.DISCORD_BOT.idFromName(doKey);
-          const stub = c.env.DISCORD_BOT.get(doId);
-          await stub.fetch(
-            new Request("https://discord-bot/connect", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                guildId: data.guildId,
-                botToken: perBotToken,
-                discordBotId: data.discordBotId,
-              }),
-            })
-          );
-        } catch (error) {
-          console.error(
-            "[DiscordTrigger] Failed to connect DO:",
-            error instanceof Error ? error.message : String(error)
-          );
-        }
-      }
-
-      const response: UpsertDiscordTriggerResponse = {
-        workflowId: upsertedTrigger.workflowId,
-        guildId: upsertedTrigger.guildId,
-        channelId: upsertedTrigger.channelId,
-        discordBotId: upsertedTrigger.discordBotId ?? null,
-        active: upsertedTrigger.active,
-        createdAt: upsertedTrigger.createdAt,
-        updatedAt: upsertedTrigger.updatedAt,
-      };
-      return c.json(response, 200);
-    } catch (dbError: unknown) {
-      console.error("Error upserting discord trigger:", dbError);
-      return c.json(
-        {
-          error: "Database error while saving discord trigger",
-          details: dbError instanceof Error ? dbError.message : String(dbError),
-        },
-        500
-      );
-    }
-  }
-);
-
-/**
  * Delete a discord trigger for a workflow
  */
 workflowRoutes.delete(
@@ -1157,131 +974,6 @@ workflowRoutes.get(
     };
 
     return c.json(response);
-  }
-);
-
-/**
- * Upsert (create or update) a telegram trigger for a workflow.
- */
-const UpsertTelegramTriggerRequestSchema = z.object({
-  chatId: z.string().min(1, "Chat ID is required"),
-  telegramBotId: z.string().min(1, "Telegram bot is required"),
-  active: z.boolean().optional(),
-}) as z.ZodType<UpsertTelegramTriggerRequest>;
-
-workflowRoutes.put(
-  "/:workflowIdOrHandle/telegram-trigger",
-  jwtMiddleware,
-  zValidator("json", UpsertTelegramTriggerRequestSchema),
-  async (c) => {
-    const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
-    const organizationId = c.get("organizationId")!;
-    const data = c.req.valid("json");
-    const db = createDatabase(c.env.DB);
-    const workflowStore = new WorkflowStore(c.env);
-
-    const workflow = await workflowStore.get(
-      workflowIdOrHandle,
-      organizationId
-    );
-    if (!workflow) {
-      return c.json({ error: "Workflow not found" }, 404);
-    }
-
-    if (workflow.trigger !== "telegram_event") {
-      return c.json(
-        { error: "Workflow is not a telegram_event workflow" },
-        400
-      );
-    }
-
-    const now = new Date();
-    const isActive = data.active ?? true;
-
-    // Generate a secret token for webhook verification
-    const secretToken = crypto.randomUUID();
-
-    // Resolve per-bot token if telegramBotId is provided
-    let telegramBotToken: string | undefined;
-    if (data.telegramBotId) {
-      const bot = await getTelegramBot(db, data.telegramBotId, organizationId);
-      if (!bot) {
-        return c.json({ error: "Telegram bot not found" }, 404);
-      }
-      telegramBotToken = await decryptSecret(
-        bot.encryptedBotToken,
-        c.env,
-        organizationId
-      );
-    }
-
-    try {
-      const upsertedTrigger = await upsertDbTelegramTrigger(db, {
-        workflowId: workflow.id,
-        organizationId,
-        chatId: data.chatId,
-        telegramBotId: data.telegramBotId ?? null,
-        secretToken,
-        active: isActive,
-        updatedAt: now,
-      });
-
-      if (!upsertedTrigger) {
-        return c.json(
-          { error: "Failed to create or update telegram trigger" },
-          500
-        );
-      }
-
-      // Register webhook with Telegram if trigger is active
-      if (isActive && telegramBotToken) {
-        try {
-          const apiHost = new URL(c.req.url).origin;
-          const response = await fetch(
-            `https://api.telegram.org/bot${telegramBotToken}/setWebhook`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                url: `${apiHost}/telegram/webhook/${data.chatId}`,
-                secret_token: secretToken,
-                allowed_updates: ["message"],
-              }),
-            }
-          );
-          if (!response.ok) {
-            console.error(
-              "[TelegramTrigger] Failed to set webhook:",
-              await response.text()
-            );
-          }
-        } catch (error) {
-          console.error(
-            "[TelegramTrigger] Failed to register webhook:",
-            error instanceof Error ? error.message : String(error)
-          );
-        }
-      }
-
-      const triggerResponse: UpsertTelegramTriggerResponse = {
-        workflowId: upsertedTrigger.workflowId,
-        chatId: upsertedTrigger.chatId,
-        telegramBotId: upsertedTrigger.telegramBotId ?? null,
-        active: upsertedTrigger.active,
-        createdAt: upsertedTrigger.createdAt,
-        updatedAt: upsertedTrigger.updatedAt,
-      };
-      return c.json(triggerResponse, 200);
-    } catch (dbError: unknown) {
-      console.error("Error upserting telegram trigger:", dbError);
-      return c.json(
-        {
-          error: "Database error while saving telegram trigger",
-          details: dbError instanceof Error ? dbError.message : String(dbError),
-        },
-        500
-      );
-    }
   }
 );
 
