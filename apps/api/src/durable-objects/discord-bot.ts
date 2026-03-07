@@ -499,6 +499,7 @@ export class DiscordBot extends DurableObject<Bindings> {
       },
       deploymentId,
       discordMessage: message,
+      ...(this.storedBotToken ? { discordBotToken: this.storedBotToken } : {}),
     };
 
     if (workflowData.runtime === "worker") {

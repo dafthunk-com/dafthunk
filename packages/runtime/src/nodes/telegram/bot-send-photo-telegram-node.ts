@@ -10,7 +10,7 @@ export class BotSendPhotoTelegramNode extends ExecutableNode {
     tags: ["Social", "Telegram", "Image", "Send"],
     icon: "image",
     documentation:
-      "This node sends photos to Telegram chats using the Telegram Bot API. Accepts a URL or an image blob. Requires TELEGRAM_BOT_TOKEN.",
+      "This node sends photos to Telegram chats using the Telegram Bot API. Accepts a URL or an image blob.",
     usage: 10,
     inputs: [
       {
@@ -51,12 +51,11 @@ export class BotSendPhotoTelegramNode extends ExecutableNode {
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { chatId, photo, caption } = context.inputs;
-      const botToken =
-        context.telegramBotToken ?? context.env.TELEGRAM_BOT_TOKEN;
+      const botToken = context.telegramBotToken;
 
       if (!botToken) {
         return this.createErrorResult(
-          "TELEGRAM_BOT_TOKEN is not configured in the environment."
+          "Telegram bot token is not available. Ensure the workflow is triggered via a configured Telegram bot."
         );
       }
 

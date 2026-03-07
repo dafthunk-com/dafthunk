@@ -11,7 +11,7 @@ export class BotForwardMessageTelegramNode extends ExecutableNode {
     tags: ["Social", "Telegram", "Message", "Forward"],
     icon: "forward",
     documentation:
-      "This node forwards messages between Telegram chats using the Telegram Bot API. Requires TELEGRAM_BOT_TOKEN.",
+      "This node forwards messages between Telegram chats using the Telegram Bot API.",
     usage: 10,
     inputs: [
       {
@@ -58,12 +58,11 @@ export class BotForwardMessageTelegramNode extends ExecutableNode {
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { chatId, fromChatId, messageId } = context.inputs;
-      const botToken =
-        context.telegramBotToken ?? context.env.TELEGRAM_BOT_TOKEN;
+      const botToken = context.telegramBotToken;
 
       if (!botToken) {
         return this.createErrorResult(
-          "TELEGRAM_BOT_TOKEN is not configured in the environment."
+          "Telegram bot token is not available. Ensure the workflow is triggered via a configured Telegram bot."
         );
       }
 

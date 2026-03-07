@@ -65,6 +65,7 @@ export interface RuntimeParams {
   readonly queueMessage?: QueueMessage;
   readonly scheduledTrigger?: ScheduledTrigger;
   readonly discordMessage?: DiscordMessage;
+  readonly discordBotToken?: string;
   readonly telegramMessage?: TelegramMessage;
   readonly telegramBotToken?: string;
   readonly userPlan?: string;
@@ -119,6 +120,7 @@ export abstract class Runtime<Env = unknown> {
   protected queueService?: QueueService;
   protected env: Env;
   protected userPlan?: string;
+  protected discordBotToken?: string;
   protected telegramBotToken?: string;
 
   /** Whether this runtime supports async node execution via waitForEvent */
@@ -249,12 +251,14 @@ export abstract class Runtime<Env = unknown> {
       queueMessage,
       scheduledTrigger,
       discordMessage,
+      discordBotToken,
       telegramMessage,
       telegramBotToken,
       userPlan,
     } = params;
 
     this.userPlan = userPlan;
+    this.discordBotToken = discordBotToken;
     this.telegramBotToken = telegramBotToken;
 
     console.log(
@@ -932,6 +936,7 @@ export abstract class Runtime<Env = unknown> {
         queueMessage: context.queueMessage,
         scheduledTrigger: context.scheduledTrigger,
         discordMessage: context.discordMessage,
+        discordBotToken: this.discordBotToken,
         telegramMessage: context.telegramMessage,
         telegramBotToken: this.telegramBotToken,
         onProgress: () => {},

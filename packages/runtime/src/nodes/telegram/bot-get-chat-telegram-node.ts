@@ -10,7 +10,7 @@ export class BotGetChatTelegramNode extends ExecutableNode {
     tags: ["Social", "Telegram", "Chat", "Info"],
     icon: "info",
     documentation:
-      "This node retrieves information about a Telegram chat using the Telegram Bot API. Requires TELEGRAM_BOT_TOKEN.",
+      "This node retrieves information about a Telegram chat using the Telegram Bot API.",
     usage: 5,
     inputs: [
       {
@@ -57,12 +57,11 @@ export class BotGetChatTelegramNode extends ExecutableNode {
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { chatId } = context.inputs;
-      const botToken =
-        context.telegramBotToken ?? context.env.TELEGRAM_BOT_TOKEN;
+      const botToken = context.telegramBotToken;
 
       if (!botToken) {
         return this.createErrorResult(
-          "TELEGRAM_BOT_TOKEN is not configured in the environment."
+          "Telegram bot token is not available. Ensure the workflow is triggered via a configured Telegram bot."
         );
       }
 

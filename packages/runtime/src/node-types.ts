@@ -213,8 +213,6 @@ export interface NodeEnv {
   SES_DEFAULT_FROM?: string;
   HUGGINGFACE_API_KEY?: string;
   REPLICATE_API_TOKEN?: string;
-  TELEGRAM_BOT_TOKEN?: string;
-  DISCORD_BOT_TOKEN?: string;
 }
 
 export interface NodeContext {
@@ -234,6 +232,7 @@ export interface NodeContext {
   queueMessage?: QueueMessage;
   scheduledTrigger?: ScheduledTrigger;
   discordMessage?: DiscordMessage;
+  discordBotToken?: string;
   telegramMessage?: TelegramMessage;
   telegramBotToken?: string;
   toolRegistry?: BaseToolRegistry;

@@ -14,7 +14,7 @@ export class BotAddReactionDiscordNode extends ExecutableNode {
     tags: ["Social", "Discord", "Reaction", "Add", "Bot"],
     icon: "smile",
     documentation:
-      "This node adds a reaction emoji to a Discord message using the bot token. Requires DISCORD_BOT_TOKEN to be configured.",
+      "This node adds a reaction emoji to a Discord message using the bot token.",
     usage: 10,
     inputs: [
       {
@@ -49,11 +49,11 @@ export class BotAddReactionDiscordNode extends ExecutableNode {
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { channelId, messageId, emoji } = context.inputs;
-      const botToken = context.env.DISCORD_BOT_TOKEN;
+      const botToken = context.discordBotToken;
 
       if (!botToken) {
         return this.createErrorResult(
-          "DISCORD_BOT_TOKEN is not configured in the environment."
+          "Discord bot token is not available. Ensure the workflow is triggered via a configured Discord bot."
         );
       }
 

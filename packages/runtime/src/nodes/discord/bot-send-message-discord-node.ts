@@ -14,7 +14,7 @@ export class BotSendMessageDiscordNode extends ExecutableNode {
     tags: ["Social", "Discord", "Message", "Send", "Bot"],
     icon: "message-circle",
     documentation:
-      "This node sends messages to Discord channels using the bot token. The message will appear as coming from the bot. Requires DISCORD_BOT_TOKEN to be configured.",
+      "This node sends messages to Discord channels using the bot token. The message will appear as coming from the bot.",
     usage: 10,
     inputs: [
       {
@@ -61,11 +61,11 @@ export class BotSendMessageDiscordNode extends ExecutableNode {
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { channelId, content, embeds } = context.inputs;
-      const botToken = context.env.DISCORD_BOT_TOKEN;
+      const botToken = context.discordBotToken;
 
       if (!botToken) {
         return this.createErrorResult(
-          "DISCORD_BOT_TOKEN is not configured in the environment."
+          "Discord bot token is not available. Ensure the workflow is triggered via a configured Discord bot."
         );
       }
 
