@@ -270,18 +270,15 @@ export class WorkflowStore {
     );
 
     if (config) {
-      // Check if config changed vs existing trigger
       const existing = await getTelegramTrigger(
         this.db,
         workflowId,
         organizationId
       );
-      const changed =
+      const configChanged =
         !existing ||
         existing.telegramBotId !== config.telegramBotId ||
         (existing.chatId ?? undefined) !== config.chatId;
-
-      if (!changed) return;
 
       // Unregister old webhook if bot changed
       if (existing && existing.telegramBotId &&
@@ -296,15 +293,17 @@ export class WorkflowStore {
       const secretToken = crypto.randomUUID();
 
       try {
-        await upsertTelegramTrigger(this.db, {
-          workflowId,
-          organizationId,
-          chatId: config.chatId,
-          telegramBotId: config.telegramBotId,
-          secretToken,
-          active: true,
-          updatedAt: new Date(),
-        });
+        if (configChanged) {
+          await upsertTelegramTrigger(this.db, {
+            workflowId,
+            organizationId,
+            chatId: config.chatId,
+            telegramBotId: config.telegramBotId,
+            secretToken,
+            active: true,
+            updatedAt: new Date(),
+          });
+        }
 
         // Register webhook
         if (apiHost) {
