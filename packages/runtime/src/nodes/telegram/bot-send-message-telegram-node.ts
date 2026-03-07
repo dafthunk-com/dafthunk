@@ -58,7 +58,8 @@ export class BotSendMessageTelegramNode extends ExecutableNode {
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { chatId, text, parseMode } = context.inputs;
-      const botToken = context.env.TELEGRAM_BOT_TOKEN;
+      const botToken =
+        context.telegramBotToken ?? context.env.TELEGRAM_BOT_TOKEN;
 
       if (!botToken) {
         return this.createErrorResult(

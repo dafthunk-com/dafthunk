@@ -66,6 +66,7 @@ export interface RuntimeParams {
   readonly scheduledTrigger?: ScheduledTrigger;
   readonly discordMessage?: DiscordMessage;
   readonly telegramMessage?: TelegramMessage;
+  readonly telegramBotToken?: string;
   readonly userPlan?: string;
 }
 
@@ -118,6 +119,7 @@ export abstract class Runtime<Env = unknown> {
   protected queueService?: QueueService;
   protected env: Env;
   protected userPlan?: string;
+  protected telegramBotToken?: string;
 
   /** Whether this runtime supports async node execution via waitForEvent */
   protected readonly supportsAsync: boolean = false;
@@ -248,10 +250,12 @@ export abstract class Runtime<Env = unknown> {
       scheduledTrigger,
       discordMessage,
       telegramMessage,
+      telegramBotToken,
       userPlan,
     } = params;
 
     this.userPlan = userPlan;
+    this.telegramBotToken = telegramBotToken;
 
     // Initialise state and execution record
     let executionState: ExecutionState = {
@@ -913,6 +917,7 @@ export abstract class Runtime<Env = unknown> {
         scheduledTrigger: context.scheduledTrigger,
         discordMessage: context.discordMessage,
         telegramMessage: context.telegramMessage,
+        telegramBotToken: this.telegramBotToken,
         onProgress: () => {},
         toolRegistry: this.toolRegistry,
         objectStore: this.objectStore,

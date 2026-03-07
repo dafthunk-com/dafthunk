@@ -235,6 +235,7 @@ export interface NodeContext {
   scheduledTrigger?: ScheduledTrigger;
   discordMessage?: DiscordMessage;
   telegramMessage?: TelegramMessage;
+  telegramBotToken?: string;
   toolRegistry?: BaseToolRegistry;
   objectStore?: ObjectStore;
   databaseService?: DatabaseService;
