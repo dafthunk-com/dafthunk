@@ -4,28 +4,29 @@ import type { NodeExecution, NodeType } from "@dafthunk/types";
 export class BotReceiveTelegramMessageNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "receive-telegram-message",
-    name: "Receive Telegram Message",
+    name: "Bot Receive Message (Telegram)",
     type: "receive-telegram-message",
     description:
-      "Extracts chat, message content, and author from an incoming Telegram message.",
+      "Receive an incoming message from a Telegram chat via the bot",
     tags: ["Social", "Telegram", "Message", "Receive"],
     icon: "message-square",
     documentation:
-      "This node extracts information from incoming Telegram messages, providing access to chat ID, message content, and author details.",
+      "This node receives incoming Telegram messages, providing access to chat ID, message content, and author details.",
     compatibility: ["telegram_event"],
     inlinable: true,
+    usage: 0,
     inputs: [
       {
         name: "telegramBotId",
         type: "telegram",
-        description: "The Telegram bot to use for this trigger.",
+        description: "The Telegram bot to use for this trigger",
         hidden: true,
         required: false,
       },
       {
         name: "chatId",
         type: "string",
-        description: "The Telegram chat ID to listen on.",
+        description: "The Telegram chat ID to listen on",
         hidden: true,
         required: false,
       },
@@ -34,42 +35,42 @@ export class BotReceiveTelegramMessageNode extends ExecutableNode {
       {
         name: "telegramBotId",
         type: "string",
-        description: "The internal Telegram bot ID used for this trigger.",
+        description: "The Telegram bot ID used for this trigger",
       },
       {
         name: "chatId",
-        type: "number",
-        description: "The Telegram chat ID.",
+        type: "string",
+        description: "Telegram chat ID",
       },
       {
         name: "messageId",
-        type: "number",
-        description: "The unique message ID.",
+        type: "string",
+        description: "Unique message ID",
       },
       {
         name: "content",
         type: "string",
-        description: "The message text content.",
+        description: "Message text content",
       },
       {
         name: "authorId",
-        type: "number",
-        description: "The message author's user ID.",
+        type: "string",
+        description: "Message author's user ID",
       },
       {
         name: "authorUsername",
         type: "string",
-        description: "The message author's username.",
+        description: "Message author's username",
       },
       {
         name: "authorFirstName",
         type: "string",
-        description: "The message author's first name.",
+        description: "Message author's first name",
       },
       {
         name: "timestamp",
-        type: "number",
-        description: "Unix timestamp of when the message was sent.",
+        type: "string",
+        description: "Unix timestamp of when the message was sent",
       },
     ],
   };
@@ -87,13 +88,13 @@ export class BotReceiveTelegramMessageNode extends ExecutableNode {
 
       return this.createSuccessResult({
         telegramBotId: telegramBotId ?? "",
-        chatId,
-        messageId,
+        chatId: String(chatId),
+        messageId: String(messageId),
         content,
-        authorId: author.id,
+        authorId: String(author.id),
         authorUsername: author.username,
         authorFirstName: author.firstName,
-        timestamp,
+        timestamp: String(timestamp),
       });
     } catch (error) {
       return this.createErrorResult(

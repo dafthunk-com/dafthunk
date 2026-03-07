@@ -28,7 +28,7 @@ export class BotForwardMessageTelegramNode extends ExecutableNode {
       },
       {
         name: "messageId",
-        type: "number",
+        type: "string",
         description: "ID of the message to forward",
         required: true,
       },
@@ -36,19 +36,19 @@ export class BotForwardMessageTelegramNode extends ExecutableNode {
     outputs: [
       {
         name: "messageId",
-        type: "number",
+        type: "string",
         description: "Forwarded message ID",
         hidden: true,
       },
       {
         name: "chatId",
-        type: "number",
+        type: "string",
         description: "Chat ID where the message was forwarded to",
         hidden: true,
       },
       {
         name: "date",
-        type: "number",
+        type: "string",
         description: "Unix timestamp of when the message was forwarded",
         hidden: true,
       },
@@ -74,7 +74,7 @@ export class BotForwardMessageTelegramNode extends ExecutableNode {
         return this.createErrorResult("Source chat ID is required");
       }
 
-      if (messageId === undefined || messageId === null) {
+      if (!messageId || typeof messageId !== "string") {
         return this.createErrorResult("Message ID is required");
       }
 
@@ -107,9 +107,9 @@ export class BotForwardMessageTelegramNode extends ExecutableNode {
       };
 
       return this.createSuccessResult({
-        messageId: data.result.message_id,
-        chatId: data.result.chat.id,
-        date: data.result.date,
+        messageId: String(data.result.message_id),
+        chatId: String(data.result.chat.id),
+        date: String(data.result.date),
       });
     } catch (error) {
       return this.createErrorResult(

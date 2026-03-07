@@ -23,7 +23,7 @@ export class BotGetChatTelegramNode extends ExecutableNode {
     outputs: [
       {
         name: "id",
-        type: "number",
+        type: "string",
         description: "Chat ID",
       },
       {
@@ -97,7 +97,7 @@ export class BotGetChatTelegramNode extends ExecutableNode {
       };
 
       return this.createSuccessResult({
-        id: data.result.id,
+        id: String(data.result.id),
         type: data.result.type,
         title: data.result.title ?? "",
         username: data.result.username ?? "",

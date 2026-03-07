@@ -35,13 +35,13 @@ export class BotSendPhotoTelegramNode extends ExecutableNode {
     outputs: [
       {
         name: "messageId",
-        type: "number",
+        type: "string",
         description: "Sent message ID",
         hidden: true,
       },
       {
         name: "chatId",
-        type: "number",
+        type: "string",
         description: "Chat ID where the photo was sent",
         hidden: true,
       },
@@ -105,8 +105,8 @@ export class BotSendPhotoTelegramNode extends ExecutableNode {
       };
 
       return this.createSuccessResult({
-        messageId: data.result.message_id,
-        chatId: data.result.chat.id,
+        messageId: String(data.result.message_id),
+        chatId: String(data.result.chat.id),
       });
     } catch (error) {
       return this.createErrorResult(

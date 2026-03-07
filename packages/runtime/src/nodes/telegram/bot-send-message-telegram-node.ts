@@ -36,19 +36,19 @@ export class BotSendMessageTelegramNode extends ExecutableNode {
     outputs: [
       {
         name: "messageId",
-        type: "number",
+        type: "string",
         description: "Sent message ID",
         hidden: true,
       },
       {
         name: "chatId",
-        type: "number",
+        type: "string",
         description: "Chat ID where the message was sent",
         hidden: true,
       },
       {
         name: "date",
-        type: "number",
+        type: "string",
         description: "Unix timestamp of when the message was sent",
         hidden: true,
       },
@@ -114,9 +114,9 @@ export class BotSendMessageTelegramNode extends ExecutableNode {
       };
 
       return this.createSuccessResult({
-        messageId: data.result.message_id,
-        chatId: data.result.chat.id,
-        date: data.result.date,
+        messageId: String(data.result.message_id),
+        chatId: String(data.result.chat.id),
+        date: String(data.result.date),
       });
     } catch (error) {
       return this.createErrorResult(
