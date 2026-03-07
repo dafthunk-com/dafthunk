@@ -63,6 +63,7 @@ telegramWebhook.post("/webhook/:telegramBotId", async (c) => {
     const env = c.env;
     c.executionCtx.waitUntil(
       dispatchWorkflows(env, telegramBotId, {
+        telegramBotId,
         chatId: msg.chat.id,
         messageId: msg.message_id,
         content: msg.text ?? "",
@@ -88,6 +89,7 @@ telegramWebhook.post("/webhook/:telegramBotId", async (c) => {
 });
 
 interface TelegramMessagePayload {
+  telegramBotId: string;
   chatId: number;
   messageId: number;
   content: string;
@@ -253,6 +255,7 @@ async function executeWorkflow(
     },
     deploymentId,
     telegramMessage: {
+      telegramBotId: message.telegramBotId,
       chatId: message.chatId,
       messageId: message.messageId,
       content: message.content,

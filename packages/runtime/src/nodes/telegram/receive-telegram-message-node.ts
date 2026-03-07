@@ -32,6 +32,11 @@ export class ReceiveTelegramMessageNode extends ExecutableNode {
     ],
     outputs: [
       {
+        name: "telegramBotId",
+        type: "string",
+        description: "The internal Telegram bot ID used for this trigger.",
+      },
+      {
         name: "chatId",
         type: "number",
         description: "The Telegram chat ID.",
@@ -77,10 +82,11 @@ export class ReceiveTelegramMessageNode extends ExecutableNode {
         );
       }
 
-      const { chatId, messageId, content, author, timestamp } =
+      const { telegramBotId, chatId, messageId, content, author, timestamp } =
         context.telegramMessage;
 
       return this.createSuccessResult({
+        telegramBotId: telegramBotId ?? "",
         chatId,
         messageId,
         content,

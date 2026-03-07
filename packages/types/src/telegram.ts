@@ -1,6 +1,7 @@
 // Telegram Trigger Types
 
 export interface TelegramMessage {
+  telegramBotId?: string;
   chatId: number;
   messageId: number;
   content: string;
