@@ -44,6 +44,7 @@ export class StateManager {
 
   setApiHost(apiHost: string): void {
     this.apiHost = apiHost;
+    this.storage.put("apiHost", apiHost);
   }
 
   /**
@@ -107,10 +108,15 @@ export class StateManager {
       return;
     }
 
-    const [workflowId, userId] = await Promise.all([
+    const [workflowId, userId, apiHost] = await Promise.all([
       this.storage.get<string>("workflowId"),
       this.storage.get<string>("userId"),
+      this.storage.get<string>("apiHost"),
     ]);
+
+    if (apiHost) {
+      this.apiHost = apiHost;
+    }
 
     if (!workflowId || !userId) {
       throw new Error("Session state lost. Please refresh the page.");

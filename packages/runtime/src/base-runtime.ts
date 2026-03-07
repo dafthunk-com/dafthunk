@@ -277,6 +277,7 @@ export abstract class Runtime<Env = unknown> {
     // Declare context and exhaustion flag outside try block for finally access
     let executionContext: WorkflowExecutionContext | undefined;
     let isExhausted = false;
+    let caughtError = false;
 
     try {
       // ========================================================================
@@ -400,11 +401,10 @@ export abstract class Runtime<Env = unknown> {
       executionState = finalState;
       executionRecord = finalRecord;
     } catch (error) {
+      caughtError = true;
       executionRecord = {
         ...executionRecord,
-        status: executionContext
-          ? getExecutionStatus(executionContext, executionState)
-          : "error",
+        status: "error",
         error: error instanceof Error ? error.message : String(error),
       };
       await this.monitoringService.sendUpdate(
@@ -424,7 +424,9 @@ export abstract class Runtime<Env = unknown> {
           async () => {
             const finalStatus = isExhausted
               ? ("exhausted" as const)
-              : getExecutionStatus(ctx, executionState);
+              : caughtError
+                ? ("error" as const)
+                : getExecutionStatus(ctx, executionState);
 
             // Record actual usage
             if (!isExhausted) {
@@ -453,7 +455,8 @@ export abstract class Runtime<Env = unknown> {
               nodeExecutions: this.buildNodeExecutions(
                 ctx.workflow,
                 ctx,
-                executionState
+                executionState,
+                finalStatus
               ),
               error: errorReport ?? executionRecord.error,
               startedAt: executionRecord.startedAt,
@@ -1078,10 +1081,12 @@ export abstract class Runtime<Env = unknown> {
   private buildNodeExecutions(
     workflow: Workflow,
     context: WorkflowExecutionContext,
-    state: ExecutionState
+    state: ExecutionState,
+    overrideStatus?: import("@dafthunk/types").WorkflowExecutionStatus
   ) {
     // Determine if workflow is still running
-    const isStillRunning = getExecutionStatus(context, state) === "executing";
+    const isStillRunning =
+      (overrideStatus ?? getExecutionStatus(context, state)) === "executing";
 
     return workflow.nodes.map((node) => {
       if (state.executedNodes.includes(node.id)) {
