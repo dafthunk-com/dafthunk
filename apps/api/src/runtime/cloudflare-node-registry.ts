@@ -92,7 +92,7 @@ import { GetChannelDiscordNode } from "@dafthunk/runtime/nodes/discord/get-chann
 import { GetGuildDiscordNode } from "@dafthunk/runtime/nodes/discord/get-guild-discord-node";
 import { ListGuildChannelsDiscordNode } from "@dafthunk/runtime/nodes/discord/list-guild-channels-discord-node";
 import { ListUserGuildsDiscordNode } from "@dafthunk/runtime/nodes/discord/list-user-guilds-discord-node";
-import { ReceiveDiscordMessageNode } from "@dafthunk/runtime/nodes/discord/receive-discord-message-node";
+import { BotReceiveDiscordMessageNode } from "@dafthunk/runtime/nodes/discord/bot-receive-discord-message-node";
 import { SendDMDiscordNode } from "@dafthunk/runtime/nodes/discord/send-dm-discord-node";
 import { SendMessageDiscordNode } from "@dafthunk/runtime/nodes/discord/send-message-discord-node";
 import { ToMarkdownNode } from "@dafthunk/runtime/nodes/document/to-markdown-node";
@@ -496,7 +496,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(DatabaseGetRowCountNode);
     this.registerImplementation(DatabaseTruncateTableNode);
     this.registerImplementation(ReceiveEmailNode);
-    this.registerImplementation(ReceiveDiscordMessageNode);
+    this.registerImplementation(BotReceiveDiscordMessageNode);
     this.registerImplementation(BotReceiveTelegramMessageNode);
     this.registerImplementation(ReceiveScheduledTriggerNode);
     this.registerImplementation(ParseEmailNode);

@@ -1,6 +1,7 @@
 // Discord Trigger Types
 
 export interface DiscordMessage {
+  discordBotId?: string;
   guildId: string;
   channelId: string;
   messageId: string;

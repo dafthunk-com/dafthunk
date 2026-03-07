@@ -1,31 +1,32 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
 
-export class ReceiveDiscordMessageNode extends ExecutableNode {
+export class BotReceiveDiscordMessageNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "receive-discord-message",
-    name: "Receive Discord Message",
+    name: "Bot Receive Message (Discord)",
     type: "receive-discord-message",
     description:
-      "Extracts guild, channel, message content, and author from an incoming Discord message.",
+      "Receive an incoming message from a Discord server via the bot",
     tags: ["Social", "Discord", "Message", "Receive"],
     icon: "message-square",
     documentation:
-      "This node extracts information from incoming Discord messages, providing access to guild ID, channel ID, message content, and author details.",
+      "This node receives incoming Discord messages, providing access to guild ID, channel ID, message content, and author details.",
     compatibility: ["discord_event"],
     inlinable: true,
+    usage: 0,
     inputs: [
       {
         name: "discordBotId",
         type: "discord",
-        description: "The Discord bot to use for this trigger.",
+        description: "The Discord bot to use for this trigger",
         hidden: true,
         required: false,
       },
       {
         name: "guildId",
         type: "string",
-        description: "The Discord server (guild) ID to listen on.",
+        description: "The Discord server (guild) ID to listen on",
         hidden: true,
         required: false,
       },
@@ -33,46 +34,51 @@ export class ReceiveDiscordMessageNode extends ExecutableNode {
         name: "channelId",
         type: "string",
         description:
-          "The channel ID to filter messages from. Leave empty for all channels.",
+          "The channel ID to filter messages from. Leave empty for all channels",
         hidden: true,
         required: false,
       },
     ],
     outputs: [
       {
+        name: "discordBotId",
+        type: "string",
+        description: "The Discord bot ID used for this trigger",
+      },
+      {
         name: "guildId",
         type: "string",
-        description: "The Discord server (guild) ID.",
+        description: "Discord server (guild) ID",
       },
       {
         name: "channelId",
         type: "string",
-        description: "The channel ID where the message was sent.",
+        description: "Channel ID where the message was sent",
       },
       {
         name: "messageId",
         type: "string",
-        description: "The unique message ID.",
+        description: "Unique message ID",
       },
       {
         name: "content",
         type: "string",
-        description: "The message text content.",
+        description: "Message text content",
       },
       {
         name: "authorId",
         type: "string",
-        description: "The message author's user ID.",
+        description: "Message author's user ID",
       },
       {
         name: "authorUsername",
         type: "string",
-        description: "The message author's username.",
+        description: "Message author's username",
       },
       {
         name: "timestamp",
         type: "string",
-        description: "The ISO timestamp of when the message was sent.",
+        description: "ISO timestamp of when the message was sent",
       },
     ],
   };
@@ -85,10 +91,18 @@ export class ReceiveDiscordMessageNode extends ExecutableNode {
         );
       }
 
-      const { guildId, channelId, messageId, content, author, timestamp } =
-        context.discordMessage;
+      const {
+        discordBotId,
+        guildId,
+        channelId,
+        messageId,
+        content,
+        author,
+        timestamp,
+      } = context.discordMessage;
 
       return this.createSuccessResult({
+        discordBotId: discordBotId ?? "",
         guildId,
         channelId,
         messageId,

@@ -349,6 +349,7 @@ export class DiscordBot extends DurableObject<Bindings> {
 
     this.ctx.waitUntil(
       this.dispatchWorkflows({
+        discordBotId: this.discordBotId ?? undefined,
         guildId,
         channelId,
         messageId,
@@ -364,6 +365,7 @@ export class DiscordBot extends DurableObject<Bindings> {
   }
 
   private async dispatchWorkflows(message: {
+    discordBotId?: string;
     guildId: string;
     channelId: string;
     messageId: string;
@@ -417,6 +419,7 @@ export class DiscordBot extends DurableObject<Bindings> {
       activeDeploymentId: string | null;
     },
     message: {
+      discordBotId?: string;
       guildId: string;
       channelId: string;
       messageId: string;
