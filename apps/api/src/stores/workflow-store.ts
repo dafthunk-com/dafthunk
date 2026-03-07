@@ -305,7 +305,12 @@ export class WorkflowStore {
           });
         }
 
-        // Register webhook
+        // Register webhook with Telegram
+        if (!apiHost) {
+          console.warn(
+            `[TelegramTrigger] No apiHost provided, skipping webhook registration for workflow=${workflowId}`
+          );
+        }
         if (apiHost) {
           const bot = await getTelegramBot(
             this.db,
@@ -338,6 +343,9 @@ export class WorkflowStore {
                   result.description
                 );
               } else {
+                console.log(
+                  `[TelegramTrigger] Webhook registered: ${apiHost}/telegram/webhook/${config.telegramBotId}`
+                );
                 // Sync secret token to all triggers using this bot
                 // (Telegram only allows one webhook per bot)
                 await updateTelegramBotSecretToken(
