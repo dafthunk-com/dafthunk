@@ -33,12 +33,17 @@ export class StateManager {
   private state: WorkflowState | null = null;
   private organizationId: string | null = null;
   private userId: string | null = null;
+  private apiHost: string | null = null;
   private pendingPersistTimeout: number | undefined = undefined;
 
   constructor(options: StateManagerOptions) {
     this.env = options.env;
     this.storage = options.storage;
     this.persistDebounceMs = options.persistDebounceMs ?? 500;
+  }
+
+  setApiHost(apiHost: string): void {
+    this.apiHost = apiHost;
   }
 
   /**
@@ -198,6 +203,7 @@ export class StateManager {
         organizationId: this.organizationId,
         nodes: this.state.nodes,
         edges: this.state.edges,
+        ...(this.apiHost ? { apiHost: this.apiHost } : {}),
       };
 
       // Save to both R2 and D1

@@ -54,6 +54,9 @@ export class Session extends DurableObject<Bindings> {
       return this.handleExecutionUpdate(request);
     }
 
+    // Capture API host for webhook registration
+    this.stateManager.setApiHost(url.origin);
+
     // All other endpoints require authentication and state
     const authResult = this.extractAuthParams(url, request);
     if (!authResult.success) {
