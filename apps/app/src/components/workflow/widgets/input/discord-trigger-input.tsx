@@ -1,0 +1,109 @@
+import { useState } from "react";
+
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useDiscordBots } from "@/services/discord-bot-service";
+import { cn } from "@/utils/utils";
+
+import { useWorkflow } from "../../workflow-context";
+import { updateNodeInput } from "../../workflow-context";
+import type { WorkflowParameter } from "../../workflow-types";
+import type { BaseWidgetProps } from "../widget";
+import { createWidget, getInputValue, useDebouncedChange } from "../widget";
+
+interface DiscordTriggerInputProps extends BaseWidgetProps {
+  nodeId: string;
+  discordBotId: string;
+  commandName: string;
+  inputs: WorkflowParameter[];
+}
+
+function DiscordTriggerInputWidget({
+  nodeId,
+  discordBotId,
+  commandName,
+  inputs,
+  className,
+  disabled = false,
+}: DiscordTriggerInputProps) {
+  const { discordBots, isDiscordBotsLoading } = useDiscordBots();
+  const { updateNodeData, edges, deleteEdge } = useWorkflow();
+  const [localCommand, setLocalCommand] = useState(commandName ?? "");
+
+  const { debouncedOnChange } = useDebouncedChange((value) => {
+    updateNodeInput(
+      nodeId,
+      "commandName",
+      value,
+      inputs,
+      updateNodeData,
+      edges,
+      deleteEdge
+    );
+  }, 300);
+
+  const handleBotChange = (value: string) => {
+    updateNodeInput(
+      nodeId,
+      "discordBotId",
+      value,
+      inputs,
+      updateNodeData,
+      edges,
+      deleteEdge
+    );
+  };
+
+  const handleCommandChange = (value: string) => {
+    setLocalCommand(value);
+    debouncedOnChange(value);
+  };
+
+  return (
+    <div className={cn("p-2 space-y-1", className)}>
+      <Select
+        value={discordBotId || ""}
+        onValueChange={handleBotChange}
+        disabled={disabled || isDiscordBotsLoading}
+      >
+        <SelectTrigger className="h-6 text-xs">
+          <SelectValue
+            placeholder={isDiscordBotsLoading ? "Loading..." : "Select a bot"}
+          />
+        </SelectTrigger>
+        <SelectContent>
+          {discordBots.map((bot) => (
+            <SelectItem key={bot.id} value={bot.id}>
+              {bot.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Input
+        value={localCommand}
+        onChange={(e) => handleCommandChange(e.target.value)}
+        placeholder="command"
+        disabled={disabled}
+        className="h-6 text-xs px-1.5 font-mono"
+      />
+    </div>
+  );
+}
+
+export const discordTriggerInputWidget = createWidget({
+  component: DiscordTriggerInputWidget,
+  nodeTypes: ["receive-discord-message"],
+  inputField: "commandName",
+  extractConfig: (nodeId, inputs) => ({
+    nodeId,
+    discordBotId: getInputValue(inputs, "discordBotId", ""),
+    commandName: getInputValue(inputs, "commandName", ""),
+    inputs,
+  }),
+});

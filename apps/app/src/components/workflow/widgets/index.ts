@@ -13,6 +13,7 @@ import { booleanInputWidget } from "./input/boolean-input";
 import { canvasInputWidget } from "./input/canvas-input";
 import { cronInputWidget } from "./input/cron-input";
 import { dateInputWidget } from "./input/date-input";
+import { discordTriggerInputWidget } from "./input/discord-trigger-input";
 import { documentInputWidget } from "./input/document-input";
 import { fileInputWidget } from "./input/file-input";
 import { geojsonInputWidget } from "./input/geojson-input";
@@ -62,6 +63,7 @@ const widgets = [
   secretInputWidget,
 
   // Advanced input widgets (special UX)
+  discordTriggerInputWidget,
   javascriptInputWidget,
   sliderInputWidget,
   cronInputWidget,
