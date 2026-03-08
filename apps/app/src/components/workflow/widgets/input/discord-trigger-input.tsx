@@ -81,7 +81,19 @@ function DiscordTriggerInputWidget({
       edges,
       deleteEdge
     );
-    setIsCreateDialogOpen(false);
+  };
+
+  const handleCommandNameSet = (value: string) => {
+    setLocalCommand(value);
+    updateNodeInput(
+      nodeId,
+      "commandName",
+      value,
+      inputs,
+      updateNodeData,
+      edges,
+      deleteEdge
+    );
   };
 
   const handleCommandChange = (value: string) => {
@@ -122,6 +134,7 @@ function DiscordTriggerInputWidget({
         isOpen={isCreateDialogOpen}
         onClose={() => setIsCreateDialogOpen(false)}
         onCreated={handleBotCreated}
+        onCommandNameSet={handleCommandNameSet}
       />
     </div>
   );

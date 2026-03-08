@@ -16,12 +16,14 @@ import { createDiscordBot } from "@/services/discord-bot-service";
 
 import { DiscordBotSetupInfo } from "../../bot-setup-info";
 
-type Step = "application" | "bot-token" | "setup";
+type Step = "application" | "bot-token" | "webhook" | "command" | "invite";
 
 const STEP_TITLES: Record<Step, string> = {
   application: "Create a Discord Application",
   "bot-token": "Bot Token",
-  setup: "Bot Created",
+  webhook: "Interactions Endpoint",
+  command: "Slash Command",
+  invite: "Add Bot to Server",
 };
 
 const STEP_DESCRIPTIONS: Record<Step, string> = {
@@ -29,20 +31,26 @@ const STEP_DESCRIPTIONS: Record<Step, string> = {
     "Create a new application in the Discord Developer Portal, then copy the Application ID and Public Key from the General Information page.",
   "bot-token":
     "Copy the token from the Bot page in the Discord Developer Portal.",
-  setup:
-    "Configure the Interactions Endpoint URL to receive slash commands.",
+  webhook:
+    "Copy the webhook URL below and paste it as the Interactions Endpoint URL in the Discord Developer Portal.",
+  command:
+    "Choose a name for the slash command that will trigger this workflow.",
+  invite:
+    "Add the bot to a Discord server so it can receive slash commands.",
 };
 
 interface DiscordBotCreateDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onCreated: (botId: string) => void;
+  onCommandNameSet?: (commandName: string) => void;
 }
 
 export function DiscordBotCreateDialog({
   isOpen,
   onClose,
   onCreated,
+  onCommandNameSet,
 }: DiscordBotCreateDialogProps) {
   const { organization } = useAuth();
   const [step, setStep] = useState<Step>("application");
@@ -50,6 +58,7 @@ export function DiscordBotCreateDialog({
   const [applicationId, setApplicationId] = useState("");
   const [publicKey, setPublicKey] = useState("");
   const [botToken, setBotToken] = useState("");
+  const [commandName, setCommandName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [createdBotId, setCreatedBotId] = useState<string | null>(null);
@@ -60,6 +69,7 @@ export function DiscordBotCreateDialog({
     setApplicationId("");
     setPublicKey("");
     setBotToken("");
+    setCommandName("");
     setError(null);
     setCreatedBotId(null);
   };
@@ -81,7 +91,7 @@ export function DiscordBotCreateDialog({
         organization.handle
       );
       setCreatedBotId(response.id);
-      setStep("setup");
+      setStep("webhook");
       onCreated(response.id);
     } catch (err) {
       setError(
@@ -92,6 +102,13 @@ export function DiscordBotCreateDialog({
     }
   };
 
+  const handleCommandNext = () => {
+    if (commandName.trim() && onCommandNameSet) {
+      onCommandNameSet(commandName.trim());
+    }
+    setStep("invite");
+  };
+
   const generalInfoUrl = applicationId
     ? `https://discord.com/developers/applications/${applicationId}/information`
     : "https://discord.com/developers/applications";
@@ -99,6 +116,10 @@ export function DiscordBotCreateDialog({
   const botSettingsUrl = applicationId
     ? `https://discord.com/developers/applications/${applicationId}/bot`
     : "https://discord.com/developers/applications";
+
+  const inviteUrl = applicationId
+    ? `https://discord.com/oauth2/authorize?client_id=${applicationId}&scope=bot+applications.commands&permissions=2048`
+    : null;
 
   const canAdvanceToToken =
     name.trim() !== "" &&
@@ -241,7 +262,7 @@ export function DiscordBotCreateDialog({
           </div>
         )}
 
-        {step === "setup" && (
+        {step === "webhook" && (
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-sm">
               <span className="text-xs px-2 py-0.5 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 rounded-md font-medium">
@@ -258,6 +279,76 @@ export function DiscordBotCreateDialog({
             )}
 
             <div className="flex justify-end">
+              <Button onClick={() => setStep("command")}>Next</Button>
+            </div>
+          </div>
+        )}
+
+        {step === "command" && (
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="discord-command">Command Name</Label>
+              <div className="flex items-center gap-1">
+                <span className="text-sm text-muted-foreground">/</span>
+                <Input
+                  id="discord-command"
+                  value={commandName}
+                  onChange={(e) => setCommandName(e.target.value)}
+                  placeholder="ask"
+                  className="font-mono"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Users will type /{commandName || "command"} in Discord to
+                trigger this workflow.
+              </p>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-1">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setStep("webhook")}
+              >
+                Back
+              </Button>
+              <Button
+                onClick={handleCommandNext}
+                disabled={commandName.trim() === ""}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {step === "invite" && (
+          <div className="space-y-4">
+            {inviteUrl && (
+              <div className="bg-muted/50 p-3 rounded-md">
+                <a
+                  href={inviteUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+                >
+                  Add {name} to a Server
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+                <p className="text-xs text-muted-foreground mt-1">
+                  This will request the bot and slash commands permissions.
+                </p>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2 pt-1">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setStep("command")}
+              >
+                Back
+              </Button>
               <Button onClick={handleClose}>Done</Button>
             </div>
           </div>
