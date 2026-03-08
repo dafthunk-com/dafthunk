@@ -1,19 +1,21 @@
 // Discord Trigger Types
 
-export interface DiscordMessage {
-  discordBotId?: string;
-  guildId: string;
-  channelId: string;
-  messageId: string;
-  content: string;
-  author: { id: string; username: string; bot: boolean };
-  timestamp: string;
+export interface DiscordInteraction {
+  discordBotId: string;
+  interactionId: string;
+  interactionToken: string;
+  applicationId: string;
+  commandName: string;
+  options: Record<string, string | number | boolean>;
+  guildId?: string;
+  channelId?: string;
+  user: { id: string; username: string; globalName?: string };
 }
 
 export interface GetDiscordTriggerResponse {
   workflowId: string;
-  guildId: string;
-  channelId: string | null;
+  commandName: string;
+  commandDescription: string | null;
   discordBotId: string | null;
   active: boolean;
   createdAt: string | Date;
@@ -21,8 +23,8 @@ export interface GetDiscordTriggerResponse {
 }
 
 export interface UpsertDiscordTriggerRequest {
-  guildId: string;
-  channelId?: string | null;
+  commandName: string;
+  commandDescription?: string | null;
   discordBotId: string;
   active?: boolean;
 }

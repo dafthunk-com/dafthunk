@@ -1,5 +1,5 @@
 import type {
-  DiscordMessage,
+  DiscordInteraction,
   JsonArray,
   JsonObject,
   NodeType,
@@ -89,8 +89,8 @@ export interface WorkflowExecutionContext {
   readonly queueMessage?: QueueMessage;
   /** Incoming scheduled trigger (for cron-triggered workflows) */
   readonly scheduledTrigger?: ScheduledTrigger;
-  /** Incoming Discord message (for discord-triggered workflows) */
-  readonly discordMessage?: DiscordMessage;
+  /** Incoming Discord interaction (for discord-triggered workflows) */
+  readonly discordInteraction?: DiscordInteraction;
   /** Incoming Telegram message (for telegram-triggered workflows) */
   readonly telegramMessage?: TelegramMessage;
   /** Session ID for real-time monitoring updates */

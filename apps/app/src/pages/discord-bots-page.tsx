@@ -1,5 +1,6 @@
 import type { GetDiscordBotResponse } from "@dafthunk/types";
 import type { ColumnDef } from "@tanstack/react-table";
+import Copy from "lucide-react/icons/copy";
 import ExternalLink from "lucide-react/icons/external-link";
 import MoreHorizontal from "lucide-react/icons/more-horizontal";
 import PlusCircle from "lucide-react/icons/plus-circle";
@@ -29,6 +30,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { getApiBaseUrl } from "@/config/api";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import {
   createDiscordBot,
@@ -136,11 +138,30 @@ function createColumns(
       },
     },
     {
+      id: "webhookUrl",
+      header: "Webhook URL",
+      cell: ({ row }) => {
+        const botId = row.original.id;
+        const webhookUrl = `${getApiBaseUrl()}/discord/webhook/${botId}`;
+        return (
+          <button
+            type="button"
+            onClick={() => navigator.clipboard.writeText(webhookUrl)}
+            className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+            title={webhookUrl}
+          >
+            Copy URL
+            <Copy className="h-3 w-3" />
+          </button>
+        );
+      },
+    },
+    {
       id: "inviteUrl",
       header: "Invite",
       cell: ({ row }) => {
         const appId = row.original.applicationId;
-        const url = `https://discord.com/oauth2/authorize?client_id=${appId}&scope=bot&permissions=2048`;
+        const url = `https://discord.com/oauth2/authorize?client_id=${appId}&scope=bot+applications.commands&permissions=2048`;
         return (
           <a
             href={url}
@@ -206,14 +227,18 @@ export function DiscordBotsPage() {
   const handleCreateBot = async (
     name: string,
     botToken: string,
-    applicationId: string
+    applicationId: string,
+    publicKey: string
   ) => {
     if (!orgHandle) return;
     setIsCreating(true);
     setCreateError(null);
 
     try {
-      await createDiscordBot({ name, botToken, applicationId }, orgHandle);
+      await createDiscordBot(
+        { name, botToken, applicationId, publicKey },
+        orgHandle
+      );
       mutateDiscordBots();
       setIsCreateDialogOpen(false);
     } catch (error) {
@@ -268,7 +293,8 @@ export function DiscordBotsPage() {
                 const name = formData.get("name") as string;
                 const botToken = formData.get("botToken") as string;
                 const applicationId = formData.get("applicationId") as string;
-                await handleCreateBot(name, botToken, applicationId);
+                const publicKey = formData.get("publicKey") as string;
+                await handleCreateBot(name, botToken, applicationId, publicKey);
               }}
               className="space-y-4"
             >
@@ -309,6 +335,21 @@ export function DiscordBotsPage() {
                 <p className="text-xs text-muted-foreground mt-1">
                   Found in your application's General Information page on the
                   Discord Developer Portal.
+                </p>
+              </div>
+              <div>
+                <Label htmlFor="publicKey">Public Key</Label>
+                <Input
+                  id="publicKey"
+                  name="publicKey"
+                  placeholder="Enter your application's public key"
+                  className="mt-2"
+                  required
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Found in your application's General Information page on the
+                  Discord Developer Portal. Used to verify interaction
+                  signatures.
                 </p>
               </div>
               {createError && (

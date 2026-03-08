@@ -25,13 +25,7 @@ import {
 } from "../db";
 import { encryptSecret } from "../utils/encryption";
 
-type ExtendedApiContext = ApiContext & {
-  Variables: {
-    organizationId?: string;
-  };
-};
-
-const discordBotRoutes = new Hono<ExtendedApiContext>();
+const discordBotRoutes = new Hono<ApiContext>();
 
 discordBotRoutes.use("*", jwtMiddleware);
 
@@ -41,7 +35,12 @@ discordBotRoutes.get("/", async (c) => {
 
   const allBots = await getDiscordBots(db, organizationId);
 
-  const response: ListDiscordBotsResponse = { discordBots: allBots };
+  const response: ListDiscordBotsResponse = {
+    discordBots: allBots.map((bot) => ({
+      ...bot,
+      publicKey: bot.publicKey ?? "",
+    })),
+  };
   return c.json(response);
 });
 
@@ -53,6 +52,7 @@ discordBotRoutes.post(
       name: z.string().min(1, "Bot name is required"),
       botToken: z.string().min(1, "Bot token is required"),
       applicationId: z.string().min(1, "Application ID is required"),
+      publicKey: z.string().min(1, "Public key is required"),
     }) as z.ZodType<CreateDiscordBotRequest>
   ),
   async (c) => {
@@ -91,6 +91,7 @@ discordBotRoutes.post(
       handle: botHandle,
       encryptedBotToken,
       applicationId: data.applicationId,
+      publicKey: data.publicKey,
       tokenLastFour,
       organizationId,
       createdAt: now,
@@ -102,6 +103,7 @@ discordBotRoutes.post(
       name: newBot.name,
       handle: newBot.handle,
       applicationId: newBot.applicationId,
+      publicKey: newBot.publicKey ?? "",
       tokenLastFour: newBot.tokenLastFour,
       createdAt: newBot.createdAt,
       updatedAt: newBot.updatedAt,
@@ -126,6 +128,7 @@ discordBotRoutes.get("/:id", async (c) => {
     name: bot.name,
     handle: bot.handle,
     applicationId: bot.applicationId,
+    publicKey: bot.publicKey ?? "",
     tokenLastFour: bot.tokenLastFour,
     createdAt: bot.createdAt,
     updatedAt: bot.updatedAt,
@@ -141,6 +144,7 @@ discordBotRoutes.put(
     z.object({
       name: z.string().min(1).optional(),
       botToken: z.string().min(1).optional(),
+      publicKey: z.string().min(1).optional(),
     }) as z.ZodType<UpdateDiscordBotRequest>
   ),
   async (c) => {
@@ -159,6 +163,10 @@ discordBotRoutes.put(
 
     if (data.name) {
       updateData.name = data.name;
+    }
+
+    if (data.publicKey) {
+      updateData.publicKey = data.publicKey;
     }
 
     if (data.botToken) {
@@ -197,6 +205,7 @@ discordBotRoutes.put(
       name: updatedBot.name,
       handle: updatedBot.handle,
       applicationId: updatedBot.applicationId,
+      publicKey: updatedBot.publicKey ?? "",
       tokenLastFour: updatedBot.tokenLastFour,
       createdAt: updatedBot.createdAt,
       updatedAt: updatedBot.updatedAt,

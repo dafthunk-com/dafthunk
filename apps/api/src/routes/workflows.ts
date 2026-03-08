@@ -36,7 +36,6 @@ import {
   deleteQueueTrigger as deleteDbQueueTrigger,
   deleteTelegramTrigger as deleteDbTelegramTrigger,
   getDiscordTrigger,
-  getDiscordTriggersByGuild,
   getEmailTrigger,
   getOrganizationBillingInfo,
   getQueue,
@@ -851,8 +850,8 @@ workflowRoutes.get(
 
     const response: GetDiscordTriggerResponse = {
       workflowId: discordTrigger.workflowId,
-      guildId: discordTrigger.guildId,
-      channelId: discordTrigger.channelId,
+      commandName: discordTrigger.commandName,
+      commandDescription: discordTrigger.commandDescription,
       discordBotId: discordTrigger.discordBotId ?? null,
       active: discordTrigger.active,
       createdAt: discordTrigger.createdAt,
@@ -894,34 +893,6 @@ workflowRoutes.delete(
         { error: "Discord trigger not found for this workflow" },
         404
       );
-    }
-
-    // Check if there are other triggers for this guild+bot combo — if not, disconnect the DO
-    if (deletedTrigger.discordBotId) {
-      const remainingTriggers = await getDiscordTriggersByGuild(
-        db,
-        deletedTrigger.guildId
-      );
-      const sameDoTriggers = remainingTriggers.filter(
-        (t) => t.discordTrigger.discordBotId === deletedTrigger.discordBotId
-      );
-      if (sameDoTriggers.length === 0) {
-        try {
-          const doKey = `${deletedTrigger.discordBotId}:${deletedTrigger.guildId}`;
-          const doId = c.env.DISCORD_BOT.idFromName(doKey);
-          const stub = c.env.DISCORD_BOT.get(doId);
-          await stub.fetch(
-            new Request("https://discord-bot/disconnect", {
-              method: "POST",
-            })
-          );
-        } catch (error) {
-          console.error(
-            "[DiscordTrigger] Failed to disconnect DO:",
-            error instanceof Error ? error.message : String(error)
-          );
-        }
-      }
     }
 
     const response: DeleteDiscordTriggerResponse = {

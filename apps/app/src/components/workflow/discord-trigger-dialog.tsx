@@ -40,7 +40,7 @@ export function DiscordTriggerDialog({
   );
   const inviteAppId = selectedBot?.applicationId;
   const inviteUrl = inviteAppId
-    ? `https://discord.com/oauth2/authorize?client_id=${inviteAppId}&scope=bot&permissions=2048`
+    ? `https://discord.com/oauth2/authorize?client_id=${inviteAppId}&scope=bot+applications.commands&permissions=2048`
     : null;
 
   return (
@@ -64,7 +64,7 @@ export function DiscordTriggerDialog({
               </p>
               <p>
                 Configure the Receive Discord Message node to set up this
-                trigger by selecting a bot and entering a server ID.
+                trigger by selecting a bot and entering a slash command name.
               </p>
             </div>
           ) : (
@@ -72,7 +72,9 @@ export function DiscordTriggerDialog({
               <div className="space-y-1.5">
                 <Label>Bot</Label>
                 <p className="text-sm">
-                  {selectedBot?.name ?? discordTrigger.discordBotId ?? "Unknown"}
+                  {selectedBot?.name ??
+                    discordTrigger.discordBotId ??
+                    "Unknown"}
                 </p>
               </div>
 
@@ -91,18 +93,11 @@ export function DiscordTriggerDialog({
               )}
 
               <div className="space-y-1.5">
-                <Label>Server ID</Label>
-                <p className="text-sm font-mono">{discordTrigger.guildId}</p>
+                <Label>Slash Command</Label>
+                <p className="text-sm font-mono">
+                  /{discordTrigger.commandName}
+                </p>
               </div>
-
-              {discordTrigger.channelId && (
-                <div className="space-y-1.5">
-                  <Label>Channel ID</Label>
-                  <p className="text-sm font-mono">
-                    {discordTrigger.channelId}
-                  </p>
-                </div>
-              )}
 
               <div className="space-y-1.5">
                 <Label>Status</Label>
@@ -116,6 +111,16 @@ export function DiscordTriggerDialog({
                       Inactive
                     </span>
                   )}
+                </p>
+              </div>
+
+              <div className="bg-muted/50 p-3 rounded-md text-sm text-muted-foreground">
+                <p className="font-medium text-foreground mb-1">
+                  Setup Instructions
+                </p>
+                <p>
+                  Set the Interactions Endpoint URL in the Discord Developer
+                  Portal to enable slash command handling.
                 </p>
               </div>
 

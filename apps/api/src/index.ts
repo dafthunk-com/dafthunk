@@ -15,6 +15,7 @@ import databaseRoutes from "./routes/databases";
 import datasetRoutes from "./routes/datasets";
 import deploymentRoutes from "./routes/deployments";
 import discordBotRoutes from "./routes/discord-bots";
+import discordWebhook from "./routes/discord-webhook";
 import emailRoutes from "./routes/emails";
 import executionRoutes from "./routes/executions";
 import feedbackRoutes from "./routes/feedback";
@@ -85,6 +86,9 @@ app.route("/stripe/webhooks", stripeWebhooks);
 // Telegram webhook (no auth, called by Telegram)
 app.route("/telegram", telegramWebhook);
 
+// Discord webhook (no auth, verified by Ed25519 signature)
+app.route("/discord", discordWebhook);
+
 // Replicate schema proxy (JWT-authenticated, not org-scoped)
 app.route("/replicate", replicateRoutes);
 
@@ -117,7 +121,6 @@ export { Session as WorkflowSession };
 export { DatabaseDO };
 export { FFmpegContainer } from "./containers/ffmpeg-container";
 export { AgentRunner } from "./durable-objects/agent-runner";
-export { DiscordBot } from "./durable-objects/discord-bot";
 
 export default {
   email: handleIncomingEmail,

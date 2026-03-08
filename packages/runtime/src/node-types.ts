@@ -1,6 +1,6 @@
 // Types for workflows
 import type {
-  DiscordMessage,
+  DiscordInteraction,
   GeoJSON,
   Node,
   NodeExecution,
@@ -231,7 +231,7 @@ export interface NodeContext {
   emailMessage?: EmailMessage;
   queueMessage?: QueueMessage;
   scheduledTrigger?: ScheduledTrigger;
-  discordMessage?: DiscordMessage;
+  discordInteraction?: DiscordInteraction;
   discordBotToken?: string;
   telegramMessage?: TelegramMessage;
   telegramBotToken?: string;

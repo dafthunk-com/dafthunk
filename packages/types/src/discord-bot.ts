@@ -4,6 +4,7 @@ export interface CreateDiscordBotRequest {
   name: string;
   botToken: string;
   applicationId: string;
+  publicKey: string;
 }
 
 export interface CreateDiscordBotResponse {
@@ -11,6 +12,7 @@ export interface CreateDiscordBotResponse {
   name: string;
   handle: string;
   applicationId: string;
+  publicKey: string;
   tokenLastFour: string;
   createdAt: string | Date;
   updatedAt: string | Date;
@@ -25,6 +27,7 @@ export interface ListDiscordBotsResponse {
 export interface UpdateDiscordBotRequest {
   name?: string;
   botToken?: string;
+  publicKey?: string;
 }
 
 export type UpdateDiscordBotResponse = GetDiscordBotResponse;

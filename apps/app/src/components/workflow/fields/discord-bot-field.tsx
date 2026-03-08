@@ -28,9 +28,7 @@ export function DiscordBotField({
         <Select value={stringValue} disabled>
           <SelectTrigger>
             <SelectValue
-              placeholder={
-                connected ? "Connected" : label || "No Discord bot"
-              }
+              placeholder={connected ? "Connected" : label || "No Discord bot"}
             />
           </SelectTrigger>
         </Select>

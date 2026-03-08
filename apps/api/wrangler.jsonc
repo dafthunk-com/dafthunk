@@ -113,11 +113,6 @@
       {
         "name": "FFMPEG_CONTAINER",
         "class_name": "FFmpegContainer"
-      },
-      {
-        "name": "DISCORD_BOT",
-        "class_name": "DiscordBot",
-        "script_name": "dafthunk-api"
       }
     ]
   },
@@ -141,6 +136,10 @@
     {
       "tag": "v5",
       "new_sqlite_classes": ["DiscordBot"]
+    },
+    {
+      "tag": "v6",
+      "deleted_classes": ["DiscordBot"]
     }
   ],
   "unsafe": {
@@ -264,11 +263,6 @@
           {
             "name": "FFMPEG_CONTAINER",
             "class_name": "FFmpegContainer"
-          },
-          {
-            "name": "DISCORD_BOT",
-            "class_name": "DiscordBot",
-            "script_name": "dafthunk-api"
           }
         ]
       },
@@ -292,6 +286,10 @@
         {
           "tag": "v5",
           "new_sqlite_classes": ["DiscordBot"]
+        },
+        {
+          "tag": "v6",
+          "deleted_classes": ["DiscordBot"]
         }
       ],
       "unsafe": {

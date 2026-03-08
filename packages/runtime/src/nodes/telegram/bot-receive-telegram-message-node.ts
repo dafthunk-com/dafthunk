@@ -6,8 +6,7 @@ export class BotReceiveTelegramMessageNode extends ExecutableNode {
     id: "receive-telegram-message",
     name: "Bot Receive Message (Telegram)",
     type: "receive-telegram-message",
-    description:
-      "Receive an incoming message from a Telegram chat via the bot",
+    description: "Receive an incoming message from a Telegram chat via the bot",
     tags: ["Social", "Telegram", "Message", "Receive"],
     icon: "message-square",
     documentation:

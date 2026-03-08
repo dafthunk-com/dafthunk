@@ -72,7 +72,7 @@ export function TelegramTriggerDialog({
                 <p className="text-sm">
                   {selectedBot
                     ? `${selectedBot.name}${botUsername ? ` (@${botUsername})` : ""}`
-                    : telegramTrigger.telegramBotId ?? "Unknown"}
+                    : (telegramTrigger.telegramBotId ?? "Unknown")}
                 </p>
               </div>
 

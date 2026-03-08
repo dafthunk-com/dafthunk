@@ -25,13 +25,7 @@ import {
 } from "../db";
 import { encryptSecret } from "../utils/encryption";
 
-type ExtendedApiContext = ApiContext & {
-  Variables: {
-    organizationId?: string;
-  };
-};
-
-const telegramBotRoutes = new Hono<ExtendedApiContext>();
+const telegramBotRoutes = new Hono<ApiContext>();
 
 telegramBotRoutes.use("*", jwtMiddleware);
 

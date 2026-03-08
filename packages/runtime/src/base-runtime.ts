@@ -1,6 +1,6 @@
 import { NonRetryableError } from "cloudflare:workflows";
 import type {
-  DiscordMessage,
+  DiscordInteraction,
   Node,
   QueueMessage,
   ScheduledTrigger,
@@ -64,7 +64,7 @@ export interface RuntimeParams {
   readonly emailMessage?: EmailMessage;
   readonly queueMessage?: QueueMessage;
   readonly scheduledTrigger?: ScheduledTrigger;
-  readonly discordMessage?: DiscordMessage;
+  readonly discordInteraction?: DiscordInteraction;
   readonly discordBotToken?: string;
   readonly telegramMessage?: TelegramMessage;
   readonly telegramBotToken?: string;
@@ -250,7 +250,7 @@ export abstract class Runtime<Env = unknown> {
       emailMessage,
       queueMessage,
       scheduledTrigger,
-      discordMessage,
+      discordInteraction,
       discordBotToken,
       telegramMessage,
       telegramBotToken,
@@ -332,7 +332,7 @@ export abstract class Runtime<Env = unknown> {
             emailMessage,
             queueMessage,
             scheduledTrigger,
-            discordMessage,
+            discordInteraction,
             telegramMessage,
             workflowSessionId,
           };
@@ -935,7 +935,7 @@ export abstract class Runtime<Env = unknown> {
         emailMessage: context.emailMessage,
         queueMessage: context.queueMessage,
         scheduledTrigger: context.scheduledTrigger,
-        discordMessage: context.discordMessage,
+        discordInteraction: context.discordInteraction,
         discordBotToken: this.discordBotToken,
         telegramMessage: context.telegramMessage,
         telegramBotToken: this.telegramBotToken,

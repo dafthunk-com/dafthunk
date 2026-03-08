@@ -1,17 +1,13 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
 
-/**
- * Discord Bot Send Message node implementation
- * Sends messages to Discord channels using the bot token directly
- */
 export class BotSendMessageDiscordNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "bot-send-message-discord",
     name: "Bot Send Message (Discord)",
     type: "bot-send-message-discord",
     description: "Send a message to a Discord channel as the bot",
-    tags: ["Social", "Discord", "Message", "Send", "Bot"],
+    tags: ["Social", "Discord", "Message", "Send"],
     icon: "message-circle",
     documentation:
       "This node sends messages to Discord channels using the bot token. The message will appear as coming from the bot.",

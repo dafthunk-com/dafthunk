@@ -7,11 +7,11 @@ export class BotReceiveDiscordMessageNode extends ExecutableNode {
     name: "Bot Receive Message (Discord)",
     type: "receive-discord-message",
     description:
-      "Receive an incoming message from a Discord server via the bot",
+      "Receive an incoming slash command interaction from Discord via the bot",
     tags: ["Social", "Discord", "Message", "Receive"],
     icon: "message-square",
     documentation:
-      "This node receives incoming Discord messages, providing access to guild ID, channel ID, message content, and author details.",
+      "This node receives incoming Discord slash command interactions, providing access to command name, options, user details, and interaction tokens for deferred responses.",
     compatibility: ["discord_event"],
     inlinable: true,
     usage: 0,
@@ -24,17 +24,9 @@ export class BotReceiveDiscordMessageNode extends ExecutableNode {
         required: false,
       },
       {
-        name: "guildId",
+        name: "commandName",
         type: "string",
-        description: "The Discord server (guild) ID to listen on",
-        hidden: true,
-        required: false,
-      },
-      {
-        name: "channelId",
-        type: "string",
-        description:
-          "The channel ID to filter messages from. Leave empty for all channels",
+        description: "The slash command name to register (e.g. 'run')",
         hidden: true,
         required: false,
       },
@@ -46,6 +38,46 @@ export class BotReceiveDiscordMessageNode extends ExecutableNode {
         description: "The Discord bot ID used for this trigger",
       },
       {
+        name: "commandName",
+        type: "string",
+        description: "The slash command name that was invoked",
+      },
+      {
+        name: "interactionId",
+        type: "string",
+        description: "Unique interaction ID",
+      },
+      {
+        name: "interactionToken",
+        type: "string",
+        description: "Interaction token for follow-up responses",
+      },
+      {
+        name: "applicationId",
+        type: "string",
+        description: "Discord application ID",
+      },
+      {
+        name: "content",
+        type: "string",
+        description: "Joined option values as text content",
+      },
+      {
+        name: "options",
+        type: "json",
+        description: "Command options as JSON object",
+      },
+      {
+        name: "userId",
+        type: "string",
+        description: "User ID who invoked the command",
+      },
+      {
+        name: "username",
+        type: "string",
+        description: "Username who invoked the command",
+      },
+      {
         name: "guildId",
         type: "string",
         description: "Discord server (guild) ID",
@@ -53,63 +85,46 @@ export class BotReceiveDiscordMessageNode extends ExecutableNode {
       {
         name: "channelId",
         type: "string",
-        description: "Channel ID where the message was sent",
-      },
-      {
-        name: "messageId",
-        type: "string",
-        description: "Unique message ID",
-      },
-      {
-        name: "content",
-        type: "string",
-        description: "Message text content",
-      },
-      {
-        name: "authorId",
-        type: "string",
-        description: "Message author's user ID",
-      },
-      {
-        name: "authorUsername",
-        type: "string",
-        description: "Message author's username",
-      },
-      {
-        name: "timestamp",
-        type: "string",
-        description: "ISO timestamp of when the message was sent",
+        description: "Channel ID where the command was invoked",
       },
     ],
   };
 
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      if (!context.discordMessage) {
+      if (!context.discordInteraction) {
         throw new Error(
-          "Discord message information is required but not provided in the context."
+          "Discord interaction information is required but not provided in the context."
         );
       }
 
       const {
         discordBotId,
+        commandName,
+        interactionId,
+        interactionToken,
+        applicationId,
+        options,
+        user,
         guildId,
         channelId,
-        messageId,
-        content,
-        author,
-        timestamp,
-      } = context.discordMessage;
+      } = context.discordInteraction;
+
+      // Join option values into a single string for simple text consumption
+      const content = Object.values(options).join(" ");
 
       return this.createSuccessResult({
-        discordBotId: discordBotId ?? "",
-        guildId,
-        channelId,
-        messageId,
+        discordBotId,
+        commandName,
+        interactionId,
+        interactionToken,
+        applicationId,
         content,
-        authorId: author.id,
-        authorUsername: author.username,
-        timestamp,
+        options,
+        userId: user.id,
+        username: user.username,
+        guildId: guildId ?? "",
+        channelId: channelId ?? "",
       });
     } catch (error) {
       return this.createErrorResult(

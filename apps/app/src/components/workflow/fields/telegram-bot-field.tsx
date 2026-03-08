@@ -31,9 +31,7 @@ export function TelegramBotField({
         <Select value={stringValue} disabled>
           <SelectTrigger>
             <SelectValue
-              placeholder={
-                connected ? "Connected" : label || "No Telegram bot"
-              }
+              placeholder={connected ? "Connected" : label || "No Telegram bot"}
             />
           </SelectTrigger>
         </Select>

@@ -1291,6 +1291,7 @@ export async function getDiscordBots(
       name: discordBots.name,
       handle: discordBots.handle,
       applicationId: discordBots.applicationId,
+      publicKey: discordBots.publicKey,
       tokenLastFour: discordBots.tokenLastFour,
       createdAt: discordBots.createdAt,
       updatedAt: discordBots.updatedAt,
@@ -1493,11 +1494,12 @@ export async function getDiscordTrigger(
 }
 
 /**
- * Get all active discord triggers for a guild
+ * Get all active discord triggers for a bot + command name
  */
-export async function getDiscordTriggersByGuild(
+export async function getDiscordTriggersByBot(
   db: ReturnType<typeof createDatabase>,
-  guildId: string
+  discordBotId: string,
+  commandName: string
 ) {
   return await db
     .select({
@@ -1508,10 +1510,26 @@ export async function getDiscordTriggersByGuild(
     .innerJoin(workflows, eq(discordTriggers.workflowId, workflows.id))
     .where(
       and(
-        eq(discordTriggers.guildId, guildId),
+        eq(discordTriggers.discordBotId, discordBotId),
+        eq(discordTriggers.commandName, commandName),
         eq(discordTriggers.active, true)
       )
     );
+}
+
+/**
+ * Get a discord bot by ID without org scoping (for webhook handler)
+ */
+export async function getDiscordBotById(
+  db: ReturnType<typeof createDatabase>,
+  discordBotId: string
+): Promise<DiscordBotRow | undefined> {
+  const [bot] = await db
+    .select()
+    .from(discordBots)
+    .where(eq(discordBots.id, discordBotId))
+    .limit(1);
+  return bot;
 }
 
 /**
@@ -1527,9 +1545,10 @@ export async function upsertDiscordTrigger(
     .onConflictDoUpdate({
       target: discordTriggers.workflowId,
       set: {
-        guildId: trigger.guildId,
-        channelId: trigger.channelId,
+        commandName: trigger.commandName,
+        commandDescription: trigger.commandDescription,
         discordBotId: trigger.discordBotId,
+        guildId: trigger.guildId,
         active: trigger.active,
         updatedAt: new Date(),
       },

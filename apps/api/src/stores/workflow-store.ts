@@ -11,7 +11,6 @@ import {
   deleteTelegramTrigger,
   getDiscordBot,
   getDiscordTrigger,
-  getDiscordTriggersByGuild,
   getOrganizationCondition,
   getTelegramBot,
   getTelegramTrigger,
@@ -23,9 +22,9 @@ import {
   upsertScheduledTrigger,
   upsertTelegramTrigger,
 } from "../db/queries";
-import { decryptSecret } from "../utils/encryption";
 import type { WorkflowRow } from "../db/schema";
 import { memberships, organizations, workflows } from "../db/schema";
+import { decryptSecret } from "../utils/encryption";
 
 /**
  * Data required to save a workflow record
@@ -108,27 +107,18 @@ export class WorkflowStore {
    */
   private extractDiscordTriggerConfig(
     nodes: Node[]
-  ): { discordBotId: string; guildId: string; channelId: string | null } | null {
-    const node = nodes.find(
-      (n) => n.type === "receive-discord-message"
-    );
+  ): { discordBotId: string; commandName: string } | null {
+    const node = nodes.find((n) => n.type === "receive-discord-message");
     if (!node) return null;
 
-    const discordBotId = node.inputs.find(
-      (i) => i.name === "discordBotId"
-    )?.value as string | undefined;
-    const guildId = node.inputs.find(
-      (i) => i.name === "guildId"
-    )?.value as string | undefined;
+    const discordBotId = node.inputs.find((i) => i.name === "discordBotId")
+      ?.value as string | undefined;
+    const commandName = node.inputs.find((i) => i.name === "commandName")
+      ?.value as string | undefined;
 
-    if (!discordBotId || !guildId) return null;
+    if (!discordBotId || !commandName) return null;
 
-    const channelId =
-      (node.inputs.find((i) => i.name === "channelId")?.value as
-        | string
-        | undefined) || null;
-
-    return { discordBotId, guildId, channelId };
+    return { discordBotId, commandName };
   }
 
   /**
@@ -137,17 +127,14 @@ export class WorkflowStore {
   private extractTelegramTriggerConfig(
     nodes: Node[]
   ): { telegramBotId: string; chatId?: string } | null {
-    const node = nodes.find(
-      (n) => n.type === "receive-telegram-message"
-    );
+    const node = nodes.find((n) => n.type === "receive-telegram-message");
     if (!node) return null;
 
-    const telegramBotId = node.inputs.find(
-      (i) => i.name === "telegramBotId"
-    )?.value as string | undefined;
-    const chatId = node.inputs.find(
-      (i) => i.name === "chatId"
-    )?.value as string | undefined;
+    const telegramBotId = node.inputs.find((i) => i.name === "telegramBotId")
+      ?.value as string | undefined;
+    const chatId = node.inputs.find((i) => i.name === "chatId")?.value as
+      | string
+      | undefined;
 
     if (!telegramBotId) return null;
 
@@ -155,12 +142,13 @@ export class WorkflowStore {
   }
 
   /**
-   * Sync Discord trigger: upsert/delete trigger and connect/disconnect Durable Object
+   * Sync Discord trigger: upsert/delete trigger and register slash command
    */
   private async syncDiscordTrigger(
     workflowId: string,
     organizationId: string,
-    nodes: Node[]
+    nodes: Node[],
+    apiHost?: string
   ): Promise<void> {
     const config = this.extractDiscordTriggerConfig(nodes);
     const hasReceiveNode = nodes.some(
@@ -177,34 +165,42 @@ export class WorkflowStore {
       const changed =
         !existing ||
         existing.discordBotId !== config.discordBotId ||
-        existing.guildId !== config.guildId ||
-        existing.channelId !== config.channelId;
+        existing.commandName !== config.commandName;
 
       if (!changed) return;
 
-      // Disconnect old DO if bot/guild changed
-      if (existing && existing.discordBotId && (
-        existing.discordBotId !== config.discordBotId ||
-        existing.guildId !== config.guildId
-      )) {
-        await this.disconnectDiscordDO(
+      // Unregister old slash command if bot or command name changed
+      if (existing && existing.discordBotId) {
+        const oldBot = await getDiscordBot(
+          this.db,
           existing.discordBotId,
-          existing.guildId
+          organizationId
         );
+        if (oldBot) {
+          const oldBotToken = await decryptSecret(
+            oldBot.encryptedBotToken,
+            this.env,
+            organizationId
+          );
+          await this.unregisterSlashCommand(
+            oldBot.applicationId,
+            oldBotToken,
+            existing.commandName
+          );
+        }
       }
 
       try {
         await upsertDiscordTrigger(this.db, {
           workflowId,
           organizationId,
-          guildId: config.guildId,
-          channelId: config.channelId,
+          commandName: config.commandName,
           discordBotId: config.discordBotId,
           active: true,
           updatedAt: new Date(),
         });
 
-        // Connect DO with bot token
+        // Register slash command via Discord REST API
         const bot = await getDiscordBot(
           this.db,
           config.discordBotId,
@@ -216,15 +212,15 @@ export class WorkflowStore {
             this.env,
             organizationId
           );
-          await this.connectDiscordDO(
-            config.discordBotId,
-            config.guildId,
-            botToken
+          await this.registerSlashCommand(
+            bot.applicationId,
+            botToken,
+            config.commandName
           );
         }
 
         console.log(
-          `Auto-registered discord trigger: workflow=${workflowId}, guild=${config.guildId}`
+          `Auto-registered discord trigger: workflow=${workflowId}, command=${config.commandName}`
         );
       } catch (_error) {
         console.error(
@@ -232,7 +228,7 @@ export class WorkflowStore {
         );
       }
     } else if (!hasReceiveNode) {
-      // Node removed entirely — delete trigger
+      // Node removed entirely — delete trigger and unregister command
       try {
         const existing = await getDiscordTrigger(
           this.db,
@@ -242,10 +238,23 @@ export class WorkflowStore {
         if (existing) {
           await deleteDiscordTrigger(this.db, workflowId, organizationId);
           if (existing.discordBotId) {
-            await this.disconnectDiscordDO(
+            const oldBot = await getDiscordBot(
+              this.db,
               existing.discordBotId,
-              existing.guildId
+              organizationId
             );
+            if (oldBot) {
+              const oldBotToken = await decryptSecret(
+                oldBot.encryptedBotToken,
+                this.env,
+                organizationId
+              );
+              await this.unregisterSlashCommand(
+                oldBot.applicationId,
+                oldBotToken,
+                existing.commandName
+              );
+            }
           }
         }
       } catch (_error) {
@@ -281,7 +290,9 @@ export class WorkflowStore {
         (existing.chatId ?? undefined) !== config.chatId;
 
       // Unregister old webhook if bot changed
-      if (existing && existing.telegramBotId &&
+      if (
+        existing &&
+        existing.telegramBotId &&
         existing.telegramBotId !== config.telegramBotId
       ) {
         await this.unregisterTelegramWebhook(
@@ -336,7 +347,10 @@ export class WorkflowStore {
                   }),
                 }
               );
-              const result = await resp.json() as { ok: boolean; description?: string };
+              const result = (await resp.json()) as {
+                ok: boolean;
+                description?: string;
+              };
               if (!result.ok) {
                 console.error(
                   "[TelegramTrigger] Telegram API rejected webhook:",
@@ -395,62 +409,99 @@ export class WorkflowStore {
     // If node exists but inputs are empty, leave existing trigger alone (backward compat)
   }
 
-  private async connectDiscordDO(
-    discordBotId: string,
-    guildId: string,
-    botToken: string
+  /**
+   * Register a single slash command with the Discord API (upsert, does not affect other commands).
+   */
+  private async registerSlashCommand(
+    applicationId: string,
+    botToken: string,
+    commandName: string,
+    commandDescription?: string
   ): Promise<void> {
     try {
-      const doKey = `${discordBotId}:${guildId}`;
-      const doId = this.env.DISCORD_BOT.idFromName(doKey);
-      const stub = this.env.DISCORD_BOT.get(doId);
-      await stub.fetch(
-        new Request("https://discord-bot/connect", {
+      const resp = await fetch(
+        `https://discord.com/api/v10/applications/${applicationId}/commands`,
+        {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            Authorization: `Bot ${botToken}`,
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify({
-            guildId,
-            botToken,
-            discordBotId,
+            name: commandName,
+            description:
+              commandDescription || `Run the ${commandName} workflow`,
+            type: 1,
+            options: [
+              {
+                name: "message",
+                type: 3,
+                description: "Input message for the workflow",
+                required: false,
+              },
+            ],
           }),
-        })
+        }
       );
+      if (!resp.ok) {
+        const body = await resp.text();
+        console.error(
+          `[DiscordTrigger] Failed to register slash command: ${resp.status} ${body}`
+        );
+      } else {
+        console.log(
+          `[DiscordTrigger] Slash command registered: /${commandName}`
+        );
+      }
     } catch (error) {
       console.error(
-        "[DiscordTrigger] Failed to connect DO:",
+        "[DiscordTrigger] Failed to register slash command:",
         error instanceof Error ? error.message : String(error)
       );
     }
   }
 
-  private async disconnectDiscordDO(
-    discordBotId: string,
-    guildId: string
+  /**
+   * Unregister a slash command from the Discord API by name.
+   * Looks up the command ID first, then deletes it.
+   */
+  private async unregisterSlashCommand(
+    applicationId: string,
+    botToken: string,
+    commandName: string
   ): Promise<void> {
-    // Only disconnect if no other triggers use this bot+guild combo
-    const remainingTriggers = await getDiscordTriggersByGuild(
-      this.db,
-      guildId
-    );
-    const sameDoTriggers = remainingTriggers.filter(
-      (t) => t.discordTrigger.discordBotId === discordBotId
-    );
-    if (sameDoTriggers.length <= 1) {
-      try {
-        const doKey = `${discordBotId}:${guildId}`;
-        const doId = this.env.DISCORD_BOT.idFromName(doKey);
-        const stub = this.env.DISCORD_BOT.get(doId);
-        await stub.fetch(
-          new Request("https://discord-bot/disconnect", {
-            method: "POST",
-          })
-        );
-      } catch (error) {
-        console.error(
-          "[DiscordTrigger] Failed to disconnect DO:",
-          error instanceof Error ? error.message : String(error)
-        );
-      }
+    try {
+      // List all commands to find the one by name
+      const listResp = await fetch(
+        `https://discord.com/api/v10/applications/${applicationId}/commands`,
+        {
+          headers: { Authorization: `Bot ${botToken}` },
+        }
+      );
+      if (!listResp.ok) return;
+
+      const commands = (await listResp.json()) as Array<{
+        id: string;
+        name: string;
+      }>;
+      const command = commands.find((cmd) => cmd.name === commandName);
+      if (!command) return;
+
+      await fetch(
+        `https://discord.com/api/v10/applications/${applicationId}/commands/${command.id}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bot ${botToken}` },
+        }
+      );
+      console.log(
+        `[DiscordTrigger] Slash command unregistered: /${commandName}`
+      );
+    } catch (error) {
+      console.error(
+        "[DiscordTrigger] Failed to unregister slash command:",
+        error instanceof Error ? error.message : String(error)
+      );
     }
   }
 
@@ -460,21 +511,16 @@ export class WorkflowStore {
   ): Promise<void> {
     // Only unregister if no other triggers use this bot
     try {
-      const bot = await getTelegramBot(
-        this.db,
-        telegramBotId,
-        organizationId
-      );
+      const bot = await getTelegramBot(this.db, telegramBotId, organizationId);
       if (bot) {
         const botToken = await decryptSecret(
           bot.encryptedBotToken,
           this.env,
           organizationId
         );
-        await fetch(
-          `https://api.telegram.org/bot${botToken}/deleteWebhook`,
-          { method: "POST" }
-        );
+        await fetch(`https://api.telegram.org/bot${botToken}/deleteWebhook`, {
+          method: "POST",
+        });
       }
     } catch (error) {
       console.error(
@@ -587,7 +633,7 @@ export class WorkflowStore {
 
     // Handle discord_event workflows
     if (workflowType === "discord_event") {
-      await this.syncDiscordTrigger(workflowId, organizationId, nodes);
+      await this.syncDiscordTrigger(workflowId, organizationId, nodes, apiHost);
     }
 
     // Handle telegram_event workflows
