@@ -35,7 +35,7 @@ const GatewayOpcode = {
 // Discord intents: GUILDS (1) | GUILD_MESSAGES (512) | MESSAGE_CONTENT (32768) = 33281
 const GATEWAY_INTENTS = 33281;
 
-const GATEWAY_URL = "wss://gateway.discord.gg/?v=10&encoding=json";
+const GATEWAY_URL = "https://gateway.discord.gg/?v=10&encoding=json";
 
 export class DiscordBot extends DurableObject<Bindings> {
   private ws: WebSocket | null = null;
@@ -214,9 +214,10 @@ export class DiscordBot extends DurableObject<Bindings> {
   private async connectToGateway(): Promise<void> {
     if (!this.botToken) return;
 
+    const resumeUrl = this.resumeGatewayUrl?.replace("wss://", "https://");
     const gatewayUrl =
-      this.resumeGatewayUrl && this.sessionId
-        ? `${this.resumeGatewayUrl}/?v=10&encoding=json`
+      resumeUrl && this.sessionId
+        ? `${resumeUrl}/?v=10&encoding=json`
         : GATEWAY_URL;
 
     const resp = await fetch(gatewayUrl, {
