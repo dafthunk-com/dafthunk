@@ -222,6 +222,9 @@ export function WorkflowNodeInspector({
             <div className="px-4 pb-4 space-y-3">
               {inputs.length > 0 ? (
                 inputs.map((input) => {
+                  if (widget && widget.managedFields.has(input.id) && input.id !== widget.inputField) {
+                    return null;
+                  }
                   if (widget && input.id === widget.inputField) {
                     return (
                       <div key={input.id}>

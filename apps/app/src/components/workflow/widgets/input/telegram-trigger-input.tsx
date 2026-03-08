@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useDiscordBots } from "@/services/discord-bot-service";
+import { useTelegramBots } from "@/services/telegram-bot-service";
 import { cn } from "@/utils/utils";
 
 import { useWorkflow } from "../../workflow-context";
@@ -17,35 +17,35 @@ import { updateNodeInput } from "../../workflow-context";
 import type { WorkflowParameter } from "../../workflow-types";
 import type { BaseWidgetProps } from "../widget";
 import { createWidget, getInputValue, useDebouncedChange } from "../widget";
-import { DiscordBotCreateDialog } from "./discord-bot-create-dialog";
+import { TelegramBotCreateDialog } from "./telegram-bot-create-dialog";
 
 const CREATE_NEW_SENTINEL = "__create_new__";
 
-interface DiscordTriggerInputProps extends BaseWidgetProps {
+interface TelegramTriggerInputProps extends BaseWidgetProps {
   nodeId: string;
-  discordBotId: string;
-  commandName: string;
+  telegramBotId: string;
+  chatId: string;
   inputs: WorkflowParameter[];
 }
 
-function DiscordTriggerInputWidget({
+function TelegramTriggerInputWidget({
   nodeId,
-  discordBotId,
-  commandName,
+  telegramBotId,
+  chatId,
   inputs,
   className,
   disabled = false,
-}: DiscordTriggerInputProps) {
-  const { discordBots, isDiscordBotsLoading, mutateDiscordBots } =
-    useDiscordBots();
+}: TelegramTriggerInputProps) {
+  const { telegramBots, isTelegramBotsLoading, mutateTelegramBots } =
+    useTelegramBots();
   const { updateNodeData, edges, deleteEdge } = useWorkflow();
-  const [localCommand, setLocalCommand] = useState(commandName ?? "");
+  const [localChatId, setLocalChatId] = useState(chatId ?? "");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   const { debouncedOnChange } = useDebouncedChange((value) => {
     updateNodeInput(
       nodeId,
-      "commandName",
+      "chatId",
       value,
       inputs,
       updateNodeData,
@@ -61,7 +61,7 @@ function DiscordTriggerInputWidget({
     }
     updateNodeInput(
       nodeId,
-      "discordBotId",
+      "telegramBotId",
       value,
       inputs,
       updateNodeData,
@@ -71,10 +71,10 @@ function DiscordTriggerInputWidget({
   };
 
   const handleBotCreated = async (botId: string) => {
-    await mutateDiscordBots?.();
+    await mutateTelegramBots?.();
     updateNodeInput(
       nodeId,
-      "discordBotId",
+      "telegramBotId",
       botId,
       inputs,
       updateNodeData,
@@ -84,25 +84,27 @@ function DiscordTriggerInputWidget({
     setIsCreateDialogOpen(false);
   };
 
-  const handleCommandChange = (value: string) => {
-    setLocalCommand(value);
+  const handleChatIdChange = (value: string) => {
+    setLocalChatId(value);
     debouncedOnChange(value);
   };
 
   return (
     <div className={cn("p-2 space-y-1", className)}>
       <Select
-        value={discordBotId || ""}
+        value={telegramBotId || ""}
         onValueChange={handleBotChange}
-        disabled={disabled || isDiscordBotsLoading}
+        disabled={disabled || isTelegramBotsLoading}
       >
         <SelectTrigger className="h-6 text-xs">
           <SelectValue
-            placeholder={isDiscordBotsLoading ? "Loading..." : "Select a bot"}
+            placeholder={
+              isTelegramBotsLoading ? "Loading..." : "Select a bot"
+            }
           />
         </SelectTrigger>
         <SelectContent>
-          {discordBots.map((bot) => (
+          {telegramBots.map((bot) => (
             <SelectItem key={bot.id} value={bot.id}>
               {bot.name}
             </SelectItem>
@@ -112,13 +114,13 @@ function DiscordTriggerInputWidget({
         </SelectContent>
       </Select>
       <Input
-        value={localCommand}
-        onChange={(e) => handleCommandChange(e.target.value)}
-        placeholder="command"
+        value={localChatId}
+        onChange={(e) => handleChatIdChange(e.target.value)}
+        placeholder="Chat ID (optional)"
         disabled={disabled}
         className="h-6 text-xs px-1.5 font-mono"
       />
-      <DiscordBotCreateDialog
+      <TelegramBotCreateDialog
         isOpen={isCreateDialogOpen}
         onClose={() => setIsCreateDialogOpen(false)}
         onCreated={handleBotCreated}
@@ -127,15 +129,15 @@ function DiscordTriggerInputWidget({
   );
 }
 
-export const discordTriggerInputWidget = createWidget({
-  component: DiscordTriggerInputWidget,
-  nodeTypes: ["receive-discord-message"],
-  inputField: "commandName",
-  managedFields: ["discordBotId"],
+export const telegramTriggerInputWidget = createWidget({
+  component: TelegramTriggerInputWidget,
+  nodeTypes: ["receive-telegram-message"],
+  inputField: "telegramBotId",
+  managedFields: ["chatId"],
   extractConfig: (nodeId, inputs) => ({
     nodeId,
-    discordBotId: getInputValue(inputs, "discordBotId", ""),
-    commandName: getInputValue(inputs, "commandName", ""),
+    telegramBotId: getInputValue(inputs, "telegramBotId", ""),
+    chatId: getInputValue(inputs, "chatId", ""),
     inputs,
   }),
 });

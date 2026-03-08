@@ -277,7 +277,10 @@ export const WorkflowNode = memo(
       "telegram",
     ]);
     const resourceInputs = data.inputs.filter(
-      (input) => input.hidden && resourceTypes.has(input.type)
+      (input) =>
+        input.hidden &&
+        resourceTypes.has(input.type) &&
+        !widget?.managedFields.has(input.id)
     );
 
     const handleToolSelectorClose = () => {

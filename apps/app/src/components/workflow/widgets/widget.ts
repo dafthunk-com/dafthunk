@@ -25,6 +25,9 @@ export interface WidgetDescriptor {
   /** Which input field this widget updates */
   inputField: string;
 
+  /** Additional input fields managed by this widget (hidden from default rendering) */
+  managedFields?: string[];
+
   /** Extract widget config from node inputs and outputs */
   extractConfig: (
     nodeId: string,

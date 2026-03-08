@@ -13,6 +13,9 @@ export interface Widget {
 
   /** Which input field this widget updates */
   inputField: string;
+
+  /** All input fields managed by this widget (hidden from default rendering) */
+  managedFields: Set<string>;
 }
 
 class WidgetRegistry {
@@ -43,10 +46,16 @@ class WidgetRegistry {
     const config = descriptor.extractConfig(nodeId, inputs, outputs);
     if (!config) return null;
 
+    const managedFields = new Set([
+      descriptor.inputField,
+      ...(descriptor.managedFields ?? []),
+    ]);
+
     return {
       Component: descriptor.component,
       config,
       inputField: descriptor.inputField,
+      managedFields,
     };
   }
 
