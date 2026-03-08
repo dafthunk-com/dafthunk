@@ -58,11 +58,15 @@ function hexToUint8Array(hex: string): Uint8Array {
  */
 discordWebhook.post("/webhook/:discordBotId", async (c) => {
   const discordBotId = c.req.param("discordBotId");
+  console.log(`[DiscordWebhook] Received request for bot ${discordBotId}`);
   const db = createDatabase(c.env.DB);
 
   // Look up bot to get public key
   const bot = await getDiscordBotById(db, discordBotId);
   if (!bot || !bot.publicKey) {
+    console.error(
+      `[DiscordWebhook] Bot not found or missing public key: ${discordBotId}, hasBot=${!!bot}, hasKey=${!!bot?.publicKey}`
+    );
     return c.json({ error: "Bot not found" }, 404);
   }
 
@@ -72,6 +76,7 @@ discordWebhook.post("/webhook/:discordBotId", async (c) => {
   const rawBody = await c.req.text();
 
   if (!signature || !timestamp) {
+    console.error("[DiscordWebhook] Missing signature headers");
     return c.json({ error: "Missing signature headers" }, 401);
   }
 
@@ -83,8 +88,11 @@ discordWebhook.post("/webhook/:discordBotId", async (c) => {
   );
 
   if (!isValid) {
+    console.error("[DiscordWebhook] Invalid signature verification");
     return c.json({ error: "Invalid signature" }, 401);
   }
+
+  console.log("[DiscordWebhook] Signature verified successfully");
 
   try {
     const interaction = JSON.parse(rawBody) as {
@@ -105,6 +113,10 @@ discordWebhook.post("/webhook/:discordBotId", async (c) => {
       member?: { user: { id: string; username: string; global_name?: string } };
       user?: { id: string; username: string; global_name?: string };
     };
+
+    console.log(
+      `[DiscordWebhook] Interaction type=${interaction.type} data=${!!interaction.data}`
+    );
 
     // Type 1: PING — Discord endpoint verification handshake
     if (interaction.type === 1) {
@@ -153,8 +165,9 @@ discordWebhook.post("/webhook/:discordBotId", async (c) => {
       "[DiscordWebhook] Error processing interaction:",
       error instanceof Error ? error.message : String(error)
     );
-    // Always return 200 to Discord to prevent retries
-    return c.json({ type: 1 });
+    // Return DEFERRED response to prevent "application did not respond" errors
+    // even when processing fails — the user will just see no follow-up
+    return c.json({ type: 5 });
   }
 });
 
