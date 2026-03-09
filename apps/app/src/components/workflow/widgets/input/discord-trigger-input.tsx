@@ -1,4 +1,4 @@
-import { ExternalLink, RefreshCw, TriangleAlert } from "lucide-react";
+import { RefreshCw, SquareArrowOutUpRight, TriangleAlert } from "lucide-react";
 import { useState } from "react";
 import { useParams } from "react-router";
 import { toast } from "sonner";
@@ -166,15 +166,21 @@ function DiscordTriggerInputWidget({
           </SelectContent>
         </Select>
         {inviteUrl && (
-          <a
-            href={inviteUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            title="Invite bot to server"
-            className="inline-flex items-center justify-center h-6 w-6 shrink-0 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent"
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 shrink-0"
+            asChild
           >
-            <ExternalLink className="h-3 w-3" />
-          </a>
+            <a
+              href={inviteUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Invite bot to server"
+            >
+              <SquareArrowOutUpRight className="h-3 w-3" />
+            </a>
+          </Button>
         )}
       </div>
       <div className="flex items-center gap-1">
