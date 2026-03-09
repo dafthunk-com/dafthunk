@@ -39,7 +39,7 @@ export function BotTelegramDetailPage() {
 
   return (
     <InsetLayout title="Bot Details">
-      <div className="space-y-6 max-w-2xl">
+      <div className="space-y-8 max-w-2xl">
         <div className="space-y-4">
           <DetailRow label="Name" value={telegramBot.name || "Untitled Bot"} />
           <DetailRow
@@ -53,22 +53,73 @@ export function BotTelegramDetailPage() {
             value={`****${telegramBot.tokenLastFour}`}
             mono
           />
-          {telegramBot.botUsername && (
-            <div className="grid grid-cols-[180px_1fr] gap-2 items-center">
-              <span className="text-sm font-medium text-muted-foreground">
-                Telegram Link
-              </span>
+        </div>
+
+        <div className="space-y-3">
+          <h3 className="text-sm font-medium">Links</h3>
+          <div className="flex flex-col gap-2">
+            {telegramBot.botUsername && (
               <a
                 href={`https://t.me/${telegramBot.botUsername}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+                className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
               >
-                @{telegramBot.botUsername}
-                <ExternalLink className="h-3 w-3" />
+                <ExternalLink className="h-3.5 w-3.5" />
+                Open @{telegramBot.botUsername} on Telegram
               </a>
-            </div>
-          )}
+            )}
+            <a
+              href="https://t.me/BotFather"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+              Open @BotFather on Telegram
+            </a>
+            <a
+              href="https://core.telegram.org/bots/api"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+              Telegram Bot API Documentation
+            </a>
+          </div>
+        </div>
+
+        <div className="rounded-lg border p-4 space-y-3">
+          <h3 className="text-sm font-medium">Setup Instructions</h3>
+          <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
+            <li>
+              Make sure your bot was created via{" "}
+              <a
+                href="https://t.me/BotFather"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                @BotFather
+              </a>{" "}
+              on Telegram.
+            </li>
+            <li>
+              Create a workflow with a{" "}
+              <span className="font-medium text-foreground">
+                Receive Telegram Message
+              </span>{" "}
+              trigger node and select this bot.
+            </li>
+            <li>
+              Deploy the workflow. The webhook will be registered automatically
+              with Telegram when the deployment is active.
+            </li>
+            <li>
+              Send a message to your bot on Telegram to trigger the workflow.
+            </li>
+          </ol>
         </div>
       </div>
     </InsetLayout>

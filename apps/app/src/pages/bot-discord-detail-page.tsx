@@ -41,6 +41,7 @@ export function BotDiscordDetailPage() {
 
   const webhookUrl = `${getApiBaseUrl()}/discord/webhook/${discordBot.id}`;
   const inviteUrl = `https://discord.com/oauth2/authorize?client_id=${discordBot.applicationId}&scope=bot+applications.commands&permissions=2048`;
+  const devPortalUrl = `https://discord.com/developers/applications/${discordBot.applicationId}`;
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -49,10 +50,14 @@ export function BotDiscordDetailPage() {
 
   return (
     <InsetLayout title="Bot Details">
-      <div className="space-y-6 max-w-2xl">
+      <div className="space-y-8 max-w-2xl">
         <div className="space-y-4">
           <DetailRow label="Name" value={discordBot.name || "Untitled Bot"} />
-          <DetailRow label="Application ID" value={discordBot.applicationId} mono />
+          <DetailRow
+            label="Application ID"
+            value={discordBot.applicationId}
+            mono
+          />
           <DetailRow label="Public Key" value={discordBot.publicKey} mono />
           <DetailRow
             label="Token"
@@ -75,20 +80,60 @@ export function BotDiscordDetailPage() {
               </Button>
             </div>
           </div>
-          <div className="grid grid-cols-[180px_1fr] gap-2 items-center">
-            <span className="text-sm font-medium text-muted-foreground">
-              Invite Link
-            </span>
+        </div>
+
+        <div className="space-y-3">
+          <h3 className="text-sm font-medium">Links</h3>
+          <div className="flex flex-col gap-2">
             <a
               href={inviteUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+              className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
             >
-              Invite to Server
-              <ExternalLink className="h-3 w-3" />
+              <ExternalLink className="h-3.5 w-3.5" />
+              Invite bot to a server
+            </a>
+            <a
+              href={devPortalUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+              Open in Discord Developer Portal
             </a>
           </div>
+        </div>
+
+        <div className="rounded-lg border p-4 space-y-3">
+          <h3 className="text-sm font-medium">Setup Instructions</h3>
+          <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
+            <li>
+              Copy the <span className="font-medium text-foreground">Webhook URL</span> above
+              and paste it as the Interactions Endpoint URL in your{" "}
+              <a
+                href={devPortalUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                Discord application settings
+              </a>
+              .
+            </li>
+            <li>
+              Use the <span className="font-medium text-foreground">Invite</span> link
+              to add the bot to your Discord server.
+            </li>
+            <li>
+              Create a workflow with a{" "}
+              <span className="font-medium text-foreground">
+                Receive Discord Message
+              </span>{" "}
+              trigger node and select this bot.
+            </li>
+          </ol>
         </div>
       </div>
     </InsetLayout>
@@ -107,7 +152,9 @@ function DetailRow({
   return (
     <div className="grid grid-cols-[180px_1fr] gap-2 items-center">
       <span className="text-sm font-medium text-muted-foreground">{label}</span>
-      <span className={`text-sm ${mono ? "font-mono" : ""}`}>{value}</span>
+      <span className={`text-sm break-all ${mono ? "font-mono" : ""}`}>
+        {value}
+      </span>
     </div>
   );
 }
