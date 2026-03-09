@@ -33,19 +33,9 @@ export class BotReceiveDiscordMessageNode extends ExecutableNode {
     ],
     outputs: [
       {
-        name: "discordBotId",
+        name: "channelId",
         type: "string",
-        description: "The Discord bot ID used for this trigger",
-      },
-      {
-        name: "commandName",
-        type: "string",
-        description: "The slash command name that was invoked",
-      },
-      {
-        name: "interactionId",
-        type: "string",
-        description: "Unique interaction ID",
+        description: "Channel ID where the command was invoked",
       },
       {
         name: "interactionToken",
@@ -58,14 +48,9 @@ export class BotReceiveDiscordMessageNode extends ExecutableNode {
         description: "Discord application ID",
       },
       {
-        name: "content",
+        name: "commandName",
         type: "string",
-        description: "Joined option values as text content",
-      },
-      {
-        name: "options",
-        type: "json",
-        description: "Command options as JSON object",
+        description: "The slash command name that was invoked",
       },
       {
         name: "userId",
@@ -83,9 +68,24 @@ export class BotReceiveDiscordMessageNode extends ExecutableNode {
         description: "Discord server (guild) ID",
       },
       {
-        name: "channelId",
+        name: "discordBotId",
         type: "string",
-        description: "Channel ID where the command was invoked",
+        description: "The Discord bot ID used for this trigger",
+      },
+      {
+        name: "interactionId",
+        type: "string",
+        description: "Unique interaction ID",
+      },
+      {
+        name: "content",
+        type: "string",
+        description: "Joined option values as text content",
+      },
+      {
+        name: "options",
+        type: "json",
+        description: "Command options as JSON object",
       },
     ],
   };

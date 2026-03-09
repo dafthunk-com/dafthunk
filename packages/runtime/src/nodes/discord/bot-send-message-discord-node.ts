@@ -20,18 +20,6 @@ export class BotSendMessageDiscordNode extends ExecutableNode {
         required: true,
       },
       {
-        name: "content",
-        type: "string",
-        description: "Message content (up to 2000 characters)",
-        required: true,
-      },
-      {
-        name: "embeds",
-        type: "json",
-        description: "Optional embed objects (max 10)",
-        required: false,
-      },
-      {
         name: "interactionToken",
         type: "string",
         description:
@@ -42,6 +30,18 @@ export class BotSendMessageDiscordNode extends ExecutableNode {
         name: "applicationId",
         type: "string",
         description: "Discord application ID (required with interactionToken)",
+        required: false,
+      },
+      {
+        name: "content",
+        type: "string",
+        description: "Message content (up to 2000 characters)",
+        required: true,
+      },
+      {
+        name: "embeds",
+        type: "json",
+        description: "Optional embed objects (max 10)",
         required: false,
       },
     ],
