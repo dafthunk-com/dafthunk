@@ -16,7 +16,6 @@ export function DiscordBotSetupInfo({
   const [copied, setCopied] = useState(false);
   const webhookUrl = `${getApiBaseUrl()}/discord/webhook/${botId}`;
   const portalUrl = `https://discord.com/developers/applications/${applicationId}/information`;
-  const inviteUrl = `https://discord.com/oauth2/authorize?client_id=${applicationId}&scope=bot+applications.commands&permissions=2048`;
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(webhookUrl);
@@ -57,18 +56,6 @@ export function DiscordBotSetupInfo({
             <ExternalLink className="w-2.5 h-2.5" />
           </a>
         </p>
-      </div>
-
-      <div>
-        <a
-          href={inviteUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-primary hover:underline text-xs"
-        >
-          Add Bot to Server
-          <ExternalLink className="w-3 h-3" />
-        </a>
       </div>
     </div>
   );
