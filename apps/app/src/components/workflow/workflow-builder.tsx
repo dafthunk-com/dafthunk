@@ -9,7 +9,7 @@ import type {
   Node as ReactFlowNode,
 } from "@xyflow/react";
 import { ReactFlowProvider } from "@xyflow/react";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { cn } from "@/utils/utils";
 
@@ -200,6 +200,17 @@ export function WorkflowBuilder({
     sidebar.setIsSidebarVisible(true);
   }, [sidebar]);
 
+  // Check if workflow already contains a trigger node
+  const hasTriggerNode = useMemo(() => {
+    if (!nodeTypes) return false;
+    const triggerTypes = new Set(
+      nodeTypes.filter((t) => t.trigger).map((t) => t.type)
+    );
+    return nodes.some(
+      (n) => n.data.nodeType && triggerTypes.has(n.data.nodeType)
+    );
+  }, [nodes, nodeTypes]);
+
   return (
     <ReactFlowProvider>
       <WorkflowProvider
@@ -316,6 +327,7 @@ export function WorkflowBuilder({
             workflowName={workflowName}
             workflowDescription={workflowDescription}
             workflowTrigger={workflowTrigger}
+            hasTriggerNode={hasTriggerNode}
           />
         </div>
 

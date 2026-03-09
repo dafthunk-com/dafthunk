@@ -20,6 +20,7 @@ export class HttpRequestNode extends ExecutableNode {
       "This node extracts HTTP request information from the context, including method, URL, headers, and query parameters.",
     inlinable: true,
     compatibility: ["http_webhook", "http_request"],
+    trigger: true,
     inputs: [],
     outputs: [
       {

@@ -437,7 +437,12 @@ export const WorkflowNode = memo(
             <div className="flex items-center gap-1 flex-1 min-w-0">
               <DynamicIcon
                 name={data.icon as any}
-                className="mx-1 h-3 w-3 text-blue-500 shrink-0"
+                className={cn(
+                  "mx-1 h-3 w-3 shrink-0",
+                  resolvedNodeType?.trigger
+                    ? "text-emerald-500"
+                    : "text-blue-500"
+                )}
               />
               <h3 className="text-xs font-bold truncate">{data.name}</h3>
             </div>

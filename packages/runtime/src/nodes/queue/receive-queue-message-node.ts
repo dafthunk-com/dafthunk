@@ -14,6 +14,7 @@ export class ReceiveQueueMessageNode extends ExecutableNode {
     inlinable: true,
     asTool: true,
     compatibility: ["queue_message"],
+    trigger: true,
     inputs: [
       {
         name: "queueId",

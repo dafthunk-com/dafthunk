@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { NodeTags } from "@/components/workflow/node-tags";
 import { SubscriptionBadge } from "@/components/workflow/subscription-badge";
+import { cn } from "@/utils/utils";
 
 import { NodeDocsDialog } from "./node-docs-dialog";
 
@@ -38,7 +39,10 @@ export function NodeCard({
               <div className="flex items-center gap-3 min-w-0 flex-1">
                 <DynamicIcon
                   name={nodeType.icon as any}
-                  className="h-4 w-4 text-blue-500 shrink-0"
+                  className={cn(
+                    "h-4 w-4 shrink-0",
+                    nodeType.trigger ? "text-emerald-500" : "text-blue-500"
+                  )}
                 />
                 <CardTitle className="text-base font-semibold leading-tight truncate">
                   {highlightMatch
@@ -105,7 +109,10 @@ export function NodeCard({
             <div className="flex items-center gap-3 min-w-0 flex-1">
               <DynamicIcon
                 name={nodeType.icon as any}
-                className="h-4 w-4 text-blue-500 shrink-0"
+                className={cn(
+                  "h-4 w-4 shrink-0",
+                  nodeType.trigger ? "text-emerald-500" : "text-blue-500"
+                )}
               />
               <CardTitle className="text-base font-semibold leading-tight truncate">
                 {highlightMatch

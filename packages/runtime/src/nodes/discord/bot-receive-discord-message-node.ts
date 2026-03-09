@@ -13,6 +13,7 @@ export class BotReceiveDiscordMessageNode extends ExecutableNode {
     documentation:
       "This node receives incoming Discord slash command interactions, providing access to command name, options, user details, and interaction tokens for deferred responses.",
     compatibility: ["discord_event"],
+    trigger: true,
     inlinable: true,
     usage: 0,
     inputs: [

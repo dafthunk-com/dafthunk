@@ -12,6 +12,7 @@ export class BotReceiveTelegramMessageNode extends ExecutableNode {
     documentation:
       "This node receives incoming Telegram messages, providing access to chat ID, message content, and author details.",
     compatibility: ["telegram_event"],
+    trigger: true,
     inlinable: true,
     usage: 0,
     inputs: [

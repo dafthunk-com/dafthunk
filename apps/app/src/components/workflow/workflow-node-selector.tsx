@@ -24,6 +24,7 @@ export interface WorkflowNodeSelectorProps {
   workflowName?: string;
   workflowDescription?: string;
   workflowTrigger?: WorkflowTrigger;
+  hasTriggerNode?: boolean;
 }
 
 // Helper function to highlight matching text
@@ -67,15 +68,20 @@ export function WorkflowNodeSelector({
   workflowName,
   workflowDescription,
   workflowTrigger,
+  hasTriggerNode,
 }: WorkflowNodeSelectorProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
-  // Filter templates by workflow trigger compatibility
+  // Filter templates by workflow trigger compatibility and trigger uniqueness
   const compatibleTemplates = useMemo(() => {
     if (!workflowTrigger) return templates;
 
     return templates.filter((template) => {
+      // Hide trigger nodes if one already exists in the workflow
+      if (template.trigger && hasTriggerNode) {
+        return false;
+      }
       // If node has no compatibility field, it's compatible with all workflow triggers
       if (!template.compatibility || template.compatibility.length === 0) {
         return true;
@@ -83,7 +89,7 @@ export function WorkflowNodeSelector({
       // Otherwise, check if current workflow trigger is in the compatibility list
       return template.compatibility.includes(workflowTrigger);
     });
-  }, [templates, workflowTrigger]);
+  }, [templates, workflowTrigger, hasTriggerNode]);
 
   // Combined scoring using substring matching (not fuzzy)
   const scoredAndFilteredTemplates = useMemo(() => {
@@ -342,7 +348,12 @@ export function WorkflowNodeSelector({
                               ? template.icon
                               : "file-question"
                           }
-                          className="h-5 w-5 text-blue-500 shrink-0 mt-0.5"
+                          className={cn(
+                            "h-5 w-5 shrink-0 mt-0.5",
+                            template.trigger
+                              ? "text-emerald-500"
+                              : "text-blue-500"
+                          )}
                         />
                         <div className="flex-1 min-w-0">
                           <h3 className="font-semibold text-base leading-tight mb-2 flex items-center gap-2">

@@ -1,4 +1,4 @@
-import type { Edge, Parameter, Workflow } from "@dafthunk/types";
+import type { Edge, NodeType, Parameter, Workflow } from "@dafthunk/types";
 
 export interface ValidationError {
   type:
@@ -7,6 +7,7 @@ export interface ValidationError {
     | "INVALID_CONNECTION"
     | "DUPLICATE_CONNECTION"
     | "DUPLICATE_NODE_ID"
+    | "DUPLICATE_TRIGGER"
     | "EMPTY_WORKFLOW";
   message: string;
   details: {
@@ -140,8 +141,26 @@ export function validateTypeCompatibility(
 /**
  * Validates the entire workflow
  */
-export function validateWorkflow(workflow: Workflow): ValidationError[] {
+export function validateWorkflow(
+  workflow: Workflow,
+  nodeTypes?: NodeType[]
+): ValidationError[] {
   const errors: ValidationError[] = [];
+
+  // Check for multiple trigger nodes
+  if (nodeTypes) {
+    const triggerTypes = new Set(
+      nodeTypes.filter((t) => t.trigger).map((t) => t.type)
+    );
+    const triggerNodes = workflow.nodes.filter((n) => triggerTypes.has(n.type));
+    if (triggerNodes.length > 1) {
+      errors.push({
+        type: "DUPLICATE_TRIGGER",
+        message: "Only one trigger node is allowed per workflow",
+        details: { nodeId: triggerNodes[1].id },
+      });
+    }
+  }
 
   // Check for duplicate node IDs
   const nodeIds = workflow.nodes.map((n) => n.id);

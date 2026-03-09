@@ -50,6 +50,7 @@ import {
 } from "../db";
 import { createRateLimitMiddleware } from "../middleware/rate-limit";
 import { CloudflareExecutionStore } from "../runtime/cloudflare-execution-store";
+import { CloudflareNodeRegistry } from "../runtime/cloudflare-node-registry";
 import { WorkflowExecutor } from "../services/workflow-executor";
 import { DeploymentStore } from "../stores/deployment-store";
 import { WorkflowStore } from "../stores/workflow-store";
@@ -148,7 +149,9 @@ workflowRoutes.post(
       edges,
     };
 
-    const validationErrors = validateWorkflow(workflowData);
+    const registry = new CloudflareNodeRegistry(c.env, false);
+    const nodeTypes = registry.getNodeTypes();
+    const validationErrors = validateWorkflow(workflowData, nodeTypes);
     if (validationErrors.length > 0) {
       return c.json({ errors: validationErrors }, 400);
     }
@@ -310,7 +313,12 @@ workflowRoutes.put(
       nodes: sanitizedNodes,
       edges: sanitizedEdges,
     };
-    const validationErrors = validateWorkflow(workflowToValidate);
+    const updateRegistry = new CloudflareNodeRegistry(c.env, false);
+    const updateNodeTypes = updateRegistry.getNodeTypes();
+    const validationErrors = validateWorkflow(
+      workflowToValidate,
+      updateNodeTypes
+    );
     if (validationErrors.length > 0) {
       return c.json({ errors: validationErrors }, 400);
     }

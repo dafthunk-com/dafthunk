@@ -14,6 +14,7 @@ export class ReceiveScheduledTriggerNode extends ExecutableNode {
     inlinable: false,
     asTool: false,
     compatibility: ["scheduled"],
+    trigger: true,
     inputs: [
       {
         name: "scheduleExpression",
