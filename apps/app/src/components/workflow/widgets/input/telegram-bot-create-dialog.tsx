@@ -26,7 +26,8 @@ const STEP_TITLES: Record<Step, string> = {
 const STEP_DESCRIPTIONS: Record<Step, string> = {
   credentials:
     "Create a new bot with @BotFather on Telegram, then copy the bot token it gives you.",
-  setup: "Your bot is ready. The webhook will be auto-registered when you deploy the workflow.",
+  setup:
+    "Your bot is ready. The webhook will be auto-registered when you deploy the workflow.",
 };
 
 interface TelegramBotCreateDialogProps {
@@ -78,9 +79,7 @@ export function TelegramBotCreateDialog({
       setStep("setup");
       onCreated(response.id);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to create bot"
-      );
+      setError(err instanceof Error ? err.message : "Failed to create bot");
     } finally {
       setIsSubmitting(false);
     }
@@ -122,6 +121,9 @@ export function TelegramBotCreateDialog({
                 onChange={(e) => setName(e.target.value)}
                 placeholder="My Telegram Bot"
               />
+              <p className="text-xs text-muted-foreground">
+                A display name for this bot in Dafthunk.
+              </p>
             </div>
 
             <div className="space-y-1.5">
@@ -133,6 +135,19 @@ export function TelegramBotCreateDialog({
                 onChange={(e) => setBotToken(e.target.value)}
                 placeholder="••••••••"
               />
+              <p className="text-xs text-muted-foreground">
+                Copy the token from{" "}
+                <a
+                  href="https://t.me/BotFather"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline inline-flex items-center gap-0.5"
+                >
+                  @BotFather
+                  <ExternalLink className="w-2.5 h-2.5" />
+                </a>{" "}
+                on Telegram. Use /newbot to create one if needed.
+              </p>
             </div>
 
             {error && (
@@ -153,9 +168,7 @@ export function TelegramBotCreateDialog({
               <Button
                 onClick={handleSubmit}
                 disabled={
-                  isSubmitting ||
-                  name.trim() === "" ||
-                  botToken.trim() === ""
+                  isSubmitting || name.trim() === "" || botToken.trim() === ""
                 }
               >
                 {isSubmitting ? (
@@ -181,7 +194,8 @@ export function TelegramBotCreateDialog({
                 {name}
                 {createdBotUsername && (
                   <span className="text-muted-foreground">
-                    {" "}(@{createdBotUsername})
+                    {" "}
+                    (@{createdBotUsername})
                   </span>
                 )}
               </span>

@@ -1,6 +1,7 @@
 import Copy from "lucide-react/icons/copy";
 import ExternalLink from "lucide-react/icons/external-link";
-import { useEffect } from "react";
+import Pencil from "lucide-react/icons/pencil";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import { toast } from "sonner";
 
@@ -8,19 +9,22 @@ import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { Button } from "@/components/ui/button";
+import { DetailRow } from "@/components/ui/detail-row";
 import { getApiBaseUrl } from "@/config/api";
 import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { useDiscordBot } from "@/services/discord-bot-service";
+
+import { BotDiscordEditDialog } from "./bot-discord-edit-dialog";
 
 export function BotDiscordDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const { getOrgUrl } = useOrgUrl();
 
-  const { discordBot, discordBotError, isDiscordBotLoading } = useDiscordBot(
-    id || null
-  );
+  const { discordBot, discordBotError, isDiscordBotLoading, mutateDiscordBot } =
+    useDiscordBot(id || null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
 
   useEffect(() => {
     setBreadcrumbs([
@@ -51,6 +55,16 @@ export function BotDiscordDetailPage() {
   return (
     <InsetLayout title="Bot Details">
       <div className="space-y-8 max-w-2xl">
+        <div className="flex justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsEditOpen(true)}
+          >
+            <Pencil className="mr-1.5 h-3.5 w-3.5" />
+            Edit
+          </Button>
+        </div>
         <div className="space-y-4">
           <DetailRow label="Name" value={discordBot.name || "Untitled Bot"} />
           <DetailRow
@@ -110,21 +124,30 @@ export function BotDiscordDetailPage() {
           <h3 className="text-sm font-medium">Setup Instructions</h3>
           <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
             <li>
-              Copy the <span className="font-medium text-foreground">Webhook URL</span> above
-              and paste it as the Interactions Endpoint URL in your{" "}
+              Copy the Webhook URL above and paste it as the Interactions
+              Endpoint URL in the{" "}
               <a
-                href={devPortalUrl}
+                href={`${devPortalUrl}/information`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary hover:underline"
+                className="text-primary hover:underline inline-flex items-center gap-0.5"
               >
-                Discord application settings
-              </a>
-              .
+                General Information
+                <ExternalLink className="h-3 w-3" />
+              </a>{" "}
+              page.
             </li>
             <li>
-              Use the <span className="font-medium text-foreground">Invite</span> link
-              to add the bot to your Discord server.
+              <a
+                href={inviteUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline inline-flex items-center gap-0.5"
+              >
+                Invite the bot
+                <ExternalLink className="h-3 w-3" />
+              </a>{" "}
+              to a Discord server.
             </li>
             <li>
               Create a workflow with a{" "}
@@ -136,25 +159,12 @@ export function BotDiscordDetailPage() {
           </ol>
         </div>
       </div>
+      <BotDiscordEditDialog
+        bot={discordBot}
+        open={isEditOpen}
+        onOpenChange={setIsEditOpen}
+        onUpdated={() => mutateDiscordBot()}
+      />
     </InsetLayout>
-  );
-}
-
-function DetailRow({
-  label,
-  value,
-  mono,
-}: {
-  label: string;
-  value: string;
-  mono?: boolean;
-}) {
-  return (
-    <div className="grid grid-cols-[180px_1fr] gap-2 items-center">
-      <span className="text-sm font-medium text-muted-foreground">{label}</span>
-      <span className={`text-sm break-all ${mono ? "font-mono" : ""}`}>
-        {value}
-      </span>
-    </div>
   );
 }

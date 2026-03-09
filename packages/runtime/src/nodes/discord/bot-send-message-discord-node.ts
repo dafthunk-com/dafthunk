@@ -41,8 +41,7 @@ export class BotSendMessageDiscordNode extends ExecutableNode {
       {
         name: "applicationId",
         type: "string",
-        description:
-          "Discord application ID (required with interactionToken)",
+        description: "Discord application ID (required with interactionToken)",
         required: false,
       },
     ],

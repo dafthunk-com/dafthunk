@@ -70,22 +70,39 @@ export function TelegramBotSetupInfo({
 }: TelegramBotSetupInfoProps) {
   return (
     <div className="space-y-2 text-sm">
-      {botUsername && (
-        <div>
-          <a
-            href={`https://t.me/${botUsername}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-primary hover:underline text-xs"
-          >
-            Open @{botUsername}
-            <ExternalLink className="w-3 h-3" />
-          </a>
-        </div>
-      )}
-      <p className="text-muted-foreground text-xs">
-        Webhook is auto-registered when you deploy the workflow.
-      </p>
+      <div className="space-y-1">
+        <p className="font-medium text-foreground">Next Steps</p>
+        <ol className="list-decimal list-inside space-y-1.5 text-xs text-muted-foreground">
+          <li>
+            Create a workflow with a{" "}
+            <span className="font-medium text-foreground">
+              Receive Telegram Message
+            </span>{" "}
+            trigger and select this bot.
+          </li>
+          <li>
+            Deploy the workflow. The webhook will be registered automatically
+            with Telegram.
+          </li>
+          <li>
+            Send a message to{" "}
+            {botUsername ? (
+              <a
+                href={`https://t.me/${botUsername}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline inline-flex items-center gap-0.5"
+              >
+                @{botUsername}
+                <ExternalLink className="w-2.5 h-2.5" />
+              </a>
+            ) : (
+              "your bot"
+            )}{" "}
+            on Telegram to trigger the workflow.
+          </li>
+        </ol>
+      </div>
     </div>
   );
 }

@@ -1,10 +1,11 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import Bot from "lucide-react/icons/bot";
 import MoreHorizontal from "lucide-react/icons/more-horizontal";
+import Pencil from "lucide-react/icons/pencil";
 import PlusCircle from "lucide-react/icons/plus-circle";
 import Send from "lucide-react/icons/send";
 import { useEffect, useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 import { useAuth } from "@/components/auth-context";
 import { InsetError } from "@/components/inset-error";
@@ -108,6 +109,12 @@ function createColumns(
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                  <Link to={getOrgUrl(`bots/${bot.type}/${bot.id}`)}>
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Edit
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => openDeleteDialog(bot)}>
                   Delete Bot
                 </DropdownMenuItem>
@@ -129,6 +136,7 @@ export function BotsPage() {
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const { organization } = useAuth();
   const { getOrgUrl } = useOrgUrl();
+  const navigate = useNavigate();
   const orgHandle = organization?.handle || "";
 
   const {
@@ -192,10 +200,11 @@ export function BotsPage() {
     }
   };
 
-  const handleCreated = () => {
+  const handleCreated = (botId: string, type: "discord" | "telegram") => {
     mutateDiscordBots();
     mutateTelegramBots();
     setIsCreateDialogOpen(false);
+    navigate(getOrgUrl(`bots/${type}/${botId}`));
   };
 
   const columns = createColumns(getOrgUrl, openDeleteDialog);

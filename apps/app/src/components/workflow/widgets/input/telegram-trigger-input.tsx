@@ -11,9 +11,7 @@ import {
 } from "@/components/ui/select";
 import { useTelegramBots } from "@/services/telegram-bot-service";
 import { cn } from "@/utils/utils";
-
-import { useWorkflow } from "../../workflow-context";
-import { updateNodeInput } from "../../workflow-context";
+import { updateNodeInput, useWorkflow } from "../../workflow-context";
 import type { WorkflowParameter } from "../../workflow-types";
 import type { BaseWidgetProps } from "../widget";
 import { createWidget, getInputValue, useDebouncedChange } from "../widget";
@@ -98,9 +96,7 @@ function TelegramTriggerInputWidget({
       >
         <SelectTrigger className="h-6 text-xs">
           <SelectValue
-            placeholder={
-              isTelegramBotsLoading ? "Loading..." : "Select a bot"
-            }
+            placeholder={isTelegramBotsLoading ? "Loading..." : "Select a bot"}
           />
         </SelectTrigger>
         <SelectContent>

@@ -1,14 +1,20 @@
+import { useState } from "react";
+
 import {
   Select,
   SelectContent,
   SelectItem,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
 import { useTelegramBots } from "@/services/telegram-bot-service";
 import { cn } from "@/utils/utils";
 
+import { TelegramBotCreateDialog } from "../widgets/input/telegram-bot-create-dialog";
 import type { FieldProps } from "./types";
+
+const CREATE_NEW = "__create_new__";
 
 export function TelegramBotField({
   className,
@@ -17,7 +23,9 @@ export function TelegramBotField({
   onChange,
   value,
 }: FieldProps) {
-  const { telegramBots, isTelegramBotsLoading } = useTelegramBots();
+  const { telegramBots, isTelegramBotsLoading, mutateTelegramBots } =
+    useTelegramBots();
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   const stringValue = String(value ?? "");
 
@@ -39,11 +47,19 @@ export function TelegramBotField({
     );
   }
 
+  const handleValueChange = (val: string) => {
+    if (val === CREATE_NEW) {
+      setIsCreateOpen(true);
+      return;
+    }
+    onChange(val || undefined);
+  };
+
   return (
     <div className={cn("relative", className)}>
       <Select
         value={stringValue}
-        onValueChange={(val) => onChange(val || undefined)}
+        onValueChange={handleValueChange}
         disabled={isTelegramBotsLoading}
       >
         <SelectTrigger>
@@ -66,8 +82,20 @@ export function TelegramBotField({
               {bot.botUsername ? ` (@${bot.botUsername})` : ""}
             </SelectItem>
           ))}
+          {(telegramBots?.length ?? 0) > 0 && <SelectSeparator />}
+          <SelectItem value={CREATE_NEW} className="text-xs">
+            + New Bot
+          </SelectItem>
         </SelectContent>
       </Select>
+      <TelegramBotCreateDialog
+        isOpen={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+        onCreated={(botId) => {
+          mutateTelegramBots();
+          onChange(botId);
+        }}
+      />
     </div>
   );
 }

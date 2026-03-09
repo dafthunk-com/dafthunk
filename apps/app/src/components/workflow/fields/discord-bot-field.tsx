@@ -1,14 +1,20 @@
+import { useState } from "react";
+
 import {
   Select,
   SelectContent,
   SelectItem,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
 import { useDiscordBots } from "@/services/discord-bot-service";
 import { cn } from "@/utils/utils";
 
+import { DiscordBotCreateDialog } from "../widgets/input/discord-bot-create-dialog";
 import type { FieldProps } from "./types";
+
+const CREATE_NEW = "__create_new__";
 
 export function DiscordBotField({
   className,
@@ -17,7 +23,9 @@ export function DiscordBotField({
   onChange,
   value,
 }: FieldProps) {
-  const { discordBots, isDiscordBotsLoading } = useDiscordBots();
+  const { discordBots, isDiscordBotsLoading, mutateDiscordBots } =
+    useDiscordBots();
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   const stringValue = String(value ?? "");
 
@@ -36,11 +44,19 @@ export function DiscordBotField({
     );
   }
 
+  const handleValueChange = (val: string) => {
+    if (val === CREATE_NEW) {
+      setIsCreateOpen(true);
+      return;
+    }
+    onChange(val || undefined);
+  };
+
   return (
     <div className={cn("relative", className)}>
       <Select
         value={stringValue}
-        onValueChange={(val) => onChange(val || undefined)}
+        onValueChange={handleValueChange}
         disabled={isDiscordBotsLoading}
       >
         <SelectTrigger>
@@ -62,8 +78,20 @@ export function DiscordBotField({
               {bot.name}
             </SelectItem>
           ))}
+          {(discordBots?.length ?? 0) > 0 && <SelectSeparator />}
+          <SelectItem value={CREATE_NEW} className="text-xs">
+            + New Bot
+          </SelectItem>
         </SelectContent>
       </Select>
+      <DiscordBotCreateDialog
+        isOpen={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+        onCreated={(botId) => {
+          mutateDiscordBots();
+          onChange(botId);
+        }}
+      />
     </div>
   );
 }

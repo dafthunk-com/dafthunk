@@ -11,9 +11,7 @@ import {
 } from "@/components/ui/select";
 import { useDiscordBots } from "@/services/discord-bot-service";
 import { cn } from "@/utils/utils";
-
-import { useWorkflow } from "../../workflow-context";
-import { updateNodeInput } from "../../workflow-context";
+import { updateNodeInput, useWorkflow } from "../../workflow-context";
 import type { WorkflowParameter } from "../../workflow-types";
 import type { BaseWidgetProps } from "../widget";
 import { createWidget, getInputValue, useDebouncedChange } from "../widget";
