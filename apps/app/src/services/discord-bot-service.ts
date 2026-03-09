@@ -3,7 +3,9 @@ import type {
   CreateDiscordBotResponse,
   DeleteDiscordBotResponse,
   GetDiscordBotResponse,
+  GetDiscordTriggerResponse,
   ListDiscordBotsResponse,
+  SyncDiscordTriggerResponse,
   UpdateDiscordBotRequest,
   UpdateDiscordBotResponse,
 } from "@dafthunk/types";
@@ -117,6 +119,52 @@ export const deleteDiscordBot = async (
     `/${id}`,
     {
       method: "DELETE",
+    }
+  );
+};
+
+const WORKFLOWS_ENDPOINT = "/workflows";
+
+export const useDiscordTrigger = (workflowIdOrHandle: string | null) => {
+  const { organization } = useAuth();
+  const orgHandle = organization?.handle;
+
+  const swrKey =
+    orgHandle && workflowIdOrHandle
+      ? `/${orgHandle}${WORKFLOWS_ENDPOINT}/${workflowIdOrHandle}/discord-trigger`
+      : null;
+
+  const { data, error, isLoading, mutate } = useSWR(
+    swrKey,
+    swrKey && orgHandle && workflowIdOrHandle
+      ? async () => {
+          return await makeOrgRequest<GetDiscordTriggerResponse>(
+            orgHandle,
+            WORKFLOWS_ENDPOINT,
+            `/${workflowIdOrHandle}/discord-trigger`
+          );
+        }
+      : null
+  );
+
+  return {
+    discordTrigger: data ?? null,
+    discordTriggerError: error ?? null,
+    isDiscordTriggerLoading: isLoading,
+    mutateDiscordTrigger: mutate,
+  };
+};
+
+export const syncDiscordTrigger = async (
+  workflowIdOrHandle: string,
+  orgHandle: string
+): Promise<SyncDiscordTriggerResponse> => {
+  return await makeOrgRequest<SyncDiscordTriggerResponse>(
+    orgHandle,
+    WORKFLOWS_ENDPOINT,
+    `/${workflowIdOrHandle}/discord-trigger/sync`,
+    {
+      method: "POST",
     }
   );
 };

@@ -1,5 +1,10 @@
+import { RefreshCw, TriangleAlert } from "lucide-react";
 import { useState } from "react";
+import { useParams } from "react-router";
+import { toast } from "sonner";
 
+import { useAuth } from "@/components/auth-context";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -9,7 +14,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useDiscordBots } from "@/services/discord-bot-service";
+import {
+  syncDiscordTrigger,
+  useDiscordBots,
+  useDiscordTrigger,
+} from "@/services/discord-bot-service";
 import { cn } from "@/utils/utils";
 import { updateNodeInput, useWorkflow } from "../../workflow-context";
 import type { WorkflowParameter } from "../../workflow-types";
@@ -39,6 +48,19 @@ function DiscordTriggerInputWidget({
   const { updateNodeData, edges, deleteEdge } = useWorkflow();
   const [localCommand, setLocalCommand] = useState(commandName ?? "");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  const { id: workflowIdOrHandle } = useParams<{ id: string }>();
+  const { organization } = useAuth();
+  const orgHandle = organization?.handle ?? "";
+  const { discordTrigger, mutateDiscordTrigger } = useDiscordTrigger(
+    workflowIdOrHandle ?? null
+  );
+
+  const isOutOfSync =
+    discordTrigger &&
+    localCommand &&
+    discordTrigger.commandName !== localCommand;
 
   const { debouncedOnChange } = useDebouncedChange((value) => {
     updateNodeInput(
@@ -99,6 +121,20 @@ function DiscordTriggerInputWidget({
     debouncedOnChange(value);
   };
 
+  const handleSync = async () => {
+    if (!workflowIdOrHandle || !orgHandle) return;
+    setIsSyncing(true);
+    try {
+      await syncDiscordTrigger(workflowIdOrHandle, orgHandle);
+      await mutateDiscordTrigger();
+      toast.success("Slash command synced with Discord");
+    } catch {
+      toast.error("Failed to sync slash command");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   return (
     <div className={cn("p-2 space-y-1", className)}>
       <Select
@@ -121,13 +157,39 @@ function DiscordTriggerInputWidget({
           <SelectItem value={CREATE_NEW_SENTINEL}>+ New Bot</SelectItem>
         </SelectContent>
       </Select>
-      <Input
-        value={localCommand}
-        onChange={(e) => handleCommandChange(e.target.value)}
-        placeholder="command"
-        disabled={disabled}
-        className="h-6 text-xs px-1.5 font-mono"
-      />
+      <div className="flex items-center gap-1">
+        <Input
+          value={localCommand}
+          onChange={(e) => handleCommandChange(e.target.value)}
+          placeholder="command"
+          disabled={disabled}
+          className={cn(
+            "h-6 text-xs px-1.5 font-mono",
+            isOutOfSync && "border-amber-500"
+          )}
+        />
+        <Button
+          variant="ghost"
+          size="icon"
+          className={cn(
+            "h-6 w-6 shrink-0",
+            isOutOfSync && "text-amber-500 hover:text-amber-600"
+          )}
+          disabled={disabled || isSyncing || !localCommand}
+          onClick={handleSync}
+          title={
+            isOutOfSync
+              ? "Command not synced with Discord — click to sync"
+              : "Sync slash command with Discord"
+          }
+        >
+          {isOutOfSync ? (
+            <TriangleAlert className="h-3 w-3" />
+          ) : (
+            <RefreshCw className={cn("h-3 w-3", isSyncing && "animate-spin")} />
+          )}
+        </Button>
+      </div>
       <DiscordBotCreateDialog
         isOpen={isCreateDialogOpen}
         onClose={() => setIsCreateDialogOpen(false)}

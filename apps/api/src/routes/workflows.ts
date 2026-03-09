@@ -15,6 +15,7 @@ import {
   GetWorkflowResponse,
   JWTTokenPayload,
   ListWorkflowsResponse,
+  SyncDiscordTriggerResponse,
   UpdateWorkflowRequest,
   UpdateWorkflowResponse,
   UpsertQueueTriggerRequest,
@@ -35,6 +36,7 @@ import {
   deleteDiscordTrigger as deleteDbDiscordTrigger,
   deleteQueueTrigger as deleteDbQueueTrigger,
   deleteTelegramTrigger as deleteDbTelegramTrigger,
+  getDiscordBot,
   getDiscordTrigger,
   getEmailTrigger,
   getOrganizationBillingInfo,
@@ -858,6 +860,94 @@ workflowRoutes.get(
       updatedAt: discordTrigger.updatedAt,
     };
 
+    return c.json(response);
+  }
+);
+
+/**
+ * Sync (re-register) the discord slash command for a workflow trigger
+ */
+workflowRoutes.post(
+  "/:workflowIdOrHandle/discord-trigger/sync",
+  jwtMiddleware,
+  async (c) => {
+    const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
+    const organizationId = c.get("organizationId")!;
+    const workflowStore = new WorkflowStore(c.env);
+    const db = createDatabase(c.env.DB);
+
+    const workflow = await workflowStore.get(
+      workflowIdOrHandle,
+      organizationId
+    );
+    if (!workflow) {
+      return c.json({ error: "Workflow not found" }, 404);
+    }
+
+    const discordTrigger = await getDiscordTrigger(
+      db,
+      workflow.id,
+      organizationId
+    );
+    if (!discordTrigger || !discordTrigger.discordBotId) {
+      return c.json(
+        { error: "Discord trigger not found for this workflow" },
+        404
+      );
+    }
+
+    const bot = await getDiscordBot(
+      db,
+      discordTrigger.discordBotId,
+      organizationId
+    );
+    if (!bot) {
+      return c.json({ error: "Discord bot not found" }, 404);
+    }
+
+    const botToken = await decryptSecret(
+      bot.encryptedBotToken,
+      c.env,
+      organizationId
+    );
+
+    // Register the slash command with Discord
+    const resp = await fetch(
+      `https://discord.com/api/v10/applications/${bot.applicationId}/commands`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bot ${botToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: discordTrigger.commandName,
+          description: `Run the ${discordTrigger.commandName} workflow`,
+          type: 1,
+          options: [
+            {
+              name: "message",
+              type: 3,
+              description: "Input message for the workflow",
+              required: false,
+            },
+          ],
+        }),
+      }
+    );
+
+    if (!resp.ok) {
+      const body = await resp.text();
+      return c.json(
+        { error: `Failed to register slash command: ${body}` },
+        502
+      );
+    }
+
+    const response: SyncDiscordTriggerResponse = {
+      commandName: discordTrigger.commandName,
+      synced: true,
+    };
     return c.json(response);
   }
 );

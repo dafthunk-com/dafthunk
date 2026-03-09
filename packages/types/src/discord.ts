@@ -31,6 +31,11 @@ export interface UpsertDiscordTriggerRequest {
 
 export type UpsertDiscordTriggerResponse = GetDiscordTriggerResponse;
 
+export interface SyncDiscordTriggerResponse {
+  commandName: string;
+  synced: boolean;
+}
+
 export interface DeleteDiscordTriggerResponse {
   workflowId: string;
 }
