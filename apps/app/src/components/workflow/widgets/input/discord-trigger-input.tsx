@@ -133,8 +133,10 @@ function DiscordTriggerInputWidget({
       await syncDiscordTrigger(workflowIdOrHandle, orgHandle);
       await mutateDiscordTrigger();
       toast.success("Slash command synced with Discord");
-    } catch {
-      toast.error("Failed to sync slash command");
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to sync slash command"
+      );
     } finally {
       setIsSyncing(false);
     }

@@ -938,6 +938,9 @@ workflowRoutes.post(
 
     if (!resp.ok) {
       const body = await resp.text();
+      console.error(
+        `[DiscordTrigger] Sync failed for workflow=${workflow.id} command=${discordTrigger.commandName}: ${resp.status} ${body}`
+      );
       return c.json(
         { error: `Failed to register slash command: ${body}` },
         502
