@@ -1,4 +1,4 @@
-import { RefreshCw, TriangleAlert } from "lucide-react";
+import { ExternalLink, RefreshCw, TriangleAlert } from "lucide-react";
 import { useState } from "react";
 import { useParams } from "react-router";
 import { toast } from "sonner";
@@ -56,6 +56,11 @@ function DiscordTriggerInputWidget({
   const { discordTrigger, mutateDiscordTrigger } = useDiscordTrigger(
     workflowIdOrHandle ?? null
   );
+
+  const selectedBot = discordBots.find((b) => b.id === discordBotId);
+  const inviteUrl = selectedBot
+    ? `https://discord.com/oauth2/authorize?client_id=${selectedBot.applicationId}&scope=bot+applications.commands&permissions=2048`
+    : null;
 
   const isOutOfSync =
     discordTrigger &&
@@ -137,26 +142,39 @@ function DiscordTriggerInputWidget({
 
   return (
     <div className={cn("p-2 space-y-1", className)}>
-      <Select
-        value={discordBotId || ""}
-        onValueChange={handleBotChange}
-        disabled={disabled || isDiscordBotsLoading}
-      >
-        <SelectTrigger className="h-6 text-xs">
-          <SelectValue
-            placeholder={isDiscordBotsLoading ? "Loading..." : "Select a bot"}
-          />
-        </SelectTrigger>
-        <SelectContent>
-          {discordBots.map((bot) => (
-            <SelectItem key={bot.id} value={bot.id}>
-              {bot.name}
-            </SelectItem>
-          ))}
-          <SelectSeparator />
-          <SelectItem value={CREATE_NEW_SENTINEL}>+ New Bot</SelectItem>
-        </SelectContent>
-      </Select>
+      <div className="flex items-center gap-1">
+        <Select
+          value={discordBotId || ""}
+          onValueChange={handleBotChange}
+          disabled={disabled || isDiscordBotsLoading}
+        >
+          <SelectTrigger className="h-6 text-xs">
+            <SelectValue
+              placeholder={isDiscordBotsLoading ? "Loading..." : "Select a bot"}
+            />
+          </SelectTrigger>
+          <SelectContent>
+            {discordBots.map((bot) => (
+              <SelectItem key={bot.id} value={bot.id}>
+                {bot.name}
+              </SelectItem>
+            ))}
+            <SelectSeparator />
+            <SelectItem value={CREATE_NEW_SENTINEL}>+ New Bot</SelectItem>
+          </SelectContent>
+        </Select>
+        {inviteUrl && (
+          <a
+            href={inviteUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Invite bot to server"
+            className="inline-flex items-center justify-center h-6 w-6 shrink-0 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent"
+          >
+            <ExternalLink className="h-3 w-3" />
+          </a>
+        )}
+      </div>
       <div className="flex items-center gap-1">
         <Input
           value={localCommand}
