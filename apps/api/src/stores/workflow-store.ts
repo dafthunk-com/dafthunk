@@ -118,7 +118,11 @@ export class WorkflowStore {
 
     if (!discordBotId || !commandName) return null;
 
-    return { discordBotId, commandName };
+    // Discord slash command names must be lowercase, no leading slash
+    const sanitized = commandName.replace(/^\/+/, "").toLowerCase();
+    if (!sanitized) return null;
+
+    return { discordBotId, commandName: sanitized };
   }
 
   /**
