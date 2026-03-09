@@ -12,7 +12,6 @@ import Logs from "lucide-react/icons/logs";
 import Mail from "lucide-react/icons/mail";
 import MessageSquareText from "lucide-react/icons/message-square-text";
 import Plug from "lucide-react/icons/plug";
-import Send from "lucide-react/icons/send";
 import SquareTerminal from "lucide-react/icons/square-terminal";
 import Target from "lucide-react/icons/target";
 import Users from "lucide-react/icons/users";
@@ -89,14 +88,9 @@ export const getDashboardSidebarGroups = (
           icon: Inbox,
         },
         {
-          title: "Discord",
-          url: `/org/${orgHandle}/discord-bots`,
+          title: "Bots",
+          url: `/org/${orgHandle}/bots`,
           icon: Bot,
-        },
-        {
-          title: "Telegram",
-          url: `/org/${orgHandle}/telegram-bots`,
-          icon: Send,
         },
       ],
     },

@@ -36,7 +36,9 @@ import { DatasetsPage } from "./pages/datasets-page";
 import { DeploymentDetailPage } from "./pages/deployment-detail-page";
 import { DeploymentVersionPage } from "./pages/deployment-version-page";
 import { DeploymentsPage } from "./pages/deployments-page";
-import { DiscordBotsPage } from "./pages/discord-bots-page";
+import { BotDiscordDetailPage } from "./pages/bot-discord-detail-page";
+import { BotTelegramDetailPage } from "./pages/bot-telegram-detail-page";
+import { BotsPage } from "./pages/bots-page";
 import { DocsApiPage } from "./pages/docs/api-page";
 import { DocsOverviewPage } from "./pages/docs/concepts-page";
 import { DocsDevelopersPage } from "./pages/docs/developers-page";
@@ -59,7 +61,6 @@ import { PlaygroundPage } from "./pages/playground-page";
 import { ProfilePage } from "./pages/profile-page";
 import { QueuesPage } from "./pages/queues-page";
 import { SecretsPage } from "./pages/secrets-page";
-import { TelegramBotsPage } from "./pages/telegram-bots-page";
 import { TemplateDetailPage } from "./pages/template-detail-page";
 import { TemplatePreviewPage } from "./pages/template-preview-page";
 import { TemplateTryPage } from "./pages/template-try-page";
@@ -677,34 +678,57 @@ export const routes: AppRouteObject[] = [
     handle: { head: <HeadSeo title="Emails - Emails - Dafthunk" /> },
   },
   {
+    path: "/bots",
+    element: <OrgRedirect to="/org/:handle/bots" />,
+  },
+  {
     path: "/discord-bots",
-    element: <OrgRedirect to="/org/:handle/discord-bots" />,
+    element: <OrgRedirect to="/org/:handle/bots" />,
   },
   {
     path: "/org/:handle/discord-bots",
-    element: (
-      <OrgLayout title="Discord Bots">
-        <ProtectedRoute>
-          <DiscordBotsPage />
-        </ProtectedRoute>
-      </OrgLayout>
-    ),
-    handle: { head: <HeadSeo title="Discord Bots - Dafthunk" /> },
+    element: <OrgRedirect to="/org/:handle/bots" />,
   },
   {
     path: "/telegram-bots",
-    element: <OrgRedirect to="/org/:handle/telegram-bots" />,
+    element: <OrgRedirect to="/org/:handle/bots" />,
   },
   {
     path: "/org/:handle/telegram-bots",
+    element: <OrgRedirect to="/org/:handle/bots" />,
+  },
+  {
+    path: "/org/:handle/bots",
     element: (
-      <OrgLayout title="Telegram Bots">
+      <OrgLayout title="Bots">
         <ProtectedRoute>
-          <TelegramBotsPage />
+          <BotsPage />
         </ProtectedRoute>
       </OrgLayout>
     ),
-    handle: { head: <HeadSeo title="Telegram Bots - Dafthunk" /> },
+    handle: { head: <HeadSeo title="Bots - Dafthunk" /> },
+  },
+  {
+    path: "/org/:handle/bots/discord/:id",
+    element: (
+      <OrgLayout title="Bots">
+        <ProtectedRoute>
+          <BotDiscordDetailPage />
+        </ProtectedRoute>
+      </OrgLayout>
+    ),
+    handle: { head: <HeadSeo title="Bot Details - Dafthunk" /> },
+  },
+  {
+    path: "/org/:handle/bots/telegram/:id",
+    element: (
+      <OrgLayout title="Bots">
+        <ProtectedRoute>
+          <BotTelegramDetailPage />
+        </ProtectedRoute>
+      </OrgLayout>
+    ),
+    handle: { head: <HeadSeo title="Bot Details - Dafthunk" /> },
   },
   {
     path: "/deployments",

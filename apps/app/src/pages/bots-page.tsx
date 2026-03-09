@@ -1,0 +1,266 @@
+import type { ColumnDef } from "@tanstack/react-table";
+import Bot from "lucide-react/icons/bot";
+import MoreHorizontal from "lucide-react/icons/more-horizontal";
+import PlusCircle from "lucide-react/icons/plus-circle";
+import Send from "lucide-react/icons/send";
+import { useEffect, useState } from "react";
+import { Link } from "react-router";
+
+import { useAuth } from "@/components/auth-context";
+import { InsetError } from "@/components/inset-error";
+import { InsetLoading } from "@/components/inset-loading";
+import { InsetLayout } from "@/components/layouts/inset-layout";
+import { Button } from "@/components/ui/button";
+import { DataTable } from "@/components/ui/data-table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Spinner } from "@/components/ui/spinner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { useOrgUrl } from "@/hooks/use-org-url";
+import { usePageBreadcrumbs } from "@/hooks/use-page";
+import {
+  deleteDiscordBot,
+  useDiscordBots,
+} from "@/services/discord-bot-service";
+import {
+  deleteTelegramBot,
+  useTelegramBots,
+} from "@/services/telegram-bot-service";
+
+import { BotsCreateDialog } from "./bots-create-dialog";
+
+interface BotRow {
+  id: string;
+  type: "discord" | "telegram";
+  name: string;
+  tokenLastFour: string;
+  createdAt: string | Date;
+}
+
+function createColumns(
+  getOrgUrl: (path: string) => string,
+  openDeleteDialog: (bot: BotRow) => void
+): ColumnDef<BotRow>[] {
+  return [
+    {
+      accessorKey: "type",
+      header: "Type",
+      cell: ({ row }) => {
+        const type = row.getValue("type") as BotRow["type"];
+        const Icon = type === "discord" ? Bot : Send;
+        return (
+          <div className="flex items-center gap-2">
+            <Icon className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm capitalize">{type}</span>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "name",
+      header: "Name",
+      cell: ({ row }) => {
+        const bot = row.original;
+        const detailUrl = getOrgUrl(`bots/${bot.type}/${bot.id}`);
+        return (
+          <Link
+            to={detailUrl}
+            className="font-medium text-primary hover:underline"
+          >
+            {bot.name || "Untitled Bot"}
+          </Link>
+        );
+      },
+    },
+    {
+      accessorKey: "tokenLastFour",
+      header: "Token",
+      cell: ({ row }) => {
+        const lastFour = row.getValue("tokenLastFour") as string;
+        return (
+          <span className="text-sm text-muted-foreground">****{lastFour}</span>
+        );
+      },
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => {
+        const bot = row.original;
+        return (
+          <div className="text-right">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => openDeleteDialog(bot)}>
+                  Delete Bot
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        );
+      },
+    },
+  ];
+}
+
+export function BotsPage() {
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [botToDelete, setBotToDelete] = useState<BotRow | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const { setBreadcrumbs } = usePageBreadcrumbs([]);
+  const { organization } = useAuth();
+  const { getOrgUrl } = useOrgUrl();
+  const orgHandle = organization?.handle || "";
+
+  const {
+    discordBots,
+    discordBotsError,
+    isDiscordBotsLoading,
+    mutateDiscordBots,
+  } = useDiscordBots();
+
+  const {
+    telegramBots,
+    telegramBotsError,
+    isTelegramBotsLoading,
+    mutateTelegramBots,
+  } = useTelegramBots();
+
+  useEffect(() => {
+    setBreadcrumbs([{ label: "Bots" }]);
+  }, [setBreadcrumbs]);
+
+  const isLoading = isDiscordBotsLoading || isTelegramBotsLoading;
+  const error = discordBotsError || telegramBotsError;
+
+  const rows: BotRow[] = [
+    ...(discordBots || []).map((bot) => ({
+      id: bot.id,
+      type: "discord" as const,
+      name: bot.name,
+      tokenLastFour: bot.tokenLastFour,
+      createdAt: bot.createdAt,
+    })),
+    ...(telegramBots || []).map((bot) => ({
+      id: bot.id,
+      type: "telegram" as const,
+      name: bot.name,
+      tokenLastFour: bot.tokenLastFour,
+      createdAt: bot.createdAt,
+    })),
+  ];
+
+  const openDeleteDialog = (bot: BotRow) => {
+    setBotToDelete(bot);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteBot = async () => {
+    if (!botToDelete || !orgHandle) return;
+    setIsDeleting(true);
+    try {
+      if (botToDelete.type === "discord") {
+        await deleteDiscordBot(botToDelete.id, orgHandle);
+        mutateDiscordBots();
+      } else {
+        await deleteTelegramBot(botToDelete.id, orgHandle);
+        mutateTelegramBots();
+      }
+      setDeleteDialogOpen(false);
+      setBotToDelete(null);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleCreated = () => {
+    mutateDiscordBots();
+    mutateTelegramBots();
+    setIsCreateDialogOpen(false);
+  };
+
+  const columns = createColumns(getOrgUrl, openDeleteDialog);
+
+  if (isLoading) {
+    return <InsetLoading title="Bots" />;
+  } else if (error) {
+    return <InsetError title="Bots" errorMessage={error.message} />;
+  }
+
+  return (
+    <TooltipProvider>
+      <InsetLayout title="Bots">
+        <div className="flex items-center justify-between mb-6 min-h-10">
+          <div className="text-sm text-muted-foreground max-w-2xl">
+            Add your own bots to use as triggers for workflows.
+          </div>
+          <Button onClick={() => setIsCreateDialogOpen(true)}>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add Bot
+          </Button>
+        </div>
+        <DataTable
+          columns={columns}
+          data={rows}
+          emptyState={{
+            title: "No bots configured",
+            description: "Add a bot to get started.",
+          }}
+        />
+        <BotsCreateDialog
+          open={isCreateDialogOpen}
+          onOpenChange={setIsCreateDialogOpen}
+          onCreated={handleCreated}
+        />
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Bot</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete "
+                {botToDelete?.name || "Untitled Bot"}"? Triggers using this bot
+                will need to be reconfigured with a different bot.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setDeleteDialogOpen(false)}
+                disabled={isDeleting}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleDeleteBot}
+                disabled={isDeleting}
+              >
+                {isDeleting ? <Spinner className="h-4 w-4 mr-2" /> : null}
+                Delete
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </InsetLayout>
+    </TooltipProvider>
+  );
+}
