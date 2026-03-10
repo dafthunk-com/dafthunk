@@ -356,8 +356,7 @@ export function WorkflowToolSelector({
                 />
               </div>
               <div className="text-xs text-muted-foreground/60 pt-4 text-right">
-                {filteredTemplates.length} of {toolTemplates.length}{" "}
-                tools
+                {filteredTemplates.length} of {toolTemplates.length} tools
               </div>
             </div>
           )}

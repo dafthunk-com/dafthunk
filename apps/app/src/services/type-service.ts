@@ -22,7 +22,8 @@ export const useNodeTypes = (
   const { data, error, isLoading, mutate } = useSWR(
     API_ENDPOINT_BASE,
     async () => {
-      const response = await makeRequest<GetNodeTypesResponse>(API_ENDPOINT_BASE);
+      const response =
+        await makeRequest<GetNodeTypesResponse>(API_ENDPOINT_BASE);
       return response.nodeTypes;
     },
     options

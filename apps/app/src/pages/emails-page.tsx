@@ -1,5 +1,6 @@
-import { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import MoreHorizontal from "lucide-react/icons/more-horizontal";
+import Pencil from "lucide-react/icons/pencil";
 import PlusCircle from "lucide-react/icons/plus-circle";
 import { useEffect, useState } from "react";
 
@@ -27,76 +28,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { EmailCreateDialog } from "@/components/workflow/widgets/input/email-create-dialog";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
-import { createEmail, deleteEmail, useEmails } from "@/services/email-service";
+import { deleteEmail, updateEmail, useEmails } from "@/services/email-service";
 
-function useEmailActions() {
-  const { mutateEmails } = useEmails();
-  const { organization } = useAuth();
-  const orgHandle = organization?.handle || "";
-
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [emailToDelete, setEmailToDelete] = useState<any | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  const handleDeleteEmail = async () => {
-    if (!emailToDelete || !orgHandle) return;
-    setIsDeleting(true);
-    try {
-      await deleteEmail(emailToDelete.id, orgHandle);
-      setDeleteDialogOpen(false);
-      setEmailToDelete(null);
-      mutateEmails();
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  const deleteDialog = (
-    <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Delete Email</DialogTitle>
-          <DialogDescription>
-            Are you sure you want to delete "
-            {emailToDelete?.name || "Untitled Email"}"? This action cannot be
-            undone.
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() => setDeleteDialogOpen(false)}
-            disabled={isDeleting}
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="destructive"
-            onClick={handleDeleteEmail}
-            disabled={isDeleting}
-          >
-            {isDeleting ? <Spinner className="h-4 w-4 mr-2" /> : null}
-            Delete
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-
-  return {
-    deleteDialog,
-    openDeleteDialog: (email: any) => {
-      setEmailToDelete(email);
-      setDeleteDialogOpen(true);
-    },
-  };
+interface EmailRow {
+  id: string;
+  name: string;
+  handle: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 function createColumns(
-  openDeleteDialog: (email: any) => void,
+  openEditDialog: (email: EmailRow) => void,
+  openDeleteDialog: (email: EmailRow) => void,
   orgHandle: string
-): ColumnDef<any>[] {
+): ColumnDef<EmailRow>[] {
   return [
     {
       accessorKey: "name",
@@ -150,6 +98,10 @@ function createColumns(
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => openEditDialog(email)}>
+                  <Pencil className="mr-2 h-4 w-4" />
+                  Edit
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => openDeleteDialog(email)}>
                   Delete Email
                 </DropdownMenuItem>
@@ -164,31 +116,67 @@ function createColumns(
 
 export function EmailsPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [emailToDelete, setEmailToDelete] = useState<EmailRow | null>(null);
+  const [emailToEdit, setEmailToEdit] = useState<EmailRow | null>(null);
+  const [editName, setEditName] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const { organization } = useAuth();
   const orgHandle = organization?.handle || "";
 
   const { emails, emailsError, isEmailsLoading, mutateEmails } = useEmails();
 
-  const { deleteDialog, openDeleteDialog } = useEmailActions();
-
-  const columns = createColumns(openDeleteDialog, orgHandle);
-
   useEffect(() => {
     setBreadcrumbs([{ label: "Emails" }]);
   }, [setBreadcrumbs]);
 
-  const handleCreateEmail = async (name: string) => {
-    if (!orgHandle) return;
+  const openDeleteDialog = (email: EmailRow) => {
+    setEmailToDelete(email);
+    setDeleteDialogOpen(true);
+  };
 
+  const openEditDialog = (email: EmailRow) => {
+    setEmailToEdit(email);
+    setEditName(email.name);
+    setEditDialogOpen(true);
+  };
+
+  const handleDeleteEmail = async () => {
+    if (!emailToDelete || !orgHandle) return;
+    setIsDeleting(true);
     try {
-      await createEmail({ name }, orgHandle);
+      await deleteEmail(emailToDelete.id, orgHandle);
+      setDeleteDialogOpen(false);
+      setEmailToDelete(null);
       mutateEmails();
-      setIsCreateDialogOpen(false);
-    } catch (error) {
-      console.error("Failed to create email:", error);
+    } finally {
+      setIsDeleting(false);
     }
   };
+
+  const handleEditEmail = async () => {
+    if (!emailToEdit || !orgHandle || editName.trim() === "") return;
+    setIsEditing(true);
+    try {
+      await updateEmail(emailToEdit.id, { name: editName.trim() }, orgHandle);
+      setEditDialogOpen(false);
+      setEmailToEdit(null);
+      mutateEmails();
+    } finally {
+      setIsEditing(false);
+    }
+  };
+
+  const handleCreated = () => {
+    mutateEmails();
+    setIsCreateDialogOpen(false);
+  };
+
+  const columns = createColumns(openEditDialog, openDeleteDialog, orgHandle);
 
   if (isEmailsLoading) {
     return <InsetLoading title="Emails" />;
@@ -199,60 +187,89 @@ export function EmailsPage() {
   return (
     <TooltipProvider>
       <InsetLayout title="Emails">
-        <div className="flex items-center justify-between mb-6  min-h-10">
+        <div className="flex items-center justify-between mb-6 min-h-10">
           <div className="text-sm text-muted-foreground max-w-2xl">
             Create and manage email inboxes for your workflows.
           </div>
           <Button onClick={() => setIsCreateDialogOpen(true)}>
             <PlusCircle className="mr-2 h-4 w-4" />
-            Create New Email Inbox
+            Create Inbox
           </Button>
         </div>
         <DataTable
           columns={columns}
-          data={emails || []}
+          data={(emails as EmailRow[]) || []}
           emptyState={{
             title: "No email inboxes found",
             description: "Create a new email inbox to get started.",
           }}
         />
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <EmailCreateDialog
+          isOpen={isCreateDialogOpen}
+          onClose={() => setIsCreateDialogOpen(false)}
+          onCreated={handleCreated}
+        />
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Create New Email Inbox</DialogTitle>
+              <DialogTitle>Edit Email Inbox</DialogTitle>
+              <DialogDescription>Rename your email inbox.</DialogDescription>
             </DialogHeader>
-            <form
-              onSubmit={async (e) => {
-                e.preventDefault();
-                const formData = new FormData(e.currentTarget);
-                const name = formData.get("name") as string;
-                await handleCreateEmail(name);
-              }}
-              className="space-y-4"
-            >
-              <div>
-                <Label htmlFor="name">Email Inbox Name</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  placeholder="Enter email inbox name"
-                  className="mt-2"
-                />
-              </div>
-              <DialogFooter>
-                <Button
-                  variant="outline"
-                  type="button"
-                  onClick={() => setIsCreateDialogOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit">Create Email Inbox</Button>
-              </DialogFooter>
-            </form>
+            <div className="space-y-2">
+              <Label htmlFor="edit-email-name">Name</Label>
+              <Input
+                id="edit-email-name"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+              />
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setEditDialogOpen(false)}
+                disabled={isEditing}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleEditEmail}
+                disabled={isEditing || editName.trim() === ""}
+              >
+                {isEditing ? <Spinner className="h-4 w-4 mr-2" /> : null}
+                Save
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
-        {deleteDialog}
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Email</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete "
+                {emailToDelete?.name || "Untitled Email"}"? This action cannot
+                be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setDeleteDialogOpen(false)}
+                disabled={isDeleting}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleDeleteEmail}
+                disabled={isDeleting}
+              >
+                {isDeleting ? <Spinner className="h-4 w-4 mr-2" /> : null}
+                Delete
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </InsetLayout>
     </TooltipProvider>
   );

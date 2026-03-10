@@ -73,7 +73,6 @@ export function NodeCard({
                   </p>
                 </div>
               )}
-
             </div>
           </CardContent>
         </Card>
