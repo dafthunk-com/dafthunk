@@ -23,6 +23,7 @@ import { imageInputWidget } from "./input/image-input";
 import { javascriptInputWidget } from "./input/javascript-input";
 import { jsonInputWidget } from "./input/json-input";
 import { numberInputWidget } from "./input/number-input";
+import { queueTriggerInputWidget } from "./input/queue-trigger-input";
 import { replicateModelInputWidget } from "./input/replicate-model-input";
 import { secretInputWidget } from "./input/secret-input";
 import { sliderInputWidget } from "./input/slider-input";
@@ -67,6 +68,7 @@ const widgets = [
   // Advanced input widgets (special UX)
   discordTriggerInputWidget,
   emailTriggerInputWidget,
+  queueTriggerInputWidget,
   telegramTriggerInputWidget,
   javascriptInputWidget,
   sliderInputWidget,

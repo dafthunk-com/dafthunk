@@ -1,5 +1,6 @@
-import { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import MoreHorizontal from "lucide-react/icons/more-horizontal";
+import Pencil from "lucide-react/icons/pencil";
 import PlusCircle from "lucide-react/icons/plus-circle";
 import { useEffect, useState } from "react";
 
@@ -27,76 +28,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueueCreateDialog } from "@/components/workflow/widgets/input/queue-create-dialog";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
-import { createQueue, deleteQueue, useQueues } from "@/services/queue-service";
+import { deleteQueue, updateQueue, useQueues } from "@/services/queue-service";
 
-function useQueueActions() {
-  const { mutateQueues } = useQueues();
-  const { organization } = useAuth();
-  const orgHandle = organization?.handle || "";
-
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [queueToDelete, setQueueToDelete] = useState<any | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  const handleDeleteQueue = async () => {
-    if (!queueToDelete || !orgHandle) return;
-    setIsDeleting(true);
-    try {
-      await deleteQueue(queueToDelete.id, orgHandle);
-      setDeleteDialogOpen(false);
-      setQueueToDelete(null);
-      mutateQueues();
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  const deleteDialog = (
-    <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Delete Queue</DialogTitle>
-          <DialogDescription>
-            Are you sure you want to delete "
-            {queueToDelete?.name || "Untitled Queue"}"? This action cannot be
-            undone.
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() => setDeleteDialogOpen(false)}
-            disabled={isDeleting}
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="destructive"
-            onClick={handleDeleteQueue}
-            disabled={isDeleting}
-          >
-            {isDeleting ? <Spinner className="h-4 w-4 mr-2" /> : null}
-            Delete
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-
-  return {
-    deleteDialog,
-    openDeleteDialog: (queue: any) => {
-      setQueueToDelete(queue);
-      setDeleteDialogOpen(true);
-    },
-  };
+interface QueueRow {
+  id: string;
+  name: string;
+  handle: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 function createColumns(
-  openDeleteDialog: (queue: any) => void,
-  _orgHandle: string
-): ColumnDef<any>[] {
+  openEditDialog: (queue: QueueRow) => void,
+  openDeleteDialog: (queue: QueueRow) => void
+): ColumnDef<QueueRow>[] {
   return [
     {
       accessorKey: "name",
@@ -154,6 +101,10 @@ function createColumns(
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => openEditDialog(queue)}>
+                  <Pencil className="mr-2 h-4 w-4" />
+                  Edit
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => openDeleteDialog(queue)}>
                   Delete Queue
                 </DropdownMenuItem>
@@ -168,31 +119,67 @@ function createColumns(
 
 export function QueuesPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [queueToDelete, setQueueToDelete] = useState<QueueRow | null>(null);
+  const [queueToEdit, setQueueToEdit] = useState<QueueRow | null>(null);
+  const [editName, setEditName] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const { organization } = useAuth();
   const orgHandle = organization?.handle || "";
 
   const { queues, queuesError, isQueuesLoading, mutateQueues } = useQueues();
 
-  const { deleteDialog, openDeleteDialog } = useQueueActions();
-
-  const columns = createColumns(openDeleteDialog, orgHandle);
-
   useEffect(() => {
     setBreadcrumbs([{ label: "Queues" }]);
   }, [setBreadcrumbs]);
 
-  const handleCreateQueue = async (name: string) => {
-    if (!orgHandle) return;
+  const openDeleteDialog = (queue: QueueRow) => {
+    setQueueToDelete(queue);
+    setDeleteDialogOpen(true);
+  };
 
+  const openEditDialog = (queue: QueueRow) => {
+    setQueueToEdit(queue);
+    setEditName(queue.name);
+    setEditDialogOpen(true);
+  };
+
+  const handleDeleteQueue = async () => {
+    if (!queueToDelete || !orgHandle) return;
+    setIsDeleting(true);
     try {
-      await createQueue({ name }, orgHandle);
+      await deleteQueue(queueToDelete.id, orgHandle);
+      setDeleteDialogOpen(false);
+      setQueueToDelete(null);
       mutateQueues();
-      setIsCreateDialogOpen(false);
-    } catch (error) {
-      console.error("Failed to create queue:", error);
+    } finally {
+      setIsDeleting(false);
     }
   };
+
+  const handleEditQueue = async () => {
+    if (!queueToEdit || !orgHandle || editName.trim() === "") return;
+    setIsEditing(true);
+    try {
+      await updateQueue(queueToEdit.id, { name: editName.trim() }, orgHandle);
+      setEditDialogOpen(false);
+      setQueueToEdit(null);
+      mutateQueues();
+    } finally {
+      setIsEditing(false);
+    }
+  };
+
+  const handleCreated = () => {
+    mutateQueues();
+    setIsCreateDialogOpen(false);
+  };
+
+  const columns = createColumns(openEditDialog, openDeleteDialog);
 
   if (isQueuesLoading) {
     return <InsetLoading title="Queues" />;
@@ -203,60 +190,89 @@ export function QueuesPage() {
   return (
     <TooltipProvider>
       <InsetLayout title="Queues">
-        <div className="flex items-center justify-between mb-6  min-h-10">
+        <div className="flex items-center justify-between mb-6 min-h-10">
           <div className="text-sm text-muted-foreground max-w-2xl">
             Create and manage message queues for your workflows.
           </div>
           <Button onClick={() => setIsCreateDialogOpen(true)}>
             <PlusCircle className="mr-2 h-4 w-4" />
-            Create New Message Queue
+            Create Queue
           </Button>
         </div>
         <DataTable
           columns={columns}
-          data={queues || []}
+          data={(queues as QueueRow[]) || []}
           emptyState={{
             title: "No queues found",
             description: "Create a new queue to get started.",
           }}
         />
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <QueueCreateDialog
+          isOpen={isCreateDialogOpen}
+          onClose={() => setIsCreateDialogOpen(false)}
+          onCreated={handleCreated}
+        />
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Create New Queue</DialogTitle>
+              <DialogTitle>Edit Queue</DialogTitle>
+              <DialogDescription>Rename your queue.</DialogDescription>
             </DialogHeader>
-            <form
-              onSubmit={async (e) => {
-                e.preventDefault();
-                const formData = new FormData(e.currentTarget);
-                const name = formData.get("name") as string;
-                await handleCreateQueue(name);
-              }}
-              className="space-y-4"
-            >
-              <div>
-                <Label htmlFor="name">Queue Name</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  placeholder="Enter queue name"
-                  className="mt-2"
-                />
-              </div>
-              <DialogFooter>
-                <Button
-                  variant="outline"
-                  type="button"
-                  onClick={() => setIsCreateDialogOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit">Create Queue</Button>
-              </DialogFooter>
-            </form>
+            <div className="space-y-2">
+              <Label htmlFor="edit-queue-name">Name</Label>
+              <Input
+                id="edit-queue-name"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+              />
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setEditDialogOpen(false)}
+                disabled={isEditing}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleEditQueue}
+                disabled={isEditing || editName.trim() === ""}
+              >
+                {isEditing ? <Spinner className="h-4 w-4 mr-2" /> : null}
+                Save
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
-        {deleteDialog}
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Queue</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete "
+                {queueToDelete?.name || "Untitled Queue"}"? This action cannot
+                be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setDeleteDialogOpen(false)}
+                disabled={isDeleting}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleDeleteQueue}
+                disabled={isDeleting}
+              >
+                {isDeleting ? <Spinner className="h-4 w-4 mr-2" /> : null}
+                Delete
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </InsetLayout>
     </TooltipProvider>
   );
