@@ -1,5 +1,6 @@
+import type { EndpointMode } from "@dafthunk/types";
 import { Globe } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { useAuth } from "@/components/auth-context";
 import { Button } from "@/components/ui/button";
@@ -26,12 +27,14 @@ interface EndpointTriggerInputProps extends BaseWidgetProps {
   nodeId: string;
   endpointId: string;
   inputs: WorkflowParameter[];
+  mode: EndpointMode;
 }
 
 function EndpointTriggerInputWidget({
   nodeId,
   endpointId,
   inputs,
+  mode,
   className,
   disabled = false,
 }: EndpointTriggerInputProps) {
@@ -41,6 +44,11 @@ function EndpointTriggerInputWidget({
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEndpointTriggerDialogOpen, setIsEndpointTriggerDialogOpen] =
     useState(false);
+
+  const filteredEndpoints = useMemo(
+    () => endpoints.filter((ep) => ep.mode === mode),
+    [endpoints, mode]
+  );
 
   const handleEndpointChange = (value: string) => {
     if (value === CREATE_NEW_SENTINEL) {
@@ -88,7 +96,7 @@ function EndpointTriggerInputWidget({
             />
           </SelectTrigger>
           <SelectContent>
-            {endpoints.map((endpoint) => (
+            {filteredEndpoints.map((endpoint) => (
               <SelectItem key={endpoint.id} value={endpoint.id}>
                 {endpoint.name}
               </SelectItem>
@@ -112,6 +120,7 @@ function EndpointTriggerInputWidget({
         isOpen={isCreateDialogOpen}
         onClose={() => setIsCreateDialogOpen(false)}
         onCreated={handleEndpointCreated}
+        defaultMode={mode}
       />
       <EndpointTriggerDialog
         isOpen={isEndpointTriggerDialogOpen}
@@ -123,23 +132,28 @@ function EndpointTriggerInputWidget({
   );
 }
 
-const widgetConfig = {
+export const httpRequestEndpointWidget = createWidget({
   component: EndpointTriggerInputWidget,
   inputField: "endpointId",
   managedFields: [],
+  nodeTypes: ["http-request"],
   extractConfig: (nodeId: string, inputs: WorkflowParameter[]) => ({
     nodeId,
     endpointId: getInputValue(inputs, "endpointId", ""),
     inputs,
+    mode: "request" as EndpointMode,
   }),
-};
-
-export const httpRequestEndpointWidget = createWidget({
-  ...widgetConfig,
-  nodeTypes: ["http-request"],
 });
 
 export const httpWebhookEndpointWidget = createWidget({
-  ...widgetConfig,
+  component: EndpointTriggerInputWidget,
+  inputField: "endpointId",
+  managedFields: [],
   nodeTypes: ["http-webhook"],
+  extractConfig: (nodeId: string, inputs: WorkflowParameter[]) => ({
+    nodeId,
+    endpointId: getInputValue(inputs, "endpointId", ""),
+    inputs,
+    mode: "webhook" as EndpointMode,
+  }),
 });

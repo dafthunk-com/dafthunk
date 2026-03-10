@@ -25,22 +25,24 @@ interface EndpointCreateDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onCreated: (endpointId: string) => void;
+  defaultMode?: EndpointMode;
 }
 
 export function EndpointCreateDialog({
   isOpen,
   onClose,
   onCreated,
+  defaultMode = "webhook",
 }: EndpointCreateDialogProps) {
   const { organization } = useAuth();
   const [name, setName] = useState("");
-  const [mode, setMode] = useState<EndpointMode>("webhook");
+  const [mode, setMode] = useState<EndpointMode>(defaultMode);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const resetForm = () => {
     setName("");
-    setMode("webhook");
+    setMode(defaultMode);
     setError(null);
   };
 
