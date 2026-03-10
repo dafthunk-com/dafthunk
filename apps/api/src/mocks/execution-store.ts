@@ -28,7 +28,6 @@ export class MockExecutionStore implements ExecutionStore {
     const row: ExecutionRow = {
       id: record.id,
       workflowId: record.workflowId,
-      deploymentId: record.deploymentId ?? null,
       organizationId: record.organizationId,
       status: record.status,
       error: record.error ?? null,
@@ -44,7 +43,6 @@ export class MockExecutionStore implements ExecutionStore {
     const execution: WorkflowExecution = {
       id: record.id,
       workflowId: record.workflowId,
-      deploymentId: record.deploymentId,
       status: record.status,
       nodeExecutions: record.nodeExecutions,
       error: record.error,

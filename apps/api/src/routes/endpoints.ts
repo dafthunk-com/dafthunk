@@ -28,7 +28,7 @@ import {
 } from "../db";
 import { createRateLimitMiddleware } from "../middleware/rate-limit";
 import { WorkflowExecutor } from "../services/workflow-executor";
-import { DeploymentStore } from "../stores/deployment-store";
+import { WorkflowStore } from "../stores/workflow-store";
 import { getAuthContext } from "../utils/auth-context";
 import {
   isExecutionPreparationError,
@@ -237,21 +237,24 @@ endpointRoutes.on(
     }
     const { computeCredits, subscriptionStatus, overageLimit } = billingInfo;
 
-    const deploymentStore = new DeploymentStore(c.env);
+    const workflowStore = new WorkflowStore(c.env);
     const executions: ExecuteWorkflowResponse[] = [];
 
     for (const { workflow } of triggers) {
-      // Require active deployment
-      if (!workflow.activeDeploymentId) {
+      // Require workflow to be enabled
+      if (!workflow.enabled) {
         continue;
       }
 
-      // Load workflow data from deployment snapshot
+      // Load workflow data from working version
       let workflowData;
       try {
-        workflowData = await deploymentStore.readWorkflowSnapshot(
-          workflow.activeDeploymentId
+        const workflowWithData = await workflowStore.getWithData(
+          workflow.id,
+          organizationId
         );
+        if (!workflowWithData?.data) continue;
+        workflowData = workflowWithData.data;
       } catch {
         continue;
       }
@@ -279,7 +282,6 @@ endpointRoutes.on(
         computeCredits,
         subscriptionStatus: subscriptionStatus ?? undefined,
         overageLimit: overageLimit ?? null,
-        deploymentId: workflow.activeDeploymentId,
         parameters,
         userPlan,
         env: c.env,
@@ -294,10 +296,7 @@ endpointRoutes.on(
     }
 
     if (executions.length === 0) {
-      return c.json(
-        { error: "No workflows with active deployments found" },
-        404
-      );
+      return c.json({ error: "No enabled workflows found" }, 404);
     }
 
     // Return single execution directly, or array for multiple

@@ -60,7 +60,6 @@ executionRoutes.get("/:id", apiKeyOrJwtMiddleware, async (c) => {
       id: execution.id,
       workflowId: execution.workflowId,
       workflowName: workflowName || "Unknown Workflow",
-      deploymentId: execution.deploymentId ?? undefined,
       status: execution.status as WorkflowExecutionStatus,
       nodeExecutions: execution.data.nodeExecutions || [],
       error: execution.error || undefined,
@@ -86,7 +85,6 @@ executionRoutes.get("/:id", apiKeyOrJwtMiddleware, async (c) => {
               criterionId: f.criterionId,
               criterionQuestion: (f.criterion as { question: string } | null)
                 ?.question,
-              deploymentId: f.deploymentId ?? undefined,
               sentiment: f.sentiment,
               comment: f.comment ?? undefined,
               createdAt: f.createdAt,
@@ -104,13 +102,12 @@ executionRoutes.get("/:id", apiKeyOrJwtMiddleware, async (c) => {
 executionRoutes.get("/", jwtMiddleware, async (c) => {
   const executionStore = new CloudflareExecutionStore(c.env);
   const workflowStore = new WorkflowStore(c.env);
-  const { workflowId, deploymentId, limit, offset } = c.req.query();
+  const { workflowId, limit, offset } = c.req.query();
 
   const organizationId = c.get("organizationId")!;
 
   // Validate UUID parameters to prevent SQL injection
   const validatedWorkflowId = validateUuid(workflowId);
-  const validatedDeploymentId = validateUuid(deploymentId);
 
   // Parse and validate pagination params
   const parsedLimit = Math.min(Math.max(1, parseInt(limit, 10) || 20), 100);
@@ -119,7 +116,6 @@ executionRoutes.get("/", jwtMiddleware, async (c) => {
   // List executions with optional filtering
   const queryParams: ListExecutionsRequest = {
     workflowId: validatedWorkflowId,
-    deploymentId: validatedDeploymentId,
     limit: parsedLimit,
     offset: parsedOffset,
   };
@@ -136,7 +132,6 @@ executionRoutes.get("/", jwtMiddleware, async (c) => {
       id: execution.id,
       workflowId: execution.workflowId,
       workflowName: workflowMap.get(execution.workflowId) || "Unknown Workflow",
-      deploymentId: execution.deploymentId ?? undefined,
       status: execution.status as WorkflowExecutionStatus,
       error: execution.error || undefined,
       startedAt: execution.startedAt || undefined,

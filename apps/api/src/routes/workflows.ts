@@ -60,7 +60,6 @@ import { createRateLimitMiddleware } from "../middleware/rate-limit";
 import { CloudflareExecutionStore } from "../runtime/cloudflare-execution-store";
 import { CloudflareNodeRegistry } from "../runtime/cloudflare-node-registry";
 import { WorkflowExecutor } from "../services/workflow-executor";
-import { DeploymentStore } from "../stores/deployment-store";
 import { WorkflowStore } from "../stores/workflow-store";
 import { getAuthContext } from "../utils/auth-context";
 import { decryptSecret } from "../utils/encryption";
@@ -99,6 +98,7 @@ workflowRoutes.get("/", jwtMiddleware, async (c) => {
       handle: workflow.handle,
       trigger: workflow.trigger,
       runtime: workflow.runtime,
+      enabled: workflow.enabled,
       createdAt: workflow.createdAt,
       updatedAt: workflow.updatedAt,
       nodes: [],
@@ -227,6 +227,7 @@ workflowRoutes.get("/:id", jwtMiddleware, async (c) => {
       handle: workflow.handle,
       trigger: workflow.trigger,
       runtime: workflow.runtime,
+      enabled: workflow.enabled,
       createdAt: workflow.createdAt || new Date(),
       updatedAt: workflow.updatedAt || new Date(),
       nodes: workflow.data.nodes || [],
@@ -355,6 +356,7 @@ workflowRoutes.put(
       handle: updatedWorkflowData.handle,
       trigger: updatedWorkflowData.trigger,
       runtime: updatedWorkflowData.runtime,
+      enabled: existingWorkflow.enabled,
       createdAt: existingWorkflow.createdAt,
       updatedAt: now,
       nodes: updatedWorkflowData.nodes || [],
@@ -390,8 +392,7 @@ workflowRoutes.delete("/:id", jwtMiddleware, async (c) => {
 async function executeWorkflow(
   c: Context<ExtendedApiContext>,
   workflow: { id: string; name: string; handle: string },
-  workflowData: any,
-  deploymentId: string | undefined
+  workflowData: any
 ): Promise<Response> {
   const db = createDatabase(c.env.DB);
   const { organizationId, userId, userPlan } = getAuthContext(c);
@@ -427,7 +428,6 @@ async function executeWorkflow(
     computeCredits,
     subscriptionStatus: subscriptionStatus ?? undefined,
     overageLimit: overageLimit ?? null,
-    deploymentId,
     parameters,
     userPlan,
     env: c.env,
@@ -447,7 +447,7 @@ async function executeWorkflow(
 
 /**
  * Execute a workflow in production mode (GET/POST)
- * Uses the active deployment
+ * Requires the workflow to be enabled
  */
 workflowRoutes.on(
   ["GET", "POST"],
@@ -459,49 +459,39 @@ workflowRoutes.on(
     const { organizationId } = getAuthContext(c);
 
     const workflowStore = new WorkflowStore(c.env);
-    const deploymentStore = new DeploymentStore(c.env);
 
-    // Get workflow metadata
-    const workflow = await workflowStore.get(
-      workflowIdOrHandle,
-      organizationId
-    );
-    if (!workflow) {
-      return c.json({ error: "Workflow not found" }, 404);
-    }
-
-    // Require active deployment for prod
-    if (!workflow.activeDeploymentId) {
-      return c.json(
-        {
-          error:
-            "No active deployment set for this workflow. Use /execute/dev for development or set an active deployment.",
-        },
-        400
-      );
-    }
-
-    // Load workflow data from deployment snapshot
-    let workflowData: any;
+    // Load workflow with data
+    let workflowWithData;
     try {
-      workflowData = await deploymentStore.readWorkflowSnapshot(
-        workflow.activeDeploymentId
+      workflowWithData = await workflowStore.getWithData(
+        workflowIdOrHandle,
+        organizationId
       );
     } catch (error) {
       return c.json(
         {
-          error: `Failed to load active deployment: ${error instanceof Error ? error.message : String(error)}`,
+          error: `Failed to load workflow: ${error instanceof Error ? error.message : String(error)}`,
         },
         500
       );
     }
 
-    return executeWorkflow(
-      c,
-      workflow,
-      workflowData,
-      workflow.activeDeploymentId
-    );
+    if (!workflowWithData || !workflowWithData.data) {
+      return c.json({ error: "Workflow not found" }, 404);
+    }
+
+    // Require workflow to be enabled for prod execution
+    if (!workflowWithData.enabled) {
+      return c.json(
+        {
+          error:
+            "Workflow is not enabled. Use /execute/dev for development or enable the workflow.",
+        },
+        400
+      );
+    }
+
+    return executeWorkflow(c, workflowWithData, workflowWithData.data);
   }
 );
 
@@ -540,12 +530,7 @@ workflowRoutes.on(
       return c.json({ error: "Workflow not found" }, 404);
     }
 
-    return executeWorkflow(
-      c,
-      workflowWithData,
-      workflowWithData.data,
-      undefined
-    );
+    return executeWorkflow(c, workflowWithData, workflowWithData.data);
   }
 );
 
@@ -591,7 +576,6 @@ workflowRoutes.post(
       const updatedExecution = await executionStore.save({
         id: executionId,
         workflowId: execution.workflowId,
-        deploymentId: execution.deploymentId ?? undefined,
         userId: "cancelled", // Required by SaveExecutionRecord but not stored in DB
         organizationId: execution.organizationId,
         status: ExecutionStatus.CANCELLED,
@@ -616,7 +600,6 @@ workflowRoutes.post(
       await executionStore.save({
         id: executionId,
         workflowId: execution.workflowId,
-        deploymentId: execution.deploymentId ?? undefined,
         userId: "cancelled", // Required by SaveExecutionRecord but not stored in DB
         organizationId: execution.organizationId,
         status: ExecutionStatus.CANCELLED,
@@ -1296,84 +1279,25 @@ workflowRoutes.delete(
 );
 
 /**
- * Get active deployment for a workflow
- */
-workflowRoutes.get(
-  "/:workflowIdOrHandle/active-deployment",
-  jwtMiddleware,
-  async (c) => {
-    const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
-    const organizationId = c.get("organizationId")!;
-    const workflowStore = new WorkflowStore(c.env);
-
-    const workflow = await workflowStore.get(
-      workflowIdOrHandle,
-      organizationId
-    );
-    if (!workflow) {
-      return c.json({ error: "Workflow not found" }, 404);
-    }
-
-    if (!workflow.activeDeploymentId) {
-      return c.json({
-        activeDeploymentId: null,
-        message: "No active deployment set (using dev version)",
-      });
-    }
-
-    // Get deployment details
-    const deploymentStore = new DeploymentStore(c.env);
-    try {
-      const deployment = await deploymentStore.get(
-        workflow.activeDeploymentId,
-        organizationId
-      );
-
-      if (!deployment) {
-        // Active deployment reference exists but deployment not found
-        // This shouldn't happen but handle gracefully
-        return c.json(
-          {
-            error:
-              "Active deployment reference exists but deployment not found",
-            activeDeploymentId: workflow.activeDeploymentId,
-          },
-          500
-        );
-      }
-
-      return c.json({
-        activeDeploymentId: deployment.id,
-        version: deployment.version,
-        createdAt: deployment.createdAt,
-      });
-    } catch (error) {
-      return c.json(
-        {
-          error: `Failed to fetch deployment: ${error instanceof Error ? error.message : String(error)}`,
-        },
-        500
-      );
-    }
-  }
-);
-
-/**
- * Set or clear active deployment for a workflow
+ * Toggle workflow enabled state
  */
 workflowRoutes.patch(
-  "/:workflowIdOrHandle/active-deployment",
+  "/:workflowIdOrHandle/enabled",
   jwtMiddleware,
+  zValidator(
+    "json",
+    z.object({
+      enabled: z.boolean(),
+    })
+  ),
   async (c) => {
     const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
     const organizationId = c.get("organizationId")!;
-    const body = await c.req.json();
-    const deploymentId = body.deploymentId as string | null;
+    const { enabled } = c.req.valid("json");
 
     const workflowStore = new WorkflowStore(c.env);
     const db = createDatabase(c.env.DB);
 
-    // Get workflow
     const workflow = await workflowStore.get(
       workflowIdOrHandle,
       organizationId
@@ -1382,32 +1306,11 @@ workflowRoutes.patch(
       return c.json({ error: "Workflow not found" }, 404);
     }
 
-    // If deploymentId is provided, verify it exists and belongs to this workflow
-    if (deploymentId) {
-      const deploymentStore = new DeploymentStore(c.env);
-      const deployment = await deploymentStore.get(
-        deploymentId,
-        organizationId
-      );
-
-      if (!deployment) {
-        return c.json({ error: "Deployment not found" }, 404);
-      }
-
-      if (deployment.workflowId !== workflow.id) {
-        return c.json(
-          { error: "Deployment does not belong to this workflow" },
-          400
-        );
-      }
-    }
-
-    // Update workflow's activeDeploymentId
     try {
       await db
         .update(workflows)
         .set({
-          activeDeploymentId: deploymentId,
+          enabled,
           updatedAt: new Date(),
         })
         .where(
@@ -1419,10 +1322,7 @@ workflowRoutes.patch(
 
       return c.json({
         workflowId: workflow.id,
-        activeDeploymentId: deploymentId,
-        message: deploymentId
-          ? `Active deployment set to ${deploymentId}`
-          : "Active deployment cleared (using dev version)",
+        enabled,
       });
     } catch (error) {
       return c.json(

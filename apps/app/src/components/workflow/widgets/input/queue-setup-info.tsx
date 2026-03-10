@@ -30,7 +30,7 @@ export function QueueSetupInfo({ handle }: QueueSetupInfoProps) {
             </span>{" "}
             trigger and select this queue.
           </li>
-          <li>Deploy the workflow.</li>
+          <li>Enable the workflow.</li>
           <li>
             Send a POST request to the endpoint above to trigger the workflow.
           </li>

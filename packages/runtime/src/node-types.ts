@@ -220,7 +220,6 @@ export interface NodeContext {
   workflowId: string;
   organizationId: string;
   mode: WorkflowMode;
-  deploymentId?: string;
   /** Workflow execution instance ID (for async node completion events) */
   executionId?: string;
   /** Whether the runtime supports async node execution via waitForEvent */

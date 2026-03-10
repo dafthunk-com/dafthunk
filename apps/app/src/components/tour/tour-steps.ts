@@ -23,14 +23,7 @@ export const TOUR_STEPS: TourStep[] = [
     targetSelector: '[data-tour="workflows-nav"]',
     spotlightPadding: 2,
   },
-  {
-    id: "deployments",
-    title: "Deployments",
-    content:
-      "Deploy workflows to run on schedules, respond to webhooks, or process messages.",
-    targetSelector: '[data-tour="deployments-nav"]',
-    spotlightPadding: 2,
-  },
+
   {
     id: "executions",
     title: "Executions",

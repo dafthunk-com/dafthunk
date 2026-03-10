@@ -10,12 +10,11 @@ export type FeedbackSentimentType =
   (typeof FeedbackSentiment)[keyof typeof FeedbackSentiment];
 
 /**
- * A feedback criterion (evaluation question) for a workflow or deployment
+ * A feedback criterion (evaluation question) for a workflow
  */
 export interface FeedbackCriterion {
   id: string;
   workflowId: string;
-  deploymentId?: string;
   question: string;
   description?: string;
   displayOrder: number;
@@ -59,8 +58,6 @@ export interface ExecutionFeedback {
   criterionQuestion?: string;
   workflowId?: string;
   workflowName?: string;
-  deploymentId?: string;
-  deploymentVersion?: number;
   sentiment: FeedbackSentimentType;
   comment?: string;
   createdAt: Date;
@@ -107,7 +104,6 @@ export interface CreateExecutionFeedbackResponse {
   executionId: string;
   criterionId: string;
   workflowId?: string;
-  deploymentId?: string;
   sentiment: FeedbackSentimentType;
   comment?: string;
   createdAt: Date;

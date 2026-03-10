@@ -250,19 +250,6 @@ export function AdminOrganizationDetailPage() {
           </Card>
         </Link>
         <Link
-          to={`/admin/deployments?organizationId=${organizationId}`}
-          className="block"
-        >
-          <Card className="hover:bg-muted/50 transition-colors">
-            <CardHeader className="pb-2">
-              <CardDescription>Deployments</CardDescription>
-              <CardTitle className="text-2xl">
-                {entityCounts?.deploymentCount ?? "-"}
-              </CardTitle>
-            </CardHeader>
-          </Card>
-        </Link>
-        <Link
           to={`/admin/executions?organizationId=${organizationId}`}
           className="block"
         >

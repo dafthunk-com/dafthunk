@@ -25,7 +25,7 @@ const API_ENDPOINT_BASE = "/feedback";
 // ─────────────────────────────────────────────
 
 /**
- * List all criteria for the organization (workflow-level, deployment_id IS NULL)
+ * List all criteria for the organization
  */
 export const useAllCriteria = () => {
   const { organization } = useAuth();
@@ -58,7 +58,7 @@ export const useAllCriteria = () => {
 };
 
 /**
- * List editable criteria for a workflow (deployment_id IS NULL)
+ * List criteria for a workflow
  */
 export const useWorkflowCriteria = (workflowId: string | null) => {
   const { organization } = useAuth();
@@ -77,41 +77,6 @@ export const useWorkflowCriteria = (workflowId: string | null) => {
             orgHandle!,
             API_ENDPOINT_BASE,
             `/criteria/workflow/${workflowId}`
-          );
-          return response.criteria;
-        }
-      : null,
-    { revalidateOnFocus: false }
-  );
-
-  return {
-    criteria: data || [],
-    criteriaError: error || null,
-    isCriteriaLoading: isLoading,
-    mutateCriteria: mutate,
-  };
-};
-
-/**
- * List frozen criteria for a deployment
- */
-export const useDeploymentCriteria = (deploymentId: string | null) => {
-  const { organization } = useAuth();
-  const orgHandle = organization?.handle;
-
-  const swrKey =
-    orgHandle && deploymentId
-      ? `/${orgHandle}${API_ENDPOINT_BASE}/criteria/deployment/${deploymentId}`
-      : null;
-
-  const { data, error, isLoading, mutate } = useSWR(
-    swrKey,
-    swrKey
-      ? async () => {
-          const response = await makeOrgRequest<ListFeedbackCriteriaResponse>(
-            orgHandle!,
-            API_ENDPOINT_BASE,
-            `/criteria/deployment/${deploymentId}`
           );
           return response.criteria;
         }
@@ -396,7 +361,6 @@ const FEEDBACK_PAGE_SIZE = 20;
 
 export interface FeedbackFilters {
   workflowId?: string;
-  deploymentId?: string;
   criterionId?: string;
   sentiment?: FeedbackSentimentType;
   startDate?: string;
@@ -425,8 +389,6 @@ export const usePaginatedFeedback = (filters: FeedbackFilters = {}) => {
     params.append("offset", String(pageIndex * FEEDBACK_PAGE_SIZE));
     params.append("limit", String(FEEDBACK_PAGE_SIZE));
     if (filters.workflowId) params.append("workflowId", filters.workflowId);
-    if (filters.deploymentId)
-      params.append("deploymentId", filters.deploymentId);
     if (filters.criterionId) params.append("criterionId", filters.criterionId);
     if (filters.sentiment) params.append("sentiment", filters.sentiment);
     if (filters.startDate) params.append("startDate", filters.startDate);
@@ -487,7 +449,6 @@ export const exportFeedbackCsv = async (
   const params = new URLSearchParams();
   params.append("limit", "10000");
   if (filters.workflowId) params.append("workflowId", filters.workflowId);
-  if (filters.deploymentId) params.append("deploymentId", filters.deploymentId);
   if (filters.criterionId) params.append("criterionId", filters.criterionId);
   if (filters.sentiment) params.append("sentiment", filters.sentiment);
   if (filters.startDate) params.append("startDate", filters.startDate);
@@ -503,7 +464,6 @@ export const exportFeedbackCsv = async (
   const headers = [
     "Execution ID",
     "Workflow",
-    "Deployment",
     "Criterion",
     "Rating",
     "Comment",
@@ -513,7 +473,6 @@ export const exportFeedbackCsv = async (
   const csvRows = rows.map((f) => [
     f.executionId,
     f.workflowName ?? "",
-    f.deploymentVersion != null ? `v${f.deploymentVersion}` : "",
     f.criterionQuestion ?? "",
     f.sentiment,
     f.comment ?? "",

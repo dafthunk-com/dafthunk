@@ -103,7 +103,7 @@ export function AdminWorkflowsPage() {
               <TableHead>Organization</TableHead>
               <TableHead>Trigger</TableHead>
               <TableHead>Runtime</TableHead>
-              <TableHead>Deployed</TableHead>
+              <TableHead>Enabled</TableHead>
               <TableHead>Updated</TableHead>
             </TableRow>
           </TableHeader>
@@ -133,7 +133,7 @@ export function AdminWorkflowsPage() {
                   <Badge variant="secondary">{workflow.runtime}</Badge>
                 </TableCell>
                 <TableCell>
-                  {workflow.activeDeploymentId ? (
+                  {workflow.enabled ? (
                     <Badge variant="default">Yes</Badge>
                   ) : (
                     <Badge variant="secondary">No</Badge>

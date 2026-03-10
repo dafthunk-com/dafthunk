@@ -11,7 +11,7 @@ import type {
   UpsertFeedbackRequest,
 } from "@dafthunk/types";
 import { zValidator } from "@hono/zod-validator";
-import { and, desc, eq, gte, isNull, lte } from "drizzle-orm";
+import { and, desc, eq, gte, lte } from "drizzle-orm";
 import { Hono } from "hono";
 import { v7 as uuid } from "uuid";
 import { z } from "zod";
@@ -72,7 +72,6 @@ feedbackRoutes.post(
     const data: FeedbackCriteriaInsert = {
       id,
       workflowId: body.workflowId,
-      deploymentId: null,
       organizationId,
       question: body.question,
       description: body.description || null,
@@ -98,17 +97,14 @@ feedbackRoutes.post(
 );
 
 /**
- * List all criteria for the organization (workflow-level only, deployment_id IS NULL)
+ * List all criteria for the organization
  */
 feedbackRoutes.get("/criteria", async (c) => {
   const organizationId = c.get("organizationId")!;
   const db = createDatabase(c.env.DB);
 
   const rows = await db.query.feedbackCriteria.findMany({
-    where: and(
-      eq(feedbackCriteria.organizationId, organizationId),
-      isNull(feedbackCriteria.deploymentId)
-    ),
+    where: eq(feedbackCriteria.organizationId, organizationId),
     orderBy: [feedbackCriteria.displayOrder],
   });
 
@@ -120,7 +116,7 @@ feedbackRoutes.get("/criteria", async (c) => {
 });
 
 /**
- * List editable criteria for a workflow (deployment_id IS NULL)
+ * List criteria for a workflow
  */
 feedbackRoutes.get("/criteria/workflow/:workflowId", async (c) => {
   const organizationId = c.get("organizationId")!;
@@ -130,30 +126,6 @@ feedbackRoutes.get("/criteria/workflow/:workflowId", async (c) => {
   const rows = await db.query.feedbackCriteria.findMany({
     where: and(
       eq(feedbackCriteria.workflowId, workflowId),
-      eq(feedbackCriteria.organizationId, organizationId),
-      isNull(feedbackCriteria.deploymentId)
-    ),
-    orderBy: [feedbackCriteria.displayOrder],
-  });
-
-  const response: ListFeedbackCriteriaResponse = {
-    criteria: rows.map(toCriterion),
-  };
-
-  return c.json(response);
-});
-
-/**
- * List frozen criteria for a deployment
- */
-feedbackRoutes.get("/criteria/deployment/:deploymentId", async (c) => {
-  const organizationId = c.get("organizationId")!;
-  const deploymentId = c.req.param("deploymentId");
-  const db = createDatabase(c.env.DB);
-
-  const rows = await db.query.feedbackCriteria.findMany({
-    where: and(
-      eq(feedbackCriteria.deploymentId, deploymentId),
       eq(feedbackCriteria.organizationId, organizationId)
     ),
     orderBy: [feedbackCriteria.displayOrder],
@@ -167,7 +139,7 @@ feedbackRoutes.get("/criteria/deployment/:deploymentId", async (c) => {
 });
 
 /**
- * Update a workflow-level criterion (only if deployment_id IS NULL)
+ * Update a workflow-level criterion
  */
 feedbackRoutes.patch(
   "/criteria/:id",
@@ -188,8 +160,7 @@ feedbackRoutes.patch(
     const existing = await db.query.feedbackCriteria.findFirst({
       where: and(
         eq(feedbackCriteria.id, id),
-        eq(feedbackCriteria.organizationId, organizationId),
-        isNull(feedbackCriteria.deploymentId)
+        eq(feedbackCriteria.organizationId, organizationId)
       ),
     });
 
@@ -228,8 +199,7 @@ feedbackRoutes.delete("/criteria/:id", async (c) => {
   const existing = await db.query.feedbackCriteria.findFirst({
     where: and(
       eq(feedbackCriteria.id, id),
-      eq(feedbackCriteria.organizationId, organizationId),
-      isNull(feedbackCriteria.deploymentId)
+      eq(feedbackCriteria.organizationId, organizationId)
     ),
   });
 
@@ -297,7 +267,6 @@ feedbackRoutes.put(
       executionId: body.executionId,
       criterionId: body.criterionId,
       workflowId: execution.workflowId || null,
-      deploymentId: execution.deploymentId || null,
       organizationId,
       userId,
       sentiment: body.sentiment,
@@ -332,7 +301,6 @@ feedbackRoutes.put(
       criterionId: body.criterionId,
       criterionQuestion: criterion.question,
       workflowId: execution.workflowId || undefined,
-      deploymentId: execution.deploymentId || undefined,
       sentiment: body.sentiment,
       comment: body.comment,
       createdAt: row!.createdAt,
@@ -402,7 +370,6 @@ feedbackRoutes.post(
         executionId,
         criterionId: resp.criterionId,
         workflowId: execution.workflowId || null,
-        deploymentId: execution.deploymentId || null,
         organizationId,
         userId,
         sentiment: resp.sentiment,
@@ -418,7 +385,6 @@ feedbackRoutes.post(
         executionId,
         criterionId: resp.criterionId,
         workflowId: execution.workflowId || undefined,
-        deploymentId: execution.deploymentId || undefined,
         sentiment: resp.sentiment,
         comment: resp.comment,
         createdAt: now,
@@ -446,35 +412,6 @@ feedbackRoutes.get("/execution/:executionId", async (c) => {
     orderBy: [feedback.createdAt],
     with: {
       workflow: { columns: { name: true } },
-      deployment: { columns: { version: true } },
-      criterion: { columns: { question: true } },
-    },
-  });
-
-  const response: ListExecutionFeedbackResponse = {
-    feedback: rows.map(feedbackRowToResponse),
-  };
-
-  return c.json(response);
-});
-
-/**
- * List feedback for a deployment
- */
-feedbackRoutes.get("/deployment/:deploymentId", async (c) => {
-  const organizationId = c.get("organizationId")!;
-  const deploymentId = c.req.param("deploymentId");
-  const db = createDatabase(c.env.DB);
-
-  const rows = await db.query.feedback.findMany({
-    where: and(
-      eq(feedback.deploymentId, deploymentId),
-      eq(feedback.organizationId, organizationId)
-    ),
-    orderBy: [desc(feedback.createdAt)],
-    with: {
-      workflow: { columns: { name: true } },
-      deployment: { columns: { version: true } },
       criterion: { columns: { question: true } },
     },
   });
@@ -495,7 +432,6 @@ feedbackRoutes.get("/", async (c) => {
 
   const {
     workflowId,
-    deploymentId,
     criterionId,
     sentiment,
     startDate,
@@ -509,7 +445,6 @@ feedbackRoutes.get("/", async (c) => {
 
   const conditions = [eq(feedback.organizationId, organizationId)];
   if (workflowId) conditions.push(eq(feedback.workflowId, workflowId));
-  if (deploymentId) conditions.push(eq(feedback.deploymentId, deploymentId));
   if (criterionId) conditions.push(eq(feedback.criterionId, criterionId));
   if (sentiment === "positive" || sentiment === "negative") {
     conditions.push(eq(feedback.sentiment, sentiment));
@@ -528,7 +463,6 @@ feedbackRoutes.get("/", async (c) => {
     offset: parsedOffset,
     with: {
       workflow: { columns: { name: true } },
-      deployment: { columns: { version: true } },
       criterion: { columns: { question: true } },
     },
   });
@@ -570,7 +504,6 @@ feedbackRoutes.delete("/:id", async (c) => {
 function toCriterion(row: {
   id: string;
   workflowId: string;
-  deploymentId: string | null;
   question: string;
   description: string | null;
   displayOrder: number;
@@ -580,7 +513,6 @@ function toCriterion(row: {
   return {
     id: row.id,
     workflowId: row.workflowId,
-    deploymentId: row.deploymentId ?? undefined,
     question: row.question,
     description: row.description ?? undefined,
     displayOrder: row.displayOrder,
@@ -592,9 +524,6 @@ function toCriterion(row: {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function feedbackRowToResponse(f: any): ExecutionFeedback {
   const workflow = Array.isArray(f.workflow) ? f.workflow[0] : f.workflow;
-  const deployment = Array.isArray(f.deployment)
-    ? f.deployment[0]
-    : f.deployment;
   const criterion = Array.isArray(f.criterion) ? f.criterion[0] : f.criterion;
 
   return {
@@ -604,8 +533,6 @@ function feedbackRowToResponse(f: any): ExecutionFeedback {
     criterionQuestion: criterion?.question,
     workflowId: f.workflowId ?? undefined,
     workflowName: workflow?.name,
-    deploymentId: f.deploymentId ?? undefined,
-    deploymentVersion: deployment?.version,
     sentiment: f.sentiment as "positive" | "negative",
     comment: f.comment ?? undefined,
     createdAt: f.createdAt,

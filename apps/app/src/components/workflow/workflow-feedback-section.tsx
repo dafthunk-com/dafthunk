@@ -12,7 +12,6 @@ import { useAuth } from "@/components/auth-context";
 import { Textarea } from "@/components/ui/textarea";
 import {
   useDeleteFeedback,
-  useDeploymentCriteria,
   useFeedback,
   useUpsertFeedback,
   useWorkflowCriteria,
@@ -22,27 +21,18 @@ import { cn } from "@/utils/utils";
 interface WorkflowFeedbackSectionProps {
   executionId: string;
   workflowId?: string;
-  deploymentId?: string;
   disabled?: boolean;
 }
 
 export function WorkflowFeedbackSection({
   executionId,
   workflowId,
-  deploymentId,
   disabled = false,
 }: WorkflowFeedbackSectionProps) {
   const { user } = useAuth();
   const isDeveloperMode = user?.developerMode ?? false;
 
-  const { criteria: deploymentCriteria } = useDeploymentCriteria(
-    deploymentId || null
-  );
-  const { criteria: workflowCriteria } = useWorkflowCriteria(
-    !deploymentId && workflowId ? workflowId : null
-  );
-  const criteria =
-    deploymentCriteria.length > 0 ? deploymentCriteria : workflowCriteria;
+  const { criteria } = useWorkflowCriteria(workflowId || null);
   const { feedbackList, mutateFeedback } = useFeedback(executionId);
   const { upsertFeedback } = useUpsertFeedback();
   const { deleteFeedback } = useDeleteFeedback();

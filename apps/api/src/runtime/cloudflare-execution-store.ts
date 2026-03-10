@@ -60,7 +60,6 @@ export class CloudflareExecutionStore implements ExecutionStore {
     const executionData: WorkflowExecution = {
       id: record.id,
       workflowId: record.workflowId,
-      deploymentId: record.deploymentId,
       status: record.status,
       nodeExecutions,
       error: record.error,
@@ -160,7 +159,7 @@ export class CloudflareExecutionStore implements ExecutionStore {
         blobs: [
           record.id,
           record.workflowId,
-          record.deploymentId || "",
+          "", // reserved blob3
           record.status,
           (record.error || "").substring(0, 2000), // truncate to fit in blob
         ],
@@ -270,7 +269,6 @@ export class CloudflareExecutionStore implements ExecutionStore {
     return {
       id: executionData.id,
       workflowId: executionData.workflowId,
-      deploymentId: executionData.deploymentId ?? null,
       organizationId,
       status: executionData.status,
       error: executionData.error ?? null,
@@ -298,10 +296,6 @@ export class CloudflareExecutionStore implements ExecutionStore {
         whereConditions.push(`blob2 = '${options.workflowId}'`);
       }
 
-      if (options?.deploymentId) {
-        whereConditions.push(`blob3 = '${options.deploymentId}'`);
-      }
-
       const limit = options?.limit ?? 20;
       const offset = options?.offset ?? 0;
 
@@ -325,7 +319,6 @@ export class CloudflareExecutionStore implements ExecutionStore {
         return {
           id: row.blob1,
           workflowId: row.blob2,
-          deploymentId: row.blob3 || null,
           organizationId: row.index1,
           status: row.blob4 as WorkflowExecutionStatus,
           error: row.blob5 || null,

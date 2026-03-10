@@ -4,7 +4,6 @@ import { Hono } from "hono";
 import { ApiContext } from "../../context";
 import {
   createDatabase,
-  deployments,
   memberships,
   organizations,
   users,
@@ -32,7 +31,6 @@ adminStatsRoutes.get("/", async (c) => {
       totalUsersResult,
       totalOrganizationsResult,
       totalWorkflowsResult,
-      totalDeploymentsResult,
       recentSignupsResult,
       activeUsersResult,
     ] = await Promise.all([
@@ -48,10 +46,6 @@ adminStatsRoutes.get("/", async (c) => {
       db
         .select({ count: count() })
         .from(workflows),
-      // Total deployments
-      db
-        .select({ count: count() })
-        .from(deployments),
       // Recent signups (last 7 days)
       db
         .select({ count: count() })
@@ -72,7 +66,6 @@ adminStatsRoutes.get("/", async (c) => {
       totalUsers: totalUsersResult[0]?.count ?? 0,
       totalOrganizations: totalOrganizationsResult[0]?.count ?? 0,
       totalWorkflows: totalWorkflowsResult[0]?.count ?? 0,
-      totalDeployments: totalDeploymentsResult[0]?.count ?? 0,
       recentSignups: recentSignupsResult[0]?.count ?? 0,
       activeUsers24h: activeUsersResult[0]?.count ?? 0,
     });

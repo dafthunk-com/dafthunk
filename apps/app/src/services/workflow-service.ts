@@ -225,6 +225,25 @@ export const deleteWorkflow = async (
 };
 
 /**
+ * Set the enabled state of a workflow
+ */
+export const setWorkflowEnabled = async (
+  workflowIdOrHandle: string,
+  enabled: boolean,
+  orgHandle: string
+): Promise<void> => {
+  await makeOrgRequest<void>(
+    orgHandle,
+    API_ENDPOINT_BASE,
+    `/${workflowIdOrHandle}/enabled`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({ enabled }),
+    }
+  );
+};
+
+/**
  * Converts workflow edges to ReactFlow compatible edges
  */
 export const convertToReactFlowEdges = (

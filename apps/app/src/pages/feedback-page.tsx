@@ -13,7 +13,6 @@ import { useAuth } from "@/components/auth-context";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { DataTable } from "@/components/ui/data-table";
@@ -32,7 +31,6 @@ import {
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
-import { useDeployments } from "@/services/deployment-service";
 import {
   exportFeedbackCsv,
   useAllCriteria,
@@ -58,21 +56,6 @@ export const createColumns = (
         >
           {workflowName || workflowId.slice(0, 8) + "..."}
         </Link>
-      );
-    },
-  },
-  {
-    accessorKey: "deploymentVersion",
-    header: "Deployment",
-    cell: ({ row }) => {
-      const deploymentId = row.original.deploymentId;
-      const version = row.getValue("deploymentVersion") as number | undefined;
-      if (!deploymentId)
-        return <span className="text-muted-foreground">-</span>;
-      return (
-        <Badge variant="outline" className="font-mono text-xs">
-          v{version ?? "?"}
-        </Badge>
       );
     },
   },
@@ -152,7 +135,6 @@ export function FeedbackPage() {
 
   // Filters
   const [workflowId, setWorkflowId] = useState<string | undefined>();
-  const [deploymentId, setDeploymentId] = useState<string | undefined>();
   const [criterionId, setCriterionId] = useState<string | undefined>();
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
@@ -160,12 +142,11 @@ export function FeedbackPage() {
   const filters = useMemo(
     () => ({
       workflowId,
-      deploymentId,
       criterionId,
       startDate: startDate ? format(startDate, "yyyy-MM-dd") : undefined,
       endDate: endDate ? format(endDate, "yyyy-MM-dd") : undefined,
     }),
-    [workflowId, deploymentId, criterionId, startDate, endDate]
+    [workflowId, criterionId, startDate, endDate]
   );
 
   const {
@@ -176,15 +157,9 @@ export function FeedbackPage() {
     feedbackObserverTargetRef,
   } = usePaginatedFeedback(filters);
 
-  // Fetch workflows, deployments, and criteria for filter dropdowns
+  // Fetch workflows and criteria for filter dropdowns
   const { workflows } = useWorkflows();
-  const { deployments } = useDeployments();
   const { criteria } = useAllCriteria();
-
-  // Filter deployments by selected workflow (if any)
-  const filteredDeployments = workflowId
-    ? deployments.filter((d) => d.workflowId === workflowId)
-    : deployments;
 
   // Filter criteria by selected workflow (if any)
   const filteredCriteria = workflowId
@@ -209,9 +184,8 @@ export function FeedbackPage() {
     }
   }, [feedbackError, errorMessage]);
 
-  // Clear deployment and criterion filters when workflow changes
+  // Clear criterion filter when workflow changes
   useEffect(() => {
-    setDeploymentId(undefined);
     setCriterionId(undefined);
   }, [workflowId]);
 
@@ -256,26 +230,6 @@ export function FeedbackPage() {
               {workflows.map((w) => (
                 <SelectItem key={w.id} value={w.id}>
                   {w.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select
-            value={deploymentId ?? "all"}
-            onValueChange={(v) => setDeploymentId(v === "all" ? undefined : v)}
-          >
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="All deployments" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All deployments</SelectItem>
-              {filteredDeployments.map((d) => (
-                <SelectItem
-                  key={d.latestDeploymentId}
-                  value={d.latestDeploymentId}
-                >
-                  {d.workflowName} v{d.latestVersion}
                 </SelectItem>
               ))}
             </SelectContent>

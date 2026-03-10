@@ -59,7 +59,6 @@ export interface RuntimeParams {
   /** Maximum additional usage allowed beyond included credits. null = unlimited */
   readonly overageLimit?: number | null;
   readonly workflowSessionId?: string;
-  readonly deploymentId?: string;
   readonly httpRequest?: HttpRequest;
   readonly emailMessage?: EmailMessage;
   readonly queueMessage?: QueueMessage;
@@ -245,7 +244,6 @@ export abstract class Runtime<Env = unknown> {
       computeCredits,
       subscriptionStatus,
       overageLimit,
-      deploymentId,
       httpRequest,
       emailMessage,
       queueMessage,
@@ -277,7 +275,6 @@ export abstract class Runtime<Env = unknown> {
     let executionRecord: WorkflowExecution = {
       id: instanceId,
       workflowId: workflow.id,
-      deploymentId: deploymentId,
       status: "submitted",
       nodeExecutions: [],
       startedAt: new Date(),
@@ -327,7 +324,6 @@ export abstract class Runtime<Env = unknown> {
             workflowId: workflow.id,
             organizationId,
             executionId: instanceId,
-            deploymentId,
             httpRequest,
             emailMessage,
             queueMessage,
@@ -926,8 +922,7 @@ export abstract class Runtime<Env = unknown> {
         nodeId: node.id,
         workflowId: context.workflowId,
         organizationId: context.organizationId,
-        mode: context.deploymentId ? "prod" : "dev",
-        deploymentId: context.deploymentId,
+        mode: "prod",
         executionId: context.executionId,
         asyncSupported: this.supportsAsync,
         inputs: processedInputs,

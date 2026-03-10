@@ -303,7 +303,7 @@ export function OrganizationsPage() {
               organization <strong>"{orgToDelete?.name}"</strong> and all of its
               data including:
               <ul className="list-disc list-inside mt-2 space-y-1">
-                <li>All workflows and deployments</li>
+                <li>All workflows</li>
                 <li>All executions and results</li>
                 <li>All API keys and secrets</li>
                 <li>All datasets</li>

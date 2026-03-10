@@ -1,6 +1,5 @@
 import { CreateWorkflowRequest, WorkflowTrigger } from "@dafthunk/types";
 import Activity from "lucide-react/icons/activity";
-import CloudUpload from "lucide-react/icons/cloud-upload";
 import LayoutDashboard from "lucide-react/icons/layout-dashboard";
 import PlusCircle from "lucide-react/icons/plus-circle";
 import Workflow from "lucide-react/icons/workflow";
@@ -69,11 +68,6 @@ export function ReadyToBuildBlock() {
           <Button variant="outline" asChild>
             <Link to="/workflows">
               <Workflow className="mr-2 size-4" /> Workflows
-            </Link>
-          </Button>
-          <Button variant="outline" asChild>
-            <Link to="/deployments">
-              <CloudUpload className="mr-2 size-4" /> Deployments
             </Link>
           </Button>
           <Button variant="outline" asChild>

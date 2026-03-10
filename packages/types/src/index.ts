@@ -4,7 +4,6 @@ export * from "./billing";
 export * from "./dashboard";
 export * from "./database";
 export * from "./dataset";
-export * from "./deployment";
 export * from "./discord";
 export * from "./discord-bot";
 export * from "./email";

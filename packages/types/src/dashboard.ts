@@ -3,7 +3,6 @@
  */
 export interface DashboardStats {
   workflows: number;
-  deployments: number;
   executions: {
     total: number;
     running: number;

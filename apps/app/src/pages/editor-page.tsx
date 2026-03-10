@@ -5,7 +5,7 @@ import type {
 } from "@dafthunk/types";
 import type { Connection, Edge, Node } from "@xyflow/react";
 import { ReactFlowProvider } from "@xyflow/react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 
@@ -21,13 +21,9 @@ import type {
 import { useEditableWorkflow } from "@/hooks/use-editable-workflow";
 import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
-import {
-  createDeployment,
-  useDeploymentHistory,
-} from "@/services/deployment-service";
 import { useObjectService } from "@/services/object-service";
 import { useNodeTypes } from "@/services/type-service";
-import { getWorkflow } from "@/services/workflow-service";
+import { getWorkflow, setWorkflowEnabled } from "@/services/workflow-service";
 
 export function EditorPage() {
   const { id } = useParams<{ id: string }>();
@@ -38,6 +34,28 @@ export function EditorPage() {
 
   const [httpWorkflowMetadata, setHttpWorkflowMetadata] =
     useState<WorkflowWithMetadata | null>(null);
+
+  const [isEnabled, setIsEnabled] = useState(true);
+  const [isTogglingEnabled, setIsTogglingEnabled] = useState(false);
+
+  const handleToggleEnabled = useCallback(
+    async (checked: boolean) => {
+      if (!id || !orgHandle) return;
+      setIsTogglingEnabled(true);
+      try {
+        await setWorkflowEnabled(id, checked, orgHandle);
+        setIsEnabled(checked);
+        toast.success(checked ? "Workflow enabled" : "Workflow disabled");
+      } catch (error) {
+        toast.error(
+          error instanceof Error ? error.message : "Failed to update workflow"
+        );
+      } finally {
+        setIsTogglingEnabled(false);
+      }
+    },
+    [id, orgHandle]
+  );
 
   const { nodeTypes, nodeTypesError, isNodeTypesLoading } = useNodeTypes({
     revalidateOnFocus: false,
@@ -99,17 +117,6 @@ export function EditorPage() {
     [wsExecuteWorkflow]
   );
 
-  const {
-    deployments: deploymentHistory,
-    isDeploymentHistoryLoading,
-    mutateHistory: mutateDeploymentHistory,
-  } = useDeploymentHistory(id!, { revalidateOnFocus: false });
-
-  const deploymentVersions = useMemo(
-    () => deploymentHistory.map((d) => d.version).sort((a, b) => b - a),
-    [deploymentHistory]
-  );
-
   const nodesRef = useRef<Node<WorkflowNodeType>[]>([]);
   const edgesRef = useRef<Edge<WorkflowEdgeType>[]>([]);
 
@@ -143,6 +150,7 @@ export function EditorPage() {
       try {
         const metadata = await getWorkflow(id, orgHandle);
         setHttpWorkflowMetadata(metadata);
+        setIsEnabled(metadata.enabled === true);
       } catch (error) {
         console.error("Failed to fetch workflow metadata:", error);
       }
@@ -217,23 +225,6 @@ export function EditorPage() {
     [id, wsUpdateMetadata]
   );
 
-  const handleDeployWorkflow = useCallback(
-    async (e: React.MouseEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      if (!id || !orgHandle) return;
-
-      try {
-        await createDeployment(id, orgHandle);
-        toast.success("Workflow deployed successfully");
-      } catch (error) {
-        console.error("Error deploying workflow:", error);
-        toast.error("Failed to deploy workflow. Please try again.");
-      }
-    },
-    [id, orgHandle]
-  );
-
   useEffect(() => {
     if (workflowSavingError) {
       toast.error(`Workflow saving error: ${workflowSavingError}`);
@@ -258,7 +249,6 @@ export function EditorPage() {
   const isLoading =
     isNodeTypesLoading ||
     isWorkflowInitializing ||
-    isDeploymentHistoryLoading ||
     !initialNodesForUI ||
     !initialEdgesForUI;
 
@@ -297,7 +287,6 @@ export function EditorPage() {
             validateConnection={validateConnection}
             executeWorkflow={executeWorkflowWrapper}
             initialWorkflowExecution={latestExecution || undefined}
-            onDeployWorkflow={handleDeployWorkflow}
             createObjectUrl={createObjectUrl}
             workflowName={
               httpWorkflowMetadata?.name || workflowMetadata?.name || ""
@@ -305,9 +294,10 @@ export function EditorPage() {
             workflowDescription={httpWorkflowMetadata?.description}
             onWorkflowUpdate={handleWorkflowUpdate}
             orgHandle={orgHandle}
-            deploymentVersions={deploymentVersions}
-            mutateDeploymentHistory={mutateDeploymentHistory}
             wsExecuteWorkflow={wsExecuteWorkflow}
+            isEnabled={isEnabled}
+            isTogglingEnabled={isTogglingEnabled}
+            onToggleEnabled={handleToggleEnabled}
           />
         </div>
       </div>

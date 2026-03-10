@@ -1,5 +1,4 @@
 import Building2 from "lucide-react/icons/building-2";
-import Target from "lucide-react/icons/target";
 import TrendingUp from "lucide-react/icons/trending-up";
 import Users from "lucide-react/icons/users";
 import Workflow from "lucide-react/icons/workflow";
@@ -75,23 +74,6 @@ export function AdminDashboardPage() {
             </div>
             <p className="text-xs text-muted-foreground">
               Workflows created across all organizations
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Deployments
-            </CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {stats?.totalDeployments ?? 0}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Deployed workflow versions
             </p>
           </CardContent>
         </Card>

@@ -24,7 +24,6 @@ interface ExecutionInfoCardProps {
   endedAt?: Date;
   workflowId: string;
   workflowName?: string;
-  deploymentId?: string;
   error?: string;
   title?: string;
   description?: string;
@@ -37,7 +36,6 @@ export function ExecutionInfoCard({
   endedAt,
   workflowId,
   workflowName,
-  deploymentId,
   error,
   title = "Execution Information",
   description = "Details about this workflow execution",
@@ -114,21 +112,6 @@ export function ExecutionInfoCard({
                 </Link>
               </p>
             </div>
-            {deploymentId && (
-              <div>
-                <p className="text-sm text-muted-foreground flex items-center">
-                  <IdCard className="mr-1 h-4 w-4" /> Deployment UUID
-                </p>
-                <p className="mt-1">
-                  <Link
-                    to={getOrgUrl(`deployment/${deploymentId}`)}
-                    className="hover:underline text-primary font-mono text-xs"
-                  >
-                    {deploymentId}
-                  </Link>
-                </p>
-              </div>
-            )}
             <div>
               <p className="text-sm text-muted-foreground flex items-center">
                 <IdCard className="mr-1 h-4 w-4" /> Execution UUID

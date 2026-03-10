@@ -37,20 +37,11 @@ export function DocsOverviewPage() {
           making a decision based on input. You connect nodes by their inputs
           and outputs to define the flow of data and logic.
         </p>
-        <h2 id="deployments">Deployments</h2>
-        <p>
-          A <strong>Deployment</strong> is a specific, runnable version of your
-          workflow. When you're ready to make a workflow active, you create a
-          deployment. This makes the workflow accessible, often via an API
-          endpoint or a trigger mechanism (e.g., a webhook). Each deployment is
-          a snapshot of your workflow, allowing you to manage different versions
-          and roll back if necessary.
-        </p>
         <h2 id="executions">Executions</h2>
         <p>
-          An <strong>Execution</strong> is a single run of a deployed workflow.
-          Every time your workflow is triggered, an execution record is created.
-          This record tracks the status of the run (e.g., <code>started</code>,{" "}
+          An <strong>Execution</strong> is a single run of a workflow. Every
+          time your workflow is triggered, an execution record is created. This
+          record tracks the status of the run (e.g., <code>started</code>,{" "}
           <code>executing</code>, <code>completed</code>, or <code>error</code>
           ), its inputs, outputs, and any logs. Executions are crucial for
           monitoring, debugging, and understanding how your workflows are
@@ -59,7 +50,7 @@ export function DocsOverviewPage() {
         <h2 id="organizations">Organizations</h2>
         <p>
           Dafthunk is designed for collaboration. <strong>Organizations</strong>{" "}
-          serve as containers for your workflows, deployments, and executions.{" "}
+          serve as containers for your workflows and executions.{" "}
           <strong>Users</strong> belong to organizations and can collaborate on
           building and managing workflows based on their roles and permissions.
         </p>
@@ -92,13 +83,13 @@ export function DocsOverviewPage() {
             </ul>
           </li>
           <li>
-            <strong>Deploy the Workflow</strong>: Once the workflow is designed,
-            you create a <code>Deployment</code>. This makes the workflow active
-            and, if using an HTTP trigger, provides an endpoint.
+            <strong>Enable the Workflow</strong>: Once the workflow is designed,
+            enable it to make it active and accessible via its API endpoint or
+            trigger mechanism.
           </li>
           <li>
             <strong>Trigger and Execute</strong>: You (or an external system)
-            send a request containing the text prompt to the deployed workflow's
+            send a request containing the text prompt to the workflow's
             endpoint. This starts an <code>Execution</code>.
           </li>
           <li>
@@ -113,8 +104,8 @@ export function DocsOverviewPage() {
         </ol>
         <p>
           This example shows how Dafthunk can orchestrate standard web tasks,
-          all visually configured and monitored through <code>Workflows</code>,{" "}
-          <code>Deployments</code>, and <code>Executions</code>.
+          all visually configured and monitored through <code>Workflows</code>{" "}
+          and <code>Executions</code>.
         </p>
       </div>
     </>

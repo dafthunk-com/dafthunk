@@ -23,7 +23,6 @@ const docsSections: DocsSection[] = [
     subsections: [
       { title: "Workflows", href: "#workflows" },
       { title: "Nodes", href: "#nodes" },
-      { title: "Deployments", href: "#deployments" },
       { title: "Executions", href: "#executions" },
       { title: "Organizations", href: "#organizations" },
       { title: "Practical Example", href: "#practical-example" },

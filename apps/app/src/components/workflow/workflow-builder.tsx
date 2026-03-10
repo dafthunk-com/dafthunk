@@ -55,7 +55,6 @@ export interface WorkflowBuilderProps {
   initialWorkflowExecution?: WorkflowExecution;
   mode?: WorkflowBuilderMode;
   disabledFeedback?: boolean;
-  onDeployWorkflow?: (e: React.MouseEvent) => void;
   createObjectUrl: (objectReference: ObjectReference) => string;
   expandedOutputs?: boolean;
   workflowName?: string;
@@ -67,13 +66,13 @@ export interface WorkflowBuilderProps {
     runtime?: WorkflowRuntime
   ) => void;
   orgHandle: string;
-  deploymentVersions?: number[];
-  mutateDeploymentHistory?: () => void;
   wsExecuteWorkflow?: (options?: {
     parameters?: Record<string, unknown>;
   }) => void;
   showSidebar?: boolean;
-  deploymentId?: string;
+  isEnabled?: boolean;
+  isTogglingEnabled?: boolean;
+  onToggleEnabled?: (checked: boolean) => void;
 }
 
 export function WorkflowBuilder({
@@ -90,18 +89,17 @@ export function WorkflowBuilder({
   initialWorkflowExecution,
   mode = "edit",
   disabledFeedback = false,
-  onDeployWorkflow,
   createObjectUrl,
   expandedOutputs = false,
   workflowName,
   workflowDescription,
   onWorkflowUpdate,
   orgHandle,
-  deploymentVersions: _deploymentVersions = [],
-  mutateDeploymentHistory: _mutateDeploymentHistory,
   wsExecuteWorkflow,
   showSidebar,
-  deploymentId,
+  isEnabled,
+  isTogglingEnabled,
+  onToggleEnabled,
 }: WorkflowBuilderProps) {
   const readOnly = mode !== "edit";
   const interactive = mode !== "preview";
@@ -240,9 +238,6 @@ export function WorkflowBuilder({
               onInit={setReactFlowInstance}
               onAddNode={readOnly ? undefined : handleAddNode}
               onAction={handleActionButtonClick}
-              onDeploy={
-                !readOnly && onDeployWorkflow ? onDeployWorkflow : undefined
-              }
               workflowStatus={execution.workflowStatus}
               workflowErrorMessage={execution.workflowErrorMessage}
               onToggleSidebar={
@@ -295,7 +290,9 @@ export function WorkflowBuilder({
                   workflowStatus={execution.workflowStatus}
                   workflowErrorMessage={execution.workflowErrorMessage}
                   executionId={execution.currentExecutionId}
-                  deploymentId={deploymentId}
+                  isEnabled={isEnabled}
+                  isTogglingEnabled={isTogglingEnabled}
+                  onToggleEnabled={readOnly ? undefined : onToggleEnabled}
                 />
               </div>
             </>

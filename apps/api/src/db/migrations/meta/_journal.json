@@ -253,6 +253,6 @@
       "when": 1736300000000,
       "tag": "0035_rename_type_to_trigger",
       "breakpoints": true
-    }
+    },
   ]
 }

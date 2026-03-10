@@ -8,7 +8,6 @@ import {
   createDatabase,
   databases,
   datasets,
-  deployments,
   emails,
   memberships,
   organizations,
@@ -159,7 +158,7 @@ adminOrganizationsRoutes.get("/:id", async (c) => {
 /**
  * GET /admin/organizations/:id/entity-counts
  *
- * Get counts of all entities (workflows, deployments, emails, queues, datasets, databases)
+ * Get counts of all entities (workflows, emails, queues, datasets, databases)
  * for a specific organization in a single request
  */
 adminOrganizationsRoutes.get("/:id/entity-counts", async (c) => {
@@ -180,7 +179,6 @@ adminOrganizationsRoutes.get("/:id/entity-counts", async (c) => {
     // Run all count queries in parallel
     const [
       workflowCountResult,
-      deploymentCountResult,
       emailCountResult,
       queueCountResult,
       datasetCountResult,
@@ -190,10 +188,6 @@ adminOrganizationsRoutes.get("/:id/entity-counts", async (c) => {
         .select({ count: count() })
         .from(workflows)
         .where(eq(workflows.organizationId, organizationId)),
-      db
-        .select({ count: count() })
-        .from(deployments)
-        .where(eq(deployments.organizationId, organizationId)),
       db
         .select({ count: count() })
         .from(emails)
@@ -214,7 +208,6 @@ adminOrganizationsRoutes.get("/:id/entity-counts", async (c) => {
 
     return c.json({
       workflowCount: workflowCountResult[0]?.count ?? 0,
-      deploymentCount: deploymentCountResult[0]?.count ?? 0,
       emailCount: emailCountResult[0]?.count ?? 0,
       queueCount: queueCountResult[0]?.count ?? 0,
       datasetCount: datasetCountResult[0]?.count ?? 0,

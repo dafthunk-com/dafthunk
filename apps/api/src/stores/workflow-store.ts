@@ -979,6 +979,7 @@ export class WorkflowStore {
           handle: workflows.handle,
           trigger: workflows.trigger,
           runtime: workflows.runtime,
+          enabled: workflows.enabled,
           organizationId: workflows.organizationId,
           createdAt: workflows.createdAt,
           updatedAt: workflows.updatedAt,
@@ -1108,30 +1109,5 @@ export class WorkflowStore {
       );
       throw error;
     }
-  }
-
-  /**
-   * Set the active deployment ID for a workflow
-   */
-  async setActiveDeployment(
-    workflowIdOrHandle: string,
-    organizationIdOrHandle: string,
-    deploymentId: string | null
-  ): Promise<void> {
-    // First get the workflow to verify access and get IDs
-    const workflow = await this.readFromD1(
-      workflowIdOrHandle,
-      organizationIdOrHandle
-    );
-
-    if (!workflow) {
-      throw new Error("Workflow not found");
-    }
-
-    // Update the active deployment ID
-    await this.db
-      .update(workflows)
-      .set({ activeDeploymentId: deploymentId })
-      .where(eq(workflows.id, workflow.id));
   }
 }

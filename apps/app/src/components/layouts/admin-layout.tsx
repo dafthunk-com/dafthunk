@@ -4,7 +4,7 @@ import LayoutDashboard from "lucide-react/icons/layout-dashboard";
 import ListTodo from "lucide-react/icons/list-todo";
 import Mail from "lucide-react/icons/mail";
 import Play from "lucide-react/icons/play";
-import Rocket from "lucide-react/icons/rocket";
+
 import Table from "lucide-react/icons/table";
 import Users from "lucide-react/icons/users";
 import Workflow from "lucide-react/icons/workflow";
@@ -45,11 +45,7 @@ const adminSidebarItems: NavMainProps["groups"] = [
         url: "/admin/workflows",
         icon: Workflow,
       },
-      {
-        title: "Deployments",
-        url: "/admin/deployments",
-        icon: Rocket,
-      },
+
       {
         title: "Executions",
         url: "/admin/executions",

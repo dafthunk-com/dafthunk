@@ -45,8 +45,7 @@ interface UseExecution {
  * Hook to use paginated executions with infinite scroll
  */
 export const usePaginatedExecutions = (
-  workflowId?: string,
-  deploymentId?: string
+  workflowId?: string
 ): UsePaginatedExecutions => {
   const { organization } = useAuth();
   const orgHandle = organization?.handle;
@@ -69,7 +68,6 @@ export const usePaginatedExecutions = (
     queryParams.append("limit", String(EXECUTIONS_PAGE_SIZE));
 
     if (workflowId) queryParams.append("workflowId", workflowId);
-    if (deploymentId) queryParams.append("deploymentId", deploymentId);
 
     const queryString = queryParams.toString();
     return orgHandle

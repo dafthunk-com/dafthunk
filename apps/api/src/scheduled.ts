@@ -7,7 +7,7 @@ import {
   getOrganizationComputeCredits,
 } from "./db";
 import { createWorkerRuntime } from "./runtime/cloudflare-worker-runtime";
-import { DeploymentStore } from "./stores/deployment-store";
+import { WorkflowStore } from "./stores/workflow-store";
 
 export async function handleScheduledEvent(
   _event: ScheduledEvent,
@@ -17,7 +17,7 @@ export async function handleScheduledEvent(
   console.log("Scheduled event triggered at:", new Date().toISOString());
 
   const db = createDatabase(env.DB);
-  const deploymentStore = new DeploymentStore(env);
+  const workflowStore = new WorkflowStore(env);
 
   // Get all active scheduled triggers
   const triggers = await getActiveScheduledTriggers(db);
@@ -27,12 +27,9 @@ export async function handleScheduledEvent(
 
   for (const { scheduledTrigger, workflow } of triggers) {
     try {
-      // Skip workflows that haven't been deployed
-      // Scheduled workflows should only run in production mode
-      if (!workflow.activeDeploymentId) {
-        console.log(
-          `Skipping scheduled workflow ${workflow.id}: not deployed (dev mode only)`
-        );
+      // Skip workflows that are not enabled
+      if (!workflow.enabled) {
+        console.log(`Skipping scheduled workflow ${workflow.id}: not enabled`);
         continue;
       }
 
@@ -53,11 +50,16 @@ export async function handleScheduledEvent(
         `Executing scheduled workflow ${workflow.id} (${scheduledTrigger.scheduleExpression})`
       );
 
-      // Load workflow data from active deployment
-      const workflowData = await deploymentStore.readWorkflowSnapshot(
-        workflow.activeDeploymentId
+      // Load workflow data from working version
+      const workflowWithData = await workflowStore.getWithData(
+        workflow.id,
+        workflow.organizationId
       );
-      const deploymentId = workflow.activeDeploymentId;
+      if (!workflowWithData?.data) {
+        console.error(`Failed to load workflow data for ${workflow.id}`);
+        continue;
+      }
+      const workflowData = workflowWithData.data;
 
       // Get organization compute credits
       const computeCredits = await getOrganizationComputeCredits(
@@ -79,7 +81,6 @@ export async function handleScheduledEvent(
           nodes: workflowData.nodes,
           edges: workflowData.edges,
         },
-        deploymentId,
         scheduledTrigger: {
           timestamp: now,
           scheduledTime: scheduledTime.getTime(),

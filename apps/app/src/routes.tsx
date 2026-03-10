@@ -16,7 +16,7 @@ import { ProtectedRoute } from "./components/protected-route";
 import { AdminDashboardPage } from "./pages/admin/admin-dashboard-page";
 import { AdminDatabasesPage } from "./pages/admin/admin-databases-page";
 import { AdminDatasetsPage } from "./pages/admin/admin-datasets-page";
-import { AdminDeploymentsPage } from "./pages/admin/admin-deployments-page";
+
 import { AdminEmailsPage } from "./pages/admin/admin-emails-page";
 import { AdminExecutionDetailPage } from "./pages/admin/admin-execution-detail-page";
 import { AdminExecutionsPage } from "./pages/admin/admin-executions-page";
@@ -36,9 +36,7 @@ import { DatabaseConsolePage } from "./pages/database-console-page";
 import { DatabasesPage } from "./pages/databases-page";
 import { DatasetDetailPage } from "./pages/dataset-detail-page";
 import { DatasetsPage } from "./pages/datasets-page";
-import { DeploymentDetailPage } from "./pages/deployment-detail-page";
-import { DeploymentVersionPage } from "./pages/deployment-version-page";
-import { DeploymentsPage } from "./pages/deployments-page";
+
 import { DocsApiPage } from "./pages/docs/api-page";
 import { DocsOverviewPage } from "./pages/docs/concepts-page";
 import { DocsDevelopersPage } from "./pages/docs/developers-page";
@@ -212,17 +210,7 @@ export const routes: AppRouteObject[] = [
     ),
     handle: { head: <HeadSeo title="Workflows - Admin - Dafthunk" /> },
   },
-  {
-    path: "/admin/deployments",
-    element: (
-      <AdminLayout>
-        <AdminProtectedRoute>
-          <AdminDeploymentsPage />
-        </AdminProtectedRoute>
-      </AdminLayout>
-    ),
-    handle: { head: <HeadSeo title="Deployments - Admin - Dafthunk" /> },
-  },
+
   {
     path: "/admin/executions",
     element: (
@@ -748,47 +736,7 @@ export const routes: AppRouteObject[] = [
     ),
     handle: { head: <HeadSeo title="Bot Details - Dafthunk" /> },
   },
-  {
-    path: "/deployments",
-    element: <OrgRedirect to="/org/:handle/deployments" />,
-  },
-  {
-    path: "/org/:handle/deployments",
-    element: (
-      <OrgLayout title="Workflows">
-        <ProtectedRoute>
-          <DeploymentsPage />
-        </ProtectedRoute>
-      </OrgLayout>
-    ),
-    handle: { head: <HeadSeo title="Deployments - Workflows - Dafthunk" /> },
-  },
-  {
-    path: "/org/:handle/deployments/:workflowId",
-    element: (
-      <OrgLayout title="Workflows">
-        <ProtectedRoute>
-          <DeploymentDetailPage />
-        </ProtectedRoute>
-      </OrgLayout>
-    ),
-    handle: {
-      head: <HeadSeo title="Deployment Details - Workflows - Dafthunk" />,
-    },
-  },
-  {
-    path: "/org/:handle/deployment/:deploymentId",
-    element: (
-      <OrgLayout title="Workflows">
-        <ProtectedRoute>
-          <DeploymentVersionPage />
-        </ProtectedRoute>
-      </OrgLayout>
-    ),
-    handle: {
-      head: <HeadSeo title="Deployment Version - Workflows - Dafthunk" />,
-    },
-  },
+
   {
     path: "/org/:handle/executions/:executionId",
     element: (

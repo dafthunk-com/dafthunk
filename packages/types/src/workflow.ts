@@ -29,8 +29,8 @@ export type WorkflowRuntime = "worker" | "workflow";
 
 /**
  * Workflow execution mode
- * - dev: Uses working version from R2 (latest changes)
- * - prod: Uses deployed version (active deployment)
+ * - dev: Testing from editor (bypasses enabled check)
+ * - prod: Production execution (requires enabled=true for triggers)
  */
 export type WorkflowMode = "dev" | "prod";
 
@@ -317,7 +317,7 @@ export interface Workflow {
  * Represents a workflow with additional metadata
  */
 export interface WorkflowWithMetadata extends Workflow {
-  activeDeploymentId?: string | null;
+  enabled?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -366,7 +366,6 @@ export interface WorkflowExecution {
   id: string;
   workflowId: string;
   workflowName?: string;
-  deploymentId?: string;
   status: WorkflowExecutionStatus;
   error?: string;
   nodeExecutions: NodeExecution[];

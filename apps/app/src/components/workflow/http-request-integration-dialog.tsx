@@ -1,12 +1,11 @@
 import type { Node } from "@xyflow/react";
-
-import {
-  EXECUTE_WORKFLOW_SNIPPETS,
-  type SnippetParams,
-} from "@/components/deployments/api-snippets";
 import { CodeBlock } from "@/components/docs/code-block";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  EXECUTE_WORKFLOW_SNIPPETS,
+  type SnippetParams,
+} from "@/components/workflow/api-snippets";
 import type {
   NodeType,
   WorkflowNodeType,
@@ -21,7 +20,6 @@ interface HttpRequestIntegrationDialogProps {
   nodeTypes: NodeType[];
   orgHandle: string;
   workflowId: string;
-  deploymentVersion: string;
 }
 
 export function HttpRequestIntegrationDialog({
@@ -31,10 +29,9 @@ export function HttpRequestIntegrationDialog({
   nodeTypes,
   orgHandle,
   workflowId,
-  deploymentVersion,
 }: HttpRequestIntegrationDialogProps) {
   const baseUrl = getApiBaseUrl().replace(/\/$/, "");
-  const executeUrl = `${baseUrl}/${orgHandle}/workflows/${workflowId}/execute/${deploymentVersion}`;
+  const executeUrl = `${baseUrl}/${orgHandle}/workflows/${workflowId}/execute`;
 
   const parameters = extractDialogParametersFromNodes(nodes, nodeTypes);
   const jsonBodyParam = parameters.find((p) => p.type === "body-json");

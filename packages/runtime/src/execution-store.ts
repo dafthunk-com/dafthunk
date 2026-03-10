@@ -10,7 +10,6 @@ import type {
 export interface ExecutionRow {
   id: string;
   workflowId: string;
-  deploymentId: string | null;
   organizationId: string;
   status: WorkflowExecutionStatus;
   error: string | null;
@@ -27,7 +26,6 @@ export interface ExecutionRow {
 export interface SaveExecutionRecord {
   id: string;
   workflowId: string;
-  deploymentId?: string;
   userId: string;
   organizationId: string;
   status: WorkflowExecutionStatus;
@@ -44,7 +42,6 @@ export interface SaveExecutionRecord {
  */
 export interface ListExecutionsOptions {
   workflowId?: string;
-  deploymentId?: string;
   limit?: number;
   offset?: number;
 }

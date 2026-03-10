@@ -27,7 +27,7 @@ const STEP_DESCRIPTIONS: Record<Step, string> = {
   credentials:
     "Create a new bot with @BotFather on Telegram, then copy the bot token it gives you.",
   setup:
-    "Your bot is ready. The webhook will be auto-registered when you deploy the workflow.",
+    "Your bot is ready. The webhook will be auto-registered when you enable the workflow.",
 };
 
 interface TelegramBotCreateDialogProps {

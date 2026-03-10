@@ -98,7 +98,7 @@ export function WorkflowCriteriaManager({
         <div className="px-4 pb-4 space-y-3">
           <p className="text-sm text-muted-foreground">
             Define binary evaluation questions for this workflow. These are
-            frozen when you deploy.
+            frozen when you enable it.
           </p>
 
           {criteria.length === 0 && (

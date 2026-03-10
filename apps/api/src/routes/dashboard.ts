@@ -9,7 +9,6 @@ import { jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
 import type { ExecutionRow } from "../runtime/cloudflare-execution-store";
 import { CloudflareExecutionStore } from "../runtime/cloudflare-execution-store";
-import { DeploymentStore } from "../stores/deployment-store";
 import { WorkflowStore } from "../stores/workflow-store";
 
 const dashboard = new Hono<ApiContext>();
@@ -27,20 +26,11 @@ dashboard.get("/", async (c) => {
 
   const executionStore = new CloudflareExecutionStore(c.env);
   const workflowStore = new WorkflowStore(c.env);
-  const deploymentStore = new DeploymentStore(c.env);
 
   try {
     // Workflows count
     const workflows = await workflowStore.list(organizationId);
     const workflowsCount = workflows.length;
-
-    // Deployments count
-    const deployments =
-      await deploymentStore.getGroupedByWorkflow(organizationId);
-    const deploymentsCount = deployments.reduce(
-      (acc: number, w: { deploymentCount: number }) => acc + w.deploymentCount,
-      0
-    );
 
     // Executions stats
     const executions: ExecutionRow[] = await executionStore.list(
@@ -82,7 +72,6 @@ dashboard.get("/", async (c) => {
 
     const stats: DashboardStats = {
       workflows: workflowsCount,
-      deployments: deploymentsCount,
       executions: {
         total: totalExecutions,
         running: runningExecutions,

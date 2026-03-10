@@ -1,14 +1,13 @@
 import type { Node } from "@xyflow/react";
-
+import { CodeBlock } from "@/components/docs/code-block";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   EXECUTE_WORKFLOW_SNIPPETS,
   GET_EXECUTION_STATUS_SNIPPETS,
   GET_OBJECT_SNIPPETS,
   type SnippetParams,
-} from "@/components/deployments/api-snippets";
-import { CodeBlock } from "@/components/docs/code-block";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+} from "@/components/workflow/api-snippets";
 import type {
   NodeType,
   WorkflowNodeType,
@@ -23,7 +22,6 @@ interface HttpWebhookIntegrationDialogProps {
   nodeTypes: NodeType[];
   orgHandle: string;
   workflowId: string;
-  deploymentVersion: string;
 }
 
 type Operation = "execute" | "status" | "getObject";
@@ -72,10 +70,9 @@ export function HttpWebhookIntegrationDialog({
   nodeTypes,
   orgHandle,
   workflowId,
-  deploymentVersion,
 }: HttpWebhookIntegrationDialogProps) {
   const baseUrl = getApiBaseUrl().replace(/\/$/, "");
-  const executeUrl = `${baseUrl}/${orgHandle}/workflows/${workflowId}/execute/${deploymentVersion}`;
+  const executeUrl = `${baseUrl}/${orgHandle}/workflows/${workflowId}/execute`;
   const statusBaseUrl = `${baseUrl}/${orgHandle}/executions`;
   const objectBaseUrl = `${baseUrl}/${orgHandle}/objects?id=YOUR_OBJECT_ID`;
 

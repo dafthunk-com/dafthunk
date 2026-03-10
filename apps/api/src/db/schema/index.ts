@@ -251,7 +251,6 @@ export const apiKeys = sqliteTable(
 
 // Workflows - Workflow definitions created and edited by users
 // Note: Full workflow data is stored in R2, only metadata is in the database
-// @ts-expect-error - Circular reference with deployments table (Drizzle ORM known limitation)
 export const workflows = sqliteTable(
   "workflows",
   {
@@ -270,11 +269,7 @@ export const workflows = sqliteTable(
     organizationId: text("organization_id")
       .notNull()
       .references(() => organizations.id, { onDelete: "cascade" }),
-    activeDeploymentId: text("active_deployment_id").references(
-      // @ts-expect-error - Circular reference with deployments table
-      () => deployments.id,
-      { onDelete: "set null" }
-    ),
+    enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
     createdAt: createCreatedAt(),
     updatedAt: createUpdatedAt(),
   },
@@ -283,46 +278,12 @@ export const workflows = sqliteTable(
     index("workflows_trigger_idx").on(table.trigger),
     index("workflows_runtime_idx").on(table.runtime),
     index("workflows_organization_id_idx").on(table.organizationId),
-    index("workflows_active_deployment_id_idx").on(table.activeDeploymentId),
+    index("workflows_enabled_idx").on(table.enabled),
     index("workflows_created_at_idx").on(table.createdAt),
     index("workflows_updated_at_idx").on(table.updatedAt),
     uniqueIndex("workflows_organization_id_handle_unique_idx").on(
       table.organizationId,
       table.handle
-    ),
-  ]
-);
-
-// Deployments - Versioned workflow definitions ready for execution
-// Note: Workflow snapshot is stored in R2, only metadata is in the database
-// @ts-expect-error - Circular reference with workflows table (Drizzle ORM known limitation)
-export const deployments = sqliteTable(
-  "deployments",
-  {
-    id: text("id").primaryKey(),
-    organizationId: text("organization_id")
-      .notNull()
-      .references(() => organizations.id, { onDelete: "cascade" }),
-    workflowId: text("workflow_id").references(
-      // @ts-expect-error - Circular reference with workflows table
-      () => workflows.id,
-      {
-        onDelete: "cascade",
-      }
-    ),
-    version: integer("version").notNull(),
-    createdAt: createCreatedAt(),
-    updatedAt: createUpdatedAt(),
-  },
-  (table) => [
-    index("deployments_organization_id_idx").on(table.organizationId),
-    index("deployments_workflow_id_idx").on(table.workflowId),
-    index("deployments_version_idx").on(table.version),
-    index("deployments_created_at_idx").on(table.createdAt),
-    // Composite index for finding latest deployment per workflow
-    index("deployments_workflow_id_version_idx").on(
-      table.workflowId,
-      table.version
     ),
   ]
 );
@@ -381,9 +342,7 @@ export const FeedbackSentiment = {
 export type FeedbackSentimentType =
   (typeof FeedbackSentiment)[keyof typeof FeedbackSentiment];
 
-// Feedback Criteria - Evaluation questions per workflow/deployment
-// workflow-level (deployment_id NULL) = editable templates
-// deployment-level (deployment_id set) = frozen copies created at deploy time
+// Feedback Criteria - Evaluation questions per workflow
 export const feedbackCriteria = sqliteTable(
   "feedback_criteria",
   {
@@ -391,9 +350,6 @@ export const feedbackCriteria = sqliteTable(
     workflowId: text("workflow_id")
       .notNull()
       .references(() => workflows.id, { onDelete: "cascade" }),
-    deploymentId: text("deployment_id").references(() => deployments.id, {
-      onDelete: "cascade",
-    }),
     organizationId: text("organization_id")
       .notNull()
       .references(() => organizations.id, { onDelete: "cascade" }),
@@ -405,7 +361,6 @@ export const feedbackCriteria = sqliteTable(
   },
   (table) => [
     index("feedback_criteria_workflow_id_idx").on(table.workflowId),
-    index("feedback_criteria_deployment_id_idx").on(table.deploymentId),
     index("feedback_criteria_organization_id_idx").on(table.organizationId),
     index("feedback_criteria_display_order_idx").on(table.displayOrder),
   ]
@@ -423,9 +378,6 @@ export const feedback = sqliteTable(
     workflowId: text("workflow_id").references(() => workflows.id, {
       onDelete: "cascade",
     }),
-    deploymentId: text("deployment_id").references(() => deployments.id, {
-      onDelete: "cascade",
-    }),
     organizationId: text("organization_id")
       .notNull()
       .references(() => organizations.id, { onDelete: "cascade" }),
@@ -441,7 +393,6 @@ export const feedback = sqliteTable(
     index("feedback_execution_id_idx").on(table.executionId),
     index("feedback_criterion_id_idx").on(table.criterionId),
     index("feedback_workflow_id_idx").on(table.workflowId),
-    index("feedback_deployment_id_idx").on(table.deploymentId),
     index("feedback_organization_id_idx").on(table.organizationId),
     index("feedback_user_id_idx").on(table.userId),
     index("feedback_sentiment_idx").on(table.sentiment),
@@ -869,7 +820,6 @@ export const organizationsRelations = relations(
   ({ many, one }) => ({
     memberships: many(memberships),
     workflows: many(workflows),
-    deployments: many(deployments),
     apiKeys: many(apiKeys),
     datasets: many(datasets),
     feedbackCriteria: many(feedbackCriteria),
@@ -908,11 +858,6 @@ export const workflowsRelations = relations(workflows, ({ one, many }) => ({
     fields: [workflows.organizationId],
     references: [organizations.id],
   }),
-  deployments: many(deployments),
-  activeDeployment: one(deployments, {
-    fields: [workflows.activeDeploymentId],
-    references: [deployments.id],
-  }),
   scheduledTrigger: one(scheduledTriggers, {
     fields: [workflows.id],
     references: [scheduledTriggers.workflowId],
@@ -936,18 +881,6 @@ export const workflowsRelations = relations(workflows, ({ one, many }) => ({
   telegramTrigger: one(telegramTriggers, {
     fields: [workflows.id],
     references: [telegramTriggers.workflowId],
-  }),
-  feedbackCriteria: many(feedbackCriteria),
-}));
-
-export const deploymentsRelations = relations(deployments, ({ one, many }) => ({
-  organization: one(organizations, {
-    fields: [deployments.organizationId],
-    references: [organizations.id],
-  }),
-  workflow: one(workflows, {
-    fields: [deployments.workflowId],
-    references: [workflows.id],
   }),
   feedbackCriteria: many(feedbackCriteria),
 }));
@@ -976,10 +909,6 @@ export const feedbackCriteriaRelations = relations(
       fields: [feedbackCriteria.workflowId],
       references: [workflows.id],
     }),
-    deployment: one(deployments, {
-      fields: [feedbackCriteria.deploymentId],
-      references: [deployments.id],
-    }),
     organization: one(organizations, {
       fields: [feedbackCriteria.organizationId],
       references: [organizations.id],
@@ -996,10 +925,6 @@ export const feedbackRelations = relations(feedback, ({ one }) => ({
   workflow: one(workflows, {
     fields: [feedback.workflowId],
     references: [workflows.id],
-  }),
-  deployment: one(deployments, {
-    fields: [feedback.deploymentId],
-    references: [deployments.id],
   }),
   user: one(users, {
     fields: [feedback.userId],
@@ -1155,9 +1080,6 @@ export type ApiKeyInsert = typeof apiKeys.$inferInsert;
 
 export type WorkflowRow = typeof workflows.$inferSelect;
 export type WorkflowInsert = typeof workflows.$inferInsert;
-
-export type DeploymentRow = typeof deployments.$inferSelect;
-export type DeploymentInsert = typeof deployments.$inferInsert;
 
 export type ScheduledTriggerRow = typeof scheduledTriggers.$inferSelect;
 export type ScheduledTriggerInsert = typeof scheduledTriggers.$inferInsert;

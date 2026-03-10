@@ -50,8 +50,7 @@ export function DocsPage() {
                 <ul className="list-disc list-inside space-y-2 text-muted-foreground mb-4">
                   <li>Workflows: The blueprint for your automation</li>
                   <li>Nodes: Individual tasks and operations</li>
-                  <li>Deployments: Runnable versions of your workflows</li>
-                  <li>Executions: Single runs of a deployed workflow</li>
+                  <li>Executions: Single runs of an enabled workflow</li>
                 </ul>
                 <Button asChild>
                   <Link to="/docs/concepts">

@@ -10,7 +10,6 @@ import {
   getOrganizationComputeCredits,
 } from "../db";
 import { createWorkerRuntime } from "../runtime/cloudflare-worker-runtime";
-import { DeploymentStore } from "../stores/deployment-store";
 import { WorkflowStore } from "../stores/workflow-store";
 import { decryptSecret } from "../utils/encryption";
 
@@ -197,7 +196,6 @@ async function dispatchWorkflows(
   if (triggers.length === 0) return;
 
   const workflowStore = new WorkflowStore(env);
-  const deploymentStore = new DeploymentStore(env);
 
   for (const { workflow } of triggers) {
     try {
@@ -233,7 +231,6 @@ async function dispatchWorkflows(
         workflow,
         interaction,
         workflowStore,
-        deploymentStore,
         perBotToken
       );
     } catch (error) {
@@ -253,52 +250,35 @@ async function executeWorkflow(
     handle: string;
     trigger: string;
     organizationId: string;
-    activeDeploymentId: string | null;
+    enabled: boolean;
   },
   interaction: DiscordInteractionPayload,
   workflowStore: WorkflowStore,
-  deploymentStore: DeploymentStore,
   perBotToken: string
 ): Promise<void> {
   const db = createDatabase(env.DB);
   const organizationId = workflow.organizationId;
 
   let workflowData: Workflow;
-  let deploymentId: string | undefined;
 
-  if (workflow.activeDeploymentId) {
-    try {
-      workflowData = await deploymentStore.readWorkflowSnapshot(
-        workflow.activeDeploymentId
-      );
-      deploymentId = workflow.activeDeploymentId;
-    } catch (error) {
+  try {
+    const workflowWithData = await workflowStore.getWithData(
+      workflow.id,
+      organizationId
+    );
+    if (!workflowWithData?.data) {
       console.error(
-        `[DiscordWebhook] Failed to load deployment ${workflow.activeDeploymentId}:`,
-        error
+        `[DiscordWebhook] Failed to load workflow data for ${workflow.id}`
       );
       return;
     }
-  } else {
-    try {
-      const workflowWithData = await workflowStore.getWithData(
-        workflow.id,
-        organizationId
-      );
-      if (!workflowWithData?.data) {
-        console.error(
-          `[DiscordWebhook] Failed to load workflow data for ${workflow.id}`
-        );
-        return;
-      }
-      workflowData = workflowWithData.data;
-    } catch (error) {
-      console.error(
-        `[DiscordWebhook] Failed to load workflow ${workflow.id}:`,
-        error
-      );
-      return;
-    }
+    workflowData = workflowWithData.data;
+  } catch (error) {
+    console.error(
+      `[DiscordWebhook] Failed to load workflow ${workflow.id}:`,
+      error
+    );
+    return;
   }
 
   if (!workflowData.nodes || workflowData.nodes.length === 0) {
@@ -330,7 +310,6 @@ async function executeWorkflow(
       nodes: workflowData.nodes,
       edges: workflowData.edges,
     },
-    deploymentId,
     discordInteraction: {
       discordBotId: interaction.discordBotId,
       interactionId: interaction.interactionId,

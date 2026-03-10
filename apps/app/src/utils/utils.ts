@@ -87,7 +87,7 @@ export function extractDialogParametersFromNodes(
 }
 
 // Helper function to convert backend nodes to ReactFlow nodes
-export function adaptDeploymentNodesToReactFlowNodes(
+export function adaptBackendNodesToReactFlowNodes(
   backendNodes: BackendNode[],
   nodeTypes: NodeType[] = []
 ): Node<WorkflowNodeType>[] {

@@ -7,7 +7,6 @@ import {
   getQueueTriggersByQueue,
 } from "./db/queries";
 import { createWorkerRuntime } from "./runtime/cloudflare-worker-runtime";
-import { DeploymentStore } from "./stores/deployment-store";
 import { WorkflowStore } from "./stores/workflow-store";
 
 // This function handles the actual execution triggering
@@ -19,7 +18,6 @@ async function executeWorkflow(
     organizationId: string;
   },
   workflowData: Workflow,
-  deploymentId: string | undefined,
   queueMessage: QueueMessage,
   db: ReturnType<typeof createDatabase>,
   env: Bindings,
@@ -53,7 +51,6 @@ async function executeWorkflow(
         nodes: workflowData.nodes,
         edges: workflowData.edges,
       },
-      deploymentId: deploymentId,
       queueMessage: {
         queueId: queueMessage.queueId,
         organizationId: queueMessage.organizationId,
@@ -92,7 +89,6 @@ export async function handleQueueMessages(
   console.log(`Queue batch received with ${batch.messages.length} messages`);
   const db = createDatabase(env.DB);
   const workflowStore = new WorkflowStore(env);
-  const deploymentStore = new DeploymentStore(env);
 
   try {
     for (const message of batch.messages) {
@@ -121,12 +117,11 @@ export async function handleQueueMessages(
 
         console.log(`Found ${triggers.length} active triggers for this queue.`);
 
-        // Deduplicate workflows by (workflowId + deploymentPath) to avoid loading same workflow multiple times
+        // Deduplicate workflows to avoid loading same workflow multiple times
         const workflowCache = new Map<
           string,
           {
             data: Workflow;
-            deploymentId: string | undefined;
             workflow: (typeof triggers)[0]["workflow"];
           }
         >();
@@ -137,80 +132,37 @@ export async function handleQueueMessages(
         // Load each unique workflow once
         for (const item of triggers) {
           const { workflow } = item;
-          const cacheKey = `${workflow.id}:${workflow.activeDeploymentId || "dev"}`;
 
-          if (workflowCache.has(cacheKey)) {
+          if (workflowCache.has(workflow.id)) {
             continue; // Already loaded this workflow
           }
 
+          // In prod mode, skip workflows that are not enabled
+          if (!isDevMode && !workflow.enabled) {
+            console.log(`Skipping workflow ${workflow.id}: not enabled`);
+            continue;
+          }
+
           console.log(
-            `Loading workflow: ${workflow.id} (message mode: ${queueMessage.mode || "prod"}, workflow has deployment: ${!!workflow.activeDeploymentId})`
+            `Loading workflow: ${workflow.id} (message mode: ${queueMessage.mode || "prod"})`
           );
 
           try {
-            let workflowToExecute: Workflow | null = null;
-            let deploymentIdToExecute: string | undefined = undefined;
-
-            if (isDevMode) {
-              // DEV MODE: Only trigger workflows WITHOUT active deployment
-              if (workflow.activeDeploymentId) {
-                console.log(
-                  `Skipping workflow ${workflow.id}: dev message but workflow has active deployment`
-                );
-                continue;
-              }
-
-              // DEV PATH: Load from working version
-              try {
-                const workflowWithData = await workflowStore.getWithData(
-                  workflow.id,
-                  workflow.organizationId
-                );
-                if (!workflowWithData) {
-                  console.error(
-                    `Failed to load workflow data for ${workflow.id}: not found`
-                  );
-                  continue;
-                }
-                workflowToExecute = workflowWithData.data;
-              } catch (error) {
-                console.error(
-                  `Failed to load workflow data from R2 for ${workflow.id}:`,
-                  error
-                );
-                continue;
-              }
-            } else {
-              // PROD MODE: Only trigger workflows WITH active deployment
-              if (!workflow.activeDeploymentId) {
-                console.log(
-                  `Skipping workflow ${workflow.id}: prod message but workflow has no active deployment`
-                );
-                continue;
-              }
-
-              // PROD PATH: Load from active deployment
-              try {
-                workflowToExecute = await deploymentStore.readWorkflowSnapshot(
-                  workflow.activeDeploymentId
-                );
-                deploymentIdToExecute = workflow.activeDeploymentId;
-              } catch (error) {
-                console.error(
-                  `Failed to load active deployment ${workflow.activeDeploymentId} for workflow ${workflow.id}:`,
-                  error
-                );
-                continue;
-              }
+            const workflowWithData = await workflowStore.getWithData(
+              workflow.id,
+              workflow.organizationId
+            );
+            if (!workflowWithData) {
+              console.error(
+                `Failed to load workflow data for ${workflow.id}: not found`
+              );
+              continue;
             }
 
-            if (workflowToExecute) {
-              workflowCache.set(cacheKey, {
-                data: workflowToExecute,
-                deploymentId: deploymentIdToExecute,
-                workflow,
-              });
-            }
+            workflowCache.set(workflow.id, {
+              data: workflowWithData.data,
+              workflow,
+            });
           } catch (err) {
             console.error(`Error loading workflow ${workflow.id}:`, err);
           }
@@ -219,8 +171,7 @@ export async function handleQueueMessages(
         // Execute each trigger with its corresponding workflow
         for (const item of triggers) {
           const { workflow } = item;
-          const cacheKey = `${workflow.id}:${workflow.activeDeploymentId || "dev"}`;
-          const cached = workflowCache.get(cacheKey);
+          const cached = workflowCache.get(workflow.id);
 
           if (!cached) {
             console.log(
@@ -242,7 +193,6 @@ export async function handleQueueMessages(
             await executeWorkflow(
               workflowInfo,
               cached.data,
-              cached.deploymentId,
               queueMessage,
               db,
               env,

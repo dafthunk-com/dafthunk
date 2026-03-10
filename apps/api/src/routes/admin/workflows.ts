@@ -1,15 +1,10 @@
 import { zValidator } from "@hono/zod-validator";
-import { count, desc, eq, like, or, sql } from "drizzle-orm";
+import { desc, eq, like, or, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { z } from "zod";
 
 import { ApiContext } from "../../context";
-import {
-  createDatabase,
-  deployments,
-  organizations,
-  workflows,
-} from "../../db";
+import { createDatabase, organizations, workflows } from "../../db";
 import { WorkflowStore } from "../../stores/workflow-store";
 
 const adminWorkflowsRoutes = new Hono<ApiContext>();
@@ -75,7 +70,7 @@ adminWorkflowsRoutes.get(
           organizationId: workflows.organizationId,
           organizationName: organizations.name,
           organizationHandle: organizations.handle,
-          activeDeploymentId: workflows.activeDeploymentId,
+          enabled: workflows.enabled,
           createdAt: workflows.createdAt,
           updatedAt: workflows.updatedAt,
         })
@@ -127,7 +122,7 @@ adminWorkflowsRoutes.get("/:id", async (c) => {
         organizationId: workflows.organizationId,
         organizationName: organizations.name,
         organizationHandle: organizations.handle,
-        activeDeploymentId: workflows.activeDeploymentId,
+        enabled: workflows.enabled,
         createdAt: workflows.createdAt,
         updatedAt: workflows.updatedAt,
       })
@@ -139,17 +134,8 @@ adminWorkflowsRoutes.get("/:id", async (c) => {
       return c.json({ error: "Workflow not found" }, 404);
     }
 
-    // Get deployment count
-    const [deploymentCountResult] = await db
-      .select({ count: count() })
-      .from(deployments)
-      .where(eq(deployments.workflowId, workflowId));
-
     return c.json({
       workflow,
-      stats: {
-        deploymentCount: deploymentCountResult?.count ?? 0,
-      },
     });
   } catch (error) {
     console.error("Error fetching admin workflow detail:", error);

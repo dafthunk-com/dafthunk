@@ -40,7 +40,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { CreateWorkflowDialog } from "@/components/workflow/create-workflow-dialog";
 import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
-import { createDeployment } from "@/services/deployment-service";
 import {
   createWorkflow,
   deleteWorkflow,
@@ -51,25 +50,21 @@ import {
 
 // --- Inline useWorkflowActions ---
 function useWorkflowActions() {
-  const { workflows, mutateWorkflows } = useWorkflows();
+  const { mutateWorkflows } = useWorkflows();
   const { organization } = useAuth();
   const orgHandle = organization?.handle || "";
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
-  const [deployDialogOpen, setDeployDialogOpen] = useState(false);
   const [workflowToDelete, setWorkflowToDelete] =
     useState<WorkflowWithMetadata | null>(null);
   const [workflowToRename, setWorkflowToRename] =
-    useState<WorkflowWithMetadata | null>(null);
-  const [workflowToDeploy, setWorkflowToDeploy] =
     useState<WorkflowWithMetadata | null>(null);
   const [renameWorkflowName, setRenameWorkflowName] = useState("");
   const [renameWorkflowDescription, setRenameWorkflowDescription] =
     useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
-  const [isDeploying, setIsDeploying] = useState(false);
 
   const handleDeleteWorkflow = async () => {
     if (!workflowToDelete || !orgHandle) return;
@@ -112,19 +107,6 @@ function useWorkflowActions() {
       throw error;
     } finally {
       setIsRenaming(false);
-    }
-  };
-
-  const handleDeployWorkflow = async () => {
-    if (!workflowToDeploy || !orgHandle) return;
-    setIsDeploying(true);
-    try {
-      await createDeployment(workflowToDeploy.id, orgHandle);
-      setDeployDialogOpen(false);
-      setWorkflowToDeploy(null);
-      mutateWorkflows();
-    } finally {
-      setIsDeploying(false);
     }
   };
 
@@ -208,37 +190,9 @@ function useWorkflowActions() {
     </Dialog>
   );
 
-  const deployDialog = (
-    <Dialog open={deployDialogOpen} onOpenChange={setDeployDialogOpen}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Deploy Workflow</DialogTitle>
-          <DialogDescription>
-            Are you sure you want to deploy "
-            {workflowToDeploy?.name || "Untitled Workflow"}"?
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() => setDeployDialogOpen(false)}
-            disabled={isDeploying}
-          >
-            Cancel
-          </Button>
-          <Button onClick={handleDeployWorkflow} disabled={isDeploying}>
-            {isDeploying ? <Spinner className="h-4 w-4 mr-2" /> : null}
-            Deploy
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-
   return {
     deleteDialog,
     renameDialog,
-    deployDialog,
     openDeleteDialog: (workflow: WorkflowWithMetadata) => {
       setWorkflowToDelete(workflow);
       setDeleteDialogOpen(true);
@@ -249,36 +203,6 @@ function useWorkflowActions() {
       setRenameWorkflowDescription(workflow.description || "");
       setRenameDialogOpen(true);
     },
-    openDeployDialog: (workflow: WorkflowWithMetadata) => {
-      setWorkflowToDeploy(workflow);
-      setDeployDialogOpen(true);
-    },
-    deployWorkflow: async (e: React.MouseEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-
-      if (!orgHandle) return;
-
-      // Get current workflow from URL
-      const path = window.location.pathname;
-      const parts = path.split("/");
-      const workflowId = parts[parts.length - 1];
-
-      // Instead of trying to use the hook here (which violates Rules of Hooks),
-      // just open the deploy dialog with the workflowId
-      if (workflowId) {
-        // Use existing workflows array to find the workflow
-        const workflowToUse = workflows?.find((w) => w.id === workflowId);
-        if (workflowToUse) {
-          setWorkflowToDeploy(workflowToUse);
-          setDeployDialogOpen(true);
-        } else {
-          // If not found in the list, we can't deploy it from here
-          console.warn("Workflow not found in the current list:", workflowId);
-          // Optionally show an error toast here
-        }
-      }
-    },
   };
 }
 
@@ -286,7 +210,6 @@ function useWorkflowActions() {
 function createColumns(
   openDeleteDialog: (workflow: WorkflowWithMetadata) => void,
   openRenameDialog: (workflow: WorkflowWithMetadata) => void,
-  openDeployDialog: (workflow: WorkflowWithMetadata) => void,
   navigate: ReturnType<typeof useNavigate>,
   getOrgUrl: (path: string) => string
 ): ColumnDef<WorkflowWithMetadata>[] {
@@ -369,9 +292,6 @@ function createColumns(
                 <DropdownMenuItem onClick={() => openRenameDialog(workflow)}>
                   Edit Metadata
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => openDeployDialog(workflow)}>
-                  Deploy Workflow
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => openDeleteDialog(workflow)}>
                   Delete Workflow
                 </DropdownMenuItem>
@@ -395,19 +315,12 @@ export function WorkflowsPage() {
   const { workflows, workflowsError, isWorkflowsLoading, mutateWorkflows } =
     useWorkflows();
 
-  const {
-    deleteDialog,
-    renameDialog,
-    deployDialog,
-    openDeleteDialog,
-    openRenameDialog,
-    openDeployDialog,
-  } = useWorkflowActions();
+  const { deleteDialog, renameDialog, openDeleteDialog, openRenameDialog } =
+    useWorkflowActions();
 
   const columns = createColumns(
     openDeleteDialog,
     openRenameDialog,
-    openDeployDialog,
     navigate,
     getOrgUrl
   );
@@ -487,7 +400,6 @@ export function WorkflowsPage() {
         />
         {deleteDialog}
         {renameDialog}
-        {deployDialog}
       </InsetLayout>
     </TooltipProvider>
   );

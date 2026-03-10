@@ -20,7 +20,6 @@ export type ExecutionStatusType =
  */
 export interface ListExecutionsRequest {
   workflowId?: string;
-  deploymentId?: string;
   limit?: number;
   offset?: number;
 }

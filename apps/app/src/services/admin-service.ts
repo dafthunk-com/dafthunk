@@ -10,7 +10,6 @@ export interface AdminStats {
   totalUsers: number;
   totalOrganizations: number;
   totalWorkflows: number;
-  totalDeployments: number;
   recentSignups: number;
   activeUsers24h: number;
 }
@@ -79,7 +78,6 @@ export interface AdminOrganizationMember {
 
 export interface AdminOrganizationEntityCounts {
   workflowCount: number;
-  deploymentCount: number;
   emailCount: number;
   queueCount: number;
   datasetCount: number;
@@ -96,7 +94,7 @@ export interface AdminWorkflow {
   organizationId: string;
   organizationName: string;
   organizationHandle: string;
-  activeDeploymentId: string | null;
+  enabled: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -105,7 +103,6 @@ export interface AdminExecution {
   id: string;
   workflowId: string;
   workflowName: string;
-  deploymentId?: string;
   organizationId: string;
   organizationName: string;
   organizationHandle: string;
@@ -126,20 +123,6 @@ export interface AdminNodeExecution {
 
 export interface AdminExecutionDetail extends AdminExecution {
   nodeExecutions: AdminNodeExecution[];
-}
-
-export interface AdminDeployment {
-  id: string;
-  version: number;
-  organizationId: string;
-  organizationName: string;
-  organizationHandle: string;
-  workflowId: string | null;
-  workflowName: string | null;
-  workflowHandle: string | null;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 export interface AdminEmail {
@@ -450,43 +433,6 @@ export const useAdminExecutionDetail = (
 };
 
 /**
- * Hook to fetch admin deployments list
- */
-export const useAdminDeployments = (
-  page = 1,
-  limit = 20,
-  search?: string,
-  organizationId?: string,
-  workflowId?: string
-) => {
-  const params = new URLSearchParams({
-    page: page.toString(),
-    limit: limit.toString(),
-    ...(search && { search }),
-    ...(organizationId && { organizationId }),
-    ...(workflowId && { workflowId }),
-  });
-
-  const { data, error, isLoading, mutate } = useSWR<{
-    deployments: AdminDeployment[];
-    pagination: PaginationInfo;
-  }>(`${ADMIN_API_ENDPOINT}/deployments?${params}`, async () =>
-    makeRequest<{
-      deployments: AdminDeployment[];
-      pagination: PaginationInfo;
-    }>(`${ADMIN_API_ENDPOINT}/deployments?${params}`)
-  );
-
-  return {
-    deployments: data?.deployments || [],
-    pagination: data?.pagination || null,
-    deploymentsError: error || null,
-    isDeploymentsLoading: isLoading,
-    mutateDeployments: mutate,
-  };
-};
-
-/**
  * Hook to fetch admin emails list
  */
 export const useAdminEmails = (
@@ -622,7 +568,7 @@ export const useAdminDatabases = (
   };
 };
 
-// Types for workflow/deployment structure
+// Types for workflow structure
 export interface AdminWorkflowStructure {
   id: string;
   name: string;
@@ -630,14 +576,6 @@ export interface AdminWorkflowStructure {
   handle: string;
   trigger: string;
   runtime: string;
-  nodes: any[];
-  edges: any[];
-}
-
-export interface AdminDeploymentStructure {
-  id: string;
-  version: number;
-  workflowId: string;
   nodes: any[];
   edges: any[];
 }
@@ -664,30 +602,5 @@ export const useAdminWorkflowStructure = (
     workflowStructureError: error || null,
     isWorkflowStructureLoading: isLoading,
     mutateWorkflowStructure: mutate,
-  };
-};
-
-/**
- * Hook to fetch admin deployment structure (nodes/edges)
- */
-export const useAdminDeploymentStructure = (
-  deploymentId: string | null,
-  organizationId: string | null
-) => {
-  const swrKey =
-    deploymentId && organizationId
-      ? `${ADMIN_API_ENDPOINT}/deployments/${deploymentId}/structure?organizationId=${organizationId}`
-      : null;
-
-  const { data, error, isLoading, mutate } = useSWR<AdminDeploymentStructure>(
-    swrKey,
-    swrKey ? async () => makeRequest<AdminDeploymentStructure>(swrKey) : null
-  );
-
-  return {
-    deploymentStructure: data || null,
-    deploymentStructureError: error || null,
-    isDeploymentStructureLoading: isLoading,
-    mutateDeploymentStructure: mutate,
   };
 };

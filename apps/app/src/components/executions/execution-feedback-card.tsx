@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  useDeploymentCriteria,
   useFeedback,
   useUpsertFeedback,
   useWorkflowCriteria,
@@ -25,22 +24,13 @@ import { cn } from "@/utils/utils";
 interface ExecutionFeedbackCardProps {
   executionId: string;
   workflowId?: string;
-  deploymentId?: string;
 }
 
 export function ExecutionFeedbackCard({
   executionId,
   workflowId,
-  deploymentId,
 }: ExecutionFeedbackCardProps) {
-  const { criteria: deploymentCriteria } = useDeploymentCriteria(
-    deploymentId || null
-  );
-  const { criteria: workflowCriteria } = useWorkflowCriteria(
-    !deploymentId && workflowId ? workflowId : null
-  );
-  const criteria =
-    deploymentCriteria.length > 0 ? deploymentCriteria : workflowCriteria;
+  const { criteria } = useWorkflowCriteria(workflowId || null);
   const { feedbackList, mutateFeedback } = useFeedback(executionId);
   const { upsertFeedback } = useUpsertFeedback();
 

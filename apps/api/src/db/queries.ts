@@ -296,16 +296,7 @@ export function getEmailCondition(emailIdOrHandle: string) {
 }
 
 /**
- * Get the latest deployment for a workflow
- *
- * @param db Database instance
- * @param workflowId Workflow ID
- * @param organizationIdOrHandle Organization ID or handle
- * @returns The latest deployment or undefined if none found
- */
-
-/**
- * Execution Operations
+ * API Key Operations
  */
 
 /**
@@ -507,49 +498,6 @@ export async function rollApiKey(
     apiKey: updatedApiKey,
   };
 }
-
-/**
- * Get a deployment by its ID
- *
- * @param db Database instance
- * @param id Deployment ID
- * @param organizationId Organization ID for security checks
- * @returns The deployment or undefined if not found
- */
-
-/**
- * Create a new deployment
- *
- * @param db Database instance
- * @param newDeployment Deployment data
- * @returns The created deployment
- */
-
-/**
- * Get deployments grouped by workflow
- *
- * @param db Database instance
- * @param organizationId Organization ID
- * @returns Array of WorkflowDeployment objects
- */
-
-/**
- * Get deployments for a workflow, sorted by creation date
- *
- * @param db Database instance
- * @param workflowId Workflow ID
- * @param organizationId Organization ID
- * @returns Array of deployment records
- */
-
-/**
- * Get the latest version number for a workflow's deployments
- *
- * @param db Database instance
- * @param workflowId Workflow ID
- * @param organizationId Organization ID
- * @returns The latest version number or null if no deployments exist
- */
 
 /**
  * Get all datasets for an organization
@@ -3522,13 +3470,3 @@ export async function deleteInvitation(
 
   return !!deletedInvitation;
 }
-
-/**
- * Get deployment metadata from DB and workflow snapshot from R2
- *
- * @param db Database instance
- * @param objectStore ObjectStore instance for R2 operations
- * @param deploymentId Deployment ID
- * @param organizationIdOrHandle Organization ID or handle
- * @returns Deployment metadata with workflow data from R2
- */

@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 
 import { WorkflowCriteriaManager } from "./workflow-criteria-manager";
@@ -55,7 +56,9 @@ export interface WorkflowSidebarProps {
   workflowStatus?: WorkflowExecutionStatus;
   workflowErrorMessage?: string;
   executionId?: string;
-  deploymentId?: string;
+  isEnabled?: boolean;
+  isTogglingEnabled?: boolean;
+  onToggleEnabled?: (checked: boolean) => void;
 }
 
 export function WorkflowSidebar({
@@ -76,7 +79,9 @@ export function WorkflowSidebar({
   workflowStatus,
   workflowErrorMessage,
   executionId,
-  deploymentId,
+  isEnabled,
+  isTogglingEnabled,
+  onToggleEnabled,
 }: WorkflowSidebarProps) {
   // Determine what to show based on selection
   const totalSelected = selectedNodes.length + selectedEdges.length;
@@ -308,11 +313,24 @@ export function WorkflowSidebar({
                         <SelectValue placeholder="Select execution mode" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="workflow">Durable</SelectItem>
-                        <SelectItem value="worker">Fast</SelectItem>
+                        <SelectItem value="workflow">Resilient</SelectItem>
+                        <SelectItem value="worker">Responsive</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
+                  {onToggleEnabled && (
+                    <div>
+                      <Label htmlFor="workflow-enabled">Enabled</Label>
+                      <div className="mt-2">
+                        <Switch
+                          id="workflow-enabled"
+                          checked={isEnabled}
+                          onCheckedChange={onToggleEnabled}
+                          disabled={isTogglingEnabled || disabledWorkflow}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </>
             )}
@@ -349,7 +367,6 @@ export function WorkflowSidebar({
             <WorkflowFeedbackSection
               executionId={executionId}
               workflowId={workflowId}
-              deploymentId={deploymentId}
               disabled={disabledFeedback}
             />
           ) : (

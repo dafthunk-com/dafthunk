@@ -1,10 +1,10 @@
+import { CodeBlock } from "@/components/docs/code-block";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   EXECUTE_WORKFLOW_SNIPPETS,
   GET_EXECUTION_STATUS_SNIPPETS,
   GET_OBJECT_SNIPPETS,
-} from "@/components/deployments/api-snippets";
-import { CodeBlock } from "@/components/docs/code-block";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+} from "@/components/workflow/api-snippets";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 
 export function DocsApiPage() {
@@ -13,7 +13,7 @@ export function DocsApiPage() {
   const BASE_URL = "https://api.dafthunk.com";
 
   // Example URLs for documentation
-  const exampleExecuteUrl = `${BASE_URL}/your-org/workflows/wf_123/execute/v1`;
+  const exampleExecuteUrl = `${BASE_URL}/your-org/workflows/wf_123/execute`;
   const exampleStatusBaseUrl = `${BASE_URL}/your-org/executions`;
   const exampleObjectBaseUrl = `${BASE_URL}/your-org/objects?id=YOUR_OBJECT_ID`;
 
@@ -60,13 +60,11 @@ export function DocsApiPage() {
         <p>
           <strong>Endpoint:</strong>{" "}
           <code>
-            POST /{"{orgHandle}"}/workflows/{"{workflowId}"}/execute/
-            {"{version}"}
+            POST /{"{orgHandle}"}/workflows/{"{workflowId}"}/execute
           </code>
         </p>
         <p>
-          <strong>Description:</strong> Execute a deployed workflow with input
-          parameters
+          <strong>Description:</strong> Execute a workflow with input parameters
         </p>
 
         <h4>Request Body</h4>
@@ -146,7 +144,6 @@ export function DocsApiPage() {
     "id": "exec_1234567890",
     "workflowId": "wf_123",
     "workflowName": "My Workflow",
-    "deploymentId": "deployment_456",
     "status": "completed",
     "nodeExecutions": [
       {

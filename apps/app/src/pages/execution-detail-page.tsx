@@ -14,7 +14,6 @@ import type {
 } from "@/components/workflow/workflow-types";
 import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
-import { useDeploymentVersion } from "@/services/deployment-service";
 import { useExecution } from "@/services/execution-service";
 import { useObjectService } from "@/services/object-service";
 import {
@@ -41,49 +40,14 @@ export function ExecutionDetailPage() {
   // Use empty node templates array since we're in readonly mode
   const nodeTypes = [];
 
-  // Fetch workflow metadata for name/description
-  const { workflow: workflowMetadata } = useWorkflow(
-    execution?.workflowId || null
-  );
-
-  // Handle the case when deploymentId might be undefined
-  const deploymentId = execution?.deploymentId || "";
-  const hasDeploymentId = !!execution?.deploymentId;
-
-  // Always call the hook - the hook internally handles empty/falsy values by setting swrKey to null
+  // Fetch workflow metadata for name/description and structure
   const {
-    deploymentVersion: deploymentStructureSource,
-    isDeploymentVersionLoading: isDeploymentStructureLoading,
-  } = useDeploymentVersion(deploymentId);
+    workflow: workflowMetadata,
+    isWorkflowLoading: isWorkflowStructureLoading,
+  } = useWorkflow(execution?.workflowId || null);
 
-  const {
-    workflow: workflowStructureSourceFromDetails,
-    isWorkflowLoading: isWorkflowStructureDetailsLoading,
-  } = useWorkflow(
-    execution?.deploymentId ? null : execution?.workflowId || null
-  );
-
-  const finalStructure = useMemo(() => {
-    // If we have a deploymentId, use the deployment structure.
-    // Otherwise, use the workflow structure.
-    return hasDeploymentId
-      ? deploymentStructureSource
-      : workflowStructureSourceFromDetails;
-  }, [
-    hasDeploymentId,
-    deploymentStructureSource,
-    workflowStructureSourceFromDetails,
-  ]);
-
-  const isStructureOverallLoading = useMemo(() => {
-    if (execution?.deploymentId) return isDeploymentStructureLoading;
-    if (execution?.workflowId) return isWorkflowStructureDetailsLoading;
-    return false;
-  }, [
-    execution,
-    isDeploymentStructureLoading,
-    isWorkflowStructureDetailsLoading,
-  ]);
+  const finalStructure = workflowMetadata;
+  const isStructureOverallLoading = isWorkflowStructureLoading;
 
   const [reactFlowNodes, setReactFlowNodes] = useState<any[]>([]);
   const [reactFlowEdges, setReactFlowEdges] = useState<any[]>([]);

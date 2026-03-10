@@ -48,7 +48,7 @@ export function EndpointSetupInfo({
               </li>
             </>
           )}
-          <li>Deploy the workflow before calling the endpoint.</li>
+          <li>Enable the workflow before calling the endpoint.</li>
         </ul>
       </div>
     </div>

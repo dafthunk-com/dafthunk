@@ -79,8 +79,6 @@ export interface WorkflowExecutionContext {
   readonly organizationId: string;
   /** Execution instance ID */
   readonly executionId: string;
-  /** Deployment ID if executing a deployed version */
-  readonly deploymentId?: string;
   /** Incoming HTTP request (for webhook-triggered workflows) */
   readonly httpRequest?: HttpRequest;
   /** Incoming email message (for email-triggered workflows) */

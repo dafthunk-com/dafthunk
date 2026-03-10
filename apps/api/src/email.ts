@@ -3,7 +3,6 @@ import type { Workflow } from "@dafthunk/types";
 import type { Bindings } from "./context";
 import { createDatabase, getOrganizationComputeCredits } from "./db";
 import { createWorkerRuntime } from "./runtime/cloudflare-worker-runtime";
-import { DeploymentStore } from "./stores/deployment-store";
 import { WorkflowStore } from "./stores/workflow-store";
 
 async function streamToString(
@@ -60,7 +59,6 @@ export async function handleIncomingEmail(
 
   const db = createDatabase(env.DB);
   const workflowStore = new WorkflowStore(env);
-  const deploymentStore = new DeploymentStore(env);
 
   // Get email inbox
   const { getEmail, getEmailTriggersByEmail } = await import("./db");
@@ -108,7 +106,6 @@ export async function handleIncomingEmail(
         organizationId,
         env,
         workflowStore,
-        deploymentStore,
         from,
         to,
         headers: headersRecord,
@@ -131,7 +128,6 @@ async function triggerWorkflowForEmail({
   organizationId,
   env,
   workflowStore,
-  deploymentStore,
   from,
   to,
   headers,
@@ -143,7 +139,6 @@ async function triggerWorkflowForEmail({
   organizationId: string;
   env: Bindings;
   workflowStore: WorkflowStore;
-  deploymentStore: DeploymentStore;
   from: string;
   to: string;
   headers: Record<string, string>;
@@ -153,50 +148,29 @@ async function triggerWorkflowForEmail({
   const db = createDatabase(env.DB);
 
   let workflowData: Workflow;
-  let deploymentId: string | undefined;
 
-  if (isDevMode) {
-    // DEV PATH: Always use working version when +dev suffix is used
-    console.log(`Loading workflow in dev mode (explicit)`);
-    try {
-      const workflowWithData = await workflowStore.getWithData(
-        workflow.id,
-        organizationId
-      );
-      if (!workflowWithData || !workflowWithData.data) {
-        console.error(`Failed to load workflow data for ${workflow.id}`);
-        return;
-      }
-      workflowData = workflowWithData.data;
-    } catch (error) {
-      console.error(
-        `Failed to load workflow data from R2 for ${workflow.id}:`,
-        error
-      );
-      return;
-    }
-  } else {
-    // PROD PATH: Only trigger if workflow has an active deployment
-    if (!workflow.activeDeploymentId) {
-      console.log(
-        `Discarding email for workflow ${workflow.id}: no active deployment (production address requires deployed workflow)`
-      );
-      return;
-    }
+  if (!isDevMode && !workflow.enabled) {
+    console.log(`Discarding email for workflow ${workflow.id}: not enabled`);
+    return;
+  }
 
-    console.log(`Loading workflow in prod mode`);
-    try {
-      workflowData = await deploymentStore.readWorkflowSnapshot(
-        workflow.activeDeploymentId
-      );
-      deploymentId = workflow.activeDeploymentId;
-    } catch (error) {
-      console.error(
-        `Failed to load active deployment ${workflow.activeDeploymentId} for workflow ${workflow.id}:`,
-        error
-      );
+  console.log(`Loading workflow${isDevMode ? " in dev mode" : ""}`);
+  try {
+    const workflowWithData = await workflowStore.getWithData(
+      workflow.id,
+      organizationId
+    );
+    if (!workflowWithData || !workflowWithData.data) {
+      console.error(`Failed to load workflow data for ${workflow.id}`);
       return;
     }
+    workflowData = workflowWithData.data;
+  } catch (error) {
+    console.error(
+      `Failed to load workflow data from R2 for ${workflow.id}:`,
+      error
+    );
+    return;
   }
 
   // Validate if workflow has nodes
@@ -230,7 +204,6 @@ async function triggerWorkflowForEmail({
       nodes: workflowData.nodes,
       edges: workflowData.edges,
     },
-    deploymentId,
     emailMessage: {
       from,
       to,

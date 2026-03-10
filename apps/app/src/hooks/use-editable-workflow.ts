@@ -18,7 +18,7 @@ import {
   WorkflowState,
   WorkflowWebSocket,
 } from "@/services/workflow-session-service.ts";
-import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
+import { adaptBackendNodesToReactFlowNodes } from "@/utils/utils";
 
 interface UseEditableWorkflowProps {
   workflowId: string | undefined;
@@ -86,7 +86,7 @@ export function useEditableWorkflow({
           }
 
           // Convert to ReactFlow format
-          const reactFlowNodes = adaptDeploymentNodesToReactFlowNodes(
+          const reactFlowNodes = adaptBackendNodesToReactFlowNodes(
             state.nodes,
             nodeTypes
           );

@@ -19,7 +19,6 @@ import {
   ReactFlow,
 } from "@xyflow/react";
 import { PanelRightClose, PanelRightOpen, Plus } from "lucide-react";
-import ArrowUpToLine from "lucide-react/icons/arrow-up-to-line";
 import ClipboardPaste from "lucide-react/icons/clipboard-paste";
 import Clock from "lucide-react/icons/clock";
 import Copy from "lucide-react/icons/copy";
@@ -150,7 +149,6 @@ export interface WorkflowCanvasProps {
   ) => void;
   onAddNode?: () => void;
   onAction?: (e: React.MouseEvent) => void;
-  onDeploy?: (e: React.MouseEvent) => void;
   workflowStatus?: WorkflowExecutionStatus;
   workflowErrorMessage?: string;
   onToggleSidebar?: (e: React.MouseEvent) => void;
@@ -263,37 +261,6 @@ export function ActionButton({
       }
     >
       {config.icon}
-      {text}
-    </ActionBarButton>
-  );
-}
-
-export function DeployButton({
-  onClick,
-  disabled,
-  text = "",
-  className = "",
-  tooltip = "Deploy Workflow",
-}: {
-  onClick: (e: React.MouseEvent) => void;
-  disabled?: boolean;
-  text?: string;
-  className?: string;
-  tooltip?: string;
-}) {
-  return (
-    <ActionBarButton
-      onClick={onClick}
-      disabled={disabled}
-      className={cn(
-        actionBarButtonOutlineClassName,
-        "text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300",
-        className
-      )}
-      tooltipSide="bottom"
-      tooltip={tooltip}
-    >
-      <ArrowUpToLine className="!size-4" />
       {text}
     </ActionBarButton>
   );
@@ -582,7 +549,6 @@ export function WorkflowCanvas({
   onInit,
   onAddNode,
   onAction,
-  onDeploy,
   workflowStatus = "idle",
   workflowErrorMessage,
   onToggleSidebar,
@@ -670,9 +636,7 @@ export function WorkflowCanvas({
 
         {/* Action Bars */}
         {showControls &&
-          (onAction ||
-            onDeploy ||
-            (onToggleSidebar && isSidebarVisible !== undefined)) && (
+          (onAction || (onToggleSidebar && isSidebarVisible !== undefined)) && (
             <div className="absolute top-4 right-4 flex items-center gap-3 z-50">
               {/* Runtime Actions Group - Execute */}
               {onAction && (
@@ -687,16 +651,6 @@ export function WorkflowCanvas({
                         workflowStatus === "executing") &&
                         nodes.length === 0)
                     }
-                  />
-                </ActionBarGroup>
-              )}
-
-              {/* Publishing Actions Group - Deploy */}
-              {onDeploy && (
-                <ActionBarGroup>
-                  <DeployButton
-                    onClick={onDeploy}
-                    disabled={disabled || nodes.length === 0}
                   />
                 </ActionBarGroup>
               )}

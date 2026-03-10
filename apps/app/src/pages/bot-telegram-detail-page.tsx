@@ -118,7 +118,7 @@ export function BotTelegramDetailPage() {
               trigger node and select this bot.
             </li>
             <li>
-              Deploy the workflow. The webhook will be registered automatically
+              Enable the workflow. The webhook will be registered automatically
               with Telegram.
             </li>
             <li>

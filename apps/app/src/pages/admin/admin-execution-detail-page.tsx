@@ -17,7 +17,6 @@ import type {
   WorkflowNodeExecution,
 } from "@/components/workflow/workflow-types";
 import {
-  useAdminDeploymentStructure,
   useAdminExecutionDetail,
   useAdminWorkflowStructure,
 } from "@/services/admin-service";
@@ -41,31 +40,14 @@ export function AdminExecutionDetailPage() {
   // Use empty node templates array since we're in readonly mode
   const nodeTypes: never[] = [];
 
-  // Determine what to fetch based on whether we have a deployment
-  const hasDeploymentId = !!execution?.deploymentId;
-
-  // Fetch workflow structure using admin endpoint (for metadata and when no deployment)
+  // Fetch workflow structure using admin endpoint
   const { workflowStructure, isWorkflowStructureLoading } =
     useAdminWorkflowStructure(
       execution?.workflowId || null,
       organizationId || null
     );
 
-  // Fetch deployment structure using admin endpoint (when we have a deployment)
-  const { deploymentStructure, isDeploymentStructureLoading } =
-    useAdminDeploymentStructure(
-      execution?.deploymentId || null,
-      organizationId || null
-    );
-
-  // Use deployment structure if available, otherwise use workflow structure
   const finalStructure = useMemo(() => {
-    if (hasDeploymentId && deploymentStructure) {
-      return {
-        nodes: deploymentStructure.nodes || [],
-        edges: deploymentStructure.edges || [],
-      };
-    }
     if (workflowStructure) {
       return {
         nodes: workflowStructure.nodes || [],
@@ -73,13 +55,9 @@ export function AdminExecutionDetailPage() {
       };
     }
     return null;
-  }, [hasDeploymentId, deploymentStructure, workflowStructure]);
+  }, [workflowStructure]);
 
-  const isStructureOverallLoading = useMemo(() => {
-    if (execution?.deploymentId) return isDeploymentStructureLoading;
-    if (execution?.workflowId) return isWorkflowStructureLoading;
-    return false;
-  }, [execution, isDeploymentStructureLoading, isWorkflowStructureLoading]);
+  const isStructureOverallLoading = isWorkflowStructureLoading;
 
   const [reactFlowNodes, setReactFlowNodes] = useState<any[]>([]);
   const [reactFlowEdges, setReactFlowEdges] = useState<any[]>([]);

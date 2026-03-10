@@ -41,7 +41,7 @@ export function LoginForm({ className, returnTo, ...props }: LoginFormProps) {
             </a>
           </CardTitle>
           <CardDescription>
-            Build and deploy serverless workflows visually.
+            Build serverless workflows visually.
           </CardDescription>
         </CardHeader>
         <CardContent>

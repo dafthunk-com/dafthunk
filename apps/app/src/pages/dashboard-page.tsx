@@ -1,6 +1,5 @@
 import Logs from "lucide-react/icons/logs";
 import Rocket from "lucide-react/icons/rocket";
-import Target from "lucide-react/icons/target";
 import Workflow from "lucide-react/icons/workflow";
 import { useEffect } from "react";
 import { Link, Navigate } from "react-router";
@@ -117,28 +116,6 @@ export function DashboardPage() {
               asChild
             >
               <Link to={getOrgUrl("workflows")}>View Workflows</Link>
-            </Button>
-          </CardContent>
-        </Card>
-        <Card data-tour="deployments-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-            <CardTitle className="text-xl">Deployments</CardTitle>
-            <Target className="size-8 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-4xl font-bold">
-              {dashboardStats.deployments}
-            </div>
-            <p className="text-xs text-muted-foreground pt-1">
-              Number of deployments
-            </p>
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-4 text-xs h-8"
-              asChild
-            >
-              <Link to={getOrgUrl("deployments")}>View Deployments</Link>
             </Button>
           </CardContent>
         </Card>
