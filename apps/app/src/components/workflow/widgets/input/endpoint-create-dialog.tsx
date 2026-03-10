@@ -81,7 +81,7 @@ export function EndpointCreateDialog({
             Create an Endpoint
           </DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground mt-1">
-            Give your endpoint a name and select a mode.
+            Give your endpoint a name{!defaultMode && " and select a mode"}.
           </DialogDescription>
         </div>
 
@@ -99,29 +99,31 @@ export function EndpointCreateDialog({
             </p>
           </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="endpoint-mode">Mode</Label>
-            <Select
-              value={mode}
-              onValueChange={(v) => setMode(v as EndpointMode)}
-            >
-              <SelectTrigger id="endpoint-mode">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="webhook">
-                  Webhook (async, returns execution ID)
-                </SelectItem>
-                <SelectItem value="request">
-                  Request (sync, returns response)
-                </SelectItem>
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">
-              Webhook triggers execute asynchronously. Request triggers wait for
-              a response.
-            </p>
-          </div>
+          {!defaultMode && (
+            <div className="space-y-1.5">
+              <Label htmlFor="endpoint-mode">Mode</Label>
+              <Select
+                value={mode}
+                onValueChange={(v) => setMode(v as EndpointMode)}
+              >
+                <SelectTrigger id="endpoint-mode">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="webhook">
+                    Webhook (async, returns execution ID)
+                  </SelectItem>
+                  <SelectItem value="request">
+                    Request (sync, returns response)
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Webhook triggers execute asynchronously. Request triggers wait
+                for a response.
+              </p>
+            </div>
+          )}
 
           {error && (
             <p className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-md">
