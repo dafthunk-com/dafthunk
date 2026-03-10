@@ -7,7 +7,7 @@ interface QueueSetupInfoProps {
 }
 
 export function QueueSetupInfo({ handle }: QueueSetupInfoProps) {
-  const baseUrl = getApiBaseUrl();
+  const baseUrl = getApiBaseUrl().replace(/\/$/, "");
   const prodEndpoint = `${baseUrl}/queues/${handle}/publish`;
   const devEndpoint = `${baseUrl}/queues/${handle}/publish/dev`;
 

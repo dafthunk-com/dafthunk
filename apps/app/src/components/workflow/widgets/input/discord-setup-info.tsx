@@ -13,7 +13,8 @@ export function DiscordBotSetupInfo({
   botId,
   applicationId,
 }: DiscordBotSetupInfoProps) {
-  const webhookUrl = `${getApiBaseUrl()}/discord/webhook/${botId}`;
+  const baseUrl = getApiBaseUrl().replace(/\/$/, "");
+  const webhookUrl = `${baseUrl}/discord/webhook/${botId}`;
   const portalUrl = `https://discord.com/developers/applications/${applicationId}/information`;
 
   return (

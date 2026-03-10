@@ -2,7 +2,10 @@ import { useAuth } from "@/components/auth-context";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Spinner } from "@/components/ui/spinner";
 import { useEmail } from "@/services/email-service";
-import { useEmailTrigger } from "@/services/workflow-service";
+import {
+  useEmailTrigger,
+  useWorkflow,
+} from "@/services/workflow-service";
 
 import { EmailSetupInfo } from "./email-setup-info";
 
@@ -20,13 +23,19 @@ export function EmailTriggerDialog({
   const { organization } = useAuth();
   const orgHandle = organization?.handle || "";
 
+  const { workflow, isWorkflowLoading } = useWorkflow(workflowId, {
+    revalidateOnFocus: false,
+  });
+
   const { emailTrigger, isEmailTriggerLoading } = useEmailTrigger(workflowId, {
     revalidateOnFocus: false,
   });
 
   const { email, isEmailLoading } = useEmail(emailTrigger?.emailId || null);
 
-  const isLoading = isEmailTriggerLoading || isEmailLoading;
+  const isLoading =
+    isWorkflowLoading || isEmailTriggerLoading || isEmailLoading;
+  const isDeployed = !!workflow?.activeDeploymentId;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -53,7 +62,11 @@ export function EmailTriggerDialog({
               </p>
             </div>
           ) : (
-            <EmailSetupInfo handle={email.handle} orgHandle={orgHandle} />
+            <EmailSetupInfo
+              handle={email.handle}
+              orgHandle={orgHandle}
+              isDeployed={isDeployed}
+            />
           )}
         </div>
       </DialogContent>
