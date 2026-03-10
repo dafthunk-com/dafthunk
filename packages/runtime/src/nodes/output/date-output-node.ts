@@ -14,7 +14,7 @@ export class DateOutputNode extends ExecutableNode {
     tags: ["Widget", "Output", "Date"],
     icon: "calendar",
     documentation:
-      "This node displays date/time data (ISO 8601 format) in the workflow. The value is persisted for viewing in read-only execution and deployed workflow views.",
+      "This node displays date/time data (ISO 8601 format) in the workflow. The value is persisted for viewing in read-only execution views.",
     inlinable: true,
     inputs: [
       {

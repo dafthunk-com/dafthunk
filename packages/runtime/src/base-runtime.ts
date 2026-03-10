@@ -95,7 +95,7 @@ export interface RuntimeDependencies<Env = unknown> {
  * Provides core execution logic with dependency injection support.
  *
  * This class should not be instantiated directly. Use:
- * - {@link WorkflowRuntime} for production deployments
+ * - {@link WorkflowRuntime} for production execution
  * - {@link MockRuntime} for testing
  *
  * ## Dependency Injection

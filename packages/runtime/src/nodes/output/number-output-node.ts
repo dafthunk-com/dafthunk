@@ -14,7 +14,7 @@ export class NumberOutputNode extends ExecutableNode {
     tags: ["Widget", "Output", "Number"],
     icon: "hash",
     documentation:
-      "This node displays numeric data in the workflow. The value is persisted for viewing in read-only execution and deployed workflow views.",
+      "This node displays numeric data in the workflow. The value is persisted for viewing in read-only execution views.",
     inlinable: true,
     inputs: [
       {

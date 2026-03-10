@@ -19,7 +19,7 @@ export class VideoOutputNode extends ExecutableNode {
     tags: ["Widget", "Output", "Video"],
     icon: "video",
     documentation:
-      "This node displays video data in the workflow. The video reference is persisted for viewing in read-only execution and deployed workflow views. No data is duplicated - the video passes through unchanged.",
+      "This node displays video data in the workflow. The video reference is persisted for viewing in read-only execution views. No data is duplicated - the video passes through unchanged.",
     inlinable: true,
     inputs: [
       {

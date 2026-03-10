@@ -19,7 +19,7 @@ export class DocumentOutputNode extends ExecutableNode {
     tags: ["Widget", "Output", "Document"],
     icon: "file-text",
     documentation:
-      "This node displays document data in the workflow. The document reference is persisted for viewing in read-only execution and deployed workflow views. No data is duplicated - the document passes through unchanged.",
+      "This node displays document data in the workflow. The document reference is persisted for viewing in read-only execution views. No data is duplicated - the document passes through unchanged.",
     inlinable: true,
     inputs: [
       {

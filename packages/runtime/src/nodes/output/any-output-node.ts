@@ -15,7 +15,7 @@ export class AnyOutputNode extends ExecutableNode {
     tags: ["Widget", "Output", "Any"],
     icon: "eye",
     documentation:
-      "This node displays any data type in the workflow. It accepts any parameter type and persists the value for viewing in read-only execution and deployed workflow views. Useful for generic data inspection.",
+      "This node displays any data type in the workflow. It accepts any parameter type and persists the value for viewing in read-only execution views. Useful for generic data inspection.",
     inlinable: true,
     inputs: [
       {

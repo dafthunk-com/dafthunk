@@ -14,7 +14,7 @@ export class JsonOutputNode extends ExecutableNode {
     tags: ["Widget", "Output", "JSON"],
     icon: "braces",
     documentation:
-      "This node displays JSON data in the workflow. The value is persisted for viewing in read-only execution and deployed workflow views.",
+      "This node displays JSON data in the workflow. The value is persisted for viewing in read-only execution views.",
     inlinable: true,
     inputs: [
       {

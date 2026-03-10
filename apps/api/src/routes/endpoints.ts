@@ -198,7 +198,7 @@ endpointRoutes.delete("/:id", async (c) => {
 
 /**
  * Execute workflows triggered by an endpoint
- * Uses the active deployment for each triggered workflow
+ * Executes enabled workflows triggered by an endpoint
  */
 endpointRoutes.on(
   ["GET", "POST"],

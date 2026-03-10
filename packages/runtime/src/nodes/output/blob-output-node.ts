@@ -19,7 +19,7 @@ export class BlobOutputNode extends ExecutableNode {
     tags: ["Widget", "Output", "Blob"],
     icon: "file",
     documentation:
-      "This node displays binary blob data in the workflow. The blob reference is persisted for viewing in read-only execution and deployed workflow views. No data is duplicated - the blob passes through unchanged.",
+      "This node displays binary blob data in the workflow. The blob reference is persisted for viewing in read-only execution views. No data is duplicated - the blob passes through unchanged.",
     inlinable: true,
     inputs: [
       {

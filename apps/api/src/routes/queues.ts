@@ -183,7 +183,7 @@ queueRoutes.delete("/:id", async (c) => {
 
 /**
  * Publish a message to a queue in production mode
- * - Message will trigger workflows with active deployments
+ * - Message will trigger enabled workflows
  */
 queueRoutes.post(
   "/:queueIdOrHandle/publish",
@@ -247,7 +247,7 @@ queueRoutes.post(
 
 /**
  * Publish a message to a queue in development mode
- * - Message will trigger workflows without active deployments (working version)
+ * - Message will trigger workflows in development mode (bypasses enabled check)
  */
 queueRoutes.post(
   "/:queueIdOrHandle/publish/dev",

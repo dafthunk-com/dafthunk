@@ -14,7 +14,7 @@ export class GeoJSONOutputNode extends ExecutableNode {
     tags: ["Widget", "Output", "GeoJSON", "Geo"],
     icon: "map-pin",
     documentation:
-      "This node displays GeoJSON geographic data in the workflow. The value is persisted for viewing in read-only execution and deployed workflow views.",
+      "This node displays GeoJSON geographic data in the workflow. The value is persisted for viewing in read-only execution views.",
     inlinable: true,
     inputs: [
       {

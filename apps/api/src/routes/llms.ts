@@ -12,7 +12,7 @@ app.get("/", () => {
   // The content follows the llms.txt specification format
   const content = `# Dafthunk
 
-> Dafthunk is a serverless workflow engine that allows you to build, deploy, and manage complex workflows at scale.
+> Dafthunk is a serverless workflow engine that allows you to build and manage complex workflows at scale.
 
 Dafthunk provides a powerful API for creating and managing workflows, executions, and objects. It's designed to be highly scalable and runs on Cloudflare Workers.
 `;

@@ -19,7 +19,7 @@ export class GltfOutputNode extends ExecutableNode {
     tags: ["Widget", "Output", "3D", "glTF"],
     icon: "box",
     documentation:
-      "This node displays glTF 3D model data in the workflow. The model reference is persisted for viewing in read-only execution and deployed workflow views. No data is duplicated - the model passes through unchanged.",
+      "This node displays glTF 3D model data in the workflow. The model reference is persisted for viewing in read-only execution views. No data is duplicated - the model passes through unchanged.",
     inlinable: true,
     inputs: [
       {

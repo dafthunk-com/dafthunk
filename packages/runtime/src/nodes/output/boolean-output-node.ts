@@ -14,7 +14,7 @@ export class BooleanOutputNode extends ExecutableNode {
     tags: ["Widget", "Output", "Boolean"],
     icon: "toggle-right",
     documentation:
-      "This node displays boolean data in the workflow. The value is persisted for viewing in read-only execution and deployed workflow views.",
+      "This node displays boolean data in the workflow. The value is persisted for viewing in read-only execution views.",
     inlinable: true,
     inputs: [
       {

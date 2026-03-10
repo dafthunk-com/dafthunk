@@ -15,7 +15,7 @@ export class SecretOutputNode extends ExecutableNode {
     tags: ["Widget", "Output", "Secret"],
     icon: "lock",
     documentation:
-      "This node displays secret references in the workflow. The actual secret value is never displayed - only the secret name reference is shown. The reference is persisted for viewing in read-only execution and deployed workflow views.",
+      "This node displays secret references in the workflow. The actual secret value is never displayed - only the secret name reference is shown. The reference is persisted for viewing in read-only execution views.",
     inlinable: true,
     inputs: [
       {

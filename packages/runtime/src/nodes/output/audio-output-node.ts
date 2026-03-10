@@ -19,7 +19,7 @@ export class AudioOutputNode extends ExecutableNode {
     tags: ["Widget", "Output", "Audio"],
     icon: "volume-2",
     documentation:
-      "This node displays audio data in the workflow. The audio reference is persisted for viewing in read-only execution and deployed workflow views. No data is duplicated - the audio passes through unchanged.",
+      "This node displays audio data in the workflow. The audio reference is persisted for viewing in read-only execution views. No data is duplicated - the audio passes through unchanged.",
     inlinable: true,
     inputs: [
       {

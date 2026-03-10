@@ -37,7 +37,7 @@ feedbackRoutes.use("*", jwtMiddleware);
 // ─────────────────────────────────────────────
 
 /**
- * Create a feedback criterion for a workflow (workflow-level, deployment_id = NULL)
+ * Create a feedback criterion for a workflow
  */
 feedbackRoutes.post(
   "/criteria",
@@ -348,7 +348,7 @@ feedbackRoutes.post(
     const results: CreateExecutionFeedbackResponse[] = [];
 
     for (const resp of responses) {
-      // Verify criterion exists and belongs to the deployment
+      // Verify criterion exists and belongs to the organization
       const criterion = await db.query.feedbackCriteria.findFirst({
         where: and(
           eq(feedbackCriteria.id, resp.criterionId),

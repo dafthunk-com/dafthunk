@@ -19,7 +19,7 @@ export class ImageOutputNode extends ExecutableNode {
     tags: ["Widget", "Output", "Image"],
     icon: "image",
     documentation:
-      "This node displays image data in the workflow. The image reference is persisted for viewing in read-only execution and deployed workflow views. No data is duplicated - the image passes through unchanged.",
+      "This node displays image data in the workflow. The image reference is persisted for viewing in read-only execution views. No data is duplicated - the image passes through unchanged.",
     inlinable: true,
     inputs: [
       {
