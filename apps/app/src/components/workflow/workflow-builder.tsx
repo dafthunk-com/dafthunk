@@ -9,7 +9,7 @@ import type {
   Node as ReactFlowNode,
 } from "@xyflow/react";
 import { ReactFlowProvider } from "@xyflow/react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 
 import { cn } from "@/utils/utils";
 
@@ -167,10 +167,6 @@ export function WorkflowBuilder({
   // Sidebar
   const sidebar = useResizableSidebar({ initialVisible: sidebarEnabled });
 
-  // Trigger dialog state (shared between canvas buttons and dialog component)
-  const [isHttpIntegrationDialogOpen, setIsHttpIntegrationDialogOpen] =
-    useState(false);
-
   // Keyboard shortcuts (Cmd+C/X/V/D + Cmd+Enter)
   const handleActionButtonClick =
     !readOnly && executeWorkflow
@@ -249,13 +245,6 @@ export function WorkflowBuilder({
               }
               workflowStatus={execution.workflowStatus}
               workflowErrorMessage={execution.workflowErrorMessage}
-              workflowTrigger={workflowTrigger}
-              onShowHttpIntegration={
-                workflowTrigger === "http_webhook" ||
-                workflowTrigger === "http_request"
-                  ? () => setIsHttpIntegrationDialogOpen(true)
-                  : undefined
-              }
               onToggleSidebar={
                 sidebarEnabled ? sidebar.toggleSidebar : undefined
               }
@@ -329,8 +318,6 @@ export function WorkflowBuilder({
           orgHandle={orgHandle}
           nodes={nodes}
           nodeTypes={nodeTypes}
-          isHttpIntegrationDialogOpen={isHttpIntegrationDialogOpen}
-          onCloseHttpIntegration={() => setIsHttpIntegrationDialogOpen(false)}
           isEmailFormDialogVisible={execution.isEmailFormDialogVisible}
           isHttpRequestConfigDialogVisible={
             execution.isHttpRequestConfigDialogVisible

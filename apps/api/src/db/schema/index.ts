@@ -575,6 +575,56 @@ export const emailTriggers = sqliteTable(
   ]
 );
 
+// Endpoints - HTTP webhook/request endpoints associated with organizations
+export const endpoints = sqliteTable(
+  "endpoints",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    handle: text("handle").notNull(),
+    mode: text("mode").$type<"webhook" | "request">().notNull(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    createdAt: createCreatedAt(),
+    updatedAt: createUpdatedAt(),
+  },
+  (table) => [
+    index("endpoints_name_idx").on(table.name),
+    index("endpoints_handle_idx").on(table.handle),
+    index("endpoints_mode_idx").on(table.mode),
+    index("endpoints_organization_id_idx").on(table.organizationId),
+    index("endpoints_created_at_idx").on(table.createdAt),
+    uniqueIndex("endpoints_organization_id_handle_unique_idx").on(
+      table.organizationId,
+      table.handle
+    ),
+  ]
+);
+
+// Endpoint Triggers - Endpoint triggers for workflows
+export const endpointTriggers = sqliteTable(
+  "endpoint_triggers",
+  {
+    workflowId: text("workflow_id")
+      .primaryKey()
+      .references(() => workflows.id, { onDelete: "cascade" }),
+    endpointId: text("endpoint_id")
+      .notNull()
+      .references(() => endpoints.id, { onDelete: "cascade" }),
+    active: integer("active", { mode: "boolean" }).notNull().default(true),
+    createdAt: createCreatedAt(),
+    updatedAt: createUpdatedAt(),
+  },
+  (table) => [
+    index("endpoint_triggers_workflow_id_idx").on(table.workflowId),
+    index("endpoint_triggers_endpoint_id_idx").on(table.endpointId),
+    index("endpoint_triggers_active_idx").on(table.active),
+    index("endpoint_triggers_created_at_idx").on(table.createdAt),
+    index("endpoint_triggers_updated_at_idx").on(table.updatedAt),
+  ]
+);
+
 // Discord Bots - User-provided Discord bots associated with organizations
 export const discordBots = sqliteTable(
   "discord_bots",
@@ -827,6 +877,7 @@ export const organizationsRelations = relations(
     queues: many(queues),
     databases: many(databases),
     emails: many(emails),
+    endpoints: many(endpoints),
     secrets: many(secrets),
     integrations: many(integrations),
     invitations: many(invitations),
@@ -873,6 +924,10 @@ export const workflowsRelations = relations(workflows, ({ one, many }) => ({
   emailTrigger: one(emailTriggers, {
     fields: [workflows.id],
     references: [emailTriggers.workflowId],
+  }),
+  endpointTrigger: one(endpointTriggers, {
+    fields: [workflows.id],
+    references: [endpointTriggers.workflowId],
   }),
   discordTrigger: one(discordTriggers, {
     fields: [workflows.id],
@@ -1001,6 +1056,28 @@ export const emailTriggersRelations = relations(emailTriggers, ({ one }) => ({
   }),
 }));
 
+export const endpointsRelations = relations(endpoints, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [endpoints.organizationId],
+    references: [organizations.id],
+  }),
+  endpointTriggers: many(endpointTriggers),
+}));
+
+export const endpointTriggersRelations = relations(
+  endpointTriggers,
+  ({ one }) => ({
+    workflow: one(workflows, {
+      fields: [endpointTriggers.workflowId],
+      references: [workflows.id],
+    }),
+    endpoint: one(endpoints, {
+      fields: [endpointTriggers.endpointId],
+      references: [endpoints.id],
+    }),
+  })
+);
+
 export const discordTriggersRelations = relations(
   discordTriggers,
   ({ one }) => ({
@@ -1108,6 +1185,12 @@ export type EmailInsert = typeof emails.$inferInsert;
 
 export type EmailTriggerRow = typeof emailTriggers.$inferSelect;
 export type EmailTriggerInsert = typeof emailTriggers.$inferInsert;
+
+export type EndpointRow = typeof endpoints.$inferSelect;
+export type EndpointInsert = typeof endpoints.$inferInsert;
+
+export type EndpointTriggerRow = typeof endpointTriggers.$inferSelect;
+export type EndpointTriggerInsert = typeof endpointTriggers.$inferInsert;
 
 export type DiscordBotRow = typeof discordBots.$inferSelect;
 export type DiscordBotInsert = typeof discordBots.$inferInsert;

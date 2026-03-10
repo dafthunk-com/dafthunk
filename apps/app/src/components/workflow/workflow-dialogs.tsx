@@ -15,8 +15,6 @@ import type { EmailData } from "./execution-email-dialog";
 import { ExecutionEmailDialog } from "./execution-email-dialog";
 import type { HttpRequestConfig } from "./http-request-config-dialog";
 import { HttpRequestConfigDialog } from "./http-request-config-dialog";
-import { HttpRequestIntegrationDialog } from "./http-request-integration-dialog";
-import { HttpWebhookIntegrationDialog } from "./http-webhook-integration-dialog";
 import type { NodeType, WorkflowNodeType } from "./workflow-types";
 
 interface WorkflowDialogsProps {
@@ -25,9 +23,6 @@ interface WorkflowDialogsProps {
   orgHandle: string;
   nodes: ReactFlowNode<WorkflowNodeType>[];
   nodeTypes: NodeType[];
-  // Trigger integration dialogs
-  isHttpIntegrationDialogOpen: boolean;
-  onCloseHttpIntegration: () => void;
   // Execution form dialogs
   isEmailFormDialogVisible: boolean;
   isHttpRequestConfigDialogVisible: boolean;
@@ -41,13 +36,7 @@ interface WorkflowDialogsProps {
 }
 
 export function WorkflowDialogs({
-  workflowId,
   workflowTrigger,
-  orgHandle,
-  nodes,
-  nodeTypes,
-  isHttpIntegrationDialogOpen,
-  onCloseHttpIntegration,
   isEmailFormDialogVisible,
   isHttpRequestConfigDialogVisible,
   submitHttpRequestConfig,
@@ -59,30 +48,6 @@ export function WorkflowDialogs({
 }: WorkflowDialogsProps) {
   return (
     <>
-      {workflowTrigger === "http_webhook" && (
-        <HttpWebhookIntegrationDialog
-          isOpen={isHttpIntegrationDialogOpen}
-          onClose={onCloseHttpIntegration}
-          orgHandle={orgHandle}
-          workflowId={workflowId}
-          deploymentVersion="dev"
-          nodes={nodes}
-          nodeTypes={nodeTypes}
-        />
-      )}
-
-      {workflowTrigger === "http_request" && (
-        <HttpRequestIntegrationDialog
-          isOpen={isHttpIntegrationDialogOpen}
-          onClose={onCloseHttpIntegration}
-          orgHandle={orgHandle}
-          workflowId={workflowId}
-          deploymentVersion="dev"
-          nodes={nodes}
-          nodeTypes={nodeTypes}
-        />
-      )}
-
       {(workflowTrigger === "http_webhook" ||
         workflowTrigger === "http_request") && (
         <HttpRequestConfigDialog

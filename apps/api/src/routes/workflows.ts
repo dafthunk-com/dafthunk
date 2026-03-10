@@ -3,6 +3,7 @@ import {
   CreateWorkflowRequest,
   CreateWorkflowResponse,
   DeleteDiscordTriggerResponse,
+  DeleteEndpointTriggerResponse,
   DeleteQueueTriggerResponse,
   DeleteTelegramTriggerResponse,
   DeleteWorkflowResponse,
@@ -10,6 +11,7 @@ import {
   ExecutionStatus,
   GetDiscordTriggerResponse,
   GetEmailTriggerResponse,
+  GetEndpointTriggerResponse,
   GetQueueTriggerResponse,
   GetTelegramTriggerResponse,
   GetWorkflowResponse,
@@ -18,6 +20,8 @@ import {
   SyncDiscordTriggerResponse,
   UpdateWorkflowRequest,
   UpdateWorkflowResponse,
+  UpsertEndpointTriggerRequest,
+  UpsertEndpointTriggerResponse,
   UpsertQueueTriggerRequest,
   UpsertQueueTriggerResponse,
   WorkflowWithMetadata,
@@ -28,23 +32,27 @@ import type { Context } from "hono";
 import { Hono } from "hono";
 import { v7 as uuid } from "uuid";
 import { z } from "zod";
-import { apiKeyOrJwtMiddleware, jwtMiddleware } from "../auth";
+import { jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
 import {
   createDatabase,
   createHandle,
   deleteDiscordTrigger as deleteDbDiscordTrigger,
+  deleteEndpointTrigger as deleteDbEndpointTrigger,
   deleteQueueTrigger as deleteDbQueueTrigger,
   deleteTelegramTrigger as deleteDbTelegramTrigger,
   getDiscordBot,
   getDiscordTrigger,
   getEmailTrigger,
+  getEndpoint,
+  getEndpointTrigger,
   getOrganizationBillingInfo,
   getQueue,
   getQueueTrigger,
   getTelegramBot,
   getTelegramTrigger,
   getTelegramTriggersByBot,
+  upsertEndpointTrigger as upsertDbEndpointTrigger,
   upsertQueueTrigger as upsertDbQueueTrigger,
   workflows,
 } from "../db";
@@ -444,7 +452,7 @@ async function executeWorkflow(
 workflowRoutes.on(
   ["GET", "POST"],
   "/:workflowIdOrHandle/execute",
-  apiKeyOrJwtMiddleware,
+  jwtMiddleware,
   (c, next) => createRateLimitMiddleware(c.env.RATE_LIMIT_EXECUTE)(c, next),
   async (c) => {
     const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
@@ -504,7 +512,7 @@ workflowRoutes.on(
 workflowRoutes.on(
   ["GET", "POST"],
   "/:workflowIdOrHandle/execute/dev",
-  apiKeyOrJwtMiddleware,
+  jwtMiddleware,
   (c, next) => createRateLimitMiddleware(c.env.RATE_LIMIT_EXECUTE)(c, next),
   async (c) => {
     const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
@@ -546,7 +554,7 @@ workflowRoutes.on(
  */
 workflowRoutes.post(
   "/:workflowIdOrHandle/executions/:executionId/cancel",
-  apiKeyOrJwtMiddleware,
+  jwtMiddleware,
   async (c) => {
     const organizationId = c.get("organizationId")!;
     const executionId = c.req.param("executionId");
@@ -819,6 +827,164 @@ workflowRoutes.get(
       active: emailTrigger.active,
       createdAt: emailTrigger.createdAt,
       updatedAt: emailTrigger.updatedAt,
+    };
+
+    return c.json(response);
+  }
+);
+
+/**
+ * Get endpoint trigger for a workflow
+ */
+workflowRoutes.get(
+  "/:workflowIdOrHandle/endpoint-trigger",
+  jwtMiddleware,
+  async (c) => {
+    const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
+    const organizationId = c.get("organizationId")!;
+    const workflowStore = new WorkflowStore(c.env);
+    const db = createDatabase(c.env.DB);
+
+    const workflow = await workflowStore.get(
+      workflowIdOrHandle,
+      organizationId
+    );
+    if (!workflow) {
+      return c.json({ error: "Workflow not found" }, 404);
+    }
+
+    const trigger = await getEndpointTrigger(db, workflow.id, organizationId);
+
+    if (!trigger) {
+      return c.json(
+        { error: "Endpoint trigger not found for this workflow" },
+        404
+      );
+    }
+
+    const response: GetEndpointTriggerResponse = {
+      workflowId: trigger.workflowId,
+      endpointId: trigger.endpointId,
+      active: trigger.active,
+      createdAt: trigger.createdAt,
+      updatedAt: trigger.updatedAt,
+    };
+
+    return c.json(response);
+  }
+);
+
+/**
+ * Upsert (create or update) an endpoint trigger for a workflow
+ */
+const UpsertEndpointTriggerRequestSchema = z.object({
+  endpointId: z.string().min(1, "Endpoint ID is required"),
+  active: z.boolean().optional(),
+}) as z.ZodType<UpsertEndpointTriggerRequest>;
+
+workflowRoutes.put(
+  "/:workflowIdOrHandle/endpoint-trigger",
+  jwtMiddleware,
+  zValidator("json", UpsertEndpointTriggerRequestSchema),
+  async (c) => {
+    const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
+    const organizationId = c.get("organizationId")!;
+    const data = c.req.valid("json");
+    const db = createDatabase(c.env.DB);
+    const workflowStore = new WorkflowStore(c.env);
+
+    const workflow = await workflowStore.get(
+      workflowIdOrHandle,
+      organizationId
+    );
+    if (!workflow) {
+      return c.json({ error: "Workflow not found" }, 404);
+    }
+
+    if (
+      workflow.trigger !== "http_webhook" &&
+      workflow.trigger !== "http_request"
+    ) {
+      return c.json({ error: "Workflow is not an HTTP trigger workflow" }, 400);
+    }
+
+    // Verify that the endpoint exists and belongs to the organization
+    const endpoint = await getEndpoint(db, data.endpointId, organizationId);
+    if (!endpoint) {
+      return c.json({ error: "Endpoint not found" }, 404);
+    }
+
+    const now = new Date();
+    const isActive = data.active ?? true;
+
+    const trigger = await upsertDbEndpointTrigger(db, {
+      workflowId: workflow.id,
+      endpointId: data.endpointId,
+      active: isActive,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    // Update workflow trigger type based on endpoint mode
+    const triggerType =
+      endpoint.mode === "request" ? "http_request" : "http_webhook";
+    await db
+      .update(workflows)
+      .set({ trigger: triggerType, updatedAt: now })
+      .where(
+        and(
+          eq(workflows.id, workflow.id),
+          eq(workflows.organizationId, organizationId)
+        )
+      );
+
+    const response: UpsertEndpointTriggerResponse = {
+      workflowId: trigger.workflowId,
+      endpointId: trigger.endpointId,
+      active: trigger.active,
+      createdAt: trigger.createdAt,
+      updatedAt: trigger.updatedAt,
+    };
+
+    return c.json(response);
+  }
+);
+
+/**
+ * Delete endpoint trigger for a workflow
+ */
+workflowRoutes.delete(
+  "/:workflowIdOrHandle/endpoint-trigger",
+  jwtMiddleware,
+  async (c) => {
+    const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
+    const organizationId = c.get("organizationId")!;
+    const workflowStore = new WorkflowStore(c.env);
+    const db = createDatabase(c.env.DB);
+
+    const workflow = await workflowStore.get(
+      workflowIdOrHandle,
+      organizationId
+    );
+    if (!workflow) {
+      return c.json({ error: "Workflow not found" }, 404);
+    }
+
+    const deletedTrigger = await deleteDbEndpointTrigger(
+      db,
+      workflow.id,
+      organizationId
+    );
+
+    if (!deletedTrigger) {
+      return c.json(
+        { error: "Endpoint trigger not found for this workflow" },
+        404
+      );
+    }
+
+    const response: DeleteEndpointTriggerResponse = {
+      workflowId: deletedTrigger.workflowId,
     };
 
     return c.json(response);

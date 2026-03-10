@@ -16,6 +16,7 @@ import { dateInputWidget } from "./input/date-input";
 import { discordTriggerInputWidget } from "./input/discord-trigger-input";
 import { documentInputWidget } from "./input/document-input";
 import { emailTriggerInputWidget } from "./input/email-trigger-input";
+import { endpointTriggerInputWidget } from "./input/endpoint-trigger-input";
 import { fileInputWidget } from "./input/file-input";
 import { geojsonInputWidget } from "./input/geojson-input";
 import { gltfInputWidget } from "./input/gltf-input";
@@ -68,6 +69,7 @@ const widgets = [
   // Advanced input widgets (special UX)
   discordTriggerInputWidget,
   emailTriggerInputWidget,
+  endpointTriggerInputWidget,
   queueTriggerInputWidget,
   telegramTriggerInputWidget,
   javascriptInputWidget,

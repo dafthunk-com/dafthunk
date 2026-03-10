@@ -46,6 +46,7 @@ import { DocsNodesPage } from "./pages/docs/nodes-page";
 import { DocsPage } from "./pages/docs-page";
 import { EditorPage } from "./pages/editor-page";
 import { EmailsPage } from "./pages/emails-page";
+import { EndpointsPage } from "./pages/endpoints-page";
 import { ExecutionDetailPage } from "./pages/execution-detail-page";
 import { ExecutionsPage } from "./pages/executions-page";
 import { FeedbackPage } from "./pages/feedback-page";
@@ -646,6 +647,23 @@ export const routes: AppRouteObject[] = [
       </OrgLayout>
     ),
     handle: { head: <HeadSeo title="Console - Database - Dafthunk" /> },
+  },
+  {
+    path: "/endpoints",
+    element: <OrgRedirect to="/org/:handle/endpoints" />,
+  },
+  {
+    path: "/org/:handle/endpoints",
+    element: (
+      <OrgLayout title="Endpoints">
+        <ProtectedRoute>
+          <EndpointsPage />
+        </ProtectedRoute>
+      </OrgLayout>
+    ),
+    handle: {
+      head: <HeadSeo title="Endpoints - Triggers - Dafthunk" />,
+    },
   },
   {
     path: "/queues",

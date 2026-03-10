@@ -8,6 +8,7 @@ export * from "./deployment";
 export * from "./discord";
 export * from "./discord-bot";
 export * from "./email";
+export * from "./endpoint";
 export * from "./execution";
 export * from "./feedback";
 export * from "./integration";

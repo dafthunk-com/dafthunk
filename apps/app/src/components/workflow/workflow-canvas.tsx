@@ -1,6 +1,5 @@
 import "@xyflow/react/dist/style.css";
 
-import type { WorkflowTrigger } from "@dafthunk/types";
 import type {
   IsValidConnection,
   OnConnect,
@@ -24,7 +23,6 @@ import ArrowUpToLine from "lucide-react/icons/arrow-up-to-line";
 import ClipboardPaste from "lucide-react/icons/clipboard-paste";
 import Clock from "lucide-react/icons/clock";
 import Copy from "lucide-react/icons/copy";
-import Globe from "lucide-react/icons/globe";
 import Layers2 from "lucide-react/icons/layers-2";
 import Maximize from "lucide-react/icons/maximize";
 import Network from "lucide-react/icons/network";
@@ -134,7 +132,6 @@ export interface WorkflowCanvasProps {
   nodes: ReactFlowNode<WorkflowNodeType>[];
   edges: ReactFlowEdge<WorkflowEdgeType>[];
   connectionValidationState?: ConnectionValidationState;
-  workflowTrigger?: WorkflowTrigger;
   onNodesChange: OnNodesChange<ReactFlowNode<WorkflowNodeType>>;
   onEdgesChange: OnEdgesChange<ReactFlowEdge<WorkflowEdgeType>>;
   onConnect: OnConnect;
@@ -154,7 +151,6 @@ export interface WorkflowCanvasProps {
   onAddNode?: () => void;
   onAction?: (e: React.MouseEvent) => void;
   onDeploy?: (e: React.MouseEvent) => void;
-  onShowHttpIntegration?: () => void;
   workflowStatus?: WorkflowExecutionStatus;
   workflowErrorMessage?: string;
   onToggleSidebar?: (e: React.MouseEvent) => void;
@@ -474,33 +470,6 @@ export function SetScheduleButton({
   );
 }
 
-export function ShowHttpIntegrationButton({
-  onClick,
-  disabled,
-  className,
-  text = "",
-  tooltip = "Show HTTP Integration",
-}: {
-  onClick: (e: React.MouseEvent) => void;
-  disabled?: boolean;
-  className?: string;
-  text?: string;
-  tooltip?: string;
-}) {
-  return (
-    <ActionBarButton
-      onClick={onClick}
-      disabled={disabled}
-      className={cn(actionBarButtonOutlineClassName, className)}
-      tooltipSide="bottom"
-      tooltip={tooltip}
-    >
-      <Globe className="!size-4" />
-      {text}
-    </ActionBarButton>
-  );
-}
-
 function CopyButton({
   onClick,
   disabled,
@@ -614,8 +583,6 @@ export function WorkflowCanvas({
   onAddNode,
   onAction,
   onDeploy,
-  workflowTrigger,
-  onShowHttpIntegration,
   workflowStatus = "idle",
   workflowErrorMessage,
   onToggleSidebar,
@@ -707,30 +674,20 @@ export function WorkflowCanvas({
             onDeploy ||
             (onToggleSidebar && isSidebarVisible !== undefined)) && (
             <div className="absolute top-4 right-4 flex items-center gap-3 z-50">
-              {/* Runtime Actions Group - Execute + Triggers */}
-              {(onAction || onShowHttpIntegration) && (
+              {/* Runtime Actions Group - Execute */}
+              {onAction && (
                 <ActionBarGroup>
-                  {onAction && (
-                    <ActionButton
-                      onClick={onAction}
-                      workflowStatus={workflowStatus}
-                      disabled={
-                        disabled ||
-                        ((workflowStatus === "idle" ||
-                          workflowStatus === "submitted" ||
-                          workflowStatus === "executing") &&
-                          nodes.length === 0)
-                      }
-                    />
-                  )}
-                  {onShowHttpIntegration &&
-                    (workflowTrigger === "http_webhook" ||
-                      workflowTrigger === "http_request") && (
-                      <ShowHttpIntegrationButton
-                        onClick={onShowHttpIntegration}
-                        disabled={disabled}
-                      />
-                    )}
+                  <ActionButton
+                    onClick={onAction}
+                    workflowStatus={workflowStatus}
+                    disabled={
+                      disabled ||
+                      ((workflowStatus === "idle" ||
+                        workflowStatus === "submitted" ||
+                        workflowStatus === "executing") &&
+                        nodes.length === 0)
+                    }
+                  />
                 </ActionBarGroup>
               )}
 

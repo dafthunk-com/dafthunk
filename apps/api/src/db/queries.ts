@@ -25,8 +25,14 @@ import {
   type EmailRow,
   type EmailTriggerInsert,
   type EmailTriggerRow,
+  type EndpointInsert,
+  type EndpointRow,
+  type EndpointTriggerInsert,
+  type EndpointTriggerRow,
   emails,
   emailTriggers,
+  endpoints,
+  endpointTriggers,
   type IntegrationInsert,
   type IntegrationProviderType,
   type InvitationInsert,
@@ -1252,6 +1258,198 @@ export async function deleteEmailTrigger(
         eq(emailTriggers.workflowId, workflowId),
         eq(
           emailTriggers.workflowId,
+          db
+            .select({ id: workflows.id })
+            .from(workflows)
+            .where(
+              and(
+                eq(workflows.id, workflowId),
+                eq(workflows.organizationId, organizationId)
+              )
+            )
+        )
+      )
+    )
+    .returning();
+
+  return trigger;
+}
+
+/**
+ * Endpoint Operations
+ */
+
+export function getEndpointCondition(endpointIdOrHandle: string) {
+  if (isUUID(endpointIdOrHandle)) {
+    return eq(endpoints.id, endpointIdOrHandle);
+  } else {
+    return eq(endpoints.handle, endpointIdOrHandle);
+  }
+}
+
+export async function getEndpoints(
+  db: ReturnType<typeof createDatabase>,
+  organizationIdOrHandle: string
+) {
+  return await db
+    .select({
+      id: endpoints.id,
+      name: endpoints.name,
+      handle: endpoints.handle,
+      mode: endpoints.mode,
+      createdAt: endpoints.createdAt,
+      updatedAt: endpoints.updatedAt,
+    })
+    .from(endpoints)
+    .innerJoin(
+      organizations,
+      and(
+        eq(endpoints.organizationId, organizations.id),
+        getOrganizationCondition(organizationIdOrHandle)
+      )
+    )
+    .orderBy(endpoints.createdAt);
+}
+
+export async function getEndpoint(
+  db: ReturnType<typeof createDatabase>,
+  endpointIdOrHandle: string,
+  organizationIdOrHandle: string
+): Promise<EndpointRow | undefined> {
+  const [endpoint] = await db
+    .select()
+    .from(endpoints)
+    .innerJoin(
+      organizations,
+      and(
+        eq(endpoints.organizationId, organizations.id),
+        getOrganizationCondition(organizationIdOrHandle)
+      )
+    )
+    .where(getEndpointCondition(endpointIdOrHandle))
+    .limit(1);
+  return endpoint?.endpoints;
+}
+
+export async function createEndpoint(
+  db: ReturnType<typeof createDatabase>,
+  newEndpoint: EndpointInsert
+): Promise<EndpointRow> {
+  const [endpoint] = await db.insert(endpoints).values(newEndpoint).returning();
+
+  return endpoint;
+}
+
+export async function updateEndpoint(
+  db: ReturnType<typeof createDatabase>,
+  id: string,
+  organizationId: string,
+  data: Partial<EndpointRow>
+): Promise<EndpointRow> {
+  const [endpoint] = await db
+    .update(endpoints)
+    .set(data)
+    .where(
+      and(eq(endpoints.id, id), eq(endpoints.organizationId, organizationId))
+    )
+    .returning();
+
+  return endpoint;
+}
+
+export async function deleteEndpoint(
+  db: ReturnType<typeof createDatabase>,
+  id: string,
+  organizationId: string
+): Promise<EndpointRow | undefined> {
+  const [endpoint] = await db
+    .delete(endpoints)
+    .where(
+      and(eq(endpoints.id, id), eq(endpoints.organizationId, organizationId))
+    )
+    .returning();
+
+  return endpoint;
+}
+
+/**
+ * Endpoint Trigger Operations
+ */
+
+export async function getEndpointTrigger(
+  db: ReturnType<typeof createDatabase>,
+  workflowId: string,
+  organizationId: string
+): Promise<EndpointTriggerRow | undefined> {
+  const [trigger] = await db
+    .select()
+    .from(endpointTriggers)
+    .innerJoin(workflows, eq(endpointTriggers.workflowId, workflows.id))
+    .where(
+      and(
+        eq(endpointTriggers.workflowId, workflowId),
+        eq(workflows.organizationId, organizationId)
+      )
+    )
+    .limit(1);
+
+  return trigger?.endpoint_triggers;
+}
+
+export async function getEndpointTriggersByEndpoint(
+  db: ReturnType<typeof createDatabase>,
+  endpointId: string,
+  organizationId: string
+) {
+  return await db
+    .select({
+      endpointTrigger: endpointTriggers,
+      workflow: workflows,
+    })
+    .from(endpointTriggers)
+    .innerJoin(workflows, eq(endpointTriggers.workflowId, workflows.id))
+    .innerJoin(endpoints, eq(endpointTriggers.endpointId, endpoints.id))
+    .where(
+      and(
+        eq(endpointTriggers.endpointId, endpointId),
+        eq(endpointTriggers.active, true),
+        eq(endpoints.organizationId, organizationId)
+      )
+    );
+}
+
+export async function upsertEndpointTrigger(
+  db: ReturnType<typeof createDatabase>,
+  trigger: EndpointTriggerInsert
+): Promise<EndpointTriggerRow> {
+  const [endpointTrigger] = await db
+    .insert(endpointTriggers)
+    .values(trigger)
+    .onConflictDoUpdate({
+      target: endpointTriggers.workflowId,
+      set: {
+        endpointId: trigger.endpointId,
+        active: trigger.active,
+        updatedAt: new Date(),
+      },
+    })
+    .returning();
+
+  return endpointTrigger;
+}
+
+export async function deleteEndpointTrigger(
+  db: ReturnType<typeof createDatabase>,
+  workflowId: string,
+  organizationId: string
+): Promise<EndpointTriggerRow | undefined> {
+  const [trigger] = await db
+    .delete(endpointTriggers)
+    .where(
+      and(
+        eq(endpointTriggers.workflowId, workflowId),
+        eq(
+          endpointTriggers.workflowId,
           db
             .select({ id: workflows.id })
             .from(workflows)

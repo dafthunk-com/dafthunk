@@ -4,6 +4,7 @@ import CreditCard from "lucide-react/icons/credit-card";
 import Database from "lucide-react/icons/database";
 import FlaskConical from "lucide-react/icons/flask-conical";
 import Folder from "lucide-react/icons/folder";
+import Globe from "lucide-react/icons/globe";
 import Inbox from "lucide-react/icons/inbox";
 import KeyRound from "lucide-react/icons/key-round";
 import LayoutDashboard from "lucide-react/icons/layout-dashboard";
@@ -77,6 +78,11 @@ export const getDashboardSidebarGroups = (
     {
       label: "Triggers",
       items: [
+        {
+          title: "Endpoints",
+          url: `/org/${orgHandle}/endpoints`,
+          icon: Globe,
+        },
         {
           title: "Emails",
           url: `/org/${orgHandle}/emails`,
