@@ -51,7 +51,7 @@ describe("HTTP Echo Template", () => {
       nodeId: requestNode.id,
       workflowId: "test-workflow",
       organizationId: "test-org",
-      mode: "dev",
+
       inputs: {},
       httpRequest: {
         method: "POST",
@@ -82,7 +82,7 @@ describe("HTTP Echo Template", () => {
       nodeId: responseNode.id,
       workflowId: "test-workflow",
       organizationId: "test-org",
-      mode: "dev",
+
       inputs: {
         statusCode: 200,
         headers: {},
@@ -117,7 +117,7 @@ describe("HTTP Echo Template", () => {
       nodeId: requestNode.id,
       workflowId: "test-workflow",
       organizationId: "test-org",
-      mode: "dev",
+
       inputs: {},
       httpRequest: {
         method: "POST",
@@ -144,7 +144,7 @@ describe("HTTP Echo Template", () => {
       nodeId: responseNode.id,
       workflowId: "test-workflow",
       organizationId: "test-org",
-      mode: "dev",
+
       inputs: {
         statusCode: 200,
         headers: {},

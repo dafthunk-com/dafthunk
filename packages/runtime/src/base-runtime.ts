@@ -922,7 +922,6 @@ export abstract class Runtime<Env = unknown> {
         nodeId: node.id,
         workflowId: context.workflowId,
         organizationId: context.organizationId,
-        mode: "prod",
         executionId: context.executionId,
         asyncSupported: this.supportsAsync,
         inputs: processedInputs,

@@ -81,7 +81,7 @@ export class SendQueueBatchNode extends ExecutableNode {
         );
       }
 
-      await queue.sendBatch(messages, context.mode);
+      await queue.sendBatch(messages);
 
       // Generate message IDs
       const messageIds = messages.map(

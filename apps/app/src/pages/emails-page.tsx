@@ -63,22 +63,11 @@ function createColumns(
       },
     },
     {
-      id: "prodEmailAddress",
-      header: "Production Email",
+      id: "emailAddress",
+      header: "Email Address",
       cell: ({ row }) => {
         const email = row.original;
         const emailAddress = `${orgHandle}+${email.handle}@dafthunk.com`;
-        return (
-          <span className="text-sm text-muted-foreground">{emailAddress}</span>
-        );
-      },
-    },
-    {
-      id: "devEmailAddress",
-      header: "Development Email",
-      cell: ({ row }) => {
-        const email = row.original;
-        const emailAddress = `${orgHandle}+${email.handle}+dev@dafthunk.com`;
         return (
           <span className="text-sm text-muted-foreground">{emailAddress}</span>
         );

@@ -1,5 +1,5 @@
 import type { QueueService, Queue as RuntimeQueue } from "@dafthunk/runtime";
-import type { QueueMessage, WorkflowMode } from "@dafthunk/types";
+import type { QueueMessage } from "@dafthunk/types";
 
 import type { Bindings } from "../context";
 import { createDatabase, getQueue } from "../db";
@@ -15,24 +15,22 @@ class CloudflareQueue implements RuntimeQueue {
     private binding: Queue
   ) {}
 
-  async send(payload: unknown, mode?: WorkflowMode): Promise<void> {
+  async send(payload: unknown): Promise<void> {
     const message: QueueMessage = {
       queueId: this.queueId,
       organizationId: this.organizationId,
       payload,
       timestamp: Date.now(),
-      mode,
     };
     await this.binding.send(message);
   }
 
-  async sendBatch(payloads: unknown[], mode?: WorkflowMode): Promise<void> {
+  async sendBatch(payloads: unknown[]): Promise<void> {
     const messages: QueueMessage[] = payloads.map((payload) => ({
       queueId: this.queueId,
       organizationId: this.organizationId,
       payload,
       timestamp: Date.now(),
-      mode,
     }));
     await this.binding.sendBatch(messages.map((msg) => ({ body: msg })));
   }

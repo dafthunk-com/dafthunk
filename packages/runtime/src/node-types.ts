@@ -9,7 +9,6 @@ import type {
   QueueMessage,
   ScheduledTrigger,
   TelegramMessage,
-  WorkflowMode,
 } from "@dafthunk/types";
 import type { BaseToolRegistry } from "./base-tool-registry";
 import type { DatabaseService } from "./database-service";
@@ -219,7 +218,6 @@ export interface NodeContext {
   nodeId: string;
   workflowId: string;
   organizationId: string;
-  mode: WorkflowMode;
   /** Workflow execution instance ID (for async node completion events) */
   executionId?: string;
   /** Whether the runtime supports async node execution via waitForEvent */

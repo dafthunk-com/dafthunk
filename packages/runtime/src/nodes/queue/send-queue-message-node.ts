@@ -69,7 +69,7 @@ export class SendQueueMessageNode extends ExecutableNode {
         );
       }
 
-      await queue.send(message, context.mode);
+      await queue.send(message);
 
       // Generate a pseudo message ID (timestamp-based)
       const messageId = `msg_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;

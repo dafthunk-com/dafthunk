@@ -108,7 +108,6 @@ playgroundRoutes.post("/", jwtMiddleware, async (c) => {
     nodeId: "playground",
     workflowId: syntheticContext.workflowId,
     organizationId,
-    mode: "dev",
     inputs: nodeInputs,
     onProgress: () => {},
     toolRegistry,

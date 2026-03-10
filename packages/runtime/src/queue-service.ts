@@ -6,11 +6,9 @@
  * Cloudflare Queue bindings directly.
  */
 
-import type { WorkflowMode } from "@dafthunk/types";
-
 export interface Queue {
-  send(payload: unknown, mode?: WorkflowMode): Promise<void>;
-  sendBatch(payloads: unknown[], mode?: WorkflowMode): Promise<void>;
+  send(payload: unknown): Promise<void>;
+  sendBatch(payloads: unknown[]): Promise<void>;
 }
 
 export interface QueueService {

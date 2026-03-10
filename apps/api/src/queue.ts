@@ -56,7 +56,6 @@ async function executeWorkflow(
         organizationId: queueMessage.organizationId,
         payload: queueMessage.payload,
         timestamp: queueMessage.timestamp,
-        mode: queueMessage.mode,
       },
     };
 
@@ -126,9 +125,6 @@ export async function handleQueueMessages(
           }
         >();
 
-        // Determine mode from queue message (defaults to 'prod' for backward compatibility)
-        const isDevMode = queueMessage.mode === "dev";
-
         // Load each unique workflow once
         for (const item of triggers) {
           const { workflow } = item;
@@ -137,15 +133,13 @@ export async function handleQueueMessages(
             continue; // Already loaded this workflow
           }
 
-          // In prod mode, skip workflows that are not enabled
-          if (!isDevMode && !workflow.enabled) {
+          // Skip workflows that are not enabled
+          if (!workflow.enabled) {
             console.log(`Skipping workflow ${workflow.id}: not enabled`);
             continue;
           }
 
-          console.log(
-            `Loading workflow: ${workflow.id} (message mode: ${queueMessage.mode || "prod"})`
-          );
+          console.log(`Loading workflow: ${workflow.id}`);
 
           try {
             const workflowWithData = await workflowStore.getWithData(

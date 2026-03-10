@@ -8,16 +8,14 @@ interface QueueSetupInfoProps {
 
 export function QueueSetupInfo({ handle }: QueueSetupInfoProps) {
   const baseUrl = getApiBaseUrl().replace(/\/$/, "");
-  const prodEndpoint = `${baseUrl}/queues/${handle}/publish`;
-  const devEndpoint = `${baseUrl}/queues/${handle}/publish/dev`;
+  const endpoint = `${baseUrl}/queues/${handle}/publish`;
 
   return (
     <div className="space-y-2 text-sm">
       <div className="space-y-1">
-        <p className="font-medium text-foreground">Publish Endpoints</p>
+        <p className="font-medium text-foreground">Publish Endpoint</p>
         <div className="space-y-1.5">
-          <CopyableValue label="Production" value={prodEndpoint} />
-          <CopyableValue label="Development" value={devEndpoint} />
+          <CopyableValue value={endpoint} />
         </div>
       </div>
       <div className="space-y-1">

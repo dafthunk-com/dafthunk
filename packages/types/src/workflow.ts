@@ -28,13 +28,6 @@ export type WorkflowTrigger =
 export type WorkflowRuntime = "worker" | "workflow";
 
 /**
- * Workflow execution mode
- * - dev: Testing from editor (bypasses enabled check)
- * - prod: Production execution (requires enabled=true for triggers)
- */
-export type WorkflowMode = "dev" | "prod";
-
-/**
  * Primitive value types
  */
 export type PrimitiveValue = string | number | boolean | null | undefined;

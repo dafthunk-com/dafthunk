@@ -29,7 +29,6 @@ export function createToolContext(
     nodeId,
     workflowId: `tool_execution_${Date.now()}`,
     organizationId: credentialService.getOrganizationId(),
-    mode: "dev",
     inputs,
     objectStore,
     getSecret: (secretName: string) => credentialService.getSecret(secretName),

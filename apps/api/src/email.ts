@@ -38,24 +38,20 @@ export async function handleIncomingEmail(
 ): Promise<void> {
   const { from, to, headers, raw } = message;
 
-  // Extract the handle from the to address
+  // Extract the handle from the to address: org+inbox@domain.com
   const localPart = to.split("@")[0];
   const parts = localPart.split("+");
 
-  // Support 2 or 3 parts: org+inbox or org+inbox+dev
-  if (parts.length < 2 || parts.length > 3) {
+  if (parts.length !== 2) {
     console.error(
-      `Invalid email format: ${to}. Expected <organizationIdOrHandle>+<emailIdOrHandle>[+dev]@domain.com`
+      `Invalid email format: ${to}. Expected <organizationIdOrHandle>+<emailIdOrHandle>@domain.com`
     );
     return;
   }
 
-  const [organizationIdOrHandle, emailIdOrHandle, devFlag] = parts;
-  const isDevMode = devFlag === "dev";
+  const [organizationIdOrHandle, emailIdOrHandle] = parts;
 
-  console.log(
-    `Processing email trigger for email inbox: ${emailIdOrHandle}${isDevMode ? " (dev mode)" : ""}`
-  );
+  console.log(`Processing email trigger for email inbox: ${emailIdOrHandle}`);
 
   const db = createDatabase(env.DB);
   const workflowStore = new WorkflowStore(env);
@@ -110,7 +106,6 @@ export async function handleIncomingEmail(
         to,
         headers: headersRecord,
         rawContent,
-        isDevMode,
       });
     } catch (error) {
       console.error(
@@ -132,7 +127,6 @@ async function triggerWorkflowForEmail({
   to,
   headers,
   rawContent,
-  isDevMode = false,
 }: {
   workflow: any;
   email: any;
@@ -143,18 +137,16 @@ async function triggerWorkflowForEmail({
   to: string;
   headers: Record<string, string>;
   rawContent: string;
-  isDevMode?: boolean;
 }): Promise<void> {
   const db = createDatabase(env.DB);
 
   let workflowData: Workflow;
 
-  if (!isDevMode && !workflow.enabled) {
+  if (!workflow.enabled) {
     console.log(`Discarding email for workflow ${workflow.id}: not enabled`);
     return;
   }
 
-  console.log(`Loading workflow${isDevMode ? " in dev mode" : ""}`);
   try {
     const workflowWithData = await workflowStore.getWithData(
       workflow.id,

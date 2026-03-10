@@ -7,7 +7,6 @@ import type {
   QueueMessage,
   UpdateQueueRequest,
   UpdateQueueResponse,
-  WorkflowMode,
 } from "@dafthunk/types";
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
@@ -182,8 +181,7 @@ queueRoutes.delete("/:id", async (c) => {
 });
 
 /**
- * Publish a message to a queue in production mode
- * - Message will trigger enabled workflows
+ * Publish a message to a queue
  */
 queueRoutes.post(
   "/:queueIdOrHandle/publish",
@@ -211,14 +209,11 @@ queueRoutes.post(
       );
     }
 
-    // Create queue message with prod mode
-    const mode: WorkflowMode = "prod";
     const queueMessage: QueueMessage = {
       queueId: queue.id,
       organizationId,
       payload,
       timestamp: Date.now(),
-      mode,
     };
 
     try {
@@ -229,71 +224,6 @@ queueRoutes.post(
         {
           success: true,
           queueId: queue.id,
-          mode: "prod",
-          timestamp: queueMessage.timestamp,
-        },
-        201
-      );
-    } catch (error) {
-      return c.json(
-        {
-          error: `Failed to publish message: ${error instanceof Error ? error.message : String(error)}`,
-        },
-        500
-      );
-    }
-  }
-);
-
-/**
- * Publish a message to a queue in development mode
- * - Message will trigger workflows in development mode (bypasses enabled check)
- */
-queueRoutes.post(
-  "/:queueIdOrHandle/publish/dev",
-  apiKeyOrJwtMiddleware,
-  zValidator(
-    "json",
-    z.object({
-      payload: z.unknown(),
-    })
-  ),
-  async (c) => {
-    const queueIdOrHandle = c.req.param("queueIdOrHandle");
-    const { payload } = c.req.valid("json");
-    const db = createDatabase(c.env.DB);
-
-    // Get auth context from either JWT or API key
-    const { organizationId } = getAuthContext(c);
-
-    // Verify queue exists and belongs to organization
-    const queue = await getQueue(db, queueIdOrHandle, organizationId);
-    if (!queue) {
-      return c.json(
-        { error: "Queue not found or does not belong to your organization" },
-        404
-      );
-    }
-
-    // Create queue message with dev mode
-    const mode: WorkflowMode = "dev";
-    const queueMessage: QueueMessage = {
-      queueId: queue.id,
-      organizationId,
-      payload,
-      timestamp: Date.now(),
-      mode,
-    };
-
-    try {
-      // Publish to Cloudflare Queue
-      await c.env.WORKFLOW_QUEUE.send(queueMessage);
-
-      return c.json(
-        {
-          success: true,
-          queueId: queue.id,
-          mode: "dev",
           timestamp: queueMessage.timestamp,
         },
         201
