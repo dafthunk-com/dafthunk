@@ -11,7 +11,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-import { EmailTriggerDialog } from "./email-trigger-dialog";
 import type { EmailData } from "./execution-email-dialog";
 import { ExecutionEmailDialog } from "./execution-email-dialog";
 import type { HttpRequestConfig } from "./http-request-config-dialog";
@@ -29,8 +28,6 @@ interface WorkflowDialogsProps {
   // Trigger integration dialogs
   isHttpIntegrationDialogOpen: boolean;
   onCloseHttpIntegration: () => void;
-  isEmailTriggerDialogOpen: boolean;
-  onCloseEmailTrigger: () => void;
   // Execution form dialogs
   isEmailFormDialogVisible: boolean;
   isHttpRequestConfigDialogVisible: boolean;
@@ -51,8 +48,6 @@ export function WorkflowDialogs({
   nodeTypes,
   isHttpIntegrationDialogOpen,
   onCloseHttpIntegration,
-  isEmailTriggerDialogOpen,
-  onCloseEmailTrigger,
   isEmailFormDialogVisible,
   isHttpRequestConfigDialogVisible,
   submitHttpRequestConfig,
@@ -85,14 +80,6 @@ export function WorkflowDialogs({
           deploymentVersion="dev"
           nodes={nodes}
           nodeTypes={nodeTypes}
-        />
-      )}
-
-      {workflowTrigger === "email_message" && (
-        <EmailTriggerDialog
-          isOpen={isEmailTriggerDialogOpen}
-          onClose={onCloseEmailTrigger}
-          workflowId={workflowId}
         />
       )}
 

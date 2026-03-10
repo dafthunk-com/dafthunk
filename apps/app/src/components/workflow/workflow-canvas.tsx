@@ -26,7 +26,6 @@ import Clock from "lucide-react/icons/clock";
 import Copy from "lucide-react/icons/copy";
 import Globe from "lucide-react/icons/globe";
 import Layers2 from "lucide-react/icons/layers-2";
-import Mail from "lucide-react/icons/mail";
 import Maximize from "lucide-react/icons/maximize";
 import Network from "lucide-react/icons/network";
 import Play from "lucide-react/icons/play";
@@ -156,7 +155,6 @@ export interface WorkflowCanvasProps {
   onAction?: (e: React.MouseEvent) => void;
   onDeploy?: (e: React.MouseEvent) => void;
   onShowHttpIntegration?: () => void;
-  onShowEmailTrigger?: () => void;
   workflowStatus?: WorkflowExecutionStatus;
   workflowErrorMessage?: string;
   onToggleSidebar?: (e: React.MouseEvent) => void;
@@ -503,33 +501,6 @@ export function ShowHttpIntegrationButton({
   );
 }
 
-export function ShowEmailTriggerButton({
-  onClick,
-  disabled,
-  className = "",
-  text = "",
-  tooltip = "Show Email Trigger",
-}: {
-  onClick: (e: React.MouseEvent) => void;
-  disabled?: boolean;
-  className?: string;
-  text?: string;
-  tooltip?: string;
-}) {
-  return (
-    <ActionBarButton
-      onClick={onClick}
-      disabled={disabled}
-      className={cn(actionBarButtonOutlineClassName, className)}
-      tooltipSide="bottom"
-      tooltip={tooltip}
-    >
-      <Mail className="!size-4" />
-      {text}
-    </ActionBarButton>
-  );
-}
-
 function CopyButton({
   onClick,
   disabled,
@@ -645,7 +616,6 @@ export function WorkflowCanvas({
   onDeploy,
   workflowTrigger,
   onShowHttpIntegration,
-  onShowEmailTrigger,
   workflowStatus = "idle",
   workflowErrorMessage,
   onToggleSidebar,
@@ -738,7 +708,7 @@ export function WorkflowCanvas({
             (onToggleSidebar && isSidebarVisible !== undefined)) && (
             <div className="absolute top-4 right-4 flex items-center gap-3 z-50">
               {/* Runtime Actions Group - Execute + Triggers */}
-              {(onAction || onShowHttpIntegration || onShowEmailTrigger) && (
+              {(onAction || onShowHttpIntegration) && (
                 <ActionBarGroup>
                   {onAction && (
                     <ActionButton
@@ -758,13 +728,6 @@ export function WorkflowCanvas({
                       workflowTrigger === "http_request") && (
                       <ShowHttpIntegrationButton
                         onClick={onShowHttpIntegration}
-                        disabled={disabled}
-                      />
-                    )}
-                  {onShowEmailTrigger &&
-                    workflowTrigger === "email_message" && (
-                      <ShowEmailTriggerButton
-                        onClick={onShowEmailTrigger}
                         disabled={disabled}
                       />
                     )}

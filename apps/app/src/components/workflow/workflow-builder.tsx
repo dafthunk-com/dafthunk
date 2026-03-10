@@ -170,8 +170,6 @@ export function WorkflowBuilder({
   // Trigger dialog state (shared between canvas buttons and dialog component)
   const [isHttpIntegrationDialogOpen, setIsHttpIntegrationDialogOpen] =
     useState(false);
-  const [isEmailTriggerDialogOpen, setIsEmailTriggerDialogOpen] =
-    useState(false);
 
   // Keyboard shortcuts (Cmd+C/X/V/D + Cmd+Enter)
   const handleActionButtonClick =
@@ -258,11 +256,6 @@ export function WorkflowBuilder({
                   ? () => setIsHttpIntegrationDialogOpen(true)
                   : undefined
               }
-              onShowEmailTrigger={
-                workflowTrigger === "email_message"
-                  ? () => setIsEmailTriggerDialogOpen(true)
-                  : undefined
-              }
               onToggleSidebar={
                 sidebarEnabled ? sidebar.toggleSidebar : undefined
               }
@@ -338,8 +331,6 @@ export function WorkflowBuilder({
           nodeTypes={nodeTypes}
           isHttpIntegrationDialogOpen={isHttpIntegrationDialogOpen}
           onCloseHttpIntegration={() => setIsHttpIntegrationDialogOpen(false)}
-          isEmailTriggerDialogOpen={isEmailTriggerDialogOpen}
-          onCloseEmailTrigger={() => setIsEmailTriggerDialogOpen(false)}
           isEmailFormDialogVisible={execution.isEmailFormDialogVisible}
           isHttpRequestConfigDialogVisible={
             execution.isHttpRequestConfigDialogVisible

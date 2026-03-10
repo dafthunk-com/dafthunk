@@ -1,5 +1,8 @@
+import { Mail } from "lucide-react";
 import { useState } from "react";
+import { useParams } from "react-router";
 
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -10,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { useEmails } from "@/services/email-service";
 import { cn } from "@/utils/utils";
+import { EmailTriggerDialog } from "../../email-trigger-dialog";
 import { updateNodeInput, useWorkflow } from "../../workflow-context";
 import type { WorkflowParameter } from "../../workflow-types";
 import type { BaseWidgetProps } from "../widget";
@@ -34,6 +38,9 @@ function EmailTriggerInputWidget({
   const { emails, isEmailsLoading, mutateEmails } = useEmails();
   const { updateNodeData, edges, deleteEdge } = useWorkflow();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEmailTriggerDialogOpen, setIsEmailTriggerDialogOpen] =
+    useState(false);
+  const { id: workflowId } = useParams<{ id: string }>();
 
   const handleEmailChange = (value: string) => {
     if (value === CREATE_NEW_SENTINEL) {
@@ -67,31 +74,50 @@ function EmailTriggerInputWidget({
 
   return (
     <div className={cn("p-2", className)}>
-      <Select
-        value={emailId || ""}
-        onValueChange={handleEmailChange}
-        disabled={disabled || isEmailsLoading}
-      >
-        <SelectTrigger className="h-6 text-xs">
-          <SelectValue
-            placeholder={isEmailsLoading ? "Loading..." : "Select an inbox"}
-          />
-        </SelectTrigger>
-        <SelectContent>
-          {emails.map((email) => (
-            <SelectItem key={email.id} value={email.id}>
-              {email.name}
-            </SelectItem>
-          ))}
-          <SelectSeparator />
-          <SelectItem value={CREATE_NEW_SENTINEL}>+ New Inbox</SelectItem>
-        </SelectContent>
-      </Select>
+      <div className="flex items-center gap-1">
+        <Select
+          value={emailId || ""}
+          onValueChange={handleEmailChange}
+          disabled={disabled || isEmailsLoading}
+        >
+          <SelectTrigger className="h-6 text-xs">
+            <SelectValue
+              placeholder={isEmailsLoading ? "Loading..." : "Select an inbox"}
+            />
+          </SelectTrigger>
+          <SelectContent>
+            {emails.map((email) => (
+              <SelectItem key={email.id} value={email.id}>
+                {email.name}
+              </SelectItem>
+            ))}
+            <SelectSeparator />
+            <SelectItem value={CREATE_NEW_SENTINEL}>+ New Inbox</SelectItem>
+          </SelectContent>
+        </Select>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6 shrink-0"
+          disabled={disabled}
+          onClick={() => setIsEmailTriggerDialogOpen(true)}
+          title="Show email trigger"
+        >
+          <Mail className="h-3 w-3" />
+        </Button>
+      </div>
       <EmailCreateDialog
         isOpen={isCreateDialogOpen}
         onClose={() => setIsCreateDialogOpen(false)}
         onCreated={handleEmailCreated}
       />
+      {workflowId && (
+        <EmailTriggerDialog
+          isOpen={isEmailTriggerDialogOpen}
+          onClose={() => setIsEmailTriggerDialogOpen(false)}
+          workflowId={workflowId}
+        />
+      )}
     </div>
   );
 }
