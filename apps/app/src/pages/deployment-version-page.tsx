@@ -15,11 +15,11 @@ import { InsetLayout } from "@/components/layouts/inset-layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { EmailTriggerDialog } from "@/components/workflow/email-trigger-dialog";
 import { ExecutionEmailDialog } from "@/components/workflow/execution-email-dialog";
 import { HttpRequestConfigDialog } from "@/components/workflow/http-request-config-dialog";
 import { HttpRequestIntegrationDialog } from "@/components/workflow/http-request-integration-dialog";
 import { HttpWebhookIntegrationDialog } from "@/components/workflow/http-webhook-integration-dialog";
+import { EmailTriggerDialog } from "@/components/workflow/widgets/input/email-trigger-dialog";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import type {
   WorkflowEdgeType,

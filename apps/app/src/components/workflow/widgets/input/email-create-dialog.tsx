@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { createEmail } from "@/services/email-service";
 
-import { EmailSetupInfo } from "../../email-setup-info";
+import { EmailSetupInfo } from "./email-setup-info";
 
 type Step = "name" | "setup";
 

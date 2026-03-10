@@ -36,10 +36,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { EmailTriggerDialog } from "@/components/workflow/email-trigger-dialog";
 import { HttpRequestConfigDialog } from "@/components/workflow/http-request-config-dialog";
 import { HttpRequestIntegrationDialog } from "@/components/workflow/http-request-integration-dialog";
 import { HttpWebhookIntegrationDialog } from "@/components/workflow/http-webhook-integration-dialog";
+import { EmailTriggerDialog } from "@/components/workflow/widgets/input/email-trigger-dialog";
 import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import {

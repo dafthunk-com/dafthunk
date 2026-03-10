@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { createDiscordBot } from "@/services/discord-bot-service";
 
-import { DiscordBotSetupInfo } from "../../bot-setup-info";
+import { DiscordBotSetupInfo } from "./discord-setup-info";
 
 type Step = "application" | "bot-token" | "webhook" | "command" | "invite";
 

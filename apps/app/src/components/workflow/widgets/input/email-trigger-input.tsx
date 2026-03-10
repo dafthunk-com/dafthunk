@@ -13,12 +13,12 @@ import {
 } from "@/components/ui/select";
 import { useEmails } from "@/services/email-service";
 import { cn } from "@/utils/utils";
-import { EmailTriggerDialog } from "../../email-trigger-dialog";
 import { updateNodeInput, useWorkflow } from "../../workflow-context";
 import type { WorkflowParameter } from "../../workflow-types";
 import type { BaseWidgetProps } from "../widget";
 import { createWidget, getInputValue } from "../widget";
 import { EmailCreateDialog } from "./email-create-dialog";
+import { EmailTriggerDialog } from "./email-trigger-dialog";
 
 const CREATE_NEW_SENTINEL = "__create_new__";
 

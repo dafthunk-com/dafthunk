@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { createTelegramBot } from "@/services/telegram-bot-service";
 
-import { TelegramBotSetupInfo } from "../../bot-setup-info";
+import { TelegramBotSetupInfo } from "./telegram-setup-info";
 
 type Step = "credentials" | "setup";
 

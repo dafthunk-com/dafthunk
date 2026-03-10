@@ -12,12 +12,12 @@ import {
 } from "@/components/ui/select";
 import { useQueues } from "@/services/queue-service";
 import { cn } from "@/utils/utils";
-import { QueueTriggerDialog } from "../../queue-trigger-dialog";
 import { updateNodeInput, useWorkflow } from "../../workflow-context";
 import type { WorkflowParameter } from "../../workflow-types";
 import type { BaseWidgetProps } from "../widget";
 import { createWidget, getInputValue } from "../widget";
 import { QueueCreateDialog } from "./queue-create-dialog";
+import { QueueTriggerDialog } from "./queue-trigger-dialog";
 
 const CREATE_NEW_SENTINEL = "__create_new__";
 

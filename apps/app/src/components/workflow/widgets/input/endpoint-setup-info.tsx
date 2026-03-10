@@ -1,8 +1,6 @@
-import { Check, Copy } from "lucide-react";
-import { useState } from "react";
-
-import { Button } from "@/components/ui/button";
 import { getApiBaseUrl } from "@/config/api";
+
+import { CopyableValue } from "./copyable-value";
 
 interface EndpointSetupInfoProps {
   mode: "webhook" | "request";
@@ -24,7 +22,7 @@ export function EndpointSetupInfo({
         <p className="font-medium text-foreground">
           Execute Endpoint ({mode === "webhook" ? "Async" : "Sync"})
         </p>
-        <CopyableEndpoint endpoint={executeUrl} />
+        <CopyableValue value={executeUrl} />
       </div>
       <div className="space-y-1">
         <p className="font-medium text-foreground">Notes</p>
@@ -53,32 +51,6 @@ export function EndpointSetupInfo({
           <li>Deploy the workflow before calling the endpoint.</li>
         </ul>
       </div>
-    </div>
-  );
-}
-
-function CopyableEndpoint({ endpoint }: { endpoint: string }) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(endpoint);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  return (
-    <div className="flex items-center gap-1">
-      <code className="flex-1 text-xs bg-muted px-2 py-1 rounded break-all">
-        {endpoint}
-      </code>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-6 w-6 shrink-0"
-        onClick={handleCopy}
-      >
-        {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-      </Button>
     </div>
   );
 }
