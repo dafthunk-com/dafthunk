@@ -1,23 +1,17 @@
-import {
-  type BlobParameter,
-  ExecutableNode,
-  isBlobParameter,
-  type NodeContext,
-  toUint8Array,
-} from "@dafthunk/runtime";
+import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
 
-export class HttpRequestNode extends ExecutableNode {
+export class HttpWebhookNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "http-request",
-    name: "HTTP Request",
-    type: "http-request",
+    id: "http-webhook",
+    name: "HTTP Webhook",
+    type: "http-webhook",
     description:
-      "Receives an HTTP request and returns the response synchronously.",
+      "Receives an HTTP webhook and executes the workflow asynchronously.",
     tags: ["Data", "Parameter", "HTTP"],
-    icon: "log-in",
+    icon: "webhook",
     documentation:
-      "This node receives an HTTP request via an endpoint. The workflow executes synchronously and returns a response via the HTTP Response node.",
+      "This node receives an HTTP webhook via an endpoint. The workflow executes asynchronously and returns an execution ID immediately.",
     inlinable: true,
     trigger: true,
     inputs: [
@@ -54,11 +48,6 @@ export class HttpRequestNode extends ExecutableNode {
         type: "json",
         description: "The query parameters as a JSON object",
       },
-      {
-        name: "body",
-        type: "blob",
-        description: "The raw request body with MIME type",
-      },
     ],
   };
 
@@ -70,17 +59,7 @@ export class HttpRequestNode extends ExecutableNode {
         );
       }
 
-      const { method, url, path, headers, queryParams, body } =
-        context.httpRequest;
-
-      // Normalize body - Cloudflare Workflows serializes Uint8Array to object with numeric keys
-      let normalizedBody: BlobParameter | undefined;
-      if (body && isBlobParameter(body)) {
-        normalizedBody = {
-          data: toUint8Array(body.data),
-          mimeType: body.mimeType,
-        };
-      }
+      const { method, url, path, headers, queryParams } = context.httpRequest;
 
       return this.createSuccessResult({
         method,
@@ -88,7 +67,6 @@ export class HttpRequestNode extends ExecutableNode {
         path,
         headers: headers || {},
         queryParams: queryParams || {},
-        body: normalizedBody,
       });
     } catch (error) {
       return this.createErrorResult(

@@ -138,12 +138,13 @@
     {
       "id": "developer",
       "name": "Developer Tools",
-      "summary": "JavaScript execution, HTTP requests, database queries, and workflow logic",
+      "summary": "JavaScript execution, HTTP requests and webhooks, database queries, and workflow logic",
       "description": "Execute custom JavaScript code within your workflow automation, make HTTP and REST API requests to any service, work with SQL databases and textual datasets, implement conditional logic and branching, persist data, iterate with queues, handle errors and retries, and build complex workflow orchestration. Integrate with any API, transform data programmatically, implement custom business logic, and extend workflow automation capabilities with code when visual nodes aren't enough.",
       "tags": ["JavaScript", "HTTP/API", "Database", "Logic flows", "REST API"],
       "nodeIds": [
         "javascript-script",
         "http-request",
+        "http-webhook",
         "fetch",
         "database-query",
         "database-execute",

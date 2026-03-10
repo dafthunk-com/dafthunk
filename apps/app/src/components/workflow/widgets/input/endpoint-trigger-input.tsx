@@ -123,14 +123,23 @@ function EndpointTriggerInputWidget({
   );
 }
 
-export const endpointTriggerInputWidget = createWidget({
+const widgetConfig = {
   component: EndpointTriggerInputWidget,
-  nodeTypes: ["http-request"],
   inputField: "endpointId",
   managedFields: [],
-  extractConfig: (nodeId, inputs) => ({
+  extractConfig: (nodeId: string, inputs: WorkflowParameter[]) => ({
     nodeId,
     endpointId: getInputValue(inputs, "endpointId", ""),
     inputs,
   }),
+};
+
+export const httpRequestEndpointWidget = createWidget({
+  ...widgetConfig,
+  nodeTypes: ["http-request"],
+});
+
+export const httpWebhookEndpointWidget = createWidget({
+  ...widgetConfig,
+  nodeTypes: ["http-webhook"],
 });

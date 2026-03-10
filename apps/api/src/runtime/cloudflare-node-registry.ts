@@ -243,6 +243,7 @@ import { SendEmailGoogleMailNode } from "@dafthunk/runtime/nodes/google-mail/sen
 // import { UpdateDraftGoogleMailNode } from "@dafthunk/runtime/nodes/google-mail/update-draft-google-mail-node";
 import { HttpRequestNode } from "@dafthunk/runtime/nodes/http/http-request-node";
 import { HttpResponseNode } from "@dafthunk/runtime/nodes/http/http-response-node";
+import { HttpWebhookNode } from "@dafthunk/runtime/nodes/http/http-webhook-node";
 import { JsonBodyNode } from "@dafthunk/runtime/nodes/http/json-body-node";
 import { TestAllTypesNode } from "@dafthunk/runtime/nodes/http/test-all-types-node";
 import { DetrResnet50Node } from "@dafthunk/runtime/nodes/image/detr-resnet50-node";
@@ -479,6 +480,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
 
     // Register all core nodes
     this.registerImplementation(HttpRequestNode);
+    this.registerImplementation(HttpWebhookNode);
     this.registerImplementation(JsonBodyNode);
     this.registerImplementation(TestAllTypesNode);
     this.registerImplementation(SendQueueMessageNode);
