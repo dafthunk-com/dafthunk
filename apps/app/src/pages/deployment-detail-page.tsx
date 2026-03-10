@@ -170,7 +170,7 @@ export function DeploymentDetailPage() {
     workflowId || null
   );
 
-  const { nodeTypes, isNodeTypesLoading } = useNodeTypes(workflow?.trigger);
+  const { nodeTypes, isNodeTypesLoading } = useNodeTypes();
 
   const {
     executeWorkflow,

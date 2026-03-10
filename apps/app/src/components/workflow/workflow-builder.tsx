@@ -326,7 +326,6 @@ export function WorkflowBuilder({
             templates={nodeTypes}
             workflowName={workflowName}
             workflowDescription={workflowDescription}
-            workflowTrigger={workflowTrigger}
             hasTriggerNode={hasTriggerNode}
           />
         </div>

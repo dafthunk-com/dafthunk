@@ -1,8 +1,8 @@
-import { GetNodeTypesResponse, WorkflowTrigger } from "@dafthunk/types";
+import type { GetNodeTypesResponse } from "@dafthunk/types";
 import { Hono } from "hono";
 
 import { optionalJwtMiddleware } from "../auth";
-import { ApiContext } from "../context";
+import type { ApiContext } from "../context";
 import { CloudflareNodeRegistry } from "../runtime/cloudflare-node-registry";
 
 const typeRoutes = new Hono<ApiContext>();
@@ -14,10 +14,7 @@ typeRoutes.get("/", optionalJwtMiddleware, (c) => {
       c.env,
       jwtPayload?.developerMode ?? false
     );
-    const workflowTrigger = c.req.query("workflowTrigger") as
-      | WorkflowTrigger
-      | undefined;
-    const nodeTypes = registry.getNodeTypes(workflowTrigger);
+    const nodeTypes = registry.getNodeTypes();
     return c.json({ nodeTypes } as GetNodeTypesResponse);
   } catch (error) {
     console.error("Error getting node types:", error);

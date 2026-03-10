@@ -13,7 +13,6 @@ export class ReceiveScheduledTriggerNode extends ExecutableNode {
       "This node extracts timing information from a scheduled workflow, providing access to the scheduled execution time and schedule pattern.",
     inlinable: false,
     asTool: false,
-    compatibility: ["scheduled"],
     trigger: true,
     inputs: [
       {

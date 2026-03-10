@@ -30,7 +30,7 @@ export function TemplateDetailPage() {
 
   const { template, templateError, isTemplateLoading } =
     useTemplate(templateId);
-  const { nodeTypes, isNodeTypesLoading } = useNodeTypes(undefined, {
+  const { nodeTypes, isNodeTypesLoading } = useNodeTypes({
     revalidateOnFocus: false,
   });
 

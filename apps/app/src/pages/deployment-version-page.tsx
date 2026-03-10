@@ -59,9 +59,7 @@ export function DeploymentVersionPage() {
     deploymentVersion?.workflowId || null
   );
 
-  const { nodeTypes, isNodeTypesLoading } = useNodeTypes(
-    deploymentVersion?.trigger || workflow?.trigger
-  );
+  const { nodeTypes, isNodeTypesLoading } = useNodeTypes();
 
   const {
     executeWorkflow,

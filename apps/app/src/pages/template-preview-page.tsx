@@ -21,7 +21,7 @@ export function TemplatePreviewPage() {
   const showBackground = searchParams.get("bg") !== "false";
 
   const { templates, isTemplatesLoading } = useTemplates();
-  const { nodeTypes, isNodeTypesLoading } = useNodeTypes(undefined, {
+  const { nodeTypes, isNodeTypesLoading } = useNodeTypes({
     revalidateOnFocus: false,
   });
 

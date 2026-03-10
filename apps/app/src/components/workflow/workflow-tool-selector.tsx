@@ -1,5 +1,5 @@
 // @ts-ignore - https://github.com/lucide-icons/lucide/issues/2867#issuecomment-2847105863
-import type { ToolReference, WorkflowTrigger } from "@dafthunk/types";
+import type { ToolReference } from "@dafthunk/types";
 import { Wrench } from "lucide-react";
 import { DynamicIcon } from "lucide-react/dynamic.mjs";
 import { useMemo, useState } from "react";
@@ -29,7 +29,6 @@ export interface WorkflowToolSelectorProps {
   templates?: NodeType[];
   workflowName?: string;
   workflowDescription?: string;
-  workflowTrigger?: WorkflowTrigger;
 }
 
 export function WorkflowToolSelector({
@@ -39,7 +38,6 @@ export function WorkflowToolSelector({
   templates = [],
   workflowName,
   workflowDescription,
-  workflowTrigger,
 }: WorkflowToolSelectorProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -48,20 +46,6 @@ export function WorkflowToolSelector({
   const toolTemplates = useMemo(() => {
     return templates.filter((template) => template.asTool);
   }, [templates]);
-
-  // Filter tool templates by workflow trigger compatibility
-  const compatibleToolTemplates = useMemo(() => {
-    if (!workflowTrigger) return toolTemplates;
-
-    return toolTemplates.filter((template) => {
-      // If node has no compatibility field, it's compatible with all workflow triggers
-      if (!template.compatibility || template.compatibility.length === 0) {
-        return true;
-      }
-      // Otherwise, check if current workflow trigger is in the compatibility list
-      return template.compatibility.includes(workflowTrigger);
-    });
-  }, [toolTemplates, workflowTrigger]);
 
   // Combined scoring using substring matching with workflow context
   const scoredAndFilteredTemplates = useMemo(() => {
@@ -94,8 +78,8 @@ export function WorkflowToolSelector({
       return text.toLowerCase().includes(searchTerm);
     };
 
-    // Score each template (using compatibleToolTemplates instead of toolTemplates)
-    const scored = compatibleToolTemplates
+    // Score each template (using toolTemplates instead of toolTemplates)
+    const scored = toolTemplates
       .map((template) => {
         let score = 0;
 
@@ -176,7 +160,7 @@ export function WorkflowToolSelector({
       sorted: scored.map((s) => s.template),
       scores: scored,
     };
-  }, [compatibleToolTemplates, workflowName, workflowDescription, searchTerm]);
+  }, [toolTemplates, workflowName, workflowDescription, searchTerm]);
 
   // Filter templates based on selected tags (all must match)
   const filteredTemplates = scoredAndFilteredTemplates.sorted.filter(
@@ -372,7 +356,7 @@ export function WorkflowToolSelector({
                 />
               </div>
               <div className="text-xs text-muted-foreground/60 pt-4 text-right">
-                {filteredTemplates.length} of {compatibleToolTemplates.length}{" "}
+                {filteredTemplates.length} of {toolTemplates.length}{" "}
                 tools
               </div>
             </div>

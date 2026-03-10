@@ -39,11 +39,9 @@ export function EditorPage() {
   const [httpWorkflowMetadata, setHttpWorkflowMetadata] =
     useState<WorkflowWithMetadata | null>(null);
 
-  // Fetch all node types initially (no filter)
-  const { nodeTypes, nodeTypesError, isNodeTypesLoading } = useNodeTypes(
-    undefined, // Fetch all node types initially
-    { revalidateOnFocus: false }
-  );
+  const { nodeTypes, nodeTypesError, isNodeTypesLoading } = useNodeTypes({
+    revalidateOnFocus: false,
+  });
 
   const { createObjectUrl } = useObjectService();
 

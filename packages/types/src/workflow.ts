@@ -261,7 +261,6 @@ export interface NodeType {
   asTool?: boolean;
   inputs: Parameter[];
   outputs: Parameter[];
-  compatibility?: WorkflowTrigger[]; // Optional array of workflow triggers this node is compatible with
   trigger?: boolean; // Node is a workflow trigger entry point (max one per workflow)
   subscription?: boolean; // Node requires a paid subscription to execute
 }

@@ -229,7 +229,6 @@ export const WorkflowNode = memo(
       disabled,
       nodeTypes,
       edges = [],
-      workflowTrigger,
     } = useWorkflow();
     const [isToolSelectorOpen, setIsToolSelectorOpen] = useState(false);
     const [isDocsOpen, setIsDocsOpen] = useState(false);
@@ -678,7 +677,6 @@ export const WorkflowNode = memo(
           onClose={handleToolSelectorClose}
           onSelect={handleToolsSelect}
           templates={nodeTypes || []}
-          workflowTrigger={workflowTrigger}
         />
 
         {configToolId &&

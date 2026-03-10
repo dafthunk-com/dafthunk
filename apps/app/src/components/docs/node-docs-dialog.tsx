@@ -4,7 +4,6 @@ import { ExternalLink, X } from "lucide-react";
 import { DynamicIcon } from "lucide-react/dynamic.mjs";
 import Markdown from "react-markdown";
 
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -100,24 +99,6 @@ export function NodeDocsDialog({
                   </div>
                 )}
               </div>
-            )}
-
-            {nodeType.compatibility && nodeType.compatibility.length > 0 && (
-              <>
-                <Separator />
-                <div className="space-y-3">
-                  <h4 className="text-sm font-semibold">
-                    Workflow Compatibility
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    {nodeType.compatibility.map((type) => (
-                      <Badge key={type} variant="outline" className="text-xs">
-                        {type.replace("_", " ")}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </>
             )}
 
             <>

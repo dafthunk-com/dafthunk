@@ -13,7 +13,6 @@ export class JsonBodyNode extends ExecutableNode {
       "This node extracts JSON data from the HTTP request body, supporting both required and optional JSON payloads.",
     inlinable: true,
     asTool: true,
-    compatibility: ["http_webhook", "http_request"],
     inputs: [
       {
         name: "required",

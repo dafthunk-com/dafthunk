@@ -1,5 +1,5 @@
 import { env } from "cloudflare:test";
-import type { GetNodeTypesResponse, WorkflowTrigger } from "@dafthunk/types";
+import type { GetNodeTypesResponse } from "@dafthunk/types";
 import { Hono } from "hono";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -77,111 +77,18 @@ describe("Types Route Tests", () => {
     });
   });
 
-  describe("Workflow Trigger Filtering", () => {
-    const workflowTriggers: WorkflowTrigger[] = [
-      "manual",
-      "http_request",
-      "email_message",
-      "scheduled",
-    ];
-
-    it.each(
-      workflowTriggers
-    )("should handle workflowTrigger query parameter: %s", async (workflowTrigger) => {
-      const response = await app.request(
-        `/types?workflowTrigger=${workflowTrigger}`,
-        {
-          method: "GET",
-        }
-      );
-
-      expect(response.status).toBe(200);
-
-      const data = (await response.json()) as GetNodeTypesResponse;
-      expect(data).toHaveProperty("nodeTypes");
-      expect(Array.isArray(data.nodeTypes)).toBe(true);
-
-      // All returned node types should be compatible with the requested workflow trigger
-      // or have no compatibility restrictions
-      data.nodeTypes.forEach((nodeType) => {
-        if (nodeType.compatibility) {
-          expect(nodeType.compatibility).toContain(workflowTrigger);
-        }
-        // If no compatibility array, it's compatible with all workflow triggers
-      });
-    });
-
-    it("should return different results for different workflow triggers", async () => {
-      // Get node types for manual workflow
-      const manualResponse = await app.request(
-        "/types?workflowTrigger=manual",
-        {
-          method: "GET",
-        }
-      );
-      const manualData = (await manualResponse.json()) as GetNodeTypesResponse;
-
-      // Get node types for email workflow
-      const emailResponse = await app.request(
-        "/types?workflowTrigger=email_message",
-        {
-          method: "GET",
-        }
-      );
-      const emailData = (await emailResponse.json()) as GetNodeTypesResponse;
-
-      // Both should be successful
-      expect(manualResponse.status).toBe(200);
-      expect(emailResponse.status).toBe(200);
-
-      // Both should return arrays
-      expect(Array.isArray(manualData.nodeTypes)).toBe(true);
-      expect(Array.isArray(emailData.nodeTypes)).toBe(true);
-
-      // The results might be different (depending on node compatibility)
-      // But both should contain at least some nodes
-      expect(manualData.nodeTypes.length).toBeGreaterThan(0);
-      expect(emailData.nodeTypes.length).toBeGreaterThan(0);
-    });
-
-    it("should return all node types when no workflowTrigger is specified", async () => {
-      const allTypesResponse = await app.request("/types", {
+  describe("Node Types", () => {
+    it("should return all node types", async () => {
+      const response = await app.request("/types", {
         method: "GET",
       });
-      const manualTypesResponse = await app.request(
-        "/types?workflowTrigger=manual",
-        {
-          method: "GET",
-        }
-      );
 
-      const allData = (await allTypesResponse.json()) as GetNodeTypesResponse;
-      const manualData =
-        (await manualTypesResponse.json()) as GetNodeTypesResponse;
-
-      expect(allTypesResponse.status).toBe(200);
-      expect(manualTypesResponse.status).toBe(200);
-
-      // All types should include at least as many types as the filtered result
-      expect(allData.nodeTypes.length).toBeGreaterThanOrEqual(
-        manualData.nodeTypes.length
-      );
-    });
-
-    it("should handle invalid workflowTrigger gracefully", async () => {
-      const response = await app.request(
-        "/types?workflowTrigger=invalid_type",
-        {
-          method: "GET",
-        }
-      );
-
-      // Should still return successfully (invalid types are just ignored)
       expect(response.status).toBe(200);
 
       const data = (await response.json()) as GetNodeTypesResponse;
       expect(data).toHaveProperty("nodeTypes");
       expect(Array.isArray(data.nodeTypes)).toBe(true);
+      expect(data.nodeTypes.length).toBeGreaterThan(0);
     });
   });
 
@@ -266,16 +173,8 @@ describe("Types Route Tests", () => {
         if (nodeType.usage !== undefined) {
           expect(typeof nodeType.usage).toBe("number");
         }
-        if (nodeType.compatibility !== undefined) {
-          expect(Array.isArray(nodeType.compatibility)).toBe(true);
-          nodeType.compatibility.forEach((workflowType) => {
-            expect([
-              "manual",
-              "http_request",
-              "email_message",
-              "scheduled",
-            ]).toContain(workflowType);
-          });
+        if (nodeType.trigger !== undefined) {
+          expect(typeof nodeType.trigger).toBe("boolean");
         }
       });
     });

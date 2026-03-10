@@ -13,7 +13,6 @@ export class ReceiveQueueMessageNode extends ExecutableNode {
       "This node extracts the message payload from a queue-triggered workflow, providing access to the data sent when the message was published.",
     inlinable: true,
     asTool: true,
-    compatibility: ["queue_message"],
     trigger: true,
     inputs: [
       {

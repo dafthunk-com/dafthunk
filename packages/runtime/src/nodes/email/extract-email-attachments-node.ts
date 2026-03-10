@@ -13,7 +13,6 @@ export class ExtractEmailAttachmentsNode extends ExecutableNode {
     icon: "paperclip",
     documentation:
       "This node parses raw email content and extracts all attachments as blobs. Each attachment includes the binary data, mime type, and original filename.",
-    compatibility: ["email_message"],
     inlinable: true,
     inputs: [
       {

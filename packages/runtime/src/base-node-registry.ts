@@ -1,4 +1,4 @@
-import type { Node, NodeType, WorkflowTrigger } from "@dafthunk/types";
+import type { Node, NodeType } from "@dafthunk/types";
 
 import type { ExecutableNode } from "./node-types";
 import { MultiStepNode } from "./node-types";
@@ -52,21 +52,11 @@ export abstract class BaseNodeRegistry<Env = unknown> {
   }
 
   /**
-   * Get all available node types, optionally filtered by workflow type
+   * Get all available node types
    */
-  public getNodeTypes(workflowTrigger?: WorkflowTrigger): NodeType[] {
-    const nodeTypes = Array.from(this.implementations.values()).map(
+  public getNodeTypes(): NodeType[] {
+    return Array.from(this.implementations.values()).map(
       (implementation) => implementation.nodeType
-    );
-
-    if (!workflowTrigger) {
-      return nodeTypes;
-    }
-
-    return nodeTypes.filter(
-      (nodeType) =>
-        !nodeType.compatibility ||
-        nodeType.compatibility.includes(workflowTrigger)
     );
   }
 

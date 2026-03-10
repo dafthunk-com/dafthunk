@@ -74,16 +74,6 @@ export function NodeCard({
                 </div>
               )}
 
-              {/* Stats */}
-              {nodeType.compatibility && nodeType.compatibility.length > 0 && (
-                <div className="flex items-center gap-4 text-xs text-muted-foreground shrink-0">
-                  <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 rounded-full bg-orange-500"></div>
-                    <span className="font-medium">Types:</span>
-                    <span>{nodeType.compatibility.length}</span>
-                  </div>
-                </div>
-              )}
             </div>
           </CardContent>
         </Card>
@@ -136,15 +126,6 @@ export function NodeCard({
                 ? highlightMatch(nodeType.description, searchQuery)
                 : nodeType.description}
             </p>
-          )}
-          {nodeType.compatibility && nodeType.compatibility.length > 0 && (
-            <div className="mt-4 flex flex-wrap gap-3 text-xs text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full bg-orange-500"></div>
-                <span className="font-medium">Types:</span>{" "}
-                <span>{nodeType.compatibility.join(", ")}</span>
-              </div>
-            </div>
           )}
         </CardContent>
       </Card>
