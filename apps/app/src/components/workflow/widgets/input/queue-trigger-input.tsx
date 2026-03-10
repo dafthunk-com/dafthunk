@@ -1,5 +1,7 @@
+import { ListEnd } from "lucide-react";
 import { useState } from "react";
 
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -10,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { useQueues } from "@/services/queue-service";
 import { cn } from "@/utils/utils";
+import { QueueTriggerDialog } from "../../queue-trigger-dialog";
 import { updateNodeInput, useWorkflow } from "../../workflow-context";
 import type { WorkflowParameter } from "../../workflow-types";
 import type { BaseWidgetProps } from "../widget";
@@ -34,6 +37,8 @@ function QueueTriggerInputWidget({
   const { queues, isQueuesLoading, mutateQueues } = useQueues();
   const { updateNodeData, edges, deleteEdge } = useWorkflow();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isQueueTriggerDialogOpen, setIsQueueTriggerDialogOpen] =
+    useState(false);
 
   const handleQueueChange = (value: string) => {
     if (value === CREATE_NEW_SENTINEL) {
@@ -67,30 +72,47 @@ function QueueTriggerInputWidget({
 
   return (
     <div className={cn("p-2", className)}>
-      <Select
-        value={queueId || ""}
-        onValueChange={handleQueueChange}
-        disabled={disabled || isQueuesLoading}
-      >
-        <SelectTrigger className="h-6 text-xs">
-          <SelectValue
-            placeholder={isQueuesLoading ? "Loading..." : "Select a queue"}
-          />
-        </SelectTrigger>
-        <SelectContent>
-          {queues.map((queue) => (
-            <SelectItem key={queue.id} value={queue.id}>
-              {queue.name}
-            </SelectItem>
-          ))}
-          <SelectSeparator />
-          <SelectItem value={CREATE_NEW_SENTINEL}>+ New Queue</SelectItem>
-        </SelectContent>
-      </Select>
+      <div className="flex items-center gap-1">
+        <Select
+          value={queueId || ""}
+          onValueChange={handleQueueChange}
+          disabled={disabled || isQueuesLoading}
+        >
+          <SelectTrigger className="h-6 text-xs">
+            <SelectValue
+              placeholder={isQueuesLoading ? "Loading..." : "Select a queue"}
+            />
+          </SelectTrigger>
+          <SelectContent>
+            {queues.map((queue) => (
+              <SelectItem key={queue.id} value={queue.id}>
+                {queue.name}
+              </SelectItem>
+            ))}
+            <SelectSeparator />
+            <SelectItem value={CREATE_NEW_SENTINEL}>+ New Queue</SelectItem>
+          </SelectContent>
+        </Select>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6 shrink-0"
+          disabled={disabled}
+          onClick={() => setIsQueueTriggerDialogOpen(true)}
+          title="Show queue integration"
+        >
+          <ListEnd className="h-3 w-3" />
+        </Button>
+      </div>
       <QueueCreateDialog
         isOpen={isCreateDialogOpen}
         onClose={() => setIsCreateDialogOpen(false)}
         onCreated={handleQueueCreated}
+      />
+      <QueueTriggerDialog
+        isOpen={isQueueTriggerDialogOpen}
+        onClose={() => setIsQueueTriggerDialogOpen(false)}
+        queueId={queueId || null}
       />
     </div>
   );
