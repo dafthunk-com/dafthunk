@@ -1,7 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import Bot from "lucide-react/icons/bot";
 import MoreHorizontal from "lucide-react/icons/more-horizontal";
-import Pencil from "lucide-react/icons/pencil";
 import PlusCircle from "lucide-react/icons/plus-circle";
 import Send from "lucide-react/icons/send";
 import { useEffect, useState } from "react";
@@ -111,12 +110,11 @@ function createColumns(
               <DropdownMenuContent align="end">
                 <DropdownMenuItem asChild>
                   <Link to={getOrgUrl(`bots/${bot.type}/${bot.id}`)}>
-                    <Pencil className="mr-2 h-4 w-4" />
                     Edit
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => openDeleteDialog(bot)}>
-                  Delete Bot
+                  Delete
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -220,7 +218,7 @@ export function BotsPage() {
       <InsetLayout title="Bots">
         <div className="flex items-center justify-between mb-6 min-h-10">
           <div className="text-sm text-muted-foreground max-w-2xl">
-            Add your own bots to use as triggers for workflows.
+            Connect bots to trigger your workflows from chat messages.
           </div>
           <Button onClick={() => setIsCreateDialogOpen(true)}>
             <PlusCircle className="mr-2 h-4 w-4" />

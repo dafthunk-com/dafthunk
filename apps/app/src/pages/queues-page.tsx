@@ -1,10 +1,10 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import MoreHorizontal from "lucide-react/icons/more-horizontal";
-import Pencil from "lucide-react/icons/pencil";
 import PlusCircle from "lucide-react/icons/plus-circle";
 import { useEffect, useState } from "react";
 
 import { useAuth } from "@/components/auth-context";
+import { QueueSnippetsDialog } from "@/components/queue-snippets-dialog";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
@@ -41,6 +41,7 @@ interface QueueRow {
 }
 
 function createColumns(
+  openSnippetsDialog: (queue: QueueRow) => void,
   openEditDialog: (queue: QueueRow) => void,
   openDeleteDialog: (queue: QueueRow) => void
 ): ColumnDef<QueueRow>[] {
@@ -88,12 +89,14 @@ function createColumns(
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => openSnippetsDialog(queue)}>
+                  Integrate
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => openEditDialog(queue)}>
-                  <Pencil className="mr-2 h-4 w-4" />
                   Edit
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => openDeleteDialog(queue)}>
-                  Delete Queue
+                  Delete
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -106,6 +109,10 @@ function createColumns(
 
 export function QueuesPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [snippetsDialogOpen, setSnippetsDialogOpen] = useState(false);
+  const [queueForSnippets, setQueueForSnippets] = useState<QueueRow | null>(
+    null
+  );
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [queueToDelete, setQueueToDelete] = useState<QueueRow | null>(null);
@@ -123,6 +130,11 @@ export function QueuesPage() {
   useEffect(() => {
     setBreadcrumbs([{ label: "Queues" }]);
   }, [setBreadcrumbs]);
+
+  const openSnippetsDialog = (queue: QueueRow) => {
+    setQueueForSnippets(queue);
+    setSnippetsDialogOpen(true);
+  };
 
   const openDeleteDialog = (queue: QueueRow) => {
     setQueueToDelete(queue);
@@ -166,7 +178,7 @@ export function QueuesPage() {
     setIsCreateDialogOpen(false);
   };
 
-  const columns = createColumns(openEditDialog, openDeleteDialog);
+  const columns = createColumns(openSnippetsDialog, openEditDialog, openDeleteDialog);
 
   if (isQueuesLoading) {
     return <InsetLoading title="Queues" />;
@@ -179,7 +191,7 @@ export function QueuesPage() {
       <InsetLayout title="Queues">
         <div className="flex items-center justify-between mb-6 min-h-10">
           <div className="text-sm text-muted-foreground max-w-2xl">
-            Create and manage message queues for your workflows.
+            Create and manage message queues to trigger your workflows from external events.
           </div>
           <Button onClick={() => setIsCreateDialogOpen(true)}>
             <PlusCircle className="mr-2 h-4 w-4" />
@@ -199,6 +211,15 @@ export function QueuesPage() {
           onClose={() => setIsCreateDialogOpen(false)}
           onCreated={handleCreated}
         />
+        {queueForSnippets && (
+          <QueueSnippetsDialog
+            isOpen={snippetsDialogOpen}
+            onClose={() => setSnippetsDialogOpen(false)}
+            queueName={queueForSnippets.name}
+            queueHandle={queueForSnippets.handle}
+            orgHandle={orgHandle}
+          />
+        )}
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
           <DialogContent>
             <DialogHeader>

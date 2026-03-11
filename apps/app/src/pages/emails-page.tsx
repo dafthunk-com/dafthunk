@@ -1,6 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import MoreHorizontal from "lucide-react/icons/more-horizontal";
-import Pencil from "lucide-react/icons/pencil";
 import PlusCircle from "lucide-react/icons/plus-circle";
 import { useEffect, useState } from "react";
 
@@ -69,7 +68,7 @@ function createColumns(
         const email = row.original;
         const emailAddress = `${orgHandle}+${email.handle}@dafthunk.com`;
         return (
-          <span className="text-sm text-muted-foreground">{emailAddress}</span>
+          <a href={`mailto:${emailAddress}`} className="text-sm text-muted-foreground hover:underline">{emailAddress}</a>
         );
       },
     },
@@ -88,11 +87,10 @@ function createColumns(
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => openEditDialog(email)}>
-                  <Pencil className="mr-2 h-4 w-4" />
                   Edit
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => openDeleteDialog(email)}>
-                  Delete Email
+                  Delete
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -178,11 +176,11 @@ export function EmailsPage() {
       <InsetLayout title="Emails">
         <div className="flex items-center justify-between mb-6 min-h-10">
           <div className="text-sm text-muted-foreground max-w-2xl">
-            Create and manage email inboxes for your workflows.
+            Create and manage email inboxes to trigger your workflows from incoming emails.
           </div>
           <Button onClick={() => setIsCreateDialogOpen(true)}>
             <PlusCircle className="mr-2 h-4 w-4" />
-            Create Inbox
+            Create Email
           </Button>
         </div>
         <DataTable
@@ -201,8 +199,8 @@ export function EmailsPage() {
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Edit Email Inbox</DialogTitle>
-              <DialogDescription>Rename your email inbox.</DialogDescription>
+              <DialogTitle>Edit Email</DialogTitle>
+              <DialogDescription>Rename your email.</DialogDescription>
             </DialogHeader>
             <div className="space-y-2">
               <Label htmlFor="edit-email-name">Name</Label>

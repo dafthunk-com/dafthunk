@@ -1,11 +1,11 @@
 import type { EndpointMode } from "@dafthunk/types";
 import type { ColumnDef } from "@tanstack/react-table";
 import MoreHorizontal from "lucide-react/icons/more-horizontal";
-import Pencil from "lucide-react/icons/pencil";
 import PlusCircle from "lucide-react/icons/plus-circle";
 import { useEffect, useState } from "react";
 
 import { useAuth } from "@/components/auth-context";
+import { EndpointSnippetsDialog } from "@/components/endpoint-snippets-dialog";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
@@ -54,6 +54,7 @@ interface EndpointRow {
 }
 
 function createColumns(
+  openSnippetsDialog: (endpoint: EndpointRow) => void,
   openEditDialog: (endpoint: EndpointRow) => void,
   openDeleteDialog: (endpoint: EndpointRow) => void
 ): ColumnDef<EndpointRow>[] {
@@ -102,12 +103,14 @@ function createColumns(
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => openSnippetsDialog(endpoint)}>
+                  Integrate
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => openEditDialog(endpoint)}>
-                  <Pencil className="mr-2 h-4 w-4" />
                   Edit
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => openDeleteDialog(endpoint)}>
-                  Delete Endpoint
+                  Delete
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -120,6 +123,9 @@ function createColumns(
 
 export function EndpointsPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [snippetsDialogOpen, setSnippetsDialogOpen] = useState(false);
+  const [endpointForSnippets, setEndpointForSnippets] =
+    useState<EndpointRow | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [endpointToDelete, setEndpointToDelete] = useState<EndpointRow | null>(
@@ -143,6 +149,11 @@ export function EndpointsPage() {
   useEffect(() => {
     setBreadcrumbs([{ label: "Endpoints" }]);
   }, [setBreadcrumbs]);
+
+  const openSnippetsDialog = (endpoint: EndpointRow) => {
+    setEndpointForSnippets(endpoint);
+    setSnippetsDialogOpen(true);
+  };
 
   const openDeleteDialog = (endpoint: EndpointRow) => {
     setEndpointToDelete(endpoint);
@@ -191,7 +202,7 @@ export function EndpointsPage() {
     setIsCreateDialogOpen(false);
   };
 
-  const columns = createColumns(openEditDialog, openDeleteDialog);
+  const columns = createColumns(openSnippetsDialog, openEditDialog, openDeleteDialog);
 
   if (isEndpointsLoading) {
     return <InsetLoading title="Endpoints" />;
@@ -206,7 +217,7 @@ export function EndpointsPage() {
       <InsetLayout title="Endpoints">
         <div className="flex items-center justify-between mb-6 min-h-10">
           <div className="text-sm text-muted-foreground max-w-2xl">
-            Create and manage HTTP endpoints for your workflows.
+            Create and manage HTTP endpoints to integrate your workflows in third-party applications.
           </div>
           <Button onClick={() => setIsCreateDialogOpen(true)}>
             <PlusCircle className="mr-2 h-4 w-4" />
@@ -226,6 +237,16 @@ export function EndpointsPage() {
           onClose={() => setIsCreateDialogOpen(false)}
           onCreated={handleCreated}
         />
+        {endpointForSnippets && (
+          <EndpointSnippetsDialog
+            isOpen={snippetsDialogOpen}
+            onClose={() => setSnippetsDialogOpen(false)}
+            endpointName={endpointForSnippets.name}
+            endpointHandle={endpointForSnippets.handle}
+            endpointMode={endpointForSnippets.mode}
+            orgHandle={orgHandle}
+          />
+        )}
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
           <DialogContent>
             <DialogHeader>
