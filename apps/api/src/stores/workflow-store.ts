@@ -1042,7 +1042,7 @@ export class WorkflowStore {
         throw new Error("R2 bucket is not initialized");
       }
 
-      const key = `workflows/${workflow.id}.json`;
+      const key = `workflows/${workflow.id}/workflow.json`;
       await this.env.RESSOURCES.put(key, JSON.stringify(workflow), {
         httpMetadata: {
           contentType: "application/json",
@@ -1073,7 +1073,7 @@ export class WorkflowStore {
         throw new Error("R2 bucket is not initialized");
       }
 
-      const key = `workflows/${workflowId}.json`;
+      const key = `workflows/${workflowId}/workflow.json`;
       const object = await this.env.RESSOURCES.get(key);
 
       if (!object) {
@@ -1100,7 +1100,7 @@ export class WorkflowStore {
         throw new Error("R2 bucket is not initialized");
       }
 
-      const key = `workflows/${workflowId}.json`;
+      const key = `workflows/${workflowId}/workflow.json`;
       await this.env.RESSOURCES.delete(key);
     } catch (error) {
       console.error(
