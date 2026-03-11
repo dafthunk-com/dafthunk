@@ -7,7 +7,12 @@ interface CrawlJob {
   status: string;
 }
 
-interface CrawlResult {
+interface CrawlSubmitResult {
+  success: boolean;
+  result: string;
+}
+
+interface CrawlStatusResult {
   success: boolean;
   result: {
     id: string;
@@ -109,7 +114,7 @@ See [Cloudflare Browser Rendering Crawl Endpoint](https://developers.cloudflare.
         description: "Maximum time to wait for crawl to complete (minutes)",
         default: 30,
         minimum: 1,
-        maximum: 120,
+        maximum: 10080,
         hidden: true,
       },
       {
@@ -204,11 +209,11 @@ See [Cloudflare Browser Rendering Crawl Endpoint](https://developers.cloudflare.
             `Failed to create crawl job: ${response.status} ${text}`
           );
         }
-        const json = (await response.json()) as CrawlResult;
-        if (!json.success || !json.result?.id) {
+        const json = (await response.json()) as CrawlSubmitResult;
+        if (!json.success || !json.result) {
           throw new Error(`Crawl job creation failed: ${JSON.stringify(json)}`);
         }
-        return { id: json.result.id, status: json.result.status } as CrawlJob;
+        return { id: json.result, status: "pending" } as CrawlJob;
       });
 
       // Poll until terminal status
@@ -229,13 +234,17 @@ See [Cloudflare Browser Rendering Crawl Endpoint](https://developers.cloudflare.
           const response = await fetch(`${baseUrl}/${job.id}?limit=1`, {
             headers,
           });
+          // Job may not be immediately queryable after creation
+          if (response.status === 404) {
+            return "pending";
+          }
           if (!response.ok) {
             const text = await response.text();
             throw new Error(
               `Failed to poll crawl status: ${response.status} ${text}`
             );
           }
-          const json = (await response.json()) as CrawlResult;
+          const json = (await response.json()) as CrawlStatusResult;
           return json.result.status;
         });
       }
@@ -261,7 +270,7 @@ See [Cloudflare Browser Rendering Crawl Endpoint](https://developers.cloudflare.
             `Failed to fetch crawl results: ${response.status} ${text}`
           );
         }
-        const json = (await response.json()) as CrawlResult;
+        const json = (await response.json()) as CrawlStatusResult;
         return json.result.data ?? [];
       });
 
