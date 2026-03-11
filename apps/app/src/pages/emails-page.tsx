@@ -68,7 +68,12 @@ function createColumns(
         const email = row.original;
         const emailAddress = `${orgHandle}+${email.handle}@dafthunk.com`;
         return (
-          <a href={`mailto:${emailAddress}`} className="text-sm text-muted-foreground hover:underline">{emailAddress}</a>
+          <a
+            href={`mailto:${emailAddress}`}
+            className="text-sm text-muted-foreground hover:underline"
+          >
+            {emailAddress}
+          </a>
         );
       },
     },
@@ -176,7 +181,8 @@ export function EmailsPage() {
       <InsetLayout title="Emails">
         <div className="flex items-center justify-between mb-6 min-h-10">
           <div className="text-sm text-muted-foreground max-w-2xl">
-            Create and manage email inboxes to trigger your workflows from incoming emails.
+            Create and manage email inboxes to trigger your workflows from
+            incoming emails.
           </div>
           <Button onClick={() => setIsCreateDialogOpen(true)}>
             <PlusCircle className="mr-2 h-4 w-4" />

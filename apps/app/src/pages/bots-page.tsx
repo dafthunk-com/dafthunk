@@ -109,9 +109,7 @@ function createColumns(
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem asChild>
-                  <Link to={getOrgUrl(`bots/${bot.type}/${bot.id}`)}>
-                    Edit
-                  </Link>
+                  <Link to={getOrgUrl(`bots/${bot.type}/${bot.id}`)}>Edit</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => openDeleteDialog(bot)}>
                   Delete

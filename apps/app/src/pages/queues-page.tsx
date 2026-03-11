@@ -4,10 +4,10 @@ import PlusCircle from "lucide-react/icons/plus-circle";
 import { useEffect, useState } from "react";
 
 import { useAuth } from "@/components/auth-context";
-import { QueueSnippetsDialog } from "@/components/queue-snippets-dialog";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
+import { QueueSnippetsDialog } from "@/components/queue-snippets-dialog";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import {
@@ -178,7 +178,11 @@ export function QueuesPage() {
     setIsCreateDialogOpen(false);
   };
 
-  const columns = createColumns(openSnippetsDialog, openEditDialog, openDeleteDialog);
+  const columns = createColumns(
+    openSnippetsDialog,
+    openEditDialog,
+    openDeleteDialog
+  );
 
   if (isQueuesLoading) {
     return <InsetLoading title="Queues" />;
@@ -191,7 +195,8 @@ export function QueuesPage() {
       <InsetLayout title="Queues">
         <div className="flex items-center justify-between mb-6 min-h-10">
           <div className="text-sm text-muted-foreground max-w-2xl">
-            Create and manage message queues to trigger your workflows from external events.
+            Create and manage message queues to trigger your workflows from
+            external events.
           </div>
           <Button onClick={() => setIsCreateDialogOpen(true)}>
             <PlusCircle className="mr-2 h-4 w-4" />

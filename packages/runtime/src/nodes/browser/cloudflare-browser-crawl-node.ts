@@ -1,7 +1,4 @@
-import {
-  MultiStepNode,
-  type MultiStepNodeContext,
-} from "@dafthunk/runtime";
+import { MultiStepNode, type MultiStepNodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
 import { calculateBrowserUsage } from "../../utils/usage";
 
@@ -97,8 +94,7 @@ See [Cloudflare Browser Rendering Crawl Endpoint](https://developers.cloudflare.
       {
         name: "source",
         type: "string",
-        description:
-          "URL discovery method: all, sitemaps, links",
+        description: "URL discovery method: all, sitemaps, links",
         hidden: true,
       },
       {
@@ -162,10 +158,7 @@ See [Cloudflare Browser Rendering Crawl Endpoint](https://developers.cloudflare.
         );
       }
 
-      const timeoutMinutes = Math.max(
-        1,
-        Number(context.inputs.timeout) || 30
-      );
+      const timeoutMinutes = Math.max(1, Number(context.inputs.timeout) || 30);
       const pollIntervalSec = Math.max(
         1,
         Number(context.inputs.poll_interval) || 10
@@ -213,9 +206,7 @@ See [Cloudflare Browser Rendering Crawl Endpoint](https://developers.cloudflare.
         }
         const json = (await response.json()) as CrawlResult;
         if (!json.success || !json.result?.id) {
-          throw new Error(
-            `Crawl job creation failed: ${JSON.stringify(json)}`
-          );
+          throw new Error(`Crawl job creation failed: ${JSON.stringify(json)}`);
         }
         return { id: json.result.id, status: json.result.status } as CrawlJob;
       });
@@ -275,10 +266,7 @@ See [Cloudflare Browser Rendering Crawl Endpoint](https://developers.cloudflare.
       });
 
       const usage = calculateBrowserUsage(Date.now() - startTime);
-      return this.createSuccessResult(
-        { pages, count: pages.length },
-        usage
-      );
+      return this.createSuccessResult({ pages, count: pages.length }, usage);
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : String(error)

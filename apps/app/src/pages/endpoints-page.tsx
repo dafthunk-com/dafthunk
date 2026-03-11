@@ -202,7 +202,11 @@ export function EndpointsPage() {
     setIsCreateDialogOpen(false);
   };
 
-  const columns = createColumns(openSnippetsDialog, openEditDialog, openDeleteDialog);
+  const columns = createColumns(
+    openSnippetsDialog,
+    openEditDialog,
+    openDeleteDialog
+  );
 
   if (isEndpointsLoading) {
     return <InsetLoading title="Endpoints" />;
@@ -217,7 +221,8 @@ export function EndpointsPage() {
       <InsetLayout title="Endpoints">
         <div className="flex items-center justify-between mb-6 min-h-10">
           <div className="text-sm text-muted-foreground max-w-2xl">
-            Create and manage HTTP endpoints to integrate your workflows in third-party applications.
+            Create and manage HTTP endpoints to integrate your workflows in
+            third-party applications.
           </div>
           <Button onClick={() => setIsCreateDialogOpen(true)}>
             <PlusCircle className="mr-2 h-4 w-4" />
