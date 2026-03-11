@@ -60,7 +60,7 @@ function createColumns(
   return [
     {
       accessorKey: "name",
-      header: "Endpoint Name",
+      header: "Name",
       cell: ({ row }) => {
         const name = row.getValue("name") as string;
         return (

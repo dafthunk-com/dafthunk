@@ -31,7 +31,7 @@ export const createColumns = (
 ): ColumnDef<ListExecutionsResponse["executions"][0]>[] => [
   {
     accessorKey: "workflowName",
-    header: "Workflow Name",
+    header: "Workflow",
     cell: ({ row }) => {
       const workflowName = row.getValue("workflowName") as string;
       const execution = row.original as WorkflowExecution;
@@ -47,7 +47,7 @@ export const createColumns = (
   },
   {
     accessorKey: "status",
-    header: "Execution Status",
+    header: "Status",
     cell: ({ row }) => {
       const status = row.getValue("status") as WorkflowExecution["status"];
       return <ExecutionStatusBadge status={status} />;
@@ -55,7 +55,7 @@ export const createColumns = (
   },
   {
     accessorKey: "startedAt",
-    header: "Started At",
+    header: "Started",
     cell: ({ row }) => {
       const date = row.getValue("startedAt") as Date | string | undefined;
       if (!date) return <div className="font-medium">-</div>;
@@ -69,7 +69,7 @@ export const createColumns = (
   },
   {
     accessorKey: "endedAt",
-    header: "Ended At",
+    header: "Ended",
     cell: ({ row }) => {
       const date = row.getValue("endedAt") as Date | string | undefined | null;
       if (!date) return <div className="font-medium">-</div>;

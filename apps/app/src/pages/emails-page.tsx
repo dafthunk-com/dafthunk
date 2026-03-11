@@ -48,7 +48,7 @@ function createColumns(
   return [
     {
       accessorKey: "name",
-      header: "Email Name",
+      header: "Name",
       cell: ({ row }) => {
         const name = row.getValue("name") as string;
         return <span className="font-medium">{name || "Untitled Email"}</span>;
@@ -56,7 +56,7 @@ function createColumns(
     },
     {
       accessorKey: "handle",
-      header: "Email Handle",
+      header: "Handle",
       cell: ({ row }) => {
         const handle = row.original.handle;
         return <span className="text-sm text-muted-foreground">{handle}</span>;
@@ -64,7 +64,7 @@ function createColumns(
     },
     {
       id: "emailAddress",
-      header: "Email Address",
+      header: "Address",
       cell: ({ row }) => {
         const email = row.original;
         const emailAddress = `${orgHandle}+${email.handle}@dafthunk.com`;

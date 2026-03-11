@@ -105,7 +105,7 @@ function createColumns(
   return [
     {
       accessorKey: "name",
-      header: "Database Name",
+      header: "Name",
       cell: ({ row }) => {
         const name = row.getValue("name") as string;
         return (
@@ -115,7 +115,7 @@ function createColumns(
     },
     {
       accessorKey: "handle",
-      header: "Database Handle",
+      header: "Handle",
       cell: ({ row }) => {
         const handle = row.original.handle;
         return <span className="text-sm text-muted-foreground">{handle}</span>;

@@ -107,7 +107,7 @@ function createColumns(
   return [
     {
       accessorKey: "name",
-      header: "Dataset Name",
+      header: "Name",
       cell: ({ row }) => {
         const name = row.getValue("name") as string;
         const datasetId = row.original.id;
@@ -123,7 +123,7 @@ function createColumns(
     },
     {
       accessorKey: "handle",
-      header: "Dataset Handle",
+      header: "Handle",
       cell: ({ row }) => {
         const handle = row.original.handle;
         const datasetId = row.original.id;

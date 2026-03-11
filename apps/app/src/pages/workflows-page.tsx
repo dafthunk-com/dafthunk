@@ -216,7 +216,7 @@ function createColumns(
   return [
     {
       accessorKey: "name",
-      header: "Workflow Name",
+      header: "Name",
       cell: ({ row }) => {
         const name = row.getValue("name") as string;
         const workflowId = row.original.id;
@@ -232,7 +232,7 @@ function createColumns(
     },
     {
       accessorKey: "handle",
-      header: "Workflow Handle",
+      header: "Handle",
       cell: ({ row }) => {
         const handle = row.original.handle;
         const workflowId = row.original.id;
@@ -248,7 +248,7 @@ function createColumns(
     },
     {
       accessorKey: "trigger",
-      header: "Workflow Trigger",
+      header: "Trigger",
       cell: ({ row }) => {
         const trigger = row.getValue("trigger") as WorkflowTrigger;
         const triggerLabels: Record<WorkflowTrigger, string> = {

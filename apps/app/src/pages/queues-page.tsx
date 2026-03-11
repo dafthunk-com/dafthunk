@@ -47,7 +47,7 @@ function createColumns(
   return [
     {
       accessorKey: "name",
-      header: "Queue Name",
+      header: "Name",
       cell: ({ row }) => {
         const name = row.getValue("name") as string;
         return <span className="font-medium">{name || "Untitled Queue"}</span>;
@@ -55,7 +55,7 @@ function createColumns(
     },
     {
       accessorKey: "handle",
-      header: "Queue Handle",
+      header: "Handle",
       cell: ({ row }) => {
         const handle = row.original.handle;
         return <span className="text-sm text-muted-foreground">{handle}</span>;
