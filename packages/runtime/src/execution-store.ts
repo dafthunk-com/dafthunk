@@ -1,5 +1,6 @@
 import type {
   NodeExecution,
+  Workflow,
   WorkflowExecution,
   WorkflowExecutionStatus,
 } from "@dafthunk/types";
@@ -18,6 +19,7 @@ export interface ExecutionRow {
   createdAt: Date;
   updatedAt: Date;
   usage: number;
+  definitionHash?: string;
 }
 
 /**
@@ -35,6 +37,9 @@ export interface SaveExecutionRecord {
   updatedAt?: Date;
   startedAt?: Date;
   endedAt?: Date;
+  workflowDefinition?: Workflow;
+  definitionHash?: string;
+  runtimeVersion?: string;
 }
 
 /**

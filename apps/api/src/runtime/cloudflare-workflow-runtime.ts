@@ -25,6 +25,7 @@ import {
 import { CloudflareQueueService } from "./cloudflare-queue-service";
 import { CloudflareToolRegistry } from "./cloudflare-tool-registry";
 import { createToolContext } from "./tool-context";
+import { runtimeVersion } from "./version";
 
 export { WorkflowRuntime } from "@dafthunk/runtime";
 
@@ -67,6 +68,7 @@ export function createWorkflowRuntime(
     databaseService,
     datasetService,
     queueService,
+    runtimeVersion,
   };
 
   return new WorkflowRuntime(env, dependencies);

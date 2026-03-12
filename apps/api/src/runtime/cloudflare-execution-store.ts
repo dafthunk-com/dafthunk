@@ -65,6 +65,9 @@ export class CloudflareExecutionStore implements ExecutionStore {
       error: record.error,
       startedAt: record.startedAt,
       endedAt: record.endedAt,
+      workflowDefinition: record.workflowDefinition,
+      definitionHash: record.definitionHash,
+      runtimeVersion: record.runtimeVersion,
     };
 
     // Save metadata to Analytics Engine
@@ -159,7 +162,7 @@ export class CloudflareExecutionStore implements ExecutionStore {
         blobs: [
           record.id,
           record.workflowId,
-          "", // reserved blob3
+          record.definitionHash ?? "",
           record.status,
           (record.error || "").substring(0, 2000), // truncate to fit in blob
         ],
@@ -320,6 +323,7 @@ export class CloudflareExecutionStore implements ExecutionStore {
           id: row.blob1,
           workflowId: row.blob2,
           organizationId: row.index1,
+          definitionHash: row.blob3 || undefined,
           status: row.blob4 as WorkflowExecutionStatus,
           error: row.blob5 || null,
           startedAt,

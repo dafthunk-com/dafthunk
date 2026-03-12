@@ -11,7 +11,7 @@
     "check": "biome check --write",
     "test": "vitest run",
     "test:integration": "vitest run --config vitest.integration.config.ts --passWithNoTests",
-    "deploy": "wrangler deploy --env production",
+    "deploy": "RUNTIME_VERSION=$(git rev-parse HEAD) wrangler deploy --env production --define RUNTIME_VERSION:\"\\\"$RUNTIME_VERSION\\\"\"",
     "format": "biome format --write",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "wrangler d1 migrations apply DB --local",

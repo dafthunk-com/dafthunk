@@ -15,6 +15,7 @@ import type { CredentialService } from "./credential-service";
 import type { CreditService } from "./credit-service";
 import type { DatabaseService } from "./database-service";
 import type { DatasetService } from "./dataset-service";
+import { computeDefinitionHash } from "./definition-hash";
 import {
   nodeNotFoundMessage,
   nodeTypeNotImplementedMessage,
@@ -86,6 +87,7 @@ export interface RuntimeDependencies<Env = unknown> {
   databaseService?: DatabaseService;
   datasetService?: DatasetService;
   queueService?: QueueService;
+  runtimeVersion?: string;
 }
 
 /**
@@ -118,6 +120,7 @@ export abstract class Runtime<Env = unknown> {
   protected datasetService?: DatasetService;
   protected queueService?: QueueService;
   protected env: Env;
+  protected runtimeVersion?: string;
   protected userPlan?: string;
   protected discordBotToken?: string;
   protected telegramBotToken?: string;
@@ -137,6 +140,7 @@ export abstract class Runtime<Env = unknown> {
     this.databaseService = dependencies.databaseService;
     this.datasetService = dependencies.datasetService;
     this.queueService = dependencies.queueService;
+    this.runtimeVersion = dependencies.runtimeVersion;
   }
 
   /**
@@ -282,6 +286,9 @@ export abstract class Runtime<Env = unknown> {
     } as WorkflowExecution;
 
     await this.monitoringService.sendUpdate(workflowSessionId, executionRecord);
+
+    // Compute definition hash for provenance tracking
+    const definitionHash = await computeDefinitionHash(workflow);
 
     // Declare context and exhaustion flag outside try block for finally access
     let executionContext: WorkflowExecutionContext | undefined;
@@ -473,6 +480,9 @@ export abstract class Runtime<Env = unknown> {
               error: errorReport ?? executionRecord.error,
               startedAt: executionRecord.startedAt,
               endedAt: executionRecord.endedAt,
+              workflowDefinition: ctx.workflow,
+              definitionHash,
+              runtimeVersion: this.runtimeVersion,
             });
           }
         );

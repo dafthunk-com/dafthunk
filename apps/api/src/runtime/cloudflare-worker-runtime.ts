@@ -25,6 +25,7 @@ import {
 import { CloudflareQueueService } from "./cloudflare-queue-service";
 import { CloudflareToolRegistry } from "./cloudflare-tool-registry";
 import { createToolContext } from "./tool-context";
+import { runtimeVersion } from "./version";
 
 export { WorkerRuntime } from "@dafthunk/runtime";
 
@@ -65,6 +66,7 @@ export function createWorkerRuntime(env: Bindings): WorkerRuntime<Bindings> {
     databaseService,
     datasetService,
     queueService,
+    runtimeVersion,
   };
 
   return new WorkerRuntime(env, dependencies);

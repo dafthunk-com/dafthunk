@@ -368,6 +368,12 @@ export interface WorkflowExecution {
   endedAt?: Date;
   /** Total compute credits used by this execution */
   usage?: number;
+  /** Full workflow definition snapshot at execution time */
+  workflowDefinition?: Workflow;
+  /** SHA-256 hash of canonicalized workflow definition */
+  definitionHash?: string;
+  /** Git commit SHA of the deployed runtime code */
+  runtimeVersion?: string;
 }
 
 // Request and Response types

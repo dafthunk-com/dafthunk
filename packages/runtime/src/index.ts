@@ -32,6 +32,7 @@ export type {
   DatasetSearchResult,
   DatasetService,
 } from "./dataset-service";
+export { computeDefinitionHash } from "./definition-hash";
 export {
   nodeNotFoundMessage,
   nodeTypeNotImplementedMessage,
