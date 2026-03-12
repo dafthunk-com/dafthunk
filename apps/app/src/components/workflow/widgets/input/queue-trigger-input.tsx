@@ -120,7 +120,12 @@ function QueueTriggerInputWidget({
 
 export const queueTriggerInputWidget = createWidget({
   component: QueueTriggerInputWidget,
-  nodeTypes: ["queue-message", "queue-send", "queue-send-batch"],
+  nodeTypes: [
+    "queue-message",
+    "queue-send",
+    "queue-send-batch",
+    "cloudflare-browser-crawl-queue",
+  ],
   inputField: "queueId",
   managedFields: [],
   extractConfig: (nodeId, inputs) => ({

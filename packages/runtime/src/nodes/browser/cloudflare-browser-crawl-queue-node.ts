@@ -2,11 +2,6 @@ import { MultiStepNode, type MultiStepNodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
 import { calculateBrowserUsage } from "../../utils/usage";
 
-interface CrawlJob {
-  id: string;
-  status: string;
-}
-
 interface CrawlSubmitResult {
   success: boolean;
   result: string;
@@ -17,6 +12,8 @@ interface CrawlStatusResult {
   result: {
     id: string;
     status: string;
+    total?: number;
+    finished?: number;
     records?: CrawlPage[];
     cursor?: string;
   };
@@ -28,33 +25,39 @@ interface CrawlPage {
 }
 
 // Node config inputs that should not be forwarded to the Crawl API
-const CONFIG_INPUTS = new Set(["timeout", "poll_interval"]);
+const CONFIG_INPUTS = new Set(["timeout", "poll_interval", "queueId"]);
 
 /**
- * Cloudflare Browser Rendering Crawl Node
- * Crawls multiple pages starting from a URL using the async /crawl endpoint.
+ * Cloudflare Browser Rendering Crawl to Queue Node
+ * Crawls a website and sends each batch of results as messages to a queue.
  * See: https://developers.cloudflare.com/browser-rendering/rest-api/crawl-endpoint/
  */
-export class CloudflareBrowserCrawlNode extends MultiStepNode {
+export class CloudflareBrowserCrawlQueueNode extends MultiStepNode {
   public static readonly nodeType: NodeType = {
-    id: "cloudflare-browser-crawl",
-    name: "Browser Crawl",
-    type: "cloudflare-browser-crawl",
-    description: "Crawl a website and return all pages at once.",
-    documentation: `Crawls a website starting from a URL and returns all the crawled pages in a single output. This is the simplest way to crawl a site when you expect a manageable number of pages.
-
-By default returns markdown. You can request multiple formats: \`html\`, \`markdown\`, \`json\`.
+    id: "cloudflare-browser-crawl-queue",
+    name: "Browser Crawl to Queue",
+    type: "cloudflare-browser-crawl-queue",
+    description:
+      "Crawl a website and send each page as a message to a queue for downstream processing.",
+    documentation: `Crawls a website and sends each crawled page as an individual message to a queue. This lets you process pages one by one in a workflow triggered by the queue, without loading all results into memory.
 
 ### When to use this node
 
-Use **Browser Crawl** when crawling small to medium sites (up to a few hundred pages). All results are returned at once in the \`pages\` output.
+Use **Browser Crawl to Queue** when you want to process each crawled page independently — for example, extracting data, summarizing content, or indexing pages. Each page becomes a separate queue message, so the receiving workflow handles one page at a time.
 
-For large crawls (thousands of pages), use **Browser Crawl Start** + **Browser Crawl Fetch** instead to process results page by page without loading everything into memory.
+For simpler crawls where you need all pages at once, use **Browser Crawl** instead.
+
+### How it works
+
+1. Submits a crawl job to Cloudflare and waits for completion
+2. Fetches results in batches (cursor-based pagination)
+3. Sends each page as an individual message to the specified queue
+4. Returns the total number of pages sent
 
 See [Cloudflare Browser Rendering Crawl Endpoint](https://developers.cloudflare.com/browser-rendering/rest-api/crawl-endpoint/) for details.`,
     referenceUrl:
       "https://developers.cloudflare.com/browser-rendering/rest-api/crawl-endpoint/",
-    tags: ["Browser", "Web", "Cloudflare", "Crawl"],
+    tags: ["Browser", "Web", "Cloudflare", "Crawl", "Queue"],
     icon: "globe",
     inlinable: false,
     usage: 10,
@@ -65,6 +68,13 @@ See [Cloudflare Browser Rendering Crawl Endpoint](https://developers.cloudflare.
         type: "string",
         description: "Starting URL to crawl",
         required: true,
+      },
+      {
+        name: "queueId",
+        type: "queue",
+        description: "Queue to send crawled pages to",
+        required: true,
+        hidden: true,
       },
       {
         name: "limit",
@@ -127,19 +137,14 @@ See [Cloudflare Browser Rendering Crawl Endpoint](https://developers.cloudflare.
     ],
     outputs: [
       {
-        name: "pages",
-        type: "json",
-        description: "Array of crawled page results",
-      },
-      {
         name: "count",
         type: "number",
-        description: "Number of pages crawled",
+        description: "Total number of pages sent to the queue",
       },
       {
         name: "error",
         type: "string",
-        description: "Error message if the crawl fails",
+        description: "Error message if the crawl or queue send fails",
         hidden: true,
       },
     ],
@@ -149,15 +154,32 @@ See [Cloudflare Browser Rendering Crawl Endpoint](https://developers.cloudflare.
     const startTime = Date.now();
 
     try {
-      const { url } = context.inputs;
+      const { url, queueId: queueIdOrHandle } = context.inputs;
       if (!url || typeof url !== "string") {
         return this.createErrorResult("'url' is required.");
+      }
+      if (!queueIdOrHandle) {
+        return this.createErrorResult("'queueId' is required.");
       }
 
       const { CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN } = context.env;
       if (!CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
         return this.createErrorResult(
           "'CLOUDFLARE_ACCOUNT_ID' and 'CLOUDFLARE_API_TOKEN' are required."
+        );
+      }
+
+      if (!context.queueService) {
+        return this.createErrorResult("Queue service is not available.");
+      }
+
+      const queue = await context.queueService.resolve(
+        queueIdOrHandle,
+        context.organizationId
+      );
+      if (!queue) {
+        return this.createErrorResult(
+          `Queue '${queueIdOrHandle}' not found or does not belong to your organization.`
         );
       }
 
@@ -187,7 +209,6 @@ See [Cloudflare Browser Rendering Crawl Endpoint](https://developers.cloudflare.
         body[key] = value;
       }
 
-      // Default formats to markdown if not provided
       if (!body.formats) {
         body.formats = ["markdown"];
       }
@@ -195,7 +216,7 @@ See [Cloudflare Browser Rendering Crawl Endpoint](https://developers.cloudflare.
       // Submit crawl job
       const { sleep, doStep } = context;
 
-      const job = await doStep(async () => {
+      const jobId = await doStep(async () => {
         const response = await fetch(baseUrl, {
           method: "POST",
           headers,
@@ -211,7 +232,7 @@ See [Cloudflare Browser Rendering Crawl Endpoint](https://developers.cloudflare.
         if (!json.success || !json.result) {
           throw new Error(`Crawl job creation failed: ${JSON.stringify(json)}`);
         }
-        return { id: json.result, status: "pending" } as CrawlJob;
+        return json.result;
       });
 
       // Poll until terminal status
@@ -225,15 +246,14 @@ See [Cloudflare Browser Rendering Crawl Endpoint](https://developers.cloudflare.
         "cancelled_due_to_limits",
       ]);
 
-      let status = job.status;
+      let status = "pending";
       for (let i = 0; i < maxPolls && !terminalStatuses.has(status); i++) {
         await sleep(pollIntervalMs);
 
         status = await doStep(async () => {
-          const response = await fetch(`${baseUrl}/${job.id}?limit=1`, {
+          const response = await fetch(`${baseUrl}/${jobId}?limit=1`, {
             headers,
           });
-          // Job may not be immediately queryable after creation
           if (response.status === 404) {
             return "pending";
           }
@@ -261,14 +281,14 @@ See [Cloudflare Browser Rendering Crawl Endpoint](https://developers.cloudflare.
         );
       }
 
-      // Fetch full results (paginated via cursor)
-      const pages: CrawlPage[] = [];
+      // Fetch results page by page and send each page to the queue
+      let totalSent = 0;
       let cursor: string | undefined;
 
       do {
         const pageResult = await doStep(async () => {
           const params = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
-          const response = await fetch(`${baseUrl}/${job.id}${params}`, {
+          const response = await fetch(`${baseUrl}/${jobId}${params}`, {
             headers,
           });
           if (!response.ok) {
@@ -280,12 +300,19 @@ See [Cloudflare Browser Rendering Crawl Endpoint](https://developers.cloudflare.
           return (await response.json()) as CrawlStatusResult;
         });
 
-        pages.push(...(pageResult.result.records ?? []));
+        const records = pageResult.result.records ?? [];
+        if (records.length > 0) {
+          await doStep(async () => {
+            await queue.sendBatch(records);
+          });
+          totalSent += records.length;
+        }
+
         cursor = pageResult.result.cursor;
       } while (cursor);
 
       const usage = calculateBrowserUsage(Date.now() - startTime);
-      return this.createSuccessResult({ pages, count: pages.length }, usage);
+      return this.createSuccessResult({ count: totalSent }, usage);
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : String(error)

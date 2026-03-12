@@ -53,6 +53,7 @@ import { JsonToBlobNode } from "@dafthunk/runtime/nodes/blob/json-to-blob-node";
 import { TextToBlobNode } from "@dafthunk/runtime/nodes/blob/text-to-blob-node";
 import { CloudflareBrowserContentNode } from "@dafthunk/runtime/nodes/browser/cloudflare-browser-content-node";
 import { CloudflareBrowserCrawlNode } from "@dafthunk/runtime/nodes/browser/cloudflare-browser-crawl-node";
+import { CloudflareBrowserCrawlQueueNode } from "@dafthunk/runtime/nodes/browser/cloudflare-browser-crawl-queue-node";
 import { CloudflareBrowserJsonNode } from "@dafthunk/runtime/nodes/browser/cloudflare-browser-json-node";
 import { CloudflareBrowserLinksNode } from "@dafthunk/runtime/nodes/browser/cloudflare-browser-links-node";
 import { CloudflareBrowserMarkdownNode } from "@dafthunk/runtime/nodes/browser/cloudflare-browser-markdown-node";
@@ -696,6 +697,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     if (hasCloudflare) {
       this.registerImplementation(CloudflareBrowserContentNode);
       this.registerImplementation(CloudflareBrowserCrawlNode);
+      this.registerImplementation(CloudflareBrowserCrawlQueueNode);
       this.registerImplementation(CloudflareBrowserJsonNode);
       this.registerImplementation(CloudflareBrowserLinksNode);
       this.registerImplementation(CloudflareBrowserMarkdownNode);
