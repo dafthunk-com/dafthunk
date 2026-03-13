@@ -3,7 +3,7 @@ import type {
   WorkflowExecution,
 } from "@dafthunk/types";
 import { ColumnDef } from "@tanstack/react-table";
-import { format } from "date-fns";
+import { formatDate } from "@/utils/date";
 import MoreHorizontal from "lucide-react/icons/more-horizontal";
 import { useEffect } from "react";
 import { Link } from "react-router";
@@ -60,7 +60,7 @@ export const createColumns = (
       const date = row.getValue("startedAt") as Date | string | undefined;
       if (!date) return <div className="font-medium">-</div>;
       try {
-        const formatted = format(new Date(date), "MMM d, yyyy h:mm a");
+        const formatted = formatDate(date);
         return <div className="font-medium">{formatted}</div>;
       } catch {
         return <div className="font-medium">-</div>;
@@ -74,7 +74,7 @@ export const createColumns = (
       const date = row.getValue("endedAt") as Date | string | undefined | null;
       if (!date) return <div className="font-medium">-</div>;
       try {
-        const formatted = format(new Date(date), "MMM d, yyyy h:mm a");
+        const formatted = formatDate(date);
         return <div className="font-medium">{formatted}</div>;
       } catch {
         return <div className="font-medium">-</div>;

@@ -1,4 +1,5 @@
 import { DatasetFile } from "@dafthunk/types";
+import { formatDate } from "@/utils/date";
 import { useEffect, useRef } from "react";
 import { useParams } from "react-router";
 import { toast } from "sonner";
@@ -162,7 +163,7 @@ export function DatasetDetailPage() {
             <div>
               <span className="text-sm text-muted-foreground">Created:</span>
               <p className="font-medium">
-                {new Date(dataset.createdAt).toLocaleString()}
+                {formatDate(dataset.createdAt)}
               </p>
             </div>
             <div>
@@ -170,7 +171,7 @@ export function DatasetDetailPage() {
                 Last Updated:
               </span>
               <p className="font-medium">
-                {new Date(dataset.updatedAt).toLocaleString()}
+                {formatDate(dataset.updatedAt)}
               </p>
             </div>
           </div>
@@ -228,7 +229,7 @@ export function DatasetDetailPage() {
                       {file.key.split("/").pop()}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {new Date(file.uploaded).toLocaleString()} •{" "}
+                      {formatDate(file.uploaded)} •{" "}
                       {(file.size / 1024).toFixed(1)} KB
                     </p>
                   </div>

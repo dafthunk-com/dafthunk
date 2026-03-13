@@ -1,5 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { format } from "date-fns";
+import { formatDate } from "@/utils/date";
 import MoreHorizontal from "lucide-react/icons/more-horizontal";
 import PlusCircle from "lucide-react/icons/plus-circle";
 import { useCallback, useEffect, useState } from "react";
@@ -131,7 +131,7 @@ export function OrganizationsPage() {
       header: "Created",
       cell: ({ row }) => {
         const date = row.getValue("createdAt") as Date;
-        return <div>{format(date, "MMM d, yyyy")}</div>;
+        return <div>{formatDate(date)}</div>;
       },
     },
     {

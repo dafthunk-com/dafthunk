@@ -1,5 +1,5 @@
 import { WorkflowExecutionStatus } from "@dafthunk/types";
-import { format } from "date-fns";
+import { formatDate } from "@/utils/date";
 import AlertCircle from "lucide-react/icons/alert-circle";
 import Clock from "lucide-react/icons/clock";
 import IdCard from "lucide-react/icons/id-card";
@@ -41,13 +41,9 @@ export function ExecutionInfoCard({
   description = "Details about this workflow execution",
 }: ExecutionInfoCardProps) {
   const { getOrgUrl } = useOrgUrl();
-  const formatDate = (dateString?: string | Date) => {
+  const formatDateOrNA = (dateString?: string | Date) => {
     if (!dateString) return "N/A";
-    try {
-      return format(new Date(dateString), "MMMM d, yyyy 'at' h:mm a");
-    } catch (_error) {
-      return String(dateString);
-    }
+    return formatDate(dateString);
   };
 
   const calculateDuration = (
@@ -133,13 +129,13 @@ export function ExecutionInfoCard({
               <p className="text-sm text-muted-foreground flex items-center">
                 <Clock className="mr-1 h-4 w-4" /> Started At
               </p>
-              <p className="mt-1">{formatDate(startedAt)}</p>
+              <p className="mt-1">{formatDateOrNA(startedAt)}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground flex items-center">
                 <Clock className="mr-1 h-4 w-4" /> Completed At
               </p>
-              <p className="mt-1">{formatDate(endedAt)}</p>
+              <p className="mt-1">{formatDateOrNA(endedAt)}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground flex items-center">

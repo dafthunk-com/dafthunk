@@ -1,6 +1,6 @@
 import { Secret } from "@dafthunk/types";
 import { ColumnDef } from "@tanstack/react-table";
-import { format } from "date-fns";
+import { formatDate } from "@/utils/date";
 import MoreHorizontal from "lucide-react/icons/more-horizontal";
 import PlusCircle from "lucide-react/icons/plus-circle";
 import { useCallback, useEffect, useState } from "react";
@@ -60,7 +60,7 @@ const columns: ColumnDef<Secret>[] = [
     header: "Created",
     cell: ({ row }) => {
       const date = row.getValue("createdAt") as Date;
-      return <div>{format(date, "MMM d, yyyy")}</div>;
+      return <div>{formatDate(date)}</div>;
     },
   },
   {
@@ -68,7 +68,7 @@ const columns: ColumnDef<Secret>[] = [
     header: "Updated",
     cell: ({ row }) => {
       const date = row.getValue("updatedAt") as Date;
-      return <div>{format(date, "MMM d, yyyy")}</div>;
+      return <div>{formatDate(date)}</div>;
     },
   },
   {

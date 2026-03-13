@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { formatDate } from "@/utils/date";
 import CreditCard from "lucide-react/icons/credit-card";
 import ExternalLink from "lucide-react/icons/external-link";
 import Pencil from "lucide-react/icons/pencil";
@@ -182,7 +182,7 @@ export function BillingPage() {
   // Helper to get status line
   const getStatusLine = () => {
     if (!billing?.currentPeriodEnd) return null;
-    const endDate = format(new Date(billing.currentPeriodEnd), "MMMM d, yyyy");
+    const endDate = formatDate(new Date(billing.currentPeriodEnd));
 
     if (isCanceled) {
       return `Access ends ${endDate}`;
@@ -257,8 +257,8 @@ export function BillingPage() {
               <CardDescription>
                 {billing?.currentPeriodStart && billing?.currentPeriodEnd && (
                   <>
-                    {format(new Date(billing.currentPeriodStart), "MMM d")} –{" "}
-                    {format(new Date(billing.currentPeriodEnd), "MMM d, yyyy")}
+                    {formatDate(new Date(billing.currentPeriodStart))} –{" "}
+                    {formatDate(new Date(billing.currentPeriodEnd))}
                   </>
                 )}
               </CardDescription>

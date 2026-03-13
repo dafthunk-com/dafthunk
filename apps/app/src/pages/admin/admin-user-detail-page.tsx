@@ -2,6 +2,7 @@ import Github from "lucide-react/icons/github";
 import { useEffect } from "react";
 import { Link, useParams } from "react-router";
 
+import { formatDate } from "@/utils/date";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
@@ -95,11 +96,11 @@ export function AdminUserDetailPage() {
               </div>
               <div>
                 <div className="text-muted-foreground">Created</div>
-                <div>{new Date(user.createdAt).toLocaleString()}</div>
+                <div>{formatDate(user.createdAt)}</div>
               </div>
               <div>
                 <div className="text-muted-foreground">Updated</div>
-                <div>{new Date(user.updatedAt).toLocaleString()}</div>
+                <div>{formatDate(user.updatedAt)}</div>
               </div>
             </div>
           </CardContent>
@@ -196,7 +197,7 @@ export function AdminUserDetailPage() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {new Date(membership.joinedAt).toLocaleDateString()}
+                      {formatDate(membership.joinedAt)}
                     </TableCell>
                     <TableCell>
                       <Button variant="ghost" size="sm" asChild>

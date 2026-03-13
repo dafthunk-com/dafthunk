@@ -2,6 +2,7 @@ import Search from "lucide-react/icons/search";
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 
+import { formatDate } from "@/utils/date";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
@@ -127,7 +128,7 @@ export function AdminOrganizationsPage() {
                   )}
                 </TableCell>
                 <TableCell className="text-muted-foreground">
-                  {new Date(org.createdAt).toLocaleDateString()}
+                  {formatDate(org.createdAt)}
                 </TableCell>
                 <TableCell>
                   <Button variant="ghost" size="sm" asChild>

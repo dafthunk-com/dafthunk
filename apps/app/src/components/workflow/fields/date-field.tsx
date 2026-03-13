@@ -1,4 +1,5 @@
 import { ChevronDownIcon } from "lucide-react";
+import { formatDate } from "@/utils/date";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -81,12 +82,12 @@ export function DateField({
   const hasValue = Boolean(dateValue);
 
   // Format ISO date string for display
-  const formatDate = (isoString: string): string => {
+  const formatDateValue = (isoString: string): string => {
     if (!isoString) return "";
     try {
       const date = new Date(isoString);
       if (isNaN(date.getTime())) return isoString;
-      return date.toLocaleString();
+      return formatDate(date);
     } catch {
       return isoString;
     }
@@ -98,7 +99,7 @@ export function DateField({
       <div className={cn("relative", className)}>
         <Input
           type="text"
-          value={hasValue ? formatDate(isoValue) : ""}
+          value={hasValue ? formatDateValue(isoValue) : ""}
           readOnly
           disabled
           placeholder={connected ? "Connected" : "No date"}
@@ -254,7 +255,7 @@ export function DateField({
               )}
             >
               {dateValue
-                ? getDisplayDate(dateValue).toLocaleDateString()
+                ? formatDate(getDisplayDate(dateValue))
                 : connected
                   ? "Connected"
                   : "Select date"}

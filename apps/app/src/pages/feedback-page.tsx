@@ -1,6 +1,7 @@
 import type { ExecutionFeedback } from "@dafthunk/types";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
+import { formatDate } from "@/utils/date";
 import CalendarIcon from "lucide-react/icons/calendar";
 import DownloadIcon from "lucide-react/icons/download";
 import ThumbsDown from "lucide-react/icons/thumbs-down";
@@ -118,7 +119,7 @@ export const createColumns = (
     cell: ({ row }) => {
       const date = row.getValue("createdAt") as Date | string;
       try {
-        const formatted = format(new Date(date), "MMM d, yyyy h:mm a");
+        const formatted = formatDate(date);
         return <div className="font-medium">{formatted}</div>;
       } catch {
         return <div className="font-medium">-</div>;
@@ -263,7 +264,7 @@ export function FeedbackPage() {
                 )}
               >
                 <CalendarIcon className="h-4 w-4 mr-2" />
-                {startDate ? format(startDate, "MMM d, yyyy") : "Start date"}
+                {startDate ? formatDate(startDate) : "Start date"}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
@@ -287,7 +288,7 @@ export function FeedbackPage() {
                 )}
               >
                 <CalendarIcon className="h-4 w-4 mr-2" />
-                {endDate ? format(endDate, "MMM d, yyyy") : "End date"}
+                {endDate ? formatDate(endDate) : "End date"}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router";
+import { formatDate } from "@/utils/date";
 
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
@@ -155,11 +156,11 @@ export function AdminExecutionsPage() {
                 </TableCell>
                 <TableCell>{execution.usage}</TableCell>
                 <TableCell className="text-muted-foreground">
-                  {new Date(execution.startedAt).toLocaleString()}
+                  {formatDate(execution.startedAt)}
                 </TableCell>
                 <TableCell className="text-muted-foreground">
                   {execution.endedAt
-                    ? new Date(execution.endedAt).toLocaleString()
+                    ? formatDate(execution.endedAt)
                     : "-"}
                 </TableCell>
               </TableRow>

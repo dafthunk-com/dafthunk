@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link, useParams } from "react-router";
 
+import { formatDate } from "@/utils/date";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
@@ -100,7 +101,7 @@ export function AdminOrganizationDetailPage() {
               </div>
               <div>
                 <div className="text-muted-foreground">Created</div>
-                <div>{new Date(organization.createdAt).toLocaleString()}</div>
+                <div>{formatDate(organization.createdAt)}</div>
               </div>
               <div>
                 <div className="text-muted-foreground">Compute Credits</div>
@@ -141,9 +142,7 @@ export function AdminOrganizationDetailPage() {
                 <div className="text-muted-foreground">Period Start</div>
                 <div>
                   {organization.currentPeriodStart
-                    ? new Date(
-                        organization.currentPeriodStart
-                      ).toLocaleDateString()
+                    ? formatDate(organization.currentPeriodStart)
                     : "-"}
                 </div>
               </div>
@@ -151,9 +150,7 @@ export function AdminOrganizationDetailPage() {
                 <div className="text-muted-foreground">Period End</div>
                 <div>
                   {organization.currentPeriodEnd
-                    ? new Date(
-                        organization.currentPeriodEnd
-                      ).toLocaleDateString()
+                    ? formatDate(organization.currentPeriodEnd)
                     : "-"}
                 </div>
               </div>
@@ -218,7 +215,7 @@ export function AdminOrganizationDetailPage() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {new Date(member.joinedAt).toLocaleDateString()}
+                      {formatDate(member.joinedAt)}
                     </TableCell>
                     <TableCell>
                       <Button variant="ghost" size="sm" asChild>

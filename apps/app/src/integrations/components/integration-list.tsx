@@ -1,6 +1,6 @@
 import type { Integration } from "@dafthunk/types";
 import type { ColumnDef } from "@tanstack/react-table";
-import { format } from "date-fns";
+import { formatDate } from "@/utils/date";
 
 import { DataTable } from "@/components/ui/data-table";
 
@@ -37,7 +37,7 @@ export function IntegrationList({
       header: "Created",
       cell: ({ row }) => {
         const date = row.getValue("createdAt") as Date;
-        return <div>{format(date, "MMM d, yyyy")}</div>;
+        return <div>{formatDate(date)}</div>;
       },
     },
     {

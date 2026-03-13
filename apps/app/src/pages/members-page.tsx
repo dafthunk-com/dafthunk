@@ -1,6 +1,6 @@
 import type { Invitation } from "@dafthunk/types";
 import type { ColumnDef } from "@tanstack/react-table";
-import { format } from "date-fns";
+import { formatDate } from "@/utils/date";
 import Clock from "lucide-react/icons/clock";
 import MoreHorizontal from "lucide-react/icons/more-horizontal";
 import PlusCircle from "lucide-react/icons/plus-circle";
@@ -105,7 +105,7 @@ const invitationColumns: ColumnDef<Invitation>[] = [
       const isExpired = date < now;
       return (
         <div className={isExpired ? "text-red-500" : ""}>
-          {format(date, "MMM d, yyyy")}
+          {formatDate(date)}
         </div>
       );
     },
@@ -223,7 +223,7 @@ const columns: ColumnDef<{
     header: "Joined",
     cell: ({ row }) => {
       const date = row.getValue("createdAt") as Date;
-      return <div>{format(date, "MMM d, yyyy")}</div>;
+      return <div>{formatDate(date)}</div>;
     },
   },
   {

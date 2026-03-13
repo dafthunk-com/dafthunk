@@ -1,6 +1,6 @@
 import type { UserInvitation } from "@dafthunk/types";
 import type { ColumnDef } from "@tanstack/react-table";
-import { format } from "date-fns";
+import { formatDate } from "@/utils/date";
 import Check from "lucide-react/icons/check";
 import X from "lucide-react/icons/x";
 import { useCallback, useEffect, useState } from "react";
@@ -66,7 +66,7 @@ const invitationColumns: ColumnDef<UserInvitation>[] = [
     header: "Expires",
     cell: ({ row }) => {
       const date = new Date(row.getValue("expiresAt"));
-      return <div>{format(date, "MMM d, yyyy")}</div>;
+      return <div>{formatDate(date)}</div>;
     },
   },
   {
