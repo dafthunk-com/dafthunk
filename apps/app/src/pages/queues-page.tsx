@@ -54,14 +54,6 @@ function createColumns(
       },
     },
     {
-      accessorKey: "id",
-      header: "ID",
-      cell: ({ row }) => {
-        const id = row.original.id;
-        return <span className="text-sm text-muted-foreground">{id}</span>;
-      },
-    },
-    {
       id: "endpoint",
       header: "Endpoint",
       cell: ({ row }) => {

@@ -231,21 +231,6 @@ function createColumns(
       },
     },
     {
-      accessorKey: "id",
-      header: "ID",
-      cell: ({ row }) => {
-        const id = row.original.id;
-        return (
-          <Link
-            to={getOrgUrl(`workflows/${id}`)}
-            className="font-mono text-xs hover:underline"
-          >
-            {id}
-          </Link>
-        );
-      },
-    },
-    {
       accessorKey: "trigger",
       header: "Trigger",
       cell: ({ row }) => {
