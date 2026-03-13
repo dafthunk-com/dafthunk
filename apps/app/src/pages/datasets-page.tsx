@@ -122,21 +122,6 @@ function createColumns(
       },
     },
     {
-      accessorKey: "id",
-      header: "ID",
-      cell: ({ row }) => {
-        const id = row.original.id;
-        return (
-          <Link
-            to={getOrgUrl(`datasets/${id}`)}
-            className="font-mono text-xs hover:underline"
-          >
-            {id}
-          </Link>
-        );
-      },
-    },
-    {
       id: "actions",
       cell: ({ row }) => {
         const dataset = row.original;
