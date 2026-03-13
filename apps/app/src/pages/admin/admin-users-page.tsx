@@ -1,8 +1,6 @@
 import Search from "lucide-react/icons/search";
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
-
-import { formatDate } from "@/utils/date";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
@@ -20,6 +18,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useAdminUsers } from "@/services/admin-service";
+import { formatDate } from "@/utils/date";
 
 export function AdminUsersPage() {
   const [page, setPage] = useState(1);

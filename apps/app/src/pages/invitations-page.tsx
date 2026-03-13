@@ -1,11 +1,9 @@
 import type { UserInvitation } from "@dafthunk/types";
 import type { ColumnDef } from "@tanstack/react-table";
-import { formatDate } from "@/utils/date";
 import Check from "lucide-react/icons/check";
 import X from "lucide-react/icons/x";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import {
@@ -29,6 +27,7 @@ import {
   useOrganizations,
   useUserInvitations,
 } from "@/services/organizations-service";
+import { formatDate } from "@/utils/date";
 
 const getRoleBadgeVariant = (role: string) => {
   switch (role) {

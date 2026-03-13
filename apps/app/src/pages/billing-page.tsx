@@ -1,4 +1,3 @@
-import { formatDate } from "@/utils/date";
 import CreditCard from "lucide-react/icons/credit-card";
 import ExternalLink from "lucide-react/icons/external-link";
 import Pencil from "lucide-react/icons/pencil";
@@ -7,7 +6,6 @@ import X from "lucide-react/icons/x";
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router";
 import { toast } from "sonner";
-
 import { useAuth } from "@/components/auth-context";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
@@ -29,6 +27,7 @@ import {
   updateOverageLimit,
   useBilling,
 } from "@/services/billing-service";
+import { formatDate } from "@/utils/date";
 
 export function BillingPage() {
   const { setBreadcrumbs } = usePageBreadcrumbs([]);

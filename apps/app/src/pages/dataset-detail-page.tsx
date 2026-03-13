@@ -1,9 +1,7 @@
 import { DatasetFile } from "@dafthunk/types";
-import { formatDate } from "@/utils/date";
 import { useEffect, useRef } from "react";
 import { useParams } from "react-router";
 import { toast } from "sonner";
-
 import { useAuth } from "@/components/auth-context";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
@@ -18,6 +16,7 @@ import {
   useDataset,
   useDatasetFiles,
 } from "@/services/dataset-service";
+import { formatDate } from "@/utils/date";
 
 export function DatasetDetailPage() {
   const { datasetId } = useParams<{ datasetId: string }>();
@@ -162,17 +161,13 @@ export function DatasetDetailPage() {
             </div>
             <div>
               <span className="text-sm text-muted-foreground">Created:</span>
-              <p className="font-medium">
-                {formatDate(dataset.createdAt)}
-              </p>
+              <p className="font-medium">{formatDate(dataset.createdAt)}</p>
             </div>
             <div>
               <span className="text-sm text-muted-foreground">
                 Last Updated:
               </span>
-              <p className="font-medium">
-                {formatDate(dataset.updatedAt)}
-              </p>
+              <p className="font-medium">{formatDate(dataset.updatedAt)}</p>
             </div>
           </div>
         </div>

@@ -1,7 +1,5 @@
 import { ChevronDownIcon } from "lucide-react";
-import { formatDate } from "@/utils/date";
 import { useState } from "react";
-
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
@@ -18,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { formatDate } from "@/utils/date";
 import { cn } from "@/utils/utils";
 
 import { ClearButton } from "./clear-button";

@@ -3,12 +3,10 @@ import type {
   WorkflowExecution,
 } from "@dafthunk/types";
 import { ColumnDef } from "@tanstack/react-table";
-import { formatDate } from "@/utils/date";
 import MoreHorizontal from "lucide-react/icons/more-horizontal";
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { toast } from "sonner";
-
 import { ExecutionStatusBadge } from "@/components/executions/execution-status-badge";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
@@ -25,6 +23,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { usePaginatedExecutions } from "@/services/execution-service";
+import { formatDate } from "@/utils/date";
 
 export const createColumns = (
   getOrgUrl: (path: string) => string

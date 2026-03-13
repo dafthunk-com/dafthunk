@@ -1,6 +1,5 @@
 import type { Invitation } from "@dafthunk/types";
 import type { ColumnDef } from "@tanstack/react-table";
-import { formatDate } from "@/utils/date";
 import Clock from "lucide-react/icons/clock";
 import MoreHorizontal from "lucide-react/icons/more-horizontal";
 import PlusCircle from "lucide-react/icons/plus-circle";
@@ -8,7 +7,6 @@ import X from "lucide-react/icons/x";
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router";
 import { toast } from "sonner";
-
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
@@ -53,6 +51,7 @@ import {
   useInvitations,
   useMemberships,
 } from "@/services/organizations-service";
+import { formatDate } from "@/utils/date";
 
 const getRoleBadgeVariant = (role: string) => {
   switch (role) {

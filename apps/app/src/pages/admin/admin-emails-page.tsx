@@ -1,8 +1,6 @@
 import Search from "lucide-react/icons/search";
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router";
-
-import { formatDate } from "@/utils/date";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
@@ -18,6 +16,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useAdminEmails } from "@/services/admin-service";
+import { formatDate } from "@/utils/date";
 
 export function AdminEmailsPage() {
   const [searchParams, setSearchParams] = useSearchParams();

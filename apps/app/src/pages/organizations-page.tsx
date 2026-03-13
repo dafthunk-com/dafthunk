@@ -1,11 +1,9 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { formatDate } from "@/utils/date";
 import MoreHorizontal from "lucide-react/icons/more-horizontal";
 import PlusCircle from "lucide-react/icons/plus-circle";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
-
 import { useAuth } from "@/components/auth-context";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
@@ -38,6 +36,7 @@ import {
   useMemberships,
   useOrganizations,
 } from "@/services/organizations-service";
+import { formatDate } from "@/utils/date";
 
 function ActionsCell({
   organizationId,

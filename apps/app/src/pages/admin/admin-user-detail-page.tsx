@@ -1,8 +1,6 @@
 import Github from "lucide-react/icons/github";
 import { useEffect } from "react";
 import { Link, useParams } from "react-router";
-
-import { formatDate } from "@/utils/date";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
@@ -26,6 +24,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useAdminUserDetail } from "@/services/admin-service";
+import { formatDate } from "@/utils/date";
 
 export function AdminUserDetailPage() {
   const { userId } = useParams<{ userId: string }>();

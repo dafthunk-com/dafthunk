@@ -1,7 +1,5 @@
 import { useEffect } from "react";
 import { Link, useParams } from "react-router";
-
-import { formatDate } from "@/utils/date";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
@@ -28,6 +26,7 @@ import {
   useAdminOrganizationDetail,
   useAdminOrganizationEntityCounts,
 } from "@/services/admin-service";
+import { formatDate } from "@/utils/date";
 
 export function AdminOrganizationDetailPage() {
   const { organizationId } = useParams<{ organizationId: string }>();

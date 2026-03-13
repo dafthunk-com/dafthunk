@@ -1,12 +1,10 @@
 import { ApiKey } from "@dafthunk/types";
 import { ColumnDef } from "@tanstack/react-table";
-import { formatDate } from "@/utils/date";
 import Copy from "lucide-react/icons/copy";
 import MoreHorizontal from "lucide-react/icons/more-horizontal";
 import PlusCircle from "lucide-react/icons/plus-circle";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-
 import { useAuth } from "@/components/auth-context";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
@@ -38,6 +36,7 @@ import {
   rollApiKey,
   useApiKeys,
 } from "@/services/api-keys-service";
+import { formatDate } from "@/utils/date";
 
 const columns: ColumnDef<ApiKey>[] = [
   {
