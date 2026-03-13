@@ -16,7 +16,6 @@ export function testStatusComputation(
       const workflow: Workflow = {
         id: "test-workflow-status-executing",
         name: "Status Executing",
-        handle: "status-executing",
         trigger: "manual",
         nodes: [
           {
@@ -58,7 +57,6 @@ export function testStatusComputation(
       const workflow: Workflow = {
         id: "test-workflow-status-completed",
         name: "Status Completed",
-        handle: "status-completed",
         trigger: "manual",
         nodes: [
           {
@@ -92,7 +90,6 @@ export function testStatusComputation(
       const workflow: Workflow = {
         id: "test-workflow-status-error",
         name: "Status Error",
-        handle: "status-error",
         trigger: "manual",
         nodes: [
           {
@@ -162,7 +159,6 @@ export function testStatusComputation(
       const workflow: Workflow = {
         id: "test-workflow-status-conditional-skip",
         name: "Status Conditional Skip",
-        handle: "status-conditional-skip",
         trigger: "manual",
         nodes: [
           {
@@ -289,7 +285,6 @@ export function testStatusComputation(
       const workflow: Workflow = {
         id: "test-workflow-status-mixed",
         name: "Status Mixed",
-        handle: "status-mixed",
         trigger: "manual",
         nodes: [
           {

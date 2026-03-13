@@ -16,7 +16,6 @@ export function testMonitoringUpdates(
       const workflow: Workflow = {
         id: "test-workflow-monitor-initial",
         name: "Monitor Initial",
-        handle: "monitor-initial",
         trigger: "manual",
         nodes: [
           {
@@ -49,7 +48,6 @@ export function testMonitoringUpdates(
       const workflow: Workflow = {
         id: "test-workflow-monitor-progress",
         name: "Monitor Progress",
-        handle: "monitor-progress",
         trigger: "manual",
         nodes: [
           {
@@ -123,7 +121,6 @@ export function testMonitoringUpdates(
       const workflow: Workflow = {
         id: "test-workflow-monitor-outputs",
         name: "Monitor Outputs",
-        handle: "monitor-outputs",
         trigger: "manual",
         nodes: [
           {
@@ -159,7 +156,6 @@ export function testMonitoringUpdates(
       const workflow: Workflow = {
         id: "test-workflow-monitor-errors",
         name: "Monitor Errors",
-        handle: "monitor-errors",
         trigger: "manual",
         nodes: [
           {
@@ -227,7 +223,6 @@ export function testMonitoringUpdates(
       const workflow: Workflow = {
         id: "test-workflow-final-completed",
         name: "Final Completed",
-        handle: "final-completed",
         trigger: "manual",
         nodes: [
           {
@@ -257,7 +252,6 @@ export function testMonitoringUpdates(
       const workflow: Workflow = {
         id: "test-workflow-final-error",
         name: "Final Error",
-        handle: "final-error",
         trigger: "manual",
         nodes: [
           {

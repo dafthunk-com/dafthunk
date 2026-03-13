@@ -1,7 +1,7 @@
 import { JWTTokenPayload, OrganizationInfo } from "@dafthunk/types";
 import { githubAuth } from "@hono/oauth-providers/github";
 import { googleAuth } from "@hono/oauth-providers/google";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { Context, Hono } from "hono";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { jwtVerify, SignJWT } from "jose";
@@ -221,27 +221,27 @@ export const jwtMiddleware = async (
   c.set("jwtPayload", payload);
 
   const db = createDatabase(c.env.DB);
-  const organizationIdOrHandleFromUrl = c.req.param("organizationIdOrHandle");
+  const organizationIdFromUrl = c.req.param("organizationId");
 
   let organizationId: string;
 
-  if (organizationIdOrHandleFromUrl) {
+  if (organizationIdFromUrl) {
     // Resolve organization from URL param
-    const userOrgs = await db
-      .select({ id: organizations.id, handle: organizations.handle })
-      .from(organizations)
-      .innerJoin(memberships, eq(memberships.organizationId, organizations.id))
-      .where(eq(memberships.userId, payload.sub));
+    const [membership] = await db
+      .select({ organizationId: memberships.organizationId })
+      .from(memberships)
+      .where(
+        and(
+          eq(memberships.userId, payload.sub),
+          eq(memberships.organizationId, organizationIdFromUrl)
+        )
+      );
 
-    const targetOrg = userOrgs.find(
-      (org) => org.handle === organizationIdOrHandleFromUrl
-    );
-
-    if (!targetOrg) {
+    if (!membership) {
       return c.json({ error: "Organization not found or access denied" }, 403);
     }
 
-    organizationId = targetOrg.id;
+    organizationId = membership.organizationId;
   } else {
     // Fallback to default org from token if no URL param
     if (!payload.organization?.id) {
@@ -291,11 +291,11 @@ export const apiKeyMiddleware = async (
   next: () => Promise<void>
 ) => {
   const authHeader = c.req.header("Authorization");
-  const organizationIdOrHandleFromUrl = c.req.param("organizationIdOrHandle");
+  const organizationIdFromUrl = c.req.param("organizationId");
 
-  if (!organizationIdOrHandleFromUrl) {
+  if (!organizationIdFromUrl) {
     // This should ideally not happen if routes are configured correctly
-    return c.json({ error: "Organization ID or handle missing from URL" }, 400);
+    return c.json({ error: "Organization ID missing from URL" }, 400);
   }
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -308,7 +308,7 @@ export const apiKeyMiddleware = async (
   const validatedOrganizationId = await verifyApiKey(
     db,
     apiKey,
-    organizationIdOrHandleFromUrl
+    organizationIdFromUrl
   );
 
   if (!validatedOrganizationId) {
@@ -330,14 +330,14 @@ export const apiKeyOrJwtMiddleware = async (
   next: () => Promise<void>
 ) => {
   const authHeader = c.req.header("Authorization");
-  const organizationIdOrHandleFromUrl = c.req.param("organizationIdOrHandle");
+  const organizationIdFromUrl = c.req.param("organizationId");
 
   // If Authorization header is present, try API key auth
   if (authHeader && authHeader.startsWith("Bearer ")) {
-    if (!organizationIdOrHandleFromUrl) {
+    if (!organizationIdFromUrl) {
       return c.json(
         {
-          error: "Organization ID or handle missing from URL for API key auth",
+          error: "Organization ID missing from URL for API key auth",
         },
         400
       );
@@ -441,7 +441,6 @@ auth.post("/refresh", async (c) => {
       organization: {
         id: orgResult.id,
         name: orgResult.name,
-        handle: orgResult.handle,
         role: "member", // TODO: get actual role
       },
     };
@@ -520,7 +519,6 @@ auth.get(
       const organizationInfo: OrganizationInfo = {
         id: savedOrganization.id,
         name: savedOrganization.name,
-        handle: savedOrganization.handle,
         role: OrganizationRole.OWNER,
       };
 
@@ -600,7 +598,6 @@ auth.get(
       const organizationInfo: OrganizationInfo = {
         id: savedOrganization.id,
         name: savedOrganization.name,
-        handle: savedOrganization.handle,
         role: OrganizationRole.OWNER,
       };
 

@@ -8,14 +8,12 @@ interface EndpointTriggerDialogProps {
   isOpen: boolean;
   onClose: (open: boolean) => void;
   endpointId: string | null;
-  orgHandle: string;
 }
 
 export function EndpointTriggerDialog({
   isOpen,
   onClose,
   endpointId,
-  orgHandle,
 }: EndpointTriggerDialogProps) {
   const { endpoint, isEndpointLoading } = useEndpoint(endpointId);
 
@@ -43,7 +41,6 @@ export function EndpointTriggerDialog({
           ) : (
             <EndpointSetupInfo
               mode={endpoint.mode as "webhook" | "request"}
-              orgHandle={orgHandle}
               endpointId={endpoint.id}
             />
           )}

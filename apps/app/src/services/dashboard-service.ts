@@ -32,17 +32,17 @@ interface UseUsage {
  */
 export const useDashboard = (): UseDashboard => {
   const { organization } = useAuth();
-  const orgHandle = organization?.handle;
+  const orgId = organization?.id;
 
-  // Create a unique SWR key that includes the organization handle
-  const swrKey = orgHandle ? `/${orgHandle}${DASHBOARD_API_ENDPOINT}` : null;
+  // Create a unique SWR key that includes the organization ID
+  const swrKey = orgId ? `/${orgId}${DASHBOARD_API_ENDPOINT}` : null;
 
   const { data, error, isLoading, mutate } = useSWR(
     swrKey,
-    swrKey && orgHandle
+    swrKey && orgId
       ? async () => {
           const response = await makeOrgRequest<DashboardStatsResponse>(
-            orgHandle,
+            orgId,
             DASHBOARD_API_ENDPOINT,
             ""
           );
@@ -64,17 +64,17 @@ export const useDashboard = (): UseDashboard => {
  */
 export const useUsage = (): UseUsage => {
   const { organization } = useAuth();
-  const orgHandle = organization?.handle;
+  const orgId = organization?.id;
 
-  // Create a unique SWR key that includes the organization handle
-  const swrKey = orgHandle ? `/${orgHandle}${USAGE_API_ENDPOINT}` : null;
+  // Create a unique SWR key that includes the organization ID
+  const swrKey = orgId ? `/${orgId}${USAGE_API_ENDPOINT}` : null;
 
   const { data, error, isLoading, mutate } = useSWR(
     swrKey,
-    swrKey && orgHandle
+    swrKey && orgId
       ? async () => {
           const response = await makeOrgRequest<UsageResponse>(
-            orgHandle,
+            orgId,
             USAGE_API_ENDPOINT,
             ""
           );

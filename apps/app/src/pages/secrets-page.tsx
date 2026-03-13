@@ -162,13 +162,13 @@ export function SecretsPage() {
       document.removeEventListener("deleteSecretTrigger", handleDeleteEvent);
       document.removeEventListener("editSecretTrigger", handleEditEvent);
     };
-  }, [organization?.handle]);
+  }, [organization?.id]);
 
   const handleDeleteSecret = useCallback(async (): Promise<void> => {
-    if (!secretToDelete || !organization?.handle) return;
+    if (!secretToDelete || !organization?.id) return;
     setIsProcessing(true);
     try {
-      await deleteSecret(secretToDelete, organization.handle);
+      await deleteSecret(secretToDelete, organization.id);
       toast.success("Secret deleted successfully");
       await mutateSecrets();
     } catch (error) {
@@ -179,14 +179,10 @@ export function SecretsPage() {
       setSecretToDelete(null);
       setIsProcessing(false);
     }
-  }, [secretToDelete, organization?.handle, mutateSecrets]);
+  }, [secretToDelete, organization?.id, mutateSecrets]);
 
   const handleCreateSecret = useCallback(async (): Promise<void> => {
-    if (
-      !newSecretName.trim() ||
-      !newSecretValue.trim() ||
-      !organization?.handle
-    ) {
+    if (!newSecretName.trim() || !newSecretValue.trim() || !organization?.id) {
       toast.error("Secret name and value are required");
       return;
     }
@@ -195,7 +191,7 @@ export function SecretsPage() {
       await createSecret(
         newSecretName.trim(),
         newSecretValue.trim(),
-        organization.handle
+        organization.id
       );
       setIsCreateDialogOpen(false);
       setNewSecretName("");
@@ -208,10 +204,10 @@ export function SecretsPage() {
     } finally {
       setIsProcessing(false);
     }
-  }, [newSecretName, newSecretValue, organization?.handle, mutateSecrets]);
+  }, [newSecretName, newSecretValue, organization?.id, mutateSecrets]);
 
   const handleUpdateSecret = useCallback(async (): Promise<void> => {
-    if (!editingSecret || !organization?.handle) return;
+    if (!editingSecret || !organization?.id) return;
 
     const updates: { name?: string; value?: string } = {};
     if (editSecretName.trim() !== editingSecret.name) {
@@ -228,7 +224,7 @@ export function SecretsPage() {
 
     setIsProcessing(true);
     try {
-      await updateSecret(editingSecret.id, updates, organization.handle);
+      await updateSecret(editingSecret.id, updates, organization.id);
       setIsEditDialogOpen(false);
       setEditingSecret(null);
       setEditSecretName("");
@@ -245,7 +241,7 @@ export function SecretsPage() {
     editingSecret,
     editSecretName,
     editSecretValue,
-    organization?.handle,
+    organization?.id,
     mutateSecrets,
   ]);
 

@@ -20,7 +20,7 @@ interface HttpWebhookIntegrationDialogProps {
   onClose: (open: boolean) => void;
   nodes: Node<WorkflowNodeType>[];
   nodeTypes: NodeType[];
-  orgHandle: string;
+  orgId: string;
   workflowId: string;
 }
 
@@ -68,13 +68,13 @@ export function HttpWebhookIntegrationDialog({
   onClose,
   nodes,
   nodeTypes,
-  orgHandle,
+  orgId,
   workflowId,
 }: HttpWebhookIntegrationDialogProps) {
   const baseUrl = getApiBaseUrl().replace(/\/$/, "");
-  const executeUrl = `${baseUrl}/${orgHandle}/workflows/${workflowId}/execute`;
-  const statusBaseUrl = `${baseUrl}/${orgHandle}/executions`;
-  const objectBaseUrl = `${baseUrl}/${orgHandle}/objects?id=YOUR_OBJECT_ID`;
+  const executeUrl = `${baseUrl}/${orgId}/workflows/${workflowId}/execute`;
+  const statusBaseUrl = `${baseUrl}/${orgId}/executions`;
+  const objectBaseUrl = `${baseUrl}/${orgId}/objects?id=YOUR_OBJECT_ID`;
 
   const parameters = extractDialogParametersFromNodes(nodes, nodeTypes);
   const jsonBodyParam = parameters.find((p) => p.type === "body-json");

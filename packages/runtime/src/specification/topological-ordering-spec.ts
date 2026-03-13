@@ -19,7 +19,6 @@ export function testTopologicalOrdering(
       const workflow: Workflow = {
         id: "test-workflow-order-linear",
         name: "Linear Order",
-        handle: "order-linear",
         trigger: "manual",
         nodes: [
           {
@@ -87,7 +86,6 @@ export function testTopologicalOrdering(
       const workflow: Workflow = {
         id: "test-workflow-diamond",
         name: "Diamond Pattern",
-        handle: "diamond",
         trigger: "manual",
         nodes: [
           {
@@ -174,7 +172,6 @@ export function testTopologicalOrdering(
       const workflow: Workflow = {
         id: "test-workflow-complex",
         name: "Complex Dependencies",
-        handle: "complex-deps",
         trigger: "manual",
         nodes: [
           {

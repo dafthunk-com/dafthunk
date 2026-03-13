@@ -24,16 +24,16 @@ interface UseBilling {
  */
 export const useBilling = (): UseBilling => {
   const { organization } = useAuth();
-  const orgHandle = organization?.handle;
+  const orgId = organization?.id;
 
-  const swrKey = orgHandle ? `/${orgHandle}${API_ENDPOINT_BASE}` : null;
+  const swrKey = orgId ? `/${orgId}${API_ENDPOINT_BASE}` : null;
 
   const { data, error, isLoading, mutate } = useSWR(
     swrKey,
-    swrKey && orgHandle
+    swrKey && orgId
       ? async () => {
           const response = await makeOrgRequest<GetBillingResponse>(
-            orgHandle,
+            orgId,
             API_ENDPOINT_BASE,
             ""
           );
@@ -54,12 +54,12 @@ export const useBilling = (): UseBilling => {
  * Create a checkout session for upgrading to Pro plan
  */
 export const createCheckoutSession = async (
-  orgHandle: string,
+  orgId: string,
   successUrl: string,
   cancelUrl: string
 ): Promise<string> => {
   const response = await makeOrgRequest<CreateCheckoutSessionResponse>(
-    orgHandle,
+    orgId,
     API_ENDPOINT_BASE,
     "/checkout",
     {
@@ -75,11 +75,11 @@ export const createCheckoutSession = async (
  * Create a billing portal session for managing subscription
  */
 export const createBillingPortal = async (
-  orgHandle: string,
+  orgId: string,
   returnUrl: string
 ): Promise<string> => {
   const response = await makeOrgRequest<CreateBillingPortalResponse>(
-    orgHandle,
+    orgId,
     API_ENDPOINT_BASE,
     "/portal",
     {
@@ -96,11 +96,11 @@ export const createBillingPortal = async (
  * @param overageLimit - The new limit, or null for unlimited
  */
 export const updateOverageLimit = async (
-  orgHandle: string,
+  orgId: string,
   overageLimit: number | null
 ): Promise<number | null> => {
   const response = await makeOrgRequest<UpdateOverageLimitResponse>(
-    orgHandle,
+    orgId,
     API_ENDPOINT_BASE,
     "/overage-limit",
     {

@@ -39,17 +39,17 @@ import {
 function useDatasetActions() {
   const { mutateDatasets } = useDatasets();
   const { organization } = useAuth();
-  const orgHandle = organization?.handle || "";
+  const orgId = organization?.id || "";
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [datasetToDelete, setDatasetToDelete] = useState<any | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDeleteDataset = async () => {
-    if (!datasetToDelete || !orgHandle) return;
+    if (!datasetToDelete || !orgId) return;
     setIsDeleting(true);
     try {
-      await deleteDataset(datasetToDelete.id, orgHandle);
+      await deleteDataset(datasetToDelete.id, orgId);
       setDeleteDialogOpen(false);
       setDatasetToDelete(null);
       mutateDatasets();
@@ -122,17 +122,16 @@ function createColumns(
       },
     },
     {
-      accessorKey: "handle",
-      header: "Handle",
+      accessorKey: "id",
+      header: "ID",
       cell: ({ row }) => {
-        const handle = row.original.handle;
-        const datasetId = row.original.id;
+        const id = row.original.id;
         return (
           <Link
-            to={getOrgUrl(`datasets/${datasetId}`)}
+            to={getOrgUrl(`datasets/${id}`)}
             className="font-mono text-xs hover:underline"
           >
-            {handle}
+            {id}
           </Link>
         );
       },
@@ -173,7 +172,7 @@ export function DatasetsPage() {
   const navigate = useNavigate();
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const { organization } = useAuth();
-  const orgHandle = organization?.handle || "";
+  const orgId = organization?.id || "";
   const { getOrgUrl } = useOrgUrl();
 
   const { datasets, datasetsError, isDatasetsLoading, mutateDatasets } =
@@ -188,10 +187,10 @@ export function DatasetsPage() {
   }, [setBreadcrumbs]);
 
   const handleCreateDataset = async (name: string) => {
-    if (!orgHandle) return;
+    if (!orgId) return;
 
     try {
-      const newDataset = await createDataset({ name }, orgHandle);
+      const newDataset = await createDataset({ name }, orgId);
       mutateDatasets();
       navigate(getOrgUrl(`datasets/${newDataset.id}`));
     } catch (error) {

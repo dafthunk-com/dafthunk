@@ -40,7 +40,7 @@ export class WorkflowWebSocket {
   private currentState: WorkflowState | null = null;
 
   constructor(
-    private orgHandle: string,
+    private orgId: string,
     private workflowId: string,
     private options: WorkflowWSOptions = {}
   ) {}
@@ -52,7 +52,7 @@ export class WorkflowWebSocket {
 
     const apiBaseUrl = getApiBaseUrl();
     const wsBaseUrl = apiBaseUrl.replace(/^http/, "ws");
-    const url = `${wsBaseUrl}/${this.orgHandle}/ws/${this.workflowId}`;
+    const url = `${wsBaseUrl}/${this.orgId}/ws/${this.workflowId}`;
 
     try {
       this.ws = new WebSocket(url);
@@ -298,11 +298,11 @@ export class WorkflowWebSocket {
 }
 
 export const connectWorkflowWS = (
-  orgHandle: string,
+  orgId: string,
   workflowId: string,
   options: WorkflowWSOptions = {}
 ): WorkflowWebSocket => {
-  const ws = new WorkflowWebSocket(orgHandle, workflowId, options);
+  const ws = new WorkflowWebSocket(orgId, workflowId, options);
   ws.connect();
   return ws;
 };

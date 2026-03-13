@@ -10,7 +10,6 @@ export interface CreateOrganizationResponse {
   organization: {
     id: string;
     name: string;
-    handle: string;
     createdAt: Date;
     updatedAt: Date;
   };
@@ -24,7 +23,6 @@ export interface ListOrganizationsResponse {
   organizations: Array<{
     id: string;
     name: string;
-    handle: string;
     createdAt: Date;
     updatedAt: Date;
   }>;
@@ -125,7 +123,6 @@ export interface UserInvitation {
   organization: {
     id: string;
     name: string;
-    handle: string;
   };
   inviter: {
     id: string;

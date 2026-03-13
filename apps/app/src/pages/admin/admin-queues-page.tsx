@@ -60,7 +60,7 @@ export function AdminQueuesPage() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by name or handle..."
+            placeholder="Search by name..."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             className="pl-8"
@@ -112,7 +112,7 @@ export function AdminQueuesPage() {
                   <div>
                     <div className="font-medium">{queue.name}</div>
                     <div className="text-xs text-muted-foreground font-mono">
-                      {queue.handle}
+                      {queue.id}
                     </div>
                   </div>
                 </TableCell>

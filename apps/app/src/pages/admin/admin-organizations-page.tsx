@@ -63,7 +63,7 @@ export function AdminOrganizationsPage() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by name or handle..."
+            placeholder="Search by name..."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             className="pl-8"
@@ -92,7 +92,7 @@ export function AdminOrganizationsPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
-              <TableHead>Handle</TableHead>
+              <TableHead>ID</TableHead>
               <TableHead>Members</TableHead>
               <TableHead>Workflows</TableHead>
               <TableHead>Credits</TableHead>
@@ -106,7 +106,7 @@ export function AdminOrganizationsPage() {
               <TableRow key={org.id}>
                 <TableCell className="font-medium">{org.name}</TableCell>
                 <TableCell className="text-muted-foreground font-mono text-sm">
-                  {org.handle}
+                  {org.id}
                 </TableCell>
                 <TableCell>{org.memberCount}</TableCell>
                 <TableCell>{org.workflowCount}</TableCell>

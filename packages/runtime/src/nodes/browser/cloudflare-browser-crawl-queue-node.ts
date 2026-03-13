@@ -154,11 +154,11 @@ See [Cloudflare Browser Rendering Crawl Endpoint](https://developers.cloudflare.
     const startTime = Date.now();
 
     try {
-      const { url, queueId: queueIdOrHandle } = context.inputs;
+      const { url, queueId } = context.inputs;
       if (!url || typeof url !== "string") {
         return this.createErrorResult("'url' is required.");
       }
-      if (!queueIdOrHandle) {
+      if (!queueId) {
         return this.createErrorResult("'queueId' is required.");
       }
 
@@ -174,12 +174,12 @@ See [Cloudflare Browser Rendering Crawl Endpoint](https://developers.cloudflare.
       }
 
       const queue = await context.queueService.resolve(
-        queueIdOrHandle,
+        queueId,
         context.organizationId
       );
       if (!queue) {
         return this.createErrorResult(
-          `Queue '${queueIdOrHandle}' not found or does not belong to your organization.`
+          `Queue '${queueId}' not found or does not belong to your organization.`
         );
       }
 

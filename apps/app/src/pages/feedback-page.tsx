@@ -190,16 +190,16 @@ export function FeedbackPage() {
   }, [workflowId]);
 
   const handleExport = useCallback(async () => {
-    if (!organization?.handle) return;
+    if (!organization?.id) return;
     setIsExporting(true);
     try {
-      await exportFeedbackCsv(organization.handle, filters);
+      await exportFeedbackCsv(organization.id, filters);
     } catch {
       toast.error("Failed to export feedback");
     } finally {
       setIsExporting(false);
     }
-  }, [organization?.handle, filters]);
+  }, [organization?.id, filters]);
 
   if (isFeedbackInitialLoading) {
     return <InsetLoading title="Feedback" />;

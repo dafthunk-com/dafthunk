@@ -1,5 +1,5 @@
 import { zValidator } from "@hono/zod-validator";
-import { desc, eq, like, or, sql } from "drizzle-orm";
+import { desc, eq, like, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { z } from "zod";
 
@@ -35,12 +35,7 @@ adminWorkflowsRoutes.get(
       const conditions = [];
 
       if (search) {
-        conditions.push(
-          or(
-            like(workflows.name, `%${search}%`),
-            like(workflows.handle, `%${search}%`)
-          )
-        );
+        conditions.push(like(workflows.name, `%${search}%`));
       }
 
       if (organizationId) {
@@ -63,13 +58,11 @@ adminWorkflowsRoutes.get(
         .select({
           id: workflows.id,
           name: workflows.name,
-          handle: workflows.handle,
           description: workflows.description,
           trigger: workflows.trigger,
           runtime: workflows.runtime,
           organizationId: workflows.organizationId,
           organizationName: organizations.name,
-          organizationHandle: organizations.handle,
           enabled: workflows.enabled,
           createdAt: workflows.createdAt,
           updatedAt: workflows.updatedAt,
@@ -115,13 +108,11 @@ adminWorkflowsRoutes.get("/:id", async (c) => {
       .select({
         id: workflows.id,
         name: workflows.name,
-        handle: workflows.handle,
         description: workflows.description,
         trigger: workflows.trigger,
         runtime: workflows.runtime,
         organizationId: workflows.organizationId,
         organizationName: organizations.name,
-        organizationHandle: organizations.handle,
         enabled: workflows.enabled,
         createdAt: workflows.createdAt,
         updatedAt: workflows.updatedAt,
@@ -175,7 +166,6 @@ adminWorkflowsRoutes.get(
         id: workflow.id,
         name: workflow.name,
         description: workflow.description,
-        handle: workflow.handle,
         trigger: workflow.trigger,
         runtime: workflow.runtime,
         nodes: workflow.data.nodes || [],

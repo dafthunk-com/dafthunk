@@ -1,5 +1,5 @@
 import { zValidator } from "@hono/zod-validator";
-import { count, desc, eq, like, or, sql } from "drizzle-orm";
+import { count, desc, eq, like, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { z } from "zod";
 
@@ -41,10 +41,7 @@ adminOrganizationsRoutes.get(
     try {
       // Build where clause for search
       const whereClause = search
-        ? or(
-            like(organizations.name, `%${search}%`),
-            like(organizations.handle, `%${search}%`)
-          )
+        ? like(organizations.name, `%${search}%`)
         : undefined;
 
       // Get total count
@@ -58,7 +55,6 @@ adminOrganizationsRoutes.get(
         .select({
           id: organizations.id,
           name: organizations.name,
-          handle: organizations.handle,
           computeCredits: organizations.computeCredits,
           subscriptionStatus: organizations.subscriptionStatus,
           createdAt: organizations.createdAt,
@@ -132,7 +128,6 @@ adminOrganizationsRoutes.get("/:id", async (c) => {
       organization: {
         id: organization.id,
         name: organization.name,
-        handle: organization.handle,
         computeCredits: organization.computeCredits,
         stripeCustomerId: organization.stripeCustomerId,
         stripeSubscriptionId: organization.stripeSubscriptionId,

@@ -27,7 +27,7 @@ export interface DatabaseService {
    * database is not found or access is denied.
    */
   resolve(
-    databaseIdOrHandle: string,
+    databaseId: string,
     organizationId: string
   ): Promise<DatabaseConnection | undefined>;
 }

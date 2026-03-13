@@ -47,7 +47,6 @@ import {
 interface EndpointRow {
   id: string;
   name: string;
-  handle: string;
   mode: EndpointMode;
   createdAt: Date;
   updatedAt: Date;
@@ -70,11 +69,11 @@ function createColumns(
       },
     },
     {
-      accessorKey: "handle",
-      header: "Handle",
+      accessorKey: "id",
+      header: "ID",
       cell: ({ row }) => {
-        const handle = row.original.handle;
-        return <span className="text-sm text-muted-foreground">{handle}</span>;
+        const id = row.original.id;
+        return <span className="text-sm text-muted-foreground">{id}</span>;
       },
     },
     {
@@ -141,7 +140,7 @@ export function EndpointsPage() {
 
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const { organization } = useAuth();
-  const orgHandle = organization?.handle || "";
+  const orgId = organization?.id || "";
 
   const { endpoints, endpointsError, isEndpointsLoading, mutateEndpoints } =
     useEndpoints();
@@ -168,10 +167,10 @@ export function EndpointsPage() {
   };
 
   const handleDeleteEndpoint = async () => {
-    if (!endpointToDelete || !orgHandle) return;
+    if (!endpointToDelete || !orgId) return;
     setIsDeleting(true);
     try {
-      await deleteEndpoint(endpointToDelete.id, orgHandle);
+      await deleteEndpoint(endpointToDelete.id, orgId);
       setDeleteDialogOpen(false);
       setEndpointToDelete(null);
       mutateEndpoints();
@@ -181,13 +180,13 @@ export function EndpointsPage() {
   };
 
   const handleEditEndpoint = async () => {
-    if (!endpointToEdit || !orgHandle || editName.trim() === "") return;
+    if (!endpointToEdit || !orgId || editName.trim() === "") return;
     setIsEditing(true);
     try {
       await updateEndpoint(
         endpointToEdit.id,
         { name: editName.trim(), mode: editMode },
-        orgHandle
+        orgId
       );
       setEditDialogOpen(false);
       setEndpointToEdit(null);
@@ -247,9 +246,8 @@ export function EndpointsPage() {
             isOpen={snippetsDialogOpen}
             onClose={() => setSnippetsDialogOpen(false)}
             endpointName={endpointForSnippets.name}
-            endpointHandle={endpointForSnippets.handle}
+            endpointId={endpointForSnippets.id}
             endpointMode={endpointForSnippets.mode}
-            orgHandle={orgHandle}
           />
         )}
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>

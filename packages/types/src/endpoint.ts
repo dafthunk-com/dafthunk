@@ -9,7 +9,7 @@ export interface CreateEndpointRequest {
 export interface CreateEndpointResponse {
   id: string;
   name: string;
-  handle: string;
+
   mode: EndpointMode;
   createdAt: Date;
   updatedAt: Date;
@@ -18,7 +18,7 @@ export interface CreateEndpointResponse {
 export interface GetEndpointResponse {
   id: string;
   name: string;
-  handle: string;
+
   mode: EndpointMode;
   createdAt: Date;
   updatedAt: Date;
@@ -28,7 +28,7 @@ export interface ListEndpointsResponse {
   endpoints: {
     id: string;
     name: string;
-    handle: string;
+
     mode: EndpointMode;
     createdAt: Date;
     updatedAt: Date;
@@ -43,7 +43,7 @@ export interface UpdateEndpointRequest {
 export interface UpdateEndpointResponse {
   id: string;
   name: string;
-  handle: string;
+
   mode: EndpointMode;
   createdAt: Date;
   updatedAt: Date;

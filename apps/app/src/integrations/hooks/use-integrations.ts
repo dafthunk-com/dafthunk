@@ -18,16 +18,16 @@ interface UseIntegrationsResult {
  */
 export function useIntegrations(): UseIntegrationsResult {
   const { organization } = useAuth();
-  const orgHandle = organization?.handle;
+  const orgId = organization?.id;
 
-  const swrKey = orgHandle ? `/${orgHandle}${API_ENDPOINT}` : null;
+  const swrKey = orgId ? `/${orgId}${API_ENDPOINT}` : null;
 
   const { data, error, isLoading, mutate } = useSWR(
     swrKey,
-    swrKey && orgHandle
+    swrKey && orgId
       ? async () => {
           const response = await makeOrgRequest<ListIntegrationsResponse>(
-            orgHandle,
+            orgId,
             API_ENDPOINT,
             ""
           );

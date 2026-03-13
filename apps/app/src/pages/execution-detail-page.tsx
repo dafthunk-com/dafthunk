@@ -27,7 +27,7 @@ export function ExecutionDetailPage() {
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const { getOrgUrl } = useOrgUrl();
   const { organization } = useAuth();
-  const orgHandle = organization?.handle || "";
+  const orgId = organization?.id || "";
 
   const {
     execution,
@@ -180,7 +180,7 @@ export function ExecutionDetailPage() {
               initialWorkflowExecution={workflowBuilderExecution}
               createObjectUrl={createObjectUrl}
               mode="readonly"
-              orgHandle={orgHandle}
+              orgId={orgId}
             />
           ) : (
             <div className="flex flex-col items-center justify-center h-full">

@@ -165,11 +165,11 @@ export const makeRequest = async <T>(
  * Make a request to the API with organization context
  */
 export const makeOrgRequest = async <T>(
-  orgHandle: string,
+  orgId: string,
   resourcePath: string,
   endpoint: string = "",
   options: RequestInit = {}
 ): Promise<T> => {
-  const fullEndpoint = `/${orgHandle}${resourcePath}${endpoint}`;
+  const fullEndpoint = `/${orgId}${resourcePath}${endpoint}`;
   return makeRequest<T>(fullEndpoint, options);
 };

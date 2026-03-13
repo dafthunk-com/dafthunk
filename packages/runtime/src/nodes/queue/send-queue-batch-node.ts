@@ -17,7 +17,7 @@ export class SendQueueBatchNode extends ExecutableNode {
       {
         name: "queueId",
         type: "queue",
-        description: "Queue ID or handle.",
+        description: "Queue ID.",
         required: true,
         hidden: true,
       },
@@ -48,10 +48,10 @@ export class SendQueueBatchNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { queueId: queueIdOrHandle, messages } = context.inputs;
+    const { queueId, messages } = context.inputs;
 
     // Validate required inputs
-    if (!queueIdOrHandle) {
+    if (!queueId) {
       return this.createErrorResult("'queueId' is a required input.");
     }
 
@@ -71,13 +71,13 @@ export class SendQueueBatchNode extends ExecutableNode {
 
     try {
       const queue = await context.queueService.resolve(
-        queueIdOrHandle,
+        queueId,
         context.organizationId
       );
 
       if (!queue) {
         return this.createErrorResult(
-          `Queue '${queueIdOrHandle}' not found or does not belong to your organization.`
+          `Queue '${queueId}' not found or does not belong to your organization.`
         );
       }
 

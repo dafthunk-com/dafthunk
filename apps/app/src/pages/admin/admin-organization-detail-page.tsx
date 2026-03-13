@@ -73,7 +73,7 @@ export function AdminOrganizationDetailPage() {
           <CardHeader>
             <CardTitle>{organization.name}</CardTitle>
             <CardDescription className="font-mono">
-              @{organization.handle}
+              @{organization.id}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">

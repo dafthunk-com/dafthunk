@@ -39,7 +39,7 @@ export function QueueTriggerDialog({
               <p>Select a queue to view publish endpoints.</p>
             </div>
           ) : (
-            <QueueSetupInfo handle={queue.handle} />
+            <QueueSetupInfo queueId={queue.id} />
           )}
         </div>
       </DialogContent>

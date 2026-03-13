@@ -63,7 +63,7 @@ export function useIntegrationActions(): IntegrationActionsResult {
       name: string,
       apiKey: string
     ): Promise<void> => {
-      if (!organization?.handle || !name || !apiKey) {
+      if (!organization?.id || !name || !apiKey) {
         return;
       }
 
@@ -76,7 +76,7 @@ export function useIntegrationActions(): IntegrationActionsResult {
         };
 
         await makeOrgRequest<CreateIntegrationResponse>(
-          organization.handle,
+          organization.id,
           API_ENDPOINT,
           "",
           {
@@ -95,17 +95,17 @@ export function useIntegrationActions(): IntegrationActionsResult {
         setIsProcessing(false);
       }
     },
-    [organization?.handle, mutate]
+    [organization?.id, mutate]
   );
 
   const deleteIntegration = useCallback(
     async (integrationId: string): Promise<void> => {
-      if (!organization?.handle) return;
+      if (!organization?.id) return;
 
       setIsProcessing(true);
       try {
         await makeOrgRequest<DeleteIntegrationResponse>(
-          organization.handle,
+          organization.id,
           API_ENDPOINT,
           `/${integrationId}`,
           {
@@ -123,7 +123,7 @@ export function useIntegrationActions(): IntegrationActionsResult {
         setIsProcessing(false);
       }
     },
-    [organization?.handle, mutate]
+    [organization?.id, mutate]
   );
 
   const updateIntegration = useCallback(
@@ -137,12 +137,12 @@ export function useIntegrationActions(): IntegrationActionsResult {
         metadata?: string;
       }
     ): Promise<void> => {
-      if (!organization?.handle) return;
+      if (!organization?.id) return;
 
       setIsProcessing(true);
       try {
         await makeOrgRequest<UpdateIntegrationResponse>(
-          organization.handle,
+          organization.id,
           API_ENDPOINT,
           `/${integrationId}`,
           {
@@ -161,7 +161,7 @@ export function useIntegrationActions(): IntegrationActionsResult {
         setIsProcessing(false);
       }
     },
-    [organization?.handle, mutate]
+    [organization?.id, mutate]
   );
 
   return {

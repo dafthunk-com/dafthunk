@@ -133,7 +133,7 @@ export function BotsPage() {
   const { organization } = useAuth();
   const { getOrgUrl } = useOrgUrl();
   const navigate = useNavigate();
-  const orgHandle = organization?.handle || "";
+  const orgId = organization?.id || "";
 
   const {
     discordBots,
@@ -179,14 +179,14 @@ export function BotsPage() {
   };
 
   const handleDeleteBot = async () => {
-    if (!botToDelete || !orgHandle) return;
+    if (!botToDelete || !orgId) return;
     setIsDeleting(true);
     try {
       if (botToDelete.type === "discord") {
-        await deleteDiscordBot(botToDelete.id, orgHandle);
+        await deleteDiscordBot(botToDelete.id, orgId);
         mutateDiscordBots();
       } else {
-        await deleteTelegramBot(botToDelete.id, orgHandle);
+        await deleteTelegramBot(botToDelete.id, orgId);
         mutateTelegramBots();
       }
       setDeleteDialogOpen(false);

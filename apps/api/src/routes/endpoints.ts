@@ -18,7 +18,6 @@ import { ApiContext } from "../context";
 import {
   createDatabase,
   createEndpoint,
-  createHandle,
   deleteEndpoint,
   getEndpoint,
   getEndpoints,
@@ -80,12 +79,10 @@ endpointRoutes.post(
 
     const endpointId = uuid();
     const endpointName = data.name || "Untitled Endpoint";
-    const endpointHandle = createHandle(endpointName);
 
     const newEndpoint = await createEndpoint(db, {
       id: endpointId,
       name: endpointName,
-      handle: endpointHandle,
       mode: data.mode,
       organizationId: organizationId,
       createdAt: now,
@@ -95,7 +92,6 @@ endpointRoutes.post(
     const response: CreateEndpointResponse = {
       id: newEndpoint.id,
       name: newEndpoint.name,
-      handle: newEndpoint.handle,
       mode: newEndpoint.mode,
       createdAt: newEndpoint.createdAt,
       updatedAt: newEndpoint.updatedAt,
@@ -121,7 +117,6 @@ endpointRoutes.get("/:id", async (c) => {
   const response: GetEndpointResponse = {
     id: endpoint.id,
     name: endpoint.name,
-    handle: endpoint.handle,
     mode: endpoint.mode,
     createdAt: endpoint.createdAt,
     updatedAt: endpoint.updatedAt,
@@ -164,7 +159,6 @@ endpointRoutes.put(
     const response: UpdateEndpointResponse = {
       id: updatedEndpoint.id,
       name: updatedEndpoint.name,
-      handle: updatedEndpoint.handle,
       mode: updatedEndpoint.mode,
       createdAt: updatedEndpoint.createdAt,
       updatedAt: updatedEndpoint.updatedAt,
@@ -271,7 +265,6 @@ endpointRoutes.on(
         workflow: {
           id: workflow.id,
           name: workflow.name,
-          handle: workflow.handle,
           trigger: workflowData.trigger,
           runtime: workflowData.runtime,
           nodes: workflowData.nodes,

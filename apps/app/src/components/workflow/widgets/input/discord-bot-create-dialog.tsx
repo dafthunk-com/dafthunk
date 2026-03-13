@@ -81,7 +81,7 @@ export function DiscordBotCreateDialog({
   };
 
   const handleSubmit = async () => {
-    if (!organization?.handle) return;
+    if (!organization?.id) return;
 
     setIsSubmitting(true);
     setError(null);
@@ -89,7 +89,7 @@ export function DiscordBotCreateDialog({
     try {
       const response = await createDiscordBot(
         { name, botToken, applicationId, publicKey },
-        organization.handle
+        organization.id
       );
       setCreatedBotId(response.id);
       setStep("webhook");

@@ -38,17 +38,17 @@ import {
 function useDatabaseActions() {
   const { mutateDatabases } = useDatabases();
   const { organization } = useAuth();
-  const orgHandle = organization?.handle || "";
+  const orgId = organization?.id || "";
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [databaseToDelete, setDatabaseToDelete] = useState<any | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDeleteDatabase = async () => {
-    if (!databaseToDelete || !orgHandle) return;
+    if (!databaseToDelete || !orgId) return;
     setIsDeleting(true);
     try {
-      await deleteDatabase(databaseToDelete.id, orgHandle);
+      await deleteDatabase(databaseToDelete.id, orgId);
       setDeleteDialogOpen(false);
       setDatabaseToDelete(null);
       mutateDatabases();
@@ -100,7 +100,7 @@ function useDatabaseActions() {
 
 function createColumns(
   openDeleteDialog: (database: any) => void,
-  orgHandle: string
+  orgId: string
 ): ColumnDef<any>[] {
   return [
     {
@@ -114,11 +114,11 @@ function createColumns(
       },
     },
     {
-      accessorKey: "handle",
-      header: "Handle",
+      accessorKey: "id",
+      header: "ID",
       cell: ({ row }) => {
-        const handle = row.original.handle;
-        return <span className="text-sm text-muted-foreground">{handle}</span>;
+        const id = row.original.id;
+        return <span className="text-sm text-muted-foreground">{id}</span>;
       },
     },
     {
@@ -136,9 +136,7 @@ function createColumns(
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem asChild>
-                  <Link
-                    to={`/org/${orgHandle}/databases/${database.id}/console`}
-                  >
+                  <Link to={`/org/${orgId}/databases/${database.id}/console`}>
                     Open Console
                   </Link>
                 </DropdownMenuItem>
@@ -158,24 +156,24 @@ export function DatabasesPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const { organization } = useAuth();
-  const orgHandle = organization?.handle || "";
+  const orgId = organization?.id || "";
 
   const { databases, databasesError, isDatabasesLoading, mutateDatabases } =
     useDatabases();
 
   const { deleteDialog, openDeleteDialog } = useDatabaseActions();
 
-  const columns = createColumns(openDeleteDialog, orgHandle);
+  const columns = createColumns(openDeleteDialog, orgId);
 
   useEffect(() => {
     setBreadcrumbs([{ label: "Databases" }]);
   }, [setBreadcrumbs]);
 
   const handleCreateDatabase = async (name: string) => {
-    if (!orgHandle) return;
+    if (!orgId) return;
 
     try {
-      await createDatabase({ name }, orgHandle);
+      await createDatabase({ name }, orgId);
       mutateDatabases();
       setIsCreateDialogOpen(false);
     } catch (error) {

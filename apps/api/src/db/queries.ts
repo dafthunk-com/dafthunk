@@ -74,33 +74,6 @@ import {
 } from "./index";
 
 /**
- * Generate a URL-friendly handle from a name with a random suffix
- *
- * @param name The name to convert into a handle
- * @param withRandomSuffix Whether to add a random suffix (default: true)
- * @returns A URL-friendly handle with a random suffix
- */
-export function createHandle(
-  name: string,
-  withRandomSuffix: boolean = true
-): string {
-  // Convert to lowercase and replace spaces with hyphens
-  const baseHandle = name.toLowerCase().replace(/\s+/g, "-");
-
-  // Replace any non-alphanumeric characters (except hyphens) with empty string
-  const cleanedHandle = baseHandle.replace(/[^a-z0-9-]/g, "");
-
-  // Add a random suffix if requested
-  if (withRandomSuffix) {
-    // Generate a random 6-character alphanumeric suffix
-    const randomSuffix = Math.random().toString(36).substring(2, 8);
-    return `${cleanedHandle}-${randomSuffix}`;
-  }
-
-  return cleanedHandle;
-}
-
-/**
  * Data required to save a user record
  */
 export type UserData = {
@@ -171,12 +144,9 @@ export async function saveUser(
   // 3. User doesn't exist, create a new user and organization
   const userId = uuidv7();
   const organizationId = uuidv7();
-  const handle = createHandle(name);
-
   const organization: OrganizationInsert = {
     id: organizationId,
     name: `Personal`,
-    handle,
     createdAt: now,
     updatedAt: now,
   };
@@ -216,83 +186,22 @@ export async function saveUser(
 }
 
 /**
- * Check if a string is a valid UUID
- *
- * @param value The string to check
- * @returns True if the string is a valid UUID, false otherwise
- */
-export function isUUID(value: string): boolean {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-    value
-  );
-}
-
-export function getOrganizationCondition(organizationIdOrHandle: string) {
-  if (isUUID(organizationIdOrHandle)) {
-    return eq(organizations.id, organizationIdOrHandle);
-  } else {
-    return eq(organizations.handle, organizationIdOrHandle);
-  }
-}
-
-/**
- * Get an organization by ID or handle
+ * Get an organization by ID
  */
 export async function getOrganization(
   db: ReturnType<typeof createDatabase>,
-  organizationIdOrHandle: string
+  id: string
 ) {
   const result = await db
     .select({
       id: organizations.id,
       name: organizations.name,
-      handle: organizations.handle,
     })
     .from(organizations)
-    .where(getOrganizationCondition(organizationIdOrHandle))
+    .where(eq(organizations.id, id))
     .limit(1);
 
   return result[0] || null;
-}
-
-export function getWorkflowCondition(workflowIdOrHandle: string) {
-  if (isUUID(workflowIdOrHandle)) {
-    return eq(workflows.id, workflowIdOrHandle);
-  } else {
-    return eq(workflows.handle, workflowIdOrHandle);
-  }
-}
-
-export function getDatasetCondition(datasetIdOrHandle: string) {
-  if (isUUID(datasetIdOrHandle)) {
-    return eq(datasets.id, datasetIdOrHandle);
-  } else {
-    return eq(datasets.handle, datasetIdOrHandle);
-  }
-}
-
-export function getQueueCondition(queueIdOrHandle: string) {
-  if (isUUID(queueIdOrHandle)) {
-    return eq(queues.id, queueIdOrHandle);
-  } else {
-    return eq(queues.handle, queueIdOrHandle);
-  }
-}
-
-export function getDatabaseCondition(databaseIdOrHandle: string) {
-  if (isUUID(databaseIdOrHandle)) {
-    return eq(databases.id, databaseIdOrHandle);
-  } else {
-    return eq(databases.handle, databaseIdOrHandle);
-  }
-}
-
-export function getEmailCondition(emailIdOrHandle: string) {
-  if (isUUID(emailIdOrHandle)) {
-    return eq(emails.id, emailIdOrHandle);
-  } else {
-    return eq(emails.handle, emailIdOrHandle);
-  }
 }
 
 /**
@@ -350,13 +259,13 @@ export async function createApiKey(
  *
  * @param db Database instance
  * @param providedApiKey The API key to verify
- * @param organizationIdOrHandle The ID or handle of the organization to verify against
+ * @param organizationId The ID of the organization to verify against
  * @returns The organization ID if the key is valid for the organization, null otherwise
  */
 export async function verifyApiKey(
   db: ReturnType<typeof createDatabase>,
   providedApiKey: string,
-  organizationIdOrHandle: string
+  organizationId: string
 ): Promise<string | null> {
   if (!providedApiKey) {
     return null;
@@ -379,13 +288,10 @@ export async function verifyApiKey(
   }
 
   // Check if the API key belongs to the specified organization
-  const organizationCondition = getOrganizationCondition(
-    organizationIdOrHandle
-  );
   const [organization] = await db
     .select({ id: organizations.id })
     .from(organizations)
-    .where(organizationCondition);
+    .where(eq(organizations.id, organizationId));
 
   if (!organization || organization.id !== apiKeyRecord.organizationId) {
     return null; // API key does not belong to the specified organization
@@ -399,12 +305,12 @@ export async function verifyApiKey(
  * List API keys for an organization
  *
  * @param db Database instance
- * @param organizationIdOrHandle Organization ID or handle
+ * @param organizationId Organization ID
  * @returns Array of API key records (without the key hash)
  */
 export async function getApiKeys(
   db: ReturnType<typeof createDatabase>,
-  organizationIdOrHandle: string
+  organizationId: string
 ) {
   return db
     .select({
@@ -414,13 +320,7 @@ export async function getApiKeys(
       updatedAt: apiKeys.updatedAt,
     })
     .from(apiKeys)
-    .innerJoin(
-      organizations,
-      and(
-        eq(apiKeys.organizationId, organizations.id),
-        getOrganizationCondition(organizationIdOrHandle)
-      )
-    );
+    .where(eq(apiKeys.organizationId, organizationId));
 }
 
 /**
@@ -428,7 +328,7 @@ export async function getApiKeys(
  *
  * @param db Database instance
  * @param id Key ID
- * @param organizationIdOrHandle Organization ID or handle
+ * @param organizationId Organization ID
  * @returns True if key was deleted, false if not found
  */
 export async function deleteApiKey(
@@ -503,57 +403,48 @@ export async function rollApiKey(
  * Get all datasets for an organization
  *
  * @param db Database instance
- * @param organizationIdOrHandle Organization ID or handle
+ * @param organizationId Organization ID
  * @returns Array of datasets with basic info
  */
 export async function getDatasets(
   db: ReturnType<typeof createDatabase>,
-  organizationIdOrHandle: string
+  organizationId: string
 ) {
   return await db
     .select({
       id: datasets.id,
       name: datasets.name,
-      handle: datasets.handle,
       createdAt: datasets.createdAt,
       updatedAt: datasets.updatedAt,
     })
     .from(datasets)
-    .innerJoin(
-      organizations,
-      and(
-        eq(datasets.organizationId, organizations.id),
-        getOrganizationCondition(organizationIdOrHandle)
-      )
-    );
+    .where(eq(datasets.organizationId, organizationId));
 }
 
 /**
- * Get a dataset by ID or handle, ensuring it belongs to the specified organization
+ * Get a dataset by ID, ensuring it belongs to the specified organization
  *
  * @param db Database instance
- * @param datasetIdOrHandle Dataset ID or handle
- * @param organizationIdOrHandle Organization ID or handle
+ * @param datasetId Dataset ID
+ * @param organizationId Organization ID
  * @returns Dataset record or undefined if not found
  */
 export async function getDataset(
   db: ReturnType<typeof createDatabase>,
-  datasetIdOrHandle: string,
-  organizationIdOrHandle: string
+  datasetId: string,
+  organizationId: string
 ): Promise<DatasetRow | undefined> {
   const [dataset] = await db
     .select()
     .from(datasets)
-    .innerJoin(
-      organizations,
+    .where(
       and(
-        eq(datasets.organizationId, organizations.id),
-        getOrganizationCondition(organizationIdOrHandle)
+        eq(datasets.id, datasetId),
+        eq(datasets.organizationId, organizationId)
       )
     )
-    .where(getDatasetCondition(datasetIdOrHandle))
     .limit(1);
-  return dataset?.datasets;
+  return dataset;
 }
 
 /**
@@ -625,57 +516,57 @@ export async function deleteDataset(
  * Get all queues for an organization
  *
  * @param db Database instance
- * @param organizationIdOrHandle Organization ID or handle
+ * @param organizationId Organization ID
  * @returns Array of queues with basic info
  */
 export async function getQueues(
   db: ReturnType<typeof createDatabase>,
-  organizationIdOrHandle: string
+  organizationId: string
 ) {
   return await db
     .select({
       id: queues.id,
       name: queues.name,
-      handle: queues.handle,
       createdAt: queues.createdAt,
       updatedAt: queues.updatedAt,
     })
     .from(queues)
-    .innerJoin(
-      organizations,
-      and(
-        eq(queues.organizationId, organizations.id),
-        getOrganizationCondition(organizationIdOrHandle)
-      )
-    );
+    .where(eq(queues.organizationId, organizationId));
 }
 
 /**
- * Get a queue by ID or handle, ensuring it belongs to the specified organization
+ * Get a queue by ID, ensuring it belongs to the specified organization
  *
  * @param db Database instance
- * @param queueIdOrHandle Queue ID or handle
- * @param organizationIdOrHandle Organization ID or handle
+ * @param queueId Queue ID
+ * @param organizationId Organization ID
  * @returns Queue record or undefined if not found
  */
-export async function getQueue(
+export async function getQueueById(
   db: ReturnType<typeof createDatabase>,
-  queueIdOrHandle: string,
-  organizationIdOrHandle: string
+  queueId: string
 ): Promise<QueueRow | undefined> {
   const [queue] = await db
     .select()
     .from(queues)
-    .innerJoin(
-      organizations,
-      and(
-        eq(queues.organizationId, organizations.id),
-        getOrganizationCondition(organizationIdOrHandle)
-      )
-    )
-    .where(getQueueCondition(queueIdOrHandle))
+    .where(eq(queues.id, queueId))
     .limit(1);
-  return queue?.queues;
+  return queue;
+}
+
+export async function getQueue(
+  db: ReturnType<typeof createDatabase>,
+  queueId: string,
+  organizationId: string
+): Promise<QueueRow | undefined> {
+  const [queue] = await db
+    .select()
+    .from(queues)
+    .where(
+      and(eq(queues.id, queueId), eq(queues.organizationId, organizationId))
+    )
+    .limit(1);
+  return queue;
 }
 
 /**
@@ -743,57 +634,48 @@ export async function deleteQueue(
  * Get all databases for an organization
  *
  * @param db Database instance
- * @param organizationIdOrHandle Organization ID or handle
+ * @param organizationId Organization ID
  * @returns Array of databases with basic info
  */
 export async function getDatabases(
   db: ReturnType<typeof createDatabase>,
-  organizationIdOrHandle: string
+  organizationId: string
 ) {
   return await db
     .select({
       id: databases.id,
       name: databases.name,
-      handle: databases.handle,
       createdAt: databases.createdAt,
       updatedAt: databases.updatedAt,
     })
     .from(databases)
-    .innerJoin(
-      organizations,
-      and(
-        eq(databases.organizationId, organizations.id),
-        getOrganizationCondition(organizationIdOrHandle)
-      )
-    );
+    .where(eq(databases.organizationId, organizationId));
 }
 
 /**
- * Get a database by ID or handle, ensuring it belongs to the specified organization
+ * Get a database by ID, ensuring it belongs to the specified organization
  *
  * @param db Database instance
- * @param databaseIdOrHandle Database ID or handle
- * @param organizationIdOrHandle Organization ID or handle
+ * @param databaseId Database ID
+ * @param organizationId Organization ID
  * @returns Database record or undefined if not found
  */
 export async function getDatabase(
   db: ReturnType<typeof createDatabase>,
-  databaseIdOrHandle: string,
-  organizationIdOrHandle: string
+  databaseId: string,
+  organizationId: string
 ): Promise<DatabaseRow | undefined> {
   const [database] = await db
     .select()
     .from(databases)
-    .innerJoin(
-      organizations,
+    .where(
       and(
-        eq(databases.organizationId, organizations.id),
-        getOrganizationCondition(organizationIdOrHandle)
+        eq(databases.id, databaseId),
+        eq(databases.organizationId, organizationId)
       )
     )
-    .where(getDatabaseCondition(databaseIdOrHandle))
     .limit(1);
-  return database?.databases;
+  return database;
 }
 
 /**
@@ -865,57 +747,57 @@ export async function deleteDatabaseRecord(
  * Get all emails for an organization
  *
  * @param db Database instance
- * @param organizationIdOrHandle Organization ID or handle
+ * @param organizationId Organization ID
  * @returns Array of emails with basic info
  */
 export async function getEmails(
   db: ReturnType<typeof createDatabase>,
-  organizationIdOrHandle: string
+  organizationId: string
 ) {
   return await db
     .select({
       id: emails.id,
       name: emails.name,
-      handle: emails.handle,
       createdAt: emails.createdAt,
       updatedAt: emails.updatedAt,
     })
     .from(emails)
-    .innerJoin(
-      organizations,
-      and(
-        eq(emails.organizationId, organizations.id),
-        getOrganizationCondition(organizationIdOrHandle)
-      )
-    );
+    .where(eq(emails.organizationId, organizationId));
 }
 
 /**
- * Get an email by ID or handle, ensuring it belongs to the specified organization
+ * Get an email by ID, ensuring it belongs to the specified organization
  *
  * @param db Database instance
- * @param emailIdOrHandle Email ID or handle
- * @param organizationIdOrHandle Organization ID or handle
+ * @param emailId Email ID
+ * @param organizationId Organization ID
  * @returns Email record or undefined if not found
  */
-export async function getEmail(
+export async function getEmailById(
   db: ReturnType<typeof createDatabase>,
-  emailIdOrHandle: string,
-  organizationIdOrHandle: string
+  emailId: string
 ): Promise<EmailRow | undefined> {
   const [email] = await db
     .select()
     .from(emails)
-    .innerJoin(
-      organizations,
-      and(
-        eq(emails.organizationId, organizations.id),
-        getOrganizationCondition(organizationIdOrHandle)
-      )
-    )
-    .where(getEmailCondition(emailIdOrHandle))
+    .where(eq(emails.id, emailId))
     .limit(1);
-  return email?.emails;
+  return email;
+}
+
+export async function getEmail(
+  db: ReturnType<typeof createDatabase>,
+  emailId: string,
+  organizationId: string
+): Promise<EmailRow | undefined> {
+  const [email] = await db
+    .select()
+    .from(emails)
+    .where(
+      and(eq(emails.id, emailId), eq(emails.organizationId, organizationId))
+    )
+    .limit(1);
+  return email;
 }
 
 /**
@@ -1227,56 +1109,51 @@ export async function deleteEmailTrigger(
  * Endpoint Operations
  */
 
-export function getEndpointCondition(endpointIdOrHandle: string) {
-  if (isUUID(endpointIdOrHandle)) {
-    return eq(endpoints.id, endpointIdOrHandle);
-  } else {
-    return eq(endpoints.handle, endpointIdOrHandle);
-  }
-}
-
 export async function getEndpoints(
   db: ReturnType<typeof createDatabase>,
-  organizationIdOrHandle: string
+  organizationId: string
 ) {
   return await db
     .select({
       id: endpoints.id,
       name: endpoints.name,
-      handle: endpoints.handle,
       mode: endpoints.mode,
       createdAt: endpoints.createdAt,
       updatedAt: endpoints.updatedAt,
     })
     .from(endpoints)
-    .innerJoin(
-      organizations,
-      and(
-        eq(endpoints.organizationId, organizations.id),
-        getOrganizationCondition(organizationIdOrHandle)
-      )
-    )
+    .where(eq(endpoints.organizationId, organizationId))
     .orderBy(endpoints.createdAt);
 }
 
-export async function getEndpoint(
+export async function getEndpointById(
   db: ReturnType<typeof createDatabase>,
-  endpointIdOrHandle: string,
-  organizationIdOrHandle: string
+  endpointId: string
 ): Promise<EndpointRow | undefined> {
   const [endpoint] = await db
     .select()
     .from(endpoints)
-    .innerJoin(
-      organizations,
+    .where(eq(endpoints.id, endpointId))
+    .limit(1);
+  return endpoint;
+}
+
+export async function getEndpoint(
+  db: ReturnType<typeof createDatabase>,
+  endpointId: string,
+  organizationId: string
+): Promise<EndpointRow | undefined> {
+  const [endpoint] = await db
+    .select()
+    .from(endpoints)
+    .where(
       and(
-        eq(endpoints.organizationId, organizations.id),
-        getOrganizationCondition(organizationIdOrHandle)
+        eq(endpoints.id, endpointId),
+        eq(endpoints.organizationId, organizationId)
       )
     )
-    .where(getEndpointCondition(endpointIdOrHandle))
     .limit(1);
-  return endpoint?.endpoints;
+  return endpoint;
 }
 
 export async function createEndpoint(
@@ -1419,23 +1296,14 @@ export async function deleteEndpointTrigger(
  * Discord Bot Operations
  */
 
-export function getDiscordBotCondition(discordBotIdOrHandle: string) {
-  if (isUUID(discordBotIdOrHandle)) {
-    return eq(discordBots.id, discordBotIdOrHandle);
-  } else {
-    return eq(discordBots.handle, discordBotIdOrHandle);
-  }
-}
-
 export async function getDiscordBots(
   db: ReturnType<typeof createDatabase>,
-  organizationIdOrHandle: string
+  organizationId: string
 ) {
   return await db
     .select({
       id: discordBots.id,
       name: discordBots.name,
-      handle: discordBots.handle,
       applicationId: discordBots.applicationId,
       publicKey: discordBots.publicKey,
       tokenLastFour: discordBots.tokenLastFour,
@@ -1443,33 +1311,25 @@ export async function getDiscordBots(
       updatedAt: discordBots.updatedAt,
     })
     .from(discordBots)
-    .innerJoin(
-      organizations,
-      and(
-        eq(discordBots.organizationId, organizations.id),
-        getOrganizationCondition(organizationIdOrHandle)
-      )
-    );
+    .where(eq(discordBots.organizationId, organizationId));
 }
 
 export async function getDiscordBot(
   db: ReturnType<typeof createDatabase>,
-  discordBotIdOrHandle: string,
-  organizationIdOrHandle: string
+  discordBotId: string,
+  organizationId: string
 ): Promise<DiscordBotRow | undefined> {
   const [bot] = await db
     .select()
     .from(discordBots)
-    .innerJoin(
-      organizations,
+    .where(
       and(
-        eq(discordBots.organizationId, organizations.id),
-        getOrganizationCondition(organizationIdOrHandle)
+        eq(discordBots.id, discordBotId),
+        eq(discordBots.organizationId, organizationId)
       )
     )
-    .where(getDiscordBotCondition(discordBotIdOrHandle))
     .limit(1);
-  return bot?.discord_bots;
+  return bot;
 }
 
 export async function createDiscordBot(
@@ -1520,56 +1380,39 @@ export async function deleteDiscordBot(
  * Telegram Bot Operations
  */
 
-export function getTelegramBotCondition(telegramBotIdOrHandle: string) {
-  if (isUUID(telegramBotIdOrHandle)) {
-    return eq(telegramBots.id, telegramBotIdOrHandle);
-  } else {
-    return eq(telegramBots.handle, telegramBotIdOrHandle);
-  }
-}
-
 export async function getTelegramBots(
   db: ReturnType<typeof createDatabase>,
-  organizationIdOrHandle: string
+  organizationId: string
 ) {
   return await db
     .select({
       id: telegramBots.id,
       name: telegramBots.name,
-      handle: telegramBots.handle,
       botUsername: telegramBots.botUsername,
       tokenLastFour: telegramBots.tokenLastFour,
       createdAt: telegramBots.createdAt,
       updatedAt: telegramBots.updatedAt,
     })
     .from(telegramBots)
-    .innerJoin(
-      organizations,
-      and(
-        eq(telegramBots.organizationId, organizations.id),
-        getOrganizationCondition(organizationIdOrHandle)
-      )
-    );
+    .where(eq(telegramBots.organizationId, organizationId));
 }
 
 export async function getTelegramBot(
   db: ReturnType<typeof createDatabase>,
-  telegramBotIdOrHandle: string,
-  organizationIdOrHandle: string
+  telegramBotId: string,
+  organizationId: string
 ): Promise<TelegramBotRow | undefined> {
   const [bot] = await db
     .select()
     .from(telegramBots)
-    .innerJoin(
-      organizations,
+    .where(
       and(
-        eq(telegramBots.organizationId, organizations.id),
-        getOrganizationCondition(organizationIdOrHandle)
+        eq(telegramBots.id, telegramBotId),
+        eq(telegramBots.organizationId, organizationId)
       )
     )
-    .where(getTelegramBotCondition(telegramBotIdOrHandle))
     .limit(1);
-  return bot?.telegram_bots;
+  return bot;
 }
 
 export async function createTelegramBot(
@@ -1952,17 +1795,17 @@ export async function deleteScheduledTrigger(
  * Get an organization's compute credits
  *
  * @param db Database instance
- * @param organizationIdOrHandle Organization ID or handle
+ * @param organizationId Organization ID
  * @returns Organization's compute credits or undefined if not found
  */
 export async function getOrganizationComputeCredits(
   db: ReturnType<typeof createDatabase>,
-  organizationIdOrHandle: string
+  organizationId: string
 ): Promise<number | undefined> {
   const [organization] = await db
     .select({ computeCredits: organizations.computeCredits })
     .from(organizations)
-    .where(getOrganizationCondition(organizationIdOrHandle))
+    .where(eq(organizations.id, organizationId))
     .limit(1);
   return organization?.computeCredits;
 }
@@ -1972,7 +1815,7 @@ export async function getOrganizationComputeCredits(
  */
 export async function getOrganizationBillingInfo(
   db: ReturnType<typeof createDatabase>,
-  organizationIdOrHandle: string
+  organizationId: string
 ): Promise<
   | {
       computeCredits: number;
@@ -1988,7 +1831,7 @@ export async function getOrganizationBillingInfo(
       overageLimit: organizations.overageLimit,
     })
     .from(organizations)
-    .where(getOrganizationCondition(organizationIdOrHandle))
+    .where(eq(organizations.id, organizationId))
     .limit(1);
   return organization;
 }
@@ -2040,12 +1883,12 @@ export async function createSecret(
  * List secrets for an organization
  *
  * @param db Database instance
- * @param organizationIdOrHandle Organization ID or handle
+ * @param organizationId Organization ID
  * @returns Array of secret records (without the encrypted value)
  */
 export async function getSecrets(
   db: ReturnType<typeof createDatabase>,
-  organizationIdOrHandle: string
+  organizationId: string
 ) {
   return db
     .select({
@@ -2055,25 +1898,19 @@ export async function getSecrets(
       updatedAt: secrets.updatedAt,
     })
     .from(secrets)
-    .innerJoin(
-      organizations,
-      and(
-        eq(secrets.organizationId, organizations.id),
-        getOrganizationCondition(organizationIdOrHandle)
-      )
-    );
+    .where(eq(secrets.organizationId, organizationId));
 }
 
 /**
  * Get all encrypted secrets for an organization (including encrypted values)
  *
  * @param db Database instance
- * @param organizationIdOrHandle Organization ID or handle
+ * @param organizationId Organization ID
  * @returns Array of secret records with encrypted values
  */
 export async function getAllSecretsWithValues(
   db: ReturnType<typeof createDatabase>,
-  organizationIdOrHandle: string
+  organizationId: string
 ) {
   return db
     .select({
@@ -2084,13 +1921,7 @@ export async function getAllSecretsWithValues(
       updatedAt: secrets.updatedAt,
     })
     .from(secrets)
-    .innerJoin(
-      organizations,
-      and(
-        eq(secrets.organizationId, organizations.id),
-        getOrganizationCondition(organizationIdOrHandle)
-      )
-    );
+    .where(eq(secrets.organizationId, organizationId));
 }
 
 /**
@@ -2265,12 +2096,12 @@ export async function createIntegration(
  * List integrations for an organization
  *
  * @param db Database instance
- * @param organizationIdOrHandle Organization ID or handle
+ * @param organizationId Organization ID
  * @returns Array of integration records (without the encrypted tokens)
  */
 export async function getIntegrations(
   db: ReturnType<typeof createDatabase>,
-  organizationIdOrHandle: string
+  organizationId: string
 ) {
   return db
     .select({
@@ -2284,25 +2115,19 @@ export async function getIntegrations(
       updatedAt: integrations.updatedAt,
     })
     .from(integrations)
-    .innerJoin(
-      organizations,
-      and(
-        eq(integrations.organizationId, organizations.id),
-        getOrganizationCondition(organizationIdOrHandle)
-      )
-    );
+    .where(eq(integrations.organizationId, organizationId));
 }
 
 /**
  * Get all integrations for an organization (including encrypted tokens)
  *
  * @param db Database instance
- * @param organizationIdOrHandle Organization ID or handle
+ * @param organizationId Organization ID
  * @returns Array of integration records with encrypted tokens
  */
 export async function getAllIntegrationsWithTokens(
   db: ReturnType<typeof createDatabase>,
-  organizationIdOrHandle: string
+  organizationId: string
 ) {
   return db
     .select({
@@ -2318,13 +2143,7 @@ export async function getAllIntegrationsWithTokens(
       updatedAt: integrations.updatedAt,
     })
     .from(integrations)
-    .innerJoin(
-      organizations,
-      and(
-        eq(integrations.organizationId, organizations.id),
-        getOrganizationCondition(organizationIdOrHandle)
-      )
-    );
+    .where(eq(integrations.organizationId, organizationId));
 }
 
 /**
@@ -2566,7 +2385,6 @@ export async function getUserOrganizations(
     .select({
       id: organizations.id,
       name: organizations.name,
-      handle: organizations.handle,
       createdAt: organizations.createdAt,
       updatedAt: organizations.updatedAt,
     })
@@ -2581,15 +2399,13 @@ export async function getUserOrganizations(
  *
  * @param db Database instance
  * @param name Organization name
- * @param handle Organization handle (optional, will be generated from name if not provided)
  * @param creatorUserId User ID of the creator who will become the owner
  * @returns Object containing the created organization and membership
  */
 export async function createOrganization(
   db: ReturnType<typeof createDatabase>,
   name: string,
-  creatorUserId: string,
-  handle?: string
+  creatorUserId: string
 ): Promise<{
   organization: OrganizationInsert;
   membership: MembershipInsert;
@@ -2597,13 +2413,9 @@ export async function createOrganization(
   const now = new Date();
   const organizationId = uuidv7();
 
-  // Generate handle from name if not provided
-  const organizationHandle = handle || createHandle(name);
-
   const organization: OrganizationInsert = {
     id: organizationId,
     name,
-    handle: organizationHandle,
     computeCredits: TRIAL_CREDITS, // Default compute credits for new orgs
     createdAt: now,
     updatedAt: now,
@@ -2630,34 +2442,21 @@ export async function createOrganization(
  * Delete an organization (only owners can delete)
  *
  * @param db Database instance
- * @param organizationIdOrHandle Organization ID or handle
+ * @param organizationId Organization ID
  * @param userId User ID attempting to delete
  * @returns True if organization was deleted, false if not found or user is not owner
  */
 export async function deleteOrganization(
   db: ReturnType<typeof createDatabase>,
-  organizationIdOrHandle: string,
+  organizationId: string,
   userId: string
 ): Promise<boolean> {
   // First, verify the user is the owner of the organization
-  const [membership] = await db
-    .select()
-    .from(memberships)
-    .innerJoin(organizations, eq(memberships.organizationId, organizations.id))
-    .where(
-      and(
-        eq(memberships.userId, userId),
-        getOrganizationCondition(organizationIdOrHandle),
-        eq(memberships.role, OrganizationRole.OWNER)
-      )
-    )
-    .limit(1);
+  const isOwner = await isOrganizationOwner(db, organizationId, userId);
 
-  if (!membership) {
+  if (!isOwner) {
     return false; // User is not the owner or organization doesn't exist
   }
-
-  const organizationId = membership.organizations.id;
 
   // Delete the organization (cascade will handle related records)
   const [deletedOrganization] = await db
@@ -2706,7 +2505,7 @@ export async function isOrganizationOwner(
  * - Members cannot add/update memberships
  *
  * @param db Database instance
- * @param organizationIdOrHandle Organization ID or handle
+ * @param organizationId Organization ID
  * @param targetUserEmail Email of the user to add/update membership for
  * @param role Role to assign (member, admin, owner)
  * @param adminUserId User ID of the admin/owner making the change
@@ -2714,24 +2513,11 @@ export async function isOrganizationOwner(
  */
 export async function addOrUpdateMembership(
   db: ReturnType<typeof createDatabase>,
-  organizationIdOrHandle: string,
+  organizationId: string,
   targetUserEmail: string,
   role: OrganizationRoleType,
   adminUserId: string
 ): Promise<MembershipRow | null> {
-  // Get the organization ID first
-  const [organization] = await db
-    .select()
-    .from(organizations)
-    .where(getOrganizationCondition(organizationIdOrHandle))
-    .limit(1);
-
-  if (!organization) {
-    return null; // Organization not found
-  }
-
-  const organizationId = organization.id;
-
   // Check if the admin user is the organization owner
   const isAdminOwner = await isOrganizationOwner(
     db,
@@ -2853,30 +2639,17 @@ export async function addOrUpdateMembership(
  * - Only owners can remove admins
  *
  * @param db Database instance
- * @param organizationIdOrHandle Organization ID or handle
+ * @param organizationId Organization ID
  * @param targetUserEmail Email of the user to remove from the organization
  * @param adminUserId User ID of the admin/owner making the change
  * @returns True if membership was deleted, false if permission denied or not found
  */
 export async function deleteMembership(
   db: ReturnType<typeof createDatabase>,
-  organizationIdOrHandle: string,
+  organizationId: string,
   targetUserEmail: string,
   adminUserId: string
 ): Promise<boolean> {
-  // Get the organization ID first
-  const [organization] = await db
-    .select()
-    .from(organizations)
-    .where(getOrganizationCondition(organizationIdOrHandle))
-    .limit(1);
-
-  if (!organization) {
-    return false; // Organization not found
-  }
-
-  const organizationId = organization.id;
-
   // Check if the admin user is the organization owner
   const isAdminOwner = await isOrganizationOwner(
     db,
@@ -2973,12 +2746,12 @@ export async function deleteMembership(
  * List all memberships for an organization with user information
  *
  * @param db Database instance
- * @param organizationIdOrHandle Organization ID or handle
+ * @param organizationId Organization ID
  * @returns Array of membership records with user details
  */
 export async function getOrganizationMembershipsWithUsers(
   db: ReturnType<typeof createDatabase>,
-  organizationIdOrHandle: string
+  organizationId: string
 ) {
   const results = await db
     .select({
@@ -2995,9 +2768,8 @@ export async function getOrganizationMembershipsWithUsers(
       },
     })
     .from(memberships)
-    .innerJoin(organizations, eq(memberships.organizationId, organizations.id))
     .innerJoin(users, eq(memberships.userId, users.id))
-    .where(getOrganizationCondition(organizationIdOrHandle))
+    .where(eq(memberships.organizationId, organizationId))
     .orderBy(memberships.createdAt);
 
   // Convert null values to undefined to match TypeScript interface
@@ -3019,7 +2791,7 @@ export async function getOrganizationMembershipsWithUsers(
  * Create an invitation to join an organization
  *
  * @param db Database instance
- * @param organizationIdOrHandle Organization ID or handle
+ * @param organizationId Organization ID
  * @param email Email of the user to invite
  * @param role Role to assign when invitation is accepted
  * @param invitedByUserId User ID of the person sending the invitation
@@ -3028,25 +2800,12 @@ export async function getOrganizationMembershipsWithUsers(
  */
 export async function createInvitation(
   db: ReturnType<typeof createDatabase>,
-  organizationIdOrHandle: string,
+  organizationId: string,
   email: string,
   role: OrganizationRoleType,
   invitedByUserId: string,
   expiresInDays: number = 7
 ): Promise<InvitationRow | null> {
-  // Get the organization ID first
-  const [organization] = await db
-    .select()
-    .from(organizations)
-    .where(getOrganizationCondition(organizationIdOrHandle))
-    .limit(1);
-
-  if (!organization) {
-    return null; // Organization not found
-  }
-
-  const organizationId = organization.id;
-
   // Check if the inviter is the organization owner
   const isInviterOwner = await isOrganizationOwner(
     db,
@@ -3155,12 +2914,12 @@ export async function createInvitation(
  * Get all pending invitations for an organization
  *
  * @param db Database instance
- * @param organizationIdOrHandle Organization ID or handle
+ * @param organizationId Organization ID
  * @returns Array of invitation records with inviter info
  */
 export async function getOrganizationInvitations(
   db: ReturnType<typeof createDatabase>,
-  organizationIdOrHandle: string
+  organizationId: string
 ) {
   const results = await db
     .select({
@@ -3180,11 +2939,10 @@ export async function getOrganizationInvitations(
       },
     })
     .from(invitations)
-    .innerJoin(organizations, eq(invitations.organizationId, organizations.id))
     .innerJoin(users, eq(invitations.invitedBy, users.id))
     .where(
       and(
-        getOrganizationCondition(organizationIdOrHandle),
+        eq(invitations.organizationId, organizationId),
         eq(invitations.status, InvitationStatus.PENDING)
       )
     )
@@ -3225,7 +2983,6 @@ export async function getUserInvitations(
       organization: {
         id: organizations.id,
         name: organizations.name,
-        handle: organizations.handle,
       },
       inviter: {
         id: users.id,
@@ -3405,29 +3162,16 @@ export async function declineInvitation(
  *
  * @param db Database instance
  * @param invitationId Invitation ID
- * @param organizationIdOrHandle Organization ID or handle
+ * @param organizationId Organization ID
  * @param adminUserId User ID of the admin canceling the invitation
  * @returns True if invitation was deleted, false if failed
  */
 export async function deleteInvitation(
   db: ReturnType<typeof createDatabase>,
   invitationId: string,
-  organizationIdOrHandle: string,
+  organizationId: string,
   adminUserId: string
 ): Promise<boolean> {
-  // Get the organization ID first
-  const [organization] = await db
-    .select()
-    .from(organizations)
-    .where(getOrganizationCondition(organizationIdOrHandle))
-    .limit(1);
-
-  if (!organization) {
-    return false; // Organization not found
-  }
-
-  const organizationId = organization.id;
-
   // Check if the admin user is the organization owner
   const isAdminOwner = await isOrganizationOwner(
     db,

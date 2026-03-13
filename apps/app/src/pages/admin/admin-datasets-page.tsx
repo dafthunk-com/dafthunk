@@ -56,7 +56,7 @@ export function AdminDatasetsPage() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by name or handle..."
+            placeholder="Search by name..."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             className="pl-8"
@@ -108,7 +108,7 @@ export function AdminDatasetsPage() {
                   <div>
                     <div className="font-medium">{dataset.name}</div>
                     <div className="text-xs text-muted-foreground font-mono">
-                      {dataset.handle}
+                      {dataset.id}
                     </div>
                   </div>
                 </TableCell>

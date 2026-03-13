@@ -26,17 +26,17 @@ export const useDatabases = (): {
   mutateDatabases: () => Promise<any>;
 } => {
   const { organization } = useAuth();
-  const orgHandle = organization?.handle;
+  const orgId = organization?.id;
 
-  // Create a unique SWR key that includes the organization handle
-  const swrKey = orgHandle ? `/${orgHandle}${API_ENDPOINT_BASE}` : null;
+  // Create a unique SWR key that includes the organization ID
+  const swrKey = orgId ? `/${orgId}${API_ENDPOINT_BASE}` : null;
 
   const { data, error, isLoading, mutate } = useSWR(
     swrKey,
-    swrKey && orgHandle
+    swrKey && orgId
       ? async () => {
           const response = await makeOrgRequest<ListDatabasesResponse>(
-            orgHandle,
+            orgId,
             API_ENDPOINT_BASE,
             ""
           );
@@ -58,18 +58,17 @@ export const useDatabases = (): {
  */
 export const useDatabase = (id: string | null) => {
   const { organization } = useAuth();
-  const orgHandle = organization?.handle;
+  const orgId = organization?.id;
 
-  // Create a unique SWR key that includes the organization handle and database ID
-  const swrKey =
-    orgHandle && id ? `/${orgHandle}${API_ENDPOINT_BASE}/${id}` : null;
+  // Create a unique SWR key that includes the organization ID and database ID
+  const swrKey = orgId && id ? `/${orgId}${API_ENDPOINT_BASE}/${id}` : null;
 
   const { data, error, isLoading, mutate } = useSWR(
     swrKey,
-    swrKey && orgHandle && id
+    swrKey && orgId && id
       ? async () => {
           return await makeOrgRequest<GetDatabaseResponse>(
-            orgHandle,
+            orgId,
             API_ENDPOINT_BASE,
             `/${id}`
           );
@@ -90,10 +89,10 @@ export const useDatabase = (id: string | null) => {
  */
 export const createDatabase = async (
   request: CreateDatabaseRequest,
-  orgHandle: string
+  orgId: string
 ): Promise<CreateDatabaseResponse> => {
   const response = await makeOrgRequest<CreateDatabaseResponse>(
-    orgHandle,
+    orgId,
     API_ENDPOINT_BASE,
     "",
     {
@@ -111,10 +110,10 @@ export const createDatabase = async (
 export const updateDatabase = async (
   id: string,
   request: UpdateDatabaseRequest,
-  orgHandle: string
+  orgId: string
 ): Promise<UpdateDatabaseResponse> => {
   return await makeOrgRequest<UpdateDatabaseResponse>(
-    orgHandle,
+    orgId,
     API_ENDPOINT_BASE,
     `/${id}`,
     {
@@ -129,10 +128,10 @@ export const updateDatabase = async (
  */
 export const deleteDatabase = async (
   id: string,
-  orgHandle: string
+  orgId: string
 ): Promise<DeleteDatabaseResponse> => {
   return await makeOrgRequest<DeleteDatabaseResponse>(
-    orgHandle,
+    orgId,
     API_ENDPOINT_BASE,
     `/${id}`,
     {

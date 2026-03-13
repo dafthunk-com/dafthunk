@@ -45,11 +45,11 @@ export class CloudflareQueueService implements QueueService {
   constructor(private env: Pick<Bindings, "DB" | "WORKFLOW_QUEUE">) {}
 
   async resolve(
-    queueIdOrHandle: string,
+    queueId: string,
     organizationId: string
   ): Promise<RuntimeQueue | undefined> {
     const db = createDatabase(this.env.DB);
-    const queue = await getQueue(db, queueIdOrHandle, organizationId);
+    const queue = await getQueue(db, queueId, organizationId);
 
     if (!queue) return undefined;
 

@@ -57,7 +57,7 @@ export function BillingPage() {
   }, [searchParams, setSearchParams, mutateBilling]);
 
   const handleUpgrade = useCallback(async () => {
-    if (!organization?.handle) return;
+    if (!organization?.id) return;
 
     setIsUpgrading(true);
     try {
@@ -65,7 +65,7 @@ export function BillingPage() {
       const successUrl = `${baseUrl}?checkout=success`;
       const cancelUrl = baseUrl;
       const checkoutUrl = await createCheckoutSession(
-        organization.handle,
+        organization.id,
         successUrl,
         cancelUrl
       );
@@ -75,25 +75,22 @@ export function BillingPage() {
       console.error("Checkout error:", error);
       setIsUpgrading(false);
     }
-  }, [organization?.handle]);
+  }, [organization?.id]);
 
   const handleManageSubscription = useCallback(async () => {
-    if (!organization?.handle) return;
+    if (!organization?.id) return;
 
     setIsOpeningPortal(true);
     try {
       const returnUrl = window.location.href;
-      const portalUrl = await createBillingPortal(
-        organization.handle,
-        returnUrl
-      );
+      const portalUrl = await createBillingPortal(organization.id, returnUrl);
       window.location.href = portalUrl;
     } catch (error) {
       toast.error("Failed to open billing portal. Please try again.");
       console.error("Portal error:", error);
       setIsOpeningPortal(false);
     }
-  }, [organization?.handle]);
+  }, [organization?.id]);
 
   const handleStartEditLimit = useCallback(() => {
     setLimitInput(billing?.overageLimit?.toString() ?? "");
@@ -106,7 +103,7 @@ export function BillingPage() {
   }, []);
 
   const handleSaveLimit = useCallback(async () => {
-    if (!organization?.handle) return;
+    if (!organization?.id) return;
 
     setIsSavingLimit(true);
     try {
@@ -116,7 +113,7 @@ export function BillingPage() {
         setIsSavingLimit(false);
         return;
       }
-      await updateOverageLimit(organization.handle, newLimit);
+      await updateOverageLimit(organization.id, newLimit);
       await mutateBilling();
       setIsEditingLimit(false);
       toast.success(
@@ -130,14 +127,14 @@ export function BillingPage() {
     } finally {
       setIsSavingLimit(false);
     }
-  }, [organization?.handle, limitInput, mutateBilling]);
+  }, [organization?.id, limitInput, mutateBilling]);
 
   const handleRemoveLimit = useCallback(async () => {
-    if (!organization?.handle) return;
+    if (!organization?.id) return;
 
     setIsSavingLimit(true);
     try {
-      await updateOverageLimit(organization.handle, null);
+      await updateOverageLimit(organization.id, null);
       await mutateBilling();
       setIsEditingLimit(false);
       toast.success("Additional usage limit removed");
@@ -147,7 +144,7 @@ export function BillingPage() {
     } finally {
       setIsSavingLimit(false);
     }
-  }, [organization?.handle, mutateBilling]);
+  }, [organization?.id, mutateBilling]);
 
   if (isBillingLoading && !billing) {
     return <InsetLoading title="Billing" />;

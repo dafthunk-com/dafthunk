@@ -180,7 +180,7 @@ export function AdminUserDetailPage() {
                       {membership.organizationName}
                     </TableCell>
                     <TableCell className="text-muted-foreground font-mono text-sm">
-                      {membership.organizationHandle}
+                      {membership.organizationId}
                     </TableCell>
                     <TableCell>
                       <Badge

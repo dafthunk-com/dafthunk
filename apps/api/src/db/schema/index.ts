@@ -141,7 +141,6 @@ export const organizations = sqliteTable(
   {
     id: text("id").primaryKey(),
     name: text("name").notNull(),
-    handle: text("handle").notNull().unique(),
     computeCredits: integer("compute_credits").notNull().default(10000),
     stripeCustomerId: text("stripe_customer_id"),
     stripeSubscriptionId: text("stripe_subscription_id"),
@@ -156,7 +155,6 @@ export const organizations = sqliteTable(
   },
   (table) => [
     index("organizations_name_idx").on(table.name),
-    index("organizations_handle_idx").on(table.handle),
     index("organizations_created_at_idx").on(table.createdAt),
     index("organizations_stripe_customer_id_idx").on(table.stripeCustomerId),
     index("organizations_stripe_subscription_id_idx").on(
@@ -257,7 +255,6 @@ export const workflows = sqliteTable(
     id: text("id").primaryKey(),
     name: text("name").notNull(),
     description: text("description"),
-    handle: text("handle").notNull(),
     trigger: text("trigger")
       .$type<WorkflowTriggerTypeType>()
       .notNull()
@@ -281,10 +278,6 @@ export const workflows = sqliteTable(
     index("workflows_enabled_idx").on(table.enabled),
     index("workflows_created_at_idx").on(table.createdAt),
     index("workflows_updated_at_idx").on(table.updatedAt),
-    uniqueIndex("workflows_organization_id_handle_unique_idx").on(
-      table.organizationId,
-      table.handle
-    ),
   ]
 );
 
@@ -314,7 +307,6 @@ export const datasets = sqliteTable(
   {
     id: text("id").primaryKey(),
     name: text("name").notNull(),
-    handle: text("handle").notNull(),
     organizationId: text("organization_id")
       .notNull()
       .references(() => organizations.id, { onDelete: "cascade" }),
@@ -323,13 +315,8 @@ export const datasets = sqliteTable(
   },
   (table) => [
     index("datasets_name_idx").on(table.name),
-    index("datasets_handle_idx").on(table.handle),
     index("datasets_organization_id_idx").on(table.organizationId),
     index("datasets_created_at_idx").on(table.createdAt),
-    uniqueIndex("datasets_organization_id_handle_unique_idx").on(
-      table.organizationId,
-      table.handle
-    ),
   ]
 );
 
@@ -411,7 +398,6 @@ export const queues = sqliteTable(
   {
     id: text("id").primaryKey(),
     name: text("name").notNull(),
-    handle: text("handle").notNull(),
     organizationId: text("organization_id")
       .notNull()
       .references(() => organizations.id, { onDelete: "cascade" }),
@@ -420,13 +406,8 @@ export const queues = sqliteTable(
   },
   (table) => [
     index("queues_name_idx").on(table.name),
-    index("queues_handle_idx").on(table.handle),
     index("queues_organization_id_idx").on(table.organizationId),
     index("queues_created_at_idx").on(table.createdAt),
-    uniqueIndex("queues_organization_id_handle_unique_idx").on(
-      table.organizationId,
-      table.handle
-    ),
   ]
 );
 
@@ -436,7 +417,6 @@ export const databases = sqliteTable(
   {
     id: text("id").primaryKey(),
     name: text("name").notNull(),
-    handle: text("handle").notNull(),
     organizationId: text("organization_id")
       .notNull()
       .references(() => organizations.id, { onDelete: "cascade" }),
@@ -445,13 +425,8 @@ export const databases = sqliteTable(
   },
   (table) => [
     index("databases_name_idx").on(table.name),
-    index("databases_handle_idx").on(table.handle),
     index("databases_organization_id_idx").on(table.organizationId),
     index("databases_created_at_idx").on(table.createdAt),
-    uniqueIndex("databases_organization_id_handle_unique_idx").on(
-      table.organizationId,
-      table.handle
-    ),
   ]
 );
 
@@ -484,7 +459,6 @@ export const emails = sqliteTable(
   {
     id: text("id").primaryKey(),
     name: text("name").notNull(),
-    handle: text("handle").notNull(),
     organizationId: text("organization_id")
       .notNull()
       .references(() => organizations.id, { onDelete: "cascade" }),
@@ -493,13 +467,8 @@ export const emails = sqliteTable(
   },
   (table) => [
     index("emails_name_idx").on(table.name),
-    index("emails_handle_idx").on(table.handle),
     index("emails_organization_id_idx").on(table.organizationId),
     index("emails_created_at_idx").on(table.createdAt),
-    uniqueIndex("emails_organization_id_handle_unique_idx").on(
-      table.organizationId,
-      table.handle
-    ),
   ]
 );
 
@@ -532,7 +501,6 @@ export const endpoints = sqliteTable(
   {
     id: text("id").primaryKey(),
     name: text("name").notNull(),
-    handle: text("handle").notNull(),
     mode: text("mode").$type<"webhook" | "request">().notNull(),
     organizationId: text("organization_id")
       .notNull()
@@ -542,14 +510,9 @@ export const endpoints = sqliteTable(
   },
   (table) => [
     index("endpoints_name_idx").on(table.name),
-    index("endpoints_handle_idx").on(table.handle),
     index("endpoints_mode_idx").on(table.mode),
     index("endpoints_organization_id_idx").on(table.organizationId),
     index("endpoints_created_at_idx").on(table.createdAt),
-    uniqueIndex("endpoints_organization_id_handle_unique_idx").on(
-      table.organizationId,
-      table.handle
-    ),
   ]
 );
 
@@ -582,7 +545,6 @@ export const discordBots = sqliteTable(
   {
     id: text("id").primaryKey(),
     name: text("name").notNull(),
-    handle: text("handle").notNull(),
     encryptedBotToken: text("encrypted_bot_token").notNull(),
     applicationId: text("application_id").notNull(),
     publicKey: text("public_key"),
@@ -595,13 +557,8 @@ export const discordBots = sqliteTable(
   },
   (table) => [
     index("discord_bots_name_idx").on(table.name),
-    index("discord_bots_handle_idx").on(table.handle),
     index("discord_bots_organization_id_idx").on(table.organizationId),
     index("discord_bots_created_at_idx").on(table.createdAt),
-    uniqueIndex("discord_bots_organization_id_handle_unique_idx").on(
-      table.organizationId,
-      table.handle
-    ),
   ]
 );
 
@@ -611,7 +568,6 @@ export const telegramBots = sqliteTable(
   {
     id: text("id").primaryKey(),
     name: text("name").notNull(),
-    handle: text("handle").notNull(),
     encryptedBotToken: text("encrypted_bot_token").notNull(),
     botUsername: text("bot_username"),
     tokenLastFour: text("token_last_four").notNull(),
@@ -623,13 +579,8 @@ export const telegramBots = sqliteTable(
   },
   (table) => [
     index("telegram_bots_name_idx").on(table.name),
-    index("telegram_bots_handle_idx").on(table.handle),
     index("telegram_bots_organization_id_idx").on(table.organizationId),
     index("telegram_bots_created_at_idx").on(table.createdAt),
-    uniqueIndex("telegram_bots_organization_id_handle_unique_idx").on(
-      table.organizationId,
-      table.handle
-    ),
   ]
 );
 

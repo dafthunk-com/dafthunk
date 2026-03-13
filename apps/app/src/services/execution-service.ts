@@ -48,7 +48,7 @@ export const usePaginatedExecutions = (
   workflowId?: string
 ): UsePaginatedExecutions => {
   const { organization } = useAuth();
-  const orgHandle = organization?.handle;
+  const orgId = organization?.id;
 
   const getKey = (
     pageIndex: number,
@@ -70,22 +70,20 @@ export const usePaginatedExecutions = (
     if (workflowId) queryParams.append("workflowId", workflowId);
 
     const queryString = queryParams.toString();
-    return orgHandle
-      ? `/${orgHandle}${API_ENDPOINT_BASE}?${queryString}`
-      : null;
+    return orgId ? `/${orgId}${API_ENDPOINT_BASE}?${queryString}` : null;
   };
 
   const fetcher = async (
     url: string
   ): Promise<ListExecutionsResponse["executions"]> => {
-    if (!orgHandle) return [];
+    if (!orgId) return [];
 
     const urlObj = new URL(url, window.location.origin);
-    const path = urlObj.pathname.replace(`/${orgHandle}`, "");
+    const path = urlObj.pathname.replace(`/${orgId}`, "");
     const query = urlObj.search;
 
     const response = await makeOrgRequest<ListExecutionsResponse>(
-      orgHandle,
+      orgId,
       path,
       query
     );
@@ -128,11 +126,11 @@ export const usePaginatedExecutions = (
  */
 export const useExecution = (executionId: string | null): UseExecution => {
   const { organization } = useAuth();
-  const orgHandle = organization?.handle;
+  const orgId = organization?.id;
 
   const swrKey =
-    orgHandle && executionId
-      ? `/${orgHandle}${API_ENDPOINT_BASE}/${executionId}`
+    orgId && executionId
+      ? `/${orgId}${API_ENDPOINT_BASE}/${executionId}`
       : null;
 
   const { data, error, isLoading, mutate } = useSWR(
@@ -140,7 +138,7 @@ export const useExecution = (executionId: string | null): UseExecution => {
     swrKey
       ? async () => {
           const response = await makeOrgRequest<GetExecutionResponse>(
-            orgHandle!,
+            orgId!,
             API_ENDPOINT_BASE,
             `/${executionId}`
           );
@@ -162,10 +160,10 @@ export const useExecution = (executionId: string | null): UseExecution => {
  */
 export const getExecution = async (
   executionId: string,
-  orgHandle: string
+  orgId: string
 ): Promise<WorkflowExecution> => {
   const response = await makeOrgRequest<GetExecutionResponse>(
-    orgHandle,
+    orgId,
     API_ENDPOINT_BASE,
     `/${executionId}`
   );

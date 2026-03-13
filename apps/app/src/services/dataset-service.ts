@@ -28,17 +28,17 @@ export const useDatasets = (): {
   mutateDatasets: () => Promise<any>;
 } => {
   const { organization } = useAuth();
-  const orgHandle = organization?.handle;
+  const orgId = organization?.id;
 
-  // Create a unique SWR key that includes the organization handle
-  const swrKey = orgHandle ? `/${orgHandle}${API_ENDPOINT_BASE}` : null;
+  // Create a unique SWR key that includes the organization ID
+  const swrKey = orgId ? `/${orgId}${API_ENDPOINT_BASE}` : null;
 
   const { data, error, isLoading, mutate } = useSWR(
     swrKey,
-    swrKey && orgHandle
+    swrKey && orgId
       ? async () => {
           const response = await makeOrgRequest<ListDatasetsResponse>(
-            orgHandle,
+            orgId,
             API_ENDPOINT_BASE,
             ""
           );
@@ -60,18 +60,17 @@ export const useDatasets = (): {
  */
 export const useDataset = (id: string | null) => {
   const { organization } = useAuth();
-  const orgHandle = organization?.handle;
+  const orgId = organization?.id;
 
-  // Create a unique SWR key that includes the organization handle and dataset ID
-  const swrKey =
-    orgHandle && id ? `/${orgHandle}${API_ENDPOINT_BASE}/${id}` : null;
+  // Create a unique SWR key that includes the organization ID and dataset ID
+  const swrKey = orgId && id ? `/${orgId}${API_ENDPOINT_BASE}/${id}` : null;
 
   const { data, error, isLoading, mutate } = useSWR(
     swrKey,
-    swrKey && orgHandle && id
+    swrKey && orgId && id
       ? async () => {
           return await makeOrgRequest<GetDatasetResponse>(
-            orgHandle,
+            orgId,
             API_ENDPOINT_BASE,
             `/${id}`
           );
@@ -92,10 +91,10 @@ export const useDataset = (id: string | null) => {
  */
 export const createDataset = async (
   request: CreateDatasetRequest,
-  orgHandle: string
+  orgId: string
 ): Promise<CreateDatasetResponse> => {
   const response = await makeOrgRequest<CreateDatasetResponse>(
-    orgHandle,
+    orgId,
     API_ENDPOINT_BASE,
     "",
     {
@@ -112,10 +111,10 @@ export const createDataset = async (
  */
 export const deleteDataset = async (
   id: string,
-  orgHandle: string
+  orgId: string
 ): Promise<DeleteDatasetResponse> => {
   return await makeOrgRequest<DeleteDatasetResponse>(
-    orgHandle,
+    orgId,
     API_ENDPOINT_BASE,
     `/${id}`,
     {
@@ -130,13 +129,13 @@ export const deleteDataset = async (
 export const uploadDatasetFile = async (
   datasetId: string,
   file: File,
-  orgHandle: string
+  orgId: string
 ): Promise<UploadDatasetFileResponse> => {
   const formData = new FormData();
   formData.append("file", file);
 
   const response = await makeOrgRequest<UploadDatasetFileResponse>(
-    orgHandle,
+    orgId,
     API_ENDPOINT_BASE,
     `/${datasetId}/upload`,
     {
@@ -154,7 +153,7 @@ export const uploadDatasetFile = async (
 export const uploadDatasetFiles = async (
   datasetId: string,
   files: File[],
-  orgHandle: string
+  orgId: string
 ): Promise<{
   success: string[];
   errors: { file: string; error: string }[];
@@ -162,7 +161,7 @@ export const uploadDatasetFiles = async (
   const results = await Promise.allSettled(
     files.map(async (file) => {
       try {
-        await uploadDatasetFile(datasetId, file, orgHandle);
+        await uploadDatasetFile(datasetId, file, orgId);
         return { success: true, filename: file.name } as const;
       } catch (error) {
         return {
@@ -209,20 +208,20 @@ export const uploadDatasetFiles = async (
  */
 export const useDatasetFiles = (datasetId: string | null) => {
   const { organization } = useAuth();
-  const orgHandle = organization?.handle;
+  const orgId = organization?.id;
 
-  // Create a unique SWR key that includes the organization handle and dataset ID
+  // Create a unique SWR key that includes the organization ID and dataset ID
   const swrKey =
-    orgHandle && datasetId
-      ? `/${orgHandle}${API_ENDPOINT_BASE}/${datasetId}/files`
+    orgId && datasetId
+      ? `/${orgId}${API_ENDPOINT_BASE}/${datasetId}/files`
       : null;
 
   const { data, error, isLoading, mutate } = useSWR<ListDatasetFilesResponse>(
     swrKey,
-    swrKey && orgHandle && datasetId
+    swrKey && orgId && datasetId
       ? async () => {
           return await makeOrgRequest<ListDatasetFilesResponse>(
-            orgHandle,
+            orgId,
             API_ENDPOINT_BASE,
             `/${datasetId}/files`
           );
@@ -244,10 +243,10 @@ export const useDatasetFiles = (datasetId: string | null) => {
 export const deleteDatasetFile = async (
   datasetId: string,
   filename: string,
-  orgHandle: string
+  orgId: string
 ): Promise<DeleteDatasetFileResponse> => {
   const response = await makeOrgRequest<DeleteDatasetFileResponse>(
-    orgHandle,
+    orgId,
     API_ENDPOINT_BASE,
     `/${datasetId}/files/${filename}`,
     {
@@ -264,10 +263,10 @@ export const deleteDatasetFile = async (
 export const downloadDatasetFile = async (
   datasetId: string,
   filename: string,
-  orgHandle: string
+  orgId: string
 ): Promise<void> => {
   // Create the download URL
-  const downloadUrl = `${getApiBaseUrl()}/${orgHandle}${API_ENDPOINT_BASE}/${datasetId}/files/${filename}`;
+  const downloadUrl = `${getApiBaseUrl()}/${orgId}${API_ENDPOINT_BASE}/${datasetId}/files/${filename}`;
 
   const link = document.createElement("a");
   link.href = downloadUrl;

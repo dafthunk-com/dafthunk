@@ -43,10 +43,10 @@ oauthRoutes.get("/:provider/connect", jwtMiddleware, async (c) => {
       // 2. Exchange code for access token
       // 3. Fetch user information
       // 4. Create integration in database
-      const { orgHandle } = await provider.handleCallback(c, code, stateParam);
+      const { orgId } = await provider.handleCallback(c, code, stateParam);
 
       return c.redirect(
-        `${c.env.WEB_HOST}/org/${orgHandle}/integrations?success=${providerName}_connected`
+        `${c.env.WEB_HOST}/org/${orgId}/integrations?success=${providerName}_connected`
       );
     }
 

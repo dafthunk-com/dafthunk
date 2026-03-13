@@ -1,4 +1,3 @@
-import { useAuth } from "@/components/auth-context";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Spinner } from "@/components/ui/spinner";
 import { useEmail } from "@/services/email-service";
@@ -17,9 +16,6 @@ export function EmailTriggerDialog({
   onClose,
   workflowId,
 }: EmailTriggerDialogProps) {
-  const { organization } = useAuth();
-  const orgHandle = organization?.handle || "";
-
   const { emailTrigger, isEmailTriggerLoading } = useEmailTrigger(workflowId, {
     revalidateOnFocus: false,
   });
@@ -53,7 +49,7 @@ export function EmailTriggerDialog({
               </p>
             </div>
           ) : (
-            <EmailSetupInfo handle={email.handle} orgHandle={orgHandle} />
+            <EmailSetupInfo emailId={email.id} />
           )}
         </div>
       </DialogContent>

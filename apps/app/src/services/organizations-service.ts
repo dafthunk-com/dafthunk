@@ -31,7 +31,6 @@ interface UseOrganizations {
   organizations: Array<{
     id: string;
     name: string;
-    handle: string;
     createdAt: Date;
     updatedAt: Date;
   }>;
@@ -81,10 +80,10 @@ export const createOrganization = async (
  * Delete an organization
  */
 export const deleteOrganization = async (
-  organizationIdOrHandle: string
+  organizationId: string
 ): Promise<boolean> => {
   const response = await makeRequest<DeleteOrganizationResponse>(
-    `${API_ENDPOINT_BASE}/${organizationIdOrHandle}`,
+    `${API_ENDPOINT_BASE}/${organizationId}`,
     {
       method: "DELETE",
     }
@@ -117,16 +116,11 @@ interface UseMemberships {
 /**
  * Hook to list all memberships for an organization
  */
-export const useMemberships = (
-  organizationIdOrHandle: string
-): UseMemberships => {
-  const swrKey = `${API_ENDPOINT_BASE}/${organizationIdOrHandle}/memberships`;
+export const useMemberships = (organizationId: string): UseMemberships => {
+  const swrKey = `${API_ENDPOINT_BASE}/${organizationId}/memberships`;
 
   // Debug: Log the constructed URL
-  console.log(
-    "useMemberships - organizationIdOrHandle:",
-    organizationIdOrHandle
-  );
+  console.log("useMemberships - organizationId:", organizationId);
   console.log("useMemberships - swrKey:", swrKey);
 
   const { data, error, isLoading, mutate } = useSWR(swrKey, async () => {
@@ -146,11 +140,11 @@ export const useMemberships = (
  * Add a user to an organization or update their role
  */
 export const addMembership = async (
-  organizationIdOrHandle: string,
+  organizationId: string,
   request: Omit<AddMembershipRequest, "organizationId">
 ): Promise<AddMembershipResponse> => {
   const response = await makeRequest<AddMembershipResponse>(
-    `${API_ENDPOINT_BASE}/${organizationIdOrHandle}/memberships`,
+    `${API_ENDPOINT_BASE}/${organizationId}/memberships`,
     {
       method: "POST",
       body: JSON.stringify(request),
@@ -164,11 +158,11 @@ export const addMembership = async (
  * Update a user's role in an organization
  */
 export const updateMembership = async (
-  organizationIdOrHandle: string,
+  organizationId: string,
   request: Omit<UpdateMembershipRequest, "organizationId">
 ): Promise<UpdateMembershipResponse> => {
   const response = await makeRequest<UpdateMembershipResponse>(
-    `${API_ENDPOINT_BASE}/${organizationIdOrHandle}/memberships`,
+    `${API_ENDPOINT_BASE}/${organizationId}/memberships`,
     {
       method: "PUT",
       body: JSON.stringify(request),
@@ -182,11 +176,11 @@ export const updateMembership = async (
  * Remove a user from an organization
  */
 export const removeMembership = async (
-  organizationIdOrHandle: string,
+  organizationId: string,
   request: Omit<RemoveMembershipRequest, "organizationId">
 ): Promise<boolean> => {
   const response = await makeRequest<RemoveMembershipResponse>(
-    `${API_ENDPOINT_BASE}/${organizationIdOrHandle}/memberships`,
+    `${API_ENDPOINT_BASE}/${organizationId}/memberships`,
     {
       method: "DELETE",
       body: JSON.stringify(request),
@@ -208,10 +202,8 @@ interface UseInvitations {
 /**
  * Hook to list all pending invitations for an organization
  */
-export const useInvitations = (
-  organizationIdOrHandle: string
-): UseInvitations => {
-  const swrKey = `${API_ENDPOINT_BASE}/${organizationIdOrHandle}/invitations`;
+export const useInvitations = (organizationId: string): UseInvitations => {
+  const swrKey = `${API_ENDPOINT_BASE}/${organizationId}/invitations`;
 
   const { data, error, isLoading, mutate } = useSWR(swrKey, async () => {
     const response = await makeRequest<ListInvitationsResponse>(swrKey);
@@ -230,11 +222,11 @@ export const useInvitations = (
  * Create an invitation to join an organization
  */
 export const createInvitation = async (
-  organizationIdOrHandle: string,
+  organizationId: string,
   request: CreateInvitationRequest
 ): Promise<CreateInvitationResponse> => {
   const response = await makeRequest<CreateInvitationResponse>(
-    `${API_ENDPOINT_BASE}/${organizationIdOrHandle}/invitations`,
+    `${API_ENDPOINT_BASE}/${organizationId}/invitations`,
     {
       method: "POST",
       body: JSON.stringify(request),
@@ -248,11 +240,11 @@ export const createInvitation = async (
  * Cancel/delete an invitation
  */
 export const deleteInvitation = async (
-  organizationIdOrHandle: string,
+  organizationId: string,
   invitationId: string
 ): Promise<boolean> => {
   const response = await makeRequest<DeleteInvitationResponse>(
-    `${API_ENDPOINT_BASE}/${organizationIdOrHandle}/invitations/${invitationId}`,
+    `${API_ENDPOINT_BASE}/${organizationId}/invitations/${invitationId}`,
     {
       method: "DELETE",
     }

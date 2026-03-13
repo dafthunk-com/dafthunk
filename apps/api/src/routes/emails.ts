@@ -17,7 +17,6 @@ import { ApiContext } from "../context";
 import {
   createDatabase,
   createEmail,
-  createHandle,
   deleteEmail,
   getEmail,
   getEmails,
@@ -68,12 +67,10 @@ emailRoutes.post(
 
     const emailId = uuid();
     const emailName = data.name || "Untitled Email";
-    const emailHandle = createHandle(emailName);
 
     const newEmail = await createEmail(db, {
       id: emailId,
       name: emailName,
-      handle: emailHandle,
       organizationId: organizationId,
       createdAt: now,
       updatedAt: now,
@@ -82,7 +79,6 @@ emailRoutes.post(
     const response: CreateEmailResponse = {
       id: newEmail.id,
       name: newEmail.name,
-      handle: newEmail.handle,
       createdAt: newEmail.createdAt,
       updatedAt: newEmail.updatedAt,
     };
@@ -107,7 +103,6 @@ emailRoutes.get("/:id", async (c) => {
   const response: GetEmailResponse = {
     id: email.id,
     name: email.name,
-    handle: email.handle,
     createdAt: email.createdAt,
     updatedAt: email.updatedAt,
   };
@@ -147,7 +142,6 @@ emailRoutes.put(
     const response: UpdateEmailResponse = {
       id: updatedEmail.id,
       name: updatedEmail.name,
-      handle: updatedEmail.handle,
       createdAt: updatedEmail.createdAt,
       updatedAt: updatedEmail.updatedAt,
     };

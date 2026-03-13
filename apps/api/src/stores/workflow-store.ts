@@ -11,10 +11,8 @@ import {
   deleteTelegramTrigger,
   getDiscordBot,
   getDiscordTrigger,
-  getOrganizationCondition,
   getTelegramBot,
   getTelegramTrigger,
-  getWorkflowCondition,
   updateTelegramBotSecretToken,
   upsertDiscordTrigger,
   upsertEmailTrigger,
@@ -33,7 +31,6 @@ export interface SaveWorkflowRecord {
   id: string;
   name: string;
   description?: string;
-  handle: string;
   trigger: string;
   runtime?: string;
   organizationId: string;
@@ -663,7 +660,6 @@ export class WorkflowStore {
       id: record.id,
       name: record.name,
       description: record.description,
-      handle: record.handle,
       trigger: record.trigger as any,
       runtime: (record.runtime as any) || "workflow",
       nodes,
@@ -699,23 +695,20 @@ export class WorkflowStore {
    * Get workflow metadata from D1
    */
   async get(
-    workflowIdOrHandle: string,
-    organizationIdOrHandle: string
+    workflowId: string,
+    organizationId: string
   ): Promise<WorkflowRow | undefined> {
-    return this.readFromD1(workflowIdOrHandle, organizationIdOrHandle);
+    return this.readFromD1(workflowId, organizationId);
   }
 
   /**
    * Get workflow metadata from D1 and full data from R2
    */
   async getWithData(
-    workflowIdOrHandle: string,
-    organizationIdOrHandle: string
+    workflowId: string,
+    organizationId: string
   ): Promise<(WorkflowRow & { data: WorkflowType }) | undefined> {
-    const workflow = await this.readFromD1(
-      workflowIdOrHandle,
-      organizationIdOrHandle
-    );
+    const workflow = await this.readFromD1(workflowId, organizationId);
 
     if (!workflow) {
       return undefined;
@@ -739,23 +732,20 @@ export class WorkflowStore {
   /**
    * List workflows for an organization
    */
-  async list(organizationIdOrHandle: string): Promise<WorkflowRow[]> {
-    return this.listFromD1(organizationIdOrHandle);
+  async list(organizationId: string): Promise<WorkflowRow[]> {
+    return this.listFromD1(organizationId);
   }
 
   /**
    * Delete workflow from both D1 and R2
    */
   async delete(
-    workflowIdOrHandle: string,
+    workflowId: string,
     organizationId: string
   ): Promise<WorkflowRow | undefined> {
     try {
       // Get workflow first to ensure it exists and get the ID
-      const workflow = await this.readFromD1(
-        workflowIdOrHandle,
-        organizationId
-      );
+      const workflow = await this.readFromD1(workflowId, organizationId);
 
       if (!workflow) {
         return undefined;
@@ -772,7 +762,7 @@ export class WorkflowStore {
       return deleted;
     } catch (error) {
       console.error(
-        `WorkflowStore.delete: Failed to delete ${workflowIdOrHandle}:`,
+        `WorkflowStore.delete: Failed to delete ${workflowId}:`,
         error
       );
       throw error;
@@ -817,7 +807,7 @@ export class WorkflowStore {
    * Get workflow with user access verification via organization memberships
    */
   async getWithUserAccess(
-    workflowIdOrHandle: string,
+    workflowId: string,
     userId: string
   ): Promise<{ workflow: WorkflowRow; organizationId: string } | undefined> {
     try {
@@ -836,10 +826,7 @@ export class WorkflowStore {
           eq(workflows.organizationId, memberships.organizationId)
         )
         .where(
-          and(
-            eq(memberships.userId, userId),
-            getWorkflowCondition(workflowIdOrHandle)
-          )
+          and(eq(memberships.userId, userId), eq(workflows.id, workflowId))
         )
         .limit(1);
 
@@ -853,7 +840,7 @@ export class WorkflowStore {
       };
     } catch (error) {
       console.error(
-        `WorkflowStore.getWithUserAccess: Failed for ${workflowIdOrHandle}:`,
+        `WorkflowStore.getWithUserAccess: Failed for ${workflowId}:`,
         error
       );
       throw error;
@@ -883,28 +870,23 @@ export class WorkflowStore {
    * Get the name of a single workflow
    */
   async getName(
-    workflowIdOrHandle: string,
-    organizationIdOrHandle: string
+    workflowId: string,
+    organizationId: string
   ): Promise<string | undefined> {
     try {
       const [result] = await this.db
         .select({ name: workflows.name })
         .from(workflows)
-        .innerJoin(
-          organizations,
+        .where(
           and(
-            eq(workflows.organizationId, organizations.id),
-            getOrganizationCondition(organizationIdOrHandle)
+            eq(workflows.id, workflowId),
+            eq(workflows.organizationId, organizationId)
           )
-        )
-        .where(getWorkflowCondition(workflowIdOrHandle));
+        );
 
       return result?.name;
     } catch (error) {
-      console.error(
-        `WorkflowStore.getName: Failed for ${workflowIdOrHandle}:`,
-        error
-      );
+      console.error(`WorkflowStore.getName: Failed for ${workflowId}:`, error);
       throw error;
     }
   }
@@ -931,21 +913,17 @@ export class WorkflowStore {
    * Read workflow metadata from D1
    */
   private async readFromD1(
-    workflowIdOrHandle: string,
-    organizationIdOrHandle: string
+    workflowId: string,
+    organizationId: string
   ): Promise<WorkflowRow | undefined> {
     try {
       const [workflow] = await this.db
         .select()
         .from(workflows)
-        .innerJoin(
-          organizations,
-          eq(workflows.organizationId, organizations.id)
-        )
         .where(
           and(
-            getOrganizationCondition(organizationIdOrHandle),
-            getWorkflowCondition(workflowIdOrHandle)
+            eq(workflows.id, workflowId),
+            eq(workflows.organizationId, organizationId)
           )
         )
         .limit(1);
@@ -954,10 +932,10 @@ export class WorkflowStore {
         return undefined;
       }
 
-      return workflow.workflows;
+      return workflow;
     } catch (error) {
       console.error(
-        `WorkflowStore.readFromD1: Failed to read ${workflowIdOrHandle}:`,
+        `WorkflowStore.readFromD1: Failed to read ${workflowId}:`,
         error
       );
       throw error;
@@ -967,16 +945,13 @@ export class WorkflowStore {
   /**
    * List workflows from D1
    */
-  private async listFromD1(
-    organizationIdOrHandle: string
-  ): Promise<WorkflowRow[]> {
+  private async listFromD1(organizationId: string): Promise<WorkflowRow[]> {
     try {
       const results = await this.db
         .select({
           id: workflows.id,
           name: workflows.name,
           description: workflows.description,
-          handle: workflows.handle,
           trigger: workflows.trigger,
           runtime: workflows.runtime,
           enabled: workflows.enabled,
@@ -985,13 +960,7 @@ export class WorkflowStore {
           updatedAt: workflows.updatedAt,
         })
         .from(workflows)
-        .innerJoin(
-          organizations,
-          and(
-            eq(workflows.organizationId, organizations.id),
-            getOrganizationCondition(organizationIdOrHandle)
-          )
-        )
+        .where(eq(workflows.organizationId, organizationId))
         .orderBy(desc(workflows.updatedAt));
 
       return results;

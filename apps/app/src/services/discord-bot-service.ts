@@ -24,16 +24,16 @@ export const useDiscordBots = (): {
   mutateDiscordBots: () => Promise<unknown>;
 } => {
   const { organization } = useAuth();
-  const orgHandle = organization?.handle;
+  const orgId = organization?.id;
 
-  const swrKey = orgHandle ? `/${orgHandle}${API_ENDPOINT_BASE}` : null;
+  const swrKey = orgId ? `/${orgId}${API_ENDPOINT_BASE}` : null;
 
   const { data, error, isLoading, mutate } = useSWR(
     swrKey,
-    swrKey && orgHandle
+    swrKey && orgId
       ? async () => {
           const response = await makeOrgRequest<ListDiscordBotsResponse>(
-            orgHandle,
+            orgId,
             API_ENDPOINT_BASE,
             ""
           );
@@ -52,17 +52,16 @@ export const useDiscordBots = (): {
 
 export const useDiscordBot = (id: string | null) => {
   const { organization } = useAuth();
-  const orgHandle = organization?.handle;
+  const orgId = organization?.id;
 
-  const swrKey =
-    orgHandle && id ? `/${orgHandle}${API_ENDPOINT_BASE}/${id}` : null;
+  const swrKey = orgId && id ? `/${orgId}${API_ENDPOINT_BASE}/${id}` : null;
 
   const { data, error, isLoading, mutate } = useSWR(
     swrKey,
-    swrKey && orgHandle && id
+    swrKey && orgId && id
       ? async () => {
           return await makeOrgRequest<GetDiscordBotResponse>(
-            orgHandle,
+            orgId,
             API_ENDPOINT_BASE,
             `/${id}`
           );
@@ -80,10 +79,10 @@ export const useDiscordBot = (id: string | null) => {
 
 export const createDiscordBot = async (
   request: CreateDiscordBotRequest,
-  orgHandle: string
+  orgId: string
 ): Promise<CreateDiscordBotResponse> => {
   return await makeOrgRequest<CreateDiscordBotResponse>(
-    orgHandle,
+    orgId,
     API_ENDPOINT_BASE,
     "",
     {
@@ -96,10 +95,10 @@ export const createDiscordBot = async (
 export const updateDiscordBot = async (
   id: string,
   request: UpdateDiscordBotRequest,
-  orgHandle: string
+  orgId: string
 ): Promise<UpdateDiscordBotResponse> => {
   return await makeOrgRequest<UpdateDiscordBotResponse>(
-    orgHandle,
+    orgId,
     API_ENDPOINT_BASE,
     `/${id}`,
     {
@@ -111,10 +110,10 @@ export const updateDiscordBot = async (
 
 export const deleteDiscordBot = async (
   id: string,
-  orgHandle: string
+  orgId: string
 ): Promise<DeleteDiscordBotResponse> => {
   return await makeOrgRequest<DeleteDiscordBotResponse>(
-    orgHandle,
+    orgId,
     API_ENDPOINT_BASE,
     `/${id}`,
     {
@@ -125,23 +124,23 @@ export const deleteDiscordBot = async (
 
 const WORKFLOWS_ENDPOINT = "/workflows";
 
-export const useDiscordTrigger = (workflowIdOrHandle: string | null) => {
+export const useDiscordTrigger = (workflowId: string | null) => {
   const { organization } = useAuth();
-  const orgHandle = organization?.handle;
+  const orgId = organization?.id;
 
   const swrKey =
-    orgHandle && workflowIdOrHandle
-      ? `/${orgHandle}${WORKFLOWS_ENDPOINT}/${workflowIdOrHandle}/discord-trigger`
+    orgId && workflowId
+      ? `/${orgId}${WORKFLOWS_ENDPOINT}/${workflowId}/discord-trigger`
       : null;
 
   const { data, error, isLoading, mutate } = useSWR(
     swrKey,
-    swrKey && orgHandle && workflowIdOrHandle
+    swrKey && orgId && workflowId
       ? async () => {
           return await makeOrgRequest<GetDiscordTriggerResponse>(
-            orgHandle,
+            orgId,
             WORKFLOWS_ENDPOINT,
-            `/${workflowIdOrHandle}/discord-trigger`
+            `/${workflowId}/discord-trigger`
           );
         }
       : null
@@ -156,13 +155,13 @@ export const useDiscordTrigger = (workflowIdOrHandle: string | null) => {
 };
 
 export const syncDiscordTrigger = async (
-  workflowIdOrHandle: string,
-  orgHandle: string
+  workflowId: string,
+  orgId: string
 ): Promise<SyncDiscordTriggerResponse> => {
   return await makeOrgRequest<SyncDiscordTriggerResponse>(
-    orgHandle,
+    orgId,
     WORKFLOWS_ENDPOINT,
-    `/${workflowIdOrHandle}/discord-trigger/sync`,
+    `/${workflowId}/discord-trigger/sync`,
     {
       method: "POST",
     }

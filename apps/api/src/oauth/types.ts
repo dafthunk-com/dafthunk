@@ -17,7 +17,7 @@ export interface OAuthState {
  */
 export interface ValidatedState {
   organizationId: string;
-  orgHandle: string;
+  orgId: string;
   state: OAuthState;
 }
 

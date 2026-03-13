@@ -26,17 +26,17 @@ interface UseSecrets {
  */
 export const useSecrets = (): UseSecrets => {
   const { organization } = useAuth();
-  const orgHandle = organization?.handle;
+  const orgId = organization?.id;
 
-  // Create a unique SWR key that includes the organization handle
-  const swrKey = orgHandle ? `/${orgHandle}${API_ENDPOINT_BASE}` : null;
+  // Create a unique SWR key that includes the organization ID
+  const swrKey = orgId ? `/${orgId}${API_ENDPOINT_BASE}` : null;
 
   const { data, error, isLoading, mutate } = useSWR(
     swrKey,
-    swrKey && orgHandle
+    swrKey && orgId
       ? async () => {
           const response = await makeOrgRequest<ListSecretsResponse>(
-            orgHandle,
+            orgId,
             API_ENDPOINT_BASE,
             ""
           );
@@ -59,10 +59,10 @@ export const useSecrets = (): UseSecrets => {
 export const createSecret = async (
   name: string,
   value: string,
-  orgHandle: string
+  orgId: string
 ): Promise<Secret> => {
   const response = await makeOrgRequest<CreateSecretResponse>(
-    orgHandle,
+    orgId,
     API_ENDPOINT_BASE,
     "",
     {
@@ -89,10 +89,10 @@ export const createSecret = async (
 export const updateSecret = async (
   id: string,
   updates: { name?: string; value?: string },
-  orgHandle: string
+  orgId: string
 ): Promise<Secret> => {
   const response = await makeOrgRequest<UpdateSecretResponse>(
-    orgHandle,
+    orgId,
     API_ENDPOINT_BASE,
     `/${id}`,
     {
@@ -109,10 +109,10 @@ export const updateSecret = async (
  */
 export const deleteSecret = async (
   id: string,
-  orgHandle: string
+  orgId: string
 ): Promise<boolean> => {
   const response = await makeOrgRequest<DeleteSecretResponse>(
-    orgHandle,
+    orgId,
     API_ENDPOINT_BASE,
     `/${id}`,
     {

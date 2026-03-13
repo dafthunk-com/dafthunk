@@ -79,8 +79,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Only fetch organizations if authenticated
   const { organizations: orgList } = useOrganizations(isAuthenticated);
 
-  const params = useParams<{ handle?: string }>();
-  const urlHandle = params.handle;
+  const params = useParams<{ organizationId?: string }>();
+  const urlOrgId = params.organizationId;
 
   const [selectedOrganization, setSelectedOrganizationState] =
     useState<OrganizationInfo | null>(null);
@@ -89,19 +89,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Set selected only for non-URL routes (e.g., /settings/organizations)
   useEffect(() => {
-    if (urlHandle) return; // Skip if URL provides handle
+    if (urlOrgId) return; // Skip if URL provides organizationId
 
-    const savedOrgHandle = localStorage.getItem(SELECTED_ORG_KEY);
+    const savedOrgId = localStorage.getItem(SELECTED_ORG_KEY);
 
-    const targetHandle = savedOrgHandle;
-
-    if (targetHandle && orgList.length > 0) {
-      const targetOrg = orgList.find((org) => org.handle === targetHandle);
+    if (savedOrgId && orgList.length > 0) {
+      const targetOrg = orgList.find((org) => org.id === savedOrgId);
       if (targetOrg) {
         const orgInfo: OrganizationInfo = {
           id: targetOrg.id,
           name: targetOrg.name,
-          handle: targetOrg.handle,
           role: defaultOrganization?.role || "owner",
         };
         setSelectedOrganizationState(orgInfo);
@@ -115,46 +112,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else {
       setSelectedOrganizationState(null);
     }
-  }, [defaultOrganization, orgList, urlHandle]);
+  }, [defaultOrganization, orgList, urlOrgId]);
 
   const organization = useMemo<OrganizationInfo | null>(() => {
-    if (urlHandle) {
-      const targetOrg = orgList?.find((org) => org.handle === urlHandle);
+    if (urlOrgId) {
+      const targetOrg = orgList?.find((org) => org.id === urlOrgId);
       if (targetOrg) {
         return {
           id: targetOrg.id,
           name: targetOrg.name,
-          handle: urlHandle,
           role: defaultOrganization?.role || "owner",
         };
       } else {
         // Minimal stub until orgList loads
         return {
-          id: "",
+          id: urlOrgId,
           name: "",
-          handle: urlHandle,
           role: "member",
         };
       }
     }
-    // No URL handle: use selected or default
+    // No URL organizationId: use selected or default
     return selectedOrganization || defaultOrganization;
-  }, [urlHandle, orgList, defaultOrganization, selectedOrganization]);
+  }, [urlOrgId, orgList, defaultOrganization, selectedOrganization]);
 
-  // Persist current org handle to localStorage for default fallback
+  // Persist current org ID to localStorage for default fallback
   useEffect(() => {
-    if (organization?.handle) {
-      localStorage.setItem(SELECTED_ORG_KEY, organization.handle);
+    if (organization?.id) {
+      localStorage.setItem(SELECTED_ORG_KEY, organization.id);
     } else {
       localStorage.removeItem(SELECTED_ORG_KEY);
     }
-  }, [organization?.handle]);
+  }, [organization?.id]);
 
   const setSelectedOrganization = useCallback(
     (org: OrganizationInfo | null) => {
       setSelectedOrganizationState(org);
       if (org) {
-        localStorage.setItem(SELECTED_ORG_KEY, org.handle);
+        localStorage.setItem(SELECTED_ORG_KEY, org.id);
       } else {
         localStorage.removeItem(SELECTED_ORG_KEY);
       }

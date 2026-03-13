@@ -10,7 +10,7 @@ export interface CreateDiscordBotRequest {
 export interface CreateDiscordBotResponse {
   id: string;
   name: string;
-  handle: string;
+
   applicationId: string;
   publicKey: string;
   tokenLastFour: string;

@@ -18,7 +18,7 @@ interface HttpRequestIntegrationDialogProps {
   onClose: (open: boolean) => void;
   nodes: Node<WorkflowNodeType>[];
   nodeTypes: NodeType[];
-  orgHandle: string;
+  orgId: string;
   workflowId: string;
 }
 
@@ -27,11 +27,11 @@ export function HttpRequestIntegrationDialog({
   onClose,
   nodes,
   nodeTypes,
-  orgHandle,
+  orgId,
   workflowId,
 }: HttpRequestIntegrationDialogProps) {
   const baseUrl = getApiBaseUrl().replace(/\/$/, "");
-  const executeUrl = `${baseUrl}/${orgHandle}/workflows/${workflowId}/execute`;
+  const executeUrl = `${baseUrl}/${orgId}/workflows/${workflowId}/execute`;
 
   const parameters = extractDialogParametersFromNodes(nodes, nodeTypes);
   const jsonBodyParam = parameters.find((p) => p.type === "body-json");

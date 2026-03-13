@@ -75,7 +75,6 @@ export class StateManager {
     const workflowData = workflowWithData?.data || {
       id: workflowId,
       name: workflow.name,
-      handle: workflow.handle,
       trigger: workflow.trigger,
       runtime: workflow.runtime,
       nodes: [],
@@ -85,7 +84,6 @@ export class StateManager {
     this.state = {
       id: workflowId,
       name: workflowData.name,
-      handle: workflowData.handle,
       trigger: workflowData.trigger as WorkflowState["trigger"],
       runtime: workflowData.runtime,
       nodes: workflowData.nodes,
@@ -151,9 +149,9 @@ export class StateManager {
     }
 
     // Validate required fields
-    if (!state.name || !state.handle || !state.trigger) {
+    if (!state.name || !state.trigger) {
       throw new Error(
-        "Invalid state: missing required fields (name, handle, or trigger)"
+        "Invalid state: missing required fields (name or trigger)"
       );
     }
 
@@ -203,7 +201,6 @@ export class StateManager {
       const workflowData = {
         id: this.state.id,
         name: this.state.name,
-        handle: this.state.handle,
         trigger: this.state.trigger,
         runtime: this.state.runtime,
         organizationId: this.organizationId,

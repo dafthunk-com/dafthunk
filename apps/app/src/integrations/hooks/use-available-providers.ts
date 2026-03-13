@@ -22,16 +22,16 @@ interface AvailableProvidersResponse {
  */
 export function useAvailableProviders(): UseAvailableProvidersResult {
   const { organization } = useAuth();
-  const orgHandle = organization?.handle;
+  const orgId = organization?.id;
 
-  const swrKey = orgHandle ? `/${orgHandle}${API_ENDPOINT}` : null;
+  const swrKey = orgId ? `/${orgId}${API_ENDPOINT}` : null;
 
   const { data, error, isLoading } = useSWR(
     swrKey,
-    swrKey && orgHandle
+    swrKey && orgId
       ? async () => {
           const response = await makeOrgRequest<AvailableProvidersResponse>(
-            orgHandle,
+            orgId,
             API_ENDPOINT,
             ""
           );

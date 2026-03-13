@@ -196,7 +196,7 @@ export function AdminExecutionDetailPage() {
               createObjectUrl={createObjectUrl}
               mode="readonly"
               disabledFeedback={true}
-              orgHandle={execution.organizationHandle || ""}
+              orgId={execution.organizationId || ""}
             />
           ) : (
             <div className="flex flex-col items-center justify-center h-full">

@@ -52,16 +52,13 @@ export function EndpointCreateDialog({
   };
 
   const handleSubmit = async () => {
-    if (!organization?.handle) return;
+    if (!organization?.id) return;
 
     setIsSubmitting(true);
     setError(null);
 
     try {
-      const response = await createEndpoint(
-        { name, mode },
-        organization.handle
-      );
+      const response = await createEndpoint({ name, mode }, organization.id);
       onCreated(response.id);
       handleClose();
     } catch (err) {

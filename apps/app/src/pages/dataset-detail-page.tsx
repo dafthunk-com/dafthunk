@@ -58,7 +58,7 @@ export function DatasetDetailPage() {
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const files = event.target.files;
-    if (!files || !datasetId || !organization?.handle) return;
+    if (!files || !datasetId || !organization?.id) return;
 
     // Convert FileList to array
     const fileArray = Array.from(files);
@@ -67,7 +67,7 @@ export function DatasetDetailPage() {
       const result = await uploadDatasetFiles(
         datasetId,
         fileArray,
-        organization.handle
+        organization.id
       );
 
       // Show success message for successful uploads
@@ -94,13 +94,13 @@ export function DatasetDetailPage() {
   };
 
   const handleFileDelete = async (file: DatasetFile) => {
-    if (!datasetId || !organization?.handle) return;
+    if (!datasetId || !organization?.id) return;
 
     try {
       await deleteDatasetFile(
         datasetId,
         file.key.split("/").pop() || "",
-        organization.handle
+        organization.id
       );
       toast.success("File deleted successfully");
       mutateFiles();
@@ -111,13 +111,13 @@ export function DatasetDetailPage() {
   };
 
   const handleFileDownload = async (file: DatasetFile) => {
-    if (!datasetId || !organization?.handle) return;
+    if (!datasetId || !organization?.id) return;
 
     try {
       await downloadDatasetFile(
         datasetId,
         file.key.split("/").pop() || "",
-        organization.handle
+        organization.id
       );
     } catch (error) {
       toast.error("Failed to download file");
@@ -156,8 +156,8 @@ export function DatasetDetailPage() {
               <p className="font-medium">{dataset.name}</p>
             </div>
             <div>
-              <span className="text-sm text-muted-foreground">Handle:</span>
-              <p className="font-mono text-sm">{dataset.handle}</p>
+              <span className="text-sm text-muted-foreground">ID:</span>
+              <p className="font-mono text-sm">{dataset.id}</p>
             </div>
             <div>
               <span className="text-sm text-muted-foreground">Created:</span>

@@ -117,10 +117,10 @@ export abstract class OAuthProvider<
       );
     }
 
-    // Get organization handle from database
+    // Verify organization exists
     const db = createDatabase(c.env.DB);
     const org = await db
-      .select({ handle: organizations.handle })
+      .select({ id: organizations.id })
       .from(organizations)
       .where(eq(organizations.id, state.organizationId))
       .get();
@@ -134,7 +134,7 @@ export abstract class OAuthProvider<
 
     return {
       organizationId: state.organizationId,
-      orgHandle: org.handle,
+      orgId: org.id,
       state,
     };
   }
@@ -402,19 +402,16 @@ export abstract class OAuthProvider<
 
   /**
    * Handle OAuth callback - validates state, exchanges code, fetches user info, creates integration
-   * @returns Organization handle for redirect
+   * @returns Organization ID for redirect
    * @throws OAuthError if callback processing fails
    */
   async handleCallback(
     c: Context<ApiContext>,
     code: string,
     stateParam: string
-  ): Promise<{ orgHandle: string }> {
+  ): Promise<{ orgId: string }> {
     // Validate state (includes CSRF and organization membership checks)
-    const { organizationId, orgHandle } = await this.validateState(
-      c,
-      stateParam
-    );
+    const { organizationId, orgId } = await this.validateState(c, stateParam);
 
     // Get client credentials
     const { clientId, clientSecret } = this.getClientCredentials(c.env);
@@ -434,7 +431,7 @@ export abstract class OAuthProvider<
     // Create integration in database
     await this.createIntegration(organizationId, token, user, c.env);
 
-    return { orgHandle };
+    return { orgId };
   }
 
   // Abstract methods - providers MUST implement

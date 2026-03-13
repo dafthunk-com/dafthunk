@@ -21,7 +21,7 @@ export class DatabaseImportTableNode extends ExecutableNode {
       {
         name: "databaseId",
         type: "database",
-        description: "Database ID or handle.",
+        description: "Database ID.",
         required: true,
         hidden: true,
       },
@@ -57,14 +57,10 @@ export class DatabaseImportTableNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const {
-      databaseId: databaseIdOrHandle,
-      table: tableInput,
-      mode,
-    } = context.inputs;
+    const { databaseId, table: tableInput, mode } = context.inputs;
 
     // Validate required inputs
-    if (!databaseIdOrHandle) {
+    if (!databaseId) {
       return this.createErrorResult("'databaseId' is a required input.");
     }
 
@@ -104,13 +100,13 @@ export class DatabaseImportTableNode extends ExecutableNode {
       }
 
       const connection = await context.databaseService.resolve(
-        databaseIdOrHandle,
+        databaseId,
         context.organizationId
       );
 
       if (!connection) {
         return this.createErrorResult(
-          `Database '${databaseIdOrHandle}' not found or does not belong to your organization.`
+          `Database '${databaseId}' not found or does not belong to your organization.`
         );
       }
 

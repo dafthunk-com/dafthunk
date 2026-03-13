@@ -14,7 +14,6 @@ async function executeWorkflow(
   workflowInfo: {
     id: string;
     name: string;
-    handle: string;
     organizationId: string;
   },
   workflowData: Workflow,
@@ -45,7 +44,6 @@ async function executeWorkflow(
       workflow: {
         id: workflowInfo.id,
         name: workflowData.name,
-        handle: workflowInfo.handle,
         trigger: workflowData.trigger,
         runtime: workflowData.runtime,
         nodes: workflowData.nodes,
@@ -180,7 +178,6 @@ export async function handleQueueMessages(
             const workflowInfo = {
               id: workflow.id,
               name: workflow.name,
-              handle: workflow.handle,
               organizationId: workflow.organizationId,
             };
 

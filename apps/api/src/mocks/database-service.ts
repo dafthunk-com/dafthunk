@@ -24,7 +24,7 @@ class MockDatabaseConnection implements DatabaseConnection {
  */
 export class MockDatabaseService implements DatabaseService {
   async resolve(
-    _databaseIdOrHandle: string,
+    _databaseId: string,
     _organizationId: string
   ): Promise<DatabaseConnection | undefined> {
     return new MockDatabaseConnection();

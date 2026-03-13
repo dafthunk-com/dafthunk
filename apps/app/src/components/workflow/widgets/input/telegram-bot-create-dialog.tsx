@@ -65,7 +65,7 @@ export function TelegramBotCreateDialog({
   };
 
   const handleSubmit = async () => {
-    if (!organization?.handle) return;
+    if (!organization?.id) return;
 
     setIsSubmitting(true);
     setError(null);
@@ -73,7 +73,7 @@ export function TelegramBotCreateDialog({
     try {
       const response = await createTelegramBot(
         { name, botToken },
-        organization.handle
+        organization.id
       );
       setCreatedBotUsername(response.botUsername);
       setStep("setup");

@@ -7,7 +7,6 @@ function makeWorkflow(overrides?: Partial<Workflow>): Workflow {
   return {
     id: "wf-1",
     name: "Test Workflow",
-    handle: "test-workflow",
     trigger: "manual",
     nodes: [
       {
@@ -131,10 +130,10 @@ describe("computeDefinitionHash", () => {
     expect(hash1).not.toBe(hash2);
   });
 
-  it("ignores workflow-level metadata (id, name, handle)", async () => {
+  it("ignores workflow-level metadata (id, name)", async () => {
     const hash1 = await computeDefinitionHash(makeWorkflow());
     const hash2 = await computeDefinitionHash(
-      makeWorkflow({ id: "wf-2", name: "Renamed", handle: "renamed" })
+      makeWorkflow({ id: "wf-2", name: "Renamed" })
     );
     expect(hash1).toBe(hash2);
   });

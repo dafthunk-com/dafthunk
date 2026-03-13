@@ -6,7 +6,7 @@ export interface CreateDatasetRequest {
 export interface CreateDatasetResponse {
   id: string;
   name: string;
-  handle: string;
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -14,7 +14,7 @@ export interface CreateDatasetResponse {
 export interface GetDatasetResponse {
   id: string;
   name: string;
-  handle: string;
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -23,7 +23,7 @@ export interface ListDatasetsResponse {
   datasets: {
     id: string;
     name: string;
-    handle: string;
+
     createdAt: Date;
     updatedAt: Date;
   }[];
@@ -36,7 +36,7 @@ export interface UpdateDatasetRequest {
 export interface UpdateDatasetResponse {
   id: string;
   name: string;
-  handle: string;
+
   createdAt: Date;
   updatedAt: Date;
 }

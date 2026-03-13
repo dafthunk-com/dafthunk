@@ -299,7 +299,6 @@ export interface Workflow {
   id: string;
   name: string;
   description?: string;
-  handle: string;
   trigger: WorkflowTrigger;
   runtime?: WorkflowRuntime;
   nodes: Node[];

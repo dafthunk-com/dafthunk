@@ -16,17 +16,17 @@ export const OrgRedirect: React.FC<OrgRedirectProps> = ({
   const params = useParams();
   const location = useLocation();
 
-  const orgHandle = params.handle || organization?.handle;
+  const orgId = params.organizationId || organization?.id;
 
-  if (!orgHandle) {
+  if (!orgId) {
     const returnTo = encodeURIComponent(location.pathname);
     return <Navigate to={`/login?returnTo=${returnTo}`} replace />;
   }
 
   // Replace all :param placeholders with actual route params
-  let redirectTo = to.replace(":handle", orgHandle);
+  let redirectTo = to.replace(":organizationId", orgId);
   for (const [key, value] of Object.entries(params)) {
-    if (key !== "handle" && value) {
+    if (key !== "organizationId" && value) {
       redirectTo = redirectTo.replace(`:${key}`, value);
     }
   }

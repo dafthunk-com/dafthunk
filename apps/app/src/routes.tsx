@@ -109,7 +109,7 @@ const footerItems = [];
 export const routes: AppRouteObject[] = [
   {
     path: "/",
-    element: <OrgRedirect to="/org/:handle/dashboard" />,
+    element: <OrgRedirect to="/org/:organizationId/dashboard" />,
   },
   {
     path: "/login",
@@ -281,7 +281,7 @@ export const routes: AppRouteObject[] = [
   },
   {
     path: "/org",
-    element: <OrgRedirect to="/org/:handle/dashboard" />,
+    element: <OrgRedirect to="/org/:organizationId/dashboard" />,
   },
   {
     path: "/settings/organizations",
@@ -318,7 +318,7 @@ export const routes: AppRouteObject[] = [
     handle: { head: <HeadSeo title="Invitations - Dafthunk" /> },
   },
   {
-    path: "/org/:handle/dashboard",
+    path: "/org/:organizationId/dashboard",
     element: (
       <OrgLayout title="Dashboard">
         <ProtectedRoute>
@@ -329,7 +329,7 @@ export const routes: AppRouteObject[] = [
     handle: { head: <HeadSeo title="Dashboard - Dafthunk" /> },
   },
   {
-    path: "/org/:handle/onboarding",
+    path: "/org/:organizationId/onboarding",
     element: (
       <OrgLayout title="Getting Started">
         <ProtectedRoute>
@@ -341,10 +341,10 @@ export const routes: AppRouteObject[] = [
   },
   {
     path: "/workflows",
-    element: <OrgRedirect to="/org/:handle/workflows" />,
+    element: <OrgRedirect to="/org/:organizationId/workflows" />,
   },
   {
-    path: "/org/:handle/workflows",
+    path: "/org/:organizationId/workflows",
     element: (
       <OrgLayout title="Workflows">
         <ProtectedRoute>
@@ -356,10 +356,10 @@ export const routes: AppRouteObject[] = [
   },
   {
     path: "/templates",
-    element: <OrgRedirect to="/org/:handle/templates" />,
+    element: <OrgRedirect to="/org/:organizationId/templates" />,
   },
   {
-    path: "/org/:handle/templates",
+    path: "/org/:organizationId/templates",
     element: (
       <OrgLayout title="Workflows">
         <ProtectedRoute>
@@ -371,10 +371,10 @@ export const routes: AppRouteObject[] = [
   },
   {
     path: "/templates/:templateId",
-    element: <OrgRedirect to="/org/:handle/templates/:templateId" />,
+    element: <OrgRedirect to="/org/:organizationId/templates/:templateId" />,
   },
   {
-    path: "/org/:handle/templates/:templateId",
+    path: "/org/:organizationId/templates/:templateId",
     element: (
       <OrgLayout title="Workflows">
         <ProtectedRoute>
@@ -386,10 +386,12 @@ export const routes: AppRouteObject[] = [
   },
   {
     path: "/templates/:templateId/try",
-    element: <OrgRedirect to="/org/:handle/templates/:templateId/try" />,
+    element: (
+      <OrgRedirect to="/org/:organizationId/templates/:templateId/try" />
+    ),
   },
   {
-    path: "/org/:handle/templates/:templateId/try",
+    path: "/org/:organizationId/templates/:templateId/try",
     element: (
       <OrgLayout title="Workflows">
         <ProtectedRoute>
@@ -401,10 +403,10 @@ export const routes: AppRouteObject[] = [
   },
   {
     path: "/executions",
-    element: <OrgRedirect to="/org/:handle/executions" />,
+    element: <OrgRedirect to="/org/:organizationId/executions" />,
   },
   {
-    path: "/org/:handle/executions",
+    path: "/org/:organizationId/executions",
     element: (
       <OrgLayout title="Workflows">
         <ProtectedRoute>
@@ -416,10 +418,10 @@ export const routes: AppRouteObject[] = [
   },
   {
     path: "/datasets",
-    element: <OrgRedirect to="/org/:handle/datasets" />,
+    element: <OrgRedirect to="/org/:organizationId/datasets" />,
   },
   {
-    path: "/org/:handle/datasets",
+    path: "/org/:organizationId/datasets",
     element: (
       <OrgLayout title="Datasets">
         <ProtectedRoute>
@@ -431,10 +433,10 @@ export const routes: AppRouteObject[] = [
   },
   {
     path: "/feedback",
-    element: <OrgRedirect to="/org/:handle/feedback" />,
+    element: <OrgRedirect to="/org/:organizationId/feedback" />,
   },
   {
-    path: "/org/:handle/feedback",
+    path: "/org/:organizationId/feedback",
     element: (
       <OrgLayout title="Analytics">
         <ProtectedRoute>
@@ -446,14 +448,14 @@ export const routes: AppRouteObject[] = [
   },
   {
     path: "/api-keys",
-    element: <OrgRedirect to="/org/:handle/api-keys" />,
+    element: <OrgRedirect to="/org/:organizationId/api-keys" />,
   },
   {
     path: "/members",
-    element: <OrgRedirect to="/org/:handle/members" />,
+    element: <OrgRedirect to="/org/:organizationId/members" />,
   },
   {
-    path: "/org/:handle/api-keys",
+    path: "/org/:organizationId/api-keys",
     element: (
       <OrgLayout title="Settings">
         <ProtectedRoute>
@@ -465,10 +467,10 @@ export const routes: AppRouteObject[] = [
   },
   {
     path: "/billing",
-    element: <OrgRedirect to="/org/:handle/billing" />,
+    element: <OrgRedirect to="/org/:organizationId/billing" />,
   },
   {
-    path: "/org/:handle/billing",
+    path: "/org/:organizationId/billing",
     element: (
       <OrgLayout title="Settings">
         <ProtectedRoute>
@@ -479,7 +481,7 @@ export const routes: AppRouteObject[] = [
     handle: { head: <HeadSeo title="Billing - Settings - Dafthunk" /> },
   },
   {
-    path: "/org/:handle/members",
+    path: "/org/:organizationId/members",
     element: (
       <OrgLayout title="Organization Members">
         <ProtectedRoute>
@@ -491,10 +493,10 @@ export const routes: AppRouteObject[] = [
   },
   {
     path: "/secrets",
-    element: <OrgRedirect to="/org/:handle/secrets" />,
+    element: <OrgRedirect to="/org/:organizationId/secrets" />,
   },
   {
-    path: "/org/:handle/secrets",
+    path: "/org/:organizationId/secrets",
     element: (
       <OrgLayout title="Settings">
         <ProtectedRoute>
@@ -506,10 +508,10 @@ export const routes: AppRouteObject[] = [
   },
   {
     path: "/integrations",
-    element: <OrgRedirect to="/org/:handle/integrations" />,
+    element: <OrgRedirect to="/org/:organizationId/integrations" />,
   },
   {
-    path: "/org/:handle/integrations",
+    path: "/org/:organizationId/integrations",
     element: (
       <OrgLayout title="Settings">
         <ProtectedRoute>
@@ -600,7 +602,7 @@ export const routes: AppRouteObject[] = [
     },
   },
   {
-    path: "/org/:handle/datasets/:datasetId",
+    path: "/org/:organizationId/datasets/:datasetId",
     element: (
       <OrgLayout title="Datasets">
         <ProtectedRoute>
@@ -612,10 +614,10 @@ export const routes: AppRouteObject[] = [
   },
   {
     path: "/databases",
-    element: <OrgRedirect to="/org/:handle/databases" />,
+    element: <OrgRedirect to="/org/:organizationId/databases" />,
   },
   {
-    path: "/org/:handle/databases",
+    path: "/org/:organizationId/databases",
     element: (
       <OrgLayout title="Databases">
         <ProtectedRoute>
@@ -626,7 +628,7 @@ export const routes: AppRouteObject[] = [
     handle: { head: <HeadSeo title="Databases - Databases - Dafthunk" /> },
   },
   {
-    path: "/org/:handle/databases/:id/console",
+    path: "/org/:organizationId/databases/:id/console",
     element: (
       <OrgLayout title="Database Console">
         <ProtectedRoute>
@@ -638,10 +640,10 @@ export const routes: AppRouteObject[] = [
   },
   {
     path: "/endpoints",
-    element: <OrgRedirect to="/org/:handle/endpoints" />,
+    element: <OrgRedirect to="/org/:organizationId/endpoints" />,
   },
   {
-    path: "/org/:handle/endpoints",
+    path: "/org/:organizationId/endpoints",
     element: (
       <OrgLayout title="Endpoints">
         <ProtectedRoute>
@@ -655,10 +657,10 @@ export const routes: AppRouteObject[] = [
   },
   {
     path: "/queues",
-    element: <OrgRedirect to="/org/:handle/queues" />,
+    element: <OrgRedirect to="/org/:organizationId/queues" />,
   },
   {
-    path: "/org/:handle/queues",
+    path: "/org/:organizationId/queues",
     element: (
       <OrgLayout title="Queues">
         <ProtectedRoute>
@@ -670,10 +672,10 @@ export const routes: AppRouteObject[] = [
   },
   {
     path: "/emails",
-    element: <OrgRedirect to="/org/:handle/emails" />,
+    element: <OrgRedirect to="/org/:organizationId/emails" />,
   },
   {
-    path: "/org/:handle/emails",
+    path: "/org/:organizationId/emails",
     element: (
       <OrgLayout title="Emails">
         <ProtectedRoute>
@@ -685,26 +687,26 @@ export const routes: AppRouteObject[] = [
   },
   {
     path: "/bots",
-    element: <OrgRedirect to="/org/:handle/bots" />,
+    element: <OrgRedirect to="/org/:organizationId/bots" />,
   },
   {
     path: "/discord-bots",
-    element: <OrgRedirect to="/org/:handle/bots" />,
+    element: <OrgRedirect to="/org/:organizationId/bots" />,
   },
   {
-    path: "/org/:handle/discord-bots",
-    element: <OrgRedirect to="/org/:handle/bots" />,
+    path: "/org/:organizationId/discord-bots",
+    element: <OrgRedirect to="/org/:organizationId/bots" />,
   },
   {
     path: "/telegram-bots",
-    element: <OrgRedirect to="/org/:handle/bots" />,
+    element: <OrgRedirect to="/org/:organizationId/bots" />,
   },
   {
-    path: "/org/:handle/telegram-bots",
-    element: <OrgRedirect to="/org/:handle/bots" />,
+    path: "/org/:organizationId/telegram-bots",
+    element: <OrgRedirect to="/org/:organizationId/bots" />,
   },
   {
-    path: "/org/:handle/bots",
+    path: "/org/:organizationId/bots",
     element: (
       <OrgLayout title="Bots">
         <ProtectedRoute>
@@ -715,7 +717,7 @@ export const routes: AppRouteObject[] = [
     handle: { head: <HeadSeo title="Bots - Dafthunk" /> },
   },
   {
-    path: "/org/:handle/bots/discord/:id",
+    path: "/org/:organizationId/bots/discord/:id",
     element: (
       <OrgLayout title="Bots">
         <ProtectedRoute>
@@ -726,7 +728,7 @@ export const routes: AppRouteObject[] = [
     handle: { head: <HeadSeo title="Bot Details - Dafthunk" /> },
   },
   {
-    path: "/org/:handle/bots/telegram/:id",
+    path: "/org/:organizationId/bots/telegram/:id",
     element: (
       <OrgLayout title="Bots">
         <ProtectedRoute>
@@ -738,7 +740,7 @@ export const routes: AppRouteObject[] = [
   },
 
   {
-    path: "/org/:handle/executions/:executionId",
+    path: "/org/:organizationId/executions/:executionId",
     element: (
       <OrgLayout title="Workflows">
         <ProtectedRoute>
@@ -752,14 +754,14 @@ export const routes: AppRouteObject[] = [
   },
   {
     path: "/playground",
-    element: <OrgRedirect to="/org/:handle/playground" />,
+    element: <OrgRedirect to="/org/:organizationId/playground" />,
   },
   {
     path: "/playground/:nodeType",
-    element: <OrgRedirect to="/org/:handle/playground/:nodeType" />,
+    element: <OrgRedirect to="/org/:organizationId/playground/:nodeType" />,
   },
   {
-    path: "/org/:handle/playground",
+    path: "/org/:organizationId/playground",
     element: (
       <OrgLayout title="Workflows">
         <ProtectedRoute>
@@ -770,7 +772,7 @@ export const routes: AppRouteObject[] = [
     handle: { head: <HeadSeo title="Playground - Workflows - Dafthunk" /> },
   },
   {
-    path: "/org/:handle/playground/:nodeType",
+    path: "/org/:organizationId/playground/:nodeType",
     element: (
       <OrgLayout title="Workflows">
         <ProtectedRoute>
@@ -781,7 +783,7 @@ export const routes: AppRouteObject[] = [
     handle: { head: <HeadSeo title="Playground - Workflows - Dafthunk" /> },
   },
   {
-    path: "/org/:handle/workflows/:id",
+    path: "/org/:organizationId/workflows/:id",
     element: (
       <OrgLayout title="Workflows">
         <ProtectedRoute>

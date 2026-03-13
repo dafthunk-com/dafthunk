@@ -16,7 +16,6 @@ export function testFailingExecution(
       const workflow: Workflow = {
         id: "test-workflow-4",
         name: "Division by Zero Workflow",
-        handle: "div-by-zero",
         trigger: "manual",
         nodes: [
           {
@@ -106,7 +105,6 @@ export function testFailingExecution(
       const workflow: Workflow = {
         id: "test-workflow-5",
         name: "Missing Input Workflow",
-        handle: "missing-input",
         trigger: "manual",
         nodes: [
           {
@@ -172,7 +170,6 @@ export function testFailingExecution(
       const workflow: Workflow = {
         id: "test-workflow-6",
         name: "Error Chain Workflow",
-        handle: "error-chain",
         trigger: "manual",
         nodes: [
           {
@@ -290,7 +287,6 @@ export function testFailingExecution(
       const workflow: Workflow = {
         id: "test-workflow-7",
         name: "Stuck Workflow",
-        handle: "stuck-workflow",
         trigger: "manual",
         nodes: [
           {

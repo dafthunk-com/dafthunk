@@ -24,7 +24,6 @@ export function testParallelExecution(
       const workflow: Workflow = {
         id: "test-workflow-parallel-branches",
         name: "Parallel Branches",
-        handle: "parallel-branches",
         trigger: "manual",
         nodes: [
           {
@@ -116,7 +115,6 @@ export function testParallelExecution(
       const workflow: Workflow = {
         id: "test-workflow-state-isolation",
         name: "State Isolation",
-        handle: "state-isolation",
         trigger: "manual",
         nodes: [
           {
@@ -215,7 +213,6 @@ export function testParallelExecution(
       const workflow: Workflow = {
         id: "test-workflow-wide-parallel",
         name: "Wide Parallel",
-        handle: "wide-parallel",
         trigger: "manual",
         nodes: [
           {
@@ -278,7 +275,6 @@ export function testParallelExecution(
       const workflow: Workflow = {
         id: "test-workflow-multi-level-parallel",
         name: "Multi-Level Parallel",
-        handle: "multi-level-parallel",
         trigger: "manual",
         nodes: [
           {
@@ -394,7 +390,6 @@ export function testParallelExecution(
       const workflow: Workflow = {
         id: "test-workflow-parallel-error",
         name: "Parallel Error",
-        handle: "parallel-error",
         trigger: "manual",
         nodes: [
           {

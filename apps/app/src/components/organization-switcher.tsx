@@ -20,10 +20,10 @@ export function OrganizationSwitcher() {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const params = useParams<{ handle?: string }>();
-  const currentHandle = params.handle || organization?.handle;
+  const params = useParams<{ organizationId?: string }>();
+  const currentOrgId = params.organizationId || organization?.id;
   const currentOrg =
-    orgList?.find((org) => org.handle === currentHandle) || organization;
+    orgList?.find((org) => org.id === currentOrgId) || organization;
   const currentOrgName = currentOrg?.name || "Personal";
   const orgs = orgList || [];
   const isOrgScope = location.pathname.startsWith("/org/");
@@ -47,25 +47,23 @@ export function OrganizationSwitcher() {
       <DropdownMenuContent align="start">
         {orgs.map((org) => {
           const handleSwitch = () => {
-            if (org.handle === currentHandle) return;
+            if (org.id === currentOrgId) return;
             let newPath = location.pathname;
-            if (params.handle) {
+            if (params.organizationId) {
               newPath = newPath.replace(
-                `/org/${params.handle}`,
-                `/org/${org.handle}`
+                `/org/${params.organizationId}`,
+                `/org/${org.id}`
               );
             } else {
-              // No current :handle in URL (e.g., /settings/organizations): go to dashboard
-              newPath = `/org/${org.handle}/dashboard`;
+              // No current :organizationId in URL (e.g., /settings/organizations): go to dashboard
+              newPath = `/org/${org.id}/dashboard`;
             }
             navigate(newPath, { replace: true });
           };
           return (
             <DropdownMenuItem key={org.id} onClick={handleSwitch}>
               {org.name}
-              {org.handle === currentHandle && (
-                <Check className="ml-auto size-4" />
-              )}
+              {org.id === currentOrgId && <Check className="ml-auto size-4" />}
             </DropdownMenuItem>
           );
         })}

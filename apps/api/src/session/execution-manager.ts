@@ -75,8 +75,8 @@ export class ExecutionManager {
     const executorParameters = this.buildExecutorParameters(
       state.trigger,
       parameters,
-      organization.handle,
-      state.handle
+      organizationId,
+      state.id
     );
 
     console.log(
@@ -87,7 +87,6 @@ export class ExecutionManager {
       workflow: {
         id: state.id,
         name: state.name,
-        handle: state.handle,
         trigger: state.trigger,
         runtime: state.runtime,
         nodes: state.nodes,
@@ -111,19 +110,15 @@ export class ExecutionManager {
   private buildExecutorParameters(
     workflowTrigger: string,
     parameters: Record<string, unknown> | undefined,
-    orgHandle: string,
-    workflowHandle: string
+    orgId: string,
+    workflowId: string
   ): WorkflowExecutorParameters {
     switch (workflowTrigger) {
       case "email_message":
         return this.buildEmailParameters(parameters || {});
       case "http_webhook":
       case "http_request":
-        return this.buildHttpParameters(
-          parameters || {},
-          orgHandle,
-          workflowHandle
-        );
+        return this.buildHttpParameters(parameters || {}, orgId, workflowId);
       default:
         return {};
     }
@@ -154,8 +149,8 @@ export class ExecutionManager {
    */
   private buildHttpParameters(
     parameters: Record<string, unknown>,
-    orgHandle: string,
-    workflowHandle: string
+    orgId: string,
+    workflowId: string
   ): WorkflowExecutorParameters {
     // Build query string from query params if provided
     const queryParams =
@@ -166,8 +161,7 @@ export class ExecutionManager {
         : "";
 
     // Construct a simulated URL that matches production format
-    // Using the API base URL pattern: /{orgHandle}/workflows/{workflowHandle}/execute/dev
-    const basePath = `/${orgHandle}/workflows/${workflowHandle}/execute/dev`;
+    const basePath = `/${orgId}/workflows/${workflowId}/execute/dev`;
     const simulatedUrl = `https://api.dafthunk.com${basePath}${queryString}`;
 
     const result: WorkflowExecutorParameters = {

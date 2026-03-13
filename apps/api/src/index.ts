@@ -16,6 +16,7 @@ import datasetRoutes from "./routes/datasets";
 import discordBotRoutes from "./routes/discord-bots";
 import discordWebhook from "./routes/discord-webhook";
 import emailRoutes from "./routes/emails";
+import endpointExecuteRoutes from "./routes/endpoint-execute";
 import endpointRoutes from "./routes/endpoints";
 import executionRoutes from "./routes/executions";
 import feedbackRoutes from "./routes/feedback";
@@ -28,6 +29,7 @@ import objectRoutes from "./routes/objects";
 import organizationRoutes from "./routes/organizations";
 import playgroundRoutes from "./routes/playground";
 import profileRoutes from "./routes/profile";
+import queuePublishRoutes from "./routes/queue-publish";
 import queueRoutes from "./routes/queues";
 import replicateRoutes from "./routes/replicate";
 import robotsRoutes from "./routes/robots";
@@ -89,6 +91,10 @@ app.route("/telegram", telegramWebhook);
 // Discord webhook (no auth, verified by Ed25519 signature)
 app.route("/discord", discordWebhook);
 
+// Trigger execution (API key auth, org derived from resource record)
+app.route("/endpoints", endpointExecuteRoutes);
+app.route("/queues", queuePublishRoutes);
+
 // Replicate schema proxy (JWT-authenticated, not org-scoped)
 app.route("/replicate", replicateRoutes);
 
@@ -96,25 +102,25 @@ app.route("/replicate", replicateRoutes);
 app.route("/templates", templateRoutes);
 app.route("/types", typeRoutes);
 
-app.route("/:organizationIdOrHandle/api-keys", apiKeyRoutes);
-app.route("/:organizationIdOrHandle/billing", billingRoutes);
-app.route("/:organizationIdOrHandle/dashboard", dashboardRoutes);
-app.route("/:organizationIdOrHandle/databases", databaseRoutes);
-app.route("/:organizationIdOrHandle/datasets", datasetRoutes);
-app.route("/:organizationIdOrHandle/discord-bots", discordBotRoutes);
-app.route("/:organizationIdOrHandle/emails", emailRoutes);
-app.route("/:organizationIdOrHandle/feedback", feedbackRoutes);
-app.route("/:organizationIdOrHandle/executions", executionRoutes);
-app.route("/:organizationIdOrHandle/endpoints", endpointRoutes);
-app.route("/:organizationIdOrHandle/integrations", integrationRoutes);
-app.route("/:organizationIdOrHandle/queues", queueRoutes);
-app.route("/:organizationIdOrHandle/secrets", secretRoutes);
-app.route("/:organizationIdOrHandle/telegram-bots", telegramBotRoutes);
-app.route("/:organizationIdOrHandle/workflows", workflowRoutes);
-app.route("/:organizationIdOrHandle/objects", objectRoutes);
-app.route("/:organizationIdOrHandle/playground", playgroundRoutes);
-app.route("/:organizationIdOrHandle/usage", usageRoutes);
-app.route("/:organizationIdOrHandle/ws", wsRoutes);
+app.route("/:organizationId/api-keys", apiKeyRoutes);
+app.route("/:organizationId/billing", billingRoutes);
+app.route("/:organizationId/dashboard", dashboardRoutes);
+app.route("/:organizationId/databases", databaseRoutes);
+app.route("/:organizationId/datasets", datasetRoutes);
+app.route("/:organizationId/discord-bots", discordBotRoutes);
+app.route("/:organizationId/emails", emailRoutes);
+app.route("/:organizationId/feedback", feedbackRoutes);
+app.route("/:organizationId/executions", executionRoutes);
+app.route("/:organizationId/endpoints", endpointRoutes);
+app.route("/:organizationId/integrations", integrationRoutes);
+app.route("/:organizationId/queues", queueRoutes);
+app.route("/:organizationId/secrets", secretRoutes);
+app.route("/:organizationId/telegram-bots", telegramBotRoutes);
+app.route("/:organizationId/workflows", workflowRoutes);
+app.route("/:organizationId/objects", objectRoutes);
+app.route("/:organizationId/playground", playgroundRoutes);
+app.route("/:organizationId/usage", usageRoutes);
+app.route("/:organizationId/ws", wsRoutes);
 
 // Export Durable Objects
 export { Session as WorkflowSession };

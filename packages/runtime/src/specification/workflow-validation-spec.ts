@@ -16,7 +16,6 @@ export function testWorkflowValidation(
       const workflow: Workflow = {
         id: "test-workflow-empty",
         name: "Empty Workflow",
-        handle: "empty",
         trigger: "manual",
         nodes: [],
         edges: [],
@@ -34,7 +33,6 @@ export function testWorkflowValidation(
       const workflow: Workflow = {
         id: "test-workflow-single",
         name: "Single Node Workflow",
-        handle: "single",
         trigger: "manual",
         nodes: [
           {
@@ -67,7 +65,6 @@ export function testWorkflowValidation(
       const workflow: Workflow = {
         id: "test-workflow-isolated",
         name: "Isolated Nodes Workflow",
-        handle: "isolated",
         trigger: "manual",
         nodes: [
           {

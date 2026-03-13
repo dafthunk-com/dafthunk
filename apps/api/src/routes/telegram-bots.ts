@@ -16,7 +16,6 @@ import { jwtMiddleware } from "../auth";
 import type { ApiContext } from "../context";
 import {
   createDatabase,
-  createHandle,
   createTelegramBot,
   deleteTelegramBot,
   getTelegramBot,
@@ -74,7 +73,6 @@ telegramBotRoutes.post(
     const now = new Date();
     const botId = uuid();
     const botName = data.name || "Untitled Bot";
-    const botHandle = createHandle(botName);
     const tokenLastFour = data.botToken.slice(-4);
 
     const encryptedBotToken = await encryptSecret(
@@ -86,7 +84,6 @@ telegramBotRoutes.post(
     const newBot = await createTelegramBot(db, {
       id: botId,
       name: botName,
-      handle: botHandle,
       encryptedBotToken,
       botUsername,
       tokenLastFour,
@@ -98,7 +95,6 @@ telegramBotRoutes.post(
     const response: CreateTelegramBotResponse = {
       id: newBot.id,
       name: newBot.name,
-      handle: newBot.handle,
       botUsername: newBot.botUsername,
       tokenLastFour: newBot.tokenLastFour,
       createdAt: newBot.createdAt,
@@ -122,7 +118,6 @@ telegramBotRoutes.get("/:id", async (c) => {
   const response: GetTelegramBotResponse = {
     id: bot.id,
     name: bot.name,
-    handle: bot.handle,
     botUsername: bot.botUsername,
     tokenLastFour: bot.tokenLastFour,
     createdAt: bot.createdAt,
@@ -198,7 +193,6 @@ telegramBotRoutes.put(
     const response: UpdateTelegramBotResponse = {
       id: updatedBot.id,
       name: updatedBot.name,
-      handle: updatedBot.handle,
       botUsername: updatedBot.botUsername,
       tokenLastFour: updatedBot.tokenLastFour,
       createdAt: updatedBot.createdAt,

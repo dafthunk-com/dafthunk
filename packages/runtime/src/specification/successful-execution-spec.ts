@@ -16,7 +16,6 @@ export function testSuccessfulExecution(
       const workflow: Workflow = {
         id: "test-workflow-1",
         name: "Linear Math Workflow",
-        handle: "linear-math",
         trigger: "manual",
         nodes: [
           {
@@ -113,7 +112,6 @@ export function testSuccessfulExecution(
       const workflow: Workflow = {
         id: "test-workflow-2",
         name: "Parallel Math Workflow",
-        handle: "parallel-math",
         trigger: "manual",
         nodes: [
           {
@@ -267,7 +265,6 @@ export function testSuccessfulExecution(
       const workflow: Workflow = {
         id: "test-workflow-3",
         name: "Chained Operations Workflow",
-        handle: "chained-ops",
         trigger: "manual",
         nodes: [
           {

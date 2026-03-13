@@ -92,7 +92,6 @@ playgroundRoutes.post("/", jwtMiddleware, async (c) => {
     workflow: {
       id: "playground",
       name: "Playground",
-      handle: "playground",
       trigger: "manual",
       nodes: [syntheticNode],
       edges: [],

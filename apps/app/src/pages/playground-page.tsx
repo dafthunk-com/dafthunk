@@ -23,7 +23,7 @@ function isExcluded(nodeType: NodeType): boolean {
 
 export function PlaygroundPage() {
   const { organization } = useAuth();
-  const orgHandle = organization?.handle || "";
+  const orgId = organization?.id || "";
   const navigate = useNavigate();
   const { nodeTypes, isNodeTypesLoading } = useNodeTypes();
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
@@ -89,7 +89,7 @@ export function PlaygroundPage() {
   };
 
   const handleSelectNode = (nodeType: NodeType) => {
-    navigate(`/org/${orgHandle}/playground/${nodeType.type}`);
+    navigate(`/org/${orgId}/playground/${nodeType.type}`);
   };
 
   return (

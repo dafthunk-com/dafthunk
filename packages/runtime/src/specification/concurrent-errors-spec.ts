@@ -16,7 +16,6 @@ export function testConcurrentErrors(
       const workflow: Workflow = {
         id: "test-workflow-multi-error",
         name: "Multiple Errors Workflow",
-        handle: "multi-error",
         trigger: "manual",
         nodes: [
           {
@@ -134,7 +133,6 @@ export function testConcurrentErrors(
       const workflow: Workflow = {
         id: "test-workflow-cascade",
         name: "Cascading Errors Workflow",
-        handle: "cascade-error",
         trigger: "manual",
         nodes: [
           {

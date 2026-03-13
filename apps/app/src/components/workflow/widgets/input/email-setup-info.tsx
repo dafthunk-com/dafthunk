@@ -1,12 +1,11 @@
 import { CopyableValue } from "./copyable-value";
 
 interface EmailSetupInfoProps {
-  handle: string;
-  orgHandle: string;
+  emailId: string;
 }
 
-export function EmailSetupInfo({ handle, orgHandle }: EmailSetupInfoProps) {
-  const emailAddress = `${orgHandle}+${handle}@dafthunk.com`;
+export function EmailSetupInfo({ emailId }: EmailSetupInfoProps) {
+  const emailAddress = `${emailId}@dafthunk.com`;
 
   return (
     <div className="space-y-2 text-sm">

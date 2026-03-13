@@ -111,7 +111,6 @@ export function OrganizationsPage() {
   const columns: ColumnDef<{
     id: string;
     name: string;
-    handle: string;
     createdAt: Date;
     updatedAt: Date;
   }>[] = [
@@ -123,9 +122,9 @@ export function OrganizationsPage() {
       ),
     },
     {
-      accessorKey: "handle",
-      header: "Handle",
-      cell: ({ row }) => <div>{row.getValue("handle")}</div>,
+      accessorKey: "id",
+      header: "ID",
+      cell: ({ row }) => <div>{row.getValue("id")}</div>,
     },
     {
       accessorKey: "createdAt",
@@ -157,7 +156,7 @@ export function OrganizationsPage() {
         name: newOrgName.trim(),
       });
       const newOrg = response.organization;
-      navigate(`/org/${newOrg.handle}/workflows`);
+      navigate(`/org/${newOrg.id}/workflows`);
       toast.success(
         "Organization created successfully and navigated to workflows"
       );
@@ -254,8 +253,7 @@ export function OrganizationsPage() {
             <AlertDialogTitle>Create New Organization</AlertDialogTitle>
             <AlertDialogDescription>
               Create a new organization to manage your workflows and team
-              members. A unique handle will be automatically generated from the
-              organization name.
+              members.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="space-y-4">

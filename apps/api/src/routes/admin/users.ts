@@ -97,7 +97,6 @@ adminUsersRoutes.get("/:id", async (c) => {
       .select({
         organizationId: memberships.organizationId,
         organizationName: organizations.name,
-        organizationHandle: organizations.handle,
         role: memberships.role,
         joinedAt: memberships.createdAt,
       })

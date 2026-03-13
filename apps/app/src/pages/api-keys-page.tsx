@@ -143,10 +143,10 @@ export function ApiKeysPage() {
   }, []);
 
   const handleDeleteKey = useCallback(async (): Promise<void> => {
-    if (!tokenToDelete || !organization?.handle) return;
+    if (!tokenToDelete || !organization?.id) return;
     setIsProcessing(true);
     try {
-      await deleteApiKey(tokenToDelete, organization.handle);
+      await deleteApiKey(tokenToDelete, organization.id);
       toast.success("API key deleted successfully");
       await mutateApiKeys();
     } catch (error) {
@@ -157,13 +157,13 @@ export function ApiKeysPage() {
       setTokenToDelete(null);
       setIsProcessing(false);
     }
-  }, [tokenToDelete, organization?.handle, mutateApiKeys]);
+  }, [tokenToDelete, organization?.id, mutateApiKeys]);
 
   const handleRollKey = useCallback(async (): Promise<void> => {
-    if (!tokenToRoll || !organization?.handle) return;
+    if (!tokenToRoll || !organization?.id) return;
     setIsProcessing(true);
     try {
-      const rolledKey = await rollApiKey(tokenToRoll, organization.handle);
+      const rolledKey = await rollApiKey(tokenToRoll, organization.id);
       setCreatedKeyToShow(rolledKey.apiKey);
       setIsRollDialogOpen(false);
       setIsShowKeyDialogOpen(true);
@@ -176,16 +176,16 @@ export function ApiKeysPage() {
       setTokenToRoll(null);
       setIsProcessing(false);
     }
-  }, [tokenToRoll, organization?.handle, mutateApiKeys]);
+  }, [tokenToRoll, organization?.id, mutateApiKeys]);
 
   const handleCreateKey = useCallback(async (): Promise<void> => {
-    if (!newKeyName.trim() || !organization?.handle) {
+    if (!newKeyName.trim() || !organization?.id) {
       toast.error("Key name is required");
       return;
     }
     setIsProcessing(true);
     try {
-      const newKey = await createApiKey(newKeyName.trim(), organization.handle);
+      const newKey = await createApiKey(newKeyName.trim(), organization.id);
       setCreatedKeyToShow(newKey.apiKey);
       setIsCreateDialogOpen(false);
       setIsShowKeyDialogOpen(true);
@@ -198,7 +198,7 @@ export function ApiKeysPage() {
     } finally {
       setIsProcessing(false);
     }
-  }, [newKeyName, organization?.handle, mutateApiKeys]);
+  }, [newKeyName, organization?.id, mutateApiKeys]);
 
   const handleShowKeyDialogClose = useCallback((open: boolean) => {
     setIsShowKeyDialogOpen(open);

@@ -8,7 +8,7 @@ export interface CreateTelegramBotRequest {
 export interface CreateTelegramBotResponse {
   id: string;
   name: string;
-  handle: string;
+
   botUsername: string | null;
   tokenLastFour: string;
   createdAt: string | Date;

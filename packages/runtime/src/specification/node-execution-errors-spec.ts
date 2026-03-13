@@ -16,7 +16,6 @@ export function testNodeExecutionErrors(
       const workflow: Workflow = {
         id: "test-workflow-unknown-type",
         name: "Unknown Node Type",
-        handle: "unknown-type",
         trigger: "manual",
         nodes: [
           {
@@ -48,7 +47,6 @@ export function testNodeExecutionErrors(
       const workflow: Workflow = {
         id: "test-workflow-continue-on-error",
         name: "Continue on Error",
-        handle: "continue-error",
         trigger: "manual",
         nodes: [
           {

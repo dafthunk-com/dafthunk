@@ -35,7 +35,6 @@ import { deleteQueue, updateQueue, useQueues } from "@/services/queue-service";
 interface QueueRow {
   id: string;
   name: string;
-  handle: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -55,11 +54,11 @@ function createColumns(
       },
     },
     {
-      accessorKey: "handle",
-      header: "Handle",
+      accessorKey: "id",
+      header: "ID",
       cell: ({ row }) => {
-        const handle = row.original.handle;
-        return <span className="text-sm text-muted-foreground">{handle}</span>;
+        const id = row.original.id;
+        return <span className="text-sm text-muted-foreground">{id}</span>;
       },
     },
     {
@@ -67,7 +66,7 @@ function createColumns(
       header: "Endpoint",
       cell: ({ row }) => {
         const queue = row.original;
-        const endpoint = `/api/queues/${queue.handle}/publish`;
+        const endpoint = `/api/queues/${queue.id}/publish`;
         return (
           <span className="text-sm text-muted-foreground font-mono">
             {endpoint}
@@ -123,7 +122,7 @@ export function QueuesPage() {
 
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const { organization } = useAuth();
-  const orgHandle = organization?.handle || "";
+  const orgId = organization?.id || "";
 
   const { queues, queuesError, isQueuesLoading, mutateQueues } = useQueues();
 
@@ -148,10 +147,10 @@ export function QueuesPage() {
   };
 
   const handleDeleteQueue = async () => {
-    if (!queueToDelete || !orgHandle) return;
+    if (!queueToDelete || !orgId) return;
     setIsDeleting(true);
     try {
-      await deleteQueue(queueToDelete.id, orgHandle);
+      await deleteQueue(queueToDelete.id, orgId);
       setDeleteDialogOpen(false);
       setQueueToDelete(null);
       mutateQueues();
@@ -161,10 +160,10 @@ export function QueuesPage() {
   };
 
   const handleEditQueue = async () => {
-    if (!queueToEdit || !orgHandle || editName.trim() === "") return;
+    if (!queueToEdit || !orgId || editName.trim() === "") return;
     setIsEditing(true);
     try {
-      await updateQueue(queueToEdit.id, { name: editName.trim() }, orgHandle);
+      await updateQueue(queueToEdit.id, { name: editName.trim() }, orgId);
       setEditDialogOpen(false);
       setQueueToEdit(null);
       mutateQueues();
@@ -221,8 +220,7 @@ export function QueuesPage() {
             isOpen={snippetsDialogOpen}
             onClose={() => setSnippetsDialogOpen(false)}
             queueName={queueForSnippets.name}
-            queueHandle={queueForSnippets.handle}
-            orgHandle={orgHandle}
+            queueId={queueForSnippets.id}
           />
         )}
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>

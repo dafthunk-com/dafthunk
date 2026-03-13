@@ -14,19 +14,17 @@ interface QueueSnippetsDialogProps {
   isOpen: boolean;
   onClose: () => void;
   queueName: string;
-  queueHandle: string;
-  orgHandle: string;
+  queueId: string;
 }
 
 export function QueueSnippetsDialog({
   isOpen,
   onClose,
   queueName,
-  queueHandle,
-  orgHandle,
+  queueId,
 }: QueueSnippetsDialogProps) {
   const baseUrl = getApiBaseUrl().replace(/\/$/, "");
-  const publishUrl = `${baseUrl}/${orgHandle}/queues/${queueHandle}/publish`;
+  const publishUrl = `${baseUrl}/queues/${queueId}/publish`;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

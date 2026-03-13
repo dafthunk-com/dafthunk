@@ -96,8 +96,7 @@ function CanvasDoodleWidget({
 
   const saveCanvas = async () => {
     const canvas = canvasRef.current;
-    if (!canvas || disabled || !isAuthenticated || !organization?.handle)
-      return;
+    if (!canvas || disabled || !isAuthenticated || !organization?.id) return;
 
     try {
       setIsUploading(true);

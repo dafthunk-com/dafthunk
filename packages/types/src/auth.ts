@@ -3,7 +3,6 @@ export type OrganizationRoleType = "member" | "admin" | "owner";
 export interface OrganizationInfo {
   id: string;
   name: string;
-  handle: string;
   role: OrganizationRoleType;
 }
 

@@ -1,5 +1,5 @@
 import { zValidator } from "@hono/zod-validator";
-import { desc, eq, like, or, sql } from "drizzle-orm";
+import { desc, eq, like, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { z } from "zod";
 
@@ -33,12 +33,7 @@ adminDatabasesRoutes.get(
       const conditions = [];
 
       if (search) {
-        conditions.push(
-          or(
-            like(databases.name, `%${search}%`),
-            like(databases.handle, `%${search}%`)
-          )
-        );
+        conditions.push(like(databases.name, `%${search}%`));
       }
 
       if (organizationId) {
@@ -59,10 +54,8 @@ adminDatabasesRoutes.get(
         .select({
           id: databases.id,
           name: databases.name,
-          handle: databases.handle,
           organizationId: databases.organizationId,
           organizationName: organizations.name,
-          organizationHandle: organizations.handle,
           createdAt: databases.createdAt,
           updatedAt: databases.updatedAt,
         })

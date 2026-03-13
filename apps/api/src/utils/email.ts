@@ -11,8 +11,7 @@ export interface SimulateEmailParams {
   subject?: string;
   body?: string;
   attachments?: EmailAttachment[];
-  organizationId: string;
-  workflowHandleOrId: string;
+  workflowId: string;
 }
 
 /**
@@ -26,7 +25,7 @@ export function createSimulatedEmailMessage(
   const emailFrom = params.from || "sender@example.com";
   const emailSubject = params.subject || "Default Subject";
   const emailBody = params.body || "Default email body.";
-  const emailTo = `workflow+${params.organizationId}+${params.workflowHandleOrId}@dafthunk.com`;
+  const emailTo = `${params.workflowId}@dafthunk.com`;
 
   const messageId = `<${crypto.randomUUID()}@dafthunk.com>`;
   const currentDate = new Date().toUTCString();

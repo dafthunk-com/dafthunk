@@ -35,7 +35,6 @@ export interface AdminUserDetail extends AdminUser {
 export interface AdminUserMembership {
   organizationId: string;
   organizationName: string;
-  organizationHandle: string;
   role: string;
   joinedAt: Date;
 }
@@ -43,7 +42,6 @@ export interface AdminUserMembership {
 export interface AdminOrganization {
   id: string;
   name: string;
-  handle: string;
   computeCredits: number;
   subscriptionStatus: string | null;
   createdAt: Date;
@@ -55,7 +53,6 @@ export interface AdminOrganization {
 export interface AdminOrganizationDetail {
   id: string;
   name: string;
-  handle: string;
   computeCredits: number;
   stripeCustomerId: string | null;
   stripeSubscriptionId: string | null;
@@ -87,13 +84,11 @@ export interface AdminOrganizationEntityCounts {
 export interface AdminWorkflow {
   id: string;
   name: string;
-  handle: string;
   description: string | null;
   trigger: string;
   runtime: string;
   organizationId: string;
   organizationName: string;
-  organizationHandle: string;
   enabled: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -105,7 +100,6 @@ export interface AdminExecution {
   workflowName: string;
   organizationId: string;
   organizationName: string;
-  organizationHandle: string;
   status: string;
   error?: string;
   startedAt: Date;
@@ -128,10 +122,8 @@ export interface AdminExecutionDetail extends AdminExecution {
 export interface AdminEmail {
   id: string;
   name: string;
-  handle: string;
   organizationId: string;
   organizationName: string;
-  organizationHandle: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -139,10 +131,8 @@ export interface AdminEmail {
 export interface AdminQueue {
   id: string;
   name: string;
-  handle: string;
   organizationId: string;
   organizationName: string;
-  organizationHandle: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -150,10 +140,8 @@ export interface AdminQueue {
 export interface AdminDataset {
   id: string;
   name: string;
-  handle: string;
   organizationId: string;
   organizationName: string;
-  organizationHandle: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -161,10 +149,8 @@ export interface AdminDataset {
 export interface AdminDatabase {
   id: string;
   name: string;
-  handle: string;
   organizationId: string;
   organizationName: string;
-  organizationHandle: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -573,7 +559,6 @@ export interface AdminWorkflowStructure {
   id: string;
   name: string;
   description: string | null;
-  handle: string;
   trigger: string;
   runtime: string;
   nodes: any[];

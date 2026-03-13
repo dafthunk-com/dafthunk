@@ -29,18 +29,16 @@ const API_ENDPOINT_BASE = "/feedback";
  */
 export const useAllCriteria = () => {
   const { organization } = useAuth();
-  const orgHandle = organization?.handle;
+  const orgId = organization?.id;
 
-  const swrKey = orgHandle
-    ? `/${orgHandle}${API_ENDPOINT_BASE}/criteria`
-    : null;
+  const swrKey = orgId ? `/${orgId}${API_ENDPOINT_BASE}/criteria` : null;
 
   const { data, error, isLoading } = useSWR(
     swrKey,
     swrKey
       ? async () => {
           const response = await makeOrgRequest<ListFeedbackCriteriaResponse>(
-            orgHandle!,
+            orgId!,
             API_ENDPOINT_BASE,
             "/criteria"
           );
@@ -62,11 +60,11 @@ export const useAllCriteria = () => {
  */
 export const useWorkflowCriteria = (workflowId: string | null) => {
   const { organization } = useAuth();
-  const orgHandle = organization?.handle;
+  const orgId = organization?.id;
 
   const swrKey =
-    orgHandle && workflowId
-      ? `/${orgHandle}${API_ENDPOINT_BASE}/criteria/workflow/${workflowId}`
+    orgId && workflowId
+      ? `/${orgId}${API_ENDPOINT_BASE}/criteria/workflow/${workflowId}`
       : null;
 
   const { data, error, isLoading, mutate } = useSWR(
@@ -74,7 +72,7 @@ export const useWorkflowCriteria = (workflowId: string | null) => {
     swrKey
       ? async () => {
           const response = await makeOrgRequest<ListFeedbackCriteriaResponse>(
-            orgHandle!,
+            orgId!,
             API_ENDPOINT_BASE,
             `/criteria/workflow/${workflowId}`
           );
@@ -97,17 +95,17 @@ export const useWorkflowCriteria = (workflowId: string | null) => {
  */
 export const useCreateCriterion = () => {
   const { organization } = useAuth();
-  const orgHandle = organization?.handle;
+  const orgId = organization?.id;
 
   const { trigger, isMutating, error } = useSWRMutation(
-    orgHandle ? `/${orgHandle}${API_ENDPOINT_BASE}/criteria` : null,
+    orgId ? `/${orgId}${API_ENDPOINT_BASE}/criteria` : null,
     async (
       _key: string,
       { arg }: { arg: CreateFeedbackCriterionRequest }
     ): Promise<FeedbackCriterion> => {
-      if (!orgHandle) throw new Error("Organization not found");
+      if (!orgId) throw new Error("Organization not found");
       return makeOrgRequest<FeedbackCriterion>(
-        orgHandle,
+        orgId,
         API_ENDPOINT_BASE,
         "/criteria",
         {
@@ -131,19 +129,19 @@ export const useCreateCriterion = () => {
  */
 export const useUpdateCriterion = () => {
   const { organization } = useAuth();
-  const orgHandle = organization?.handle;
+  const orgId = organization?.id;
 
   const { trigger, isMutating, error } = useSWRMutation(
-    orgHandle ? `/${orgHandle}${API_ENDPOINT_BASE}/criteria` : null,
+    orgId ? `/${orgId}${API_ENDPOINT_BASE}/criteria` : null,
     async (
       _key: string,
       {
         arg,
       }: { arg: { criterionId: string; data: UpdateFeedbackCriterionRequest } }
     ): Promise<FeedbackCriterion> => {
-      if (!orgHandle) throw new Error("Organization not found");
+      if (!orgId) throw new Error("Organization not found");
       return makeOrgRequest<FeedbackCriterion>(
-        orgHandle,
+        orgId,
         API_ENDPOINT_BASE,
         `/criteria/${arg.criterionId}`,
         {
@@ -170,14 +168,14 @@ export const useUpdateCriterion = () => {
  */
 export const useDeleteCriterion = () => {
   const { organization } = useAuth();
-  const orgHandle = organization?.handle;
+  const orgId = organization?.id;
 
   const { trigger, isMutating, error } = useSWRMutation(
-    orgHandle ? `/${orgHandle}${API_ENDPOINT_BASE}/criteria` : null,
+    orgId ? `/${orgId}${API_ENDPOINT_BASE}/criteria` : null,
     async (_key: string, { arg }: { arg: string }): Promise<void> => {
-      if (!orgHandle) throw new Error("Organization not found");
+      if (!orgId) throw new Error("Organization not found");
       await makeOrgRequest<{ success: boolean }>(
-        orgHandle,
+        orgId,
         API_ENDPOINT_BASE,
         `/criteria/${arg}`,
         { method: "DELETE" }
@@ -201,11 +199,11 @@ export const useDeleteCriterion = () => {
  */
 export const useFeedback = (executionId: string | null) => {
   const { organization } = useAuth();
-  const orgHandle = organization?.handle;
+  const orgId = organization?.id;
 
   const swrKey =
-    orgHandle && executionId
-      ? `/${orgHandle}${API_ENDPOINT_BASE}/execution/${executionId}`
+    orgId && executionId
+      ? `/${orgId}${API_ENDPOINT_BASE}/execution/${executionId}`
       : null;
 
   const { data, error, isLoading, mutate } = useSWR(
@@ -213,7 +211,7 @@ export const useFeedback = (executionId: string | null) => {
     swrKey
       ? async () => {
           const response = await makeOrgRequest<ListExecutionFeedbackResponse>(
-            orgHandle!,
+            orgId!,
             API_ENDPOINT_BASE,
             `/execution/${executionId}`
           );
@@ -236,25 +234,20 @@ export const useFeedback = (executionId: string | null) => {
  */
 export const useUpsertFeedback = () => {
   const { organization } = useAuth();
-  const orgHandle = organization?.handle;
+  const orgId = organization?.id;
 
   const { trigger, isMutating, error } = useSWRMutation(
-    orgHandle ? `/${orgHandle}${API_ENDPOINT_BASE}/upsert` : null,
+    orgId ? `/${orgId}${API_ENDPOINT_BASE}/upsert` : null,
     async (
       _key: string,
       { arg }: { arg: UpsertFeedbackRequest }
     ): Promise<ExecutionFeedback> => {
-      if (!orgHandle) throw new Error("Organization not found");
-      return makeOrgRequest<ExecutionFeedback>(
-        orgHandle,
-        API_ENDPOINT_BASE,
-        "",
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(arg),
-        }
-      );
+      if (!orgId) throw new Error("Organization not found");
+      return makeOrgRequest<ExecutionFeedback>(orgId, API_ENDPOINT_BASE, "", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(arg),
+      });
     }
   );
 
@@ -270,17 +263,17 @@ export const useUpsertFeedback = () => {
  */
 export const useBatchCreateFeedback = () => {
   const { organization } = useAuth();
-  const orgHandle = organization?.handle;
+  const orgId = organization?.id;
 
   const { trigger, isMutating, error } = useSWRMutation(
-    orgHandle ? `/${orgHandle}${API_ENDPOINT_BASE}/batch` : null,
+    orgId ? `/${orgId}${API_ENDPOINT_BASE}/batch` : null,
     async (
       _key: string,
       { arg }: { arg: BatchCreateFeedbackRequest }
     ): Promise<BatchCreateFeedbackResponse> => {
-      if (!orgHandle) throw new Error("Organization not found");
+      if (!orgId) throw new Error("Organization not found");
       return makeOrgRequest<BatchCreateFeedbackResponse>(
-        orgHandle,
+        orgId,
         API_ENDPOINT_BASE,
         "/batch",
         {
@@ -304,14 +297,14 @@ export const useBatchCreateFeedback = () => {
  */
 export const useDeleteFeedback = () => {
   const { organization } = useAuth();
-  const orgHandle = organization?.handle;
+  const orgId = organization?.id;
 
   const { trigger, isMutating, error } = useSWRMutation(
-    orgHandle ? `/${orgHandle}${API_ENDPOINT_BASE}` : null,
+    orgId ? `/${orgId}${API_ENDPOINT_BASE}` : null,
     async (_key: string, { arg }: { arg: string }): Promise<void> => {
-      if (!orgHandle) throw new Error("Organization not found");
+      if (!orgId) throw new Error("Organization not found");
       await makeOrgRequest<{ success: boolean }>(
-        orgHandle,
+        orgId,
         API_ENDPOINT_BASE,
         `/${arg}`,
         { method: "DELETE" }
@@ -331,16 +324,16 @@ export const useDeleteFeedback = () => {
  */
 export const useListFeedback = () => {
   const { organization } = useAuth();
-  const orgHandle = organization?.handle;
+  const orgId = organization?.id;
 
-  const swrKey = orgHandle ? `/${orgHandle}${API_ENDPOINT_BASE}` : null;
+  const swrKey = orgId ? `/${orgId}${API_ENDPOINT_BASE}` : null;
 
   const { data, error, isLoading, mutate } = useSWR(
     swrKey,
     swrKey
       ? async () => {
           const response = await makeOrgRequest<ListExecutionFeedbackResponse>(
-            orgHandle!,
+            orgId!,
             API_ENDPOINT_BASE,
             ""
           );
@@ -372,7 +365,7 @@ export interface FeedbackFilters {
  */
 export const usePaginatedFeedback = (filters: FeedbackFilters = {}) => {
   const { organization } = useAuth();
-  const orgHandle = organization?.handle;
+  const orgId = organization?.id;
 
   const getKey = (
     pageIndex: number,
@@ -394,20 +387,18 @@ export const usePaginatedFeedback = (filters: FeedbackFilters = {}) => {
     if (filters.startDate) params.append("startDate", filters.startDate);
     if (filters.endDate) params.append("endDate", filters.endDate);
 
-    return orgHandle
-      ? `/${orgHandle}${API_ENDPOINT_BASE}?${params.toString()}`
-      : null;
+    return orgId ? `/${orgId}${API_ENDPOINT_BASE}?${params.toString()}` : null;
   };
 
   const fetcher = async (url: string): Promise<ExecutionFeedback[]> => {
-    if (!orgHandle) return [];
+    if (!orgId) return [];
 
     const urlObj = new URL(url, window.location.origin);
-    const path = urlObj.pathname.replace(`/${orgHandle}`, "");
+    const path = urlObj.pathname.replace(`/${orgId}`, "");
     const query = urlObj.search;
 
     const response = await makeOrgRequest<ListExecutionFeedbackResponse>(
-      orgHandle,
+      orgId,
       path,
       query
     );
@@ -443,7 +434,7 @@ export const usePaginatedFeedback = (filters: FeedbackFilters = {}) => {
  * Fetch all filtered feedback (no pagination) and export as CSV download
  */
 export const exportFeedbackCsv = async (
-  orgHandle: string,
+  orgId: string,
   filters: FeedbackFilters = {}
 ): Promise<void> => {
   const params = new URLSearchParams();
@@ -455,7 +446,7 @@ export const exportFeedbackCsv = async (
   if (filters.endDate) params.append("endDate", filters.endDate);
 
   const response = await makeOrgRequest<ListExecutionFeedbackResponse>(
-    orgHandle,
+    orgId,
     API_ENDPOINT_BASE,
     `?${params.toString()}`
   );

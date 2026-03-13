@@ -50,11 +50,11 @@ function DiscordTriggerInputWidget({
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
 
-  const { id: workflowIdOrHandle } = useParams<{ id: string }>();
+  const { id: workflowId } = useParams<{ id: string }>();
   const { organization } = useAuth();
-  const orgHandle = organization?.handle ?? "";
+  const orgId = organization?.id ?? "";
   const { discordTrigger, mutateDiscordTrigger } = useDiscordTrigger(
-    workflowIdOrHandle ?? null
+    workflowId ?? null
   );
 
   const selectedBot = discordBots.find((b) => b.id === discordBotId);
@@ -127,10 +127,10 @@ function DiscordTriggerInputWidget({
   };
 
   const handleSync = async () => {
-    if (!workflowIdOrHandle || !orgHandle) return;
+    if (!workflowId || !orgId) return;
     setIsSyncing(true);
     try {
-      await syncDiscordTrigger(workflowIdOrHandle, orgHandle);
+      await syncDiscordTrigger(workflowId, orgId);
       await mutateDiscordTrigger();
       toast.success("Slash command synced with Discord");
     } catch (err) {

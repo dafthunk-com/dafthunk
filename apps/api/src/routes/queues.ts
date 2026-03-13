@@ -17,7 +17,6 @@ import { apiKeyOrJwtMiddleware, jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
 import {
   createDatabase,
-  createHandle,
   createQueue,
   deleteQueue,
   getQueue,
@@ -70,12 +69,10 @@ queueRoutes.post(
 
     const queueId = uuid();
     const queueName = data.name || "Untitled Queue";
-    const queueHandle = createHandle(queueName);
 
     const newQueue = await createQueue(db, {
       id: queueId,
       name: queueName,
-      handle: queueHandle,
       organizationId: organizationId,
       createdAt: now,
       updatedAt: now,
@@ -84,7 +81,6 @@ queueRoutes.post(
     const response: CreateQueueResponse = {
       id: newQueue.id,
       name: newQueue.name,
-      handle: newQueue.handle,
       createdAt: newQueue.createdAt,
       updatedAt: newQueue.updatedAt,
     };
@@ -109,7 +105,6 @@ queueRoutes.get("/:id", async (c) => {
   const response: GetQueueResponse = {
     id: queue.id,
     name: queue.name,
-    handle: queue.handle,
     createdAt: queue.createdAt,
     updatedAt: queue.updatedAt,
   };
@@ -149,7 +144,6 @@ queueRoutes.put(
     const response: UpdateQueueResponse = {
       id: updatedQueue.id,
       name: updatedQueue.name,
-      handle: updatedQueue.handle,
       createdAt: updatedQueue.createdAt,
       updatedAt: updatedQueue.updatedAt,
     };
@@ -184,7 +178,7 @@ queueRoutes.delete("/:id", async (c) => {
  * Publish a message to a queue
  */
 queueRoutes.post(
-  "/:queueIdOrHandle/publish",
+  "/:queueId/publish",
   apiKeyOrJwtMiddleware,
   zValidator(
     "json",
@@ -193,7 +187,7 @@ queueRoutes.post(
     })
   ),
   async (c) => {
-    const queueIdOrHandle = c.req.param("queueIdOrHandle");
+    const queueId = c.req.param("queueId");
     const { payload } = c.req.valid("json");
     const db = createDatabase(c.env.DB);
 
@@ -201,7 +195,7 @@ queueRoutes.post(
     const { organizationId } = getAuthContext(c);
 
     // Verify queue exists and belongs to organization
-    const queue = await getQueue(db, queueIdOrHandle, organizationId);
+    const queue = await getQueue(db, queueId, organizationId);
     if (!queue) {
       return c.json(
         { error: "Queue not found or does not belong to your organization" },

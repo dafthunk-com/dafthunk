@@ -164,7 +164,6 @@ async function executeWorkflow(
   workflow: {
     id: string;
     name: string;
-    handle: string;
     trigger: string;
     organizationId: string;
     enabled: boolean;
@@ -221,7 +220,6 @@ async function executeWorkflow(
     workflow: {
       id: workflow.id,
       name: workflow.name,
-      handle: workflow.handle,
       trigger: workflow.trigger as WorkflowTrigger,
       runtime: workflowData.runtime,
       nodes: workflowData.nodes,

@@ -32,7 +32,7 @@ interface OrgLayoutProps {
 }
 
 export const getDashboardSidebarGroups = (
-  orgHandle: string,
+  orgId: string,
   developerMode: boolean = false
 ) => {
   const groups = [
@@ -40,7 +40,7 @@ export const getDashboardSidebarGroups = (
       items: [
         {
           title: "Dashboard",
-          url: `/org/${orgHandle}/dashboard`,
+          url: `/org/${orgId}/dashboard`,
           icon: LayoutDashboard,
         },
       ],
@@ -50,23 +50,23 @@ export const getDashboardSidebarGroups = (
       items: [
         {
           title: "Workflows",
-          url: `/org/${orgHandle}/workflows`,
+          url: `/org/${orgId}/workflows`,
           icon: SquareTerminal,
         },
 
         {
           title: "Executions",
-          url: `/org/${orgHandle}/executions`,
+          url: `/org/${orgId}/executions`,
           icon: Logs,
         },
         {
           title: "Templates",
-          url: `/org/${orgHandle}/templates`,
+          url: `/org/${orgId}/templates`,
           icon: Wand,
         },
         {
           title: "Playground",
-          url: `/org/${orgHandle}/playground`,
+          url: `/org/${orgId}/playground`,
           icon: FlaskConical,
         },
       ],
@@ -76,22 +76,22 @@ export const getDashboardSidebarGroups = (
       items: [
         {
           title: "Endpoints",
-          url: `/org/${orgHandle}/endpoints`,
+          url: `/org/${orgId}/endpoints`,
           icon: Globe,
         },
         {
           title: "Emails",
-          url: `/org/${orgHandle}/emails`,
+          url: `/org/${orgId}/emails`,
           icon: Mail,
         },
         {
           title: "Queues",
-          url: `/org/${orgHandle}/queues`,
+          url: `/org/${orgId}/queues`,
           icon: Inbox,
         },
         {
           title: "Bots",
-          url: `/org/${orgHandle}/bots`,
+          url: `/org/${orgId}/bots`,
           icon: Bot,
         },
       ],
@@ -101,22 +101,22 @@ export const getDashboardSidebarGroups = (
       items: [
         {
           title: "Datasets",
-          url: `/org/${orgHandle}/datasets`,
+          url: `/org/${orgId}/datasets`,
           icon: Folder,
         },
         {
           title: "Databases",
-          url: `/org/${orgHandle}/databases`,
+          url: `/org/${orgId}/databases`,
           icon: Database,
         },
         {
           title: "Integrations",
-          url: `/org/${orgHandle}/integrations`,
+          url: `/org/${orgId}/integrations`,
           icon: Plug,
         },
         {
           title: "Secrets",
-          url: `/org/${orgHandle}/secrets`,
+          url: `/org/${orgId}/secrets`,
           icon: Lock,
         },
       ],
@@ -130,7 +130,7 @@ export const getDashboardSidebarGroups = (
       items: [
         {
           title: "Feedback",
-          url: `/org/${orgHandle}/feedback`,
+          url: `/org/${orgId}/feedback`,
           icon: MessageSquareText,
         },
       ],
@@ -143,17 +143,17 @@ export const getDashboardSidebarGroups = (
     items: [
       {
         title: "API Keys",
-        url: `/org/${orgHandle}/api-keys`,
+        url: `/org/${orgId}/api-keys`,
         icon: KeyRound,
       },
       {
         title: "Members",
-        url: `/org/${orgHandle}/members`,
+        url: `/org/${orgId}/members`,
         icon: Users,
       },
       {
         title: "Billing",
-        url: `/org/${orgHandle}/billing`,
+        url: `/org/${orgId}/billing`,
         icon: CreditCard,
       },
     ],
@@ -163,36 +163,41 @@ export const getDashboardSidebarGroups = (
 };
 
 export const OrgLayout: React.FC<OrgLayoutProps> = ({ children, title }) => {
-  const params = useParams<{ handle: string }>();
+  const params = useParams<{ organizationId: string }>();
   const { organization, setSelectedOrganization } = useAuth();
   const { organizations: orgList } = useOrganizations();
   const { profile } = useProfile();
 
   useEffect(() => {
-    if (params.handle && organization?.handle && orgList.length > 0) {
-      const currentHandle = organization.handle;
-      if (params.handle !== currentHandle) {
-        const targetOrg = orgList.find((org) => org.handle === params.handle);
+    if (params.organizationId && organization?.id && orgList.length > 0) {
+      if (params.organizationId !== organization.id) {
+        const targetOrg = orgList.find(
+          (org) => org.id === params.organizationId
+        );
         if (targetOrg) {
           const newOrg: OrganizationInfo = {
             id: targetOrg.id,
             name: targetOrg.name,
-            handle: targetOrg.handle,
             role: "owner",
           };
           setSelectedOrganization(newOrg);
         }
       }
     }
-  }, [params.handle, organization?.handle, orgList, setSelectedOrganization]);
+  }, [
+    params.organizationId,
+    organization?.id,
+    orgList,
+    setSelectedOrganization,
+  ]);
 
-  if (!organization?.handle) {
+  if (!organization?.id) {
     // Fallback to a loading state or redirect
     return <div>Loading...</div>;
   }
 
   const sidebarGroups = getDashboardSidebarGroups(
-    organization?.handle,
+    organization.id,
     profile?.developerMode ?? false
   );
 

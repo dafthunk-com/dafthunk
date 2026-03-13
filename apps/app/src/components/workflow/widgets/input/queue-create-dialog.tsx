@@ -40,13 +40,13 @@ export function QueueCreateDialog({
   };
 
   const handleSubmit = async () => {
-    if (!organization?.handle) return;
+    if (!organization?.id) return;
 
     setIsSubmitting(true);
     setError(null);
 
     try {
-      const response = await createQueue({ name }, organization.handle);
+      const response = await createQueue({ name }, organization.id);
       onCreated(response.id);
       handleClose();
     } catch (err) {

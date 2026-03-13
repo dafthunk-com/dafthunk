@@ -3,12 +3,12 @@ import { getApiBaseUrl } from "@/config/api";
 import { CopyableValue } from "./copyable-value";
 
 interface QueueSetupInfoProps {
-  handle: string;
+  queueId: string;
 }
 
-export function QueueSetupInfo({ handle }: QueueSetupInfoProps) {
+export function QueueSetupInfo({ queueId }: QueueSetupInfoProps) {
   const baseUrl = getApiBaseUrl().replace(/\/$/, "");
-  const endpoint = `${baseUrl}/queues/${handle}/publish`;
+  const endpoint = `${baseUrl}/queues/${queueId}/publish`;
 
   return (
     <div className="space-y-2 text-sm">

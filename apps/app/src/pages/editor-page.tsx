@@ -29,7 +29,7 @@ export function EditorPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { organization } = useAuth();
-  const orgHandle = organization?.handle || "";
+  const orgId = organization?.id || "";
   const { getOrgUrl } = useOrgUrl();
 
   const [httpWorkflowMetadata, setHttpWorkflowMetadata] =
@@ -40,10 +40,10 @@ export function EditorPage() {
 
   const handleToggleEnabled = useCallback(
     async (checked: boolean) => {
-      if (!id || !orgHandle) return;
+      if (!id || !orgId) return;
       setIsTogglingEnabled(true);
       try {
-        await setWorkflowEnabled(id, checked, orgHandle);
+        await setWorkflowEnabled(id, checked, orgId);
         setIsEnabled(checked);
         toast.success(checked ? "Workflow enabled" : "Workflow disabled");
       } catch (error) {
@@ -54,7 +54,7 @@ export function EditorPage() {
         setIsTogglingEnabled(false);
       }
     },
-    [id, orgHandle]
+    [id, orgId]
   );
 
   const { nodeTypes, nodeTypesError, isNodeTypesLoading } = useNodeTypes({
@@ -146,9 +146,9 @@ export function EditorPage() {
   // Fetch workflow metadata via HTTP (for description and other metadata)
   useEffect(() => {
     const fetchWorkflowMetadata = async () => {
-      if (!id || !orgHandle) return;
+      if (!id || !orgId) return;
       try {
-        const metadata = await getWorkflow(id, orgHandle);
+        const metadata = await getWorkflow(id, orgId);
         setHttpWorkflowMetadata(metadata);
         setIsEnabled(metadata.enabled === true);
       } catch (error) {
@@ -156,7 +156,7 @@ export function EditorPage() {
       }
     };
     fetchWorkflowMetadata();
-  }, [id, orgHandle]);
+  }, [id, orgId]);
 
   usePageBreadcrumbs(
     [
@@ -293,7 +293,7 @@ export function EditorPage() {
             }
             workflowDescription={httpWorkflowMetadata?.description}
             onWorkflowUpdate={handleWorkflowUpdate}
-            orgHandle={orgHandle}
+            orgId={orgId}
             wsExecuteWorkflow={wsExecuteWorkflow}
             isEnabled={isEnabled}
             isTogglingEnabled={isTogglingEnabled}

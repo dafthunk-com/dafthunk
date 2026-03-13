@@ -36,7 +36,7 @@ export function BotDiscordEditDialog({
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async () => {
-    if (!organization?.handle) return;
+    if (!organization?.id) return;
 
     setIsSubmitting(true);
     setError(null);
@@ -49,7 +49,7 @@ export function BotDiscordEditDialog({
           publicKey: publicKey !== bot.publicKey ? publicKey : undefined,
           botToken: botToken.trim() !== "" ? botToken : undefined,
         },
-        organization.handle
+        organization.id
       );
       onUpdated();
       onOpenChange(false);

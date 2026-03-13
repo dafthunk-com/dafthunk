@@ -26,17 +26,17 @@ export const useQueues = (): {
   mutateQueues: () => Promise<any>;
 } => {
   const { organization } = useAuth();
-  const orgHandle = organization?.handle;
+  const orgId = organization?.id;
 
-  // Create a unique SWR key that includes the organization handle
-  const swrKey = orgHandle ? `/${orgHandle}${API_ENDPOINT_BASE}` : null;
+  // Create a unique SWR key that includes the organization ID
+  const swrKey = orgId ? `/${orgId}${API_ENDPOINT_BASE}` : null;
 
   const { data, error, isLoading, mutate } = useSWR(
     swrKey,
-    swrKey && orgHandle
+    swrKey && orgId
       ? async () => {
           const response = await makeOrgRequest<ListQueuesResponse>(
-            orgHandle,
+            orgId,
             API_ENDPOINT_BASE,
             ""
           );
@@ -58,18 +58,17 @@ export const useQueues = (): {
  */
 export const useQueue = (id: string | null) => {
   const { organization } = useAuth();
-  const orgHandle = organization?.handle;
+  const orgId = organization?.id;
 
-  // Create a unique SWR key that includes the organization handle and queue ID
-  const swrKey =
-    orgHandle && id ? `/${orgHandle}${API_ENDPOINT_BASE}/${id}` : null;
+  // Create a unique SWR key that includes the organization ID and queue ID
+  const swrKey = orgId && id ? `/${orgId}${API_ENDPOINT_BASE}/${id}` : null;
 
   const { data, error, isLoading, mutate } = useSWR(
     swrKey,
-    swrKey && orgHandle && id
+    swrKey && orgId && id
       ? async () => {
           return await makeOrgRequest<GetQueueResponse>(
-            orgHandle,
+            orgId,
             API_ENDPOINT_BASE,
             `/${id}`
           );
@@ -90,10 +89,10 @@ export const useQueue = (id: string | null) => {
  */
 export const createQueue = async (
   request: CreateQueueRequest,
-  orgHandle: string
+  orgId: string
 ): Promise<CreateQueueResponse> => {
   const response = await makeOrgRequest<CreateQueueResponse>(
-    orgHandle,
+    orgId,
     API_ENDPOINT_BASE,
     "",
     {
@@ -111,10 +110,10 @@ export const createQueue = async (
 export const updateQueue = async (
   id: string,
   request: UpdateQueueRequest,
-  orgHandle: string
+  orgId: string
 ): Promise<UpdateQueueResponse> => {
   return await makeOrgRequest<UpdateQueueResponse>(
-    orgHandle,
+    orgId,
     API_ENDPOINT_BASE,
     `/${id}`,
     {
@@ -129,10 +128,10 @@ export const updateQueue = async (
  */
 export const deleteQueue = async (
   id: string,
-  orgHandle: string
+  orgId: string
 ): Promise<DeleteQueueResponse> => {
   return await makeOrgRequest<DeleteQueueResponse>(
-    orgHandle,
+    orgId,
     API_ENDPOINT_BASE,
     `/${id}`,
     {

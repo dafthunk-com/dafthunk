@@ -16,7 +16,6 @@ export interface WorkflowExecutorOptions {
   workflow: {
     id: string;
     name: string;
-    handle: string;
     trigger: string;
     runtime?: WorkflowRuntime;
     nodes: Node[];
@@ -84,7 +83,6 @@ export class WorkflowExecutor {
       workflow: {
         id: workflow.id,
         name: workflow.name,
-        handle: workflow.handle,
         trigger: workflow.trigger,
         nodes: workflow.nodes,
         edges: workflow.edges,
@@ -109,8 +107,7 @@ export class WorkflowExecutor {
           subject: parameters?.subject,
           body: parameters?.emailBody,
           attachments: parameters?.attachments,
-          organizationId,
-          workflowHandleOrId: workflow.handle || workflow.id,
+          workflowId: workflow.id,
         }),
       };
     } else if (

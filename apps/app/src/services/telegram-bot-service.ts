@@ -22,16 +22,16 @@ export const useTelegramBots = (): {
   mutateTelegramBots: () => Promise<unknown>;
 } => {
   const { organization } = useAuth();
-  const orgHandle = organization?.handle;
+  const orgId = organization?.id;
 
-  const swrKey = orgHandle ? `/${orgHandle}${API_ENDPOINT_BASE}` : null;
+  const swrKey = orgId ? `/${orgId}${API_ENDPOINT_BASE}` : null;
 
   const { data, error, isLoading, mutate } = useSWR(
     swrKey,
-    swrKey && orgHandle
+    swrKey && orgId
       ? async () => {
           const response = await makeOrgRequest<ListTelegramBotsResponse>(
-            orgHandle,
+            orgId,
             API_ENDPOINT_BASE,
             ""
           );
@@ -50,17 +50,16 @@ export const useTelegramBots = (): {
 
 export const useTelegramBot = (id: string | null) => {
   const { organization } = useAuth();
-  const orgHandle = organization?.handle;
+  const orgId = organization?.id;
 
-  const swrKey =
-    orgHandle && id ? `/${orgHandle}${API_ENDPOINT_BASE}/${id}` : null;
+  const swrKey = orgId && id ? `/${orgId}${API_ENDPOINT_BASE}/${id}` : null;
 
   const { data, error, isLoading, mutate } = useSWR(
     swrKey,
-    swrKey && orgHandle && id
+    swrKey && orgId && id
       ? async () => {
           return await makeOrgRequest<GetTelegramBotResponse>(
-            orgHandle,
+            orgId,
             API_ENDPOINT_BASE,
             `/${id}`
           );
@@ -78,10 +77,10 @@ export const useTelegramBot = (id: string | null) => {
 
 export const createTelegramBot = async (
   request: CreateTelegramBotRequest,
-  orgHandle: string
+  orgId: string
 ): Promise<CreateTelegramBotResponse> => {
   return await makeOrgRequest<CreateTelegramBotResponse>(
-    orgHandle,
+    orgId,
     API_ENDPOINT_BASE,
     "",
     {
@@ -94,10 +93,10 @@ export const createTelegramBot = async (
 export const updateTelegramBot = async (
   id: string,
   request: UpdateTelegramBotRequest,
-  orgHandle: string
+  orgId: string
 ): Promise<UpdateTelegramBotResponse> => {
   return await makeOrgRequest<UpdateTelegramBotResponse>(
-    orgHandle,
+    orgId,
     API_ENDPOINT_BASE,
     `/${id}`,
     {
@@ -109,10 +108,10 @@ export const updateTelegramBot = async (
 
 export const deleteTelegramBot = async (
   id: string,
-  orgHandle: string
+  orgId: string
 ): Promise<DeleteTelegramBotResponse> => {
   return await makeOrgRequest<DeleteTelegramBotResponse>(
-    orgHandle,
+    orgId,
     API_ENDPOINT_BASE,
     `/${id}`,
     {

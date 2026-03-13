@@ -20,7 +20,7 @@ import type { NodeType, WorkflowNodeType } from "./workflow-types";
 interface WorkflowDialogsProps {
   workflowId: string;
   workflowTrigger?: WorkflowTrigger;
-  orgHandle: string;
+  orgId: string;
   nodes: ReactFlowNode<WorkflowNodeType>[];
   nodeTypes: NodeType[];
   // Execution form dialogs

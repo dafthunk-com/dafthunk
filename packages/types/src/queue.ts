@@ -6,7 +6,7 @@ export interface CreateQueueRequest {
 export interface CreateQueueResponse {
   id: string;
   name: string;
-  handle: string;
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -14,7 +14,7 @@ export interface CreateQueueResponse {
 export interface GetQueueResponse {
   id: string;
   name: string;
-  handle: string;
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -23,7 +23,7 @@ export interface ListQueuesResponse {
   queues: {
     id: string;
     name: string;
-    handle: string;
+
     createdAt: Date;
     updatedAt: Date;
   }[];
@@ -36,7 +36,7 @@ export interface UpdateQueueRequest {
 export interface UpdateQueueResponse {
   id: string;
   name: string;
-  handle: string;
+
   createdAt: Date;
   updatedAt: Date;
 }

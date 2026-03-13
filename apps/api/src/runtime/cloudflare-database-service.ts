@@ -34,7 +34,7 @@ async function doDurableObjectRequest(
 
 /**
  * DatabaseConnection backed by a Cloudflare Durable Object.
- * Pre-bound to a specific database handle after ownership verification.
+ * Pre-bound to a specific database ID after ownership verification.
  */
 class CloudflareDatabaseConnection implements DatabaseConnection {
   private stub: DurableObjectStub;
@@ -61,15 +61,15 @@ export class CloudflareDatabaseService implements DatabaseService {
   constructor(private env: Pick<Bindings, "DB" | "DATABASE">) {}
 
   async resolve(
-    databaseIdOrHandle: string,
+    databaseId: string,
     organizationId: string
   ): Promise<DatabaseConnection | undefined> {
     const db = createDatabase(this.env.DB);
-    const database = await getDatabase(db, databaseIdOrHandle, organizationId);
+    const database = await getDatabase(db, databaseId, organizationId);
 
     if (!database) return undefined;
 
-    const id = this.env.DATABASE.idFromName(database.handle);
+    const id = this.env.DATABASE.idFromName(database.id);
     const stub: DurableObjectStub = this.env.DATABASE.get(id);
     return new CloudflareDatabaseConnection(stub);
   }

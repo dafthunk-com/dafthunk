@@ -42,7 +42,7 @@ export function OnboardingPage() {
   const { mutateWorkflows } = useWorkflows();
   const { templates } = useTemplates();
   const { start: startTour } = useTour();
-  const orgHandle = organization?.handle || "";
+  const orgId = organization?.id || "";
 
   const featuredTemplates = useMemo(
     () =>
@@ -57,7 +57,7 @@ export function OnboardingPage() {
     name: string,
     trigger: WorkflowTrigger
   ) => {
-    if (!orgHandle) return;
+    if (!orgId) return;
 
     const request: CreateWorkflowRequest = {
       name,
@@ -66,7 +66,7 @@ export function OnboardingPage() {
       edges: [],
     };
 
-    const newWorkflow = await createWorkflow(request, orgHandle);
+    const newWorkflow = await createWorkflow(request, orgId);
     mutateWorkflows();
     setIsCreateDialogOpen(false);
     navigate(getOrgUrl(`workflows/${newWorkflow.id}`));

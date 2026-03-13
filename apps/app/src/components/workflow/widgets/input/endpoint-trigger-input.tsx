@@ -2,7 +2,6 @@ import type { EndpointMode } from "@dafthunk/types";
 import { Globe } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { useAuth } from "@/components/auth-context";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -40,7 +39,6 @@ function EndpointTriggerInputWidget({
 }: EndpointTriggerInputProps) {
   const { endpoints, isEndpointsLoading, mutateEndpoints } = useEndpoints();
   const { updateNodeData, edges, deleteEdge } = useWorkflow();
-  const { organization } = useAuth();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEndpointTriggerDialogOpen, setIsEndpointTriggerDialogOpen] =
     useState(false);
@@ -126,7 +124,6 @@ function EndpointTriggerInputWidget({
         isOpen={isEndpointTriggerDialogOpen}
         onClose={() => setIsEndpointTriggerDialogOpen(false)}
         endpointId={endpointId || null}
-        orgHandle={organization?.handle || ""}
       />
     </div>
   );

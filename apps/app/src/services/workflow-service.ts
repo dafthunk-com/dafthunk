@@ -55,17 +55,17 @@ export const useWorkflows = (): {
   mutateWorkflows: () => Promise<any>;
 } => {
   const { organization } = useAuth();
-  const orgHandle = organization?.handle;
+  const orgId = organization?.id;
 
-  // Create a unique SWR key that includes the organization handle
-  const swrKey = orgHandle ? `/${orgHandle}${API_ENDPOINT_BASE}` : null;
+  // Create a unique SWR key that includes the organization ID
+  const swrKey = orgId ? `/${orgId}${API_ENDPOINT_BASE}` : null;
 
   const { data, error, isLoading, mutate } = useSWR(
     swrKey,
-    swrKey && orgHandle
+    swrKey && orgId
       ? async () => {
           const response = await makeOrgRequest<ListWorkflowsResponse>(
-            orgHandle,
+            orgId,
             API_ENDPOINT_BASE,
             ""
           );
@@ -90,18 +90,17 @@ export const useWorkflow = (
   options?: SWRConfiguration<WorkflowWithMetadata>
 ) => {
   const { organization } = useAuth();
-  const orgHandle = organization?.handle;
+  const orgId = organization?.id;
 
-  // Create a unique SWR key that includes the organization handle and workflow ID
-  const swrKey =
-    orgHandle && id ? `/${orgHandle}${API_ENDPOINT_BASE}/${id}` : null;
+  // Create a unique SWR key that includes the organization ID and workflow ID
+  const swrKey = orgId && id ? `/${orgId}${API_ENDPOINT_BASE}/${id}` : null;
 
   const { data, error, isLoading, mutate } = useSWR(
     swrKey,
-    swrKey && orgHandle && id
+    swrKey && orgId && id
       ? async () => {
           return await makeOrgRequest<GetWorkflowResponse>(
-            orgHandle,
+            orgId,
             API_ENDPOINT_BASE,
             `/${id}`
           );
@@ -119,23 +118,22 @@ export const useWorkflow = (
 };
 
 /**
- * Hook to get a specific workflow by ID with explicit orgHandle (for admin context)
+ * Hook to get a specific workflow by ID with explicit orgId (for admin context)
  */
-export const useWorkflowWithOrgHandle = (
+export const useWorkflowWithOrgId = (
   id: string | null,
-  orgHandle: string | null,
+  orgId: string | null,
   options?: SWRConfiguration<WorkflowWithMetadata>
 ) => {
-  // Create a unique SWR key that includes the organization handle and workflow ID
-  const swrKey =
-    orgHandle && id ? `/${orgHandle}${API_ENDPOINT_BASE}/${id}` : null;
+  // Create a unique SWR key that includes the organization ID and workflow ID
+  const swrKey = orgId && id ? `/${orgId}${API_ENDPOINT_BASE}/${id}` : null;
 
   const { data, error, isLoading, mutate } = useSWR(
     swrKey,
-    swrKey && orgHandle && id
+    swrKey && orgId && id
       ? async () => {
           return await makeOrgRequest<GetWorkflowResponse>(
-            orgHandle,
+            orgId,
             API_ENDPOINT_BASE,
             `/${id}`
           );
@@ -157,10 +155,10 @@ export const useWorkflowWithOrgHandle = (
  */
 export const createWorkflow = async (
   request: CreateWorkflowRequest,
-  orgHandle: string
+  orgId: string
 ): Promise<WorkflowWithMetadata> => {
   const response = await makeOrgRequest<CreateWorkflowResponse>(
-    orgHandle,
+    orgId,
     API_ENDPOINT_BASE,
     "",
     {
@@ -178,10 +176,10 @@ export const createWorkflow = async (
 export const updateWorkflow = async (
   id: string,
   request: UpdateWorkflowRequest,
-  orgHandle: string
+  orgId: string
 ): Promise<WorkflowWithMetadata> => {
   const response = await makeOrgRequest<UpdateWorkflowResponse>(
-    orgHandle,
+    orgId,
     API_ENDPOINT_BASE,
     `/${id}`,
     {
@@ -198,10 +196,10 @@ export const updateWorkflow = async (
  */
 export const getWorkflow = async (
   id: string,
-  orgHandle: string
+  orgId: string
 ): Promise<WorkflowWithMetadata> => {
   return await makeOrgRequest<GetWorkflowResponse>(
-    orgHandle,
+    orgId,
     API_ENDPOINT_BASE,
     `/${id}`
   );
@@ -212,10 +210,10 @@ export const getWorkflow = async (
  */
 export const deleteWorkflow = async (
   id: string,
-  orgHandle: string
+  orgId: string
 ): Promise<DeleteWorkflowResponse> => {
   return await makeOrgRequest<DeleteWorkflowResponse>(
-    orgHandle,
+    orgId,
     API_ENDPOINT_BASE,
     `/${id}`,
     {
@@ -228,14 +226,14 @@ export const deleteWorkflow = async (
  * Set the enabled state of a workflow
  */
 export const setWorkflowEnabled = async (
-  workflowIdOrHandle: string,
+  workflowId: string,
   enabled: boolean,
-  orgHandle: string
+  orgId: string
 ): Promise<void> => {
   await makeOrgRequest<void>(
-    orgHandle,
+    orgId,
     API_ENDPOINT_BASE,
-    `/${workflowIdOrHandle}/enabled`,
+    `/${workflowId}/enabled`,
     {
       method: "PATCH",
       body: JSON.stringify({ enabled }),
@@ -366,7 +364,7 @@ async function serializeForWs(
  * Hook to manage workflow execution, including parameter forms and status polling.
  */
 export function useWorkflowExecution(
-  orgHandle: string,
+  orgId: string,
   wsExecuteFn?: (options?: { parameters?: Record<string, unknown> }) => void
 ) {
   const [isEmailFormDialogVisible, setIsEmailFormDialogVisible] =
@@ -404,8 +402,8 @@ export function useWorkflowExecution(
       id: string,
       request?: ExecuteWorkflowRequest
     ): Promise<WorkflowExecution> => {
-      if (!orgHandle) {
-        throw new Error("Organization handle is required");
+      if (!orgId) {
+        throw new Error("Organization ID is required");
       }
 
       const requestOptions: RequestInit = {
@@ -468,7 +466,7 @@ export function useWorkflowExecution(
 
       // Use makeOrgRequest with custom headers
       const response = await makeOrgRequest<ExecuteWorkflowResponse>(
-        orgHandle,
+        orgId,
         API_ENDPOINT_BASE,
         urlPath,
         {
@@ -481,7 +479,7 @@ export function useWorkflowExecution(
         ...response,
       };
     },
-    [orgHandle]
+    [orgId]
   );
 
   const cancelWorkflowExecution = useCallback(
@@ -489,12 +487,12 @@ export function useWorkflowExecution(
       workflowId: string,
       executionId: string
     ): Promise<CancelWorkflowExecutionResponse> => {
-      if (!orgHandle) {
-        throw new Error("Organization handle is required");
+      if (!orgId) {
+        throw new Error("Organization ID is required");
       }
 
       const response = await makeOrgRequest<CancelWorkflowExecutionResponse>(
-        orgHandle,
+        orgId,
         API_ENDPOINT_BASE,
         `/${workflowId}/executions/${executionId}/cancel`,
         {
@@ -504,7 +502,7 @@ export function useWorkflowExecution(
 
       return response;
     },
-    [orgHandle]
+    [orgId]
   );
 
   const cancelCurrentExecution = useCallback(async () => {
@@ -586,10 +584,7 @@ export function useWorkflowExecution(
             if (pollingRef.current.cancelled) return;
 
             try {
-              const execution = await getExecution(
-                initialExecution.id,
-                orgHandle
-              );
+              const execution = await getExecution(initialExecution.id, orgId);
 
               if (pollingRef.current.cancelled) return;
               onExecutionUpdate(execution);
@@ -634,7 +629,7 @@ export function useWorkflowExecution(
       wsExecuteFn,
       executeAndPollWorkflow,
       cancelCurrentExecution,
-      orgHandle,
+      orgId,
       cleanup,
     ]
   );
@@ -767,17 +762,17 @@ export const useEmailTrigger = (
   options?: SWRConfiguration<GetEmailTriggerResponse | null>
 ) => {
   const { organization } = useAuth();
-  const orgHandle = organization?.handle;
+  const orgId = organization?.id;
   const { data, error, isLoading, mutate } =
     useSWR<GetEmailTriggerResponse | null>(
-      orgHandle && workflowId
-        ? `/${orgHandle}${API_ENDPOINT_BASE}/${workflowId}/email-trigger`
+      orgId && workflowId
+        ? `/${orgId}${API_ENDPOINT_BASE}/${workflowId}/email-trigger`
         : null,
-      orgHandle && workflowId
+      orgId && workflowId
         ? async () => {
             try {
               const response = await makeOrgRequest<GetEmailTriggerResponse>(
-                orgHandle,
+                orgId,
                 API_ENDPOINT_BASE,
                 `/${workflowId}/email-trigger`
               );
@@ -813,17 +808,17 @@ export const useDiscordTrigger = (
   options?: SWRConfiguration<GetDiscordTriggerResponse | null>
 ) => {
   const { organization } = useAuth();
-  const orgHandle = organization?.handle;
+  const orgId = organization?.id;
   const { data, error, isLoading, mutate } =
     useSWR<GetDiscordTriggerResponse | null>(
-      orgHandle && workflowId
-        ? `/${orgHandle}${API_ENDPOINT_BASE}/${workflowId}/discord-trigger`
+      orgId && workflowId
+        ? `/${orgId}${API_ENDPOINT_BASE}/${workflowId}/discord-trigger`
         : null,
-      orgHandle && workflowId
+      orgId && workflowId
         ? async () => {
             try {
               const response = await makeOrgRequest<GetDiscordTriggerResponse>(
-                orgHandle,
+                orgId,
                 API_ENDPOINT_BASE,
                 `/${workflowId}/discord-trigger`
               );
@@ -855,11 +850,11 @@ export const useDiscordTrigger = (
  * Delete a Discord trigger for a workflow
  */
 export const deleteDiscordTrigger = async (
-  orgHandle: string,
+  orgId: string,
   workflowId: string
 ): Promise<void> => {
   await makeOrgRequest(
-    orgHandle,
+    orgId,
     API_ENDPOINT_BASE,
     `/${workflowId}/discord-trigger`,
     { method: "DELETE" }
@@ -874,17 +869,17 @@ export const useTelegramTrigger = (
   options?: SWRConfiguration<GetTelegramTriggerResponse | null>
 ) => {
   const { organization } = useAuth();
-  const orgHandle = organization?.handle;
+  const orgId = organization?.id;
   const { data, error, isLoading, mutate } =
     useSWR<GetTelegramTriggerResponse | null>(
-      orgHandle && workflowId
-        ? `/${orgHandle}${API_ENDPOINT_BASE}/${workflowId}/telegram-trigger`
+      orgId && workflowId
+        ? `/${orgId}${API_ENDPOINT_BASE}/${workflowId}/telegram-trigger`
         : null,
-      orgHandle && workflowId
+      orgId && workflowId
         ? async () => {
             try {
               const response = await makeOrgRequest<GetTelegramTriggerResponse>(
-                orgHandle,
+                orgId,
                 API_ENDPOINT_BASE,
                 `/${workflowId}/telegram-trigger`
               );
@@ -916,11 +911,11 @@ export const useTelegramTrigger = (
  * Delete a Telegram trigger for a workflow
  */
 export const deleteTelegramTrigger = async (
-  orgHandle: string,
+  orgId: string,
   workflowId: string
 ): Promise<void> => {
   await makeOrgRequest(
-    orgHandle,
+    orgId,
     API_ENDPOINT_BASE,
     `/${workflowId}/telegram-trigger`,
     { method: "DELETE" }

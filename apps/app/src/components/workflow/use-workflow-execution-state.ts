@@ -19,7 +19,7 @@ import type {
 interface UseWorkflowExecutionStateProps {
   workflowId: string;
   workflowTrigger?: WorkflowTrigger;
-  orgHandle: string;
+  orgId: string;
   nodes: ReactFlowNode<WorkflowNodeType>[];
   nodeTypes: NodeType[];
   initialWorkflowExecution?: WorkflowExecution;
@@ -84,7 +84,7 @@ function applyInitialExecution(
 export function useWorkflowExecutionState({
   workflowId,
   workflowTrigger,
-  orgHandle,
+  orgId,
   nodes,
   nodeTypes,
   initialWorkflowExecution,
@@ -138,7 +138,7 @@ export function useWorkflowExecutionState({
     submitHttpRequestConfig,
     submitEmailFormData,
     closeExecutionForm,
-  } = useWorkflowExecution(orgHandle, wsExecuteWorkflowWrapper);
+  } = useWorkflowExecution(orgId, wsExecuteWorkflowWrapper);
 
   // Apply initial execution state once
   useEffect(() => {

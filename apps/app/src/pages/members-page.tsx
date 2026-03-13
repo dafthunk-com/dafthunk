@@ -289,7 +289,7 @@ const columns: ColumnDef<{
 ];
 
 export function MembersPage() {
-  const { handle } = useParams<{ handle: string }>();
+  const { organizationId } = useParams<{ organizationId: string }>();
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
 
   const {
@@ -297,9 +297,11 @@ export function MembersPage() {
     membershipsError,
     isMembershipsLoading,
     mutateMemberships,
-  } = useMemberships(handle || "");
+  } = useMemberships(organizationId || "");
 
-  const { invitations, mutateInvitations } = useInvitations(handle || "");
+  const { invitations, mutateInvitations } = useInvitations(
+    organizationId || ""
+  );
 
   const [isInviteMemberDialogOpen, setIsInviteMemberDialogOpen] =
     useState(false);
@@ -346,7 +348,7 @@ export function MembersPage() {
 
     setIsProcessing(true);
     try {
-      await createInvitation(handle || "", {
+      await createInvitation(organizationId || "", {
         email: newMemberEmail.trim(),
         role: newMemberRole,
       });
@@ -362,14 +364,14 @@ export function MembersPage() {
     } finally {
       setIsProcessing(false);
     }
-  }, [newMemberEmail, newMemberRole, handle, mutateInvitations]);
+  }, [newMemberEmail, newMemberRole, organizationId, mutateInvitations]);
 
   const handleUpdateRole = useCallback(async (): Promise<void> => {
     if (!memberToUpdate) return;
 
     setIsProcessing(true);
     try {
-      await updateMembership(handle || "", {
+      await updateMembership(organizationId || "", {
         email: memberToUpdate.userEmail,
         role: newRole,
       });
@@ -385,14 +387,14 @@ export function MembersPage() {
     } finally {
       setIsProcessing(false);
     }
-  }, [memberToUpdate, newRole, handle, mutateMemberships]);
+  }, [memberToUpdate, newRole, organizationId, mutateMemberships]);
 
   const handleRemoveMember = useCallback(async (): Promise<void> => {
     if (!memberToRemove) return;
 
     setIsProcessing(true);
     try {
-      await removeMembership(handle || "", {
+      await removeMembership(organizationId || "", {
         email: memberToRemove.userEmail,
       });
 
@@ -406,14 +408,17 @@ export function MembersPage() {
     } finally {
       setIsProcessing(false);
     }
-  }, [memberToRemove, handle, mutateMemberships]);
+  }, [memberToRemove, organizationId, mutateMemberships]);
 
   const handleCancelInvitation = useCallback(async (): Promise<void> => {
     if (!invitationToCancel) return;
 
     setIsProcessing(true);
     try {
-      await deleteInvitation(handle || "", invitationToCancel.invitationId);
+      await deleteInvitation(
+        organizationId || "",
+        invitationToCancel.invitationId
+      );
 
       toast.success("Invitation cancelled");
       setIsCancelInvitationDialogOpen(false);
@@ -425,7 +430,7 @@ export function MembersPage() {
     } finally {
       setIsProcessing(false);
     }
-  }, [invitationToCancel, handle, mutateInvitations]);
+  }, [invitationToCancel, organizationId, mutateInvitations]);
 
   // Handle events from the table
   const handleUpdateRoleEvent = useCallback((e: Event) => {

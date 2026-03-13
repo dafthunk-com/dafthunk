@@ -16,7 +16,6 @@ export function testEdgeCases(
       const workflow: Workflow = {
         id: "test-workflow-optional",
         name: "Optional Inputs Workflow",
-        handle: "optional",
         trigger: "manual",
         nodes: [
           {
@@ -87,7 +86,6 @@ export function testEdgeCases(
       const workflow: Workflow = {
         id: "test-workflow-deep",
         name: "Deep Chain Workflow",
-        handle: "deep-chain",
         trigger: "manual",
         nodes,
         edges,
@@ -166,7 +164,6 @@ export function testEdgeCases(
       const workflow: Workflow = {
         id: "test-workflow-wide",
         name: "Wide Parallel Workflow",
-        handle: "wide-parallel",
         trigger: "manual",
         nodes,
         edges,

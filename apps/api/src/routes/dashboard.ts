@@ -17,7 +17,7 @@ const dashboard = new Hono<ApiContext>();
 dashboard.use("*", jwtMiddleware);
 
 /**
- * GET /:organizationIdOrHandle/dashboard
+ * GET /:organizationId/dashboard
  *
  * Get dashboard statistics for the organization
  */

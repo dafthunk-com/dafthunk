@@ -18,14 +18,14 @@ export function ReadyToBuildBlock() {
   const navigate = useNavigate();
   const { organization } = useAuth();
   const { getOrgUrl } = useOrgUrl();
-  const orgHandle = organization?.handle || "";
+  const orgId = organization?.id || "";
   const { mutateWorkflows } = useWorkflows();
 
   const handleCreateWorkflow = async (
     name: string,
     trigger: WorkflowTrigger
   ) => {
-    if (!orgHandle) return;
+    if (!orgId) return;
 
     try {
       const request: CreateWorkflowRequest = {
@@ -35,7 +35,7 @@ export function ReadyToBuildBlock() {
         edges: [],
       };
 
-      const newWorkflow = await createWorkflow(request, orgHandle);
+      const newWorkflow = await createWorkflow(request, orgId);
 
       mutateWorkflows();
       setIsCreateDialogOpen(false);

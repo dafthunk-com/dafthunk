@@ -6,7 +6,7 @@ export interface CreateDatabaseRequest {
 export interface CreateDatabaseResponse {
   id: string;
   name: string;
-  handle: string;
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -14,7 +14,7 @@ export interface CreateDatabaseResponse {
 export interface GetDatabaseResponse {
   id: string;
   name: string;
-  handle: string;
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -23,7 +23,7 @@ export interface ListDatabasesResponse {
   databases: {
     id: string;
     name: string;
-    handle: string;
+
     createdAt: Date;
     updatedAt: Date;
   }[];
@@ -36,7 +36,7 @@ export interface UpdateDatabaseRequest {
 export interface UpdateDatabaseResponse {
   id: string;
   name: string;
-  handle: string;
+
   createdAt: Date;
   updatedAt: Date;
 }

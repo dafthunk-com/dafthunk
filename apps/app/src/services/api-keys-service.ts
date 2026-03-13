@@ -27,17 +27,17 @@ interface UseApiKeys {
  */
 export const useApiKeys = (): UseApiKeys => {
   const { organization } = useAuth();
-  const orgHandle = organization?.handle;
+  const orgId = organization?.id;
 
-  // Create a unique SWR key that includes the organization handle
-  const swrKey = orgHandle ? `/${orgHandle}${API_ENDPOINT_BASE}` : null;
+  // Create a unique SWR key that includes the organization ID
+  const swrKey = orgId ? `/${orgId}${API_ENDPOINT_BASE}` : null;
 
   const { data, error, isLoading, mutate } = useSWR(
     swrKey,
-    swrKey && orgHandle
+    swrKey && orgId
       ? async () => {
           const response = await makeOrgRequest<ListApiKeysResponse>(
-            orgHandle,
+            orgId,
             API_ENDPOINT_BASE,
             ""
           );
@@ -59,10 +59,10 @@ export const useApiKeys = (): UseApiKeys => {
  */
 export const createApiKey = async (
   name: string,
-  orgHandle: string
+  orgId: string
 ): Promise<ApiKeyWithSecret> => {
   const response = await makeOrgRequest<CreateApiKeyResponse>(
-    orgHandle,
+    orgId,
     API_ENDPOINT_BASE,
     "",
     {
@@ -79,10 +79,10 @@ export const createApiKey = async (
  */
 export const deleteApiKey = async (
   id: string,
-  orgHandle: string
+  orgId: string
 ): Promise<boolean> => {
   const response = await makeOrgRequest<DeleteApiKeyResponse>(
-    orgHandle,
+    orgId,
     API_ENDPOINT_BASE,
     `/${id}`,
     {
@@ -98,10 +98,10 @@ export const deleteApiKey = async (
  */
 export const rollApiKey = async (
   id: string,
-  orgHandle: string
+  orgId: string
 ): Promise<ApiKeyWithSecret> => {
   const response = await makeOrgRequest<RollApiKeyResponse>(
-    orgHandle,
+    orgId,
     API_ENDPOINT_BASE,
     `/${id}/roll`,
     {

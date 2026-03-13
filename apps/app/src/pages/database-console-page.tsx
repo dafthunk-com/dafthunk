@@ -18,7 +18,7 @@ import { makeOrgRequest } from "@/services/utils";
 export function DatabaseConsolePage() {
   const { id } = useParams<{ id: string }>();
   const { organization } = useAuth();
-  const orgHandle = organization?.handle || "";
+  const orgId = organization?.id || "";
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
 
   const { database, databaseError, isDatabaseLoading } = useDatabase(
@@ -47,7 +47,7 @@ export function DatabaseConsolePage() {
 
   const handleExecute = async () => {
     const sqlQuery = sqlRef.current.trim();
-    if (!sqlQuery || !orgHandle || !database) return;
+    if (!sqlQuery || !orgId || !database) return;
 
     setIsExecuting(true);
     setError(null);
@@ -55,7 +55,7 @@ export function DatabaseConsolePage() {
 
     try {
       const response = await makeOrgRequest<DatabaseQueryResponse>(
-        orgHandle,
+        orgId,
         "/databases",
         `/${database.id}/query`,
         {

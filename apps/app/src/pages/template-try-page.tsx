@@ -14,14 +14,14 @@ export function TemplateTryPage() {
   const navigate = useNavigate();
   const { getOrgUrl } = useOrgUrl();
   const { organization } = useAuth();
-  const orgHandle = organization?.handle || "";
+  const orgId = organization?.id || "";
 
   const { template, templateError } = useTemplate(templateId);
 
   const creatingRef = useRef(false);
 
   useEffect(() => {
-    if (!template || !orgHandle || creatingRef.current) return;
+    if (!template || !orgId || creatingRef.current) return;
     creatingRef.current = true;
 
     const create = async () => {
@@ -33,7 +33,7 @@ export function TemplateTryPage() {
           nodes: template.nodes,
           edges: template.edges,
         };
-        const newWorkflow = await createWorkflow(request, orgHandle);
+        const newWorkflow = await createWorkflow(request, orgId);
         navigate(getOrgUrl(`workflows/${newWorkflow.id}`), { replace: true });
       } catch (error) {
         console.error("Failed to create workflow from template:", error);
@@ -42,7 +42,7 @@ export function TemplateTryPage() {
     };
 
     create();
-  }, [template, orgHandle, navigate, getOrgUrl]);
+  }, [template, orgId, navigate, getOrgUrl]);
 
   if (templateError) {
     return <InsetError title="Template" errorMessage={templateError.message} />;

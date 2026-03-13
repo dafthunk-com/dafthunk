@@ -19,7 +19,6 @@ import { ApiContext } from "../context";
 import {
   createDatabase,
   createDatabaseRecord,
-  createHandle,
   deleteDatabaseRecord,
   getDatabase,
   getDatabases,
@@ -72,12 +71,10 @@ databaseRoutes.post(
 
     const databaseId = uuid();
     const databaseName = data.name || "Untitled Database";
-    const databaseHandle = createHandle(databaseName);
 
     const newDatabase = await createDatabaseRecord(db, {
       id: databaseId,
       name: databaseName,
-      handle: databaseHandle,
       organizationId: organizationId,
       createdAt: now,
       updatedAt: now,
@@ -86,7 +83,6 @@ databaseRoutes.post(
     const response: CreateDatabaseResponse = {
       id: newDatabase.id,
       name: newDatabase.name,
-      handle: newDatabase.handle,
       createdAt: newDatabase.createdAt,
       updatedAt: newDatabase.updatedAt,
     };
@@ -111,7 +107,6 @@ databaseRoutes.get("/:id", async (c) => {
   const response: GetDatabaseResponse = {
     id: database.id,
     name: database.name,
-    handle: database.handle,
     createdAt: database.createdAt,
     updatedAt: database.updatedAt,
   };
@@ -151,7 +146,6 @@ databaseRoutes.put(
     const response: UpdateDatabaseResponse = {
       id: updatedDatabase.id,
       name: updatedDatabase.name,
-      handle: updatedDatabase.handle,
       createdAt: updatedDatabase.createdAt,
       updatedAt: updatedDatabase.updatedAt,
     };
@@ -186,7 +180,7 @@ databaseRoutes.delete("/:id", async (c) => {
  * Execute a query on a database (for testing/debugging via API)
  */
 databaseRoutes.post(
-  "/:databaseIdOrHandle/query",
+  "/:databaseId/query",
   apiKeyOrJwtMiddleware,
   zValidator(
     "json",
@@ -196,7 +190,7 @@ databaseRoutes.post(
     }) as z.ZodType<DatabaseQueryRequest>
   ),
   async (c) => {
-    const databaseIdOrHandle = c.req.param("databaseIdOrHandle");
+    const databaseId = c.req.param("databaseId");
     const { sql, params } = c.req.valid("json");
 
     // Get auth context from either JWT or API key
@@ -205,7 +199,7 @@ databaseRoutes.post(
     // Resolve database via service (verifies ownership)
     const databaseService = new CloudflareDatabaseService(c.env);
     const connection = await databaseService.resolve(
-      databaseIdOrHandle,
+      databaseId,
       organizationId
     );
     if (!connection) {

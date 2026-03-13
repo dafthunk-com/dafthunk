@@ -14,21 +14,19 @@ interface EndpointSnippetsDialogProps {
   isOpen: boolean;
   onClose: () => void;
   endpointName: string;
-  endpointHandle: string;
+  endpointId: string;
   endpointMode: string;
-  orgHandle: string;
 }
 
 export function EndpointSnippetsDialog({
   isOpen,
   onClose,
   endpointName,
-  endpointHandle,
+  endpointId,
   endpointMode,
-  orgHandle,
 }: EndpointSnippetsDialogProps) {
   const baseUrl = getApiBaseUrl().replace(/\/$/, "");
-  const executeUrl = `${baseUrl}/${orgHandle}/endpoints/${endpointHandle}/execute`;
+  const executeUrl = `${baseUrl}/endpoints/${endpointId}/execute`;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

@@ -41,10 +41,10 @@ export function DocsApiPage() {
 
   const BASE_URL = "https://api.dafthunk.com";
 
-  const exampleEndpointExecuteUrl = `${BASE_URL}/your-org/endpoints/my-endpoint/execute`;
+  const exampleEndpointExecuteUrl = `${BASE_URL}/endpoints/my-endpoint/execute`;
   const exampleStatusBaseUrl = `${BASE_URL}/your-org/executions`;
   const exampleObjectBaseUrl = `${BASE_URL}/your-org/objects?id=YOUR_OBJECT_ID`;
-  const exampleQueuePublishUrl = `${BASE_URL}/your-org/queues/my-queue/publish`;
+  const exampleQueuePublishUrl = `${BASE_URL}/queues/my-queue/publish`;
   const exampleDatabaseQueryUrl = `${BASE_URL}/your-org/databases/my-database/query`;
 
   return (
@@ -95,7 +95,7 @@ export function DocsApiPage() {
         <p>
           <strong>Route:</strong>{" "}
           <code>
-            GET or POST /{"{orgHandle}"}/endpoints/{"{endpointIdOrHandle}"}
+            GET or POST /{"{orgId}"}/endpoints/{"{endpointId}"}
             /execute
           </code>
         </p>
@@ -165,7 +165,7 @@ export function DocsApiPage() {
         <p>
           <strong>Route:</strong>{" "}
           <code>
-            GET /{"{orgHandle}"}/executions/{"{executionId}"}
+            GET /{"{orgId}"}/executions/{"{executionId}"}
           </code>
         </p>
 
@@ -264,7 +264,7 @@ export function DocsApiPage() {
         <p>
           <strong>Route:</strong>{" "}
           <code>
-            GET /{"{orgHandle}"}/objects?id={"{objectId}"}&mimeType=
+            GET /{"{orgId}"}/objects?id={"{objectId}"}&mimeType=
             {"{mimeType}"}
           </code>
         </p>
@@ -316,9 +316,7 @@ export function DocsApiPage() {
         </p>
         <p>
           <strong>Route:</strong>{" "}
-          <code>
-            POST /{"{orgHandle}"}/queues/{"{queueIdOrHandle}"}/publish
-          </code>
+          <code>POST /queues/{"{queueId}"}/publish</code>
         </p>
 
         <h4>Request Body</h4>
@@ -357,7 +355,7 @@ export function DocsApiPage() {
         <p>
           <strong>Route:</strong>{" "}
           <code>
-            POST /{"{orgHandle}"}/databases/{"{databaseIdOrHandle}"}/query
+            POST /{"{orgId}"}/databases/{"{databaseId}"}/query
           </code>
         </p>
 

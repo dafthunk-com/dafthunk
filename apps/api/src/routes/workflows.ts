@@ -36,7 +36,6 @@ import { jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
 import {
   createDatabase,
-  createHandle,
   deleteDiscordTrigger as deleteDbDiscordTrigger,
   deleteEndpointTrigger as deleteDbEndpointTrigger,
   deleteQueueTrigger as deleteDbQueueTrigger,
@@ -95,7 +94,6 @@ workflowRoutes.get("/", jwtMiddleware, async (c) => {
       id: workflow.id,
       name: workflow.name,
       description: workflow.description ?? undefined,
-      handle: workflow.handle,
       trigger: workflow.trigger,
       runtime: workflow.runtime,
       enabled: workflow.enabled,
@@ -135,7 +133,6 @@ workflowRoutes.post(
 
     const workflowId = uuid();
     const workflowName = data.name || "Untitled Workflow";
-    const workflowHandle = createHandle(workflowName);
 
     const nodes = Array.isArray(data.nodes) ? data.nodes : [];
 
@@ -150,7 +147,6 @@ workflowRoutes.post(
     const workflowData = {
       id: workflowId,
       name: workflowName,
-      handle: workflowHandle,
       trigger: data.trigger,
       runtime: data.runtime || "workflow",
       nodes,
@@ -171,7 +167,6 @@ workflowRoutes.post(
       id: workflowData.id,
       name: workflowData.name,
       description: data.description,
-      handle: workflowData.handle,
       trigger: workflowData.trigger,
       runtime: workflowData.runtime,
       organizationId: organizationId,
@@ -186,7 +181,6 @@ workflowRoutes.post(
       id: savedWorkflow.id,
       name: savedWorkflow.name,
       description: savedWorkflow.description,
-      handle: savedWorkflow.handle,
       trigger: savedWorkflow.trigger,
       runtime: savedWorkflow.runtime,
       createdAt: now,
@@ -224,7 +218,6 @@ workflowRoutes.get("/:id", jwtMiddleware, async (c) => {
       id: workflow.id,
       name: workflow.name,
       description: workflow.description ?? undefined,
-      handle: workflow.handle,
       trigger: workflow.trigger,
       runtime: workflow.runtime,
       enabled: workflow.enabled,
@@ -317,7 +310,6 @@ workflowRoutes.put(
     const workflowToValidate = {
       id: existingWorkflow.id,
       name: data.name ?? existingWorkflow.name,
-      handle: existingWorkflow.handle,
       trigger: data.trigger || existingWorkflowData.trigger,
       nodes: sanitizedNodes,
       edges: sanitizedEdges,
@@ -338,7 +330,6 @@ workflowRoutes.put(
       name: data.name ?? existingWorkflow.name,
       description:
         data.description ?? existingWorkflow.description ?? undefined,
-      handle: existingWorkflow.handle,
       trigger: data.trigger || existingWorkflowData.trigger,
       runtime: data.runtime || existingWorkflow.runtime,
       organizationId: organizationId,
@@ -353,7 +344,6 @@ workflowRoutes.put(
       id: updatedWorkflowData.id,
       name: updatedWorkflowData.name,
       description: updatedWorkflowData.description ?? undefined,
-      handle: updatedWorkflowData.handle,
       trigger: updatedWorkflowData.trigger,
       runtime: updatedWorkflowData.runtime,
       enabled: existingWorkflow.enabled,
@@ -391,7 +381,7 @@ workflowRoutes.delete("/:id", jwtMiddleware, async (c) => {
  */
 async function executeWorkflow(
   c: Context<ExtendedApiContext>,
-  workflow: { id: string; name: string; handle: string },
+  workflow: { id: string; name: string },
   workflowData: any
 ): Promise<Response> {
   const db = createDatabase(c.env.DB);
@@ -417,7 +407,6 @@ async function executeWorkflow(
     workflow: {
       id: workflow.id,
       name: workflow.name,
-      handle: workflow.handle,
       trigger: workflowData.trigger,
       runtime: workflowData.runtime,
       nodes: workflowData.nodes,
@@ -451,11 +440,11 @@ async function executeWorkflow(
  */
 workflowRoutes.on(
   ["GET", "POST"],
-  "/:workflowIdOrHandle/execute",
+  "/:workflowId/execute",
   jwtMiddleware,
   (c, next) => createRateLimitMiddleware(c.env.RATE_LIMIT_EXECUTE)(c, next),
   async (c) => {
-    const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
+    const workflowId = c.req.param("workflowId");
     const { organizationId } = getAuthContext(c);
 
     const workflowStore = new WorkflowStore(c.env);
@@ -464,7 +453,7 @@ workflowRoutes.on(
     let workflowWithData;
     try {
       workflowWithData = await workflowStore.getWithData(
-        workflowIdOrHandle,
+        workflowId,
         organizationId
       );
     } catch (error) {
@@ -501,11 +490,11 @@ workflowRoutes.on(
  */
 workflowRoutes.on(
   ["GET", "POST"],
-  "/:workflowIdOrHandle/execute/dev",
+  "/:workflowId/execute/dev",
   jwtMiddleware,
   (c, next) => createRateLimitMiddleware(c.env.RATE_LIMIT_EXECUTE)(c, next),
   async (c) => {
-    const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
+    const workflowId = c.req.param("workflowId");
     const { organizationId } = getAuthContext(c);
 
     const workflowStore = new WorkflowStore(c.env);
@@ -514,7 +503,7 @@ workflowRoutes.on(
     let workflowWithData;
     try {
       workflowWithData = await workflowStore.getWithData(
-        workflowIdOrHandle,
+        workflowId,
         organizationId
       );
     } catch (error) {
@@ -538,7 +527,7 @@ workflowRoutes.on(
  * Cancel a running workflow execution
  */
 workflowRoutes.post(
-  "/:workflowIdOrHandle/executions/:executionId/cancel",
+  "/:workflowId/executions/:executionId/cancel",
   jwtMiddleware,
   async (c) => {
     const organizationId = c.get("organizationId")!;
@@ -623,44 +612,34 @@ workflowRoutes.post(
 /**
  * Get queue trigger for a workflow
  */
-workflowRoutes.get(
-  "/:workflowIdOrHandle/queue-trigger",
-  jwtMiddleware,
-  async (c) => {
-    const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
-    const organizationId = c.get("organizationId")!;
-    const workflowStore = new WorkflowStore(c.env);
-    const db = createDatabase(c.env.DB);
+workflowRoutes.get("/:workflowId/queue-trigger", jwtMiddleware, async (c) => {
+  const workflowId = c.req.param("workflowId");
+  const organizationId = c.get("organizationId")!;
+  const workflowStore = new WorkflowStore(c.env);
+  const db = createDatabase(c.env.DB);
 
-    const workflow = await workflowStore.get(
-      workflowIdOrHandle,
-      organizationId
-    );
-    if (!workflow) {
-      return c.json({ error: "Workflow not found" }, 404);
-    }
-
-    const queueTrigger = await getQueueTrigger(db, workflow.id, organizationId);
-
-    if (!queueTrigger) {
-      return c.json(
-        { error: "Queue trigger not found for this workflow" },
-        404
-      );
-    }
-
-    // Map the DB row to GetQueueTriggerResponse
-    const response: GetQueueTriggerResponse = {
-      workflowId: queueTrigger.workflowId,
-      queueId: queueTrigger.queueId,
-      active: queueTrigger.active,
-      createdAt: queueTrigger.createdAt,
-      updatedAt: queueTrigger.updatedAt,
-    };
-
-    return c.json(response);
+  const workflow = await workflowStore.get(workflowId, organizationId);
+  if (!workflow) {
+    return c.json({ error: "Workflow not found" }, 404);
   }
-);
+
+  const queueTrigger = await getQueueTrigger(db, workflow.id, organizationId);
+
+  if (!queueTrigger) {
+    return c.json({ error: "Queue trigger not found for this workflow" }, 404);
+  }
+
+  // Map the DB row to GetQueueTriggerResponse
+  const response: GetQueueTriggerResponse = {
+    workflowId: queueTrigger.workflowId,
+    queueId: queueTrigger.queueId,
+    active: queueTrigger.active,
+    createdAt: queueTrigger.createdAt,
+    updatedAt: queueTrigger.updatedAt,
+  };
+
+  return c.json(response);
+});
 
 /**
  * Upsert (create or update) a queue trigger for a workflow
@@ -671,20 +650,17 @@ const UpsertQueueTriggerRequestSchema = z.object({
 }) as z.ZodType<UpsertQueueTriggerRequest>;
 
 workflowRoutes.put(
-  "/:workflowIdOrHandle/queue-trigger",
+  "/:workflowId/queue-trigger",
   jwtMiddleware,
   zValidator("json", UpsertQueueTriggerRequestSchema),
   async (c) => {
-    const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
+    const workflowId = c.req.param("workflowId");
     const organizationId = c.get("organizationId")!;
     const data = c.req.valid("json");
     const db = createDatabase(c.env.DB);
     const workflowStore = new WorkflowStore(c.env);
 
-    const workflow = await workflowStore.get(
-      workflowIdOrHandle,
-      organizationId
-    );
+    const workflow = await workflowStore.get(workflowId, organizationId);
     if (!workflow) {
       return c.json({ error: "Workflow not found" }, 404);
     }
@@ -738,18 +714,15 @@ workflowRoutes.put(
  * Delete a queue trigger for a workflow
  */
 workflowRoutes.delete(
-  "/:workflowIdOrHandle/queue-trigger",
+  "/:workflowId/queue-trigger",
   jwtMiddleware,
   async (c) => {
-    const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
+    const workflowId = c.req.param("workflowId");
     const organizationId = c.get("organizationId")!;
     const workflowStore = new WorkflowStore(c.env);
     const db = createDatabase(c.env.DB);
 
-    const workflow = await workflowStore.get(
-      workflowIdOrHandle,
-      organizationId
-    );
+    const workflow = await workflowStore.get(workflowId, organizationId);
     if (!workflow) {
       return c.json({ error: "Workflow not found" }, 404);
     }
@@ -777,61 +750,48 @@ workflowRoutes.delete(
 /**
  * Get email trigger for a workflow
  */
-workflowRoutes.get(
-  "/:workflowIdOrHandle/email-trigger",
-  jwtMiddleware,
-  async (c) => {
-    const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
-    const organizationId = c.get("organizationId")!;
-    const workflowStore = new WorkflowStore(c.env);
-    const db = createDatabase(c.env.DB);
+workflowRoutes.get("/:workflowId/email-trigger", jwtMiddleware, async (c) => {
+  const workflowId = c.req.param("workflowId");
+  const organizationId = c.get("organizationId")!;
+  const workflowStore = new WorkflowStore(c.env);
+  const db = createDatabase(c.env.DB);
 
-    const workflow = await workflowStore.get(
-      workflowIdOrHandle,
-      organizationId
-    );
-    if (!workflow) {
-      return c.json({ error: "Workflow not found" }, 404);
-    }
-
-    const emailTrigger = await getEmailTrigger(db, workflow.id, organizationId);
-
-    if (!emailTrigger) {
-      return c.json(
-        { error: "Email trigger not found for this workflow" },
-        404
-      );
-    }
-
-    // Map the DB row to GetEmailTriggerResponse
-    const response: GetEmailTriggerResponse = {
-      workflowId: emailTrigger.workflowId,
-      emailId: emailTrigger.emailId,
-      active: emailTrigger.active,
-      createdAt: emailTrigger.createdAt,
-      updatedAt: emailTrigger.updatedAt,
-    };
-
-    return c.json(response);
+  const workflow = await workflowStore.get(workflowId, organizationId);
+  if (!workflow) {
+    return c.json({ error: "Workflow not found" }, 404);
   }
-);
+
+  const emailTrigger = await getEmailTrigger(db, workflow.id, organizationId);
+
+  if (!emailTrigger) {
+    return c.json({ error: "Email trigger not found for this workflow" }, 404);
+  }
+
+  // Map the DB row to GetEmailTriggerResponse
+  const response: GetEmailTriggerResponse = {
+    workflowId: emailTrigger.workflowId,
+    emailId: emailTrigger.emailId,
+    active: emailTrigger.active,
+    createdAt: emailTrigger.createdAt,
+    updatedAt: emailTrigger.updatedAt,
+  };
+
+  return c.json(response);
+});
 
 /**
  * Get endpoint trigger for a workflow
  */
 workflowRoutes.get(
-  "/:workflowIdOrHandle/endpoint-trigger",
+  "/:workflowId/endpoint-trigger",
   jwtMiddleware,
   async (c) => {
-    const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
+    const workflowId = c.req.param("workflowId");
     const organizationId = c.get("organizationId")!;
     const workflowStore = new WorkflowStore(c.env);
     const db = createDatabase(c.env.DB);
 
-    const workflow = await workflowStore.get(
-      workflowIdOrHandle,
-      organizationId
-    );
+    const workflow = await workflowStore.get(workflowId, organizationId);
     if (!workflow) {
       return c.json({ error: "Workflow not found" }, 404);
     }
@@ -866,20 +826,17 @@ const UpsertEndpointTriggerRequestSchema = z.object({
 }) as z.ZodType<UpsertEndpointTriggerRequest>;
 
 workflowRoutes.put(
-  "/:workflowIdOrHandle/endpoint-trigger",
+  "/:workflowId/endpoint-trigger",
   jwtMiddleware,
   zValidator("json", UpsertEndpointTriggerRequestSchema),
   async (c) => {
-    const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
+    const workflowId = c.req.param("workflowId");
     const organizationId = c.get("organizationId")!;
     const data = c.req.valid("json");
     const db = createDatabase(c.env.DB);
     const workflowStore = new WorkflowStore(c.env);
 
-    const workflow = await workflowStore.get(
-      workflowIdOrHandle,
-      organizationId
-    );
+    const workflow = await workflowStore.get(workflowId, organizationId);
     if (!workflow) {
       return c.json({ error: "Workflow not found" }, 404);
     }
@@ -937,18 +894,15 @@ workflowRoutes.put(
  * Delete endpoint trigger for a workflow
  */
 workflowRoutes.delete(
-  "/:workflowIdOrHandle/endpoint-trigger",
+  "/:workflowId/endpoint-trigger",
   jwtMiddleware,
   async (c) => {
-    const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
+    const workflowId = c.req.param("workflowId");
     const organizationId = c.get("organizationId")!;
     const workflowStore = new WorkflowStore(c.env);
     const db = createDatabase(c.env.DB);
 
-    const workflow = await workflowStore.get(
-      workflowIdOrHandle,
-      organizationId
-    );
+    const workflow = await workflowStore.get(workflowId, organizationId);
     if (!workflow) {
       return c.json({ error: "Workflow not found" }, 404);
     }
@@ -977,66 +931,56 @@ workflowRoutes.delete(
 /**
  * Get discord trigger for a workflow
  */
-workflowRoutes.get(
-  "/:workflowIdOrHandle/discord-trigger",
-  jwtMiddleware,
-  async (c) => {
-    const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
-    const organizationId = c.get("organizationId")!;
-    const workflowStore = new WorkflowStore(c.env);
-    const db = createDatabase(c.env.DB);
+workflowRoutes.get("/:workflowId/discord-trigger", jwtMiddleware, async (c) => {
+  const workflowId = c.req.param("workflowId");
+  const organizationId = c.get("organizationId")!;
+  const workflowStore = new WorkflowStore(c.env);
+  const db = createDatabase(c.env.DB);
 
-    const workflow = await workflowStore.get(
-      workflowIdOrHandle,
-      organizationId
-    );
-    if (!workflow) {
-      return c.json({ error: "Workflow not found" }, 404);
-    }
-
-    const discordTrigger = await getDiscordTrigger(
-      db,
-      workflow.id,
-      organizationId
-    );
-
-    if (!discordTrigger) {
-      return c.json(
-        { error: "Discord trigger not found for this workflow" },
-        404
-      );
-    }
-
-    const response: GetDiscordTriggerResponse = {
-      workflowId: discordTrigger.workflowId,
-      commandName: discordTrigger.commandName,
-      commandDescription: discordTrigger.commandDescription,
-      discordBotId: discordTrigger.discordBotId ?? null,
-      active: discordTrigger.active,
-      createdAt: discordTrigger.createdAt,
-      updatedAt: discordTrigger.updatedAt,
-    };
-
-    return c.json(response);
+  const workflow = await workflowStore.get(workflowId, organizationId);
+  if (!workflow) {
+    return c.json({ error: "Workflow not found" }, 404);
   }
-);
+
+  const discordTrigger = await getDiscordTrigger(
+    db,
+    workflow.id,
+    organizationId
+  );
+
+  if (!discordTrigger) {
+    return c.json(
+      { error: "Discord trigger not found for this workflow" },
+      404
+    );
+  }
+
+  const response: GetDiscordTriggerResponse = {
+    workflowId: discordTrigger.workflowId,
+    commandName: discordTrigger.commandName,
+    commandDescription: discordTrigger.commandDescription,
+    discordBotId: discordTrigger.discordBotId ?? null,
+    active: discordTrigger.active,
+    createdAt: discordTrigger.createdAt,
+    updatedAt: discordTrigger.updatedAt,
+  };
+
+  return c.json(response);
+});
 
 /**
  * Sync (re-register) the discord slash command for a workflow trigger
  */
 workflowRoutes.post(
-  "/:workflowIdOrHandle/discord-trigger/sync",
+  "/:workflowId/discord-trigger/sync",
   jwtMiddleware,
   async (c) => {
-    const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
+    const workflowId = c.req.param("workflowId");
     const organizationId = c.get("organizationId")!;
     const workflowStore = new WorkflowStore(c.env);
     const db = createDatabase(c.env.DB);
 
-    const workflow = await workflowStore.get(
-      workflowIdOrHandle,
-      organizationId
-    );
+    const workflow = await workflowStore.get(workflowId, organizationId);
     if (!workflow) {
       return c.json({ error: "Workflow not found" }, 404);
     }
@@ -1116,18 +1060,15 @@ workflowRoutes.post(
  * Delete a discord trigger for a workflow
  */
 workflowRoutes.delete(
-  "/:workflowIdOrHandle/discord-trigger",
+  "/:workflowId/discord-trigger",
   jwtMiddleware,
   async (c) => {
-    const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
+    const workflowId = c.req.param("workflowId");
     const organizationId = c.get("organizationId")!;
     const workflowStore = new WorkflowStore(c.env);
     const db = createDatabase(c.env.DB);
 
-    const workflow = await workflowStore.get(
-      workflowIdOrHandle,
-      organizationId
-    );
+    const workflow = await workflowStore.get(workflowId, organizationId);
     if (!workflow) {
       return c.json({ error: "Workflow not found" }, 404);
     }
@@ -1156,18 +1097,15 @@ workflowRoutes.delete(
  * Get telegram trigger for a workflow
  */
 workflowRoutes.get(
-  "/:workflowIdOrHandle/telegram-trigger",
+  "/:workflowId/telegram-trigger",
   jwtMiddleware,
   async (c) => {
-    const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
+    const workflowId = c.req.param("workflowId");
     const organizationId = c.get("organizationId")!;
     const workflowStore = new WorkflowStore(c.env);
     const db = createDatabase(c.env.DB);
 
-    const workflow = await workflowStore.get(
-      workflowIdOrHandle,
-      organizationId
-    );
+    const workflow = await workflowStore.get(workflowId, organizationId);
     if (!workflow) {
       return c.json({ error: "Workflow not found" }, 404);
     }
@@ -1202,18 +1140,15 @@ workflowRoutes.get(
  * Delete a telegram trigger for a workflow
  */
 workflowRoutes.delete(
-  "/:workflowIdOrHandle/telegram-trigger",
+  "/:workflowId/telegram-trigger",
   jwtMiddleware,
   async (c) => {
-    const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
+    const workflowId = c.req.param("workflowId");
     const organizationId = c.get("organizationId")!;
     const workflowStore = new WorkflowStore(c.env);
     const db = createDatabase(c.env.DB);
 
-    const workflow = await workflowStore.get(
-      workflowIdOrHandle,
-      organizationId
-    );
+    const workflow = await workflowStore.get(workflowId, organizationId);
     if (!workflow) {
       return c.json({ error: "Workflow not found" }, 404);
     }
@@ -1282,7 +1217,7 @@ workflowRoutes.delete(
  * Toggle workflow enabled state
  */
 workflowRoutes.patch(
-  "/:workflowIdOrHandle/enabled",
+  "/:workflowId/enabled",
   jwtMiddleware,
   zValidator(
     "json",
@@ -1291,17 +1226,14 @@ workflowRoutes.patch(
     })
   ),
   async (c) => {
-    const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
+    const workflowId = c.req.param("workflowId");
     const organizationId = c.get("organizationId")!;
     const { enabled } = c.req.valid("json");
 
     const workflowStore = new WorkflowStore(c.env);
     const db = createDatabase(c.env.DB);
 
-    const workflow = await workflowStore.get(
-      workflowIdOrHandle,
-      organizationId
-    );
+    const workflow = await workflowStore.get(workflowId, organizationId);
     if (!workflow) {
       return c.json({ error: "Workflow not found" }, 404);
     }

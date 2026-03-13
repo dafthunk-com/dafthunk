@@ -59,14 +59,14 @@ export function EmailCreateDialog({
   };
 
   const handleSubmit = async () => {
-    if (!organization?.handle) return;
+    if (!organization?.id) return;
 
     setIsSubmitting(true);
     setError(null);
 
     try {
-      const response = await createEmail({ name }, organization.handle);
-      setCreatedHandle(response.handle);
+      const response = await createEmail({ name }, organization.id);
+      setCreatedHandle(response.id);
       setStep("setup");
       onCreated(response.id);
     } catch (err) {
@@ -144,12 +144,7 @@ export function EmailCreateDialog({
               <span className="font-medium">{name}</span>
             </div>
 
-            {createdHandle && organization?.handle && (
-              <EmailSetupInfo
-                handle={createdHandle}
-                orgHandle={organization.handle}
-              />
-            )}
+            {createdHandle && <EmailSetupInfo emailId={createdHandle} />}
 
             <div className="flex justify-end">
               <Button onClick={handleClose}>Done</Button>

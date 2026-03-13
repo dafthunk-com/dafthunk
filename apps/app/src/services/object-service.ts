@@ -32,38 +32,37 @@ export const useObjectService = () => {
   const { organization } = useAuth();
 
   const organizationId = organization?.id ?? "";
-  const organizationHandle = organization?.handle ?? "";
 
   const createUrl = useCallback(
     (objectReference: ObjectReference): string => {
-      return createObjectUrl(objectReference, organizationHandle);
+      return createObjectUrl(objectReference, organizationId);
     },
-    [organizationHandle]
+    [organizationId]
   );
 
   const uploadData = useCallback(
     async (data: BinaryData, mimeType: string): Promise<ObjectReference> => {
-      return uploadBinaryData(data, mimeType, organizationHandle);
+      return uploadBinaryData(data, mimeType, organizationId);
     },
-    [organizationHandle]
+    [organizationId]
   );
 
   const getMetadata = useCallback(
     async (objectId: string, mimeType: string): Promise<ObjectMetadata> => {
-      return getObjectMetadata(objectId, mimeType, organizationHandle);
+      return getObjectMetadata(objectId, mimeType, organizationId);
     },
-    [organizationHandle]
+    [organizationId]
   );
 
   const listAllObjects = useCallback(async (): Promise<ObjectMetadata[]> => {
-    return listObjects(organizationHandle);
-  }, [organizationHandle]);
+    return listObjects(organizationId);
+  }, [organizationId]);
 
   const deleteObj = useCallback(
     async (objectId: string, mimeType: string): Promise<boolean> => {
-      return deleteObject(objectId, mimeType, organizationHandle);
+      return deleteObject(objectId, mimeType, organizationId);
     },
-    [organizationHandle]
+    [organizationId]
   );
 
   return {
@@ -81,32 +80,32 @@ export const useObjectService = () => {
  */
 export const buildObjectApiUrl = (
   path: string = "",
-  organizationHandle: string = ""
+  organizationId: string = ""
 ): string => {
-  if (!organizationHandle) {
-    console.warn("No organization handle provided for object API URL");
+  if (!organizationId) {
+    console.warn("No organization ID provided for object API URL");
     return `${getApiBaseUrl()}${API_ENDPOINT_BASE}${path}`;
   }
 
-  return `${getApiBaseUrl()}/${organizationHandle}${API_ENDPOINT_BASE}${path}`;
+  return `${getApiBaseUrl()}/${organizationId}${API_ENDPOINT_BASE}${path}`;
 };
 
 /**
  * Creates a URL to an object stored in R2 via the /objects endpoint
  *
  * @param objectReference - The object reference with id and mimeType
- * @param organizationHandle - The organization handle
+ * @param organizationId - The organization ID
  * @returns A URL to the object
  */
 export const createObjectUrl = (
   objectReference: ObjectReference,
-  organizationHandle: string = ""
+  organizationId: string = ""
 ): string => {
   if (!objectReference?.id || !objectReference?.mimeType) {
     throw new Error("Invalid object reference: must include id and mimeType");
   }
 
-  const baseUrl = buildObjectApiUrl("", organizationHandle);
+  const baseUrl = buildObjectApiUrl("", organizationId);
   return `${baseUrl}?id=${encodeURIComponent(objectReference.id)}&mimeType=${encodeURIComponent(objectReference.mimeType)}`;
 };
 
@@ -174,13 +173,13 @@ const binaryDataToBlob = (data: BinaryData, mimeType: string): Blob => {
  *
  * @param data - Binary data in various formats
  * @param mimeType - The MIME type of the data
- * @param organizationHandle - The organization handle
+ * @param organizationId - The organization ID
  * @returns A promise that resolves to an object reference {id, mimeType}
  */
 export const uploadBinaryData = async (
   data: BinaryData,
   mimeType: string,
-  organizationHandle: string = ""
+  organizationId: string = ""
 ): Promise<ObjectReference> => {
   if (!data) {
     throw new Error("No data provided for upload");
@@ -190,8 +189,8 @@ export const uploadBinaryData = async (
     throw new Error("MIME type is required for upload");
   }
 
-  if (!organizationHandle) {
-    throw new Error("Organization handle is required for upload");
+  if (!organizationId) {
+    throw new Error("Organization ID is required for upload");
   }
 
   // Convert to blob
@@ -203,7 +202,7 @@ export const uploadBinaryData = async (
 
   // Upload to objects endpoint with organization context
   const result = await makeOrgRequest<UploadObjectResponse>(
-    organizationHandle,
+    organizationId,
     API_ENDPOINT_BASE,
     "",
     {
@@ -225,26 +224,26 @@ export const uploadBinaryData = async (
  *
  * @param objectId - The ID of the object
  * @param mimeType - The MIME type of the object
- * @param organizationHandle - The organization handle
+ * @param organizationId - The organization ID
  * @returns A promise that resolves to the object metadata
  */
 export const getObjectMetadata = async (
   objectId: string,
   mimeType: string,
-  organizationHandle: string = ""
+  organizationId: string = ""
 ): Promise<ObjectMetadata> => {
   if (!objectId || !mimeType) {
     throw new Error("Object ID and MIME type are required");
   }
 
-  if (!organizationHandle) {
-    throw new Error("Organization handle is required");
+  if (!organizationId) {
+    throw new Error("Organization ID is required");
   }
 
   const endpointSuffix = `/metadata/${objectId}?mimeType=${encodeURIComponent(mimeType)}`;
 
   const result = await makeOrgRequest<GetObjectMetadataResponse>(
-    organizationHandle,
+    organizationId,
     API_ENDPOINT_BASE,
     endpointSuffix,
     {
@@ -262,20 +261,20 @@ export const getObjectMetadata = async (
 /**
  * Lists all objects for the organization
  *
- * @param organizationHandle - The organization handle
+ * @param organizationId - The organization ID
  * @returns A promise that resolves to an array of object metadata
  */
 export const listObjects = async (
-  organizationHandle: string = ""
+  organizationId: string = ""
 ): Promise<ObjectMetadata[]> => {
-  if (!organizationHandle) {
-    throw new Error("Organization handle is required");
+  if (!organizationId) {
+    throw new Error("Organization ID is required");
   }
 
   const endpointSuffix = "/list";
 
   const result = await makeOrgRequest<ListObjectsResponse>(
-    organizationHandle,
+    organizationId,
     API_ENDPOINT_BASE,
     endpointSuffix,
     {
@@ -291,26 +290,26 @@ export const listObjects = async (
  *
  * @param objectId - The ID of the object
  * @param mimeType - The MIME type of the object
- * @param organizationHandle - The organization handle
+ * @param organizationId - The organization ID
  * @returns A promise that resolves to true if deletion was successful
  */
 export const deleteObject = async (
   objectId: string,
   mimeType: string,
-  organizationHandle: string = ""
+  organizationId: string = ""
 ): Promise<boolean> => {
   if (!objectId || !mimeType) {
     throw new Error("Object ID and MIME type are required");
   }
 
-  if (!organizationHandle) {
-    throw new Error("Organization handle is required");
+  if (!organizationId) {
+    throw new Error("Organization ID is required");
   }
 
   const endpointSuffix = `/${objectId}?mimeType=${encodeURIComponent(mimeType)}`;
 
   const result = await makeOrgRequest<DeleteObjectResponse>(
-    organizationHandle,
+    organizationId,
     API_ENDPOINT_BASE,
     endpointSuffix,
     {

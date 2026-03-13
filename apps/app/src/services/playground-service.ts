@@ -10,9 +10,9 @@ const API_ENDPOINT_BASE = "/playground";
 export const executeNode = async (
   nodeType: string,
   inputs: Record<string, ParameterValue>,
-  orgHandle: string
+  orgId: string
 ): Promise<ExecuteNodeResponse> => {
-  return makeOrgRequest<ExecuteNodeResponse>(orgHandle, API_ENDPOINT_BASE, "", {
+  return makeOrgRequest<ExecuteNodeResponse>(orgId, API_ENDPOINT_BASE, "", {
     method: "POST",
     body: JSON.stringify({ nodeType, inputs }),
   });

@@ -20,7 +20,6 @@ import { ApiContext } from "../context";
 import {
   createDatabase,
   createDataset,
-  createHandle,
   deleteDataset,
   getDataset,
   getDatasets,
@@ -71,12 +70,10 @@ datasetRoutes.post(
 
     const datasetId = uuid();
     const datasetName = data.name || "Untitled Dataset";
-    const datasetHandle = createHandle(datasetName);
 
     const newDataset = await createDataset(db, {
       id: datasetId,
       name: datasetName,
-      handle: datasetHandle,
       organizationId: organizationId,
       createdAt: now,
       updatedAt: now,
@@ -85,7 +82,6 @@ datasetRoutes.post(
     const response: CreateDatasetResponse = {
       id: newDataset.id,
       name: newDataset.name,
-      handle: newDataset.handle,
       createdAt: newDataset.createdAt,
       updatedAt: newDataset.updatedAt,
     };
@@ -110,7 +106,6 @@ datasetRoutes.get("/:id", async (c) => {
   const response: GetDatasetResponse = {
     id: dataset.id,
     name: dataset.name,
-    handle: dataset.handle,
     createdAt: dataset.createdAt,
     updatedAt: dataset.updatedAt,
   };
@@ -150,7 +145,6 @@ datasetRoutes.put(
     const response: UpdateDatasetResponse = {
       id: updatedDataset.id,
       name: updatedDataset.name,
-      handle: updatedDataset.handle,
       createdAt: updatedDataset.createdAt,
       updatedAt: updatedDataset.updatedAt,
     };

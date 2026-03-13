@@ -26,17 +26,17 @@ export const useEmails = (): {
   mutateEmails: () => Promise<any>;
 } => {
   const { organization } = useAuth();
-  const orgHandle = organization?.handle;
+  const orgId = organization?.id;
 
-  // Create a unique SWR key that includes the organization handle
-  const swrKey = orgHandle ? `/${orgHandle}${API_ENDPOINT_BASE}` : null;
+  // Create a unique SWR key that includes the organization ID
+  const swrKey = orgId ? `/${orgId}${API_ENDPOINT_BASE}` : null;
 
   const { data, error, isLoading, mutate } = useSWR(
     swrKey,
-    swrKey && orgHandle
+    swrKey && orgId
       ? async () => {
           const response = await makeOrgRequest<ListEmailsResponse>(
-            orgHandle,
+            orgId,
             API_ENDPOINT_BASE,
             ""
           );
@@ -58,18 +58,17 @@ export const useEmails = (): {
  */
 export const useEmail = (id: string | null) => {
   const { organization } = useAuth();
-  const orgHandle = organization?.handle;
+  const orgId = organization?.id;
 
-  // Create a unique SWR key that includes the organization handle and email ID
-  const swrKey =
-    orgHandle && id ? `/${orgHandle}${API_ENDPOINT_BASE}/${id}` : null;
+  // Create a unique SWR key that includes the organization ID and email ID
+  const swrKey = orgId && id ? `/${orgId}${API_ENDPOINT_BASE}/${id}` : null;
 
   const { data, error, isLoading, mutate } = useSWR(
     swrKey,
-    swrKey && orgHandle && id
+    swrKey && orgId && id
       ? async () => {
           return await makeOrgRequest<GetEmailResponse>(
-            orgHandle,
+            orgId,
             API_ENDPOINT_BASE,
             `/${id}`
           );
@@ -90,10 +89,10 @@ export const useEmail = (id: string | null) => {
  */
 export const createEmail = async (
   request: CreateEmailRequest,
-  orgHandle: string
+  orgId: string
 ): Promise<CreateEmailResponse> => {
   const response = await makeOrgRequest<CreateEmailResponse>(
-    orgHandle,
+    orgId,
     API_ENDPOINT_BASE,
     "",
     {
@@ -111,10 +110,10 @@ export const createEmail = async (
 export const updateEmail = async (
   id: string,
   request: UpdateEmailRequest,
-  orgHandle: string
+  orgId: string
 ): Promise<UpdateEmailResponse> => {
   return await makeOrgRequest<UpdateEmailResponse>(
-    orgHandle,
+    orgId,
     API_ENDPOINT_BASE,
     `/${id}`,
     {
@@ -129,10 +128,10 @@ export const updateEmail = async (
  */
 export const deleteEmail = async (
   id: string,
-  orgHandle: string
+  orgId: string
 ): Promise<DeleteEmailResponse> => {
   return await makeOrgRequest<DeleteEmailResponse>(
-    orgHandle,
+    orgId,
     API_ENDPOINT_BASE,
     `/${id}`,
     {

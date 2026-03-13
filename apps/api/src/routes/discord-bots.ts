@@ -17,7 +17,6 @@ import type { ApiContext } from "../context";
 import {
   createDatabase,
   createDiscordBot,
-  createHandle,
   deleteDiscordBot,
   getDiscordBot,
   getDiscordBots,
@@ -76,7 +75,6 @@ discordBotRoutes.post(
     const now = new Date();
     const botId = uuid();
     const botName = data.name || "Untitled Bot";
-    const botHandle = createHandle(botName);
     const tokenLastFour = data.botToken.slice(-4);
 
     const encryptedBotToken = await encryptSecret(
@@ -88,7 +86,6 @@ discordBotRoutes.post(
     const newBot = await createDiscordBot(db, {
       id: botId,
       name: botName,
-      handle: botHandle,
       encryptedBotToken,
       applicationId: data.applicationId,
       publicKey: data.publicKey,
@@ -101,7 +98,6 @@ discordBotRoutes.post(
     const response: CreateDiscordBotResponse = {
       id: newBot.id,
       name: newBot.name,
-      handle: newBot.handle,
       applicationId: newBot.applicationId,
       publicKey: newBot.publicKey ?? "",
       tokenLastFour: newBot.tokenLastFour,
@@ -126,7 +122,6 @@ discordBotRoutes.get("/:id", async (c) => {
   const response: GetDiscordBotResponse = {
     id: bot.id,
     name: bot.name,
-    handle: bot.handle,
     applicationId: bot.applicationId,
     publicKey: bot.publicKey ?? "",
     tokenLastFour: bot.tokenLastFour,
@@ -203,7 +198,6 @@ discordBotRoutes.put(
     const response: UpdateDiscordBotResponse = {
       id: updatedBot.id,
       name: updatedBot.name,
-      handle: updatedBot.handle,
       applicationId: updatedBot.applicationId,
       publicKey: updatedBot.publicKey ?? "",
       tokenLastFour: updatedBot.tokenLastFour,

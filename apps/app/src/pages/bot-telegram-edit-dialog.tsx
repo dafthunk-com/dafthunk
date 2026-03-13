@@ -35,7 +35,7 @@ export function BotTelegramEditDialog({
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async () => {
-    if (!organization?.handle) return;
+    if (!organization?.id) return;
 
     setIsSubmitting(true);
     setError(null);
@@ -47,7 +47,7 @@ export function BotTelegramEditDialog({
           name: name !== bot.name ? name : undefined,
           botToken: botToken.trim() !== "" ? botToken : undefined,
         },
-        organization.handle
+        organization.id
       );
       onUpdated();
       onOpenChange(false);

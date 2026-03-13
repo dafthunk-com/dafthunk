@@ -95,7 +95,6 @@ organizationRoutes.post(
         organization: {
           id: result.organization.id!,
           name: result.organization.name,
-          handle: result.organization.handle,
           createdAt: result.organization.createdAt!,
           updatedAt: result.organization.updatedAt!,
         },
@@ -121,12 +120,12 @@ organizationRoutes.delete("/:id", async (c) => {
   }
 
   const db = createDatabase(c.env.DB);
-  const organizationIdOrHandle = c.req.param("id");
+  const organizationId = c.req.param("id");
 
   try {
     const success = await deleteOrganization(
       db,
-      organizationIdOrHandle,
+      organizationId,
       jwtPayload.sub
     );
 
@@ -158,12 +157,12 @@ organizationRoutes.get("/:id/memberships", async (c) => {
   }
 
   const db = createDatabase(c.env.DB);
-  const organizationIdOrHandle = c.req.param("id");
+  const organizationId = c.req.param("id");
 
   try {
     const memberships = await getOrganizationMembershipsWithUsers(
       db,
-      organizationIdOrHandle
+      organizationId
     );
     const response: ListMembershipsResponse = { memberships };
     return c.json(response);
@@ -196,13 +195,13 @@ organizationRoutes.post(
     }
 
     const db = createDatabase(c.env.DB);
-    const organizationIdOrHandle = c.req.param("id");
+    const organizationId = c.req.param("id");
     const { email, role } = c.req.valid("json");
 
     try {
       const membership = await addOrUpdateMembership(
         db,
-        organizationIdOrHandle,
+        organizationId,
         email,
         role,
         jwtPayload.sub
@@ -244,13 +243,13 @@ organizationRoutes.put(
     }
 
     const db = createDatabase(c.env.DB);
-    const organizationIdOrHandle = c.req.param("id");
+    const organizationId = c.req.param("id");
     const { email, role } = c.req.valid("json");
 
     try {
       const membership = await addOrUpdateMembership(
         db,
-        organizationIdOrHandle,
+        organizationId,
         email,
         role,
         jwtPayload.sub
@@ -289,13 +288,13 @@ organizationRoutes.delete(
     }
 
     const db = createDatabase(c.env.DB);
-    const organizationIdOrHandle = c.req.param("id");
+    const organizationId = c.req.param("id");
     const { email } = c.req.valid("json");
 
     try {
       const success = await deleteMembership(
         db,
-        organizationIdOrHandle,
+        organizationId,
         email,
         jwtPayload.sub
       );
@@ -329,13 +328,10 @@ organizationRoutes.get("/:id/invitations", async (c) => {
   }
 
   const db = createDatabase(c.env.DB);
-  const organizationIdOrHandle = c.req.param("id");
+  const organizationId = c.req.param("id");
 
   try {
-    const invitations = await getOrganizationInvitations(
-      db,
-      organizationIdOrHandle
-    );
+    const invitations = await getOrganizationInvitations(db, organizationId);
     // Cast role to the expected type (invitations can only have member or admin roles)
     const response: ListInvitationsResponse = {
       invitations: invitations.map((inv) => ({
@@ -374,13 +370,13 @@ organizationRoutes.post(
     }
 
     const db = createDatabase(c.env.DB);
-    const organizationIdOrHandle = c.req.param("id");
+    const organizationId = c.req.param("id");
     const { email, role } = c.req.valid("json");
 
     try {
       const invitation = await createInvitation(
         db,
-        organizationIdOrHandle,
+        organizationId,
         email,
         role,
         jwtPayload.sub
@@ -397,10 +393,7 @@ organizationRoutes.post(
       }
 
       // Fetch the inviter info to return complete invitation data
-      const invitations = await getOrganizationInvitations(
-        db,
-        organizationIdOrHandle
-      );
+      const invitations = await getOrganizationInvitations(db, organizationId);
       const createdInvitation = invitations.find(
         (inv) => inv.id === invitation.id
       );
@@ -412,7 +405,7 @@ organizationRoutes.post(
       // Send invitation email
       const emailService = createEmailService(c.env);
       if (emailService) {
-        const organization = await getOrganization(db, organizationIdOrHandle);
+        const organization = await getOrganization(db, organizationId);
         if (organization) {
           const emailContent = getInvitationEmail({
             inviteeEmail: email,
@@ -470,14 +463,14 @@ organizationRoutes.delete("/:id/invitations/:invitationId", async (c) => {
   }
 
   const db = createDatabase(c.env.DB);
-  const organizationIdOrHandle = c.req.param("id");
+  const organizationId = c.req.param("id");
   const invitationId = c.req.param("invitationId");
 
   try {
     const success = await deleteInvitation(
       db,
       invitationId,
-      organizationIdOrHandle,
+      organizationId,
       jwtPayload.sub
     );
 

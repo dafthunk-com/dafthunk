@@ -26,7 +26,7 @@ export function TemplateDetailPage() {
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const { getOrgUrl } = useOrgUrl();
   const { organization } = useAuth();
-  const orgHandle = organization?.handle || "";
+  const orgId = organization?.id || "";
 
   const { template, templateError, isTemplateLoading } =
     useTemplate(templateId);
@@ -56,7 +56,7 @@ export function TemplateDetailPage() {
   }, [template, nodeTypes]);
 
   const handleImport = async () => {
-    if (!template || !orgHandle) return;
+    if (!template || !orgId) return;
 
     setIsImporting(true);
     try {
@@ -67,7 +67,7 @@ export function TemplateDetailPage() {
         nodes: template.nodes,
         edges: template.edges,
       };
-      const newWorkflow = await createWorkflow(request, orgHandle);
+      const newWorkflow = await createWorkflow(request, orgId);
       navigate(getOrgUrl(`workflows/${newWorkflow.id}`));
     } catch (error) {
       console.error("Failed to import template:", error);
@@ -117,7 +117,7 @@ export function TemplateDetailPage() {
             mode="readonly"
             expandedOutputs={false}
             createObjectUrl={() => ""}
-            orgHandle={orgHandle}
+            orgId={orgId}
             showSidebar={false}
           />
         </ReactFlowProvider>

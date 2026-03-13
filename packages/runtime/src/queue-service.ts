@@ -17,8 +17,5 @@ export interface QueueService {
    * a QueueCapability scoped to that queue. Returns undefined if
    * the queue is not found or access is denied.
    */
-  resolve(
-    queueIdOrHandle: string,
-    organizationId: string
-  ): Promise<Queue | undefined>;
+  resolve(queueId: string, organizationId: string): Promise<Queue | undefined>;
 }

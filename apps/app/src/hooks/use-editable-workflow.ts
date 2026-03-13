@@ -43,7 +43,6 @@ export function useEditableWorkflow({
     id: string;
     name: string;
     description?: string;
-    handle: string;
     trigger: string;
     runtime?: WorkflowRuntime;
   } | null>(null);
@@ -52,7 +51,7 @@ export function useEditableWorkflow({
 
   // WebSocket connection effect
   useEffect(() => {
-    if (!workflowId || !organization?.handle) {
+    if (!workflowId || !organization?.id) {
       setIsInitializing(false);
       return;
     }
@@ -79,7 +78,6 @@ export function useEditableWorkflow({
               id: state.id,
               name: state.name || "",
               description: state.description,
-              handle: state.handle || "",
               trigger: state.trigger,
               runtime: state.runtime as WorkflowRuntime | undefined,
             });
@@ -115,7 +113,7 @@ export function useEditableWorkflow({
         }
       };
 
-      const ws = connectWorkflowWS(organization.handle, workflowId, {
+      const ws = connectWorkflowWS(organization.id, workflowId, {
         // Message-level callbacks (happy path)
         onInit: (state: WorkflowState) => {
           handleStateUpdate(state);
@@ -171,7 +169,7 @@ export function useEditableWorkflow({
         wsRef.current = null;
       }
     };
-  }, [workflowId, organization?.handle]);
+  }, [workflowId, organization?.id]);
 
   const saveWorkflowInternal = useCallback(
     async (

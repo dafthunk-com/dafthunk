@@ -38,35 +38,27 @@ export async function handleIncomingEmail(
 ): Promise<void> {
   const { from, to, headers, raw } = message;
 
-  // Extract the handle from the to address: org+inbox@domain.com
-  const localPart = to.split("@")[0];
-  const parts = localPart.split("+");
+  // Extract email ID from the to address: emailId@domain.com
+  const emailId = to.split("@")[0];
 
-  if (parts.length !== 2) {
-    console.error(
-      `Invalid email format: ${to}. Expected <organizationIdOrHandle>+<emailIdOrHandle>@domain.com`
-    );
+  if (!emailId) {
+    console.error(`Invalid email format: ${to}. Expected <emailId>@domain.com`);
     return;
   }
 
-  const [organizationIdOrHandle, emailIdOrHandle] = parts;
-
-  console.log(`Processing email trigger for email inbox: ${emailIdOrHandle}`);
+  console.log(`Processing email trigger for email inbox: ${emailId}`);
 
   const db = createDatabase(env.DB);
   const workflowStore = new WorkflowStore(env);
 
-  // Get email inbox
-  const { getEmail, getEmailTriggersByEmail } = await import("./db");
-  const email = await getEmail(db, emailIdOrHandle, organizationIdOrHandle);
+  // Get email inbox (globally unique UUID, org derived from record)
+  const { getEmailById, getEmailTriggersByEmail } = await import("./db");
+  const email = await getEmailById(db, emailId);
   if (!email) {
-    console.error(
-      `Email inbox '${emailIdOrHandle}' not found or does not belong to organization '${organizationIdOrHandle}'`
-    );
+    console.error(`Email inbox '${emailId}' not found`);
     return;
   }
 
-  // Get organization ID from the email record
   const organizationId = email.organizationId;
 
   // Get all workflows triggered by this email
@@ -77,14 +69,12 @@ export async function handleIncomingEmail(
   );
 
   if (emailTriggersWithWorkflows.length === 0) {
-    console.log(
-      `No active workflows found for email inbox: ${emailIdOrHandle}`
-    );
+    console.log(`No active workflows found for email inbox: ${emailId}`);
     return;
   }
 
   console.log(
-    `Found ${emailTriggersWithWorkflows.length} workflow(s) to trigger for email inbox ${emailIdOrHandle}`
+    `Found ${emailTriggersWithWorkflows.length} workflow(s) to trigger for email inbox ${emailId}`
   );
 
   // Read raw email content once (stream can only be consumed once)
@@ -190,7 +180,6 @@ async function triggerWorkflowForEmail({
     workflow: {
       id: workflow.id,
       name: workflow.name,
-      handle: workflow.handle,
       trigger: workflow.trigger,
       runtime: workflowData.runtime,
       nodes: workflowData.nodes,

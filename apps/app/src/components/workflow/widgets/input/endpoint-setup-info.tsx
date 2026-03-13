@@ -4,17 +4,15 @@ import { CopyableValue } from "./copyable-value";
 
 interface EndpointSetupInfoProps {
   mode: "webhook" | "request";
-  orgHandle: string;
   endpointId: string;
 }
 
 export function EndpointSetupInfo({
   mode,
-  orgHandle,
   endpointId,
 }: EndpointSetupInfoProps) {
   const baseUrl = getApiBaseUrl().replace(/\/$/, "");
-  const executeUrl = `${baseUrl}/${orgHandle}/endpoints/${endpointId}/execute`;
+  const executeUrl = `${baseUrl}/endpoints/${endpointId}/execute`;
 
   return (
     <div className="space-y-2 text-sm">

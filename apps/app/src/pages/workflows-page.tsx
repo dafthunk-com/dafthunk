@@ -52,7 +52,7 @@ import {
 function useWorkflowActions() {
   const { mutateWorkflows } = useWorkflows();
   const { organization } = useAuth();
-  const orgHandle = organization?.handle || "";
+  const orgId = organization?.id || "";
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
@@ -67,10 +67,10 @@ function useWorkflowActions() {
   const [isRenaming, setIsRenaming] = useState(false);
 
   const handleDeleteWorkflow = async () => {
-    if (!workflowToDelete || !orgHandle) return;
+    if (!workflowToDelete || !orgId) return;
     setIsDeleting(true);
     try {
-      await deleteWorkflow(workflowToDelete.id, orgHandle);
+      await deleteWorkflow(workflowToDelete.id, orgId);
       setDeleteDialogOpen(false);
       setWorkflowToDelete(null);
       mutateWorkflows();
@@ -81,11 +81,11 @@ function useWorkflowActions() {
 
   const handleRenameWorkflow = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!workflowToRename || !orgHandle) return;
+    if (!workflowToRename || !orgId) return;
     setIsRenaming(true);
     try {
       // Fetch the full workflow data with nodes and edges from the server
-      const fullWorkflow = await getWorkflow(workflowToRename.id, orgHandle);
+      const fullWorkflow = await getWorkflow(workflowToRename.id, orgId);
 
       await updateWorkflow(
         workflowToRename.id,
@@ -96,7 +96,7 @@ function useWorkflowActions() {
           nodes: fullWorkflow.nodes,
           edges: fullWorkflow.edges,
         },
-        orgHandle
+        orgId
       );
       setRenameDialogOpen(false);
       setWorkflowToRename(null);
@@ -231,17 +231,16 @@ function createColumns(
       },
     },
     {
-      accessorKey: "handle",
-      header: "Handle",
+      accessorKey: "id",
+      header: "ID",
       cell: ({ row }) => {
-        const handle = row.original.handle;
-        const workflowId = row.original.id;
+        const id = row.original.id;
         return (
           <Link
-            to={getOrgUrl(`workflows/${workflowId}`)}
+            to={getOrgUrl(`workflows/${id}`)}
             className="font-mono text-xs hover:underline"
           >
-            {handle}
+            {id}
           </Link>
         );
       },
@@ -309,7 +308,7 @@ export function WorkflowsPage() {
   const navigate = useNavigate();
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const { organization } = useAuth();
-  const orgHandle = organization?.handle || "";
+  const orgId = organization?.id || "";
   const { getOrgUrl } = useOrgUrl();
 
   const { workflows, workflowsError, isWorkflowsLoading, mutateWorkflows } =
@@ -335,7 +334,7 @@ export function WorkflowsPage() {
     description?: string,
     runtime?: WorkflowRuntime
   ) => {
-    if (!orgHandle) return;
+    if (!orgId) return;
 
     try {
       const request: CreateWorkflowRequest = {
@@ -347,7 +346,7 @@ export function WorkflowsPage() {
         edges: [],
       };
 
-      const newWorkflow = await createWorkflow(request, orgHandle);
+      const newWorkflow = await createWorkflow(request, orgId);
 
       mutateWorkflows();
       navigate(getOrgUrl(`workflows/${newWorkflow.id}`));

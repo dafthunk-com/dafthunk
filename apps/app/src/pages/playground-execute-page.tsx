@@ -22,7 +22,7 @@ import { useNodeTypes } from "@/services/type-service";
 
 export function PlaygroundExecutePage() {
   const { organization } = useAuth();
-  const orgHandle = organization?.handle || "";
+  const orgId = organization?.id || "";
   const { nodeType: nodeTypeParam } = useParams<{ nodeType: string }>();
   const { nodeTypes, isNodeTypesLoading } = useNodeTypes();
   const { createObjectUrl } = useObjectService();
@@ -114,14 +114,14 @@ export function PlaygroundExecutePage() {
   };
 
   const handleExecute = async () => {
-    if (!selectedNodeType || !orgHandle) return;
+    if (!selectedNodeType || !orgId) return;
     setIsExecuting(true);
     setResult(null);
     try {
       const response = await executeNode(
         selectedNodeType.type,
         inputValues as Record<string, ParameterValue>,
-        orgHandle
+        orgId
       );
       setResult(response);
     } catch (error) {

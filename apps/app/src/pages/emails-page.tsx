@@ -34,15 +34,13 @@ import { deleteEmail, updateEmail, useEmails } from "@/services/email-service";
 interface EmailRow {
   id: string;
   name: string;
-  handle: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
 function createColumns(
   openEditDialog: (email: EmailRow) => void,
-  openDeleteDialog: (email: EmailRow) => void,
-  orgHandle: string
+  openDeleteDialog: (email: EmailRow) => void
 ): ColumnDef<EmailRow>[] {
   return [
     {
@@ -54,11 +52,11 @@ function createColumns(
       },
     },
     {
-      accessorKey: "handle",
-      header: "Handle",
+      accessorKey: "id",
+      header: "ID",
       cell: ({ row }) => {
-        const handle = row.original.handle;
-        return <span className="text-sm text-muted-foreground">{handle}</span>;
+        const id = row.original.id;
+        return <span className="text-sm text-muted-foreground">{id}</span>;
       },
     },
     {
@@ -66,7 +64,7 @@ function createColumns(
       header: "Address",
       cell: ({ row }) => {
         const email = row.original;
-        const emailAddress = `${orgHandle}+${email.handle}@dafthunk.com`;
+        const emailAddress = `${email.id}@dafthunk.com`;
         return (
           <a
             href={`mailto:${emailAddress}`}
@@ -118,7 +116,7 @@ export function EmailsPage() {
 
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const { organization } = useAuth();
-  const orgHandle = organization?.handle || "";
+  const orgId = organization?.id || "";
 
   const { emails, emailsError, isEmailsLoading, mutateEmails } = useEmails();
 
@@ -138,10 +136,10 @@ export function EmailsPage() {
   };
 
   const handleDeleteEmail = async () => {
-    if (!emailToDelete || !orgHandle) return;
+    if (!emailToDelete || !orgId) return;
     setIsDeleting(true);
     try {
-      await deleteEmail(emailToDelete.id, orgHandle);
+      await deleteEmail(emailToDelete.id, orgId);
       setDeleteDialogOpen(false);
       setEmailToDelete(null);
       mutateEmails();
@@ -151,10 +149,10 @@ export function EmailsPage() {
   };
 
   const handleEditEmail = async () => {
-    if (!emailToEdit || !orgHandle || editName.trim() === "") return;
+    if (!emailToEdit || !orgId || editName.trim() === "") return;
     setIsEditing(true);
     try {
-      await updateEmail(emailToEdit.id, { name: editName.trim() }, orgHandle);
+      await updateEmail(emailToEdit.id, { name: editName.trim() }, orgId);
       setEditDialogOpen(false);
       setEmailToEdit(null);
       mutateEmails();
@@ -168,7 +166,7 @@ export function EmailsPage() {
     setIsCreateDialogOpen(false);
   };
 
-  const columns = createColumns(openEditDialog, openDeleteDialog, orgHandle);
+  const columns = createColumns(openEditDialog, openDeleteDialog);
 
   if (isEmailsLoading) {
     return <InsetLoading title="Emails" />;

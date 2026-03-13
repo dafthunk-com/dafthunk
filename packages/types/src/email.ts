@@ -6,7 +6,7 @@ export interface CreateEmailRequest {
 export interface CreateEmailResponse {
   id: string;
   name: string;
-  handle: string;
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -14,7 +14,7 @@ export interface CreateEmailResponse {
 export interface GetEmailResponse {
   id: string;
   name: string;
-  handle: string;
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -23,7 +23,7 @@ export interface ListEmailsResponse {
   emails: {
     id: string;
     name: string;
-    handle: string;
+
     createdAt: Date;
     updatedAt: Date;
   }[];
@@ -36,7 +36,7 @@ export interface UpdateEmailRequest {
 export interface UpdateEmailResponse {
   id: string;
   name: string;
-  handle: string;
+
   createdAt: Date;
   updatedAt: Date;
 }

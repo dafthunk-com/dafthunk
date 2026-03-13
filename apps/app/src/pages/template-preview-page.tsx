@@ -83,7 +83,7 @@ export function TemplatePreviewPage() {
           mode="preview"
           expandedOutputs={false}
           createObjectUrl={() => ""}
-          orgHandle=""
+          orgId=""
         />
       </ReactFlowProvider>
     </div>

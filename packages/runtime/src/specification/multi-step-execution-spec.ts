@@ -17,7 +17,6 @@ export function testMultiStepExecution(
       const workflow: Workflow = {
         id: "test-multi-step-basic",
         name: "Multi-Step Basic",
-        handle: "multi-step-basic",
         trigger: "manual",
         nodes: [
           {
@@ -83,7 +82,6 @@ export function testMultiStepExecution(
       const workflow: Workflow = {
         id: "test-multi-step-chain-out",
         name: "Multi-Step Chain Out",
-        handle: "multi-step-chain-out",
         trigger: "manual",
         nodes: [
           {
@@ -171,7 +169,6 @@ export function testMultiStepExecution(
       const workflow: Workflow = {
         id: "test-multi-step-chain-in",
         name: "Multi-Step Chain In",
-        handle: "multi-step-chain-in",
         trigger: "manual",
         nodes: [
           {
@@ -275,7 +272,6 @@ export function testMultiStepExecution(
       const workflow: Workflow = {
         id: "test-multi-step-skip",
         name: "Multi-Step Skip",
-        handle: "multi-step-skip",
         trigger: "manual",
         nodes: [
           {
@@ -365,7 +361,6 @@ export function testMultiStepExecution(
       const workflow: Workflow = {
         id: "test-multi-step-error",
         name: "Multi-Step Error",
-        handle: "multi-step-error",
         trigger: "manual",
         nodes: [
           {
@@ -436,7 +431,6 @@ export function testMultiStepExecution(
       const workflow: Workflow = {
         id: "test-multi-step-parallel",
         name: "Multi-Step Parallel",
-        handle: "multi-step-parallel",
         trigger: "manual",
         nodes: [
           {

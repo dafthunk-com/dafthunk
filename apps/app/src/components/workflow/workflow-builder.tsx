@@ -65,7 +65,7 @@ export interface WorkflowBuilderProps {
     trigger?: WorkflowTrigger,
     runtime?: WorkflowRuntime
   ) => void;
-  orgHandle: string;
+  orgId: string;
   wsExecuteWorkflow?: (options?: {
     parameters?: Record<string, unknown>;
   }) => void;
@@ -94,7 +94,7 @@ export function WorkflowBuilder({
   workflowName,
   workflowDescription,
   onWorkflowUpdate,
-  orgHandle,
+  orgId,
   wsExecuteWorkflow,
   showSidebar,
   isEnabled,
@@ -151,7 +151,7 @@ export function WorkflowBuilder({
   const execution = useWorkflowExecutionState({
     workflowId,
     workflowTrigger,
-    orgHandle,
+    orgId,
     nodes,
     nodeTypes,
     initialWorkflowExecution,
@@ -312,7 +312,7 @@ export function WorkflowBuilder({
         <WorkflowDialogs
           workflowId={workflowId}
           workflowTrigger={workflowTrigger}
-          orgHandle={orgHandle}
+          orgId={orgId}
           nodes={nodes}
           nodeTypes={nodeTypes}
           isEmailFormDialogVisible={execution.isEmailFormDialogVisible}
