@@ -1,53 +1,53 @@
-import Upload from "lucide-react/icons/upload";
-
-import { isObjectReference } from "@/services/object-service";
 import { cn } from "@/utils/utils";
 
 import { ModelViewer } from "../model-viewer";
-import type { FileFieldProps, ObjectReference } from "./types";
+import {
+  FileFieldPlaceholder,
+  FileUploadZone,
+  getObjectUrl,
+  useFileUpload,
+} from "./file-field-primitives";
+import { mimeTypeDetectors } from "./file-upload-handler";
+import type { FieldProps, ObjectReference } from "./types";
+
+const UPLOAD_CONFIG = {
+  getMimeType: mimeTypeDetectors.gltf,
+  errorMessage: "Failed to upload glTF model",
+} as const;
+
+export interface GltfFieldProps extends FieldProps {
+  createObjectUrl?: (objectReference: ObjectReference) => string;
+}
 
 export function GltfField({
   className,
   connected,
   createObjectUrl,
   disabled,
-  isUploading,
-  onFileUpload,
+  onChange,
   parameter,
   uploadError,
   value,
-}: FileFieldProps) {
-  // File fields check for object references
-  const hasValue = value !== undefined && isObjectReference(value);
+}: GltfFieldProps & { uploadError?: string | null }) {
+  const {
+    isUploading,
+    uploadError: internalUploadError,
+    handleUpload,
+  } = useFileUpload(UPLOAD_CONFIG, onChange);
+  const objectUrl = getObjectUrl(value, createObjectUrl);
+  const hasValue = objectUrl !== null;
+  const displayError = uploadError ?? internalUploadError;
 
-  // Helper to safely create object URL for preview
-  const getObjectUrl = (): string | null => {
-    if (!hasValue || !createObjectUrl) return null;
-    try {
-      return createObjectUrl(value as ObjectReference);
-    } catch (error) {
-      console.error("Failed to create object URL:", error);
-      return null;
-    }
-  };
-
-  const objectUrl = getObjectUrl();
-
-  // Disabled state without value - show placeholder message
   if (disabled && !hasValue) {
     return (
-      <div
-        className={cn(
-          "h-[320px] text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border flex items-start",
-          className
-        )}
-      >
-        {connected ? "Connected" : "No 3D model"}
-      </div>
+      <FileFieldPlaceholder
+        className={cn("h-[320px] flex items-start", className)}
+        connected={connected}
+        label="No 3D model"
+      />
     );
   }
 
-  // Has value - show 3D model viewer
   if (hasValue) {
     return (
       <div
@@ -59,19 +59,16 @@ export function GltfField({
           className
         )}
       >
-        {objectUrl && (
-          <ModelViewer parameter={parameter} objectUrl={objectUrl} />
-        )}
-        {uploadError && (
+        <ModelViewer parameter={parameter} objectUrl={objectUrl} />
+        {displayError && (
           <p className="absolute bottom-1 left-1 text-xs text-red-600 dark:text-red-400 bg-white/80 dark:bg-neutral-900/80 rounded px-1">
-            {uploadError}
+            {displayError}
           </p>
         )}
       </div>
     );
   }
 
-  // No value - show upload zone
   return (
     <div
       className={cn(
@@ -79,29 +76,15 @@ export function GltfField({
         className
       )}
     >
-      <Upload className="h-5 w-5 text-neutral-400" />
-      <label
-        htmlFor={`gltf-upload-${parameter.id}`}
-        className={cn(
-          "text-xs text-blue-500 hover:text-blue-600 cursor-pointer",
-          (isUploading || disabled) && "opacity-50 pointer-events-none"
-        )}
-      >
-        {isUploading ? "Uploading..." : "Upload"}
-      </label>
-      <input
-        id={`gltf-upload-${parameter.id}`}
-        type="file"
-        className="hidden"
-        onChange={onFileUpload}
-        disabled={isUploading || disabled}
+      <FileUploadZone
         accept=".gltf,.glb"
+        disabled={disabled}
+        isUploading={isUploading}
+        uploadError={displayError}
+        onFileUpload={handleUpload}
+        parameterId={parameter.id}
+        fieldType="gltf"
       />
-      {uploadError && (
-        <p className="absolute bottom-2 text-xs text-red-600 dark:text-red-400">
-          {uploadError}
-        </p>
-      )}
     </div>
   );
 }

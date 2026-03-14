@@ -7,12 +7,11 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { TagFilterButtons } from "@/components/ui/tag-filter-buttons";
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation";
-import { useTagCounts } from "@/hooks/use-tag-counts";
-import { normalizeText } from "@/utils/text-normalization";
 import { cn } from "@/utils/utils";
 
 import { NodeTags } from "./node-tags";
 import { SubscriptionBadge } from "./subscription-badge";
+import { useTagFiltering, useTemplateSearch } from "./use-template-search";
 import type { NodeType } from "./workflow-types";
 
 export interface WorkflowNodeSelectorProps {
@@ -29,7 +28,6 @@ export interface WorkflowNodeSelectorProps {
 function highlightMatch(text: string, searchTerm: string) {
   if (!searchTerm.trim()) return text;
 
-  // Split search term into individual words and escape special regex characters
   const words = searchTerm
     .trim()
     .split(/\s+/)
@@ -38,12 +36,10 @@ function highlightMatch(text: string, searchTerm: string) {
 
   if (words.length === 0) return text;
 
-  // Create a regex that matches any of the words
   const regex = new RegExp(`(${words.join("|")})`, "gi");
   const parts = text.split(regex);
 
   return parts.map((part, index) => {
-    // Check if this part matches any of the search words
     if (words.some((word) => new RegExp(`^${word}$`, "i").test(part))) {
       return (
         <mark
@@ -68,181 +64,34 @@ export function WorkflowNodeSelector({
   hasTriggerNode,
 }: WorkflowNodeSelectorProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
-  // Filter out trigger nodes if one already exists in the workflow
+  // Filter out trigger nodes if one already exists
   const compatibleTemplates = useMemo(() => {
     if (!hasTriggerNode) return templates;
     return templates.filter((template) => !template.trigger);
   }, [templates, hasTriggerNode]);
 
-  // Combined scoring using substring matching (not fuzzy)
-  const scoredAndFilteredTemplates = useMemo(() => {
-    // Normalize workflow context (for scoring only)
-    const workflowKeywords = normalizeText(
-      [workflowName, workflowDescription].filter(Boolean).join(" "),
-      {
-        removeStopWords: true,
-        useLemmatization: true,
-        minTokenLength: 2,
-      }
-    );
-
-    // Normalize search query (for scoring only - no filtering)
-    const searchKeywords = normalizeText(searchTerm, {
-      removeStopWords: true,
-      useLemmatization: true,
-      minTokenLength: 2,
-    });
-
-    // Also keep original search term for partial matching
-    const rawSearchTerm = searchTerm.toLowerCase().trim();
-
-    // Helper function for partial word matching
-    const containsPartialMatch = (
-      text: string,
-      searchTerm: string
-    ): boolean => {
-      if (!searchTerm) return false;
-      return text.toLowerCase().includes(searchTerm);
-    };
-
-    // Score each template (using compatibleTemplates instead of templates)
-    const scored = compatibleTemplates
-      .map((template) => {
-        let score = 0;
-
-        // Normalize template fields
-        const nameTokens = new Set(
-          normalizeText(template.name, {
-            removeStopWords: false, // Keep all words in name
-            useLemmatization: true,
-            minTokenLength: 2,
-          })
-        );
-        const descTokens = new Set(
-          normalizeText(template.description || "", {
-            removeStopWords: true,
-            useLemmatization: true,
-            minTokenLength: 2,
-          })
-        );
-        const tagTokens = new Set(
-          template.tags.flatMap((tag) =>
-            normalizeText(tag, {
-              removeStopWords: false,
-              useLemmatization: true,
-              minTokenLength: 2,
-            })
-          )
-        );
-
-        // Score based on workflow keywords (always applied)
-        workflowKeywords.forEach((keyword) => {
-          if (nameTokens.has(keyword)) score += 10;
-          if (descTokens.has(keyword)) score += 5;
-          if (tagTokens.has(keyword)) score += 7;
-        });
-
-        // Score based on search keywords (if present) - exact token match
-        searchKeywords.forEach((keyword) => {
-          if (nameTokens.has(keyword)) score += 20; // Search is higher priority
-          if (descTokens.has(keyword)) score += 10;
-          if (tagTokens.has(keyword)) score += 15;
-        });
-
-        // Bonus scoring for partial matches in search term (substring matching)
-        if (rawSearchTerm) {
-          if (containsPartialMatch(template.name, rawSearchTerm)) score += 15;
-          if (containsPartialMatch(template.description || "", rawSearchTerm))
-            score += 8;
-          template.tags.forEach((tag) => {
-            if (containsPartialMatch(tag, rawSearchTerm)) score += 12;
-          });
-        }
-
-        // Check if matches search filter (partial or exact match)
-        const matchesSearch =
-          !rawSearchTerm ||
-          containsPartialMatch(template.name, rawSearchTerm) ||
-          containsPartialMatch(template.description || "", rawSearchTerm) ||
-          template.tags.some((tag) =>
-            containsPartialMatch(tag, rawSearchTerm)
-          ) ||
-          searchKeywords.some(
-            (keyword) =>
-              nameTokens.has(keyword) ||
-              descTokens.has(keyword) ||
-              tagTokens.has(keyword)
-          );
-
-        return { template, score, matchesSearch };
-      })
-      .filter((s) => s.matchesSearch) // Filter by search query
-      .sort((a, b) => {
-        // Sort by score (highest first), then alphabetically
-        if (b.score !== a.score) return b.score - a.score;
-        return a.template.name.localeCompare(b.template.name);
-      });
-
-    return {
-      sorted: scored.map((s) => s.template),
-      scores: scored,
-    };
-  }, [compatibleTemplates, workflowName, workflowDescription, searchTerm]);
-
-  // Filter templates based on selected tags (all must match)
-  const filteredTemplates = scoredAndFilteredTemplates.sorted.filter(
-    (template) => {
-      // If no tags selected, show all
-      if (selectedTags.length === 0) return true;
-
-      // Check if all selected tags match
-      return selectedTags.every((selectedTag) => {
-        if (selectedTag === "Tools") {
-          return !!template.functionCalling;
-        }
-        return template.tags.includes(selectedTag);
-      });
-    }
+  const searchResults = useTemplateSearch(
+    compatibleTemplates,
+    searchTerm,
+    workflowName,
+    workflowDescription
   );
 
-  // Get overall tag counts (for display)
-  const overallTagCounts = useTagCounts(scoredAndFilteredTemplates.sorted);
-
-  // Get filtered tag counts (for discrimination/ordering)
-  const filteredTagCounts = useTagCounts(filteredTemplates);
-
-  // Combine: use filtered counts for ordering, but display overall counts
-  // Show top 20 tags by filtered count
-  const tagCounts = filteredTagCounts.slice(0, 20).map(({ tag }) => {
-    const overallCount =
-      overallTagCounts.find((tc) => tc.tag === tag)?.count ?? 0;
-    return { tag, count: overallCount };
-  });
-
-  // Get overall counts for selected tags (sorted by count desc, then alphabetically)
-  const selectedTagCounts = overallTagCounts
-    .filter((tc) => selectedTags.includes(tc.tag))
-    .sort((a, b) => {
-      if (b.count !== a.count) return b.count - a.count;
-      return a.tag.localeCompare(b.tag);
-    });
-
-  // Handle tag change (both keyboard and mouse)
-  const handleTagChange = (tag: string | null) => {
-    if (tag === null) {
-      setSelectedTags([]);
-    } else if (selectedTags.includes(tag)) {
-      // Remove tag if already selected
-      setSelectedTags(selectedTags.filter((t) => t !== tag));
-    } else {
-      // Add tag if not selected
-      setSelectedTags([...selectedTags, tag]);
-    }
+  // Node selector has special "Tools" tag handling
+  const nodeTagFilter = (template: NodeType, tag: string) => {
+    if (tag === "Tools") return !!template.functionCalling;
+    return template.tags.includes(tag);
   };
 
-  // Use keyboard navigation hook
+  const {
+    selectedTags,
+    filteredTemplates,
+    tagCounts,
+    selectedTagCounts,
+    handleTagChange,
+  } = useTagFiltering(searchResults.sorted, nodeTagFilter);
+
   const {
     activeElement,
     focusedIndex,
@@ -257,7 +106,7 @@ export function WorkflowNodeSelector({
   } = useKeyboardNavigation({
     open,
     itemsCount: filteredTemplates.length,
-    categoriesCount: selectedTags.length + tagCounts.length + 1, // selected tags + available tags + "All" button
+    categoriesCount: selectedTags.length + tagCounts.length + 1,
     onClose,
     onSelectItem: (index) => {
       onSelect(filteredTemplates[index]);
@@ -382,7 +231,7 @@ export function WorkflowNodeSelector({
                   selectedTags={selectedTags}
                   selectedTagCounts={selectedTagCounts}
                   onTagChange={handleTagChange}
-                  totalCount={scoredAndFilteredTemplates.sorted.length}
+                  totalCount={searchResults.sorted.length}
                   onKeyDown={handleCategoryKeyDown}
                   setCategoryButtonRef={setCategoryButtonRef}
                   activeElement={activeElement}

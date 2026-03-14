@@ -23,7 +23,6 @@ function BlobOutputWidget({
         value={value}
         onChange={() => {}}
         onClear={() => {}}
-        onFileUpload={async () => {}}
         createObjectUrl={createObjectUrl}
         disabled
       />

@@ -10,16 +10,25 @@ import type {
 } from "@xyflow/react";
 import { ReactFlowProvider } from "@xyflow/react";
 import { useCallback, useMemo } from "react";
-
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { cn } from "@/utils/utils";
 
+import { ExecutionEmailDialog } from "./execution-email-dialog";
+import { HttpRequestConfigDialog } from "./http-request-config-dialog";
 import { useKeyboardShortcuts } from "./use-keyboard-shortcuts";
 import { useResizableSidebar } from "./use-resizable-sidebar";
 import { useWorkflowExecutionState } from "./use-workflow-execution-state";
 import { useWorkflowState } from "./use-workflow-state";
 import { WorkflowCanvas } from "./workflow-canvas";
 import { WorkflowProvider } from "./workflow-context";
-import { WorkflowDialogs } from "./workflow-dialogs";
 import { WorkflowNodeSelector } from "./workflow-node-selector";
 import { WorkflowSidebar } from "./workflow-sidebar";
 import type {
@@ -309,23 +318,47 @@ export function WorkflowBuilder({
           />
         </div>
 
-        <WorkflowDialogs
-          workflowId={workflowId}
-          workflowTrigger={workflowTrigger}
-          orgId={orgId}
-          nodes={nodes}
-          nodeTypes={nodeTypes}
-          isEmailFormDialogVisible={execution.isEmailFormDialogVisible}
-          isHttpRequestConfigDialogVisible={
-            execution.isHttpRequestConfigDialogVisible
-          }
-          submitHttpRequestConfig={execution.submitHttpRequestConfig}
-          submitEmailFormData={execution.submitEmailFormData}
-          closeExecutionForm={execution.closeExecutionForm}
-          executeRef={execution.executeRef}
-          errorDialogOpen={execution.errorDialogOpen}
-          setErrorDialogOpen={execution.setErrorDialogOpen}
-        />
+        {(workflowTrigger === "http_webhook" ||
+          workflowTrigger === "http_request") && (
+          <HttpRequestConfigDialog
+            isOpen={execution.isHttpRequestConfigDialogVisible}
+            onClose={execution.closeExecutionForm}
+            onSubmit={execution.submitHttpRequestConfig}
+          />
+        )}
+
+        {workflowTrigger === "email_message" && (
+          <ExecutionEmailDialog
+            isOpen={execution.isEmailFormDialogVisible}
+            onClose={execution.closeExecutionForm}
+            onCancel={() => {
+              execution.closeExecutionForm();
+              execution.executeRef.current = null;
+            }}
+            onSubmit={execution.submitEmailFormData}
+          />
+        )}
+
+        <Dialog
+          open={execution.errorDialogOpen}
+          onOpenChange={execution.setErrorDialogOpen}
+        >
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Workflow Execution Error</DialogTitle>
+              <DialogDescription>
+                You have run out of compute credits. Thanks for checking out the
+                preview. The code is available at
+                https://github.com/dafthunk-com/dafthunk.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button onClick={() => execution.setErrorDialogOpen(false)}>
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </WorkflowProvider>
     </ReactFlowProvider>
   );

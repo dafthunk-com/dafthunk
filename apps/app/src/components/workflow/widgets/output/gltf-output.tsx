@@ -23,7 +23,6 @@ function GltfOutputWidget({
         value={value}
         onChange={() => {}}
         onClear={() => {}}
-        onFileUpload={async () => {}}
         createObjectUrl={createObjectUrl}
         disabled
         className="!h-[160px]"

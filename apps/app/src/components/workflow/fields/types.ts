@@ -14,12 +14,5 @@ export interface FieldProps {
   autoFocus?: boolean;
 }
 
-export interface FileFieldProps extends FieldProps {
-  isUploading?: boolean;
-  uploadError?: string | null;
-  onFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
-  createObjectUrl?: (objectReference: ObjectReference) => string;
-}
-
 // Re-export ObjectReference for convenience
 export type { ObjectReference };

@@ -30,7 +30,6 @@ export function AnyField({
         connected={connected}
         createObjectUrl={createObjectUrl}
         disabled
-        onFileUpload={async () => {}}
         onChange={noop}
         onClear={noop}
         parameter={parameter}
@@ -52,7 +51,6 @@ export function AnyField({
         connected={connected}
         createObjectUrl={createObjectUrl}
         disabled
-        onFileUpload={async () => {}}
         onChange={noop}
         onClear={noop}
         parameter={{ ...parameter, repeated: true }}

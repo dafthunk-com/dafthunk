@@ -1,11 +1,6 @@
-import { useState } from "react";
-
 import { useObjectService } from "@/services/object-service";
 import { cn } from "@/utils/utils";
-import {
-  createFileUploadHandler,
-  fileValidators,
-} from "../../fields/file-upload-handler";
+
 import { VideoField } from "../../fields/video-field";
 import type { BaseWidgetProps } from "../widget";
 import { createWidget, getInputValue } from "../widget";
@@ -20,20 +15,7 @@ function VideoInputWidget({
   className,
   disabled = false,
 }: VideoInputWidgetProps) {
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const { uploadBinaryData, createObjectUrl } = useObjectService();
-
-  const handleFileUpload = createFileUploadHandler(
-    {
-      validateFile: fileValidators.video,
-      errorMessage: "Failed to upload video",
-    },
-    uploadBinaryData,
-    onChange,
-    setIsUploading,
-    setUploadError
-  );
+  const { createObjectUrl } = useObjectService();
 
   return (
     <div className={cn("p-2 h-full w-full", className)}>
@@ -42,9 +24,6 @@ function VideoInputWidget({
         value={value}
         onChange={onChange}
         onClear={() => onChange(undefined)}
-        onFileUpload={handleFileUpload}
-        isUploading={isUploading}
-        uploadError={uploadError}
         createObjectUrl={createObjectUrl}
         disabled={disabled}
         clearable

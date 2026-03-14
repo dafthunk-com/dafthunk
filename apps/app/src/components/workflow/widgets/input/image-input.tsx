@@ -1,12 +1,6 @@
-import { useState } from "react";
-
 import { useObjectService } from "@/services/object-service";
 import { cn } from "@/utils/utils";
 
-import {
-  createFileUploadHandler,
-  fileValidators,
-} from "../../fields/file-upload-handler";
 import { ImageField } from "../../fields/image-field";
 import type { BaseWidgetProps } from "../widget";
 import { createWidget, getInputValue } from "../widget";
@@ -21,20 +15,7 @@ function ImageInputWidget({
   className,
   disabled = false,
 }: ImageInputWidgetProps) {
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const { uploadBinaryData, createObjectUrl } = useObjectService();
-
-  const handleFileUpload = createFileUploadHandler(
-    {
-      validateFile: fileValidators.image,
-      errorMessage: "Failed to upload image",
-    },
-    uploadBinaryData,
-    onChange,
-    setIsUploading,
-    setUploadError
-  );
+  const { createObjectUrl } = useObjectService();
 
   return (
     <div className={cn("p-2 h-full w-full", className)}>
@@ -43,9 +24,6 @@ function ImageInputWidget({
         value={value}
         onChange={onChange}
         onClear={() => onChange(undefined)}
-        onFileUpload={handleFileUpload}
-        isUploading={isUploading}
-        uploadError={uploadError}
         createObjectUrl={createObjectUrl}
         disabled={disabled}
         clearable

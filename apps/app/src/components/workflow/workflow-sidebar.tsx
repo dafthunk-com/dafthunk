@@ -99,15 +99,19 @@ export function WorkflowSidebar({
     useState<WorkflowRuntime>(workflowRuntime);
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Refs to avoid stale closures in debounced callbacks
-  const localNameRef = useRef(localName);
-  const localDescriptionRef = useRef(localDescription);
-  const localTriggerRef = useRef(localTrigger);
-  const localRuntimeRef = useRef(localRuntime);
-  localNameRef.current = localName;
-  localDescriptionRef.current = localDescription;
-  localTriggerRef.current = localTrigger;
-  localRuntimeRef.current = localRuntime;
+  // Single ref to avoid stale closures in debounced callback
+  const localStateRef = useRef({
+    name: localName,
+    description: localDescription,
+    trigger: localTrigger,
+    runtime: localRuntime,
+  });
+  localStateRef.current = {
+    name: localName,
+    description: localDescription,
+    trigger: localTrigger,
+    runtime: localRuntime,
+  };
 
   // Collapsible section state
   const [propertiesExpanded, setPropertiesExpanded] = useState(true);
@@ -130,78 +134,59 @@ export function WorkflowSidebar({
     setLocalRuntime(workflowRuntime);
   }, [workflowRuntime]);
 
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newName = e.target.value;
-    setLocalName(newName);
-
-    // Debounce the update
-    if (updateTimeoutRef.current) {
-      clearTimeout(updateTimeoutRef.current);
-    }
+  // Shared debounced update — reads latest values from ref when timer fires
+  const scheduleDebouncedUpdate = () => {
+    if (updateTimeoutRef.current) clearTimeout(updateTimeoutRef.current);
     updateTimeoutRef.current = setTimeout(() => {
-      if (onWorkflowUpdate) {
-        onWorkflowUpdate(
-          newName,
-          localDescriptionRef.current || undefined,
-          localTriggerRef.current,
-          localRuntimeRef.current
-        );
-      }
+      const s = localStateRef.current;
+      onWorkflowUpdate?.(
+        s.name,
+        s.description || undefined,
+        s.trigger,
+        s.runtime
+      );
     }, 500);
+  };
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLocalName(e.target.value);
+    scheduleDebouncedUpdate();
   };
 
   const handleDescriptionChange = (
     e: React.ChangeEvent<HTMLTextAreaElement>
   ) => {
-    const newDescription = e.target.value;
-    setLocalDescription(newDescription);
-
-    // Debounce the update
-    if (updateTimeoutRef.current) {
-      clearTimeout(updateTimeoutRef.current);
-    }
-    updateTimeoutRef.current = setTimeout(() => {
-      if (onWorkflowUpdate) {
-        onWorkflowUpdate(
-          localNameRef.current,
-          newDescription || undefined,
-          localTriggerRef.current,
-          localRuntimeRef.current
-        );
-      }
-    }, 500);
+    setLocalDescription(e.target.value);
+    scheduleDebouncedUpdate();
   };
 
+  // Trigger and runtime changes are applied immediately (no debounce)
   const handleTriggerChange = (newTrigger: WorkflowTrigger) => {
     setLocalTrigger(newTrigger);
-    if (onWorkflowUpdate) {
-      onWorkflowUpdate(
-        localName,
-        localDescription || undefined,
-        newTrigger,
-        localRuntime
-      );
-    }
+    const s = localStateRef.current;
+    onWorkflowUpdate?.(
+      s.name,
+      s.description || undefined,
+      newTrigger,
+      s.runtime
+    );
   };
 
   const handleRuntimeChange = (newRuntime: WorkflowRuntime) => {
     setLocalRuntime(newRuntime);
-    if (onWorkflowUpdate) {
-      onWorkflowUpdate(
-        localName,
-        localDescription || undefined,
-        localTrigger,
-        newRuntime
-      );
-    }
+    const s = localStateRef.current;
+    onWorkflowUpdate?.(
+      s.name,
+      s.description || undefined,
+      s.trigger,
+      newRuntime
+    );
   };
 
   // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
-      if (updateTimeoutRef.current) {
-        clearTimeout(updateTimeoutRef.current);
-      }
+      if (updateTimeoutRef.current) clearTimeout(updateTimeoutRef.current);
     };
   }, []);
 

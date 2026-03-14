@@ -1,13 +1,7 @@
-import { useState } from "react";
-
 import { useObjectService } from "@/services/object-service";
 import { cn } from "@/utils/utils";
 
 import { AudioField } from "../../fields/audio-field";
-import {
-  createFileUploadHandler,
-  fileValidators,
-} from "../../fields/file-upload-handler";
 import type { BaseWidgetProps } from "../widget";
 import { createWidget, getInputValue } from "../widget";
 
@@ -21,20 +15,7 @@ function AudioInputWidget({
   className,
   disabled = false,
 }: AudioInputWidgetProps) {
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const { uploadBinaryData, createObjectUrl } = useObjectService();
-
-  const handleFileUpload = createFileUploadHandler(
-    {
-      validateFile: fileValidators.audio,
-      errorMessage: "Failed to upload audio",
-    },
-    uploadBinaryData,
-    onChange,
-    setIsUploading,
-    setUploadError
-  );
+  const { createObjectUrl } = useObjectService();
 
   return (
     <div className={cn("p-2 h-full w-full", className)}>
@@ -43,9 +24,6 @@ function AudioInputWidget({
         value={value}
         onChange={onChange}
         onClear={() => onChange(undefined)}
-        onFileUpload={handleFileUpload}
-        isUploading={isUploading}
-        uploadError={uploadError}
         createObjectUrl={createObjectUrl}
         disabled={disabled}
         clearable

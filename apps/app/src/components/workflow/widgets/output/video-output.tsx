@@ -23,7 +23,6 @@ function VideoOutputWidget({
         value={value}
         onChange={() => {}}
         onClear={() => {}}
-        onFileUpload={async () => {}}
         createObjectUrl={createObjectUrl}
         disabled
       />

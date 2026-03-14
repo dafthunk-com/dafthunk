@@ -1,13 +1,7 @@
-import { useState } from "react";
-
 import { useObjectService } from "@/services/object-service";
 import { cn } from "@/utils/utils";
 
 import { BlobField } from "../../fields/blob-field";
-import {
-  createFileUploadHandler,
-  mimeTypeDetectors,
-} from "../../fields/file-upload-handler";
 import type { BaseWidgetProps } from "../widget";
 import { createWidget, getInputValue } from "../widget";
 
@@ -21,31 +15,7 @@ function BlobInputWidget({
   className,
   disabled = false,
 }: BlobInputWidgetProps) {
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const { uploadBinaryData, createObjectUrl } = useObjectService();
-
-  const handleFileUpload = createFileUploadHandler(
-    {
-      getMimeType: (file: File) => {
-        // Check for GLTF files
-        const fileName = file.name.toLowerCase();
-        if (fileName.endsWith(".gltf") || fileName.endsWith(".glb")) {
-          return mimeTypeDetectors.gltf(file);
-        }
-        // Check for document types
-        if (fileName.endsWith(".xlsx") || fileName.endsWith(".xls")) {
-          return mimeTypeDetectors.document(file);
-        }
-        return file.type || "application/octet-stream";
-      },
-      errorMessage: "Failed to upload file",
-    },
-    uploadBinaryData,
-    onChange,
-    setIsUploading,
-    setUploadError
-  );
+  const { createObjectUrl } = useObjectService();
 
   return (
     <div className={cn("p-2 h-full w-full", className)}>
@@ -54,9 +24,6 @@ function BlobInputWidget({
         value={value}
         onChange={onChange}
         onClear={() => onChange(undefined)}
-        onFileUpload={handleFileUpload}
-        isUploading={isUploading}
-        uploadError={uploadError}
         createObjectUrl={createObjectUrl}
         disabled={disabled}
         clearable
