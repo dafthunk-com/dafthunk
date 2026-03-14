@@ -213,8 +213,7 @@
           "instance_type": "standard-1"
         }
       ],
-      // worker_loaders requires closed beta enrollment — re-enable once approved
-      // "worker_loaders": [{ "binding": "LOADER" }],
+      "worker_loaders": [{ "binding": "LOADER" }],
       "d1_databases": [
         {
           "binding": "DB",
