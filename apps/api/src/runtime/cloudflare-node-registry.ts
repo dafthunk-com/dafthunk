@@ -1,23 +1,23 @@
-// import { CgsApplyMaterialNode } from "@dafthunk/runtime/nodes/3d/cgs-apply-material-node";
-// import { CgsApplyTextureNode } from "@dafthunk/runtime/nodes/3d/cgs-apply-texture-node";
-// import { CgsConeNode } from "@dafthunk/runtime/nodes/3d/cgs-cone-node";
-// import { CgsCubeNode } from "@dafthunk/runtime/nodes/3d/cgs-cube-node";
-// import { CgsCylinderNode } from "@dafthunk/runtime/nodes/3d/cgs-cylinder-node";
-// import { CgsDifferenceNode } from "@dafthunk/runtime/nodes/3d/cgs-difference-node";
-// import { CgsIntersectionNode } from "@dafthunk/runtime/nodes/3d/cgs-intersection-node";
-// import { CgsRotateNode } from "@dafthunk/runtime/nodes/3d/cgs-rotate-node";
-// import { CgsScaleNode } from "@dafthunk/runtime/nodes/3d/cgs-scale-node";
-// import { CgsSphereNode } from "@dafthunk/runtime/nodes/3d/cgs-sphere-node";
-// import { CgsTorusNode } from "@dafthunk/runtime/nodes/3d/cgs-torus-node";
-// import { CgsTranslateNode } from "@dafthunk/runtime/nodes/3d/cgs-translate-node";
-// import { CgsUnionNode } from "@dafthunk/runtime/nodes/3d/cgs-union-node";
-// import { CgsXorNode } from "@dafthunk/runtime/nodes/3d/cgs-xor-node";
-// import { DemToGltfNode } from "@dafthunk/runtime/nodes/3d/dem-to-gltf-node";
-// import { GeoTiffDemQueryNode } from "@dafthunk/runtime/nodes/3d/geotiff-dem-query-node";
-// import { GeoTiffMetadataReaderNode } from "@dafthunk/runtime/nodes/3d/geotiff-metadata-reader-node";
-// import { GeoTiffQueryNode } from "@dafthunk/runtime/nodes/3d/geotiff-query-node";
-// import { GeoTiffTransformNode } from "@dafthunk/runtime/nodes/3d/geotiff-transform-node";
-// import { GltfWireframeNode } from "@dafthunk/runtime/nodes/3d/gltf-wireframe-node";
+import { CgsApplyMaterialNode } from "@dafthunk/runtime/nodes/3d/cgs-apply-material-node";
+import { CgsApplyTextureNode } from "@dafthunk/runtime/nodes/3d/cgs-apply-texture-node";
+import { CgsConeNode } from "@dafthunk/runtime/nodes/3d/cgs-cone-node";
+import { CgsCubeNode } from "@dafthunk/runtime/nodes/3d/cgs-cube-node";
+import { CgsCylinderNode } from "@dafthunk/runtime/nodes/3d/cgs-cylinder-node";
+import { CgsDifferenceNode } from "@dafthunk/runtime/nodes/3d/cgs-difference-node";
+import { CgsIntersectionNode } from "@dafthunk/runtime/nodes/3d/cgs-intersection-node";
+import { CgsRotateNode } from "@dafthunk/runtime/nodes/3d/cgs-rotate-node";
+import { CgsScaleNode } from "@dafthunk/runtime/nodes/3d/cgs-scale-node";
+import { CgsSphereNode } from "@dafthunk/runtime/nodes/3d/cgs-sphere-node";
+import { CgsTorusNode } from "@dafthunk/runtime/nodes/3d/cgs-torus-node";
+import { CgsTranslateNode } from "@dafthunk/runtime/nodes/3d/cgs-translate-node";
+import { CgsUnionNode } from "@dafthunk/runtime/nodes/3d/cgs-union-node";
+import { CgsXorNode } from "@dafthunk/runtime/nodes/3d/cgs-xor-node";
+import { DemToGltfNode } from "@dafthunk/runtime/nodes/3d/dem-to-gltf-node";
+import { GeoTiffDemQueryNode } from "@dafthunk/runtime/nodes/3d/geotiff-dem-query-node";
+import { GeoTiffMetadataReaderNode } from "@dafthunk/runtime/nodes/3d/geotiff-metadata-reader-node";
+import { GeoTiffQueryNode } from "@dafthunk/runtime/nodes/3d/geotiff-query-node";
+import { GeoTiffTransformNode } from "@dafthunk/runtime/nodes/3d/geotiff-transform-node";
+import { GltfWireframeNode } from "@dafthunk/runtime/nodes/3d/gltf-wireframe-node";
 
 import {
   BaseNodeRegistry,
@@ -816,39 +816,34 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(DatasetUploadFileNode);
 
     // 3D Tiles workflow nodes
-    // if (this.developerMode) {
-    //   this.registerImplementation(DemToGltfNode);
-    //   this.registerImplementation(GeoTiffDemQueryNode);
-    //   this.registerImplementation(GeoTiffMetadataReaderNode);
-    //   this.registerImplementation(GeoTiffQueryNode);
-    //   this.registerImplementation(GeoTiffTransformNode);
-    //   this.registerImplementation(GltfWireframeNode);
-    // }
+    this.registerImplementation(DemToGltfNode);
+    this.registerImplementation(GeoTiffDemQueryNode);
+    this.registerImplementation(GeoTiffMetadataReaderNode);
+    this.registerImplementation(GeoTiffQueryNode);
+    this.registerImplementation(GeoTiffTransformNode);
+    this.registerImplementation(GltfWireframeNode);
 
-    // CSG geometry nodes
-    // if (this.developerMode) {
-    //   // CSG Primitives
-    //   this.registerImplementation(CgsCubeNode);
-    //   this.registerImplementation(CgsSphereNode);
-    //   this.registerImplementation(CgsCylinderNode);
-    //   this.registerImplementation(CgsConeNode);
-    //   this.registerImplementation(CgsTorusNode);
+    // CSG Primitives
+    this.registerImplementation(CgsCubeNode);
+    this.registerImplementation(CgsSphereNode);
+    this.registerImplementation(CgsCylinderNode);
+    this.registerImplementation(CgsConeNode);
+    this.registerImplementation(CgsTorusNode);
 
-    //   // CSG Operations
-    //   this.registerImplementation(CgsUnionNode);
-    //   this.registerImplementation(CgsDifferenceNode);
-    //   this.registerImplementation(CgsIntersectionNode);
-    //   this.registerImplementation(CgsXorNode);
+    // CSG Operations
+    this.registerImplementation(CgsUnionNode);
+    this.registerImplementation(CgsDifferenceNode);
+    this.registerImplementation(CgsIntersectionNode);
+    this.registerImplementation(CgsXorNode);
 
-    //   // CSG Material & Texture
-    //   this.registerImplementation(CgsApplyMaterialNode);
-    //   this.registerImplementation(CgsApplyTextureNode);
+    // CSG Material & Texture
+    this.registerImplementation(CgsApplyMaterialNode);
+    this.registerImplementation(CgsApplyTextureNode);
 
-    //   // CSG Transformations
-    //   this.registerImplementation(CgsTranslateNode);
-    //   this.registerImplementation(CgsRotateNode);
-    //   this.registerImplementation(CgsScaleNode);
-    // }
+    // CSG Transformations
+    this.registerImplementation(CgsTranslateNode);
+    this.registerImplementation(CgsRotateNode);
+    this.registerImplementation(CgsScaleNode);
 
     // Geo nodes
     this.registerImplementation(AlongNode);
