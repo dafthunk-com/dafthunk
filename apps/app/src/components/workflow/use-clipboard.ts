@@ -217,11 +217,24 @@ export function useClipboard({
     if (disabled || (selectedNodes.length === 0 && selectedEdges.length === 0))
       return;
 
-    copySelected();
-    deleteSelected();
+    const selectedNodeIds = selectedNodes.map((node) => node.id);
+    const connectedEdges = edges.filter(
+      (edge) =>
+        selectedNodeIds.includes(edge.source) &&
+        selectedNodeIds.includes(edge.target)
+    );
+    const allSelectedEdges = [
+      ...new Set([...connectedEdges, ...selectedEdges]),
+    ];
 
-    setClipboardData((prev) => (prev ? { ...prev, isCut: true } : null));
-  }, [disabled, selectedNodes, selectedEdges, copySelected, deleteSelected]);
+    setClipboardData({
+      nodes: selectedNodes.map((node) => ({ ...node, selected: false })),
+      edges: allSelectedEdges.map((edge) => ({ ...edge, selected: false })),
+      isCut: true,
+    });
+
+    deleteSelected();
+  }, [disabled, selectedNodes, selectedEdges, edges, deleteSelected]);
 
   // Paste from clipboard
   const pasteFromClipboard = useCallback(() => {

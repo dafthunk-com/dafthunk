@@ -30,8 +30,12 @@ export function NumberField({
   const [localValue, setLocalValue] = useState(String(value ?? ""));
 
   // Sync from parent when the external value changes (e.g. undo, clear)
+  // Only update if the external value actually differs from what localValue represents
   useEffect(() => {
-    setLocalValue(String(value ?? ""));
+    const parsedLocal = parseFloat(localValue);
+    if (value !== parsedLocal && !(value === undefined && localValue === "")) {
+      setLocalValue(String(value ?? ""));
+    }
   }, [value]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

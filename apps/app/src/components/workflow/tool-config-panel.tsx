@@ -1,5 +1,5 @@
 import type { Parameter } from "@dafthunk/types";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -59,6 +59,11 @@ export function ToolConfigPanel({
   const [config, setConfig] = useState<Record<string, unknown>>(() => ({
     ...currentConfig,
   }));
+
+  // Sync state when currentConfig changes (e.g. panel reused for different tool)
+  useEffect(() => {
+    setConfig({ ...currentConfig });
+  }, [currentConfig]);
 
   const { required, optional } = getConfigurableInputs(inputs);
   const configurableInputs = [...required, ...optional];

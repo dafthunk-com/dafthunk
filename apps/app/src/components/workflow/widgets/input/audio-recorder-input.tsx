@@ -37,6 +37,9 @@ function AudioRecorderWidget({
         mediaRecorderRef.current.state === "recording"
       ) {
         mediaRecorderRef.current.stop();
+        mediaRecorderRef.current.stream
+          .getTracks()
+          .forEach((track) => track.stop());
       }
     };
   }, []);

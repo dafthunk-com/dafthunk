@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import type { WorkflowParameter } from "./workflow-types";
 
@@ -15,17 +15,18 @@ export interface ModelViewerProps {
 // Custom hook to handle model-viewer loading
 function useModelViewer() {
   const [isLoaded, setIsLoaded] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     // Only load model-viewer on the client side
     if (typeof window !== "undefined") {
-      import("@google/model-viewer").then(() => {
-        setIsLoaded(true);
-      });
+      import("@google/model-viewer")
+        .then(() => setIsLoaded(true))
+        .catch(() => setLoadError("Failed to load 3D viewer"));
     }
   }, []);
 
-  return isLoaded;
+  return { isLoaded, loadError };
 }
 
 // Custom hook to handle authenticated model loading
@@ -33,6 +34,7 @@ function useAuthenticatedModelUrl(url: string) {
   const [authenticatedUrl, setAuthenticatedUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const blobUrlRef = useRef<string | null>(null);
 
   useEffect(() => {
     let isCancelled = false;
@@ -51,6 +53,13 @@ function useAuthenticatedModelUrl(url: string) {
 
         const blob = await response.blob();
         const blobUrl = URL.createObjectURL(blob);
+
+        if (isCancelled) {
+          URL.revokeObjectURL(blobUrl);
+          return;
+        }
+
+        blobUrlRef.current = blobUrl;
         setAuthenticatedUrl(blobUrl);
       } catch (err) {
         if (!isCancelled) {
@@ -67,30 +76,23 @@ function useAuthenticatedModelUrl(url: string) {
 
     return () => {
       isCancelled = true;
-      // Note: We can't access authenticatedUrl here as it would create a dependency loop
-      // The cleanup will be handled by the component unmount
-    };
-  }, [url]);
-
-  // Cleanup blob URL when component unmounts or URL changes
-  useEffect(() => {
-    return () => {
-      if (authenticatedUrl) {
-        URL.revokeObjectURL(authenticatedUrl);
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current);
+        blobUrlRef.current = null;
       }
     };
-  }, [authenticatedUrl]);
+  }, [url]);
 
   return { authenticatedUrl, isLoading, error };
 }
 
 export const ModelViewer = React.memo(
   ({ parameter, objectUrl }: ModelViewerProps) => {
-    const isModelViewerLoaded = useModelViewer();
+    const { isLoaded: isModelViewerLoaded, loadError } = useModelViewer();
     const { authenticatedUrl, isLoading, error } =
       useAuthenticatedModelUrl(objectUrl);
 
-    if (error) {
+    if (error || loadError) {
       return (
         <div className="space-y-2">
           <div className="p-3 bg-red-50 dark:bg-red-900/20">
@@ -98,7 +100,7 @@ export const ModelViewer = React.memo(
               3D Model Error
             </div>
             <div className="text-xs text-red-700 dark:text-red-300">
-              {error}
+              {error || loadError}
             </div>
           </div>
           <div className="text-xs text-neutral-500">

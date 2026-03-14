@@ -555,18 +555,17 @@ export function useGraphOperations({
       });
 
       if (state !== undefined) {
-        const nodeEdges = getConnectedEdges(
-          [{ id: nodeId } as ReactFlowNode<WorkflowNodeType>],
-          edges
-        );
-        const connectedEdgeIds = nodeEdges.map((edge) => edge.id);
-
-        setEdges((eds) => [
-          ...updateEdgesForNodeExecution(eds, state, connectedEdgeIds),
-        ]);
+        setEdges((eds) => {
+          const nodeEdges = getConnectedEdges(
+            [{ id: nodeId } as ReactFlowNode<WorkflowNodeType>],
+            eds
+          );
+          const connectedEdgeIds = nodeEdges.map((edge) => edge.id);
+          return [...updateEdgesForNodeExecution(eds, state, connectedEdgeIds)];
+        });
       }
     },
-    [edges, setNodes, setEdges]
+    [setNodes, setEdges]
   );
 
   const updateNodeData = useCallback(
@@ -618,7 +617,9 @@ export function useGraphOperations({
     (nodeIds: string[]) => {
       if (disabled || nodeIds.length === 0) return;
 
-      const nodesToDelete = nodes.filter((n) => nodeIds.includes(n.id));
+      const nodesToDelete = nodesRef.current.filter((n) =>
+        nodeIds.includes(n.id)
+      );
       if (nodesToDelete.length === 0) return;
 
       const nodeEdges = getConnectedEdges(nodesToDelete, edgesRef.current);
@@ -632,7 +633,7 @@ export function useGraphOperations({
 
       setNodes((nds) => nds.filter((node) => !nodeIds.includes(node.id)));
     },
-    [disabled, nodes, setEdges, setNodes]
+    [disabled, nodesRef, setEdges, setNodes]
   );
 
   const deleteNode = useCallback(

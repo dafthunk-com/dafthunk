@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 import { useObjectService } from "@/services/object-service";
 
@@ -41,70 +41,97 @@ export function Field(props: FieldRouterProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
+  // Use ref for onChange to avoid stale closures in async upload handlers
+  const onChangeRef = useRef(props.onChange);
+  onChangeRef.current = props.onChange;
+  const stableOnChange = useCallback(
+    (...args: Parameters<typeof props.onChange>) =>
+      onChangeRef.current(...args),
+    []
+  );
+
   // Create upload handlers using the factory
-  const handleImageUpload = createFileUploadHandler(
-    {
-      validateFile: fileValidators.image,
-      errorMessage: "Failed to upload image",
-    },
-    uploadBinaryData,
-    props.onChange,
-    setIsUploading,
-    setUploadError
+  const handleImageUpload = useCallback(
+    createFileUploadHandler(
+      {
+        validateFile: fileValidators.image,
+        errorMessage: "Failed to upload image",
+      },
+      uploadBinaryData,
+      stableOnChange,
+      setIsUploading,
+      setUploadError
+    ),
+    [uploadBinaryData, stableOnChange]
   );
 
-  const handleAudioUpload = createFileUploadHandler(
-    {
-      validateFile: fileValidators.audio,
-      errorMessage: "Failed to upload audio",
-    },
-    uploadBinaryData,
-    props.onChange,
-    setIsUploading,
-    setUploadError
+  const handleAudioUpload = useCallback(
+    createFileUploadHandler(
+      {
+        validateFile: fileValidators.audio,
+        errorMessage: "Failed to upload audio",
+      },
+      uploadBinaryData,
+      stableOnChange,
+      setIsUploading,
+      setUploadError
+    ),
+    [uploadBinaryData, stableOnChange]
   );
 
-  const handleDocumentUpload = createFileUploadHandler(
-    {
-      getMimeType: mimeTypeDetectors.document,
-      errorMessage: "Failed to upload document",
-    },
-    uploadBinaryData,
-    props.onChange,
-    setIsUploading,
-    setUploadError
+  const handleDocumentUpload = useCallback(
+    createFileUploadHandler(
+      {
+        getMimeType: mimeTypeDetectors.document,
+        errorMessage: "Failed to upload document",
+      },
+      uploadBinaryData,
+      stableOnChange,
+      setIsUploading,
+      setUploadError
+    ),
+    [uploadBinaryData, stableOnChange]
   );
 
-  const handleGltfUpload = createFileUploadHandler(
-    {
-      getMimeType: mimeTypeDetectors.gltf,
-      errorMessage: "Failed to upload glTF model",
-    },
-    uploadBinaryData,
-    props.onChange,
-    setIsUploading,
-    setUploadError
+  const handleGltfUpload = useCallback(
+    createFileUploadHandler(
+      {
+        getMimeType: mimeTypeDetectors.gltf,
+        errorMessage: "Failed to upload glTF model",
+      },
+      uploadBinaryData,
+      stableOnChange,
+      setIsUploading,
+      setUploadError
+    ),
+    [uploadBinaryData, stableOnChange]
   );
 
-  const handleVideoUpload = createFileUploadHandler(
-    {
-      validateFile: fileValidators.video,
-      errorMessage: "Failed to upload video",
-    },
-    uploadBinaryData,
-    props.onChange,
-    setIsUploading,
-    setUploadError
+  const handleVideoUpload = useCallback(
+    createFileUploadHandler(
+      {
+        validateFile: fileValidators.video,
+        errorMessage: "Failed to upload video",
+      },
+      uploadBinaryData,
+      stableOnChange,
+      setIsUploading,
+      setUploadError
+    ),
+    [uploadBinaryData, stableOnChange]
   );
 
-  const handleBlobUpload = createFileUploadHandler(
-    {
-      errorMessage: "Failed to upload file",
-    },
-    uploadBinaryData,
-    props.onChange,
-    setIsUploading,
-    setUploadError
+  const handleBlobUpload = useCallback(
+    createFileUploadHandler(
+      {
+        errorMessage: "Failed to upload file",
+      },
+      uploadBinaryData,
+      stableOnChange,
+      setIsUploading,
+      setUploadError
+    ),
+    [uploadBinaryData, stableOnChange]
   );
 
   // Route to appropriate widget based on parameter type

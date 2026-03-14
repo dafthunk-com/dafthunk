@@ -99,6 +99,16 @@ export function WorkflowSidebar({
     useState<WorkflowRuntime>(workflowRuntime);
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Refs to avoid stale closures in debounced callbacks
+  const localNameRef = useRef(localName);
+  const localDescriptionRef = useRef(localDescription);
+  const localTriggerRef = useRef(localTrigger);
+  const localRuntimeRef = useRef(localRuntime);
+  localNameRef.current = localName;
+  localDescriptionRef.current = localDescription;
+  localTriggerRef.current = localTrigger;
+  localRuntimeRef.current = localRuntime;
+
   // Collapsible section state
   const [propertiesExpanded, setPropertiesExpanded] = useState(true);
   const [errorExpanded, setErrorExpanded] = useState(true);
@@ -132,9 +142,9 @@ export function WorkflowSidebar({
       if (onWorkflowUpdate) {
         onWorkflowUpdate(
           newName,
-          localDescription || undefined,
-          localTrigger,
-          localRuntime
+          localDescriptionRef.current || undefined,
+          localTriggerRef.current,
+          localRuntimeRef.current
         );
       }
     }, 500);
@@ -153,10 +163,10 @@ export function WorkflowSidebar({
     updateTimeoutRef.current = setTimeout(() => {
       if (onWorkflowUpdate) {
         onWorkflowUpdate(
-          localName,
+          localNameRef.current,
           newDescription || undefined,
-          localTrigger,
-          localRuntime
+          localTriggerRef.current,
+          localRuntimeRef.current
         );
       }
     }, 500);

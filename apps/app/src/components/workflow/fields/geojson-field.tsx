@@ -63,6 +63,11 @@ export function GeoJSONField({
         options
       );
 
+      // Treat "no valid geometries" as empty, not an error
+      if (!result.svg && result.error === "No valid geometries found") {
+        return { svg: "", error: null };
+      }
+
       // Make SVG responsive with 100% width
       if (result.svg && !result.error) {
         const responsiveSvg = result.svg

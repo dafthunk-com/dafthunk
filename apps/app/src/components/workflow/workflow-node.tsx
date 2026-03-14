@@ -756,12 +756,14 @@ export const WorkflowNode = memo(
                   }}
                   onToggleVisibility={() => {
                     if (!updateNodeData) return;
-                    const updatedInputs = data.inputs.map((input) =>
-                      input.id === activeInput.id
-                        ? { ...input, hidden: !input.hidden }
-                        : input
-                    );
-                    updateNodeData(id, { ...data, inputs: updatedInputs });
+                    updateNodeData(id, (currentData) => {
+                      const updatedInputs = currentData.inputs.map((input) =>
+                        input.id === activeInput.id
+                          ? { ...input, hidden: !input.hidden }
+                          : input
+                      );
+                      return { inputs: updatedInputs };
+                    });
                   }}
                   disabled={disabled}
                   connected={isInputConnected}
@@ -806,12 +808,15 @@ export const WorkflowNode = memo(
                   onClear={() => {}}
                   onToggleVisibility={() => {
                     if (!updateNodeData) return;
-                    const updatedOutputs = data.outputs.map((output) =>
-                      output.id === activeOutput.id
-                        ? { ...output, hidden: !output.hidden }
-                        : output
-                    );
-                    updateNodeData(id, { ...data, outputs: updatedOutputs });
+                    updateNodeData(id, (currentData) => {
+                      const updatedOutputs = currentData.outputs.map(
+                        (output) =>
+                          output.id === activeOutput.id
+                            ? { ...output, hidden: !output.hidden }
+                            : output
+                      );
+                      return { outputs: updatedOutputs };
+                    });
                   }}
                   disabled={disabled}
                   connected={isOutputConnected}

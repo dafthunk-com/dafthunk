@@ -3,7 +3,7 @@ import ChevronDownIcon from "lucide-react/icons/chevron-down";
 import MessageCircleQuestion from "lucide-react/icons/message-circle-question";
 import PlusIcon from "lucide-react/icons/plus";
 import TrashIcon from "lucide-react/icons/trash-2";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -32,6 +32,7 @@ export function WorkflowCriteriaManager({
   const [newQuestion, setNewQuestion] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingQuestion, setEditingQuestion] = useState("");
+  const isSavingRef = useRef(false);
 
   const handleAdd = async () => {
     const question = newQuestion.trim();
@@ -56,15 +57,22 @@ export function WorkflowCriteriaManager({
   };
 
   const handleEditSave = async (id: string) => {
+    if (isSavingRef.current) return;
     const question = editingQuestion.trim();
-    if (!question) return;
+    if (!question) {
+      setEditingId(null);
+      return;
+    }
 
+    isSavingRef.current = true;
     try {
       await updateCriterion(id, { question });
       setEditingId(null);
       await mutateCriteria();
     } catch {
       toast.error("Failed to update criterion");
+    } finally {
+      isSavingRef.current = false;
     }
   };
 

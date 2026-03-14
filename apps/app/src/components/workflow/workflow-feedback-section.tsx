@@ -5,7 +5,7 @@ import MessageCircleQuestion from "lucide-react/icons/message-circle-question";
 import ThumbsDown from "lucide-react/icons/thumbs-down";
 import ThumbsUp from "lucide-react/icons/thumbs-up";
 import TrashIcon from "lucide-react/icons/trash-2";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { useAuth } from "@/components/auth-context";
@@ -149,6 +149,13 @@ function CriterionRow({
   const [showComment, setShowComment] = useState(!!submitted?.comment);
   const [comment, setComment] = useState(submitted?.comment ?? "");
   const commentTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (commentTimerRef.current) clearTimeout(commentTimerRef.current);
+    };
+  }, []);
 
   const sentiment = submitted
     ? (submitted.sentiment as FeedbackSentimentType)

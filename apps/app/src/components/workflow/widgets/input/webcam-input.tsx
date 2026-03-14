@@ -39,7 +39,12 @@ function WebcamWidget({
       const stream = await navigator.mediaDevices.getUserMedia({
         video: true,
       });
-      if (videoRef.current) videoRef.current.srcObject = stream;
+      // Guard against component unmount during getUserMedia
+      if (!videoRef.current) {
+        stream.getTracks().forEach((t) => t.stop());
+        return;
+      }
+      videoRef.current.srcObject = stream;
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to access webcam");
@@ -79,7 +84,7 @@ function WebcamWidget({
       });
 
       const arrayBuffer = await blob.arrayBuffer();
-      const reference = await uploadBinaryData(arrayBuffer, "image/png");
+      const reference = await uploadBinaryData(arrayBuffer, "image/jpeg");
 
       setImageReference(reference);
       onChange(reference);

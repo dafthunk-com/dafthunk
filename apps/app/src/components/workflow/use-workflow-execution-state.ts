@@ -97,6 +97,9 @@ export function useWorkflowExecutionState({
   const [workflowStatus, setWorkflowStatus] = useState<WorkflowExecutionStatus>(
     initialWorkflowExecution?.status || "idle"
   );
+  const statusRef = useRef<WorkflowExecutionStatus>(
+    initialWorkflowExecution?.status || "idle"
+  );
   const [workflowErrorMessage, setWorkflowErrorMessage] = useState<
     string | undefined
   >(initialWorkflowExecution?.error);
@@ -148,6 +151,7 @@ export function useWorkflowExecutionState({
       nodes.length > 0
     ) {
       initializedRef.current = true;
+      statusRef.current = initialWorkflowExecution.status;
       setWorkflowStatus(initialWorkflowExecution.status);
       applyInitialExecution(initialWorkflowExecution, nodes, updateNodeData);
 
@@ -179,30 +183,42 @@ export function useWorkflowExecutionState({
           setCurrentExecutionId(execution.id);
         }
 
+        // Check if we need to reset node states before updating status
+        // (must happen outside the state updater to avoid side effects)
+        if (
+          !eagerStart &&
+          (statusRef.current === "idle" || statusRef.current === "cancelled")
+        ) {
+          resetNodeStates("executing");
+        }
+
         setWorkflowStatus((currentStatus) => {
+          let newStatus: WorkflowExecutionStatus;
           if (eagerStart) {
             // handleExecute path: already set to "executing", ignore "submitted" echoes
             if (
               currentStatus === "executing" &&
               execution.status === "submitted"
             ) {
-              return currentStatus;
+              newStatus = currentStatus;
+            } else {
+              newStatus = execution.status;
             }
-            return execution.status;
+          } else {
+            // handleExecuteRequest path: wait for first real callback
+            if (currentStatus === "idle" || currentStatus === "cancelled") {
+              newStatus = "executing";
+            } else if (
+              currentStatus === "executing" &&
+              execution.status === "submitted"
+            ) {
+              newStatus = currentStatus;
+            } else {
+              newStatus = execution.status;
+            }
           }
-
-          // handleExecuteRequest path: wait for first real callback
-          if (currentStatus === "idle" || currentStatus === "cancelled") {
-            resetNodeStates("executing");
-            return "executing";
-          }
-          if (
-            currentStatus === "executing" &&
-            execution.status === "submitted"
-          ) {
-            return currentStatus;
-          }
-          return execution.status;
+          statusRef.current = newStatus;
+          return newStatus;
         });
 
         setWorkflowErrorMessage(execution.error);
@@ -265,6 +281,7 @@ export function useWorkflowExecutionState({
       if (!executeWorkflow) return null;
 
       resetNodeStates("executing");
+      statusRef.current = "executing";
       setWorkflowStatus("executing");
 
       const executionCallback = createExecutionCallback(true);
@@ -303,10 +320,12 @@ export function useWorkflowExecutionState({
           );
           cleanupRef.current = null;
         }
+        statusRef.current = "cancelled";
         setWorkflowStatus("cancelled");
       } else {
         deselectAll();
         resetNodeStates();
+        statusRef.current = "idle";
         setWorkflowStatus("idle");
       }
     },

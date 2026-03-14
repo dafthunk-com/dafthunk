@@ -220,7 +220,7 @@ function CanvasDoodleWidget({
             <Save className="!size-3" />
           </button>
         </div>
-        <div className="overflow-hidden bg-white">
+        <div className="relative overflow-hidden bg-white">
           {imageReference ? (
             <div className="relative aspect-square">
               <img

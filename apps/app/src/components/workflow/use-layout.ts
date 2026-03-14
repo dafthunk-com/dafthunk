@@ -56,6 +56,7 @@ export function useLayout({
     setNodes((nds) =>
       nds.map((node) => {
         const nodeWithPosition = dagreGraph.node(node.id);
+        if (!nodeWithPosition) return node;
         const isOutputNode = node.data.nodeType?.startsWith("output-");
         const nodeWidth = node.measured?.width || node.width || 200;
         const nodeHeight =

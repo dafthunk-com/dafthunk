@@ -118,18 +118,21 @@ export function CreateWorkflowDialog({
   const handleCreateWorkflow = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
-    await onCreateWorkflow(
-      newWorkflowName,
-      workflowTrigger,
-      newWorkflowDescription || undefined,
-      workflowRuntime
-    );
-    setNewWorkflowName("");
-    setNewWorkflowDescription("");
-    setWorkflowTrigger("manual");
-    setWorkflowRuntime("workflow");
-    setIsSubmitting(false);
-    onOpenChange(false);
+    try {
+      await onCreateWorkflow(
+        newWorkflowName,
+        workflowTrigger,
+        newWorkflowDescription || undefined,
+        workflowRuntime
+      );
+      setNewWorkflowName("");
+      setNewWorkflowDescription("");
+      setWorkflowTrigger("manual");
+      setWorkflowRuntime("workflow");
+      onOpenChange(false);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

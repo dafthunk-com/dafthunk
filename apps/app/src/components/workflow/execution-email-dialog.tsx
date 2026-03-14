@@ -201,8 +201,12 @@ function fileToBase64(file: File): Promise<string> {
     reader.onload = () => {
       const result = reader.result as string;
       // Remove data URL prefix (e.g., "data:application/pdf;base64,")
-      const base64 = result.split(",")[1];
-      resolve(base64);
+      const commaIndex = result.indexOf(",");
+      if (commaIndex === -1) {
+        reject(new Error("Unexpected FileReader result format"));
+        return;
+      }
+      resolve(result.slice(commaIndex + 1));
     };
     reader.onerror = reject;
     reader.readAsDataURL(file);
