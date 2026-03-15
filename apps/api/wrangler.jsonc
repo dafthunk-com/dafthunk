@@ -228,6 +228,7 @@
         },
         {
           "class_name": "Sandbox",
+          "image": "./containers/duckdb/Dockerfile",
           "max_instances": 5,
           "instance_type": "standard-1"
         }
