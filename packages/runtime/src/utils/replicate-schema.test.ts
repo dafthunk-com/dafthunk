@@ -95,10 +95,10 @@ describe("mapReplicateSchema", () => {
       hidden: true,
     });
 
-    // Output: array of URIs → image (from description "images")
+    // Output: array of URIs → blob (actual media type determined at runtime)
     expect(result.outputs[0]).toMatchObject({
       name: "output",
-      type: "image",
+      type: "blob",
     });
   });
 
@@ -353,14 +353,14 @@ describe("mapReplicateSchema", () => {
       name: "model_file",
       type: "blob",
     });
-    expect(result.outputs[1]).toMatchObject({ name: "video", type: "video" });
+    expect(result.outputs[1]).toMatchObject({ name: "video", type: "blob" });
     expect(result.outputs[2]).toMatchObject({
       name: "no_background_image",
-      type: "image",
+      type: "blob",
     });
   });
 
-  it("resolves nullable anyOf output wrapper to underlying type (Replicate pattern)", () => {
+  it("resolves nullable anyOf output wrapper to blob (Replicate pattern)", () => {
     const schema = {
       components: {
         schemas: {
@@ -379,10 +379,10 @@ describe("mapReplicateSchema", () => {
       },
     };
 
-    const result = mapReplicateSchema(schema, "A text-to-image model");
+    const result = mapReplicateSchema(schema);
 
     expect(result.outputs).toHaveLength(1);
-    expect(result.outputs[0]).toMatchObject({ name: "output", type: "image" });
+    expect(result.outputs[0]).toMatchObject({ name: "output", type: "blob" });
   });
 
   it("resolves nullable anyOf object output with named URI properties (Trellis 2 real schema pattern)", () => {
@@ -447,10 +447,10 @@ describe("mapReplicateSchema", () => {
       name: "model_file",
       type: "blob",
     });
-    expect(result.outputs[1]).toMatchObject({ name: "video", type: "video" });
+    expect(result.outputs[1]).toMatchObject({ name: "video", type: "blob" });
     expect(result.outputs[2]).toMatchObject({
       name: "no_background_image",
-      type: "image",
+      type: "blob",
     });
   });
 
@@ -497,12 +497,11 @@ describe("mapReplicateSchema", () => {
       name: "model_file",
       type: "blob",
     });
-    // "video" → video
-    expect(result.outputs[1]).toMatchObject({ name: "video", type: "video" });
-    // "no_background_image" → image
+    // All URI outputs → blob (actual media type determined at runtime via Content-Type)
+    expect(result.outputs[1]).toMatchObject({ name: "video", type: "blob" });
     expect(result.outputs[2]).toMatchObject({
       name: "no_background_image",
-      type: "image",
+      type: "blob",
     });
   });
 
@@ -657,7 +656,7 @@ describe("mapReplicateSchema", () => {
     });
   });
 
-  it("uses model description to detect output blob type", () => {
+  it("maps all URI outputs as blob regardless of model description", () => {
     const schema = {
       components: {
         schemas: {
@@ -676,30 +675,9 @@ describe("mapReplicateSchema", () => {
       },
     };
 
-    // Without model description → falls back to "blob"
-    const withoutDesc = mapReplicateSchema(schema);
-    expect(withoutDesc.outputs[0].type).toBe("blob");
-
-    // With model description mentioning "image" → detects "image"
-    const withImageDesc = mapReplicateSchema(
-      schema,
-      "A text-to-image generative model"
-    );
-    expect(withImageDesc.outputs[0].type).toBe("image");
-
-    // With model description mentioning "video" → detects "video"
-    const withVideoDesc = mapReplicateSchema(
-      schema,
-      "Generate stunning videos from text prompts"
-    );
-    expect(withVideoDesc.outputs[0].type).toBe("video");
-
-    // With model description mentioning "audio" → detects "audio"
-    const withAudioDesc = mapReplicateSchema(
-      schema,
-      "Text-to-speech audio generation"
-    );
-    expect(withAudioDesc.outputs[0].type).toBe("audio");
+    // Cog's schema uses format: "uri" for all file types with no media type info.
+    // The actual type is determined at runtime from Content-Type header.
+    expect(mapReplicateSchema(schema).outputs[0].type).toBe("blob");
   });
 
   it("maps plain string output", () => {
@@ -903,6 +881,6 @@ describe("mapReplicateSchema", () => {
       name: "model_file",
       type: "blob",
     });
-    expect(result.outputs[1]).toMatchObject({ name: "video", type: "video" });
+    expect(result.outputs[1]).toMatchObject({ name: "video", type: "blob" });
   });
 });

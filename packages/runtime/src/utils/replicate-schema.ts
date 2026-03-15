@@ -73,10 +73,11 @@ const BLOB_TYPE_KEYWORDS: Record<string, "image" | "audio" | "video"> = {
 };
 
 /**
- * Detect blob subtype (image/audio/video) from property name and description.
+ * Detect blob subtype (image/audio/video) for **inputs** from property name and description.
+ * Input names are reliable indicators (e.g. an input named "image" is an image).
  * Falls back to "blob" if no heuristic matches.
  */
-function detectBlobType(
+function detectInputBlobType(
   name: string,
   description?: string
 ): "image" | "audio" | "video" | "blob" {
@@ -195,7 +196,7 @@ function mapProperty(
   // URI strings → detect blob type
   // Cast needed: detectBlobType returns a dynamic discriminant that TS can't narrow
   if (prop.type === "string" && prop.format === "uri") {
-    const blobType = detectBlobType(name, description);
+    const blobType = detectInputBlobType(name, description);
     return {
       name,
       type: blobType,
@@ -280,7 +281,7 @@ function mapProperty(
       ? resolveSchema(prop.items, schemas)
       : undefined;
     if (resolvedItems?.format === "uri") {
-      const blobType = detectBlobType(name, description);
+      const blobType = detectInputBlobType(name, description);
       return {
         name,
         type: blobType,
@@ -314,12 +315,14 @@ function mapProperty(
 
 /**
  * Map Replicate's output schema to Dafthunk output parameters.
- * Uses model-level description as additional context for blob type detection,
- * since the output schema's own description is often empty or generic.
+ *
+ * All URI outputs are mapped to "blob" — Cog's schema uses `format: "uri"` for
+ * all file types (image, video, audio) with no media type distinction. The actual
+ * Content-Type is determined at runtime when downloading the output, and the
+ * frontend's BlobField renders the appropriate element based on the mimeType.
  */
 function mapOutputSchema(
   schema: ReplicateOutputSchema | undefined,
-  modelDescription: string | undefined,
   schemas: SchemaMap
 ): Parameter[] {
   if (!schema) {
@@ -329,19 +332,11 @@ function mapOutputSchema(
   // Fully resolve: $ref → allOf → anyOf/oneOf nullable unwrap
   const resolved = resolveSchema(schema, schemas);
 
-  // Combine output schema description with model description for better detection
-  const detectionContext = [resolved.description, modelDescription]
-    .filter(Boolean)
-    .join(" ");
-
-  // Cast needed: detectBlobType returns a dynamic discriminant that TS can't narrow
-
   // URI string → single blob output
   if (resolved.type === "string" && resolved.format === "uri") {
-    const blobType = detectBlobType("output", detectionContext);
     return [
-      { name: "output", type: blobType, description: resolved.description },
-    ] as Parameter[];
+      { name: "output", type: "blob", description: resolved.description },
+    ];
   }
 
   // Array of URIs → single blob output (take first element at runtime)
@@ -350,10 +345,9 @@ function mapOutputSchema(
     resolved.items?.type === "string" &&
     resolved.items?.format === "uri"
   ) {
-    const blobType = detectBlobType("output", detectionContext);
     return [
-      { name: "output", type: blobType, description: resolved.description },
-    ] as Parameter[];
+      { name: "output", type: "blob", description: resolved.description },
+    ];
   }
 
   // Array of objects with named properties → multiple named outputs
@@ -365,8 +359,7 @@ function mapOutputSchema(
         const r = resolveSchema(prop, schemas);
         const desc = r.description ?? r.title;
         if (r.type === "string" && r.format === "uri") {
-          const blobType = detectBlobType(name, desc);
-          return { name, type: blobType, description: desc } as Parameter;
+          return { name, type: "blob", description: desc } as Parameter;
         }
         return { name, type: "string", description: desc };
       });
@@ -386,8 +379,7 @@ function mapOutputSchema(
       const r = resolveSchema(prop, schemas);
       const desc = r.description ?? r.title;
       if (r.type === "string" && r.format === "uri") {
-        const blobType = detectBlobType(name, desc);
-        return { name, type: blobType, description: desc } as Parameter;
+        return { name, type: "blob", description: desc } as Parameter;
       }
       return { name, type: "string", description: desc };
     });
@@ -408,12 +400,10 @@ function mapOutputSchema(
  * Convert a Replicate model's OpenAPI schema into Dafthunk Parameters.
  *
  * @param openApiSchema - The model's `openapi_schema` from the Replicate API
- * @param modelDescription - The model's top-level description, used to detect output blob types
  * @returns Mapped inputs and outputs as Dafthunk Parameter arrays
  */
 export function mapReplicateSchema(
-  openApiSchema: ReplicateOpenApiSchema,
-  modelDescription?: string
+  openApiSchema: ReplicateOpenApiSchema
 ): MappedSchema {
   const inputSchema = openApiSchema?.components?.schemas?.Input;
   const outputSchema = openApiSchema?.components?.schemas?.Output;
@@ -424,7 +414,7 @@ export function mapReplicateSchema(
   if (!inputSchema?.properties) {
     return {
       inputs: [],
-      outputs: mapOutputSchema(outputSchema, modelDescription, schemas),
+      outputs: mapOutputSchema(outputSchema, schemas),
     };
   }
 
@@ -445,6 +435,6 @@ export function mapReplicateSchema(
 
   return {
     inputs,
-    outputs: mapOutputSchema(outputSchema, modelDescription, schemas),
+    outputs: mapOutputSchema(outputSchema, schemas),
   };
 }

@@ -46,7 +46,6 @@ replicateRoutes.get("/models/:owner/:name/schema", async (c) => {
   }
 
   const model = (await response.json()) as {
-    description?: string;
     latest_version?: {
       id?: string;
       openapi_schema?: ReplicateOpenApiSchema;
@@ -61,10 +60,7 @@ replicateRoutes.get("/models/:owner/:name/schema", async (c) => {
     );
   }
 
-  const { inputs, outputs } = mapReplicateSchema(
-    openApiSchema,
-    model.description
-  );
+  const { inputs, outputs } = mapReplicateSchema(openApiSchema);
   const version = model.latest_version?.id ?? "";
 
   return c.json({
