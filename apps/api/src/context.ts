@@ -16,6 +16,7 @@ export interface Bindings {
   DATABASE: DurableObjectNamespace<DatabaseDO>;
   AGENT_RUNNER: DurableObjectNamespace<AgentRunner>;
   FFMPEG_CONTAINER?: DurableObjectNamespace<FFmpegContainer>;
+  DUCKDB_SANDBOX?: DurableObjectNamespace<any>;
   WORKFLOW_QUEUE: Queue;
   RESSOURCES: R2Bucket;
   DATASETS: R2Bucket;

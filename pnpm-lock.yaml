@@ -46,6 +46,9 @@ importers:
       '@cloudflare/containers':
         specifier: ^0.1.1
         version: 0.1.1
+      '@cloudflare/sandbox':
+        specifier: ^0.7.17
+        version: 0.7.17
       '@dafthunk/runtime':
         specifier: workspace:*
         version: link:../../packages/runtime
@@ -467,6 +470,9 @@ importers:
       '@cloudflare/ai-utils':
         specifier: ^1.0.1
         version: 1.0.1
+      '@cloudflare/sandbox':
+        specifier: ^0.7.17
+        version: 0.7.17
       '@dafthunk/geo':
         specifier: workspace:*
         version: link:../geo
@@ -803,6 +809,20 @@ packages:
   '@cloudflare/kv-asset-handler@0.4.2':
     resolution: {integrity: sha512-SIOD2DxrRRwQ+jgzlXCqoEFiKOFqaPjhnNTGKXSRLvp1HiOvapLaFG2kEr9dYQTYe8rKrd9uvDUzmAITeNyaHQ==}
     engines: {node: '>=18.0.0'}
+
+  '@cloudflare/sandbox@0.7.17':
+    resolution: {integrity: sha512-dS6IdIq8OHg7jg08wz18BtP6TkBSaVrixq+kN4Zm5/6N9Vir+PbfebEFL23lM5UcaPoKx6Gttnhby8e79PSMOA==}
+    peerDependencies:
+      '@openai/agents': ^0.3.3
+      '@opencode-ai/sdk': ^1.1.40
+      '@xterm/xterm': '>=5.0.0'
+    peerDependenciesMeta:
+      '@openai/agents':
+        optional: true
+      '@opencode-ai/sdk':
+        optional: true
+      '@xterm/xterm':
+        optional: true
 
   '@cloudflare/unenv-preset@2.10.0':
     resolution: {integrity: sha512-/uII4vLQXhzCAZzEVeYAjFLBNg2nqTJ1JGzd2lRF6ItYe6U2zVoYGfeKpGx/EkBF6euiU+cyBXgMdtJih+nQ6g==}
@@ -5690,6 +5710,11 @@ snapshots:
   '@cloudflare/containers@0.1.1': {}
 
   '@cloudflare/kv-asset-handler@0.4.2': {}
+
+  '@cloudflare/sandbox@0.7.17':
+    dependencies:
+      '@cloudflare/containers': 0.1.1
+      aws4fetch: 1.0.20
 
   '@cloudflare/unenv-preset@2.10.0(unenv@2.0.0-rc.24)(workerd@1.20260114.0)':
     dependencies:

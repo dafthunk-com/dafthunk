@@ -35,6 +35,12 @@
       "image": "./containers/ffmpeg/Dockerfile",
       "max_instances": 5,
       "instance_type": "standard-1"
+    },
+    {
+      "class_name": "Sandbox",
+      "image": "./containers/duckdb/Dockerfile",
+      "max_instances": 5,
+      "instance_type": "standard-1"
     }
   ],
   "worker_loaders": [{ "binding": "LOADER" }],
@@ -116,6 +122,10 @@
       {
         "name": "FFMPEG_CONTAINER",
         "class_name": "FFmpegContainer"
+      },
+      {
+        "name": "DUCKDB_SANDBOX",
+        "class_name": "Sandbox"
       }
     ]
   },
@@ -143,6 +153,10 @@
     {
       "tag": "v6",
       "deleted_classes": ["DiscordBot"]
+    },
+    {
+      "tag": "v7",
+      "new_sqlite_classes": ["Sandbox"]
     }
   ],
   "unsafe": {
@@ -211,6 +225,11 @@
           "image": "./containers/ffmpeg/Dockerfile",
           "max_instances": 5,
           "instance_type": "standard-1"
+        },
+        {
+          "class_name": "Sandbox",
+          "max_instances": 5,
+          "instance_type": "standard-1"
         }
       ],
       "worker_loaders": [{ "binding": "LOADER" }],
@@ -265,6 +284,10 @@
           {
             "name": "FFMPEG_CONTAINER",
             "class_name": "FFmpegContainer"
+          },
+          {
+            "name": "DUCKDB_SANDBOX",
+            "class_name": "Sandbox"
           }
         ]
       },
@@ -292,6 +315,10 @@
         {
           "tag": "v6",
           "deleted_classes": ["DiscordBot"]
+        },
+        {
+          "tag": "v7",
+          "new_sqlite_classes": ["Sandbox"]
         }
       ],
       "unsafe": {

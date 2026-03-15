@@ -42,6 +42,7 @@
     "@cf-wasm/resvg": "^0.3.3",
     "@cloudflare/ai-utils": "^1.0.1",
     "@cloudflare/containers": "^0.1.1",
+    "@cloudflare/sandbox": "^0.7.17",
     "@dafthunk/runtime": "workspace:*",
     "@dafthunk/types": "workspace:*",
     "@dafthunk/utils": "workspace:*",

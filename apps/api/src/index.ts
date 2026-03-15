@@ -127,6 +127,7 @@ export { Session as WorkflowSession };
 export { DatabaseDO };
 export { FFmpegContainer } from "./containers/ffmpeg-container";
 export { AgentRunner } from "./durable-objects/agent-runner";
+export { Sandbox } from "@cloudflare/sandbox";
 
 export default {
   email: handleIncomingEmail,

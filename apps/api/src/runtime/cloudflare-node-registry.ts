@@ -1,3 +1,8 @@
+import {
+  BaseNodeRegistry,
+  FailingMultiStepNode,
+  MultiStepAdditionNode,
+} from "@dafthunk/runtime";
 import { CgsApplyMaterialNode } from "@dafthunk/runtime/nodes/3d/cgs-apply-material-node";
 import { CgsApplyTextureNode } from "@dafthunk/runtime/nodes/3d/cgs-apply-texture-node";
 import { CgsConeNode } from "@dafthunk/runtime/nodes/3d/cgs-cone-node";
@@ -18,12 +23,6 @@ import { GeoTiffMetadataReaderNode } from "@dafthunk/runtime/nodes/3d/geotiff-me
 import { GeoTiffQueryNode } from "@dafthunk/runtime/nodes/3d/geotiff-query-node";
 import { GeoTiffTransformNode } from "@dafthunk/runtime/nodes/3d/geotiff-transform-node";
 import { GltfWireframeNode } from "@dafthunk/runtime/nodes/3d/gltf-wireframe-node";
-
-import {
-  BaseNodeRegistry,
-  FailingMultiStepNode,
-  MultiStepAdditionNode,
-} from "@dafthunk/runtime";
 import { AgentClaudeSonnet4Node } from "@dafthunk/runtime/nodes/agent/agent-claude-sonnet-4-node";
 import { AgentGemini25FlashNode } from "@dafthunk/runtime/nodes/agent/agent-gemini-2-5-flash-node";
 import { AgentGemini31ProNode } from "@dafthunk/runtime/nodes/agent/agent-gemini-3-1-pro-node";
@@ -76,6 +75,7 @@ import { DatabaseListTablesNode } from "@dafthunk/runtime/nodes/database/databas
 import { DatabaseQueryNode } from "@dafthunk/runtime/nodes/database/database-query-node";
 import { DatabaseTableExistsNode } from "@dafthunk/runtime/nodes/database/database-table-exists-node";
 import { DatabaseTruncateTableNode } from "@dafthunk/runtime/nodes/database/database-truncate-table-node";
+import { ParquetQueryNode } from "@dafthunk/runtime/nodes/database/parquet-query-node";
 import { DatasetAiSearchNode } from "@dafthunk/runtime/nodes/dataset/dataset-ai-search-node";
 import { DatasetDeleteFileNode } from "@dafthunk/runtime/nodes/dataset/dataset-delete-file-node";
 import { DatasetDownloadFileNode } from "@dafthunk/runtime/nodes/dataset/dataset-download-file-node";
@@ -499,6 +499,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(DatabaseTableExistsNode);
     this.registerImplementation(DatabaseGetRowCountNode);
     this.registerImplementation(DatabaseTruncateTableNode);
+    this.registerImplementation(ParquetQueryNode);
     this.registerImplementation(ReceiveEmailNode);
     this.registerImplementation(BotReceiveDiscordMessageNode);
     this.registerImplementation(BotReceiveTelegramMessageNode);
