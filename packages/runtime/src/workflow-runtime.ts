@@ -31,7 +31,7 @@ export class WorkflowRuntime<Env = unknown> extends Runtime<Env> {
 
   private static readonly defaultStepConfig: WorkflowStepConfig = {
     retries: {
-      limit: 0,
+      limit: 3,
       delay: 10_000,
       backoff: "exponential",
     },
