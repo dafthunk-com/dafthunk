@@ -201,7 +201,7 @@ describe("ObjectStore", () => {
   });
 
   describe("writeAndPresign", () => {
-    it("should write object and return presigned URL", async () => {
+    it("should write object with extension-aware key and return presigned URL", async () => {
       const store = new CloudflareObjectStore(mockBucket, {
         accountId: "test-account",
         bucketName: "test-bucket",
@@ -210,37 +210,50 @@ describe("ObjectStore", () => {
       });
       const data = new Uint8Array([1, 2, 3]);
 
-      // writeAndPresign calls writeObject then getPresignedUrl
-      // getPresignedUrl uses AwsClient which needs real crypto, so we spy on it
-      const writeObjectSpy = vi
-        .spyOn(store, "writeObject")
-        .mockResolvedValue({ id: "mock-id", mimeType: "image/png" });
-      const getPresignedUrlSpy = vi
-        .spyOn(store, "getPresignedUrl")
-        .mockResolvedValue("https://presigned.example.com/mock");
-
       const url = await store.writeAndPresign(
         data,
-        "image/png",
+        "image/jpeg",
         "org-123",
         7200
       );
 
-      expect(writeObjectSpy).toHaveBeenCalledWith(data, "image/png", "org-123");
-      expect(getPresignedUrlSpy).toHaveBeenCalledWith(
-        { id: "mock-id", mimeType: "image/png" },
-        7200
+      // Verify it wrote with an extension-aware key
+      expect(mockBucket.put).toHaveBeenCalledWith(
+        expect.stringMatching(/^objects\/.*\/object\.jpg$/),
+        data,
+        expect.objectContaining({
+          httpMetadata: expect.objectContaining({
+            contentType: "image/jpeg",
+          }),
+        })
       );
-      expect(url).toBe("https://presigned.example.com/mock");
+      // URL should contain the extension
+      expect(url).toContain("object.jpg");
+      expect(url).toContain(
+        "test-bucket.test-account.r2.cloudflarestorage.com"
+      );
+    });
+
+    it("should use no extension for unknown MIME types", async () => {
+      const store = new CloudflareObjectStore(mockBucket, {
+        accountId: "test-account",
+        bucketName: "test-bucket",
+        accessKeyId: "test-key",
+        secretAccessKey: "test-secret",
+      });
+      const data = new Uint8Array([1, 2, 3]);
+
+      await store.writeAndPresign(data, "application/octet-stream", "org-123");
+
+      expect(mockBucket.put).toHaveBeenCalledWith(
+        expect.stringMatching(/^objects\/.*\/object$/),
+        data,
+        expect.any(Object)
+      );
     });
 
     it("should throw when presigned URL config is missing", async () => {
       const store = new CloudflareObjectStore(mockBucket);
-
-      vi.spyOn(store, "writeObject").mockResolvedValue({
-        id: "mock-id",
-        mimeType: "image/png",
-      });
 
       await expect(
         store.writeAndPresign(new Uint8Array([1, 2, 3]), "image/png", "org-123")

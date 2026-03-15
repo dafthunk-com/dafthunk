@@ -3,6 +3,31 @@ import type { ObjectReference } from "@dafthunk/types";
 import { AwsClient } from "aws4fetch";
 import { v7 as uuid } from "uuid";
 
+/**
+ * Map common MIME types to file extensions.
+ * Used by writeAndPresign so presigned URLs have a recognizable extension,
+ * which some external APIs (e.g. Replicate) require for format validation.
+ */
+const MIME_TO_EXT: Record<string, string> = {
+  "image/jpeg": ".jpg",
+  "image/png": ".png",
+  "image/webp": ".webp",
+  "image/gif": ".gif",
+  "image/svg+xml": ".svg",
+  "image/bmp": ".bmp",
+  "image/tiff": ".tiff",
+  "audio/mpeg": ".mp3",
+  "audio/wav": ".wav",
+  "audio/ogg": ".ogg",
+  "audio/flac": ".flac",
+  "audio/aac": ".aac",
+  "audio/mp4": ".m4a",
+  "video/mp4": ".mp4",
+  "video/webm": ".webm",
+  "video/quicktime": ".mov",
+  "application/pdf": ".pdf",
+};
+
 export type { ObjectMetadata, ObjectStore };
 
 export interface PresignedUrlConfig {
@@ -161,7 +186,8 @@ export class CloudflareObjectStore implements ObjectStore {
 
   /**
    * Write data to R2 and return a presigned download URL in one step.
-   * Combines writeObject + getPresignedUrl to eliminate boilerplate in nodes.
+   * Uses a file-extension-aware key so the presigned URL has a recognizable
+   * extension (e.g. `.jpg`), which some external APIs require for format validation.
    */
   async writeAndPresign(
     data: Uint8Array,
@@ -169,8 +195,39 @@ export class CloudflareObjectStore implements ObjectStore {
     organizationId: string,
     expiresInSeconds: number = 3600
   ): Promise<string> {
-    const reference = await this.writeObject(data, mimeType, organizationId);
-    return this.getPresignedUrl(reference, expiresInSeconds);
+    if (!this.presignedUrlConfig) {
+      throw new Error(
+        "Presigned URL configuration not set. Pass PresignedUrlConfig to the ObjectStore constructor."
+      );
+    }
+
+    const id = uuid();
+    const ext = MIME_TO_EXT[mimeType] ?? "";
+    const key = `objects/${id}/object${ext}`;
+
+    await this.writeToR2(key, data, {
+      httpMetadata: {
+        contentType: mimeType,
+        cacheControl: "public, max-age=31536000",
+      },
+      customMetadata: {
+        id,
+        createdAt: new Date().toISOString(),
+        organizationId,
+      },
+    });
+
+    const { accountId, bucketName, accessKeyId, secretAccessKey } =
+      this.presignedUrlConfig;
+    const client = new AwsClient({ accessKeyId, secretAccessKey });
+    const url = new URL(
+      `https://${bucketName}.${accountId}.r2.cloudflarestorage.com/${key}`
+    );
+    url.searchParams.set("X-Amz-Expires", String(expiresInSeconds));
+    const signed = await client.sign(new Request(url, { method: "GET" }), {
+      aws: { signQuery: true },
+    });
+    return signed.url;
   }
 
   async listObjects(organizationId: string): Promise<ObjectMetadata[]> {

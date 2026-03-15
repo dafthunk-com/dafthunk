@@ -125,9 +125,9 @@ app.route("/:organizationId/ws", wsRoutes);
 // Export Durable Objects
 export { Session as WorkflowSession };
 export { DatabaseDO };
+export { Sandbox } from "@cloudflare/sandbox";
 export { FFmpegContainer } from "./containers/ffmpeg-container";
 export { AgentRunner } from "./durable-objects/agent-runner";
-export { Sandbox } from "@cloudflare/sandbox";
 
 export default {
   email: handleIncomingEmail,
