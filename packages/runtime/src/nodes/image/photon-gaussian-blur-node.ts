@@ -1,10 +1,11 @@
-import { gaussian_blur, PhotonImage } from "@cf-wasm/photon";
+import { gaussian_blur } from "@cf-wasm/photon";
 import {
   ExecutableNode,
   type ImageParameter,
   type NodeContext,
 } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { executePhotonOperation } from "./execute-photon-operation";
 
 /**
  * This node applies Gaussian blur to an input image using the Photon library.
@@ -48,59 +49,18 @@ export class PhotonGaussianBlurNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const inputs = context.inputs as {
+    const { image, radius } = context.inputs as {
       image?: ImageParameter;
       radius?: number;
     };
-
-    const { image, radius } = inputs;
-
-    if (!image || !image.data || !image.mimeType) {
-      return this.createErrorResult("Input image is missing or invalid.");
-    }
     if (typeof radius !== "number" || radius < 0) {
-      // Photon's gaussian_blur expects an i32, typically positive.
-      // While Photon might handle negative/zero, good practice to ensure it's non-negative.
       return this.createErrorResult(
         "Blur radius must be a non-negative number."
       );
     }
-
-    let photonImage: PhotonImage | undefined;
-
-    try {
-      // Create a PhotonImage instance from the input bytes
-      photonImage = PhotonImage.new_from_byteslice(image.data);
-
-      // Apply Gaussian blur
-      gaussian_blur(photonImage, Math.round(radius)); // Ensure integer radius
-
-      // Get the blurred image bytes in PNG format
-      const outputBytes = photonImage.get_bytes();
-
-      if (!outputBytes || outputBytes.length === 0) {
-        return this.createErrorResult(
-          "Photon Gaussian blur resulted in empty image data."
-        );
-      }
-
-      const blurredImage: ImageParameter = {
-        data: outputBytes,
-        mimeType: "image/png",
-      };
-
-      return this.createSuccessResult({ image: blurredImage });
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Unknown error during Photon image Gaussian blur.";
-      console.error(`[PhotonGaussianBlurNode] Error: ${errorMessage}`, error);
-      return this.createErrorResult(errorMessage);
-    } finally {
-      if (photonImage) {
-        photonImage.free();
-      }
-    }
+    return executePhotonOperation(this, image, (img) => {
+      gaussian_blur(img, Math.round(radius));
+      return img.get_bytes();
+    });
   }
 }

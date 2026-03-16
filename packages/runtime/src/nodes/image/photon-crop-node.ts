@@ -1,10 +1,11 @@
-import { crop, PhotonImage } from "@cf-wasm/photon";
+import { crop } from "@cf-wasm/photon";
 import {
   ExecutableNode,
   type ImageParameter,
   type NodeContext,
 } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { executePhotonOperation } from "./execute-photon-operation";
 
 /**
  * This node crops an input image to a specified rectangle using the Photon library.
@@ -69,19 +70,13 @@ export class PhotonCropNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const inputs = context.inputs as {
+    const { image, x, y, width, height } = context.inputs as {
       image?: ImageParameter;
       x?: number;
       y?: number;
       width?: number;
       height?: number;
     };
-
-    const { image, x, y, width, height } = inputs;
-
-    if (!image || !image.data || !image.mimeType) {
-      return this.createErrorResult("Input image is missing or invalid.");
-    }
     if (typeof x !== "number" || x < 0) {
       return this.createErrorResult("x must be a non-negative number.");
     }
@@ -94,70 +89,17 @@ export class PhotonCropNode extends ExecutableNode {
     if (typeof height !== "number" || height <= 0) {
       return this.createErrorResult("Height must be a positive number.");
     }
-
-    let inputPhotonImage: PhotonImage | undefined;
-    let outputPhotonImage: PhotonImage | undefined;
-
-    try {
-      // Create a PhotonImage instance from the input bytes
-      inputPhotonImage = PhotonImage.new_from_byteslice(image.data);
-
-      // Calculate the bottom-right coordinates for Photon's crop function
-      const x1_photon = x;
-      const y1_photon = y;
-      const x2_photon = x + width;
-      const y2_photon = y + height;
-
-      // Validate crop dimensions against image dimensions
-      if (x2_photon > inputPhotonImage.get_width()) {
-        return this.createErrorResult(
-          "Crop area (x + width) exceeds image width."
-        );
+    return executePhotonOperation(this, image, (img) => {
+      if (x + width > img.get_width()) {
+        throw new Error("Crop area (x + width) exceeds image width.");
       }
-      if (y2_photon > inputPhotonImage.get_height()) {
-        return this.createErrorResult(
-          "Crop area (y + height) exceeds image height."
-        );
+      if (y + height > img.get_height()) {
+        throw new Error("Crop area (y + height) exceeds image height.");
       }
-
-      // Photon's crop function expects (img, x1, y1, x2, y2)
-      outputPhotonImage = crop(
-        inputPhotonImage,
-        x1_photon,
-        y1_photon,
-        x2_photon,
-        y2_photon
-      );
-
-      // Get the cropped image bytes in PNG format
-      const outputBytes = outputPhotonImage.get_bytes();
-
-      if (!outputBytes || outputBytes.length === 0) {
-        return this.createErrorResult(
-          "Photon cropping resulted in empty image data."
-        );
-      }
-
-      const croppedImage: ImageParameter = {
-        data: outputBytes,
-        mimeType: "image/png", // Photon outputs PNG by default after crop
-      };
-
-      return this.createSuccessResult({ image: croppedImage });
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Unknown error during Photon image cropping.";
-      console.error(`[PhotonCropNode] Error: ${errorMessage}`, error);
-      return this.createErrorResult(errorMessage);
-    } finally {
-      if (inputPhotonImage) {
-        inputPhotonImage.free();
-      }
-      if (outputPhotonImage) {
-        outputPhotonImage.free();
-      }
-    }
+      const result = crop(img, x, y, x + width, y + height);
+      const bytes = result.get_bytes();
+      result.free();
+      return bytes;
+    });
   }
 }

@@ -1,8 +1,7 @@
-import { runWithTools } from "@cloudflare/ai-utils";
-import type { NodeContext, ToolReference } from "@dafthunk/runtime";
-import { ExecutableNode, ToolCallTracker } from "@dafthunk/runtime";
+import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
+import type { TokenPricing } from "../../utils/usage";
+import { executeWorkersAiTextModel } from "./execute-workers-ai-text-model";
 
 // https://developers.cloudflare.com/workers-ai/platform/pricing/
 // Cloudflare Workers AI: ~$0.011 per 1000 neurons, estimated for 7B model
@@ -122,25 +121,21 @@ export class Hermes2ProMistral7BNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    try {
-      const {
-        prompt,
-        messages,
-        tools,
-        temperature,
-        max_tokens,
-        top_p,
-        top_k,
-        seed,
-        repetition_penalty,
-        frequency_penalty,
-        presence_penalty,
-      } = context.inputs;
+    const {
+      temperature,
+      max_tokens,
+      top_p,
+      top_k,
+      seed,
+      repetition_penalty,
+      frequency_penalty,
+      presence_penalty,
+    } = context.inputs;
 
-      if (!context.env?.AI) {
-        return this.createErrorResult("AI service is not available");
-      }
-      const params: AiTextGenerationInput = {
+    return executeWorkersAiTextModel(this, context, {
+      modelId: "@hf/nousresearch/hermes-2-pro-mistral-7b",
+      pricing: PRICING,
+      params: {
         temperature,
         max_tokens,
         top_p,
@@ -150,88 +145,7 @@ export class Hermes2ProMistral7BNode extends ExecutableNode {
         frequency_penalty,
         presence_penalty,
         stream: false,
-      };
-
-      // If messages are provided, use them, otherwise use prompt
-      if (messages && typeof messages === "string") {
-        try {
-          params.messages = JSON.parse(messages);
-        } catch (e) {
-          console.error("Failed to parse messages JSON string:", e);
-          // Fall back to prompt
-          params.messages = [
-            {
-              role: "user",
-              content: prompt,
-            },
-          ];
-        }
-      } else if (prompt) {
-        params.messages = [
-          {
-            role: "user",
-            content: prompt,
-          },
-        ];
-      } else {
-        return this.createErrorResult(
-          "Either prompt or messages must be provided."
-        );
-      }
-
-      // Check if we have function calls to enable embedded mode
-      const toolsDefinitions = await this.convertFunctionCallsToToolDefinitions(
-        tools as ToolReference[],
-        context
-      );
-
-      let result: AiTextGenerationOutput;
-      let executedToolCalls: any[] = [];
-
-      if (toolsDefinitions.length > 0) {
-        const toolCallTracker = new ToolCallTracker();
-        const trackedToolDefinitions =
-          toolCallTracker.wrapToolDefinitions(toolsDefinitions);
-
-        result = await runWithTools(
-          context.env.AI as any,
-          "@hf/nousresearch/hermes-2-pro-mistral-7b",
-          {
-            messages: params.messages,
-            tools: trackedToolDefinitions,
-          } as any
-        );
-
-        executedToolCalls = toolCallTracker.getToolCalls();
-      } else {
-        result = await context.env.AI.run(
-          "@hf/nousresearch/hermes-2-pro-mistral-7b",
-          params,
-          context.env.AI_OPTIONS
-        );
-      }
-
-      // Calculate usage based on text length estimation
-      const usage = calculateTokenUsage(
-        prompt || "",
-        result.response || "",
-        PRICING
-      );
-
-      return this.createSuccessResult(
-        {
-          response: result.response || "",
-          ...(executedToolCalls.length > 0
-            ? { tool_calls: executedToolCalls }
-            : {}),
-        },
-        usage
-      );
-    } catch (error) {
-      console.error(error);
-      return this.createErrorResult(
-        error instanceof Error ? error.message : "Unknown error"
-      );
-    }
+      },
+    });
   }
 }

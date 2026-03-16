@@ -1,10 +1,11 @@
-import { darken_hsl, lighten_hsl, PhotonImage } from "@cf-wasm/photon";
+import { darken_hsl, lighten_hsl } from "@cf-wasm/photon";
 import {
   ExecutableNode,
   type ImageParameter,
   type NodeContext,
 } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { executePhotonOperation } from "./execute-photon-operation";
 
 /**
  * This node adjusts the lightness of an input image using the HSL color space via Photon library.
@@ -48,65 +49,22 @@ export class PhotonAdjustHslLightnessNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const inputs = context.inputs as {
+    const { image, amount } = context.inputs as {
       image?: ImageParameter;
       amount?: number;
     };
-
-    const { image, amount } = inputs;
-
-    if (!image || !image.data || !image.mimeType) {
-      return this.createErrorResult("Input image is missing or invalid.");
-    }
     if (typeof amount !== "number" || amount < -1.0 || amount > 1.0) {
       return this.createErrorResult(
         "Lightness amount must be a number between -1.0 and 1.0."
       );
     }
-
-    let photonImage: PhotonImage | undefined;
-
-    try {
-      // Create a PhotonImage instance from the input bytes
-      photonImage = PhotonImage.new_from_byteslice(image.data);
-
-      // Adjust lightness using HSL
+    return executePhotonOperation(this, image, (img) => {
       if (amount > 0) {
-        lighten_hsl(photonImage, amount);
+        lighten_hsl(img, amount);
       } else if (amount < 0) {
-        darken_hsl(photonImage, Math.abs(amount)); // darken_hsl expects a positive level
+        darken_hsl(img, Math.abs(amount));
       }
-      // If amount is 0, no change is needed
-
-      // Get the adjusted image bytes in PNG format
-      const outputBytes = photonImage.get_bytes();
-
-      if (!outputBytes || outputBytes.length === 0) {
-        return this.createErrorResult(
-          "Photon HSL lightness adjustment resulted in empty image data."
-        );
-      }
-
-      const adjustedImage: ImageParameter = {
-        data: outputBytes,
-        mimeType: "image/png",
-      };
-
-      return this.createSuccessResult({ image: adjustedImage });
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Unknown error during Photon image HSL lightness adjustment.";
-      console.error(
-        `[PhotonAdjustHslLightnessNode] Error: ${errorMessage}`,
-        error
-      );
-      return this.createErrorResult(errorMessage);
-    } finally {
-      if (photonImage) {
-        photonImage.free();
-      }
-    }
+      return img.get_bytes();
+    });
   }
 }

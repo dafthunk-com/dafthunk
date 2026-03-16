@@ -1,14 +1,11 @@
-import {
-  mix_with_colour,
-  PhotonImage,
-  Rgb, // Import Rgb for creating the mix color
-} from "@cf-wasm/photon";
+import { mix_with_colour, Rgb } from "@cf-wasm/photon";
 import {
   ExecutableNode,
   type ImageParameter,
   type NodeContext,
 } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { executePhotonOperation } from "./execute-photon-operation";
 
 /**
  * This node mixes an input image with a specified solid color using a given opacity, via the Photon library.
@@ -73,19 +70,13 @@ export class PhotonMixWithColorNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const inputs = context.inputs as {
+    const { image, mixRed, mixGreen, mixBlue, opacity } = context.inputs as {
       image?: ImageParameter;
       mixRed?: number;
       mixGreen?: number;
       mixBlue?: number;
       opacity?: number;
     };
-
-    const { image, mixRed, mixGreen, mixBlue, opacity } = inputs;
-
-    if (!image || !image.data || !image.mimeType) {
-      return this.createErrorResult("Input image is missing or invalid.");
-    }
     if (typeof mixRed !== "number" || mixRed < 0 || mixRed > 255) {
       return this.createErrorResult(
         "Mix Red component must be a number between 0 and 255."
@@ -106,42 +97,10 @@ export class PhotonMixWithColorNode extends ExecutableNode {
         "Opacity must be a number between 0.0 and 1.0."
       );
     }
-
-    let photonImage: PhotonImage | undefined;
-    let mixColorRgb: Rgb | undefined;
-
-    try {
-      photonImage = PhotonImage.new_from_byteslice(image.data);
-      mixColorRgb = new Rgb(mixRed, mixGreen, mixBlue);
-
-      mix_with_colour(photonImage, mixColorRgb, opacity);
-
-      const outputBytes = photonImage.get_bytes();
-
-      if (!outputBytes || outputBytes.length === 0) {
-        return this.createErrorResult(
-          "Photon mix with color operation resulted in empty image data."
-        );
-      }
-
-      const resultImage: ImageParameter = {
-        data: outputBytes,
-        mimeType: "image/png",
-      };
-
-      return this.createSuccessResult({ image: resultImage });
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Unknown error during Photon mix with color operation.";
-      console.error(`[PhotonMixWithColorNode] Error: ${errorMessage}`, error);
-      return this.createErrorResult(errorMessage);
-    } finally {
-      if (photonImage) {
-        photonImage.free();
-      }
-      // Note: Do not free mixColorRgb as mix_with_colour consumes it
-    }
+    return executePhotonOperation(this, image, (img) => {
+      const mixColorRgb = new Rgb(mixRed, mixGreen, mixBlue);
+      mix_with_colour(img, mixColorRgb, opacity);
+      return img.get_bytes();
+    });
   }
 }

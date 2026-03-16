@@ -1,8 +1,7 @@
-import { runWithTools } from "@cloudflare/ai-utils";
-import type { NodeContext, ToolReference } from "@dafthunk/runtime";
-import { ExecutableNode, ToolCallTracker } from "@dafthunk/runtime";
+import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
+import type { TokenPricing } from "../../utils/usage";
+import { executeWorkersAiTextModel } from "./execute-workers-ai-text-model";
 
 // https://developers.cloudflare.com/workers-ai/platform/pricing/
 const PRICING: TokenPricing = {
@@ -114,25 +113,20 @@ export class Glm47FlashNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    try {
-      const {
-        prompt,
-        messages,
-        tools,
-        temperature,
-        max_tokens,
-        top_p,
-        seed,
-        frequency_penalty,
-        presence_penalty,
-      } = context.inputs;
+    const {
+      temperature,
+      max_tokens,
+      top_p,
+      seed,
+      frequency_penalty,
+      presence_penalty,
+    } = context.inputs;
 
-      if (!context.env?.AI) {
-        return this.createErrorResult("AI service is not available");
-      }
-
-      const params = {
-        messages: [] as { role: string; content: string }[],
+    return executeWorkersAiTextModel(this, context, {
+      modelId: "@cf/zai-org/glm-4.7-flash",
+      pricing: PRICING,
+      responseFormat: "openai-chat",
+      params: {
         temperature,
         max_completion_tokens: max_tokens,
         top_p,
@@ -140,85 +134,7 @@ export class Glm47FlashNode extends ExecutableNode {
         frequency_penalty,
         presence_penalty,
         stream: false,
-      };
-
-      // If messages are provided, use them, otherwise use prompt
-      if (messages && typeof messages === "string") {
-        try {
-          params.messages = JSON.parse(messages);
-        } catch (e) {
-          console.error("Failed to parse messages JSON string:", e);
-          params.messages = [{ role: "user", content: prompt }];
-        }
-      } else if (prompt) {
-        params.messages = [{ role: "user", content: prompt }];
-      } else {
-        return this.createErrorResult(
-          "Either prompt or messages must be provided."
-        );
-      }
-
-      // Check if we have function calls to enable embedded mode
-      const toolsDefinitions = await this.convertFunctionCallsToToolDefinitions(
-        tools as ToolReference[],
-        context
-      );
-
-      let result: any;
-      let executedToolCalls: any[] = [];
-
-      if (toolsDefinitions.length > 0) {
-        const toolCallTracker = new ToolCallTracker();
-        const trackedToolDefinitions =
-          toolCallTracker.wrapToolDefinitions(toolsDefinitions);
-
-        result = await runWithTools(
-          context.env.AI as any,
-          "@cf/zai-org/glm-4.7-flash",
-          {
-            messages: params.messages,
-            tools: trackedToolDefinitions,
-          } as any
-        );
-
-        executedToolCalls = toolCallTracker.getToolCalls();
-      } else {
-        result = await context.env.AI.run(
-          "@cf/zai-org/glm-4.7-flash" as keyof AiModels,
-          params as any,
-          context.env.AI_OPTIONS
-        );
-      }
-
-      // GLM returns OpenAI chat-completions format
-      const choice = result?.choices?.[0]?.message;
-      const response = choice?.content ?? "";
-      const reasoning = choice?.reasoning_content ?? "";
-
-      // Use actual token counts when available, fall back to text estimation
-      const usage = result?.usage
-        ? calculateTokenUsage(
-            result.usage.prompt_tokens,
-            result.usage.completion_tokens,
-            PRICING
-          )
-        : calculateTokenUsage(prompt || "", response, PRICING);
-
-      return this.createSuccessResult(
-        {
-          response,
-          ...(reasoning ? { reasoning } : {}),
-          ...(executedToolCalls.length > 0
-            ? { tool_calls: executedToolCalls }
-            : {}),
-        },
-        usage
-      );
-    } catch (error) {
-      console.error(error);
-      return this.createErrorResult(
-        error instanceof Error ? error.message : "Unknown error"
-      );
-    }
+      },
+    });
   }
 }

@@ -1,10 +1,11 @@
-import { blend, PhotonImage } from "@cf-wasm/photon";
+import { blend } from "@cf-wasm/photon";
 import {
   ExecutableNode,
   type ImageParameter,
   type NodeContext,
 } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { executePhotonDualImageOperation } from "./execute-photon-operation";
 
 /**
  * This node blends two images together using a specified blend mode via the Photon library.
@@ -54,72 +55,24 @@ export class PhotonBlendImagesNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const inputs = context.inputs as {
+    const { baseImage, blendImage, blendMode } = context.inputs as {
       baseImage?: ImageParameter;
       blendImage?: ImageParameter;
       blendMode?: string;
     };
-
-    const { baseImage, blendImage, blendMode } = inputs;
-
-    if (!baseImage || !baseImage.data || !baseImage.mimeType) {
-      return this.createErrorResult("Base image is missing or invalid.");
-    }
-    if (!blendImage || !blendImage.data || !blendImage.mimeType) {
-      return this.createErrorResult("Blend image is missing or invalid.");
-    }
     if (typeof blendMode !== "string" || blendMode.trim() === "") {
       return this.createErrorResult("Blend mode must be a non-empty string.");
     }
-
-    let photonBaseImage: PhotonImage | undefined;
-    let photonBlendImage: PhotonImage | undefined;
-
-    try {
-      // Create PhotonImage instances from the input bytes
-      photonBaseImage = PhotonImage.new_from_byteslice(baseImage.data);
-      photonBlendImage = PhotonImage.new_from_byteslice(blendImage.data);
-
-      // Blend images
-      // Photon's blend function modifies photonBaseImage in place.
-      blend(photonBaseImage, photonBlendImage, blendMode);
-
-      // Get the resulting image bytes in PNG format
-      const outputBytes = photonBaseImage.get_bytes();
-
-      if (!outputBytes || outputBytes.length === 0) {
-        return this.createErrorResult(
-          "Photon blend operation resulted in empty image data."
-        );
+    return executePhotonDualImageOperation(
+      this,
+      baseImage,
+      blendImage,
+      "Base image",
+      "Blend image",
+      (a, b) => {
+        blend(a, b, blendMode);
+        return a.get_bytes();
       }
-
-      const resultImage: ImageParameter = {
-        data: outputBytes,
-        mimeType: "image/png",
-      };
-
-      return this.createSuccessResult({ image: resultImage });
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Unknown error during Photon image blending.";
-      // It's possible Photon throws an error for an invalid blend mode string.
-      // The error message from Photon might be generic, so we add context.
-      console.error(
-        `[PhotonBlendImagesNode] Error blending images with mode '${blendMode}': ${errorMessage}`,
-        error
-      );
-      return this.createErrorResult(
-        `Error blending images (mode: ${blendMode}): ${errorMessage}`
-      );
-    } finally {
-      if (photonBaseImage) {
-        photonBaseImage.free();
-      }
-      if (photonBlendImage) {
-        photonBlendImage.free();
-      }
-    }
+    );
   }
 }

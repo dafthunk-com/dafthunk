@@ -1,10 +1,11 @@
-import { PhotonImage, pixelize } from "@cf-wasm/photon";
+import { pixelize } from "@cf-wasm/photon";
 import {
   ExecutableNode,
   type ImageParameter,
   type NodeContext,
 } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { executePhotonOperation } from "./execute-photon-operation";
 
 /**
  * This node pixelizes an input image using the Photon library.
@@ -47,16 +48,10 @@ export class PhotonPixelizeNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const inputs = context.inputs as {
+    const { image, pixelSize } = context.inputs as {
       image?: ImageParameter;
       pixelSize?: number;
     };
-
-    const { image, pixelSize } = inputs;
-
-    if (!image || !image.data || !image.mimeType) {
-      return this.createErrorResult("Input image is missing or invalid.");
-    }
     if (
       typeof pixelSize !== "number" ||
       !Number.isInteger(pixelSize) ||
@@ -64,42 +59,9 @@ export class PhotonPixelizeNode extends ExecutableNode {
     ) {
       return this.createErrorResult("Pixel size must be a positive integer.");
     }
-
-    let photonImage: PhotonImage | undefined;
-
-    try {
-      // Create a PhotonImage instance from the input bytes
-      photonImage = PhotonImage.new_from_byteslice(image.data);
-
-      // Apply pixelize effect
-      pixelize(photonImage, pixelSize);
-
-      // Get the resulting image bytes in PNG format
-      const outputBytes = photonImage.get_bytes();
-
-      if (!outputBytes || outputBytes.length === 0) {
-        return this.createErrorResult(
-          "Photon pixelize effect resulted in empty image data."
-        );
-      }
-
-      const effectedImage: ImageParameter = {
-        data: outputBytes,
-        mimeType: "image/png",
-      };
-
-      return this.createSuccessResult({ image: effectedImage });
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Unknown error during Photon image pixelize effect.";
-      console.error(`[PhotonPixelizeNode] Error: ${errorMessage}`, error);
-      return this.createErrorResult(errorMessage);
-    } finally {
-      if (photonImage) {
-        photonImage.free();
-      }
-    }
+    return executePhotonOperation(this, image, (img) => {
+      pixelize(img, pixelSize);
+      return img.get_bytes();
+    });
   }
 }

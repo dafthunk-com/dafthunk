@@ -1,10 +1,11 @@
-import { alter_channels, PhotonImage } from "@cf-wasm/photon";
+import { alter_channels } from "@cf-wasm/photon";
 import {
   ExecutableNode,
   type ImageParameter,
   type NodeContext,
 } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { executePhotonOperation } from "./execute-photon-operation";
 
 /**
  * This node alters the Red, Green, and Blue channels of an input image by specified amounts using the Photon library.
@@ -64,18 +65,12 @@ export class PhotonAlterRGBChannelsNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const inputs = context.inputs as {
+    const { image, redAmount, greenAmount, blueAmount } = context.inputs as {
       image?: ImageParameter;
       redAmount?: number;
       greenAmount?: number;
       blueAmount?: number;
     };
-
-    const { image, redAmount, greenAmount, blueAmount } = inputs;
-
-    if (!image || !image.data || !image.mimeType) {
-      return this.createErrorResult("Input image is missing or invalid.");
-    }
     if (typeof redAmount !== "number") {
       return this.createErrorResult("Red amount must be a number.");
     }
@@ -85,44 +80,9 @@ export class PhotonAlterRGBChannelsNode extends ExecutableNode {
     if (typeof blueAmount !== "number") {
       return this.createErrorResult("Blue amount must be a number.");
     }
-
-    let photonImage: PhotonImage | undefined;
-
-    try {
-      photonImage = PhotonImage.new_from_byteslice(image.data);
-
-      // Photon's alter_channels expects i16 for amounts, but JS numbers will work.
-      // The library handles clamping internally.
-      alter_channels(photonImage, redAmount, greenAmount, blueAmount);
-
-      const outputBytes = photonImage.get_bytes();
-
-      if (!outputBytes || outputBytes.length === 0) {
-        return this.createErrorResult(
-          "Photon alter RGB channels operation resulted in empty image data."
-        );
-      }
-
-      const resultImage: ImageParameter = {
-        data: outputBytes,
-        mimeType: "image/png",
-      };
-
-      return this.createSuccessResult({ image: resultImage });
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Unknown error during Photon RGB channel alteration.";
-      console.error(
-        `[PhotonAlterRGBChannelsNode] Error: ${errorMessage}`,
-        error
-      );
-      return this.createErrorResult(errorMessage);
-    } finally {
-      if (photonImage) {
-        photonImage.free();
-      }
-    }
+    return executePhotonOperation(this, image, (img) => {
+      alter_channels(img, redAmount, greenAmount, blueAmount);
+      return img.get_bytes();
+    });
   }
 }

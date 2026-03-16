@@ -1,10 +1,11 @@
-import { PhotonImage, sharpen } from "@cf-wasm/photon";
+import { sharpen } from "@cf-wasm/photon";
 import {
   ExecutableNode,
   type ImageParameter,
   type NodeContext,
 } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { executePhotonOperation } from "./execute-photon-operation";
 
 /**
  * This node sharpens an input image using the Photon library.
@@ -38,51 +39,10 @@ export class PhotonSharpenNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const inputs = context.inputs as {
-      image?: ImageParameter;
-    };
-
-    const { image } = inputs;
-
-    if (!image || !image.data || !image.mimeType) {
-      return this.createErrorResult("Input image is missing or invalid.");
-    }
-
-    let photonImage: PhotonImage | undefined;
-
-    try {
-      // Create a PhotonImage instance from the input bytes
-      photonImage = PhotonImage.new_from_byteslice(image.data);
-
-      // Sharpen the image
-      sharpen(photonImage);
-
-      // Get the sharpened image bytes in PNG format
-      const outputBytes = photonImage.get_bytes();
-
-      if (!outputBytes || outputBytes.length === 0) {
-        return this.createErrorResult(
-          "Photon sharpen operation resulted in empty image data."
-        );
-      }
-
-      const sharpenedImage: ImageParameter = {
-        data: outputBytes,
-        mimeType: "image/png",
-      };
-
-      return this.createSuccessResult({ image: sharpenedImage });
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Unknown error during Photon image sharpening.";
-      console.error(`[PhotonSharpenNode] Error: ${errorMessage}`, error);
-      return this.createErrorResult(errorMessage);
-    } finally {
-      if (photonImage) {
-        photonImage.free();
-      }
-    }
+    const { image } = context.inputs as { image?: ImageParameter };
+    return executePhotonOperation(this, image, (img) => {
+      sharpen(img);
+      return img.get_bytes();
+    });
   }
 }

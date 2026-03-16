@@ -1,14 +1,11 @@
-import {
-  grayscale, // For more accurate thresholding, often done on grayscale
-  PhotonImage,
-  threshold,
-} from "@cf-wasm/photon";
+import { grayscale, threshold } from "@cf-wasm/photon";
 import {
   ExecutableNode,
   type ImageParameter,
   type NodeContext,
 } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { executePhotonOperation } from "./execute-photon-operation";
 
 /**
  * This node applies a threshold to an image, converting it to black and white,
@@ -61,17 +58,12 @@ export class PhotonThresholdNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const inputs = context.inputs as {
-      image?: ImageParameter;
-      thresholdValue?: number;
-      convertToGrayscaleFirst?: boolean;
-    };
-
-    const { image, thresholdValue, convertToGrayscaleFirst } = inputs;
-
-    if (!image || !image.data || !image.mimeType) {
-      return this.createErrorResult("Input image is missing or invalid.");
-    }
+    const { image, thresholdValue, convertToGrayscaleFirst } =
+      context.inputs as {
+        image?: ImageParameter;
+        thresholdValue?: number;
+        convertToGrayscaleFirst?: boolean;
+      };
     if (
       typeof thresholdValue !== "number" ||
       thresholdValue < 0 ||
@@ -81,45 +73,12 @@ export class PhotonThresholdNode extends ExecutableNode {
         "Threshold value must be a number between 0 and 255."
       );
     }
-
-    let photonImage: PhotonImage | undefined;
-
-    try {
-      photonImage = PhotonImage.new_from_byteslice(image.data);
-
+    return executePhotonOperation(this, image, (img) => {
       if (convertToGrayscaleFirst !== false) {
-        // Defaults to true if undefined
-        grayscale(photonImage); // Photon's threshold works on RGB, but often better on grayscale
+        grayscale(img);
       }
-
-      // Photon's threshold function takes a u32, JS number is fine.
-      threshold(photonImage, thresholdValue);
-
-      const outputBytes = photonImage.get_bytes();
-
-      if (!outputBytes || outputBytes.length === 0) {
-        return this.createErrorResult(
-          "Photon threshold operation resulted in empty image data."
-        );
-      }
-
-      const resultImage: ImageParameter = {
-        data: outputBytes,
-        mimeType: "image/png",
-      };
-
-      return this.createSuccessResult({ image: resultImage });
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Unknown error during Photon image thresholding.";
-      console.error(`[PhotonThresholdNode] Error: ${errorMessage}`, error);
-      return this.createErrorResult(errorMessage);
-    } finally {
-      if (photonImage) {
-        photonImage.free();
-      }
-    }
+      threshold(img, thresholdValue);
+      return img.get_bytes();
+    });
   }
 }

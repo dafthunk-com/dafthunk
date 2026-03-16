@@ -1,10 +1,11 @@
-import { PhotonImage, watermark } from "@cf-wasm/photon";
+import { watermark } from "@cf-wasm/photon";
 import {
   ExecutableNode,
   type ImageParameter,
   type NodeContext,
 } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { executePhotonDualImageOperation } from "./execute-photon-operation";
 
 /**
  * This node adds a watermark to an input image at specified coordinates using the Photon library.
@@ -62,72 +63,28 @@ export class PhotonWatermarkNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const inputs = context.inputs as {
+    const { mainImage, watermarkImage, x, y } = context.inputs as {
       mainImage?: ImageParameter;
       watermarkImage?: ImageParameter;
       x?: number;
       y?: number;
     };
-
-    const { mainImage, watermarkImage, x, y } = inputs;
-
-    if (!mainImage || !mainImage.data || !mainImage.mimeType) {
-      return this.createErrorResult("Main image is missing or invalid.");
-    }
-    if (!watermarkImage || !watermarkImage.data || !watermarkImage.mimeType) {
-      return this.createErrorResult("Watermark image is missing or invalid.");
-    }
     if (typeof x !== "number") {
       return this.createErrorResult("X coordinate must be a number.");
     }
     if (typeof y !== "number") {
       return this.createErrorResult("Y coordinate must be a number.");
     }
-
-    let mainPhotonImage: PhotonImage | undefined;
-    let watermarkPhotonImage: PhotonImage | undefined;
-
-    try {
-      // Create PhotonImage instances from the input bytes
-      mainPhotonImage = PhotonImage.new_from_byteslice(mainImage.data);
-      watermarkPhotonImage = PhotonImage.new_from_byteslice(
-        watermarkImage.data
-      );
-
-      // Add watermark
-      // Photon's watermark function modifies mainPhotonImage in place.
-      // Coordinates need to be BigInt for Photon
-      watermark(mainPhotonImage, watermarkPhotonImage, BigInt(x), BigInt(y));
-
-      // Get the resulting image bytes in PNG format
-      const outputBytes = mainPhotonImage.get_bytes();
-
-      if (!outputBytes || outputBytes.length === 0) {
-        return this.createErrorResult(
-          "Photon watermark operation resulted in empty image data."
-        );
+    return executePhotonDualImageOperation(
+      this,
+      mainImage,
+      watermarkImage,
+      "Main image",
+      "Watermark image",
+      (a, b) => {
+        watermark(a, b, BigInt(x), BigInt(y));
+        return a.get_bytes();
       }
-
-      const resultImage: ImageParameter = {
-        data: outputBytes,
-        mimeType: "image/png",
-      };
-
-      return this.createSuccessResult({ image: resultImage });
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Unknown error during Photon image watermarking.";
-      console.error(`[PhotonWatermarkNode] Error: ${errorMessage}`, error);
-      return this.createErrorResult(errorMessage);
-    } finally {
-      if (mainPhotonImage) {
-        mainPhotonImage.free();
-      }
-      if (watermarkPhotonImage) {
-        watermarkPhotonImage.free();
-      }
-    }
+    );
   }
 }

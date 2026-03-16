@@ -1,6 +1,7 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
+import type { TokenPricing } from "../../utils/usage";
+import { executeWorkersAiTextModel } from "./execute-workers-ai-text-model";
 
 // https://developers.cloudflare.com/workers-ai/platform/pricing/
 // Cloudflare Workers AI: ~$0.011 per 1000 neurons, estimated for 8B model
@@ -56,36 +57,12 @@ export class Llama318BInstructFastNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    try {
-      const { prompt, seed, temperature } = context.inputs;
+    const { temperature, seed } = context.inputs;
 
-      if (!context.env?.AI) {
-        return this.createErrorResult("AI service is not available");
-      }
-
-      const result = (await context.env.AI.run(
-        "@cf/meta/llama-3.1-8b-instruct-fast" as keyof AiModels,
-        {
-          prompt,
-          seed,
-          temperature,
-        },
-        context.env.AI_OPTIONS
-      )) as AiTextGenerationOutput;
-
-      // Calculate usage based on text length estimation
-      const usage = calculateTokenUsage(
-        prompt || "",
-        result.response || "",
-        PRICING
-      );
-
-      return this.createSuccessResult({ response: result.response }, usage);
-    } catch (error) {
-      console.error(error);
-      return this.createErrorResult(
-        error instanceof Error ? error.message : "Unknown error"
-      );
-    }
+    return executeWorkersAiTextModel(this, context, {
+      modelId: "@cf/meta/llama-3.1-8b-instruct-fast",
+      pricing: PRICING,
+      params: { temperature, seed },
+    });
   }
 }

@@ -1,10 +1,11 @@
-import { oil, PhotonImage } from "@cf-wasm/photon";
+import { oil } from "@cf-wasm/photon";
 import {
   ExecutableNode,
   type ImageParameter,
   type NodeContext,
 } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { executePhotonOperation } from "./execute-photon-operation";
 
 /**
  * This node applies an oil painting effect to an input image using the Photon library.
@@ -55,59 +56,20 @@ export class PhotonOilPaintingNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const inputs = context.inputs as {
+    const { image, radius, intensity } = context.inputs as {
       image?: ImageParameter;
       radius?: number;
       intensity?: number;
     };
-
-    const { image, radius, intensity } = inputs;
-
-    if (!image || !image.data || !image.mimeType) {
-      return this.createErrorResult("Input image is missing or invalid.");
-    }
     if (typeof radius !== "number" || !Number.isInteger(radius) || radius < 0) {
       return this.createErrorResult("Radius must be a non-negative integer.");
     }
     if (typeof intensity !== "number") {
       return this.createErrorResult("Intensity must be a number.");
     }
-
-    let photonImage: PhotonImage | undefined;
-
-    try {
-      // Create a PhotonImage instance from the input bytes
-      photonImage = PhotonImage.new_from_byteslice(image.data);
-
-      // Apply oil painting effect
-      oil(photonImage, radius, intensity);
-
-      // Get the resulting image bytes in PNG format
-      const outputBytes = photonImage.get_bytes();
-
-      if (!outputBytes || outputBytes.length === 0) {
-        return this.createErrorResult(
-          "Photon oil painting effect resulted in empty image data."
-        );
-      }
-
-      const effectedImage: ImageParameter = {
-        data: outputBytes,
-        mimeType: "image/png",
-      };
-
-      return this.createSuccessResult({ image: effectedImage });
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Unknown error during Photon image oil painting effect.";
-      console.error(`[PhotonOilPaintingNode] Error: ${errorMessage}`, error);
-      return this.createErrorResult(errorMessage);
-    } finally {
-      if (photonImage) {
-        photonImage.free();
-      }
-    }
+    return executePhotonOperation(this, image, (img) => {
+      oil(img, radius, intensity);
+      return img.get_bytes();
+    });
   }
 }

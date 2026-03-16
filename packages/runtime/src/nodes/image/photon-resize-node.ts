@@ -1,10 +1,11 @@
-import { PhotonImage, resize, SamplingFilter } from "@cf-wasm/photon";
+import { resize, SamplingFilter } from "@cf-wasm/photon";
 import {
   ExecutableNode,
   type ImageParameter,
   type NodeContext,
 } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { executePhotonOperation } from "./execute-photon-operation";
 
 /**
  * This node resizes an input image to a specified width and height using the Photon library.
@@ -61,19 +62,16 @@ export class PhotonResizeNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const inputs = context.inputs as {
+    const { image, width, height } = context.inputs as {
       image?: ImageParameter;
       width?: number;
       height?: number;
       samplingFilter?: keyof typeof SamplingFilter;
     };
+    const filterName =
+      (context.inputs as { samplingFilter?: keyof typeof SamplingFilter })
+        .samplingFilter || "Nearest";
 
-    const { image, width, height } = inputs;
-    const filterName = inputs.samplingFilter || "Nearest";
-
-    if (!image || !image.data || !image.mimeType) {
-      return this.createErrorResult("Input image is missing or invalid.");
-    }
     if (typeof width !== "number" || width <= 0) {
       return this.createErrorResult("Width must be a positive number.");
     }
@@ -81,56 +79,16 @@ export class PhotonResizeNode extends ExecutableNode {
       return this.createErrorResult("Height must be a positive number.");
     }
 
-    // Map string filter name to SamplingFilter enum
     const selectedFilter: SamplingFilter =
       SamplingFilter[filterName] !== undefined
         ? SamplingFilter[filterName]
         : SamplingFilter.Nearest;
 
-    let inputPhotonImage: PhotonImage | undefined;
-    let outputPhotonImage: PhotonImage | undefined;
-
-    try {
-      // Create a PhotonImage instance from the input bytes
-      inputPhotonImage = PhotonImage.new_from_byteslice(image.data);
-
-      // Resize the image
-      outputPhotonImage = resize(
-        inputPhotonImage,
-        width,
-        height,
-        selectedFilter
-      );
-
-      // Get the resized image bytes in WebP format
-      const outputBytes = outputPhotonImage.get_bytes();
-
-      if (!outputBytes || outputBytes.length === 0) {
-        return this.createErrorResult(
-          "Photon resizing resulted in empty image data."
-        );
-      }
-
-      const resizedImage: ImageParameter = {
-        data: outputBytes,
-        mimeType: "image/png",
-      };
-
-      return this.createSuccessResult({ image: resizedImage });
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Unknown error during Photon image resizing.";
-      console.error(`[PhotonResizeNode] Error: ${errorMessage}`, error);
-      return this.createErrorResult(errorMessage);
-    } finally {
-      if (inputPhotonImage) {
-        inputPhotonImage.free();
-      }
-      if (outputPhotonImage) {
-        outputPhotonImage.free();
-      }
-    }
+    return executePhotonOperation(this, image, (img) => {
+      const result = resize(img, width, height, selectedFilter);
+      const bytes = result.get_bytes();
+      result.free();
+      return bytes;
+    });
   }
 }

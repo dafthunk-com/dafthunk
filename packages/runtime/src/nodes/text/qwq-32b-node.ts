@@ -1,6 +1,7 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
+import type { TokenPricing } from "../../utils/usage";
+import { executeWorkersAiTextModel } from "./execute-workers-ai-text-model";
 
 // https://developers.cloudflare.com/workers-ai/models/qwq-32b/
 const PRICING: TokenPricing = {
@@ -11,12 +12,6 @@ const PRICING: TokenPricing = {
 /**
  * QwQ 32B Node implementation for reasoning-capable text generation.
  */
-
-interface QwqNonStreamedOutput {
-  response?: string;
-  usage?: any;
-}
-
 export class Qwq32BNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "qwq-32b",
@@ -117,26 +112,22 @@ export class Qwq32BNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    try {
-      const {
-        prompt,
-        messages,
-        temperature,
-        max_tokens,
-        top_p,
-        top_k,
-        seed,
-        repetition_penalty,
-        frequency_penalty,
-        presence_penalty,
-        stream,
-      } = context.inputs;
+    const {
+      temperature,
+      max_tokens,
+      top_p,
+      top_k,
+      seed,
+      repetition_penalty,
+      frequency_penalty,
+      presence_penalty,
+      stream,
+    } = context.inputs;
 
-      if (!context.env?.AI) {
-        return this.createErrorResult("AI service is not available");
-      }
-
-      const commonParams = {
+    return executeWorkersAiTextModel(this, context, {
+      modelId: "@cf/qwen/qwq-32b",
+      pricing: PRICING,
+      params: {
         temperature,
         max_tokens,
         top_p,
@@ -146,56 +137,7 @@ export class Qwq32BNode extends ExecutableNode {
         frequency_penalty,
         presence_penalty,
         stream: Boolean(stream),
-      };
-
-      // Build the correct variant of the discriminated union input type:
-      // Ai_Cf_Qwen_Qwq_32B_Prompt (with prompt) or Ai_Cf_Qwen_Qwq_32B_Messages (with messages)
-      const params: AiModels["@cf/qwen/qwq-32b"]["inputs"] = messages
-        ? { messages: JSON.parse(messages), ...commonParams }
-        : { prompt, ...commonParams };
-
-      const result = await context.env.AI.run(
-        "@cf/qwen/qwq-32b",
-        params,
-        context.env.AI_OPTIONS
-      );
-
-      if (result instanceof ReadableStream) {
-        // Handle stream response
-        const reader = result.getReader();
-        const decoder = new TextDecoder();
-        let streamedResponse = "";
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          streamedResponse += decoder.decode(value);
-        }
-        // Calculate usage based on text length estimation
-        const usage = calculateTokenUsage(
-          prompt || "",
-          streamedResponse,
-          PRICING
-        );
-        return this.createSuccessResult({ response: streamedResponse }, usage);
-      } else {
-        // Handle non-stream response
-        const typedResult = result as QwqNonStreamedOutput;
-        // Calculate usage based on text length estimation
-        const usage = calculateTokenUsage(
-          prompt || "",
-          typedResult.response || "",
-          PRICING
-        );
-        return this.createSuccessResult(
-          { response: typedResult.response },
-          usage
-        );
-      }
-    } catch (error) {
-      console.error(error);
-      return this.createErrorResult(
-        error instanceof Error ? error.message : "Unknown error"
-      );
-    }
+      },
+    });
   }
 }

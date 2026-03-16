@@ -1,10 +1,11 @@
-import { PhotonImage, saturate_hsl } from "@cf-wasm/photon";
+import { saturate_hsl } from "@cf-wasm/photon";
 import {
   ExecutableNode,
   type ImageParameter,
   type NodeContext,
 } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { executePhotonOperation } from "./execute-photon-operation";
 
 /**
  * This node adjusts the saturation of an input image using the HSL color space via Photon library.
@@ -48,60 +49,18 @@ export class PhotonAdjustSaturationNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const inputs = context.inputs as {
+    const { image, level } = context.inputs as {
       image?: ImageParameter;
       level?: number;
     };
-
-    const { image, level } = inputs;
-
-    if (!image || !image.data || !image.mimeType) {
-      return this.createErrorResult("Input image is missing or invalid.");
-    }
     if (typeof level !== "number" || level < 0 || level > 1.0) {
       return this.createErrorResult(
         "Saturation level must be a number between 0.0 and 1.0."
       );
     }
-
-    let photonImage: PhotonImage | undefined;
-
-    try {
-      // Create a PhotonImage instance from the input bytes
-      photonImage = PhotonImage.new_from_byteslice(image.data);
-
-      // Adjust saturation using HSL
-      saturate_hsl(photonImage, level);
-
-      // Get the adjusted image bytes in PNG format
-      const outputBytes = photonImage.get_bytes();
-
-      if (!outputBytes || outputBytes.length === 0) {
-        return this.createErrorResult(
-          "Photon saturation adjustment resulted in empty image data."
-        );
-      }
-
-      const adjustedImage: ImageParameter = {
-        data: outputBytes,
-        mimeType: "image/png",
-      };
-
-      return this.createSuccessResult({ image: adjustedImage });
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Unknown error during Photon image saturation adjustment.";
-      console.error(
-        `[PhotonAdjustSaturationNode] Error: ${errorMessage}`,
-        error
-      );
-      return this.createErrorResult(errorMessage);
-    } finally {
-      if (photonImage) {
-        photonImage.free();
-      }
-    }
+    return executePhotonOperation(this, image, (img) => {
+      saturate_hsl(img, level);
+      return img.get_bytes();
+    });
   }
 }

@@ -1,6 +1,7 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
+import type { TokenPricing } from "../../utils/usage";
+import { executeWorkersAiTextModel } from "./execute-workers-ai-text-model";
 
 // https://developers.cloudflare.com/workers-ai/platform/pricing/
 // Cloudflare Workers AI: ~$0.011 per 1000 neurons, estimated for 32B model
@@ -12,12 +13,6 @@ const PRICING: TokenPricing = {
 /**
  * DeepSeek R1 Distill Qwen 32B Node implementation with comprehensive parameters
  */
-
-interface DeepseekNonStreamedOutput {
-  response?: string;
-  usage?: any;
-}
-
 export class DeepseekR1DistillQwen32BNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "deepseek-r1-distill-qwen-32b",
@@ -117,26 +112,22 @@ export class DeepseekR1DistillQwen32BNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    try {
-      const {
-        prompt,
-        messages,
-        temperature,
-        max_tokens,
-        top_p,
-        top_k,
-        seed,
-        repetition_penalty,
-        frequency_penalty,
-        presence_penalty,
-        stream,
-      } = context.inputs;
+    const {
+      temperature,
+      max_tokens,
+      top_p,
+      top_k,
+      seed,
+      repetition_penalty,
+      frequency_penalty,
+      presence_penalty,
+      stream,
+    } = context.inputs;
 
-      if (!context.env?.AI) {
-        return this.createErrorResult("AI service is not available");
-      }
-
-      const params: BaseAiTextGeneration["inputs"] = {
+    return executeWorkersAiTextModel(this, context, {
+      modelId: "@cf/deepseek-ai/deepseek-r1-distill-qwen-32b",
+      pricing: PRICING,
+      params: {
         temperature,
         max_tokens,
         top_p,
@@ -146,57 +137,7 @@ export class DeepseekR1DistillQwen32BNode extends ExecutableNode {
         frequency_penalty,
         presence_penalty,
         stream: Boolean(stream),
-      };
-
-      // If messages are provided, use them, otherwise use prompt
-      if (messages) {
-        params.messages = JSON.parse(messages);
-      } else {
-        params.prompt = prompt;
-      }
-
-      const result = await context.env.AI.run(
-        "@cf/deepseek-ai/deepseek-r1-distill-qwen-32b",
-        params,
-        context.env.AI_OPTIONS
-      );
-
-      if (result instanceof ReadableStream) {
-        // Handle stream response
-        const reader = result.getReader();
-        const decoder = new TextDecoder();
-        let streamedResponse = "";
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          streamedResponse += decoder.decode(value);
-        }
-        // Calculate usage based on text length estimation
-        const usage = calculateTokenUsage(
-          prompt || "",
-          streamedResponse,
-          PRICING
-        );
-        return this.createSuccessResult({ response: streamedResponse }, usage);
-      } else {
-        // Handle non-stream response
-        const typedResult = result as DeepseekNonStreamedOutput;
-        // Calculate usage based on text length estimation
-        const usage = calculateTokenUsage(
-          prompt || "",
-          typedResult.response || "",
-          PRICING
-        );
-        return this.createSuccessResult(
-          { response: typedResult.response },
-          usage
-        );
-      }
-    } catch (error) {
-      console.error(error);
-      return this.createErrorResult(
-        error instanceof Error ? error.message : "Unknown error"
-      );
-    }
+      },
+    });
   }
 }
