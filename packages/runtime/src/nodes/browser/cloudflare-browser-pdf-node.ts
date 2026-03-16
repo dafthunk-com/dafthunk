@@ -1,6 +1,9 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { calculateBrowserUsage } from "../../utils/usage";
+import {
+  fetchBrowserRenderingBinary,
+  validateBrowserInputs,
+} from "./browser-rendering-api";
 
 /**
  * Cloudflare Browser Rendering PDF Node (REST API version)
@@ -84,6 +87,9 @@ export class CloudflareBrowserPdfNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
+    const validationError = validateBrowserInputs(this, context);
+    if (validationError) return validationError;
+
     const startTime = Date.now();
     const {
       url,
@@ -95,25 +101,6 @@ export class CloudflareBrowserPdfNode extends ExecutableNode {
       waitForSelector,
     } = context.inputs;
 
-    const { CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN } = context.env;
-
-    if (!CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
-      return this.createErrorResult(
-        "'CLOUDFLARE_ACCOUNT_ID' and 'CLOUDFLARE_API_TOKEN' are required."
-      );
-    }
-
-    if (!url && !html) {
-      return this.createErrorResult("Either 'url' or 'html' is required.");
-    }
-
-    if (url && html) {
-      return this.createErrorResult(
-        "Cannot use both 'url' and 'html' at the same time."
-      );
-    }
-
-    // Build request body
     const body: Record<string, unknown> = {};
     if (url) body.url = url;
     if (html) body.html = html;
@@ -123,50 +110,23 @@ export class CloudflareBrowserPdfNode extends ExecutableNode {
     if (gotoOptions) body.gotoOptions = gotoOptions;
     if (waitForSelector) body.waitForSelector = waitForSelector;
 
-    const endpoint = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/browser-rendering/pdf`;
+    const result = await fetchBrowserRenderingBinary(
+      context,
+      "pdf",
+      body,
+      startTime
+    );
 
-    try {
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${CLOUDFLARE_API_TOKEN}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-      });
-
-      const status = response.status;
-      if (!response.ok) {
-        const errorText = await response.text();
-        return this.createErrorResult(
-          `Cloudflare API error: ${status} - ${errorText}`
-        );
-      }
-
-      // The response is a PDF file (binary)
-      const arrayBuffer = await response.arrayBuffer();
-      const pdfBuffer = new Uint8Array(arrayBuffer);
-      if (!pdfBuffer || pdfBuffer.length === 0) {
-        return this.createErrorResult(
-          "Cloudflare API error: No valid PDF data returned"
-        );
-      }
-      const usage = calculateBrowserUsage(Date.now() - startTime);
-
-      return this.createSuccessResult(
-        {
-          pdf: {
-            data: pdfBuffer,
-            mimeType: "application/pdf",
-          },
-          status,
-        },
-        usage
-      );
-    } catch (error) {
-      return this.createErrorResult(
-        error instanceof Error ? error.message : String(error)
-      );
+    if ("error" in result) {
+      return this.createErrorResult(result.error);
     }
+
+    return this.createSuccessResult(
+      {
+        pdf: { data: result.data, mimeType: "application/pdf" },
+        status: result.status,
+      },
+      result.usage
+    );
   }
 }

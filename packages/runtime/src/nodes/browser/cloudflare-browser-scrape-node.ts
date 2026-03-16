@@ -1,6 +1,9 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { calculateBrowserUsage } from "../../utils/usage";
+import {
+  fetchBrowserRenderingJson,
+  validateBrowserInputs,
+} from "./browser-rendering-api";
 
 /**
  * Cloudflare Browser Rendering Scrape Node (REST API version)
@@ -75,27 +78,12 @@ export class CloudflareBrowserScrapeNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
+    const validationError = validateBrowserInputs(this, context);
+    if (validationError) return validationError;
+
     const startTime = Date.now();
     const { url, html, elements, gotoOptions, waitForSelector } =
       context.inputs;
-
-    const { CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN } = context.env;
-
-    if (!CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
-      return this.createErrorResult(
-        "'CLOUDFLARE_ACCOUNT_ID' and 'CLOUDFLARE_API_TOKEN' are required."
-      );
-    }
-
-    if (!url && !html) {
-      return this.createErrorResult("Either 'url' or 'html' is required.");
-    }
-
-    if (url && html) {
-      return this.createErrorResult(
-        "Cannot use both 'url' and 'html' at the same time."
-      );
-    }
 
     if (!elements) {
       return this.createErrorResult("'elements' is required.");
@@ -105,7 +93,6 @@ export class CloudflareBrowserScrapeNode extends ExecutableNode {
     let parsedElements = elements;
     if (typeof elements === "string") {
       try {
-        // Remove any literal newlines/tabs that may have been introduced during copy-paste
         const cleanedElements = elements
           .replace(/\n/g, " ")
           .replace(/\t/g, " ")
@@ -118,52 +105,32 @@ export class CloudflareBrowserScrapeNode extends ExecutableNode {
       }
     }
 
-    // Build request body
     const body: Record<string, unknown> = { elements: parsedElements };
     if (url) body.url = url;
     if (html) body.html = html;
     if (gotoOptions) body.gotoOptions = gotoOptions;
     if (waitForSelector) body.waitForSelector = waitForSelector;
 
-    const endpoint = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/browser-rendering/scrape`;
+    const result = await fetchBrowserRenderingJson(
+      context,
+      "scrape",
+      body,
+      startTime
+    );
 
-    try {
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${CLOUDFLARE_API_TOKEN}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-      });
+    if ("error" in result) {
+      return this.createErrorResult(result.error);
+    }
 
-      const status = response.status;
-      const json: any = await response.json();
-
-      // Only treat as error if HTTP is not ok, or errors array is present and non-empty
-      if (
-        !response.ok ||
-        (Array.isArray(json.errors) && json.errors.length > 0)
-      ) {
-        const errorMsg = json.errors?.[0]?.message || response.statusText;
-        return this.createErrorResult(
-          `Cloudflare API error: ${status} - ${errorMsg}`
-        );
-      }
-
-      // The results are in json.result (should be an array of { result, selector })
-      if (!Array.isArray(json.result)) {
-        return this.createErrorResult(
-          "Cloudflare API error: No results array returned"
-        );
-      }
-      const usage = calculateBrowserUsage(Date.now() - startTime);
-
-      return this.createSuccessResult({ status, results: json.result }, usage);
-    } catch (error) {
+    if (!Array.isArray(result.json.result)) {
       return this.createErrorResult(
-        error instanceof Error ? error.message : String(error)
+        "Cloudflare API error: No results array returned"
       );
     }
+
+    return this.createSuccessResult(
+      { results: result.json.result, status: result.status },
+      result.usage
+    );
   }
 }

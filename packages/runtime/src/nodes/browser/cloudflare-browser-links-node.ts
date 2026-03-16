@@ -1,6 +1,9 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { calculateBrowserUsage } from "../../utils/usage";
+import {
+  fetchBrowserRenderingJson,
+  validateBrowserInputs,
+} from "./browser-rendering-api";
 
 /**
  * Cloudflare Browser Rendering Links Node (REST API version)
@@ -80,6 +83,9 @@ export class CloudflareBrowserLinksNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
+    const validationError = validateBrowserInputs(this, context);
+    if (validationError) return validationError;
+
     const startTime = Date.now();
     const {
       url,
@@ -90,25 +96,6 @@ export class CloudflareBrowserLinksNode extends ExecutableNode {
       waitForSelector,
     } = context.inputs;
 
-    const { CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN } = context.env;
-
-    if (!CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
-      return this.createErrorResult(
-        "'CLOUDFLARE_ACCOUNT_ID' and 'CLOUDFLARE_API_TOKEN' are required."
-      );
-    }
-
-    if (!url && !html) {
-      return this.createErrorResult("Either 'url' or 'html' is required.");
-    }
-
-    if (url && html) {
-      return this.createErrorResult(
-        "Cannot use both 'url' and 'html' at the same time."
-      );
-    }
-
-    // Build request body
     const body: Record<string, unknown> = {};
     if (url) body.url = url;
     if (html) body.html = html;
@@ -119,45 +106,26 @@ export class CloudflareBrowserLinksNode extends ExecutableNode {
     if (gotoOptions) body.gotoOptions = gotoOptions;
     if (waitForSelector) body.waitForSelector = waitForSelector;
 
-    const endpoint = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/browser-rendering/links`;
+    const result = await fetchBrowserRenderingJson(
+      context,
+      "links",
+      body,
+      startTime
+    );
 
-    try {
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${CLOUDFLARE_API_TOKEN}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-      });
+    if ("error" in result) {
+      return this.createErrorResult(result.error);
+    }
 
-      const status = response.status;
-      const json: any = await response.json();
-
-      // Only treat as error if HTTP is not ok, or errors array is present and non-empty
-      if (
-        !response.ok ||
-        (Array.isArray(json.errors) && json.errors.length > 0)
-      ) {
-        const errorMsg = json.errors?.[0]?.message || response.statusText;
-        return this.createErrorResult(
-          `Cloudflare API error: ${status} - ${errorMsg}`
-        );
-      }
-
-      // The links are in json.result (should be an array of strings)
-      if (!Array.isArray(json.result)) {
-        return this.createErrorResult(
-          "Cloudflare API error: No links array returned"
-        );
-      }
-      const usage = calculateBrowserUsage(Date.now() - startTime);
-
-      return this.createSuccessResult({ status, links: json.result }, usage);
-    } catch (error) {
+    if (!Array.isArray(result.json.result)) {
       return this.createErrorResult(
-        error instanceof Error ? error.message : String(error)
+        "Cloudflare API error: No links array returned"
       );
     }
+
+    return this.createSuccessResult(
+      { links: result.json.result, status: result.status },
+      result.usage
+    );
   }
 }

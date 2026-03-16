@@ -1,6 +1,7 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
 import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
+import { normalizeAIAudioResponse } from "./normalize-ai-audio-response";
 
 // https://developers.cloudflare.com/workers-ai/platform/pricing/
 // Cloudflare Workers AI: Aura-1 TTS model (Deepgram)
@@ -125,36 +126,7 @@ export class Aura1Node extends ExecutableNode {
         context.env.AI_OPTIONS
       );
 
-      // Handle different response types from the API
-      let audioBuffer: ArrayBuffer;
-
-      if (response instanceof ReadableStream) {
-        const newResponse = new Response(response);
-        const blob = await newResponse.blob();
-        audioBuffer = await blob.arrayBuffer();
-      } else if (response instanceof ArrayBuffer) {
-        audioBuffer = response;
-      } else if (
-        response &&
-        typeof response === "object" &&
-        "audio" in response
-      ) {
-        // Handle case where API returns { audio: base64string }
-        const audioBase64 = response.audio;
-        if (typeof audioBase64 === "string") {
-          // Convert base64 to array buffer
-          const binaryString = atob(audioBase64);
-          const bytes = new Uint8Array(binaryString.length);
-          for (let i = 0; i < binaryString.length; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
-          }
-          audioBuffer = bytes.buffer;
-        } else {
-          throw new Error("Unexpected audio data format");
-        }
-      } else {
-        throw new Error("Unexpected response format from Aura-1 API");
-      }
+      const audioBuffer = await normalizeAIAudioResponse(response);
 
       // Create properly structured audio output
       const audioOutput = {

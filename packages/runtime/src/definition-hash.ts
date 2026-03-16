@@ -1,7 +1,7 @@
 import type { Workflow } from "@dafthunk/types";
 
 /**
- * Computes a deterministic SHA-256 hash of a workflow definition.
+ * Computes a deterministic SHA-1 hash of a workflow definition.
  * Used to group executions that ran the same logical workflow version.
  *
  * Stability guarantees:

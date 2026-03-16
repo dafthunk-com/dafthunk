@@ -309,7 +309,7 @@ export abstract class ExecutableNode {
 
   public abstract execute(context: NodeContext): Promise<NodeExecution>;
 
-  protected createSuccessResult(
+  public createSuccessResult(
     outputs: Record<string, ParameterValue>,
     usage?: number
   ): NodeExecution {
@@ -322,7 +322,7 @@ export abstract class ExecutableNode {
     } as NodeExecution;
   }
 
-  protected createErrorResult(error: string, usage?: number): NodeExecution {
+  public createErrorResult(error: string, usage?: number): NodeExecution {
     return {
       nodeId: this.node.id,
       status: "error",
@@ -335,7 +335,7 @@ export abstract class ExecutableNode {
    * Convert tools input to tool definitions for LLM models
    * Returns Cloudflare embedded tool definitions with executable functions
    */
-  protected async convertFunctionCallsToToolDefinitions(
+  public async convertFunctionCallsToToolDefinitions(
     functionCalls: ToolReference[],
     context: NodeContext
   ): Promise<ToolDefinition[]> {
@@ -346,7 +346,7 @@ export abstract class ExecutableNode {
    * Convert tools input to Gemini function declarations format
    * Returns Gemini-specific function declarations for function calling
    */
-  protected async convertFunctionCallsToGeminiDeclarations(
+  public async convertFunctionCallsToGeminiDeclarations(
     functionCalls: ToolReference[],
     context: NodeContext
   ): Promise<
