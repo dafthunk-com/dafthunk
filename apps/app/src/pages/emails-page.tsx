@@ -39,7 +39,8 @@ interface EmailRow {
 }
 
 function downloadVCard(email: EmailRow) {
-  const displayName = email.name || "Untitled Email";
+  const rawName = email.name || "Untitled Email";
+  const displayName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
   const emailAddress = `${email.id}@dafthunk.com`;
   const fullName = `Dafthunk (${displayName})`;
   const vcard = [
