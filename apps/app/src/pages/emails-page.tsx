@@ -38,6 +38,28 @@ interface EmailRow {
   updatedAt: Date;
 }
 
+function downloadVCard(email: EmailRow) {
+  const displayName = email.name || "Untitled Email";
+  const emailAddress = `${email.id}@dafthunk.com`;
+  const fullName = `Dafthunk (${displayName})`;
+  const vcard = [
+    "BEGIN:VCARD",
+    "VERSION:3.0",
+    `FN:${fullName}`,
+    `EMAIL:${emailAddress}`,
+    `ORG:Dafthunk`,
+    "END:VCARD",
+  ].join("\r\n");
+
+  const blob = new Blob([vcard], { type: "text/vcard" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${displayName}.vcf`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 function createColumns(
   openEditDialog: (email: EmailRow) => void,
   openDeleteDialog: (email: EmailRow) => void
@@ -81,6 +103,9 @@ function createColumns(
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => downloadVCard(email)}>
+                  Save to Address Book
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => openEditDialog(email)}>
                   Edit
                 </DropdownMenuItem>
