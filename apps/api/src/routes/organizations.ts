@@ -16,6 +16,7 @@ import type {
   UpdateMembershipResponse,
 } from "@dafthunk/types";
 import { zValidator } from "@hono/zod-validator";
+import { and, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { z } from "zod";
 
@@ -34,6 +35,7 @@ import {
   getOrganizationMembershipsWithUsers,
   getUserOrganizations,
 } from "../db/queries";
+import { memberships as membershipsTable } from "../db/schema";
 import { createEmailService } from "../services/email-service";
 import { getInvitationEmail } from "../services/email-templates";
 
@@ -158,6 +160,22 @@ organizationRoutes.get("/:id/memberships", async (c) => {
 
   const db = createDatabase(c.env.DB);
   const organizationId = c.req.param("id");
+
+  // Verify the authenticated user is a member of this organization
+  const userMembership = await db
+    .select({ userId: membershipsTable.userId })
+    .from(membershipsTable)
+    .where(
+      and(
+        eq(membershipsTable.userId, jwtPayload.sub),
+        eq(membershipsTable.organizationId, organizationId)
+      )
+    )
+    .get();
+
+  if (!userMembership) {
+    return c.json({ error: "Forbidden" }, 403);
+  }
 
   try {
     const memberships = await getOrganizationMembershipsWithUsers(
@@ -329,6 +347,22 @@ organizationRoutes.get("/:id/invitations", async (c) => {
 
   const db = createDatabase(c.env.DB);
   const organizationId = c.req.param("id");
+
+  // Verify the authenticated user is a member of this organization
+  const userMembership = await db
+    .select({ userId: membershipsTable.userId })
+    .from(membershipsTable)
+    .where(
+      and(
+        eq(membershipsTable.userId, jwtPayload.sub),
+        eq(membershipsTable.organizationId, organizationId)
+      )
+    )
+    .get();
+
+  if (!userMembership) {
+    return c.json({ error: "Forbidden" }, 403);
+  }
 
   try {
     const invitations = await getOrganizationInvitations(db, organizationId);

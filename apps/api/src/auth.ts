@@ -1,4 +1,8 @@
-import { JWTTokenPayload, OrganizationInfo } from "@dafthunk/types";
+import type {
+  JWTTokenPayload,
+  OrganizationInfo,
+  OrganizationRoleType,
+} from "@dafthunk/types";
 import { githubAuth } from "@hono/oauth-providers/github";
 import { googleAuth } from "@hono/oauth-providers/google";
 import { and, eq } from "drizzle-orm";
@@ -386,13 +390,15 @@ auth.post("/refresh", async (c) => {
     return c.json({ error: "Authentication required" }, 401);
   }
 
-  const payload = await verifyToken(refreshToken, c.env.JWT_SECRET);
+  const rawPayload = await verifyToken(refreshToken, c.env.JWT_SECRET);
+  const payload = rawPayload as JWTTokenPayload | null;
 
-  if (!payload || !payload.sub || !(payload.organization as any)?.id) {
+  const orgId = payload?.organization?.id;
+  if (!payload || !payload.sub || !orgId) {
     console.warn("Invalid refresh token attempt", {
       hasPayload: !!payload,
       hasSub: !!payload?.sub,
-      hasOrg: !!(payload?.organization as any)?.id,
+      hasOrg: !!orgId,
     });
     return c.json({ error: "Authentication required" }, 401);
   }
@@ -416,15 +422,34 @@ auth.post("/refresh", async (c) => {
     const orgResults = await db
       .select()
       .from(organizations)
-      .where(eq(organizations.id, (payload.organization as any).id));
+      .where(eq(organizations.id, orgId));
 
     if (orgResults.length === 0) {
-      console.warn("Organization not found during refresh", {
-        orgId: (payload.organization as any).id,
-      });
+      console.warn("Organization not found during refresh", { orgId });
       return c.json({ error: "Authentication required" }, 401);
     }
     const orgResult = orgResults[0];
+
+    // Verify user is still a member of the organization
+    const membershipResults = await db
+      .select({ role: memberships.role })
+      .from(memberships)
+      .where(
+        and(
+          eq(memberships.userId, payload.sub as string),
+          eq(memberships.organizationId, orgResult.id)
+        )
+      );
+
+    if (membershipResults.length === 0) {
+      console.warn("User no longer a member during refresh", {
+        userId: payload.sub,
+        orgId: orgResult.id,
+      });
+      return c.json({ error: "Authentication required" }, 401);
+    }
+
+    const membershipRole = membershipResults[0].role as OrganizationRoleType;
 
     // Determine provider from githubId/googleId fields
     const provider: "github" | "google" = result.githubId ? "github" : "google";
@@ -441,13 +466,13 @@ auth.post("/refresh", async (c) => {
       organization: {
         id: orgResult.id,
         name: orgResult.name,
-        role: "member", // TODO: get actual role
+        role: membershipRole,
       },
     };
 
     await setAuthTokens(c, accessPayload, {
       sub: result.id,
-      organization: { id: (payload.organization as any).id },
+      organization: { id: orgResult.id },
     });
 
     return c.json({ success: true, user: accessPayload });

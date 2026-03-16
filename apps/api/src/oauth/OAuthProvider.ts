@@ -14,6 +14,7 @@ import { eq } from "drizzle-orm";
 import type { Context } from "hono";
 import type { ApiContext, Bindings } from "../context";
 import { createDatabase, createIntegration, organizations } from "../db";
+import type { IntegrationProviderType } from "../db/schema";
 import type {
   OAuthState,
   OAuthToken,
@@ -29,7 +30,7 @@ export abstract class OAuthProvider<
   // ============================================
   // Configuration (abstract - providers define)
   // ============================================
-  abstract readonly name: string;
+  abstract readonly name: IntegrationProviderType;
   abstract readonly displayName: string;
   abstract readonly authorizationEndpoint: string;
   abstract readonly tokenEndpoint: string;
@@ -46,26 +47,48 @@ export abstract class OAuthProvider<
   // ============================================
 
   /**
-   * Create OAuth state parameter with cryptographic nonce
+   * Create OAuth state parameter with cryptographic nonce and HMAC signature
    */
-  createState(organizationId: string): string {
+  async createState(
+    organizationId: string,
+    jwtSecret: string
+  ): Promise<string> {
     const state: OAuthState = {
       organizationId,
       provider: this.name,
       timestamp: Date.now(),
       nonce: crypto.randomUUID(),
     };
-    return btoa(JSON.stringify(state));
+    const payload = btoa(JSON.stringify(state));
+    const signature = await this.hmacSign(payload, jwtSecret);
+    return `${payload}.${signature}`;
   }
 
   /**
-   * Parse and validate OAuth state parameter structure
-   * @throws OAuthError if state is invalid or expired
+   * Parse and validate OAuth state parameter structure and HMAC signature
+   * @throws OAuthError if state is invalid, tampered, or expired
    */
-  parseState(stateParam: string): OAuthState {
+  async parseState(stateParam: string, jwtSecret: string): Promise<OAuthState> {
+    const dotIndex = stateParam.lastIndexOf(".");
+    if (dotIndex === -1) {
+      throw new OAuthError("invalid_state", "State parameter is malformed");
+    }
+
+    const payload = stateParam.substring(0, dotIndex);
+    const signature = stateParam.substring(dotIndex + 1);
+
+    // Verify HMAC signature
+    const expectedSignature = await this.hmacSign(payload, jwtSecret);
+    if (signature !== expectedSignature) {
+      throw new OAuthError(
+        "invalid_state",
+        "State signature verification failed"
+      );
+    }
+
     let state: OAuthState;
     try {
-      state = JSON.parse(atob(stateParam));
+      state = JSON.parse(atob(payload));
     } catch {
       throw new OAuthError("invalid_state", "Failed to parse state parameter");
     }
@@ -89,6 +112,25 @@ export abstract class OAuthProvider<
   }
 
   /**
+   * Generate HMAC-SHA256 signature for a payload
+   */
+  private async hmacSign(payload: string, secret: string): Promise<string> {
+    const key = await crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(secret),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["sign"]
+    );
+    const sig = await crypto.subtle.sign(
+      "HMAC",
+      key,
+      new TextEncoder().encode(payload)
+    );
+    return btoa(String.fromCharCode(...new Uint8Array(sig)));
+  }
+
+  /**
    * Validate OAuth state and get organization information
    *
    * Security checks:
@@ -102,7 +144,7 @@ export abstract class OAuthProvider<
     c: Context<ApiContext>,
     stateParam: string
   ): Promise<ValidatedState> {
-    const state = this.parseState(stateParam);
+    const state = await this.parseState(stateParam, c.env.JWT_SECRET);
 
     // Get the authenticated user's organization from JWT
     const authenticatedOrgId = c.get("organizationId");
@@ -393,7 +435,7 @@ export abstract class OAuthProvider<
       throw new OAuthError("not_authenticated", "User is not authenticated");
     }
 
-    const state = this.createState(organizationId);
+    const state = await this.createState(organizationId, c.env.JWT_SECRET);
     const { clientId } = this.getClientCredentials(c.env);
     const redirectUri = this.getRedirectUri(c.env);
 

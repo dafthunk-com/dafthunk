@@ -111,7 +111,7 @@ executionRoutes.get("/", jwtMiddleware, async (c) => {
 
   // Parse and validate pagination params
   const parsedLimit = Math.min(Math.max(1, parseInt(limit, 10) || 20), 100);
-  const parsedOffset = Math.max(0, parseInt(offset, 10) || 0);
+  const parsedOffset = Math.min(Math.max(0, parseInt(offset, 10) || 0), 10000);
 
   // List executions with optional filtering
   const queryParams: ListExecutionsRequest = {

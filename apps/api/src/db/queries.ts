@@ -35,6 +35,7 @@ import {
   endpointTriggers,
   type IntegrationInsert,
   type IntegrationProviderType,
+  type IntegrationStatusType,
   type InvitationInsert,
   type InvitationRow,
   InvitationStatus,
@@ -2041,7 +2042,7 @@ export async function createIntegration(
   db: ReturnType<typeof createDatabase>,
   organizationId: string,
   name: string,
-  provider: any,
+  provider: IntegrationProviderType,
   token: string,
   refreshToken: string | undefined,
   tokenExpiresAt: Date | undefined,
@@ -2290,7 +2291,7 @@ export async function updateIntegration(
   }
 
   if (updates.status) {
-    updateData.status = updates.status as any;
+    updateData.status = updates.status as IntegrationStatusType;
   }
 
   if (updates.token) {

@@ -19,13 +19,16 @@ objectRoutes.get("/", apiKeyOrJwtMiddleware, async (c) => {
   const mimeType = c.req.query("mimeType");
 
   if (!objectId || !mimeType) {
-    return c.text("Missing required parameters: id and mimeType", 400);
+    return c.json(
+      { error: "Missing required parameters: id and mimeType" },
+      400
+    );
   }
 
   const requestingOrganizationId = c.get("organizationId");
   if (!requestingOrganizationId) {
-    return c.text(
-      "Unauthorized: Organization ID could not be determined from the provided credentials",
+    return c.json(
+      { error: "Unauthorized: Organization ID could not be determined" },
       401
     );
   }
@@ -36,7 +39,7 @@ objectRoutes.get("/", apiKeyOrJwtMiddleware, async (c) => {
     const result = await objectStore.readObject(reference);
 
     if (!result) {
-      return c.text("Object not found", 404);
+      return c.json({ error: "Object not found" }, 404);
     }
 
     const { data, metadata } = result;
@@ -44,7 +47,10 @@ objectRoutes.get("/", apiKeyOrJwtMiddleware, async (c) => {
     // Check if the object belongs to the requesting organization
     // The organizationId is stored directly in R2 metadata, no need to query Analytics
     if (metadata?.organizationId !== requestingOrganizationId) {
-      return c.text("Forbidden: You do not have access to this object", 403);
+      return c.json(
+        { error: "Forbidden: You do not have access to this object" },
+        403
+      );
     }
 
     return new Response(data, {
@@ -56,29 +62,32 @@ objectRoutes.get("/", apiKeyOrJwtMiddleware, async (c) => {
   } catch (error) {
     console.error("Object retrieval error:", error);
     if (error instanceof Error && error.message.startsWith("Forbidden")) {
-      return c.text(error.message, 403);
+      return c.json({ error: error.message }, 403);
     }
-    return c.text("Object not found or error retrieving object", 404);
+    return c.json(
+      { error: "Object not found or error retrieving object" },
+      404
+    );
   }
 });
 
 objectRoutes.post("/", jwtMiddleware, async (c) => {
   const contentType = c.req.header("content-type") || "";
   if (!contentType.includes("multipart/form-data")) {
-    return c.text("Content type must be multipart/form-data", 400);
+    return c.json({ error: "Content type must be multipart/form-data" }, 400);
   }
 
   const body = await c.req.parseBody();
   const file = body.file;
 
   if (!file || !(file instanceof File)) {
-    return c.text("No file provided or invalid file", 400);
+    return c.json({ error: "No file provided or invalid file" }, 400);
   }
 
   const organizationId = c.get("organizationId");
   if (!organizationId) {
     console.error("Organization ID not found in auth context");
-    return c.text("Unauthorized: Organization ID is missing", 401);
+    return c.json({ error: "Unauthorized: Organization ID is missing" }, 401);
   }
 
   try {
@@ -95,7 +104,7 @@ objectRoutes.post("/", jwtMiddleware, async (c) => {
     return c.json(response);
   } catch (error) {
     console.error("Object storage error:", error);
-    return c.text("Error storing object", 500);
+    return c.json({ error: "Error storing object" }, 500);
   }
 });
 
@@ -104,12 +113,15 @@ objectRoutes.delete("/:id", jwtMiddleware, async (c) => {
   const mimeType = c.req.query("mimeType");
 
   if (!objectId || !mimeType) {
-    return c.text("Missing required parameters: id and mimeType", 400);
+    return c.json(
+      { error: "Missing required parameters: id and mimeType" },
+      400
+    );
   }
 
   const organizationId = c.get("organizationId");
   if (!organizationId) {
-    return c.text("Unauthorized: Organization ID is missing", 401);
+    return c.json({ error: "Unauthorized: Organization ID is missing" }, 401);
   }
 
   try {
@@ -120,15 +132,15 @@ objectRoutes.delete("/:id", jwtMiddleware, async (c) => {
     const result = await objectStore.readObject(reference);
 
     if (!result) {
-      return c.text("Object not found", 404);
+      return c.json({ error: "Object not found" }, 404);
     }
 
     const { metadata } = result;
 
     // Check if the object belongs to the user's organization
     if (metadata?.organizationId !== organizationId) {
-      return c.text(
-        "Forbidden: You do not have access to delete this object",
+      return c.json(
+        { error: "Forbidden: You do not have access to delete this object" },
         403
       );
     }
@@ -139,7 +151,7 @@ objectRoutes.delete("/:id", jwtMiddleware, async (c) => {
     return c.json(response);
   } catch (error) {
     console.error("Object deletion error:", error);
-    return c.text("Error deleting object", 500);
+    return c.json({ error: "Error deleting object" }, 500);
   }
 });
 
@@ -148,12 +160,15 @@ objectRoutes.get("/metadata/:id", jwtMiddleware, async (c) => {
   const mimeType = c.req.query("mimeType");
 
   if (!objectId || !mimeType) {
-    return c.text("Missing required parameters: id and mimeType", 400);
+    return c.json(
+      { error: "Missing required parameters: id and mimeType" },
+      400
+    );
   }
 
   const organizationId = c.get("organizationId");
   if (!organizationId) {
-    return c.text("Unauthorized: Organization ID is missing", 401);
+    return c.json({ error: "Unauthorized: Organization ID is missing" }, 401);
   }
 
   try {
@@ -163,15 +178,17 @@ objectRoutes.get("/metadata/:id", jwtMiddleware, async (c) => {
     const result = await objectStore.readObject(reference);
 
     if (!result) {
-      return c.text("Object not found", 404);
+      return c.json({ error: "Object not found" }, 404);
     }
 
     const { metadata } = result;
 
     // Check if the object belongs to the user's organization
     if (metadata?.organizationId !== organizationId) {
-      return c.text(
-        "Forbidden: You do not have access to this object's metadata",
+      return c.json(
+        {
+          error: "Forbidden: You do not have access to this object's metadata",
+        },
         403
       );
     }
@@ -192,14 +209,14 @@ objectRoutes.get("/metadata/:id", jwtMiddleware, async (c) => {
     return c.json(response);
   } catch (error) {
     console.error("Object metadata retrieval error:", error);
-    return c.text("Error retrieving object metadata", 500);
+    return c.json({ error: "Error retrieving object metadata" }, 500);
   }
 });
 
 objectRoutes.get("/list", jwtMiddleware, async (c) => {
   const organizationId = c.get("organizationId");
   if (!organizationId) {
-    return c.text("Unauthorized: Organization ID is missing", 401);
+    return c.json({ error: "Unauthorized: Organization ID is missing" }, 401);
   }
 
   try {
@@ -210,7 +227,7 @@ objectRoutes.get("/list", jwtMiddleware, async (c) => {
     return c.json(response);
   } catch (error) {
     console.error("Object listing error:", error);
-    return c.text("Error listing objects", 500);
+    return c.json({ error: "Error listing objects" }, 500);
   }
 });
 

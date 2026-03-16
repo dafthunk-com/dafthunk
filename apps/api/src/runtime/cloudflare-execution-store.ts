@@ -293,9 +293,17 @@ export class CloudflareExecutionStore implements ExecutionStore {
     try {
       const dataset = this.getDatasetName();
 
+      // Validate inputs to prevent SQL injection in Analytics Engine queries
+      if (!/^[0-9a-f-]{36}$/i.test(organizationId)) {
+        throw new Error("Invalid organizationId format");
+      }
+
       const whereConditions = [`index1 = '${organizationId}'`];
 
       if (options?.workflowId) {
+        if (!/^[0-9a-f-]{36}$/i.test(options.workflowId)) {
+          throw new Error("Invalid workflowId format");
+        }
         whereConditions.push(`blob2 = '${options.workflowId}'`);
       }
 
