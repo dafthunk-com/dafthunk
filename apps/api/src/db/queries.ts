@@ -2750,6 +2750,28 @@ export async function deleteMembership(
  * @param organizationId Organization ID
  * @returns Array of membership records with user details
  */
+/**
+ * Check whether a user belongs to an organization.
+ */
+export async function isOrganizationMember(
+  db: ReturnType<typeof createDatabase>,
+  userId: string,
+  organizationId: string
+): Promise<boolean> {
+  const row = await db
+    .select({ userId: memberships.userId })
+    .from(memberships)
+    .where(
+      and(
+        eq(memberships.userId, userId),
+        eq(memberships.organizationId, organizationId)
+      )
+    )
+    .get();
+
+  return !!row;
+}
+
 export async function getOrganizationMembershipsWithUsers(
   db: ReturnType<typeof createDatabase>,
   organizationId: string

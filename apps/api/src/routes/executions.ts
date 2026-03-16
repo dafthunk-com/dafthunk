@@ -14,28 +14,15 @@ import { createDatabase } from "../db";
 import { feedback } from "../db/schema";
 import { CloudflareExecutionStore } from "../runtime/cloudflare-execution-store";
 import { WorkflowStore } from "../stores/workflow-store";
+import { isUuid, parseUuid } from "../utils/validation";
 
 const executionRoutes = new Hono<ApiContext>();
-
-// UUID v7 format validation regex
-const UUID_REGEX =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-/**
- * Validate that a string is a valid UUID format.
- * Returns the string if valid, undefined if invalid or empty.
- */
-function validateUuid(value: string | undefined): string | undefined {
-  if (!value) return undefined;
-  return UUID_REGEX.test(value) ? value : undefined;
-}
 
 executionRoutes.get("/:id", apiKeyOrJwtMiddleware, async (c) => {
   const organizationId = c.get("organizationId")!;
   const id = c.req.param("id");
 
-  // Validate execution ID format to prevent SQL injection
-  if (!UUID_REGEX.test(id)) {
+  if (!isUuid(id)) {
     return c.json({ error: "Invalid execution ID format" }, 400);
   }
 
@@ -106,8 +93,7 @@ executionRoutes.get("/", jwtMiddleware, async (c) => {
 
   const organizationId = c.get("organizationId")!;
 
-  // Validate UUID parameters to prevent SQL injection
-  const validatedWorkflowId = validateUuid(workflowId);
+  const validatedWorkflowId = parseUuid(workflowId);
 
   // Parse and validate pagination params
   const parsedLimit = Math.min(Math.max(1, parseInt(limit, 10) || 20), 100);

@@ -49,7 +49,7 @@ export abstract class OAuthProvider<
   /**
    * Create OAuth state parameter with cryptographic nonce and HMAC signature
    */
-  async createState(
+  private async createState(
     organizationId: string,
     jwtSecret: string
   ): Promise<string> {
@@ -68,7 +68,10 @@ export abstract class OAuthProvider<
    * Parse and validate OAuth state parameter structure and HMAC signature
    * @throws OAuthError if state is invalid, tampered, or expired
    */
-  async parseState(stateParam: string, jwtSecret: string): Promise<OAuthState> {
+  private async parseState(
+    stateParam: string,
+    jwtSecret: string
+  ): Promise<OAuthState> {
     const dotIndex = stateParam.lastIndexOf(".");
     if (dotIndex === -1) {
       throw new OAuthError("invalid_state", "State parameter is malformed");

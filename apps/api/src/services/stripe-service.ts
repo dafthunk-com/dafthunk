@@ -1,6 +1,7 @@
 import Stripe from "stripe";
 
 import type { Bindings } from "../context";
+import { assertUuid, toAnalyticsTimestamp } from "../utils/validation";
 
 /**
  * Service for Stripe billing operations.
@@ -114,28 +115,12 @@ export class StripeService {
     }
 
     const dataset = this.getDatasetName();
-    const startTimestamp = periodStart
-      .toISOString()
-      .replace("T", " ")
-      .replace("Z", "");
-    const endTimestamp = periodEnd
-      .toISOString()
-      .replace("T", " ")
-      .replace("Z", "");
+    assertUuid(organizationId, "organizationId");
+    const startTimestamp = toAnalyticsTimestamp(periodStart);
+    const endTimestamp = toAnalyticsTimestamp(periodEnd);
 
     // Query Analytics Engine for total usage in period
     // double4 contains the usage value per execution
-    // Validate inputs to prevent SQL injection in Analytics Engine queries
-    if (!/^[0-9a-f-]{36}$/i.test(organizationId)) {
-      throw new Error("Invalid organizationId format");
-    }
-    if (
-      !/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}$/.test(startTimestamp) ||
-      !/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}$/.test(endTimestamp)
-    ) {
-      throw new Error("Invalid timestamp format");
-    }
-
     const sql = `
       SELECT
         sum(double4 * _sample_interval) AS total_usage

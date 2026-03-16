@@ -1,4 +1,4 @@
-import {
+import type {
   DeleteObjectResponse,
   GetObjectMetadataResponse,
   ListObjectsResponse,
@@ -9,10 +9,13 @@ import {
 import { Hono } from "hono";
 
 import { apiKeyOrJwtMiddleware, jwtMiddleware } from "../auth";
-import { ApiContext } from "../context";
+import type { ApiContext } from "../context";
 import { CloudflareObjectStore } from "../runtime/cloudflare-object-store";
 
 const objectRoutes = new Hono<ApiContext>();
+
+// organizationId is guaranteed by jwtMiddleware / apiKeyOrJwtMiddleware,
+// so route handlers use c.get("organizationId")! without null checks.
 
 objectRoutes.get("/", apiKeyOrJwtMiddleware, async (c) => {
   const objectId = c.req.query("id");
@@ -25,13 +28,7 @@ objectRoutes.get("/", apiKeyOrJwtMiddleware, async (c) => {
     );
   }
 
-  const requestingOrganizationId = c.get("organizationId");
-  if (!requestingOrganizationId) {
-    return c.json(
-      { error: "Unauthorized: Organization ID could not be determined" },
-      401
-    );
-  }
+  const organizationId = c.get("organizationId")!;
 
   try {
     const objectStore = new CloudflareObjectStore(c.env.RESSOURCES);
@@ -44,9 +41,7 @@ objectRoutes.get("/", apiKeyOrJwtMiddleware, async (c) => {
 
     const { data, metadata } = result;
 
-    // Check if the object belongs to the requesting organization
-    // The organizationId is stored directly in R2 metadata, no need to query Analytics
-    if (metadata?.organizationId !== requestingOrganizationId) {
+    if (metadata?.organizationId !== organizationId) {
       return c.json(
         { error: "Forbidden: You do not have access to this object" },
         403
@@ -84,11 +79,7 @@ objectRoutes.post("/", jwtMiddleware, async (c) => {
     return c.json({ error: "No file provided or invalid file" }, 400);
   }
 
-  const organizationId = c.get("organizationId");
-  if (!organizationId) {
-    console.error("Organization ID not found in auth context");
-    return c.json({ error: "Unauthorized: Organization ID is missing" }, 401);
-  }
+  const organizationId = c.get("organizationId")!;
 
   try {
     const objectStore = new CloudflareObjectStore(c.env.RESSOURCES);
@@ -119,16 +110,12 @@ objectRoutes.delete("/:id", jwtMiddleware, async (c) => {
     );
   }
 
-  const organizationId = c.get("organizationId");
-  if (!organizationId) {
-    return c.json({ error: "Unauthorized: Organization ID is missing" }, 401);
-  }
+  const organizationId = c.get("organizationId")!;
 
   try {
     const objectStore = new CloudflareObjectStore(c.env.RESSOURCES);
     const reference: ObjectReference = { id: objectId, mimeType };
 
-    // Check if the object exists and if the user has permission to delete it
     const result = await objectStore.readObject(reference);
 
     if (!result) {
@@ -137,7 +124,6 @@ objectRoutes.delete("/:id", jwtMiddleware, async (c) => {
 
     const { metadata } = result;
 
-    // Check if the object belongs to the user's organization
     if (metadata?.organizationId !== organizationId) {
       return c.json(
         { error: "Forbidden: You do not have access to delete this object" },
@@ -166,10 +152,7 @@ objectRoutes.get("/metadata/:id", jwtMiddleware, async (c) => {
     );
   }
 
-  const organizationId = c.get("organizationId");
-  if (!organizationId) {
-    return c.json({ error: "Unauthorized: Organization ID is missing" }, 401);
-  }
+  const organizationId = c.get("organizationId")!;
 
   try {
     const objectStore = new CloudflareObjectStore(c.env.RESSOURCES);
@@ -183,7 +166,6 @@ objectRoutes.get("/metadata/:id", jwtMiddleware, async (c) => {
 
     const { metadata } = result;
 
-    // Check if the object belongs to the user's organization
     if (metadata?.organizationId !== organizationId) {
       return c.json(
         {
@@ -193,7 +175,6 @@ objectRoutes.get("/metadata/:id", jwtMiddleware, async (c) => {
       );
     }
 
-    // Create metadata object from R2 metadata
     const objectMetadata: ObjectMetadata = {
       id: objectId,
       mimeType,
@@ -214,10 +195,7 @@ objectRoutes.get("/metadata/:id", jwtMiddleware, async (c) => {
 });
 
 objectRoutes.get("/list", jwtMiddleware, async (c) => {
-  const organizationId = c.get("organizationId");
-  if (!organizationId) {
-    return c.json({ error: "Unauthorized: Organization ID is missing" }, 401);
-  }
+  const organizationId = c.get("organizationId")!;
 
   try {
     const objectStore = new CloudflareObjectStore(c.env.RESSOURCES);
