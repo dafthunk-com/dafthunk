@@ -237,7 +237,7 @@ export function useEditableWorkflow({
             targetInput: edge.targetHandle || "",
           }));
 
-          wsRef.current.send(workflowNodes, workflowEdges);
+          wsRef.current.sendStateUpdate(workflowNodes, workflowEdges);
           return;
         } catch (error) {
           console.error("Error saving via WebSocket:", error);
@@ -253,7 +253,44 @@ export function useEditableWorkflow({
     [workflowId, isInitializing]
   );
 
-  const saveWorkflow = saveWorkflowInternal;
+  const nodesRef = useRef<Node<WorkflowNodeType>[]>([]);
+  const edgesRef = useRef<Edge<WorkflowEdgeType>[]>([]);
+
+  nodesRef.current = nodes;
+  edgesRef.current = edges;
+
+  const handleNodesChange = useCallback(
+    (changedNodes: Node<WorkflowNodeType>[]) => {
+      nodesRef.current = changedNodes;
+      if (
+        remoteStateRef.current &&
+        changedNodes === remoteStateRef.current.nodes
+      ) {
+        remoteStateRef.current = null;
+        return; // Skip save - this is a remote update being applied
+      }
+      if (workflowMetadata) {
+        saveWorkflowInternal(changedNodes, edgesRef.current);
+      }
+    },
+    [saveWorkflowInternal, workflowMetadata]
+  );
+
+  const handleEdgesChange = useCallback(
+    (changedEdges: Edge<WorkflowEdgeType>[]) => {
+      edgesRef.current = changedEdges;
+      if (
+        remoteStateRef.current &&
+        changedEdges === remoteStateRef.current.edges
+      ) {
+        return; // Skip save - this is a remote update being applied
+      }
+      if (workflowMetadata) {
+        saveWorkflowInternal(nodesRef.current, changedEdges);
+      }
+    },
+    [saveWorkflowInternal, workflowMetadata]
+  );
 
   const executeWorkflow = useCallback(
     (options?: { parameters?: Record<string, unknown> }) => {
@@ -302,10 +339,10 @@ export function useEditableWorkflow({
     isInitializing,
     savingError,
     connectionError,
-    saveWorkflow,
     isWSConnected,
-    remoteStateRef,
     workflowMetadata,
+    handleNodesChange,
+    handleEdgesChange,
     executeWorkflow,
     updateMetadata,
   };

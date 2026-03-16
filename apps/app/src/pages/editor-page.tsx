@@ -3,7 +3,7 @@ import type {
   WorkflowTrigger,
   WorkflowWithMetadata,
 } from "@dafthunk/types";
-import type { Connection, Edge, Node } from "@xyflow/react";
+import type { Connection, Node } from "@xyflow/react";
 import { ReactFlowProvider } from "@xyflow/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
@@ -14,7 +14,6 @@ import { InsetLoading } from "@/components/inset-loading";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import { WorkflowError } from "@/components/workflow/workflow-error";
 import type {
-  WorkflowEdgeType,
   WorkflowExecution,
   WorkflowNodeType,
 } from "@/components/workflow/workflow-types";
@@ -77,10 +76,10 @@ export function EditorPage() {
     isInitializing: isWorkflowInitializing,
     savingError: workflowSavingError,
     connectionError: workflowConnectionError,
-    saveWorkflow,
     isWSConnected: _isWSConnected,
-    remoteStateRef,
     workflowMetadata,
+    handleNodesChange,
+    handleEdgesChange,
     executeWorkflow: wsExecuteWorkflow,
     updateMetadata: wsUpdateMetadata,
   } = useEditableWorkflow({
@@ -117,38 +116,9 @@ export function EditorPage() {
     [wsExecuteWorkflow]
   );
 
+  // Track latest nodes for connection validation
   const nodesRef = useRef<Node<WorkflowNodeType>[]>([]);
-  const edgesRef = useRef<Edge<WorkflowEdgeType>[]>([]);
-
   nodesRef.current = initialNodesForUI || [];
-  edgesRef.current = initialEdgesForUI || [];
-
-  const handleUiNodesChanged = useCallback(
-    (nodes: Node<WorkflowNodeType>[]) => {
-      nodesRef.current = nodes;
-      if (remoteStateRef.current && nodes === remoteStateRef.current.nodes) {
-        remoteStateRef.current = null;
-        return; // Skip save - this is a remote update being applied
-      }
-      if (workflowMetadata) {
-        saveWorkflow(nodes, edgesRef.current);
-      }
-    },
-    [saveWorkflow, workflowMetadata, remoteStateRef]
-  );
-
-  const handleUiEdgesChanged = useCallback(
-    (edges: Edge<WorkflowEdgeType>[]) => {
-      edgesRef.current = edges;
-      if (remoteStateRef.current && edges === remoteStateRef.current.edges) {
-        return; // Skip save - this is a remote update being applied
-      }
-      if (workflowMetadata) {
-        saveWorkflow(nodesRef.current, edges);
-      }
-    },
-    [saveWorkflow, workflowMetadata, remoteStateRef]
-  );
 
   // Fetch workflow metadata via HTTP (for description and other metadata)
   useEffect(() => {
@@ -289,8 +259,8 @@ export function EditorPage() {
             initialNodes={initialNodesForUI}
             initialEdges={initialEdgesForUI}
             nodeTypes={nodeTypes || []}
-            onNodesChange={handleUiNodesChanged}
-            onEdgesChange={handleUiEdgesChanged}
+            onNodesChange={handleNodesChange}
+            onEdgesChange={handleEdgesChange}
             validateConnection={validateConnection}
             executeWorkflow={executeWorkflowWrapper}
             initialWorkflowExecution={latestExecution || undefined}

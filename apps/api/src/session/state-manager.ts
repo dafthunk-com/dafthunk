@@ -136,30 +136,32 @@ export class StateManager {
   }
 
   /**
-   * Update workflow state with validation
+   * Update workflow state with validation.
+   * Returns true if the state was accepted, false if validation failed.
    */
-  updateState(state: WorkflowState): void {
+  updateState(state: WorkflowState): boolean {
     if (!this.state) {
-      throw new Error("Workflow not loaded");
+      console.error("Invalid state update: workflow not loaded");
+      return false;
     }
 
-    // Validate incoming state matches current state
     if (state.id !== this.state.id) {
-      throw new Error(
-        `Workflow ID mismatch: expected ${this.state.id}, got ${state.id}`
+      console.error(
+        `Invalid state update: workflow ID mismatch (expected ${this.state.id}, got ${state.id})`
       );
+      return false;
     }
 
-    // Validate required fields
     if (!state.name || !state.trigger) {
-      throw new Error(
-        "Invalid state: missing required fields (name or trigger)"
+      console.error(
+        "Invalid state update: missing required fields (name or trigger)"
       );
+      return false;
     }
 
-    // Validate arrays are present
     if (!Array.isArray(state.nodes) || !Array.isArray(state.edges)) {
-      throw new Error("Invalid state: nodes and edges must be arrays");
+      console.error("Invalid state update: nodes and edges must be arrays");
+      return false;
     }
 
     // Filter out orphaned edges (edges connected to non-existent nodes)
@@ -173,6 +175,7 @@ export class StateManager {
       edges: filteredEdges,
     };
     this.schedulePersist();
+    return true;
   }
 
   /**

@@ -6,11 +6,7 @@
  */
 
 import type { BlobParameter } from "@dafthunk/runtime";
-import type {
-  WorkflowExecution,
-  WorkflowExecutionUpdateMessage,
-  WorkflowState,
-} from "@dafthunk/types";
+import type { WorkflowExecution, WorkflowState } from "@dafthunk/types";
 import { eq } from "drizzle-orm";
 import type { Bindings } from "../context";
 import { createDatabase } from "../db/index";
@@ -226,20 +222,5 @@ export class ExecutionManager {
     }
 
     return result;
-  }
-
-  /**
-   * Create execution update message
-   */
-  createExecutionUpdateMessage(
-    execution: WorkflowExecution
-  ): WorkflowExecutionUpdateMessage {
-    return {
-      type: "execution_update",
-      executionId: execution.id,
-      status: execution.status,
-      nodeExecutions: execution.nodeExecutions,
-      error: execution.error,
-    };
   }
 }

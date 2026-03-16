@@ -11,6 +11,7 @@
 
 import type {
   WorkflowExecution,
+  WorkflowExecutionUpdateMessage,
   WorkflowInitMessage,
   WorkflowState,
   WorkflowUpdateMessage,
@@ -144,12 +145,40 @@ export class ConnectionManager {
   /**
    * Send a message to a specific WebSocket
    */
-  send(ws: WebSocket, message: string): void {
+  private send(ws: WebSocket, message: string): void {
     try {
       ws.send(message);
     } catch (error) {
       console.error("Error sending to WebSocket:", error);
     }
+  }
+
+  /**
+   * Send an execution update message for a workflow execution
+   */
+  sendExecutionUpdate(ws: WebSocket, execution: WorkflowExecution): void {
+    const message: WorkflowExecutionUpdateMessage = {
+      type: "execution_update",
+      executionId: execution.id,
+      status: execution.status,
+      nodeExecutions: execution.nodeExecutions,
+      error: execution.error,
+    };
+    this.send(ws, JSON.stringify(message));
+  }
+
+  /**
+   * Send an execution error message
+   */
+  sendExecutionError(ws: WebSocket, errorMessage: string): void {
+    const message: WorkflowExecutionUpdateMessage = {
+      type: "execution_update",
+      executionId: "",
+      status: "error",
+      nodeExecutions: [],
+      error: errorMessage,
+    };
+    this.send(ws, JSON.stringify(message));
   }
 
   /**
@@ -171,16 +200,7 @@ export class ConnectionManager {
     const buffered = this.executionBuffer.get(executionId);
     if (buffered) {
       connection.execution = buffered.execution;
-      this.send(
-        ws,
-        JSON.stringify({
-          type: "execution_update",
-          executionId: buffered.execution.id,
-          status: buffered.execution.status,
-          nodeExecutions: buffered.execution.nodeExecutions,
-          error: buffered.execution.error,
-        })
-      );
+      this.sendExecutionUpdate(ws, buffered.execution);
       this.executionBuffer.delete(executionId);
     }
   }
@@ -227,26 +247,5 @@ export class ConnectionManager {
    */
   getWebSocketForExecution(executionId: string): WebSocket | undefined {
     return this.executionIndex.get(executionId)?.ws;
-  }
-
-  /**
-   * Get execution for a WebSocket
-   */
-  getExecution(ws: WebSocket): WorkflowExecution | null | undefined {
-    return this.connections.get(ws)?.execution;
-  }
-
-  /**
-   * Get all active WebSocket connections
-   */
-  getConnections(): WebSocket[] {
-    return Array.from(this.connections.keys());
-  }
-
-  /**
-   * Get count of active connections
-   */
-  getConnectionCount(): number {
-    return this.connections.size;
   }
 }

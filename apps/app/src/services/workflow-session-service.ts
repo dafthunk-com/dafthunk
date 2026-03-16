@@ -166,7 +166,7 @@ export class WorkflowWebSocket {
   /**
    * Send workflow state update (nodes and edges)
    */
-  send(nodes: Node[], edges: Edge[]): void {
+  sendStateUpdate(nodes: Node[], edges: Edge[]): void {
     if (!this.currentState) {
       console.warn(
         "[WorkflowWS] No current state available, cannot send update"
@@ -181,9 +181,9 @@ export class WorkflowWebSocket {
       timestamp: Date.now(),
     };
 
-    const success = this.sendJson(
+    const success = this.sendMessage(
       { type: "update", state: updatedState },
-      "Failed to send state update"
+      "send state update"
     );
 
     if (success) {
@@ -219,9 +219,9 @@ export class WorkflowWebSocket {
       timestamp: Date.now(),
     };
 
-    const success = this.sendJson(
+    const success = this.sendMessage(
       { type: "update", state: updatedState },
-      "Failed to send metadata update"
+      "send metadata update"
     );
 
     if (success) {
@@ -232,7 +232,7 @@ export class WorkflowWebSocket {
   /**
    * Send a JSON message via WebSocket
    */
-  private sendJson(message: ClientMessage, errorMessage: string): boolean {
+  private sendMessage(message: ClientMessage, errorContext: string): boolean {
     if (!this.isConnected()) {
       console.warn("[WorkflowWS] Not connected, cannot send message");
       return false;
@@ -242,7 +242,7 @@ export class WorkflowWebSocket {
       this.ws?.send(JSON.stringify(message));
       return true;
     } catch (error) {
-      console.error(`[WorkflowWS] ${errorMessage}:`, error);
+      console.error(`[WorkflowWS] Failed to ${errorContext}:`, error);
       return false;
     }
   }
@@ -251,12 +251,12 @@ export class WorkflowWebSocket {
    * Execute workflow and receive realtime updates via WebSocket
    */
   executeWorkflow(options?: { parameters?: Record<string, unknown> }): void {
-    this.sendJson(
+    this.sendMessage(
       {
         type: "execute",
         parameters: options?.parameters,
       },
-      "Failed to execute workflow"
+      "execute workflow"
     );
   }
 
@@ -264,12 +264,12 @@ export class WorkflowWebSocket {
    * Register to receive updates for an existing execution
    */
   registerForExecutionUpdates(executionId: string): void {
-    this.sendJson(
+    this.sendMessage(
       {
         type: "execute",
         executionId,
       },
-      "Failed to register for execution updates"
+      "register for execution updates"
     );
   }
 

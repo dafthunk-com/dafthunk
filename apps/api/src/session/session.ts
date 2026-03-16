@@ -10,7 +10,6 @@ import type {
   ClientMessage,
   WorkflowExecuteMessage,
   WorkflowExecution,
-  WorkflowExecutionUpdateMessage,
   WorkflowUpdateMessage,
 } from "@dafthunk/types";
 
@@ -119,23 +118,14 @@ export class Session extends DurableObject<Bindings> {
     workflowId: string,
     userId: string
   ): Promise<{ success: true } | { success: false; response: Response }> {
-    // First, try to recover from hibernation
+    // Try to recover from hibernation (restores state from DO storage)
     try {
       await this.stateManager.ensureInitialized();
       return { success: true };
     } catch {
-      // Recovery failed, try loading from parameters
+      // Recovery failed, load from database
     }
 
-    // Check if state is already loaded
-    try {
-      this.stateManager.getState();
-      return { success: true };
-    } catch {
-      // State not loaded, load it now
-    }
-
-    // Load state from database
     try {
       await this.stateManager.loadState(workflowId, userId);
       return { success: true };
@@ -203,10 +193,7 @@ export class Session extends DurableObject<Bindings> {
       }
 
       this.connectionManager.setExecution(ws, execution);
-
-      const updateMessage =
-        this.executionManager.createExecutionUpdateMessage(execution);
-      this.connectionManager.send(ws, JSON.stringify(updateMessage));
+      this.connectionManager.sendExecutionUpdate(ws, execution);
 
       return Response.json({ ok: true });
     } catch (error) {
@@ -301,12 +288,8 @@ export class Session extends DurableObject<Bindings> {
     ws: WebSocket,
     message: WorkflowUpdateMessage
   ): void {
-    try {
-      this.stateManager.updateState(message.state);
+    if (this.stateManager.updateState(message.state)) {
       this.connectionManager.broadcast(message.state, ws);
-    } catch (error) {
-      console.error("Invalid state update:", error);
-      // Don't close - validation errors shouldn't kill the session
     }
   }
 
@@ -358,20 +341,13 @@ export class Session extends DurableObject<Bindings> {
       this.connectionManager.setExecution(ws, execution);
 
       // Send execution started message
-      const updateMessage =
-        this.executionManager.createExecutionUpdateMessage(execution);
-      this.connectionManager.send(ws, JSON.stringify(updateMessage));
+      this.connectionManager.sendExecutionUpdate(ws, execution);
     } catch (error) {
       console.error("Failed to execute workflow:", error);
-      const errorMessage: WorkflowExecutionUpdateMessage = {
-        type: "execution_update",
-        executionId: "",
-        status: "error",
-        nodeExecutions: [],
-        error:
-          error instanceof Error ? error.message : "Failed to execute workflow",
-      };
-      this.connectionManager.send(ws, JSON.stringify(errorMessage));
+      this.connectionManager.sendExecutionError(
+        ws,
+        error instanceof Error ? error.message : "Failed to execute workflow"
+      );
     }
   }
 
