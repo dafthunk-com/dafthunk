@@ -17,6 +17,7 @@
 import type { WorkflowState } from "@dafthunk/types";
 
 import type { Bindings } from "../context";
+import type { SaveWorkflowRecord } from "../stores/workflow-store";
 import { WorkflowStore } from "../stores/workflow-store";
 
 interface StateManagerOptions {
@@ -35,6 +36,7 @@ export class StateManager {
   private userId: string | null = null;
   private apiHost: string | null = null;
   private pendingPersistTimeout: number | undefined = undefined;
+  private persistInFlight = false;
 
   constructor(options: StateManagerOptions) {
     this.env = options.env;
@@ -182,8 +184,16 @@ export class StateManager {
     }
 
     this.pendingPersistTimeout = setTimeout(() => {
-      this.persistToDatabase();
       this.pendingPersistTimeout = undefined;
+      if (this.persistInFlight) {
+        // Reschedule if a persist is already running
+        this.schedulePersist();
+        return;
+      }
+      this.persistInFlight = true;
+      void this.persistToDatabase().finally(() => {
+        this.persistInFlight = false;
+      });
     }, this.persistDebounceMs) as unknown as number;
   }
 
@@ -215,9 +225,9 @@ export class StateManager {
         workflowStore.update(this.state.id, this.organizationId, {
           name: this.state.name,
           trigger: this.state.trigger,
-        } as any),
+        }),
         // Save full data to R2 via store save()
-        workflowStore.save(workflowData as any),
+        workflowStore.save(workflowData as SaveWorkflowRecord),
       ]);
     } catch (error) {
       console.error("Error persisting workflow:", error);
@@ -230,8 +240,10 @@ export class StateManager {
   async flushPersist(): Promise<void> {
     if (this.pendingPersistTimeout !== undefined) {
       clearTimeout(this.pendingPersistTimeout);
-      await this.persistToDatabase();
       this.pendingPersistTimeout = undefined;
+    }
+    if (!this.persistInFlight) {
+      await this.persistToDatabase();
     }
   }
 

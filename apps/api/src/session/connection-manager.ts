@@ -29,7 +29,10 @@ export class ConnectionManager {
   private connections: Map<WebSocket, Connection> = new Map();
   private executionIndex: Map<string, Connection> = new Map();
   // Buffer execution updates that arrive before WebSocket connects (for synchronous workflows)
-  private executionBuffer: Map<string, WorkflowExecution> = new Map();
+  private executionBuffer: Map<
+    string,
+    { execution: WorkflowExecution; bufferedAt: number }
+  > = new Map();
 
   /**
    * Recover WebSocket connections after hibernation
@@ -165,17 +168,17 @@ export class ConnectionManager {
     ws.serializeAttachment({ executionId });
 
     // Send buffered updates if execution completed before WebSocket connected
-    const bufferedExecution = this.executionBuffer.get(executionId);
-    if (bufferedExecution) {
-      connection.execution = bufferedExecution;
+    const buffered = this.executionBuffer.get(executionId);
+    if (buffered) {
+      connection.execution = buffered.execution;
       this.send(
         ws,
         JSON.stringify({
           type: "execution_update",
-          executionId: bufferedExecution.id,
-          status: bufferedExecution.status,
-          nodeExecutions: bufferedExecution.nodeExecutions,
-          error: bufferedExecution.error,
+          executionId: buffered.execution.id,
+          status: buffered.execution.status,
+          nodeExecutions: buffered.execution.nodeExecutions,
+          error: buffered.execution.error,
         })
       );
       this.executionBuffer.delete(executionId);
@@ -203,7 +206,20 @@ export class ConnectionManager {
    * Buffer execution for delivery when WebSocket connects (for synchronous workflows)
    */
   bufferExecution(executionId: string, execution: WorkflowExecution): void {
-    this.executionBuffer.set(executionId, execution);
+    this.cleanExpiredBuffers();
+    this.executionBuffer.set(executionId, {
+      execution,
+      bufferedAt: Date.now(),
+    });
+  }
+
+  private cleanExpiredBuffers(): void {
+    const now = Date.now();
+    for (const [id, entry] of this.executionBuffer) {
+      if (now - entry.bufferedAt > 60_000) {
+        this.executionBuffer.delete(id);
+      }
+    }
   }
 
   /**

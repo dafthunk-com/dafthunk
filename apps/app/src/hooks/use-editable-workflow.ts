@@ -37,7 +37,10 @@ export function useEditableWorkflow({
   const [savingError, setSavingError] = useState<string | null>(null);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const wsRef = useRef<WorkflowWebSocket | null>(null);
-  const isRemoteUpdateRef = useRef(false);
+  const remoteStateRef = useRef<{
+    nodes: Node<WorkflowNodeType>[];
+    edges: Edge<WorkflowEdgeType>[];
+  } | null>(null);
   const [isWSConnected, setIsWSConnected] = useState(false);
   const [workflowMetadata, setWorkflowMetadata] = useState<{
     id: string;
@@ -88,22 +91,24 @@ export function useEditableWorkflow({
             state.nodes,
             nodeTypes
           );
-          const reactFlowEdges = state.edges.map(
-            (edge: any, index: number) => ({
-              id: `e${index}`,
-              source: edge.source,
-              target: edge.target,
-              sourceHandle: edge.sourceOutput,
-              targetHandle: edge.targetInput,
-              type: "workflowEdge",
-              data: {
-                isValid: true,
-                sourceType: edge.sourceOutput,
-                targetType: edge.targetInput,
-              },
-            })
-          );
+          const reactFlowEdges = state.edges.map((edge: any) => ({
+            id: `${edge.source}:${edge.sourceOutput}-${edge.target}:${edge.targetInput}`,
+            source: edge.source,
+            target: edge.target,
+            sourceHandle: edge.sourceOutput,
+            targetHandle: edge.targetInput,
+            type: "workflowEdge",
+            data: {
+              isValid: true,
+              sourceType: edge.sourceOutput,
+              targetType: edge.targetInput,
+            },
+          }));
 
+          remoteStateRef.current = {
+            nodes: reactFlowNodes,
+            edges: reactFlowEdges,
+          };
           setNodes(reactFlowNodes);
           setEdges(reactFlowEdges);
         } catch (error) {
@@ -117,19 +122,17 @@ export function useEditableWorkflow({
         // Message-level callbacks (happy path)
         onInit: (state: WorkflowState) => {
           handleStateUpdate(state);
-          setIsInitializing(false);
+          if (isInitializing) {
+            setIsInitializing(false);
+          } else {
+            // Reconnection - server state overwrites local
+            setSavingError(
+              "Reconnected. Some unsaved changes may have been lost."
+            );
+          }
         },
         onUpdate: (state: WorkflowState) => {
-          // Handle broadcasts from other users.
-          // Mark as remote so persistence callbacks skip re-saving (breaks echo loop).
-          isRemoteUpdateRef.current = true;
           handleStateUpdate(state);
-          // Wait for React to flush the state update before clearing the flag.
-          requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-              isRemoteUpdateRef.current = false;
-            });
-          });
         },
         onExecutionUpdate: (execution: WorkflowExecution) => {
           // Forward execution updates to parent component
@@ -277,19 +280,20 @@ export function useEditableWorkflow({
       wsRef.current.updateMetadata(metadata);
 
       // Also update local metadata state for immediate UI feedback
-      if (workflowMetadata) {
-        setWorkflowMetadata({
-          ...workflowMetadata,
+      setWorkflowMetadata((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
           ...(metadata.name !== undefined && { name: metadata.name }),
           ...(metadata.description !== undefined && {
             description: metadata.description,
           }),
           ...(metadata.trigger !== undefined && { trigger: metadata.trigger }),
           ...(metadata.runtime !== undefined && { runtime: metadata.runtime }),
-        });
-      }
+        };
+      });
     },
-    [workflowMetadata]
+    []
   );
 
   return {
@@ -300,7 +304,7 @@ export function useEditableWorkflow({
     connectionError,
     saveWorkflow,
     isWSConnected,
-    isRemoteUpdateRef,
+    remoteStateRef,
     workflowMetadata,
     executeWorkflow,
     updateMetadata,

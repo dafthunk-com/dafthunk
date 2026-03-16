@@ -105,7 +105,7 @@ export class WorkflowWebSocket {
       if (!("type" in message)) {
         // Protocol violation: message must have a type
         console.error("[WorkflowWS] Protocol violation: message missing type");
-        this.disconnect();
+        this.ws?.close(1002, "Message missing type");
         return;
       }
 
@@ -137,7 +137,7 @@ export class WorkflowWebSocket {
           console.error(
             "[WorkflowWS] Protocol violation: unknown message type"
           );
-          this.disconnect();
+          this.ws?.close(1002, "Unknown message type");
           break;
       }
     } catch (error) {
@@ -146,7 +146,7 @@ export class WorkflowWebSocket {
         "[WorkflowWS] Protocol violation: failed to parse message:",
         error
       );
-      this.disconnect();
+      this.ws?.close(1002, "Failed to parse message");
     }
   }
 

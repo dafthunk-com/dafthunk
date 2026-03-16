@@ -10,6 +10,7 @@ import type {
   ClientMessage,
   WorkflowExecuteMessage,
   WorkflowExecution,
+  WorkflowExecutionUpdateMessage,
   WorkflowUpdateMessage,
 } from "@dafthunk/types";
 
@@ -300,9 +301,13 @@ export class Session extends DurableObject<Bindings> {
     ws: WebSocket,
     message: WorkflowUpdateMessage
   ): void {
-    this.stateManager.updateState(message.state);
-    // Broadcast to all clients except the originating one
-    this.connectionManager.broadcast(message.state, ws);
+    try {
+      this.stateManager.updateState(message.state);
+      this.connectionManager.broadcast(message.state, ws);
+    } catch (error) {
+      console.error("Invalid state update:", error);
+      // Don't close - validation errors shouldn't kill the session
+    }
   }
 
   /**
@@ -358,8 +363,15 @@ export class Session extends DurableObject<Bindings> {
       this.connectionManager.send(ws, JSON.stringify(updateMessage));
     } catch (error) {
       console.error("Failed to execute workflow:", error);
-      // Can't start execution - close connection
-      ws.close(1011, "Failed to execute workflow");
+      const errorMessage: WorkflowExecutionUpdateMessage = {
+        type: "execution_update",
+        executionId: "",
+        status: "error",
+        nodeExecutions: [],
+        error:
+          error instanceof Error ? error.message : "Failed to execute workflow",
+      };
+      this.connectionManager.send(ws, JSON.stringify(errorMessage));
     }
   }
 
