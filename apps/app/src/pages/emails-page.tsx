@@ -46,6 +46,7 @@ function downloadVCard(email: EmailRow) {
     "BEGIN:VCARD",
     "VERSION:3.0",
     `FN:${fullName}`,
+    `N:Dafthunk;${displayName};;;`,
     `EMAIL:${emailAddress}`,
     `ORG:Dafthunk`,
     "END:VCARD",
