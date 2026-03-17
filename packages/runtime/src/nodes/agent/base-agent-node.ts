@@ -63,6 +63,18 @@ const AGENT_INPUTS: NodeType["inputs"] = [
   },
 ];
 
+/** Extra inputs for Gemini agent nodes — Google built-in tools */
+export const GEMINI_BUILTIN_TOOL_INPUTS: NodeType["inputs"] = [
+  {
+    name: "googleSearch",
+    type: "boolean",
+    description:
+      "Enable Google Search to ground responses in current web results",
+    required: false,
+    hidden: true,
+  },
+];
+
 /** Standard outputs shared by all agent nodes */
 const AGENT_OUTPUTS: NodeType["outputs"] = [
   {
@@ -106,6 +118,7 @@ export function buildAgentNodeType(meta: {
   description: string;
   tags: string[];
   documentation: string;
+  extraInputs?: NodeType["inputs"];
 }): NodeType {
   return {
     id: meta.id,
@@ -117,7 +130,7 @@ export function buildAgentNodeType(meta: {
     documentation: meta.documentation,
     usage: 1,
     functionCalling: true,
-    inputs: AGENT_INPUTS,
+    inputs: [...AGENT_INPUTS, ...(meta.extraInputs ?? [])],
     outputs: AGENT_OUTPUTS,
   };
 }
@@ -179,7 +192,7 @@ export abstract class BaseAgentNode extends ExecutableNode {
     config: AgentNodeConfig
   ): Promise<NodeExecution> {
     try {
-      const { instructions, input, max_steps, tools, code_mode } =
+      const { instructions, input, max_steps, tools, code_mode, googleSearch } =
         context.inputs;
       const agentContext = context.inputs.context as string | undefined;
 
@@ -212,6 +225,7 @@ export abstract class BaseAgentNode extends ExecutableNode {
           maxSteps: max_steps ?? 10,
           tools: tools ?? [],
           codeMode: code_mode ?? false,
+          googleSearch: googleSearch ?? false,
           organizationId: context.organizationId,
         }),
       });
@@ -253,7 +267,7 @@ export abstract class BaseAgentNode extends ExecutableNode {
     config: AgentNodeConfig
   ): Promise<NodeExecution> {
     try {
-      const { instructions, input, max_steps, tools, code_mode } =
+      const { instructions, input, max_steps, tools, code_mode, googleSearch } =
         context.inputs;
       const agentContext = context.inputs.context as string | undefined;
 
@@ -283,6 +297,7 @@ export abstract class BaseAgentNode extends ExecutableNode {
           maxSteps: max_steps ?? 10,
           tools: tools ?? [],
           codeMode: code_mode ?? false,
+          googleSearch: googleSearch ?? false,
           organizationId: context.organizationId,
         }),
       });

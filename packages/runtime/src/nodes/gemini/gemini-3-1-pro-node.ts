@@ -66,6 +66,14 @@ export class Gemini31ProNode extends ExecutableNode {
         hidden: true,
         value: [] as any,
       },
+      {
+        name: "googleSearch",
+        type: "boolean",
+        description:
+          "Enable Google Search to ground responses in current web results",
+        required: false,
+        hidden: true,
+      },
     ],
     outputs: [
       {
@@ -96,6 +104,13 @@ export class Gemini31ProNode extends ExecutableNode {
         type: "string",
         description:
           "Reason why the generation finished (STOP, MAX_TOKENS, etc.)",
+        hidden: true,
+      },
+      {
+        name: "grounding_metadata",
+        type: "json",
+        description:
+          "Grounding metadata with search queries, sources, and citations from Google Search or Maps",
         hidden: true,
       },
       {

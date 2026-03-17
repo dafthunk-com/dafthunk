@@ -40,6 +40,7 @@ export async function executeGeminiModel(
       maxOutputTokens,
       thinking_budget,
       tools,
+      googleSearch,
     } = context.inputs;
 
     if (!input) {
@@ -69,13 +70,25 @@ export async function executeGeminiModel(
         context
       );
 
+    // Build built-in tools array
+    const builtInTools: Record<string, unknown>[] = [];
+    if (googleSearch) builtInTools.push({ googleSearch: {} });
+
     let response: any;
     const executedToolCalls: any[] = [];
     let intermediaryMessages: any[] = [];
 
+    // Merge function declarations with built-in tools
+    const allTools: Record<string, unknown>[] = [...builtInTools];
     if (functionDeclarations.length > 0) {
-      genConfig.tools = [{ functionDeclarations }];
+      allTools.push({ functionDeclarations });
+    }
 
+    if (allTools.length > 0) {
+      genConfig.tools = allTools;
+    }
+
+    if (functionDeclarations.length > 0) {
       response = await ai.models.generateContent({
         model: config.modelId,
         contents: [{ text: input }],
@@ -152,6 +165,7 @@ export async function executeGeminiModel(
     const usageMetadata = response.usageMetadata;
     const promptFeedback = response.promptFeedback;
     const finishReason = candidate?.finishReason;
+    const groundingMetadata = candidate?.groundingMetadata;
 
     const usage = calculateTokenUsage(
       usageMetadata?.promptTokenCount ?? 0,
@@ -166,6 +180,7 @@ export async function executeGeminiModel(
         ...(usageMetadata && { usage_metadata: usageMetadata }),
         ...(promptFeedback && { prompt_feedback: promptFeedback }),
         ...(finishReason && { finish_reason: finishReason }),
+        ...(groundingMetadata && { grounding_metadata: groundingMetadata }),
         ...(executedToolCalls.length > 0
           ? { tool_calls: executedToolCalls }
           : {}),

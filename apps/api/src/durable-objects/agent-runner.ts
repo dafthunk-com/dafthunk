@@ -65,6 +65,8 @@ export interface AgentRunRequest {
   tools: ToolReference[];
   /** Enable code mode for multi-tool orchestration */
   codeMode?: boolean;
+  /** Enable Google Search grounding (Gemini only) */
+  googleSearch?: boolean;
   /** Organization ID for credential access (integrations, secrets) */
   organizationId: string;
 }
@@ -194,6 +196,9 @@ export class AgentRunner extends DurableObject<Bindings> {
         ? `Context:\n${body.context}\n\nRequest:\n${body.input}`
         : body.input;
 
+      // Build built-in Gemini tools (only effective for google provider)
+      const geminiBuiltInTools = this.buildGeminiBuiltInTools(body);
+
       // Run the agent loop
       const result = await runAgentLoop({
         userMessage,
@@ -205,7 +210,8 @@ export class AgentRunner extends DurableObject<Bindings> {
             body.model,
             body.instructions,
             messages,
-            tools
+            tools,
+            geminiBuiltInTools
           ),
         onStepComplete: async (state) => {
           this.ctx.storage.sql.exec(
@@ -342,6 +348,8 @@ export class AgentRunner extends DurableObject<Bindings> {
         ? `Context:\n${body.context}\n\nRequest:\n${body.input}`
         : body.input;
 
+      const geminiBuiltInTools = this.buildGeminiBuiltInTools(body);
+
       const result = await runAgentLoop({
         userMessage,
         tools: toolDefinitions,
@@ -352,7 +360,8 @@ export class AgentRunner extends DurableObject<Bindings> {
             body.model,
             body.instructions,
             messages,
-            tools
+            tools,
+            geminiBuiltInTools
           ),
         onStepComplete: async (state) => {
           this.ctx.storage.sql.exec(
@@ -453,6 +462,16 @@ export class AgentRunner extends DurableObject<Bindings> {
     });
   }
 
+  // ── Built-in Gemini tools ─────────────────────────────────────────────
+
+  private buildGeminiBuiltInTools(
+    body: AgentRunRequest
+  ): Record<string, unknown>[] {
+    const tools: Record<string, unknown>[] = [];
+    if (body.googleSearch) tools.push({ googleSearch: {} });
+    return tools;
+  }
+
   // ── Code Mode wrapping ─────────────────────────────────────────────────
 
   /**
@@ -507,13 +526,20 @@ export class AgentRunner extends DurableObject<Bindings> {
     model: string,
     instructions: string,
     messages: AgentMessage[],
-    tools: ToolDefinition[]
+    tools: ToolDefinition[],
+    builtInTools?: Record<string, unknown>[]
   ): Promise<LLMResponse> {
     switch (provider) {
       case "anthropic":
         return this.callAnthropic(model, instructions, messages, tools);
       case "google":
-        return this.callGoogle(model, instructions, messages, tools);
+        return this.callGoogle(
+          model,
+          instructions,
+          messages,
+          tools,
+          builtInTools
+        );
       case "openai":
         return this.callOpenAI(model, instructions, messages, tools);
       case "workers-ai":
@@ -616,7 +642,8 @@ export class AgentRunner extends DurableObject<Bindings> {
     model: string,
     instructions: string,
     messages: AgentMessage[],
-    tools: ToolDefinition[]
+    tools: ToolDefinition[],
+    builtInTools?: Record<string, unknown>[]
   ): Promise<LLMResponse> {
     const ai = new GoogleGenAI({
       apiKey: "gateway-managed",
@@ -668,8 +695,12 @@ export class AgentRunner extends DurableObject<Bindings> {
     }));
 
     const config: Record<string, unknown> = {};
+    const allTools: Record<string, unknown>[] = [...(builtInTools ?? [])];
     if (functionDeclarations.length > 0) {
-      config.tools = [{ functionDeclarations }];
+      allTools.push({ functionDeclarations });
+    }
+    if (allTools.length > 0) {
+      config.tools = allTools;
     }
 
     const response = await ai.models.generateContent({
