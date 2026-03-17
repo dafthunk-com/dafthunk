@@ -54,7 +54,7 @@
     "@mapbox/martini": "^0.2.0",
     "@turf/helpers": "^7.3.2",
     "@turf/turf": "^7.3.2",
-    "agents": "^0.1.6",
+    "agents": "^0.3.10",
     "aws4fetch": "^1.0.20",
     "cloudflare": "^5.2.0",
     "cron-parser": "^5.4.0",
