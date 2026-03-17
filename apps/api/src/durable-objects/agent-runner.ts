@@ -8,13 +8,13 @@
  * Supports four LLM providers: anthropic, google, openai, workers-ai.
  */
 
-import { DurableObject } from "cloudflare:workers";
 import Anthropic from "@anthropic-ai/sdk";
 import type { ToolDefinition, ToolReference } from "@dafthunk/runtime";
 import { NodeToolProvider } from "@dafthunk/runtime";
 import type { AgentProvider } from "@dafthunk/runtime/nodes/agent/base-agent-node";
 import type {
   AgentLoopResult,
+  AgentLoopState,
   AgentMessage,
   LLMResponse,
 } from "@dafthunk/runtime/utils/agent-loop";
@@ -28,6 +28,7 @@ import { createCodeModeToolDefinition } from "@dafthunk/runtime/utils/code-mode"
 import type { TokenPricing } from "@dafthunk/runtime/utils/usage";
 import { calculateTokenUsage } from "@dafthunk/runtime/utils/usage";
 import { GoogleGenAI } from "@google/genai";
+import { Agent } from "agents";
 import OpenAI from "openai";
 
 import type { Bindings } from "../context";
@@ -69,6 +70,8 @@ export interface AgentRunRequest {
   googleSearch?: boolean;
   /** Organization ID for credential access (integrations, secrets) */
   organizationId: string;
+  /** When set, routes to a persistent DO that maintains state across runs */
+  agentId?: string;
 }
 
 export interface AgentRunResponse {
@@ -78,11 +81,21 @@ export interface AgentRunResponse {
   totalSteps: number;
   totalInputTokens: number;
   totalOutputTokens: number;
+  /** Full message history (only present when agentId is set) */
+  agentMessages?: AgentMessage[];
+}
+
+// ── Persistent state for stateful conversations ─────────────────────────
+
+export interface AgentRunnerState {
+  messages: AgentMessage[];
+  totalInputTokens: number;
+  totalOutputTokens: number;
 }
 
 // ── Durable Object ───────────────────────────────────────────────────────
 
-export class AgentRunner extends DurableObject<Bindings> {
+export class AgentRunner extends Agent<Bindings, AgentRunnerState> {
   private initialized = false;
 
   constructor(ctx: DurableObjectState, env: Bindings) {
@@ -199,6 +212,9 @@ export class AgentRunner extends DurableObject<Bindings> {
       // Build built-in Gemini tools (only effective for google provider)
       const geminiBuiltInTools = this.buildGeminiBuiltInTools(body);
 
+      // Build resume state from persisted conversation (if stateful)
+      const resumeState = this.buildResumeState(body.agentId, userMessage);
+
       // Run the agent loop
       const result = await runAgentLoop({
         userMessage,
@@ -220,7 +236,15 @@ export class AgentRunner extends DurableObject<Bindings> {
             runId
           );
         },
+        resumeState,
       });
+
+      // Persist conversation state for stateful sessions
+      const agentMessages = this.persistConversationState(
+        body.agentId,
+        userMessage,
+        result
+      );
 
       const response: AgentRunResponse = {
         text: result.text,
@@ -229,6 +253,7 @@ export class AgentRunner extends DurableObject<Bindings> {
         totalSteps: result.totalSteps,
         totalInputTokens: result.totalInputTokens,
         totalOutputTokens: result.totalOutputTokens,
+        ...(agentMessages && { agentMessages }),
       };
 
       // Cache the completed result
@@ -350,6 +375,9 @@ export class AgentRunner extends DurableObject<Bindings> {
 
       const geminiBuiltInTools = this.buildGeminiBuiltInTools(body);
 
+      // Build resume state from persisted conversation (if stateful)
+      const resumeState = this.buildResumeState(body.agentId, userMessage);
+
       const result = await runAgentLoop({
         userMessage,
         tools: toolDefinitions,
@@ -370,7 +398,15 @@ export class AgentRunner extends DurableObject<Bindings> {
             runId
           );
         },
+        resumeState,
       });
+
+      // Persist conversation state for stateful sessions
+      const agentMessages = this.persistConversationState(
+        body.agentId,
+        userMessage,
+        result
+      );
 
       const response: AgentRunResponse = {
         text: result.text,
@@ -379,6 +415,7 @@ export class AgentRunner extends DurableObject<Bindings> {
         totalSteps: result.totalSteps,
         totalInputTokens: result.totalInputTokens,
         totalOutputTokens: result.totalOutputTokens,
+        ...(agentMessages && { agentMessages }),
       };
 
       // Cache the completed result
@@ -456,10 +493,68 @@ export class AgentRunner extends DurableObject<Bindings> {
             totalInputTokens: response.totalInputTokens,
             totalOutputTokens: response.totalOutputTokens,
           },
+          ...(response.agentMessages && {
+            agent_messages: response.agentMessages,
+          }),
         },
         usage,
       },
     });
+  }
+
+  // ── Conversation state helpers ───────────────────────────────────────
+
+  /**
+   * If a agentId is set and previous messages exist, builds a
+   * resumeState so the agent loop continues from the prior conversation.
+   */
+  private buildResumeState(
+    agentId: string | undefined,
+    userMessage: string
+  ): AgentLoopState | undefined {
+    if (!agentId) return undefined;
+    const prev = this.state?.messages;
+    if (!prev || prev.length === 0) return undefined;
+
+    return {
+      messages: [...prev, { role: "user" as const, content: userMessage }],
+      steps: [],
+      totalInputTokens: 0,
+      totalOutputTokens: 0,
+    };
+  }
+
+  /**
+   * After an agent run completes, persists the full conversation history
+   * when agentId is set. Returns the conversation messages for
+   * inclusion in the response, or undefined for ephemeral runs.
+   */
+  private persistConversationState(
+    agentId: string | undefined,
+    userMessage: string,
+    result: AgentLoopResult
+  ): AgentMessage[] | undefined {
+    if (!agentId) return undefined;
+
+    const prevMessages = this.state?.messages ?? [];
+    const newMessages: AgentMessage[] = [
+      { role: "user", content: userMessage },
+    ];
+    for (const step of result.steps) {
+      newMessages.push(step.assistantMessage);
+      newMessages.push(...step.toolResults);
+    }
+    newMessages.push({ role: "assistant", content: result.text });
+
+    const allMessages = [...prevMessages, ...newMessages];
+    this.setState({
+      messages: allMessages,
+      totalInputTokens:
+        (this.state?.totalInputTokens ?? 0) + result.totalInputTokens,
+      totalOutputTokens:
+        (this.state?.totalOutputTokens ?? 0) + result.totalOutputTokens,
+    });
+    return allMessages;
   }
 
   // ── Built-in Gemini tools ─────────────────────────────────────────────

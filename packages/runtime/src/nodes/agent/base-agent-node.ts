@@ -19,6 +19,13 @@ export interface AgentNodeConfig {
 /** Standard inputs shared by all agent nodes */
 const AGENT_INPUTS: NodeType["inputs"] = [
   {
+    name: "agent_id",
+    type: "string",
+    description:
+      "When set, routes to a persistent agent that maintains state and conversation history across runs",
+    required: false,
+  },
+  {
     name: "instructions",
     type: "string",
     description: "System instructions for the agent's behavior",
@@ -106,6 +113,12 @@ const AGENT_OUTPUTS: NodeType["outputs"] = [
     description: "Token usage and cost information",
     hidden: true,
   },
+  {
+    name: "agent_messages",
+    type: "json",
+    description: "Full message history (only present when agent_id is set)",
+    hidden: true,
+  },
 ];
 
 /**
@@ -145,6 +158,7 @@ interface AgentRunResponse {
   totalSteps: number;
   totalInputTokens: number;
   totalOutputTokens: number;
+  agentMessages?: unknown[];
 }
 
 /** Event payload sent by AgentRunner DO when async execution completes */
@@ -155,6 +169,7 @@ export interface AgentCompleteEvent {
     total_steps: number;
     finish_reason: string;
     usage_metadata: { totalInputTokens: number; totalOutputTokens: number };
+    agent_messages?: unknown[];
   };
   usage: number;
   error?: string;
@@ -192,9 +207,17 @@ export abstract class BaseAgentNode extends ExecutableNode {
     config: AgentNodeConfig
   ): Promise<NodeExecution> {
     try {
-      const { instructions, input, max_steps, tools, code_mode, googleSearch } =
-        context.inputs;
+      const {
+        instructions,
+        input,
+        max_steps,
+        tools,
+        code_mode,
+        googleSearch,
+        agent_id,
+      } = context.inputs;
       const agentContext = context.inputs.context as string | undefined;
+      const agentId = agent_id as string | undefined;
 
       if (!input) {
         return this.createErrorResult("Input is required");
@@ -206,7 +229,10 @@ export abstract class BaseAgentNode extends ExecutableNode {
 
       const agentRunner = context.env.AGENT_RUNNER as DurableObjectNamespace;
       const runId = `${context.executionId}:${context.nodeId}`;
-      const doId = agentRunner.idFromName(runId);
+      // Stateful: route to a persistent DO keyed by agentId
+      // Ephemeral: route to a per-execution DO (current behavior)
+      const doName = agentId ? `agent:${agentId}` : runId;
+      const doId = agentRunner.idFromName(doName);
       const stub = agentRunner.get(doId);
 
       const response = await stub.fetch("https://agent/start", {
@@ -227,6 +253,7 @@ export abstract class BaseAgentNode extends ExecutableNode {
           codeMode: code_mode ?? false,
           googleSearch: googleSearch ?? false,
           organizationId: context.organizationId,
+          agentId,
         }),
       });
 
@@ -267,9 +294,17 @@ export abstract class BaseAgentNode extends ExecutableNode {
     config: AgentNodeConfig
   ): Promise<NodeExecution> {
     try {
-      const { instructions, input, max_steps, tools, code_mode, googleSearch } =
-        context.inputs;
+      const {
+        instructions,
+        input,
+        max_steps,
+        tools,
+        code_mode,
+        googleSearch,
+        agent_id,
+      } = context.inputs;
       const agentContext = context.inputs.context as string | undefined;
+      const agentId = agent_id as string | undefined;
 
       if (!input) {
         return this.createErrorResult("Input is required");
@@ -281,7 +316,10 @@ export abstract class BaseAgentNode extends ExecutableNode {
 
       const agentRunner = context.env.AGENT_RUNNER as DurableObjectNamespace;
       const runId = `${context.executionId ?? context.workflowId}:${context.nodeId}`;
-      const doId = agentRunner.idFromName(runId);
+      // Stateful: route to a persistent DO keyed by agentId
+      // Ephemeral: route to a per-execution DO (current behavior)
+      const doName = agentId ? `agent:${agentId}` : runId;
+      const doId = agentRunner.idFromName(doName);
       const stub = agentRunner.get(doId);
 
       const response = await stub.fetch("https://agent/run", {
@@ -299,6 +337,7 @@ export abstract class BaseAgentNode extends ExecutableNode {
           codeMode: code_mode ?? false,
           googleSearch: googleSearch ?? false,
           organizationId: context.organizationId,
+          agentId,
         }),
       });
 
@@ -330,6 +369,9 @@ export abstract class BaseAgentNode extends ExecutableNode {
             totalInputTokens: result.totalInputTokens,
             totalOutputTokens: result.totalOutputTokens,
           },
+          ...(result.agentMessages && {
+            agent_messages: result.agentMessages,
+          }),
         },
         usage
       );
