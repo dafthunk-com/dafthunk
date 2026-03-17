@@ -72,6 +72,8 @@ export interface AgentRunRequest {
   organizationId: string;
   /** When set, routes to a persistent DO that maintains state across runs */
   agentId?: string;
+  /** Max number of previous messages to load from conversation history */
+  maxHistory?: number;
 }
 
 export interface AgentRunResponse {
@@ -213,7 +215,7 @@ export class AgentRunner extends Agent<Bindings, AgentRunnerState> {
       const geminiBuiltInTools = this.buildGeminiBuiltInTools(body);
 
       // Build resume state from persisted conversation (if stateful)
-      const resumeState = this.buildResumeState(body.agentId, userMessage);
+      const resumeState = this.buildResumeState(body.agentId, userMessage, body.maxHistory ?? 50);
 
       // Run the agent loop
       const result = await runAgentLoop({
@@ -376,7 +378,7 @@ export class AgentRunner extends Agent<Bindings, AgentRunnerState> {
       const geminiBuiltInTools = this.buildGeminiBuiltInTools(body);
 
       // Build resume state from persisted conversation (if stateful)
-      const resumeState = this.buildResumeState(body.agentId, userMessage);
+      const resumeState = this.buildResumeState(body.agentId, userMessage, body.maxHistory ?? 50);
 
       const result = await runAgentLoop({
         userMessage,
@@ -510,14 +512,19 @@ export class AgentRunner extends Agent<Bindings, AgentRunnerState> {
    */
   private buildResumeState(
     agentId: string | undefined,
-    userMessage: string
+    userMessage: string,
+    maxHistory: number
   ): AgentLoopState | undefined {
     if (!agentId) return undefined;
     const prev = this.state?.messages;
     if (!prev || prev.length === 0) return undefined;
 
+    // Take the most recent messages, capped by maxHistory
+    const trimmed =
+      prev.length > maxHistory ? prev.slice(-maxHistory) : prev;
+
     return {
-      messages: [...prev, { role: "user" as const, content: userMessage }],
+      messages: [...trimmed, { role: "user" as const, content: userMessage }],
       steps: [],
       totalInputTokens: 0,
       totalOutputTokens: 0,
