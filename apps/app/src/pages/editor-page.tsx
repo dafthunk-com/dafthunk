@@ -3,7 +3,6 @@ import type {
   WorkflowTrigger,
   WorkflowWithMetadata,
 } from "@dafthunk/types";
-import type { Connection, Node } from "@xyflow/react";
 import { ReactFlowProvider } from "@xyflow/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
@@ -13,10 +12,7 @@ import { useAuth } from "@/components/auth-context";
 import { InsetLoading } from "@/components/inset-loading";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import { WorkflowError } from "@/components/workflow/workflow-error";
-import type {
-  WorkflowExecution,
-  WorkflowNodeType,
-} from "@/components/workflow/workflow-types";
+import type { WorkflowExecution } from "@/components/workflow/workflow-types";
 import { useEditableWorkflow } from "@/hooks/use-editable-workflow";
 import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
@@ -116,10 +112,6 @@ export function EditorPage() {
     [wsExecuteWorkflow]
   );
 
-  // Track latest nodes for connection validation
-  const nodesRef = useRef<Node<WorkflowNodeType>[]>([]);
-  nodesRef.current = initialNodesForUI || [];
-
   // Fetch workflow metadata via HTTP (for description and other metadata)
   useEffect(() => {
     const fetchWorkflowMetadata = async () => {
@@ -145,42 +137,6 @@ export function EditorPage() {
     ],
     [httpWorkflowMetadata?.name, workflowMetadata?.name]
   );
-
-  const validateConnection = useCallback((connection: Connection) => {
-    const sourceNode = nodesRef.current.find(
-      (node) => node.id === connection.source
-    );
-    const targetNode = nodesRef.current.find(
-      (node) => node.id === connection.target
-    );
-    if (!sourceNode || !targetNode) return false;
-
-    const sourceOutput = sourceNode.data.outputs.find(
-      (output) => output.id === connection.sourceHandle
-    );
-    const targetInput = targetNode.data.inputs.find(
-      (input) => input.id === connection.targetHandle
-    );
-    if (!sourceOutput || !targetInput) return false;
-
-    const blobTypes = new Set([
-      "image",
-      "audio",
-      "video",
-      "document",
-      "buffergeometry",
-      "gltf",
-    ]);
-
-    const exactMatch = sourceOutput.type === targetInput.type;
-    const anyTypeMatch =
-      sourceOutput.type === "any" || targetInput.type === "any";
-    const blobCompatible =
-      (sourceOutput.type === "blob" && blobTypes.has(targetInput.type)) ||
-      (targetInput.type === "blob" && blobTypes.has(sourceOutput.type));
-
-    return exactMatch || anyTypeMatch || blobCompatible;
-  }, []);
 
   const handleWorkflowUpdate = useCallback(
     (
@@ -261,7 +217,6 @@ export function EditorPage() {
             nodeTypes={nodeTypes || []}
             onNodesChange={handleNodesChange}
             onEdgesChange={handleEdgesChange}
-            validateConnection={validateConnection}
             executeWorkflow={executeWorkflowWrapper}
             initialWorkflowExecution={latestExecution || undefined}
             createObjectUrl={createObjectUrl}
