@@ -19,114 +19,33 @@ export const TOUR_STEPS: TourStep[] = [
     id: "workflows",
     title: "Workflows",
     content:
-      "Manage your workflows here. Workflows are the building blocks of your automations.",
-    targetSelector: '[data-tour="workflows-nav"]',
-    spotlightPadding: 2,
-  },
-
-  {
-    id: "executions",
-    title: "Executions",
-    content:
-      "Monitor your workflow executions. Track run history, check outputs, and debug any issues.",
-    targetSelector: '[data-tour="executions-nav"]',
-    spotlightPadding: 2,
+      "Build and manage your workflows, monitor executions, explore templates, and test individual nodes in the playground.",
+    targetSelector: '[data-tour="workflows-nav-group"]',
+    spotlightPadding: 4,
   },
   {
-    id: "templates",
-    title: "Templates",
+    id: "triggers",
+    title: "Triggers",
     content:
-      "Browse pre-built templates to get started quickly. Templates include ready-made workflows for common use cases.",
-    targetSelector: '[data-tour="templates-nav"]',
-    spotlightPadding: 2,
+      "Configure how your workflows are started. Use HTTP endpoints, incoming emails, message queues, or chat bots to trigger executions.",
+    targetSelector: '[data-tour="triggers-nav-group"]',
+    spotlightPadding: 4,
   },
   {
-    id: "playground",
-    title: "Playground",
+    id: "resources",
+    title: "Resources",
     content:
-      "Test individual nodes in isolation. Pick any node type, fill in its inputs, and execute it to see the results instantly.",
-    targetSelector: '[data-tour="playground-nav"]',
-    spotlightPadding: 2,
-  },
-  {
-    id: "emails",
-    title: "Emails",
-    content:
-      "Set up email triggers to start workflows when emails are received. Each email address can trigger one or more specific workflows.",
-    targetSelector: '[data-tour="emails-nav"]',
-    spotlightPadding: 2,
-  },
-  {
-    id: "queues",
-    title: "Queues",
-    content:
-      "Create message queues to trigger workflows asynchronously. Queues are great for processing tasks and iterating in the background.",
-    targetSelector: '[data-tour="queues-nav"]',
-    spotlightPadding: 2,
-  },
-  {
-    id: "datasets",
-    title: "Datasets",
-    content:
-      "Store and manage files that your workflows can access. Upload CSVs, images, documents, and more. Datasets are automatically indexed for retrieval-aumented generation.",
-    targetSelector: '[data-tour="datasets-nav"]',
-    spotlightPadding: 2,
-  },
-  {
-    id: "databases",
-    title: "Databases",
-    content:
-      "Create SQLite databases to store structured data. Perfect for persisting workflow results and building stateful applications.",
-    targetSelector: '[data-tour="databases-nav"]',
-    spotlightPadding: 2,
-  },
-  {
-    id: "integrations",
-    title: "Integrations",
-    content:
-      "Connect external services like Google, GitHub, Discord, and more. Integrations enable your workflows to interact with third-party APIs.",
-    targetSelector: '[data-tour="integrations-nav"]',
-    spotlightPadding: 2,
-  },
-  {
-    id: "secrets",
-    title: "Secrets",
-    content:
-      "Store sensitive values like API keys and passwords securely. Secrets are encrypted and can be used in your workflows.",
-    targetSelector: '[data-tour="secrets-nav"]',
-    spotlightPadding: 2,
-  },
-  {
-    id: "api-keys",
-    title: "API Keys",
-    content:
-      "Generate API keys to trigger workflows programmatically. Use these keys to integrate Dafthunk with your own applications.",
-    targetSelector: '[data-tour="api-keys-nav"]',
-    spotlightPadding: 2,
-  },
-  {
-    id: "members",
-    title: "Members",
-    content:
-      "Invite team members to collaborate on workflows. Manage roles and permissions for your organization.",
-    targetSelector: '[data-tour="members-nav"]',
-    spotlightPadding: 2,
-  },
-  {
-    id: "billing",
-    title: "Billing",
-    content:
-      "View your usage and manage your subscription. Upgrade your plan for more executions and advanced features.",
-    targetSelector: '[data-tour="billing-nav"]',
-    spotlightPadding: 2,
+      "Manage your data and connections. Store files in datasets, persist structured data in databases, connect external services, and securely store API keys.",
+    targetSelector: '[data-tour="resources-nav-group"]',
+    spotlightPadding: 4,
   },
   {
     id: "settings",
     title: "Settings",
     content:
-      "Access your account settings to manage your profile, preferences, and notification options.",
-    targetSelector: '[data-tour="settings-link"]',
-    spotlightPadding: 2,
+      "Generate API keys for programmatic access, invite team members, and manage your billing and subscription.",
+    targetSelector: '[data-tour="settings-nav-group"]',
+    spotlightPadding: 4,
   },
   {
     id: "documentation",

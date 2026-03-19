@@ -1,9 +1,16 @@
+import type {
+  CreateWorkflowRequest,
+  WorkflowRuntime,
+  WorkflowTrigger,
+} from "@dafthunk/types";
+import FileDown from "lucide-react/icons/file-down";
 import Logs from "lucide-react/icons/logs";
-import Rocket from "lucide-react/icons/rocket";
+import MapIcon from "lucide-react/icons/map";
+import PlusCircle from "lucide-react/icons/plus-circle";
 import Workflow from "lucide-react/icons/workflow";
-import { useEffect } from "react";
-import { Link, Navigate } from "react-router";
-
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router";
+import { useAuth } from "@/components/auth-context";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
@@ -17,22 +24,60 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { CreateWorkflowDialog } from "@/components/workflow/create-workflow-dialog";
+import { buildInitialTriggerNodes } from "@/components/workflow/trigger-node-mapping";
 import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { useBilling } from "@/services/billing-service";
 import { useDashboard } from "@/services/dashboard-service";
+import { useNodeTypes } from "@/services/type-service";
+import { createWorkflow, useWorkflows } from "@/services/workflow-service";
 
 export function DashboardPage() {
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const navigate = useNavigate();
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const { dashboardStats, dashboardStatsError, isDashboardStatsLoading } =
     useDashboard();
   const { billing, billingError, isBillingLoading } = useBilling();
   const { getOrgUrl } = useOrgUrl();
+  const { organization } = useAuth();
+  const orgId = organization?.id || "";
+  const { mutateWorkflows } = useWorkflows();
+  const { nodeTypes } = useNodeTypes({ revalidateOnFocus: false });
   const { start: startTour } = useTour();
 
   useEffect(() => {
     setBreadcrumbs([{ label: "Dashboard" }]);
   }, [setBreadcrumbs]);
+
+  const handleCreateWorkflow = async (
+    name: string,
+    trigger: WorkflowTrigger,
+    description?: string,
+    runtime?: WorkflowRuntime
+  ) => {
+    if (!orgId) return;
+
+    try {
+      const initialNodes = buildInitialTriggerNodes(trigger, nodeTypes || []);
+      const request: CreateWorkflowRequest = {
+        name,
+        description,
+        trigger,
+        runtime,
+        nodes: initialNodes,
+        edges: [],
+      };
+
+      const newWorkflow = await createWorkflow(request, orgId);
+
+      mutateWorkflows();
+      navigate(getOrgUrl(`workflows/${newWorkflow.id}`));
+    } catch (error) {
+      console.error("Failed to create workflow:", error);
+    }
+  };
 
   if (isDashboardStatsLoading || isBillingLoading) {
     return <InsetLoading title="Dashboard" />;
@@ -59,10 +104,6 @@ export function DashboardPage() {
     );
   }
 
-  if (dashboardStats.workflows === 0) {
-    return <Navigate to={getOrgUrl("onboarding")} replace />;
-  }
-
   const isPro = billing?.plan === "pro";
   const usageThisPeriod = billing?.usageThisPeriod ?? 0;
   const includedCredits = billing?.includedCredits ?? 0;
@@ -77,22 +118,27 @@ export function DashboardPage() {
   return (
     <InsetLayout title="Dashboard">
       {/* Getting Started */}
-      <Card className="mb-6 bg-neutral-50 dark:bg-neutral-950/20 border-neutral-200 dark:border-neutral-800">
+      <Card className="mb-6 bg-neutral-50 dark:bg-neutral-950/20">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Rocket className="size-5 text-neutral-600 dark:text-neutral-400" />
-            Onboarding
-          </CardTitle>
+          <CardTitle>Getting Started</CardTitle>
           <CardDescription>
-            Explore templates, take a tour, or learn how to build workflows
+            Create your first workflow or explore templates
           </CardDescription>
         </CardHeader>
         <CardContent className="flex gap-2">
-          <Button variant="default" asChild>
-            <Link to={getOrgUrl("onboarding")}>Get Started</Link>
+          <Button variant="default" onClick={startTour}>
+            <MapIcon className="mr-2 size-4" />
+            Take a Tour
           </Button>
-          <Button variant="outline" onClick={startTour}>
-            Start Tour
+          <Button variant="outline" onClick={() => setIsCreateDialogOpen(true)}>
+            <PlusCircle className="mr-2 size-4" />
+            Create Workflow
+          </Button>
+          <Button variant="outline" asChild>
+            <Link to={getOrgUrl("templates")}>
+              <FileDown className="mr-2 size-4" />
+              Browse Templates
+            </Link>
           </Button>
         </CardContent>
       </Card>
@@ -228,6 +274,11 @@ export function DashboardPage() {
           )}
         </CardContent>
       </Card>
+      <CreateWorkflowDialog
+        open={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
+        onCreateWorkflow={handleCreateWorkflow}
+      />
     </InsetLayout>
   );
 }

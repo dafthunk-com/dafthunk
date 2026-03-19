@@ -53,7 +53,6 @@ import { InvitationsPage } from "./pages/invitations-page";
 import { LoginPage } from "./pages/login-page";
 import { MembersPage } from "./pages/members-page";
 import { NotFoundPage } from "./pages/not-found-page";
-import { OnboardingPage } from "./pages/onboarding-page";
 import { OrganizationsPage } from "./pages/organizations-page";
 import { PlaygroundExecutePage } from "./pages/playground-execute-page";
 import { PlaygroundPage } from "./pages/playground-page";
@@ -327,17 +326,6 @@ export const routes: AppRouteObject[] = [
       </OrgLayout>
     ),
     handle: { head: <HeadSeo title="Dashboard - Dafthunk" /> },
-  },
-  {
-    path: "/org/:organizationId/onboarding",
-    element: (
-      <OrgLayout title="Getting Started">
-        <ProtectedRoute>
-          <OnboardingPage />
-        </ProtectedRoute>
-      </OrgLayout>
-    ),
-    handle: { head: <HeadSeo title="Getting Started - Dafthunk" /> },
   },
   {
     path: "/workflows",

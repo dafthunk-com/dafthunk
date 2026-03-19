@@ -93,7 +93,7 @@ export function NavMain({ groups, footerItems }: NavMainProps) {
             key={group.label || index}
             className="bg-transparent p-0"
             data-tour={
-              group.label === "Workflows" ? "workflows-nav-group" : undefined
+              group.label ? `${group.label.toLowerCase()}-nav-group` : undefined
             }
           >
             {group.label && (
