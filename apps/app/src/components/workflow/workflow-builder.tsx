@@ -9,7 +9,17 @@ import type {
   Node as ReactFlowNode,
 } from "@xyflow/react";
 import { ReactFlowProvider } from "@xyflow/react";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -146,6 +156,8 @@ export function WorkflowBuilder({
     pasteFromClipboard,
     hasClipboardData,
     onNodeDragStop,
+    addTriggerNodes,
+    removeTriggerNodes,
   } = useWorkflowState({
     initialNodes,
     initialEdges,
@@ -154,6 +166,7 @@ export function WorkflowBuilder({
     validateConnection,
     createObjectUrl,
     disabled: readOnly,
+    nodeTypes,
   });
 
   // Execution state
@@ -211,6 +224,36 @@ export function WorkflowBuilder({
       (n) => n.data.nodeType && triggerTypes.has(n.data.nodeType)
     );
   }, [nodes, nodeTypes]);
+
+  // Trigger change: confirmation dialog + node swap
+  const [triggerConfirmOpen, setTriggerConfirmOpen] = useState(false);
+  const pendingTriggerRef = useRef<WorkflowTrigger | null>(null);
+
+  const applyTriggerChange = useCallback(
+    (newTrigger: WorkflowTrigger) => {
+      removeTriggerNodes();
+      addTriggerNodes(newTrigger);
+      onWorkflowUpdate?.(
+        workflowName || "",
+        workflowDescription || undefined,
+        newTrigger,
+        workflowRuntime
+      );
+    },
+    [
+      removeTriggerNodes,
+      addTriggerNodes,
+      onWorkflowUpdate,
+      workflowName,
+      workflowDescription,
+      workflowRuntime,
+    ]
+  );
+
+  const handleTriggerChange = useCallback((newTrigger: WorkflowTrigger) => {
+    pendingTriggerRef.current = newTrigger;
+    setTriggerConfirmOpen(true);
+  }, []);
 
   return (
     <ReactFlowProvider>
@@ -302,6 +345,7 @@ export function WorkflowBuilder({
                   isEnabled={isEnabled}
                   isTogglingEnabled={isTogglingEnabled}
                   onToggleEnabled={readOnly ? undefined : onToggleEnabled}
+                  onTriggerChange={readOnly ? undefined : handleTriggerChange}
                 />
               </div>
             </>
@@ -359,6 +403,42 @@ export function WorkflowBuilder({
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        <AlertDialog
+          open={triggerConfirmOpen}
+          onOpenChange={setTriggerConfirmOpen}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Change Trigger Type</AlertDialogTitle>
+              <AlertDialogDescription>
+                The current trigger node has configured inputs that will be
+                lost. Are you sure you want to change the trigger type?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel
+                onClick={() => {
+                  pendingTriggerRef.current = null;
+                  setTriggerConfirmOpen(false);
+                }}
+              >
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  if (pendingTriggerRef.current) {
+                    applyTriggerChange(pendingTriggerRef.current);
+                    pendingTriggerRef.current = null;
+                  }
+                  setTriggerConfirmOpen(false);
+                }}
+              >
+                Change Trigger
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </WorkflowProvider>
     </ReactFlowProvider>
   );

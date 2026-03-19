@@ -38,8 +38,10 @@ import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { CreateWorkflowDialog } from "@/components/workflow/create-workflow-dialog";
+import { buildInitialTriggerNodes } from "@/components/workflow/trigger-node-mapping";
 import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
+import { useNodeTypes } from "@/services/type-service";
 import {
   createWorkflow,
   deleteWorkflow,
@@ -298,6 +300,7 @@ export function WorkflowsPage() {
 
   const { workflows, workflowsError, isWorkflowsLoading, mutateWorkflows } =
     useWorkflows();
+  const { nodeTypes } = useNodeTypes({ revalidateOnFocus: false });
 
   const { deleteDialog, renameDialog, openDeleteDialog, openRenameDialog } =
     useWorkflowActions();
@@ -322,12 +325,13 @@ export function WorkflowsPage() {
     if (!orgId) return;
 
     try {
+      const initialNodes = buildInitialTriggerNodes(trigger, nodeTypes || []);
       const request: CreateWorkflowRequest = {
         name,
         description,
         trigger,
         runtime,
-        nodes: [],
+        nodes: initialNodes,
         edges: [],
       };
 

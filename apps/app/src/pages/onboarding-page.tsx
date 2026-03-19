@@ -19,9 +19,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { CreateWorkflowDialog } from "@/components/workflow/create-workflow-dialog";
+import { buildInitialTriggerNodes } from "@/components/workflow/trigger-node-mapping";
 import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { useTemplates } from "@/services/template-service";
+import { useNodeTypes } from "@/services/type-service";
 import { createWorkflow, useWorkflows } from "@/services/workflow-service";
 
 const FEATURED_TEMPLATE_IDS = [
@@ -41,6 +43,7 @@ export function OnboardingPage() {
   const { getOrgUrl } = useOrgUrl();
   const { mutateWorkflows } = useWorkflows();
   const { templates } = useTemplates();
+  const { nodeTypes } = useNodeTypes({ revalidateOnFocus: false });
   const { start: startTour } = useTour();
   const orgId = organization?.id || "";
 
@@ -59,10 +62,11 @@ export function OnboardingPage() {
   ) => {
     if (!orgId) return;
 
+    const initialNodes = buildInitialTriggerNodes(trigger, nodeTypes || []);
     const request: CreateWorkflowRequest = {
       name,
       trigger,
-      nodes: [],
+      nodes: initialNodes,
       edges: [],
     };
 

@@ -59,6 +59,7 @@ export interface WorkflowSidebarProps {
   isEnabled?: boolean;
   isTogglingEnabled?: boolean;
   onToggleEnabled?: (checked: boolean) => void;
+  onTriggerChange?: (newTrigger: WorkflowTrigger) => void;
 }
 
 export function WorkflowSidebar({
@@ -82,6 +83,7 @@ export function WorkflowSidebar({
   isEnabled,
   isTogglingEnabled,
   onToggleEnabled,
+  onTriggerChange,
 }: WorkflowSidebarProps) {
   // Determine what to show based on selection
   const totalSelected = selectedNodes.length + selectedEdges.length;
@@ -163,13 +165,7 @@ export function WorkflowSidebar({
   // Trigger and runtime changes are applied immediately (no debounce)
   const handleTriggerChange = (newTrigger: WorkflowTrigger) => {
     setLocalTrigger(newTrigger);
-    const s = localStateRef.current;
-    onWorkflowUpdate?.(
-      s.name,
-      s.description || undefined,
-      newTrigger,
-      s.runtime
-    );
+    onTriggerChange?.(newTrigger);
   };
 
   const handleRuntimeChange = (newRuntime: WorkflowRuntime) => {

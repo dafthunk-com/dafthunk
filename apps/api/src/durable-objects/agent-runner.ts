@@ -215,7 +215,11 @@ export class AgentRunner extends Agent<Bindings, AgentRunnerState> {
       const geminiBuiltInTools = this.buildGeminiBuiltInTools(body);
 
       // Build resume state from persisted conversation (if stateful)
-      const resumeState = this.buildResumeState(body.agentId, userMessage, body.maxHistory ?? 50);
+      const resumeState = this.buildResumeState(
+        body.agentId,
+        userMessage,
+        body.maxHistory ?? 50
+      );
 
       // Run the agent loop
       const result = await runAgentLoop({
@@ -378,7 +382,11 @@ export class AgentRunner extends Agent<Bindings, AgentRunnerState> {
       const geminiBuiltInTools = this.buildGeminiBuiltInTools(body);
 
       // Build resume state from persisted conversation (if stateful)
-      const resumeState = this.buildResumeState(body.agentId, userMessage, body.maxHistory ?? 50);
+      const resumeState = this.buildResumeState(
+        body.agentId,
+        userMessage,
+        body.maxHistory ?? 50
+      );
 
       const result = await runAgentLoop({
         userMessage,
@@ -520,8 +528,7 @@ export class AgentRunner extends Agent<Bindings, AgentRunnerState> {
     if (!prev || prev.length === 0) return undefined;
 
     // Take the most recent messages, capped by maxHistory
-    const trimmed =
-      prev.length > maxHistory ? prev.slice(-maxHistory) : prev;
+    const trimmed = prev.length > maxHistory ? prev.slice(-maxHistory) : prev;
 
     return {
       messages: [...trimmed, { role: "user" as const, content: userMessage }],

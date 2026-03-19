@@ -1,4 +1,4 @@
-import type { ObjectReference } from "@dafthunk/types";
+import type { ObjectReference, WorkflowTrigger } from "@dafthunk/types";
 import type {
   Connection,
   IsValidConnection,
@@ -20,6 +20,10 @@ import {
 } from "@xyflow/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import {
+  ALL_TRIGGER_NODE_TYPE_IDS,
+  getTriggerNodeTypes,
+} from "./trigger-node-mapping";
 import type {
   ConnectionValidationState,
   NodeExecutionState,
@@ -121,6 +125,31 @@ function updateNodesWithExecutionError(
   );
 }
 
+function createReactFlowNode(
+  nodeType: NodeType,
+  position: { x: number; y: number },
+  createObjectUrl: (objectReference: ObjectReference) => string,
+  id?: string
+): ReactFlowNode<WorkflowNodeType> {
+  return {
+    id: id ?? `${nodeType.type}-${Date.now()}`,
+    type: "workflowNode",
+    position,
+    selected: false,
+    data: {
+      name: nodeType.name,
+      inputs: nodeType.inputs.map((param) => ({ ...param, id: param.name })),
+      outputs: nodeType.outputs.map((param) => ({ ...param, id: param.name })),
+      executionState: "idle" as NodeExecutionState,
+      nodeType: nodeType.type,
+      icon: nodeType.icon,
+      functionCalling: nodeType.functionCalling,
+      asTool: nodeType.asTool,
+      createObjectUrl,
+    },
+  };
+}
+
 // --- Hook interface ---
 
 export interface UseGraphOperationsProps {
@@ -129,6 +158,7 @@ export interface UseGraphOperationsProps {
   validateConnection?: (connection: Connection) => boolean;
   createObjectUrl: (objectReference: ObjectReference) => string;
   disabled?: boolean;
+  nodeTypes?: NodeType[];
 }
 
 export interface UseGraphOperationsReturn {
@@ -188,6 +218,8 @@ export interface UseGraphOperationsReturn {
   deleteEdge: (edgeId: string) => void;
   deleteSelected: () => void;
   deselectAll: () => void;
+  addTriggerNodes: (trigger: WorkflowTrigger) => void;
+  removeTriggerNodes: () => void;
 }
 
 const NOOP = () => {};
@@ -198,6 +230,7 @@ export function useGraphOperations({
   validateConnection = () => true,
   createObjectUrl,
   disabled = false,
+  nodeTypes = [],
 }: UseGraphOperationsProps): UseGraphOperationsReturn {
   // Core state
   const [nodes, setNodes, onNodesChange] =
@@ -293,7 +326,8 @@ export function useGraphOperations({
     }
   }, [initialEdges, disabled, setEdges]);
 
-  // In disabled mode, only allow selection changes
+  // In disabled mode, only allow selection changes.
+  // Always prevent removal of trigger nodes (use trigger type selector instead).
   const handleNodesChangeInternal = useCallback(
     (changes: NodeChange<ReactFlowNode<WorkflowNodeType>>[]) => {
       if (disabled) {
@@ -305,9 +339,21 @@ export function useGraphOperations({
         }
         return;
       }
-      onNodesChange(changes);
+
+      const filtered = changes.filter((change) => {
+        if (change.type !== "remove") return true;
+        const node = nodesRef.current.find((n) => n.id === change.id);
+        return !(
+          node?.data.nodeType &&
+          ALL_TRIGGER_NODE_TYPE_IDS.has(node.data.nodeType)
+        );
+      });
+
+      if (filtered.length > 0) {
+        onNodesChange(filtered);
+      }
     },
-    [onNodesChange, disabled]
+    [onNodesChange, disabled, nodesRef]
   );
 
   // Connection event handlers
@@ -487,29 +533,8 @@ export function useGraphOperations({
         y: window.innerHeight / 2,
       });
 
-      const newNode: ReactFlowNode<WorkflowNodeType> = {
-        id: `${nodeType.type}-${Date.now()}`,
-        type: "workflowNode",
-        position,
-        selected: true,
-        data: {
-          name: nodeType.name,
-          inputs: nodeType.inputs.map((param) => ({
-            ...param,
-            id: param.name,
-          })),
-          outputs: nodeType.outputs.map((param) => ({
-            ...param,
-            id: param.name,
-          })),
-          executionState: "idle" as NodeExecutionState,
-          nodeType: nodeType.type,
-          icon: nodeType.icon,
-          functionCalling: nodeType.functionCalling,
-          asTool: nodeType.asTool,
-          createObjectUrl,
-        },
-      };
+      const newNode = createReactFlowNode(nodeType, position, createObjectUrl);
+      newNode.selected = true;
 
       setNodes((nds) => [
         ...nds.map((node) => ({ ...node, selected: false })),
@@ -612,13 +637,15 @@ export function useGraphOperations({
     [setEdges]
   );
 
-  // Delete nodes and their connected edges
+  // Delete nodes and their connected edges (trigger nodes are protected)
   const deleteNodes = useCallback(
     (nodeIds: string[]) => {
       if (disabled || nodeIds.length === 0) return;
 
-      const nodesToDelete = nodesRef.current.filter((n) =>
-        nodeIds.includes(n.id)
+      const nodesToDelete = nodesRef.current.filter(
+        (n) =>
+          nodeIds.includes(n.id) &&
+          !(n.data.nodeType && ALL_TRIGGER_NODE_TYPE_IDS.has(n.data.nodeType))
       );
       if (nodesToDelete.length === 0) return;
 
@@ -665,6 +692,47 @@ export function useGraphOperations({
     setEdges((eds) => eds.map((edge) => ({ ...edge, selected: false })));
   }, [setNodes, setEdges]);
 
+  const removeTriggerNodes = useCallback(() => {
+    const triggerNodes = nodesRef.current.filter(
+      (n) => n.data.nodeType && ALL_TRIGGER_NODE_TYPE_IDS.has(n.data.nodeType)
+    );
+    if (triggerNodes.length === 0) return;
+
+    const triggerNodeIds = new Set(triggerNodes.map((n) => n.id));
+    const edgeIdsToRemove = getConnectedEdges(
+      triggerNodes,
+      edgesRef.current
+    ).map((e) => e.id);
+
+    if (edgeIdsToRemove.length > 0) {
+      setEdges((eds) => eds.filter((e) => !edgeIdsToRemove.includes(e.id)));
+    }
+    setNodes((nds) => nds.filter((n) => !triggerNodeIds.has(n.id)));
+  }, [nodesRef, edgesRef, setNodes, setEdges]);
+
+  const addTriggerNodes = useCallback(
+    (trigger: WorkflowTrigger) => {
+      const nodeTypeIds = getTriggerNodeTypes(trigger);
+      if (nodeTypeIds.length === 0) return;
+
+      const newNodes = nodeTypeIds.flatMap((nodeTypeId, i) => {
+        const nodeType = nodeTypes.find((nt) => nt.type === nodeTypeId);
+        if (!nodeType) return [];
+        return createReactFlowNode(
+          nodeType,
+          { x: i * 400, y: 0 },
+          createObjectUrl,
+          `${nodeType.type}-${Date.now()}-${i}`
+        );
+      });
+
+      if (newNodes.length > 0) {
+        setNodes((nds) => [...nds, ...newNodes]);
+      }
+    },
+    [nodeTypes, setNodes, createObjectUrl]
+  );
+
   return {
     nodes,
     edges,
@@ -695,5 +763,7 @@ export function useGraphOperations({
     deleteEdge: disabled ? NOOP : deleteEdge,
     deleteSelected: disabled ? NOOP : deleteSelected,
     deselectAll,
+    addTriggerNodes: disabled ? NOOP : addTriggerNodes,
+    removeTriggerNodes: disabled ? NOOP : removeTriggerNodes,
   };
 }

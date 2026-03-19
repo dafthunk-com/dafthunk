@@ -10,7 +10,9 @@ import { Link, useNavigate } from "react-router";
 import { useAuth } from "@/components/auth-context";
 import { Button } from "@/components/ui/button";
 import { CreateWorkflowDialog } from "@/components/workflow/create-workflow-dialog";
+import { buildInitialTriggerNodes } from "@/components/workflow/trigger-node-mapping";
 import { useOrgUrl } from "@/hooks/use-org-url";
+import { useNodeTypes } from "@/services/type-service";
 import { createWorkflow, useWorkflows } from "@/services/workflow-service";
 
 export function ReadyToBuildBlock() {
@@ -20,6 +22,7 @@ export function ReadyToBuildBlock() {
   const { getOrgUrl } = useOrgUrl();
   const orgId = organization?.id || "";
   const { mutateWorkflows } = useWorkflows();
+  const { nodeTypes } = useNodeTypes({ revalidateOnFocus: false });
 
   const handleCreateWorkflow = async (
     name: string,
@@ -28,10 +31,11 @@ export function ReadyToBuildBlock() {
     if (!orgId) return;
 
     try {
+      const initialNodes = buildInitialTriggerNodes(trigger, nodeTypes || []);
       const request: CreateWorkflowRequest = {
         name,
         trigger,
-        nodes: [],
+        nodes: initialNodes,
         edges: [],
       };
 

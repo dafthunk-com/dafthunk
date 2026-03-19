@@ -1,4 +1,4 @@
-import type { ObjectReference } from "@dafthunk/types";
+import type { ObjectReference, WorkflowTrigger } from "@dafthunk/types";
 import type {
   Connection,
   IsValidConnection,
@@ -32,6 +32,7 @@ interface UseWorkflowStateProps {
   validateConnection?: (connection: Connection) => boolean;
   createObjectUrl: (objectReference: ObjectReference) => string;
   disabled?: boolean;
+  nodeTypes?: NodeType[];
 }
 
 interface UseWorkflowStateReturn {
@@ -76,6 +77,8 @@ interface UseWorkflowStateReturn {
   deleteEdge: (edgeId: string) => void;
   deleteSelected: () => void;
   deselectAll: () => void;
+  addTriggerNodes: (trigger: WorkflowTrigger) => void;
+  removeTriggerNodes: () => void;
   duplicateNode: (nodeId: string) => void;
   duplicateSelected: () => void;
   applyLayout: () => void;
@@ -95,6 +98,7 @@ export function useWorkflowState({
   validateConnection,
   createObjectUrl,
   disabled = false,
+  nodeTypes = [],
 }: UseWorkflowStateProps): UseWorkflowStateReturn {
   // Core graph state and operations
   const graphOps = useGraphOperations({
@@ -103,6 +107,7 @@ export function useWorkflowState({
     validateConnection,
     createObjectUrl,
     disabled,
+    nodeTypes,
   });
 
   // Persistence (side-effect only)
