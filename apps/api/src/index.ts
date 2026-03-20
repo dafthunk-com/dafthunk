@@ -40,6 +40,8 @@ import telegramWebhook from "./routes/telegram-webhook";
 import templateRoutes from "./routes/templates";
 import typeRoutes from "./routes/types";
 import usageRoutes from "./routes/usage";
+import whatsappAccountRoutes from "./routes/whatsapp-accounts";
+import whatsappWebhook from "./routes/whatsapp-webhook";
 import workflowRoutes from "./routes/workflows";
 import wsRoutes from "./routes/ws";
 import { handleScheduledEvent } from "./scheduled";
@@ -91,6 +93,9 @@ app.route("/telegram", telegramWebhook);
 // Discord webhook (no auth, verified by Ed25519 signature)
 app.route("/discord", discordWebhook);
 
+// WhatsApp webhook (no auth, verified by HMAC-SHA256 signature)
+app.route("/whatsapp", whatsappWebhook);
+
 // Trigger execution (API key auth, org derived from resource record)
 app.route("/endpoints", endpointExecuteRoutes);
 app.route("/queues", queuePublishRoutes);
@@ -116,6 +121,7 @@ app.route("/:organizationId/integrations", integrationRoutes);
 app.route("/:organizationId/queues", queueRoutes);
 app.route("/:organizationId/secrets", secretRoutes);
 app.route("/:organizationId/telegram-bots", telegramBotRoutes);
+app.route("/:organizationId/whatsapp-accounts", whatsappAccountRoutes);
 app.route("/:organizationId/workflows", workflowRoutes);
 app.route("/:organizationId/objects", objectRoutes);
 app.route("/:organizationId/playground", playgroundRoutes);

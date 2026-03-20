@@ -30,6 +30,7 @@ import { ApiKeysPage } from "./pages/api-keys-page";
 import { BillingPage } from "./pages/billing-page";
 import { BotDiscordDetailPage } from "./pages/bot-discord-detail-page";
 import { BotTelegramDetailPage } from "./pages/bot-telegram-detail-page";
+import { BotWhatsAppDetailPage } from "./pages/bot-whatsapp-detail-page";
 import { BotsPage } from "./pages/bots-page";
 import { DashboardPage } from "./pages/dashboard-page";
 import { DatabaseConsolePage } from "./pages/database-console-page";
@@ -725,6 +726,17 @@ export const routes: AppRouteObject[] = [
       </OrgLayout>
     ),
     handle: { head: <HeadSeo title="Bot Details - Dafthunk" /> },
+  },
+  {
+    path: "/org/:organizationId/bots/whatsapp/:id",
+    element: (
+      <OrgLayout title="Bots">
+        <ProtectedRoute>
+          <BotWhatsAppDetailPage />
+        </ProtectedRoute>
+      </OrgLayout>
+    ),
+    handle: { head: <HeadSeo title="Account Details - Dafthunk" /> },
   },
 
   {

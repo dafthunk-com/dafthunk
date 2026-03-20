@@ -9,6 +9,7 @@ import type {
   QueueMessage,
   ScheduledTrigger,
   TelegramMessage,
+  WhatsAppMessage,
 } from "@dafthunk/types";
 import type { BaseToolRegistry } from "./base-tool-registry";
 import type { DatabaseService } from "./database-service";
@@ -234,6 +235,9 @@ export interface NodeContext {
   discordBotToken?: string;
   telegramMessage?: TelegramMessage;
   telegramBotToken?: string;
+  whatsappMessage?: WhatsAppMessage;
+  whatsappAccessToken?: string;
+  whatsappPhoneNumberId?: string;
   toolRegistry?: BaseToolRegistry;
   objectStore?: ObjectStore;
   databaseService?: DatabaseService;

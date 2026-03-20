@@ -9,16 +9,20 @@ import {
   deleteQueueTrigger,
   deleteScheduledTrigger,
   deleteTelegramTrigger,
+  deleteWhatsAppTrigger,
   getDiscordBot,
   getDiscordTrigger,
   getTelegramBot,
   getTelegramTrigger,
+  getWhatsAppTrigger,
   updateTelegramBotSecretToken,
+  updateWhatsAppAccountVerifyToken,
   upsertDiscordTrigger,
   upsertEmailTrigger,
   upsertQueueTrigger,
   upsertScheduledTrigger,
   upsertTelegramTrigger,
+  upsertWhatsAppTrigger,
 } from "../db/queries";
 import type { WorkflowRow } from "../db/schema";
 import { memberships, organizations, workflows } from "../db/schema";
@@ -140,6 +144,26 @@ export class WorkflowStore {
     if (!telegramBotId) return null;
 
     return { telegramBotId, chatId: chatId || undefined };
+  }
+
+  /**
+   * Extract WhatsApp trigger config from workflow nodes
+   */
+  private extractWhatsAppTriggerConfig(
+    nodes: Node[]
+  ): { whatsappAccountId: string; phoneNumberId?: string } | null {
+    const node = nodes.find((n) => n.type === "receive-whatsapp-message");
+    if (!node) return null;
+
+    const whatsappAccountId = node.inputs.find(
+      (i) => i.name === "whatsappAccountId"
+    )?.value as string | undefined;
+    const phoneNumberId = node.inputs.find((i) => i.name === "phoneNumberId")
+      ?.value as string | undefined;
+
+    if (!whatsappAccountId) return null;
+
+    return { whatsappAccountId, phoneNumberId: phoneNumberId || undefined };
   }
 
   /**
@@ -532,7 +556,80 @@ export class WorkflowStore {
   }
 
   /**
-   * Sync triggers for queue_message, email_message, scheduled, discord_event, and telegram_event workflows
+   * Sync WhatsApp trigger: upsert/delete trigger with verify token
+   * Note: WhatsApp webhooks are configured manually in the Meta Developer Portal,
+   * so we only manage the verify token for challenge-response verification.
+   */
+  private async syncWhatsAppTrigger(
+    workflowId: string,
+    organizationId: string,
+    nodes: Node[]
+  ): Promise<void> {
+    const config = this.extractWhatsAppTriggerConfig(nodes);
+    const hasReceiveNode = nodes.some(
+      (n) => n.type === "receive-whatsapp-message"
+    );
+
+    if (config) {
+      const existing = await getWhatsAppTrigger(
+        this.db,
+        workflowId,
+        organizationId
+      );
+      const configChanged =
+        !existing ||
+        existing.whatsappAccountId !== config.whatsappAccountId ||
+        (existing.phoneNumberId ?? undefined) !== config.phoneNumberId;
+
+      const verifyToken = crypto.randomUUID();
+
+      try {
+        if (configChanged) {
+          await upsertWhatsAppTrigger(this.db, {
+            workflowId,
+            organizationId,
+            phoneNumberId: config.phoneNumberId,
+            whatsappAccountId: config.whatsappAccountId,
+            verifyToken,
+            active: true,
+            updatedAt: new Date(),
+          });
+
+          // Sync verify token to all triggers using this account
+          await updateWhatsAppAccountVerifyToken(
+            this.db,
+            config.whatsappAccountId,
+            verifyToken
+          );
+        }
+
+        console.log(
+          `Auto-registered whatsapp trigger: workflow=${workflowId}, account=${config.whatsappAccountId}, phone=${config.phoneNumberId ?? "any"}`
+        );
+      } catch (_error) {
+        console.error(
+          `Failed to create whatsapp trigger for workflow ${workflowId}`
+        );
+      }
+    } else if (!hasReceiveNode) {
+      // Node removed entirely — delete trigger
+      try {
+        const existing = await getWhatsAppTrigger(
+          this.db,
+          workflowId,
+          organizationId
+        );
+        if (existing) {
+          await deleteWhatsAppTrigger(this.db, workflowId, organizationId);
+        }
+      } catch (_error) {
+        // Ignore — trigger didn't exist
+      }
+    }
+  }
+
+  /**
+   * Sync triggers for queue_message, email_message, scheduled, discord_event, telegram_event, and whatsapp_event workflows
    * Directly upserts/deletes triggers without additional verification queries
    */
   private async syncTriggers(
@@ -645,6 +742,11 @@ export class WorkflowStore {
         nodes,
         apiHost
       );
+    }
+
+    // Handle whatsapp_event workflows
+    if (workflowType === "whatsapp_event") {
+      await this.syncWhatsAppTrigger(workflowId, organizationId, nodes);
     }
   }
 

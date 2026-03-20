@@ -13,6 +13,7 @@ const TRIGGER_TO_NODE_TYPES: Record<WorkflowTrigger, string[]> = {
   queue_message: ["queue-message"],
   discord_event: ["receive-discord-message"],
   telegram_event: ["receive-telegram-message"],
+  whatsapp_event: ["receive-whatsapp-message"],
 };
 
 /** All node type IDs that are trigger nodes. */

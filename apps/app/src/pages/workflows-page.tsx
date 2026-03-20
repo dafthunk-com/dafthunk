@@ -246,6 +246,7 @@ function createColumns(
           queue_message: "Queue Message",
           discord_event: "Discord Event",
           telegram_event: "Telegram Event",
+          whatsapp_event: "WhatsApp Event",
         };
         return (
           <Badge variant="outline" className="text-xs">

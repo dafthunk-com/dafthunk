@@ -435,6 +435,11 @@ import { ClipVideoNode } from "@dafthunk/runtime/nodes/video/clip-video-node";
 import { ExtractFirstFrameNode } from "@dafthunk/runtime/nodes/video/extract-first-frame-node";
 import { ExtractFrameAtTimeNode } from "@dafthunk/runtime/nodes/video/extract-frame-at-time-node";
 import { ExtractLastFrameNode } from "@dafthunk/runtime/nodes/video/extract-last-frame-node";
+import { BotMarkAsReadWhatsAppNode } from "@dafthunk/runtime/nodes/whatsapp/bot-mark-as-read-whatsapp-node";
+import { BotReceiveWhatsAppMessageNode } from "@dafthunk/runtime/nodes/whatsapp/bot-receive-whatsapp-message-node";
+import { BotSendImageWhatsAppNode } from "@dafthunk/runtime/nodes/whatsapp/bot-send-image-whatsapp-node";
+import { BotSendMessageWhatsAppNode } from "@dafthunk/runtime/nodes/whatsapp/bot-send-message-whatsapp-node";
+import { BotSendTemplateWhatsAppNode } from "@dafthunk/runtime/nodes/whatsapp/bot-send-template-whatsapp-node";
 import type { Bindings } from "../context";
 
 export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
@@ -768,6 +773,12 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(BotSendPhotoTelegramNode);
     this.registerImplementation(BotForwardMessageTelegramNode);
     this.registerImplementation(BotGetChatTelegramNode);
+
+    this.registerImplementation(BotReceiveWhatsAppMessageNode);
+    this.registerImplementation(BotSendMessageWhatsAppNode);
+    this.registerImplementation(BotSendImageWhatsAppNode);
+    this.registerImplementation(BotSendTemplateWhatsAppNode);
+    this.registerImplementation(BotMarkAsReadWhatsAppNode);
 
     if (hasReddit) {
       this.registerImplementation(GetPostRedditNode);

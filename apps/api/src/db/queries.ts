@@ -71,6 +71,12 @@ import {
   type UserRoleType,
   type UserRow,
   users,
+  type WhatsAppAccountInsert,
+  type WhatsAppAccountRow,
+  type WhatsAppTriggerInsert,
+  type WhatsAppTriggerRow,
+  whatsappAccounts,
+  whatsappTriggers,
   workflows,
 } from "./index";
 
@@ -1710,6 +1716,232 @@ export async function deleteTelegramTrigger(
         eq(telegramTriggers.workflowId, workflowId),
         eq(
           telegramTriggers.workflowId,
+          db
+            .select({ id: workflows.id })
+            .from(workflows)
+            .where(
+              and(
+                eq(workflows.id, workflowId),
+                eq(workflows.organizationId, organizationId)
+              )
+            )
+        )
+      )
+    )
+    .returning();
+
+  return trigger;
+}
+
+// ── WhatsApp Accounts ──────────────────────────────────────────────────
+
+export async function getWhatsAppAccounts(
+  db: ReturnType<typeof createDatabase>,
+  organizationId: string
+) {
+  return await db
+    .select({
+      id: whatsappAccounts.id,
+      name: whatsappAccounts.name,
+      phoneNumberId: whatsappAccounts.phoneNumberId,
+      wabaId: whatsappAccounts.wabaId,
+      tokenLastFour: whatsappAccounts.tokenLastFour,
+      createdAt: whatsappAccounts.createdAt,
+      updatedAt: whatsappAccounts.updatedAt,
+    })
+    .from(whatsappAccounts)
+    .where(eq(whatsappAccounts.organizationId, organizationId));
+}
+
+export async function getWhatsAppAccount(
+  db: ReturnType<typeof createDatabase>,
+  whatsappAccountId: string,
+  organizationId: string
+): Promise<WhatsAppAccountRow | undefined> {
+  const [account] = await db
+    .select()
+    .from(whatsappAccounts)
+    .where(
+      and(
+        eq(whatsappAccounts.id, whatsappAccountId),
+        eq(whatsappAccounts.organizationId, organizationId)
+      )
+    )
+    .limit(1);
+  return account;
+}
+
+export async function createWhatsAppAccount(
+  db: ReturnType<typeof createDatabase>,
+  newAccount: WhatsAppAccountInsert
+): Promise<WhatsAppAccountRow> {
+  const [account] = await db
+    .insert(whatsappAccounts)
+    .values(newAccount)
+    .returning();
+  return account;
+}
+
+export async function updateWhatsAppAccount(
+  db: ReturnType<typeof createDatabase>,
+  id: string,
+  organizationId: string,
+  data: Partial<WhatsAppAccountRow>
+): Promise<WhatsAppAccountRow> {
+  const [account] = await db
+    .update(whatsappAccounts)
+    .set(data)
+    .where(
+      and(
+        eq(whatsappAccounts.id, id),
+        eq(whatsappAccounts.organizationId, organizationId)
+      )
+    )
+    .returning();
+  return account;
+}
+
+export async function deleteWhatsAppAccount(
+  db: ReturnType<typeof createDatabase>,
+  id: string,
+  organizationId: string
+): Promise<WhatsAppAccountRow | undefined> {
+  const [account] = await db
+    .delete(whatsappAccounts)
+    .where(
+      and(
+        eq(whatsappAccounts.id, id),
+        eq(whatsappAccounts.organizationId, organizationId)
+      )
+    )
+    .returning();
+  return account;
+}
+
+// ── WhatsApp Triggers ──────────────────────────────────────────────────
+
+/**
+ * Get a whatsapp trigger for a workflow
+ */
+export async function getWhatsAppTrigger(
+  db: ReturnType<typeof createDatabase>,
+  workflowId: string,
+  organizationId: string
+): Promise<WhatsAppTriggerRow | undefined> {
+  const [trigger] = await db
+    .select()
+    .from(whatsappTriggers)
+    .innerJoin(workflows, eq(whatsappTriggers.workflowId, workflows.id))
+    .where(
+      and(
+        eq(whatsappTriggers.workflowId, workflowId),
+        eq(workflows.organizationId, organizationId)
+      )
+    )
+    .limit(1);
+
+  return trigger?.whatsapp_triggers;
+}
+
+/**
+ * Get all active whatsapp triggers for an account, optionally filtered by phone number ID.
+ * Triggers with no phoneNumberId match any phone number.
+ */
+export async function getWhatsAppTriggersByAccount(
+  db: ReturnType<typeof createDatabase>,
+  whatsappAccountId: string
+) {
+  const results = await db
+    .select({
+      whatsappTrigger: whatsappTriggers,
+      workflow: workflows,
+    })
+    .from(whatsappTriggers)
+    .innerJoin(workflows, eq(whatsappTriggers.workflowId, workflows.id))
+    .where(
+      and(
+        eq(whatsappTriggers.whatsappAccountId, whatsappAccountId),
+        eq(whatsappTriggers.active, true)
+      )
+    );
+
+  return results;
+}
+
+/**
+ * Get the verify token for a whatsapp account trigger (for webhook verification)
+ */
+export async function getWhatsAppVerifyTokenByAccount(
+  db: ReturnType<typeof createDatabase>,
+  whatsappAccountId: string
+): Promise<string | undefined> {
+  const [result] = await db
+    .select({ verifyToken: whatsappTriggers.verifyToken })
+    .from(whatsappTriggers)
+    .where(
+      and(
+        eq(whatsappTriggers.whatsappAccountId, whatsappAccountId),
+        eq(whatsappTriggers.active, true)
+      )
+    )
+    .limit(1);
+  return result?.verifyToken ?? undefined;
+}
+
+/**
+ * Upsert a whatsapp trigger for a workflow
+ */
+export async function upsertWhatsAppTrigger(
+  db: ReturnType<typeof createDatabase>,
+  trigger: WhatsAppTriggerInsert
+): Promise<WhatsAppTriggerRow> {
+  const [whatsappTrigger] = await db
+    .insert(whatsappTriggers)
+    .values(trigger)
+    .onConflictDoUpdate({
+      target: whatsappTriggers.workflowId,
+      set: {
+        phoneNumberId: trigger.phoneNumberId ?? null,
+        whatsappAccountId: trigger.whatsappAccountId,
+        verifyToken: trigger.verifyToken,
+        active: trigger.active,
+        updatedAt: new Date(),
+      },
+    })
+    .returning();
+
+  return whatsappTrigger;
+}
+
+/**
+ * Update verify token for all triggers using a whatsapp account
+ */
+export async function updateWhatsAppAccountVerifyToken(
+  db: ReturnType<typeof createDatabase>,
+  whatsappAccountId: string,
+  verifyToken: string
+): Promise<void> {
+  await db
+    .update(whatsappTriggers)
+    .set({ verifyToken, updatedAt: new Date() })
+    .where(eq(whatsappTriggers.whatsappAccountId, whatsappAccountId));
+}
+
+/**
+ * Delete a whatsapp trigger for a workflow
+ */
+export async function deleteWhatsAppTrigger(
+  db: ReturnType<typeof createDatabase>,
+  workflowId: string,
+  organizationId: string
+): Promise<WhatsAppTriggerRow | undefined> {
+  const [trigger] = await db
+    .delete(whatsappTriggers)
+    .where(
+      and(
+        eq(whatsappTriggers.workflowId, workflowId),
+        eq(
+          whatsappTriggers.workflowId,
           db
             .select({ id: workflows.id })
             .from(workflows)

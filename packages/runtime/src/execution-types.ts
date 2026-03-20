@@ -7,6 +7,7 @@ import type {
   QueueMessage,
   ScheduledTrigger,
   TelegramMessage,
+  WhatsAppMessage,
   Workflow,
 } from "@dafthunk/types";
 
@@ -91,6 +92,8 @@ export interface WorkflowExecutionContext {
   readonly discordInteraction?: DiscordInteraction;
   /** Incoming Telegram message (for telegram-triggered workflows) */
   readonly telegramMessage?: TelegramMessage;
+  /** Incoming WhatsApp message (for whatsapp-triggered workflows) */
+  readonly whatsappMessage?: WhatsAppMessage;
   /** Session ID for real-time monitoring updates */
   readonly workflowSessionId?: string;
 }

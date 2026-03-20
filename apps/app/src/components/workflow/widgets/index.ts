@@ -35,6 +35,7 @@ import { telegramTriggerInputWidget } from "./input/telegram-trigger-input";
 import { textInputWidget } from "./input/text-input";
 import { videoInputWidget } from "./input/video-input";
 import { webcamInputWidget } from "./input/webcam-input";
+import { whatsappTriggerInputWidget } from "./input/whatsapp-trigger-input";
 // Output widgets
 import { audioOutputWidget } from "./output/audio-output";
 import { blobOutputWidget } from "./output/blob-output";
@@ -76,6 +77,7 @@ const widgets = [
   httpWebhookEndpointWidget,
   queueTriggerInputWidget,
   telegramTriggerInputWidget,
+  whatsappTriggerInputWidget,
   javascriptInputWidget,
   sliderInputWidget,
   cronInputWidget,

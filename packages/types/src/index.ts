@@ -22,4 +22,6 @@ export * from "./telegram";
 export * from "./telegram-bot";
 export * from "./types";
 export * from "./usage";
+export * from "./whatsapp";
+export * from "./whatsapp-account";
 export * from "./workflow";

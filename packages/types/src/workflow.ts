@@ -18,7 +18,8 @@ export type WorkflowTrigger =
   | "queue_message"
   | "scheduled"
   | "discord_event"
-  | "telegram_event";
+  | "telegram_event"
+  | "whatsapp_event";
 
 /**
  * Workflow runtime modes
@@ -197,6 +198,10 @@ export type ParameterType =
   | {
       type: "telegram";
       value?: string; // Telegram bot ID reference
+    }
+  | {
+      type: "whatsapp";
+      value?: string; // WhatsApp account ID reference
     }
   | {
       type: "integration";

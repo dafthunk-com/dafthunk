@@ -4,6 +4,7 @@ import Globe from "lucide-react/icons/globe";
 import Inbox from "lucide-react/icons/inbox";
 import Layers from "lucide-react/icons/layers";
 import Mail from "lucide-react/icons/mail";
+import MessageCircle from "lucide-react/icons/message-circle";
 import MessageSquare from "lucide-react/icons/message-square";
 import Play from "lucide-react/icons/play";
 import Send from "lucide-react/icons/send";
@@ -71,6 +72,12 @@ const workflowTriggers = [
     title: "Telegram Event",
     description: "Trigger workflows from Telegram messages",
     icon: Send,
+  },
+  {
+    trigger: "whatsapp_event" as WorkflowTrigger,
+    title: "WhatsApp Event",
+    description: "Trigger workflows from WhatsApp messages",
+    icon: MessageCircle,
   },
 ];
 

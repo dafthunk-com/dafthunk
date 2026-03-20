@@ -285,6 +285,9 @@ export function WorkflowSidebar({
                         <SelectItem value="telegram_event">
                           Telegram Event
                         </SelectItem>
+                        <SelectItem value="whatsapp_event">
+                          WhatsApp Event
+                        </SelectItem>
                         <SelectItem value="queue_message">
                           Queue Message
                         </SelectItem>

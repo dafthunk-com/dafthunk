@@ -53,6 +53,7 @@ const getTypeIcon = (type: InputOutputType) => {
     email: <MailIcon className={iconSize} />,
     discord: <LinkIcon className={iconSize} />,
     telegram: <LinkIcon className={iconSize} />,
+    whatsapp: <LinkIcon className={iconSize} />,
     integration: <LinkIcon className={iconSize} />,
     any: <AsteriskIcon className={iconSize} />,
   };

@@ -5,6 +5,7 @@ import type {
   QueueMessage,
   ScheduledTrigger,
   TelegramMessage,
+  WhatsAppMessage,
   Workflow,
   WorkflowExecution,
 } from "@dafthunk/types";
@@ -68,6 +69,9 @@ export interface RuntimeParams {
   readonly discordBotToken?: string;
   readonly telegramMessage?: TelegramMessage;
   readonly telegramBotToken?: string;
+  readonly whatsappMessage?: WhatsAppMessage;
+  readonly whatsappAccessToken?: string;
+  readonly whatsappPhoneNumberId?: string;
   readonly userPlan?: string;
 }
 
@@ -124,6 +128,8 @@ export abstract class Runtime<Env = unknown> {
   protected userPlan?: string;
   protected discordBotToken?: string;
   protected telegramBotToken?: string;
+  protected whatsappAccessToken?: string;
+  protected whatsappPhoneNumberId?: string;
 
   /** Whether this runtime supports async node execution via waitForEvent */
   protected readonly supportsAsync: boolean = false;
@@ -256,12 +262,17 @@ export abstract class Runtime<Env = unknown> {
       discordBotToken,
       telegramMessage,
       telegramBotToken,
+      whatsappMessage,
+      whatsappAccessToken,
+      whatsappPhoneNumberId,
       userPlan,
     } = params;
 
     this.userPlan = userPlan;
     this.discordBotToken = discordBotToken;
     this.telegramBotToken = telegramBotToken;
+    this.whatsappAccessToken = whatsappAccessToken;
+    this.whatsappPhoneNumberId = whatsappPhoneNumberId;
 
     console.log(
       `[Runtime] run workflow=${workflow.id} trigger=${workflow.trigger} nodes=${workflow.nodes.length} telegramMessage=${!!telegramMessage} telegramBotToken=${!!telegramBotToken}`
@@ -337,6 +348,7 @@ export abstract class Runtime<Env = unknown> {
             scheduledTrigger,
             discordInteraction,
             telegramMessage,
+            whatsappMessage,
             workflowSessionId,
           };
 
@@ -943,6 +955,9 @@ export abstract class Runtime<Env = unknown> {
         discordBotToken: this.discordBotToken,
         telegramMessage: context.telegramMessage,
         telegramBotToken: this.telegramBotToken,
+        whatsappMessage: context.whatsappMessage,
+        whatsappAccessToken: this.whatsappAccessToken,
+        whatsappPhoneNumberId: this.whatsappPhoneNumberId,
         onProgress: () => {},
         toolRegistry: this.toolRegistry,
         objectStore: this.objectStore,

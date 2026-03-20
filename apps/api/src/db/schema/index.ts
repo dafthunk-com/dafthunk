@@ -57,6 +57,7 @@ export const WorkflowTriggerType = {
   QUEUE_MESSAGE: "queue_message",
   DISCORD_EVENT: "discord_event",
   TELEGRAM_EVENT: "telegram_event",
+  WHATSAPP_EVENT: "whatsapp_event",
 } as const;
 
 export type WorkflowTriggerTypeType =
@@ -652,6 +653,70 @@ export const telegramTriggers = sqliteTable(
   ]
 );
 
+// WhatsApp Accounts - User-provided WhatsApp Business accounts associated with organizations
+export const whatsappAccounts = sqliteTable(
+  "whatsapp_accounts",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    phoneNumberId: text("phone_number_id").notNull(),
+    encryptedAccessToken: text("encrypted_access_token").notNull(),
+    tokenLastFour: text("token_last_four").notNull(),
+    wabaId: text("waba_id"),
+    encryptedAppSecret: text("encrypted_app_secret"),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    createdAt: createCreatedAt(),
+    updatedAt: createUpdatedAt(),
+  },
+  (table) => [
+    index("whatsapp_accounts_name_idx").on(table.name),
+    index("whatsapp_accounts_organization_id_idx").on(table.organizationId),
+    index("whatsapp_accounts_phone_number_id_idx").on(table.phoneNumberId),
+    index("whatsapp_accounts_created_at_idx").on(table.createdAt),
+  ]
+);
+
+// WhatsApp Triggers - WhatsApp event triggers for workflows
+export const whatsappTriggers = sqliteTable(
+  "whatsapp_triggers",
+  {
+    workflowId: text("workflow_id")
+      .primaryKey()
+      .references(() => workflows.id, { onDelete: "cascade" }),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    phoneNumberId: text("phone_number_id"),
+    whatsappAccountId: text("whatsapp_account_id").references(
+      () => whatsappAccounts.id,
+      {
+        onDelete: "set null",
+      }
+    ),
+    verifyToken: text("verify_token"),
+    active: integer("active", { mode: "boolean" }).notNull().default(true),
+    createdAt: createCreatedAt(),
+    updatedAt: createUpdatedAt(),
+  },
+  (table) => [
+    index("whatsapp_triggers_workflow_id_idx").on(table.workflowId),
+    index("whatsapp_triggers_organization_id_idx").on(table.organizationId),
+    index("whatsapp_triggers_phone_number_id_idx").on(table.phoneNumberId),
+    index("whatsapp_triggers_whatsapp_account_id_idx").on(
+      table.whatsappAccountId
+    ),
+    index("whatsapp_triggers_active_idx").on(table.active),
+    index("whatsapp_triggers_created_at_idx").on(table.createdAt),
+    index("whatsapp_triggers_updated_at_idx").on(table.updatedAt),
+    uniqueIndex("whatsapp_triggers_phone_workflow_unique_idx").on(
+      table.phoneNumberId,
+      table.workflowId
+    ),
+  ]
+);
+
 // Secrets - Encrypted secrets associated with organizations
 export const secrets = sqliteTable(
   "secrets",
@@ -1076,6 +1141,12 @@ export type DiscordTriggerInsert = typeof discordTriggers.$inferInsert;
 
 export type TelegramTriggerRow = typeof telegramTriggers.$inferSelect;
 export type TelegramTriggerInsert = typeof telegramTriggers.$inferInsert;
+
+export type WhatsAppAccountRow = typeof whatsappAccounts.$inferSelect;
+export type WhatsAppAccountInsert = typeof whatsappAccounts.$inferInsert;
+
+export type WhatsAppTriggerRow = typeof whatsappTriggers.$inferSelect;
+export type WhatsAppTriggerInsert = typeof whatsappTriggers.$inferInsert;
 
 export type SecretRow = typeof secrets.$inferSelect;
 export type SecretInsert = typeof secrets.$inferInsert;

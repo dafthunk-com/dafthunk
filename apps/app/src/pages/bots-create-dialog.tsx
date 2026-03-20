@@ -1,4 +1,5 @@
 import Bot from "lucide-react/icons/bot";
+import MessageCircle from "lucide-react/icons/message-circle";
 import Send from "lucide-react/icons/send";
 import { useState } from "react";
 
@@ -11,13 +12,14 @@ import {
 } from "@/components/ui/dialog";
 import { DiscordBotCreateDialog } from "@/components/workflow/widgets/input/discord-bot-create-dialog";
 import { TelegramBotCreateDialog } from "@/components/workflow/widgets/input/telegram-bot-create-dialog";
+import { WhatsAppAccountCreateDialog } from "@/components/workflow/widgets/input/whatsapp-account-create-dialog";
 
-type Step = "choose-type" | "discord" | "telegram";
+type Step = "choose-type" | "discord" | "telegram" | "whatsapp";
 
 interface BotsCreateDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreated: (botId: string, type: "discord" | "telegram") => void;
+  onCreated: (botId: string, type: "discord" | "telegram" | "whatsapp") => void;
 }
 
 export function BotsCreateDialog({
@@ -55,6 +57,16 @@ export function BotsCreateDialog({
     );
   }
 
+  if (step === "whatsapp") {
+    return (
+      <WhatsAppAccountCreateDialog
+        isOpen={open}
+        onClose={() => handleOpenChange(false)}
+        onCreated={(accountId) => onCreated(accountId, "whatsapp")}
+      />
+    );
+  }
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent>
@@ -65,7 +77,7 @@ export function BotsCreateDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-2 gap-4 py-4">
+        <div className="grid grid-cols-3 gap-4 py-4">
           <button
             type="button"
             onClick={() => setStep("discord")}
@@ -81,6 +93,14 @@ export function BotsCreateDialog({
           >
             <Send className="h-8 w-8" />
             <span className="font-medium">Telegram</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setStep("whatsapp")}
+            className="flex flex-col items-center gap-3 rounded-lg border p-6 hover:border-primary hover:bg-accent transition-colors"
+          >
+            <MessageCircle className="h-8 w-8" />
+            <span className="font-medium">WhatsApp</span>
           </button>
         </div>
       </DialogContent>
