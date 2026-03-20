@@ -59,7 +59,7 @@ export function getGatewayConfig(
       provider
     ),
     headers: {
-      "cf-aig-authorization": `Bearer ${CLOUDFLARE_API_TOKEN}`,
+      Authorization: `Bearer ${CLOUDFLARE_API_TOKEN}`,
     },
   };
 }
