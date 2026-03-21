@@ -1,75 +1,31 @@
 /**
  * Workflow Runtime
  *
- * Re-exports WorkflowRuntime from @dafthunk/runtime and provides a Cloudflare-specific
- * factory function that wires production dependencies.
- *
- * @see {@link WorkflowRuntime} - Base runtime class
- * @see {@link createWorkflowRuntime} - Factory for Cloudflare Workers
+ * Factory for creating a WorkflowRuntime wired with Cloudflare production
+ * dependencies. Used by WorkflowRuntimeEntrypoint (AgentWorkflow) to execute
+ * workflows with real-time progress reporting back to the originating Agent.
  */
 
-import { type RuntimeDependencies, WorkflowRuntime } from "@dafthunk/runtime";
+import { type MonitoringService, WorkflowRuntime } from "@dafthunk/runtime";
+import type { WorkflowExecution } from "@dafthunk/types";
 
 import type { Bindings } from "../context";
-import { CloudflareCredentialService } from "./cloudflare-credential-service";
-import { CloudflareCreditService } from "./cloudflare-credit-service";
-import { CloudflareDatabaseService } from "./cloudflare-database-service";
-import { CloudflareDatasetService } from "./cloudflare-dataset-service";
-import { CloudflareExecutionStore } from "./cloudflare-execution-store";
-import { CloudflareMonitoringService } from "./cloudflare-monitoring-service";
-import { CloudflareNodeRegistry } from "./cloudflare-node-registry";
-import {
-  buildPresignedUrlConfig,
-  CloudflareObjectStore,
-} from "./cloudflare-object-store";
-import { CloudflareQueueService } from "./cloudflare-queue-service";
-import { CloudflareToolRegistry } from "./cloudflare-tool-registry";
-import { createToolContext } from "./tool-context";
-import { runtimeVersion } from "./version";
+import { buildDependencies } from "./cloudflare-runtime-dependencies";
 
 export { WorkflowRuntime } from "@dafthunk/runtime";
 
 /**
- * Creates a WorkflowRuntime with Cloudflare production dependencies.
+ * Creates a WorkflowRuntime for AgentWorkflow execution.
+ * Monitoring updates flow through reportProgress → onWorkflowProgress → WS clients.
  */
 export function createWorkflowRuntime(
-  env: Bindings
+  env: Bindings,
+  reportProgress: (execution: WorkflowExecution) => Promise<void>
 ): WorkflowRuntime<Bindings> {
-  const nodeRegistry = new CloudflareNodeRegistry(env, true);
-  const objectStore = new CloudflareObjectStore(
-    env.RESSOURCES,
-    buildPresignedUrlConfig(env)
-  );
-  const credentialProvider = new CloudflareCredentialService(env);
-  const databaseService = new CloudflareDatabaseService(env);
-  const datasetService = new CloudflareDatasetService(env);
-  const queueService = new CloudflareQueueService(env);
-  const toolRegistry = new CloudflareToolRegistry(
-    nodeRegistry,
-    (nodeId, inputs) =>
-      createToolContext(nodeId, inputs, env, objectStore, credentialProvider, {
-        databaseService,
-        datasetService,
-        queueService,
-      })
-  );
-
-  const dependencies: RuntimeDependencies<Bindings> = {
-    nodeRegistry,
-    credentialProvider,
-    executionStore: new CloudflareExecutionStore(env),
-    monitoringService: new CloudflareMonitoringService(env.WORKFLOW_AGENT),
-    creditService: new CloudflareCreditService(
-      env.KV,
-      env.CLOUDFLARE_ENV === "development"
-    ),
-    objectStore,
-    toolRegistry,
-    databaseService,
-    datasetService,
-    queueService,
-    runtimeVersion,
+  const monitoringService: MonitoringService = {
+    async sendUpdate(execution) {
+      await reportProgress(execution);
+    },
   };
-
-  return new WorkflowRuntime(env, dependencies);
+  return new WorkflowRuntime(env, buildDependencies(env, monitoringService));
 }

@@ -94,8 +94,6 @@ export interface WorkflowExecutionContext {
   readonly telegramMessage?: TelegramMessage;
   /** Incoming WhatsApp message (for whatsapp-triggered workflows) */
   readonly whatsappMessage?: WhatsAppMessage;
-  /** Session ID for real-time monitoring updates */
-  readonly workflowSessionId?: string;
 }
 
 /**

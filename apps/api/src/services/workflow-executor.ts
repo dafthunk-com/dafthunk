@@ -8,6 +8,7 @@
 import type { BlobParameter } from "@dafthunk/runtime";
 import type { Node, WorkflowExecution, WorkflowRuntime } from "@dafthunk/types";
 import type { Bindings } from "../context";
+import { getAgentByName } from "../durable-objects/agent-utils";
 import { createWorkerRuntime } from "../runtime/cloudflare-worker-runtime";
 import { createSimulatedEmailMessage } from "../utils/email";
 import { createSimulatedHttpRequest } from "../utils/http";
@@ -27,7 +28,6 @@ export interface WorkflowExecutorOptions {
   subscriptionStatus?: string;
   /** Maximum additional usage allowed beyond included credits. null = unlimited */
   overageLimit?: number | null;
-  workflowSessionId?: string;
   parameters?: WorkflowExecutorParameters;
   userPlan?: string;
   env: Bindings;
@@ -72,7 +72,6 @@ export class WorkflowExecutor {
       computeCredits,
       subscriptionStatus,
       overageLimit,
-      workflowSessionId,
       parameters,
       userPlan,
       env,
@@ -92,7 +91,6 @@ export class WorkflowExecutor {
       computeCredits,
       ...(subscriptionStatus && { subscriptionStatus }),
       ...(overageLimit !== undefined && { overageLimit }),
-      ...(workflowSessionId && { workflowSessionId }),
       ...(userPlan && { userPlan }),
     };
 
@@ -148,11 +146,9 @@ export class WorkflowExecutor {
       return { executionId: execution.id, execution };
     }
 
-    // Start workflow execution using Cloudflare Workflows (durable)
-    const instance = await env.EXECUTE.create({
-      params: finalExecutionParams,
-    });
-    const executionId = instance.id;
+    // Start workflow execution via Agent RPC (durable)
+    const agent = await getAgentByName(env.WORKFLOW_AGENT, workflow.id);
+    const executionId = await agent.executeWorkflow(finalExecutionParams);
     console.log(
       `[Execution] ${executionId} workflow=${workflow.id} runtime=workflow trigger=${workflow.trigger}`
     );

@@ -7,10 +7,9 @@
  * This module provides:
  * - CloudflareCreditService: Compute usage tracking backed by Stripe
  * - WorkerRuntime / WorkflowRuntime: Cloudflare-specific runtime factories
- * - WorkflowRuntimeEntrypoint: Cloudflare Workflows adapter (durable execution)
+ * - WorkflowRuntimeEntrypoint: AgentWorkflow adapter (durable execution)
  */
 
-export { WorkflowRuntimeEntrypoint } from "./workflow-runtime-entrypoint";
 export { CloudflareCreditService } from "./cloudflare-credit-service";
 export {
   createWorkerRuntime,
@@ -20,3 +19,4 @@ export {
   createWorkflowRuntime,
   WorkflowRuntime,
 } from "./cloudflare-workflow-runtime";
+export { WorkflowRuntimeEntrypoint } from "./workflow-runtime-entrypoint";

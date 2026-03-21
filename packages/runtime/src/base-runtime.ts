@@ -60,7 +60,6 @@ export interface RuntimeParams {
   readonly subscriptionStatus?: string;
   /** Maximum additional usage allowed beyond included credits. null = unlimited */
   readonly overageLimit?: number | null;
-  readonly workflowSessionId?: string;
   readonly httpRequest?: HttpRequest;
   readonly emailMessage?: EmailMessage;
   readonly queueMessage?: QueueMessage;
@@ -249,7 +248,6 @@ export abstract class Runtime<Env = unknown> {
     const {
       userId,
       organizationId,
-      workflowSessionId,
       workflow,
       computeCredits,
       subscriptionStatus,
@@ -296,7 +294,7 @@ export abstract class Runtime<Env = unknown> {
       endedAt: undefined,
     } as WorkflowExecution;
 
-    await this.monitoringService.sendUpdate(workflowSessionId, executionRecord);
+    await this.monitoringService.sendUpdate(executionRecord);
 
     // Compute definition hash for provenance tracking
     const definitionHash = await computeDefinitionHash(workflow);
@@ -349,7 +347,7 @@ export abstract class Runtime<Env = unknown> {
             discordInteraction,
             telegramMessage,
             whatsappMessage,
-            workflowSessionId,
+
           };
 
           // Mutable state
@@ -392,10 +390,7 @@ export abstract class Runtime<Env = unknown> {
         isExhausted = true;
         executionRecord.status = "exhausted";
         executionRecord.error = "Insufficient compute credits";
-        await this.monitoringService.sendUpdate(
-          workflowSessionId,
-          executionRecord
-        );
+        await this.monitoringService.sendUpdate(executionRecord);
         return executionRecord;
       }
 
@@ -410,10 +405,7 @@ export abstract class Runtime<Env = unknown> {
         executionContext,
         executionState
       );
-      await this.monitoringService.sendUpdate(
-        workflowSessionId,
-        executionRecord
-      );
+      await this.monitoringService.sendUpdate(executionRecord);
 
       // ========================================================================
       // STEP 4: Execute workflow nodes level-by-level
@@ -438,10 +430,7 @@ export abstract class Runtime<Env = unknown> {
         status: "error",
         error: error instanceof Error ? error.message : String(error),
       };
-      await this.monitoringService.sendUpdate(
-        workflowSessionId,
-        executionRecord
-      );
+      await this.monitoringService.sendUpdate(executionRecord);
     } finally {
       executionRecord.endedAt = new Date();
 
@@ -500,10 +489,7 @@ export abstract class Runtime<Env = unknown> {
         );
       }
 
-      await this.monitoringService.sendUpdate(
-        workflowSessionId,
-        executionRecord
-      );
+      await this.monitoringService.sendUpdate(executionRecord);
     }
 
     return executionRecord;
@@ -574,10 +560,7 @@ export abstract class Runtime<Env = unknown> {
           state
         ),
       };
-      await this.monitoringService.sendUpdate(
-        context.workflowSessionId,
-        currentRecord
-      );
+      await this.monitoringService.sendUpdate(currentRecord);
     }
 
     return { state, record: currentRecord };

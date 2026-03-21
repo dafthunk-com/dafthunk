@@ -93,7 +93,6 @@ export class ExecutionManager {
       computeCredits,
       subscriptionStatus: subscriptionStatus ?? undefined,
       overageLimit: overageLimit ?? null,
-      workflowSessionId: state.id,
       parameters: executorParameters,
       userPlan: resolvedUserPlan,
       env: this.env,

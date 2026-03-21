@@ -2,17 +2,12 @@ import { Hono } from "hono";
 
 import { jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
+import { getAgentByName } from "../durable-objects/agent-utils";
 
 const wsRoutes = new Hono<ApiContext>();
 
 // WebSocket endpoint for real-time workflow state synchronization
 wsRoutes.get("/:workflowId", jwtMiddleware, async (c) => {
-  const upgradeHeader = c.req.header("Upgrade");
-
-  if (!upgradeHeader || upgradeHeader !== "websocket") {
-    return c.json({ error: "Expected WebSocket connection" }, 426);
-  }
-
   const userId = c.var.jwtPayload?.sub;
 
   if (!userId) {
@@ -21,11 +16,10 @@ wsRoutes.get("/:workflowId", jwtMiddleware, async (c) => {
 
   const workflowId = c.req.param("workflowId");
 
-  // Create a unique DO ID for this workflow
-  const doId = c.env.WORKFLOW_AGENT.idFromName(workflowId);
-  const stub = c.env.WORKFLOW_AGENT.get(doId);
+  // getAgentByName initializes the partyserver name before returning the stub
+  const stub = await getAgentByName(c.env.WORKFLOW_AGENT, workflowId);
 
-  // Pass the original request with userId in a custom header
+  // Forward the WS upgrade request with userId header
   const headers = new Headers(c.req.raw.headers);
   headers.set("X-User-Id", userId);
   const newReq = new Request(c.req.url, {

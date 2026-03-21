@@ -167,6 +167,9 @@ importers:
       globals:
         specifier: ^15.15.0
         version: 15.15.0
+      partyserver:
+        specifier: ^0.3.3
+        version: 0.3.3(@cloudflare/workers-types@4.20260317.1)
       typescript:
         specifier: ^5.9.3
         version: 5.9.3

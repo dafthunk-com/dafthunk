@@ -6,6 +6,7 @@ import {
   getActiveScheduledTriggers,
   getOrganizationComputeCredits,
 } from "./db";
+import { getAgentByName } from "./durable-objects/agent-utils";
 import { createWorkerRuntime } from "./runtime/cloudflare-worker-runtime";
 import { WorkflowStore } from "./stores/workflow-store";
 
@@ -96,11 +97,10 @@ export async function handleScheduledEvent(
           `[Execution] ${execution.id} workflow=${workflow.id} runtime=worker trigger=scheduled`
         );
       } else {
-        const executionInstance = await env.EXECUTE.create({
-          params: executionParams,
-        });
+        const agent = await getAgentByName(env.WORKFLOW_AGENT, workflow.id);
+        const executionId = await agent.executeWorkflow(executionParams);
         console.log(
-          `[Execution] ${executionInstance.id} workflow=${workflow.id} runtime=workflow trigger=scheduled`
+          `[Execution] ${executionId} workflow=${workflow.id} runtime=workflow trigger=scheduled`
         );
       }
     } catch (error) {

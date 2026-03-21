@@ -55,6 +55,7 @@ import {
   upsertQueueTrigger as upsertDbQueueTrigger,
   workflows,
 } from "../db";
+import { getAgentByName } from "../durable-objects/agent-utils";
 import { createRateLimitMiddleware } from "../middleware/rate-limit";
 import { CloudflareExecutionStore } from "../runtime/cloudflare-execution-store";
 import { CloudflareNodeRegistry } from "../runtime/cloudflare-node-registry";
@@ -556,9 +557,12 @@ workflowRoutes.post(
     const executionData = execution.data;
 
     try {
-      // Get the workflow instance and terminate it
-      const instance = await c.env.EXECUTE.get(executionId);
-      await instance.terminate();
+      // Terminate the workflow via Agent RPC
+      const agent = await getAgentByName(
+        c.env.WORKFLOW_AGENT,
+        execution.workflowId
+      );
+      await agent.cancelWorkflow(executionId);
 
       // Update the execution status in the database
       const now = new Date();

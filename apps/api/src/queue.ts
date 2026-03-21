@@ -1,6 +1,6 @@
 import type { QueueMessage, Workflow } from "@dafthunk/types";
-
 import type { Bindings } from "./context";
+import { getAgentByName } from "./durable-objects/agent-utils";
 import { createDatabase } from "./db";
 import {
   getOrganizationComputeCredits,
@@ -66,11 +66,10 @@ async function executeWorkflow(
         `[Execution] ${execution.id} workflow=${workflowInfo.id} runtime=worker trigger=queue`
       );
     } else {
-      const executionInstance = await env.EXECUTE.create({
-        params: executionParams,
-      });
+      const agent = await getAgentByName(env.WORKFLOW_AGENT, workflowInfo.id);
+      const executionId = await agent.executeWorkflow(executionParams);
       console.log(
-        `[Execution] ${executionInstance.id} workflow=${workflowInfo.id} runtime=workflow trigger=queue`
+        `[Execution] ${executionId} workflow=${workflowInfo.id} runtime=workflow trigger=queue`
       );
     }
   } catch (execError) {

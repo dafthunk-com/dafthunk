@@ -2,13 +2,14 @@
  * WorkflowAgent Durable Object
  *
  * Manages workflow state synchronization, WebSocket connections, and execution
- * triggering. Receives execution updates via HTTP POST from the monitoring service.
+ * triggering. Extends the Cloudflare Agents SDK `Agent` base class for built-in
+ * WebSocket management and workflow orchestration via AgentWorkflow callbacks.
  *
- * Uses the standard DurableObject Hibernation API for WebSocket handling,
- * keeping the same protocol as the old Session DO for frontend compatibility.
+ * Callers obtain a stub via getAgentByName() which initializes the partyserver
+ * name required by Agent internals. Direct idFromName/get access will fail.
  */
 
-import { DurableObject } from "cloudflare:workers";
+import type { RuntimeParams } from "@dafthunk/runtime";
 import type {
   ClientMessage,
   WorkflowExecuteMessage,
@@ -18,34 +19,51 @@ import type {
   WorkflowState,
   WorkflowUpdateMessage,
 } from "@dafthunk/types";
+import { Agent } from "agents";
+import type { Connection, ConnectionContext } from "partyserver";
 
 import type { Bindings } from "../context";
 import { ExecutionManager } from "../services/execution-manager";
 import type { SaveWorkflowRecord } from "../stores/workflow-store";
 import { WorkflowStore } from "../stores/workflow-store";
 
-// ── Execution tracking ──────────────────────────────────────────────────
+// ── Agent SDK type shim ──────────────────────────────────────────────────
+// The agents bundled d.ts doesn't resolve some inherited Agent/Server methods
+// due to transitive partyserver type resolution issues. The methods exist at
+// runtime. We define typed wrappers on the class to contain the cast in one
+// place rather than scattering it across call sites.
+
+interface HiddenAgentMethods {
+  broadcast(msg: string, without?: string[]): void;
+  getConnection(id: string): Connection | undefined;
+  runWorkflow(workflowName: string, params: RuntimeParams): Promise<string>;
+  terminateWorkflow(workflowId: string): Promise<void>;
+}
+
+// ── Types ────────────────────────────────────────────────────────────────
+
+interface WorkflowAgentState {
+  workflowId?: string;
+  userId?: string;
+  apiHost?: string;
+}
 
 interface ExecutionTracking {
-  ws: WebSocket;
+  connectionId: string;
   execution: WorkflowExecution | null;
 }
 
-// ── WorkflowAgent ───────────────────────────────────────────────────────
+// ── WorkflowAgent ────────────────────────────────────────────────────────
 
-export class WorkflowAgent extends DurableObject<Bindings> {
+export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
   private static readonly PERSIST_DEBOUNCE_MS = 500;
 
-  private executionManager: ExecutionManager;
+  initialState: WorkflowAgentState = {};
 
-  // In-memory state (loaded from D1/R2, persisted on changes)
+  private executionManager: ExecutionManager | null = null;
   private workflowState: WorkflowState | null = null;
   private organizationId: string | null = null;
-  private userId: string | null = null;
-  private apiHost: string | null = null;
 
-  // Connection & execution tracking (rebuilt after hibernation)
-  private connections = new Map<WebSocket, ExecutionTracking>();
   private executionIndex = new Map<string, ExecutionTracking>();
   private executionBuffer = new Map<
     string,
@@ -55,242 +73,247 @@ export class WorkflowAgent extends DurableObject<Bindings> {
   private persistInFlight = false;
   private persistInFlightPromise: Promise<void> | null = null;
 
-  constructor(ctx: DurableObjectState, env: Bindings) {
-    super(ctx, env);
-    this.executionManager = new ExecutionManager({ env });
+  // ── Agent SDK method wrappers ─────────────────────────────────────────
+  // Each wraps the cast once. Call sites use these instead of agentSelf().
 
-    // Recover WebSocket connections after hibernation
-    const websockets = this.ctx.getWebSockets();
-    this.recoverConnections(websockets);
+  private get hiddenMethods(): HiddenAgentMethods {
+    return this as unknown as HiddenAgentMethods;
   }
 
-  // ── HTTP fetch handler ──────────────────────────────────────────────
-
-  async fetch(request: Request): Promise<Response> {
-    const url = new URL(request.url);
-
-    // Internal endpoint for execution updates from Runtime (no auth needed)
-    if (url.pathname.endsWith("/execution") && request.method === "POST") {
-      return this.handleExecutionUpdate(request);
-    }
-
-    // Capture API host
-    this.setApiHost(url.origin);
-
-    // Auth extraction
-    const pathParts = url.pathname.split("/").filter(Boolean);
-    const workflowId = pathParts[pathParts.length - 1] || "";
-    const userId = request.headers.get("X-User-Id") || "";
-
-    if (!workflowId) {
-      return new Response("Missing workflowId in path", { status: 400 });
-    }
-    if (!userId) {
-      return new Response("Missing userId header", { status: 401 });
-    }
-
-    // Ensure state is loaded
-    const stateResult = await this.ensureState(workflowId, userId);
-    if (!stateResult.success) {
-      return stateResult.response;
-    }
-
-    // State GET endpoint
-    if (url.pathname.endsWith("/state") && request.method === "GET") {
-      return Response.json(this.workflowState);
-    }
-
-    // WebSocket upgrade
-    const upgradeHeader = request.headers.get("Upgrade");
-    if (upgradeHeader === "websocket") {
-      await this.storeRecoveryData();
-      return this.handleWebSocketUpgrade();
-    }
-
-    return new Response("Expected /state GET or WebSocket upgrade", {
-      status: 400,
-    });
+  private broadcastMessage(msg: string, exclude?: string[]): void {
+    this.hiddenMethods.broadcast(msg, exclude);
   }
 
-  // ── Execution update endpoint (HTTP, called by CloudflareMonitoringService) ──
-
-  private async handleExecutionUpdate(request: Request): Promise<Response> {
-    try {
-      const execution = (await request.json()) as WorkflowExecution;
-      this.broadcastExecutionUpdate(execution);
-      return Response.json({ ok: true });
-    } catch (error) {
-      console.error("Error handling execution update:", error);
-      return Response.json(
-        {
-          error: "Failed to handle execution update",
-          details: error instanceof Error ? error.message : "Unknown error",
-        },
-        { status: 500 }
-      );
-    }
+  private findConnection(id: string): Connection | undefined {
+    return this.hiddenMethods.getConnection(id);
   }
 
-  // ── WebSocket handling (Hibernation API) ────────────────────────────
+  async executeWorkflow(params: RuntimeParams): Promise<string> {
+    return this.hiddenMethods.runWorkflow("EXECUTE", params);
+  }
 
-  private handleWebSocketUpgrade(): Response {
-    const webSocketPair = new WebSocketPair();
-    const [client, server] = Object.values(webSocketPair);
+  async cancelWorkflow(workflowId: string): Promise<void> {
+    await this.hiddenMethods.terminateWorkflow(workflowId);
+  }
 
-    this.ctx.acceptWebSocket(server);
-    this.connections.set(server, { ws: server, execution: null });
+  // ── Agent SDK overrides ───────────────────────────────────────────────
+
+  shouldSendProtocolMessages(
+    _connection: Connection,
+    _ctx: ConnectionContext
+  ): boolean {
+    return false;
+  }
+
+  // ── WebSocket lifecycle ───────────────────────────────────────────────
+
+  async onConnect(
+    connection: Connection,
+    ctx: ConnectionContext
+  ): Promise<void> {
+    const userId = ctx.request.headers.get("X-User-Id") || "";
+    const workflowId =
+      ctx.request.headers.get("x-partykit-room") ||
+      new URL(ctx.request.url).pathname.split("/").pop() ||
+      "";
+
+    if (!workflowId || !userId) {
+      connection.close(1008, "Missing workflowId or userId");
+      return;
+    }
+
+    this.setApiHost(new URL(ctx.request.url).origin);
+
+    if (!(await this.tryLoadState(workflowId, userId))) {
+      connection.close(1008, "Failed to load workflow state");
+      return;
+    }
 
     if (this.workflowState) {
       const initMessage: WorkflowInitMessage = {
         type: "init",
         state: this.workflowState,
       };
-      server.send(JSON.stringify(initMessage));
+      connection.send(JSON.stringify(initMessage));
     }
-
-    return new Response(null, {
-      status: 101,
-      webSocket: client,
-    });
   }
 
-  async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
+  async onMessage(
+    connection: Connection,
+    message: string | ArrayBuffer
+  ): Promise<void> {
     try {
-      await this.ensureInitialized();
+      this.requireInitialized();
 
       if (typeof message !== "string") {
-        ws.close(1003, "Binary messages not supported");
+        connection.close(1003, "Binary messages not supported");
         return;
       }
 
       const parsed = this.parseMessage(message);
       if (!parsed || !("type" in parsed)) {
-        ws.close(1003, "Invalid message format");
+        connection.close(1003, "Invalid message format");
         return;
       }
 
       switch (parsed.type) {
         case "update":
-          this.handleUpdateMessage(ws, parsed as WorkflowUpdateMessage);
+          this.handleUpdateMessage(connection, parsed as WorkflowUpdateMessage);
           break;
         case "execute":
-          await this.handleExecuteMessage(ws, parsed as WorkflowExecuteMessage);
+          await this.handleExecuteMessage(
+            connection,
+            parsed as WorkflowExecuteMessage
+          );
           break;
         default:
-          ws.close(1003, "Unknown message type");
+          connection.close(1003, "Unknown message type");
           break;
       }
     } catch (error) {
       console.error("Failed to process message:", error);
-      ws.close(1011, "Message processing failed");
+      connection.close(1011, "Message processing failed");
     }
   }
 
-  async webSocketClose(
-    ws: WebSocket,
+  async onClose(
+    connection: Connection,
     _code: number,
     _reason: string,
     _wasClean: boolean
-  ) {
-    const tracking = this.connections.get(ws);
-    if (tracking?.execution) {
-      this.executionIndex.delete(tracking.execution.id);
+  ): Promise<void> {
+    for (const [executionId, tracking] of this.executionIndex) {
+      if (tracking.connectionId === connection.id) {
+        this.executionIndex.delete(executionId);
+      }
     }
-    this.connections.delete(ws);
     await this.flushPersist();
   }
 
-  // ── Connection recovery ─────────────────────────────────────────────
+  // ── HTTP fetch ────────────────────────────────────────────────────────
 
-  private recoverConnections(websockets: WebSocket[]): void {
-    for (const ws of websockets) {
-      const attachment = ws.deserializeAttachment();
-      const executionId =
-        attachment &&
-        typeof attachment === "object" &&
-        "executionId" in attachment &&
-        typeof attachment.executionId === "string"
-          ? attachment.executionId
-          : null;
+  async fetch(request: Request): Promise<Response> {
+    const url = new URL(request.url);
 
-      const execution: WorkflowExecution | null = executionId
-        ? {
-            id: executionId,
-            workflowId: "",
-            status: "executing",
-            nodeExecutions: [],
-          }
-        : null;
+    if (url.pathname.endsWith("/state") && request.method === "GET") {
+      const pathParts = url.pathname.split("/").filter(Boolean);
+      const workflowId = pathParts[pathParts.length - 2] || "";
+      const userId = request.headers.get("X-User-Id") || "";
 
-      const tracking: ExecutionTracking = { ws, execution };
-      this.connections.set(ws, tracking);
-
-      if (executionId && execution) {
-        this.executionIndex.set(executionId, tracking);
+      if (workflowId && userId) {
+        await this.tryLoadState(workflowId, userId);
       }
+      return Response.json(this.workflowState);
     }
+
+    // Delegate WebSocket upgrade and other requests to Agent SDK
+    const superFetch = (
+      super.fetch as (req: Request) => Promise<Response>
+    ).bind(this);
+    return superFetch(request);
   }
 
-  // ── State management ────────────────────────────────────────────────
+  // ── AgentWorkflow callbacks ───────────────────────────────────────────
+
+  async onWorkflowProgress(
+    _workflowName: string,
+    _workflowId: string,
+    progress: unknown
+  ): Promise<void> {
+    this.routeExecutionUpdate(progress as WorkflowExecution);
+  }
+
+  async onWorkflowComplete(
+    _workflowName: string,
+    workflowId: string,
+    result?: unknown
+  ): Promise<void> {
+    const execution = result as WorkflowExecution | undefined;
+    this.routeExecutionUpdate(
+      execution ?? {
+        id: workflowId,
+        workflowId: this.workflowState?.id || "",
+        status: "completed",
+        nodeExecutions: [],
+      }
+    );
+  }
+
+  async onWorkflowError(
+    _workflowName: string,
+    workflowId: string,
+    error: string
+  ): Promise<void> {
+    this.routeExecutionUpdate({
+      id: workflowId,
+      workflowId: this.workflowState?.id || "",
+      status: "error",
+      nodeExecutions: [],
+      error,
+    });
+  }
+
+  // ── State loading ─────────────────────────────────────────────────────
 
   private setApiHost(apiHost: string): void {
-    this.apiHost = apiHost;
-    this.ctx.storage.put("apiHost", apiHost);
+    this.setState({ ...this.state, apiHost });
   }
 
-  private async ensureInitialized(): Promise<void> {
-    if (this.workflowState) {
-      return;
-    }
+  /**
+   * Throws if workflow state is not loaded. Used by onMessage which always
+   * runs after onConnect has loaded state — failure here means the DO
+   * woke from hibernation and Agent state was lost.
+   */
+  private requireInitialized(): void {
+    if (this.workflowState) return;
 
-    const [workflowId, userId, apiHost] = await Promise.all([
-      this.ctx.storage.get<string>("workflowId"),
-      this.ctx.storage.get<string>("userId"),
-      this.ctx.storage.get<string>("apiHost"),
-    ]);
-
-    if (apiHost) {
-      this.apiHost = apiHost;
-    }
-
+    const { workflowId, userId } = this.state ?? {};
     if (!workflowId || !userId) {
       throw new Error("Session state lost. Please refresh the page.");
     }
-
-    await this.loadState(workflowId, userId);
+    // State exists in Agent storage but not loaded into memory yet.
+    // This shouldn't happen in practice since onConnect always loads first,
+    // but if it does, the throw above gives a clear error.
+    throw new Error("Workflow state not loaded. Reconnect to reload.");
   }
 
-  private async ensureState(
+  /**
+   * Attempt to load workflow state. First tries Agent state (hibernation
+   * recovery), then falls back to loading from D1. Returns false only if
+   * both paths fail.
+   */
+  private async tryLoadState(
     workflowId: string,
     userId: string
-  ): Promise<{ success: true } | { success: false; response: Response }> {
-    // Try to recover from hibernation
-    try {
-      await this.ensureInitialized();
-      return { success: true };
-    } catch {
-      // Recovery failed, load from database
+  ): Promise<boolean> {
+    // Fast path: already loaded in memory
+    if (this.workflowState) return true;
+
+    // Try recovering from Agent state (hibernation wake)
+    const { workflowId: savedId, userId: savedUser } = this.state ?? {};
+    if (savedId && savedUser) {
+      try {
+        await this.loadFromDatabase(savedId, savedUser);
+        return true;
+      } catch {
+        // Fall through to explicit params
+      }
     }
 
+    // Load from caller-provided params
     try {
-      await this.loadState(workflowId, userId);
-      return { success: true };
+      await this.loadFromDatabase(workflowId, userId);
+      return true;
     } catch (error) {
       console.error("Error loading workflow:", error);
-      return {
-        success: false,
-        response: Response.json(
-          {
-            error: "Failed to load workflow",
-            details: error instanceof Error ? error.message : "Unknown error",
-          },
-          { status: 403 }
-        ),
-      };
+      return false;
     }
   }
 
-  private async loadState(workflowId: string, userId: string): Promise<void> {
+  private async loadFromDatabase(
+    workflowId: string,
+    userId: string
+  ): Promise<void> {
     const workflowStore = new WorkflowStore(this.env);
     const result = await workflowStore.getWithUserAccess(workflowId, userId);
 
@@ -326,22 +349,11 @@ export class WorkflowAgent extends DurableObject<Bindings> {
     };
 
     this.organizationId = organizationId;
-    this.userId = userId;
 
-    // Persist recovery data so ensureInitialized works after hibernation
-    await this.storeRecoveryData();
+    this.setState({ ...this.state, workflowId, userId });
   }
 
-  private async storeRecoveryData(): Promise<void> {
-    if (this.workflowState && this.userId) {
-      await Promise.all([
-        this.ctx.storage.put("workflowId", this.workflowState.id),
-        this.ctx.storage.put("userId", this.userId),
-      ]);
-    }
-  }
-
-  // ── Message handling ────────────────────────────────────────────────
+  // ── Message handling ──────────────────────────────────────────────────
 
   private parseMessage(message: string): ClientMessage | null {
     try {
@@ -352,103 +364,88 @@ export class WorkflowAgent extends DurableObject<Bindings> {
   }
 
   private handleUpdateMessage(
-    ws: WebSocket,
+    connection: Connection,
     message: WorkflowUpdateMessage
   ): void {
-    if (!this.workflowState) {
-      console.error("Invalid state update: workflow not loaded");
-      return;
-    }
-
-    if (message.state.id !== this.workflowState.id) {
-      console.error("Invalid state update: workflow ID mismatch");
-      return;
-    }
-
-    if (!message.state.name || !message.state.trigger) {
-      console.error("Invalid state update: missing required fields");
-      return;
-    }
-
+    if (!this.workflowState) return;
+    if (message.state.id !== this.workflowState.id) return;
+    if (!message.state.name || !message.state.trigger) return;
     if (
       !Array.isArray(message.state.nodes) ||
       !Array.isArray(message.state.edges)
-    ) {
-      console.error("Invalid state update: nodes and edges must be arrays");
+    )
       return;
-    }
 
-    // Filter out orphaned edges
     const nodeIds = new Set(message.state.nodes.map((node) => node.id));
     const filteredEdges = message.state.edges.filter(
       (edge) => nodeIds.has(edge.source) && nodeIds.has(edge.target)
     );
 
-    this.workflowState = {
-      ...message.state,
-      edges: filteredEdges,
-    };
-
+    this.workflowState = { ...message.state, edges: filteredEdges };
     this.schedulePersist();
 
-    // Broadcast to other clients
     const updateMsg: WorkflowUpdateMessage = {
       type: "update",
       state: this.workflowState,
     };
-    const serialized = JSON.stringify(updateMsg);
-    for (const tracking of this.connections.values()) {
-      if (tracking.ws !== ws) {
-        try {
-          tracking.ws.send(serialized);
-        } catch (error) {
-          console.error("Error sending to WebSocket:", error);
-        }
-      }
-    }
+    this.broadcastMessage(JSON.stringify(updateMsg), [connection.id]);
   }
 
   private async handleExecuteMessage(
-    ws: WebSocket,
+    connection: Connection,
     message: WorkflowExecuteMessage
   ): Promise<void> {
     if (message.executionId) {
-      // Validate execution belongs to this workflow before subscribing.
-      // Buffered executions carry workflowId — check if it matches.
-      const buffered = this.executionBuffer.get(message.executionId);
-      if (
-        buffered &&
-        this.workflowState &&
-        buffered.execution.workflowId !== this.workflowState.id
-      ) {
-        return;
-      }
-
-      // Register for existing execution updates
-      const tracking = this.connections.get(ws);
-      if (tracking) {
-        this.executionIndex.set(message.executionId, tracking);
-        ws.serializeAttachment({ executionId: message.executionId });
-
-        // Send buffered updates
-        if (buffered) {
-          tracking.execution = buffered.execution;
-          this.sendExecutionUpdate(ws, buffered.execution);
-          this.executionBuffer.delete(message.executionId);
-        }
-      }
+      this.subscribeToExecution(connection, message.executionId);
     } else {
-      await this.handleExecuteWorkflow(ws, message.parameters);
+      await this.startExecution(connection, message.parameters);
     }
   }
 
-  private async handleExecuteWorkflow(
-    ws: WebSocket,
+  private subscribeToExecution(
+    connection: Connection,
+    executionId: string
+  ): void {
+    const buffered = this.executionBuffer.get(executionId);
+    if (
+      buffered &&
+      this.workflowState &&
+      buffered.execution.workflowId !== this.workflowState.id
+    ) {
+      return;
+    }
+
+    const tracking: ExecutionTracking = {
+      connectionId: connection.id,
+      execution: null,
+    };
+    this.executionIndex.set(executionId, tracking);
+    connection.setState({ executionId });
+
+    if (buffered) {
+      tracking.execution = buffered.execution;
+      this.sendExecutionUpdate(connection, buffered.execution);
+      this.executionBuffer.delete(executionId);
+    }
+  }
+
+  private async startExecution(
+    connection: Connection,
     parameters?: Record<string, unknown>
   ): Promise<void> {
-    if (!this.workflowState || !this.organizationId || !this.userId) {
-      ws.close(1011, "Workflow not initialized");
+    if (!this.workflowState || !this.organizationId) {
+      connection.close(1011, "Workflow not initialized");
       return;
+    }
+
+    const userId = this.state?.userId;
+    if (!userId) {
+      connection.close(1011, "User not identified");
+      return;
+    }
+
+    if (!this.executionManager) {
+      this.executionManager = new ExecutionManager({ env: this.env });
     }
 
     try {
@@ -456,39 +453,44 @@ export class WorkflowAgent extends DurableObject<Bindings> {
         await this.executionManager.executeWorkflow(
           this.workflowState,
           this.organizationId,
-          this.userId,
+          userId,
           parameters
         );
 
-      // Register for updates
-      const tracking = this.connections.get(ws);
-      if (tracking) {
-        this.executionIndex.set(executionId, tracking);
-        tracking.execution = execution;
-        ws.serializeAttachment({ executionId });
-      }
-
-      this.sendExecutionUpdate(ws, execution);
+      this.executionIndex.set(executionId, {
+        connectionId: connection.id,
+        execution,
+      });
+      connection.setState({ executionId });
+      this.sendExecutionUpdate(connection, execution);
     } catch (error) {
       console.error("Failed to execute workflow:", error);
-      this.sendExecutionError(
-        ws,
-        error instanceof Error ? error.message : "Failed to execute workflow"
-      );
+      this.sendExecutionUpdate(connection, {
+        id: "",
+        workflowId: this.workflowState.id,
+        status: "error",
+        nodeExecutions: [],
+        error:
+          error instanceof Error ? error.message : "Failed to execute workflow",
+      });
     }
   }
 
-  // ── Execution broadcasting ──────────────────────────────────────────
+  // ── Execution updates ─────────────────────────────────────────────────
 
-  private broadcastExecutionUpdate(execution: WorkflowExecution): void {
+  /**
+   * Route an execution update to the subscribed connection, or buffer it
+   * if no connection is subscribed yet.
+   */
+  private routeExecutionUpdate(execution: WorkflowExecution): void {
     const tracking = this.executionIndex.get(execution.id);
     if (tracking) {
       tracking.execution = execution;
-      this.sendExecutionUpdate(tracking.ws, execution);
+      const conn = this.findConnection(tracking.connectionId);
+      if (conn) {
+        this.sendExecutionUpdate(conn, execution);
+      }
     } else {
-      // Buffer latest state for when WebSocket connects. Only the most recent
-      // update is kept per execution — intermediate updates are overwritten.
-      // The frontend reconstructs node state from the final execution record.
       this.cleanExpiredBuffers();
       this.executionBuffer.set(execution.id, {
         execution,
@@ -498,7 +500,7 @@ export class WorkflowAgent extends DurableObject<Bindings> {
   }
 
   private sendExecutionUpdate(
-    ws: WebSocket,
+    connection: Connection,
     execution: WorkflowExecution
   ): void {
     const message: WorkflowExecutionUpdateMessage = {
@@ -509,24 +511,9 @@ export class WorkflowAgent extends DurableObject<Bindings> {
       error: execution.error,
     };
     try {
-      ws.send(JSON.stringify(message));
+      connection.send(JSON.stringify(message));
     } catch (error) {
       console.error("Error sending execution update:", error);
-    }
-  }
-
-  private sendExecutionError(ws: WebSocket, errorMessage: string): void {
-    const message: WorkflowExecutionUpdateMessage = {
-      type: "execution_update",
-      executionId: "",
-      status: "error",
-      nodeExecutions: [],
-      error: errorMessage,
-    };
-    try {
-      ws.send(JSON.stringify(message));
-    } catch (error) {
-      console.error("Error sending execution error:", error);
     }
   }
 
@@ -539,7 +526,7 @@ export class WorkflowAgent extends DurableObject<Bindings> {
     }
   }
 
-  // ── Persistence ─────────────────────────────────────────────────────
+  // ── Persistence ───────────────────────────────────────────────────────
 
   private schedulePersist(): void {
     if (this.pendingPersistTimeout !== undefined) {
@@ -561,9 +548,7 @@ export class WorkflowAgent extends DurableObject<Bindings> {
   }
 
   private async persistToDatabase(): Promise<void> {
-    if (!this.workflowState || !this.organizationId) {
-      return;
-    }
+    if (!this.workflowState || !this.organizationId) return;
 
     try {
       const workflowStore = new WorkflowStore(this.env);
@@ -576,7 +561,7 @@ export class WorkflowAgent extends DurableObject<Bindings> {
         organizationId: this.organizationId,
         nodes: this.workflowState.nodes,
         edges: this.workflowState.edges,
-        ...(this.apiHost ? { apiHost: this.apiHost } : {}),
+        ...(this.state?.apiHost ? { apiHost: this.state.apiHost } : {}),
       };
 
       await Promise.all([
@@ -596,7 +581,6 @@ export class WorkflowAgent extends DurableObject<Bindings> {
       clearTimeout(this.pendingPersistTimeout);
       this.pendingPersistTimeout = undefined;
     }
-    // Wait for any in-flight persist to finish before doing a final persist
     if (this.persistInFlightPromise) {
       await this.persistInFlightPromise;
     }

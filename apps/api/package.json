@@ -31,6 +31,7 @@
     "@types/wellknown": "^0.5.8",
     "drizzle-kit": "0.31.1",
     "globals": "^15.15.0",
+    "partyserver": "^0.3.3",
     "typescript": "^5.9.3",
     "vitest": "^4.1.0",
     "wrangler": "^4.76.0"
