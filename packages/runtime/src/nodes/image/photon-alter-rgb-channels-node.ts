@@ -71,6 +71,9 @@ export class PhotonAlterRGBChannelsNode extends ExecutableNode {
       greenAmount?: number;
       blueAmount?: number;
     };
+    if (!image || !image.data || !image.mimeType) {
+      return this.createErrorResult("Input image is missing or invalid.");
+    }
     if (typeof redAmount !== "number") {
       return this.createErrorResult("Red amount must be a number.");
     }

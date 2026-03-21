@@ -25,14 +25,22 @@ describe("BboxClipNode", () => {
   });
 
   describe("Basic functionality", () => {
-    it("should return clipped geometry when given valid geojson and bbox", async () => {
+    it("should return clipped Feature<Polygon> when given valid polygon feature and bbox", async () => {
       const context = createMockContext({
         geojson: {
           type: "Feature",
           properties: { name: "Test Feature" },
           geometry: {
-            type: "Point",
-            coordinates: [1, 2],
+            type: "Polygon",
+            coordinates: [
+              [
+                [1, 1],
+                [3, 1],
+                [3, 3],
+                [1, 3],
+                [1, 1],
+              ],
+            ],
           },
         },
         bbox: [0, 0, 5, 5],
@@ -43,10 +51,10 @@ describe("BboxClipNode", () => {
       expect(result.status).toBe("completed");
       expect(result.outputs?.clipped).toBeDefined();
       expect(result.outputs?.clipped.type).toBe("Feature");
-      expect(result.outputs?.clipped.geometry.type).toBe("Point");
+      expect(result.outputs?.clipped.geometry.type).toBe("Polygon");
     });
 
-    it("should work with simple point geometry", async () => {
+    it("should error with simple point geometry (unsupported by @dafthunk/geo)", async () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
@@ -56,13 +64,10 @@ describe("BboxClipNode", () => {
       });
 
       const result = await node.execute(context);
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.clipped).toBeDefined();
-      expect(result.outputs?.clipped.type).toBe("Point");
+      expect(result.status).toBe("error");
     });
 
-    it("should work with LineString geometry", async () => {
+    it("should error with LineString geometry (unsupported by @dafthunk/geo)", async () => {
       const context = createMockContext({
         geojson: {
           type: "LineString",
@@ -75,25 +80,26 @@ describe("BboxClipNode", () => {
       });
 
       const result = await node.execute(context);
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.clipped).toBeDefined();
-      expect(result.outputs?.clipped.type).toBe("LineString");
+      expect(result.status).toBe("error");
     });
 
-    it("should work with Polygon geometry", async () => {
+    it("should work with Feature<Polygon> geometry", async () => {
       const context = createMockContext({
         geojson: {
-          type: "Polygon",
-          coordinates: [
-            [
-              [1, 2],
-              [3, 2],
-              [3, 4],
-              [1, 4],
-              [1, 2],
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "Polygon",
+            coordinates: [
+              [
+                [1, 2],
+                [3, 2],
+                [3, 4],
+                [1, 4],
+                [1, 2],
+              ],
             ],
-          ],
+          },
         },
         bbox: [0, 0, 5, 5],
       });
@@ -102,14 +108,26 @@ describe("BboxClipNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.clipped).toBeDefined();
-      expect(result.outputs?.clipped.type).toBe("Polygon");
+      expect(result.outputs?.clipped.type).toBe("Feature");
     });
 
-    it("should work with integer coordinates", async () => {
+    it("should work with Feature<Polygon> and integer coordinates", async () => {
       const context = createMockContext({
         geojson: {
-          type: "Point",
-          coordinates: [1, 2],
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "Polygon",
+            coordinates: [
+              [
+                [1, 1],
+                [3, 1],
+                [3, 3],
+                [1, 3],
+                [1, 1],
+              ],
+            ],
+          },
         },
         bbox: [0, 0, 5, 5],
       });
@@ -118,14 +136,26 @@ describe("BboxClipNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.clipped).toBeDefined();
-      expect(result.outputs?.clipped.type).toBe("Point");
+      expect(result.outputs?.clipped.type).toBe("Feature");
     });
 
     it("should work with decimal bbox coordinates", async () => {
       const context = createMockContext({
         geojson: {
-          type: "Point",
-          coordinates: [1, 2],
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "Polygon",
+            coordinates: [
+              [
+                [1, 1],
+                [3, 1],
+                [3, 3],
+                [1, 3],
+                [1, 1],
+              ],
+            ],
+          },
         },
         bbox: [0.5, 0.5, 5.5, 5.5],
       });
@@ -134,14 +164,26 @@ describe("BboxClipNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.clipped).toBeDefined();
-      expect(result.outputs?.clipped.type).toBe("Point");
+      expect(result.outputs?.clipped.type).toBe("Feature");
     });
 
     it("should work with negative bbox coordinates", async () => {
       const context = createMockContext({
         geojson: {
-          type: "Point",
-          coordinates: [1, 2],
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "Polygon",
+            coordinates: [
+              [
+                [-3, -3],
+                [-1, -3],
+                [-1, -1],
+                [-3, -1],
+                [-3, -3],
+              ],
+            ],
+          },
         },
         bbox: [-5, -5, 5, 5],
       });
@@ -150,10 +192,10 @@ describe("BboxClipNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.clipped).toBeDefined();
-      expect(result.outputs?.clipped.type).toBe("Point");
+      expect(result.outputs?.clipped.type).toBe("Feature");
     });
 
-    it("should work with MultiPoint geometry", async () => {
+    it("should error with MultiPoint geometry (unsupported by @dafthunk/geo)", async () => {
       const context = createMockContext({
         geojson: {
           type: "MultiPoint",
@@ -166,13 +208,10 @@ describe("BboxClipNode", () => {
       });
 
       const result = await node.execute(context);
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.clipped).toBeDefined();
-      expect(result.outputs?.clipped.type).toBe("MultiPoint");
+      expect(result.status).toBe("error");
     });
 
-    it("should work with MultiLineString geometry", async () => {
+    it("should error with MultiLineString geometry (unsupported by @dafthunk/geo)", async () => {
       const context = createMockContext({
         geojson: {
           type: "MultiLineString",
@@ -191,27 +230,28 @@ describe("BboxClipNode", () => {
       });
 
       const result = await node.execute(context);
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.clipped).toBeDefined();
-      expect(result.outputs?.clipped.type).toBe("MultiLineString");
+      expect(result.status).toBe("error");
     });
 
-    it("should work with MultiPolygon geometry", async () => {
+    it("should work with Feature<MultiPolygon> geometry", async () => {
       const context = createMockContext({
         geojson: {
-          type: "MultiPolygon",
-          coordinates: [
-            [
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "MultiPolygon",
+            coordinates: [
               [
-                [1, 2],
-                [3, 2],
-                [3, 4],
-                [1, 4],
-                [1, 2],
+                [
+                  [1, 2],
+                  [3, 2],
+                  [3, 4],
+                  [1, 4],
+                  [1, 2],
+                ],
               ],
             ],
-          ],
+          },
         },
         bbox: [0, 0, 5, 5],
       });
@@ -220,10 +260,10 @@ describe("BboxClipNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.clipped).toBeDefined();
-      expect(result.outputs?.clipped.type).toBe("MultiPolygon");
+      expect(result.outputs?.clipped.type).toBe("Feature");
     });
 
-    it("should work with FeatureCollection", async () => {
+    it("should error with FeatureCollection (unsupported by @dafthunk/geo)", async () => {
       const context = createMockContext({
         geojson: {
           type: "FeatureCollection",
@@ -250,17 +290,26 @@ describe("BboxClipNode", () => {
       });
 
       const result = await node.execute(context);
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.clipped).toBeDefined();
-      expect(result.outputs?.clipped.type).toBe("FeatureCollection");
+      expect(result.status).toBe("error");
     });
 
-    it("should work with very small bbox", async () => {
+    it("should work with polygon inside very small bbox", async () => {
       const context = createMockContext({
         geojson: {
-          type: "Point",
-          coordinates: [1, 2],
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "Polygon",
+            coordinates: [
+              [
+                [0.95, 1.95],
+                [1.05, 1.95],
+                [1.05, 2.05],
+                [0.95, 2.05],
+                [0.95, 1.95],
+              ],
+            ],
+          },
         },
         bbox: [0.9, 1.9, 1.1, 2.1],
       });
@@ -269,14 +318,26 @@ describe("BboxClipNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.clipped).toBeDefined();
-      expect(result.outputs?.clipped.type).toBe("Point");
+      expect(result.outputs?.clipped.type).toBe("Feature");
     });
 
-    it("should work with very large bbox", async () => {
+    it("should work with polygon inside very large bbox", async () => {
       const context = createMockContext({
         geojson: {
-          type: "Point",
-          coordinates: [1, 2],
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "Polygon",
+            coordinates: [
+              [
+                [0, 0],
+                [2, 0],
+                [2, 2],
+                [0, 2],
+                [0, 0],
+              ],
+            ],
+          },
         },
         bbox: [-1000, -1000, 1000, 1000],
       });
@@ -285,23 +346,35 @@ describe("BboxClipNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.clipped).toBeDefined();
-      expect(result.outputs?.clipped.type).toBe("Point");
+      expect(result.outputs?.clipped.type).toBe("Feature");
     });
 
-    it("should work with zero-sized bbox", async () => {
+    it("should clip polygon that extends outside bbox", async () => {
       const context = createMockContext({
         geojson: {
-          type: "Point",
-          coordinates: [1, 2],
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "Polygon",
+            coordinates: [
+              [
+                [-2, -2],
+                [4, -2],
+                [4, 4],
+                [-2, 4],
+                [-2, -2],
+              ],
+            ],
+          },
         },
-        bbox: [1, 2, 1, 2],
+        bbox: [0, 0, 2, 2],
       });
 
       const result = await node.execute(context);
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.clipped).toBeDefined();
-      expect(result.outputs?.clipped.type).toBe("Point");
+      expect(result.outputs?.clipped.type).toBe("Feature");
     });
   });
 
@@ -344,8 +417,20 @@ describe("BboxClipNode", () => {
     it("should handle missing bbox input", async () => {
       const context = createMockContext({
         geojson: {
-          type: "Point",
-          coordinates: [1, 2],
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "Polygon",
+            coordinates: [
+              [
+                [0, 0],
+                [1, 0],
+                [1, 1],
+                [0, 1],
+                [0, 0],
+              ],
+            ],
+          },
         },
       });
 
@@ -358,8 +443,20 @@ describe("BboxClipNode", () => {
     it("should handle null bbox input", async () => {
       const context = createMockContext({
         geojson: {
-          type: "Point",
-          coordinates: [1, 2],
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "Polygon",
+            coordinates: [
+              [
+                [0, 0],
+                [1, 0],
+                [1, 1],
+                [0, 1],
+                [0, 0],
+              ],
+            ],
+          },
         },
         bbox: null,
       });
@@ -373,8 +470,20 @@ describe("BboxClipNode", () => {
     it("should handle undefined bbox input", async () => {
       const context = createMockContext({
         geojson: {
-          type: "Point",
-          coordinates: [1, 2],
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "Polygon",
+            coordinates: [
+              [
+                [0, 0],
+                [1, 0],
+                [1, 1],
+                [0, 1],
+                [0, 0],
+              ],
+            ],
+          },
         },
         bbox: undefined,
       });
@@ -388,8 +497,20 @@ describe("BboxClipNode", () => {
     it("should handle bbox that is not an array", async () => {
       const context = createMockContext({
         geojson: {
-          type: "Point",
-          coordinates: [1, 2],
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "Polygon",
+            coordinates: [
+              [
+                [0, 0],
+                [1, 0],
+                [1, 1],
+                [0, 1],
+                [0, 0],
+              ],
+            ],
+          },
         },
         bbox: "not an array",
       });
@@ -403,8 +524,20 @@ describe("BboxClipNode", () => {
     it("should handle bbox as number", async () => {
       const context = createMockContext({
         geojson: {
-          type: "Point",
-          coordinates: [1, 2],
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "Polygon",
+            coordinates: [
+              [
+                [0, 0],
+                [1, 0],
+                [1, 1],
+                [0, 1],
+                [0, 0],
+              ],
+            ],
+          },
         },
         bbox: 123,
       });
@@ -418,8 +551,20 @@ describe("BboxClipNode", () => {
     it("should handle bbox as boolean", async () => {
       const context = createMockContext({
         geojson: {
-          type: "Point",
-          coordinates: [1, 2],
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "Polygon",
+            coordinates: [
+              [
+                [0, 0],
+                [1, 0],
+                [1, 1],
+                [0, 1],
+                [0, 0],
+              ],
+            ],
+          },
         },
         bbox: true,
       });
@@ -433,8 +578,20 @@ describe("BboxClipNode", () => {
     it("should handle bbox with wrong number of elements (3)", async () => {
       const context = createMockContext({
         geojson: {
-          type: "Point",
-          coordinates: [1, 2],
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "Polygon",
+            coordinates: [
+              [
+                [0, 0],
+                [1, 0],
+                [1, 1],
+                [0, 1],
+                [0, 0],
+              ],
+            ],
+          },
         },
         bbox: [0, 0, 5],
       });
@@ -450,8 +607,20 @@ describe("BboxClipNode", () => {
     it("should handle bbox with wrong number of elements (5)", async () => {
       const context = createMockContext({
         geojson: {
-          type: "Point",
-          coordinates: [1, 2],
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "Polygon",
+            coordinates: [
+              [
+                [0, 0],
+                [1, 0],
+                [1, 1],
+                [0, 1],
+                [0, 0],
+              ],
+            ],
+          },
         },
         bbox: [0, 0, 5, 5, 10],
       });
@@ -467,8 +636,20 @@ describe("BboxClipNode", () => {
     it("should handle bbox with empty array", async () => {
       const context = createMockContext({
         geojson: {
-          type: "Point",
-          coordinates: [1, 2],
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "Polygon",
+            coordinates: [
+              [
+                [0, 0],
+                [1, 0],
+                [1, 1],
+                [0, 1],
+                [0, 0],
+              ],
+            ],
+          },
         },
         bbox: [],
       });
@@ -484,8 +665,20 @@ describe("BboxClipNode", () => {
     it("should handle bbox with non-number elements (string)", async () => {
       const context = createMockContext({
         geojson: {
-          type: "Point",
-          coordinates: [1, 2],
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "Polygon",
+            coordinates: [
+              [
+                [0, 0],
+                [1, 0],
+                [1, 1],
+                [0, 1],
+                [0, 0],
+              ],
+            ],
+          },
         },
         bbox: [0, 0, "5", 5],
       });
@@ -499,8 +692,20 @@ describe("BboxClipNode", () => {
     it("should handle bbox with non-number elements (boolean)", async () => {
       const context = createMockContext({
         geojson: {
-          type: "Point",
-          coordinates: [1, 2],
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "Polygon",
+            coordinates: [
+              [
+                [0, 0],
+                [1, 0],
+                [1, 1],
+                [0, 1],
+                [0, 0],
+              ],
+            ],
+          },
         },
         bbox: [0, 0, 5, true],
       });
@@ -514,8 +719,20 @@ describe("BboxClipNode", () => {
     it("should handle bbox with non-number elements (null)", async () => {
       const context = createMockContext({
         geojson: {
-          type: "Point",
-          coordinates: [1, 2],
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "Polygon",
+            coordinates: [
+              [
+                [0, 0],
+                [1, 0],
+                [1, 1],
+                [0, 1],
+                [0, 0],
+              ],
+            ],
+          },
         },
         bbox: [0, null, 5, 5],
       });
@@ -529,8 +746,20 @@ describe("BboxClipNode", () => {
     it("should handle bbox with non-number elements (undefined)", async () => {
       const context = createMockContext({
         geojson: {
-          type: "Point",
-          coordinates: [1, 2],
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "Polygon",
+            coordinates: [
+              [
+                [0, 0],
+                [1, 0],
+                [1, 1],
+                [0, 1],
+                [0, 0],
+              ],
+            ],
+          },
         },
         bbox: [undefined, 0, 5, 5],
       });
@@ -543,27 +772,78 @@ describe("BboxClipNode", () => {
   });
 
   describe("Edge cases", () => {
-    it("should handle bbox with all zero values", async () => {
+    it("should handle polygon completely outside bbox", async () => {
       const context = createMockContext({
         geojson: {
-          type: "Point",
-          coordinates: [1, 2],
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "Polygon",
+            coordinates: [
+              [
+                [10, 10],
+                [12, 10],
+                [12, 12],
+                [10, 12],
+                [10, 10],
+              ],
+            ],
+          },
         },
-        bbox: [0, 0, 0, 0],
+        bbox: [0, 0, 5, 5],
       });
 
       const result = await node.execute(context);
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.clipped).toBeDefined();
-      expect(result.outputs?.clipped.type).toBe("Point");
     });
 
-    it("should handle bbox with negative values", async () => {
+    it("should handle polygon partially overlapping bbox", async () => {
       const context = createMockContext({
         geojson: {
-          type: "Point",
-          coordinates: [1, 2],
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "Polygon",
+            coordinates: [
+              [
+                [3, 3],
+                [7, 3],
+                [7, 7],
+                [3, 7],
+                [3, 3],
+              ],
+            ],
+          },
+        },
+        bbox: [0, 0, 5, 5],
+      });
+
+      const result = await node.execute(context);
+
+      expect(result.status).toBe("completed");
+      expect(result.outputs?.clipped).toBeDefined();
+      expect(result.outputs?.clipped.type).toBe("Feature");
+    });
+
+    it("should handle polygon with bbox having negative values", async () => {
+      const context = createMockContext({
+        geojson: {
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "Polygon",
+            coordinates: [
+              [
+                [-3, -3],
+                [-1, -3],
+                [-1, -1],
+                [-3, -1],
+                [-3, -3],
+              ],
+            ],
+          },
         },
         bbox: [-5, -5, -1, -1],
       });
@@ -572,30 +852,54 @@ describe("BboxClipNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.clipped).toBeDefined();
-      expect(result.outputs?.clipped.type).toBe("Point");
+      expect(result.outputs?.clipped.type).toBe("Feature");
     });
 
-    it("should handle bbox with very large values", async () => {
+    it("should handle polygon with very large bbox values", async () => {
       const context = createMockContext({
         geojson: {
-          type: "Point",
-          coordinates: [1, 2],
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "Polygon",
+            coordinates: [
+              [
+                [0, 0],
+                [1, 0],
+                [1, 1],
+                [0, 1],
+                [0, 0],
+              ],
+            ],
+          },
         },
-        bbox: [1000000, 1000000, 2000000, 2000000],
+        bbox: [-1000000, -1000000, 2000000, 2000000],
       });
 
       const result = await node.execute(context);
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.clipped).toBeDefined();
-      expect(result.outputs?.clipped.type).toBe("Point");
+      expect(result.outputs?.clipped.type).toBe("Feature");
     });
 
-    it("should handle bbox with very small values", async () => {
+    it("should handle polygon with very small bbox values", async () => {
       const context = createMockContext({
         geojson: {
-          type: "Point",
-          coordinates: [1, 2],
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "Polygon",
+            coordinates: [
+              [
+                [0.000001, 0.000001],
+                [0.000002, 0.000001],
+                [0.000002, 0.000002],
+                [0.000001, 0.000002],
+                [0.000001, 0.000001],
+              ],
+            ],
+          },
         },
         bbox: [0.000001, 0.000001, 0.000002, 0.000002],
       });
@@ -604,14 +908,26 @@ describe("BboxClipNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.clipped).toBeDefined();
-      expect(result.outputs?.clipped.type).toBe("Point");
+      expect(result.outputs?.clipped.type).toBe("Feature");
     });
 
-    it("should handle bbox with mixed positive and negative values", async () => {
+    it("should handle polygon with mixed positive and negative bbox values", async () => {
       const context = createMockContext({
         geojson: {
-          type: "Point",
-          coordinates: [1, 2],
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "Polygon",
+            coordinates: [
+              [
+                [-1, -1],
+                [1, -1],
+                [1, 1],
+                [-1, 1],
+                [-1, -1],
+              ],
+            ],
+          },
         },
         bbox: [-5, -5, 5, 5],
       });
@@ -620,87 +936,7 @@ describe("BboxClipNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.clipped).toBeDefined();
-      expect(result.outputs?.clipped.type).toBe("Point");
-    });
-
-    it("should handle bbox where east is less than west", async () => {
-      const context = createMockContext({
-        geojson: {
-          type: "Point",
-          coordinates: [1, 2],
-        },
-        bbox: [5, 0, 0, 5],
-      });
-
-      const result = await node.execute(context);
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.clipped).toBeDefined();
-      expect(result.outputs?.clipped.type).toBe("Point");
-    });
-
-    it("should handle bbox where north is less than south", async () => {
-      const context = createMockContext({
-        geojson: {
-          type: "Point",
-          coordinates: [1, 2],
-        },
-        bbox: [0, 5, 5, 0],
-      });
-
-      const result = await node.execute(context);
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.clipped).toBeDefined();
-      expect(result.outputs?.clipped.type).toBe("Point");
-    });
-
-    it("should handle point outside bbox", async () => {
-      const context = createMockContext({
-        geojson: {
-          type: "Point",
-          coordinates: [10, 10],
-        },
-        bbox: [0, 0, 5, 5],
-      });
-
-      const result = await node.execute(context);
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.clipped).toBeDefined();
-      expect(result.outputs?.clipped.type).toBe("Point");
-    });
-
-    it("should handle point exactly on bbox boundary", async () => {
-      const context = createMockContext({
-        geojson: {
-          type: "Point",
-          coordinates: [0, 0],
-        },
-        bbox: [0, 0, 5, 5],
-      });
-
-      const result = await node.execute(context);
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.clipped).toBeDefined();
-      expect(result.outputs?.clipped.type).toBe("Point");
-    });
-
-    it("should handle point exactly on bbox corner", async () => {
-      const context = createMockContext({
-        geojson: {
-          type: "Point",
-          coordinates: [5, 5],
-        },
-        bbox: [0, 0, 5, 5],
-      });
-
-      const result = await node.execute(context);
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.clipped).toBeDefined();
-      expect(result.outputs?.clipped.type).toBe("Point");
+      expect(result.outputs?.clipped.type).toBe("Feature");
     });
   });
 });

@@ -113,7 +113,7 @@ describe("Qwq32BNode", () => {
 
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
-    expect(result.outputs?.response).toBeUndefined();
+    expect(result.outputs?.response).toBe("");
   });
 
   it("should calculate usage credits", async () => {

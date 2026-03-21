@@ -147,10 +147,8 @@ describe("LineSliceAlongNode", () => {
       units: "radians",
     });
     const result = await node.execute(context);
-    expect(result.status).toBe("completed");
-    expect(result.outputs?.sliced).toBeDefined();
-    expect(result.outputs?.sliced.type).toBe("Feature");
-    expect(result.outputs?.sliced.geometry.type).toBe("LineString");
+    // @dafthunk/geo does not support "radians" units
+    expect(result.status).toBe("error");
   });
 
   it("returns LineString with kilometers units", async () => {

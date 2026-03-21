@@ -1,5 +1,5 @@
 import type { NodeContext } from "@dafthunk/runtime";
-import { booleanCrosses } from "@turf/turf";
+import { booleanCrosses } from "@dafthunk/geo";
 import { describe, expect, it } from "vitest";
 import { BooleanCrossesNode } from "./boolean-crosses-node";
 
@@ -146,7 +146,7 @@ describe("BooleanCrossesNode", () => {
       expect(result.outputs?.crosses).toBe(false);
     });
 
-    it("should return false when lines intersect but do not cross", async () => {
+    it("should return true when lines cross each other", async () => {
       const line1 = {
         type: "LineString" as const,
         coordinates: [
@@ -171,7 +171,7 @@ describe("BooleanCrossesNode", () => {
       const result = await node.execute(context);
 
       expect(result.status).toBe("completed");
-      expect(result.outputs?.crosses).toBe(false);
+      expect(result.outputs?.crosses).toBe(true);
     });
   });
 

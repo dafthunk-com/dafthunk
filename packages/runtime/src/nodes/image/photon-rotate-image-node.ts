@@ -52,6 +52,9 @@ export class PhotonRotateImageNode extends ExecutableNode {
       image?: ImageParameter;
       angle?: number;
     };
+    if (!image || !image.data || !image.mimeType) {
+      return this.createErrorResult("Input image is missing or invalid.");
+    }
     if (typeof angle !== "number") {
       return this.createErrorResult("Rotation angle must be a number.");
     }

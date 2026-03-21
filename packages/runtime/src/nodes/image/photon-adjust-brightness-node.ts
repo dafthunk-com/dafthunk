@@ -53,6 +53,9 @@ export class PhotonAdjustBrightnessNode extends ExecutableNode {
       image?: ImageParameter;
       amount?: number;
     };
+    if (!image || !image.data || !image.mimeType) {
+      return this.createErrorResult("Input image is missing or invalid.");
+    }
     if (typeof amount !== "number") {
       return this.createErrorResult("Brightness amount must be a number.");
     }

@@ -31,9 +31,9 @@ This is the email body.`;
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs).toBeDefined();
-    expect(result.outputs?.subject).toBe("Test Subject");
-    expect(result.outputs?.text).toBe("Test plain text content");
-    expect(result.outputs?.html).toBe("<p>Test HTML content</p>");
+    expect(result.outputs?.subject).toBe("Test Email");
+    expect(result.outputs?.text).toBe("This is the email body.");
+    expect(result.outputs?.html).toBe("");
     expect(result.outputs?.from).toBeDefined();
     expect(result.outputs?.to).toBeDefined();
     expect(Array.isArray(result.outputs?.from)).toBe(true);
@@ -68,8 +68,9 @@ Content-Type: text/html
 
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
-    expect(result.outputs?.html).toBe("<p>Test HTML content</p>");
-    expect(result.outputs?.text).toBe("Test plain text content");
+    expect(result.outputs?.html).toBe(
+      "<html><body><h1>Hello</h1><p>This is HTML content.</p></body></html>"
+    );
   });
 
   it("should parse email with multiple recipients", async () => {
@@ -100,8 +101,9 @@ Email body.`;
     expect(result.status).toBe("completed");
     expect(result.outputs?.to).toBeDefined();
     expect(Array.isArray(result.outputs?.to)).toBe(true);
-    expect(result.outputs?.to.length).toBe(1);
-    expect(result.outputs?.to[0].address).toBe("recipient@example.com");
+    expect(result.outputs?.to.length).toBe(2);
+    expect(result.outputs?.to[0].address).toBe("recipient1@example.com");
+    expect(result.outputs?.to[1].address).toBe("recipient2@example.com");
     expect(result.outputs?.cc).toBeDefined();
     expect(Array.isArray(result.outputs?.cc)).toBe(true);
   });
@@ -133,9 +135,9 @@ Email body.`;
 
     const result = await node.execute(createContext({ raw: "" }));
     expect(result.status).toBe("completed");
-    expect(result.outputs?.subject).toBe("Test Subject");
-    expect(result.outputs?.text).toBe("Test plain text content");
-    expect(result.outputs?.html).toBe("<p>Test HTML content</p>");
+    expect(result.outputs?.subject).toBe("");
+    expect(result.outputs?.text).toBe("");
+    expect(result.outputs?.html).toBe("");
   });
 
   it("should parse email with complex headers", async () => {
@@ -166,13 +168,13 @@ This email has complex headers.`;
 
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
-    expect(result.outputs?.subject).toBe("Test Subject");
+    expect(result.outputs?.subject).toBe("Complex Email Headers");
     expect(result.outputs?.from).toBeDefined();
     expect(Array.isArray(result.outputs?.from)).toBe(true);
     expect(result.outputs?.from[0]).toHaveProperty("address");
     expect(result.outputs?.from[0]).toHaveProperty("name");
-    expect(result.outputs?.from[0].address).toBe("sender@example.com");
-    expect(result.outputs?.from[0].name).toBe("Test Sender");
+    expect(result.outputs?.from[0].address).toBe("john.doe@example.com");
+    expect(result.outputs?.from[0].name).toBe("John Doe");
   });
 
   it("should handle email with BCC recipients", async () => {
@@ -233,9 +235,8 @@ This is a reply.`;
 
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
-    expect(result.outputs?.messageId).toBe("<test-message-id@example.com>");
-    expect(result.outputs?.inReplyTo).toBe("");
-    expect(result.outputs?.date).toBe("2024-01-01T00:00:00.000Z");
+    expect(result.outputs?.messageId).toBe("<msg123@example.com>");
+    expect(result.outputs?.inReplyTo).toBe("<original123@example.com>");
     expect(result.outputs?.priority).toBe("normal");
   });
 });

@@ -72,6 +72,9 @@ export class PhotonResizeNode extends ExecutableNode {
       (context.inputs as { samplingFilter?: keyof typeof SamplingFilter })
         .samplingFilter || "Nearest";
 
+    if (!image || !image.data || !image.mimeType) {
+      return this.createErrorResult("Input image is missing or invalid.");
+    }
     if (typeof width !== "number" || width <= 0) {
       return this.createErrorResult("Width must be a positive number.");
     }

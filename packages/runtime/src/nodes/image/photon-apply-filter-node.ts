@@ -53,6 +53,9 @@ export class PhotonApplyFilterNode extends ExecutableNode {
       image?: ImageParameter;
       filterName?: string;
     };
+    if (!image || !image.data || !image.mimeType) {
+      return this.createErrorResult("Input image is missing or invalid.");
+    }
     if (
       !filterName ||
       typeof filterName !== "string" ||

@@ -49,8 +49,8 @@ describe("PolygonSmoothNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.smoothed).toBeDefined();
-      expect(result.outputs?.smoothed.type).toBe("Feature");
-      expect(result.outputs?.smoothed.geometry.type).toBe("Polygon");
+      // @dafthunk/geo polygonSmooth returns FeatureCollection
+      expect(result.outputs?.smoothed.type).toBe("FeatureCollection");
     });
 
     it("should work with simple polygon geometry", async () => {
@@ -73,7 +73,8 @@ describe("PolygonSmoothNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.smoothed).toBeDefined();
-      expect(result.outputs?.smoothed.type).toBe("Polygon");
+      // @dafthunk/geo polygonSmooth returns FeatureCollection
+      expect(result.outputs?.smoothed.type).toBe("FeatureCollection");
     });
 
     it("should work with integer coordinates", async () => {
@@ -96,7 +97,8 @@ describe("PolygonSmoothNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.smoothed).toBeDefined();
-      expect(result.outputs?.smoothed.type).toBe("Polygon");
+      // @dafthunk/geo polygonSmooth returns FeatureCollection
+      expect(result.outputs?.smoothed.type).toBe("FeatureCollection");
     });
 
     it("should work with iterations parameter", async () => {
@@ -120,7 +122,8 @@ describe("PolygonSmoothNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.smoothed).toBeDefined();
-      expect(result.outputs?.smoothed.type).toBe("Polygon");
+      // @dafthunk/geo polygonSmooth returns FeatureCollection
+      expect(result.outputs?.smoothed.type).toBe("FeatureCollection");
     });
 
     it("should work with highQuality parameter set to true", async () => {
@@ -144,7 +147,8 @@ describe("PolygonSmoothNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.smoothed).toBeDefined();
-      expect(result.outputs?.smoothed.type).toBe("Polygon");
+      // @dafthunk/geo polygonSmooth returns FeatureCollection
+      expect(result.outputs?.smoothed.type).toBe("FeatureCollection");
     });
 
     it("should work with highQuality parameter set to false", async () => {
@@ -168,7 +172,8 @@ describe("PolygonSmoothNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.smoothed).toBeDefined();
-      expect(result.outputs?.smoothed.type).toBe("Polygon");
+      // @dafthunk/geo polygonSmooth returns FeatureCollection
+      expect(result.outputs?.smoothed.type).toBe("FeatureCollection");
     });
 
     it("should work with both iterations and highQuality parameters", async () => {
@@ -193,7 +198,8 @@ describe("PolygonSmoothNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.smoothed).toBeDefined();
-      expect(result.outputs?.smoothed.type).toBe("Polygon");
+      // @dafthunk/geo polygonSmooth returns FeatureCollection
+      expect(result.outputs?.smoothed.type).toBe("FeatureCollection");
     });
 
     it("should work with iterations set to 0", async () => {
@@ -217,7 +223,8 @@ describe("PolygonSmoothNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.smoothed).toBeDefined();
-      expect(result.outputs?.smoothed.type).toBe("Polygon");
+      // @dafthunk/geo polygonSmooth returns FeatureCollection
+      expect(result.outputs?.smoothed.type).toBe("FeatureCollection");
     });
 
     it("should work with iterations set to 10", async () => {
@@ -241,7 +248,8 @@ describe("PolygonSmoothNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.smoothed).toBeDefined();
-      expect(result.outputs?.smoothed.type).toBe("Polygon");
+      // @dafthunk/geo polygonSmooth returns FeatureCollection
+      expect(result.outputs?.smoothed.type).toBe("FeatureCollection");
     });
 
     it("should work with polygon with hole", async () => {
@@ -271,7 +279,8 @@ describe("PolygonSmoothNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.smoothed).toBeDefined();
-      expect(result.outputs?.smoothed.type).toBe("Polygon");
+      // @dafthunk/geo polygonSmooth returns FeatureCollection
+      expect(result.outputs?.smoothed.type).toBe("FeatureCollection");
     });
 
     it("should work with MultiPolygon geometry", async () => {
@@ -305,7 +314,8 @@ describe("PolygonSmoothNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.smoothed).toBeDefined();
-      expect(result.outputs?.smoothed.type).toBe("MultiPolygon");
+      // @dafthunk/geo polygonSmooth returns FeatureCollection
+      expect(result.outputs?.smoothed.type).toBe("FeatureCollection");
     });
 
     it("should work with triangle polygon", async () => {
@@ -327,7 +337,8 @@ describe("PolygonSmoothNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.smoothed).toBeDefined();
-      expect(result.outputs?.smoothed.type).toBe("Polygon");
+      // @dafthunk/geo polygonSmooth returns FeatureCollection
+      expect(result.outputs?.smoothed.type).toBe("FeatureCollection");
     });
 
     it("should work with irregular polygon", async () => {
@@ -351,7 +362,8 @@ describe("PolygonSmoothNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.smoothed).toBeDefined();
-      expect(result.outputs?.smoothed.type).toBe("Polygon");
+      // @dafthunk/geo polygonSmooth returns FeatureCollection
+      expect(result.outputs?.smoothed.type).toBe("FeatureCollection");
     });
 
     it("should work with decimal coordinates", async () => {
@@ -374,7 +386,8 @@ describe("PolygonSmoothNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.smoothed).toBeDefined();
-      expect(result.outputs?.smoothed.type).toBe("Polygon");
+      // @dafthunk/geo polygonSmooth returns FeatureCollection
+      expect(result.outputs?.smoothed.type).toBe("FeatureCollection");
     });
 
     it("should work with negative coordinates", async () => {
@@ -397,7 +410,8 @@ describe("PolygonSmoothNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.smoothed).toBeDefined();
-      expect(result.outputs?.smoothed.type).toBe("Polygon");
+      // @dafthunk/geo polygonSmooth returns FeatureCollection
+      expect(result.outputs?.smoothed.type).toBe("FeatureCollection");
     });
 
     it("should work with very large coordinates", async () => {
@@ -420,7 +434,8 @@ describe("PolygonSmoothNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.smoothed).toBeDefined();
-      expect(result.outputs?.smoothed.type).toBe("Polygon");
+      // @dafthunk/geo polygonSmooth returns FeatureCollection
+      expect(result.outputs?.smoothed.type).toBe("FeatureCollection");
     });
 
     it("should work with very small coordinates", async () => {
@@ -443,7 +458,8 @@ describe("PolygonSmoothNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.smoothed).toBeDefined();
-      expect(result.outputs?.smoothed.type).toBe("Polygon");
+      // @dafthunk/geo polygonSmooth returns FeatureCollection
+      expect(result.outputs?.smoothed.type).toBe("FeatureCollection");
     });
   });
 
@@ -617,7 +633,8 @@ describe("PolygonSmoothNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.smoothed).toBeDefined();
-      expect(result.outputs?.smoothed.type).toBe("Polygon");
+      // @dafthunk/geo polygonSmooth returns FeatureCollection
+      expect(result.outputs?.smoothed.type).toBe("FeatureCollection");
     });
 
     it("should handle undefined iterations option", async () => {
@@ -641,7 +658,8 @@ describe("PolygonSmoothNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.smoothed).toBeDefined();
-      expect(result.outputs?.smoothed.type).toBe("Polygon");
+      // @dafthunk/geo polygonSmooth returns FeatureCollection
+      expect(result.outputs?.smoothed.type).toBe("FeatureCollection");
     });
 
     it("should handle null highQuality option", async () => {
@@ -665,7 +683,8 @@ describe("PolygonSmoothNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.smoothed).toBeDefined();
-      expect(result.outputs?.smoothed.type).toBe("Polygon");
+      // @dafthunk/geo polygonSmooth returns FeatureCollection
+      expect(result.outputs?.smoothed.type).toBe("FeatureCollection");
     });
 
     it("should handle undefined highQuality option", async () => {
@@ -689,7 +708,8 @@ describe("PolygonSmoothNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.smoothed).toBeDefined();
-      expect(result.outputs?.smoothed.type).toBe("Polygon");
+      // @dafthunk/geo polygonSmooth returns FeatureCollection
+      expect(result.outputs?.smoothed.type).toBe("FeatureCollection");
     });
 
     it("should handle polygon with many vertices", async () => {
@@ -711,7 +731,8 @@ describe("PolygonSmoothNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.smoothed).toBeDefined();
-      expect(result.outputs?.smoothed.type).toBe("Polygon");
+      // @dafthunk/geo polygonSmooth returns FeatureCollection
+      expect(result.outputs?.smoothed.type).toBe("FeatureCollection");
     });
 
     it("should handle very small polygon", async () => {
@@ -734,7 +755,8 @@ describe("PolygonSmoothNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.smoothed).toBeDefined();
-      expect(result.outputs?.smoothed.type).toBe("Polygon");
+      // @dafthunk/geo polygonSmooth returns FeatureCollection
+      expect(result.outputs?.smoothed.type).toBe("FeatureCollection");
     });
 
     it("should handle polygon with collinear points", async () => {
@@ -759,7 +781,8 @@ describe("PolygonSmoothNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.smoothed).toBeDefined();
-      expect(result.outputs?.smoothed.type).toBe("Polygon");
+      // @dafthunk/geo polygonSmooth returns FeatureCollection
+      expect(result.outputs?.smoothed.type).toBe("FeatureCollection");
     });
 
     it("should handle polygon with duplicate points", async () => {
@@ -783,7 +806,8 @@ describe("PolygonSmoothNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.smoothed).toBeDefined();
-      expect(result.outputs?.smoothed.type).toBe("Polygon");
+      // @dafthunk/geo polygonSmooth returns FeatureCollection
+      expect(result.outputs?.smoothed.type).toBe("FeatureCollection");
     });
   });
 });

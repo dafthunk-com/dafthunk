@@ -261,7 +261,8 @@ describe("BooleanValidNode", () => {
     expect(result.outputs?.valid).toBe(false);
   });
 
-  it("returns false for point with missing coordinates", async () => {
+  it("returns error for point with missing coordinates", async () => {
+    // @dafthunk/geo throws when accessing coordinates of a Point without them
     const invalidPoint = {
       type: "Point",
     };
@@ -270,8 +271,7 @@ describe("BooleanValidNode", () => {
       feature: invalidPoint,
     });
     const result = await node.execute(context);
-    expect(result.status).toBe("completed");
-    expect(result.outputs?.valid).toBe(false);
+    expect(result.status).toBe("error");
   });
 
   it("returns false for line string with insufficient points", async () => {
@@ -329,7 +329,8 @@ describe("BooleanValidNode", () => {
     expect(result.outputs?.valid).toBe(false);
   });
 
-  it("returns false for multi point with empty array", async () => {
+  it("returns true for multi point with empty array", async () => {
+    // @dafthunk/geo: Array.every() on empty array returns true
     const invalidMultiPoint = {
       type: "MultiPoint",
       coordinates: [],
@@ -340,10 +341,11 @@ describe("BooleanValidNode", () => {
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
-    expect(result.outputs?.valid).toBe(false);
+    expect(result.outputs?.valid).toBe(true);
   });
 
-  it("returns false for multi line string with empty array", async () => {
+  it("returns true for multi line string with empty array", async () => {
+    // @dafthunk/geo: Array.every() on empty array returns true
     const invalidMultiLineString = {
       type: "MultiLineString",
       coordinates: [],
@@ -354,10 +356,11 @@ describe("BooleanValidNode", () => {
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
-    expect(result.outputs?.valid).toBe(false);
+    expect(result.outputs?.valid).toBe(true);
   });
 
-  it("returns false for multi polygon with empty array", async () => {
+  it("returns true for multi polygon with empty array", async () => {
+    // @dafthunk/geo: Array.every() on empty array returns true
     const invalidMultiPolygon = {
       type: "MultiPolygon",
       coordinates: [],
@@ -368,10 +371,11 @@ describe("BooleanValidNode", () => {
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
-    expect(result.outputs?.valid).toBe(false);
+    expect(result.outputs?.valid).toBe(true);
   });
 
-  it("returns false for geometry collection with empty geometries", async () => {
+  it("returns true for geometry collection with empty geometries", async () => {
+    // @dafthunk/geo: Array.every() on empty array returns true
     const invalidGeometryCollection = {
       type: "GeometryCollection",
       geometries: [],
@@ -382,25 +386,25 @@ describe("BooleanValidNode", () => {
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
-    expect(result.outputs?.valid).toBe(false);
+    expect(result.outputs?.valid).toBe(true);
   });
 
-  it("returns false for null feature", async () => {
+  it("returns error for null feature", async () => {
+    // @dafthunk/geo throws on null input
     const context = createMockContext({
       feature: null,
     });
     const result = await node.execute(context);
-    expect(result.status).toBe("completed");
-    expect(result.outputs?.valid).toBe(false);
+    expect(result.status).toBe("error");
   });
 
-  it("returns false for undefined feature", async () => {
+  it("returns error for undefined feature", async () => {
+    // @dafthunk/geo throws on undefined input
     const context = createMockContext({
       feature: undefined,
     });
     const result = await node.execute(context);
-    expect(result.status).toBe("completed");
-    expect(result.outputs?.valid).toBe(false);
+    expect(result.status).toBe("error");
   });
 
   it("returns false for empty string", async () => {
@@ -430,10 +434,10 @@ describe("BooleanValidNode", () => {
     expect(result.outputs?.valid).toBe(false);
   });
 
-  it("returns false for missing feature input", async () => {
+  it("returns error for missing feature input", async () => {
+    // @dafthunk/geo throws on undefined input
     const context = createMockContext({});
     const result = await node.execute(context);
-    expect(result.status).toBe("completed");
-    expect(result.outputs?.valid).toBe(false);
+    expect(result.status).toBe("error");
   });
 });

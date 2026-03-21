@@ -216,7 +216,7 @@ describe("BooleanClockwiseNode", () => {
     expect(result.outputs?.isClockwise).toBe(false);
   });
 
-  it("returns true for square clockwise ring", async () => {
+  it("returns false for square clockwise ring (turf convention)", async () => {
     const context = createMockContext({
       line: {
         type: "Feature",
@@ -235,10 +235,10 @@ describe("BooleanClockwiseNode", () => {
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
-    expect(result.outputs?.isClockwise).toBe(true);
+    expect(result.outputs?.isClockwise).toBe(false);
   });
 
-  it("returns false for square counter-clockwise ring", async () => {
+  it("returns true for square counter-clockwise ring (turf convention)", async () => {
     const context = createMockContext({
       line: {
         type: "Feature",
@@ -257,10 +257,10 @@ describe("BooleanClockwiseNode", () => {
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
-    expect(result.outputs?.isClockwise).toBe(false);
+    expect(result.outputs?.isClockwise).toBe(true);
   });
 
-  it("returns true for triangle clockwise ring", async () => {
+  it("returns false for triangle clockwise ring (turf convention)", async () => {
     const context = createMockContext({
       line: {
         type: "Feature",
@@ -271,6 +271,27 @@ describe("BooleanClockwiseNode", () => {
             [0, 0],
             [6, 0],
             [3, 6],
+            [0, 0],
+          ],
+        },
+      },
+    });
+    const result = await node.execute(context);
+    expect(result.status).toBe("completed");
+    expect(result.outputs?.isClockwise).toBe(false);
+  });
+
+  it("returns true for triangle counter-clockwise ring (turf convention)", async () => {
+    const context = createMockContext({
+      line: {
+        type: "Feature",
+        properties: {},
+        geometry: {
+          type: "LineString",
+          coordinates: [
+            [0, 0],
+            [3, 6],
+            [6, 0],
             [0, 0],
           ],
         },
@@ -279,27 +300,6 @@ describe("BooleanClockwiseNode", () => {
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs?.isClockwise).toBe(true);
-  });
-
-  it("returns false for triangle counter-clockwise ring", async () => {
-    const context = createMockContext({
-      line: {
-        type: "Feature",
-        properties: {},
-        geometry: {
-          type: "LineString",
-          coordinates: [
-            [0, 0],
-            [3, 6],
-            [6, 0],
-            [0, 0],
-          ],
-        },
-      },
-    });
-    const result = await node.execute(context);
-    expect(result.status).toBe("completed");
-    expect(result.outputs?.isClockwise).toBe(false);
   });
 
   it("returns an error for missing line input", async () => {

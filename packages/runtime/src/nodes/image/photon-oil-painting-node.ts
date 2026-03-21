@@ -61,6 +61,9 @@ export class PhotonOilPaintingNode extends ExecutableNode {
       radius?: number;
       intensity?: number;
     };
+    if (!image || !image.data || !image.mimeType) {
+      return this.createErrorResult("Input image is missing or invalid.");
+    }
     if (typeof radius !== "number" || !Number.isInteger(radius) || radius < 0) {
       return this.createErrorResult("Radius must be a non-negative integer.");
     }

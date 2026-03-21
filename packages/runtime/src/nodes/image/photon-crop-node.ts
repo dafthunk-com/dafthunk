@@ -77,6 +77,9 @@ export class PhotonCropNode extends ExecutableNode {
       width?: number;
       height?: number;
     };
+    if (!image || !image.data || !image.mimeType) {
+      return this.createErrorResult("Input image is missing or invalid.");
+    }
     if (typeof x !== "number" || x < 0) {
       return this.createErrorResult("x must be a non-negative number.");
     }

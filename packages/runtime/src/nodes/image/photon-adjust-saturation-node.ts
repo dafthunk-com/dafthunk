@@ -53,6 +53,9 @@ export class PhotonAdjustSaturationNode extends ExecutableNode {
       image?: ImageParameter;
       level?: number;
     };
+    if (!image || !image.data || !image.mimeType) {
+      return this.createErrorResult("Input image is missing or invalid.");
+    }
     if (typeof level !== "number" || level < 0 || level > 1.0) {
       return this.createErrorResult(
         "Saturation level must be a number between 0.0 and 1.0."

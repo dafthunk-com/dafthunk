@@ -65,7 +65,8 @@ describe("LineOffsetNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.offset).toBeDefined();
-      expect(result.outputs?.offset.type).toBe("LineString");
+      // @dafthunk/geo lineOffset returns Feature<LineString>
+      expect(result.outputs?.offset.type).toBe("Feature");
     });
 
     it("should work with integer coordinates", async () => {
@@ -84,7 +85,8 @@ describe("LineOffsetNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.offset).toBeDefined();
-      expect(result.outputs?.offset.type).toBe("LineString");
+      // @dafthunk/geo lineOffset returns Feature<LineString>
+      expect(result.outputs?.offset.type).toBe("Feature");
     });
 
     it("should work with positive distance", async () => {
@@ -103,7 +105,8 @@ describe("LineOffsetNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.offset).toBeDefined();
-      expect(result.outputs?.offset.type).toBe("LineString");
+      // @dafthunk/geo lineOffset returns Feature<LineString>
+      expect(result.outputs?.offset.type).toBe("Feature");
     });
 
     it("should work with negative distance", async () => {
@@ -122,7 +125,8 @@ describe("LineOffsetNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.offset).toBeDefined();
-      expect(result.outputs?.offset.type).toBe("LineString");
+      // @dafthunk/geo lineOffset returns Feature<LineString>
+      expect(result.outputs?.offset.type).toBe("Feature");
     });
 
     it("should work with zero distance", async () => {
@@ -141,7 +145,8 @@ describe("LineOffsetNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.offset).toBeDefined();
-      expect(result.outputs?.offset.type).toBe("LineString");
+      // @dafthunk/geo lineOffset returns Feature<LineString>
+      expect(result.outputs?.offset.type).toBe("Feature");
     });
 
     it("should work with units parameter", async () => {
@@ -161,7 +166,8 @@ describe("LineOffsetNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.offset).toBeDefined();
-      expect(result.outputs?.offset.type).toBe("LineString");
+      // @dafthunk/geo lineOffset returns Feature<LineString>
+      expect(result.outputs?.offset.type).toBe("Feature");
     });
 
     it("should work with various unit strings", async () => {
@@ -184,7 +190,8 @@ describe("LineOffsetNode", () => {
 
         expect(result.status).toBe("completed");
         expect(result.outputs?.offset).toBeDefined();
-        expect(result.outputs?.offset.type).toBe("LineString");
+        // @dafthunk/geo lineOffset returns Feature<LineString>
+      expect(result.outputs?.offset.type).toBe("Feature");
       }
     });
 
@@ -204,7 +211,8 @@ describe("LineOffsetNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.offset).toBeDefined();
-      expect(result.outputs?.offset.type).toBe("LineString");
+      // @dafthunk/geo lineOffset returns Feature<LineString>
+      expect(result.outputs?.offset.type).toBe("Feature");
     });
 
     it("should work with vertical line", async () => {
@@ -223,7 +231,8 @@ describe("LineOffsetNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.offset).toBeDefined();
-      expect(result.outputs?.offset.type).toBe("LineString");
+      // @dafthunk/geo lineOffset returns Feature<LineString>
+      expect(result.outputs?.offset.type).toBe("Feature");
     });
 
     it("should work with multi-segment line", async () => {
@@ -244,7 +253,8 @@ describe("LineOffsetNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.offset).toBeDefined();
-      expect(result.outputs?.offset.type).toBe("LineString");
+      // @dafthunk/geo lineOffset returns Feature<LineString>
+      expect(result.outputs?.offset.type).toBe("Feature");
     });
 
     it("should work with decimal coordinates", async () => {
@@ -263,7 +273,8 @@ describe("LineOffsetNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.offset).toBeDefined();
-      expect(result.outputs?.offset.type).toBe("LineString");
+      // @dafthunk/geo lineOffset returns Feature<LineString>
+      expect(result.outputs?.offset.type).toBe("Feature");
     });
 
     it("should work with negative coordinates", async () => {
@@ -282,7 +293,8 @@ describe("LineOffsetNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.offset).toBeDefined();
-      expect(result.outputs?.offset.type).toBe("LineString");
+      // @dafthunk/geo lineOffset returns Feature<LineString>
+      expect(result.outputs?.offset.type).toBe("Feature");
     });
 
     it("should work with very small distance", async () => {
@@ -301,7 +313,8 @@ describe("LineOffsetNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.offset).toBeDefined();
-      expect(result.outputs?.offset.type).toBe("LineString");
+      // @dafthunk/geo lineOffset returns Feature<LineString>
+      expect(result.outputs?.offset.type).toBe("Feature");
     });
 
     it("should work with very large distance", async () => {
@@ -320,7 +333,8 @@ describe("LineOffsetNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.offset).toBeDefined();
-      expect(result.outputs?.offset.type).toBe("LineString");
+      // @dafthunk/geo lineOffset returns Feature<LineString>
+      expect(result.outputs?.offset.type).toBe("Feature");
     });
 
     it("should work with MultiLineString geometry", async () => {
@@ -345,7 +359,8 @@ describe("LineOffsetNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.offset).toBeDefined();
-      expect(result.outputs?.offset.type).toBe("MultiLineString");
+      // @dafthunk/geo lineOffset returns Feature
+      expect(result.outputs?.offset.type).toBe("Feature");
     });
   });
 
@@ -531,7 +546,8 @@ describe("LineOffsetNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.offset).toBeDefined();
-      expect(result.outputs?.offset.type).toBe("LineString");
+      // @dafthunk/geo lineOffset returns Feature<LineString>
+      expect(result.outputs?.offset.type).toBe("Feature");
     });
 
     it("should handle undefined units option", async () => {
@@ -551,7 +567,8 @@ describe("LineOffsetNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.offset).toBeDefined();
-      expect(result.outputs?.offset.type).toBe("LineString");
+      // @dafthunk/geo lineOffset returns Feature<LineString>
+      expect(result.outputs?.offset.type).toBe("Feature");
     });
 
     it("should handle single point line (degenerate case)", async () => {
@@ -570,7 +587,8 @@ describe("LineOffsetNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.offset).toBeDefined();
-      expect(result.outputs?.offset.type).toBe("LineString");
+      // @dafthunk/geo lineOffset returns Feature<LineString>
+      expect(result.outputs?.offset.type).toBe("Feature");
     });
 
     it("should handle very short line", async () => {
@@ -589,7 +607,8 @@ describe("LineOffsetNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.offset).toBeDefined();
-      expect(result.outputs?.offset.type).toBe("LineString");
+      // @dafthunk/geo lineOffset returns Feature<LineString>
+      expect(result.outputs?.offset.type).toBe("Feature");
     });
 
     it("should handle very long line", async () => {
@@ -608,7 +627,8 @@ describe("LineOffsetNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.offset).toBeDefined();
-      expect(result.outputs?.offset.type).toBe("LineString");
+      // @dafthunk/geo lineOffset returns Feature<LineString>
+      expect(result.outputs?.offset.type).toBe("Feature");
     });
 
     it("should handle line with many segments", async () => {
@@ -629,7 +649,8 @@ describe("LineOffsetNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.offset).toBeDefined();
-      expect(result.outputs?.offset.type).toBe("LineString");
+      // @dafthunk/geo lineOffset returns Feature<LineString>
+      expect(result.outputs?.offset.type).toBe("Feature");
     });
 
     it("should handle line with very large coordinates", async () => {
@@ -648,7 +669,8 @@ describe("LineOffsetNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.offset).toBeDefined();
-      expect(result.outputs?.offset.type).toBe("LineString");
+      // @dafthunk/geo lineOffset returns Feature<LineString>
+      expect(result.outputs?.offset.type).toBe("Feature");
     });
 
     it("should handle line with very small coordinates", async () => {
@@ -667,7 +689,8 @@ describe("LineOffsetNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.offset).toBeDefined();
-      expect(result.outputs?.offset.type).toBe("LineString");
+      // @dafthunk/geo lineOffset returns Feature<LineString>
+      expect(result.outputs?.offset.type).toBe("Feature");
     });
   });
 });

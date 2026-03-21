@@ -271,7 +271,7 @@ describe("JsonToGeojsonNode", () => {
       const result = await node.execute(context);
 
       expect(result.status).toBe("error");
-      expect(result.error).toContain("Invalid GeoJSON format");
+      expect(result.error).toContain("Failed to convert JSON to GeoJSON");
     });
   });
 });

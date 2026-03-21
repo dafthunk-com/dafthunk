@@ -50,6 +50,8 @@ describe("CenterMeanNode", () => {
   });
 
   it("returns center for single polygon", async () => {
+    // @dafthunk/geo centerMean includes the closing vertex, so polygon
+    // [0,0],[0,2],[2,2],[2,0],[0,0] averages to [0.8, 0.8] not [1, 1]
     const polygon = {
       type: "Feature",
       properties: {},
@@ -77,7 +79,7 @@ describe("CenterMeanNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [1, 1],
+        coordinates: [0.8, 0.8],
       },
     });
   });
@@ -149,6 +151,7 @@ describe("CenterMeanNode", () => {
   });
 
   it("returns center for feature collection of polygons", async () => {
+    // @dafthunk/geo centerMean includes closing vertices
     const featureCollection = {
       type: "FeatureCollection",
       features: [
@@ -197,7 +200,7 @@ describe("CenterMeanNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [1.5, 1.5],
+        coordinates: [1.4, 1.4],
       },
     });
   });
@@ -254,12 +257,13 @@ describe("CenterMeanNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [3.142857142857143, 0.5714285714285714],
+        coordinates: [3.25, 0.5],
       },
     });
   });
 
   it("returns center for geometry object", async () => {
+    // @dafthunk/geo centerMean includes closing vertices
     const polygon = {
       type: "Polygon",
       coordinates: [
@@ -283,12 +287,13 @@ describe("CenterMeanNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [1, 1],
+        coordinates: [0.8, 0.8],
       },
     });
   });
 
   it("returns center for large coordinates", async () => {
+    // @dafthunk/geo centerMean includes closing vertices: (100+100+200+200+100)/5=140
     const polygon = {
       type: "Feature",
       properties: {},
@@ -316,12 +321,13 @@ describe("CenterMeanNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [150, 150],
+        coordinates: [140, 140],
       },
     });
   });
 
   it("returns center for complex polygon", async () => {
+    // @dafthunk/geo centerMean includes closing vertices: 10 coords total, mean=1.3
     const polygon = {
       type: "Feature",
       properties: {},
@@ -356,7 +362,7 @@ describe("CenterMeanNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [1.5, 1.5],
+        coordinates: [1.3, 1.3],
       },
     });
   });

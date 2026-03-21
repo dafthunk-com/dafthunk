@@ -3,11 +3,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { BooleanDisjointNode } from "./boolean-disjoint-node";
 
 // Mock the Turf.js booleanDisjoint function
-vi.mock("@turf/turf", () => ({
+vi.mock("@dafthunk/geo", () => ({
   booleanDisjoint: vi.fn(),
 }));
 
-import { booleanDisjoint } from "@turf/turf";
+import { booleanDisjoint } from "@dafthunk/geo";
 
 describe("BooleanDisjointNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({

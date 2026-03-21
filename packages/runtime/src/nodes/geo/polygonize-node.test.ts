@@ -24,7 +24,8 @@ describe("PolygonizeNode", () => {
     outputs: [],
   });
 
-  it("returns FeatureCollection for single LineString input", async () => {
+  it("returns error for single Feature<LineString> input (requires FeatureCollection)", async () => {
+    // @dafthunk/geo polygonize requires FeatureCollection<LineString>
     const context = createMockContext({
       lines: {
         type: "Feature",
@@ -42,9 +43,7 @@ describe("PolygonizeNode", () => {
       },
     });
     const result = await node.execute(context);
-    expect(result.status).toBe("completed");
-    expect(result.outputs?.polygons).toBeDefined();
-    expect(result.outputs?.polygons.type).toBe("FeatureCollection");
+    expect(result.status).toBe("error");
   });
 
   it("returns FeatureCollection for FeatureCollection of LineStrings", async () => {
@@ -89,7 +88,8 @@ describe("PolygonizeNode", () => {
     expect(result.outputs?.polygons.type).toBe("FeatureCollection");
   });
 
-  it("returns FeatureCollection for MultiLineString input", async () => {
+  it("returns error for MultiLineString input (requires FeatureCollection)", async () => {
+    // @dafthunk/geo polygonize requires FeatureCollection<LineString>
     const context = createMockContext({
       lines: {
         type: "Feature",
@@ -116,12 +116,11 @@ describe("PolygonizeNode", () => {
       },
     });
     const result = await node.execute(context);
-    expect(result.status).toBe("completed");
-    expect(result.outputs?.polygons).toBeDefined();
-    expect(result.outputs?.polygons.type).toBe("FeatureCollection");
+    expect(result.status).toBe("error");
   });
 
-  it("returns FeatureCollection for simple LineString with integer coordinates", async () => {
+  it("returns error for single Feature<LineString> with integer coordinates (requires FeatureCollection)", async () => {
+    // @dafthunk/geo polygonize requires FeatureCollection<LineString>
     const context = createMockContext({
       lines: {
         type: "Feature",
@@ -139,12 +138,11 @@ describe("PolygonizeNode", () => {
       },
     });
     const result = await node.execute(context);
-    expect(result.status).toBe("completed");
-    expect(result.outputs?.polygons).toBeDefined();
-    expect(result.outputs?.polygons.type).toBe("FeatureCollection");
+    expect(result.status).toBe("error");
   });
 
-  it("returns FeatureCollection for LineString geometry input", async () => {
+  it("returns error for raw LineString geometry input (requires FeatureCollection)", async () => {
+    // @dafthunk/geo polygonize requires FeatureCollection<LineString>
     const context = createMockContext({
       lines: {
         type: "LineString",
@@ -158,9 +156,7 @@ describe("PolygonizeNode", () => {
       },
     });
     const result = await node.execute(context);
-    expect(result.status).toBe("completed");
-    expect(result.outputs?.polygons).toBeDefined();
-    expect(result.outputs?.polygons.type).toBe("FeatureCollection");
+    expect(result.status).toBe("error");
   });
 
   it("returns FeatureCollection for intersecting lines that form polygons", async () => {
@@ -221,7 +217,8 @@ describe("PolygonizeNode", () => {
     expect(result.outputs?.polygons.type).toBe("FeatureCollection");
   });
 
-  it("returns FeatureCollection for single line that doesn't form a polygon", async () => {
+  it("returns error for single Feature that doesn't form a polygon (requires FeatureCollection)", async () => {
+    // @dafthunk/geo polygonize requires FeatureCollection<LineString>
     const context = createMockContext({
       lines: {
         type: "Feature",
@@ -236,9 +233,7 @@ describe("PolygonizeNode", () => {
       },
     });
     const result = await node.execute(context);
-    expect(result.status).toBe("completed");
-    expect(result.outputs?.polygons).toBeDefined();
-    expect(result.outputs?.polygons.type).toBe("FeatureCollection");
+    expect(result.status).toBe("error");
   });
 
   it("returns an error for missing lines input", async () => {

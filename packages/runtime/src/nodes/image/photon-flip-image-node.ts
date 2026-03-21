@@ -52,6 +52,9 @@ export class PhotonFlipImageNode extends ExecutableNode {
       image?: ImageParameter;
       direction?: "horizontal" | "vertical";
     };
+    if (!image || !image.data || !image.mimeType) {
+      return this.createErrorResult("Input image is missing or invalid.");
+    }
     if (
       !direction ||
       (direction !== "horizontal" && direction !== "vertical")

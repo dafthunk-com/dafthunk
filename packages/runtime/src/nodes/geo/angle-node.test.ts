@@ -1,5 +1,5 @@
 import type { NodeContext } from "@dafthunk/runtime";
-import { angle } from "@turf/turf";
+import { angle } from "@dafthunk/geo";
 import { describe, expect, it } from "vitest";
 import { AngleNode } from "./angle-node";
 

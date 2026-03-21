@@ -52,6 +52,9 @@ export class PhotonPixelizeNode extends ExecutableNode {
       image?: ImageParameter;
       pixelSize?: number;
     };
+    if (!image || !image.data || !image.mimeType) {
+      return this.createErrorResult("Input image is missing or invalid.");
+    }
     if (
       typeof pixelSize !== "number" ||
       !Number.isInteger(pixelSize) ||

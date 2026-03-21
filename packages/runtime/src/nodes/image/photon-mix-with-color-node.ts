@@ -77,6 +77,9 @@ export class PhotonMixWithColorNode extends ExecutableNode {
       mixBlue?: number;
       opacity?: number;
     };
+    if (!image || !image.data || !image.mimeType) {
+      return this.createErrorResult("Input image is missing or invalid.");
+    }
     if (typeof mixRed !== "number" || mixRed < 0 || mixRed > 255) {
       return this.createErrorResult(
         "Mix Red component must be a number between 0 and 255."

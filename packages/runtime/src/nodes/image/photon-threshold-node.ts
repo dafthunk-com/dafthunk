@@ -64,6 +64,9 @@ export class PhotonThresholdNode extends ExecutableNode {
         thresholdValue?: number;
         convertToGrayscaleFirst?: boolean;
       };
+    if (!image || !image.data || !image.mimeType) {
+      return this.createErrorResult("Input image is missing or invalid.");
+    }
     if (
       typeof thresholdValue !== "number" ||
       thresholdValue < 0 ||

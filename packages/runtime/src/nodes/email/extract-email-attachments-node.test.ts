@@ -3,6 +3,10 @@ import type { Node } from "@dafthunk/types";
 import { describe, expect, it, vi } from "vitest";
 import { ExtractEmailAttachmentsNode } from "./extract-email-attachments-node";
 
+vi.mock("mailparser", () => ({
+  simpleParser: vi.fn(),
+}));
+
 describe("ExtractEmailAttachmentsNode", () => {
   const createContext = (inputs: Record<string, unknown>): NodeContext =>
     ({
@@ -114,6 +118,24 @@ describe("ExtractEmailAttachmentsNode", () => {
     const node = new ExtractEmailAttachmentsNode({
       nodeId: "extract-email-attachments",
     } as unknown as Node);
+
+    const mailparser = await import("mailparser");
+    vi.mocked(mailparser.simpleParser).mockResolvedValueOnce({
+      subject: "No attachments",
+      text: "Email body.",
+      html: "",
+      from: { value: [{ address: "sender@example.com", name: "" }] },
+      to: { value: [{ address: "recipient@example.com", name: "" }] },
+      cc: null,
+      bcc: null,
+      replyTo: null,
+      date: new Date("2024-01-01T00:00:00.000Z"),
+      messageId: "",
+      inReplyTo: null,
+      references: [],
+      priority: "normal",
+      attachments: [],
+    } as any);
 
     const result = await node.execute(createContext({ raw: "mock raw email" }));
     expect(result.status).toBe("completed");

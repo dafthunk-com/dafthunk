@@ -53,6 +53,9 @@ export class PhotonGaussianBlurNode extends ExecutableNode {
       image?: ImageParameter;
       radius?: number;
     };
+    if (!image || !image.data || !image.mimeType) {
+      return this.createErrorResult("Input image is missing or invalid.");
+    }
     if (typeof radius !== "number" || radius < 0) {
       return this.createErrorResult(
         "Blur radius must be a non-negative number."

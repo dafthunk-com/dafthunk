@@ -52,6 +52,9 @@ export class PhotonAdjustHueNode extends ExecutableNode {
       image?: ImageParameter;
       degrees?: number;
     };
+    if (!image || !image.data || !image.mimeType) {
+      return this.createErrorResult("Input image is missing or invalid.");
+    }
     if (typeof degrees !== "number") {
       return this.createErrorResult("Hue rotation degrees must be a number.");
     }

@@ -24,30 +24,39 @@ describe("IntersectNode", () => {
     outputs: [],
   });
 
+  // @dafthunk/geo intersect requires Feature<Polygon>, not raw geometry
   const polygon1 = {
-    type: "Polygon",
-    coordinates: [
-      [
-        [0, 0],
-        [0, 10],
-        [10, 10],
-        [10, 0],
-        [0, 0],
+    type: "Feature",
+    properties: {},
+    geometry: {
+      type: "Polygon",
+      coordinates: [
+        [
+          [0, 0],
+          [0, 10],
+          [10, 10],
+          [10, 0],
+          [0, 0],
+        ],
       ],
-    ],
+    },
   };
 
   const polygon2 = {
-    type: "Polygon",
-    coordinates: [
-      [
-        [5, 5],
-        [5, 15],
-        [15, 15],
-        [15, 5],
-        [5, 5],
+    type: "Feature",
+    properties: {},
+    geometry: {
+      type: "Polygon",
+      coordinates: [
+        [
+          [5, 5],
+          [5, 15],
+          [15, 15],
+          [15, 5],
+          [5, 5],
+        ],
       ],
-    ],
+    },
   };
 
   it("returns intersection for valid polygons", async () => {

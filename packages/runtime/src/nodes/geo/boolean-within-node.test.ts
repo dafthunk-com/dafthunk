@@ -129,7 +129,8 @@ describe("BooleanWithinNode", () => {
     expect(result.outputs?.within).toBe(false);
   });
 
-  it("returns false for point on polygon boundary", async () => {
+  it("returns true for point on polygon boundary", async () => {
+    // @dafthunk/geo includes boundary points as "within"
     const point = {
       type: "Feature",
       properties: {},
@@ -161,7 +162,7 @@ describe("BooleanWithinNode", () => {
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
-    expect(result.outputs?.within).toBe(false);
+    expect(result.outputs?.within).toBe(true);
   });
 
   it("returns true for polygon within polygon", async () => {

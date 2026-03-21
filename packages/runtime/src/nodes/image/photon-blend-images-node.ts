@@ -60,6 +60,9 @@ export class PhotonBlendImagesNode extends ExecutableNode {
       blendImage?: ImageParameter;
       blendMode?: string;
     };
+    if (!baseImage || !baseImage.data || !baseImage.mimeType) {
+      return this.createErrorResult("Base image is missing or invalid.");
+    }
     if (typeof blendMode !== "string" || blendMode.trim() === "") {
       return this.createErrorResult("Blend mode must be a non-empty string.");
     }

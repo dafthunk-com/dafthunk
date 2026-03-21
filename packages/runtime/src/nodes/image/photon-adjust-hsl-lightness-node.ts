@@ -53,6 +53,9 @@ export class PhotonAdjustHslLightnessNode extends ExecutableNode {
       image?: ImageParameter;
       amount?: number;
     };
+    if (!image || !image.data || !image.mimeType) {
+      return this.createErrorResult("Input image is missing or invalid.");
+    }
     if (typeof amount !== "number" || amount < -1.0 || amount > 1.0) {
       return this.createErrorResult(
         "Lightness amount must be a number between -1.0 and 1.0."

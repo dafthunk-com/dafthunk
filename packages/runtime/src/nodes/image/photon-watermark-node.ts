@@ -69,6 +69,9 @@ export class PhotonWatermarkNode extends ExecutableNode {
       x?: number;
       y?: number;
     };
+    if (!mainImage || !mainImage.data || !mainImage.mimeType) {
+      return this.createErrorResult("Main image is missing or invalid.");
+    }
     if (typeof x !== "number") {
       return this.createErrorResult("X coordinate must be a number.");
     }
