@@ -162,12 +162,15 @@
       "new_sqlite_classes": ["Sandbox"]
     },
     {
-      "tag": "v8",
-      "new_sqlite_classes": ["WorkflowAgent"]
+      "tag": "v8"
     },
     {
       "tag": "v9",
       "deleted_classes": ["WorkflowSession"]
+    },
+    {
+      "tag": "v10",
+      "new_sqlite_classes": ["WorkflowAgent"]
     }
   ],
   "unsafe": {
@@ -333,12 +336,15 @@
           "new_sqlite_classes": ["Sandbox"]
         },
         {
-          "tag": "v8",
-          "new_sqlite_classes": ["WorkflowAgent"]
+          "tag": "v8"
         },
         {
           "tag": "v9",
           "deleted_classes": ["WorkflowSession"]
+        },
+        {
+          "tag": "v10",
+          "new_sqlite_classes": ["WorkflowAgent"]
         }
       ],
       "unsafe": {
