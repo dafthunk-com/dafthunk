@@ -108,11 +108,6 @@
   "durable_objects": {
     "bindings": [
       {
-        "name": "WORKFLOW_SESSION",
-        "class_name": "WorkflowSession",
-        "script_name": "dafthunk-api"
-      },
-      {
         "name": "DATABASE",
         "class_name": "DatabaseDO",
         "script_name": "dafthunk-api"
@@ -120,6 +115,11 @@
       {
         "name": "AGENT_RUNNER",
         "class_name": "AgentRunner",
+        "script_name": "dafthunk-api"
+      },
+      {
+        "name": "WORKFLOW_AGENT",
+        "class_name": "WorkflowAgent",
         "script_name": "dafthunk-api"
       },
       {
@@ -160,6 +160,14 @@
     {
       "tag": "v7",
       "new_sqlite_classes": ["Sandbox"]
+    },
+    {
+      "tag": "v8",
+      "new_classes": ["WorkflowAgent"]
+    },
+    {
+      "tag": "v9",
+      "deleted_classes": ["WorkflowSession"]
     }
   ],
   "unsafe": {
@@ -271,11 +279,6 @@
       "durable_objects": {
         "bindings": [
           {
-            "name": "WORKFLOW_SESSION",
-            "class_name": "WorkflowSession",
-            "script_name": "dafthunk-api"
-          },
-          {
             "name": "DATABASE",
             "class_name": "DatabaseDO",
             "script_name": "dafthunk-api"
@@ -283,6 +286,11 @@
           {
             "name": "AGENT_RUNNER",
             "class_name": "AgentRunner",
+            "script_name": "dafthunk-api"
+          },
+          {
+            "name": "WORKFLOW_AGENT",
+            "class_name": "WorkflowAgent",
             "script_name": "dafthunk-api"
           },
           {
@@ -323,6 +331,14 @@
         {
           "tag": "v7",
           "new_sqlite_classes": ["Sandbox"]
+        },
+        {
+          "tag": "v8",
+          "new_classes": ["WorkflowAgent"]
+        },
+        {
+          "tag": "v9",
+          "deleted_classes": ["WorkflowSession"]
         }
       ],
       "unsafe": {

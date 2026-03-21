@@ -10,6 +10,7 @@
  * - WorkflowRuntimeEntrypoint: Cloudflare Workflows adapter (durable execution)
  */
 
+export { WorkflowRuntimeEntrypoint } from "./workflow-runtime-entrypoint";
 export { CloudflareCreditService } from "./cloudflare-credit-service";
 export {
   createWorkerRuntime,
@@ -19,4 +20,3 @@ export {
   createWorkflowRuntime,
   WorkflowRuntime,
 } from "./cloudflare-workflow-runtime";
-export { WorkflowRuntimeEntrypoint } from "./cloudflare-workflow-runtime-entrypoint";

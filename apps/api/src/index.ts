@@ -45,10 +45,9 @@ import whatsappWebhook from "./routes/whatsapp-webhook";
 import workflowRoutes from "./routes/workflows";
 import wsRoutes from "./routes/ws";
 import { handleScheduledEvent } from "./scheduled";
-import { Session } from "./session/session";
 
 // Export WorkflowRuntimeEntrypoint as "Runtime" for wrangler config compatibility
-export { WorkflowRuntimeEntrypoint as Runtime } from "./runtime/cloudflare-workflow-runtime-entrypoint";
+export { WorkflowRuntimeEntrypoint as Runtime } from "./runtime/workflow-runtime-entrypoint";
 
 // Initialize Hono app with types
 const app = new Hono<ApiContext>();
@@ -129,7 +128,7 @@ app.route("/:organizationId/usage", usageRoutes);
 app.route("/:organizationId/ws", wsRoutes);
 
 // Export Durable Objects
-export { Session as WorkflowSession };
+export { WorkflowAgent } from "./durable-objects/workflow-agent";
 export { DatabaseDO };
 export { Sandbox } from "@cloudflare/sandbox";
 export { FFmpegContainer } from "./containers/ffmpeg-container";

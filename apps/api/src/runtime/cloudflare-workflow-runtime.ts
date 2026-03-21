@@ -58,7 +58,7 @@ export function createWorkflowRuntime(
     nodeRegistry,
     credentialProvider,
     executionStore: new CloudflareExecutionStore(env),
-    monitoringService: new CloudflareMonitoringService(env.WORKFLOW_SESSION),
+    monitoringService: new CloudflareMonitoringService(env.WORKFLOW_AGENT),
     creditService: new CloudflareCreditService(
       env.KV,
       env.CLOUDFLARE_ENV === "development"

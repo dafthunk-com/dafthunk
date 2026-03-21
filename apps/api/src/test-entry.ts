@@ -24,12 +24,11 @@
  * - Avoids importing CloudflareNodeRegistry and heavy dependencies
  */
 
+// Export WorkflowAgent for Durable Object testing (if needed in future)
+export { WorkflowAgent } from "./durable-objects/workflow-agent";
 // Export mock runtime for workflow testing
 // Note: We export it as "Runtime" so wrangler config can reference it by that name
 export { MockRuntime as Runtime } from "./mocks/runtime";
-
-// Export Session for Durable Object testing (if needed in future)
-export { Session } from "./session/session";
 
 // Note: We intentionally do NOT import the full index.ts or CloudflareNodeRegistry
 // to avoid pulling in dependencies that require Node.js modules not available

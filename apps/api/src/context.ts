@@ -3,7 +3,7 @@ import { JWTTokenPayload } from "@dafthunk/types";
 import type { FFmpegContainer } from "./containers/ffmpeg-container";
 import type { AgentRunner } from "./durable-objects/agent-runner";
 import { DatabaseDO } from "./durable-objects/database-do";
-import { Session } from "./session/session";
+import type { WorkflowAgent } from "./durable-objects/workflow-agent";
 
 export interface Bindings {
   DB: D1Database;
@@ -12,7 +12,7 @@ export interface Bindings {
   RATE_LIMIT_AUTH: RateLimit;
   RATE_LIMIT_EXECUTE: RateLimit;
   EXECUTE: Workflow<RuntimeParams>;
-  WORKFLOW_SESSION: DurableObjectNamespace<Session>;
+  WORKFLOW_AGENT: DurableObjectNamespace<WorkflowAgent>;
   DATABASE: DurableObjectNamespace<DatabaseDO>;
   AGENT_RUNNER: DurableObjectNamespace<AgentRunner>;
   FFMPEG_CONTAINER?: DurableObjectNamespace<FFmpegContainer>;

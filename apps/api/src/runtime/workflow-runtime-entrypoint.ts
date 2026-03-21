@@ -4,23 +4,7 @@
  * Cloudflare Workflows adapter for the WorkflowRuntime execution engine.
  * This is the entrypoint class that Cloudflare Workflows instantiates.
  *
- * ## Architecture
- *
- * Thin adapter layer that:
- * - Extends WorkflowEntrypoint (Cloudflare Workflows base class)
- * - Sets up production dependencies (node registry, resource provider, etc.)
- * - Delegates execution to WorkflowRuntime
- *
- * ## Usage
- *
- * Exported from `index.ts` as "Runtime" for wrangler configuration:
- * ```ts
- * // wrangler.jsonc
- * "workflows": [{
- *   "binding": "EXECUTE",
- *   "class_name": "Runtime"
- * }]
- * ```
+ * Exported from `index.ts` as "Runtime" for wrangler configuration.
  *
  * @see {@link WorkflowRuntime} - Core runtime execution logic
  */
@@ -38,10 +22,6 @@ import {
   type WorkflowRuntime,
 } from "./cloudflare-workflow-runtime";
 
-/**
- * Workflow entrypoint for Cloudflare Workflows.
- * Adapter that connects Cloudflare Workflows API to the runtime execution engine.
- */
 export class WorkflowRuntimeEntrypoint extends WorkflowEntrypoint<
   Bindings,
   RuntimeParams
@@ -53,16 +33,13 @@ export class WorkflowRuntimeEntrypoint extends WorkflowEntrypoint<
     this.runtime = createWorkflowRuntime(env);
   }
 
-  /**
-   * Workflow entrypoint called by Cloudflare Workflows engine.
-   */
   async run(
     event: WorkflowEvent<RuntimeParams>,
     step: WorkflowStep
   ): Promise<WorkflowExecution> {
     const params = event.payload;
     console.log(
-      `[WorkflowEntrypoint] run instanceId=${event.instanceId} workflow=${params.workflow.id} trigger=${params.workflow.trigger} nodes=${params.workflow.nodes.length} telegramMessage=${!!params.telegramMessage} telegramBotToken=${!!params.telegramBotToken}`
+      `[WorkflowEntrypoint] run instanceId=${event.instanceId} workflow=${params.workflow.id} trigger=${params.workflow.trigger} nodes=${params.workflow.nodes.length}`
     );
     try {
       const result = await this.runtime.executeWithStep(

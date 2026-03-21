@@ -18,8 +18,16 @@ interface GatewayEnv {
 }
 
 function getGateway(env: GatewayEnv, provider: string) {
-  const { CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN, CLOUDFLARE_AI_GATEWAY_ID } = env;
-  if (!CLOUDFLARE_AI_GATEWAY_ID || !CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
+  const {
+    CLOUDFLARE_ACCOUNT_ID,
+    CLOUDFLARE_API_TOKEN,
+    CLOUDFLARE_AI_GATEWAY_ID,
+  } = env;
+  if (
+    !CLOUDFLARE_AI_GATEWAY_ID ||
+    !CLOUDFLARE_ACCOUNT_ID ||
+    !CLOUDFLARE_API_TOKEN
+  ) {
     return undefined;
   }
   return {
