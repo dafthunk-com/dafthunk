@@ -1,11 +1,15 @@
 /**
- * Utilities for configuring AI provider clients to use Cloudflare AI Gateway
- * with authentication.
+ * Configures AI provider SDK clients to route through Cloudflare AI Gateway
+ * with stored API keys.
  *
+ * The gateway authenticates via cf-aig-authorization and injects stored provider
+ * API keys automatically. Each SDK's own auth header (Authorization for OpenAI,
+ * x-api-key for Anthropic) is nullified so the placeholder "gateway-managed"
+ * value isn't forwarded to the provider.
+ *
+ * @see https://developers.cloudflare.com/ai-gateway/get-started/
  * @see https://developers.cloudflare.com/ai-gateway/configuration/authentication/
  */
-
-type Provider = "openai" | "anthropic" | "google-ai-studio" | "replicate";
 
 interface GatewayEnv {
   CLOUDFLARE_ACCOUNT_ID?: string;
@@ -13,114 +17,48 @@ interface GatewayEnv {
   CLOUDFLARE_AI_GATEWAY_ID?: string;
 }
 
-interface GatewayConfig {
-  baseURL: string;
-  headers: Record<string, string>;
-}
-
-/**
- * Builds the AI Gateway URL for a specific provider.
- */
-function buildGatewayUrl(
-  accountId: string,
-  gatewayId: string,
-  provider: Provider
-): string {
-  return `https://gateway.ai.cloudflare.com/v1/${accountId}/${gatewayId}/${provider}`;
-}
-
-/**
- * Returns gateway configuration for an AI provider if gateway is configured.
- * Returns undefined if gateway is not configured (missing required env vars).
- */
-export function getGatewayConfig(
-  env: GatewayEnv,
-  provider: Provider
-): GatewayConfig | undefined {
-  const {
-    CLOUDFLARE_ACCOUNT_ID,
-    CLOUDFLARE_API_TOKEN,
-    CLOUDFLARE_AI_GATEWAY_ID,
-  } = env;
-
-  // All three env vars are required for gateway authentication
-  if (
-    !CLOUDFLARE_AI_GATEWAY_ID ||
-    !CLOUDFLARE_ACCOUNT_ID ||
-    !CLOUDFLARE_API_TOKEN
-  ) {
+function getGateway(env: GatewayEnv, provider: string) {
+  const { CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN, CLOUDFLARE_AI_GATEWAY_ID } = env;
+  if (!CLOUDFLARE_AI_GATEWAY_ID || !CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
     return undefined;
   }
-
   return {
-    baseURL: buildGatewayUrl(
-      CLOUDFLARE_ACCOUNT_ID,
-      CLOUDFLARE_AI_GATEWAY_ID,
-      provider
-    ),
-    headers: {
-      Authorization: `Bearer ${CLOUDFLARE_API_TOKEN}`,
-    },
+    baseURL: `https://gateway.ai.cloudflare.com/v1/${CLOUDFLARE_ACCOUNT_ID}/${CLOUDFLARE_AI_GATEWAY_ID}/${provider}`,
+    gatewayHeader: { "cf-aig-authorization": `Bearer ${CLOUDFLARE_API_TOKEN}` },
   };
 }
 
-/**
- * Returns OpenAI client configuration with gateway support.
- */
+/** OpenAI SDK constructor options. Nullifies Authorization to prevent forwarding the placeholder apiKey. */
 export function getOpenAIConfig(env: GatewayEnv): {
   baseURL?: string;
-  defaultHeaders?: Record<string, string>;
+  defaultHeaders?: Record<string, string | null>;
 } {
-  const gateway = getGatewayConfig(env, "openai");
-  if (!gateway) {
-    return {};
-  }
+  const gw = getGateway(env, "openai");
+  if (!gw) return {};
   return {
-    baseURL: gateway.baseURL,
-    defaultHeaders: gateway.headers,
+    baseURL: gw.baseURL,
+    defaultHeaders: { ...gw.gatewayHeader, Authorization: null },
   };
 }
 
-/**
- * Returns Anthropic client configuration with gateway support.
- */
+/** Anthropic SDK constructor options. Nullifies x-api-key to prevent forwarding the placeholder apiKey. */
 export function getAnthropicConfig(env: GatewayEnv): {
   baseURL?: string;
-  defaultHeaders?: Record<string, string>;
+  defaultHeaders?: Record<string, string | null>;
 } {
-  const gateway = getGatewayConfig(env, "anthropic");
-  if (!gateway) {
-    return {};
-  }
+  const gw = getGateway(env, "anthropic");
+  if (!gw) return {};
   return {
-    baseURL: gateway.baseURL,
-    defaultHeaders: gateway.headers,
+    baseURL: gw.baseURL,
+    defaultHeaders: { ...gw.gatewayHeader, "x-api-key": null },
   };
 }
 
-/**
- * Returns Google AI (Gemini) client configuration with gateway support.
- * Uses httpOptions with baseUrl (lowercase) and headers as per @google/genai SDK.
- */
+/** Google GenAI SDK constructor options (uses httpOptions with lowercase baseUrl). */
 export function getGoogleAIConfig(env: GatewayEnv): {
   httpOptions?: { baseUrl: string; headers: Record<string, string> };
 } {
-  const gateway = getGatewayConfig(env, "google-ai-studio");
-  if (!gateway) {
-    return {};
-  }
-  return {
-    httpOptions: {
-      baseUrl: gateway.baseURL,
-      headers: gateway.headers,
-    },
-  };
-}
-
-/**
- * Returns Replicate API configuration with gateway support.
- * Returns the base URL for Replicate models endpoint and authentication headers.
- */
-export function getReplicateConfig(env: GatewayEnv): GatewayConfig | undefined {
-  return getGatewayConfig(env, "replicate");
+  const gw = getGateway(env, "google-ai-studio");
+  if (!gw) return {};
+  return { httpOptions: { baseUrl: gw.baseURL, headers: gw.gatewayHeader } };
 }
