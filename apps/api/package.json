@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit",
     "check": "biome check --write",
     "test": "vitest run",
-    "test:integration": "vitest run --config vitest.integration.config.ts --passWithNoTests",
+    "test:integration": "vitest run --config vitest.integration.config.mts --passWithNoTests",
     "deploy": "RUNTIME_VERSION=$(git rev-parse HEAD) wrangler deploy --env production --define RUNTIME_VERSION:\"\\\"$RUNTIME_VERSION\\\"\"",
     "format": "biome format --write",
     "db:generate": "drizzle-kit generate",
@@ -23,7 +23,8 @@
     "generate:master-key": "node scripts/generate-master-key.js"
   },
   "devDependencies": {
-    "@cloudflare/vitest-pool-workers": "^0.12.4",
+    "@cloudflare/vitest-pool-workers": "^0.13.3",
+    "@cloudflare/workers-types": "^4.20260317.1",
     "@types/mailparser": "^3.4.6",
     "@types/node": "^22.19.7",
     "@types/three": "^0.181.0",
@@ -31,8 +32,8 @@
     "drizzle-kit": "0.31.1",
     "globals": "^15.15.0",
     "typescript": "^5.9.3",
-    "vitest": "^3.2.4",
-    "wrangler": "^4.59.2"
+    "vitest": "^4.1.0",
+    "wrangler": "^4.76.0"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",
@@ -42,7 +43,7 @@
     "@cf-wasm/resvg": "^0.3.3",
     "@cloudflare/ai-utils": "^1.0.1",
     "@cloudflare/containers": "^0.1.1",
-    "@cloudflare/sandbox": "^0.7.17",
+    "@cloudflare/sandbox": "^0.7.18",
     "@dafthunk/runtime": "workspace:*",
     "@dafthunk/types": "workspace:*",
     "@dafthunk/utils": "workspace:*",
@@ -54,7 +55,8 @@
     "@mapbox/martini": "^0.2.0",
     "@turf/helpers": "^7.3.2",
     "@turf/turf": "^7.3.2",
-    "agents": "^0.1.6",
+    "agents": "^0.7.9",
+    "ai": "^6.0.134",
     "aws4fetch": "^1.0.20",
     "cloudflare": "^5.2.0",
     "cron-parser": "^5.4.0",

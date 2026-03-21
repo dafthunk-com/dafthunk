@@ -23,6 +23,9 @@
    * databases, object storage, AI inference, real-time communication and more.
    * https://developers.cloudflare.com/workers/runtime-apis/bindings/
    */
+  "alias": {
+    "iconv-lite": "./src/stubs/empty-module.ts"
+  },
   "define": {
     "RUNTIME_VERSION": "\"development\""
   },
