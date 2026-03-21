@@ -191,7 +191,7 @@ describe("LineOffsetNode", () => {
         expect(result.status).toBe("completed");
         expect(result.outputs?.offset).toBeDefined();
         // @dafthunk/geo lineOffset returns Feature<LineString>
-      expect(result.outputs?.offset.type).toBe("Feature");
+        expect(result.outputs?.offset.type).toBe("Feature");
       }
     });
 

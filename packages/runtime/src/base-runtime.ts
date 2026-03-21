@@ -347,7 +347,6 @@ export abstract class Runtime<Env = unknown> {
             discordInteraction,
             telegramMessage,
             whatsappMessage,
-
           };
 
           // Mutable state

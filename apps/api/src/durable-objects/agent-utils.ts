@@ -15,9 +15,8 @@ import * as agents from "agents";
  * with the x-partykit-room header to initialize the DO name before returning
  * the stub. This ensures `this.name` is available for subsequent RPC calls.
  */
-export const getAgentByName = (
-  agents as unknown as Record<string, unknown>
-).getAgentByName as <T extends Rpc.DurableObjectBranded | undefined>(
+export const getAgentByName = (agents as unknown as Record<string, unknown>)
+  .getAgentByName as <T extends Rpc.DurableObjectBranded | undefined>(
   namespace: DurableObjectNamespace<T>,
   name: string
 ) => Promise<DurableObjectStub<T>>;

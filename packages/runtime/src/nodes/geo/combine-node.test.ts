@@ -1,5 +1,5 @@
-import type { NodeContext } from "@dafthunk/runtime";
 import { combine } from "@dafthunk/geo";
+import type { NodeContext } from "@dafthunk/runtime";
 import { describe, expect, it } from "vitest";
 import { CombineNode } from "./combine-node";
 

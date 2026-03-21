@@ -1,11 +1,11 @@
 import type { QueueMessage, Workflow } from "@dafthunk/types";
 import type { Bindings } from "./context";
-import { getAgentByName } from "./durable-objects/agent-utils";
 import { createDatabase } from "./db";
 import {
   getOrganizationComputeCredits,
   getQueueTriggersByQueue,
 } from "./db/queries";
+import { getAgentByName } from "./durable-objects/agent-utils";
 import { createWorkerRuntime } from "./runtime/cloudflare-worker-runtime";
 import { WorkflowStore } from "./stores/workflow-store";
 
