@@ -508,6 +508,9 @@ export class AgentRunner extends Agent<Bindings, AgentRunnerState> {
           }),
         },
         usage,
+        ...(response.finishReason === "error" && {
+          error: response.text || "Agent execution failed",
+        }),
       },
     });
   }

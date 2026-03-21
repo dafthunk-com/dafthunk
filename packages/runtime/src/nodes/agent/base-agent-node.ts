@@ -372,6 +372,10 @@ export abstract class BaseAgentNode extends ExecutableNode {
         config.pricing
       );
 
+      if (result.finishReason === "error") {
+        return this.createErrorResult(result.text || "Agent execution failed");
+      }
+
       return this.createSuccessResult(
         {
           text: result.text,
