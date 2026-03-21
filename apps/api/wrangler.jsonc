@@ -163,16 +163,11 @@
     },
     {
       "tag": "v8",
-      "new_classes": ["WorkflowAgent"]
+      "new_sqlite_classes": ["WorkflowAgent"]
     },
     {
       "tag": "v9",
       "deleted_classes": ["WorkflowSession"]
-    },
-    {
-      "tag": "v10",
-      "deleted_classes": ["WorkflowAgent"],
-      "new_sqlite_classes": ["WorkflowAgent"]
     }
   ],
   "unsafe": {
@@ -339,16 +334,11 @@
         },
         {
           "tag": "v8",
-          "new_classes": ["WorkflowAgent"]
+          "new_sqlite_classes": ["WorkflowAgent"]
         },
         {
           "tag": "v9",
           "deleted_classes": ["WorkflowSession"]
-        },
-        {
-          "tag": "v10",
-          "deleted_classes": ["WorkflowAgent"],
-          "new_sqlite_classes": ["WorkflowAgent"]
         }
       ],
       "unsafe": {
