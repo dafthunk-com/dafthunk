@@ -46,16 +46,24 @@ export function useIntegrationActions(): IntegrationActionsResult {
   const { mutate } = useIntegrations();
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const connectOAuth = useCallback((provider: IntegrationProvider) => {
-    const providerConfig = getProvider(provider);
-    if (!providerConfig?.oauthEndpoint) {
-      toast.error("OAuth not supported for this provider");
-      return;
-    }
+  const connectOAuth = useCallback(
+    (provider: IntegrationProvider) => {
+      const providerConfig = getProvider(provider);
+      if (!providerConfig?.oauthEndpoint) {
+        toast.error("OAuth not supported for this provider");
+        return;
+      }
 
-    const apiBaseUrl = getApiBaseUrl();
-    window.location.href = `${apiBaseUrl}${providerConfig.oauthEndpoint}`;
-  }, []);
+      if (!organization?.id) {
+        toast.error("No organization selected");
+        return;
+      }
+
+      const apiBaseUrl = getApiBaseUrl();
+      window.location.href = `${apiBaseUrl}${providerConfig.oauthEndpoint}?organizationId=${organization.id}`;
+    },
+    [organization?.id]
+  );
 
   const createManual = useCallback(
     async (
