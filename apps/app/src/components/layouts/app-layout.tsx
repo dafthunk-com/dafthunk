@@ -34,9 +34,7 @@ export function AppLayout({ children, sidebar, className }: AppLayoutProps) {
                 footerItems={sidebar.footerItems}
               />
               <Sidebar.SidebarInset>
-                <div className="h-full w-full overflow-y-auto">
-                  {children}
-                </div>
+                <div className="h-full w-full overflow-y-auto">{children}</div>
               </Sidebar.SidebarInset>
             </Sidebar.SidebarProvider>
           ) : (

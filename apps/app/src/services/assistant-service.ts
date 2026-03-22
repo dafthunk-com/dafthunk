@@ -1,23 +1,24 @@
 import type {
-  OnboardingChatMessage,
-  OnboardingClientMessage,
-  OnboardingConversation,
-  OnboardingServerMessage,
+  AssistantMessage,
+  AssistantClientMessage,
+  AssistantConversation,
+  AssistantServerMessage,
+  ToolStep,
 } from "@dafthunk/types";
 
 import { getApiBaseUrl } from "@/config/api";
 
-export interface OnboardingChatWSOptions {
-  onHistory?: (messages: OnboardingChatMessage[]) => void;
-  onConversations?: (conversations: OnboardingConversation[]) => void;
+export interface AssistantWSOptions {
+  onHistory?: (messages: AssistantMessage[]) => void;
+  onConversations?: (conversations: AssistantConversation[]) => void;
   onConversationSwitched?: (
     conversationId: string,
-    messages: OnboardingChatMessage[]
+    messages: AssistantMessage[]
   ) => void;
   onStreamStart?: () => void;
   onStreamChunk?: (content: string) => void;
   onStreamEnd?: () => void;
-  onTurnComplete?: (content: string) => void;
+  onTurnComplete?: (content: string, toolSteps?: ToolStep[]) => void;
   onToolProgress?: (tool: string, description: string) => void;
   onNavigate?: (path: string) => void;
   onError?: (message: string) => void;
@@ -25,7 +26,7 @@ export interface OnboardingChatWSOptions {
   onConnectionClose?: (event: CloseEvent) => void;
 }
 
-export class OnboardingChatWebSocket {
+export class AssistantWebSocket {
   private static readonly NORMAL_CLOSURE = 1000;
   private static readonly GOING_AWAY = 1001;
   private static readonly MAX_RECONNECT_DELAY = 30000;
@@ -38,11 +39,11 @@ export class OnboardingChatWebSocket {
 
   constructor(
     private orgId: string,
-    private options: OnboardingChatWSOptions = {}
+    private options: AssistantWSOptions = {}
   ) {}
 
   connect(): void {
-    if (this.isConnectedOrConnecting()) return;
+    if (!this.shouldReconnect || this.isConnectedOrConnecting()) return;
 
     const apiBaseUrl = getApiBaseUrl();
     const wsBaseUrl = apiBaseUrl.replace(/^http/, "ws");
@@ -71,19 +72,19 @@ export class OnboardingChatWebSocket {
           setTimeout(() => this.connect(), this.reconnectDelay);
           this.reconnectDelay = Math.min(
             this.reconnectDelay * 2,
-            OnboardingChatWebSocket.MAX_RECONNECT_DELAY
+            AssistantWebSocket.MAX_RECONNECT_DELAY
           );
         }
       };
     } catch (error) {
-      console.error("[OnboardingChat] Failed to create WebSocket:", error);
+      console.error("[Assistant] Failed to create WebSocket:", error);
       this.options.onError?.("Failed to connect");
     }
   }
 
   private handleMessage(event: MessageEvent): void {
     try {
-      const message = JSON.parse(event.data) as OnboardingServerMessage;
+      const message = JSON.parse(event.data) as AssistantServerMessage;
 
       switch (message.type) {
         case "history":
@@ -108,7 +109,7 @@ export class OnboardingChatWebSocket {
           this.options.onStreamEnd?.();
           break;
         case "turn_complete":
-          this.options.onTurnComplete?.(message.content);
+          this.options.onTurnComplete?.(message.content, message.toolSteps);
           break;
         case "tool_progress":
           this.options.onToolProgress?.(message.tool, message.description);
@@ -121,7 +122,7 @@ export class OnboardingChatWebSocket {
           break;
       }
     } catch (error) {
-      console.error("[OnboardingChat] Failed to parse message:", error);
+      console.error("[Assistant] Failed to parse message:", error);
     }
   }
 
@@ -130,12 +131,12 @@ export class OnboardingChatWebSocket {
       this.shouldReconnect &&
       this.reconnectAttempts < this.maxReconnectAttempts &&
       !event.wasClean &&
-      event.code !== OnboardingChatWebSocket.NORMAL_CLOSURE &&
-      event.code !== OnboardingChatWebSocket.GOING_AWAY
+      event.code !== AssistantWebSocket.NORMAL_CLOSURE &&
+      event.code !== AssistantWebSocket.GOING_AWAY
     );
   }
 
-  private send(message: OnboardingClientMessage): void {
+  private send(message: AssistantClientMessage): void {
     if (!this.isConnected()) return;
     this.ws?.send(JSON.stringify(message));
   }

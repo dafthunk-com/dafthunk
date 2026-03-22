@@ -1,9 +1,10 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { getAnthropicConfig } from "@dafthunk/runtime/utils/ai-gateway";
 import type {
-  OnboardingChatMessage,
-  OnboardingClientMessage,
-  OnboardingServerMessage,
+  AssistantMessage,
+  AssistantClientMessage,
+  AssistantServerMessage,
+  ToolStep,
 } from "@dafthunk/types";
 import { Agent } from "agents";
 import type { Connection } from "partyserver";
@@ -12,12 +13,6 @@ import { v7 as uuidv7 } from "uuid";
 import type { Bindings } from "../context";
 import {
   createDatabase,
-  createDatabaseRecord,
-  createDataset,
-  createEmail,
-  createEndpoint,
-  createQueue,
-  createSecret,
   getDatabases,
   getDatasets,
   getDiscordBots,
@@ -41,7 +36,7 @@ interface UserProfile {
   domain?: string;
 }
 
-export interface OnboardingAgentState {
+export interface AssistantAgentState {
   organizationId: string;
   userId: string;
   activeConversationId: string;
@@ -143,129 +138,7 @@ const TOOLS: Anthropic.Tool[] = [
       required: ["page"],
     },
   },
-  // ── Creation tools ────────────────────────────────────────────────
-  {
-    name: "createWorkflowFromTemplate",
-    description: "Create a workflow from a template.",
-    input_schema: {
-      type: "object" as const,
-      properties: {
-        templateId: { type: "string", description: "Template ID" },
-        customName: { type: "string", description: "Custom workflow name" },
-        aiPromptOverrides: {
-          type: "object",
-          description: "Node ID → custom prompt for AI nodes",
-          additionalProperties: { type: "string" },
-        },
-      },
-      required: ["templateId"],
-    },
-  },
-  {
-    name: "createSecret",
-    description:
-      "Store a secret (API key, token). Only use when the user explicitly provides a credential value.",
-    input_schema: {
-      type: "object" as const,
-      properties: {
-        name: {
-          type: "string",
-          description: "Secret name (e.g. OPENAI_API_KEY)",
-        },
-        value: { type: "string", description: "Secret value" },
-      },
-      required: ["name", "value"],
-    },
-  },
-  {
-    name: "createEndpoint",
-    description: "Create an HTTP endpoint (webhook or request-response).",
-    input_schema: {
-      type: "object" as const,
-      properties: {
-        name: { type: "string", description: "Endpoint name" },
-        mode: {
-          type: "string",
-          enum: ["webhook", "request"],
-          description:
-            "webhook (fire-and-forget) or request (wait for response)",
-        },
-      },
-      required: ["name", "mode"],
-    },
-  },
-  {
-    name: "createEmail",
-    description:
-      "Create an @dafthunk.com email address for triggering workflows.",
-    input_schema: {
-      type: "object" as const,
-      properties: {
-        name: {
-          type: "string",
-          description: "Email prefix (e.g. 'support' → support@dafthunk.com)",
-        },
-      },
-      required: ["name"],
-    },
-  },
-  {
-    name: "createQueue",
-    description: "Create a message queue for async workflow triggering.",
-    input_schema: {
-      type: "object" as const,
-      properties: {
-        name: { type: "string", description: "Queue name" },
-      },
-      required: ["name"],
-    },
-  },
-  {
-    name: "createDataset",
-    description: "Create a dataset for storing files (CSV, JSON, etc).",
-    input_schema: {
-      type: "object" as const,
-      properties: {
-        name: { type: "string", description: "Dataset name" },
-      },
-      required: ["name"],
-    },
-  },
-  {
-    name: "createDatabase",
-    description: "Create a SQLite database for structured data storage.",
-    input_schema: {
-      type: "object" as const,
-      properties: {
-        name: { type: "string", description: "Database name" },
-      },
-      required: ["name"],
-    },
-  },
-  {
-    name: "connectIntegration",
-    description:
-      "Get the OAuth URL to connect an integration. Returns a link the user must open in their browser.",
-    input_schema: {
-      type: "object" as const,
-      properties: {
-        provider: {
-          type: "string",
-          enum: [
-            "google-mail",
-            "google-calendar",
-            "discord",
-            "github",
-            "reddit",
-            "linkedin",
-          ],
-          description: "Integration provider",
-        },
-      },
-      required: ["provider"],
-    },
-  },
-  // ── Node & workflow editing tools ─────────────────────────────────
+  // ── Node & workflow reading tools ────────────────────────────────
   {
     name: "searchNodes",
     description:
@@ -293,100 +166,6 @@ const TOOLS: Anthropic.Tool[] = [
       required: ["workflowId"],
     },
   },
-  {
-    name: "updateWorkflow",
-    description:
-      "Update a workflow. Can rename, change description/trigger, update node inputs, add nodes, remove nodes, add edges, or remove edges.",
-    input_schema: {
-      type: "object" as const,
-      properties: {
-        workflowId: { type: "string", description: "Workflow ID" },
-        name: { type: "string", description: "New workflow name" },
-        description: { type: "string", description: "New description" },
-        trigger: { type: "string", description: "New trigger type" },
-        updateNodeInputs: {
-          type: "array",
-          description: "Update inputs on existing nodes",
-          items: {
-            type: "object",
-            properties: {
-              nodeId: { type: "string" },
-              inputs: {
-                type: "object",
-                description: "Input name → new value",
-                additionalProperties: {},
-              },
-            },
-            required: ["nodeId", "inputs"],
-          },
-        },
-        addNodes: {
-          type: "array",
-          description: "Nodes to add (type, name, position)",
-          items: {
-            type: "object",
-            properties: {
-              type: {
-                type: "string",
-                description: "Node type from searchNodes",
-              },
-              name: { type: "string", description: "Display name" },
-              positionX: { type: "number" },
-              positionY: { type: "number" },
-              inputs: {
-                type: "object",
-                description: "Input name → value",
-                additionalProperties: {},
-              },
-            },
-            required: ["type"],
-          },
-        },
-        removeNodes: {
-          type: "array",
-          description: "Node IDs to remove",
-          items: { type: "string" },
-        },
-        addEdges: {
-          type: "array",
-          description: "Edges to add",
-          items: {
-            type: "object",
-            properties: {
-              source: { type: "string", description: "Source node ID" },
-              sourceOutput: {
-                type: "string",
-                description: "Source output name",
-              },
-              target: { type: "string", description: "Target node ID" },
-              targetInput: { type: "string", description: "Target input name" },
-            },
-            required: ["source", "sourceOutput", "target", "targetInput"],
-          },
-        },
-        removeEdges: {
-          type: "array",
-          description: "Edges to remove (by source+target node IDs)",
-          items: {
-            type: "object",
-            properties: {
-              source: { type: "string" },
-              target: { type: "string" },
-            },
-            required: ["source", "target"],
-          },
-        },
-      },
-      required: ["workflowId"],
-    },
-  },
-];
-
-const AI_NODE_TYPES = [
-  "anthropic-chat",
-  "openai-chat",
-  "gemini-chat",
-  "workers-ai-chat",
 ];
 
 const INTEGRATION_NODE_MAP: Record<string, string> = {
@@ -405,22 +184,13 @@ const TOOL_DESCRIPTIONS: Record<string, string> = {
   getOrgState: "Checking org state...",
   listTemplates: "Browsing templates...",
   checkTemplateRequirements: "Checking requirements...",
-  createWorkflowFromTemplate: "Creating workflow...",
   listResources: "Listing resources...",
   navigateUser: "Navigating...",
-  createSecret: "Storing secret...",
-  createEndpoint: "Creating endpoint...",
-  createEmail: "Creating email...",
-  createQueue: "Creating queue...",
-  createDataset: "Creating dataset...",
-  createDatabase: "Creating database...",
-  connectIntegration: "Getting OAuth link...",
   searchNodes: "Searching nodes...",
   getWorkflow: "Reading workflow...",
-  updateWorkflow: "Updating workflow...",
 };
 
-export class DafthunkAgent extends Agent<Bindings, OnboardingAgentState> {
+export class DafthunkAgent extends Agent<Bindings, AssistantAgentState> {
   private schemaInitialized = false;
 
   constructor(ctx: DurableObjectState, env: Bindings) {
@@ -464,7 +234,7 @@ export class DafthunkAgent extends Agent<Bindings, OnboardingAgentState> {
 
   private getConversationMessages(
     conversationId: string
-  ): OnboardingChatMessage[] {
+  ): AssistantMessage[] {
     const rows = this.ctx.storage.sql
       .exec(
         "SELECT role, content, timestamp FROM messages WHERE conversation_id = ? ORDER BY id",
@@ -545,20 +315,20 @@ export class DafthunkAgent extends Agent<Bindings, OnboardingAgentState> {
         type: "conversation_switched",
         conversationId: activeId,
         messages,
-      } satisfies OnboardingServerMessage)
+      } satisfies AssistantServerMessage)
     );
     connection.send(
       JSON.stringify({
         type: "conversations",
         conversations: this.listConversations(),
-      } satisfies OnboardingServerMessage)
+      } satisfies AssistantServerMessage)
     );
   }
 
   async onMessage(connection: Connection, message: string): Promise<void> {
     try {
       this.ensureSchema();
-      const parsed = JSON.parse(message as string) as OnboardingClientMessage;
+      const parsed = JSON.parse(message as string) as AssistantClientMessage;
 
       switch (parsed.type) {
         case "list_conversations": {
@@ -566,7 +336,7 @@ export class DafthunkAgent extends Agent<Bindings, OnboardingAgentState> {
             JSON.stringify({
               type: "conversations",
               conversations: this.listConversations(),
-            } satisfies OnboardingServerMessage)
+            } satisfies AssistantServerMessage)
           );
           return;
         }
@@ -579,13 +349,13 @@ export class DafthunkAgent extends Agent<Bindings, OnboardingAgentState> {
               type: "conversation_switched",
               conversationId: convId,
               messages: [],
-            } satisfies OnboardingServerMessage)
+            } satisfies AssistantServerMessage)
           );
           connection.send(
             JSON.stringify({
               type: "conversations",
               conversations: this.listConversations(),
-            } satisfies OnboardingServerMessage)
+            } satisfies AssistantServerMessage)
           );
           return;
         }
@@ -599,7 +369,7 @@ export class DafthunkAgent extends Agent<Bindings, OnboardingAgentState> {
               type: "conversation_switched",
               conversationId: convId,
               messages,
-            } satisfies OnboardingServerMessage)
+            } satisfies AssistantServerMessage)
           );
           return;
         }
@@ -631,7 +401,7 @@ export class DafthunkAgent extends Agent<Bindings, OnboardingAgentState> {
                 type: "conversation_switched",
                 conversationId: newActiveId,
                 messages: this.getConversationMessages(newActiveId),
-              } satisfies OnboardingServerMessage)
+              } satisfies AssistantServerMessage)
             );
           }
 
@@ -639,7 +409,7 @@ export class DafthunkAgent extends Agent<Bindings, OnboardingAgentState> {
             JSON.stringify({
               type: "conversations",
               conversations: this.listConversations(),
-            } satisfies OnboardingServerMessage)
+            } satisfies AssistantServerMessage)
           );
           return;
         }
@@ -664,7 +434,7 @@ export class DafthunkAgent extends Agent<Bindings, OnboardingAgentState> {
               JSON.stringify({
                 type: "conversations",
                 conversations: this.listConversations(),
-              } satisfies OnboardingServerMessage)
+              } satisfies AssistantServerMessage)
             );
           }
 
@@ -673,7 +443,7 @@ export class DafthunkAgent extends Agent<Bindings, OnboardingAgentState> {
         }
       }
     } catch (error) {
-      const errorMsg: OnboardingServerMessage = {
+      const errorMsg: AssistantServerMessage = {
         type: "error",
         message: error instanceof Error ? error.message : "An error occurred",
       };
@@ -683,7 +453,7 @@ export class DafthunkAgent extends Agent<Bindings, OnboardingAgentState> {
 
   private async runAgentLoop(
     connection: Connection,
-    chatHistory: OnboardingChatMessage[]
+    chatHistory: AssistantMessage[]
   ): Promise<void> {
     const client = new Anthropic({
       apiKey: "gateway-managed",
@@ -701,9 +471,10 @@ export class DafthunkAgent extends Agent<Bindings, OnboardingAgentState> {
     );
 
     let continueLoop = true;
+    const toolSteps: ToolStep[] = [];
 
     while (continueLoop) {
-      const startMsg: OnboardingServerMessage = { type: "stream_start" };
+      const startMsg: AssistantServerMessage = { type: "stream_start" };
       connection.send(JSON.stringify(startMsg));
 
       let fullText = "";
@@ -737,7 +508,7 @@ export class DafthunkAgent extends Agent<Bindings, OnboardingAgentState> {
               JSON.stringify({
                 type: "stream_chunk",
                 content: event.delta.text,
-              } satisfies OnboardingServerMessage)
+              } satisfies AssistantServerMessage)
             );
           }
         }
@@ -761,21 +532,21 @@ export class DafthunkAgent extends Agent<Bindings, OnboardingAgentState> {
         connection.send(
           JSON.stringify({
             type: "stream_end",
-          } satisfies OnboardingServerMessage)
+          } satisfies AssistantServerMessage)
         );
-        connection.send(
-          JSON.stringify({
-            type: "turn_complete",
-            content: fullText,
-          } satisfies OnboardingServerMessage)
-        );
+        const turnComplete: AssistantServerMessage = {
+          type: "turn_complete",
+          content: fullText,
+          toolSteps: toolSteps.length > 0 ? toolSteps : undefined,
+        };
+        connection.send(JSON.stringify(turnComplete));
 
         continueLoop = false;
       } else {
         connection.send(
           JSON.stringify({
             type: "stream_end",
-          } satisfies OnboardingServerMessage)
+          } satisfies AssistantServerMessage)
         );
 
         anthropicMessages.push({
@@ -785,10 +556,13 @@ export class DafthunkAgent extends Agent<Bindings, OnboardingAgentState> {
 
         const toolResults: Anthropic.ToolResultBlockParam[] = [];
         for (const toolBlock of toolBlocks) {
-          const progressMsg: OnboardingServerMessage = {
+          const description = TOOL_DESCRIPTIONS[toolBlock.name] ?? "Working...";
+          toolSteps.push({ tool: toolBlock.name, description });
+
+          const progressMsg: AssistantServerMessage = {
             type: "tool_progress",
             tool: toolBlock.name,
-            description: TOOL_DESCRIPTIONS[toolBlock.name] ?? "Working...",
+            description,
           };
           connection.send(JSON.stringify(progressMsg));
 
@@ -826,41 +600,15 @@ ${profile.preferredTone ? `Tone: ${profile.preferredTone}.` : ""}
 ## Triggers available
 Email (@dafthunk.com), HTTP endpoints (webhook/request), cron schedule, Discord bot, Telegram bot, WhatsApp bot. No Gmail trigger.
 
-## Structured workflow: gather → create dependencies → create workflow
-
-### Step 1: Gather information
-- Call getOrgState to see all existing resources (workflows, integrations, secrets, endpoints, emails, queues, datasets, databases, bots).
-- Call listTemplates to find matching templates for the user's use case.
-- Call searchNodes to find relevant node types.
-
-### Step 2: Identify & create dependencies
-For each missing dependency the workflow needs:
-- **Bots** (Discord, Telegram, WhatsApp): use navigateUser to send the user to the bots page — bot setup requires tokens that must be entered in the UI.
-- **Integrations** (OAuth): use connectIntegration to get the OAuth URL. Format as markdown link.
-- **Simple resources** (endpoints, emails, queues, datasets, databases): create directly with tools if you have the info, otherwise use navigateUser.
-- After creating dependencies, verify with listResources.
-
-### Step 3: Create workflow
-- If a matching template exists, use checkTemplateRequirements then createWorkflowFromTemplate.
-- Otherwise, create a blank workflow and use updateWorkflow to add nodes and edges.
-- Link nodes to the correct resource IDs from step 2.
-- When done, use navigateUser to open the workflow editor for the user.
-
 ## What you can do
-- Create: workflows (from templates or scratch), secrets, endpoints, emails, queues, datasets, databases.
-- Connect integrations: use connectIntegration for OAuth.
-- Navigate: use navigateUser to send the user to any page (bots, integrations, workflows, etc).
-- List resources: use listResources to check specific resource types.
-- Search nodes: use searchNodes to find node types by keyword.
-- Edit workflows: use getWorkflow to read, then updateWorkflow to modify.
+- Browse: list org resources, templates, and node types.
+- Navigate: use navigateUser to send the user to any page (bots, integrations, workflows, templates, etc).
+- Inspect: use getWorkflow to read a workflow's definition, searchNodes to explore the node library.
 
 ## Rules
 - Call getOrgState before recommending anything. Never guess what exists.
-- Call checkTemplateRequirements before creating a workflow from template.
-- Only call createSecret when the user gives you the actual value.
-- Use navigateUser to direct users — never output raw URLs.
-- Before editing a workflow, call getWorkflow to read its current state.
-- Before adding a node, call searchNodes to find the correct type.`;
+- Use navigateUser to direct users to relevant pages — never output raw URLs.
+- You are read-only: you cannot create, modify, or delete any resources. Guide users to the appropriate pages instead.`;
   }
 
   private async executeTool(
@@ -982,138 +730,6 @@ For each missing dependency the workflow needs:
         };
       }
 
-      case "createWorkflowFromTemplate": {
-        const templateId = input.templateId as string;
-        const customName = input.customName as string | undefined;
-        const aiPromptOverrides = input.aiPromptOverrides as
-          | Record<string, string>
-          | undefined;
-
-        const template = workflowTemplates.find((t) => t.id === templateId);
-        if (!template) return { error: `Template "${templateId}" not found` };
-
-        const nodes = structuredClone(template.nodes);
-
-        if (aiPromptOverrides) {
-          for (const node of nodes) {
-            if (
-              AI_NODE_TYPES.includes(node.type) &&
-              aiPromptOverrides[node.id]
-            ) {
-              const promptInput = node.inputs.find(
-                (i: { name: string }) =>
-                  i.name === "system_prompt" || i.name === "instructions"
-              );
-              if (promptInput) {
-                promptInput.value = aiPromptOverrides[node.id];
-              }
-            }
-          }
-        }
-
-        const userProfile = this.state?.userProfile;
-        if (userProfile?.preferredTone) {
-          for (const node of nodes) {
-            if (AI_NODE_TYPES.includes(node.type)) {
-              if (aiPromptOverrides && aiPromptOverrides[node.id]) continue;
-              const promptInput = node.inputs.find(
-                (i: { name: string }) =>
-                  i.name === "system_prompt" || i.name === "instructions"
-              );
-              if (promptInput && typeof promptInput.value === "string") {
-                promptInput.value = `${promptInput.value}\n\nTone: ${userProfile.preferredTone}`;
-              }
-            }
-          }
-        }
-
-        const workflowId = crypto.randomUUID();
-        const workflow = await new WorkflowStore(this.env).save({
-          id: workflowId,
-          name: customName ?? template.name,
-          description: template.description,
-          trigger: template.trigger,
-          organizationId: orgId,
-          nodes,
-          edges: structuredClone(template.edges),
-        });
-
-        return { workflowId: workflow.id, name: workflow.name };
-      }
-
-      case "createSecret": {
-        const secretName = input.name as string;
-        const secretValue = input.value as string;
-        await createSecret(db, orgId, secretName, secretValue, this.env);
-        return { name: secretName, created: true };
-      }
-
-      case "createEndpoint": {
-        const id = uuidv7();
-        const endpoint = await createEndpoint(db, {
-          id,
-          name: input.name as string,
-          mode: input.mode as "webhook" | "request",
-          organizationId: orgId,
-        });
-        return { id: endpoint.id, name: endpoint.name, mode: endpoint.mode };
-      }
-
-      case "createEmail": {
-        const id = uuidv7();
-        const email = await createEmail(db, {
-          id,
-          name: input.name as string,
-          organizationId: orgId,
-        });
-        return {
-          id: email.id,
-          name: email.name,
-          address: `${email.name}@${this.env.EMAIL_DOMAIN || "dafthunk.com"}`,
-        };
-      }
-
-      case "createQueue": {
-        const id = uuidv7();
-        const queue = await createQueue(db, {
-          id,
-          name: input.name as string,
-          organizationId: orgId,
-        });
-        return { id: queue.id, name: queue.name };
-      }
-
-      case "createDataset": {
-        const id = uuidv7();
-        const dataset = await createDataset(db, {
-          id,
-          name: input.name as string,
-          organizationId: orgId,
-        });
-        return { id: dataset.id, name: dataset.name };
-      }
-
-      case "createDatabase": {
-        const id = uuidv7();
-        const database = await createDatabaseRecord(db, {
-          id,
-          name: input.name as string,
-          organizationId: orgId,
-        });
-        return { id: database.id, name: database.name };
-      }
-
-      case "connectIntegration": {
-        const provider = input.provider as string;
-        const webHost = this.env.WEB_HOST || "https://app.dafthunk.com";
-        const integrationsUrl = `${webHost}/org/${orgId}/integrations`;
-        return {
-          provider,
-          url: integrationsUrl,
-          message: `Link the user to the integrations page to connect ${provider}. Format as markdown link.`,
-        };
-      }
-
       case "listResources": {
         const resourceType = input.resourceType as string;
         switch (resourceType) {
@@ -1217,7 +833,7 @@ For each missing dependency the workflow needs:
           JSON.stringify({
             type: "navigate",
             path,
-          } satisfies OnboardingServerMessage)
+          } satisfies AssistantServerMessage)
         );
         return { navigated: true, path };
       }
@@ -1281,130 +897,6 @@ For each missing dependency the workflow needs:
             })),
           })),
           edges: workflow.data.edges,
-        };
-      }
-
-      case "updateWorkflow": {
-        const workflowId = input.workflowId as string;
-        const store = new WorkflowStore(this.env);
-        const workflow = await store.getWithData(workflowId, orgId);
-        if (!workflow) return { error: "Workflow not found" };
-
-        const nodes = structuredClone(workflow.data.nodes);
-        let edges = structuredClone(workflow.data.edges);
-        const newName = (input.name as string | undefined) ?? workflow.name;
-        const newDescription =
-          (input.description as string | undefined) ?? workflow.description;
-        const newTrigger =
-          (input.trigger as string | undefined) ?? workflow.trigger;
-
-        // Update node inputs
-        const updateNodeInputs = input.updateNodeInputs as
-          | { nodeId: string; inputs: Record<string, unknown> }[]
-          | undefined;
-        if (updateNodeInputs) {
-          for (const update of updateNodeInputs) {
-            const node = nodes.find((n) => n.id === update.nodeId);
-            if (!node) continue;
-            for (const [inputName, value] of Object.entries(update.inputs)) {
-              const param = node.inputs.find((p) => p.name === inputName);
-              if (param) param.value = value;
-            }
-          }
-        }
-
-        // Add nodes
-        const addNodes = input.addNodes as
-          | {
-              type: string;
-              name?: string;
-              positionX?: number;
-              positionY?: number;
-              inputs?: Record<string, unknown>;
-            }[]
-          | undefined;
-        if (addNodes) {
-          const registry = new CloudflareNodeRegistry(this.env, false);
-          const allTypes = registry.getNodeTypes();
-          for (const spec of addNodes) {
-            const nodeType = allTypes.find((t) => t.type === spec.type);
-            if (!nodeType) continue;
-            const nodeId = uuidv7();
-            const newNode = {
-              id: nodeId,
-              type: spec.type,
-              name: spec.name ?? nodeType.name,
-              position: {
-                x: spec.positionX ?? 0,
-                y: spec.positionY ?? 0,
-              },
-              inputs: nodeType.inputs.map((p) => ({
-                ...p,
-                value:
-                  spec.inputs && spec.inputs[p.name] !== undefined
-                    ? spec.inputs[p.name]
-                    : p.value,
-              })),
-              outputs: nodeType.outputs.map((p) => ({ ...p })),
-            };
-            nodes.push(newNode);
-          }
-        }
-
-        // Remove nodes
-        const removeNodes = input.removeNodes as string[] | undefined;
-        if (removeNodes) {
-          const removeSet = new Set(removeNodes);
-          const filtered = nodes.filter((n) => !removeSet.has(n.id));
-          nodes.length = 0;
-          nodes.push(...filtered);
-          edges = edges.filter(
-            (e) => !removeSet.has(e.source) && !removeSet.has(e.target)
-          );
-        }
-
-        // Add edges
-        const addEdges = input.addEdges as
-          | {
-              source: string;
-              sourceOutput: string;
-              target: string;
-              targetInput: string;
-            }[]
-          | undefined;
-        if (addEdges) {
-          for (const edge of addEdges) {
-            edges.push(edge);
-          }
-        }
-
-        // Remove edges
-        const removeEdges = input.removeEdges as
-          | { source: string; target: string }[]
-          | undefined;
-        if (removeEdges) {
-          for (const re of removeEdges) {
-            edges = edges.filter(
-              (e) => !(e.source === re.source && e.target === re.target)
-            );
-          }
-        }
-
-        await store.save({
-          id: workflowId,
-          name: newName,
-          description: newDescription ?? undefined,
-          trigger: newTrigger,
-          organizationId: orgId,
-          nodes,
-          edges,
-        });
-
-        return {
-          workflowId,
-          name: newName,
-          nodeCount: nodes.length,
-          edgeCount: edges.length,
         };
       }
 

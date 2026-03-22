@@ -4,9 +4,9 @@ import { jwtMiddleware } from "../auth";
 import type { ApiContext } from "../context";
 import { getAgentByName } from "../durable-objects/agent-utils";
 
-const onboardingRoutes = new Hono<ApiContext>();
+const assistantRoutes = new Hono<ApiContext>();
 
-onboardingRoutes.get("/", jwtMiddleware, async (c) => {
+assistantRoutes.get("/", jwtMiddleware, async (c) => {
   const userId = c.var.jwtPayload?.sub;
 
   if (!userId) {
@@ -32,4 +32,4 @@ onboardingRoutes.get("/", jwtMiddleware, async (c) => {
   return stub.fetch(newReq);
 });
 
-export default onboardingRoutes;
+export default assistantRoutes;

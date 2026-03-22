@@ -1,5 +1,10 @@
+export interface ToolStep {
+  tool: string;
+  description: string;
+}
+
 // Client -> Server
-export type OnboardingClientMessage =
+export type AssistantClientMessage =
   | { type: "chat"; content: string }
   | { type: "list_conversations" }
   | { type: "new_conversation" }
@@ -7,29 +12,30 @@ export type OnboardingClientMessage =
   | { type: "delete_conversation"; conversationId: string };
 
 // Server -> Client
-export type OnboardingServerMessage =
-  | { type: "history"; messages: OnboardingChatMessage[] }
-  | { type: "conversations"; conversations: OnboardingConversation[] }
+export type AssistantServerMessage =
+  | { type: "history"; messages: AssistantMessage[] }
+  | { type: "conversations"; conversations: AssistantConversation[] }
   | {
       type: "conversation_switched";
       conversationId: string;
-      messages: OnboardingChatMessage[];
+      messages: AssistantMessage[];
     }
   | { type: "stream_start" }
   | { type: "stream_chunk"; content: string }
   | { type: "stream_end" }
-  | { type: "turn_complete"; content: string }
+  | { type: "turn_complete"; content: string; toolSteps?: ToolStep[] }
   | { type: "tool_progress"; tool: string; description: string }
   | { type: "navigate"; path: string }
   | { type: "error"; message: string };
 
-export interface OnboardingChatMessage {
+export interface AssistantMessage {
   role: "user" | "assistant";
   content: string;
   timestamp: number;
+  toolSteps?: ToolStep[];
 }
 
-export interface OnboardingConversation {
+export interface AssistantConversation {
   id: string;
   title: string;
   createdAt: number;
