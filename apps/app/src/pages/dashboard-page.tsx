@@ -11,6 +11,7 @@ import PlusCircle from "lucide-react/icons/plus-circle";
 import Workflow from "lucide-react/icons/workflow";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
+import { useAssistant } from "@/components/assistant/assistant-provider";
 import { useAuth } from "@/components/auth-context";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
@@ -47,6 +48,7 @@ export function DashboardPage() {
   const { mutateWorkflows } = useWorkflows();
   const { nodeTypes } = useNodeTypes({ revalidateOnFocus: false });
   const { start: startTour } = useTour();
+  const { open: openAssistant } = useAssistant();
 
   useEffect(() => {
     setBreadcrumbs([{ label: "Dashboard" }]);
@@ -141,11 +143,9 @@ export function DashboardPage() {
               Browse Templates
             </Link>
           </Button>
-          <Button variant="outline" asChild>
-            <Link to={getOrgUrl("assistant")}>
-              <MessageCircle className="mr-2 size-4" />
-              Chat with Assistant
-            </Link>
+          <Button variant="outline" onClick={openAssistant}>
+            <MessageCircle className="mr-2 size-4" />
+            Chat with Assistant
           </Button>
         </CardContent>
       </Card>

@@ -6,7 +6,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { OnboardingChatWebSocket } from "@/services/onboarding-chat-service";
 
-export function useOnboardingChat(orgId: string, active: boolean) {
+export function useOnboardingChat(
+  orgId: string,
+  active: boolean,
+  onNavigate?: (path: string) => void
+) {
   const [messages, setMessages] = useState<OnboardingChatMessage[]>([]);
   const [conversations, setConversations] = useState<OnboardingConversation[]>(
     []
@@ -43,19 +47,26 @@ export function useOnboardingChat(orgId: string, active: boolean) {
         setCurrentStreamContent((prev) => prev + content);
       },
       onStreamEnd: () => {
-        setCurrentStreamContent("");
+        // Don't clear currentStreamContent here — stream_start clears it
+        // for the next iteration, and turn_complete clears it when committing
+        // the final message. Clearing here would flash the text away.
       },
       onTurnComplete: (content) => {
-        setMessages((msgs) => [
-          ...msgs,
-          { role: "assistant", content, timestamp: Date.now() },
-        ]);
+        if (content) {
+          setMessages((msgs) => [
+            ...msgs,
+            { role: "assistant", content, timestamp: Date.now() },
+          ]);
+        }
         setCurrentStreamContent("");
         setIsStreaming(false);
         setToolProgress(null);
       },
       onToolProgress: (_tool, description) => {
         setToolProgress(description);
+      },
+      onNavigate: (path) => {
+        onNavigate?.(path);
       },
       onError: (message) => {
         console.error("[OnboardingChat] Error:", message);

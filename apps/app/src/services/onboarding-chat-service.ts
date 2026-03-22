@@ -19,6 +19,7 @@ export interface OnboardingChatWSOptions {
   onStreamEnd?: () => void;
   onTurnComplete?: (content: string) => void;
   onToolProgress?: (tool: string, description: string) => void;
+  onNavigate?: (path: string) => void;
   onError?: (message: string) => void;
   onConnectionOpen?: () => void;
   onConnectionClose?: (event: CloseEvent) => void;
@@ -111,6 +112,9 @@ export class OnboardingChatWebSocket {
           break;
         case "tool_progress":
           this.options.onToolProgress?.(message.tool, message.description);
+          break;
+        case "navigate":
+          this.options.onNavigate?.(message.path);
           break;
         case "error":
           this.options.onError?.(message.message);

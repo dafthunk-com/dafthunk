@@ -18,8 +18,16 @@ import {
   createEndpoint,
   createQueue,
   createSecret,
+  getDatabases,
+  getDatasets,
+  getDiscordBots,
+  getEmails,
+  getEndpoints,
   getIntegrations,
+  getQueues,
   getSecrets,
+  getTelegramBots,
+  getWhatsAppAccounts,
 } from "../db";
 import { CloudflareNodeRegistry } from "../runtime/cloudflare-node-registry";
 import { WorkflowStore } from "../stores/workflow-store";
@@ -75,23 +83,61 @@ const TOOLS: Anthropic.Tool[] = [
     },
   },
   {
-    name: "getSetupUrl",
-    description: "Get URL for a settings page (integrations, secrets, etc).",
+    name: "listResources",
+    description:
+      "List resources of a specific type in the organization. Returns id, name, and type-specific fields.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        resourceType: {
+          type: "string",
+          enum: [
+            "workflows",
+            "endpoints",
+            "emails",
+            "queues",
+            "datasets",
+            "databases",
+            "integrations",
+            "secrets",
+            "discord-bots",
+            "telegram-bots",
+            "whatsapp-accounts",
+          ],
+          description: "Type of resource to list",
+        },
+      },
+      required: ["resourceType"],
+    },
+  },
+  {
+    name: "navigateUser",
+    description:
+      "Navigate the user's browser to a specific page in the app. Use this instead of giving URLs.",
     input_schema: {
       type: "object" as const,
       properties: {
         page: {
           type: "string",
           enum: [
-            "integrations",
-            "secrets",
+            "workflows",
             "endpoints",
             "emails",
             "queues",
             "datasets",
             "databases",
+            "integrations",
+            "secrets",
+            "bots",
+            "templates",
+            "playground",
           ],
-          description: "Settings page",
+          description: "Page to navigate to",
+        },
+        resourceId: {
+          type: "string",
+          description:
+            "Optional resource ID for detail pages (e.g. a specific workflow)",
         },
       },
       required: ["page"],
@@ -360,7 +406,8 @@ const TOOL_DESCRIPTIONS: Record<string, string> = {
   listTemplates: "Browsing templates...",
   checkTemplateRequirements: "Checking requirements...",
   createWorkflowFromTemplate: "Creating workflow...",
-  getSetupUrl: "Getting link...",
+  listResources: "Listing resources...",
+  navigateUser: "Navigating...",
   createSecret: "Storing secret...",
   createEndpoint: "Creating endpoint...",
   createEmail: "Creating email...",
@@ -669,17 +716,30 @@ export class DafthunkAgent extends Agent<Bindings, OnboardingAgentState> {
         tools: TOOLS,
       });
 
+      // Track whether this turn includes tool calls. When it does,
+      // suppress text streaming — that text is pre-tool reasoning and
+      // should not be shown to the user.
+      let hasToolUse = false;
+
       for await (const event of stream) {
         if (
+          event.type === "content_block_start" &&
+          event.content_block.type === "tool_use"
+        ) {
+          hasToolUse = true;
+        } else if (
           event.type === "content_block_delta" &&
           event.delta.type === "text_delta"
         ) {
           fullText += event.delta.text;
-          const chunkMsg: OnboardingServerMessage = {
-            type: "stream_chunk",
-            content: event.delta.text,
-          };
-          connection.send(JSON.stringify(chunkMsg));
+          if (!hasToolUse) {
+            connection.send(
+              JSON.stringify({
+                type: "stream_chunk",
+                content: event.delta.text,
+              } satisfies OnboardingServerMessage)
+            );
+          }
         }
       }
 
@@ -690,27 +750,33 @@ export class DafthunkAgent extends Agent<Bindings, OnboardingAgentState> {
       );
 
       if (toolBlocks.length === 0) {
-        const endMsg: OnboardingServerMessage = { type: "stream_end" };
-        connection.send(JSON.stringify(endMsg));
-
         if (fullText) {
           this.addMessage(
             this.state!.activeConversationId,
             "assistant",
             fullText
           );
+        }
 
-          const completeMsg: OnboardingServerMessage = {
+        connection.send(
+          JSON.stringify({
+            type: "stream_end",
+          } satisfies OnboardingServerMessage)
+        );
+        connection.send(
+          JSON.stringify({
             type: "turn_complete",
             content: fullText,
-          };
-          connection.send(JSON.stringify(completeMsg));
-        }
+          } satisfies OnboardingServerMessage)
+        );
 
         continueLoop = false;
       } else {
-        const endMsg: OnboardingServerMessage = { type: "stream_end" };
-        connection.send(JSON.stringify(endMsg));
+        connection.send(
+          JSON.stringify({
+            type: "stream_end",
+          } satisfies OnboardingServerMessage)
+        );
 
         anthropicMessages.push({
           role: "assistant",
@@ -728,7 +794,8 @@ export class DafthunkAgent extends Agent<Bindings, OnboardingAgentState> {
 
           const result = await this.executeTool(
             toolBlock.name,
-            toolBlock.input as Record<string, unknown>
+            toolBlock.input as Record<string, unknown>,
+            connection
           );
           toolResults.push({
             type: "tool_result",
@@ -757,46 +824,112 @@ ${profile.expertiseLevel ? `User expertise: ${profile.expertiseLevel}.` : ""}
 ${profile.preferredTone ? `Tone: ${profile.preferredTone}.` : ""}
 
 ## Triggers available
-Email (@dafthunk.com), Discord, Telegram, WhatsApp, HTTP endpoints, cron. No Gmail.
+Email (@dafthunk.com), HTTP endpoints (webhook/request), cron schedule, Discord bot, Telegram bot, WhatsApp bot. No Gmail trigger.
+
+## Structured workflow: gather → create dependencies → create workflow
+
+### Step 1: Gather information
+- Call getOrgState to see all existing resources (workflows, integrations, secrets, endpoints, emails, queues, datasets, databases, bots).
+- Call listTemplates to find matching templates for the user's use case.
+- Call searchNodes to find relevant node types.
+
+### Step 2: Identify & create dependencies
+For each missing dependency the workflow needs:
+- **Bots** (Discord, Telegram, WhatsApp): use navigateUser to send the user to the bots page — bot setup requires tokens that must be entered in the UI.
+- **Integrations** (OAuth): use connectIntegration to get the OAuth URL. Format as markdown link.
+- **Simple resources** (endpoints, emails, queues, datasets, databases): create directly with tools if you have the info, otherwise use navigateUser.
+- After creating dependencies, verify with listResources.
+
+### Step 3: Create workflow
+- If a matching template exists, use checkTemplateRequirements then createWorkflowFromTemplate.
+- Otherwise, create a blank workflow and use updateWorkflow to add nodes and edges.
+- Link nodes to the correct resource IDs from step 2.
+- When done, use navigateUser to open the workflow editor for the user.
 
 ## What you can do
-- Create: workflows (from templates), secrets, endpoints, emails, queues, datasets, databases.
-- Connect integrations: use connectIntegration to link to the OAuth page.
-- Search the node library: use searchNodes to find node types by keyword.
-- Edit workflows: use getWorkflow to read, then updateWorkflow to modify nodes, edges, inputs, or metadata.
+- Create: workflows (from templates or scratch), secrets, endpoints, emails, queues, datasets, databases.
+- Connect integrations: use connectIntegration for OAuth.
+- Navigate: use navigateUser to send the user to any page (bots, integrations, workflows, etc).
+- List resources: use listResources to check specific resource types.
+- Search nodes: use searchNodes to find node types by keyword.
+- Edit workflows: use getWorkflow to read, then updateWorkflow to modify.
 
 ## Rules
-- Call getOrgState or listTemplates before recommending. Never guess.
-- Call checkTemplateRequirements before creating a workflow.
+- Call getOrgState before recommending anything. Never guess what exists.
+- Call checkTemplateRequirements before creating a workflow from template.
 - Only call createSecret when the user gives you the actual value.
-- For integrations, use connectIntegration — format the URL as a markdown link.
+- Use navigateUser to direct users — never output raw URLs.
 - Before editing a workflow, call getWorkflow to read its current state.
 - Before adding a node, call searchNodes to find the correct type.`;
   }
 
   private async executeTool(
     name: string,
-    input: Record<string, unknown>
+    input: Record<string, unknown>,
+    connection: Connection
   ): Promise<Record<string, unknown>> {
     const orgId = this.state?.organizationId ?? "";
     const db = createDatabase(this.env.DB);
 
     switch (name) {
       case "getOrgState": {
-        const [orgIntegrations, orgSecrets, workflows] = await Promise.all([
+        const [
+          orgIntegrations,
+          orgSecrets,
+          workflows,
+          orgEndpoints,
+          orgEmails,
+          orgQueues,
+          orgDatasets,
+          orgDatabases,
+          orgDiscordBots,
+          orgTelegramBots,
+          orgWhatsAppAccounts,
+        ] = await Promise.all([
           getIntegrations(db, orgId),
           getSecrets(db, orgId),
           new WorkflowStore(this.env).list(orgId),
+          getEndpoints(db, orgId),
+          getEmails(db, orgId),
+          getQueues(db, orgId),
+          getDatasets(db, orgId),
+          getDatabases(db, orgId),
+          getDiscordBots(db, orgId),
+          getTelegramBots(db, orgId),
+          getWhatsAppAccounts(db, orgId),
         ]);
 
         return {
           integrations: orgIntegrations.map((i) => ({
+            id: i.id,
             name: i.name,
             provider: i.provider,
             status: i.status,
           })),
-          secretNames: orgSecrets.map((s) => s.name),
-          workflowCount: workflows.length,
+          secrets: orgSecrets.map((s) => ({ id: s.id, name: s.name })),
+          workflows: workflows.map((w) => ({
+            id: w.id,
+            name: w.name,
+            trigger: w.trigger,
+          })),
+          endpoints: orgEndpoints.map((e) => ({
+            id: e.id,
+            name: e.name,
+            mode: e.mode,
+          })),
+          emails: orgEmails.map((e) => ({ id: e.id, name: e.name })),
+          queues: orgQueues.map((q) => ({ id: q.id, name: q.name })),
+          datasets: orgDatasets.map((d) => ({ id: d.id, name: d.name })),
+          databases: orgDatabases.map((d) => ({ id: d.id, name: d.name })),
+          discordBots: orgDiscordBots.map((b) => ({ id: b.id, name: b.name })),
+          telegramBots: orgTelegramBots.map((b) => ({
+            id: b.id,
+            name: b.name,
+          })),
+          whatsappAccounts: orgWhatsAppAccounts.map((a) => ({
+            id: a.id,
+            name: a.name,
+          })),
         };
       }
 
@@ -981,10 +1114,112 @@ Email (@dafthunk.com), Discord, Telegram, WhatsApp, HTTP endpoints, cron. No Gma
         };
       }
 
-      case "getSetupUrl": {
+      case "listResources": {
+        const resourceType = input.resourceType as string;
+        switch (resourceType) {
+          case "workflows": {
+            const workflows = await new WorkflowStore(this.env).list(orgId);
+            return {
+              resources: workflows.map((w) => ({
+                id: w.id,
+                name: w.name,
+                trigger: w.trigger,
+              })),
+            };
+          }
+          case "endpoints": {
+            const endpoints = await getEndpoints(db, orgId);
+            return {
+              resources: endpoints.map((e) => ({
+                id: e.id,
+                name: e.name,
+                mode: e.mode,
+              })),
+            };
+          }
+          case "emails": {
+            const emails = await getEmails(db, orgId);
+            return {
+              resources: emails.map((e) => ({ id: e.id, name: e.name })),
+            };
+          }
+          case "queues": {
+            const queuesResult = await getQueues(db, orgId);
+            return {
+              resources: queuesResult.map((q) => ({
+                id: q.id,
+                name: q.name,
+              })),
+            };
+          }
+          case "datasets": {
+            const datasets = await getDatasets(db, orgId);
+            return {
+              resources: datasets.map((d) => ({ id: d.id, name: d.name })),
+            };
+          }
+          case "databases": {
+            const databases = await getDatabases(db, orgId);
+            return {
+              resources: databases.map((d) => ({ id: d.id, name: d.name })),
+            };
+          }
+          case "integrations": {
+            const integrations = await getIntegrations(db, orgId);
+            return {
+              resources: integrations.map((i) => ({
+                id: i.id,
+                name: i.name,
+                provider: i.provider,
+                status: i.status,
+              })),
+            };
+          }
+          case "secrets": {
+            const secrets = await getSecrets(db, orgId);
+            return {
+              resources: secrets.map((s) => ({ id: s.id, name: s.name })),
+            };
+          }
+          case "discord-bots": {
+            const bots = await getDiscordBots(db, orgId);
+            return {
+              resources: bots.map((b) => ({ id: b.id, name: b.name })),
+            };
+          }
+          case "telegram-bots": {
+            const bots = await getTelegramBots(db, orgId);
+            return {
+              resources: bots.map((b) => ({ id: b.id, name: b.name })),
+            };
+          }
+          case "whatsapp-accounts": {
+            const accounts = await getWhatsAppAccounts(db, orgId);
+            return {
+              resources: accounts.map((a) => ({ id: a.id, name: a.name })),
+            };
+          }
+          default:
+            return { error: `Unknown resource type: ${resourceType}` };
+        }
+      }
+
+      case "navigateUser": {
         const page = input.page as string;
-        const webHost = this.env.WEB_HOST || "https://app.dafthunk.com";
-        return { url: `${webHost}/org/${orgId}/${page}`, page };
+        const resourceId = input.resourceId as string | undefined;
+        let path: string;
+        if (resourceId) {
+          path = `/${page}/${resourceId}`;
+        } else {
+          path = `/${page}`;
+        }
+        connection.send(
+          JSON.stringify({
+            type: "navigate",
+            path,
+          } satisfies OnboardingServerMessage)
+        );
+        return { navigated: true, path };
       }
 
       case "searchNodes": {

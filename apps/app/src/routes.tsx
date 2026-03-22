@@ -10,7 +10,6 @@ import { HeadSeo } from "./components/head-seo";
 import { AdminLayout } from "./components/layouts/admin-layout";
 import { AppLayout } from "./components/layouts/app-layout";
 import { DocsLayout } from "./components/layouts/docs-layout";
-import { OnboardingChatPage } from "./components/onboarding/onboarding-chat-panel";
 import { OrgLayout } from "./components/org-layout";
 import { OrgRedirect } from "./components/org-redirect";
 import { ProtectedRoute } from "./components/protected-route";
@@ -327,17 +326,6 @@ export const routes: AppRouteObject[] = [
       </OrgLayout>
     ),
     handle: { head: <HeadSeo title="Dashboard - Dafthunk" /> },
-  },
-  {
-    path: "/org/:organizationId/assistant",
-    element: (
-      <OrgLayout title="Assistant">
-        <ProtectedRoute>
-          <OnboardingChatPage />
-        </ProtectedRoute>
-      </OrgLayout>
-    ),
-    handle: { head: <HeadSeo title="Assistant - Dafthunk" /> },
   },
   {
     path: "/workflows",

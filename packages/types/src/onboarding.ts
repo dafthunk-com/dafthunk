@@ -20,6 +20,7 @@ export type OnboardingServerMessage =
   | { type: "stream_end" }
   | { type: "turn_complete"; content: string }
   | { type: "tool_progress"; tool: string; description: string }
+  | { type: "navigate"; path: string }
   | { type: "error"; message: string };
 
 export interface OnboardingChatMessage {
