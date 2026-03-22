@@ -123,6 +123,11 @@
         "script_name": "dafthunk-api"
       },
       {
+        "name": "DAFTHUNK_AGENT",
+        "class_name": "DafthunkAgent",
+        "script_name": "dafthunk-api"
+      },
+      {
         "name": "FFMPEG_CONTAINER",
         "class_name": "FFmpegContainer"
       },
@@ -171,6 +176,10 @@
     {
       "tag": "v10",
       "new_sqlite_classes": ["WorkflowAgent"]
+    },
+    {
+      "tag": "v11",
+      "new_sqlite_classes": ["DafthunkAgent"]
     }
   ],
   "unsafe": {
@@ -297,6 +306,11 @@
             "script_name": "dafthunk-api"
           },
           {
+            "name": "DAFTHUNK_AGENT",
+            "class_name": "DafthunkAgent",
+            "script_name": "dafthunk-api"
+          },
+          {
             "name": "FFMPEG_CONTAINER",
             "class_name": "FFmpegContainer"
           },
@@ -345,6 +359,10 @@
         {
           "tag": "v10",
           "new_sqlite_classes": ["WorkflowAgent"]
+        },
+        {
+          "tag": "v11",
+          "new_sqlite_classes": ["DafthunkAgent"]
         }
       ],
       "unsafe": {

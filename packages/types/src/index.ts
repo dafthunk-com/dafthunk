@@ -12,6 +12,7 @@ export * from "./execution";
 export * from "./feedback";
 export * from "./integration";
 export * from "./objects";
+export * from "./onboarding";
 export * from "./organization";
 export * from "./playground";
 export * from "./profile";

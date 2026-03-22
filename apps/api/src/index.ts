@@ -26,6 +26,7 @@ import invitationRoutes from "./routes/invitations";
 import llmsRoutes from "./routes/llms";
 import oauthRoutes from "./routes/oauth";
 import objectRoutes from "./routes/objects";
+import onboardingRoutes from "./routes/onboarding";
 import organizationRoutes from "./routes/organizations";
 import playgroundRoutes from "./routes/playground";
 import profileRoutes from "./routes/profile";
@@ -125,6 +126,7 @@ app.route("/:organizationId/workflows", workflowRoutes);
 app.route("/:organizationId/objects", objectRoutes);
 app.route("/:organizationId/playground", playgroundRoutes);
 app.route("/:organizationId/usage", usageRoutes);
+app.route("/:organizationId/onboarding", onboardingRoutes);
 app.route("/:organizationId/ws", wsRoutes);
 
 // Export Durable Objects
@@ -133,6 +135,7 @@ export { DatabaseDO };
 export { Sandbox } from "@cloudflare/sandbox";
 export { FFmpegContainer } from "./containers/ffmpeg-container";
 export { AgentRunner } from "./durable-objects/agent-runner";
+export { DafthunkAgent } from "./durable-objects/dafthunk-agent";
 
 export default {
   email: handleIncomingEmail,

@@ -6,6 +6,7 @@ import type {
 import FileDown from "lucide-react/icons/file-down";
 import Logs from "lucide-react/icons/logs";
 import MapIcon from "lucide-react/icons/map";
+import MessageCircle from "lucide-react/icons/message-circle";
 import PlusCircle from "lucide-react/icons/plus-circle";
 import Workflow from "lucide-react/icons/workflow";
 import { useEffect, useState } from "react";
@@ -138,6 +139,12 @@ export function DashboardPage() {
             <Link to={getOrgUrl("templates")}>
               <FileDown className="mr-2 size-4" />
               Browse Templates
+            </Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link to={getOrgUrl("assistant")}>
+              <MessageCircle className="mr-2 size-4" />
+              Chat with Assistant
             </Link>
           </Button>
         </CardContent>
