@@ -118,6 +118,9 @@ importers:
       mailparser:
         specifier: ^3.9.1
         version: 3.9.1
+      mimetext:
+        specifier: ^3.0.28
+        version: 3.0.28
       openai:
         specifier: ^6.16.0
         version: 6.16.0(ws@8.19.0(bufferutil@4.1.0)(utf-8-validate@6.0.6))(zod@4.3.5)
@@ -521,6 +524,9 @@ importers:
       mailparser:
         specifier: ^3.9.1
         version: 3.9.1
+      mimetext:
+        specifier: ^3.0.28
+        version: 3.0.28
       openai:
         specifier: ^6.16.0
         version: 6.16.0(ws@8.19.0(bufferutil@4.1.0)(utf-8-validate@6.0.6))(zod@4.3.5)

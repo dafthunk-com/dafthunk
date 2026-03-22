@@ -453,12 +453,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
       this.env.TWILIO_AUTH_TOKEN &&
       this.env.TWILIO_PHONE_NUMBER
     );
-    const hasSESEmail = !!(
-      this.env.AWS_ACCESS_KEY_ID &&
-      this.env.AWS_SECRET_ACCESS_KEY &&
-      this.env.AWS_REGION &&
-      this.env.SES_DEFAULT_FROM
-    );
+    const hasSendEmail = !!this.env.SEND_EMAIL;
     const hasGoogleMail = !!(
       this.env.INTEGRATION_GOOGLE_MAIL_CLIENT_ID &&
       this.env.INTEGRATION_GOOGLE_MAIL_CLIENT_SECRET
@@ -717,7 +712,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
       this.registerImplementation(TwilioSmsNode);
     }
 
-    if (hasSESEmail) {
+    if (hasSendEmail) {
       this.registerImplementation(SendEmailNode);
     }
 

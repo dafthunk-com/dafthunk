@@ -32,6 +32,11 @@
   "ai": {
     "binding": "AI"
   },
+  "send_email": [
+    {
+      "name": "SEND_EMAIL"
+    }
+  ],
   "containers": [
     {
       "class_name": "FFmpegContainer",
@@ -233,6 +238,11 @@
       "ai": {
         "binding": "AI"
       },
+      "send_email": [
+        {
+          "name": "SEND_EMAIL"
+        }
+      ],
       "containers": [
         {
           "class_name": "FFmpegContainer",

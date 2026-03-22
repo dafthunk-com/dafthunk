@@ -209,10 +209,7 @@ export interface NodeEnv {
   TWILIO_ACCOUNT_SID?: string;
   TWILIO_AUTH_TOKEN?: string;
   TWILIO_PHONE_NUMBER?: string;
-  AWS_ACCESS_KEY_ID?: string;
-  AWS_SECRET_ACCESS_KEY?: string;
-  AWS_REGION?: string;
-  SES_DEFAULT_FROM?: string;
+  SEND_EMAIL?: SendEmail;
   HUGGINGFACE_API_KEY?: string;
   REPLICATE_API_TOKEN?: string;
 }

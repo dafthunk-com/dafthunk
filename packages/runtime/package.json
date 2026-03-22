@@ -34,6 +34,7 @@
     "iconv-lite": "^0.7.2",
     "jsonpath-plus": "^10.3.0",
     "mailparser": "^3.9.1",
+    "mimetext": "^3.0.28",
     "openai": "^6.16.0",
     "three": "^0.182.0",
     "three-bvh-csg": "^0.0.17",

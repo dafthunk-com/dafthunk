@@ -24,6 +24,7 @@ export interface Bindings {
   AI: Ai;
   AI_OPTIONS: AiOptions;
   LOADER?: any; // worker_loaders binding for Code Mode sandbox
+  SEND_EMAIL?: SendEmail;
   BROWSER?: Fetcher;
   EXECUTIONS: AnalyticsEngineDataset;
   WEB_HOST: string;
@@ -53,10 +54,6 @@ export interface Bindings {
   TWILIO_ACCOUNT_SID?: string;
   TWILIO_AUTH_TOKEN?: string;
   TWILIO_PHONE_NUMBER?: string;
-  AWS_ACCESS_KEY_ID?: string;
-  AWS_SECRET_ACCESS_KEY?: string;
-  AWS_REGION?: string;
-  SES_DEFAULT_FROM?: string;
   HUGGINGFACE_API_KEY?: string;
   REPLICATE_API_TOKEN?: string;
   R2_ACCESS_KEY_ID?: string;
