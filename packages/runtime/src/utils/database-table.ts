@@ -1,9 +1,9 @@
-import type { Table, TableFieldType } from "@dafthunk/types";
+import type { FieldType, Table } from "@dafthunk/types";
 
 /**
  * Map abstract field types to SQLite types
  */
-export function mapTypeToSqlite(type: TableFieldType): string {
+export function mapTypeToSqlite(type: FieldType): string {
   switch (type) {
     case "string":
       return "TEXT";
@@ -26,7 +26,7 @@ export function mapTypeToSqlite(type: TableFieldType): string {
  * Map SQLite types back to abstract field types
  * SQLite has flexible typing, so we use best-effort mapping
  */
-export function mapSqliteToType(sqliteType: string): TableFieldType {
+export function mapSqliteToType(sqliteType: string): FieldType {
   const normalized = sqliteType.toUpperCase().trim();
 
   // INTEGER types
@@ -74,10 +74,10 @@ export function mapSqliteToType(sqliteType: string): TableFieldType {
  * Generate CREATE TABLE statement from table
  */
 export function generateCreateTableSQL(table: Table): string {
-  const { name, fields } = table;
+  const { name, fields } = table.schema;
 
   if (!name || !fields || fields.length === 0) {
-    throw new Error("Invalid table: table name and fields are required");
+    throw new Error("Invalid table: schema name and fields are required");
   }
 
   const columns = fields.map((field) => {

@@ -8,9 +8,9 @@ export interface GetNodeTypesResponse {
 }
 
 /**
- * Table schema field types
+ * Field types
  */
-export type TableFieldType =
+export type FieldType =
   | "string"
   | "integer"
   | "number"
@@ -19,19 +19,27 @@ export type TableFieldType =
   | "json";
 
 /**
- * Table schema field definition
+ * Field definition
  */
-export interface TableField {
+export interface Field {
   name: string;
-  type: TableFieldType;
+  type: FieldType;
+  required?: boolean;
 }
 
 /**
- * Table with schema definition and data
+ * Schema definition
+ */
+export interface Schema {
+  name: string;
+  fields: Field[];
+}
+
+/**
+ * Table with schema and data
  */
 export interface Table {
-  name: string;
-  fields: TableField[];
+  schema: Schema;
   data: Record<string, unknown>[];
 }
 

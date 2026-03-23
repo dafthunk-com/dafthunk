@@ -15,13 +15,15 @@ describe("CsvFilterRowsNode", () => {
     }) as unknown as NodeContext;
 
   const sampleTable: Table = {
-    name: "users",
-    fields: [
-      { name: "name", type: "string" },
-      { name: "age", type: "integer" },
-      { name: "city", type: "string" },
-      { name: "score", type: "number" },
-    ],
+    schema: {
+      name: "users",
+      fields: [
+        { name: "name", type: "string" },
+        { name: "age", type: "integer" },
+        { name: "city", type: "string" },
+        { name: "score", type: "number" },
+      ],
+    },
     data: [
       { name: "Alice", age: 30, city: "New York", score: 95.5 },
       { name: "Bob", age: 25, city: "Boston", score: 87.3 },
@@ -273,8 +275,10 @@ describe("CsvFilterRowsNode", () => {
     );
 
     expect(result.status).toBe("completed");
-    expect(result.outputs?.table?.name).toBe("users");
-    expect(result.outputs?.table?.fields).toEqual(sampleTable.fields);
+    expect(result.outputs?.table?.schema?.name).toBe("users");
+    expect(result.outputs?.table?.schema?.fields).toEqual(
+      sampleTable.schema.fields
+    );
   });
 
   it("should return error for missing table input", async () => {
@@ -387,8 +391,10 @@ describe("CsvFilterRowsNode", () => {
       nodeId: "csv-filter-rows",
     } as unknown as Node);
     const tableWithNulls: Table = {
-      name: "test",
-      fields: [{ name: "value", type: "string" }],
+      schema: {
+        name: "test",
+        fields: [{ name: "value", type: "string" }],
+      },
       data: [{ value: null }, { value: undefined }, { value: "" }],
     };
     const result = await node.execute(

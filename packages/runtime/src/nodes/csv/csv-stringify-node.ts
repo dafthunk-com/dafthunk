@@ -78,9 +78,9 @@ export class CsvStringifyNode extends ExecutableNode {
 
       // Validate table structure
       const tableObj = table as Table;
-      if (!tableObj.fields || !Array.isArray(tableObj.fields)) {
+      if (!tableObj.schema?.fields || !Array.isArray(tableObj.schema.fields)) {
         return this.createErrorResult(
-          "Invalid table structure: missing or invalid 'fields' array"
+          "Invalid table structure: missing or invalid 'schema.fields' array"
         );
       }
 
@@ -94,13 +94,13 @@ export class CsvStringifyNode extends ExecutableNode {
 
       // Add header row
       if (includeHeader) {
-        const headerFields = tableObj.fields.map((field) => field.name);
+        const headerFields = tableObj.schema.fields.map((field) => field.name);
         lines.push(this.formatCsvLine(headerFields, delimiter));
       }
 
       // Add data rows
       for (const row of tableObj.data) {
-        const values = tableObj.fields.map((field) => {
+        const values = tableObj.schema.fields.map((field) => {
           const value = row[field.name];
           return this.formatValue(value);
         });

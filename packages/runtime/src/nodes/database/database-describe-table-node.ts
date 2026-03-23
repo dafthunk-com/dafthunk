@@ -1,5 +1,5 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
-import type { NodeExecution, NodeType, TableField } from "@dafthunk/types";
+import type { Field, NodeExecution, NodeType, Schema } from "@dafthunk/types";
 import { mapSqliteToType } from "../../utils/database-table";
 
 export class DatabaseDescribeTableNode extends ExecutableNode {
@@ -32,10 +32,10 @@ export class DatabaseDescribeTableNode extends ExecutableNode {
     ],
     outputs: [
       {
-        name: "fields",
+        name: "schema",
         type: "json",
         description:
-          "Array of field definitions: [{name: string, type: string}]",
+          "Schema with name and fields: {name: string, fields: [{name: string, type: string}]}",
       },
     ],
   };
@@ -79,15 +79,20 @@ export class DatabaseDescribeTableNode extends ExecutableNode {
         );
       }
 
-      // Map schema results to TableField format
+      // Map schema results to Field format
       // PRAGMA table_info returns: cid, name, type, notnull, dflt_value, pk
-      const fields: TableField[] = schemaResult.results.map((col: any) => ({
+      const fields: Field[] = schemaResult.results.map((col: any) => ({
         name: col.name,
         type: mapSqliteToType(col.type || "TEXT"),
       }));
 
-      return this.createSuccessResult({
+      const schema: Schema = {
+        name: tableName as string,
         fields,
+      };
+
+      return this.createSuccessResult({
+        schema,
       });
     } catch (error) {
       return this.createErrorResult(

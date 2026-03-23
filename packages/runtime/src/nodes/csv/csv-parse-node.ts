@@ -1,10 +1,5 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
-import type {
-  NodeExecution,
-  NodeType,
-  Table,
-  TableField,
-} from "@dafthunk/types";
+import type { Field, NodeExecution, NodeType, Table } from "@dafthunk/types";
 
 export class CsvParseNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -122,7 +117,7 @@ export class CsvParseNode extends ExecutableNode {
       });
 
       // Infer field types from first data row
-      const fields: TableField[] = headers.map((header) => {
+      const fields: Field[] = headers.map((header) => {
         const sampleValue = data[0]?.[header];
         return {
           name: header,
@@ -131,8 +126,7 @@ export class CsvParseNode extends ExecutableNode {
       });
 
       const table: Table = {
-        name: "csv_data",
-        fields,
+        schema: { name: "csv_data", fields },
         data,
       };
 
@@ -193,7 +187,7 @@ export class CsvParseNode extends ExecutableNode {
     return trimmed;
   }
 
-  private inferType(value: unknown): TableField["type"] {
+  private inferType(value: unknown): Field["type"] {
     if (typeof value === "boolean") return "boolean";
     if (typeof value === "number") {
       return Number.isInteger(value) ? "integer" : "number";

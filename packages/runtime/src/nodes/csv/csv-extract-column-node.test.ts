@@ -15,13 +15,15 @@ describe("CsvExtractColumnNode", () => {
     }) as unknown as NodeContext;
 
   const sampleTable: Table = {
-    name: "users",
-    fields: [
-      { name: "name", type: "string" },
-      { name: "age", type: "integer" },
-      { name: "city", type: "string" },
-      { name: "score", type: "number" },
-    ],
+    schema: {
+      name: "users",
+      fields: [
+        { name: "name", type: "string" },
+        { name: "age", type: "integer" },
+        { name: "city", type: "string" },
+        { name: "score", type: "number" },
+      ],
+    },
     data: [
       { name: "Alice", age: 30, city: "New York", score: 95.5 },
       { name: "Bob", age: 25, city: "Boston", score: 87.3 },
@@ -97,8 +99,10 @@ describe("CsvExtractColumnNode", () => {
       nodeId: "csv-extract-column",
     } as unknown as Node);
     const emptyTable: Table = {
-      name: "empty",
-      fields: [{ name: "name", type: "string" }],
+      schema: {
+        name: "empty",
+        fields: [{ name: "name", type: "string" }],
+      },
       data: [],
     };
     const result = await node.execute(
@@ -115,11 +119,13 @@ describe("CsvExtractColumnNode", () => {
       nodeId: "csv-extract-column",
     } as unknown as Node);
     const tableWithNulls: Table = {
-      name: "test",
-      fields: [
-        { name: "name", type: "string" },
-        { name: "value", type: "string" },
-      ],
+      schema: {
+        name: "test",
+        fields: [
+          { name: "name", type: "string" },
+          { name: "value", type: "string" },
+        ],
+      },
       data: [
         { name: "Alice", value: "A" },
         { name: "Bob", value: null },
@@ -140,11 +146,13 @@ describe("CsvExtractColumnNode", () => {
       nodeId: "csv-extract-column",
     } as unknown as Node);
     const tableWithBooleans: Table = {
-      name: "test",
-      fields: [
-        { name: "name", type: "string" },
-        { name: "active", type: "boolean" },
-      ],
+      schema: {
+        name: "test",
+        fields: [
+          { name: "name", type: "string" },
+          { name: "active", type: "boolean" },
+        ],
+      },
       data: [
         { name: "Alice", active: true },
         { name: "Bob", active: false },
@@ -165,11 +173,13 @@ describe("CsvExtractColumnNode", () => {
       nodeId: "csv-extract-column",
     } as unknown as Node);
     const tableWithObjects: Table = {
-      name: "test",
-      fields: [
-        { name: "name", type: "string" },
-        { name: "meta", type: "json" },
-      ],
+      schema: {
+        name: "test",
+        fields: [
+          { name: "name", type: "string" },
+          { name: "meta", type: "json" },
+        ],
+      },
       data: [
         { name: "Alice", meta: { foo: "bar" } },
         { name: "Bob", meta: { baz: 123 } },
@@ -238,7 +248,7 @@ describe("CsvExtractColumnNode", () => {
     );
 
     expect(result.status).toBe("error");
-    expect(result.error).toContain("missing or invalid 'fields'");
+    expect(result.error).toContain("missing or invalid 'schema.fields'");
   });
 
   it("should return error for invalid table structure without data", async () => {
@@ -247,7 +257,7 @@ describe("CsvExtractColumnNode", () => {
     } as unknown as Node);
     const result = await node.execute(
       createContext({
-        table: { name: "test", fields: [{ name: "name", type: "string" }] },
+        table: { schema: { name: "test", fields: [{ name: "name", type: "string" }] } },
         column: "name",
       })
     );
@@ -261,8 +271,10 @@ describe("CsvExtractColumnNode", () => {
       nodeId: "csv-extract-column",
     } as unknown as Node);
     const singleRowTable: Table = {
-      name: "test",
-      fields: [{ name: "name", type: "string" }],
+      schema: {
+        name: "test",
+        fields: [{ name: "name", type: "string" }],
+      },
       data: [{ name: "Alice" }],
     };
     const result = await node.execute(

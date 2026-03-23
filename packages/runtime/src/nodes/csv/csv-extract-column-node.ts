@@ -64,9 +64,9 @@ export class CsvExtractColumnNode extends ExecutableNode {
 
       // Validate table structure
       const tableObj = table as Table;
-      if (!tableObj.fields || !Array.isArray(tableObj.fields)) {
+      if (!tableObj.schema?.fields || !Array.isArray(tableObj.schema.fields)) {
         return this.createErrorResult(
-          "Invalid table structure: missing or invalid 'fields' array"
+          "Invalid table structure: missing or invalid 'schema.fields' array"
         );
       }
 
@@ -77,12 +77,12 @@ export class CsvExtractColumnNode extends ExecutableNode {
       }
 
       // Check if column exists
-      const columnExists = tableObj.fields.some(
+      const columnExists = tableObj.schema.fields.some(
         (field) => field.name === column
       );
       if (!columnExists) {
         return this.createErrorResult(
-          `Column '${column}' not found in table. Available columns: ${tableObj.fields.map((f) => f.name).join(", ")}`
+          `Column '${column}' not found in table. Available columns: ${tableObj.schema.fields.map((f) => f.name).join(", ")}`
         );
       }
 

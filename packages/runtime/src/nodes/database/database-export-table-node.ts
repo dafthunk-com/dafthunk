@@ -77,7 +77,7 @@ export class DatabaseExportTableNode extends ExecutableNode {
         );
       }
 
-      // Map schema results to TableField format
+      // Map schema results to Field format
       // PRAGMA table_info returns: cid, name, type, notnull, dflt_value, pk
       const fields = schemaResult.results.map((col: any) => ({
         name: col.name,
@@ -89,8 +89,7 @@ export class DatabaseExportTableNode extends ExecutableNode {
 
       // Build Table response
       const table: Table = {
-        name: tableName,
-        fields,
+        schema: { name: tableName, fields },
         data: dataResult.results as Record<string, unknown>[],
       };
 

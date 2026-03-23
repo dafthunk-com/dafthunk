@@ -78,9 +78,13 @@ export class DatabaseImportTableNode extends ExecutableNode {
 
     // Validate table structure
     const table = tableInput as Table;
-    if (!table.name || !table.fields || !Array.isArray(table.fields)) {
+    if (
+      !table.schema?.name ||
+      !table.schema?.fields ||
+      !Array.isArray(table.schema.fields)
+    ) {
       return this.createErrorResult(
-        "Invalid table: must include 'name' (string) and 'fields' (array)."
+        "Invalid table: must include 'schema.name' (string) and 'schema.fields' (array)."
       );
     }
 
@@ -88,9 +92,9 @@ export class DatabaseImportTableNode extends ExecutableNode {
       return this.createErrorResult("Invalid table: 'data' must be an array.");
     }
 
-    if (table.fields.length === 0) {
+    if (table.schema.fields.length === 0) {
       return this.createErrorResult(
-        "Invalid table: 'fields' array cannot be empty."
+        "Invalid table: 'schema.fields' array cannot be empty."
       );
     }
 
@@ -111,7 +115,7 @@ export class DatabaseImportTableNode extends ExecutableNode {
       }
 
       // Check if table exists
-      const checkTableSQL = generateCheckTableExistsSQL(table.name);
+      const checkTableSQL = generateCheckTableExistsSQL(table.schema.name);
       const checkResult = await connection.query(
         checkTableSQL.sql,
         checkTableSQL.params
@@ -122,7 +126,7 @@ export class DatabaseImportTableNode extends ExecutableNode {
 
       // Handle replace mode: drop existing table
       if (importMode === "replace" && tableExists) {
-        await connection.execute(`DROP TABLE ${table.name}`);
+        await connection.execute(`DROP TABLE ${table.schema.name}`);
       }
 
       // Create table if it doesn't exist or was dropped
@@ -135,7 +139,7 @@ export class DatabaseImportTableNode extends ExecutableNode {
       // Insert data if provided
       let rowsInserted = 0;
       if (table.data.length > 0) {
-        const { sql, params } = generateInsertSQL(table.name, table.data);
+        const { sql, params } = generateInsertSQL(table.schema.name, table.data);
 
         // Insert each row
         for (const rowParams of params) {

@@ -1,10 +1,5 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
-import type {
-  NodeExecution,
-  NodeType,
-  Table,
-  TableField,
-} from "@dafthunk/types";
+import type { Field, NodeExecution, NodeType, Table } from "@dafthunk/types";
 
 export class DatabaseBuildTableNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -85,8 +80,7 @@ export class DatabaseBuildTableNode extends ExecutableNode {
 
     // Build the table object
     const table: Table = {
-      name: String(name),
-      fields: fields as TableField[],
+      schema: { name: String(name), fields: fields as Field[] },
       data: data as Record<string, unknown>[],
     };
 

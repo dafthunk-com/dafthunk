@@ -19,12 +19,14 @@ describe("CsvStringifyNode", () => {
       nodeId: "csv-stringify",
     } as unknown as Node);
     const table: Table = {
-      name: "test",
-      fields: [
-        { name: "name", type: "string" },
-        { name: "age", type: "integer" },
-        { name: "active", type: "boolean" },
-      ],
+      schema: {
+        name: "test",
+        fields: [
+          { name: "name", type: "string" },
+          { name: "age", type: "integer" },
+          { name: "active", type: "boolean" },
+        ],
+      },
       data: [
         { name: "Alice", age: 30, active: true },
         { name: "Bob", age: 25, active: false },
@@ -44,11 +46,13 @@ describe("CsvStringifyNode", () => {
       nodeId: "csv-stringify",
     } as unknown as Node);
     const table: Table = {
-      name: "test",
-      fields: [
-        { name: "name", type: "string" },
-        { name: "age", type: "integer" },
-      ],
+      schema: {
+        name: "test",
+        fields: [
+          { name: "name", type: "string" },
+          { name: "age", type: "integer" },
+        ],
+      },
       data: [
         { name: "Alice", age: 30 },
         { name: "Bob", age: 25 },
@@ -67,11 +71,13 @@ describe("CsvStringifyNode", () => {
       nodeId: "csv-stringify",
     } as unknown as Node);
     const table: Table = {
-      name: "test",
-      fields: [
-        { name: "name", type: "string" },
-        { name: "age", type: "integer" },
-      ],
+      schema: {
+        name: "test",
+        fields: [
+          { name: "name", type: "string" },
+          { name: "age", type: "integer" },
+        ],
+      },
       data: [{ name: "Alice", age: 30 }],
     };
     const result = await node.execute(createContext({ table, delimiter: ";" }));
@@ -85,11 +91,13 @@ describe("CsvStringifyNode", () => {
       nodeId: "csv-stringify",
     } as unknown as Node);
     const table: Table = {
-      name: "test",
-      fields: [
-        { name: "name", type: "string" },
-        { name: "location", type: "string" },
-      ],
+      schema: {
+        name: "test",
+        fields: [
+          { name: "name", type: "string" },
+          { name: "location", type: "string" },
+        ],
+      },
       data: [
         { name: "Smith, John", location: "New York, NY" },
         { name: "Doe, Jane", location: "Boston" },
@@ -108,8 +116,10 @@ describe("CsvStringifyNode", () => {
       nodeId: "csv-stringify",
     } as unknown as Node);
     const table: Table = {
-      name: "test",
-      fields: [{ name: "text", type: "string" }],
+      schema: {
+        name: "test",
+        fields: [{ name: "text", type: "string" }],
+      },
       data: [{ text: 'He said "Hello"' }, { text: "Normal text" }],
     };
     const result = await node.execute(createContext({ table }));
@@ -123,12 +133,14 @@ describe("CsvStringifyNode", () => {
       nodeId: "csv-stringify",
     } as unknown as Node);
     const table: Table = {
-      name: "test",
-      fields: [
-        { name: "name", type: "string" },
-        { name: "age", type: "integer" },
-        { name: "city", type: "string" },
-      ],
+      schema: {
+        name: "test",
+        fields: [
+          { name: "name", type: "string" },
+          { name: "age", type: "integer" },
+          { name: "city", type: "string" },
+        ],
+      },
       data: [
         { name: "Alice", age: 30, city: "" },
         { name: "", age: 25, city: "Boston" },
@@ -145,12 +157,14 @@ describe("CsvStringifyNode", () => {
       nodeId: "csv-stringify",
     } as unknown as Node);
     const table: Table = {
-      name: "test",
-      fields: [
-        { name: "name", type: "string" },
-        { name: "value1", type: "string" },
-        { name: "value2", type: "string" },
-      ],
+      schema: {
+        name: "test",
+        fields: [
+          { name: "name", type: "string" },
+          { name: "value1", type: "string" },
+          { name: "value2", type: "string" },
+        ],
+      },
       data: [{ name: "Alice", value1: null, value2: undefined }],
     };
     const result = await node.execute(createContext({ table }));
@@ -164,11 +178,13 @@ describe("CsvStringifyNode", () => {
       nodeId: "csv-stringify",
     } as unknown as Node);
     const table: Table = {
-      name: "test",
-      fields: [
-        { name: "name", type: "string" },
-        { name: "active", type: "boolean" },
-      ],
+      schema: {
+        name: "test",
+        fields: [
+          { name: "name", type: "string" },
+          { name: "active", type: "boolean" },
+        ],
+      },
       data: [
         { name: "Alice", active: true },
         { name: "Bob", active: false },
@@ -185,11 +201,13 @@ describe("CsvStringifyNode", () => {
       nodeId: "csv-stringify",
     } as unknown as Node);
     const table: Table = {
-      name: "test",
-      fields: [
-        { name: "int", type: "integer" },
-        { name: "float", type: "number" },
-      ],
+      schema: {
+        name: "test",
+        fields: [
+          { name: "int", type: "integer" },
+          { name: "float", type: "number" },
+        ],
+      },
       data: [
         { int: 42, float: 3.14 },
         { int: 100, float: 2.5 },
@@ -206,11 +224,13 @@ describe("CsvStringifyNode", () => {
       nodeId: "csv-stringify",
     } as unknown as Node);
     const table: Table = {
-      name: "test",
-      fields: [
-        { name: "name", type: "string" },
-        { name: "meta", type: "json" },
-      ],
+      schema: {
+        name: "test",
+        fields: [
+          { name: "name", type: "string" },
+          { name: "meta", type: "json" },
+        ],
+      },
       data: [{ name: "Alice", meta: { foo: "bar" } }],
     };
     const result = await node.execute(createContext({ table }));
@@ -224,8 +244,10 @@ describe("CsvStringifyNode", () => {
       nodeId: "csv-stringify",
     } as unknown as Node);
     const table: Table = {
-      name: "test",
-      fields: [{ name: "text", type: "string" }],
+      schema: {
+        name: "test",
+        fields: [{ name: "text", type: "string" }],
+      },
       data: [{ text: "Line 1\nLine 2" }],
     };
     const result = await node.execute(createContext({ table }));
@@ -259,8 +281,10 @@ describe("CsvStringifyNode", () => {
       nodeId: "csv-stringify",
     } as unknown as Node);
     const table: Table = {
-      name: "test",
-      fields: [{ name: "name", type: "string" }],
+      schema: {
+        name: "test",
+        fields: [{ name: "name", type: "string" }],
+      },
       data: [],
     };
     const result = await node.execute(
@@ -280,7 +304,7 @@ describe("CsvStringifyNode", () => {
     );
 
     expect(result.status).toBe("error");
-    expect(result.error).toContain("missing or invalid 'fields'");
+    expect(result.error).toContain("missing or invalid 'schema.fields'");
   });
 
   it("should return error for table without data", async () => {
@@ -288,7 +312,7 @@ describe("CsvStringifyNode", () => {
       nodeId: "csv-stringify",
     } as unknown as Node);
     const result = await node.execute(
-      createContext({ table: { name: "test", fields: [] } })
+      createContext({ table: { schema: { name: "test", fields: [] } } })
     );
 
     expect(result.status).toBe("error");
@@ -300,11 +324,13 @@ describe("CsvStringifyNode", () => {
       nodeId: "csv-stringify",
     } as unknown as Node);
     const table: Table = {
-      name: "test",
-      fields: [
-        { name: "name", type: "string" },
-        { name: "age", type: "integer" },
-      ],
+      schema: {
+        name: "test",
+        fields: [
+          { name: "name", type: "string" },
+          { name: "age", type: "integer" },
+        ],
+      },
       data: [],
     };
     const result = await node.execute(createContext({ table }));

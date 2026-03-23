@@ -23,12 +23,14 @@ describe("CsvParseNode", () => {
 
     expect(result.status).toBe("completed");
     expect(result.outputs?.table).toEqual({
-      name: "csv_data",
-      fields: [
-        { name: "name", type: "string" },
-        { name: "age", type: "integer" },
-        { name: "active", type: "boolean" },
-      ],
+      schema: {
+        name: "csv_data",
+        fields: [
+          { name: "name", type: "string" },
+          { name: "age", type: "integer" },
+          { name: "active", type: "boolean" },
+        ],
+      },
       data: [
         { name: "Alice", age: 30, active: true },
         { name: "Bob", age: 25, active: false },
@@ -46,11 +48,13 @@ describe("CsvParseNode", () => {
 
     expect(result.status).toBe("completed");
     expect(result.outputs?.table).toEqual({
-      name: "csv_data",
-      fields: [
-        { name: "column_0", type: "string" },
-        { name: "column_1", type: "integer" },
-      ],
+      schema: {
+        name: "csv_data",
+        fields: [
+          { name: "column_0", type: "string" },
+          { name: "column_1", type: "integer" },
+        ],
+      },
       data: [
         { column_0: "Alice", column_1: 30 },
         { column_0: "Bob", column_1: 25 },
@@ -123,7 +127,7 @@ describe("CsvParseNode", () => {
     const result = await node.execute(createContext({ csv }));
 
     expect(result.status).toBe("completed");
-    expect(result.outputs?.table?.fields).toEqual([
+    expect(result.outputs?.table?.schema?.fields).toEqual([
       { name: "int", type: "integer" },
       { name: "float", type: "number" },
     ]);
