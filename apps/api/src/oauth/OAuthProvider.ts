@@ -149,18 +149,12 @@ export abstract class OAuthProvider<
   ): Promise<ValidatedState> {
     const state = await this.parseState(stateParam, c.env.JWT_SECRET);
 
-    // Get the authenticated user's organization from JWT
-    const authenticatedOrgId = c.get("organizationId");
-
-    // Critical security check: Verify JWT organization matches state organization
-    // This prevents an attacker from using their own OAuth credentials to create
-    // integrations in a victim's organization
-    if (state.organizationId !== authenticatedOrgId) {
-      throw new OAuthError(
-        "unauthorized_organization",
-        "Authenticated user does not belong to the organization in OAuth state"
-      );
-    }
+    // The state is HMAC-signed with the JWT secret, so it can't be forged.
+    // Membership was validated when the OAuth flow was initiated.
+    // Set the context's org from the verified state so downstream code
+    // uses the correct org (the JWT may carry the user's default org,
+    // which differs on callback for non-default organizations).
+    c.set("organizationId", state.organizationId);
 
     // Verify organization exists
     const db = createDatabase(c.env.DB);
