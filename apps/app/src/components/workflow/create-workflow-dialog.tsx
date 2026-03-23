@@ -144,7 +144,7 @@ export function CreateWorkflowDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="w-[80vw] max-w-[1400px] max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create New Workflow</DialogTitle>
         </DialogHeader>
@@ -177,7 +177,7 @@ export function CreateWorkflowDialog({
           </div>
           <div>
             <Label>Trigger Type</Label>
-            <div className="grid grid-cols-2 gap-4 mt-3">
+            <div className="grid grid-cols-3 gap-4 mt-3">
               {workflowTriggers.map((triggerOption) => {
                 const IconComponent = triggerOption.icon;
                 return (
