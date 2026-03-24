@@ -53,6 +53,10 @@ export class CloudflareQueueService implements QueueService {
 
     if (!queue) return undefined;
 
+    if (!this.env.WORKFLOW_QUEUE) {
+      throw new Error("WORKFLOW_QUEUE binding is not configured.");
+    }
+
     return new CloudflareQueue(
       queue.id,
       organizationId,

@@ -382,6 +382,21 @@
         "WEB_HOST": "https://app.dafthunk.com",
         "WEBSITE_URL": "https://www.dafthunk.com"
       },
+      "queues": {
+        "producers": [
+          {
+            "binding": "WORKFLOW_QUEUE",
+            "queue": "dafthunk-workflow-queue"
+          }
+        ],
+        "consumers": [
+          {
+            "queue": "dafthunk-workflow-queue",
+            "max_batch_size": 10,
+            "max_batch_timeout": 30
+          }
+        ]
+      },
       "triggers": {
         "crons": ["* * * * *"]
       }
