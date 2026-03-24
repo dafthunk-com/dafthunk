@@ -431,6 +431,30 @@ export const databases = sqliteTable(
   ]
 );
 
+// Schemas - User-defined record schemas for validation
+export const schemas = sqliteTable(
+  "schemas",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    description: text("description").notNull().default(""),
+    fields: text("fields").notNull(), // JSON string of Field[]
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    createdAt: createCreatedAt(),
+    updatedAt: createUpdatedAt(),
+  },
+  (table) => [
+    index("schemas_name_idx").on(table.name),
+    index("schemas_organization_id_idx").on(table.organizationId),
+    index("schemas_created_at_idx").on(table.createdAt),
+  ]
+);
+
+export type SchemaInsert = typeof schemas.$inferInsert;
+export type SchemaRow = typeof schemas.$inferSelect;
+
 // Queue Triggers - Message queue triggers for workflows
 export const queueTriggers = sqliteTable(
   "queue_triggers",

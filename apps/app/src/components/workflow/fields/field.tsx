@@ -16,6 +16,7 @@ import { IntegrationField } from "./integration-field";
 import { JsonField } from "./json-field";
 import { NumberField } from "./number-field";
 import { QueueField } from "./queue-field";
+import { SchemaField } from "./schema-field";
 import { SecretField } from "./secret-field";
 import { TelegramBotField } from "./telegram-bot-field";
 import { TextField } from "./text-field";
@@ -42,6 +43,8 @@ export function Field(props: FieldRouterProps) {
       return <JsonField {...props} />;
     case "secret":
       return <SecretField {...props} />;
+    case "schema":
+      return <SchemaField {...props} />;
     case "database":
       return <DatabaseField {...props} />;
     case "dataset":

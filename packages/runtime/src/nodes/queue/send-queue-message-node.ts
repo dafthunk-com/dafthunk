@@ -1,5 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { resolveAndValidateRecord } from "../../utils/schema-validation";
 
 export class SendQueueMessageNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -18,6 +19,14 @@ export class SendQueueMessageNode extends ExecutableNode {
         type: "queue",
         description: "Queue ID.",
         required: true,
+        hidden: true,
+      },
+      {
+        name: "schemaId",
+        type: "schema",
+        description:
+          "Optional schema to validate and coerce message payload before sending.",
+        required: false,
         hidden: true,
       },
       {
@@ -42,7 +51,7 @@ export class SendQueueMessageNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { queueId, message } = context.inputs;
+    const { queueId, message, schemaId } = context.inputs;
 
     // Validate required inputs
     if (!queueId) {
@@ -51,6 +60,24 @@ export class SendQueueMessageNode extends ExecutableNode {
 
     if (message === undefined || message === null) {
       return this.createErrorResult("'message' is a required input.");
+    }
+
+    let validatedMessage = message;
+    if (schemaId && typeof schemaId === "string") {
+      if (typeof message !== "object" || message === null || Array.isArray(message)) {
+        return this.createErrorResult(
+          "Schema validation requires message to be a JSON object."
+        );
+      }
+      const { record, error: schemaError } = await resolveAndValidateRecord(
+        context,
+        schemaId,
+        message as Record<string, unknown>
+      );
+      if (schemaError) {
+        return this.createErrorResult(schemaError);
+      }
+      validatedMessage = record;
     }
 
     if (!context.queueService) {
@@ -69,7 +96,7 @@ export class SendQueueMessageNode extends ExecutableNode {
         );
       }
 
-      await queue.send(message);
+      await queue.send(validatedMessage);
 
       // Generate a pseudo message ID (timestamp-based)
       const messageId = `msg_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;

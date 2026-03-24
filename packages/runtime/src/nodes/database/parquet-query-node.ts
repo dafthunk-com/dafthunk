@@ -1,6 +1,7 @@
 import { getSandbox } from "@cloudflare/sandbox";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { resolveAndValidateRecords } from "../../utils/schema-validation";
 
 export class ParquetQueryNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -25,6 +26,14 @@ export class ParquetQueryNode extends ExecutableNode {
           "DuckDB SQL query. Use read_parquet(), read_csv(), or read_json() to query remote files.",
         required: true,
       },
+      {
+        name: "schemaId",
+        type: "schema",
+        description:
+          "Optional schema to validate and coerce query results.",
+        required: false,
+        hidden: true,
+      },
     ],
     outputs: [
       {
@@ -42,7 +51,7 @@ export class ParquetQueryNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { sql } = context.inputs;
+    const { sql, schemaId } = context.inputs;
 
     if (!sql || typeof sql !== "string") {
       return this.createErrorResult("'sql' is a required string input.");
@@ -85,7 +94,15 @@ export class ParquetQueryNode extends ExecutableNode {
         return this.createSuccessResult({ results: [], rowCount: 0 });
       }
 
-      const results = JSON.parse(output) as Record<string, unknown>[];
+      const { records: results, error: schemaError } =
+        await resolveAndValidateRecords(
+          context,
+          schemaId,
+          JSON.parse(output) as Record<string, unknown>[]
+        );
+      if (schemaError) {
+        return this.createErrorResult(schemaError);
+      }
 
       return this.createSuccessResult({
         results,

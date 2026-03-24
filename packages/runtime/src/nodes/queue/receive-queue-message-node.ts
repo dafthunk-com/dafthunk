@@ -1,5 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { resolveAndValidateRecord } from "../../utils/schema-validation";
 
 export class ReceiveQueueMessageNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -20,6 +21,14 @@ export class ReceiveQueueMessageNode extends ExecutableNode {
         type: "queue",
         description: "The queue ID to listen to for messages.",
         required: true,
+        hidden: true,
+      },
+      {
+        name: "schemaId",
+        type: "schema",
+        description:
+          "Optional schema to validate and coerce the received message payload.",
+        required: false,
         hidden: true,
       },
     ],
@@ -43,6 +52,8 @@ export class ReceiveQueueMessageNode extends ExecutableNode {
   };
 
   public async execute(context: NodeContext): Promise<NodeExecution> {
+    const { schemaId } = context.inputs;
+
     try {
       if (!context.queueMessage) {
         throw new Error(
@@ -50,8 +61,27 @@ export class ReceiveQueueMessageNode extends ExecutableNode {
         );
       }
 
+      let payload = context.queueMessage.payload;
+
+      if (schemaId && typeof schemaId === "string") {
+        if (typeof payload !== "object" || payload === null || Array.isArray(payload)) {
+          return this.createErrorResult(
+            "Schema validation requires payload to be a JSON object."
+          );
+        }
+        const { record, error: schemaError } = await resolveAndValidateRecord(
+          context,
+          schemaId,
+          payload as Record<string, unknown>
+        );
+        if (schemaError) {
+          return this.createErrorResult(schemaError);
+        }
+        payload = record;
+      }
+
       return this.createSuccessResult({
-        payload: context.queueMessage.payload,
+        payload,
         queueId: context.queueMessage.queueId,
         timestamp: context.queueMessage.timestamp,
       });

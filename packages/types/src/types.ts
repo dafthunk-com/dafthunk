@@ -32,6 +32,7 @@ export interface Field {
  */
 export interface Schema {
   name: string;
+  description?: string;
   fields: Field[];
 }
 

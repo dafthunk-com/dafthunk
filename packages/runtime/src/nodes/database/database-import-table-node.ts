@@ -5,6 +5,7 @@ import {
   generateCreateTableSQL,
   generateInsertSQL,
 } from "../../utils/database-table";
+import { resolveAndValidateRecords } from "../../utils/schema-validation";
 
 export class DatabaseImportTableNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -23,6 +24,14 @@ export class DatabaseImportTableNode extends ExecutableNode {
         type: "database",
         description: "Database ID.",
         required: true,
+        hidden: true,
+      },
+      {
+        name: "schemaId",
+        type: "schema",
+        description:
+          "Optional schema to validate and coerce data before import.",
+        required: false,
         hidden: true,
       },
       {
@@ -57,7 +66,7 @@ export class DatabaseImportTableNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { databaseId, table: tableInput, mode } = context.inputs;
+    const { databaseId, table: tableInput, mode, schemaId } = context.inputs;
 
     // Validate required inputs
     if (!databaseId) {
@@ -77,7 +86,7 @@ export class DatabaseImportTableNode extends ExecutableNode {
     }
 
     // Validate table structure
-    const table = tableInput as Table;
+    let table = tableInput as Table;
     if (
       !table.schema?.name ||
       !table.schema?.fields ||
@@ -97,6 +106,13 @@ export class DatabaseImportTableNode extends ExecutableNode {
         "Invalid table: 'schema.fields' array cannot be empty."
       );
     }
+
+    const { records: validatedData, error: schemaError } =
+      await resolveAndValidateRecords(context, schemaId, table.data);
+    if (schemaError) {
+      return this.createErrorResult(schemaError);
+    }
+    table = { ...table, data: validatedData };
 
     try {
       if (!context.databaseService) {
@@ -139,7 +155,10 @@ export class DatabaseImportTableNode extends ExecutableNode {
       // Insert data if provided
       let rowsInserted = 0;
       if (table.data.length > 0) {
-        const { sql, params } = generateInsertSQL(table.schema.name, table.data);
+        const { sql, params } = generateInsertSQL(
+          table.schema.name,
+          table.data
+        );
 
         // Insert each row
         for (const rowParams of params) {

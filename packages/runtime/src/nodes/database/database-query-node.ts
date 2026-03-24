@@ -1,5 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { resolveAndValidateRecords } from "../../utils/schema-validation";
 
 export class DatabaseQueryNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -19,6 +20,14 @@ export class DatabaseQueryNode extends ExecutableNode {
         type: "database",
         description: "Database ID.",
         required: true,
+        hidden: true,
+      },
+      {
+        name: "schemaId",
+        type: "schema",
+        description:
+          "Optional schema to validate and coerce query results.",
+        required: false,
         hidden: true,
       },
       {
@@ -49,7 +58,7 @@ export class DatabaseQueryNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { databaseId, sql, params } = context.inputs;
+    const { databaseId, sql, params, schemaId } = context.inputs;
 
     // Validate required inputs
     if (!databaseId) {
@@ -87,9 +96,19 @@ export class DatabaseQueryNode extends ExecutableNode {
       const queryParams = Array.isArray(params) ? params : [];
       const result = await connection.query(sql, queryParams);
 
+      const { records: results, error: schemaError } =
+        await resolveAndValidateRecords(
+          context,
+          schemaId,
+          result.results as Record<string, unknown>[]
+        );
+      if (schemaError) {
+        return this.createErrorResult(schemaError);
+      }
+
       return this.createSuccessResult({
-        results: result.results,
-        rowCount: result.results.length,
+        results,
+        rowCount: results.length,
       });
     } catch (error) {
       return this.createErrorResult(

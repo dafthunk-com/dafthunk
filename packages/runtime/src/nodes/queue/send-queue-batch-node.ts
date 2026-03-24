@@ -1,5 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { resolveAndValidateRecords } from "../../utils/schema-validation";
 
 export class SendQueueBatchNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -19,6 +20,14 @@ export class SendQueueBatchNode extends ExecutableNode {
         type: "queue",
         description: "Queue ID.",
         required: true,
+        hidden: true,
+      },
+      {
+        name: "schemaId",
+        type: "schema",
+        description:
+          "Optional schema to validate and coerce each message payload before sending.",
+        required: false,
         hidden: true,
       },
       {
@@ -48,7 +57,7 @@ export class SendQueueBatchNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { queueId, messages } = context.inputs;
+    const { queueId, messages, schemaId } = context.inputs;
 
     // Validate required inputs
     if (!queueId) {
@@ -63,6 +72,16 @@ export class SendQueueBatchNode extends ExecutableNode {
 
     if (messages.length === 0) {
       return this.createErrorResult("'messages' array cannot be empty.");
+    }
+
+    const { records: validatedMessages, error: schemaError } =
+      await resolveAndValidateRecords(
+        context,
+        schemaId,
+        messages as Record<string, unknown>[]
+      );
+    if (schemaError) {
+      return this.createErrorResult(schemaError);
     }
 
     if (!context.queueService) {
@@ -81,7 +100,7 @@ export class SendQueueBatchNode extends ExecutableNode {
         );
       }
 
-      await queue.sendBatch(messages);
+      await queue.sendBatch(validatedMessages);
 
       // Generate message IDs
       const messageIds = messages.map(

@@ -14,6 +14,7 @@ import Mail from "lucide-react/icons/mail";
 import MessageSquareText from "lucide-react/icons/message-square-text";
 import Plug from "lucide-react/icons/plug";
 import SquareTerminal from "lucide-react/icons/square-terminal";
+import TableProperties from "lucide-react/icons/table-properties";
 
 import Users from "lucide-react/icons/users";
 import Wand from "lucide-react/icons/wand";
@@ -100,14 +101,19 @@ export const getDashboardSidebarGroups = (
       label: "Resources",
       items: [
         {
-          title: "Datasets",
-          url: `/org/${orgId}/datasets`,
-          icon: Folder,
+          title: "Schemas",
+          url: `/org/${orgId}/schemas`,
+          icon: TableProperties,
         },
         {
           title: "Databases",
           url: `/org/${orgId}/databases`,
           icon: Database,
+        },
+        {
+          title: "Datasets",
+          url: `/org/${orgId}/datasets`,
+          icon: Folder,
         },
         {
           title: "Integrations",

@@ -21,6 +21,7 @@ import LockIcon from "lucide-react/icons/lock";
 import MailIcon from "lucide-react/icons/mail";
 import MusicIcon from "lucide-react/icons/music";
 import SettingsIcon from "lucide-react/icons/settings";
+import TablePropertiesIcon from "lucide-react/icons/table-properties";
 import TrashIcon from "lucide-react/icons/trash-2";
 import TypeIcon from "lucide-react/icons/type";
 import VideoIcon from "lucide-react/icons/video";
@@ -106,6 +107,7 @@ export const TypeBadge = ({
     date: <CalendarIcon className={iconSize} />,
     geojson: <GlobeIcon className={iconSize} />,
     secret: <LockIcon className={iconSize} />,
+    schema: <TablePropertiesIcon className={iconSize} />,
     database: <DatabaseIcon className={iconSize} />,
     dataset: <FolderSearchIcon className={iconSize} />,
     queue: <LayersIcon className={iconSize} />,
@@ -266,6 +268,7 @@ export const WorkflowNode = memo(
       "database",
       "dataset",
       "queue",
+      "schema",
       "email",
       "integration",
       "discord",

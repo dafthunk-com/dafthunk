@@ -1,6 +1,7 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType, Table } from "@dafthunk/types";
 import { mapSqliteToType } from "../../utils/database-table";
+import { resolveAndValidateRecords } from "../../utils/schema-validation";
 
 export class DatabaseExportTableNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -22,6 +23,14 @@ export class DatabaseExportTableNode extends ExecutableNode {
         hidden: true,
       },
       {
+        name: "schemaId",
+        type: "schema",
+        description:
+          "Optional schema to validate and coerce exported data.",
+        required: false,
+        hidden: true,
+      },
+      {
         name: "tableName",
         type: "string",
         description: "Name of the table to export.",
@@ -39,7 +48,7 @@ export class DatabaseExportTableNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { databaseId, tableName } = context.inputs;
+    const { databaseId, tableName, schemaId } = context.inputs;
 
     // Validate required inputs
     if (!databaseId) {
@@ -87,10 +96,20 @@ export class DatabaseExportTableNode extends ExecutableNode {
       // Query all data from the table
       const dataResult = await connection.query(`SELECT * FROM ${tableName}`);
 
+      const { records: data, error: schemaError } =
+        await resolveAndValidateRecords(
+          context,
+          schemaId,
+          dataResult.results as Record<string, unknown>[]
+        );
+      if (schemaError) {
+        return this.createErrorResult(schemaError);
+      }
+
       // Build Table response
       const table: Table = {
         schema: { name: tableName, fields },
-        data: dataResult.results as Record<string, unknown>[],
+        data,
       };
 
       return this.createSuccessResult({

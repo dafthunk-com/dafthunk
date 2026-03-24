@@ -24,6 +24,7 @@ import {
   CloudflareObjectStore,
 } from "./cloudflare-object-store";
 import { CloudflareQueueService } from "./cloudflare-queue-service";
+import { CloudflareSchemaService } from "./cloudflare-schema-service";
 import { CloudflareToolRegistry } from "./cloudflare-tool-registry";
 import { createToolContext } from "./tool-context";
 import { runtimeVersion } from "./version";
@@ -41,6 +42,7 @@ export function buildDependencies(
   const databaseService = new CloudflareDatabaseService(env);
   const datasetService = new CloudflareDatasetService(env);
   const queueService = new CloudflareQueueService(env);
+  const schemaService = new CloudflareSchemaService(env);
   const toolRegistry = new CloudflareToolRegistry(
     nodeRegistry,
     (nodeId, inputs) =>
@@ -48,6 +50,7 @@ export function buildDependencies(
         databaseService,
         datasetService,
         queueService,
+        schemaService,
       })
   );
 
@@ -65,6 +68,7 @@ export function buildDependencies(
     databaseService,
     datasetService,
     queueService,
+    schemaService,
     runtimeVersion,
   };
 }

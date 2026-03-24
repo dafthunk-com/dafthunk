@@ -19,6 +19,7 @@ import LinkIcon from "lucide-react/icons/link";
 import LockIcon from "lucide-react/icons/lock";
 import MailIcon from "lucide-react/icons/mail";
 import MusicIcon from "lucide-react/icons/music";
+import TablePropertiesIcon from "lucide-react/icons/table-properties";
 import TypeIcon from "lucide-react/icons/type";
 import VideoIcon from "lucide-react/icons/video";
 
@@ -47,6 +48,7 @@ const getTypeIcon = (type: InputOutputType) => {
     date: <CalendarIcon className={iconSize} />,
     geojson: <GlobeIcon className={iconSize} />,
     secret: <LockIcon className={iconSize} />,
+    schema: <TablePropertiesIcon className={iconSize} />,
     database: <DatabaseIcon className={iconSize} />,
     dataset: <FolderSearchIcon className={iconSize} />,
     queue: <LayersIcon className={iconSize} />,

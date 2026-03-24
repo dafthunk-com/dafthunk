@@ -17,6 +17,7 @@ export * from "./playground";
 export * from "./profile";
 export * from "./queue";
 export * from "./scheduled";
+export * from "./schema";
 export * from "./secret";
 export * from "./telegram";
 export * from "./telegram-bot";

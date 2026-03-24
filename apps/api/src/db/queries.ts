@@ -58,8 +58,11 @@ import {
   queueTriggers,
   type ScheduledTriggerInsert,
   type ScheduledTriggerRow,
+  type SchemaInsert,
+  type SchemaRow,
   type SecretInsert,
   scheduledTriggers,
+  schemas,
   secrets,
   type TelegramBotInsert,
   type TelegramBotRow,
@@ -748,6 +751,87 @@ export async function deleteDatabaseRecord(
     .returning();
 
   return database;
+}
+
+/**
+ * Get all schemas for an organization
+ */
+export async function getSchemas(
+  db: ReturnType<typeof createDatabase>,
+  organizationId: string
+) {
+  return await db
+    .select({
+      id: schemas.id,
+      name: schemas.name,
+      description: schemas.description,
+      fields: schemas.fields,
+      createdAt: schemas.createdAt,
+      updatedAt: schemas.updatedAt,
+    })
+    .from(schemas)
+    .where(eq(schemas.organizationId, organizationId));
+}
+
+/**
+ * Get a schema by ID, ensuring it belongs to the specified organization
+ */
+export async function getSchema(
+  db: ReturnType<typeof createDatabase>,
+  schemaId: string,
+  organizationId: string
+): Promise<SchemaRow | undefined> {
+  const [schema] = await db
+    .select()
+    .from(schemas)
+    .where(
+      and(eq(schemas.id, schemaId), eq(schemas.organizationId, organizationId))
+    )
+    .limit(1);
+  return schema;
+}
+
+/**
+ * Create a new schema record
+ */
+export async function createSchemaRecord(
+  db: ReturnType<typeof createDatabase>,
+  newSchema: SchemaInsert
+): Promise<SchemaRow> {
+  const [schema] = await db.insert(schemas).values(newSchema).returning();
+  return schema;
+}
+
+/**
+ * Update a schema record, ensuring it belongs to the specified organization
+ */
+export async function updateSchemaRecord(
+  db: ReturnType<typeof createDatabase>,
+  id: string,
+  organizationId: string,
+  data: Partial<SchemaRow>
+): Promise<SchemaRow> {
+  const [schema] = await db
+    .update(schemas)
+    .set(data)
+    .where(and(eq(schemas.id, id), eq(schemas.organizationId, organizationId)))
+    .returning();
+  return schema;
+}
+
+/**
+ * Delete a schema record, ensuring it belongs to the specified organization
+ */
+export async function deleteSchemaRecord(
+  db: ReturnType<typeof createDatabase>,
+  id: string,
+  organizationId: string
+): Promise<SchemaRow | undefined> {
+  const [schema] = await db
+    .delete(schemas)
+    .where(and(eq(schemas.id, id), eq(schemas.organizationId, organizationId)))
+    .returning();
+  return schema;
 }
 
 /**

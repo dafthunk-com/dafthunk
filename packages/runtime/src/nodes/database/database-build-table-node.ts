@@ -1,5 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { Field, NodeExecution, NodeType, Table } from "@dafthunk/types";
+import { resolveAndValidateRecords } from "../../utils/schema-validation";
 
 export class DatabaseBuildTableNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -18,6 +19,14 @@ export class DatabaseBuildTableNode extends ExecutableNode {
         type: "string",
         description: "Table name.",
         required: true,
+      },
+      {
+        name: "schemaId",
+        type: "schema",
+        description:
+          "Optional schema to validate and coerce data rows.",
+        required: false,
+        hidden: true,
       },
       {
         name: "fields",
@@ -44,7 +53,7 @@ export class DatabaseBuildTableNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { name, fields, data } = context.inputs;
+    const { name, fields, data, schemaId } = context.inputs;
 
     // Validate required inputs
     if (!name) {
@@ -78,10 +87,20 @@ export class DatabaseBuildTableNode extends ExecutableNode {
       return this.createErrorResult("'data' must be an array.");
     }
 
+    const { records: validatedData, error: schemaError } =
+      await resolveAndValidateRecords(
+        context,
+        schemaId,
+        data as Record<string, unknown>[]
+      );
+    if (schemaError) {
+      return this.createErrorResult(schemaError);
+    }
+
     // Build the table object
     const table: Table = {
       schema: { name: String(name), fields: fields as Field[] },
-      data: data as Record<string, unknown>[],
+      data: validatedData,
     };
 
     return this.createSuccessResult({

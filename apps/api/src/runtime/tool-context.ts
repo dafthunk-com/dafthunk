@@ -11,6 +11,7 @@ interface ToolContextServices {
   databaseService?: NodeContext["databaseService"];
   datasetService?: NodeContext["datasetService"];
   queueService?: NodeContext["queueService"];
+  schemaService?: NodeContext["schemaService"];
 }
 
 /**
@@ -37,6 +38,7 @@ export function createToolContext(
     databaseService: services?.databaseService,
     datasetService: services?.datasetService,
     queueService: services?.queueService,
+    schemaService: services?.schemaService,
     env,
   };
 }

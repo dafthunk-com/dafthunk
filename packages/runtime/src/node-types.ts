@@ -16,6 +16,7 @@ import type { DatabaseService } from "./database-service";
 import type { DatasetService } from "./dataset-service";
 import type { ObjectStore } from "./object-store";
 import type { QueueService } from "./queue-service";
+import type { SchemaService } from "./schema-service";
 import type { ToolDefinition, ToolReference } from "./tool-types";
 
 /**
@@ -243,6 +244,7 @@ export interface NodeContext {
   databaseService?: DatabaseService;
   datasetService?: DatasetService;
   queueService?: QueueService;
+  schemaService?: SchemaService;
   // Callback-based access to sensitive data (improves security and isolation)
   getSecret?: (secretName: string) => Promise<string | undefined>;
   getIntegration: (integrationId: string) => Promise<IntegrationInfo>;

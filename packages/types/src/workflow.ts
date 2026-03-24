@@ -176,6 +176,10 @@ export type ParameterType =
       value?: string; // Secret name reference, not the actual secret value
     }
   | {
+      type: "schema";
+      value?: string; // Schema ID reference
+    }
+  | {
       type: "database";
       value?: string; // Database ID reference
     }

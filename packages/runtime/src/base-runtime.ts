@@ -16,6 +16,7 @@ import type { CredentialService } from "./credential-service";
 import type { CreditService } from "./credit-service";
 import type { DatabaseService } from "./database-service";
 import type { DatasetService } from "./dataset-service";
+import type { SchemaService } from "./schema-service";
 import { computeDefinitionHash } from "./definition-hash";
 import {
   nodeNotFoundMessage,
@@ -90,6 +91,7 @@ export interface RuntimeDependencies<Env = unknown> {
   databaseService?: DatabaseService;
   datasetService?: DatasetService;
   queueService?: QueueService;
+  schemaService?: SchemaService;
   runtimeVersion?: string;
 }
 
@@ -122,6 +124,7 @@ export abstract class Runtime<Env = unknown> {
   protected databaseService?: DatabaseService;
   protected datasetService?: DatasetService;
   protected queueService?: QueueService;
+  protected schemaService?: SchemaService;
   protected env: Env;
   protected runtimeVersion?: string;
   protected userPlan?: string;
@@ -145,6 +148,7 @@ export abstract class Runtime<Env = unknown> {
     this.databaseService = dependencies.databaseService;
     this.datasetService = dependencies.datasetService;
     this.queueService = dependencies.queueService;
+    this.schemaService = dependencies.schemaService;
     this.runtimeVersion = dependencies.runtimeVersion;
   }
 
@@ -946,6 +950,7 @@ export abstract class Runtime<Env = unknown> {
         databaseService: this.databaseService,
         datasetService: this.datasetService,
         queueService: this.queueService,
+        schemaService: this.schemaService,
         getSecret: (secretName: string) =>
           this.credentialProvider.getSecret(secretName),
         getIntegration: (integrationId: string) =>

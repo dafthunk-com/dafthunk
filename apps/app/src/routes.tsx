@@ -59,6 +59,7 @@ import { PlaygroundExecutePage } from "./pages/playground-execute-page";
 import { PlaygroundPage } from "./pages/playground-page";
 import { ProfilePage } from "./pages/profile-page";
 import { QueuesPage } from "./pages/queues-page";
+import { SchemasPage } from "./pages/schemas-page";
 import { SecretsPage } from "./pages/secrets-page";
 import { TemplateDetailPage } from "./pages/template-detail-page";
 import { TemplatePreviewPage } from "./pages/template-preview-page";
@@ -626,6 +627,21 @@ export const routes: AppRouteObject[] = [
       </OrgLayout>
     ),
     handle: { head: <HeadSeo title="Console - Database - Dafthunk" /> },
+  },
+  {
+    path: "/schemas",
+    element: <OrgRedirect to="/org/:organizationId/schemas" />,
+  },
+  {
+    path: "/org/:organizationId/schemas",
+    element: (
+      <OrgLayout title="Schemas">
+        <ProtectedRoute>
+          <SchemasPage />
+        </ProtectedRoute>
+      </OrgLayout>
+    ),
+    handle: { head: <HeadSeo title="Schemas - Dafthunk" /> },
   },
   {
     path: "/endpoints",

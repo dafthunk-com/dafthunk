@@ -257,7 +257,9 @@ describe("CsvExtractColumnNode", () => {
     } as unknown as Node);
     const result = await node.execute(
       createContext({
-        table: { schema: { name: "test", fields: [{ name: "name", type: "string" }] } },
+        table: {
+          schema: { name: "test", fields: [{ name: "name", type: "string" }] },
+        },
         column: "name",
       })
     );
