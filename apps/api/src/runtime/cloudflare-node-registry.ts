@@ -325,6 +325,7 @@ import { JsonObjectKeysNode } from "@dafthunk/runtime/nodes/json/json-object-key
 import { JsonObjectValuesNode } from "@dafthunk/runtime/nodes/json/json-object-values-node";
 import { JsonRemoveNode } from "@dafthunk/runtime/nodes/json/json-remove-node";
 import { JsonReplaceNode } from "@dafthunk/runtime/nodes/json/json-replace-node";
+import { JsonSchemaExtractNode } from "@dafthunk/runtime/nodes/json/json-schema-extract-node";
 import { JsonSetNode } from "@dafthunk/runtime/nodes/json/json-set-node";
 import { JsonStripNullsNode } from "@dafthunk/runtime/nodes/json/json-strip-nulls-node";
 import { JsonTemplateNode } from "@dafthunk/runtime/nodes/json/json-template-node";
@@ -596,6 +597,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(JsonToBlobNode);
     this.registerImplementation(JsonToGeojsonNode);
     this.registerImplementation(JsonTypeofNode);
+    this.registerImplementation(JsonSchemaExtractNode);
     this.registerImplementation(JsonValidNode);
     this.registerImplementation(MultiVariableStringTemplateNode);
     this.registerImplementation(SingleVariableStringTemplateNode);

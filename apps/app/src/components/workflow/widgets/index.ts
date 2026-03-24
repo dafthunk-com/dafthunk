@@ -29,6 +29,7 @@ import { jsonInputWidget } from "./input/json-input";
 import { numberInputWidget } from "./input/number-input";
 import { queueTriggerInputWidget } from "./input/queue-trigger-input";
 import { replicateModelInputWidget } from "./input/replicate-model-input";
+import { schemaExtractInputWidget } from "./input/schema-extract-input";
 import { secretInputWidget } from "./input/secret-input";
 import { sliderInputWidget } from "./input/slider-input";
 import { telegramTriggerInputWidget } from "./input/telegram-trigger-input";
@@ -86,6 +87,7 @@ const widgets = [
   audioRecorderInputWidget,
   canvasInputWidget,
   replicateModelInputWidget,
+  schemaExtractInputWidget,
 
   // Output widgets
   textOutputWidget,
