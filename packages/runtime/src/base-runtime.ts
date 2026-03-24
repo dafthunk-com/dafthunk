@@ -870,7 +870,7 @@ export abstract class Runtime<Env = unknown> {
         const sourceOutputs = state.nodeOutputs[edge.source];
         if (sourceOutputs && sourceOutputs[edge.sourceOutput] !== undefined) {
           const value = sourceOutputs[edge.sourceOutput];
-          if (Array.isArray(value)) {
+          if (acceptsMultiple && Array.isArray(value)) {
             for (const item of value) {
               if (isRuntimeValue(item)) {
                 values.push(item);
