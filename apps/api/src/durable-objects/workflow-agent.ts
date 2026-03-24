@@ -36,7 +36,11 @@ import { WorkflowStore } from "../stores/workflow-store";
 interface HiddenAgentMethods {
   broadcast(msg: string, without?: string[]): void;
   getConnection(id: string): Connection | undefined;
-  runWorkflow(workflowName: string, params: RuntimeParams): Promise<string>;
+  runWorkflow(
+    workflowName: string,
+    params: RuntimeParams,
+    options?: { id?: string }
+  ): Promise<string>;
   terminateWorkflow(workflowId: string): Promise<void>;
 }
 
@@ -89,7 +93,8 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
   }
 
   async executeWorkflow(params: RuntimeParams): Promise<string> {
-    return this.hiddenMethods.runWorkflow("EXECUTE", params);
+    const id = crypto.randomUUID();
+    return this.hiddenMethods.runWorkflow("EXECUTE", params, { id });
   }
 
   async cancelWorkflow(workflowId: string): Promise<void> {
