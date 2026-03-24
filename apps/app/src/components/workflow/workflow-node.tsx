@@ -276,7 +276,6 @@ export const WorkflowNode = memo(
     ]);
     const resourceInputs = data.inputs.filter(
       (input) =>
-        input.hidden &&
         resourceTypes.has(input.type) &&
         !widget?.managedFields.has(input.id)
     );
