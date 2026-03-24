@@ -276,8 +276,7 @@ export const WorkflowNode = memo(
     ]);
     const resourceInputs = data.inputs.filter(
       (input) =>
-        resourceTypes.has(input.type) &&
-        !widget?.managedFields.has(input.id)
+        resourceTypes.has(input.type) && !widget?.managedFields.has(input.id)
     );
 
     const handleToolSelectorClose = () => {

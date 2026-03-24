@@ -29,8 +29,7 @@ export class ParquetQueryNode extends ExecutableNode {
       {
         name: "schemaId",
         type: "schema",
-        description:
-          "Optional schema to validate and coerce query results.",
+        description: "Optional schema to validate and coerce query results.",
         required: false,
         hidden: true,
       },

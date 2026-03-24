@@ -16,7 +16,6 @@ import type { CredentialService } from "./credential-service";
 import type { CreditService } from "./credit-service";
 import type { DatabaseService } from "./database-service";
 import type { DatasetService } from "./dataset-service";
-import type { SchemaService } from "./schema-service";
 import { computeDefinitionHash } from "./definition-hash";
 import {
   nodeNotFoundMessage,
@@ -51,6 +50,7 @@ import { MultiStepNode } from "./node-types";
 import type { ObjectStore } from "./object-store";
 import { apiToNodeParameter, nodeToApiParameter } from "./parameter-mapper";
 import type { QueueService } from "./queue-service";
+import type { SchemaService } from "./schema-service";
 import { validateWorkflow } from "./validate-workflow";
 
 export interface RuntimeParams {

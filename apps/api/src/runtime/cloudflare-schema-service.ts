@@ -1,5 +1,5 @@
-import type { Schema } from "@dafthunk/types";
 import type { SchemaService } from "@dafthunk/runtime";
+import type { Schema } from "@dafthunk/types";
 
 import type { Bindings } from "../context";
 import { createDatabase, getSchema } from "../db";

@@ -64,7 +64,11 @@ export class SendQueueMessageNode extends ExecutableNode {
 
     let validatedMessage = message;
     if (schemaId && typeof schemaId === "string") {
-      if (typeof message !== "object" || message === null || Array.isArray(message)) {
+      if (
+        typeof message !== "object" ||
+        message === null ||
+        Array.isArray(message)
+      ) {
         return this.createErrorResult(
           "Schema validation requires message to be a JSON object."
         );

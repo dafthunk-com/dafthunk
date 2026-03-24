@@ -1,4 +1,4 @@
-import type { FieldType, Table } from "@dafthunk/types";
+import type { FieldType, Schema } from "@dafthunk/types";
 
 /**
  * Map abstract field types to SQLite types
@@ -73,11 +73,11 @@ export function mapSqliteToType(sqliteType: string): FieldType {
 /**
  * Generate CREATE TABLE statement from table
  */
-export function generateCreateTableSQL(table: Table): string {
-  const { name, fields } = table.schema;
+export function generateCreateTableSQL(schema: Schema): string {
+  const { name, fields } = schema;
 
   if (!name || !fields || fields.length === 0) {
-    throw new Error("Invalid table: schema name and fields are required");
+    throw new Error("Invalid schema: name and fields are required");
   }
 
   const columns = fields.map((field) => {

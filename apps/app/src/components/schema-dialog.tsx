@@ -79,52 +79,52 @@ function FieldEditor({ fields, onChange }: FieldEditorProps) {
           field.name.trim() !== "" &&
           (nameCounts.get(field.name.trim()) ?? 0) > 1;
         return (
-        <div key={index} className="flex items-center gap-2">
-          <Input
-            placeholder="Field name"
-            value={field.name}
-            onChange={(e) => updateField(index, { name: e.target.value })}
-            className={cn("flex-1", isDuplicate && "border-destructive")}
-          />
-          <Select
-            value={field.type}
-            onValueChange={(val) =>
-              updateField(index, { type: val as FieldType })
-            }
-          >
-            <SelectTrigger className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {FIELD_TYPES.map((type) => (
-                <SelectItem key={type} value={type}>
-                  {type}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <div className="flex items-center gap-1">
-            <Switch
-              checked={field.required ?? false}
-              onCheckedChange={(checked) =>
-                updateField(index, {
-                  required: checked ? true : undefined,
-                })
-              }
-              className="scale-75"
+          <div key={index} className="flex items-center gap-2">
+            <Input
+              placeholder="Field name"
+              value={field.name}
+              onChange={(e) => updateField(index, { name: e.target.value })}
+              className={cn("flex-1", isDuplicate && "border-destructive")}
             />
-            <span className="text-xs text-muted-foreground">Req</span>
+            <Select
+              value={field.type}
+              onValueChange={(val) =>
+                updateField(index, { type: val as FieldType })
+              }
+            >
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {FIELD_TYPES.map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {type}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <div className="flex items-center gap-1">
+              <Switch
+                checked={field.required ?? false}
+                onCheckedChange={(checked) =>
+                  updateField(index, {
+                    required: checked ? true : undefined,
+                  })
+                }
+                className="scale-75"
+              />
+              <span className="text-xs text-muted-foreground">Req</span>
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 shrink-0"
+              onClick={() => removeField(index)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
           </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 shrink-0"
-            onClick={() => removeField(index)}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
         );
       })}
     </div>
@@ -177,8 +177,7 @@ export function SchemaDialog({
   };
 
   const fieldNames = fields.map((f) => f.name.trim());
-  const hasDuplicateNames =
-    new Set(fieldNames).size !== fieldNames.length;
+  const hasDuplicateNames = new Set(fieldNames).size !== fieldNames.length;
 
   const isValid =
     name.trim().length > 0 &&

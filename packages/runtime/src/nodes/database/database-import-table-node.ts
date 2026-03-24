@@ -1,5 +1,5 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
-import type { NodeExecution, NodeType, Table } from "@dafthunk/types";
+import type { NodeExecution, NodeType, Schema } from "@dafthunk/types";
 import {
   generateCheckTableExistsSQL,
   generateCreateTableSQL,
@@ -35,10 +35,16 @@ export class DatabaseImportTableNode extends ExecutableNode {
         hidden: true,
       },
       {
-        name: "table",
+        name: "schema",
         type: "json",
         description:
-          "Table with fields and data: {name: string, fields: [{name: string, type: string}], data: object[]}",
+          "Schema with name and fields: {name: string, fields: [{name: string, type: string}]}",
+        required: true,
+      },
+      {
+        name: "data",
+        type: "json",
+        description: "Array of data rows (objects).",
         required: true,
       },
       {
@@ -66,15 +72,38 @@ export class DatabaseImportTableNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { databaseId, table: tableInput, mode, schemaId } = context.inputs;
+    const {
+      databaseId,
+      schema: schemaInput,
+      data: dataInput,
+      mode,
+      schemaId,
+    } = context.inputs;
 
     // Validate required inputs
     if (!databaseId) {
       return this.createErrorResult("'databaseId' is a required input.");
     }
 
-    if (!tableInput) {
-      return this.createErrorResult("'table' is a required input.");
+    if (!schemaInput) {
+      return this.createErrorResult("'schema' is a required input.");
+    }
+
+    const schema = schemaInput as Schema;
+    if (!schema.name || !schema.fields || !Array.isArray(schema.fields)) {
+      return this.createErrorResult(
+        "Invalid schema: must include 'name' (string) and 'fields' (array)."
+      );
+    }
+
+    if (schema.fields.length === 0) {
+      return this.createErrorResult(
+        "Invalid schema: 'fields' array cannot be empty."
+      );
+    }
+
+    if (!dataInput || !Array.isArray(dataInput)) {
+      return this.createErrorResult("'data' must be an array.");
     }
 
     // Validate mode
@@ -85,34 +114,15 @@ export class DatabaseImportTableNode extends ExecutableNode {
       );
     }
 
-    // Validate table structure
-    let table = tableInput as Table;
-    if (
-      !table.schema?.name ||
-      !table.schema?.fields ||
-      !Array.isArray(table.schema.fields)
-    ) {
-      return this.createErrorResult(
-        "Invalid table: must include 'schema.name' (string) and 'schema.fields' (array)."
+    const { records: data, error: schemaError } =
+      await resolveAndValidateRecords(
+        context,
+        schemaId,
+        dataInput as Record<string, unknown>[]
       );
-    }
-
-    if (!table.data || !Array.isArray(table.data)) {
-      return this.createErrorResult("Invalid table: 'data' must be an array.");
-    }
-
-    if (table.schema.fields.length === 0) {
-      return this.createErrorResult(
-        "Invalid table: 'schema.fields' array cannot be empty."
-      );
-    }
-
-    const { records: validatedData, error: schemaError } =
-      await resolveAndValidateRecords(context, schemaId, table.data);
     if (schemaError) {
       return this.createErrorResult(schemaError);
     }
-    table = { ...table, data: validatedData };
 
     try {
       if (!context.databaseService) {
@@ -131,7 +141,7 @@ export class DatabaseImportTableNode extends ExecutableNode {
       }
 
       // Check if table exists
-      const checkTableSQL = generateCheckTableExistsSQL(table.schema.name);
+      const checkTableSQL = generateCheckTableExistsSQL(schema.name);
       const checkResult = await connection.query(
         checkTableSQL.sql,
         checkTableSQL.params
@@ -142,23 +152,20 @@ export class DatabaseImportTableNode extends ExecutableNode {
 
       // Handle replace mode: drop existing table
       if (importMode === "replace" && tableExists) {
-        await connection.execute(`DROP TABLE ${table.schema.name}`);
+        await connection.execute(`DROP TABLE ${schema.name}`);
       }
 
       // Create table if it doesn't exist or was dropped
       if (!tableExists || importMode === "replace") {
-        const createTableSQL = generateCreateTableSQL(table);
+        const createTableSQL = generateCreateTableSQL(schema);
         await connection.execute(createTableSQL);
         tableCreated = !tableExists; // Only true if table didn't exist before
       }
 
       // Insert data if provided
       let rowsInserted = 0;
-      if (table.data.length > 0) {
-        const { sql, params } = generateInsertSQL(
-          table.schema.name,
-          table.data
-        );
+      if (data.length > 0) {
+        const { sql, params } = generateInsertSQL(schema.name, data);
 
         // Insert each row
         for (const rowParams of params) {

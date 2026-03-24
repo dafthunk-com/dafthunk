@@ -1,5 +1,5 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
-import type { Field, NodeExecution, NodeType, Table } from "@dafthunk/types";
+import type { NodeExecution, NodeType, Schema } from "@dafthunk/types";
 import { resolveAndValidateRecords } from "../../utils/schema-validation";
 
 export class DatabaseBuildTableNode extends ExecutableNode {
@@ -7,33 +7,26 @@ export class DatabaseBuildTableNode extends ExecutableNode {
     id: "database-build-table",
     name: "Database Build Table",
     type: "database-build-table",
-    description: "Builds a Table object from name, fields, and data.",
+    description: "Builds a Table from a schema and data.",
     tags: ["Database", "Table", "Build"],
     icon: "database",
     documentation:
-      "Constructs a Table object from its components: table name, field definitions, and data rows. Use this to build tables dynamically or to reconstruct tables after manipulating their parts.",
+      "Constructs a Table from a schema and data rows. Use this to build tables dynamically or to reconstruct tables after manipulating their parts.",
     asTool: true,
     inputs: [
       {
-        name: "name",
-        type: "string",
-        description: "Table name.",
+        name: "schema",
+        type: "json",
+        description:
+          "Schema with name and fields: {name: string, fields: [{name: string, type: string}]}",
         required: true,
       },
       {
         name: "schemaId",
         type: "schema",
-        description:
-          "Optional schema to validate and coerce data rows.",
+        description: "Optional schema to validate and coerce data rows.",
         required: false,
         hidden: true,
-      },
-      {
-        name: "fields",
-        type: "json",
-        description:
-          "Array of field definitions: [{name: string, type: string}]",
-        required: true,
       },
       {
         name: "data",
@@ -44,37 +37,40 @@ export class DatabaseBuildTableNode extends ExecutableNode {
     ],
     outputs: [
       {
-        name: "table",
+        name: "schema",
         type: "json",
         description:
-          "Table object: {name: string, fields: [{name: string, type: string}], data: object[]}",
+          "Schema with name and fields: {name: string, fields: [{name: string, type: string}]}",
+      },
+      {
+        name: "data",
+        type: "json",
+        description: "Array of data rows (objects).",
       },
     ],
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { name, fields, data, schemaId } = context.inputs;
+    const { schema, data, schemaId } = context.inputs;
 
     // Validate required inputs
-    if (!name) {
-      return this.createErrorResult("'name' is a required input.");
+    if (!schema) {
+      return this.createErrorResult("'schema' is a required input.");
     }
 
-    if (!fields) {
-      return this.createErrorResult("'fields' is a required input.");
+    const typedSchema = schema as Schema;
+    if (
+      !typedSchema.name ||
+      !typedSchema.fields ||
+      !Array.isArray(typedSchema.fields)
+    ) {
+      return this.createErrorResult(
+        "Invalid schema: must include 'name' (string) and 'fields' (array)."
+      );
     }
 
-    if (!data) {
-      return this.createErrorResult("'data' is a required input.");
-    }
-
-    // Validate fields structure
-    if (!Array.isArray(fields)) {
-      return this.createErrorResult("'fields' must be an array.");
-    }
-
-    for (let i = 0; i < fields.length; i++) {
-      const field = fields[i];
+    for (let i = 0; i < typedSchema.fields.length; i++) {
+      const field = typedSchema.fields[i];
       if (!field || typeof field !== "object" || !field.name || !field.type) {
         return this.createErrorResult(
           `Invalid field at index ${i}: must have 'name' and 'type' properties.`
@@ -82,7 +78,10 @@ export class DatabaseBuildTableNode extends ExecutableNode {
       }
     }
 
-    // Validate data structure
+    if (!data) {
+      return this.createErrorResult("'data' is a required input.");
+    }
+
     if (!Array.isArray(data)) {
       return this.createErrorResult("'data' must be an array.");
     }
@@ -97,14 +96,9 @@ export class DatabaseBuildTableNode extends ExecutableNode {
       return this.createErrorResult(schemaError);
     }
 
-    // Build the table object
-    const table: Table = {
-      schema: { name: String(name), fields: fields as Field[] },
-      data: validatedData,
-    };
-
     return this.createSuccessResult({
-      table,
+      schema: typedSchema,
+      data: validatedData,
     });
   }
 }

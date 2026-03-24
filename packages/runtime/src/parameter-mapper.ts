@@ -255,6 +255,10 @@ const converters: Record<string, Converter> = {
     nodeToApi: typeValidatingNodeToApi("string"),
     apiToNode: typeValidatingApiToNode("string"),
   },
+  schema: {
+    nodeToApi: typeValidatingNodeToApi("string"),
+    apiToNode: typeValidatingApiToNode("string"),
+  },
   dataset: {
     nodeToApi: typeValidatingNodeToApi("string"),
     apiToNode: typeValidatingApiToNode("string"),

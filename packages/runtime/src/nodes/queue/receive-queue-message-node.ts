@@ -64,7 +64,11 @@ export class ReceiveQueueMessageNode extends ExecutableNode {
       let payload = context.queueMessage.payload;
 
       if (schemaId && typeof schemaId === "string") {
-        if (typeof payload !== "object" || payload === null || Array.isArray(payload)) {
+        if (
+          typeof payload !== "object" ||
+          payload === null ||
+          Array.isArray(payload)
+        ) {
           return this.createErrorResult(
             "Schema validation requires payload to be a JSON object."
           );

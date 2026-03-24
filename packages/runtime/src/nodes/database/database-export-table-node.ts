@@ -1,5 +1,5 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
-import type { NodeExecution, NodeType, Table } from "@dafthunk/types";
+import type { NodeExecution, NodeType, Schema } from "@dafthunk/types";
 import { mapSqliteToType } from "../../utils/database-table";
 import { resolveAndValidateRecords } from "../../utils/schema-validation";
 
@@ -25,8 +25,7 @@ export class DatabaseExportTableNode extends ExecutableNode {
       {
         name: "schemaId",
         type: "schema",
-        description:
-          "Optional schema to validate and coerce exported data.",
+        description: "Optional schema to validate and coerce exported data.",
         required: false,
         hidden: true,
       },
@@ -39,10 +38,15 @@ export class DatabaseExportTableNode extends ExecutableNode {
     ],
     outputs: [
       {
-        name: "table",
+        name: "schema",
         type: "json",
         description:
-          "Table with fields and data: {name: string, fields: [{name: string, type: string}], data: object[]}",
+          "Schema with name and fields: {name: string, fields: [{name: string, type: string}]}",
+      },
+      {
+        name: "data",
+        type: "json",
+        description: "Array of data rows (objects).",
       },
     ],
   };
@@ -106,14 +110,11 @@ export class DatabaseExportTableNode extends ExecutableNode {
         return this.createErrorResult(schemaError);
       }
 
-      // Build Table response
-      const table: Table = {
-        schema: { name: tableName, fields },
-        data,
-      };
+      const schema: Schema = { name: tableName as string, fields };
 
       return this.createSuccessResult({
-        table,
+        schema,
+        data,
       });
     } catch (error) {
       return this.createErrorResult(
