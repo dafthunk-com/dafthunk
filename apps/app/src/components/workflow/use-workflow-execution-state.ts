@@ -306,8 +306,7 @@ export function useWorkflowExecutionState({
       e.preventDefault();
       e.stopPropagation();
 
-      if (workflowStatus === "idle" || workflowStatus === "cancelled") {
-        if (workflowStatus === "cancelled") resetNodeStates();
+      if (workflowStatus === "idle") {
         startExecution();
       } else if (
         workflowStatus === "submitted" ||
