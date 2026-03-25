@@ -760,7 +760,8 @@ export function useGraphOperations({
     }, []),
     onNodeDragStop: useCallback(() => {
       isDraggingRef.current = false;
-    }, []),
+      setNodes((nodes) => [...nodes]);
+    }, [setNodes]),
     isDraggingRef,
     isValidConnection,
     handleAddNode,
