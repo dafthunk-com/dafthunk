@@ -66,17 +66,17 @@ function StatusBar({ workflowStatus, errorMessage }: StatusBarProps) {
     idle: {
       color: "text-neutral-600 dark:text-neutral-400",
       bg: "bg-neutral-200 dark:bg-neutral-700",
-      label: "Ready",
+      label: "Idle",
     },
     submitted: {
       color: "text-orange-600 dark:text-orange-400",
       bg: "bg-orange-200 dark:bg-orange-900/50",
-      label: "Queued",
+      label: "Submitted",
     },
     executing: {
       color: "text-yellow-600 dark:text-yellow-400",
       bg: "bg-yellow-400 dark:bg-yellow-500",
-      label: "Running",
+      label: "Executing",
     },
     completed: {
       color: "text-green-600 dark:text-green-400",
@@ -97,6 +97,11 @@ function StatusBar({ workflowStatus, errorMessage }: StatusBarProps) {
       color: "text-blue-600 dark:text-blue-400",
       bg: "bg-blue-200 dark:bg-blue-900/50",
       label: "Paused",
+    },
+    exhausted: {
+      color: "text-red-600 dark:text-red-400",
+      bg: "bg-red-200 dark:bg-red-900/50",
+      label: "Exhausted",
     },
   };
 
@@ -221,10 +226,10 @@ export function ActionButton({
         "bg-white hover:bg-neutral-50 text-amber-500 hover:text-amber-600 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-amber-400 dark:hover:text-amber-300",
     },
     cancelled: {
-      icon: <Play className="!size-4" />,
-      title: "Restart Workflow",
+      icon: <X className="!size-4" />,
+      title: "Clear Outputs & Reset",
       className:
-        "bg-white hover:bg-neutral-50 text-green-500 hover:text-green-600 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-green-400 dark:hover:text-green-300",
+        "bg-white hover:bg-neutral-50 text-amber-500 hover:text-amber-600 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-amber-400 dark:hover:text-amber-300",
     },
     paused: {
       icon: <Play className="!size-4" />,

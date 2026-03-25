@@ -183,11 +183,16 @@ export function useWorkflowExecutionState({
           setCurrentExecutionId(execution.id);
         }
 
+        // Once cancelled by the user, ignore late server callbacks
+        if (statusRef.current === "cancelled") {
+          return;
+        }
+
         // Check if we need to reset node states before updating status
         // (must happen outside the state updater to avoid side effects)
         if (
           !eagerStart &&
-          (statusRef.current === "idle" || statusRef.current === "cancelled")
+          statusRef.current === "idle"
         ) {
           resetNodeStates("executing");
         }
@@ -206,7 +211,7 @@ export function useWorkflowExecutionState({
             }
           } else {
             // handleExecuteRequest path: wait for first real callback
-            if (currentStatus === "idle" || currentStatus === "cancelled") {
+            if (currentStatus === "idle") {
               newStatus = "executing";
             } else if (
               currentStatus === "executing" &&
