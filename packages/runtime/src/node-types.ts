@@ -328,6 +328,30 @@ export abstract class ExecutableNode {
     } as NodeExecution;
   }
 
+  /**
+   * Collect dynamic inputs matching a prefix, sorted by numeric suffix.
+   * For nodes using dynamicInputs (e.g. input_1, input_2, …).
+   */
+  protected collectDynamicInputs(
+    inputs: Record<string, unknown>,
+    prefix: string
+  ): unknown[] {
+    const prefixUnderscore = `${prefix}_`;
+    return Object.entries(inputs)
+      .filter(([key]) => {
+        if (!key.startsWith(prefixUnderscore)) return false;
+        const suffix = key.slice(prefixUnderscore.length);
+        return /^\d+$/.test(suffix);
+      })
+      .sort(([a], [b]) => {
+        const numA = Number.parseInt(a.slice(prefixUnderscore.length), 10);
+        const numB = Number.parseInt(b.slice(prefixUnderscore.length), 10);
+        return numA - numB;
+      })
+      .map(([_, value]) => value)
+      .filter((v) => v !== undefined && v !== null);
+  }
+
   public createErrorResult(error: string, usage?: number): NodeExecution {
     return {
       nodeId: this.node.id,

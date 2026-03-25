@@ -15,6 +15,7 @@ import { cronInputWidget } from "./input/cron-input";
 import { dateInputWidget } from "./input/date-input";
 import { discordTriggerInputWidget } from "./input/discord-trigger-input";
 import { documentInputWidget } from "./input/document-input";
+import { createDynamicInputsWidget } from "./input/dynamic-inputs-widget";
 import { emailTriggerInputWidget } from "./input/email-trigger-input";
 import {
   httpRequestEndpointWidget,
@@ -88,6 +89,12 @@ const widgets = [
   canvasInputWidget,
   replicateModelInputWidget,
   schemaExtractInputWidget,
+  createDynamicInputsWidget("string-concat", {
+    prefix: "input",
+    type: "string",
+    defaultCount: 2,
+    minCount: 1,
+  }),
 
   // Output widgets
   textOutputWidget,

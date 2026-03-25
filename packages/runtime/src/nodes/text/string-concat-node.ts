@@ -4,7 +4,7 @@ import type { NodeExecution, NodeType } from "@dafthunk/types";
 export class StringConcatNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "string-concat",
-    name: "Concat",
+    name: "String Concat",
     type: "string-concat",
     description: "Concatenate multiple strings together",
     tags: ["Text", "Concat"],
@@ -12,14 +12,22 @@ export class StringConcatNode extends ExecutableNode {
     documentation:
       "This node concatenates multiple strings together into a single string, joining them in the order they are provided.",
     inlinable: true,
+    dynamicInputs: {
+      prefix: "input",
+      type: "string",
+      defaultCount: 2,
+      minCount: 1,
+    },
     inputs: [
       {
-        name: "strings",
+        name: "input_1",
         type: "string",
-        description:
-          "String inputs to concatenate (supports multiple connections)",
-        required: true,
-        repeated: true,
+        description: "String to concatenate",
+      },
+      {
+        name: "input_2",
+        type: "string",
+        description: "String to concatenate",
       },
     ],
     outputs: [
@@ -33,41 +41,23 @@ export class StringConcatNode extends ExecutableNode {
 
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const { strings } = context.inputs;
+      const strings = this.collectDynamicInputs(context.inputs, "input");
 
-      // Handle missing input
-      if (strings === null || strings === undefined) {
+      if (strings.length === 0) {
         return this.createErrorResult("No string inputs provided");
       }
 
-      // Handle single string input
-      if (typeof strings === "string") {
-        return this.createSuccessResult({
-          result: strings,
-        });
-      }
-
-      // Handle array of strings (multiple connections)
-      if (Array.isArray(strings)) {
-        // Validate all inputs are strings
-        for (let i = 0; i < strings.length; i++) {
-          if (typeof strings[i] !== "string") {
-            return this.createErrorResult(
-              `Invalid input at position ${i}: expected string, got ${typeof strings[i]}`
-            );
-          }
+      for (let i = 0; i < strings.length; i++) {
+        if (typeof strings[i] !== "string") {
+          return this.createErrorResult(
+            `Invalid input at position ${i}: expected string, got ${typeof strings[i]}`
+          );
         }
-
-        const result = strings.join("");
-
-        return this.createSuccessResult({
-          result,
-        });
       }
 
-      return this.createErrorResult(
-        "Invalid input type: expected string or array of strings"
-      );
+      const result = (strings as string[]).join("");
+
+      return this.createSuccessResult({ result });
     } catch (err) {
       const error = err as Error;
       return this.createErrorResult(

@@ -245,6 +245,18 @@ export type Parameter = {
 } & ParameterType;
 
 /**
+ * Configuration for nodes with user-adjustable numbered inputs.
+ * The widget lets users add/remove inputs (e.g. input_1, input_2, …)
+ * so ordering is explicit rather than depending on connection sequence.
+ */
+export interface DynamicInputsConfig {
+  prefix: string; // Naming prefix (inputs are named prefix_1, prefix_2, …)
+  type: ParameterType["type"]; // Parameter type for each input
+  defaultCount: number; // Starting number of inputs
+  minCount: number; // Minimum allowed
+}
+
+/**
  * Represents a node type definition
  */
 export interface NodeType {
@@ -265,6 +277,7 @@ export interface NodeType {
   outputs: Parameter[];
   trigger?: boolean; // Node is a workflow trigger entry point (max one per workflow)
   subscription?: boolean; // Node requires a paid subscription to execute
+  dynamicInputs?: DynamicInputsConfig; // User-adjustable numbered inputs
 }
 
 /**
