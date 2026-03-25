@@ -148,7 +148,7 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
     message: string | ArrayBuffer
   ): Promise<void> {
     try {
-      this.requireInitialized();
+      await this.requireInitialized();
 
       if (typeof message !== "string") {
         connection.close(1003, "Binary messages not supported");
@@ -265,21 +265,22 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
   }
 
   /**
-   * Throws if workflow state is not loaded. Used by onMessage which always
-   * runs after onConnect has loaded state — failure here means the DO
-   * woke from hibernation and Agent state was lost.
+   * Ensures workflow state is loaded. If the DO woke from hibernation and
+   * in-memory state was lost, attempts to reload from the database using
+   * the persisted Agent state.
    */
-  private requireInitialized(): void {
+  private async requireInitialized(): Promise<void> {
     if (this.workflowState) return;
 
     const { workflowId, userId } = this.state ?? {};
     if (!workflowId || !userId) {
       throw new Error("Session state lost. Please refresh the page.");
     }
-    // State exists in Agent storage but not loaded into memory yet.
-    // This shouldn't happen in practice since onConnect always loads first,
-    // but if it does, the throw above gives a clear error.
-    throw new Error("Workflow state not loaded. Reconnect to reload.");
+
+    // DO woke from hibernation — reload state from database
+    if (await this.tryLoadState(workflowId, userId)) return;
+
+    throw new Error("Failed to reload workflow state after hibernation.");
   }
 
   /**
