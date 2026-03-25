@@ -155,6 +155,7 @@ export function WorkflowBuilder({
     cutSelected,
     pasteFromClipboard,
     hasClipboardData,
+    onNodeDragStart,
     onNodeDragStop,
     addTriggerNodes,
     removeTriggerNodes,
@@ -286,6 +287,7 @@ export function WorkflowBuilder({
               onConnectStart={onConnectStart}
               onConnectEnd={onConnectEnd}
               onNodeDoubleClick={handleNodeDoubleClick}
+              onNodeDragStart={onNodeDragStart}
               onNodeDragStop={onNodeDragStop}
               onInit={setReactFlowInstance}
               onAddNode={readOnly ? undefined : handleAddNode}

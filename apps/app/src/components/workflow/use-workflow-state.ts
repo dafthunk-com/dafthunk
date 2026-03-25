@@ -51,6 +51,7 @@ interface UseWorkflowStateReturn {
   onConnect: OnConnect;
   onConnectStart: OnConnectStart;
   onConnectEnd: OnConnectEnd;
+  onNodeDragStart: () => void;
   onNodeDragStop: (
     event: React.MouseEvent,
     node: ReactFlowNode<WorkflowNodeType>
@@ -115,6 +116,7 @@ export function useWorkflowState({
     nodes: graphOps.nodes,
     edges: graphOps.edges,
     disabled,
+    isDraggingRef: graphOps.isDraggingRef,
     onNodesChangePersist,
     onEdgesChangePersist,
   });

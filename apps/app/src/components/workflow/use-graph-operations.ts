@@ -197,10 +197,12 @@ export interface UseGraphOperationsReturn {
   onConnect: OnConnect;
   onConnectStart: OnConnectStart;
   onConnectEnd: OnConnectEnd;
+  onNodeDragStart: () => void;
   onNodeDragStop: (
     event: React.MouseEvent,
     node: ReactFlowNode<WorkflowNodeType>
   ) => void;
+  isDraggingRef: React.RefObject<boolean>;
   isValidConnection: IsValidConnection<ReactFlowEdge<WorkflowEdgeType>>;
 
   // Actions
@@ -247,6 +249,7 @@ export function useGraphOperations({
 
   const nodesRef = useRef(initialNodes);
   const edgesRef = useRef(initialEdges);
+  const isDraggingRef = useRef(false);
 
   const selectedNodes = nodes.filter((node) => node.selected);
   const selectedEdges = edges.filter((edge) => edge.selected);
@@ -752,7 +755,13 @@ export function useGraphOperations({
     onConnect,
     onConnectStart,
     onConnectEnd,
-    onNodeDragStop: NOOP,
+    onNodeDragStart: useCallback(() => {
+      isDraggingRef.current = true;
+    }, []),
+    onNodeDragStop: useCallback(() => {
+      isDraggingRef.current = false;
+    }, []),
+    isDraggingRef,
     isValidConnection,
     handleAddNode,
     handleNodeSelect,

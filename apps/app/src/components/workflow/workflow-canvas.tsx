@@ -136,6 +136,7 @@ export interface WorkflowCanvasProps {
   onConnect: OnConnect;
   onConnectStart: OnConnectStart;
   onConnectEnd: OnConnectEnd;
+  onNodeDragStart?: () => void;
   onNodeDragStop: (
     event: React.MouseEvent,
     node: ReactFlowNode<WorkflowNodeType>
@@ -545,6 +546,7 @@ export function WorkflowCanvas({
   onConnectStart,
   onConnectEnd,
   onNodeDoubleClick,
+  onNodeDragStart,
   onNodeDragStop,
   onInit,
   onAddNode,
@@ -583,6 +585,7 @@ export function WorkflowCanvas({
         onConnectStart={onConnectStart}
         onConnectEnd={onConnectEnd}
         onNodeDoubleClick={onNodeDoubleClick}
+        onNodeDragStart={onNodeDragStart}
         onNodeDragStop={onNodeDragStop}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
