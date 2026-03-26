@@ -220,7 +220,7 @@ export function useEditableWorkflow({
                 return parameter as Parameter;
               }),
               outputs: node.data.outputs.map((output) => {
-                const { id: _id, ...rest } = output;
+                const { id: _id, value: _value, ...rest } = output;
                 return {
                   ...rest,
                   name: output.id,
