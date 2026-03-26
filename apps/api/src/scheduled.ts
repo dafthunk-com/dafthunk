@@ -4,7 +4,8 @@ import type { Bindings } from "./context";
 import {
   createDatabase,
   getActiveScheduledTriggers,
-  getOrganizationComputeCredits,
+  getOrganizationBillingInfo,
+  resolveUserPlan,
 } from "./db";
 import { getAgentByName } from "./durable-objects/agent-utils";
 import { createWorkerRuntime } from "./runtime/cloudflare-worker-runtime";
@@ -62,17 +63,18 @@ export async function handleScheduledEvent(
       }
       const workflowData = workflowWithData.data;
 
-      // Get organization compute credits
-      const computeCredits = await getOrganizationComputeCredits(
+      // Get organization billing info
+      const billingInfo = await getOrganizationBillingInfo(
         db,
         workflow.organizationId
       );
-      if (computeCredits === undefined) continue;
+      if (billingInfo === undefined) continue;
 
       const executionParams = {
         userId: "scheduled_trigger",
         organizationId: workflow.organizationId,
-        computeCredits,
+        computeCredits: billingInfo.computeCredits,
+        userPlan: resolveUserPlan(billingInfo),
         workflow: {
           id: workflow.id,
           name: workflow.name,

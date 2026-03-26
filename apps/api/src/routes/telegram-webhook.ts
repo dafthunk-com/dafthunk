@@ -4,10 +4,11 @@ import { Hono } from "hono";
 import type { ApiContext } from "../context";
 import {
   createDatabase,
-  getOrganizationComputeCredits,
+  getOrganizationBillingInfo,
   getTelegramBot,
   getTelegramSecretTokenByBot,
   getTelegramTriggersByBot,
+  resolveUserPlan,
 } from "../db";
 import { getAgentByName } from "../durable-objects/agent-utils";
 import { createWorkerRuntime } from "../runtime/cloudflare-worker-runtime";
@@ -205,11 +206,8 @@ async function executeWorkflow(
     return;
   }
 
-  const computeCredits = await getOrganizationComputeCredits(
-    db,
-    organizationId
-  );
-  if (computeCredits === undefined) {
+  const billingInfo = await getOrganizationBillingInfo(db, organizationId);
+  if (billingInfo === undefined) {
     console.error("[TelegramWebhook] Organization not found");
     return;
   }
@@ -217,7 +215,8 @@ async function executeWorkflow(
   const executionParams = {
     userId: "telegram_trigger",
     organizationId,
-    computeCredits,
+    computeCredits: billingInfo.computeCredits,
+    userPlan: resolveUserPlan(billingInfo),
     workflow: {
       id: workflow.id,
       name: workflow.name,

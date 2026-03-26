@@ -2,8 +2,9 @@ import type { QueueMessage, Workflow } from "@dafthunk/types";
 import type { Bindings } from "./context";
 import { createDatabase } from "./db";
 import {
-  getOrganizationComputeCredits,
+  getOrganizationBillingInfo,
   getQueueTriggersByQueue,
+  resolveUserPlan,
 } from "./db/queries";
 import { getAgentByName } from "./durable-objects/agent-utils";
 import { createWorkerRuntime } from "./runtime/cloudflare-worker-runtime";
@@ -27,12 +28,12 @@ async function executeWorkflow(
   );
 
   try {
-    // Get organization compute credits
-    const computeCredits = await getOrganizationComputeCredits(
+    // Get organization billing info
+    const billingInfo = await getOrganizationBillingInfo(
       db,
       workflowInfo.organizationId
     );
-    if (computeCredits === undefined) {
+    if (billingInfo === undefined) {
       console.error("Organization not found");
       return;
     }
@@ -40,7 +41,8 @@ async function executeWorkflow(
     const executionParams = {
       userId: "queue_trigger",
       organizationId: workflowInfo.organizationId,
-      computeCredits,
+      computeCredits: billingInfo.computeCredits,
+      userPlan: resolveUserPlan(billingInfo),
       workflow: {
         id: workflowInfo.id,
         name: workflowData.name,

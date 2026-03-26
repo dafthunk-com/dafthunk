@@ -1,7 +1,11 @@
 import type { Workflow } from "@dafthunk/types";
 
 import type { Bindings } from "./context";
-import { createDatabase, getOrganizationComputeCredits } from "./db";
+import {
+  createDatabase,
+  getOrganizationBillingInfo,
+  resolveUserPlan,
+} from "./db";
 import { getAgentByName } from "./durable-objects/agent-utils";
 import { createWorkerRuntime } from "./runtime/cloudflare-worker-runtime";
 import { WorkflowStore } from "./stores/workflow-store";
@@ -164,12 +168,9 @@ async function triggerWorkflowForEmail({
     return;
   }
 
-  // Get organization compute credits
-  const computeCredits = await getOrganizationComputeCredits(
-    db,
-    organizationId
-  );
-  if (computeCredits === undefined) {
+  // Get organization billing info
+  const billingInfo = await getOrganizationBillingInfo(db, organizationId);
+  if (billingInfo === undefined) {
     console.error("Organization not found");
     return;
   }
@@ -177,7 +178,8 @@ async function triggerWorkflowForEmail({
   const executionParams = {
     userId: "email_trigger",
     organizationId,
-    computeCredits,
+    computeCredits: billingInfo.computeCredits,
+    userPlan: resolveUserPlan(billingInfo),
     workflow: {
       id: workflow.id,
       name: workflow.name,

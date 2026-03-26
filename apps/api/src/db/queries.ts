@@ -2137,6 +2137,7 @@ export async function getOrganizationBillingInfo(
   | {
       computeCredits: number;
       subscriptionStatus: string | null;
+      currentPeriodEnd: Date | null;
       overageLimit: number | null;
     }
   | undefined
@@ -2145,12 +2146,29 @@ export async function getOrganizationBillingInfo(
     .select({
       computeCredits: organizations.computeCredits,
       subscriptionStatus: organizations.subscriptionStatus,
+      currentPeriodEnd: organizations.currentPeriodEnd,
       overageLimit: organizations.overageLimit,
     })
     .from(organizations)
     .where(eq(organizations.id, organizationId))
     .limit(1);
   return organization;
+}
+
+/**
+ * Derive user plan from organization billing info.
+ * Pro if has active subscription OR canceled but still in billing period.
+ */
+export function resolveUserPlan(billingInfo: {
+  subscriptionStatus: string | null;
+  currentPeriodEnd: Date | null;
+}): string {
+  const hasProAccess =
+    billingInfo.subscriptionStatus === "active" ||
+    (billingInfo.subscriptionStatus === "canceled" &&
+      billingInfo.currentPeriodEnd !== null &&
+      billingInfo.currentPeriodEnd > new Date());
+  return hasProAccess ? "pro" : "trial";
 }
 
 /**
