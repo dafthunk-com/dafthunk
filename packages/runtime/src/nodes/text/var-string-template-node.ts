@@ -75,11 +75,9 @@ export class VarStringTemplateNode extends ExecutableNode {
       }
 
       const variables: Record<string, string> = {};
-      const values = this.collectDynamicInputs(context.inputs, "var");
-      for (let i = 0; i < values.length; i++) {
-        const value = values[i];
-        if (value !== null && value !== undefined) {
-          variables[`var_${i + 1}`] = String(value);
+      for (const [key, value] of Object.entries(context.inputs)) {
+        if (key.startsWith("var_") && value !== null && value !== undefined) {
+          variables[key] = String(value);
         }
       }
 
