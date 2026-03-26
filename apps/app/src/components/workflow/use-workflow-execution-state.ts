@@ -16,6 +16,13 @@ import type {
   WorkflowParameter,
 } from "./workflow-types";
 
+interface PendingHumanInput {
+  nodeId: string;
+  prompt: string;
+  context?: string;
+  inputType: string;
+}
+
 interface UseWorkflowExecutionStateProps {
   workflowId: string;
   workflowTrigger?: WorkflowTrigger;
@@ -31,6 +38,15 @@ interface UseWorkflowExecutionStateProps {
   wsExecuteWorkflow?: (options?: {
     parameters?: Record<string, unknown>;
   }) => void;
+  sendHumanInput?: (
+    executionId: string,
+    nodeId: string,
+    response: {
+      text?: string;
+      approved?: boolean;
+      metadata?: Record<string, unknown>;
+    }
+  ) => void;
   updateNodeExecution: (nodeId: string, update: NodeExecutionUpdate) => void;
   updateNodeData: (nodeId: string, data: Partial<WorkflowNodeType>) => void;
   deselectAll: () => void;
@@ -49,6 +65,9 @@ interface UseWorkflowExecutionStateReturn {
   submitEmailFormData: (data: EmailData) => void;
   closeExecutionForm: () => void;
   executeRef: React.RefObject<((triggerData?: unknown) => void) | null>;
+  pendingHumanInput: PendingHumanInput | null;
+  submitHumanInput: (response: { text?: string; approved?: boolean }) => void;
+  dismissHumanInput: () => void;
 }
 
 // Apply initial execution state to nodes
@@ -90,6 +109,7 @@ export function useWorkflowExecutionState({
   initialWorkflowExecution,
   executeWorkflow,
   wsExecuteWorkflow,
+  sendHumanInput,
   updateNodeExecution,
   updateNodeData,
   deselectAll,
@@ -109,6 +129,9 @@ export function useWorkflowExecutionState({
   const [currentExecutionId, setCurrentExecutionId] = useState<
     string | undefined
   >(initialWorkflowExecution?.id);
+
+  const [pendingHumanInput, setPendingHumanInput] =
+    useState<PendingHumanInput | null>(null);
 
   const cleanupRef = useRef<(() => void | Promise<void>) | null>(null);
   const initializedRef = useRef(false);
@@ -231,6 +254,29 @@ export function useWorkflowExecutionState({
             outputs: nodeExecution.outputs || {},
             error: nodeExecution.error,
           });
+
+          // Detect pending human-input nodes
+          if (
+            nodeExecution.status === "pending" &&
+            nodeExecution.pendingEvent?.type?.startsWith("human-input-")
+          ) {
+            const node = nodes.find((n) => n.id === nodeExecution.nodeId);
+            const prompt = node?.data.inputs.find((i) => i.id === "prompt")
+              ?.value as string | undefined;
+            const context = node?.data.inputs.find((i) => i.id === "context")
+              ?.value as string | undefined;
+            const inputType =
+              (node?.data.inputs.find((i) => i.id === "input_type")?.value as
+                | string
+                | undefined) ?? "text";
+
+            setPendingHumanInput({
+              nodeId: nodeExecution.nodeId,
+              prompt: prompt || "Input required",
+              context,
+              inputType,
+            });
+          }
         });
 
         if (execution.status === "exhausted") {
@@ -238,7 +284,7 @@ export function useWorkflowExecutionState({
         }
       };
     },
-    [resetNodeStates, updateNodeExecution]
+    [resetNodeStates, updateNodeExecution, nodes]
   );
 
   const handleExecuteRequest = useCallback(
@@ -333,6 +379,19 @@ export function useWorkflowExecutionState({
     [workflowStatus, resetNodeStates, startExecution, deselectAll]
   );
 
+  const submitHumanInput = useCallback(
+    (response: { text?: string; approved?: boolean }) => {
+      if (!pendingHumanInput || !currentExecutionId || !sendHumanInput) return;
+      sendHumanInput(currentExecutionId, pendingHumanInput.nodeId, response);
+      setPendingHumanInput(null);
+    },
+    [pendingHumanInput, currentExecutionId, sendHumanInput]
+  );
+
+  const dismissHumanInput = useCallback(() => {
+    setPendingHumanInput(null);
+  }, []);
+
   return {
     workflowStatus,
     workflowErrorMessage,
@@ -346,5 +405,8 @@ export function useWorkflowExecutionState({
     submitEmailFormData,
     closeExecutionForm,
     executeRef,
+    pendingHumanInput,
+    submitHumanInput,
+    dismissHumanInput,
   };
 }

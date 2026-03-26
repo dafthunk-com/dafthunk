@@ -33,6 +33,7 @@ import { cn } from "@/utils/utils";
 
 import { ExecutionEmailDialog } from "./execution-email-dialog";
 import { HttpRequestConfigDialog } from "./http-request-config-dialog";
+import { HumanInputDialog } from "./human-input-dialog";
 import { useKeyboardShortcuts } from "./use-keyboard-shortcuts";
 import { useResizableSidebar } from "./use-resizable-sidebar";
 import { useWorkflowExecutionState } from "./use-workflow-execution-state";
@@ -88,6 +89,15 @@ export interface WorkflowBuilderProps {
   wsExecuteWorkflow?: (options?: {
     parameters?: Record<string, unknown>;
   }) => void;
+  sendHumanInput?: (
+    executionId: string,
+    nodeId: string,
+    response: {
+      text?: string;
+      approved?: boolean;
+      metadata?: Record<string, unknown>;
+    }
+  ) => void;
   showSidebar?: boolean;
   isEnabled?: boolean;
   isTogglingEnabled?: boolean;
@@ -115,6 +125,7 @@ export function WorkflowBuilder({
   onWorkflowUpdate,
   orgId,
   wsExecuteWorkflow,
+  sendHumanInput,
   showSidebar,
   isEnabled,
   isTogglingEnabled,
@@ -180,6 +191,7 @@ export function WorkflowBuilder({
     initialWorkflowExecution,
     executeWorkflow,
     wsExecuteWorkflow,
+    sendHumanInput,
     updateNodeExecution,
     updateNodeData,
     deselectAll,
@@ -382,6 +394,17 @@ export function WorkflowBuilder({
               execution.executeRef.current = null;
             }}
             onSubmit={execution.submitEmailFormData}
+          />
+        )}
+
+        {execution.pendingHumanInput && (
+          <HumanInputDialog
+            isOpen={!!execution.pendingHumanInput}
+            onClose={execution.dismissHumanInput}
+            onSubmit={execution.submitHumanInput}
+            prompt={execution.pendingHumanInput.prompt}
+            context={execution.pendingHumanInput.context}
+            inputType={execution.pendingHumanInput.inputType}
           />
         )}
 

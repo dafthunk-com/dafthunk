@@ -543,6 +543,33 @@ export abstract class Runtime<Env = unknown> {
         })
       );
 
+      // Notify frontend of any pending nodes before parking on waitForEvent,
+      // so users can see which nodes are waiting for input (e.g. human-in-the-loop)
+      const pendingResults = results.filter(
+        (r): r is Extract<NodeExecutionResult, { status: "pending" }> =>
+          r.status === "pending"
+      );
+      if (pendingResults.length > 0) {
+        const pendingNodeIds = new Map(
+          pendingResults.map((r) => [
+            r.nodeId,
+            { type: r.eventType, timeout: r.timeout },
+          ])
+        );
+        currentRecord = {
+          ...currentRecord,
+          status: "executing",
+          nodeExecutions: this.buildNodeExecutions(
+            context.workflow,
+            context,
+            state,
+            "executing",
+            pendingNodeIds
+          ),
+        };
+        await this.monitoringService.sendUpdate(currentRecord);
+      }
+
       // Resolve any pending (async) results before applying to state
       const resolvedResults = await Promise.all(
         results.map(async (result) => {
@@ -1139,13 +1166,24 @@ export abstract class Runtime<Env = unknown> {
     workflow: Workflow,
     context: WorkflowExecutionContext,
     state: ExecutionState,
-    overrideStatus?: import("@dafthunk/types").WorkflowExecutionStatus
+    overrideStatus?: import("@dafthunk/types").WorkflowExecutionStatus,
+    pendingNodes?: Map<string, { type: string; timeout: string }>
   ) {
     // Determine if workflow is still running
     const isStillRunning =
       (overrideStatus ?? getExecutionStatus(context, state)) === "executing";
 
     return workflow.nodes.map((node) => {
+      // Check for pending nodes (e.g. waiting for human input) before other states
+      const pendingEvent = pendingNodes?.get(node.id);
+      if (pendingEvent) {
+        return {
+          nodeId: node.id,
+          status: "pending" as const,
+          usage: 0,
+          pendingEvent,
+        };
+      }
       if (state.executedNodes.includes(node.id)) {
         return {
           nodeId: node.id,

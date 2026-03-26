@@ -6,6 +6,7 @@ import {
 import { NumberInputNode } from "@dafthunk/runtime/nodes/input/number-input-node";
 import { ConditionalForkNode } from "@dafthunk/runtime/nodes/logic/conditional-fork-node";
 import { ConditionalJoinNode } from "@dafthunk/runtime/nodes/logic/conditional-join-node";
+import { HumanInputNode } from "@dafthunk/runtime/nodes/logic/human-input-node";
 import { AdditionNode } from "@dafthunk/runtime/nodes/math/addition-node";
 import { AvgNode } from "@dafthunk/runtime/nodes/math/avg-node";
 import { DivisionNode } from "@dafthunk/runtime/nodes/math/division-node";
@@ -29,7 +30,7 @@ import type { Bindings } from "../context";
  * - Addition, Subtraction, Multiplication, Division
  * - Number Input
  * - Sum, Max, Min, Avg, Median
- * - Conditional Fork, Conditional Join
+ * - Conditional Fork, Conditional Join, Human Input
  * - Multi-Step Addition, Failing Multi-Step (test nodes)
  */
 export class MockNodeRegistry extends BaseNodeRegistry<Bindings> {
@@ -46,6 +47,7 @@ export class MockNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(MedianNode);
     this.registerImplementation(ConditionalForkNode);
     this.registerImplementation(ConditionalJoinNode);
+    this.registerImplementation(HumanInputNode);
     this.registerImplementation(MultiStepAdditionNode);
     this.registerImplementation(FailingMultiStepNode);
   }

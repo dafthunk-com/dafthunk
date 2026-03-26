@@ -352,6 +352,7 @@ import { LikePostLinkedInNode } from "@dafthunk/runtime/nodes/linkedin/like-post
 import { SharePostLinkedInNode } from "@dafthunk/runtime/nodes/linkedin/share-post-linkedin-node";
 import { ConditionalForkNode } from "@dafthunk/runtime/nodes/logic/conditional-fork-node";
 import { ConditionalJoinNode } from "@dafthunk/runtime/nodes/logic/conditional-join-node";
+import { HumanInputNode } from "@dafthunk/runtime/nodes/logic/human-input-node";
 import { AbsoluteValueNode } from "@dafthunk/runtime/nodes/math/absolute-value-node";
 import { AdditionNode } from "@dafthunk/runtime/nodes/math/addition-node";
 import { AvgNode } from "@dafthunk/runtime/nodes/math/avg-node";
@@ -672,6 +673,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(BooleanInputNode);
     this.registerImplementation(ConditionalForkNode);
     this.registerImplementation(ConditionalJoinNode);
+    this.registerImplementation(HumanInputNode);
 
     // Image operations
     this.registerImplementation(PhotonAddNoiseNode);

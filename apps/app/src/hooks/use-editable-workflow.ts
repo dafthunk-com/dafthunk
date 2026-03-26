@@ -333,6 +333,25 @@ export function useEditableWorkflow({
     []
   );
 
+  const sendHumanInput = useCallback(
+    (
+      executionId: string,
+      nodeId: string,
+      response: {
+        text?: string;
+        approved?: boolean;
+        metadata?: Record<string, unknown>;
+      }
+    ) => {
+      if (!wsRef.current?.isConnected()) {
+        console.warn("WebSocket is not connected, cannot send human input");
+        return;
+      }
+      wsRef.current.sendHumanInput(executionId, nodeId, response);
+    },
+    []
+  );
+
   return {
     nodes,
     edges,
@@ -345,5 +364,6 @@ export function useEditableWorkflow({
     handleEdgesChange,
     executeWorkflow,
     updateMetadata,
+    sendHumanInput,
   };
 }

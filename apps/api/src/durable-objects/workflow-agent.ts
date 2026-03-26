@@ -29,6 +29,7 @@ import type {
   WorkflowExecuteMessage,
   WorkflowExecution,
   WorkflowExecutionUpdateMessage,
+  WorkflowHumanInputMessage,
   WorkflowInitMessage,
   WorkflowState,
   WorkflowUpdateMessage,
@@ -196,6 +197,11 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
           await this.handleExecuteMessage(
             connection,
             parsed as WorkflowExecuteMessage
+          );
+          break;
+        case "human_input":
+          await this.handleHumanInputMessage(
+            parsed as WorkflowHumanInputMessage
           );
           break;
         default:
@@ -428,6 +434,24 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
     } else {
       await this.startExecution(connection, message.parameters);
     }
+  }
+
+  private async handleHumanInputMessage(
+    message: WorkflowHumanInputMessage
+  ): Promise<void> {
+    const { executionId, nodeId, response } = message;
+    const instance = await this.env.EXECUTE.get(executionId);
+    await instance.sendEvent({
+      type: `human-input-${nodeId}`,
+      payload: {
+        outputs: {
+          response: response.text ?? "",
+          approved: response.approved ?? false,
+          metadata: response.metadata ?? {},
+        },
+        usage: 0,
+      },
+    });
   }
 
   private async subscribeToExecution(

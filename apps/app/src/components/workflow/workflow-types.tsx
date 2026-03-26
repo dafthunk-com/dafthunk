@@ -65,6 +65,7 @@ export interface WorkflowNodeExecution {
   status: NodeExecutionState;
   outputs?: Record<string, unknown> | null;
   error?: string;
+  pendingEvent?: { type: string; timeout?: string };
 }
 
 export interface WorkflowExecution {
