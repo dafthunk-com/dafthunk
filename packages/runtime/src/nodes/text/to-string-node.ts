@@ -59,7 +59,7 @@ export class ToStringNode extends ExecutableNode {
       // Handle arrays
       else if (Array.isArray(value)) {
         try {
-          result = JSON.stringify(value);
+          result = JSON.stringify(value, null, 2);
         } catch {
           result = value.toString();
         }
@@ -67,7 +67,7 @@ export class ToStringNode extends ExecutableNode {
       // Handle objects (including JSON)
       else if (typeof value === "object") {
         try {
-          result = JSON.stringify(value);
+          result = JSON.stringify(value, null, 2);
         } catch {
           result = value.toString();
         }
