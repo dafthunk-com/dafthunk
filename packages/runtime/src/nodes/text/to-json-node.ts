@@ -32,8 +32,8 @@ export class ToJsonNode extends ExecutableNode {
     ],
     outputs: [
       {
-        name: "result",
-        type: "string",
+        name: "json",
+        type: "json",
         description: "The JSON representation of the input value",
       },
     ],
@@ -64,7 +64,7 @@ export class ToJsonNode extends ExecutableNode {
       }
 
       return this.createSuccessResult({
-        result,
+        json: result,
       });
     } catch (error) {
       return this.createErrorResult(
