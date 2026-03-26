@@ -95,6 +95,12 @@ const widgets = [
     defaultCount: 2,
     minCount: 1,
   }),
+  createDynamicInputsWidget("string-template", {
+    prefix: "var",
+    type: "string",
+    defaultCount: 1,
+    minCount: 1,
+  }),
 
   // Output widgets
   textOutputWidget,
