@@ -190,10 +190,7 @@ export function useWorkflowExecutionState({
 
         // Check if we need to reset node states before updating status
         // (must happen outside the state updater to avoid side effects)
-        if (
-          !eagerStart &&
-          statusRef.current === "idle"
-        ) {
+        if (!eagerStart && statusRef.current === "idle") {
           resetNodeStates("executing");
         }
 
