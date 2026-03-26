@@ -5,6 +5,20 @@
  * triggering. Extends the Cloudflare Agents SDK `Agent` base class for built-in
  * WebSocket management and workflow orchestration via AgentWorkflow callbacks.
  *
+ * ## Hibernation Safety
+ *
+ * This DO uses WebSocket hibernation (Agent SDK default). All in-memory fields
+ * are lost when the DO hibernates. The design ensures correctness by storing
+ * critical state in persistent mechanisms:
+ *
+ * - **Agent state** (`this.state`): workflowId, userId, apiHost
+ * - **Connection state** (`connection.setState`): executionId per connection
+ * - **DO storage** (`this.storage`): pending persist snapshots, execution buffers
+ * - **Agent SDK schedules**: debounced persistence timer
+ *
+ * In-memory fields (`workflowState`, `organizationId`, `executionManager`) are
+ * caches, reconstructed on demand after hibernation wake.
+ *
  * Callers obtain a stub via getAgentByName() which initializes the partyserver
  * name required by Agent internals. Direct idFromName/get access will fail.
  */
@@ -36,12 +50,20 @@ import { WorkflowStore } from "../stores/workflow-store";
 interface HiddenAgentMethods {
   broadcast(msg: string, without?: string[]): void;
   getConnection(id: string): Connection | undefined;
+  getConnections(): Iterable<Connection>;
   runWorkflow(
     workflowName: string,
     params: RuntimeParams,
     options?: { id?: string }
   ): Promise<string>;
   terminateWorkflow(workflowId: string): Promise<void>;
+  schedule(
+    when: number,
+    callback: string,
+    payload?: unknown
+  ): Promise<{ id: string }>;
+  cancelSchedule(id: string): Promise<boolean>;
+  getSchedules(): Array<{ id: string; callback: string }>;
 }
 
 // ── Types ────────────────────────────────────────────────────────────────
@@ -52,30 +74,31 @@ interface WorkflowAgentState {
   apiHost?: string;
 }
 
-interface ExecutionTracking {
-  connectionId: string;
-  execution: WorkflowExecution | null;
+interface PendingPersist {
+  workflowState: WorkflowState;
+  organizationId: string;
+  apiHost?: string;
+}
+
+interface BufferedExecution {
+  execution: WorkflowExecution;
+  bufferedAt: number;
 }
 
 // ── WorkflowAgent ────────────────────────────────────────────────────────
 
 export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
   private static readonly PERSIST_DEBOUNCE_MS = 500;
+  private static readonly STORAGE_KEY_DIRTY = "dirty:persist";
+  private static readonly STORAGE_PREFIX_EXEC_BUFFER = "execbuf:";
 
   initialState: WorkflowAgentState = {};
 
+  // In-memory caches — reconstructed on demand after hibernation wake.
+  // Loss of these fields is harmless; they are never the source of truth.
   private executionManager: ExecutionManager | null = null;
   private workflowState: WorkflowState | null = null;
   private organizationId: string | null = null;
-
-  private executionIndex = new Map<string, ExecutionTracking>();
-  private executionBuffer = new Map<
-    string,
-    { execution: WorkflowExecution; bufferedAt: number }
-  >();
-  private pendingPersistTimeout: number | undefined = undefined;
-  private persistInFlight = false;
-  private persistInFlightPromise: Promise<void> | null = null;
 
   // ── Agent SDK method wrappers ─────────────────────────────────────────
   // Each wraps the cast once. Call sites use these instead of agentSelf().
@@ -84,12 +107,13 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
     return this as unknown as HiddenAgentMethods;
   }
 
-  private broadcastMessage(msg: string, exclude?: string[]): void {
-    this.hiddenMethods.broadcast(msg, exclude);
+  /** DO transactional storage — survives hibernation. */
+  private get storage(): DurableObjectStorage {
+    return (this as unknown as { ctx: DurableObjectState }).ctx.storage;
   }
 
-  private findConnection(id: string): Connection | undefined {
-    return this.hiddenMethods.getConnection(id);
+  private broadcastMessage(msg: string, exclude?: string[]): void {
+    this.hiddenMethods.broadcast(msg, exclude);
   }
 
   async executeWorkflow(params: RuntimeParams): Promise<string> {
@@ -163,7 +187,10 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
 
       switch (parsed.type) {
         case "update":
-          this.handleUpdateMessage(connection, parsed as WorkflowUpdateMessage);
+          await this.handleUpdateMessage(
+            connection,
+            parsed as WorkflowUpdateMessage
+          );
           break;
         case "execute":
           await this.handleExecuteMessage(
@@ -182,16 +209,11 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
   }
 
   async onClose(
-    connection: Connection,
+    _connection: Connection,
     _code: number,
     _reason: string,
     _wasClean: boolean
   ): Promise<void> {
-    for (const [executionId, tracking] of this.executionIndex) {
-      if (tracking.connectionId === connection.id) {
-        this.executionIndex.delete(executionId);
-      }
-    }
     await this.flushPersist();
   }
 
@@ -225,7 +247,7 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
     _workflowId: string,
     progress: unknown
   ): Promise<void> {
-    this.routeExecutionUpdate(progress as WorkflowExecution);
+    await this.routeExecutionUpdate(progress as WorkflowExecution);
   }
 
   async onWorkflowComplete(
@@ -234,7 +256,7 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
     result?: unknown
   ): Promise<void> {
     const execution = result as WorkflowExecution | undefined;
-    this.routeExecutionUpdate(
+    await this.routeExecutionUpdate(
       execution ?? {
         id: workflowId,
         workflowId: this.workflowState?.id || "",
@@ -249,7 +271,7 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
     workflowId: string,
     error: string
   ): Promise<void> {
-    this.routeExecutionUpdate({
+    await this.routeExecutionUpdate({
       id: workflowId,
       workflowId: this.workflowState?.id || "",
       status: "error",
@@ -369,10 +391,10 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
     }
   }
 
-  private handleUpdateMessage(
+  private async handleUpdateMessage(
     connection: Connection,
     message: WorkflowUpdateMessage
-  ): void {
+  ): Promise<void> {
     if (!this.workflowState) return;
     if (message.state.id !== this.workflowState.id) return;
     if (!message.state.name || !message.state.trigger) return;
@@ -388,7 +410,7 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
     );
 
     this.workflowState = { ...message.state, edges: filteredEdges };
-    this.schedulePersist();
+    await this.schedulePersist();
 
     const updateMsg: WorkflowUpdateMessage = {
       type: "update",
@@ -402,36 +424,32 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
     message: WorkflowExecuteMessage
   ): Promise<void> {
     if (message.executionId) {
-      this.subscribeToExecution(connection, message.executionId);
+      await this.subscribeToExecution(connection, message.executionId);
     } else {
       await this.startExecution(connection, message.parameters);
     }
   }
 
-  private subscribeToExecution(
+  private async subscribeToExecution(
     connection: Connection,
     executionId: string
-  ): void {
-    const buffered = this.executionBuffer.get(executionId);
-    if (
-      buffered &&
-      this.workflowState &&
-      buffered.execution.workflowId !== this.workflowState.id
-    ) {
-      return;
-    }
-
-    const tracking: ExecutionTracking = {
-      connectionId: connection.id,
-      execution: null,
-    };
-    this.executionIndex.set(executionId, tracking);
+  ): Promise<void> {
     connection.setState({ executionId });
 
+    // Check DO storage for a buffered execution update
+    const key = WorkflowAgent.STORAGE_PREFIX_EXEC_BUFFER + executionId;
+    const buffered = await this.storage.get<BufferedExecution>(key);
     if (buffered) {
-      tracking.execution = buffered.execution;
-      this.sendExecutionUpdate(connection, buffered.execution);
-      this.executionBuffer.delete(executionId);
+      if (
+        this.workflowState &&
+        buffered.execution.workflowId !== this.workflowState.id
+      ) {
+        return;
+      }
+      // Only delete buffer after a successful send
+      if (this.trySendExecutionUpdate(connection, buffered.execution)) {
+        await this.storage.delete(key);
+      }
     }
   }
 
@@ -463,10 +481,6 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
           parameters
         );
 
-      this.executionIndex.set(executionId, {
-        connectionId: connection.id,
-        execution,
-      });
       connection.setState({ executionId });
       this.sendExecutionUpdate(connection, execution);
     } catch (error) {
@@ -485,30 +499,60 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
   // ── Execution updates ─────────────────────────────────────────────────
 
   /**
-   * Route an execution update to the subscribed connection, or buffer it
-   * if no connection is subscribed yet.
+   * Route an execution update to the subscribed connection.
+   *
+   * Finds the connection by scanning live connections whose persisted state
+   * matches the execution ID. Connection state survives DO hibernation, so
+   * this works reliably even after the DO wakes from sleep.
+   *
+   * If no connection is subscribed, buffers the update in DO transactional
+   * storage so a late-subscribing client can pick it up.
    */
-  private routeExecutionUpdate(execution: WorkflowExecution): void {
-    const tracking = this.executionIndex.get(execution.id);
-    if (tracking) {
-      tracking.execution = execution;
-      const conn = this.findConnection(tracking.connectionId);
-      if (conn) {
-        this.sendExecutionUpdate(conn, execution);
-      }
-    } else {
-      this.cleanExpiredBuffers();
-      this.executionBuffer.set(execution.id, {
-        execution,
-        bufferedAt: Date.now(),
-      });
+  private async routeExecutionUpdate(
+    execution: WorkflowExecution
+  ): Promise<void> {
+    const conn = this.findConnectionByExecutionId(execution.id);
+    if (conn) {
+      this.sendExecutionUpdate(conn, execution);
+      return;
     }
+
+    // No connection subscribed — buffer in DO storage
+    await this.storage.put(
+      WorkflowAgent.STORAGE_PREFIX_EXEC_BUFFER + execution.id,
+      { execution, bufferedAt: Date.now() } satisfies BufferedExecution
+    );
+  }
+
+  /**
+   * Scan live connections for one subscribed to the given execution.
+   * Connection state (`connection.setState`) survives DO hibernation via
+   * WebSocket attachments, making this the reliable lookup path.
+   */
+  private findConnectionByExecutionId(
+    executionId: string
+  ): Connection | undefined {
+    for (const conn of this.hiddenMethods.getConnections()) {
+      const state = conn.state as { executionId?: string } | undefined;
+      if (state?.executionId === executionId) {
+        return conn;
+      }
+    }
+    return undefined;
   }
 
   private sendExecutionUpdate(
     connection: Connection,
     execution: WorkflowExecution
   ): void {
+    this.trySendExecutionUpdate(connection, execution);
+  }
+
+  /** Send an execution update, returning true on success. */
+  private trySendExecutionUpdate(
+    connection: Connection,
+    execution: WorkflowExecution
+  ): boolean {
     const message: WorkflowExecutionUpdateMessage = {
       type: "execution_update",
       executionId: execution.id,
@@ -518,62 +562,76 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
     };
     try {
       connection.send(JSON.stringify(message));
+      return true;
     } catch (error) {
       console.error("Error sending execution update:", error);
-    }
-  }
-
-  private cleanExpiredBuffers(): void {
-    const now = Date.now();
-    for (const [id, entry] of this.executionBuffer) {
-      if (now - entry.bufferedAt > 60_000) {
-        this.executionBuffer.delete(id);
-      }
+      return false;
     }
   }
 
   // ── Persistence ───────────────────────────────────────────────────────
 
-  private schedulePersist(): void {
-    if (this.pendingPersistTimeout !== undefined) {
-      clearTimeout(this.pendingPersistTimeout);
-    }
-
-    this.pendingPersistTimeout = setTimeout(() => {
-      this.pendingPersistTimeout = undefined;
-      if (this.persistInFlight) {
-        this.schedulePersist();
-        return;
-      }
-      this.persistInFlight = true;
-      this.persistInFlightPromise = this.persistToDatabase().finally(() => {
-        this.persistInFlight = false;
-        this.persistInFlightPromise = null;
-      });
-    }, WorkflowAgent.PERSIST_DEBOUNCE_MS) as unknown as number;
-  }
-
-  private async persistToDatabase(): Promise<void> {
+  /**
+   * Schedule a debounced persist to D1/R2 via the Agent SDK schedule system.
+   *
+   * Stores a snapshot of the current workflow state in DO transactional
+   * storage (survives hibernation), then creates a 500ms delayed schedule.
+   * Any previously scheduled persist is cancelled first so rapid edits
+   * don't accumulate schedule rows — only the latest snapshot is persisted.
+   */
+  private async schedulePersist(): Promise<void> {
     if (!this.workflowState || !this.organizationId) return;
 
+    await this.storage.put(WorkflowAgent.STORAGE_KEY_DIRTY, {
+      workflowState: this.workflowState,
+      organizationId: this.organizationId,
+      apiHost: this.state?.apiHost,
+    } satisfies PendingPersist);
+
+    // Cancel any existing persist schedule to debounce
+    this.cancelPersistSchedules();
+
+    await this.hiddenMethods.schedule(
+      WorkflowAgent.PERSIST_DEBOUNCE_MS / 1000,
+      "persistCallback"
+    );
+  }
+
+  /** Called by the Agent SDK schedule system when the delayed persist fires. */
+  async persistCallback(): Promise<void> {
+    const pending = await this.storage.get<PendingPersist>(
+      WorkflowAgent.STORAGE_KEY_DIRTY
+    );
+    if (!pending) return;
+
+    await this.storage.delete(WorkflowAgent.STORAGE_KEY_DIRTY);
+    await this.persistToDatabaseFrom(pending);
+  }
+
+  /**
+   * Persist workflow state from an explicit snapshot. Does not depend on
+   * in-memory fields, so it works correctly when called from the alarm
+   * handler after hibernation wake.
+   */
+  private async persistToDatabaseFrom(pending: PendingPersist): Promise<void> {
     try {
       const workflowStore = new WorkflowStore(this.env);
 
       const workflowData = {
-        id: this.workflowState.id,
-        name: this.workflowState.name,
-        trigger: this.workflowState.trigger,
-        runtime: this.workflowState.runtime,
-        organizationId: this.organizationId,
-        nodes: this.workflowState.nodes,
-        edges: this.workflowState.edges,
-        ...(this.state?.apiHost ? { apiHost: this.state.apiHost } : {}),
+        id: pending.workflowState.id,
+        name: pending.workflowState.name,
+        trigger: pending.workflowState.trigger,
+        runtime: pending.workflowState.runtime,
+        organizationId: pending.organizationId,
+        nodes: pending.workflowState.nodes,
+        edges: pending.workflowState.edges,
+        ...(pending.apiHost ? { apiHost: pending.apiHost } : {}),
       };
 
       await Promise.all([
-        workflowStore.update(this.workflowState.id, this.organizationId, {
-          name: this.workflowState.name,
-          trigger: this.workflowState.trigger,
+        workflowStore.update(pending.workflowState.id, pending.organizationId, {
+          name: pending.workflowState.name,
+          trigger: pending.workflowState.trigger,
         }),
         workflowStore.save(workflowData as SaveWorkflowRecord),
       ]);
@@ -582,14 +640,29 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
     }
   }
 
+  /** Cancel all pending persistCallback schedules. */
+  private cancelPersistSchedules(): void {
+    for (const s of this.hiddenMethods.getSchedules()) {
+      if (s.callback === "persistCallback") {
+        // cancelSchedule is async but we fire-and-forget here —
+        // the callback is idempotent, so stale schedules are harmless.
+        void this.hiddenMethods.cancelSchedule(s.id);
+      }
+    }
+  }
+
+  /**
+   * Immediately persist any pending state and cancel scheduled callbacks.
+   * Called on connection close to ensure the last edit is never lost.
+   */
   private async flushPersist(): Promise<void> {
-    if (this.pendingPersistTimeout !== undefined) {
-      clearTimeout(this.pendingPersistTimeout);
-      this.pendingPersistTimeout = undefined;
-    }
-    if (this.persistInFlightPromise) {
-      await this.persistInFlightPromise;
-    }
-    await this.persistToDatabase();
+    const pending = await this.storage.get<PendingPersist>(
+      WorkflowAgent.STORAGE_KEY_DIRTY
+    );
+    if (!pending) return;
+
+    this.cancelPersistSchedules();
+    await this.storage.delete(WorkflowAgent.STORAGE_KEY_DIRTY);
+    await this.persistToDatabaseFrom(pending);
   }
 }

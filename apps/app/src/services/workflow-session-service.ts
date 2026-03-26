@@ -38,6 +38,7 @@ export class WorkflowWebSocket {
   private reconnectDelay = 1000; // Start with 1 second
   private shouldReconnect = true;
   private currentState: WorkflowState | null = null;
+  private activeExecutionId: string | null = null;
 
   constructor(
     private orgId: string,
@@ -113,6 +114,10 @@ export class WorkflowWebSocket {
         case "init":
           this.currentState = message.state;
           this.options.onInit?.(message.state);
+          // Re-subscribe to active execution after reconnection
+          if (this.activeExecutionId) {
+            this.registerForExecutionUpdates(this.activeExecutionId);
+          }
           break;
 
         case "update":
@@ -121,6 +126,19 @@ export class WorkflowWebSocket {
           break;
 
         case "execution_update":
+          // Track active execution for reconnection re-subscription
+          if (message.executionId) {
+            this.activeExecutionId = message.executionId;
+          }
+          // Clear tracking on terminal statuses
+          if (
+            message.status === "completed" ||
+            message.status === "error" ||
+            message.status === "exhausted" ||
+            message.status === "cancelled"
+          ) {
+            this.activeExecutionId = null;
+          }
           // Execution updates are normal results, not errors
           // Even if execution.error is set, this is just a summary
           this.options.onExecutionUpdate?.({
@@ -251,6 +269,8 @@ export class WorkflowWebSocket {
    * Execute workflow and receive realtime updates via WebSocket
    */
   executeWorkflow(options?: { parameters?: Record<string, unknown> }): void {
+    // Clear previous execution tracking — server will assign a new ID
+    this.activeExecutionId = null;
     this.sendMessage(
       {
         type: "execute",
@@ -264,6 +284,7 @@ export class WorkflowWebSocket {
    * Register to receive updates for an existing execution
    */
   registerForExecutionUpdates(executionId: string): void {
+    this.activeExecutionId = executionId;
     this.sendMessage(
       {
         type: "execute",
