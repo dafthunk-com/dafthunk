@@ -5,6 +5,7 @@ export default [
   route("terms", "routes/terms.tsx"),
   route("privacy", "routes/privacy.tsx"),
   route("cookies", "routes/cookies.tsx"),
+  route("robots.txt", "routes/robots[.]txt.tsx"),
   route("sitemap.xml", "routes/sitemap[.]xml.tsx"),
   route("nodes", "routes/nodes/index.tsx"),
   route("nodes/:category", "routes/nodes/$category.tsx"),

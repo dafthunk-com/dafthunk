@@ -13,6 +13,7 @@ export const links = () => [
   { rel: "preload", href: stylesheet, as: "style" },
   { rel: "stylesheet", href: stylesheet },
   { rel: "icon", href: "/icon.svg", type: "image/svg+xml" },
+  { rel: "sitemap", type: "application/xml", href: "/sitemap.xml" },
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
