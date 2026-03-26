@@ -1,6 +1,6 @@
 import { env } from "cloudflare:test";
 import { TextInputNode } from "@dafthunk/runtime/nodes/input/text-input-node";
-import { StringTemplateNode } from "@dafthunk/runtime/nodes/text/string-template-node";
+import { VarStringTemplateNode } from "@dafthunk/runtime/nodes/text/var-string-template-node";
 import type { Parameter } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 import type { Bindings } from "../context";
@@ -13,7 +13,7 @@ describe("Text Formatter Template", () => {
 
     const nodeTypes = textFormatterTemplate.nodes.map((n) => n.type);
     expect(nodeTypes).toContain("text-input");
-    expect(nodeTypes).toContain("string-template");
+    expect(nodeTypes).toContain("var-string-template");
     expect(nodeTypes).toContain("output-text");
   });
 
@@ -40,7 +40,7 @@ describe("Text Formatter Template", () => {
     const formatterNode = textFormatterTemplate.nodes.find(
       (n) => n.id === "template-formatter"
     )!;
-    const formatterInstance = new StringTemplateNode(formatterNode);
+    const formatterInstance = new VarStringTemplateNode(formatterNode);
     const formatterResult = await formatterInstance.execute({
       nodeId: formatterNode.id,
       inputs: {

@@ -412,7 +412,7 @@ import { Llama4Scout17B16EInstructNode } from "@dafthunk/runtime/nodes/text/llam
 import { M2m10012bNode } from "@dafthunk/runtime/nodes/text/m2m100-1-2b-node";
 import { MistralSmall31_24BInstructNode } from "@dafthunk/runtime/nodes/text/mistral-small-3-1-24b-instruct-node";
 import { JsonStringTemplateNode } from "@dafthunk/runtime/nodes/text/json-string-template-node";
-import { StringTemplateNode } from "@dafthunk/runtime/nodes/text/string-template-node";
+import { VarStringTemplateNode } from "@dafthunk/runtime/nodes/text/var-string-template-node";
 import { Qwen330BA3BFp8Node } from "@dafthunk/runtime/nodes/text/qwen3-30b-a3b-fp8-node";
 import { Qwq32BNode } from "@dafthunk/runtime/nodes/text/qwq-32b-node";
 import { RegexExtractNode } from "@dafthunk/runtime/nodes/text/regex-extract-node";
@@ -600,7 +600,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(JsonSchemaExtractNode);
     this.registerImplementation(JsonValidNode);
     this.registerImplementation(JsonStringTemplateNode);
-    this.registerImplementation(StringTemplateNode);
+    this.registerImplementation(VarStringTemplateNode);
     this.registerImplementation(JavaScriptInputNode);
     this.registerImplementation(JavascriptScriptNode);
     this.registerImplementation(LLaVA157BHFNode);

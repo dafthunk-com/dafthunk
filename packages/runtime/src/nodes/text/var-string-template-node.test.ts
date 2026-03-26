@@ -1,12 +1,12 @@
 import type { NodeContext } from "@dafthunk/runtime";
 import type { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
-import { StringTemplateNode } from "./string-template-node";
+import { VarStringTemplateNode } from "./var-string-template-node";
 
-describe("StringTemplateNode", () => {
+describe("VarStringTemplateNode", () => {
   it("should replace a single variable in template", async () => {
-    const nodeId = "string-template";
-    const node = new StringTemplateNode({
+    const nodeId = "var-string-template";
+    const node = new VarStringTemplateNode({
       nodeId,
     } as unknown as Node);
 
@@ -28,8 +28,8 @@ describe("StringTemplateNode", () => {
   });
 
   it("should replace multiple variables in template", async () => {
-    const nodeId = "string-template";
-    const node = new StringTemplateNode({
+    const nodeId = "var-string-template";
+    const node = new VarStringTemplateNode({
       nodeId,
     } as unknown as Node);
 
@@ -52,8 +52,8 @@ describe("StringTemplateNode", () => {
   });
 
   it("should handle template with no variables", async () => {
-    const nodeId = "string-template";
-    const node = new StringTemplateNode({
+    const nodeId = "var-string-template";
+    const node = new VarStringTemplateNode({
       nodeId,
     } as unknown as Node);
 
@@ -75,8 +75,8 @@ describe("StringTemplateNode", () => {
   });
 
   it("should handle missing variables", async () => {
-    const nodeId = "string-template";
-    const node = new StringTemplateNode({
+    const nodeId = "var-string-template";
+    const node = new VarStringTemplateNode({
       nodeId,
     } as unknown as Node);
 
@@ -99,8 +99,8 @@ describe("StringTemplateNode", () => {
   });
 
   it("should handle empty template string", async () => {
-    const nodeId = "string-template";
-    const node = new StringTemplateNode({
+    const nodeId = "var-string-template";
+    const node = new VarStringTemplateNode({
       nodeId,
     } as unknown as Node);
 
@@ -122,8 +122,8 @@ describe("StringTemplateNode", () => {
   });
 
   it("should handle same variable used multiple times", async () => {
-    const nodeId = "string-template";
-    const node = new StringTemplateNode({
+    const nodeId = "var-string-template";
+    const node = new VarStringTemplateNode({
       nodeId,
     } as unknown as Node);
 

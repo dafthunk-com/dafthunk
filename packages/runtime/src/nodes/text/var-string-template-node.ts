@@ -1,11 +1,11 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
 
-export class StringTemplateNode extends ExecutableNode {
+export class VarStringTemplateNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "string-template",
-    name: "String Template",
-    type: "string-template",
+    id: "var-string-template",
+    name: "Var String Template",
+    type: "var-string-template",
     description:
       "Create a string using a template with variable injection using ${variableName} syntax",
     tags: ["Text", "Template"],

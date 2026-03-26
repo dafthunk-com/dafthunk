@@ -1,6 +1,6 @@
 import { TextInputNode } from "@dafthunk/runtime/nodes/input/text-input-node";
 import { TextOutputNode } from "@dafthunk/runtime/nodes/output/text-output-node";
-import { StringTemplateNode } from "@dafthunk/runtime/nodes/text/string-template-node";
+import { VarStringTemplateNode } from "@dafthunk/runtime/nodes/text/var-string-template-node";
 import type { WorkflowTemplate } from "@dafthunk/types";
 
 export const textFormatterTemplate: WorkflowTemplate = {
@@ -23,7 +23,7 @@ export const textFormatterTemplate: WorkflowTemplate = {
       position: { x: -43.75, y: -52 },
       inputs: { value: "Hello, ${var_1}!", rows: 4 },
     }),
-    StringTemplateNode.create({
+    VarStringTemplateNode.create({
       id: "template-formatter",
       name: "Template Formatter",
       position: { x: 298, y: 124.5 },
