@@ -1,6 +1,6 @@
 import { TextInputNode } from "@dafthunk/runtime/nodes/input/text-input-node";
 import { TextOutputNode } from "@dafthunk/runtime/nodes/output/text-output-node";
-import { SingleVariableStringTemplateNode } from "@dafthunk/runtime/nodes/text/single-variable-string-template-node";
+import { StringTemplateNode } from "@dafthunk/runtime/nodes/text/string-template-node";
 import type { WorkflowTemplate } from "@dafthunk/types";
 
 export const textFormatterTemplate: WorkflowTemplate = {
@@ -21,9 +21,9 @@ export const textFormatterTemplate: WorkflowTemplate = {
       id: "text-template",
       name: "Text Template",
       position: { x: -43.75, y: -52 },
-      inputs: { value: "Hello, ${variable}!", rows: 4 },
+      inputs: { value: "Hello, ${var_1}!", rows: 4 },
     }),
-    SingleVariableStringTemplateNode.create({
+    StringTemplateNode.create({
       id: "template-formatter",
       name: "Template Formatter",
       position: { x: 298, y: 124.5 },
@@ -39,7 +39,7 @@ export const textFormatterTemplate: WorkflowTemplate = {
       source: "text-variable",
       target: "template-formatter",
       sourceOutput: "value",
-      targetInput: "variable",
+      targetInput: "var_1",
     },
     {
       source: "text-template",

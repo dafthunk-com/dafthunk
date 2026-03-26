@@ -1,18 +1,24 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
 
-export class MultiVariableStringTemplateNode extends ExecutableNode {
+export class StringTemplateNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "multi-variable-string-template",
-    name: "Multi-Variable String Template",
-    type: "multi-variable-string-template",
+    id: "string-template",
+    name: "String Template",
+    type: "string-template",
     description:
-      "Create a string using a template with multiple variable injection using ${variableName} syntax",
+      "Create a string using a template with variable injection using ${variableName} syntax",
     tags: ["Text", "Template"],
     icon: "quote",
     documentation:
-      "This node creates a string using a template with multiple variable injection using \\${variableName} syntax.",
+      "This node creates a string using a template with variable injection using \\${variableName} syntax. Variables are provided as dynamic inputs matching the variable names in the template.",
     inlinable: true,
+    dynamicInputs: {
+      prefix: "var",
+      type: "string",
+      defaultCount: 1,
+      minCount: 1,
+    },
     inputs: [
       {
         name: "template",
@@ -22,10 +28,9 @@ export class MultiVariableStringTemplateNode extends ExecutableNode {
         required: true,
       },
       {
-        name: "variables",
-        type: "json",
-        description: "JSON object containing variable values to inject",
-        required: true,
+        name: "var_1",
+        type: "string",
+        description: "Variable value to inject",
       },
     ],
     outputs: [
@@ -38,7 +43,7 @@ export class MultiVariableStringTemplateNode extends ExecutableNode {
         name: "missingVariables",
         type: "json",
         description:
-          "Array of variable names that were not found in the variables object",
+          "Array of variable names that were not found in the provided inputs",
         hidden: true,
       },
     ],
@@ -50,31 +55,10 @@ export class MultiVariableStringTemplateNode extends ExecutableNode {
     return matches.map((match) => match.slice(2, -1));
   }
 
-  private replaceVariables(
-    template: string,
-    variables: Record<string, any>
-  ): { result: string; missingVariables: string[] } {
-    const variableNames = this.extractVariableNames(template);
-    const missingVariables = variableNames.filter(
-      (varName) => !Object.hasOwn(variables, varName)
-    );
-
-    const result = template.replace(/\${([^}]+)}/g, (match, varName) => {
-      if (Object.hasOwn(variables, varName)) {
-        const value = variables[varName];
-        return value !== null && value !== undefined ? String(value) : "";
-      }
-      return match;
-    });
-
-    return { result, missingVariables };
-  }
-
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const { template, variables } = context.inputs;
+      const { template } = context.inputs;
 
-      // Handle invalid template input (null, undefined, non-string)
       if (
         template === null ||
         template === undefined ||
@@ -83,7 +67,6 @@ export class MultiVariableStringTemplateNode extends ExecutableNode {
         return this.createErrorResult("Invalid or missing template string");
       }
 
-      // Handle empty template string
       if (template === "") {
         return this.createSuccessResult({
           result: "",
@@ -91,14 +74,26 @@ export class MultiVariableStringTemplateNode extends ExecutableNode {
         });
       }
 
-      if (!variables || typeof variables !== "object") {
-        return this.createErrorResult("Invalid or missing variables object");
+      const variables: Record<string, string> = {};
+      const values = this.collectDynamicInputs(context.inputs, "var");
+      for (let i = 0; i < values.length; i++) {
+        const value = values[i];
+        if (value !== null && value !== undefined) {
+          variables[`var_${i + 1}`] = String(value);
+        }
       }
 
-      const { result, missingVariables } = this.replaceVariables(
-        template,
-        variables
+      const variableNames = this.extractVariableNames(template);
+      const missingVariables = variableNames.filter(
+        (varName) => !Object.hasOwn(variables, varName)
       );
+
+      const result = template.replace(/\${([^}]+)}/g, (match, varName) => {
+        if (Object.hasOwn(variables, varName)) {
+          return variables[varName];
+        }
+        return match;
+      });
 
       return this.createSuccessResult({
         result,

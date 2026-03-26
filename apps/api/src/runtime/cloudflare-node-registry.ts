@@ -411,14 +411,14 @@ import { Llama3370BInstructFastNode } from "@dafthunk/runtime/nodes/text/llama-3
 import { Llama4Scout17B16EInstructNode } from "@dafthunk/runtime/nodes/text/llama-4-scout-17b-16e-instruct-node";
 import { M2m10012bNode } from "@dafthunk/runtime/nodes/text/m2m100-1-2b-node";
 import { MistralSmall31_24BInstructNode } from "@dafthunk/runtime/nodes/text/mistral-small-3-1-24b-instruct-node";
-import { MultiVariableStringTemplateNode } from "@dafthunk/runtime/nodes/text/multi-variable-string-template-node";
+import { JsonStringTemplateNode } from "@dafthunk/runtime/nodes/text/json-string-template-node";
+import { StringTemplateNode } from "@dafthunk/runtime/nodes/text/string-template-node";
 import { Qwen330BA3BFp8Node } from "@dafthunk/runtime/nodes/text/qwen3-30b-a3b-fp8-node";
 import { Qwq32BNode } from "@dafthunk/runtime/nodes/text/qwq-32b-node";
 import { RegexExtractNode } from "@dafthunk/runtime/nodes/text/regex-extract-node";
 import { RegexMatchNode } from "@dafthunk/runtime/nodes/text/regex-match-node";
 import { RegexReplaceNode } from "@dafthunk/runtime/nodes/text/regex-replace-node";
 import { RegexSplitNode } from "@dafthunk/runtime/nodes/text/regex-split-node";
-import { SingleVariableStringTemplateNode } from "@dafthunk/runtime/nodes/text/single-variable-string-template-node";
 import { StringConcatNode } from "@dafthunk/runtime/nodes/text/string-concat-node";
 import { StringIncludesNode } from "@dafthunk/runtime/nodes/text/string-includes-node";
 import { StringIndexOfNode } from "@dafthunk/runtime/nodes/text/string-index-of-node";
@@ -599,8 +599,8 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(JsonTypeofNode);
     this.registerImplementation(JsonSchemaExtractNode);
     this.registerImplementation(JsonValidNode);
-    this.registerImplementation(MultiVariableStringTemplateNode);
-    this.registerImplementation(SingleVariableStringTemplateNode);
+    this.registerImplementation(JsonStringTemplateNode);
+    this.registerImplementation(StringTemplateNode);
     this.registerImplementation(JavaScriptInputNode);
     this.registerImplementation(JavascriptScriptNode);
     this.registerImplementation(LLaVA157BHFNode);

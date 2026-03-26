@@ -1,6 +1,6 @@
 import { env } from "cloudflare:test";
 import { TextInputNode } from "@dafthunk/runtime/nodes/input/text-input-node";
-import { SingleVariableStringTemplateNode } from "@dafthunk/runtime/nodes/text/single-variable-string-template-node";
+import { StringTemplateNode } from "@dafthunk/runtime/nodes/text/string-template-node";
 import type { Parameter } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 import type { Bindings } from "../context";
@@ -13,7 +13,7 @@ describe("Text Formatter Template", () => {
 
     const nodeTypes = textFormatterTemplate.nodes.map((n) => n.type);
     expect(nodeTypes).toContain("text-input");
-    expect(nodeTypes).toContain("single-variable-string-template");
+    expect(nodeTypes).toContain("string-template");
     expect(nodeTypes).toContain("output-text");
   });
 
@@ -40,14 +40,12 @@ describe("Text Formatter Template", () => {
     const formatterNode = textFormatterTemplate.nodes.find(
       (n) => n.id === "template-formatter"
     )!;
-    const formatterInstance = new SingleVariableStringTemplateNode(
-      formatterNode
-    );
+    const formatterInstance = new StringTemplateNode(formatterNode);
     const formatterResult = await formatterInstance.execute({
       nodeId: formatterNode.id,
       inputs: {
-        template: "Formatted: ${variable}",
-        variable: inputResult.outputs?.value,
+        template: "Formatted: ${var_1}",
+        var_1: inputResult.outputs?.value,
       },
       env: env as Bindings,
     } as any);
