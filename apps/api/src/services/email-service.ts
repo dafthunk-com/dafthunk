@@ -1,4 +1,5 @@
-import { AwsClient } from "aws4fetch";
+import { EmailMessage } from "cloudflare:email";
+import { createMimeMessage } from "mimetext";
 
 import type { Bindings } from "../context";
 
@@ -7,58 +8,40 @@ export interface EmailOptions {
   subject: string;
   html?: string;
   text?: string;
+  cc?: string | string[];
   replyTo?: string | string[];
 }
 
 export interface EmailResult {
   success: boolean;
-  messageId?: string;
   error?: string;
 }
 
 /**
  * Application-level email service for sending transactional emails
- * Uses Amazon SES with the configured noreply address
+ * Uses Cloudflare Email Routing with the configured noreply address
  */
 export class EmailService {
-  private client: AwsClient;
+  private sendEmail: SendEmail;
   private fromAddress: string;
-  private region: string;
 
   constructor(env: Bindings) {
-    if (
-      !env.AWS_ACCESS_KEY_ID ||
-      !env.AWS_SECRET_ACCESS_KEY ||
-      !env.AWS_REGION
-    ) {
-      throw new Error(
-        "AWS credentials (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION) are not configured"
-      );
+    if (!env.SEND_EMAIL) {
+      throw new Error("SEND_EMAIL binding is not configured");
     }
 
-    if (!env.SES_DEFAULT_FROM) {
-      throw new Error("SES_DEFAULT_FROM is not configured");
-    }
-
-    this.client = new AwsClient({
-      accessKeyId: env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
-    });
-    this.region = env.AWS_REGION;
-    this.fromAddress = env.SES_DEFAULT_FROM;
+    this.sendEmail = env.SEND_EMAIL;
+    this.fromAddress = `noreply@${env.EMAIL_DOMAIN}`;
   }
 
   /**
-   * Send an email using Amazon SES
+   * Send an email using Cloudflare Email Routing
    */
   async send(options: EmailOptions): Promise<EmailResult> {
-    const { to, subject, html, text, replyTo } = options;
+    const { to, subject, html, text, cc, replyTo } = options;
 
     if (!to || !subject) {
-      return {
-        success: false,
-        error: "'to' and 'subject' are required",
-      };
+      return { success: false, error: "'to' and 'subject' are required" };
     }
 
     if (!html && !text) {
@@ -70,72 +53,46 @@ export class EmailService {
 
     try {
       const toArray = typeof to === "string" ? [to] : to;
-      const replyToArray = replyTo
-        ? typeof replyTo === "string"
-          ? [replyTo]
-          : replyTo
-        : [];
 
-      const params = new URLSearchParams();
-      params.set("Action", "SendEmail");
-      params.set("Source", this.fromAddress);
+      // Build shared MIME parts once — only the recipient varies per send
+      const baseMsg = createMimeMessage();
+      baseMsg.setSender({ addr: this.fromAddress, name: "Dafthunk" });
+      baseMsg.setSubject(subject);
 
-      for (let i = 0; i < toArray.length; i++) {
-        params.set(`Destination.ToAddresses.member.${i + 1}`, toArray[i]);
-      }
-      for (let i = 0; i < replyToArray.length; i++) {
-        params.set(`ReplyToAddresses.member.${i + 1}`, replyToArray[i]);
+      if (cc) {
+        const ccArray = typeof cc === "string" ? [cc] : cc;
+        for (const addr of ccArray) {
+          baseMsg.setCc(addr);
+        }
       }
 
-      params.set("Message.Subject.Data", subject);
-      params.set("Message.Subject.Charset", "UTF-8");
+      if (replyTo) {
+        const replyToArray = typeof replyTo === "string" ? [replyTo] : replyTo;
+        baseMsg.setHeader("Reply-To", replyToArray.join(", "));
+      }
 
       if (html) {
-        params.set("Message.Body.Html.Data", html);
-        params.set("Message.Body.Html.Charset", "UTF-8");
+        baseMsg.addMessage({ contentType: "text/html", data: html });
       }
       if (text) {
-        params.set("Message.Body.Text.Data", text);
-        params.set("Message.Body.Text.Charset", "UTF-8");
+        baseMsg.addMessage({ contentType: "text/plain", data: text });
       }
 
-      const response = await this.client.fetch(
-        `https://email.${this.region}.amazonaws.com/`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: params.toString(),
-        }
+      await Promise.all(
+        toArray.map((recipient) => {
+          baseMsg.setRecipient(recipient);
+          const message = new EmailMessage(
+            this.fromAddress,
+            recipient,
+            baseMsg.asRaw()
+          );
+          return this.sendEmail.send(message);
+        })
       );
 
-      const responseText = await response.text();
-
-      if (!response.ok) {
-        const errorMatch = responseText.match(/<Message>(.*?)<\/Message>/);
-        const errorMessage = errorMatch?.[1] ?? responseText;
-        console.error("Email Service SES Error:", errorMessage);
-        return {
-          success: false,
-          error: `AWS SES Error: ${errorMessage}`,
-        };
-      }
-
-      const messageIdMatch = responseText.match(
-        /<MessageId>(.*?)<\/MessageId>/
-      );
-      if (messageIdMatch?.[1]) {
-        return {
-          success: true,
-          messageId: messageIdMatch[1],
-        };
-      }
-
-      return {
-        success: false,
-        error: "Failed to send email via Amazon SES. No MessageId returned.",
-      };
+      return { success: true };
     } catch (error) {
-      console.error("Email Service SES Error:", error);
+      console.error("Email Service Error:", error);
       return {
         success: false,
         error: error instanceof Error ? error.message : String(error),
