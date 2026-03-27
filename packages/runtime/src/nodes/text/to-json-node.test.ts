@@ -112,9 +112,7 @@ describe("ToJsonNode", () => {
 
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
-    expect(result.outputs?.json).toBe(
-      '{"name":"John","age":30,"active":true}'
-    );
+    expect(result.outputs?.json).toBe('{"name":"John","age":30,"active":true}');
   });
 
   it("should convert null to JSON", async () => {
