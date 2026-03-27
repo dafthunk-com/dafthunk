@@ -16,6 +16,7 @@ export class SendDMDiscordNode extends ExecutableNode {
     documentation:
       "This node sends a direct message to a Discord user. Requires a connected Discord integration. Note: The bot must share a server with the user to DM them.",
     usage: 10,
+    subscription: true,
     inputs: [
       {
         name: "integrationId",

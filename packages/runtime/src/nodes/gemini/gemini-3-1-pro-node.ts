@@ -20,6 +20,7 @@ export class Gemini31ProNode extends ExecutableNode {
     documentation:
       "This node uses Google's Gemini 3.1 Pro model, the most capable model for complex reasoning, multimodal understanding, and creative tasks with 1M token context window.",
     usage: 1,
+    subscription: true,
     functionCalling: true,
     inputs: [
       {

@@ -17,6 +17,7 @@ export class QuickAddGoogleCalendarNode extends ExecutableNode {
     documentation:
       "This node creates calendar events from natural language text (e.g., 'Dinner with John tomorrow at 7pm') using Google Calendar API. Requires a connected Google Calendar integration from your organization's integrations.",
     usage: 10,
+    subscription: true,
     inputs: [
       {
         name: "integrationId",

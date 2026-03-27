@@ -12,6 +12,7 @@ export class BotSendMessageDiscordNode extends ExecutableNode {
     documentation:
       "This node sends messages to Discord channels using the bot token. When interactionToken and applicationId are provided, it edits the deferred interaction response (resolves the 'thinking...' indicator). Otherwise, it sends a regular channel message.",
     usage: 10,
+    subscription: true,
     inputs: [
       {
         name: "channelId",

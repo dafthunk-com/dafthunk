@@ -27,6 +27,7 @@ export class GptOss20BNode extends ExecutableNode {
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/gpt-oss-20b/",
     usage: 1,
+    subscription: true,
     inputs: [
       {
         name: "instructions",

@@ -140,6 +140,7 @@ export function buildAgentNodeType(meta: {
   description: string;
   tags: string[];
   documentation: string;
+  subscription?: boolean;
   extraInputs?: NodeType["inputs"];
 }): NodeType {
   return {
@@ -151,6 +152,7 @@ export function buildAgentNodeType(meta: {
     icon: "bot",
     documentation: meta.documentation,
     usage: 1,
+    subscription: meta.subscription,
     functionCalling: true,
     inputs: [...AGENT_INPUTS, ...(meta.extraInputs ?? [])],
     outputs: AGENT_OUTPUTS,

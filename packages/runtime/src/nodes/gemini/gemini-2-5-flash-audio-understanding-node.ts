@@ -26,6 +26,7 @@ export class Gemini25FlashAudioUnderstandingNode extends ExecutableNode {
     documentation:
       "This node uses Google's Gemini 2.5 Flash model to analyze and understand audio content.",
     usage: 1,
+    subscription: true,
     inputs: [
       {
         name: "audio",

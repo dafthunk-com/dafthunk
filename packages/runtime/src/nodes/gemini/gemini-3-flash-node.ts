@@ -20,6 +20,7 @@ export class Gemini3FlashNode extends ExecutableNode {
     documentation:
       "This node uses Google's Gemini 3 Flash model, offering pro-level intelligence at Flash speed and pricing with 1M token context window.",
     usage: 1,
+    subscription: true,
     functionCalling: true,
     inputs: [
       {

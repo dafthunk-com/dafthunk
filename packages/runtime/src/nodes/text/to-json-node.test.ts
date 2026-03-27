@@ -24,7 +24,7 @@ describe("ToJsonNode", () => {
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs).toBeDefined();
-    expect(result.outputs?.result).toBe("123");
+    expect(result.outputs?.json).toBe("123");
   });
 
   it("should convert boolean to JSON", async () => {
@@ -46,7 +46,7 @@ describe("ToJsonNode", () => {
 
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
-    expect(result.outputs?.result).toBe("true");
+    expect(result.outputs?.json).toBe("true");
   });
 
   it("should convert string to JSON", async () => {
@@ -68,7 +68,7 @@ describe("ToJsonNode", () => {
 
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
-    expect(result.outputs?.result).toBe('"Hello World"');
+    expect(result.outputs?.json).toBe('"Hello World"');
   });
 
   it("should convert array to JSON", async () => {
@@ -90,7 +90,7 @@ describe("ToJsonNode", () => {
 
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
-    expect(result.outputs?.result).toBe('[1,2,3,"test"]');
+    expect(result.outputs?.json).toBe('[1,2,3,"test"]');
   });
 
   it("should convert object to JSON", async () => {
@@ -112,7 +112,7 @@ describe("ToJsonNode", () => {
 
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
-    expect(result.outputs?.result).toBe(
+    expect(result.outputs?.json).toBe(
       '{"name":"John","age":30,"active":true}'
     );
   });
@@ -136,7 +136,7 @@ describe("ToJsonNode", () => {
 
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
-    expect(result.outputs?.result).toBe("null");
+    expect(result.outputs?.json).toBe("null");
   });
 
   it("should handle pretty print option", async () => {
@@ -159,7 +159,7 @@ describe("ToJsonNode", () => {
 
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
-    expect(result.outputs?.result).toBe('{\n  "name": "John",\n  "age": 30\n}');
+    expect(result.outputs?.json).toBe('{\n  "name": "John",\n  "age": 30\n}');
   });
 
   it("should handle nested objects", async () => {
@@ -188,7 +188,7 @@ describe("ToJsonNode", () => {
 
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
-    expect(result.outputs?.result).toBe(
+    expect(result.outputs?.json).toBe(
       '{"user":{"profile":{"name":"John","contacts":["email@test.com","phone123"]}}}'
     );
   });
@@ -261,6 +261,6 @@ describe("ToJsonNode", () => {
 
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
-    expect(result.outputs?.result).toBe('{"name":"test"}');
+    expect(result.outputs?.json).toBe('{"name":"test"}');
   });
 });

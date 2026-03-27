@@ -16,6 +16,7 @@ export class ListOrganizationRepositoriesGithubNode extends ExecutableNode {
     documentation:
       "This node lists all repositories for a specific GitHub organization. Can filter by type (all, public, private, etc.) and sort by various criteria. Requires a connected GitHub integration.",
     usage: 10,
+    subscription: true,
     inputs: [
       {
         name: "integrationId",

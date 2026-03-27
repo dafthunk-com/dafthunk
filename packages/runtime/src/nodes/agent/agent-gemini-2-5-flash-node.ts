@@ -22,6 +22,7 @@ export class AgentGemini25FlashNode extends BaseAgentNode {
     tags: ["AI", "Agent", "Google", "Gemini"],
     documentation:
       "This node runs a multi-turn agent loop using Gemini 2.5 Flash. The agent calls the LLM, executes tool calls, and iterates until the task is complete or the step limit is reached.",
+    subscription: true,
     extraInputs: GEMINI_BUILTIN_TOOL_INPUTS,
   });
 }

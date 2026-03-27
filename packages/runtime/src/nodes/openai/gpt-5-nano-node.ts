@@ -19,6 +19,7 @@ export class Gpt5NanoNode extends ExecutableNode {
     documentation:
       "This node uses OpenAI's GPT-5 Nano model, an ultra-lightweight, high-speed model.",
     usage: 1,
+    subscription: true,
     inputs: [
       {
         name: "instructions",

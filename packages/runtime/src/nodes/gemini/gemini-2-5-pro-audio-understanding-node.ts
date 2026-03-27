@@ -26,6 +26,7 @@ export class Gemini25ProAudioUnderstandingNode extends ExecutableNode {
     documentation:
       "This node uses Google's Gemini 2.5 Pro model for high-quality audio analysis with advanced reasoning capabilities.",
     usage: 1,
+    subscription: true,
     inputs: [
       {
         name: "audio",

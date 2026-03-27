@@ -91,6 +91,7 @@ For example: \`google/veo-3\`, \`openai/whisper\`, \`xai/grok-imagine-video\`.`,
     icon: "bot",
     inlinable: false,
     usage: 100,
+    subscription: true,
     inputs: [
       {
         name: "model",

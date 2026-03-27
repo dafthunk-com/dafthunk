@@ -16,6 +16,7 @@ export class BotSendDMDiscordNode extends ExecutableNode {
     documentation:
       "This node sends a direct message to a Discord user using the bot token. The bot must share a server with the user.",
     usage: 10,
+    subscription: true,
     inputs: [
       {
         name: "userId",

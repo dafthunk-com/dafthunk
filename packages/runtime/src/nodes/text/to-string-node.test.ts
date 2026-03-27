@@ -90,7 +90,7 @@ describe("ToStringNode", () => {
 
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
-    expect(result.outputs?.result).toBe('{"name":"John","age":30}');
+    expect(result.outputs?.result).toBe('{\n  "name": "John",\n  "age": 30\n}');
   });
 
   it("should handle null input", async () => {

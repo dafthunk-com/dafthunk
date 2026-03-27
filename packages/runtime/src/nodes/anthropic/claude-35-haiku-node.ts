@@ -19,6 +19,7 @@ export class Claude35HaikuNode extends ExecutableNode {
     documentation:
       "This node uses Anthropic's Claude 3.5 Haiku model for fast, simple tasks and high-volume usage.",
     usage: 1,
+    subscription: true,
     inputs: [
       {
         name: "instructions",

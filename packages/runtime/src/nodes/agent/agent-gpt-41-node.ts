@@ -18,5 +18,6 @@ export class AgentGpt41Node extends BaseAgentNode {
     tags: ["AI", "Agent", "OpenAI", "GPT"],
     documentation:
       "This node runs a multi-turn agent loop using GPT-4.1. The agent calls the LLM, executes tool calls, and iterates until the task is complete or the step limit is reached.",
+    subscription: true,
   });
 }

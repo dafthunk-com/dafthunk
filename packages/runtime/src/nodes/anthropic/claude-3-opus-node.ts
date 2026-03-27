@@ -20,6 +20,7 @@ export class Claude3OpusNode extends ExecutableNode {
       "This node uses Anthropic's Claude 3 Opus model, a previous generation premium model that is still very capable.",
     inlinable: false,
     usage: 1,
+    subscription: true,
     inputs: [
       {
         name: "instructions",

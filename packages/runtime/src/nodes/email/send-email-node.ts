@@ -13,6 +13,7 @@ export class SendEmailNode extends ExecutableNode {
     documentation:
       "This node sends emails using Amazon SES (Simple Email Service), supporting both HTML and plain text content with advanced features.",
     usage: 10,
+    subscription: true,
     inputs: [
       {
         name: "to",

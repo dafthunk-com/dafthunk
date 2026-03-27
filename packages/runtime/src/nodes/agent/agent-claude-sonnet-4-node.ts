@@ -18,5 +18,6 @@ export class AgentClaudeSonnet4Node extends BaseAgentNode {
     tags: ["AI", "Agent", "Anthropic", "Claude", "Sonnet"],
     documentation:
       "This node runs a multi-turn agent loop using Claude Sonnet 4. The agent calls the LLM, executes tool calls, and iterates until the task is complete or the step limit is reached.",
+    subscription: true,
   });
 }
