@@ -14,7 +14,7 @@ import { z } from "zod";
 import { jwtMiddleware } from "../auth";
 import { PRO_INCLUDED_CREDITS, TRIAL_CREDITS } from "../constants/billing";
 import type { ApiContext } from "../context";
-import { createDatabase, organizations } from "../db";
+import { createDatabase, organizations, resolveOrganizationPlan } from "../db";
 import { createStripeService } from "../services/stripe-service";
 import { getOrganizationComputeUsage } from "../utils/credits";
 
@@ -47,15 +47,10 @@ billing.get("/", async (c) => {
     organizationId
   );
 
-  // Determine plan - Pro if has active subscription OR canceled but still in period
-  const hasProAccess =
-    org.subscriptionStatus === "active" ||
-    (org.subscriptionStatus === "canceled" &&
-      org.currentPeriodEnd &&
-      new Date(org.currentPeriodEnd) > new Date());
-  const plan = hasProAccess ? "pro" : "trial";
+  // Resolve plan from organization billing info
+  const plan = resolveOrganizationPlan(org);
   // Use constants for included credits (database value may be outdated)
-  const includedCredits = hasProAccess ? PRO_INCLUDED_CREDITS : TRIAL_CREDITS;
+  const includedCredits = plan === "pro" ? PRO_INCLUDED_CREDITS : TRIAL_CREDITS;
 
   const response: GetBillingResponse = {
     billing: {

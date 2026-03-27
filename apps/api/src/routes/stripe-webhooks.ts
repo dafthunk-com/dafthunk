@@ -4,13 +4,7 @@ import type Stripe from "stripe";
 
 import { PRO_INCLUDED_CREDITS } from "../constants/billing";
 import type { ApiContext } from "../context";
-import {
-  createDatabase,
-  organizations,
-  Plan,
-  SubscriptionStatus,
-  users,
-} from "../db";
+import { createDatabase, organizations, SubscriptionStatus } from "../db";
 import { createStripeService } from "../services/stripe-service";
 import { resetOrganizationComputeUsage } from "../utils/credits";
 
@@ -130,15 +124,6 @@ async function handleCheckoutCompleted(
     })
     .where(eq(organizations.id, organizationId));
 
-  // Update user plan to PRO
-  await db
-    .update(users)
-    .set({
-      plan: Plan.PRO,
-      updatedAt: new Date(),
-    })
-    .where(eq(users.organizationId, organizationId));
-
   console.log(
     `Organization ${organizationId} upgraded to Pro (customer: ${customerId})`
   );
@@ -203,15 +188,6 @@ async function handleSubscriptionDeleted(
       updatedAt: new Date(),
     })
     .where(eq(organizations.id, org.id));
-
-  // Downgrade users to free plan
-  await db
-    .update(users)
-    .set({
-      plan: Plan.TRIAL,
-      updatedAt: new Date(),
-    })
-    .where(eq(users.organizationId, org.id));
 
   console.log(`Organization ${org.id} subscription canceled`);
 }
@@ -356,17 +332,6 @@ async function updateOrganizationSubscription(
       updatedAt: new Date(),
     })
     .where(eq(organizations.id, organizationId));
-
-  // Also downgrade users if subscription is canceled
-  if (subscriptionStatus === SubscriptionStatus.CANCELED) {
-    await db
-      .update(users)
-      .set({
-        plan: Plan.TRIAL,
-        updatedAt: new Date(),
-      })
-      .where(eq(users.organizationId, organizationId));
-  }
 }
 
 export default stripeWebhooks;

@@ -4,7 +4,13 @@ import { Hono } from "hono";
 import { z } from "zod";
 
 import { ApiContext } from "../../context";
-import { createDatabase, memberships, organizations, users } from "../../db";
+import {
+  createDatabase,
+  memberships,
+  organizations,
+  resolveOrganizationPlan,
+  users,
+} from "../../db";
 
 const adminUsersRoutes = new Hono<ApiContext>();
 
@@ -40,24 +46,36 @@ adminUsersRoutes.get(
         .from(users)
         .where(whereClause);
 
-      // Get paginated users
-      const usersList = await db
+      // Get paginated users with org billing info to derive plan
+      const rows = await db
         .select({
           id: users.id,
           name: users.name,
           email: users.email,
           avatarUrl: users.avatarUrl,
-          plan: users.plan,
+          subscriptionStatus: organizations.subscriptionStatus,
+          currentPeriodEnd: organizations.currentPeriodEnd,
           role: users.role,
           developerMode: users.developerMode,
           createdAt: users.createdAt,
           updatedAt: users.updatedAt,
         })
         .from(users)
+        .innerJoin(organizations, eq(users.organizationId, organizations.id))
         .where(whereClause)
         .orderBy(desc(users.createdAt))
         .limit(limit)
         .offset(offset);
+
+      const usersList = rows.map(
+        ({ subscriptionStatus, currentPeriodEnd, ...user }) => ({
+          ...user,
+          plan: resolveOrganizationPlan({
+            subscriptionStatus,
+            currentPeriodEnd,
+          }),
+        })
+      );
 
       return c.json({
         users: usersList,
@@ -85,12 +103,36 @@ adminUsersRoutes.get("/:id", async (c) => {
   const userId = c.req.param("id");
 
   try {
-    // Get user details
-    const [user] = await db.select().from(users).where(eq(users.id, userId));
+    // Get user details with org billing info to derive plan
+    const [row] = await db
+      .select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        avatarUrl: users.avatarUrl,
+        githubId: users.githubId,
+        googleId: users.googleId,
+        subscriptionStatus: organizations.subscriptionStatus,
+        currentPeriodEnd: organizations.currentPeriodEnd,
+        role: users.role,
+        developerMode: users.developerMode,
+        tourCompleted: users.tourCompleted,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt,
+      })
+      .from(users)
+      .innerJoin(organizations, eq(users.organizationId, organizations.id))
+      .where(eq(users.id, userId));
 
-    if (!user) {
+    if (!row) {
       return c.json({ error: "User not found" }, 404);
     }
+
+    const { subscriptionStatus, currentPeriodEnd, ...userFields } = row;
+    const user = {
+      ...userFields,
+      plan: resolveOrganizationPlan({ subscriptionStatus, currentPeriodEnd }),
+    };
 
     // Get user's organization memberships
     const userMemberships = await db
@@ -108,20 +150,7 @@ adminUsersRoutes.get("/:id", async (c) => {
       .where(eq(memberships.userId, userId));
 
     return c.json({
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        avatarUrl: user.avatarUrl,
-        githubId: user.githubId,
-        googleId: user.googleId,
-        plan: user.plan,
-        role: user.role,
-        developerMode: user.developerMode,
-        tourCompleted: user.tourCompleted,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-      },
+      user,
       memberships: userMemberships,
     });
   } catch (error) {

@@ -51,6 +51,7 @@ import {
   getTelegramBot,
   getTelegramTrigger,
   getTelegramTriggersByBot,
+  resolveOrganizationPlan,
   upsertEndpointTrigger as upsertDbEndpointTrigger,
   upsertQueueTrigger as upsertDbQueueTrigger,
   workflows,
@@ -386,7 +387,7 @@ async function executeWorkflow(
   workflowData: any
 ): Promise<Response> {
   const db = createDatabase(c.env.DB);
-  const { organizationId, userId, userPlan } = getAuthContext(c);
+  const { organizationId, userId } = getAuthContext(c);
 
   // Get organization billing info
   const billingInfo = await getOrganizationBillingInfo(db, organizationId);
@@ -419,7 +420,7 @@ async function executeWorkflow(
     subscriptionStatus: subscriptionStatus ?? undefined,
     overageLimit: overageLimit ?? null,
     parameters,
-    userPlan,
+    userPlan: resolveOrganizationPlan(billingInfo),
     env: c.env,
   });
 

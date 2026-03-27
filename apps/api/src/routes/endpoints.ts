@@ -23,6 +23,7 @@ import {
   getEndpoints,
   getEndpointTriggersByEndpoint,
   getOrganizationBillingInfo,
+  resolveOrganizationPlan,
   updateEndpoint,
 } from "../db";
 import { createRateLimitMiddleware } from "../middleware/rate-limit";
@@ -202,7 +203,7 @@ endpointRoutes.on(
   async (c) => {
     const id = c.req.param("id");
     const db = createDatabase(c.env.DB);
-    const { organizationId, userId, userPlan } = getAuthContext(c);
+    const { organizationId, userId } = getAuthContext(c);
 
     // Verify endpoint exists and belongs to organization
     const endpoint = await getEndpoint(db, id, organizationId);
@@ -276,7 +277,7 @@ endpointRoutes.on(
         subscriptionStatus: subscriptionStatus ?? undefined,
         overageLimit: overageLimit ?? null,
         parameters,
-        userPlan,
+        userPlan: resolveOrganizationPlan(billingInfo),
         env: c.env,
       });
 

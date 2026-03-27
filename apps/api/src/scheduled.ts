@@ -5,7 +5,7 @@ import {
   createDatabase,
   getActiveScheduledTriggers,
   getOrganizationBillingInfo,
-  resolveUserPlan,
+  resolveOrganizationPlan,
 } from "./db";
 import { getAgentByName } from "./durable-objects/agent-utils";
 import { createWorkerRuntime } from "./runtime/cloudflare-worker-runtime";
@@ -74,7 +74,7 @@ export async function handleScheduledEvent(
         userId: "scheduled_trigger",
         organizationId: workflow.organizationId,
         computeCredits: billingInfo.computeCredits,
-        userPlan: resolveUserPlan(billingInfo),
+        userPlan: resolveOrganizationPlan(billingInfo),
         workflow: {
           id: workflow.id,
           name: workflow.name,

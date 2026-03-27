@@ -10,7 +10,12 @@ import { z } from "zod";
 
 import { jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
-import { createDatabase, users } from "../db";
+import {
+  createDatabase,
+  getOrganizationBillingInfo,
+  resolveOrganizationPlan,
+  users,
+} from "../db";
 
 const profile = new Hono<ApiContext>();
 
@@ -39,6 +44,13 @@ profile.get("/", async (c) => {
       return c.json({ error: "User not found" }, 404);
     }
 
+    // Resolve plan from organization billing info
+    const billingInfo = await getOrganizationBillingInfo(
+      db,
+      user.organizationId
+    );
+    const plan = billingInfo ? resolveOrganizationPlan(billingInfo) : "trial";
+
     const response: GetProfileResponse = {
       id: user.id,
       name: user.name,
@@ -47,7 +59,7 @@ profile.get("/", async (c) => {
       googleId: user.googleId || undefined,
       avatarUrl: user.avatarUrl || undefined,
       organizationId: user.organizationId,
-      plan: user.plan,
+      plan,
       role: user.role,
       developerMode: user.developerMode,
       tourCompleted: user.tourCompleted,

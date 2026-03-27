@@ -7,11 +7,13 @@
 
 import type { BlobParameter } from "@dafthunk/runtime";
 import type { WorkflowExecution, WorkflowState } from "@dafthunk/types";
-import { eq } from "drizzle-orm";
 import type { Bindings } from "../context";
 import { createDatabase } from "../db/index";
-import { getOrganization, getOrganizationBillingInfo } from "../db/queries";
-import { users } from "../db/schema";
+import {
+  getOrganization,
+  getOrganizationBillingInfo,
+  resolveOrganizationPlan,
+} from "../db/queries";
 import {
   WorkflowExecutor,
   type WorkflowExecutorParameters,
@@ -36,8 +38,7 @@ export class ExecutionManager {
     state: WorkflowState,
     organizationId: string,
     userId: string,
-    parameters?: Record<string, unknown>,
-    userPlan?: string
+    parameters?: Record<string, unknown>
   ): Promise<{
     executionId: string;
     execution: WorkflowExecution;
@@ -54,17 +55,6 @@ export class ExecutionManager {
       throw new Error("Organization not found");
     }
     const { computeCredits, subscriptionStatus, overageLimit } = billingInfo;
-
-    // Get user's plan if not provided (e.g., for WebSocket-based execution)
-    let resolvedUserPlan = userPlan;
-    if (!resolvedUserPlan) {
-      const [user] = await db
-        .select({ plan: users.plan })
-        .from(users)
-        .where(eq(users.id, userId))
-        .limit(1);
-      resolvedUserPlan = user?.plan;
-    }
 
     validateWorkflowForExecution(state);
 
@@ -94,7 +84,7 @@ export class ExecutionManager {
       subscriptionStatus: subscriptionStatus ?? undefined,
       overageLimit: overageLimit ?? null,
       parameters: executorParameters,
-      userPlan: resolvedUserPlan,
+      userPlan: resolveOrganizationPlan(billingInfo),
       env: this.env,
     });
   }

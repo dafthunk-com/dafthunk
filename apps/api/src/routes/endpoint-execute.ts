@@ -7,6 +7,7 @@ import {
   getEndpointById,
   getEndpointTriggersByEndpoint,
   getOrganizationBillingInfo,
+  resolveOrganizationPlan,
   verifyApiKey,
 } from "../db";
 import { createRateLimitMiddleware } from "../middleware/rate-limit";
@@ -115,7 +116,7 @@ endpointExecuteRoutes.on(
         subscriptionStatus: subscriptionStatus ?? undefined,
         overageLimit: overageLimit ?? null,
         parameters,
-        userPlan: "pro",
+        userPlan: resolveOrganizationPlan(billingInfo),
         env: c.env,
       });
 

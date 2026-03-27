@@ -4,7 +4,7 @@ import { createDatabase } from "./db";
 import {
   getOrganizationBillingInfo,
   getQueueTriggersByQueue,
-  resolveUserPlan,
+  resolveOrganizationPlan,
 } from "./db/queries";
 import { getAgentByName } from "./durable-objects/agent-utils";
 import { createWorkerRuntime } from "./runtime/cloudflare-worker-runtime";
@@ -42,7 +42,7 @@ async function executeWorkflow(
       userId: "queue_trigger",
       organizationId: workflowInfo.organizationId,
       computeCredits: billingInfo.computeCredits,
-      userPlan: resolveUserPlan(billingInfo),
+      userPlan: resolveOrganizationPlan(billingInfo),
       workflow: {
         id: workflowInfo.id,
         name: workflowData.name,

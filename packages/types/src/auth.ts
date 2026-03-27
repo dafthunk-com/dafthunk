@@ -12,7 +12,6 @@ export interface DatabaseUser {
   name: string;
   email?: string;
   avatarUrl?: string;
-  plan: string;
   role: string;
   developerMode: boolean;
   organization: OrganizationInfo;
@@ -25,7 +24,6 @@ export interface AuthUser {
   name: string;
   email?: string;
   avatarUrl?: string;
-  plan: string;
   role: string;
   developerMode: boolean;
   organization: OrganizationInfo;

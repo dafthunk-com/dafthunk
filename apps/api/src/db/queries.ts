@@ -48,8 +48,6 @@ import {
   OrganizationRole,
   type OrganizationRoleType,
   organizations,
-  Plan,
-  type PlanType,
   type QueueInsert,
   type QueueRow,
   type QueueTriggerInsert,
@@ -92,7 +90,6 @@ export type UserData = {
   name: string;
   email?: string;
   avatarUrl?: string;
-  plan?: string;
   role?: string;
 };
 
@@ -169,7 +166,6 @@ export async function saveUser(
     googleId: provider === "google" ? providerId : undefined,
     avatarUrl: avatarUrl,
     organizationId: organizationId,
-    plan: (userData.plan as PlanType) || Plan.TRIAL,
     role: (userData.role as UserRoleType) || UserRole.USER,
     createdAt: now,
     updatedAt: now,
@@ -2159,7 +2155,7 @@ export async function getOrganizationBillingInfo(
  * Derive user plan from organization billing info.
  * Pro if has active subscription OR canceled but still in billing period.
  */
-export function resolveUserPlan(billingInfo: {
+export function resolveOrganizationPlan(billingInfo: {
   subscriptionStatus: string | null;
   currentPeriodEnd: Date | null;
 }): string {

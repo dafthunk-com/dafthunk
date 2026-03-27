@@ -8,7 +8,7 @@ import {
   getDiscordBotById,
   getDiscordTriggersByBot,
   getOrganizationBillingInfo,
-  resolveUserPlan,
+  resolveOrganizationPlan,
 } from "../db";
 import { getAgentByName } from "../durable-objects/agent-utils";
 import { createWorkerRuntime } from "../runtime/cloudflare-worker-runtime";
@@ -299,7 +299,7 @@ async function executeWorkflow(
     userId: "discord_trigger",
     organizationId,
     computeCredits: billingInfo.computeCredits,
-    userPlan: resolveUserPlan(billingInfo),
+    userPlan: resolveOrganizationPlan(billingInfo),
     workflow: {
       id: workflow.id,
       name: workflow.name,

@@ -12,15 +12,6 @@ import {
  * ENUMS & CONSTANTS
  */
 
-// Subscription plan types
-export const Plan = {
-  TRIAL: "trial",
-  FREE: "free",
-  PRO: "pro",
-} as const;
-
-export type PlanType = (typeof Plan)[keyof typeof Plan];
-
 // User permission roles
 export const UserRole = {
   USER: "user",
@@ -178,7 +169,6 @@ export const users = sqliteTable(
     organizationId: text("organization_id")
       .notNull()
       .references(() => organizations.id, { onDelete: "cascade" }),
-    plan: text("plan").$type<PlanType>().notNull().default(Plan.TRIAL),
     role: text("role").$type<UserRoleType>().notNull().default(UserRole.USER),
     developerMode: integer("developer_mode", { mode: "boolean" })
       .notNull()
@@ -195,7 +185,6 @@ export const users = sqliteTable(
     index("users_organization_id_idx").on(table.organizationId),
     index("users_email_idx").on(table.email),
     index("users_name_idx").on(table.name),
-    index("users_plan_idx").on(table.plan),
     index("users_role_idx").on(table.role),
     index("users_developer_mode_idx").on(table.developerMode),
     index("users_created_at_idx").on(table.createdAt),
