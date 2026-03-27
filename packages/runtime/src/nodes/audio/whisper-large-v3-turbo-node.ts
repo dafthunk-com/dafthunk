@@ -26,6 +26,7 @@ export class WhisperLargeV3TurboNode extends ExecutableNode {
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/whisper-large-v3-turbo/",
     usage: 1,
+    asTool: true,
     inputs: [
       {
         name: "audio",

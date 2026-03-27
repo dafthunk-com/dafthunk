@@ -13,6 +13,7 @@ export class TwilioSmsNode extends ExecutableNode {
     documentation:
       "This node sends SMS messages using Twilio's messaging service.",
     usage: 10,
+    asTool: true,
     inputs: [
       {
         name: "to",

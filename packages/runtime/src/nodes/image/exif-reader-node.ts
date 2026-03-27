@@ -19,6 +19,7 @@ export class ExifReaderNode extends ExecutableNode {
     icon: "file-text",
     documentation: "This node extracts EXIF data from an image.",
     inlinable: true,
+    asTool: true,
     inputs: [
       {
         name: "image",

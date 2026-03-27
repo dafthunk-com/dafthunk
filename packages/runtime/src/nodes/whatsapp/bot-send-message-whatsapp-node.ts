@@ -12,6 +12,7 @@ export class BotSendMessageWhatsAppNode extends ExecutableNode {
     documentation:
       "This node sends text messages via the WhatsApp Business Cloud API.",
     usage: 10,
+    asTool: true,
     inputs: [
       {
         name: "to",

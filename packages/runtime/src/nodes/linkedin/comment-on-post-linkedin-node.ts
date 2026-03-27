@@ -17,6 +17,7 @@ export class CommentOnPostLinkedInNode extends ExecutableNode {
       "This node posts a comment on behalf of the authenticated member on a LinkedIn post, share, or another comment. Requires the w_member_social scope. Requires a connected LinkedIn integration.",
     usage: 10,
     subscription: true,
+    asTool: true,
     inputs: [
       {
         name: "integrationId",

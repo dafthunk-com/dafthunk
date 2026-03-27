@@ -17,6 +17,7 @@ export class SendEmailGoogleMailNode extends ExecutableNode {
       "This node sends emails using Google Mail API. Requires a connected Google Mail integration from your organization's integrations.",
     usage: 10,
     subscription: true,
+    asTool: true,
     inputs: [
       {
         name: "integrationId",

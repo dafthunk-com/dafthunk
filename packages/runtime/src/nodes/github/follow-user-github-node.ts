@@ -17,6 +17,7 @@ export class FollowUserGithubNode extends ExecutableNode {
       "This node follows a GitHub user on behalf of the authenticated user. Requires a connected GitHub integration with user scope.",
     usage: 10,
     subscription: true,
+    asTool: true,
     inputs: [
       {
         name: "integrationId",

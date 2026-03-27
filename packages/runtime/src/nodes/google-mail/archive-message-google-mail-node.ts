@@ -17,6 +17,7 @@ export class ArchiveMessageGoogleMailNode extends ExecutableNode {
       "This node archives a message by removing the INBOX label using Google Mail API. Requires a connected Google Mail integration from your organization's integrations.",
     usage: 10,
     subscription: true,
+    asTool: true,
     inputs: [
       {
         name: "integrationId",

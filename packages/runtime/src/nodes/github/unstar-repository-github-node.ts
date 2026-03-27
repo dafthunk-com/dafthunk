@@ -17,6 +17,7 @@ export class UnstarRepositoryGithubNode extends ExecutableNode {
       "This node unstars a GitHub repository on behalf of the authenticated user. Requires a connected GitHub integration with repo scope.",
     usage: 10,
     subscription: true,
+    asTool: true,
     inputs: [
       {
         name: "integrationId",

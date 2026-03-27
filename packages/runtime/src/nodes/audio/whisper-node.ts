@@ -26,6 +26,7 @@ export class WhisperNode extends ExecutableNode {
     referenceUrl:
       "https://developers.cloudflare.com/workers-ai/models/whisper/",
     usage: 1,
+    asTool: true,
     inputs: [
       {
         name: "audio",

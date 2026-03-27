@@ -17,6 +17,7 @@ export class UnfollowUserGithubNode extends ExecutableNode {
       "This node unfollows a GitHub user on behalf of the authenticated user. Requires a connected GitHub integration with user scope.",
     usage: 10,
     subscription: true,
+    asTool: true,
     inputs: [
       {
         name: "integrationId",
