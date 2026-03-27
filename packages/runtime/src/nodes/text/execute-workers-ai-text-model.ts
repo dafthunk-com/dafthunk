@@ -12,18 +12,13 @@ interface WorkersAiTextConfig {
   pricing: TokenPricing;
   /** Extra params for AI.run (temperature, max_tokens, etc.) */
   params?: Record<string, unknown>;
-  /**
-   * Response format returned by the model.
-   * - "standard": result.response (most Workers AI models)
-   * - "openai-chat": result.choices[0].message (Qwen3, GLM)
-   */
-  responseFormat?: "standard" | "openai-chat";
 }
 
 /**
  * Shared execution logic for all Cloudflare Workers AI text generation nodes.
- * Handles message parsing, tool calling via runWithTools, response extraction
- * (standard or OpenAI chat format), and usage calculation.
+ * Handles message parsing, tool calling via runWithTools, response extraction,
+ * and usage calculation. Auto-detects standard ({ response }) and OpenAI
+ * chat-completions ({ choices[0].message }) response formats.
  *
  * Nodes provide their model ID, pricing, and model-specific params.
  * The helper reads prompt, messages, and tools from context.inputs.
@@ -108,39 +103,24 @@ export async function executeWorkersAiTextModel(
       return node.createSuccessResult({ response: streamed }, usage);
     }
 
-    // Extract response based on format
-    if (config.responseFormat === "openai-chat") {
-      const choice = result?.choices?.[0]?.message;
-      const response = choice?.content ?? "";
-      const reasoning = choice?.reasoning_content ?? "";
+    // Workers AI may return standard format ({ response }) or
+    // OpenAI chat-completions format ({ choices[0].message.content })
+    const choice = result?.choices?.[0]?.message;
+    const response = result?.response ?? choice?.content ?? "";
+    const reasoning = choice?.reasoning_content ?? "";
 
-      const usage = result?.usage
-        ? calculateTokenUsage(
-            result.usage.prompt_tokens,
-            result.usage.completion_tokens,
-            config.pricing
-          )
-        : calculateTokenUsage(prompt || "", response, config.pricing);
-
-      return node.createSuccessResult(
-        {
-          response,
-          ...(reasoning ? { reasoning } : {}),
-          ...(executedToolCalls.length > 0
-            ? { tool_calls: executedToolCalls }
-            : {}),
-        },
-        usage
-      );
-    }
-
-    // Standard Workers AI format
-    const response = result?.response ?? "";
-    const usage = calculateTokenUsage(prompt || "", response, config.pricing);
+    const usage = result?.usage
+      ? calculateTokenUsage(
+          result.usage.prompt_tokens,
+          result.usage.completion_tokens,
+          config.pricing
+        )
+      : calculateTokenUsage(prompt || "", response, config.pricing);
 
     return node.createSuccessResult(
       {
         response,
+        ...(reasoning ? { reasoning } : {}),
         ...(executedToolCalls.length > 0
           ? { tool_calls: executedToolCalls }
           : {}),

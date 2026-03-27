@@ -125,7 +125,6 @@ export class Glm47FlashNode extends ExecutableNode {
     return executeWorkersAiTextModel(this, context, {
       modelId: "@cf/zai-org/glm-4.7-flash",
       pricing: PRICING,
-      responseFormat: "openai-chat",
       params: {
         temperature,
         max_completion_tokens: max_tokens,

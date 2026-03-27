@@ -125,7 +125,6 @@ export class Qwen330BA3BFp8Node extends ExecutableNode {
     return executeWorkersAiTextModel(this, context, {
       modelId: "@cf/qwen/qwen3-30b-a3b-fp8",
       pricing: PRICING,
-      responseFormat: "openai-chat",
       params: {
         temperature,
         max_completion_tokens: max_tokens,
