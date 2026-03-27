@@ -11,6 +11,7 @@ import type {
 export interface ExecutionRow {
   id: string;
   workflowId: string;
+  workflowName: string;
   organizationId: string;
   status: WorkflowExecutionStatus;
   error: string | null;
@@ -28,6 +29,7 @@ export interface ExecutionRow {
 export interface SaveExecutionRecord {
   id: string;
   workflowId: string;
+  workflowName: string;
   userId: string;
   organizationId: string;
   status: WorkflowExecutionStatus;

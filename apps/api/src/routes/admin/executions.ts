@@ -5,7 +5,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 
 import { ApiContext } from "../../context";
-import { createDatabase, organizations, workflows } from "../../db";
+import { createDatabase, organizations } from "../../db";
 import { CloudflareExecutionStore } from "../../runtime/cloudflare-execution-store";
 
 const adminExecutionsRoutes = new Hono<ApiContext>();
@@ -127,10 +127,9 @@ adminExecutionsRoutes.get(
       const result = (await response.json()) as { data?: any[] };
       const rows = result.data || [];
 
-      // Get organization and workflow names for the results
+      // Get organization names for the results
       const db = createDatabase(c.env.DB);
       const orgIds = [...new Set(rows.map((r) => r.index1))];
-      const workflowIds = [...new Set(rows.map((r) => r.blob2))];
 
       // Fetch organization names
       const orgsMap = new Map<string, string>();
@@ -141,15 +140,6 @@ adminExecutionsRoutes.get(
         orgs.forEach((o) => orgsMap.set(o.id, o.name));
       }
 
-      // Fetch workflow names
-      const workflowsMap = new Map<string, string>();
-      if (workflowIds.length > 0) {
-        const wfs = await db
-          .select({ id: workflows.id, name: workflows.name })
-          .from(workflows);
-        wfs.forEach((w) => workflowsMap.set(w.id, w.name));
-      }
-
       const executions = rows.map((row) => {
         const timestamp = new Date(row.timestamp);
         const startedAt = row.double2 ? new Date(row.double2) : timestamp;
@@ -158,7 +148,7 @@ adminExecutionsRoutes.get(
         return {
           id: row.blob1,
           workflowId: row.blob2,
-          workflowName: workflowsMap.get(row.blob2) || "Unknown Workflow",
+          workflowName: row.blob6 || "Unknown Workflow",
           organizationId: row.index1,
           organizationName: orgsMap.get(row.index1) || "Unknown Organization",
           status: row.blob4 as ExecutionStatusType,
@@ -213,13 +203,8 @@ adminExecutionsRoutes.get(
         return c.json({ error: "Execution not found" }, 404);
       }
 
-      // Get workflow and org names
+      // Get org name
       const db = createDatabase(c.env.DB);
-
-      const [workflow] = await db
-        .select({ name: workflows.name })
-        .from(workflows)
-        .where(eq(workflows.id, execution.workflowId));
 
       const [org] = await db
         .select({ name: organizations.name })
@@ -230,7 +215,7 @@ adminExecutionsRoutes.get(
         execution: {
           id: execution.id,
           workflowId: execution.workflowId,
-          workflowName: workflow?.name || "Unknown Workflow",
+          workflowName: execution.workflowName,
           organizationId,
           organizationName: org?.name || "Unknown Organization",
           status: execution.status,

@@ -570,6 +570,7 @@ workflowRoutes.post(
       const updatedExecution = await executionStore.save({
         id: executionId,
         workflowId: execution.workflowId,
+        workflowName: execution.workflowName,
         userId: "cancelled", // Required by SaveExecutionRecord but not stored in DB
         organizationId: execution.organizationId,
         status: ExecutionStatus.CANCELLED,
@@ -594,6 +595,7 @@ workflowRoutes.post(
       await executionStore.save({
         id: executionId,
         workflowId: execution.workflowId,
+        workflowName: execution.workflowName,
         userId: "cancelled", // Required by SaveExecutionRecord but not stored in DB
         organizationId: execution.organizationId,
         status: ExecutionStatus.CANCELLED,

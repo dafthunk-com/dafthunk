@@ -13,7 +13,6 @@ import { ApiContext } from "../context";
 import { createDatabase } from "../db";
 import { feedback } from "../db/schema";
 import { CloudflareExecutionStore } from "../runtime/cloudflare-execution-store";
-import { WorkflowStore } from "../stores/workflow-store";
 import { isUuid, parseUuid } from "../utils/validation";
 
 const executionRoutes = new Hono<ApiContext>();
@@ -36,17 +35,10 @@ executionRoutes.get("/:id", apiKeyOrJwtMiddleware, async (c) => {
       return c.json({ error: "Execution not found" }, 404);
     }
 
-    // Get workflow name
-    const workflowStore = new WorkflowStore(c.env);
-    const workflowName = await workflowStore.getName(
-      execution.workflowId,
-      organizationId
-    );
-
     const workflowExecution: WorkflowExecution = {
       id: execution.id,
       workflowId: execution.workflowId,
-      workflowName: workflowName || "Unknown Workflow",
+      workflowName: execution.workflowName,
       status: execution.status as WorkflowExecutionStatus,
       nodeExecutions: execution.data.nodeExecutions || [],
       error: execution.error || undefined,
@@ -88,7 +80,6 @@ executionRoutes.get("/:id", apiKeyOrJwtMiddleware, async (c) => {
 
 executionRoutes.get("/", jwtMiddleware, async (c) => {
   const executionStore = new CloudflareExecutionStore(c.env);
-  const workflowStore = new WorkflowStore(c.env);
   const { workflowId, limit, offset } = c.req.query();
 
   const organizationId = c.get("organizationId")!;
@@ -108,16 +99,11 @@ executionRoutes.get("/", jwtMiddleware, async (c) => {
 
   const executions = await executionStore.list(organizationId, queryParams);
 
-  // Get workflow names for all executions
-  const workflowIds = [...new Set(executions.map((e) => e.workflowId))];
-  const workflowNames = await workflowStore.getNames(workflowIds);
-  const workflowMap = new Map(workflowNames.map((w) => [w.id, w.name]));
-
   const results = executions.map((execution) => {
     return {
       id: execution.id,
       workflowId: execution.workflowId,
-      workflowName: workflowMap.get(execution.workflowId) || "Unknown Workflow",
+      workflowName: execution.workflowName,
       status: execution.status as WorkflowExecutionStatus,
       error: execution.error || undefined,
       startedAt: execution.startedAt || undefined,

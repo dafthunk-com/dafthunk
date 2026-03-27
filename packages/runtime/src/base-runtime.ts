@@ -472,6 +472,7 @@ export abstract class Runtime<Env = unknown> {
             return this.executionStore.save({
               id: instanceId,
               workflowId: ctx.workflowId,
+              workflowName: ctx.workflow.name,
               userId,
               organizationId,
               status: finalStatus,

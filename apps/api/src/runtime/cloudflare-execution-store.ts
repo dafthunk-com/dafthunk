@@ -30,6 +30,7 @@ interface AnalyticsRow {
   blob3: string;
   blob4: string;
   blob5: string;
+  blob6: string;
   double1: number;
   double2: number;
   double3: number;
@@ -61,6 +62,7 @@ export class CloudflareExecutionStore implements ExecutionStore {
     const executionData: WorkflowExecution = {
       id: record.id,
       workflowId: record.workflowId,
+      workflowName: record.workflowName,
       status: record.status,
       nodeExecutions,
       error: record.error,
@@ -166,6 +168,7 @@ export class CloudflareExecutionStore implements ExecutionStore {
           record.definitionHash ?? "",
           record.status,
           (record.error || "").substring(0, 2000), // truncate to fit in blob
+          record.workflowName,
         ],
         doubles: [durationMs, startedAtMs, endedAtMs, usage],
       };
@@ -273,6 +276,10 @@ export class CloudflareExecutionStore implements ExecutionStore {
     return {
       id: executionData.id,
       workflowId: executionData.workflowId,
+      workflowName:
+        executionData.workflowName ??
+        executionData.workflowDefinition?.name ??
+        "Unknown Workflow",
       organizationId,
       status: executionData.status,
       error: executionData.error ?? null,
@@ -326,6 +333,7 @@ export class CloudflareExecutionStore implements ExecutionStore {
         return {
           id: row.blob1,
           workflowId: row.blob2,
+          workflowName: row.blob6 || "Unknown Workflow",
           organizationId: row.index1,
           definitionHash: row.blob3 || undefined,
           status: row.blob4 as WorkflowExecutionStatus,

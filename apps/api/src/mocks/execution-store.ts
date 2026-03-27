@@ -28,6 +28,7 @@ export class MockExecutionStore implements ExecutionStore {
     const row: ExecutionRow = {
       id: record.id,
       workflowId: record.workflowId,
+      workflowName: record.workflowName,
       organizationId: record.organizationId,
       status: record.status,
       error: record.error ?? null,

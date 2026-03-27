@@ -64,7 +64,7 @@ dashboard.get("/", async (c) => {
     // Recent executions (last 10)
     const recentExecutions = executions.slice(0, 10).map((e: ExecutionRow) => ({
       id: e.id,
-      workflowName: workflows.find((w) => w.id === e.workflowId)?.name || "",
+      workflowName: e.workflowName,
       status: e.status,
       startedAt: e.startedAt ? Number(e.startedAt) : Date.now(),
       endedAt: e.endedAt ? Number(e.endedAt) : undefined,
