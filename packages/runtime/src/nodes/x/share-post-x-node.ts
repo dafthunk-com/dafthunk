@@ -2,19 +2,19 @@ import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
 
 /**
- * X Create Post node implementation
- * Posts a new post
+ * X Share Post node implementation
+ * Shares a new post on X
  */
-export class CreatePostXNode extends ExecutableNode {
+export class SharePostXNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "create-post-x",
-    name: "Create Post (X)",
-    type: "create-post-x",
-    description: "Post a new post on X",
-    tags: ["Social", "X", "Post", "Create"],
+    id: "share-post-x",
+    name: "Share Post (X)",
+    type: "share-post-x",
+    description: "Share a new post on X",
+    tags: ["Social", "X", "Post", "Share"],
     icon: "send",
     documentation:
-      "This node posts a new post to X. Supports text content and optional reply-to. Requires a connected X integration with tweet.write scope.",
+      "This node shares a new post to X. Supports text content and optional reply-to. Requires a connected X integration with tweet.write scope.",
     usage: 20,
     subscription: true,
     asTool: true,
@@ -107,7 +107,7 @@ export class CreatePostXNode extends ExecutableNode {
       if (!response.ok) {
         const errorData = await response.text();
         return this.createErrorResult(
-          `Failed to create post via X API: ${errorData}`
+          `Failed to share post via X API: ${errorData}`
         );
       }
 
@@ -131,7 +131,7 @@ export class CreatePostXNode extends ExecutableNode {
       return this.createErrorResult(
         error instanceof Error
           ? error.message
-          : "Unknown error creating post on X"
+          : "Unknown error sharing post on X"
       );
     }
   }

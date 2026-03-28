@@ -390,8 +390,8 @@ import { ListUserCommentsRedditNode } from "@dafthunk/runtime/nodes/reddit/list-
 import { ListUserPostsRedditNode } from "@dafthunk/runtime/nodes/reddit/list-user-posts-reddit-node";
 import { SearchRedditNode } from "@dafthunk/runtime/nodes/reddit/search-reddit-node";
 import { SearchSubredditsRedditNode } from "@dafthunk/runtime/nodes/reddit/search-subreddits-reddit-node";
+import { SharePostRedditNode } from "@dafthunk/runtime/nodes/reddit/share-post-reddit-node";
 import { SubmitCommentRedditNode } from "@dafthunk/runtime/nodes/reddit/submit-comment-reddit-node";
-import { SubmitPostRedditNode } from "@dafthunk/runtime/nodes/reddit/submit-post-reddit-node";
 import { VoteRedditNode } from "@dafthunk/runtime/nodes/reddit/vote-reddit-node";
 import { ReplicateModelNode } from "@dafthunk/runtime/nodes/replicate/replicate-model-node";
 import { ReceiveScheduledTriggerNode } from "@dafthunk/runtime/nodes/scheduled/receive-scheduled-trigger-node";
@@ -442,7 +442,6 @@ import { BotReceiveWhatsAppMessageNode } from "@dafthunk/runtime/nodes/whatsapp/
 import { BotSendImageWhatsAppNode } from "@dafthunk/runtime/nodes/whatsapp/bot-send-image-whatsapp-node";
 import { BotSendMessageWhatsAppNode } from "@dafthunk/runtime/nodes/whatsapp/bot-send-message-whatsapp-node";
 import { BotSendTemplateWhatsAppNode } from "@dafthunk/runtime/nodes/whatsapp/bot-send-template-whatsapp-node";
-import { CreatePostXNode } from "@dafthunk/runtime/nodes/x/create-post-x-node";
 import { DeletePostXNode } from "@dafthunk/runtime/nodes/x/delete-post-x-node";
 import { FollowUserXNode } from "@dafthunk/runtime/nodes/x/follow-user-x-node";
 import { GetPostXNode } from "@dafthunk/runtime/nodes/x/get-post-x-node";
@@ -454,6 +453,7 @@ import { ListUserMentionsXNode } from "@dafthunk/runtime/nodes/x/list-user-menti
 import { ListUserPostsXNode } from "@dafthunk/runtime/nodes/x/list-user-posts-x-node";
 import { RepostXNode } from "@dafthunk/runtime/nodes/x/repost-x-node";
 import { SearchPostsXNode } from "@dafthunk/runtime/nodes/x/search-posts-x-node";
+import { SharePostXNode } from "@dafthunk/runtime/nodes/x/share-post-x-node";
 import type { Bindings } from "../context";
 
 export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
@@ -810,12 +810,12 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
       this.registerImplementation(SearchRedditNode);
       this.registerImplementation(SearchSubredditsRedditNode);
       this.registerImplementation(SubmitCommentRedditNode);
-      this.registerImplementation(SubmitPostRedditNode);
+      this.registerImplementation(SharePostRedditNode);
       this.registerImplementation(VoteRedditNode);
     }
 
     if (hasX) {
-      this.registerImplementation(CreatePostXNode);
+      this.registerImplementation(SharePostXNode);
       this.registerImplementation(DeletePostXNode);
       this.registerImplementation(FollowUserXNode);
       this.registerImplementation(GetPostXNode);

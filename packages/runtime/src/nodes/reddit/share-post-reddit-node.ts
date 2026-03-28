@@ -1,20 +1,21 @@
+import type { ImageParameter } from "@dafthunk/runtime";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
 
 /**
- * Reddit Submit Post node implementation
- * Submits a new post to a subreddit
+ * Reddit Share Post node implementation
+ * Shares a new post to a subreddit
  */
-export class SubmitPostRedditNode extends ExecutableNode {
+export class SharePostRedditNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "submit-post-reddit",
-    name: "Submit Post (Reddit)",
-    type: "submit-post-reddit",
-    description: "Submit a new post to a subreddit",
-    tags: ["Social", "Reddit", "Post", "Submit"],
+    id: "share-post-reddit",
+    name: "Share Post (Reddit)",
+    type: "share-post-reddit",
+    description: "Share a new post to a subreddit",
+    tags: ["Social", "Reddit", "Post", "Share"],
     icon: "send",
     documentation:
-      "This node submits a new post to a specified subreddit. Supports both text posts and link posts. Requires a connected Reddit integration.",
+      "This node shares a new post to a specified subreddit. Supports text posts, link posts, and image posts. Requires a connected Reddit integration.",
     usage: 10,
     subscription: true,
     asTool: true,
@@ -42,7 +43,8 @@ export class SubmitPostRedditNode extends ExecutableNode {
       {
         name: "kind",
         type: "string",
-        description: "Post type: 'self' for text or 'link' for URL",
+        description:
+          "Post type: 'self' for text, 'link' for URL, or 'image' for image",
         required: true,
       },
       {
@@ -55,6 +57,12 @@ export class SubmitPostRedditNode extends ExecutableNode {
         name: "url",
         type: "string",
         description: "Post URL (for link posts)",
+        required: false,
+      },
+      {
+        name: "image",
+        type: "image",
+        description: "Image to upload (for image posts)",
         required: false,
       },
       {
@@ -98,6 +106,73 @@ export class SubmitPostRedditNode extends ExecutableNode {
     ],
   };
 
+  private async uploadImage(
+    accessToken: string,
+    image: ImageParameter
+  ): Promise<string> {
+    const extension = image.mimeType.split("/")[1] || "png";
+    const filename = image.filename || `image.${extension}`;
+
+    // Step 1: Request upload lease
+    const leaseResponse = await fetch(
+      "https://oauth.reddit.com/api/media/asset.json",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+          "User-Agent": "Dafthunk/1.0",
+        },
+        body: new URLSearchParams({
+          filepath: filename,
+          mimetype: image.mimeType,
+        }),
+      }
+    );
+
+    if (!leaseResponse.ok) {
+      const errorData = await leaseResponse.text();
+      throw new Error(`Failed to request upload lease: ${errorData}`);
+    }
+
+    const lease = (await leaseResponse.json()) as {
+      args: {
+        action: string;
+        fields: Array<{ name: string; value: string }>;
+      };
+      asset: {
+        asset_id: string;
+      };
+    };
+
+    const uploadUrl = `https:${lease.args.action}`;
+    const key = lease.args.fields.find((f) => f.name === "key")?.value ?? "";
+
+    // Step 2: Upload image to S3 via multipart form data
+    const formData = new FormData();
+    for (const field of lease.args.fields) {
+      formData.append(field.name, field.value);
+    }
+    // File must be the last field
+    formData.append(
+      "file",
+      new Blob([image.data], { type: image.mimeType }),
+      filename
+    );
+
+    const uploadResponse = await fetch(uploadUrl, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!uploadResponse.ok) {
+      const errorData = await uploadResponse.text();
+      throw new Error(`Failed to upload image: ${errorData}`);
+    }
+
+    return `${uploadUrl}/${key}`;
+  }
+
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const {
@@ -107,9 +182,20 @@ export class SubmitPostRedditNode extends ExecutableNode {
         kind,
         text,
         url,
+        image,
         nsfw,
         spoiler,
-      } = context.inputs;
+      } = context.inputs as {
+        integrationId?: string;
+        subreddit?: string;
+        title?: string;
+        kind?: string;
+        text?: string;
+        url?: string;
+        image?: ImageParameter;
+        nsfw?: boolean;
+        spoiler?: boolean;
+      };
       const { organizationId } = context;
 
       // Validate required inputs
@@ -128,11 +214,15 @@ export class SubmitPostRedditNode extends ExecutableNode {
       }
 
       if (!kind || typeof kind !== "string") {
-        return this.createErrorResult("Post kind is required (self or link)");
+        return this.createErrorResult(
+          "Post kind is required (self, link, or image)"
+        );
       }
 
-      if (kind !== "self" && kind !== "link") {
-        return this.createErrorResult("Post kind must be 'self' or 'link'");
+      if (kind !== "self" && kind !== "link" && kind !== "image") {
+        return this.createErrorResult(
+          "Post kind must be 'self', 'link', or 'image'"
+        );
       }
 
       if (kind === "self" && (!text || typeof text !== "string")) {
@@ -143,13 +233,16 @@ export class SubmitPostRedditNode extends ExecutableNode {
         return this.createErrorResult("URL is required for link posts");
       }
 
+      if (kind === "image" && (!image?.data || !image?.mimeType)) {
+        return this.createErrorResult("Image is required for image posts");
+      }
+
       if (!organizationId || typeof organizationId !== "string") {
         return this.createErrorResult("Organization ID is required");
       }
 
       // Get integration with auto-refreshed token
       const integration = await context.getIntegration(integrationId);
-
       const accessToken = integration.token;
 
       // Prepare form data for submission
@@ -164,6 +257,10 @@ export class SubmitPostRedditNode extends ExecutableNode {
         formData.append("text", text as string);
       } else if (kind === "link" && url) {
         formData.append("url", url as string);
+      } else if (kind === "image" && image?.data && image?.mimeType) {
+        const imageUrl = await this.uploadImage(accessToken, image);
+        formData.append("url", imageUrl);
+        formData.append("resubmit", "true");
       }
 
       if (nsfw === true) {
@@ -174,7 +271,7 @@ export class SubmitPostRedditNode extends ExecutableNode {
         formData.append("spoiler", "true");
       }
 
-      // Submit post via Reddit API
+      // Share post via Reddit API
       const response = await fetch("https://oauth.reddit.com/api/submit", {
         method: "POST",
         headers: {
@@ -188,13 +285,13 @@ export class SubmitPostRedditNode extends ExecutableNode {
       if (!response.ok) {
         const errorData = await response.text();
         return this.createErrorResult(
-          `Failed to submit post via Reddit API: ${errorData}`
+          `Failed to share post via Reddit API: ${errorData}`
         );
       }
 
       const result = (await response.json()) as {
         json: {
-          errors: any[];
+          errors: Array<string[]>;
           data?: {
             id: string;
             name: string;
@@ -224,7 +321,7 @@ export class SubmitPostRedditNode extends ExecutableNode {
       return this.createErrorResult(
         error instanceof Error
           ? error.message
-          : "Unknown error submitting post to Reddit"
+          : "Unknown error sharing post to Reddit"
       );
     }
   }

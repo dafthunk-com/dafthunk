@@ -6,18 +6,18 @@ import {
   REDDIT_TEST_CONFIG,
   skipIfNoRedditToken,
 } from "./reddit-test-helper";
-import { SubmitPostRedditNode } from "./submit-post-reddit-node";
+import { SharePostRedditNode } from "./share-post-reddit-node";
 
-describe("SubmitPostRedditNode", () => {
+describe("SharePostRedditNode", () => {
   it.skipIf(skipIfNoRedditToken())(
-    "should submit a text post to r/dafthunk_test",
+    "should share a text post to r/dafthunk_test",
     async () => {
-      const node = new SubmitPostRedditNode({
-        nodeId: "submit-post-reddit",
+      const node = new SharePostRedditNode({
+        nodeId: "share-post-reddit",
       } as unknown as Node);
 
       const timestamp = Date.now();
-      const context = createRedditTestContext("submit-post-reddit", {
+      const context = createRedditTestContext("share-post-reddit", {
         subreddit: REDDIT_TEST_CONFIG.subreddit,
         title: `Integration Test Post ${timestamp}`,
         kind: "self",

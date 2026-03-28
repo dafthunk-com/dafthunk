@@ -1,12 +1,12 @@
 import type { NodeContext } from "@dafthunk/runtime";
 import type { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
-import { SubmitPostRedditNode } from "./submit-post-reddit-node";
+import { SharePostRedditNode } from "./share-post-reddit-node";
 
-describe("SubmitPostRedditNode", () => {
+describe("SharePostRedditNode", () => {
   const createContext = (inputs: Record<string, unknown>): NodeContext =>
     ({
-      nodeId: "submit-post-reddit",
+      nodeId: "share-post-reddit",
       inputs,
       organizationId: "test-org",
       getIntegration: async () => {
@@ -16,8 +16,8 @@ describe("SubmitPostRedditNode", () => {
     }) as unknown as NodeContext;
 
   it("should return error for missing integration ID", async () => {
-    const node = new SubmitPostRedditNode({
-      nodeId: "submit-post-reddit",
+    const node = new SharePostRedditNode({
+      nodeId: "share-post-reddit",
     } as unknown as Node);
     const result = await node.execute(
       createContext({
@@ -33,8 +33,8 @@ describe("SubmitPostRedditNode", () => {
   });
 
   it("should return error for missing subreddit", async () => {
-    const node = new SubmitPostRedditNode({
-      nodeId: "submit-post-reddit",
+    const node = new SharePostRedditNode({
+      nodeId: "share-post-reddit",
     } as unknown as Node);
     const result = await node.execute(
       createContext({
@@ -50,8 +50,8 @@ describe("SubmitPostRedditNode", () => {
   });
 
   it("should return error for missing title", async () => {
-    const node = new SubmitPostRedditNode({
-      nodeId: "submit-post-reddit",
+    const node = new SharePostRedditNode({
+      nodeId: "share-post-reddit",
     } as unknown as Node);
     const result = await node.execute(
       createContext({
@@ -67,8 +67,8 @@ describe("SubmitPostRedditNode", () => {
   });
 
   it("should return error for invalid kind", async () => {
-    const node = new SubmitPostRedditNode({
-      nodeId: "submit-post-reddit",
+    const node = new SharePostRedditNode({
+      nodeId: "share-post-reddit",
     } as unknown as Node);
     const result = await node.execute(
       createContext({
@@ -80,12 +80,12 @@ describe("SubmitPostRedditNode", () => {
     );
 
     expect(result.status).toBe("error");
-    expect(result.error).toContain("must be 'self' or 'link'");
+    expect(result.error).toContain("must be 'self', 'link', or 'image'");
   });
 
   it("should return error for self post without text", async () => {
-    const node = new SubmitPostRedditNode({
-      nodeId: "submit-post-reddit",
+    const node = new SharePostRedditNode({
+      nodeId: "share-post-reddit",
     } as unknown as Node);
     const result = await node.execute(
       createContext({
@@ -101,8 +101,8 @@ describe("SubmitPostRedditNode", () => {
   });
 
   it("should return error for link post without url", async () => {
-    const node = new SubmitPostRedditNode({
-      nodeId: "submit-post-reddit",
+    const node = new SharePostRedditNode({
+      nodeId: "share-post-reddit",
     } as unknown as Node);
     const result = await node.execute(
       createContext({
@@ -115,5 +115,22 @@ describe("SubmitPostRedditNode", () => {
 
     expect(result.status).toBe("error");
     expect(result.error).toContain("URL is required for link posts");
+  });
+
+  it("should return error for image post without image", async () => {
+    const node = new SharePostRedditNode({
+      nodeId: "share-post-reddit",
+    } as unknown as Node);
+    const result = await node.execute(
+      createContext({
+        integrationId: "test-integration",
+        subreddit: "test",
+        title: "Test Post",
+        kind: "image",
+      })
+    );
+
+    expect(result.status).toBe("error");
+    expect(result.error).toContain("Image is required for image posts");
   });
 });

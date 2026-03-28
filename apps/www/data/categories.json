@@ -127,7 +127,7 @@
         "share-post-linkedin",
         "get-profile-linkedin",
         "list-posts-reddit",
-        "submit-post-reddit",
+        "share-post-reddit",
         "create-event-google-calendar",
         "list-events-google-calendar",
         "send-email-google-mail",
