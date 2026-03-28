@@ -442,6 +442,18 @@ import { BotReceiveWhatsAppMessageNode } from "@dafthunk/runtime/nodes/whatsapp/
 import { BotSendImageWhatsAppNode } from "@dafthunk/runtime/nodes/whatsapp/bot-send-image-whatsapp-node";
 import { BotSendMessageWhatsAppNode } from "@dafthunk/runtime/nodes/whatsapp/bot-send-message-whatsapp-node";
 import { BotSendTemplateWhatsAppNode } from "@dafthunk/runtime/nodes/whatsapp/bot-send-template-whatsapp-node";
+import { CreatePostXNode } from "@dafthunk/runtime/nodes/x/create-post-x-node";
+import { DeletePostXNode } from "@dafthunk/runtime/nodes/x/delete-post-x-node";
+import { FollowUserXNode } from "@dafthunk/runtime/nodes/x/follow-user-x-node";
+import { GetPostXNode } from "@dafthunk/runtime/nodes/x/get-post-x-node";
+import { GetUserXNode } from "@dafthunk/runtime/nodes/x/get-user-x-node";
+import { LikePostXNode } from "@dafthunk/runtime/nodes/x/like-post-x-node";
+import { ListFollowersXNode } from "@dafthunk/runtime/nodes/x/list-followers-x-node";
+import { ListFollowingXNode } from "@dafthunk/runtime/nodes/x/list-following-x-node";
+import { ListUserMentionsXNode } from "@dafthunk/runtime/nodes/x/list-user-mentions-x-node";
+import { ListUserPostsXNode } from "@dafthunk/runtime/nodes/x/list-user-posts-x-node";
+import { RepostXNode } from "@dafthunk/runtime/nodes/x/repost-x-node";
+import { SearchPostsXNode } from "@dafthunk/runtime/nodes/x/search-posts-x-node";
 import type { Bindings } from "../context";
 
 export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
@@ -485,6 +497,9 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     const hasLinkedIn = !!(
       this.env.INTEGRATION_LINKEDIN_CLIENT_ID &&
       this.env.INTEGRATION_LINKEDIN_CLIENT_SECRET
+    );
+    const hasX = !!(
+      this.env.INTEGRATION_X_CLIENT_ID && this.env.INTEGRATION_X_CLIENT_SECRET
     );
 
     // Register all core nodes
@@ -797,6 +812,21 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
       this.registerImplementation(SubmitCommentRedditNode);
       this.registerImplementation(SubmitPostRedditNode);
       this.registerImplementation(VoteRedditNode);
+    }
+
+    if (hasX) {
+      this.registerImplementation(CreatePostXNode);
+      this.registerImplementation(DeletePostXNode);
+      this.registerImplementation(FollowUserXNode);
+      this.registerImplementation(GetPostXNode);
+      this.registerImplementation(GetUserXNode);
+      this.registerImplementation(LikePostXNode);
+      this.registerImplementation(ListFollowersXNode);
+      this.registerImplementation(ListFollowingXNode);
+      this.registerImplementation(ListUserMentionsXNode);
+      this.registerImplementation(ListUserPostsXNode);
+      this.registerImplementation(RepostXNode);
+      this.registerImplementation(SearchPostsXNode);
     }
 
     if (hasLinkedIn) {

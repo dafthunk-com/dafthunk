@@ -71,6 +71,7 @@ export const IntegrationProvider = {
   GITHUB: "github",
   REDDIT: "reddit",
   LINKEDIN: "linkedin",
+  X: "x",
 } as const;
 
 export type IntegrationProviderType =

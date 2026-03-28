@@ -2154,11 +2154,18 @@ export async function getOrganizationBillingInfo(
 /**
  * Derive user plan from organization billing info.
  * Pro if has active subscription OR canceled but still in billing period.
+ * In non-production environments, always grants pro so all nodes are available during development.
  */
-export function resolveOrganizationPlan(billingInfo: {
-  subscriptionStatus: string | null;
-  currentPeriodEnd: Date | null;
-}): string {
+export function resolveOrganizationPlan(
+  billingInfo: {
+    subscriptionStatus: string | null;
+    currentPeriodEnd: Date | null;
+  },
+  cloudflareEnv?: string
+): string {
+  if (cloudflareEnv && cloudflareEnv !== "production") {
+    return "pro";
+  }
   const hasProAccess =
     billingInfo.subscriptionStatus === "active" ||
     (billingInfo.subscriptionStatus === "canceled" &&

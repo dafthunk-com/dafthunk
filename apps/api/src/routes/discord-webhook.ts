@@ -299,7 +299,7 @@ async function executeWorkflow(
     userId: "discord_trigger",
     organizationId,
     computeCredits: billingInfo.computeCredits,
-    userPlan: resolveOrganizationPlan(billingInfo),
+    userPlan: resolveOrganizationPlan(billingInfo, env.CLOUDFLARE_ENV),
     workflow: {
       id: workflow.id,
       name: workflow.name,

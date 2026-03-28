@@ -84,7 +84,7 @@ export class ExecutionManager {
       subscriptionStatus: subscriptionStatus ?? undefined,
       overageLimit: overageLimit ?? null,
       parameters: executorParameters,
-      userPlan: resolveOrganizationPlan(billingInfo),
+      userPlan: resolveOrganizationPlan(billingInfo, this.env.CLOUDFLARE_ENV),
       env: this.env,
     });
   }

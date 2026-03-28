@@ -145,6 +145,28 @@ export interface RedditUser {
 }
 
 /**
+ * X OAuth token response
+ */
+export interface XToken {
+  access_token: string;
+  refresh_token?: string;
+  expires_in: number;
+  token_type: string;
+  scope: string;
+}
+
+/**
+ * X user information (from /2/users/me)
+ */
+export interface XUser {
+  id: string;
+  name: string;
+  username: string;
+  profile_image_url?: string;
+  description?: string;
+}
+
+/**
  * GitHub OAuth token response
  */
 export interface GitHubToken {

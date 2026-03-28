@@ -42,7 +42,7 @@ async function executeWorkflow(
       userId: "queue_trigger",
       organizationId: workflowInfo.organizationId,
       computeCredits: billingInfo.computeCredits,
-      userPlan: resolveOrganizationPlan(billingInfo),
+      userPlan: resolveOrganizationPlan(billingInfo, env.CLOUDFLARE_ENV),
       workflow: {
         id: workflowInfo.id,
         name: workflowData.name,

@@ -9,7 +9,8 @@ export type IntegrationProvider =
   | "discord"
   | "reddit"
   | "linkedin"
-  | "github";
+  | "github"
+  | "x";
 
 // Integration status types
 export type IntegrationStatus = "active" | "expired" | "revoked";
@@ -134,5 +135,13 @@ export const OAUTH_PROVIDERS: OAuthProvider[] = [
       "Connect your GitHub account to manage repositories, issues, and pull requests",
     supportsOAuth: true,
     oauthEndpoint: "/oauth/github/connect",
+  },
+  {
+    id: "x",
+    name: "X",
+    description:
+      "Connect your X account to post tweets, search, and interact with users",
+    supportsOAuth: true,
+    oauthEndpoint: "/oauth/x/connect",
   },
 ];

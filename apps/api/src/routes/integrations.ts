@@ -75,6 +75,9 @@ integrationRoutes.get("/providers", async (c) => {
   ) {
     availableProviders.push("github");
   }
+  if (env.INTEGRATION_X_CLIENT_ID && env.INTEGRATION_X_CLIENT_SECRET) {
+    availableProviders.push("x");
+  }
 
   return c.json({ providers: availableProviders });
 });
@@ -122,6 +125,7 @@ integrationRoutes.post(
         "reddit",
         "linkedin",
         "github",
+        "x",
       ]),
       token: z.string().min(1, "Token is required"),
       refreshToken: z.string().optional(),

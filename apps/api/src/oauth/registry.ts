@@ -5,6 +5,7 @@ import { GoogleCalendarProvider } from "./providers/GoogleCalendarProvider";
 import { GoogleMailProvider } from "./providers/GoogleMailProvider";
 import { LinkedInProvider } from "./providers/LinkedInProvider";
 import { RedditProvider } from "./providers/RedditProvider";
+import { XProvider } from "./providers/XProvider";
 
 // Instantiate all providers
 const providers = {
@@ -14,6 +15,7 @@ const providers = {
   linkedin: new LinkedInProvider(),
   reddit: new RedditProvider(),
   github: new GitHubProvider(),
+  x: new XProvider(),
 } as const;
 
 export type ProviderName = keyof typeof providers;

@@ -277,7 +277,7 @@ endpointRoutes.on(
         subscriptionStatus: subscriptionStatus ?? undefined,
         overageLimit: overageLimit ?? null,
         parameters,
-        userPlan: resolveOrganizationPlan(billingInfo),
+        userPlan: resolveOrganizationPlan(billingInfo, c.env.CLOUDFLARE_ENV),
         env: c.env,
       });
 
