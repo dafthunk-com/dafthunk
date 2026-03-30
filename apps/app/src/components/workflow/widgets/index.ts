@@ -12,6 +12,7 @@ import { blobInputWidget } from "./input/blob-input";
 import { booleanInputWidget } from "./input/boolean-input";
 import { canvasInputWidget } from "./input/canvas-input";
 import { cronInputWidget } from "./input/cron-input";
+import { databaseTriggerInputWidget } from "./input/database-trigger-input";
 import { dateInputWidget } from "./input/date-input";
 import { discordTriggerInputWidget } from "./input/discord-trigger-input";
 import { documentInputWidget } from "./input/document-input";
@@ -77,6 +78,7 @@ const widgets = [
   emailTriggerInputWidget,
   httpRequestEndpointWidget,
   httpWebhookEndpointWidget,
+  databaseTriggerInputWidget,
   queueTriggerInputWidget,
   telegramTriggerInputWidget,
   whatsappTriggerInputWidget,
