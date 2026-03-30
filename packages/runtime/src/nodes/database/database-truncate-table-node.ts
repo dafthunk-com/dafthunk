@@ -25,8 +25,6 @@ export class DatabaseTruncateTableNode extends ExecutableNode {
         type: "string",
         description: "Name of the table to truncate.",
         required: true,
-        hidden: true,
-        value: "",
       },
     ],
     outputs: [

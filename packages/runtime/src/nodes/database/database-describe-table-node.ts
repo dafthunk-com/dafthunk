@@ -26,16 +26,13 @@ export class DatabaseDescribeTableNode extends ExecutableNode {
         type: "string",
         description: "Name of the table to describe.",
         required: true,
-        hidden: true,
-        value: "",
       },
     ],
     outputs: [
       {
         name: "schema",
-        type: "json",
-        description:
-          "Schema with name and fields: {name: string, fields: [{name: string, type: string}]}",
+        type: "schema",
+        description: "Schema with name and field definitions.",
       },
     ],
   };

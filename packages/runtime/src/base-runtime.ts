@@ -692,7 +692,8 @@ export abstract class Runtime<Env = unknown> {
       state,
       executable,
       inboundEdges,
-      this.objectStore
+      this.objectStore,
+      context.organizationId
     );
 
     // Execute the node and transform outputs for runtime storage
@@ -838,7 +839,8 @@ export abstract class Runtime<Env = unknown> {
     state: ExecutionState,
     executable: object,
     inboundEdges: Workflow["edges"],
-    objectStore: ObjectStore
+    objectStore: ObjectStore,
+    organizationId: string
   ): Promise<Record<string, unknown>> {
     // Collect inputs from node defaults
     const inputs: NodeRuntimeValues = {};
@@ -892,6 +894,10 @@ export abstract class Runtime<Env = unknown> {
 
     // Transform inputs from API format to node-native format
     const processedInputs: Record<string, unknown> = {};
+    const mapperContext = {
+      schemaService: this.schemaService,
+      organizationId,
+    };
 
     for (const [name, value] of Object.entries(inputs)) {
       const input = node.inputs.find((i) => i.name === name);
@@ -899,14 +905,17 @@ export abstract class Runtime<Env = unknown> {
 
       if (Array.isArray(value)) {
         const transformedArray = await Promise.all(
-          value.map((v) => apiToNodeParameter(parameterType, v, objectStore))
+          value.map((v) =>
+            apiToNodeParameter(parameterType, v, objectStore, mapperContext)
+          )
         );
         processedInputs[name] = transformedArray;
       } else {
         processedInputs[name] = await apiToNodeParameter(
           parameterType,
           value,
-          objectStore
+          objectStore,
+          mapperContext
         );
       }
     }

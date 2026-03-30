@@ -5,7 +5,7 @@ import {
   generateCreateTableSQL,
   generateInsertSQL,
 } from "../../utils/database-table";
-import { resolveAndValidateRecords } from "../../utils/schema-validation";
+import { validateRecords } from "../../utils/schema-validation";
 
 export class DatabaseImportTableNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -27,18 +27,9 @@ export class DatabaseImportTableNode extends ExecutableNode {
         hidden: true,
       },
       {
-        name: "schemaId",
-        type: "schema",
-        description:
-          "Optional schema to validate and coerce data before import.",
-        required: false,
-        hidden: true,
-      },
-      {
         name: "schema",
-        type: "json",
-        description:
-          "Schema with name and fields: {name: string, fields: [{name: string, type: string}]}",
+        type: "schema",
+        description: "Schema defining the table structure and field types.",
         required: true,
       },
       {
@@ -77,7 +68,6 @@ export class DatabaseImportTableNode extends ExecutableNode {
       schema: schemaInput,
       data: dataInput,
       mode,
-      schemaId,
     } = context.inputs;
 
     // Validate required inputs
@@ -114,14 +104,15 @@ export class DatabaseImportTableNode extends ExecutableNode {
       );
     }
 
-    const { records: data, error: schemaError } =
-      await resolveAndValidateRecords(
-        context,
-        schemaId,
-        dataInput as Record<string, unknown>[]
+    // Validate and coerce data against the schema
+    const { records: data, errors } = validateRecords(
+      dataInput as Record<string, unknown>[],
+      schema
+    );
+    if (errors.length > 0) {
+      return this.createErrorResult(
+        `Schema validation failed: ${errors.join("; ")}`
       );
-    if (schemaError) {
-      return this.createErrorResult(schemaError);
     }
 
     try {

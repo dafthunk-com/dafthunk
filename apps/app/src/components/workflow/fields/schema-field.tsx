@@ -1,8 +1,9 @@
 import type { Field } from "@dafthunk/types";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { useAuth } from "@/components/auth-context";
 import { SchemaDialog } from "@/components/schema-dialog";
+import { CodeEditor } from "@/components/ui/code-editor";
 import {
   Select,
   SelectContent,
@@ -28,6 +29,34 @@ export function SchemaField({
   const { schemas, isSchemasLoading, mutateSchemas } = useSchemas();
   const { organization } = useAuth();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+
+  // If the value is an object (inline Schema from a node output), render as JSON
+  const isInlineSchema = typeof value === "object" && value !== null;
+
+  const jsonString = useMemo(() => {
+    if (!isInlineSchema) return "";
+    return JSON.stringify(value, null, 2);
+  }, [isInlineSchema, value]);
+
+  if (isInlineSchema) {
+    return (
+      <div
+        className={cn("relative", className)}
+        onWheelCapture={(e) => {
+          e.stopPropagation();
+        }}
+      >
+        <div className="h-[200px] rounded-md border border-border overflow-hidden">
+          <CodeEditor
+            value={jsonString}
+            onChange={() => {}}
+            language="json"
+            readonly
+          />
+        </div>
+      </div>
+    );
+  }
 
   const stringValue = String(value ?? "");
 

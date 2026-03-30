@@ -1,15 +1,5 @@
 import type { Field, FieldType, Schema } from "@dafthunk/types";
 
-interface SchemaResolver {
-  schemaService?: {
-    resolve(
-      schemaId: string,
-      organizationId: string
-    ): Promise<Schema | undefined>;
-  };
-  organizationId: string;
-}
-
 interface ValidationResult {
   record: Record<string, unknown>;
   errors: string[];
@@ -216,74 +206,4 @@ export function validateRecords(
   }
 
   return { records: validated, errors };
-}
-
-/**
- * Resolves a schema by ID and validates an array of records against it.
- * Returns validated records on success, or an error string on failure.
- */
-export async function resolveAndValidateRecords(
-  context: SchemaResolver,
-  schemaId: unknown,
-  records: Record<string, unknown>[]
-): Promise<{ records: Record<string, unknown>[]; error?: string }> {
-  if (!schemaId || typeof schemaId !== "string") {
-    return { records };
-  }
-  if (!context.schemaService) {
-    return { records: [], error: "Schema service not available." };
-  }
-  const schema = await context.schemaService.resolve(
-    schemaId,
-    context.organizationId
-  );
-  if (!schema) {
-    return {
-      records: [],
-      error: `Schema '${schemaId}' not found or does not belong to your organization.`,
-    };
-  }
-  const { records: validated, errors } = validateRecords(records, schema);
-  if (errors.length > 0) {
-    return {
-      records: [],
-      error: `Schema validation failed: ${errors.join("; ")}`,
-    };
-  }
-  return { records: validated };
-}
-
-/**
- * Resolves a schema by ID and validates a single record against it.
- * Returns the validated record on success, or an error string on failure.
- */
-export async function resolveAndValidateRecord(
-  context: SchemaResolver,
-  schemaId: unknown,
-  record: Record<string, unknown>
-): Promise<{ record: Record<string, unknown>; error?: string }> {
-  if (!schemaId || typeof schemaId !== "string") {
-    return { record };
-  }
-  if (!context.schemaService) {
-    return { record: {}, error: "Schema service not available." };
-  }
-  const schema = await context.schemaService.resolve(
-    schemaId,
-    context.organizationId
-  );
-  if (!schema) {
-    return {
-      record: {},
-      error: `Schema '${schemaId}' not found or does not belong to your organization.`,
-    };
-  }
-  const { record: validated, errors } = validateRecord(record, schema);
-  if (errors.length > 0) {
-    return {
-      record: {},
-      error: `Schema validation failed: ${errors.join("; ")}`,
-    };
-  }
-  return { record: validated };
 }

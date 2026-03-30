@@ -64,6 +64,7 @@ import { CsvExtractColumnNode } from "@dafthunk/runtime/nodes/csv/csv-extract-co
 import { CsvFilterRowsNode } from "@dafthunk/runtime/nodes/csv/csv-filter-rows-node";
 import { CsvParseNode } from "@dafthunk/runtime/nodes/csv/csv-parse-node";
 import { CsvStringifyNode } from "@dafthunk/runtime/nodes/csv/csv-stringify-node";
+import { DatabaseCreateTableNode } from "@dafthunk/runtime/nodes/database/database-create-table-node";
 import { DatabaseDescribeTableNode } from "@dafthunk/runtime/nodes/database/database-describe-table-node";
 import { DatabaseDropTableNode } from "@dafthunk/runtime/nodes/database/database-drop-table-node";
 import { DatabaseExecuteNode } from "@dafthunk/runtime/nodes/database/database-execute-node";
@@ -511,6 +512,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(ReceiveQueueMessageNode);
     this.registerImplementation(DatabaseQueryNode);
     this.registerImplementation(DatabaseExecuteNode);
+    this.registerImplementation(DatabaseCreateTableNode);
     this.registerImplementation(DatabaseImportTableNode);
     this.registerImplementation(DatabaseExportTableNode);
     this.registerImplementation(DatabaseDescribeTableNode);

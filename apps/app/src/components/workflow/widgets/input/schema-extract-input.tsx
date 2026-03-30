@@ -165,10 +165,10 @@ function SchemaExtractInputWidget({
 export const schemaExtractInputWidget = createWidget({
   component: SchemaExtractInputWidget,
   nodeTypes: ["json-schema-extract"],
-  inputField: "schemaId",
+  inputField: "schema",
   extractConfig: (nodeId, inputs, outputs) => ({
     nodeId,
-    schemaId: getInputValue(inputs, "schemaId", ""),
+    schemaId: getInputValue(inputs, "schema", ""),
     hasSchemaOutputs: (outputs ?? []).length > 0,
   }),
 });

@@ -1,7 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType, Schema } from "@dafthunk/types";
 import { mapSqliteToType } from "../../utils/database-table";
-import { resolveAndValidateRecords } from "../../utils/schema-validation";
 
 export class DatabaseExportTableNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -23,13 +22,6 @@ export class DatabaseExportTableNode extends ExecutableNode {
         hidden: true,
       },
       {
-        name: "schemaId",
-        type: "schema",
-        description: "Optional schema to validate and coerce exported data.",
-        required: false,
-        hidden: true,
-      },
-      {
         name: "tableName",
         type: "string",
         description: "Name of the table to export.",
@@ -39,9 +31,8 @@ export class DatabaseExportTableNode extends ExecutableNode {
     outputs: [
       {
         name: "schema",
-        type: "json",
-        description:
-          "Schema with name and fields: {name: string, fields: [{name: string, type: string}]}",
+        type: "schema",
+        description: "Schema with name and field definitions.",
       },
       {
         name: "data",
@@ -52,7 +43,7 @@ export class DatabaseExportTableNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { databaseId, tableName, schemaId } = context.inputs;
+    const { databaseId, tableName } = context.inputs;
 
     // Validate required inputs
     if (!databaseId) {
@@ -99,16 +90,7 @@ export class DatabaseExportTableNode extends ExecutableNode {
 
       // Query all data from the table
       const dataResult = await connection.query(`SELECT * FROM ${tableName}`);
-
-      const { records: data, error: schemaError } =
-        await resolveAndValidateRecords(
-          context,
-          schemaId,
-          dataResult.results as Record<string, unknown>[]
-        );
-      if (schemaError) {
-        return this.createErrorResult(schemaError);
-      }
+      const data = dataResult.results as Record<string, unknown>[];
 
       const schema: Schema = { name: tableName as string, fields };
 

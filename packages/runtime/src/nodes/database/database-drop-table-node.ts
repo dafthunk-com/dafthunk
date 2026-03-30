@@ -25,8 +25,6 @@ export class DatabaseDropTableNode extends ExecutableNode {
         type: "string",
         description: "Name of the table to drop.",
         required: true,
-        hidden: true,
-        value: "",
       },
     ],
     outputs: [
