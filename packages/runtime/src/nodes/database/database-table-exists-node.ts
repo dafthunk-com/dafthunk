@@ -25,8 +25,6 @@ export class DatabaseTableExistsNode extends ExecutableNode {
         type: "string",
         description: "Name of the table to check.",
         required: true,
-        hidden: true,
-        value: "",
       },
     ],
     outputs: [

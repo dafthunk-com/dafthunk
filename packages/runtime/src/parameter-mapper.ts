@@ -1,6 +1,7 @@
 import type {
   ParameterValue as ApiParameterValue,
   ObjectReference,
+  Schema,
 } from "@dafthunk/types";
 import {
   isObjectReference,
@@ -13,6 +14,26 @@ import {
   type VideoParameter as NodeVideoParameter,
 } from "./node-types";
 import type { ObjectStore } from "./object-store";
+import type { SchemaService } from "./schema-service";
+
+/**
+ * Optional context for parameter converters that need access to services
+ * beyond the ObjectStore (e.g. schema resolution).
+ */
+export interface ParameterMapperContext {
+  schemaService?: SchemaService;
+  organizationId?: string;
+}
+
+function isSchemaObject(value: unknown): value is Schema {
+  return (
+    !!value &&
+    typeof value === "object" &&
+    "name" in value &&
+    "fields" in value &&
+    Array.isArray((value as Schema).fields)
+  );
+}
 
 /**
  * Type guard for native BlobParameter (Uint8Array only).
@@ -132,7 +153,8 @@ interface Converter {
   ) => Promise<ApiParameterValue> | ApiParameterValue;
   apiToNode: (
     value: ApiParameterValue,
-    objectStore?: ObjectStore
+    objectStore?: ObjectStore,
+    context?: ParameterMapperContext
   ) => Promise<NodeParameterValue> | NodeParameterValue;
 }
 
@@ -256,8 +278,34 @@ const converters: Record<string, Converter> = {
     apiToNode: typeValidatingApiToNode("string"),
   },
   schema: {
-    nodeToApi: typeValidatingNodeToApi("string"),
-    apiToNode: typeValidatingApiToNode("string"),
+    nodeToApi: createJsonParsingNodeToApi(),
+    apiToNode: async (
+      value: ApiParameterValue,
+      _objectStore?: ObjectStore,
+      context?: ParameterMapperContext
+    ) => {
+      // Already a Schema object (e.g. from a wired upstream node output)
+      if (isSchemaObject(value)) {
+        return value as unknown as NodeParameterValue;
+      }
+      // String ID from UI — resolve via SchemaService
+      if (
+        typeof value === "string" &&
+        value &&
+        context?.schemaService &&
+        context?.organizationId
+      ) {
+        const schema = await context.schemaService.resolve(
+          value,
+          context.organizationId
+        );
+        if (!schema) {
+          throw new Error(`Schema '${value}' not found or access denied.`);
+        }
+        return schema as unknown as NodeParameterValue;
+      }
+      return undefined;
+    },
   },
   dataset: {
     nodeToApi: typeValidatingNodeToApi("string"),
@@ -355,7 +403,8 @@ const converters: Record<string, Converter> = {
     },
     apiToNode: (
       value: ApiParameterValue,
-      objectStore?: ObjectStore
+      objectStore?: ObjectStore,
+      _context?: ParameterMapperContext
     ): Promise<NodeParameterValue> | NodeParameterValue => {
       // Handle object references that need to be resolved
       if (isObjectReference(value)) {
@@ -426,9 +475,10 @@ export async function nodeToApiParameter(
 export async function apiToNodeParameter(
   type: ParameterType,
   value: ApiParameterValue,
-  objectStore?: ObjectStore
+  objectStore?: ObjectStore,
+  context?: ParameterMapperContext
 ): Promise<NodeParameterValue> {
   const converter = converters[type];
   if (!converter) throw new Error(`No converter for type: ${type}`);
-  return Promise.resolve(converter.apiToNode(value, objectStore));
+  return Promise.resolve(converter.apiToNode(value, objectStore, context));
 }

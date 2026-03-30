@@ -1,6 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
-import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { resolveAndValidateRecord } from "../../utils/schema-validation";
+import type { NodeExecution, NodeType, Schema } from "@dafthunk/types";
+import { validateRecord } from "../../utils/schema-validation";
 
 export class ReceiveQueueMessageNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -24,7 +24,7 @@ export class ReceiveQueueMessageNode extends ExecutableNode {
         hidden: true,
       },
       {
-        name: "schemaId",
+        name: "schema",
         type: "schema",
         description:
           "Optional schema to validate and coerce the received message payload.",
@@ -52,7 +52,7 @@ export class ReceiveQueueMessageNode extends ExecutableNode {
   };
 
   public async execute(context: NodeContext): Promise<NodeExecution> {
-    const { schemaId } = context.inputs;
+    const { schema } = context.inputs;
 
     try {
       if (!context.queueMessage) {
@@ -63,7 +63,7 @@ export class ReceiveQueueMessageNode extends ExecutableNode {
 
       let payload = context.queueMessage.payload;
 
-      if (schemaId && typeof schemaId === "string") {
+      if (schema) {
         if (
           typeof payload !== "object" ||
           payload === null ||
@@ -73,13 +73,14 @@ export class ReceiveQueueMessageNode extends ExecutableNode {
             "Schema validation requires payload to be a JSON object."
           );
         }
-        const { record, error: schemaError } = await resolveAndValidateRecord(
-          context,
-          schemaId,
-          payload as Record<string, unknown>
+        const { record, errors } = validateRecord(
+          payload as Record<string, unknown>,
+          schema as Schema
         );
-        if (schemaError) {
-          return this.createErrorResult(schemaError);
+        if (errors.length > 0) {
+          return this.createErrorResult(
+            `Schema validation failed: ${errors.join("; ")}`
+          );
         }
         payload = record;
       }

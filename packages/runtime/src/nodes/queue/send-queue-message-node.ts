@@ -1,6 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
-import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { resolveAndValidateRecord } from "../../utils/schema-validation";
+import type { NodeExecution, NodeType, Schema } from "@dafthunk/types";
+import { validateRecord } from "../../utils/schema-validation";
 
 export class SendQueueMessageNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -22,7 +22,7 @@ export class SendQueueMessageNode extends ExecutableNode {
         hidden: true,
       },
       {
-        name: "schemaId",
+        name: "schema",
         type: "schema",
         description:
           "Optional schema to validate and coerce message payload before sending.",
@@ -51,7 +51,7 @@ export class SendQueueMessageNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { queueId, message, schemaId } = context.inputs;
+    const { queueId, message, schema } = context.inputs;
 
     // Validate required inputs
     if (!queueId) {
@@ -63,7 +63,7 @@ export class SendQueueMessageNode extends ExecutableNode {
     }
 
     let validatedMessage = message;
-    if (schemaId && typeof schemaId === "string") {
+    if (schema) {
       if (
         typeof message !== "object" ||
         message === null ||
@@ -73,13 +73,14 @@ export class SendQueueMessageNode extends ExecutableNode {
           "Schema validation requires message to be a JSON object."
         );
       }
-      const { record, error: schemaError } = await resolveAndValidateRecord(
-        context,
-        schemaId,
-        message as Record<string, unknown>
+      const { record, errors } = validateRecord(
+        message as Record<string, unknown>,
+        schema as Schema
       );
-      if (schemaError) {
-        return this.createErrorResult(schemaError);
+      if (errors.length > 0) {
+        return this.createErrorResult(
+          `Schema validation failed: ${errors.join("; ")}`
+        );
       }
       validatedMessage = record;
     }

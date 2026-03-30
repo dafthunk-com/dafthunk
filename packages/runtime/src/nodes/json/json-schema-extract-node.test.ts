@@ -18,17 +18,11 @@ function createNode() {
   } as unknown as Node);
 }
 
-function createContext(
-  inputs: Record<string, unknown>,
-  schema?: Schema
-): NodeContext {
+function createContext(inputs: Record<string, unknown>): NodeContext {
   return {
     nodeId: "test",
     organizationId: "org-1",
     inputs,
-    schemaService: {
-      resolve: async () => schema,
-    },
     getIntegration: async () => {
       throw new Error("No integrations in test");
     },
@@ -38,13 +32,10 @@ function createContext(
 describe("JsonSchemaExtractNode", () => {
   it("should extract fields from a record matching the schema", async () => {
     const node = createNode();
-    const context = createContext(
-      {
-        schemaId: "schema-1",
-        record: { name: "Alice", age: 30, active: true },
-      },
-      testSchema
-    );
+    const context = createContext({
+      schema: testSchema,
+      record: { name: "Alice", age: 30, active: true },
+    });
 
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -55,13 +46,10 @@ describe("JsonSchemaExtractNode", () => {
 
   it("should output null for missing fields", async () => {
     const node = createNode();
-    const context = createContext(
-      {
-        schemaId: "schema-1",
-        record: { name: "Bob" },
-      },
-      testSchema
-    );
+    const context = createContext({
+      schema: testSchema,
+      record: { name: "Bob" },
+    });
 
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -72,13 +60,10 @@ describe("JsonSchemaExtractNode", () => {
 
   it("should ignore extra fields not in the schema", async () => {
     const node = createNode();
-    const context = createContext(
-      {
-        schemaId: "schema-1",
-        record: { name: "Carol", age: 25, active: false, email: "c@x.com" },
-      },
-      testSchema
-    );
+    const context = createContext({
+      schema: testSchema,
+      record: { name: "Carol", age: 25, active: false, email: "c@x.com" },
+    });
 
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -86,9 +71,9 @@ describe("JsonSchemaExtractNode", () => {
     expect(result.outputs?.email).toBeUndefined();
   });
 
-  it("should error when schemaId is missing", async () => {
+  it("should error when schema is missing", async () => {
     const node = createNode();
-    const context = createContext({ record: { name: "X" } }, testSchema);
+    const context = createContext({ record: { name: "X" } });
 
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -97,7 +82,7 @@ describe("JsonSchemaExtractNode", () => {
 
   it("should error when record is missing", async () => {
     const node = createNode();
-    const context = createContext({ schemaId: "schema-1" }, testSchema);
+    const context = createContext({ schema: testSchema });
 
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -106,41 +91,25 @@ describe("JsonSchemaExtractNode", () => {
 
   it("should error when record is an array", async () => {
     const node = createNode();
-    const context = createContext(
-      { schemaId: "schema-1", record: [1, 2, 3] },
-      testSchema
-    );
+    const context = createContext({
+      schema: testSchema,
+      record: [1, 2, 3],
+    });
 
     const result = await node.execute(context);
     expect(result.status).toBe("error");
     expect(result.error).toContain("JSON object is required");
   });
 
-  it("should error when schema is not found", async () => {
+  it("should error when schema is not a valid object", async () => {
     const node = createNode();
-    const context = createContext(
-      { schemaId: "missing", record: { name: "X" } },
-      undefined
-    );
+    const context = createContext({
+      schema: "not-an-object",
+      record: { name: "X" },
+    });
 
     const result = await node.execute(context);
     expect(result.status).toBe("error");
-    expect(result.error).toContain("not found");
-  });
-
-  it("should error when schemaService is not available", async () => {
-    const node = createNode();
-    const context = {
-      nodeId: "test",
-      organizationId: "org-1",
-      inputs: { schemaId: "schema-1", record: { name: "X" } },
-      getIntegration: async () => {
-        throw new Error("No integrations in test");
-      },
-    } as unknown as NodeContext;
-
-    const result = await node.execute(context);
-    expect(result.status).toBe("error");
-    expect(result.error).toContain("Schema service not available");
+    expect(result.error).toContain("schema must be selected");
   });
 });

@@ -1,5 +1,10 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
-import type { FieldType, NodeExecution, NodeType } from "@dafthunk/types";
+import type {
+  FieldType,
+  NodeExecution,
+  NodeType,
+  Schema,
+} from "@dafthunk/types";
 
 const FIELD_TYPE_TO_PARAMETER_TYPE: Record<FieldType, string> = {
   string: "string",
@@ -15,8 +20,9 @@ const FIELD_TYPE_TO_PARAMETER_TYPE: Record<FieldType, string> = {
  * The node's outputs are dynamically set by a frontend widget when
  * the user selects a schema — similar to the Replicate Model node.
  *
- * At runtime the schema is resolved via SchemaService, the record is
- * validated/coerced against it, and each field becomes a named output.
+ * At runtime the schema is received as an inline Schema object (resolved
+ * by the parameter mapper), the record is validated against it, and each
+ * field becomes a named output.
  */
 export class JsonSchemaExtractNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -38,7 +44,7 @@ export class JsonSchemaExtractNode extends ExecutableNode {
     inlinable: false,
     inputs: [
       {
-        name: "schemaId",
+        name: "schema",
         type: "schema",
         description: "Schema that defines the record structure",
         required: true,
@@ -55,9 +61,13 @@ export class JsonSchemaExtractNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { schemaId, record } = context.inputs;
+    const { schema: schemaInput, record } = context.inputs;
 
-    if (!schemaId || typeof schemaId !== "string") {
+    if (
+      !schemaInput ||
+      typeof schemaInput !== "object" ||
+      !("fields" in (schemaInput as object))
+    ) {
       return this.createErrorResult("A schema must be selected.");
     }
 
@@ -67,21 +77,7 @@ export class JsonSchemaExtractNode extends ExecutableNode {
       );
     }
 
-    if (!context.schemaService) {
-      return this.createErrorResult("Schema service not available.");
-    }
-
-    const schema = await context.schemaService.resolve(
-      schemaId,
-      context.organizationId
-    );
-
-    if (!schema) {
-      return this.createErrorResult(
-        `Schema '${schemaId}' not found or does not belong to your organization.`
-      );
-    }
-
+    const schema = schemaInput as Schema;
     const outputs: Record<string, unknown> = {};
     const rec = record as Record<string, unknown>;
 

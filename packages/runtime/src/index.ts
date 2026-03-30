@@ -95,7 +95,11 @@ export {
 } from "./node-types";
 export type { ObjectMetadata, ObjectStore } from "./object-store";
 // Pure functions
-export { apiToNodeParameter, nodeToApiParameter } from "./parameter-mapper";
+export {
+  apiToNodeParameter,
+  nodeToApiParameter,
+  type ParameterMapperContext,
+} from "./parameter-mapper";
 export type { Queue, QueueService } from "./queue-service";
 export type { SchemaService } from "./schema-service";
 export { testConcurrentErrors } from "./specification/concurrent-errors-spec";

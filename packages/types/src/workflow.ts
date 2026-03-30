@@ -177,7 +177,7 @@ export type ParameterType =
     }
   | {
       type: "schema";
-      value?: string; // Schema ID reference
+      value?: string | Record<string, unknown>; // Schema ID (from UI) or inline Schema object (from node output)
     }
   | {
       type: "database";

@@ -1,7 +1,39 @@
 import { getSandbox } from "@cloudflare/sandbox";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
-import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { resolveAndValidateRecords } from "../../utils/schema-validation";
+import type {
+  Field,
+  FieldType,
+  NodeExecution,
+  NodeType,
+  Schema,
+} from "@dafthunk/types";
+
+function inferFieldType(value: unknown): FieldType {
+  if (typeof value === "boolean") return "boolean";
+  if (typeof value === "number") {
+    return Number.isInteger(value) ? "integer" : "number";
+  }
+  if (typeof value === "string") {
+    if (!Number.isNaN(new Date(value).getTime()) && /\d{4}-\d{2}/.test(value)) {
+      return "datetime";
+    }
+    return "string";
+  }
+  if (typeof value === "object" && value !== null) return "json";
+  return "string";
+}
+
+function inferSchema(results: Record<string, unknown>[]): Schema {
+  if (results.length === 0) {
+    return { name: "result", fields: [] };
+  }
+  const first = results[0];
+  const fields: Field[] = Object.entries(first).map(([name, value]) => ({
+    name,
+    type: inferFieldType(value),
+  }));
+  return { name: "result", fields };
+}
 
 export class ParquetQueryNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -26,15 +58,13 @@ export class ParquetQueryNode extends ExecutableNode {
           "DuckDB SQL query. Use read_parquet(), read_csv(), or read_json() to query remote files.",
         required: true,
       },
-      {
-        name: "schemaId",
-        type: "schema",
-        description: "Optional schema to validate and coerce query results.",
-        required: false,
-        hidden: true,
-      },
     ],
     outputs: [
+      {
+        name: "schema",
+        type: "schema",
+        description: "Schema inferred from the query results.",
+      },
       {
         name: "results",
         type: "json",
@@ -50,7 +80,7 @@ export class ParquetQueryNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { sql, schemaId } = context.inputs;
+    const { sql } = context.inputs;
 
     if (!sql || typeof sql !== "string") {
       return this.createErrorResult("'sql' is a required string input.");
@@ -90,20 +120,18 @@ export class ParquetQueryNode extends ExecutableNode {
 
       const output = queryResult.stdout.trim();
       if (!output) {
-        return this.createSuccessResult({ results: [], rowCount: 0 });
+        return this.createSuccessResult({
+          schema: { name: "result", fields: [] },
+          results: [],
+          rowCount: 0,
+        });
       }
 
-      const { records: results, error: schemaError } =
-        await resolveAndValidateRecords(
-          context,
-          schemaId,
-          JSON.parse(output) as Record<string, unknown>[]
-        );
-      if (schemaError) {
-        return this.createErrorResult(schemaError);
-      }
+      const results = JSON.parse(output) as Record<string, unknown>[];
+      const schema = inferSchema(results);
 
       return this.createSuccessResult({
+        schema,
         results,
         rowCount: results.length,
       });

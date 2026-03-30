@@ -25,8 +25,6 @@ export class DatabaseGetRowCountNode extends ExecutableNode {
         type: "string",
         description: "Name of the table to count.",
         required: true,
-        hidden: true,
-        value: "",
       },
     ],
     outputs: [
