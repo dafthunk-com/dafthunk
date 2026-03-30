@@ -15,10 +15,14 @@ import {
   createDatabase,
   OrganizationRole,
   saveUser,
+  userExists,
   users,
   verifyApiKey,
 } from "./db";
+import type { UserData } from "./db/queries";
 import { memberships, organizations } from "./db/schema";
+import { createEmailService } from "./services/email-service";
+import { getWelcomeEmail } from "./services/email-templates";
 
 // Constants
 export const JWT_ACCESS_TOKEN_NAME = "access_token";
@@ -493,6 +497,72 @@ auth.post("/logout", (c) => {
   return c.redirect(c.env.WEB_HOST);
 });
 
+/**
+ * Complete the OAuth login flow: save user, send welcome email, set tokens, redirect.
+ */
+async function completeOAuthLogin(
+  c: Context<ApiContext>,
+  userData: UserData
+): Promise<Response> {
+  const db = createDatabase(c.env.DB);
+  const isNewUser = !(await userExists(
+    db,
+    userData.provider,
+    userData.providerId
+  ));
+  const { user: savedUser, organization: savedOrganization } = await saveUser(
+    db,
+    userData
+  );
+
+  if (isNewUser && userData.email) {
+    const emailService = createEmailService(c.env);
+    if (emailService) {
+      const emailContent = getWelcomeEmail({
+        userName: userData.name,
+        appUrl: c.env.WEB_HOST,
+        websiteUrl: c.env.WEBSITE_URL,
+        onboardingUrl: c.env.ONBOARDING_URL,
+      });
+      const result = await emailService.send({
+        to: userData.email,
+        subject: emailContent.subject,
+        html: emailContent.html,
+        text: emailContent.text,
+      });
+      if (!result.success) {
+        console.warn("Failed to send welcome email:", result.error);
+      }
+    }
+  }
+
+  const organizationInfo: OrganizationInfo = {
+    id: savedOrganization.id,
+    name: savedOrganization.name,
+    role: OrganizationRole.OWNER,
+  };
+
+  const accessPayload: JWTTokenPayload = {
+    sub: savedUser.id,
+    name: userData.name,
+    email: userData.email,
+    avatarUrl: userData.avatarUrl,
+    role: savedUser.role,
+    developerMode: savedUser.developerMode,
+    provider: userData.provider,
+    organization: organizationInfo,
+  };
+
+  const refreshPayload = {
+    sub: savedUser.id,
+    organization: { id: savedOrganization.id },
+  };
+
+  await setAuthTokens(c, accessPayload, refreshPayload);
+
+  return c.redirect(consumeReturnTo(c));
+}
+
 auth.get(
   "/login/github",
   (c, next) => {
@@ -522,49 +592,13 @@ auth.get(
         "GitHub"
       );
 
-      const userId = validatedUser.id.toString();
-      const userName = validatedUser.name;
-      const userEmail = validatedUser.email || undefined;
-      const avatarUrl = validatedUser.avatar_url;
-
-      const db = createDatabase(c.env.DB);
-
-      // Save user and create organization if needed
-      const userData = {
-        provider: "github" as const,
-        providerId: userId,
-        name: userName,
-        email: userEmail,
-        avatarUrl,
-      };
-      const { user: savedUser, organization: savedOrganization } =
-        await saveUser(db, userData);
-
-      const organizationInfo: OrganizationInfo = {
-        id: savedOrganization.id,
-        name: savedOrganization.name,
-        role: OrganizationRole.OWNER,
-      };
-
-      const accessPayload: JWTTokenPayload = {
-        sub: savedUser.id,
-        name: userName,
-        email: userEmail ?? undefined,
-        avatarUrl,
-        role: savedUser.role,
-        developerMode: savedUser.developerMode,
+      return await completeOAuthLogin(c, {
         provider: "github",
-        organization: organizationInfo,
-      };
-
-      const refreshPayload = {
-        sub: savedUser.id,
-        organization: { id: savedOrganization.id },
-      };
-
-      await setAuthTokens(c, accessPayload, refreshPayload);
-
-      return c.redirect(consumeReturnTo(c));
+        providerId: validatedUser.id.toString(),
+        name: validatedUser.name,
+        email: validatedUser.email || undefined,
+        avatarUrl: validatedUser.avatar_url,
+      });
     } catch (error) {
       console.error("GitHub authentication error:", error);
       return c.json({ error: "Authentication failed" }, 400);
@@ -600,49 +634,13 @@ auth.get(
         "Google"
       );
 
-      const userId = validatedUser.id.toString();
-      const userName = validatedUser.name;
-      const userEmail = validatedUser.email as string | undefined;
-      const avatarUrl = validatedUser.avatar_url;
-
-      const db = createDatabase(c.env.DB);
-
-      // Save user and create organization if needed
-      const userData = {
-        provider: "google" as const,
-        providerId: userId,
-        name: userName,
-        email: userEmail,
-        avatarUrl,
-      };
-      const { user: savedUser, organization: savedOrganization } =
-        await saveUser(db, userData);
-
-      const organizationInfo: OrganizationInfo = {
-        id: savedOrganization.id,
-        name: savedOrganization.name,
-        role: OrganizationRole.OWNER,
-      };
-
-      const accessPayload: JWTTokenPayload = {
-        sub: savedUser.id,
-        name: userName,
-        email: userEmail,
-        avatarUrl: avatarUrl ?? undefined,
-        role: savedUser.role,
-        developerMode: savedUser.developerMode,
+      return await completeOAuthLogin(c, {
         provider: "google",
-        organization: organizationInfo,
-      };
-
-      const refreshPayload = {
-        sub: savedUser.id,
-        organization: { id: savedOrganization.id },
-      };
-
-      await setAuthTokens(c, accessPayload, refreshPayload);
-
-      return c.redirect(consumeReturnTo(c));
+        providerId: validatedUser.id.toString(),
+        name: validatedUser.name,
+        email: validatedUser.email as string | undefined,
+        avatarUrl: validatedUser.avatar_url ?? undefined,
+      });
     } catch (error) {
       console.error("Google authentication error:", error);
       return c.json({ error: "Authentication failed" }, 400);
