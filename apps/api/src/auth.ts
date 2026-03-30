@@ -525,6 +525,7 @@ async function completeOAuthLogin(
         onboardingUrl: c.env.ONBOARDING_URL,
       });
       const result = await emailService.send({
+        from: c.env.ONBOARDING_EMAIL,
         to: userData.email,
         subject: emailContent.subject,
         html: emailContent.html,

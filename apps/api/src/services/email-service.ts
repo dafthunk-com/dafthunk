@@ -3,6 +3,7 @@ import { AwsClient } from "aws4fetch";
 import type { Bindings } from "../context";
 
 export interface EmailOptions {
+  from?: string;
   to: string | string[];
   subject: string;
   html?: string;
@@ -52,7 +53,7 @@ export class EmailService {
    * Send an email using Amazon SES
    */
   async send(options: EmailOptions): Promise<EmailResult> {
-    const { to, subject, html, text, replyTo } = options;
+    const { from, to, subject, html, text, replyTo } = options;
 
     if (!to || !subject) {
       return {
@@ -78,7 +79,7 @@ export class EmailService {
 
       const params = new URLSearchParams();
       params.set("Action", "SendEmail");
-      params.set("Source", this.fromAddress);
+      params.set("Source", from ?? this.fromAddress);
 
       for (let i = 0; i < toArray.length; i++) {
         params.set(`Destination.ToAddresses.member.${i + 1}`, toArray[i]);
