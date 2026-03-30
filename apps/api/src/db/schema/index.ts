@@ -134,7 +134,7 @@ export const organizations = sqliteTable(
   {
     id: text("id").primaryKey(),
     name: text("name").notNull(),
-    computeCredits: integer("compute_credits").notNull().default(10000),
+    computeCredits: integer("compute_credits").notNull().default(1000),
     stripeCustomerId: text("stripe_customer_id"),
     stripeSubscriptionId: text("stripe_subscription_id"),
     subscriptionStatus: text(
