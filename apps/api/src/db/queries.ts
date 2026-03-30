@@ -94,6 +94,24 @@ export type UserData = {
 };
 
 /**
+ * Check if a user exists by provider ID
+ */
+export async function userExists(
+  db: ReturnType<typeof createDatabase>,
+  provider: "github" | "google",
+  providerId: string
+): Promise<boolean> {
+  const providerColumn =
+    provider === "github" ? users.githubId : users.googleId;
+  const [result] = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(providerColumn, providerId))
+    .limit(1);
+  return !!result;
+}
+
+/**
  * Save a user to the database and ensure they belong to an organization.
  * This function handles user creation and linking accounts via email.
  *
