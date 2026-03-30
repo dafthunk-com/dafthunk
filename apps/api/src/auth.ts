@@ -523,6 +523,8 @@ async function completeOAuthLogin(
         appUrl: c.env.WEB_HOST,
         websiteUrl: c.env.WEBSITE_URL,
         onboardingUrl: c.env.ONBOARDING_URL,
+        discordUrl: c.env.DISCORD_URL,
+        githubUrl: c.env.GITHUB_URL,
       });
       const result = await emailService.send({
         from: c.env.ONBOARDING_EMAIL,

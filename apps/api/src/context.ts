@@ -71,6 +71,8 @@ export interface Bindings {
   STRIPE_METER_ID?: string;
   ONBOARDING_URL?: string;
   ONBOARDING_EMAIL?: string;
+  DISCORD_URL?: string;
+  GITHUB_URL?: string;
 }
 
 export interface Variables {
