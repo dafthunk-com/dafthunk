@@ -26,11 +26,16 @@ const fieldSchema = z.object({
   name: z.string().min(1),
   type: z.enum(["string", "integer", "number", "boolean", "datetime", "json"]),
   required: z.boolean().optional(),
+  primaryKey: z.boolean().optional(),
 });
 
 const uniqueFields = (fields: z.infer<typeof fieldSchema>[]) => {
   const names = fields.map((f) => f.name.trim());
   return new Set(names).size === names.length;
+};
+
+const atMostOnePrimaryKey = (fields: z.infer<typeof fieldSchema>[]) => {
+  return fields.filter((f) => f.primaryKey).length <= 1;
 };
 
 const schemaRoutes = new Hono<ApiContext>();
@@ -85,6 +90,10 @@ schemaRoutes.post(
       })
       .refine((data) => uniqueFields(data.fields), {
         message: "Field names must be unique",
+        path: ["fields"],
+      })
+      .refine((data) => atMostOnePrimaryKey(data.fields), {
+        message: "At most one field can be a primary key",
         path: ["fields"],
       })
   ),
@@ -145,6 +154,10 @@ schemaRoutes.put(
       })
       .refine((data) => !data.fields || uniqueFields(data.fields), {
         message: "Field names must be unique",
+        path: ["fields"],
+      })
+      .refine((data) => !data.fields || atMostOnePrimaryKey(data.fields), {
+        message: "At most one field can be a primary key",
         path: ["fields"],
       })
   ),

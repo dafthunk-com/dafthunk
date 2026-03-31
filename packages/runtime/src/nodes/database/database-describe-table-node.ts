@@ -81,6 +81,7 @@ export class DatabaseDescribeTableNode extends ExecutableNode {
       const fields: Field[] = schemaResult.results.map((col: any) => ({
         name: col.name,
         type: mapSqliteToType(col.type || "TEXT"),
+        ...(col.pk ? { primaryKey: true } : {}),
       }));
 
       const schema: Schema = {

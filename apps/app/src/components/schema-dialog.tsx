@@ -1,4 +1,5 @@
 import type { Field, FieldType, SchemaEntity } from "@dafthunk/types";
+import KeyRound from "lucide-react/icons/key-round";
 import PlusCircle from "lucide-react/icons/plus-circle";
 import Trash2 from "lucide-react/icons/trash-2";
 import { useEffect, useState } from "react";
@@ -23,6 +24,12 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/utils/utils";
 
 const FIELD_TYPES: FieldType[] = [
@@ -115,6 +122,45 @@ function FieldEditor({ fields, onChange }: FieldEditorProps) {
               />
               <span className="text-xs text-muted-foreground">Req</span>
             </div>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant={field.primaryKey ? "secondary" : "ghost"}
+                    size="icon"
+                    className="h-8 w-8 shrink-0"
+                    onClick={() => {
+                      if (field.primaryKey) {
+                        updateField(index, { primaryKey: undefined });
+                      } else {
+                        onChange(
+                          fields.map((f, i) => ({
+                            ...f,
+                            primaryKey:
+                              i === index ? true : undefined,
+                          }))
+                        );
+                      }
+                    }}
+                  >
+                    <KeyRound
+                      className={cn(
+                        "h-4 w-4",
+                        field.primaryKey
+                          ? "text-foreground"
+                          : "text-muted-foreground"
+                      )}
+                    />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {field.primaryKey
+                    ? "Remove primary key"
+                    : "Set as primary key"}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <Button
               type="button"
               variant="ghost"

@@ -82,7 +82,8 @@ export function generateCreateTableSQL(schema: Schema): string {
 
   const columns = fields.map((field) => {
     const sqlType = mapTypeToSqlite(field.type);
-    return `${field.name} ${sqlType}`;
+    const pk = field.primaryKey ? " PRIMARY KEY" : "";
+    return `${field.name} ${sqlType}${pk}`;
   });
 
   return `CREATE TABLE IF NOT EXISTS ${name} (${columns.join(", ")})`;

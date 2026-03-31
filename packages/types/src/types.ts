@@ -25,6 +25,7 @@ export interface Field {
   name: string;
   type: FieldType;
   required?: boolean;
+  primaryKey?: boolean;
 }
 
 /**

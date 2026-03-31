@@ -86,6 +86,7 @@ export class DatabaseExportTableNode extends ExecutableNode {
       const fields = schemaResult.results.map((col: any) => ({
         name: col.name,
         type: mapSqliteToType(col.type || "TEXT"),
+        ...(col.pk ? { primaryKey: true } : {}),
       }));
 
       // Query all data from the table
