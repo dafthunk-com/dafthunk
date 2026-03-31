@@ -29,6 +29,7 @@ import { javascriptInputWidget } from "./input/javascript-input";
 import { jsonInputWidget } from "./input/json-input";
 import { numberInputWidget } from "./input/number-input";
 import { replicateModelInputWidget } from "./input/replicate-model-input";
+import { schemaComposeInputWidget } from "./input/schema-compose-input";
 import { schemaExtractInputWidget } from "./input/schema-extract-input";
 import { secretInputWidget } from "./input/secret-input";
 import { sliderInputWidget } from "./input/slider-input";
@@ -86,6 +87,7 @@ const widgets = [
   audioRecorderInputWidget,
   canvasInputWidget,
   replicateModelInputWidget,
+  schemaComposeInputWidget,
   schemaExtractInputWidget,
   createDynamicInputsWidget("string-concat", {
     prefix: "input",
