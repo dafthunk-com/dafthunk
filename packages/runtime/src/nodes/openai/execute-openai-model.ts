@@ -1,7 +1,8 @@
 import type { NodeContext } from "@dafthunk/runtime";
-import type { NodeExecution } from "@dafthunk/types";
+import type { NodeExecution, Schema } from "@dafthunk/types";
 import OpenAI from "openai";
 import { getOpenAIConfig } from "../../utils/ai-gateway";
+import { schemaToJsonSchema } from "../../utils/schema-to-json-schema";
 import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
 
 /**
@@ -23,7 +24,7 @@ export async function executeOpenAIModel(
   pricing: TokenPricing
 ): Promise<NodeExecution> {
   try {
-    const { instructions, input } = context.inputs;
+    const { instructions, input, schema: schemaInput } = context.inputs;
 
     if (!input) {
       return node.createErrorResult("Input is required");
@@ -35,6 +36,21 @@ export async function executeOpenAIModel(
       ...getOpenAIConfig(context.env),
     });
 
+    // Build response_format when a schema is provided
+    const responseFormat =
+      schemaInput &&
+      typeof schemaInput === "object" &&
+      "fields" in schemaInput
+        ? {
+            type: "json_schema" as const,
+            json_schema: {
+              name: "response",
+              schema: schemaToJsonSchema(schemaInput as Schema),
+              strict: true,
+            },
+          }
+        : undefined;
+
     const completion = await client.chat.completions.create({
       model: modelId,
       max_tokens: 1024,
@@ -44,6 +60,7 @@ export async function executeOpenAIModel(
           : []),
         { role: "user" as const, content: input },
       ],
+      ...(responseFormat && { response_format: responseFormat }),
     });
 
     const responseText = completion.choices[0]?.message?.content || "";

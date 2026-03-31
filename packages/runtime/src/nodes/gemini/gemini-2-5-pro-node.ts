@@ -75,12 +75,18 @@ export class Gemini25ProNode extends ExecutableNode {
         required: false,
         hidden: true,
       },
+      {
+        name: "schema",
+        type: "schema",
+        description: "JSON schema to constrain the output format",
+        hidden: true,
+      },
     ],
     outputs: [
       {
         name: "text",
-        type: "string",
-        description: "Generated text response from Gemini 2.5 Pro",
+        type: "any",
+        description: "Generated text or JSON response from Gemini 2.5 Pro",
       },
       {
         name: "candidates",

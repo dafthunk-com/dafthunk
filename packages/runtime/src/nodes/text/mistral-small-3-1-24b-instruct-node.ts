@@ -103,12 +103,18 @@ export class MistralSmall31_24BInstructNode extends ExecutableNode {
         hidden: true,
         value: 0.0,
       },
+      {
+        name: "schema",
+        type: "schema",
+        description: "JSON schema to constrain the output format",
+        hidden: true,
+      },
     ],
     outputs: [
       {
         name: "response",
-        type: "string",
-        description: "Generated text response",
+        type: "any",
+        description: "Generated text or JSON response",
       },
       {
         name: "tool_calls",

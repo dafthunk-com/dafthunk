@@ -34,12 +34,18 @@ export class Gpt5Node extends ExecutableNode {
         description: "The input text or question for GPT-5",
         required: true,
       },
+      {
+        name: "schema",
+        type: "schema",
+        description: "JSON schema to constrain the output format",
+        hidden: true,
+      },
     ],
     outputs: [
       {
         name: "text",
-        type: "string",
-        description: "Generated text response from GPT-5",
+        type: "any",
+        description: "Generated text or JSON response from GPT-5",
       },
     ],
   };

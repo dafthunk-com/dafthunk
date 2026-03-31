@@ -1,7 +1,8 @@
 import type { NodeContext, ToolReference } from "@dafthunk/runtime";
-import type { NodeExecution } from "@dafthunk/types";
+import type { NodeExecution, Schema } from "@dafthunk/types";
 import { GoogleGenAI } from "@google/genai";
 import { getGoogleAIConfig } from "../../utils/ai-gateway";
+import { schemaToJsonSchema } from "../../utils/schema-to-json-schema";
 import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
 
 interface GeminiModelConfig {
@@ -41,6 +42,7 @@ export async function executeGeminiModel(
       thinking_budget,
       tools,
       googleSearch,
+      schema: schemaInput,
     } = context.inputs;
 
     if (!input) {
@@ -62,6 +64,16 @@ export async function executeGeminiModel(
     }
     if (thinking_budget !== undefined && thinking_budget !== null) {
       genConfig.thinkingConfig = { thinkingBudget: thinking_budget };
+    }
+
+    // Add structured output when a schema is provided
+    if (
+      schemaInput &&
+      typeof schemaInput === "object" &&
+      "fields" in schemaInput
+    ) {
+      genConfig.responseMimeType = "application/json";
+      genConfig.responseSchema = schemaToJsonSchema(schemaInput as Schema);
     }
 
     const functionDeclarations =

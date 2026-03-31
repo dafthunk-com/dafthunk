@@ -75,12 +75,18 @@ export class Gemini25FlashNode extends ExecutableNode {
         required: false,
         hidden: true,
       },
+      {
+        name: "schema",
+        type: "schema",
+        description: "JSON schema to constrain the output format",
+        hidden: true,
+      },
     ],
     outputs: [
       {
         name: "text",
-        type: "string",
-        description: "Generated text response from Gemini 2.5 Flash",
+        type: "any",
+        description: "Generated text or JSON response from Gemini 2.5 Flash",
       },
       {
         name: "candidates",

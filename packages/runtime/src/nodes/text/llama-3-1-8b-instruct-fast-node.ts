@@ -46,12 +46,18 @@ export class Llama318BInstructFastNode extends ExecutableNode {
         hidden: true,
         value: undefined, // Optional
       },
+      {
+        name: "schema",
+        type: "schema",
+        description: "JSON schema to constrain the output format",
+        hidden: true,
+      },
     ],
     outputs: [
       {
         name: "response",
-        type: "string",
-        description: "Generated text response",
+        type: "any",
+        description: "Generated text or JSON response",
       },
     ],
   };

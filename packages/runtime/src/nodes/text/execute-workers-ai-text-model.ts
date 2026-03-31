@@ -1,7 +1,8 @@
 import { runWithTools } from "@cloudflare/ai-utils";
 import type { NodeContext, ToolReference } from "@dafthunk/runtime";
 import { type ExecutableNode, ToolCallTracker } from "@dafthunk/runtime";
-import type { NodeExecution } from "@dafthunk/types";
+import type { NodeExecution, Schema } from "@dafthunk/types";
+import { schemaToJsonSchema } from "../../utils/schema-to-json-schema";
 import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
 
 /**
@@ -29,7 +30,7 @@ export async function executeWorkersAiTextModel(
   config: WorkersAiTextConfig
 ): Promise<NodeExecution> {
   try {
-    const { prompt, messages, tools } = context.inputs;
+    const { prompt, messages, tools, schema: schemaInput } = context.inputs;
 
     if (!context.env?.AI) {
       return node.createErrorResult("AI service is not available");
@@ -54,7 +55,18 @@ export async function executeWorkersAiTextModel(
       context
     );
 
-    const extraParams = config.params ?? {};
+    // Build response_format when a schema is provided
+    const extraParams: Record<string, unknown> = { ...(config.params ?? {}) };
+    if (schemaInput && typeof schemaInput === "object" && "fields" in schemaInput) {
+      extraParams.response_format = {
+        type: "json_schema",
+        json_schema: {
+          name: "response",
+          schema: schemaToJsonSchema(schemaInput as Schema),
+        },
+      };
+    }
+
     let result: any;
     let executedToolCalls: any[] = [];
 
