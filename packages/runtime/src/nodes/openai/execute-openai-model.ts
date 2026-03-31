@@ -38,9 +38,7 @@ export async function executeOpenAIModel(
 
     // Build response_format when a schema is provided
     const responseFormat =
-      schemaInput &&
-      typeof schemaInput === "object" &&
-      "fields" in schemaInput
+      schemaInput && typeof schemaInput === "object" && "fields" in schemaInput
         ? {
             type: "json_schema" as const,
             json_schema: {

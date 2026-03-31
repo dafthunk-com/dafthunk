@@ -707,13 +707,7 @@ export class AgentRunner extends Agent<Bindings, AgentRunnerState> {
       case "openai":
         return this.callOpenAI(model, instructions, messages, tools, schema);
       case "workers-ai":
-        return this.callWorkersAI(
-          model,
-          instructions,
-          messages,
-          tools,
-          schema
-        );
+        return this.callWorkersAI(model, instructions, messages, tools, schema);
       default:
         throw new Error(`Unsupported provider: ${provider}`);
     }

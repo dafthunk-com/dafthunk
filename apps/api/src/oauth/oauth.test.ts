@@ -30,7 +30,7 @@ describe("OAuth Module", () => {
 
     it("should return all providers", () => {
       const providers = getAllProviders();
-      expect(providers).toHaveLength(6);
+      expect(providers).toHaveLength(7);
     });
   });
 
