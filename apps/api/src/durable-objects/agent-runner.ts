@@ -25,8 +25,10 @@ import {
   getOpenAIConfig,
 } from "@dafthunk/runtime/utils/ai-gateway";
 import { createCodeModeToolDefinition } from "@dafthunk/runtime/utils/code-mode";
+import { schemaToJsonSchema } from "@dafthunk/runtime/utils/schema-to-json-schema";
 import type { TokenPricing } from "@dafthunk/runtime/utils/usage";
 import { calculateTokenUsage } from "@dafthunk/runtime/utils/usage";
+import type { Schema } from "@dafthunk/types";
 import { GoogleGenAI } from "@google/genai";
 import { Agent } from "agents";
 import OpenAI from "openai";
@@ -74,6 +76,8 @@ export interface AgentRunRequest {
   agentId?: string;
   /** Max number of previous messages to load from conversation history */
   maxHistory?: number;
+  /** Schema to constrain the final output format (structured JSON output) */
+  schema?: Record<string, unknown>;
 }
 
 export interface AgentRunResponse {
@@ -221,6 +225,28 @@ export class AgentRunner extends Agent<Bindings, AgentRunnerState> {
         body.maxHistory ?? 50
       );
 
+      // Convert schema if provided
+      const jsonSchema =
+        body.schema &&
+        typeof body.schema === "object" &&
+        "fields" in body.schema
+          ? schemaToJsonSchema(body.schema as unknown as Schema)
+          : undefined;
+
+      // Build callFinalLLM that applies schema constraint on the final turn
+      const callFinalLLM = jsonSchema
+        ? (messages: AgentMessage[], tools: ToolDefinition[]) =>
+            this.callLLM(
+              body.provider,
+              body.model,
+              body.instructions,
+              messages,
+              tools,
+              geminiBuiltInTools,
+              jsonSchema
+            )
+        : undefined;
+
       // Run the agent loop
       const result = await runAgentLoop({
         userMessage,
@@ -235,6 +261,7 @@ export class AgentRunner extends Agent<Bindings, AgentRunnerState> {
             tools,
             geminiBuiltInTools
           ),
+        callFinalLLM,
         onStepComplete: async (state) => {
           this.ctx.storage.sql.exec(
             `UPDATE agent_runs SET state = ?, updated_at = datetime('now') WHERE run_id = ?`,
@@ -388,6 +415,28 @@ export class AgentRunner extends Agent<Bindings, AgentRunnerState> {
         body.maxHistory ?? 50
       );
 
+      // Convert schema if provided
+      const jsonSchema =
+        body.schema &&
+        typeof body.schema === "object" &&
+        "fields" in body.schema
+          ? schemaToJsonSchema(body.schema as unknown as Schema)
+          : undefined;
+
+      // Build callFinalLLM that applies schema constraint on the final turn
+      const callFinalLLM = jsonSchema
+        ? (messages: AgentMessage[], tools: ToolDefinition[]) =>
+            this.callLLM(
+              body.provider,
+              body.model,
+              body.instructions,
+              messages,
+              tools,
+              geminiBuiltInTools,
+              jsonSchema
+            )
+        : undefined;
+
       const result = await runAgentLoop({
         userMessage,
         tools: toolDefinitions,
@@ -401,6 +450,7 @@ export class AgentRunner extends Agent<Bindings, AgentRunnerState> {
             tools,
             geminiBuiltInTools
           ),
+        callFinalLLM,
         onStepComplete: async (state) => {
           this.ctx.storage.sql.exec(
             `UPDATE agent_runs SET state = ?, updated_at = datetime('now') WHERE run_id = ?`,
@@ -639,23 +689,31 @@ export class AgentRunner extends Agent<Bindings, AgentRunnerState> {
     instructions: string,
     messages: AgentMessage[],
     tools: ToolDefinition[],
-    builtInTools?: Record<string, unknown>[]
+    builtInTools?: Record<string, unknown>[],
+    schema?: Record<string, unknown>
   ): Promise<LLMResponse> {
     switch (provider) {
       case "anthropic":
-        return this.callAnthropic(model, instructions, messages, tools);
+        return this.callAnthropic(model, instructions, messages, tools, schema);
       case "google":
         return this.callGoogle(
           model,
           instructions,
           messages,
           tools,
-          builtInTools
+          builtInTools,
+          schema
         );
       case "openai":
-        return this.callOpenAI(model, instructions, messages, tools);
+        return this.callOpenAI(model, instructions, messages, tools, schema);
       case "workers-ai":
-        return this.callWorkersAI(model, instructions, messages, tools);
+        return this.callWorkersAI(
+          model,
+          instructions,
+          messages,
+          tools,
+          schema
+        );
       default:
         throw new Error(`Unsupported provider: ${provider}`);
     }
@@ -667,7 +725,8 @@ export class AgentRunner extends Agent<Bindings, AgentRunnerState> {
     model: string,
     instructions: string,
     messages: AgentMessage[],
-    tools: ToolDefinition[]
+    tools: ToolDefinition[],
+    schema?: Record<string, unknown>
   ): Promise<LLMResponse> {
     const client = new Anthropic({
       apiKey: "gateway-managed",
@@ -716,11 +775,16 @@ export class AgentRunner extends Agent<Bindings, AgentRunnerState> {
       input_schema: t.parameters as Anthropic.Tool.InputSchema,
     }));
 
+    // When schema is provided, append a JSON constraint to the system prompt
+    const systemPrompt = schema
+      ? `${instructions}\n\nYou MUST respond with valid JSON matching this schema:\n${JSON.stringify(schema)}`
+      : instructions;
+
     const response = await client.messages.create({
       model,
       max_tokens: 4096,
       messages: anthropicMessages,
-      ...(instructions && { system: instructions }),
+      ...(systemPrompt && { system: systemPrompt }),
       ...(anthropicTools.length > 0 && { tools: anthropicTools }),
     });
 
@@ -755,7 +819,8 @@ export class AgentRunner extends Agent<Bindings, AgentRunnerState> {
     instructions: string,
     messages: AgentMessage[],
     tools: ToolDefinition[],
-    builtInTools?: Record<string, unknown>[]
+    builtInTools?: Record<string, unknown>[],
+    schema?: Record<string, unknown>
   ): Promise<LLMResponse> {
     const ai = new GoogleGenAI({
       apiKey: "gateway-managed",
@@ -815,6 +880,12 @@ export class AgentRunner extends Agent<Bindings, AgentRunnerState> {
       config.tools = allTools;
     }
 
+    // Apply schema constraint for structured JSON output
+    if (schema) {
+      config.responseMimeType = "application/json";
+      config.responseSchema = schema;
+    }
+
     const response = await ai.models.generateContent({
       model,
       contents: contents as any,
@@ -859,7 +930,8 @@ export class AgentRunner extends Agent<Bindings, AgentRunnerState> {
     model: string,
     instructions: string,
     messages: AgentMessage[],
-    tools: ToolDefinition[]
+    tools: ToolDefinition[],
+    schema?: Record<string, unknown>
   ): Promise<LLMResponse> {
     const client = new OpenAI({
       apiKey: "gateway-managed",
@@ -911,11 +983,24 @@ export class AgentRunner extends Agent<Bindings, AgentRunnerState> {
       },
     }));
 
+    // Build response_format when a schema is provided
+    const responseFormat = schema
+      ? {
+          type: "json_schema" as const,
+          json_schema: {
+            name: "response",
+            schema,
+            strict: true,
+          },
+        }
+      : undefined;
+
     const completion = await client.chat.completions.create({
       model,
       max_tokens: 4096,
       messages: openaiMessages,
       ...(openaiTools.length > 0 && { tools: openaiTools }),
+      ...(responseFormat && { response_format: responseFormat }),
     });
 
     const choice = completion.choices[0];
@@ -948,13 +1033,20 @@ export class AgentRunner extends Agent<Bindings, AgentRunnerState> {
     model: string,
     _instructions: string,
     messages: AgentMessage[],
-    tools: ToolDefinition[]
+    tools: ToolDefinition[],
+    schema?: Record<string, unknown>
   ): Promise<LLMResponse> {
     // Workers AI uses OpenAI-compatible chat format
     const aiMessages: Array<{ role: string; content: string }> = [];
 
-    if (_instructions) {
-      aiMessages.push({ role: "system", content: _instructions });
+    // When schema is provided, append a JSON constraint to the system prompt
+    // (Workers AI models don't reliably support response_format)
+    const systemPrompt = schema
+      ? `${_instructions}\n\nYou MUST respond with valid JSON matching this schema:\n${JSON.stringify(schema)}`
+      : _instructions;
+
+    if (systemPrompt) {
+      aiMessages.push({ role: "system", content: systemPrompt });
     }
 
     for (const m of messages) {

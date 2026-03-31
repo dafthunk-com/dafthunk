@@ -77,6 +77,12 @@ const AGENT_INPUTS: NodeType["inputs"] = [
     hidden: true,
     value: false,
   },
+  {
+    name: "schema",
+    type: "schema",
+    description: "JSON schema to constrain the final output format",
+    hidden: true,
+  },
 ];
 
 /** Extra inputs for Gemini agent nodes — Google built-in tools */
@@ -95,8 +101,8 @@ export const GEMINI_BUILTIN_TOOL_INPUTS: NodeType["inputs"] = [
 const AGENT_OUTPUTS: NodeType["outputs"] = [
   {
     name: "text",
-    type: "string",
-    description: "Final text response from the agent",
+    type: "any",
+    description: "Final text or JSON response from the agent",
   },
   {
     name: "steps",
@@ -227,6 +233,7 @@ export abstract class BaseAgentNode extends ExecutableNode {
         code_mode,
         googleSearch,
         agent_id,
+        schema,
       } = context.inputs;
       const agentContext = context.inputs.context as string | undefined;
       const agentId = agent_id as string | undefined;
@@ -267,6 +274,7 @@ export abstract class BaseAgentNode extends ExecutableNode {
           googleSearch: googleSearch ?? false,
           organizationId: context.organizationId,
           agentId,
+          ...(schema && { schema }),
         }),
       });
 
@@ -316,6 +324,7 @@ export abstract class BaseAgentNode extends ExecutableNode {
         code_mode,
         googleSearch,
         agent_id,
+        schema,
       } = context.inputs;
       const agentContext = context.inputs.context as string | undefined;
       const agentId = agent_id as string | undefined;
@@ -353,6 +362,7 @@ export abstract class BaseAgentNode extends ExecutableNode {
           googleSearch: googleSearch ?? false,
           organizationId: context.organizationId,
           agentId,
+          ...(schema && { schema }),
         }),
       });
 

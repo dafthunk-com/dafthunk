@@ -55,16 +55,23 @@ export async function executeWorkersAiTextModel(
       context
     );
 
-    // Build response_format when a schema is provided
+    // When schema is provided, prepend a JSON constraint to messages
+    // (Workers AI models don't reliably support response_format)
     const extraParams: Record<string, unknown> = { ...(config.params ?? {}) };
-    if (schemaInput && typeof schemaInput === "object" && "fields" in schemaInput) {
-      extraParams.response_format = {
-        type: "json_schema",
-        json_schema: {
-          name: "response",
-          schema: schemaToJsonSchema(schemaInput as Schema),
+    if (
+      schemaInput &&
+      typeof schemaInput === "object" &&
+      "fields" in schemaInput &&
+      parsedMessages
+    ) {
+      const jsonSchema = schemaToJsonSchema(schemaInput as Schema);
+      parsedMessages = [
+        {
+          role: "system",
+          content: `You MUST respond with valid JSON matching this schema:\n${JSON.stringify(jsonSchema)}`,
         },
-      };
+        ...parsedMessages,
+      ];
     }
 
     let result: any;

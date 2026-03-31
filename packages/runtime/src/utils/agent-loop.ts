@@ -61,6 +61,16 @@ export interface AgentLoopConfig {
     tools: ToolDefinition[]
   ) => Promise<LLMResponse>;
 
+  /**
+   * Optional LLM call used for the final output-producing turn.
+   * When provided (e.g. to enforce a JSON schema), this replaces `callLLM`
+   * for the last call that generates the user-facing response.
+   */
+  callFinalLLM?: (
+    messages: AgentMessage[],
+    tools: ToolDefinition[]
+  ) => Promise<LLMResponse>;
+
   /** Called after each iteration so the caller can persist state */
   onStepComplete?: (state: AgentLoopState) => Promise<void>;
 
@@ -95,6 +105,7 @@ export async function runAgentLoop(
   config: AgentLoopConfig
 ): Promise<AgentLoopResult> {
   const { userMessage, tools, maxSteps, callLLM, onStepComplete } = config;
+  const finalLLM = config.callFinalLLM ?? callLLM;
 
   // Initialise or resume state
   const state: AgentLoopState = config.resumeState ?? {
@@ -188,11 +199,32 @@ export async function runAgentLoop(
     }
   }
 
+  // If the model completed normally and a callFinalLLM is provided, make one
+  // additional call with schema constraints to produce structured output.
+  // We pop the last assistant message so the model generates a fresh response
+  // with the schema constraint, rather than seeing its own unformatted reply.
+  if (finishReason === "completed" && config.callFinalLLM) {
+    state.messages.pop();
+
+    const formatResponse = await finalLLM(state.messages, []);
+    state.totalInputTokens += formatResponse.inputTokens;
+    state.totalOutputTokens += formatResponse.outputTokens;
+
+    state.messages.push({
+      role: "assistant",
+      content: formatResponse.content,
+    });
+
+    if (onStepComplete) {
+      await onStepComplete(state);
+    }
+  }
+
   // If we exhausted maxSteps, do one final LLM call without tools to summarise
   if (state.steps.length >= maxSteps) {
     finishReason = "max_steps_reached";
 
-    const finalResponse = await callLLM(state.messages, []);
+    const finalResponse = await finalLLM(state.messages, []);
     state.totalInputTokens += finalResponse.inputTokens;
     state.totalOutputTokens += finalResponse.outputTokens;
 
