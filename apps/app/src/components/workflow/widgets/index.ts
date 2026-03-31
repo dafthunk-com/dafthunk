@@ -12,7 +12,6 @@ import { blobInputWidget } from "./input/blob-input";
 import { booleanInputWidget } from "./input/boolean-input";
 import { canvasInputWidget } from "./input/canvas-input";
 import { cronInputWidget } from "./input/cron-input";
-import { databaseTriggerInputWidget } from "./input/database-trigger-input";
 import { dateInputWidget } from "./input/date-input";
 import { discordTriggerInputWidget } from "./input/discord-trigger-input";
 import { documentInputWidget } from "./input/document-input";
@@ -29,7 +28,6 @@ import { imageInputWidget } from "./input/image-input";
 import { javascriptInputWidget } from "./input/javascript-input";
 import { jsonInputWidget } from "./input/json-input";
 import { numberInputWidget } from "./input/number-input";
-import { queueTriggerInputWidget } from "./input/queue-trigger-input";
 import { replicateModelInputWidget } from "./input/replicate-model-input";
 import { schemaExtractInputWidget } from "./input/schema-extract-input";
 import { secretInputWidget } from "./input/secret-input";
@@ -78,8 +76,6 @@ const widgets = [
   emailTriggerInputWidget,
   httpRequestEndpointWidget,
   httpWebhookEndpointWidget,
-  databaseTriggerInputWidget,
-  queueTriggerInputWidget,
   telegramTriggerInputWidget,
   whatsappTriggerInputWidget,
   javascriptInputWidget,

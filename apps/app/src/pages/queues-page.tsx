@@ -28,9 +28,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueueCreateDialog } from "@/components/workflow/widgets/input/queue-create-dialog";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
-import { deleteQueue, updateQueue, useQueues } from "@/services/queue-service";
+import {
+  createQueue,
+  deleteQueue,
+  updateQueue,
+  useQueues,
+} from "@/services/queue-service";
 
 interface QueueRow {
   id: string;
@@ -164,9 +168,14 @@ export function QueuesPage() {
     }
   };
 
-  const handleCreated = () => {
-    mutateQueues();
-    setIsCreateDialogOpen(false);
+  const handleCreateQueue = async (name: string) => {
+    try {
+      await createQueue({ name }, orgId);
+      mutateQueues();
+      setIsCreateDialogOpen(false);
+    } catch (error) {
+      console.error("Failed to create queue:", error);
+    }
   };
 
   const columns = createColumns(
@@ -202,11 +211,42 @@ export function QueuesPage() {
             description: "Create a new queue to get started.",
           }}
         />
-        <QueueCreateDialog
-          isOpen={isCreateDialogOpen}
-          onClose={() => setIsCreateDialogOpen(false)}
-          onCreated={handleCreated}
-        />
+        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create New Queue</DialogTitle>
+            </DialogHeader>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.currentTarget);
+                const name = formData.get("name") as string;
+                await handleCreateQueue(name);
+              }}
+              className="space-y-4"
+            >
+              <div>
+                <Label htmlFor="name">Queue Name</Label>
+                <Input
+                  id="name"
+                  name="name"
+                  placeholder="Enter queue name"
+                  className="mt-2"
+                />
+              </div>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  type="button"
+                  onClick={() => setIsCreateDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit">Create Queue</Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
         {queueForSnippets && (
           <QueueSnippetsDialog
             isOpen={snippetsDialogOpen}
