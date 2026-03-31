@@ -2,7 +2,7 @@
 
 import Check from "lucide-react/icons/check";
 import ChevronsUpDown from "lucide-react/icons/chevrons-up-down";
-import { useLocation, useNavigate, useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 
 import { useAuth } from "@/components/auth-context";
 import { Button } from "@/components/ui/button";
@@ -19,14 +19,13 @@ export function OrganizationSwitcher() {
   const { organizations: orgList } = useOrganizations();
 
   const navigate = useNavigate();
-  const location = useLocation();
   const params = useParams<{ organizationId?: string }>();
   const currentOrgId = params.organizationId || organization?.id;
   const currentOrg =
     orgList?.find((org) => org.id === currentOrgId) || organization;
   const currentOrgName = currentOrg?.name || "Personal";
   const orgs = orgList || [];
-  const isOrgScope = location.pathname.startsWith("/org/");
+  const isOrgScope = !!params.organizationId;
 
   return (
     <DropdownMenu>
@@ -48,17 +47,7 @@ export function OrganizationSwitcher() {
         {orgs.map((org) => {
           const handleSwitch = () => {
             if (org.id === currentOrgId) return;
-            let newPath = location.pathname;
-            if (params.organizationId) {
-              newPath = newPath.replace(
-                `/org/${params.organizationId}`,
-                `/org/${org.id}`
-              );
-            } else {
-              // No current :organizationId in URL (e.g., /settings/organizations): go to dashboard
-              newPath = `/org/${org.id}/dashboard`;
-            }
-            navigate(newPath, { replace: true });
+            navigate(`/org/${org.id}/dashboard`, { replace: true });
           };
           return (
             <DropdownMenuItem key={org.id} onClick={handleSwitch}>
