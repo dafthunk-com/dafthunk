@@ -71,7 +71,7 @@ export class ParquetQueryNode extends ExecutableNode {
         description: "Query results as an array of objects.",
       },
       {
-        name: "rowCount",
+        name: "count",
         type: "number",
         description: "Number of rows returned.",
         hidden: true,
@@ -93,8 +93,7 @@ export class ParquetQueryNode extends ExecutableNode {
       );
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const sandboxBinding = (context.env as any).DUCKDB_SANDBOX;
+    const sandboxBinding = context.env.DUCKDB_SANDBOX;
     if (!sandboxBinding) {
       return this.createErrorResult(
         "DUCKDB_SANDBOX binding is not configured."
@@ -102,8 +101,7 @@ export class ParquetQueryNode extends ExecutableNode {
     }
 
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const sandbox = getSandbox(sandboxBinding as any, context.organizationId);
+      const sandbox = getSandbox(sandboxBinding, context.organizationId);
 
       // DuckDB and httpfs are pre-installed in the container image.
       // Execute the query with JSON output and httpfs loaded.
@@ -123,7 +121,7 @@ export class ParquetQueryNode extends ExecutableNode {
         return this.createSuccessResult({
           schema: { name: "result", fields: [] },
           results: [],
-          rowCount: 0,
+          count: 0,
         });
       }
 
@@ -133,7 +131,7 @@ export class ParquetQueryNode extends ExecutableNode {
       return this.createSuccessResult({
         schema,
         results,
-        rowCount: results.length,
+        count: results.length,
       });
     } catch (error) {
       return this.createErrorResult(

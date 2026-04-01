@@ -1,5 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { validateIdentifier } from "../../utils/database-table";
 
 export class DatabaseTruncateTableNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -14,14 +15,14 @@ export class DatabaseTruncateTableNode extends ExecutableNode {
     asTool: true,
     inputs: [
       {
-        name: "databaseId",
+        name: "database",
         type: "database",
         description: "Database ID.",
         required: true,
         hidden: true,
       },
       {
-        name: "tableName",
+        name: "table",
         type: "string",
         description: "Name of the table to truncate.",
         required: true,
@@ -34,7 +35,7 @@ export class DatabaseTruncateTableNode extends ExecutableNode {
         description: "True if the operation succeeded.",
       },
       {
-        name: "rowsDeleted",
+        name: "deleted",
         type: "number",
         description: "Number of rows deleted.",
       },
@@ -42,15 +43,15 @@ export class DatabaseTruncateTableNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { databaseId, tableName } = context.inputs;
+    const { database, table } = context.inputs;
 
     // Validate required inputs
-    if (!databaseId) {
-      return this.createErrorResult("'databaseId' is a required input.");
+    if (!database) {
+      return this.createErrorResult("'database' is a required input.");
     }
 
-    if (!tableName) {
-      return this.createErrorResult("'tableName' is a required input.");
+    if (!table) {
+      return this.createErrorResult("'table' is a required input.");
     }
 
     try {
@@ -59,37 +60,39 @@ export class DatabaseTruncateTableNode extends ExecutableNode {
       }
 
       const connection = await context.databaseService.resolve(
-        databaseId,
+        database,
         context.organizationId
       );
 
       if (!connection) {
         return this.createErrorResult(
-          `Database '${databaseId}' not found or does not belong to your organization.`
+          `Database '${database}' not found or does not belong to your organization.`
         );
       }
 
       // Check if table exists first
       const tableCheck = await connection.query(
         "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
-        [tableName]
+        [table]
       );
 
       if (tableCheck.results.length === 0) {
         return this.createErrorResult(
-          `Table '${tableName}' not found in database.`
+          `Table '${table}' not found in database.`
         );
       }
 
+      validateIdentifier(table as string, "table name");
+
       // Delete all rows from the table
       // SQLite doesn't have TRUNCATE, so we use DELETE
-      const result = await connection.execute(`DELETE FROM ${tableName}`);
+      const result = await connection.execute(`DELETE FROM ${table}`);
 
-      const rowsDeleted = result.meta?.rowsAffected ?? 0;
+      const deleted = result.meta?.rowsAffected ?? 0;
 
       return this.createSuccessResult({
         success: true,
-        rowsDeleted,
+        deleted,
       });
     } catch (error) {
       return this.createErrorResult(

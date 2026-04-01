@@ -20,7 +20,7 @@ export class DatabaseImportTableNode extends ExecutableNode {
     asTool: true,
     inputs: [
       {
-        name: "databaseId",
+        name: "database",
         type: "database",
         description: "Database ID.",
         required: true,
@@ -50,12 +50,12 @@ export class DatabaseImportTableNode extends ExecutableNode {
     ],
     outputs: [
       {
-        name: "tableCreated",
+        name: "created",
         type: "boolean",
         description: "True if the table was created (didn't exist before).",
       },
       {
-        name: "rowsInserted",
+        name: "inserted",
         type: "number",
         description: "Number of rows inserted.",
       },
@@ -64,15 +64,15 @@ export class DatabaseImportTableNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     const {
-      databaseId,
+      database,
       schema: schemaInput,
       data: dataInput,
       mode,
     } = context.inputs;
 
     // Validate required inputs
-    if (!databaseId) {
-      return this.createErrorResult("'databaseId' is a required input.");
+    if (!database) {
+      return this.createErrorResult("'database' is a required input.");
     }
 
     if (!schemaInput) {
@@ -121,13 +121,13 @@ export class DatabaseImportTableNode extends ExecutableNode {
       }
 
       const connection = await context.databaseService.resolve(
-        databaseId,
+        database,
         context.organizationId
       );
 
       if (!connection) {
         return this.createErrorResult(
-          `Database '${databaseId}' not found or does not belong to your organization.`
+          `Database '${database}' not found or does not belong to your organization.`
         );
       }
 
@@ -139,7 +139,7 @@ export class DatabaseImportTableNode extends ExecutableNode {
       );
 
       const tableExists = checkResult.results.length > 0;
-      let tableCreated = false;
+      let created = false;
 
       // Handle replace mode: drop existing table
       if (importMode === "replace" && tableExists) {
@@ -150,24 +150,24 @@ export class DatabaseImportTableNode extends ExecutableNode {
       if (!tableExists || importMode === "replace") {
         const createTableSQL = generateCreateTableSQL(schema);
         await connection.execute(createTableSQL);
-        tableCreated = !tableExists; // Only true if table didn't exist before
+        created = !tableExists; // Only true if table didn't exist before
       }
 
       // Insert data if provided
-      let rowsInserted = 0;
+      let inserted = 0;
       if (data.length > 0) {
         const { sql, params } = generateInsertSQL(schema.name, data);
 
         // Insert each row
         for (const rowParams of params) {
           const result = await connection.execute(sql, rowParams);
-          rowsInserted += result.meta?.rowsAffected ?? 0;
+          inserted += result.meta?.rowsAffected ?? 0;
         }
       }
 
       return this.createSuccessResult({
-        tableCreated,
-        rowsInserted,
+        created,
+        inserted,
       });
     } catch (error) {
       return this.createErrorResult(

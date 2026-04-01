@@ -14,7 +14,7 @@ export class DatabaseListTablesNode extends ExecutableNode {
     asTool: true,
     inputs: [
       {
-        name: "databaseId",
+        name: "database",
         type: "database",
         description: "Database ID.",
         required: true,
@@ -31,11 +31,11 @@ export class DatabaseListTablesNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { databaseId } = context.inputs;
+    const { database } = context.inputs;
 
     // Validate required inputs
-    if (!databaseId) {
-      return this.createErrorResult("'databaseId' is a required input.");
+    if (!database) {
+      return this.createErrorResult("'database' is a required input.");
     }
 
     try {
@@ -44,13 +44,13 @@ export class DatabaseListTablesNode extends ExecutableNode {
       }
 
       const connection = await context.databaseService.resolve(
-        databaseId,
+        database,
         context.organizationId
       );
 
       if (!connection) {
         return this.createErrorResult(
-          `Database '${databaseId}' not found or does not belong to your organization.`
+          `Database '${database}' not found or does not belong to your organization.`
         );
       }
 
@@ -60,7 +60,9 @@ export class DatabaseListTablesNode extends ExecutableNode {
       );
 
       // Extract table names from results
-      const tables = result.results.map((row: any) => row.name);
+      const tables = (result.results as Record<string, unknown>[]).map(
+        (row) => row.name as string
+      );
 
       return this.createSuccessResult({
         tables,

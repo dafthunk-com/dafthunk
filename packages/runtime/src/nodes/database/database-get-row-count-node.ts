@@ -1,5 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { validateIdentifier } from "../../utils/database-table";
 
 export class DatabaseGetRowCountNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -14,14 +15,14 @@ export class DatabaseGetRowCountNode extends ExecutableNode {
     asTool: true,
     inputs: [
       {
-        name: "databaseId",
+        name: "database",
         type: "database",
         description: "Database ID.",
         required: true,
         hidden: true,
       },
       {
-        name: "tableName",
+        name: "table",
         type: "string",
         description: "Name of the table to count.",
         required: true,
@@ -37,15 +38,15 @@ export class DatabaseGetRowCountNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { databaseId, tableName } = context.inputs;
+    const { database, table } = context.inputs;
 
     // Validate required inputs
-    if (!databaseId) {
-      return this.createErrorResult("'databaseId' is a required input.");
+    if (!database) {
+      return this.createErrorResult("'database' is a required input.");
     }
 
-    if (!tableName) {
-      return this.createErrorResult("'tableName' is a required input.");
+    if (!table) {
+      return this.createErrorResult("'table' is a required input.");
     }
 
     try {
@@ -54,34 +55,37 @@ export class DatabaseGetRowCountNode extends ExecutableNode {
       }
 
       const connection = await context.databaseService.resolve(
-        databaseId,
+        database,
         context.organizationId
       );
 
       if (!connection) {
         return this.createErrorResult(
-          `Database '${databaseId}' not found or does not belong to your organization.`
+          `Database '${database}' not found or does not belong to your organization.`
         );
       }
 
       // Check if table exists first
       const tableCheck = await connection.query(
         "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
-        [tableName]
+        [table]
       );
 
       if (tableCheck.results.length === 0) {
         return this.createErrorResult(
-          `Table '${tableName}' not found in database.`
+          `Table '${table}' not found in database.`
         );
       }
 
+      validateIdentifier(table as string, "table name");
+
       // Get row count
       const result = await connection.query(
-        `SELECT COUNT(*) as count FROM ${tableName}`
+        `SELECT COUNT(*) as count FROM ${table}`
       );
 
-      const count = (result.results[0] as any)?.count || 0;
+      const firstRow = result.results[0] as Record<string, unknown> | undefined;
+      const count = (firstRow?.count as number) || 0;
 
       return this.createSuccessResult({
         count,

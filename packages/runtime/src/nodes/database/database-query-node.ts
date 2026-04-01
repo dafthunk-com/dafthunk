@@ -16,7 +16,7 @@ export class DatabaseQueryNode extends ExecutableNode {
     asTool: true,
     inputs: [
       {
-        name: "databaseId",
+        name: "database",
         type: "database",
         description: "Database ID.",
         required: true,
@@ -49,19 +49,20 @@ export class DatabaseQueryNode extends ExecutableNode {
         description: "Query results as an array of objects.",
       },
       {
-        name: "rowCount",
+        name: "count",
         type: "number",
         description: "Number of rows returned.",
+        hidden: true,
       },
     ],
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { databaseId, sql, params, schema } = context.inputs;
+    const { database, sql, params, schema } = context.inputs;
 
     // Validate required inputs
-    if (!databaseId) {
-      return this.createErrorResult("'databaseId' is a required input.");
+    if (!database) {
+      return this.createErrorResult("'database' is a required input.");
     }
 
     if (!sql) {
@@ -82,13 +83,13 @@ export class DatabaseQueryNode extends ExecutableNode {
       }
 
       const connection = await context.databaseService.resolve(
-        databaseId,
+        database,
         context.organizationId
       );
 
       if (!connection) {
         return this.createErrorResult(
-          `Database '${databaseId}' not found or does not belong to your organization.`
+          `Database '${database}' not found or does not belong to your organization.`
         );
       }
 
@@ -111,7 +112,7 @@ export class DatabaseQueryNode extends ExecutableNode {
 
       return this.createSuccessResult({
         results,
-        rowCount: results.length,
+        count: results.length,
       });
     } catch (error) {
       return this.createErrorResult(

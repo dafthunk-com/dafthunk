@@ -1,5 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { validateIdentifier } from "../../utils/database-table";
 
 export class DatabaseDropTableNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -14,14 +15,14 @@ export class DatabaseDropTableNode extends ExecutableNode {
     asTool: true,
     inputs: [
       {
-        name: "databaseId",
+        name: "database",
         type: "database",
         description: "Database ID.",
         required: true,
         hidden: true,
       },
       {
-        name: "tableName",
+        name: "table",
         type: "string",
         description: "Name of the table to drop.",
         required: true,
@@ -37,15 +38,15 @@ export class DatabaseDropTableNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { databaseId, tableName } = context.inputs;
+    const { database, table } = context.inputs;
 
     // Validate required inputs
-    if (!databaseId) {
-      return this.createErrorResult("'databaseId' is a required input.");
+    if (!database) {
+      return this.createErrorResult("'database' is a required input.");
     }
 
-    if (!tableName) {
-      return this.createErrorResult("'tableName' is a required input.");
+    if (!table) {
+      return this.createErrorResult("'table' is a required input.");
     }
 
     try {
@@ -54,18 +55,20 @@ export class DatabaseDropTableNode extends ExecutableNode {
       }
 
       const connection = await context.databaseService.resolve(
-        databaseId,
+        database,
         context.organizationId
       );
 
       if (!connection) {
         return this.createErrorResult(
-          `Database '${databaseId}' not found or does not belong to your organization.`
+          `Database '${database}' not found or does not belong to your organization.`
         );
       }
 
+      validateIdentifier(table as string, "table name");
+
       // Drop the table
-      await connection.execute(`DROP TABLE IF EXISTS ${tableName}`);
+      await connection.execute(`DROP TABLE IF EXISTS ${table}`);
 
       return this.createSuccessResult({
         success: true,

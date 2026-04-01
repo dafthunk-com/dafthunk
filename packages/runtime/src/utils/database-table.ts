@@ -1,4 +1,30 @@
-import type { FieldType, Schema } from "@dafthunk/types";
+import type { Field, FieldType, Schema } from "@dafthunk/types";
+
+/**
+ * Result row from PRAGMA table_info()
+ */
+export interface PragmaTableInfoRow {
+  cid: number;
+  name: string;
+  type: string;
+  notnull: number;
+  dflt_value: string | null;
+  pk: number;
+}
+
+const VALID_IDENTIFIER = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+
+/**
+ * Validate that a string is a safe SQL identifier (table or column name).
+ * Throws if the identifier contains characters that could enable SQL injection.
+ */
+export function validateIdentifier(name: string, label: string): void {
+  if (!VALID_IDENTIFIER.test(name)) {
+    throw new Error(
+      `Invalid ${label}: '${name}'. Must start with a letter or underscore and contain only letters, digits, and underscores.`
+    );
+  }
+}
 
 /**
  * Map abstract field types to SQLite types
@@ -80,6 +106,11 @@ export function generateCreateTableSQL(schema: Schema): string {
     throw new Error("Invalid schema: name and fields are required");
   }
 
+  validateIdentifier(name, "table name");
+  for (const field of fields) {
+    validateIdentifier(field.name, "column name");
+  }
+
   const columns = fields.map((field) => {
     const sqlType = mapTypeToSqlite(field.type);
     const pk = field.primaryKey ? " PRIMARY KEY" : "";
@@ -100,8 +131,13 @@ export function generateInsertSQL(
     throw new Error("No data to insert");
   }
 
+  validateIdentifier(tableName, "table name");
+
   // Get column names from first row
   const columns = Object.keys(data[0]);
+  for (const col of columns) {
+    validateIdentifier(col, "column name");
+  }
   const placeholders = columns.map(() => "?").join(", ");
   const sql = `INSERT INTO ${tableName} (${columns.join(", ")}) VALUES (${placeholders})`;
 
@@ -112,12 +148,20 @@ export function generateInsertSQL(
 }
 
 /**
+ * Extract the primary key field from a schema.
+ */
+export function getPrimaryKeyField(schema: Schema): Field | null {
+  return schema.fields.find((f) => f.primaryKey === true) ?? null;
+}
+
+/**
  * Check if a table exists in SQLite
  */
 export function generateCheckTableExistsSQL(tableName: string): {
   sql: string;
   params: string[];
 } {
+  validateIdentifier(tableName, "table name");
   return {
     sql: "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
     params: [tableName],

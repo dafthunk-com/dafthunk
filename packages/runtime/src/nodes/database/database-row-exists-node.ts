@@ -1,20 +1,20 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType, Schema } from "@dafthunk/types";
 import {
-  generateCheckTableExistsSQL,
-  generateCreateTableSQL,
+  getPrimaryKeyField,
+  validateIdentifier,
 } from "../../utils/database-table";
 
-export class DatabaseCreateTableNode extends ExecutableNode {
+export class DatabaseRowExistsNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "database-create-table",
-    name: "Database Create Table",
-    type: "database-create-table",
-    description: "Creates a table in a database from a schema definition.",
-    tags: ["Database", "Create", "Table"],
+    id: "database-row-exists",
+    name: "Database Row Exists",
+    type: "database-row-exists",
+    description: "Checks if a row with the given primary key exists.",
+    tags: ["Database", "Row", "Exists"],
     icon: "database",
     documentation:
-      "Creates a new table in a database using a schema definition. The schema specifies the table name and field types. If the table already exists, the node succeeds without modification. Supports basic types: string, integer, number, boolean, datetime, json.",
+      "Checks whether a row with the given primary key exists in a table. Returns a boolean without fetching the full row.",
     asTool: true,
     inputs: [
       {
@@ -27,22 +27,27 @@ export class DatabaseCreateTableNode extends ExecutableNode {
       {
         name: "schema",
         type: "schema",
-        description: "Schema defining the table name and field types.",
+        description: "Schema defining the table structure with a primary key.",
+        required: true,
+      },
+      {
+        name: "key",
+        type: "json",
+        description: "Primary key value to check.",
         required: true,
       },
     ],
     outputs: [
       {
-        name: "created",
+        name: "exists",
         type: "boolean",
-        description:
-          "True if the table was created, false if it already existed.",
+        description: "True if a row with the given primary key exists.",
       },
     ],
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { database, schema: schemaInput } = context.inputs;
+    const { database, schema: schemaInput, key } = context.inputs;
 
     if (!database) {
       return this.createErrorResult("'database' is a required input.");
@@ -59,10 +64,15 @@ export class DatabaseCreateTableNode extends ExecutableNode {
       );
     }
 
-    if (schema.fields.length === 0) {
+    const pkField = getPrimaryKeyField(schema);
+    if (!pkField) {
       return this.createErrorResult(
-        "Invalid schema: 'fields' array cannot be empty."
+        "Schema has no primary key defined. Set primaryKey on a field."
       );
+    }
+
+    if (key === undefined || key === null) {
+      return this.createErrorResult("'key' is a required input.");
     }
 
     try {
@@ -81,25 +91,20 @@ export class DatabaseCreateTableNode extends ExecutableNode {
         );
       }
 
-      // Check if table already exists
-      const checkTableSQL = generateCheckTableExistsSQL(schema.name);
-      const checkResult = await connection.query(
-        checkTableSQL.sql,
-        checkTableSQL.params
+      validateIdentifier(schema.name, "table name");
+      validateIdentifier(pkField.name, "column name");
+
+      const result = await connection.query(
+        `SELECT 1 FROM ${schema.name} WHERE ${pkField.name} = ? LIMIT 1`,
+        [key]
       );
 
-      if (checkResult.results.length > 0) {
-        return this.createSuccessResult({ created: false });
-      }
-
-      // Create the table
-      const createTableSQL = generateCreateTableSQL(schema);
-      await connection.execute(createTableSQL);
-
-      return this.createSuccessResult({ created: true });
+      return this.createSuccessResult({
+        exists: result.results.length > 0,
+      });
     } catch (error) {
       return this.createErrorResult(
-        `Failed to create table: ${error instanceof Error ? error.message : String(error)}`
+        `Failed to check row existence: ${error instanceof Error ? error.message : String(error)}`
       );
     }
   }

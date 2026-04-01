@@ -14,7 +14,7 @@ export class DatabaseExecuteNode extends ExecutableNode {
     asTool: true,
     inputs: [
       {
-        name: "databaseId",
+        name: "database",
         type: "database",
         description: "Database ID.",
         required: true,
@@ -40,12 +40,12 @@ export class DatabaseExecuteNode extends ExecutableNode {
         description: "True if the operation succeeded.",
       },
       {
-        name: "rowsAffected",
+        name: "affected",
         type: "number",
         description: "Number of rows affected by the operation.",
       },
       {
-        name: "lastInsertRowid",
+        name: "lastRowId",
         type: "number",
         description: "Last inserted row ID (for INSERT operations).",
       },
@@ -53,11 +53,11 @@ export class DatabaseExecuteNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { databaseId, sql, params } = context.inputs;
+    const { database, sql, params } = context.inputs;
 
     // Validate required inputs
-    if (!databaseId) {
-      return this.createErrorResult("'databaseId' is a required input.");
+    if (!database) {
+      return this.createErrorResult("'database' is a required input.");
     }
 
     if (!sql) {
@@ -78,13 +78,13 @@ export class DatabaseExecuteNode extends ExecutableNode {
       }
 
       const connection = await context.databaseService.resolve(
-        databaseId,
+        database,
         context.organizationId
       );
 
       if (!connection) {
         return this.createErrorResult(
-          `Database '${databaseId}' not found or does not belong to your organization.`
+          `Database '${database}' not found or does not belong to your organization.`
         );
       }
 
@@ -93,8 +93,8 @@ export class DatabaseExecuteNode extends ExecutableNode {
 
       return this.createSuccessResult({
         success: true,
-        rowsAffected: result.meta?.rowsAffected ?? 0,
-        lastInsertRowid: result.meta?.lastInsertRowid ?? null,
+        affected: result.meta?.rowsAffected ?? 0,
+        lastRowId: result.meta?.lastInsertRowid ?? null,
       });
     } catch (error) {
       return this.createErrorResult(
