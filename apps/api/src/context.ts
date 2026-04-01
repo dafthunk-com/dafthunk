@@ -2,6 +2,7 @@ import type { RuntimeParams } from "@dafthunk/runtime";
 import { JWTTokenPayload } from "@dafthunk/types";
 import type { FFmpegContainer } from "./containers/ffmpeg-container";
 import type { AgentRunner } from "./durable-objects/agent-runner";
+import type { DafthunkAgent } from "./durable-objects/dafthunk-agent";
 import { DatabaseDO } from "./durable-objects/database-do";
 import type { WorkflowAgent } from "./durable-objects/workflow-agent";
 
@@ -15,6 +16,7 @@ export interface Bindings {
   WORKFLOW_AGENT: DurableObjectNamespace<WorkflowAgent>;
   DATABASE: DurableObjectNamespace<DatabaseDO>;
   AGENT_RUNNER: DurableObjectNamespace<AgentRunner>;
+  DAFTHUNK_AGENT: DurableObjectNamespace<DafthunkAgent>;
   FFMPEG_CONTAINER?: DurableObjectNamespace<FFmpegContainer>;
   DUCKDB_SANDBOX?: DurableObjectNamespace<any>;
   WORKFLOW_QUEUE: Queue;

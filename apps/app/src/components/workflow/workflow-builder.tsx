@@ -268,7 +268,7 @@ export function WorkflowBuilder({
         nodeTypes={nodeTypes}
         workflowTrigger={workflowTrigger}
       >
-        <div className="w-full h-full flex">
+        <div ref={sidebar.containerRef} className="w-full h-full flex">
           <div
             className="h-full overflow-hidden relative"
             style={{

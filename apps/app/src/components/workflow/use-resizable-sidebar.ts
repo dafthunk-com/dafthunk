@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface UseResizableSidebarProps {
   initialVisible: boolean;
@@ -8,6 +8,7 @@ interface UseResizableSidebarReturn {
   isSidebarVisible: boolean;
   sidebarWidth: number;
   isResizing: boolean;
+  containerRef: React.RefObject<HTMLDivElement | null>;
   toggleSidebar: () => void;
   setIsSidebarVisible: (visible: boolean) => void;
   handleResizeStart: (e: React.MouseEvent) => void;
@@ -19,6 +20,7 @@ export function useResizableSidebar({
   const [isSidebarVisible, setIsSidebarVisible] = useState(initialVisible);
   const [sidebarWidth, setSidebarWidth] = useState(384);
   const [isResizing, setIsResizing] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   const toggleSidebar = useCallback(() => {
     setIsSidebarVisible((prev) => !prev);
@@ -33,7 +35,10 @@ export function useResizableSidebar({
     if (!isResizing) return;
 
     const handleMouseMove = (e: MouseEvent) => {
-      const newWidth = window.innerWidth - e.clientX;
+      const containerRight = containerRef.current
+        ? containerRef.current.getBoundingClientRect().right
+        : window.innerWidth;
+      const newWidth = containerRight - e.clientX;
       setSidebarWidth(Math.min(Math.max(newWidth, 320), 800));
     };
 
@@ -54,6 +59,7 @@ export function useResizableSidebar({
     isSidebarVisible,
     sidebarWidth,
     isResizing,
+    containerRef,
     toggleSidebar,
     setIsSidebarVisible,
     handleResizeStart,
