@@ -28,7 +28,7 @@ export function EmailField({
         <Select value={stringValue} disabled>
           <SelectTrigger>
             <SelectValue
-              placeholder={connected ? "Connected" : label || "No email inbox"}
+              placeholder={connected ? "Connected" : label || "No email"}
             />
           </SelectTrigger>
         </Select>
@@ -51,8 +51,8 @@ export function EmailField({
                 : isEmailsLoading
                   ? "Loading..."
                   : emails?.length === 0
-                    ? "No email inboxes"
-                    : "Select email inbox"
+                    ? "No emails"
+                    : "Select email"
             }
           />
         </SelectTrigger>

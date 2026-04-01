@@ -24,13 +24,13 @@ const CREATE_NEW_SENTINEL = "__create_new__";
 
 interface EmailTriggerInputProps extends BaseWidgetProps {
   nodeId: string;
-  emailId: string;
+  email: string;
   inputs: WorkflowParameter[];
 }
 
 function EmailTriggerInputWidget({
   nodeId,
-  emailId,
+  email,
   inputs,
   className,
   disabled = false,
@@ -49,7 +49,7 @@ function EmailTriggerInputWidget({
     }
     updateNodeInput(
       nodeId,
-      "emailId",
+      "email",
       value,
       inputs,
       updateNodeData,
@@ -62,7 +62,7 @@ function EmailTriggerInputWidget({
     await mutateEmails();
     updateNodeInput(
       nodeId,
-      "emailId",
+      "email",
       newEmailId,
       inputs,
       updateNodeData,
@@ -76,13 +76,13 @@ function EmailTriggerInputWidget({
     <div className={cn("p-2", className)}>
       <div className="flex items-center gap-1">
         <Select
-          value={emailId || ""}
+          value={email || ""}
           onValueChange={handleEmailChange}
           disabled={disabled || isEmailsLoading}
         >
           <SelectTrigger className="h-6 text-xs">
             <SelectValue
-              placeholder={isEmailsLoading ? "Loading..." : "Select an inbox"}
+              placeholder={isEmailsLoading ? "Loading..." : "Select an email"}
             />
           </SelectTrigger>
           <SelectContent>
@@ -92,7 +92,7 @@ function EmailTriggerInputWidget({
               </SelectItem>
             ))}
             <SelectSeparator />
-            <SelectItem value={CREATE_NEW_SENTINEL}>+ New Inbox</SelectItem>
+            <SelectItem value={CREATE_NEW_SENTINEL}>+ New Email</SelectItem>
           </SelectContent>
         </Select>
         <Button
@@ -125,11 +125,11 @@ function EmailTriggerInputWidget({
 export const emailTriggerInputWidget = createWidget({
   component: EmailTriggerInputWidget,
   nodeTypes: ["receive-email"],
-  inputField: "emailId",
+  inputField: "email",
   managedFields: [],
   extractConfig: (nodeId, inputs) => ({
     nodeId,
-    emailId: getInputValue(inputs, "emailId", ""),
+    email: getInputValue(inputs, "email", ""),
     inputs,
   }),
 });

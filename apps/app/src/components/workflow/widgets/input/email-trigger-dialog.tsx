@@ -41,11 +41,11 @@ export function EmailTriggerDialog({
           ) : !emailTrigger || !email ? (
             <div className="bg-muted/50 p-3 rounded-md text-sm text-muted-foreground">
               <p className="font-medium text-foreground mb-1">
-                No email inbox selected
+                No email selected
               </p>
               <p>
-                Add a Receive Email node to your workflow and select an email
-                inbox to enable email triggers.
+                Add a Receive Email node to your workflow and select an email to
+                enable email triggers.
               </p>
             </div>
           ) : (

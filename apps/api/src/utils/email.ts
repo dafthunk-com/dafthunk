@@ -12,6 +12,7 @@ export interface SimulateEmailParams {
   body?: string;
   attachments?: EmailAttachment[];
   workflowId: string;
+  emailDomain: string;
 }
 
 /**
@@ -25,9 +26,9 @@ export function createSimulatedEmailMessage(
   const emailFrom = params.from || "sender@example.com";
   const emailSubject = params.subject || "Default Subject";
   const emailBody = params.body || "Default email body.";
-  const emailTo = `${params.workflowId}@dafthunk.com`;
+  const emailTo = `${params.workflowId}@${params.emailDomain}`;
 
-  const messageId = `<${crypto.randomUUID()}@dafthunk.com>`;
+  const messageId = `<${crypto.randomUUID()}@${params.emailDomain}>`;
   const currentDate = new Date().toUTCString();
 
   const hasAttachments = params.attachments && params.attachments.length > 0;
@@ -41,6 +42,7 @@ export function createSimulatedEmailMessage(
       attachments: params.attachments!,
       messageId,
       date: currentDate,
+      emailDomain: params.emailDomain,
     });
   }
 
@@ -56,7 +58,7 @@ export function createSimulatedEmailMessage(
 
   const simulatedRaw =
     `Received: from [127.0.0.1] (localhost [127.0.0.1])\n` +
-    `by dafthunk.com (Postfix) with ESMTP id FAKEIDFORTEST\n` +
+    `by ${params.emailDomain} (Postfix) with ESMTP id FAKEIDFORTEST\n` +
     `for <${emailTo}>; ${currentDate}\n` +
     `From: ${emailFrom}\n` +
     `To: ${emailTo}\n` +
@@ -83,13 +85,15 @@ interface MultipartEmailParams {
   attachments: EmailAttachment[];
   messageId: string;
   date: string;
+  emailDomain: string;
 }
 
 /**
  * Creates a MIME multipart/mixed email with attachments
  */
 function createMultipartEmail(params: MultipartEmailParams): EmailMessage {
-  const { from, to, subject, body, attachments, messageId, date } = params;
+  const { from, to, subject, body, attachments, messageId, date, emailDomain } =
+    params;
 
   // Generate a unique boundary string
   const boundary = `----=_Part_${crypto.randomUUID().replace(/-/g, "")}`;
@@ -107,7 +111,7 @@ function createMultipartEmail(params: MultipartEmailParams): EmailMessage {
   // Build raw email content
   let rawEmail =
     `Received: from [127.0.0.1] (localhost [127.0.0.1])\n` +
-    `by dafthunk.com (Postfix) with ESMTP id FAKEIDFORTEST\n` +
+    `by ${emailDomain} (Postfix) with ESMTP id FAKEIDFORTEST\n` +
     `for <${to}>; ${date}\n` +
     `From: ${from}\n` +
     `To: ${to}\n` +
