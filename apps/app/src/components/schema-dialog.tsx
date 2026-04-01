@@ -137,8 +137,7 @@ function FieldEditor({ fields, onChange }: FieldEditorProps) {
                         onChange(
                           fields.map((f, i) => ({
                             ...f,
-                            primaryKey:
-                              i === index ? true : undefined,
+                            primaryKey: i === index ? true : undefined,
                           }))
                         );
                       }

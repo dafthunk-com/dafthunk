@@ -235,13 +235,16 @@ export class CloudflareCredentialService implements CredentialService {
 
       return newAccessToken;
     } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
       console.error(
         `[OAuth] Failed to refresh: ${provider} (${integrationId})`,
         error
       );
 
       await this.markIntegrationExpired(db, integrationId);
-      throw new Error("Integration has expired. Please reconnect in settings.");
+      throw new Error(
+        `Integration has expired. Please reconnect in settings. (Refresh failed: ${reason})`
+      );
     }
   }
 

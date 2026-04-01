@@ -82,9 +82,7 @@ function SchemaComposeInputWidget({
         // Build the schema input from scratch to avoid race conditions
         // between competing input updates (onChange vs updateNodeData)
         updateNodeData(nodeId, (current) => {
-          const existingSchema = current.inputs?.find(
-            (i) => i.id === "schema"
-          );
+          const existingSchema = current.inputs?.find((i) => i.id === "schema");
           const schemaInput = {
             ...(existingSchema ?? {
               id: "schema",
