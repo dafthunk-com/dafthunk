@@ -220,30 +220,52 @@ export class CloudflareCredentialService implements CredentialService {
       const newExpiresAt = oauthProvider.extractExpiresAt(result);
 
       // Update integration with new tokens
-      await updateIntegration(
-        db,
-        integrationId,
-        this.organizationId,
-        {
-          status: "active",
-          token: newAccessToken,
-          tokenExpiresAt: newExpiresAt,
-          ...(newRefreshToken && { refreshToken: newRefreshToken }),
-        },
-        this.env
-      );
+      try {
+        await updateIntegration(
+          db,
+          integrationId,
+          this.organizationId,
+          {
+            status: "active",
+            token: newAccessToken,
+            tokenExpiresAt: newExpiresAt,
+            ...(newRefreshToken && { refreshToken: newRefreshToken }),
+          },
+          this.env
+        );
+      } catch (dbError) {
+        // Log the actual D1 error (Drizzle wraps it in cause)
+        const cause =
+          dbError instanceof Error && dbError.cause instanceof Error
+            ? dbError.cause.message
+            : undefined;
+        console.error(
+          `[OAuth] Failed to persist refreshed token: ${provider} (${integrationId})`,
+          cause ?? (dbError instanceof Error ? dbError.message : String(dbError))
+        );
+        // Token refresh succeeded — return it for this execution.
+        // Next execution will refresh again since the DB wasn't updated.
+      }
 
       return newAccessToken;
     } catch (error) {
-      const reason = error instanceof Error ? error.message : String(error);
+      // OAuth refresh itself failed (not the DB persist)
+      const cause =
+        error instanceof Error && error.cause instanceof Error
+          ? error.cause.message
+          : undefined;
+      const detail = error instanceof Error ? error.message : String(error);
+      // Log full detail server-side; expose only the cause (or a generic
+      // message) to the user so encrypted tokens are never leaked.
       console.error(
         `[OAuth] Failed to refresh: ${provider} (${integrationId})`,
-        error
+        detail,
+        cause ? `cause: ${cause}` : ""
       );
 
       await this.markIntegrationExpired(db, integrationId);
       throw new Error(
-        `Integration has expired. Please reconnect in settings. (Refresh failed: ${reason})`
+        `Integration has expired. Please reconnect in settings. (Refresh failed: ${cause ?? "see server logs for details"})`
       );
     }
   }

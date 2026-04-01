@@ -110,6 +110,16 @@ export const SubscriptionStatus = {
 export type SubscriptionStatusType =
   (typeof SubscriptionStatus)[keyof typeof SubscriptionStatus];
 
+// Sender email verification status
+export const SenderEmailStatus = {
+  PENDING: "pending",
+  VERIFIED: "verified",
+  FAILED: "failed",
+} as const;
+
+export type SenderEmailStatusType =
+  (typeof SenderEmailStatus)[keyof typeof SenderEmailStatus];
+
 /**
  * REUSABLE COLUMNS
  */
@@ -468,7 +478,7 @@ export const queueTriggers = sqliteTable(
   ]
 );
 
-// Emails - Email inboxes associated with organizations
+// Emails - Emails associated with organizations
 export const emails = sqliteTable(
   "emails",
   {
@@ -477,6 +487,10 @@ export const emails = sqliteTable(
     organizationId: text("organization_id")
       .notNull()
       .references(() => organizations.id, { onDelete: "cascade" }),
+    senderEmail: text("sender_email"),
+    senderEmailStatus: text(
+      "sender_email_status"
+    ).$type<SenderEmailStatusType>(),
     createdAt: createCreatedAt(),
     updatedAt: createUpdatedAt(),
   },
@@ -487,7 +501,7 @@ export const emails = sqliteTable(
   ]
 );
 
-// Email Triggers - Email inbox triggers for workflows
+// Email Triggers - Email triggers for workflows
 export const emailTriggers = sqliteTable(
   "email_triggers",
   {

@@ -193,7 +193,7 @@ export type ParameterType =
     }
   | {
       type: "email";
-      value?: string; // Email inbox ID reference
+      value?: string; // Email reference
     }
   | {
       type: "discord";

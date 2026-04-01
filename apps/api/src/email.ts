@@ -51,16 +51,16 @@ export async function handleIncomingEmail(
     return;
   }
 
-  console.log(`Processing email trigger for email inbox: ${emailId}`);
+  console.log(`Processing email trigger for email: ${emailId}`);
 
   const db = createDatabase(env.DB);
   const workflowStore = new WorkflowStore(env);
 
-  // Get email inbox (globally unique UUID, org derived from record)
+  // Get email (globally unique UUID, org derived from record)
   const { getEmailById, getEmailTriggersByEmail } = await import("./db");
   const email = await getEmailById(db, emailId);
   if (!email) {
-    console.error(`Email inbox '${emailId}' not found`);
+    console.error(`Email '${emailId}' not found`);
     return;
   }
 
@@ -74,12 +74,12 @@ export async function handleIncomingEmail(
   );
 
   if (emailTriggersWithWorkflows.length === 0) {
-    console.log(`No active workflows found for email inbox: ${emailId}`);
+    console.log(`No active workflows found for email: ${emailId}`);
     return;
   }
 
   console.log(
-    `Found ${emailTriggersWithWorkflows.length} workflow(s) to trigger for email inbox ${emailId}`
+    `Found ${emailTriggersWithWorkflows.length} workflow(s) to trigger for email ${emailId}`
   );
 
   // Read raw email content once (stream can only be consumed once)

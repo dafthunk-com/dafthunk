@@ -17,9 +17,9 @@ export class ReceiveEmailNode extends ExecutableNode {
     inlinable: true,
     inputs: [
       {
-        name: "emailId",
+        name: "email",
         type: "email",
-        description: "Email inbox to receive from",
+        description: "Email to receive from",
         required: false,
         hidden: true,
       },

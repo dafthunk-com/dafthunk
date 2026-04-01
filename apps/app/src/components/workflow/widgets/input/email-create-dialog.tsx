@@ -18,14 +18,13 @@ import { EmailSetupInfo } from "./email-setup-info";
 type Step = "name" | "setup";
 
 const STEP_TITLES: Record<Step, string> = {
-  name: "Create an Email Inbox",
-  setup: "Inbox Created",
+  name: "Create an Email",
+  setup: "Email Created",
 };
 
 const STEP_DESCRIPTIONS: Record<Step, string> = {
-  name: "Give your inbox a name. An email address will be generated automatically.",
-  setup:
-    "Your inbox is ready. Use the email addresses below to trigger workflows.",
+  name: "Give your email a name. An email address will be generated automatically.",
+  setup: "Your email is ready. Use the address below in your workflows.",
 };
 
 interface EmailCreateDialogProps {
@@ -70,7 +69,7 @@ export function EmailCreateDialog({
       setStep("setup");
       onCreated(response.id);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create inbox");
+      setError(err instanceof Error ? err.message : "Failed to create email");
     } finally {
       setIsSubmitting(false);
     }
@@ -91,15 +90,15 @@ export function EmailCreateDialog({
         {step === "name" && (
           <div className="space-y-3">
             <div className="space-y-1.5">
-              <Label htmlFor="email-inbox-name">Name</Label>
+              <Label htmlFor="email-name">Name</Label>
               <Input
-                id="email-inbox-name"
+                id="email-name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="My Email Inbox"
+                placeholder="My Email"
               />
               <p className="text-xs text-muted-foreground">
-                A display name for this inbox in Dafthunk.
+                A display name for this email in Dafthunk.
               </p>
             </div>
 
@@ -128,7 +127,7 @@ export function EmailCreateDialog({
                     Creating...
                   </>
                 ) : (
-                  "Create Inbox"
+                  "Create Email"
                 )}
               </Button>
             </div>

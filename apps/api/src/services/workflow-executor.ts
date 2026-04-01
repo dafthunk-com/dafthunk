@@ -106,6 +106,7 @@ export class WorkflowExecutor {
           body: parameters?.emailBody,
           attachments: parameters?.attachments,
           workflowId: workflow.id,
+          emailDomain: env.EMAIL_DOMAIN,
         }),
       };
     } else if (

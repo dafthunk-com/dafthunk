@@ -17,6 +17,13 @@ export class SendEmailNode extends ExecutableNode {
     asTool: true,
     inputs: [
       {
+        name: "email",
+        type: "email",
+        description: "Email to send from",
+        required: false,
+        hidden: true,
+      },
+      {
         name: "to",
         type: "string",
         description: "Recipient email address or an array of email addresses",
@@ -70,12 +77,10 @@ export class SendEmailNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { to, subject, html, text, cc, replyTo } = context.inputs;
+    const { email, to, subject, html, text, cc, replyTo } = context.inputs;
     const accessKeyId = context.env.AWS_ACCESS_KEY_ID;
     const secretAccessKey = context.env.AWS_SECRET_ACCESS_KEY;
     const region = context.env.AWS_REGION;
-    const defaultFrom = context.env.SES_DEFAULT_FROM;
-    const triggerFrom = context.emailMessage?.to;
 
     if (!accessKeyId || !secretAccessKey || !region) {
       return this.createErrorResult(
@@ -93,10 +98,15 @@ export class SendEmailNode extends ExecutableNode {
       );
     }
 
-    const sender = triggerFrom || defaultFrom;
+    // Resolve sender: selected email > trigger email
+    let sender: string | undefined;
+    if (email && context.emailService) {
+      sender = await context.emailService.resolveSender(email as string);
+    }
+    sender = sender || context.emailMessage?.to;
     if (!sender) {
       return this.createErrorResult(
-        "No sender address available. Configure a default sender in SES_DEFAULT_FROM or trigger the workflow via email."
+        "No sender address available. Select an email or trigger the workflow via email."
       );
     }
 

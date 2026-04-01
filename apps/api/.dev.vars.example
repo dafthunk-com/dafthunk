@@ -2,6 +2,7 @@ WEB_HOST=http://localhost:3001
 WEBSITE_URL=http://localhost:3002
 
 EMAIL_DOMAIN=dafthunk.com
+EMAIL_DOMAIN=dafthunk.com
 
 CLOUDFLARE_ENV=development
 CLOUDFLARE_ACCOUNT_ID=CHANGE_ME

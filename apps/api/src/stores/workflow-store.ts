@@ -72,18 +72,16 @@ export class WorkflowStore {
   }
 
   /**
-   * Extract email ID from workflow nodes
+   * Extract email from workflow nodes
    */
-  private extractEmailId(nodes: Node[]): string | null {
+  private extractEmail(nodes: Node[]): string | null {
     const emailNode = nodes.find((node) => node.type === "receive-email");
     if (!emailNode) return null;
 
-    const emailIdInput = emailNode.inputs.find(
-      (input) => input.name === "emailId"
-    );
-    if (!emailIdInput || !emailIdInput.value) return null;
+    const emailInput = emailNode.inputs.find((input) => input.name === "email");
+    if (!emailInput || !emailInput.value) return null;
 
-    return emailIdInput.value as string;
+    return emailInput.value as string;
   }
 
   /**
@@ -671,7 +669,7 @@ export class WorkflowStore {
 
     // Handle email_message workflows
     if (workflowType === "email_message") {
-      const emailId = this.extractEmailId(nodes);
+      const emailId = this.extractEmail(nodes);
 
       if (emailId) {
         try {

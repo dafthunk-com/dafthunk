@@ -1,14 +1,20 @@
+import { useState } from "react";
+
 import {
   Select,
   SelectContent,
   SelectItem,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { EmailCreateDialog } from "@/components/workflow/widgets/input/email-create-dialog";
 import { useEmails } from "@/services/email-service";
 import { cn } from "@/utils/utils";
 
 import type { FieldProps } from "./types";
+
+const CREATE_NEW = "__create_new__";
 
 export function EmailField({
   className,
@@ -17,9 +23,24 @@ export function EmailField({
   onChange,
   value,
 }: FieldProps) {
-  const { emails, isEmailsLoading } = useEmails();
+  const { emails, isEmailsLoading, mutateEmails } = useEmails();
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   const stringValue = String(value ?? "");
+
+  const handleChange = (val: string) => {
+    if (val === CREATE_NEW) {
+      setIsCreateDialogOpen(true);
+      return;
+    }
+    onChange(val || undefined);
+  };
+
+  const handleCreated = (emailId: string) => {
+    mutateEmails();
+    onChange(emailId);
+    setIsCreateDialogOpen(false);
+  };
 
   if (disabled) {
     const label = emails?.find((e) => e.id === stringValue)?.name ?? "";
@@ -28,7 +49,7 @@ export function EmailField({
         <Select value={stringValue} disabled>
           <SelectTrigger>
             <SelectValue
-              placeholder={connected ? "Connected" : label || "No email inbox"}
+              placeholder={connected ? "Connected" : label || "No email"}
             />
           </SelectTrigger>
         </Select>
@@ -40,7 +61,7 @@ export function EmailField({
     <div className={cn("relative", className)}>
       <Select
         value={stringValue}
-        onValueChange={(val) => onChange(val || undefined)}
+        onValueChange={handleChange}
         disabled={isEmailsLoading}
       >
         <SelectTrigger>
@@ -51,8 +72,8 @@ export function EmailField({
                 : isEmailsLoading
                   ? "Loading..."
                   : emails?.length === 0
-                    ? "No email inboxes"
-                    : "Select email inbox"
+                    ? "No emails"
+                    : "Select email"
             }
           />
         </SelectTrigger>
@@ -62,8 +83,18 @@ export function EmailField({
               {email.name}
             </SelectItem>
           ))}
+          <SelectSeparator />
+          <SelectItem value={CREATE_NEW} className="text-xs">
+            + New Email
+          </SelectItem>
         </SelectContent>
       </Select>
+
+      <EmailCreateDialog
+        isOpen={isCreateDialogOpen}
+        onClose={() => setIsCreateDialogOpen(false)}
+        onCreated={handleCreated}
+      />
     </div>
   );
 }

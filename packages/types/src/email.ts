@@ -1,3 +1,5 @@
+import type { SenderEmailStatus } from "./organization";
+
 // Email Types
 export interface CreateEmailRequest {
   name: string;
@@ -6,7 +8,8 @@ export interface CreateEmailRequest {
 export interface CreateEmailResponse {
   id: string;
   name: string;
-
+  senderEmail: string | null;
+  senderEmailStatus: SenderEmailStatus | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -14,7 +17,8 @@ export interface CreateEmailResponse {
 export interface GetEmailResponse {
   id: string;
   name: string;
-
+  senderEmail: string | null;
+  senderEmailStatus: SenderEmailStatus | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -23,7 +27,8 @@ export interface ListEmailsResponse {
   emails: {
     id: string;
     name: string;
-
+    senderEmail: string | null;
+    senderEmailStatus: SenderEmailStatus | null;
     createdAt: Date;
     updatedAt: Date;
   }[];
@@ -36,7 +41,8 @@ export interface UpdateEmailRequest {
 export interface UpdateEmailResponse {
   id: string;
   name: string;
-
+  senderEmail: string | null;
+  senderEmailStatus: SenderEmailStatus | null;
   createdAt: Date;
   updatedAt: Date;
 }

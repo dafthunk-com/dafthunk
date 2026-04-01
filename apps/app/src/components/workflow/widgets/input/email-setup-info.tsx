@@ -5,7 +5,8 @@ interface EmailSetupInfoProps {
 }
 
 export function EmailSetupInfo({ emailId }: EmailSetupInfoProps) {
-  const emailAddress = `${emailId}@dafthunk.com`;
+  const domain = import.meta.env.VITE_EMAIL_DOMAIN || "dafthunk.com";
+  const emailAddress = `${emailId}@${domain}`;
 
   return (
     <div className="space-y-2 text-sm">
@@ -19,7 +20,7 @@ export function EmailSetupInfo({ emailId }: EmailSetupInfoProps) {
           <li>
             Create a workflow with a{" "}
             <span className="font-medium text-foreground">Receive Email</span>{" "}
-            trigger and select this inbox.
+            trigger and select this email.
           </li>
           <li>Enable the workflow.</li>
           <li>Send an email to the address above to trigger the workflow.</li>

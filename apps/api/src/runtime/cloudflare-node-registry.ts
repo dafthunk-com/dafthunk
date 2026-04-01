@@ -475,8 +475,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     const hasSESEmail = !!(
       this.env.AWS_ACCESS_KEY_ID &&
       this.env.AWS_SECRET_ACCESS_KEY &&
-      this.env.AWS_REGION &&
-      this.env.SES_DEFAULT_FROM
+      this.env.AWS_REGION
     );
     const hasGoogleMail = !!(
       this.env.INTEGRATION_GOOGLE_MAIL_CLIENT_ID &&

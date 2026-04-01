@@ -16,7 +16,6 @@ import { dateInputWidget } from "./input/date-input";
 import { discordTriggerInputWidget } from "./input/discord-trigger-input";
 import { documentInputWidget } from "./input/document-input";
 import { createDynamicInputsWidget } from "./input/dynamic-inputs-widget";
-import { emailTriggerInputWidget } from "./input/email-trigger-input";
 import {
   httpRequestEndpointWidget,
   httpWebhookEndpointWidget,
@@ -74,7 +73,6 @@ const widgets = [
 
   // Advanced input widgets (special UX)
   discordTriggerInputWidget,
-  emailTriggerInputWidget,
   httpRequestEndpointWidget,
   httpWebhookEndpointWidget,
   telegramTriggerInputWidget,
