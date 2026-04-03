@@ -241,7 +241,8 @@ export class CloudflareCredentialService implements CredentialService {
             : undefined;
         console.error(
           `[OAuth] Failed to persist refreshed token: ${provider} (${integrationId})`,
-          cause ?? (dbError instanceof Error ? dbError.message : String(dbError))
+          cause ??
+            (dbError instanceof Error ? dbError.message : String(dbError))
         );
         // Token refresh succeeded — return it for this execution.
         // Next execution will refresh again since the DB wasn't updated.

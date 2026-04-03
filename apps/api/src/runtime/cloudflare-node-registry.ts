@@ -224,6 +224,13 @@ import { SearchRepositoriesGithubNode } from "@dafthunk/runtime/nodes/github/sea
 import { StarRepositoryGithubNode } from "@dafthunk/runtime/nodes/github/star-repository-github-node";
 import { UnfollowUserGithubNode } from "@dafthunk/runtime/nodes/github/unfollow-user-github-node";
 import { UnstarRepositoryGithubNode } from "@dafthunk/runtime/nodes/github/unstar-repository-github-node";
+import { AirQualityGoogleNode } from "@dafthunk/runtime/nodes/google/air-quality-google-node";
+import { ElevationGoogleNode } from "@dafthunk/runtime/nodes/google/elevation-google-node";
+import { GeocodingGoogleNode } from "@dafthunk/runtime/nodes/google/geocoding-google-node";
+import { PlacesGoogleNode } from "@dafthunk/runtime/nodes/google/places-google-node";
+import { PollenGoogleNode } from "@dafthunk/runtime/nodes/google/pollen-google-node";
+import { TimezoneGoogleNode } from "@dafthunk/runtime/nodes/google/timezone-google-node";
+import { WeatherGoogleNode } from "@dafthunk/runtime/nodes/google/weather-google-node";
 import { AddAttendeesGoogleCalendarNode } from "@dafthunk/runtime/nodes/google-calendar/add-attendees-google-calendar-node";
 import { CheckAvailabilityGoogleCalendarNode } from "@dafthunk/runtime/nodes/google-calendar/check-availability-google-calendar-node";
 import { CreateEventGoogleCalendarNode } from "@dafthunk/runtime/nodes/google-calendar/create-event-google-calendar-node";
@@ -447,6 +454,8 @@ import { BotReceiveWhatsAppMessageNode } from "@dafthunk/runtime/nodes/whatsapp/
 import { BotSendImageWhatsAppNode } from "@dafthunk/runtime/nodes/whatsapp/bot-send-image-whatsapp-node";
 import { BotSendMessageWhatsAppNode } from "@dafthunk/runtime/nodes/whatsapp/bot-send-message-whatsapp-node";
 import { BotSendTemplateWhatsAppNode } from "@dafthunk/runtime/nodes/whatsapp/bot-send-template-whatsapp-node";
+import { SearchMediaWikiNode } from "@dafthunk/runtime/nodes/wikipedia/search-mediawiki-node";
+import { SearchWikipediaNode } from "@dafthunk/runtime/nodes/wikipedia/search-wikipedia-node";
 import { DeletePostXNode } from "@dafthunk/runtime/nodes/x/delete-post-x-node";
 import { FollowUserXNode } from "@dafthunk/runtime/nodes/x/follow-user-x-node";
 import { GetPostXNode } from "@dafthunk/runtime/nodes/x/get-post-x-node";
@@ -722,6 +731,21 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(TextToBlobNode);
     this.registerImplementation(FetchNode);
     this.registerImplementation(HttpResponseNode);
+
+    // Search nodes
+    this.registerImplementation(SearchWikipediaNode);
+    this.registerImplementation(SearchMediaWikiNode);
+
+    // Google API nodes
+    if (this.env.GOOGLE_API_KEY) {
+      this.registerImplementation(AirQualityGoogleNode);
+      this.registerImplementation(WeatherGoogleNode);
+      this.registerImplementation(PollenGoogleNode);
+      this.registerImplementation(ElevationGoogleNode);
+      this.registerImplementation(PlacesGoogleNode);
+      this.registerImplementation(GeocodingGoogleNode);
+      this.registerImplementation(TimezoneGoogleNode);
+    }
 
     // Specification test nodes (multi-step)
     this.registerImplementation(MultiStepAdditionNode);

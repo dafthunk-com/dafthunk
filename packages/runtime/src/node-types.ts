@@ -216,6 +216,7 @@ export interface NodeEnv {
   AWS_REGION?: string;
   HUGGINGFACE_API_KEY?: string;
   REPLICATE_API_TOKEN?: string;
+  GOOGLE_API_KEY?: string;
 }
 
 export interface NodeContext {
