@@ -579,7 +579,7 @@ export class WorkflowStore {
         existing.whatsappAccountId !== config.whatsappAccountId ||
         (existing.phoneNumberId ?? undefined) !== config.phoneNumberId;
 
-      const verifyToken = crypto.randomUUID();
+      const verifyToken = existing?.verifyToken ?? crypto.randomUUID();
 
       try {
         if (configChanged) {

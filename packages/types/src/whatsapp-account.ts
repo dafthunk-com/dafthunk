@@ -5,7 +5,7 @@ export interface CreateWhatsAppAccountRequest {
   accessToken: string;
   phoneNumberId: string;
   wabaId?: string;
-  appSecret?: string;
+  appSecret: string;
 }
 
 export interface CreateWhatsAppAccountResponse {
@@ -36,4 +36,9 @@ export type UpdateWhatsAppAccountResponse = GetWhatsAppAccountResponse;
 
 export interface DeleteWhatsAppAccountResponse {
   id: string;
+}
+
+export interface GetWhatsAppWebhookInfoResponse {
+  webhookUrl: string | null;
+  verifyToken: string | null;
 }

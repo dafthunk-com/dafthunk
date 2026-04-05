@@ -50,9 +50,6 @@ export function WhatsAppAccountCreateDialog({
   const [appSecret, setAppSecret] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [createdPhoneNumberId, setCreatedPhoneNumberId] = useState<
-    string | null
-  >(null);
 
   const resetForm = () => {
     setStep("credentials");
@@ -62,7 +59,6 @@ export function WhatsAppAccountCreateDialog({
     setWabaId("");
     setAppSecret("");
     setError(null);
-    setCreatedPhoneNumberId(null);
   };
 
   const handleClose = () => {
@@ -83,11 +79,10 @@ export function WhatsAppAccountCreateDialog({
           accessToken,
           phoneNumberId,
           wabaId: wabaId || undefined,
-          appSecret: appSecret || undefined,
+          appSecret,
         },
         organization.id
       );
-      setCreatedPhoneNumberId(response.phoneNumberId);
       setStep("setup");
       onCreated(response.id);
     } catch (err) {
@@ -180,10 +175,7 @@ export function WhatsAppAccountCreateDialog({
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="whatsapp-app-secret">
-                App Secret{" "}
-                <span className="text-muted-foreground">(optional)</span>
-              </Label>
+              <Label htmlFor="whatsapp-app-secret">App Secret</Label>
               <Input
                 id="whatsapp-app-secret"
                 type="password"
@@ -192,7 +184,8 @@ export function WhatsAppAccountCreateDialog({
                 placeholder="••••••••"
               />
               <p className="text-xs text-muted-foreground">
-                Used to verify webhook signatures (recommended for security).
+                Required to verify incoming webhook signatures. Find it in App
+                Settings &gt; Basic in the Meta Developer Portal.
               </p>
             </div>
 
@@ -217,7 +210,8 @@ export function WhatsAppAccountCreateDialog({
                   isSubmitting ||
                   name.trim() === "" ||
                   accessToken.trim() === "" ||
-                  phoneNumberId.trim() === ""
+                  phoneNumberId.trim() === "" ||
+                  appSecret.trim() === ""
                 }
               >
                 {isSubmitting ? (
@@ -242,7 +236,7 @@ export function WhatsAppAccountCreateDialog({
               <span className="font-medium">{name}</span>
             </div>
 
-            <WhatsAppSetupInfo phoneNumberId={createdPhoneNumberId} />
+            <WhatsAppSetupInfo />
 
             <div className="flex justify-end">
               <Button onClick={handleClose}>Done</Button>

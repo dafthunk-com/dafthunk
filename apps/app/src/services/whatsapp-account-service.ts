@@ -3,6 +3,7 @@ import type {
   CreateWhatsAppAccountResponse,
   DeleteWhatsAppAccountResponse,
   GetWhatsAppAccountResponse,
+  GetWhatsAppWebhookInfoResponse,
   ListWhatsAppAccountsResponse,
   UpdateWhatsAppAccountRequest,
   UpdateWhatsAppAccountResponse,
@@ -72,6 +73,33 @@ export const useWhatsAppAccount = (id: string | null) => {
     whatsappAccountError: error || null,
     isWhatsAppAccountLoading: isLoading,
     mutateWhatsAppAccount: mutate,
+  };
+};
+
+export const useWhatsAppWebhookInfo = (id: string | null) => {
+  const { organization } = useAuth();
+  const orgId = organization?.id;
+
+  const swrKey =
+    orgId && id ? `/${orgId}${API_ENDPOINT_BASE}/${id}/webhook-info` : null;
+
+  const { data, error, isLoading } = useSWR(
+    swrKey,
+    swrKey && orgId && id
+      ? async () => {
+          return await makeOrgRequest<GetWhatsAppWebhookInfoResponse>(
+            orgId,
+            API_ENDPOINT_BASE,
+            `/${id}/webhook-info`
+          );
+        }
+      : null
+  );
+
+  return {
+    webhookInfo: data,
+    webhookInfoError: error || null,
+    isWebhookInfoLoading: isLoading,
   };
 };
 

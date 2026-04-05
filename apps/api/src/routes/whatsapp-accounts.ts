@@ -3,6 +3,7 @@ import type {
   CreateWhatsAppAccountResponse,
   DeleteWhatsAppAccountResponse,
   GetWhatsAppAccountResponse,
+  GetWhatsAppWebhookInfoResponse,
   ListWhatsAppAccountsResponse,
   UpdateWhatsAppAccountRequest,
   UpdateWhatsAppAccountResponse,
@@ -20,6 +21,7 @@ import {
   deleteWhatsAppAccount,
   getWhatsAppAccount,
   getWhatsAppAccounts,
+  getWhatsAppVerifyTokenByAccount,
   updateWhatsAppAccount,
 } from "../db";
 import { encryptSecret } from "../utils/encryption";
@@ -49,7 +51,7 @@ whatsappAccountRoutes.post(
       accessToken: z.string().min(1, "Access token is required"),
       phoneNumberId: z.string().min(1, "Phone number ID is required"),
       wabaId: z.string().optional(),
-      appSecret: z.string().optional(),
+      appSecret: z.string().min(1, "App secret is required"),
     }) as z.ZodType<CreateWhatsAppAccountRequest>
   ),
   async (c) => {
@@ -86,14 +88,11 @@ whatsappAccountRoutes.post(
       organizationId
     );
 
-    let encryptedAppSecret: string | null = null;
-    if (data.appSecret) {
-      encryptedAppSecret = await encryptSecret(
-        data.appSecret,
-        c.env,
-        organizationId
-      );
-    }
+    const encryptedAppSecret = await encryptSecret(
+      data.appSecret,
+      c.env,
+      organizationId
+    );
 
     const newAccount = await createWhatsAppAccount(db, {
       id: accountId,
@@ -239,6 +238,27 @@ whatsappAccountRoutes.put(
     return c.json(response);
   }
 );
+
+whatsappAccountRoutes.get("/:id/webhook-info", async (c) => {
+  const id = c.req.param("id");
+  const db = createDatabase(c.env.DB);
+  const organizationId = c.get("organizationId")!;
+
+  const account = await getWhatsAppAccount(db, id, organizationId);
+  if (!account) {
+    return c.json({ error: "WhatsApp account not found" }, 404);
+  }
+
+  const verifyToken = await getWhatsAppVerifyTokenByAccount(db, id);
+  const apiHost = new URL(c.req.url).origin;
+
+  const response: GetWhatsAppWebhookInfoResponse = {
+    webhookUrl: `${apiHost}/whatsapp/webhook/${id}`,
+    verifyToken: verifyToken ?? null,
+  };
+
+  return c.json(response);
+});
 
 whatsappAccountRoutes.delete("/:id", async (c) => {
   const id = c.req.param("id");

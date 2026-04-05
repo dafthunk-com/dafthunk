@@ -1,8 +1,4 @@
-interface WhatsAppSetupInfoProps {
-  phoneNumberId: string | null;
-}
-
-export function WhatsAppSetupInfo({ phoneNumberId }: WhatsAppSetupInfoProps) {
+export function WhatsAppSetupInfo() {
   return (
     <div className="space-y-2 text-sm">
       <div className="space-y-1">
@@ -16,22 +12,19 @@ export function WhatsAppSetupInfo({ phoneNumberId }: WhatsAppSetupInfoProps) {
             trigger and select this account.
           </li>
           <li>
-            Configure the webhook URL in your{" "}
+            Go to the account details page to find the{" "}
+            <span className="font-medium text-foreground">Callback URL</span>{" "}
+            and{" "}
+            <span className="font-medium text-foreground">Verify Token</span>,
+            then configure them in the{" "}
             <span className="font-medium text-foreground">
               Meta Developer Portal
-            </span>
-            . Use the webhook URL shown in the account details.
+            </span>{" "}
+            webhook settings.
           </li>
           <li>
-            Enable the workflow, then send a message to{" "}
-            {phoneNumberId ? (
-              <span className="font-medium text-foreground font-mono">
-                {phoneNumberId}
-              </span>
-            ) : (
-              "your WhatsApp number"
-            )}{" "}
-            to trigger the workflow.
+            Enable the workflow, then send a WhatsApp message to your business
+            number to trigger it.
           </li>
         </ol>
       </div>
