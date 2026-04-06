@@ -13,6 +13,7 @@ export class BotForwardMessageTelegramNode extends ExecutableNode {
     documentation:
       "This node forwards messages between Telegram chats using the Telegram Bot API.",
     usage: 10,
+    subscription: true,
     inputs: [
       {
         name: "chatId",

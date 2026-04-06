@@ -15,6 +15,7 @@ export class BotReceiveWhatsAppMessageNode extends ExecutableNode {
     trigger: true,
     inlinable: true,
     usage: 0,
+    subscription: true,
     inputs: [
       {
         name: "whatsappAccountId",

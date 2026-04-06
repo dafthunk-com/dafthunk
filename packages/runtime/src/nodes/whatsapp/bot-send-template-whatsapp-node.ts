@@ -13,6 +13,7 @@ export class BotSendTemplateWhatsAppNode extends ExecutableNode {
     documentation:
       "This node sends pre-approved template messages via the WhatsApp Business Cloud API. Template messages are required to start conversations outside the 24-hour customer service window.",
     usage: 10,
+    subscription: true,
     inputs: [
       {
         name: "to",
