@@ -331,6 +331,10 @@ const converters: Record<string, Converter> = {
     nodeToApi: typeValidatingNodeToApi("string"),
     apiToNode: typeValidatingApiToNode("string"),
   },
+  whatsapp: {
+    nodeToApi: typeValidatingNodeToApi("string"),
+    apiToNode: typeValidatingApiToNode("string"),
+  },
   any: {
     nodeToApi: (
       value: NodeParameterValue,
