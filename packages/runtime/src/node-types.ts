@@ -217,6 +217,7 @@ export interface NodeEnv {
   HUGGINGFACE_API_KEY?: string;
   REPLICATE_API_TOKEN?: string;
   GOOGLE_API_KEY?: string;
+  TAVILY_API_KEY?: string;
 }
 
 export interface NodeContext {

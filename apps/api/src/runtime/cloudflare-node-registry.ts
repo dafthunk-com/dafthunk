@@ -407,6 +407,8 @@ import { SubmitCommentRedditNode } from "@dafthunk/runtime/nodes/reddit/submit-c
 import { VoteRedditNode } from "@dafthunk/runtime/nodes/reddit/vote-reddit-node";
 import { ReplicateModelNode } from "@dafthunk/runtime/nodes/replicate/replicate-model-node";
 import { ReceiveScheduledTriggerNode } from "@dafthunk/runtime/nodes/scheduled/receive-scheduled-trigger-node";
+import { ExtractTavilyNode } from "@dafthunk/runtime/nodes/tavily/extract-tavily-node";
+import { SearchTavilyNode } from "@dafthunk/runtime/nodes/tavily/search-tavily-node";
 import { BotForwardMessageTelegramNode } from "@dafthunk/runtime/nodes/telegram/bot-forward-message-telegram-node";
 import { BotGetChatTelegramNode } from "@dafthunk/runtime/nodes/telegram/bot-get-chat-telegram-node";
 import { BotReceiveTelegramMessageNode } from "@dafthunk/runtime/nodes/telegram/bot-receive-telegram-message-node";
@@ -735,6 +737,12 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     // Search nodes
     this.registerImplementation(SearchWikipediaNode);
     this.registerImplementation(SearchMediaWikiNode);
+
+    // Tavily nodes
+    if (this.env.TAVILY_API_KEY) {
+      this.registerImplementation(SearchTavilyNode);
+      this.registerImplementation(ExtractTavilyNode);
+    }
 
     // Google API nodes
     if (this.env.GOOGLE_API_KEY) {

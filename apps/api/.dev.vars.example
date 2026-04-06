@@ -27,6 +27,9 @@ GOOGLE_API_KEY=CHANGE_ME
 # Replicate
 REPLICATE_API_TOKEN=CHANGE_ME
 
+# Tavily
+TAVILY_API_KEY=CHANGE_ME
+
 # Integration OAuth (workflow integrations)
 # Use separate OAuth apps from authentication for security isolation
 # Each integration requires different scopes and redirect URIs
