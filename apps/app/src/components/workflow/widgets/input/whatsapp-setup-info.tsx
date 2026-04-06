@@ -21,8 +21,7 @@ export function WhatsAppSetupInfo() {
               Meta Developer Portal
             </span>{" "}
             webhook settings and subscribe to the{" "}
-            <span className="font-medium text-foreground">messages</span>{" "}
-            field.
+            <span className="font-medium text-foreground">messages</span> field.
           </li>
           <li>
             Enable the workflow, then send a WhatsApp message to your business

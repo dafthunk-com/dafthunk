@@ -46,7 +46,7 @@ export function BotTelegramDetailPage() {
 
   return (
     <InsetLayout title="Bot Details">
-      <div className="space-y-8 max-w-2xl">
+      <div className="space-y-8">
         <div className="flex justify-end">
           <Button
             variant="outline"

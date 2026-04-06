@@ -52,7 +52,8 @@ export function BotWhatsAppEditDialog({
           phoneNumberId:
             phoneNumberId !== account.phoneNumberId ? phoneNumberId : undefined,
           appSecret: appSecret.trim() !== "" ? appSecret : undefined,
-          wabaId: wabaId !== (account.wabaId || "") ? wabaId || undefined : undefined,
+          wabaId:
+            wabaId !== (account.wabaId || "") ? wabaId || undefined : undefined,
         },
         organization.id
       );
@@ -110,7 +111,8 @@ export function BotWhatsAppEditDialog({
               placeholder="Leave empty to keep current secret"
             />
             <p className="text-xs text-muted-foreground">
-              Found at App Settings &gt; Basic in the Meta Developer Portal.
+              Found at Apps &gt; App Settings &gt; Basic in the Meta Developer
+              Portal.
             </p>
           </div>
 
@@ -124,8 +126,8 @@ export function BotWhatsAppEditDialog({
               placeholder="Leave empty to keep current token"
             />
             <p className="text-xs text-muted-foreground">
-              Found at WhatsApp &gt; API Setup, or via Business Settings &gt;
-              System Users for a permanent token.
+              Found at Apps &gt; Use cases &gt; WhatsApp &gt; API Setup, or via
+              Business Settings &gt; System Users for a permanent token.
             </p>
           </div>
 
@@ -137,7 +139,8 @@ export function BotWhatsAppEditDialog({
               onChange={(e) => setPhoneNumberId(e.target.value)}
             />
             <p className="text-xs text-muted-foreground">
-              Found at WhatsApp &gt; API Setup under the phone number dropdown.
+              Found at Apps &gt; Use cases &gt; WhatsApp &gt; API Setup under
+              the phone number dropdown.
             </p>
           </div>
 

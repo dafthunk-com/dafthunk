@@ -28,11 +28,10 @@ const STEP_TITLES: Record<Step, string> = {
 const STEP_DESCRIPTIONS: Record<Step, string> = {
   name: "Choose a display name to identify this WhatsApp account in Dafthunk.",
   "app-secret":
-    "Copy the App Secret from your Meta app. Navigate to App Settings > Basic in the Meta Developer Portal.",
+    "Copy the App Secret from your Meta app. Navigate to Apps > App Settings > Basic in the Meta Developer Portal.",
   "api-credentials":
     "Copy your Access Token and Phone Number ID from the WhatsApp API Setup page in the Meta Developer Portal.",
-  setup:
-    "Your account is ready. Follow these steps to complete the setup.",
+  setup: "Your account is ready. Follow these steps to complete the setup.",
 };
 
 const META_PORTAL_URL = "https://developers.facebook.com/apps/";
@@ -169,7 +168,7 @@ export function WhatsAppAccountCreateDialog({
               <p className="text-xs text-muted-foreground">
                 Find this at{" "}
                 <span className="font-medium text-foreground">
-                  App Settings &gt; Basic
+                  Apps &gt; App Settings &gt; Basic
                 </span>{" "}
                 in the Meta Developer Portal. Click{" "}
                 <span className="font-medium text-foreground">Show</span> next
@@ -210,12 +209,12 @@ export function WhatsAppAccountCreateDialog({
               <p className="text-xs text-muted-foreground">
                 Find this at{" "}
                 <span className="font-medium text-foreground">
-                  WhatsApp &gt; API Setup
+                  Apps &gt; Use cases &gt; WhatsApp &gt; API Setup
                 </span>{" "}
                 under the temporary access token section, or generate a
                 permanent token via{" "}
                 <span className="font-medium text-foreground">
-                  Business Settings &gt; System Users
+                  Business &gt; Settings &gt; System Users
                 </span>
                 .
               </p>
@@ -237,7 +236,7 @@ export function WhatsAppAccountCreateDialog({
               <p className="text-xs text-muted-foreground">
                 Find this at{" "}
                 <span className="font-medium text-foreground">
-                  WhatsApp &gt; API Setup
+                  Apps &gt; Use cases &gt; WhatsApp &gt; API Setup
                 </span>
                 . Select your phone number from the dropdown — the numeric ID
                 appears below it. This is not the phone number itself.
