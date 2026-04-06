@@ -12,15 +12,17 @@ export function WhatsAppSetupInfo() {
             trigger and select this account.
           </li>
           <li>
-            Go to the account details page to find the{" "}
+            After creating the workflow, the{" "}
             <span className="font-medium text-foreground">Callback URL</span>{" "}
             and{" "}
-            <span className="font-medium text-foreground">Verify Token</span>,
-            then configure them in the{" "}
+            <span className="font-medium text-foreground">Verify Token</span>{" "}
+            will appear on the account details page. Copy them into the{" "}
             <span className="font-medium text-foreground">
               Meta Developer Portal
             </span>{" "}
-            webhook settings.
+            webhook settings and subscribe to the{" "}
+            <span className="font-medium text-foreground">messages</span>{" "}
+            field.
           </li>
           <li>
             Enable the workflow, then send a WhatsApp message to your business

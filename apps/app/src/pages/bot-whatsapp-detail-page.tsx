@@ -89,7 +89,7 @@ export function BotWhatsAppDetailPage() {
             mono
           />
           <DetailRow
-            label="Token"
+            label="Access Token"
             value={`****${whatsappAccount.tokenLastFour}`}
             mono
           />

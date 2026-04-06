@@ -16,19 +16,26 @@ import { createWhatsAppAccount } from "@/services/whatsapp-account-service";
 
 import { WhatsAppSetupInfo } from "./whatsapp-setup-info";
 
-type Step = "credentials" | "setup";
+type Step = "name" | "app-secret" | "api-credentials" | "setup";
 
 const STEP_TITLES: Record<Step, string> = {
-  credentials: "Add WhatsApp Account",
+  name: "Add WhatsApp Account",
+  "app-secret": "App Secret",
+  "api-credentials": "WhatsApp API Credentials",
   setup: "Account Created",
 };
 
 const STEP_DESCRIPTIONS: Record<Step, string> = {
-  credentials:
-    "Enter your WhatsApp Business API credentials from the Meta Developer Portal.",
+  name: "Choose a display name to identify this WhatsApp account in Dafthunk.",
+  "app-secret":
+    "Copy the App Secret from your Meta app. Navigate to App Settings > Basic in the Meta Developer Portal.",
+  "api-credentials":
+    "Copy your Access Token and Phone Number ID from the WhatsApp API Setup page in the Meta Developer Portal.",
   setup:
-    "Your account is ready. Configure the webhook URL in the Meta Developer Portal.",
+    "Your account is ready. Follow these steps to complete the setup.",
 };
+
+const META_PORTAL_URL = "https://developers.facebook.com/apps/";
 
 interface WhatsAppAccountCreateDialogProps {
   isOpen: boolean;
@@ -42,22 +49,22 @@ export function WhatsAppAccountCreateDialog({
   onCreated,
 }: WhatsAppAccountCreateDialogProps) {
   const { organization } = useAuth();
-  const [step, setStep] = useState<Step>("credentials");
+  const [step, setStep] = useState<Step>("name");
   const [name, setName] = useState("");
+  const [appSecret, setAppSecret] = useState("");
   const [accessToken, setAccessToken] = useState("");
   const [phoneNumberId, setPhoneNumberId] = useState("");
   const [wabaId, setWabaId] = useState("");
-  const [appSecret, setAppSecret] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const resetForm = () => {
-    setStep("credentials");
+    setStep("name");
     setName("");
+    setAppSecret("");
     setAccessToken("");
     setPhoneNumberId("");
     setWabaId("");
-    setAppSecret("");
     setError(null);
   };
 
@@ -101,11 +108,11 @@ export function WhatsAppAccountCreateDialog({
           </DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground mt-1">
             {STEP_DESCRIPTIONS[step]}
-            {step === "credentials" && (
+            {(step === "app-secret" || step === "api-credentials") && (
               <>
                 {" "}
                 <a
-                  href="https://developers.facebook.com/apps/"
+                  href={META_PORTAL_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-primary hover:underline inline-flex items-center gap-0.5"
@@ -118,7 +125,7 @@ export function WhatsAppAccountCreateDialog({
           </DialogDescription>
         </div>
 
-        {step === "credentials" && (
+        {step === "name" && (
           <div className="space-y-3">
             <div className="space-y-1.5">
               <Label htmlFor="whatsapp-name">Name</Label>
@@ -126,13 +133,71 @@ export function WhatsAppAccountCreateDialog({
                 id="whatsapp-name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="My WhatsApp Account"
+                placeholder="My WhatsApp Bot"
               />
               <p className="text-xs text-muted-foreground">
-                A display name for this account in Dafthunk.
+                A display name for this account in Dafthunk. This is not visible
+                to your WhatsApp users.
               </p>
             </div>
 
+            <div className="flex justify-end gap-2 pt-1">
+              <Button type="button" variant="outline" onClick={handleClose}>
+                Cancel
+              </Button>
+              <Button
+                onClick={() => setStep("app-secret")}
+                disabled={name.trim() === ""}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {step === "app-secret" && (
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="whatsapp-app-secret">App Secret</Label>
+              <Input
+                id="whatsapp-app-secret"
+                type="password"
+                value={appSecret}
+                onChange={(e) => setAppSecret(e.target.value)}
+                placeholder="Paste your App Secret here"
+              />
+              <p className="text-xs text-muted-foreground">
+                Find this at{" "}
+                <span className="font-medium text-foreground">
+                  App Settings &gt; Basic
+                </span>{" "}
+                in the Meta Developer Portal. Click{" "}
+                <span className="font-medium text-foreground">Show</span> next
+                to the App Secret field. Used to verify that incoming webhook
+                messages are genuinely from Meta.
+              </p>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-1">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setStep("name")}
+              >
+                Back
+              </Button>
+              <Button
+                onClick={() => setStep("api-credentials")}
+                disabled={appSecret.trim() === ""}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {step === "api-credentials" && (
+          <div className="space-y-3">
             <div className="space-y-1.5">
               <Label htmlFor="whatsapp-token">Access Token</Label>
               <Input
@@ -140,11 +205,24 @@ export function WhatsAppAccountCreateDialog({
                 type="password"
                 value={accessToken}
                 onChange={(e) => setAccessToken(e.target.value)}
-                placeholder="••••••••"
+                placeholder="Paste your access token here"
               />
               <p className="text-xs text-muted-foreground">
-                Your WhatsApp Business API access token from the Meta Developer
-                Portal.
+                Find this at{" "}
+                <span className="font-medium text-foreground">
+                  WhatsApp &gt; API Setup
+                </span>{" "}
+                under the temporary access token section, or generate a
+                permanent token via{" "}
+                <span className="font-medium text-foreground">
+                  Business Settings &gt; System Users
+                </span>
+                .
+              </p>
+              <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-3 py-2 rounded-md">
+                Temporary tokens from API Setup expire in 24 hours. For
+                production use, generate a permanent token from a System User in
+                Business Settings.
               </p>
             </div>
 
@@ -157,14 +235,21 @@ export function WhatsAppAccountCreateDialog({
                 placeholder="123456789012345"
               />
               <p className="text-xs text-muted-foreground">
-                The Phone Number ID from your WhatsApp Business account.
+                Find this at{" "}
+                <span className="font-medium text-foreground">
+                  WhatsApp &gt; API Setup
+                </span>
+                . Select your phone number from the dropdown — the numeric ID
+                appears below it. This is not the phone number itself.
               </p>
             </div>
 
             <div className="space-y-1.5">
               <Label htmlFor="whatsapp-waba-id">
                 WABA ID{" "}
-                <span className="text-muted-foreground">(optional)</span>
+                <span className="text-muted-foreground font-normal">
+                  (optional)
+                </span>
               </Label>
               <Input
                 id="whatsapp-waba-id"
@@ -172,20 +257,9 @@ export function WhatsAppAccountCreateDialog({
                 onChange={(e) => setWabaId(e.target.value)}
                 placeholder="WhatsApp Business Account ID"
               />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="whatsapp-app-secret">App Secret</Label>
-              <Input
-                id="whatsapp-app-secret"
-                type="password"
-                value={appSecret}
-                onChange={(e) => setAppSecret(e.target.value)}
-                placeholder="••••••••"
-              />
               <p className="text-xs text-muted-foreground">
-                Required to verify incoming webhook signatures. Find it in App
-                Settings &gt; Basic in the Meta Developer Portal.
+                The WhatsApp Business Account ID, found on the same page. Stored
+                for reference only.
               </p>
             </div>
 
@@ -199,19 +273,20 @@ export function WhatsAppAccountCreateDialog({
               <Button
                 type="button"
                 variant="outline"
-                onClick={handleClose}
+                onClick={() => {
+                  setError(null);
+                  setStep("app-secret");
+                }}
                 disabled={isSubmitting}
               >
-                Cancel
+                Back
               </Button>
               <Button
                 onClick={handleSubmit}
                 disabled={
                   isSubmitting ||
-                  name.trim() === "" ||
                   accessToken.trim() === "" ||
-                  phoneNumberId.trim() === "" ||
-                  appSecret.trim() === ""
+                  phoneNumberId.trim() === ""
                 }
               >
                 {isSubmitting ? (
