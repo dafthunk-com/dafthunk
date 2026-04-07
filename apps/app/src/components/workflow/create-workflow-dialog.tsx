@@ -1,6 +1,7 @@
 import type { WorkflowRuntime, WorkflowTrigger } from "@dafthunk/types";
 import Clock from "lucide-react/icons/clock";
 import Globe from "lucide-react/icons/globe";
+import Hash from "lucide-react/icons/hash";
 import Inbox from "lucide-react/icons/inbox";
 import Layers from "lucide-react/icons/layers";
 import Mail from "lucide-react/icons/mail";
@@ -78,6 +79,12 @@ const workflowTriggers = [
     title: "WhatsApp Event",
     description: "Trigger workflows from WhatsApp messages",
     icon: MessageCircle,
+  },
+  {
+    trigger: "slack_event" as WorkflowTrigger,
+    title: "Slack Event",
+    description: "Trigger workflows from Slack messages",
+    icon: Hash,
   },
 ];
 
