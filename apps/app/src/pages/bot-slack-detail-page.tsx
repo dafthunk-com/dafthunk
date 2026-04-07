@@ -130,26 +130,63 @@ export function BotSlackDetailPage() {
               <span className="font-medium text-foreground">
                 Event Subscriptions
               </span>
-              , enable events and paste the Webhook URL above as the Request
-              URL.
+              , toggle{" "}
+              <span className="font-medium text-foreground">Enable Events</span>{" "}
+              to On, then paste the{" "}
+              <span className="font-medium text-foreground">Webhook URL</span>{" "}
+              above as the{" "}
+              <span className="font-medium text-foreground">Request URL</span>.
+              Slack will verify the URL automatically.
             </li>
             <li>
-              Subscribe to the{" "}
+              Under{" "}
               <span className="font-medium text-foreground">
+                Subscribe to bot events
+              </span>
+              , add{" "}
+              <span className="font-mono text-xs text-foreground">
                 message.channels
               </span>{" "}
-              and{" "}
-              <span className="font-medium text-foreground">
+              (public channels) and{" "}
+              <span className="font-mono text-xs text-foreground">
                 message.groups
               </span>{" "}
-              bot events.
+              (private channels), then click{" "}
+              <span className="font-medium text-foreground">Save Changes</span>.
             </li>
             <li>
-              Invite the bot to a Slack channel, then create a workflow with a{" "}
+              Under{" "}
+              <span className="font-medium text-foreground">
+                OAuth &amp; Permissions
+              </span>
+              , verify that the{" "}
+              <span className="font-mono text-xs text-foreground">
+                channels:history
+              </span>
+              ,{" "}
+              <span className="font-mono text-xs text-foreground">
+                groups:history
+              </span>
+              , and{" "}
+              <span className="font-mono text-xs text-foreground">
+                chat:write
+              </span>{" "}
+              scopes are present. If you added new scopes, reinstall the app to
+              your workspace.
+            </li>
+            <li>
+              Invite the bot to a Slack channel by typing{" "}
+              <span className="font-mono text-xs text-foreground">
+                /invite @{slackBot.name}
+              </span>{" "}
+              in the channel.
+            </li>
+            <li>
+              Create a workflow with a{" "}
               <span className="font-medium text-foreground">
                 Receive Slack Message
               </span>{" "}
-              trigger node.
+              trigger node, select this bot, and enable the workflow.
             </li>
           </ol>
         </div>

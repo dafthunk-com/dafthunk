@@ -240,23 +240,48 @@ export function SlackBotCreateDialog({
                   <Copy className="h-4 w-4" />
                 </Button>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Paste this URL as the{" "}
-                <span className="font-medium">Request URL</span> under{" "}
-                <a
-                  href="https://api.slack.com/apps"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline inline-flex items-center gap-0.5"
-                >
-                  Event Subscriptions
-                  <ExternalLink className="w-2.5 h-2.5" />
-                </a>{" "}
-                in your Slack app. Subscribe to{" "}
-                <span className="font-mono text-xs">message.channels</span> and{" "}
-                <span className="font-mono text-xs">message.groups</span> bot
-                events.
-              </p>
+              <ol className="text-xs text-muted-foreground list-decimal list-inside space-y-1.5 mt-2">
+                <li>
+                  Go to{" "}
+                  <a
+                    href="https://api.slack.com/apps"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline inline-flex items-center gap-0.5"
+                  >
+                    Event Subscriptions
+                    <ExternalLink className="w-2.5 h-2.5" />
+                  </a>{" "}
+                  in your Slack app and toggle{" "}
+                  <span className="font-medium text-foreground">
+                    Enable Events
+                  </span>{" "}
+                  to On.
+                </li>
+                <li>
+                  Paste the Webhook URL above as the{" "}
+                  <span className="font-medium text-foreground">
+                    Request URL
+                  </span>
+                  . Slack will verify it automatically.
+                </li>
+                <li>
+                  Under{" "}
+                  <span className="font-medium text-foreground">
+                    Subscribe to bot events
+                  </span>
+                  , add{" "}
+                  <span className="font-mono">message.channels</span> and{" "}
+                  <span className="font-mono">message.groups</span>, then save.
+                </li>
+                <li>
+                  Invite the bot to a channel and create a workflow with a{" "}
+                  <span className="font-medium text-foreground">
+                    Receive Slack Message
+                  </span>{" "}
+                  trigger.
+                </li>
+              </ol>
             </div>
 
             <div className="flex justify-end">
