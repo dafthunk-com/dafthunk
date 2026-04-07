@@ -88,6 +88,13 @@ export function DocsOverviewPage() {
         </p>
         <ul>
           <li>
+            <strong>Schemas:</strong> Reusable definitions that describe the
+            shape of records used in your workflows. Each schema has a name,
+            description, and a set of typed fields. Use schemas to validate and
+            enforce consistent data structures across nodes, ensuring that
+            inputs and outputs conform to expected formats.
+          </li>
+          <li>
             <strong>Databases:</strong> Managed SQLite databases for storing and
             querying structured data. Workflows can read from and write to
             databases using SQL nodes, and you can query them directly via the
