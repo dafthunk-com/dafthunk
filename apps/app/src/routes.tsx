@@ -29,6 +29,7 @@ import { AdminWorkflowsPage } from "./pages/admin/admin-workflows-page";
 import { ApiKeysPage } from "./pages/api-keys-page";
 import { BillingPage } from "./pages/billing-page";
 import { BotDiscordDetailPage } from "./pages/bot-discord-detail-page";
+import { BotSlackDetailPage } from "./pages/bot-slack-detail-page";
 import { BotTelegramDetailPage } from "./pages/bot-telegram-detail-page";
 import { BotWhatsAppDetailPage } from "./pages/bot-whatsapp-detail-page";
 import { BotsPage } from "./pages/bots-page";
@@ -738,6 +739,17 @@ export const routes: AppRouteObject[] = [
       <OrgLayout title="Bots">
         <ProtectedRoute>
           <BotTelegramDetailPage />
+        </ProtectedRoute>
+      </OrgLayout>
+    ),
+    handle: { head: <HeadSeo title="Bot Details - Dafthunk" /> },
+  },
+  {
+    path: "/org/:organizationId/bots/slack/:id",
+    element: (
+      <OrgLayout title="Bots">
+        <ProtectedRoute>
+          <BotSlackDetailPage />
         </ProtectedRoute>
       </OrgLayout>
     ),

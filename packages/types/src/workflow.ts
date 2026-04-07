@@ -19,7 +19,8 @@ export type WorkflowTrigger =
   | "scheduled"
   | "discord_event"
   | "telegram_event"
-  | "whatsapp_event";
+  | "whatsapp_event"
+  | "slack_event";
 
 /**
  * Workflow runtime modes
@@ -206,6 +207,10 @@ export type ParameterType =
   | {
       type: "whatsapp";
       value?: string; // WhatsApp account ID reference
+    }
+  | {
+      type: "slack";
+      value?: string; // Slack bot ID reference
     }
   | {
       type: "integration";

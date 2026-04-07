@@ -49,6 +49,7 @@ export const WorkflowTriggerType = {
   DISCORD_EVENT: "discord_event",
   TELEGRAM_EVENT: "telegram_event",
   WHATSAPP_EVENT: "whatsapp_event",
+  SLACK_EVENT: "slack_event",
 } as const;
 
 export type WorkflowTriggerTypeType =
@@ -745,6 +746,63 @@ export const whatsappTriggers = sqliteTable(
   ]
 );
 
+// Slack Bots - User-provided Slack bots associated with organizations
+export const slackBots = sqliteTable(
+  "slack_bots",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    encryptedBotToken: text("encrypted_bot_token").notNull(),
+    encryptedSigningSecret: text("encrypted_signing_secret").notNull(),
+    appId: text("app_id"),
+    teamId: text("team_id"),
+    teamName: text("team_name"),
+    tokenLastFour: text("token_last_four").notNull(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    createdAt: createCreatedAt(),
+    updatedAt: createUpdatedAt(),
+  },
+  (table) => [
+    index("slack_bots_name_idx").on(table.name),
+    index("slack_bots_organization_id_idx").on(table.organizationId),
+    index("slack_bots_created_at_idx").on(table.createdAt),
+  ]
+);
+
+// Slack Triggers - Slack event triggers for workflows
+export const slackTriggers = sqliteTable(
+  "slack_triggers",
+  {
+    workflowId: text("workflow_id")
+      .primaryKey()
+      .references(() => workflows.id, { onDelete: "cascade" }),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    slackBotId: text("slack_bot_id").references(() => slackBots.id, {
+      onDelete: "set null",
+    }),
+    channelId: text("channel_id"),
+    active: integer("active", { mode: "boolean" }).notNull().default(true),
+    createdAt: createCreatedAt(),
+    updatedAt: createUpdatedAt(),
+  },
+  (table) => [
+    index("slack_triggers_workflow_id_idx").on(table.workflowId),
+    index("slack_triggers_organization_id_idx").on(table.organizationId),
+    index("slack_triggers_slack_bot_id_idx").on(table.slackBotId),
+    index("slack_triggers_active_idx").on(table.active),
+    index("slack_triggers_created_at_idx").on(table.createdAt),
+    index("slack_triggers_updated_at_idx").on(table.updatedAt),
+    uniqueIndex("slack_triggers_channel_workflow_unique_idx").on(
+      table.channelId,
+      table.workflowId
+    ),
+  ]
+);
+
 // Secrets - Encrypted secrets associated with organizations
 export const secrets = sqliteTable(
   "secrets",
@@ -1175,6 +1233,12 @@ export type WhatsAppAccountInsert = typeof whatsappAccounts.$inferInsert;
 
 export type WhatsAppTriggerRow = typeof whatsappTriggers.$inferSelect;
 export type WhatsAppTriggerInsert = typeof whatsappTriggers.$inferInsert;
+
+export type SlackBotRow = typeof slackBots.$inferSelect;
+export type SlackBotInsert = typeof slackBots.$inferInsert;
+
+export type SlackTriggerRow = typeof slackTriggers.$inferSelect;
+export type SlackTriggerInsert = typeof slackTriggers.$inferInsert;
 
 export type SecretRow = typeof secrets.$inferSelect;
 export type SecretInsert = typeof secrets.$inferInsert;

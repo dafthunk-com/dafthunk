@@ -407,6 +407,9 @@ import { SubmitCommentRedditNode } from "@dafthunk/runtime/nodes/reddit/submit-c
 import { VoteRedditNode } from "@dafthunk/runtime/nodes/reddit/vote-reddit-node";
 import { ReplicateModelNode } from "@dafthunk/runtime/nodes/replicate/replicate-model-node";
 import { ReceiveScheduledTriggerNode } from "@dafthunk/runtime/nodes/scheduled/receive-scheduled-trigger-node";
+import { BotAddReactionSlackNode } from "@dafthunk/runtime/nodes/slack/bot-add-reaction-slack-node";
+import { BotReceiveSlackMessageNode } from "@dafthunk/runtime/nodes/slack/bot-receive-slack-message-node";
+import { BotSendMessageSlackNode } from "@dafthunk/runtime/nodes/slack/bot-send-message-slack-node";
 import { ExtractTavilyNode } from "@dafthunk/runtime/nodes/tavily/extract-tavily-node";
 import { SearchTavilyNode } from "@dafthunk/runtime/nodes/tavily/search-tavily-node";
 import { BotForwardMessageTelegramNode } from "@dafthunk/runtime/nodes/telegram/bot-forward-message-telegram-node";
@@ -839,6 +842,10 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(BotSendImageWhatsAppNode);
     this.registerImplementation(BotSendTemplateWhatsAppNode);
     this.registerImplementation(BotMarkAsReadWhatsAppNode);
+
+    this.registerImplementation(BotReceiveSlackMessageNode);
+    this.registerImplementation(BotSendMessageSlackNode);
+    this.registerImplementation(BotAddReactionSlackNode);
 
     if (hasReddit) {
       this.registerImplementation(GetPostRedditNode);

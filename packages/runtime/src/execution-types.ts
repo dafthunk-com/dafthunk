@@ -6,6 +6,7 @@ import type {
   ObjectReference,
   QueueMessage,
   ScheduledTrigger,
+  SlackMessage,
   TelegramMessage,
   WhatsAppMessage,
   Workflow,
@@ -94,6 +95,8 @@ export interface WorkflowExecutionContext {
   readonly telegramMessage?: TelegramMessage;
   /** Incoming WhatsApp message (for whatsapp-triggered workflows) */
   readonly whatsappMessage?: WhatsAppMessage;
+  /** Incoming Slack message (for slack-triggered workflows) */
+  readonly slackMessage?: SlackMessage;
 }
 
 /**

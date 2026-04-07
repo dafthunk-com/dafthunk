@@ -8,10 +8,12 @@ import {
   deleteEmailTrigger,
   deleteQueueTrigger,
   deleteScheduledTrigger,
+  deleteSlackTrigger,
   deleteTelegramTrigger,
   deleteWhatsAppTrigger,
   getDiscordBot,
   getDiscordTrigger,
+  getSlackTrigger,
   getTelegramBot,
   getTelegramTrigger,
   getWhatsAppTrigger,
@@ -21,6 +23,7 @@ import {
   upsertEmailTrigger,
   upsertQueueTrigger,
   upsertScheduledTrigger,
+  upsertSlackTrigger,
   upsertTelegramTrigger,
   upsertWhatsAppTrigger,
 } from "../db/queries";
@@ -627,7 +630,76 @@ export class WorkflowStore {
   }
 
   /**
-   * Sync triggers for queue_message, email_message, scheduled, discord_event, telegram_event, and whatsapp_event workflows
+   * Extract Slack trigger config from workflow nodes
+   */
+  private extractSlackTriggerConfig(
+    nodes: Node[]
+  ): { slackBotId: string; channelId?: string } | null {
+    const node = nodes.find((n) => n.type === "receive-slack-message");
+    if (!node) return null;
+
+    const slackBotId = node.inputs.find((i) => i.name === "slackBotId")
+      ?.value as string | undefined;
+    const channelId = node.inputs.find((i) => i.name === "channelId")?.value as
+      | string
+      | undefined;
+
+    if (!slackBotId) return null;
+
+    return { slackBotId, channelId: channelId || undefined };
+  }
+
+  /**
+   * Sync Slack trigger: upsert/delete trigger
+   */
+  private async syncSlackTrigger(
+    workflowId: string,
+    organizationId: string,
+    nodes: Node[]
+  ): Promise<void> {
+    const config = this.extractSlackTriggerConfig(nodes);
+    const hasReceiveNode = nodes.some(
+      (n) => n.type === "receive-slack-message"
+    );
+
+    if (config) {
+      try {
+        await upsertSlackTrigger(this.db, {
+          workflowId,
+          organizationId,
+          channelId: config.channelId,
+          slackBotId: config.slackBotId,
+          active: true,
+          updatedAt: new Date(),
+        });
+
+        console.log(
+          `Auto-registered slack trigger: workflow=${workflowId}, bot=${config.slackBotId}, channel=${config.channelId ?? "any"}`
+        );
+      } catch (_error) {
+        console.error(
+          `Failed to create slack trigger for workflow ${workflowId}`
+        );
+      }
+    } else if (!hasReceiveNode) {
+      // Node removed entirely — delete trigger
+      try {
+        const existing = await getSlackTrigger(
+          this.db,
+          workflowId,
+          organizationId
+        );
+        if (existing) {
+          await deleteSlackTrigger(this.db, workflowId, organizationId);
+        }
+      } catch (_error) {
+        // Ignore — trigger didn't exist
+      }
+    }
+  }
+
+  /**
+   * Sync triggers for queue_message, email_message, scheduled, discord_event, telegram_event, whatsapp_event, and slack_event workflows
    * Directly upserts/deletes triggers without additional verification queries
    */
   private async syncTriggers(
@@ -745,6 +817,11 @@ export class WorkflowStore {
     // Handle whatsapp_event workflows
     if (workflowType === "whatsapp_event") {
       await this.syncWhatsAppTrigger(workflowId, organizationId, nodes);
+    }
+
+    // Handle slack_event workflows
+    if (workflowType === "slack_event") {
+      await this.syncSlackTrigger(workflowId, organizationId, nodes);
     }
   }
 

@@ -18,6 +18,7 @@ import { NumberField } from "./number-field";
 import { QueueField } from "./queue-field";
 import { SchemaField } from "./schema-field";
 import { SecretField } from "./secret-field";
+import { SlackBotField } from "./slack-bot-field";
 import { TelegramBotField } from "./telegram-bot-field";
 import { TextField } from "./text-field";
 import type { FieldProps, ObjectReference } from "./types";
@@ -57,6 +58,8 @@ export function Field(props: FieldRouterProps) {
       return <DiscordBotField {...props} />;
     case "telegram":
       return <TelegramBotField {...props} />;
+    case "slack":
+      return <SlackBotField {...props} />;
     case "integration":
       return <IntegrationField {...props} />;
     case "blob":

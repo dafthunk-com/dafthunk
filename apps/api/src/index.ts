@@ -35,6 +35,8 @@ import replicateRoutes from "./routes/replicate";
 import robotsRoutes from "./routes/robots";
 import schemaRoutes from "./routes/schemas";
 import secretRoutes from "./routes/secrets";
+import slackBotRoutes from "./routes/slack-bots";
+import slackWebhook from "./routes/slack-webhook";
 import stripeWebhooks from "./routes/stripe-webhooks";
 import telegramBotRoutes from "./routes/telegram-bots";
 import telegramWebhook from "./routes/telegram-webhook";
@@ -96,6 +98,9 @@ app.route("/discord", discordWebhook);
 // WhatsApp webhook (no auth, verified by HMAC-SHA256 signature)
 app.route("/whatsapp", whatsappWebhook);
 
+// Slack webhook (no auth, verified by HMAC-SHA256 signature)
+app.route("/slack", slackWebhook);
+
 // Trigger execution (API key auth, org derived from resource record)
 app.route("/endpoints", endpointExecuteRoutes);
 app.route("/queues", queuePublishRoutes);
@@ -121,6 +126,7 @@ app.route("/:organizationId/integrations", integrationRoutes);
 app.route("/:organizationId/queues", queueRoutes);
 app.route("/:organizationId/schemas", schemaRoutes);
 app.route("/:organizationId/secrets", secretRoutes);
+app.route("/:organizationId/slack-bots", slackBotRoutes);
 app.route("/:organizationId/telegram-bots", telegramBotRoutes);
 app.route("/:organizationId/whatsapp-accounts", whatsappAccountRoutes);
 app.route("/:organizationId/workflows", workflowRoutes);

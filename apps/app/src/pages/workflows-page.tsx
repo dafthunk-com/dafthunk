@@ -247,6 +247,7 @@ function createColumns(
           discord_event: "Discord Event",
           telegram_event: "Telegram Event",
           whatsapp_event: "WhatsApp Event",
+          slack_event: "Slack Event",
         };
         return (
           <Badge variant="outline" className="text-xs">

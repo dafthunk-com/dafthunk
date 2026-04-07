@@ -19,6 +19,8 @@ export * from "./queue";
 export * from "./scheduled";
 export * from "./schema";
 export * from "./secret";
+export * from "./slack";
+export * from "./slack-bot";
 export * from "./telegram";
 export * from "./telegram-bot";
 export * from "./types";

@@ -1,5 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import Bot from "lucide-react/icons/bot";
+import Hash from "lucide-react/icons/hash";
 import MessageCircle from "lucide-react/icons/message-circle";
 import MoreHorizontal from "lucide-react/icons/more-horizontal";
 import PlusCircle from "lucide-react/icons/plus-circle";
@@ -35,6 +36,7 @@ import {
   deleteDiscordBot,
   useDiscordBots,
 } from "@/services/discord-bot-service";
+import { deleteSlackBot, useSlackBots } from "@/services/slack-bot-service";
 import {
   deleteTelegramBot,
   useTelegramBots,
@@ -48,7 +50,7 @@ import { BotsCreateDialog } from "./bots-create-dialog";
 
 interface BotRow {
   id: string;
-  type: "discord" | "telegram" | "whatsapp";
+  type: "discord" | "telegram" | "whatsapp" | "slack";
   name: string;
   tokenLastFour: string;
   createdAt: string | Date;
@@ -65,7 +67,13 @@ function createColumns(
       cell: ({ row }) => {
         const type = row.getValue("type") as BotRow["type"];
         const Icon =
-          type === "discord" ? Bot : type === "whatsapp" ? MessageCircle : Send;
+          type === "discord"
+            ? Bot
+            : type === "whatsapp"
+              ? MessageCircle
+              : type === "slack"
+                ? Hash
+                : Send;
         return (
           <div className="flex items-center gap-2">
             <Icon className="h-4 w-4 text-muted-foreground" />
@@ -155,6 +163,9 @@ export function BotsPage() {
     mutateTelegramBots,
   } = useTelegramBots();
 
+  const { slackBots, slackBotsError, isSlackBotsLoading, mutateSlackBots } =
+    useSlackBots();
+
   const {
     whatsappAccounts,
     whatsappAccountsError,
@@ -167,8 +178,15 @@ export function BotsPage() {
   }, [setBreadcrumbs]);
 
   const isLoading =
-    isDiscordBotsLoading || isTelegramBotsLoading || isWhatsAppAccountsLoading;
-  const error = discordBotsError || telegramBotsError || whatsappAccountsError;
+    isDiscordBotsLoading ||
+    isTelegramBotsLoading ||
+    isSlackBotsLoading ||
+    isWhatsAppAccountsLoading;
+  const error =
+    discordBotsError ||
+    telegramBotsError ||
+    slackBotsError ||
+    whatsappAccountsError;
 
   const rows: BotRow[] = [
     ...(discordBots || []).map((bot) => ({
@@ -181,6 +199,13 @@ export function BotsPage() {
     ...(telegramBots || []).map((bot) => ({
       id: bot.id,
       type: "telegram" as const,
+      name: bot.name,
+      tokenLastFour: bot.tokenLastFour,
+      createdAt: bot.createdAt,
+    })),
+    ...(slackBots || []).map((bot) => ({
+      id: bot.id,
+      type: "slack" as const,
       name: bot.name,
       tokenLastFour: bot.tokenLastFour,
       createdAt: bot.createdAt,
@@ -206,6 +231,9 @@ export function BotsPage() {
       if (botToDelete.type === "discord") {
         await deleteDiscordBot(botToDelete.id, orgId);
         mutateDiscordBots();
+      } else if (botToDelete.type === "slack") {
+        await deleteSlackBot(botToDelete.id, orgId);
+        mutateSlackBots();
       } else if (botToDelete.type === "whatsapp") {
         await deleteWhatsAppAccount(botToDelete.id, orgId);
         mutateWhatsAppAccounts();
@@ -222,10 +250,11 @@ export function BotsPage() {
 
   const handleCreated = (
     botId: string,
-    type: "discord" | "telegram" | "whatsapp"
+    type: "discord" | "telegram" | "whatsapp" | "slack"
   ) => {
     mutateDiscordBots();
     mutateTelegramBots();
+    mutateSlackBots();
     mutateWhatsAppAccounts();
     setIsCreateDialogOpen(false);
     navigate(getOrgUrl(`bots/${type}/${botId}`));

@@ -31,6 +31,7 @@ import { replicateModelInputWidget } from "./input/replicate-model-input";
 import { schemaComposeInputWidget } from "./input/schema-compose-input";
 import { schemaExtractInputWidget } from "./input/schema-extract-input";
 import { secretInputWidget } from "./input/secret-input";
+import { slackTriggerInputWidget } from "./input/slack-trigger-input";
 import { sliderInputWidget } from "./input/slider-input";
 import { telegramTriggerInputWidget } from "./input/telegram-trigger-input";
 import { textInputWidget } from "./input/text-input";
@@ -75,6 +76,7 @@ const widgets = [
   discordTriggerInputWidget,
   httpRequestEndpointWidget,
   httpWebhookEndpointWidget,
+  slackTriggerInputWidget,
   telegramTriggerInputWidget,
   whatsappTriggerInputWidget,
   javascriptInputWidget,

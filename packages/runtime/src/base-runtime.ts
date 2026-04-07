@@ -4,6 +4,7 @@ import type {
   Node,
   QueueMessage,
   ScheduledTrigger,
+  SlackMessage,
   TelegramMessage,
   WhatsAppMessage,
   Workflow,
@@ -73,6 +74,8 @@ export interface RuntimeParams {
   readonly whatsappMessage?: WhatsAppMessage;
   readonly whatsappAccessToken?: string;
   readonly whatsappPhoneNumberId?: string;
+  readonly slackMessage?: SlackMessage;
+  readonly slackBotToken?: string;
   readonly userPlan?: string;
 }
 
@@ -135,6 +138,7 @@ export abstract class Runtime<Env = unknown> {
   protected telegramBotToken?: string;
   protected whatsappAccessToken?: string;
   protected whatsappPhoneNumberId?: string;
+  protected slackBotToken?: string;
 
   /** Whether this runtime supports async node execution via waitForEvent */
   protected readonly supportsAsync: boolean = false;
@@ -271,6 +275,8 @@ export abstract class Runtime<Env = unknown> {
       whatsappMessage,
       whatsappAccessToken,
       whatsappPhoneNumberId,
+      slackMessage,
+      slackBotToken,
       userPlan,
     } = params;
 
@@ -279,6 +285,7 @@ export abstract class Runtime<Env = unknown> {
     this.telegramBotToken = telegramBotToken;
     this.whatsappAccessToken = whatsappAccessToken;
     this.whatsappPhoneNumberId = whatsappPhoneNumberId;
+    this.slackBotToken = slackBotToken;
 
     console.log(
       `[Runtime] run workflow=${workflow.id} trigger=${workflow.trigger} nodes=${workflow.nodes.length} telegramMessage=${!!telegramMessage} telegramBotToken=${!!telegramBotToken}`
@@ -355,6 +362,7 @@ export abstract class Runtime<Env = unknown> {
             discordInteraction,
             telegramMessage,
             whatsappMessage,
+            slackMessage,
           };
 
           // Mutable state
@@ -958,6 +966,8 @@ export abstract class Runtime<Env = unknown> {
         whatsappMessage: context.whatsappMessage,
         whatsappAccessToken: this.whatsappAccessToken,
         whatsappPhoneNumberId: this.whatsappPhoneNumberId,
+        slackMessage: context.slackMessage,
+        slackBotToken: this.slackBotToken,
         onProgress: () => {},
         toolRegistry: this.toolRegistry,
         objectStore: this.objectStore,

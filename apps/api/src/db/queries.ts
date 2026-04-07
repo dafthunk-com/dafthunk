@@ -60,9 +60,15 @@ import {
   type SchemaRow,
   type SecretInsert,
   type SenderEmailStatusType,
+  type SlackBotInsert,
+  type SlackBotRow,
+  type SlackTriggerInsert,
+  type SlackTriggerRow,
   scheduledTriggers,
   schemas,
   secrets,
+  slackBots,
+  slackTriggers,
   type TelegramBotInsert,
   type TelegramBotRow,
   type TelegramTriggerInsert,
@@ -2043,6 +2049,207 @@ export async function deleteWhatsAppTrigger(
         eq(whatsappTriggers.workflowId, workflowId),
         eq(
           whatsappTriggers.workflowId,
+          db
+            .select({ id: workflows.id })
+            .from(workflows)
+            .where(
+              and(
+                eq(workflows.id, workflowId),
+                eq(workflows.organizationId, organizationId)
+              )
+            )
+        )
+      )
+    )
+    .returning();
+
+  return trigger;
+}
+
+// ── Slack Bots ────────────────────────────────────────────────────────
+
+export async function getSlackBots(
+  db: ReturnType<typeof createDatabase>,
+  organizationId: string
+) {
+  return await db
+    .select({
+      id: slackBots.id,
+      name: slackBots.name,
+      appId: slackBots.appId,
+      teamId: slackBots.teamId,
+      teamName: slackBots.teamName,
+      tokenLastFour: slackBots.tokenLastFour,
+      createdAt: slackBots.createdAt,
+      updatedAt: slackBots.updatedAt,
+    })
+    .from(slackBots)
+    .where(eq(slackBots.organizationId, organizationId));
+}
+
+export async function getSlackBot(
+  db: ReturnType<typeof createDatabase>,
+  slackBotId: string,
+  organizationId: string
+): Promise<SlackBotRow | undefined> {
+  const [bot] = await db
+    .select()
+    .from(slackBots)
+    .where(
+      and(
+        eq(slackBots.id, slackBotId),
+        eq(slackBots.organizationId, organizationId)
+      )
+    )
+    .limit(1);
+  return bot;
+}
+
+/**
+ * Get a slack bot by ID without org scoping (for webhook handler)
+ */
+export async function getSlackBotById(
+  db: ReturnType<typeof createDatabase>,
+  slackBotId: string
+): Promise<SlackBotRow | undefined> {
+  const [bot] = await db
+    .select()
+    .from(slackBots)
+    .where(eq(slackBots.id, slackBotId))
+    .limit(1);
+  return bot;
+}
+
+export async function createSlackBot(
+  db: ReturnType<typeof createDatabase>,
+  newBot: SlackBotInsert
+): Promise<SlackBotRow> {
+  const [bot] = await db.insert(slackBots).values(newBot).returning();
+  return bot;
+}
+
+export async function updateSlackBot(
+  db: ReturnType<typeof createDatabase>,
+  id: string,
+  organizationId: string,
+  data: Partial<SlackBotRow>
+): Promise<SlackBotRow> {
+  const [bot] = await db
+    .update(slackBots)
+    .set(data)
+    .where(
+      and(eq(slackBots.id, id), eq(slackBots.organizationId, organizationId))
+    )
+    .returning();
+  return bot;
+}
+
+export async function deleteSlackBot(
+  db: ReturnType<typeof createDatabase>,
+  id: string,
+  organizationId: string
+): Promise<SlackBotRow | undefined> {
+  const [bot] = await db
+    .delete(slackBots)
+    .where(
+      and(eq(slackBots.id, id), eq(slackBots.organizationId, organizationId))
+    )
+    .returning();
+  return bot;
+}
+
+// ── Slack Triggers ────────────────────────────────────────────────────
+
+export async function getSlackTrigger(
+  db: ReturnType<typeof createDatabase>,
+  workflowId: string,
+  organizationId: string
+): Promise<SlackTriggerRow | undefined> {
+  const [trigger] = await db
+    .select()
+    .from(slackTriggers)
+    .innerJoin(workflows, eq(slackTriggers.workflowId, workflows.id))
+    .where(
+      and(
+        eq(slackTriggers.workflowId, workflowId),
+        eq(workflows.organizationId, organizationId)
+      )
+    )
+    .limit(1);
+
+  return trigger?.slack_triggers;
+}
+
+/**
+ * Get all active slack triggers for a bot, optionally filtered by channel ID.
+ * Triggers with no channelId match any channel.
+ */
+export async function getSlackTriggersByBot(
+  db: ReturnType<typeof createDatabase>,
+  slackBotId: string,
+  channelId?: string
+) {
+  const results = await db
+    .select({
+      slackTrigger: slackTriggers,
+      workflow: workflows,
+    })
+    .from(slackTriggers)
+    .innerJoin(workflows, eq(slackTriggers.workflowId, workflows.id))
+    .where(
+      and(
+        eq(slackTriggers.slackBotId, slackBotId),
+        eq(slackTriggers.active, true)
+      )
+    );
+
+  if (!channelId) return results;
+
+  // Return triggers that either match the specific channelId or have no channelId filter
+  return results.filter(
+    (r) => !r.slackTrigger.channelId || r.slackTrigger.channelId === channelId
+  );
+}
+
+/**
+ * Upsert a slack trigger for a workflow
+ */
+export async function upsertSlackTrigger(
+  db: ReturnType<typeof createDatabase>,
+  trigger: SlackTriggerInsert
+): Promise<SlackTriggerRow> {
+  const [slackTrigger] = await db
+    .insert(slackTriggers)
+    .values(trigger)
+    .onConflictDoUpdate({
+      target: slackTriggers.workflowId,
+      set: {
+        channelId: trigger.channelId ?? null,
+        slackBotId: trigger.slackBotId,
+        active: trigger.active,
+        updatedAt: new Date(),
+      },
+    })
+    .returning();
+
+  return slackTrigger;
+}
+
+/**
+ * Delete a slack trigger for a workflow
+ */
+export async function deleteSlackTrigger(
+  db: ReturnType<typeof createDatabase>,
+  workflowId: string,
+  organizationId: string
+): Promise<SlackTriggerRow | undefined> {
+  const [trigger] = await db
+    .delete(slackTriggers)
+    .where(
+      and(
+        eq(slackTriggers.workflowId, workflowId),
+        eq(
+          slackTriggers.workflowId,
           db
             .select({ id: workflows.id })
             .from(workflows)

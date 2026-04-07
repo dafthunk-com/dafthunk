@@ -335,6 +335,10 @@ const converters: Record<string, Converter> = {
     nodeToApi: typeValidatingNodeToApi("string"),
     apiToNode: typeValidatingApiToNode("string"),
   },
+  slack: {
+    nodeToApi: typeValidatingNodeToApi("string"),
+    apiToNode: typeValidatingApiToNode("string"),
+  },
   any: {
     nodeToApi: (
       value: NodeParameterValue,

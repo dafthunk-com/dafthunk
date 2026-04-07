@@ -252,6 +252,10 @@ export class NodeToolProvider implements ToolProvider {
       case "dataset":
       case "queue":
       case "email":
+      case "discord":
+      case "telegram":
+      case "whatsapp":
+      case "slack":
       case "integration":
         return { ...baseProperty, type: "string" };
       default:

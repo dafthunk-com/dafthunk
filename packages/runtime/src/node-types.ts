@@ -8,6 +8,7 @@ import type {
   ObjectReference,
   QueueMessage,
   ScheduledTrigger,
+  SlackMessage,
   TelegramMessage,
   WhatsAppMessage,
 } from "@dafthunk/types";
@@ -241,6 +242,8 @@ export interface NodeContext {
   whatsappMessage?: WhatsAppMessage;
   whatsappAccessToken?: string;
   whatsappPhoneNumberId?: string;
+  slackMessage?: SlackMessage;
+  slackBotToken?: string;
   toolRegistry?: BaseToolRegistry;
   objectStore?: ObjectStore;
   databaseService?: DatabaseService;
