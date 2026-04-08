@@ -1,4 +1,4 @@
-import type { GetTelegramBotResponse } from "@dafthunk/types";
+import type { BotResponse } from "@dafthunk/types";
 import { useState } from "react";
 import { useAuth } from "@/components/auth-context";
 import { Button } from "@/components/ui/button";
@@ -13,10 +13,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
-import { updateTelegramBot } from "@/services/telegram-bot-service";
+import { updateTelegramBot } from "@/services/bot-service";
 
 interface BotTelegramEditDialogProps {
-  bot: GetTelegramBotResponse;
+  bot: BotResponse;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onUpdated: () => void;

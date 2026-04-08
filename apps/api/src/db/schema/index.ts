@@ -64,6 +64,16 @@ export const WorkflowRuntime = {
 export type WorkflowRuntimeType =
   (typeof WorkflowRuntime)[keyof typeof WorkflowRuntime];
 
+// Bot provider types
+export const BotProvider = {
+  DISCORD: "discord",
+  TELEGRAM: "telegram",
+  WHATSAPP: "whatsapp",
+  SLACK: "slack",
+} as const;
+
+export type BotProviderType = (typeof BotProvider)[keyof typeof BotProvider];
+
 // Integration provider types
 export const IntegrationProvider = {
   GOOGLE_MAIL: "google-mail",
@@ -570,15 +580,17 @@ export const endpointTriggers = sqliteTable(
 );
 
 // Discord Bots - User-provided Discord bots associated with organizations
-export const discordBots = sqliteTable(
-  "discord_bots",
+// Bots - Unified table for all bot types (Discord, Telegram, WhatsApp, Slack)
+export const bots = sqliteTable(
+  "bots",
   {
     id: text("id").primaryKey(),
     name: text("name").notNull(),
-    encryptedBotToken: text("encrypted_bot_token").notNull(),
-    applicationId: text("application_id").notNull(),
-    publicKey: text("public_key"),
+    provider: text("provider").$type<BotProviderType>().notNull(),
+    encryptedToken: text("encrypted_token").notNull(),
     tokenLastFour: text("token_last_four").notNull(),
+    metadata: text("metadata"), // JSON for provider-specific plain data
+    encryptedMetadata: text("encrypted_metadata"), // JSON for provider-specific encrypted fields
     organizationId: text("organization_id")
       .notNull()
       .references(() => organizations.id, { onDelete: "cascade" }),
@@ -586,37 +598,16 @@ export const discordBots = sqliteTable(
     updatedAt: createUpdatedAt(),
   },
   (table) => [
-    index("discord_bots_name_idx").on(table.name),
-    index("discord_bots_organization_id_idx").on(table.organizationId),
-    index("discord_bots_created_at_idx").on(table.createdAt),
+    index("bots_name_idx").on(table.name),
+    index("bots_provider_idx").on(table.provider),
+    index("bots_organization_id_idx").on(table.organizationId),
+    index("bots_created_at_idx").on(table.createdAt),
   ]
 );
 
-// Telegram Bots - User-provided Telegram bots associated with organizations
-export const telegramBots = sqliteTable(
-  "telegram_bots",
-  {
-    id: text("id").primaryKey(),
-    name: text("name").notNull(),
-    encryptedBotToken: text("encrypted_bot_token").notNull(),
-    botUsername: text("bot_username"),
-    tokenLastFour: text("token_last_four").notNull(),
-    organizationId: text("organization_id")
-      .notNull()
-      .references(() => organizations.id, { onDelete: "cascade" }),
-    createdAt: createCreatedAt(),
-    updatedAt: createUpdatedAt(),
-  },
-  (table) => [
-    index("telegram_bots_name_idx").on(table.name),
-    index("telegram_bots_organization_id_idx").on(table.organizationId),
-    index("telegram_bots_created_at_idx").on(table.createdAt),
-  ]
-);
-
-// Discord Triggers - Discord slash command triggers for workflows
-export const discordTriggers = sqliteTable(
-  "discord_triggers",
+// Bot Triggers - Unified table for all bot-based workflow triggers
+export const botTriggers = sqliteTable(
+  "bot_triggers",
   {
     workflowId: text("workflow_id")
       .primaryKey()
@@ -624,182 +615,22 @@ export const discordTriggers = sqliteTable(
     organizationId: text("organization_id")
       .notNull()
       .references(() => organizations.id, { onDelete: "cascade" }),
-    discordBotId: text("discord_bot_id").references(() => discordBots.id, {
+    botId: text("bot_id").references(() => bots.id, {
       onDelete: "set null",
     }),
-    commandName: text("command_name").notNull(),
-    commandDescription: text("command_description"),
-    guildId: text("guild_id"),
+    provider: text("provider").$type<BotProviderType>().notNull(),
+    metadata: text("metadata"), // JSON for provider-specific trigger config
     active: integer("active", { mode: "boolean" }).notNull().default(true),
     createdAt: createCreatedAt(),
     updatedAt: createUpdatedAt(),
   },
   (table) => [
-    index("discord_triggers_workflow_id_idx").on(table.workflowId),
-    index("discord_triggers_organization_id_idx").on(table.organizationId),
-    index("discord_triggers_discord_bot_id_idx").on(table.discordBotId),
-    index("discord_triggers_active_idx").on(table.active),
-    index("discord_triggers_created_at_idx").on(table.createdAt),
-    index("discord_triggers_updated_at_idx").on(table.updatedAt),
-    uniqueIndex("discord_triggers_bot_command_unique_idx").on(
-      table.discordBotId,
-      table.commandName
-    ),
-  ]
-);
-
-// Telegram Triggers - Telegram event triggers for workflows
-export const telegramTriggers = sqliteTable(
-  "telegram_triggers",
-  {
-    workflowId: text("workflow_id")
-      .primaryKey()
-      .references(() => workflows.id, { onDelete: "cascade" }),
-    organizationId: text("organization_id")
-      .notNull()
-      .references(() => organizations.id, { onDelete: "cascade" }),
-    chatId: text("chat_id"),
-    telegramBotId: text("telegram_bot_id").references(() => telegramBots.id, {
-      onDelete: "set null",
-    }),
-    secretToken: text("secret_token"),
-    active: integer("active", { mode: "boolean" }).notNull().default(true),
-    createdAt: createCreatedAt(),
-    updatedAt: createUpdatedAt(),
-  },
-  (table) => [
-    index("telegram_triggers_workflow_id_idx").on(table.workflowId),
-    index("telegram_triggers_organization_id_idx").on(table.organizationId),
-    index("telegram_triggers_chat_id_idx").on(table.chatId),
-    index("telegram_triggers_telegram_bot_id_idx").on(table.telegramBotId),
-    index("telegram_triggers_active_idx").on(table.active),
-    index("telegram_triggers_created_at_idx").on(table.createdAt),
-    index("telegram_triggers_updated_at_idx").on(table.updatedAt),
-    uniqueIndex("telegram_triggers_chat_workflow_unique_idx").on(
-      table.chatId,
-      table.workflowId
-    ),
-  ]
-);
-
-// WhatsApp Accounts - User-provided WhatsApp Business accounts associated with organizations
-export const whatsappAccounts = sqliteTable(
-  "whatsapp_accounts",
-  {
-    id: text("id").primaryKey(),
-    name: text("name").notNull(),
-    phoneNumberId: text("phone_number_id").notNull(),
-    encryptedAccessToken: text("encrypted_access_token").notNull(),
-    tokenLastFour: text("token_last_four").notNull(),
-    wabaId: text("waba_id"),
-    encryptedAppSecret: text("encrypted_app_secret"),
-    organizationId: text("organization_id")
-      .notNull()
-      .references(() => organizations.id, { onDelete: "cascade" }),
-    createdAt: createCreatedAt(),
-    updatedAt: createUpdatedAt(),
-  },
-  (table) => [
-    index("whatsapp_accounts_name_idx").on(table.name),
-    index("whatsapp_accounts_organization_id_idx").on(table.organizationId),
-    index("whatsapp_accounts_phone_number_id_idx").on(table.phoneNumberId),
-    index("whatsapp_accounts_created_at_idx").on(table.createdAt),
-  ]
-);
-
-// WhatsApp Triggers - WhatsApp event triggers for workflows
-export const whatsappTriggers = sqliteTable(
-  "whatsapp_triggers",
-  {
-    workflowId: text("workflow_id")
-      .primaryKey()
-      .references(() => workflows.id, { onDelete: "cascade" }),
-    organizationId: text("organization_id")
-      .notNull()
-      .references(() => organizations.id, { onDelete: "cascade" }),
-    phoneNumberId: text("phone_number_id"),
-    whatsappAccountId: text("whatsapp_account_id").references(
-      () => whatsappAccounts.id,
-      {
-        onDelete: "set null",
-      }
-    ),
-    verifyToken: text("verify_token"),
-    active: integer("active", { mode: "boolean" }).notNull().default(true),
-    createdAt: createCreatedAt(),
-    updatedAt: createUpdatedAt(),
-  },
-  (table) => [
-    index("whatsapp_triggers_workflow_id_idx").on(table.workflowId),
-    index("whatsapp_triggers_organization_id_idx").on(table.organizationId),
-    index("whatsapp_triggers_phone_number_id_idx").on(table.phoneNumberId),
-    index("whatsapp_triggers_whatsapp_account_id_idx").on(
-      table.whatsappAccountId
-    ),
-    index("whatsapp_triggers_active_idx").on(table.active),
-    index("whatsapp_triggers_created_at_idx").on(table.createdAt),
-    index("whatsapp_triggers_updated_at_idx").on(table.updatedAt),
-    uniqueIndex("whatsapp_triggers_phone_workflow_unique_idx").on(
-      table.phoneNumberId,
-      table.workflowId
-    ),
-  ]
-);
-
-// Slack Bots - User-provided Slack bots associated with organizations
-export const slackBots = sqliteTable(
-  "slack_bots",
-  {
-    id: text("id").primaryKey(),
-    name: text("name").notNull(),
-    encryptedBotToken: text("encrypted_bot_token").notNull(),
-    encryptedSigningSecret: text("encrypted_signing_secret").notNull(),
-    appId: text("app_id"),
-    teamId: text("team_id"),
-    teamName: text("team_name"),
-    tokenLastFour: text("token_last_four").notNull(),
-    organizationId: text("organization_id")
-      .notNull()
-      .references(() => organizations.id, { onDelete: "cascade" }),
-    createdAt: createCreatedAt(),
-    updatedAt: createUpdatedAt(),
-  },
-  (table) => [
-    index("slack_bots_name_idx").on(table.name),
-    index("slack_bots_organization_id_idx").on(table.organizationId),
-    index("slack_bots_created_at_idx").on(table.createdAt),
-  ]
-);
-
-// Slack Triggers - Slack event triggers for workflows
-export const slackTriggers = sqliteTable(
-  "slack_triggers",
-  {
-    workflowId: text("workflow_id")
-      .primaryKey()
-      .references(() => workflows.id, { onDelete: "cascade" }),
-    organizationId: text("organization_id")
-      .notNull()
-      .references(() => organizations.id, { onDelete: "cascade" }),
-    slackBotId: text("slack_bot_id").references(() => slackBots.id, {
-      onDelete: "set null",
-    }),
-    channelId: text("channel_id"),
-    active: integer("active", { mode: "boolean" }).notNull().default(true),
-    createdAt: createCreatedAt(),
-    updatedAt: createUpdatedAt(),
-  },
-  (table) => [
-    index("slack_triggers_workflow_id_idx").on(table.workflowId),
-    index("slack_triggers_organization_id_idx").on(table.organizationId),
-    index("slack_triggers_slack_bot_id_idx").on(table.slackBotId),
-    index("slack_triggers_active_idx").on(table.active),
-    index("slack_triggers_created_at_idx").on(table.createdAt),
-    index("slack_triggers_updated_at_idx").on(table.updatedAt),
-    uniqueIndex("slack_triggers_channel_workflow_unique_idx").on(
-      table.channelId,
-      table.workflowId
-    ),
+    index("bot_triggers_organization_id_idx").on(table.organizationId),
+    index("bot_triggers_bot_id_idx").on(table.botId),
+    index("bot_triggers_provider_idx").on(table.provider),
+    index("bot_triggers_active_idx").on(table.active),
+    index("bot_triggers_created_at_idx").on(table.createdAt),
+    index("bot_triggers_updated_at_idx").on(table.updatedAt),
   ]
 );
 
@@ -931,6 +762,7 @@ export const organizationsRelations = relations(
     emails: many(emails),
     endpoints: many(endpoints),
     secrets: many(secrets),
+    bots: many(bots),
     integrations: many(integrations),
     invitations: many(invitations),
     users: one(users),
@@ -976,13 +808,9 @@ export const workflowsRelations = relations(workflows, ({ one, many }) => ({
     fields: [workflows.id],
     references: [endpointTriggers.workflowId],
   }),
-  discordTrigger: one(discordTriggers, {
+  botTrigger: one(botTriggers, {
     fields: [workflows.id],
-    references: [discordTriggers.workflowId],
-  }),
-  telegramTrigger: one(telegramTriggers, {
-    fields: [workflows.id],
-    references: [telegramTriggers.workflowId],
+    references: [botTriggers.workflowId],
   }),
   feedbackCriteria: many(feedbackCriteria),
 }));
@@ -1105,25 +933,24 @@ export const endpointTriggersRelations = relations(
   })
 );
 
-export const discordTriggersRelations = relations(
-  discordTriggers,
-  ({ one }) => ({
-    workflow: one(workflows, {
-      fields: [discordTriggers.workflowId],
-      references: [workflows.id],
-    }),
-  })
-);
+export const botsRelations = relations(bots, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [bots.organizationId],
+    references: [organizations.id],
+  }),
+  botTriggers: many(botTriggers),
+}));
 
-export const telegramTriggersRelations = relations(
-  telegramTriggers,
-  ({ one }) => ({
-    workflow: one(workflows, {
-      fields: [telegramTriggers.workflowId],
-      references: [workflows.id],
-    }),
-  })
-);
+export const botTriggersRelations = relations(botTriggers, ({ one }) => ({
+  workflow: one(workflows, {
+    fields: [botTriggers.workflowId],
+    references: [workflows.id],
+  }),
+  bot: one(bots, {
+    fields: [botTriggers.botId],
+    references: [bots.id],
+  }),
+}));
 
 export const secretsRelations = relations(secrets, ({ one }) => ({
   organization: one(organizations, {
@@ -1216,29 +1043,11 @@ export type EndpointInsert = typeof endpoints.$inferInsert;
 export type EndpointTriggerRow = typeof endpointTriggers.$inferSelect;
 export type EndpointTriggerInsert = typeof endpointTriggers.$inferInsert;
 
-export type DiscordBotRow = typeof discordBots.$inferSelect;
-export type DiscordBotInsert = typeof discordBots.$inferInsert;
+export type BotRow = typeof bots.$inferSelect;
+export type BotInsert = typeof bots.$inferInsert;
 
-export type TelegramBotRow = typeof telegramBots.$inferSelect;
-export type TelegramBotInsert = typeof telegramBots.$inferInsert;
-
-export type DiscordTriggerRow = typeof discordTriggers.$inferSelect;
-export type DiscordTriggerInsert = typeof discordTriggers.$inferInsert;
-
-export type TelegramTriggerRow = typeof telegramTriggers.$inferSelect;
-export type TelegramTriggerInsert = typeof telegramTriggers.$inferInsert;
-
-export type WhatsAppAccountRow = typeof whatsappAccounts.$inferSelect;
-export type WhatsAppAccountInsert = typeof whatsappAccounts.$inferInsert;
-
-export type WhatsAppTriggerRow = typeof whatsappTriggers.$inferSelect;
-export type WhatsAppTriggerInsert = typeof whatsappTriggers.$inferInsert;
-
-export type SlackBotRow = typeof slackBots.$inferSelect;
-export type SlackBotInsert = typeof slackBots.$inferInsert;
-
-export type SlackTriggerRow = typeof slackTriggers.$inferSelect;
-export type SlackTriggerInsert = typeof slackTriggers.$inferInsert;
+export type BotTriggerRow = typeof botTriggers.$inferSelect;
+export type BotTriggerInsert = typeof botTriggers.$inferInsert;
 
 export type SecretRow = typeof secrets.$inferSelect;
 export type SecretInsert = typeof secrets.$inferInsert;

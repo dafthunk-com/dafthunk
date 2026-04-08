@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useSlackBots } from "@/services/slack-bot-service";
+import { useSlackBots } from "@/services/bot-service";
 import { cn } from "@/utils/utils";
 
 import { SlackBotCreateDialog } from "../widgets/input/slack-bot-create-dialog";

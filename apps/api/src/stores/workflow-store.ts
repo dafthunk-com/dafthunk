@@ -4,30 +4,19 @@ import { and, desc, eq, inArray } from "drizzle-orm";
 import type { Bindings } from "../context";
 import { createDatabase, Database } from "../db";
 import {
-  deleteDiscordTrigger,
+  deleteBotTrigger,
   deleteEmailTrigger,
   deleteQueueTrigger,
   deleteScheduledTrigger,
-  deleteSlackTrigger,
-  deleteTelegramTrigger,
-  deleteWhatsAppTrigger,
-  getDiscordBot,
-  getDiscordTrigger,
-  getSlackTrigger,
-  getTelegramBot,
-  getTelegramTrigger,
-  getWhatsAppTrigger,
-  updateTelegramBotSecretToken,
-  updateWhatsAppAccountVerifyToken,
-  upsertDiscordTrigger,
+  getBot,
+  getBotTrigger,
+  updateBotTriggerMetadataByBot,
+  upsertBotTrigger,
   upsertEmailTrigger,
   upsertQueueTrigger,
   upsertScheduledTrigger,
-  upsertSlackTrigger,
-  upsertTelegramTrigger,
-  upsertWhatsAppTrigger,
 } from "../db/queries";
-import type { WorkflowRow } from "../db/schema";
+import type { BotProviderType, WorkflowRow } from "../db/schema";
 import { memberships, organizations, workflows } from "../db/schema";
 import { decryptSecret } from "../utils/encryption";
 
@@ -105,258 +94,177 @@ export class WorkflowStore {
   }
 
   /**
-   * Extract Discord trigger config from workflow nodes
+   * Extract bot trigger config from workflow nodes for any provider.
+   * Maps node type -> provider, extracts botId and provider-specific metadata.
    */
-  private extractDiscordTriggerConfig(
-    nodes: Node[]
-  ): { discordBotId: string; commandName: string } | null {
-    const node = nodes.find((n) => n.type === "receive-discord-message");
+  private extractBotTriggerConfig(
+    nodes: Node[],
+    provider: BotProviderType
+  ): { botId: string; metadata: Record<string, string> } | null {
+    const nodeTypeMap: Record<string, string> = {
+      discord: "receive-discord-message",
+      telegram: "receive-telegram-message",
+      whatsapp: "receive-whatsapp-message",
+      slack: "receive-slack-message",
+    };
+    const botIdFieldMap: Record<string, string> = {
+      discord: "discordBotId",
+      telegram: "telegramBotId",
+      whatsapp: "whatsappAccountId",
+      slack: "slackBotId",
+    };
+
+    const nodeType = nodeTypeMap[provider];
+    const botIdField = botIdFieldMap[provider];
+    const node = nodes.find((n) => n.type === nodeType);
     if (!node) return null;
 
-    const discordBotId = node.inputs.find((i) => i.name === "discordBotId")
-      ?.value as string | undefined;
-    const commandName = node.inputs.find((i) => i.name === "commandName")
-      ?.value as string | undefined;
-
-    if (!discordBotId || !commandName) return null;
-
-    // Discord slash command names must be lowercase, no leading slash
-    const sanitized = commandName.replace(/^\/+/, "").toLowerCase();
-    if (!sanitized) return null;
-
-    return { discordBotId, commandName: sanitized };
-  }
-
-  /**
-   * Extract Telegram trigger config from workflow nodes
-   */
-  private extractTelegramTriggerConfig(
-    nodes: Node[]
-  ): { telegramBotId: string; chatId?: string } | null {
-    const node = nodes.find((n) => n.type === "receive-telegram-message");
-    if (!node) return null;
-
-    const telegramBotId = node.inputs.find((i) => i.name === "telegramBotId")
-      ?.value as string | undefined;
-    const chatId = node.inputs.find((i) => i.name === "chatId")?.value as
+    const botId = node.inputs.find((i) => i.name === botIdField)?.value as
       | string
       | undefined;
+    if (!botId) return null;
 
-    if (!telegramBotId) return null;
+    const metadata: Record<string, string> = {};
 
-    return { telegramBotId, chatId: chatId || undefined };
+    if (provider === "discord") {
+      const commandName = node.inputs.find((i) => i.name === "commandName")
+        ?.value as string | undefined;
+      if (!commandName) return null;
+      const sanitized = commandName.replace(/^\/+/, "").toLowerCase();
+      if (!sanitized) return null;
+      metadata.commandName = sanitized;
+    } else if (provider === "telegram") {
+      const chatId = node.inputs.find((i) => i.name === "chatId")?.value as
+        | string
+        | undefined;
+      if (chatId) metadata.chatId = chatId;
+    } else if (provider === "whatsapp") {
+      const phoneNumberId = node.inputs.find((i) => i.name === "phoneNumberId")
+        ?.value as string | undefined;
+      if (phoneNumberId) metadata.phoneNumberId = phoneNumberId;
+    } else if (provider === "slack") {
+      const channelId = node.inputs.find((i) => i.name === "channelId")
+        ?.value as string | undefined;
+      if (channelId) metadata.channelId = channelId;
+    }
+
+    return { botId, metadata };
   }
 
   /**
-   * Extract WhatsApp trigger config from workflow nodes
+   * Sync bot trigger: upsert/delete trigger for any provider.
+   * Handles provider-specific side effects (Discord slash command, Telegram webhook, WhatsApp verify token).
    */
-  private extractWhatsAppTriggerConfig(
-    nodes: Node[]
-  ): { whatsappAccountId: string; phoneNumberId?: string } | null {
-    const node = nodes.find((n) => n.type === "receive-whatsapp-message");
-    if (!node) return null;
-
-    const whatsappAccountId = node.inputs.find(
-      (i) => i.name === "whatsappAccountId"
-    )?.value as string | undefined;
-    const phoneNumberId = node.inputs.find((i) => i.name === "phoneNumberId")
-      ?.value as string | undefined;
-
-    if (!whatsappAccountId) return null;
-
-    return { whatsappAccountId, phoneNumberId: phoneNumberId || undefined };
-  }
-
-  /**
-   * Sync Discord trigger: upsert/delete trigger and register slash command
-   */
-  private async syncDiscordTrigger(
+  private async syncBotTrigger(
     workflowId: string,
     organizationId: string,
     nodes: Node[],
+    provider: BotProviderType,
     apiHost?: string
   ): Promise<void> {
-    const config = this.extractDiscordTriggerConfig(nodes);
-    const hasReceiveNode = nodes.some(
-      (n) => n.type === "receive-discord-message"
-    );
+    const nodeTypeMap: Record<string, string> = {
+      discord: "receive-discord-message",
+      telegram: "receive-telegram-message",
+      whatsapp: "receive-whatsapp-message",
+      slack: "receive-slack-message",
+    };
+    const nodeType = nodeTypeMap[provider];
+    const config = this.extractBotTriggerConfig(nodes, provider);
+    const hasReceiveNode = nodes.some((n) => n.type === nodeType);
 
     if (config) {
-      // Check if config changed vs existing trigger
-      const existing = await getDiscordTrigger(
-        this.db,
-        workflowId,
-        organizationId
-      );
+      const existing = await getBotTrigger(this.db, workflowId, organizationId);
+      const existingMeta = existing?.metadata
+        ? (JSON.parse(existing.metadata) as Record<string, string>)
+        : {};
       const changed =
         !existing ||
-        existing.discordBotId !== config.discordBotId ||
-        existing.commandName !== config.commandName;
+        existing.botId !== config.botId ||
+        JSON.stringify(existingMeta) !== JSON.stringify(config.metadata);
 
       if (!changed) return;
 
-      // Unregister old slash command if bot or command name changed
-      if (existing && existing.discordBotId) {
-        const oldBot = await getDiscordBot(
-          this.db,
-          existing.discordBotId,
-          organizationId
-        );
+      // Discord: unregister old slash command if bot or command name changed
+      if (provider === "discord" && existing?.botId) {
+        const oldBot = await getBot(this.db, existing.botId, organizationId);
         if (oldBot) {
           const oldBotToken = await decryptSecret(
-            oldBot.encryptedBotToken,
+            oldBot.encryptedToken,
             this.env,
             organizationId
           );
-          await this.unregisterSlashCommand(
-            oldBot.applicationId,
-            oldBotToken,
-            existing.commandName
-          );
+          const oldMeta = oldBot.metadata
+            ? (JSON.parse(oldBot.metadata) as { applicationId?: string })
+            : {};
+          if (oldMeta.applicationId && existingMeta.commandName) {
+            await this.unregisterSlashCommand(
+              oldMeta.applicationId,
+              oldBotToken,
+              existingMeta.commandName
+            );
+          }
         }
       }
 
+      // Telegram: unregister old webhook if bot changed
+      if (
+        provider === "telegram" &&
+        existing?.botId &&
+        existing.botId !== config.botId
+      ) {
+        await this.unregisterTelegramWebhook(existing.botId, organizationId);
+      }
+
+      // Build metadata with provider-specific tokens
+      const triggerMetadata = { ...config.metadata };
+      if (provider === "telegram") {
+        triggerMetadata.secretToken = crypto.randomUUID();
+      }
+      if (provider === "whatsapp") {
+        // Preserve existing verify token or generate new one
+        const existingVerifyToken = existingMeta.verifyToken;
+        triggerMetadata.verifyToken =
+          existingVerifyToken ?? crypto.randomUUID();
+      }
+
       try {
-        await upsertDiscordTrigger(this.db, {
+        await upsertBotTrigger(this.db, {
           workflowId,
           organizationId,
-          commandName: config.commandName,
-          discordBotId: config.discordBotId,
+          botId: config.botId,
+          provider,
+          metadata: JSON.stringify(triggerMetadata),
           active: true,
           updatedAt: new Date(),
         });
 
-        // Register slash command via Discord REST API
-        const bot = await getDiscordBot(
-          this.db,
-          config.discordBotId,
-          organizationId
-        );
-        if (bot) {
-          const botToken = await decryptSecret(
-            bot.encryptedBotToken,
-            this.env,
-            organizationId
-          );
-          await this.registerSlashCommand(
-            bot.applicationId,
-            botToken,
-            config.commandName
-          );
-        }
-
-        console.log(
-          `Auto-registered discord trigger: workflow=${workflowId}, command=${config.commandName}`
-        );
-      } catch (_error) {
-        console.error(
-          `Failed to create discord trigger for workflow ${workflowId}`
-        );
-      }
-    } else if (!hasReceiveNode) {
-      // Node removed entirely — delete trigger and unregister command
-      try {
-        const existing = await getDiscordTrigger(
-          this.db,
-          workflowId,
-          organizationId
-        );
-        if (existing) {
-          await deleteDiscordTrigger(this.db, workflowId, organizationId);
-          if (existing.discordBotId) {
-            const oldBot = await getDiscordBot(
-              this.db,
-              existing.discordBotId,
+        // Provider-specific post-upsert actions
+        if (provider === "discord") {
+          const bot = await getBot(this.db, config.botId, organizationId);
+          if (bot) {
+            const botToken = await decryptSecret(
+              bot.encryptedToken,
+              this.env,
               organizationId
             );
-            if (oldBot) {
-              const oldBotToken = await decryptSecret(
-                oldBot.encryptedBotToken,
-                this.env,
-                organizationId
-              );
-              await this.unregisterSlashCommand(
-                oldBot.applicationId,
-                oldBotToken,
-                existing.commandName
+            const botMeta = bot.metadata
+              ? (JSON.parse(bot.metadata) as { applicationId?: string })
+              : {};
+            if (botMeta.applicationId) {
+              await this.registerSlashCommand(
+                botMeta.applicationId,
+                botToken,
+                triggerMetadata.commandName
               );
             }
           }
         }
-      } catch (_error) {
-        // Ignore — trigger didn't exist
-      }
-    }
-    // If node exists but inputs are empty, leave existing trigger alone (backward compat)
-  }
 
-  /**
-   * Sync Telegram trigger: upsert/delete trigger and register/unregister webhook
-   */
-  private async syncTelegramTrigger(
-    workflowId: string,
-    organizationId: string,
-    nodes: Node[],
-    apiHost?: string
-  ): Promise<void> {
-    const config = this.extractTelegramTriggerConfig(nodes);
-    const hasReceiveNode = nodes.some(
-      (n) => n.type === "receive-telegram-message"
-    );
-
-    if (config) {
-      const existing = await getTelegramTrigger(
-        this.db,
-        workflowId,
-        organizationId
-      );
-      const configChanged =
-        !existing ||
-        existing.telegramBotId !== config.telegramBotId ||
-        (existing.chatId ?? undefined) !== config.chatId;
-
-      // Unregister old webhook if bot changed
-      if (
-        existing &&
-        existing.telegramBotId &&
-        existing.telegramBotId !== config.telegramBotId
-      ) {
-        await this.unregisterTelegramWebhook(
-          existing.telegramBotId,
-          organizationId
-        );
-      }
-
-      const secretToken = crypto.randomUUID();
-
-      try {
-        if (configChanged) {
-          await upsertTelegramTrigger(this.db, {
-            workflowId,
-            organizationId,
-            chatId: config.chatId,
-            telegramBotId: config.telegramBotId,
-            secretToken,
-            active: true,
-            updatedAt: new Date(),
-          });
-        }
-
-        // Register webhook with Telegram
-        if (!apiHost) {
-          console.warn(
-            `[TelegramTrigger] No apiHost provided, skipping webhook registration for workflow=${workflowId}`
-          );
-        }
-        if (apiHost) {
-          const bot = await getTelegramBot(
-            this.db,
-            config.telegramBotId,
-            organizationId
-          );
+        if (provider === "telegram" && apiHost) {
+          const bot = await getBot(this.db, config.botId, organizationId);
           if (bot) {
             const botToken = await decryptSecret(
-              bot.encryptedBotToken,
+              bot.encryptedToken,
               this.env,
               organizationId
             );
@@ -367,8 +275,8 @@ export class WorkflowStore {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({
-                    url: `${apiHost}/telegram/webhook/${config.telegramBotId}`,
-                    secret_token: secretToken,
+                    url: `${apiHost}/telegram/webhook/${config.botId}`,
+                    secret_token: triggerMetadata.secretToken,
                     allowed_updates: ["message"],
                   }),
                 }
@@ -379,51 +287,89 @@ export class WorkflowStore {
               };
               if (!result.ok) {
                 console.error(
-                  "[TelegramTrigger] Telegram API rejected webhook:",
+                  "[BotTrigger] Telegram API rejected webhook:",
                   result.description
                 );
               } else {
-                console.log(
-                  `[TelegramTrigger] Webhook registered: ${apiHost}/telegram/webhook/${config.telegramBotId}`
-                );
                 // Sync secret token to all triggers using this bot
-                // (Telegram only allows one webhook per bot)
-                await updateTelegramBotSecretToken(
+                await updateBotTriggerMetadataByBot(
                   this.db,
-                  config.telegramBotId,
-                  secretToken
+                  config.botId,
+                  JSON.stringify(triggerMetadata)
                 );
               }
             } catch (error) {
               console.error(
-                "[TelegramTrigger] Failed to register webhook:",
+                "[BotTrigger] Failed to register Telegram webhook:",
                 error instanceof Error ? error.message : String(error)
               );
             }
           }
+        } else if (provider === "telegram" && !apiHost) {
+          console.warn(
+            `[BotTrigger] No apiHost provided, skipping Telegram webhook registration for workflow=${workflowId}`
+          );
+        }
+
+        if (provider === "whatsapp") {
+          // Sync verify token to all triggers using this bot
+          await updateBotTriggerMetadataByBot(
+            this.db,
+            config.botId,
+            JSON.stringify(triggerMetadata)
+          );
         }
 
         console.log(
-          `Auto-registered telegram trigger: workflow=${workflowId}, bot=${config.telegramBotId}, chat=${config.chatId ?? "any"}`
+          `Auto-registered ${provider} trigger: workflow=${workflowId}, bot=${config.botId}`
         );
       } catch (_error) {
         console.error(
-          `Failed to create telegram trigger for workflow ${workflowId}`
+          `Failed to create ${provider} trigger for workflow ${workflowId}`
         );
       }
     } else if (!hasReceiveNode) {
-      // Node removed entirely — delete trigger
+      // Node removed entirely — delete trigger and clean up
       try {
-        const existing = await getTelegramTrigger(
+        const existing = await getBotTrigger(
           this.db,
           workflowId,
           organizationId
         );
         if (existing) {
-          await deleteTelegramTrigger(this.db, workflowId, organizationId);
-          if (existing.telegramBotId) {
+          const deletedMeta = existing.metadata
+            ? (JSON.parse(existing.metadata) as Record<string, string>)
+            : {};
+          await deleteBotTrigger(this.db, workflowId, organizationId);
+
+          if (provider === "discord" && existing.botId) {
+            const oldBot = await getBot(
+              this.db,
+              existing.botId,
+              organizationId
+            );
+            if (oldBot) {
+              const oldBotToken = await decryptSecret(
+                oldBot.encryptedToken,
+                this.env,
+                organizationId
+              );
+              const oldBotMeta = oldBot.metadata
+                ? (JSON.parse(oldBot.metadata) as { applicationId?: string })
+                : {};
+              if (oldBotMeta.applicationId && deletedMeta.commandName) {
+                await this.unregisterSlashCommand(
+                  oldBotMeta.applicationId,
+                  oldBotToken,
+                  deletedMeta.commandName
+                );
+              }
+            }
+          }
+
+          if (provider === "telegram" && existing.botId) {
             await this.unregisterTelegramWebhook(
-              existing.telegramBotId,
+              existing.botId,
               organizationId
             );
           }
@@ -432,11 +378,10 @@ export class WorkflowStore {
         // Ignore — trigger didn't exist
       }
     }
-    // If node exists but inputs are empty, leave existing trigger alone (backward compat)
   }
 
   /**
-   * Register a single slash command with the Discord API (upsert, does not affect other commands).
+   * Register a single slash command with the Discord API.
    */
   private async registerSlashCommand(
     applicationId: string,
@@ -472,16 +417,14 @@ export class WorkflowStore {
       if (!resp.ok) {
         const body = await resp.text();
         console.error(
-          `[DiscordTrigger] Failed to register slash command: ${resp.status} ${body}`
+          `[BotTrigger] Failed to register slash command: ${resp.status} ${body}`
         );
       } else {
-        console.log(
-          `[DiscordTrigger] Slash command registered: /${commandName}`
-        );
+        console.log(`[BotTrigger] Slash command registered: /${commandName}`);
       }
     } catch (error) {
       console.error(
-        "[DiscordTrigger] Failed to register slash command:",
+        "[BotTrigger] Failed to register slash command:",
         error instanceof Error ? error.message : String(error)
       );
     }
@@ -489,7 +432,6 @@ export class WorkflowStore {
 
   /**
    * Unregister a slash command from the Discord API by name.
-   * Looks up the command ID first, then deletes it.
    */
   private async unregisterSlashCommand(
     applicationId: string,
@@ -497,7 +439,6 @@ export class WorkflowStore {
     commandName: string
   ): Promise<void> {
     try {
-      // List all commands to find the one by name
       const listResp = await fetch(
         `https://discord.com/api/v10/applications/${applicationId}/commands`,
         {
@@ -520,27 +461,24 @@ export class WorkflowStore {
           headers: { Authorization: `Bot ${botToken}` },
         }
       );
-      console.log(
-        `[DiscordTrigger] Slash command unregistered: /${commandName}`
-      );
+      console.log(`[BotTrigger] Slash command unregistered: /${commandName}`);
     } catch (error) {
       console.error(
-        "[DiscordTrigger] Failed to unregister slash command:",
+        "[BotTrigger] Failed to unregister slash command:",
         error instanceof Error ? error.message : String(error)
       );
     }
   }
 
   private async unregisterTelegramWebhook(
-    telegramBotId: string,
+    botId: string,
     organizationId: string
   ): Promise<void> {
-    // Only unregister if no other triggers use this bot
     try {
-      const bot = await getTelegramBot(this.db, telegramBotId, organizationId);
+      const bot = await getBot(this.db, botId, organizationId);
       if (bot) {
         const botToken = await decryptSecret(
-          bot.encryptedBotToken,
+          bot.encryptedToken,
           this.env,
           organizationId
         );
@@ -550,151 +488,9 @@ export class WorkflowStore {
       }
     } catch (error) {
       console.error(
-        "[TelegramTrigger] Failed to unregister webhook:",
+        "[BotTrigger] Failed to unregister Telegram webhook:",
         error instanceof Error ? error.message : String(error)
       );
-    }
-  }
-
-  /**
-   * Sync WhatsApp trigger: upsert/delete trigger with verify token
-   * Note: WhatsApp webhooks are configured manually in the Meta Developer Portal,
-   * so we only manage the verify token for challenge-response verification.
-   */
-  private async syncWhatsAppTrigger(
-    workflowId: string,
-    organizationId: string,
-    nodes: Node[]
-  ): Promise<void> {
-    const config = this.extractWhatsAppTriggerConfig(nodes);
-    const hasReceiveNode = nodes.some(
-      (n) => n.type === "receive-whatsapp-message"
-    );
-
-    if (config) {
-      const existing = await getWhatsAppTrigger(
-        this.db,
-        workflowId,
-        organizationId
-      );
-      const configChanged =
-        !existing ||
-        existing.whatsappAccountId !== config.whatsappAccountId ||
-        (existing.phoneNumberId ?? undefined) !== config.phoneNumberId;
-
-      const verifyToken = existing?.verifyToken ?? crypto.randomUUID();
-
-      try {
-        if (configChanged) {
-          await upsertWhatsAppTrigger(this.db, {
-            workflowId,
-            organizationId,
-            phoneNumberId: config.phoneNumberId,
-            whatsappAccountId: config.whatsappAccountId,
-            verifyToken,
-            active: true,
-            updatedAt: new Date(),
-          });
-
-          // Sync verify token to all triggers using this account
-          await updateWhatsAppAccountVerifyToken(
-            this.db,
-            config.whatsappAccountId,
-            verifyToken
-          );
-        }
-
-        console.log(
-          `Auto-registered whatsapp trigger: workflow=${workflowId}, account=${config.whatsappAccountId}, phone=${config.phoneNumberId ?? "any"}`
-        );
-      } catch (_error) {
-        console.error(
-          `Failed to create whatsapp trigger for workflow ${workflowId}`
-        );
-      }
-    } else if (!hasReceiveNode) {
-      // Node removed entirely — delete trigger
-      try {
-        const existing = await getWhatsAppTrigger(
-          this.db,
-          workflowId,
-          organizationId
-        );
-        if (existing) {
-          await deleteWhatsAppTrigger(this.db, workflowId, organizationId);
-        }
-      } catch (_error) {
-        // Ignore — trigger didn't exist
-      }
-    }
-  }
-
-  /**
-   * Extract Slack trigger config from workflow nodes
-   */
-  private extractSlackTriggerConfig(
-    nodes: Node[]
-  ): { slackBotId: string; channelId?: string } | null {
-    const node = nodes.find((n) => n.type === "receive-slack-message");
-    if (!node) return null;
-
-    const slackBotId = node.inputs.find((i) => i.name === "slackBotId")
-      ?.value as string | undefined;
-    const channelId = node.inputs.find((i) => i.name === "channelId")?.value as
-      | string
-      | undefined;
-
-    if (!slackBotId) return null;
-
-    return { slackBotId, channelId: channelId || undefined };
-  }
-
-  /**
-   * Sync Slack trigger: upsert/delete trigger
-   */
-  private async syncSlackTrigger(
-    workflowId: string,
-    organizationId: string,
-    nodes: Node[]
-  ): Promise<void> {
-    const config = this.extractSlackTriggerConfig(nodes);
-    const hasReceiveNode = nodes.some(
-      (n) => n.type === "receive-slack-message"
-    );
-
-    if (config) {
-      try {
-        await upsertSlackTrigger(this.db, {
-          workflowId,
-          organizationId,
-          channelId: config.channelId,
-          slackBotId: config.slackBotId,
-          active: true,
-          updatedAt: new Date(),
-        });
-
-        console.log(
-          `Auto-registered slack trigger: workflow=${workflowId}, bot=${config.slackBotId}, channel=${config.channelId ?? "any"}`
-        );
-      } catch (_error) {
-        console.error(
-          `Failed to create slack trigger for workflow ${workflowId}`
-        );
-      }
-    } else if (!hasReceiveNode) {
-      // Node removed entirely — delete trigger
-      try {
-        const existing = await getSlackTrigger(
-          this.db,
-          workflowId,
-          organizationId
-        );
-        if (existing) {
-          await deleteSlackTrigger(this.db, workflowId, organizationId);
-        }
-      } catch (_error) {
-        // Ignore — trigger didn't exist
-      }
     }
   }
 
@@ -799,29 +595,22 @@ export class WorkflowStore {
       }
     }
 
-    // Handle discord_event workflows
-    if (workflowType === "discord_event") {
-      await this.syncDiscordTrigger(workflowId, organizationId, nodes, apiHost);
-    }
-
-    // Handle telegram_event workflows
-    if (workflowType === "telegram_event") {
-      await this.syncTelegramTrigger(
+    // Handle bot event workflows (discord, telegram, whatsapp, slack)
+    const botProviderMap: Record<string, BotProviderType> = {
+      discord_event: "discord",
+      telegram_event: "telegram",
+      whatsapp_event: "whatsapp",
+      slack_event: "slack",
+    };
+    const botProvider = botProviderMap[workflowType];
+    if (botProvider) {
+      await this.syncBotTrigger(
         workflowId,
         organizationId,
         nodes,
+        botProvider,
         apiHost
       );
-    }
-
-    // Handle whatsapp_event workflows
-    if (workflowType === "whatsapp_event") {
-      await this.syncWhatsAppTrigger(workflowId, organizationId, nodes);
-    }
-
-    // Handle slack_event workflows
-    if (workflowType === "slack_event") {
-      await this.syncSlackTrigger(workflowId, organizationId, nodes);
     }
   }
 

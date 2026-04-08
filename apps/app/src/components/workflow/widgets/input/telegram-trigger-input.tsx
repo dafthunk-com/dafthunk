@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useTelegramBots } from "@/services/telegram-bot-service";
+import { useTelegramBots } from "@/services/bot-service";
 import { cn } from "@/utils/utils";
 import { updateNodeInput, useWorkflow } from "../../workflow-context";
 import type { WorkflowParameter } from "../../workflow-types";

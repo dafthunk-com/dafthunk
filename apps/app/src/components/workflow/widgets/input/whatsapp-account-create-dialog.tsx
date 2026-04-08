@@ -12,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
-import { createWhatsAppAccount } from "@/services/whatsapp-account-service";
+import { createWhatsAppAccount } from "@/services/bot-service";
 
 import { WhatsAppSetupInfo } from "./whatsapp-setup-info";
 

@@ -18,7 +18,7 @@ import {
   syncDiscordTrigger,
   useDiscordBots,
   useDiscordTrigger,
-} from "@/services/discord-bot-service";
+} from "@/services/bot-service";
 import { cn } from "@/utils/utils";
 import { updateNodeInput, useWorkflow } from "../../workflow-context";
 import type { WorkflowParameter } from "../../workflow-types";
@@ -59,13 +59,14 @@ function DiscordTriggerInputWidget({
 
   const selectedBot = discordBots.find((b) => b.id === discordBotId);
   const inviteUrl = selectedBot
-    ? `https://discord.com/oauth2/authorize?client_id=${selectedBot.applicationId}&scope=bot+applications.commands&permissions=2048`
+    ? `https://discord.com/oauth2/authorize?client_id=${(selectedBot.metadata as Record<string, string | undefined> | null)?.applicationId}&scope=bot+applications.commands&permissions=2048`
     : null;
 
   const isOutOfSync =
     discordTrigger &&
     localCommand &&
-    discordTrigger.commandName !== localCommand;
+    (discordTrigger.metadata as Record<string, string | undefined> | null)
+      ?.commandName !== localCommand;
 
   const { debouncedOnChange } = useDebouncedChange((value) => {
     updateNodeInput(

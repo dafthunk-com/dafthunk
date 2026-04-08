@@ -34,17 +34,14 @@ import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import {
   deleteDiscordBot,
-  useDiscordBots,
-} from "@/services/discord-bot-service";
-import { deleteSlackBot, useSlackBots } from "@/services/slack-bot-service";
-import {
+  deleteSlackBot,
   deleteTelegramBot,
-  useTelegramBots,
-} from "@/services/telegram-bot-service";
-import {
   deleteWhatsAppAccount,
+  useDiscordBots,
+  useSlackBots,
+  useTelegramBots,
   useWhatsAppAccounts,
-} from "@/services/whatsapp-account-service";
+} from "@/services/bot-service";
 
 import { BotsCreateDialog } from "./bots-create-dialog";
 

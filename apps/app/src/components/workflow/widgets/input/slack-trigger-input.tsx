@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useSlackBots } from "@/services/slack-bot-service";
+import { useSlackBots } from "@/services/bot-service";
 import { cn } from "@/utils/utils";
 import { updateNodeInput, useWorkflow } from "../../workflow-context";
 import type { WorkflowParameter } from "../../workflow-types";

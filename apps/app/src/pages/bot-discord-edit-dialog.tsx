@@ -1,4 +1,4 @@
-import type { GetDiscordBotResponse } from "@dafthunk/types";
+import type { BotResponse } from "@dafthunk/types";
 import { useState } from "react";
 import { useAuth } from "@/components/auth-context";
 import { Button } from "@/components/ui/button";
@@ -13,10 +13,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
-import { updateDiscordBot } from "@/services/discord-bot-service";
+import { updateDiscordBot } from "@/services/bot-service";
 
 interface BotDiscordEditDialogProps {
-  bot: GetDiscordBotResponse;
+  bot: BotResponse;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onUpdated: () => void;
@@ -29,8 +29,9 @@ export function BotDiscordEditDialog({
   onUpdated,
 }: BotDiscordEditDialogProps) {
   const { organization } = useAuth();
+  const meta = (bot.metadata ?? {}) as Record<string, string | undefined>;
   const [name, setName] = useState(bot.name);
-  const [publicKey, setPublicKey] = useState(bot.publicKey);
+  const [publicKey, setPublicKey] = useState(meta.publicKey ?? "");
   const [botToken, setBotToken] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -46,7 +47,7 @@ export function BotDiscordEditDialog({
         bot.id,
         {
           name: name !== bot.name ? name : undefined,
-          publicKey: publicKey !== bot.publicKey ? publicKey : undefined,
+          publicKey: publicKey !== meta.publicKey ? publicKey : undefined,
           botToken: botToken.trim() !== "" ? botToken : undefined,
         },
         organization.id
@@ -63,7 +64,7 @@ export function BotDiscordEditDialog({
   const handleOpenChange = (value: boolean) => {
     if (!value) {
       setName(bot.name);
-      setPublicKey(bot.publicKey);
+      setPublicKey(meta.publicKey ?? "");
       setBotToken("");
       setError(null);
     }
@@ -92,7 +93,7 @@ export function BotDiscordEditDialog({
 
           <div className="space-y-1.5">
             <Label>Application ID</Label>
-            <Input value={bot.applicationId} disabled />
+            <Input value={meta.applicationId ?? ""} disabled />
             <p className="text-xs text-muted-foreground">
               Application ID cannot be changed.
             </p>

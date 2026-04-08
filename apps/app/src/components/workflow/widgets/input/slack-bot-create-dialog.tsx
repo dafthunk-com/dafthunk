@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { getApiBaseUrl } from "@/config/api";
-import { createSlackBot } from "@/services/slack-bot-service";
+import { createSlackBot } from "@/services/bot-service";
 
 type Step = "credentials" | "setup";
 
@@ -79,7 +79,10 @@ export function SlackBotCreateDialog({
         organization.id
       );
       setCreatedBotId(response.id);
-      setCreatedTeamName(response.teamName);
+      setCreatedTeamName(
+        (response.metadata as Record<string, string | undefined> | null)
+          ?.teamName ?? ""
+      );
       setStep("setup");
       onCreated(response.id);
     } catch (err) {
@@ -270,8 +273,7 @@ export function SlackBotCreateDialog({
                   <span className="font-medium text-foreground">
                     Subscribe to bot events
                   </span>
-                  , add{" "}
-                  <span className="font-mono">message.channels</span> and{" "}
+                  , add <span className="font-mono">message.channels</span> and{" "}
                   <span className="font-mono">message.groups</span>, then save.
                 </li>
                 <li>

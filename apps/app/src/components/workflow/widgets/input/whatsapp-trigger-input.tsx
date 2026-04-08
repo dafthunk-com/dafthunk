@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useWhatsAppAccounts } from "@/services/whatsapp-account-service";
+import { useWhatsAppAccounts } from "@/services/bot-service";
 import { cn } from "@/utils/utils";
 import { updateNodeInput, useWorkflow } from "../../workflow-context";
 import type { WorkflowParameter } from "../../workflow-types";

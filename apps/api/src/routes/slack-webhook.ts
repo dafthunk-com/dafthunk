@@ -4,10 +4,10 @@ import { Hono } from "hono";
 import type { ApiContext } from "../context";
 import {
   createDatabase,
+  getBot,
+  getBotById,
+  getBotTriggersByBot,
   getOrganizationBillingInfo,
-  getSlackBot,
-  getSlackBotById,
-  getSlackTriggersByBot,
   resolveOrganizationPlan,
 } from "../db";
 import { getAgentByName } from "../durable-objects/agent-utils";
@@ -58,16 +58,25 @@ slackWebhook.post("/webhook/:slackBotId", async (c) => {
   console.log(`[SlackWebhook] Received request for bot ${slackBotId}`);
   const db = createDatabase(c.env.DB);
 
-  // Look up bot to get signing secret
-  const bot = await getSlackBotById(db, slackBotId);
+  // Look up bot to get signing secret from encrypted metadata
+  const bot = await getBotById(db, slackBotId);
   if (!bot) {
     console.error(`[SlackWebhook] Bot not found: ${slackBotId}`);
     return c.json({ error: "Bot not found" }, 404);
   }
 
-  // Decrypt signing secret for verification
+  const encMeta = bot.encryptedMetadata
+    ? (JSON.parse(bot.encryptedMetadata) as {
+        encryptedSigningSecret?: string;
+      })
+    : null;
+  if (!encMeta?.encryptedSigningSecret) {
+    console.error(`[SlackWebhook] Bot ${slackBotId} missing signing secret`);
+    return c.json({ error: "Bot configuration error" }, 500);
+  }
+
   const signingSecret = await decryptSecret(
-    bot.encryptedSigningSecret,
+    encMeta.encryptedSigningSecret,
     c.env,
     bot.organizationId
   );
@@ -185,21 +194,22 @@ async function dispatchWorkflows(
   message: SlackMessagePayload
 ): Promise<void> {
   const db = createDatabase(env.DB);
-  const triggers = await getSlackTriggersByBot(
+  const allTriggers = await getBotTriggersByBot(
     db,
     slackBotId,
+    "channelId",
     message.channelId
   );
-  if (triggers.length === 0) return;
+  if (allTriggers.length === 0) return;
 
   const workflowStore = new WorkflowStore(env);
 
-  for (const { workflow } of triggers) {
+  for (const { workflow } of allTriggers) {
     try {
       // Resolve per-bot token for workflow execution
       let perBotToken: string;
       try {
-        const bot = await getSlackBot(db, slackBotId, workflow.organizationId);
+        const bot = await getBot(db, slackBotId, workflow.organizationId);
         if (!bot) {
           console.error(
             `[SlackWebhook] Bot ${slackBotId} not found for workflow ${workflow.id}, skipping`
@@ -207,7 +217,7 @@ async function dispatchWorkflows(
           continue;
         }
         perBotToken = await decryptSecret(
-          bot.encryptedBotToken,
+          bot.encryptedToken,
           env,
           workflow.organizationId
         );

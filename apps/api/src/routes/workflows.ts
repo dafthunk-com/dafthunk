@@ -1,30 +1,27 @@
 import {
-  CancelWorkflowExecutionResponse,
-  CreateWorkflowRequest,
-  CreateWorkflowResponse,
-  DeleteDiscordTriggerResponse,
-  DeleteEndpointTriggerResponse,
-  DeleteQueueTriggerResponse,
-  DeleteTelegramTriggerResponse,
-  DeleteWorkflowResponse,
-  ExecuteWorkflowResponse,
+  type CancelWorkflowExecutionResponse,
+  type CreateWorkflowRequest,
+  type CreateWorkflowResponse,
+  type DeleteBotTriggerResponse,
+  type DeleteEndpointTriggerResponse,
+  type DeleteQueueTriggerResponse,
+  type DeleteWorkflowResponse,
+  type ExecuteWorkflowResponse,
   ExecutionStatus,
-  GetDiscordTriggerResponse,
-  GetEmailTriggerResponse,
-  GetEndpointTriggerResponse,
-  GetQueueTriggerResponse,
-  GetTelegramTriggerResponse,
-  GetWorkflowResponse,
-  JWTTokenPayload,
-  ListWorkflowsResponse,
-  SyncDiscordTriggerResponse,
-  UpdateWorkflowRequest,
-  UpdateWorkflowResponse,
-  UpsertEndpointTriggerRequest,
-  UpsertEndpointTriggerResponse,
-  UpsertQueueTriggerRequest,
-  UpsertQueueTriggerResponse,
-  WorkflowWithMetadata,
+  type GetBotTriggerResponse,
+  type GetEmailTriggerResponse,
+  type GetEndpointTriggerResponse,
+  type GetQueueTriggerResponse,
+  type GetWorkflowResponse,
+  type JWTTokenPayload,
+  type ListWorkflowsResponse,
+  type UpdateWorkflowRequest,
+  type UpdateWorkflowResponse,
+  type UpsertEndpointTriggerRequest,
+  type UpsertEndpointTriggerResponse,
+  type UpsertQueueTriggerRequest,
+  type UpsertQueueTriggerResponse,
+  type WorkflowWithMetadata,
 } from "@dafthunk/types";
 import { zValidator } from "@hono/zod-validator";
 import { and, eq } from "drizzle-orm";
@@ -36,21 +33,18 @@ import { jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
 import {
   createDatabase,
-  deleteDiscordTrigger as deleteDbDiscordTrigger,
+  deleteBotTrigger as deleteDbBotTrigger,
   deleteEndpointTrigger as deleteDbEndpointTrigger,
   deleteQueueTrigger as deleteDbQueueTrigger,
-  deleteTelegramTrigger as deleteDbTelegramTrigger,
-  getDiscordBot,
-  getDiscordTrigger,
+  getBot,
+  getBotTrigger,
+  getBotTriggersByBot,
   getEmailTrigger,
   getEndpoint,
   getEndpointTrigger,
   getOrganizationBillingInfo,
   getQueue,
   getQueueTrigger,
-  getTelegramBot,
-  getTelegramTrigger,
-  getTelegramTriggersByBot,
   resolveOrganizationPlan,
   upsertEndpointTrigger as upsertDbEndpointTrigger,
   upsertQueueTrigger as upsertDbQueueTrigger,
@@ -936,9 +930,9 @@ workflowRoutes.delete(
 );
 
 /**
- * Get discord trigger for a workflow
+ * Get bot trigger for a workflow
  */
-workflowRoutes.get("/:workflowId/discord-trigger", jwtMiddleware, async (c) => {
+workflowRoutes.get("/:workflowId/bot-trigger", jwtMiddleware, async (c) => {
   const workflowId = c.req.param("workflowId");
   const organizationId = c.get("organizationId")!;
   const workflowStore = new WorkflowStore(c.env);
@@ -949,27 +943,19 @@ workflowRoutes.get("/:workflowId/discord-trigger", jwtMiddleware, async (c) => {
     return c.json({ error: "Workflow not found" }, 404);
   }
 
-  const discordTrigger = await getDiscordTrigger(
-    db,
-    workflow.id,
-    organizationId
-  );
-
-  if (!discordTrigger) {
-    return c.json(
-      { error: "Discord trigger not found for this workflow" },
-      404
-    );
+  const trigger = await getBotTrigger(db, workflow.id, organizationId);
+  if (!trigger) {
+    return c.json({ error: "Bot trigger not found for this workflow" }, 404);
   }
 
-  const response: GetDiscordTriggerResponse = {
-    workflowId: discordTrigger.workflowId,
-    commandName: discordTrigger.commandName,
-    commandDescription: discordTrigger.commandDescription,
-    discordBotId: discordTrigger.discordBotId ?? null,
-    active: discordTrigger.active,
-    createdAt: discordTrigger.createdAt,
-    updatedAt: discordTrigger.updatedAt,
+  const response: GetBotTriggerResponse = {
+    workflowId: trigger.workflowId,
+    botId: trigger.botId,
+    provider: trigger.provider,
+    metadata: trigger.metadata ? JSON.parse(trigger.metadata) : null,
+    active: trigger.active,
+    createdAt: trigger.createdAt,
+    updatedAt: trigger.updatedAt,
   };
 
   return c.json(response);
@@ -979,7 +965,7 @@ workflowRoutes.get("/:workflowId/discord-trigger", jwtMiddleware, async (c) => {
  * Sync (re-register) the discord slash command for a workflow trigger
  */
 workflowRoutes.post(
-  "/:workflowId/discord-trigger/sync",
+  "/:workflowId/bot-trigger/sync",
   jwtMiddleware,
   async (c) => {
     const workflowId = c.req.param("workflowId");
@@ -992,36 +978,35 @@ workflowRoutes.post(
       return c.json({ error: "Workflow not found" }, 404);
     }
 
-    const discordTrigger = await getDiscordTrigger(
-      db,
-      workflow.id,
-      organizationId
-    );
-    if (!discordTrigger || !discordTrigger.discordBotId) {
+    const trigger = await getBotTrigger(db, workflow.id, organizationId);
+    if (!trigger || !trigger.botId || trigger.provider !== "discord") {
       return c.json(
-        { error: "Discord trigger not found for this workflow" },
+        { error: "Discord bot trigger not found for this workflow" },
         404
       );
     }
 
-    const bot = await getDiscordBot(
-      db,
-      discordTrigger.discordBotId,
-      organizationId
-    );
+    const bot = await getBot(db, trigger.botId, organizationId);
     if (!bot) {
-      return c.json({ error: "Discord bot not found" }, 404);
+      return c.json({ error: "Bot not found" }, 404);
     }
 
     const botToken = await decryptSecret(
-      bot.encryptedBotToken,
+      bot.encryptedToken,
       c.env,
       organizationId
     );
 
-    // Register the slash command with Discord
+    const triggerMeta = trigger.metadata
+      ? (JSON.parse(trigger.metadata) as Record<string, string>)
+      : {};
+    const botMeta = bot.metadata
+      ? (JSON.parse(bot.metadata) as Record<string, string>)
+      : {};
+    const commandName = triggerMeta.commandName;
+
     const resp = await fetch(
-      `https://discord.com/api/v10/applications/${bot.applicationId}/commands`,
+      `https://discord.com/api/v10/applications/${botMeta.applicationId}/commands`,
       {
         method: "POST",
         headers: {
@@ -1029,8 +1014,8 @@ workflowRoutes.post(
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name: discordTrigger.commandName,
-          description: `Run the ${discordTrigger.commandName} workflow`,
+          name: commandName,
+          description: `Run the ${commandName} workflow`,
           type: 1,
           options: [
             {
@@ -1047,7 +1032,7 @@ workflowRoutes.post(
     if (!resp.ok) {
       const body = await resp.text();
       console.error(
-        `[DiscordTrigger] Sync failed for workflow=${workflow.id} command=${discordTrigger.commandName}: ${resp.status} ${body}`
+        `[BotTrigger] Sync failed for workflow=${workflow.id} command=${commandName}: ${resp.status} ${body}`
       );
       return c.json(
         { error: `Failed to register slash command: ${body}` },
@@ -1055,170 +1040,68 @@ workflowRoutes.post(
       );
     }
 
-    const response: SyncDiscordTriggerResponse = {
-      commandName: discordTrigger.commandName,
-      synced: true,
-    };
-    return c.json(response);
+    return c.json({ commandName, synced: true });
   }
 );
 
 /**
- * Delete a discord trigger for a workflow
+ * Delete a bot trigger for a workflow
  */
-workflowRoutes.delete(
-  "/:workflowId/discord-trigger",
-  jwtMiddleware,
-  async (c) => {
-    const workflowId = c.req.param("workflowId");
-    const organizationId = c.get("organizationId")!;
-    const workflowStore = new WorkflowStore(c.env);
-    const db = createDatabase(c.env.DB);
+workflowRoutes.delete("/:workflowId/bot-trigger", jwtMiddleware, async (c) => {
+  const workflowId = c.req.param("workflowId");
+  const organizationId = c.get("organizationId")!;
+  const workflowStore = new WorkflowStore(c.env);
+  const db = createDatabase(c.env.DB);
 
-    const workflow = await workflowStore.get(workflowId, organizationId);
-    if (!workflow) {
-      return c.json({ error: "Workflow not found" }, 404);
-    }
-
-    const deletedTrigger = await deleteDbDiscordTrigger(
-      db,
-      workflow.id,
-      organizationId
-    );
-
-    if (!deletedTrigger) {
-      return c.json(
-        { error: "Discord trigger not found for this workflow" },
-        404
-      );
-    }
-
-    const response: DeleteDiscordTriggerResponse = {
-      workflowId: deletedTrigger.workflowId,
-    };
-    return c.json(response);
+  const workflow = await workflowStore.get(workflowId, organizationId);
+  if (!workflow) {
+    return c.json({ error: "Workflow not found" }, 404);
   }
-);
 
-/**
- * Get telegram trigger for a workflow
- */
-workflowRoutes.get(
-  "/:workflowId/telegram-trigger",
-  jwtMiddleware,
-  async (c) => {
-    const workflowId = c.req.param("workflowId");
-    const organizationId = c.get("organizationId")!;
-    const workflowStore = new WorkflowStore(c.env);
-    const db = createDatabase(c.env.DB);
+  const deletedTrigger = await deleteDbBotTrigger(
+    db,
+    workflow.id,
+    organizationId
+  );
 
-    const workflow = await workflowStore.get(workflowId, organizationId);
-    if (!workflow) {
-      return c.json({ error: "Workflow not found" }, 404);
-    }
-
-    const telegramTrigger = await getTelegramTrigger(
-      db,
-      workflow.id,
-      organizationId
-    );
-
-    if (!telegramTrigger) {
-      return c.json(
-        { error: "Telegram trigger not found for this workflow" },
-        404
-      );
-    }
-
-    const response: GetTelegramTriggerResponse = {
-      workflowId: telegramTrigger.workflowId,
-      chatId: telegramTrigger.chatId,
-      telegramBotId: telegramTrigger.telegramBotId ?? null,
-      active: telegramTrigger.active,
-      createdAt: telegramTrigger.createdAt,
-      updatedAt: telegramTrigger.updatedAt,
-    };
-
-    return c.json(response);
+  if (!deletedTrigger) {
+    return c.json({ error: "Bot trigger not found for this workflow" }, 404);
   }
-);
 
-/**
- * Delete a telegram trigger for a workflow
- */
-workflowRoutes.delete(
-  "/:workflowId/telegram-trigger",
-  jwtMiddleware,
-  async (c) => {
-    const workflowId = c.req.param("workflowId");
-    const organizationId = c.get("organizationId")!;
-    const workflowStore = new WorkflowStore(c.env);
-    const db = createDatabase(c.env.DB);
-
-    const workflow = await workflowStore.get(workflowId, organizationId);
-    if (!workflow) {
-      return c.json({ error: "Workflow not found" }, 404);
-    }
-
-    const deletedTrigger = await deleteDbTelegramTrigger(
+  // For telegram: if no remaining triggers for this bot, unregister webhook
+  if (deletedTrigger.provider === "telegram" && deletedTrigger.botId) {
+    const remainingTriggers = await getBotTriggersByBot(
       db,
-      workflow.id,
-      organizationId
+      deletedTrigger.botId
     );
-
-    if (!deletedTrigger) {
-      return c.json(
-        { error: "Telegram trigger not found for this workflow" },
-        404
-      );
-    }
-
-    // Check if there are other triggers for this bot — if not, unregister webhook
-    const remainingTriggers = deletedTrigger.telegramBotId
-      ? await getTelegramTriggersByBot(db, deletedTrigger.telegramBotId)
-      : [];
     if (remainingTriggers.length === 0) {
-      // Resolve the per-bot token for webhook cleanup
-      let cleanupToken: string | undefined;
-      if (deletedTrigger.telegramBotId) {
-        try {
-          const bot = await getTelegramBot(
-            db,
-            deletedTrigger.telegramBotId,
+      try {
+        const bot = await getBot(db, deletedTrigger.botId, organizationId);
+        if (bot) {
+          const cleanupToken = await decryptSecret(
+            bot.encryptedToken,
+            c.env,
             organizationId
           );
-          if (bot) {
-            cleanupToken = await decryptSecret(
-              bot.encryptedBotToken,
-              c.env,
-              organizationId
-            );
-          }
-        } catch {
-          // Bot may have been deleted already (ON DELETE SET NULL); webhook becomes stale harmlessly
-        }
-      }
-      if (cleanupToken) {
-        try {
           await fetch(
             `https://api.telegram.org/bot${cleanupToken}/deleteWebhook`,
             { method: "POST" }
           );
-        } catch (error) {
-          console.error(
-            "[TelegramTrigger] Failed to unregister webhook:",
-            error instanceof Error ? error.message : String(error)
-          );
         }
+      } catch (error) {
+        console.error(
+          "[BotTrigger] Failed to unregister Telegram webhook:",
+          error instanceof Error ? error.message : String(error)
+        );
       }
     }
-
-    const response: DeleteTelegramTriggerResponse = {
-      workflowId: deletedTrigger.workflowId,
-    };
-    return c.json(response);
   }
-);
+
+  const response: DeleteBotTriggerResponse = {
+    workflowId: deletedTrigger.workflowId,
+  };
+  return c.json(response);
+});
 
 /**
  * Toggle workflow enabled state

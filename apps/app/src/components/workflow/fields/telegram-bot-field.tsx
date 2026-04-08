@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useTelegramBots } from "@/services/telegram-bot-service";
+import { useTelegramBots } from "@/services/bot-service";
 import { cn } from "@/utils/utils";
 
 import { TelegramBotCreateDialog } from "../widgets/input/telegram-bot-create-dialog";
@@ -32,7 +32,7 @@ export function TelegramBotField({
   if (disabled) {
     const bot = telegramBots?.find((b) => b.id === stringValue);
     const label = bot
-      ? `${bot.name}${bot.botUsername ? ` (@${bot.botUsername})` : ""}`
+      ? `${bot.name}${(bot.metadata as Record<string, string | undefined> | null)?.botUsername ? ` (@${(bot.metadata as Record<string, string | undefined> | null)?.botUsername})` : ""}`
       : "";
     return (
       <div className={cn("relative", className)}>
@@ -79,7 +79,10 @@ export function TelegramBotField({
           {telegramBots?.map((bot) => (
             <SelectItem key={bot.id} value={bot.id} className="text-xs">
               {bot.name}
-              {bot.botUsername ? ` (@${bot.botUsername})` : ""}
+              {(bot.metadata as Record<string, string | undefined> | null)
+                ?.botUsername
+                ? ` (@${(bot.metadata as Record<string, string | undefined> | null)?.botUsername})`
+                : ""}
             </SelectItem>
           ))}
           {(telegramBots?.length ?? 0) > 0 && <SelectSeparator />}

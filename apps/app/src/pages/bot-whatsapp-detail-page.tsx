@@ -15,7 +15,7 @@ import { usePageBreadcrumbs } from "@/hooks/use-page";
 import {
   useWhatsAppAccount,
   useWhatsAppWebhookInfo,
-} from "@/services/whatsapp-account-service";
+} from "@/services/bot-service";
 
 import { BotWhatsAppEditDialog } from "./bot-whatsapp-edit-dialog";
 

@@ -1,4 +1,4 @@
-import type { GetWhatsAppAccountResponse } from "@dafthunk/types";
+import type { BotResponse } from "@dafthunk/types";
 import { useState } from "react";
 import { useAuth } from "@/components/auth-context";
 import { Button } from "@/components/ui/button";
@@ -13,10 +13,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
-import { updateWhatsAppAccount } from "@/services/whatsapp-account-service";
+import { updateWhatsAppAccount } from "@/services/bot-service";
 
 interface BotWhatsAppEditDialogProps {
-  account: GetWhatsAppAccountResponse;
+  account: BotResponse;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onUpdated: () => void;
@@ -29,11 +29,12 @@ export function BotWhatsAppEditDialog({
   onUpdated,
 }: BotWhatsAppEditDialogProps) {
   const { organization } = useAuth();
+  const meta = (account.metadata ?? {}) as Record<string, string | undefined>;
   const [name, setName] = useState(account.name);
   const [accessToken, setAccessToken] = useState("");
-  const [phoneNumberId, setPhoneNumberId] = useState(account.phoneNumberId);
+  const [phoneNumberId, setPhoneNumberId] = useState(meta.phoneNumberId ?? "");
   const [appSecret, setAppSecret] = useState("");
-  const [wabaId, setWabaId] = useState(account.wabaId || "");
+  const [wabaId, setWabaId] = useState(meta.wabaId ?? "");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -50,10 +51,10 @@ export function BotWhatsAppEditDialog({
           name: name !== account.name ? name : undefined,
           accessToken: accessToken.trim() !== "" ? accessToken : undefined,
           phoneNumberId:
-            phoneNumberId !== account.phoneNumberId ? phoneNumberId : undefined,
+            phoneNumberId !== meta.phoneNumberId ? phoneNumberId : undefined,
           appSecret: appSecret.trim() !== "" ? appSecret : undefined,
           wabaId:
-            wabaId !== (account.wabaId || "") ? wabaId || undefined : undefined,
+            wabaId !== (meta.wabaId || "") ? wabaId || undefined : undefined,
         },
         organization.id
       );
@@ -70,9 +71,9 @@ export function BotWhatsAppEditDialog({
     if (!value) {
       setName(account.name);
       setAccessToken("");
-      setPhoneNumberId(account.phoneNumberId);
+      setPhoneNumberId(meta.phoneNumberId ?? "");
       setAppSecret("");
-      setWabaId(account.wabaId || "");
+      setWabaId(meta.wabaId || "");
       setError(null);
     }
     onOpenChange(value);

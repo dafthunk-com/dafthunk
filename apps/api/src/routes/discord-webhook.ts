@@ -4,9 +4,9 @@ import { Hono } from "hono";
 import type { ApiContext } from "../context";
 import {
   createDatabase,
-  getDiscordBot,
-  getDiscordBotById,
-  getDiscordTriggersByBot,
+  getBot,
+  getBotById,
+  getBotTriggersByBot,
   getOrganizationBillingInfo,
   resolveOrganizationPlan,
 } from "../db";
@@ -62,11 +62,14 @@ discordWebhook.post("/webhook/:discordBotId", async (c) => {
   console.log(`[DiscordWebhook] Received request for bot ${discordBotId}`);
   const db = createDatabase(c.env.DB);
 
-  // Look up bot to get public key
-  const bot = await getDiscordBotById(db, discordBotId);
-  if (!bot || !bot.publicKey) {
+  // Look up bot to get public key from metadata
+  const bot = await getBotById(db, discordBotId);
+  const botMeta = bot?.metadata
+    ? (JSON.parse(bot.metadata) as { publicKey?: string })
+    : null;
+  if (!bot || !botMeta?.publicKey) {
     console.error(
-      `[DiscordWebhook] Bot not found or missing public key: ${discordBotId}, hasBot=${!!bot}, hasKey=${!!bot?.publicKey}`
+      `[DiscordWebhook] Bot not found or missing public key: ${discordBotId}, hasBot=${!!bot}, hasKey=${!!botMeta?.publicKey}`
     );
     return c.json({ error: "Bot not found" }, 404);
   }
@@ -82,7 +85,7 @@ discordWebhook.post("/webhook/:discordBotId", async (c) => {
   }
 
   const isValid = await verifyDiscordSignature(
-    bot.publicKey,
+    botMeta.publicKey,
     signature,
     timestamp,
     rawBody
@@ -190,25 +193,22 @@ async function dispatchWorkflows(
   interaction: DiscordInteractionPayload
 ): Promise<void> {
   const db = createDatabase(env.DB);
-  const triggers = await getDiscordTriggersByBot(
+  const allTriggers = await getBotTriggersByBot(
     db,
     discordBotId,
+    "commandName",
     interaction.commandName
   );
-  if (triggers.length === 0) return;
+  if (allTriggers.length === 0) return;
 
   const workflowStore = new WorkflowStore(env);
 
-  for (const { workflow } of triggers) {
+  for (const { workflow } of allTriggers) {
     try {
       // Resolve per-bot token for workflow execution
       let perBotToken: string;
       try {
-        const bot = await getDiscordBot(
-          db,
-          discordBotId,
-          workflow.organizationId
-        );
+        const bot = await getBot(db, discordBotId, workflow.organizationId);
         if (!bot) {
           console.error(
             `[DiscordWebhook] Bot ${discordBotId} not found for workflow ${workflow.id}, skipping`
@@ -216,7 +216,7 @@ async function dispatchWorkflows(
           continue;
         }
         perBotToken = await decryptSecret(
-          bot.encryptedBotToken,
+          bot.encryptedToken,
           env,
           workflow.organizationId
         );

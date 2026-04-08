@@ -12,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
-import { createTelegramBot } from "@/services/telegram-bot-service";
+import { createTelegramBot } from "@/services/bot-service";
 
 import { TelegramBotSetupInfo } from "./telegram-setup-info";
 
@@ -75,7 +75,10 @@ export function TelegramBotCreateDialog({
         { name, botToken },
         organization.id
       );
-      setCreatedBotUsername(response.botUsername);
+      setCreatedBotUsername(
+        (response.metadata as Record<string, string | undefined> | null)
+          ?.botUsername ?? null
+      );
       setStep("setup");
       onCreated(response.id);
     } catch (err) {

@@ -6,9 +6,8 @@ import {
   Edge,
   ExecuteWorkflowRequest,
   ExecuteWorkflowResponse,
-  GetDiscordTriggerResponse,
+  GetBotTriggerResponse,
   GetEmailTriggerResponse,
-  GetTelegramTriggerResponse,
   GetWorkflowResponse,
   ListWorkflowsResponse,
   UpdateWorkflowRequest,
@@ -801,123 +800,91 @@ export const useEmailTrigger = (
 };
 
 /**
- * Hook to get a Discord trigger for a specific workflow
+ * Hook to get a bot trigger for a specific workflow
  */
+export const useBotTrigger = (
+  workflowId: string | null,
+  options?: SWRConfiguration<GetBotTriggerResponse | null>
+) => {
+  const { organization } = useAuth();
+  const orgId = organization?.id;
+  const { data, error, isLoading, mutate } =
+    useSWR<GetBotTriggerResponse | null>(
+      orgId && workflowId
+        ? `/${orgId}${API_ENDPOINT_BASE}/${workflowId}/bot-trigger`
+        : null,
+      orgId && workflowId
+        ? async () => {
+            try {
+              const response = await makeOrgRequest<GetBotTriggerResponse>(
+                orgId,
+                API_ENDPOINT_BASE,
+                `/${workflowId}/bot-trigger`
+              );
+              return response;
+            } catch (error) {
+              if (
+                error instanceof Error &&
+                "status" in error &&
+                (error as never as { status: number }).status === 404
+              ) {
+                return null;
+              }
+              throw error;
+            }
+          }
+        : null,
+      options
+    );
+
+  return {
+    botTrigger: data || null,
+    botTriggerError: error || null,
+    isBotTriggerLoading: isLoading,
+    mutateBotTrigger: mutate,
+  };
+};
+
+// Backward-compatible aliases
 export const useDiscordTrigger = (
   workflowId: string | null,
-  options?: SWRConfiguration<GetDiscordTriggerResponse | null>
+  options?: SWRConfiguration<GetBotTriggerResponse | null>
 ) => {
-  const { organization } = useAuth();
-  const orgId = organization?.id;
-  const { data, error, isLoading, mutate } =
-    useSWR<GetDiscordTriggerResponse | null>(
-      orgId && workflowId
-        ? `/${orgId}${API_ENDPOINT_BASE}/${workflowId}/discord-trigger`
-        : null,
-      orgId && workflowId
-        ? async () => {
-            try {
-              const response = await makeOrgRequest<GetDiscordTriggerResponse>(
-                orgId,
-                API_ENDPOINT_BASE,
-                `/${workflowId}/discord-trigger`
-              );
-              return response;
-            } catch (error) {
-              if (
-                error instanceof Error &&
-                "status" in error &&
-                (error as never as { status: number }).status === 404
-              ) {
-                return null;
-              }
-              throw error;
-            }
-          }
-        : null,
-      options
-    );
-
+  const { botTrigger, botTriggerError, isBotTriggerLoading, mutateBotTrigger } =
+    useBotTrigger(workflowId, options);
   return {
-    discordTrigger: data || null,
-    discordTriggerError: error || null,
-    isDiscordTriggerLoading: isLoading,
-    mutateDiscordTrigger: mutate,
+    discordTrigger: botTrigger?.provider === "discord" ? botTrigger : null,
+    discordTriggerError: botTriggerError,
+    isDiscordTriggerLoading: isBotTriggerLoading,
+    mutateDiscordTrigger: mutateBotTrigger,
   };
 };
 
-/**
- * Delete a Discord trigger for a workflow
- */
-export const deleteDiscordTrigger = async (
-  orgId: string,
-  workflowId: string
-): Promise<void> => {
-  await makeOrgRequest(
-    orgId,
-    API_ENDPOINT_BASE,
-    `/${workflowId}/discord-trigger`,
-    { method: "DELETE" }
-  );
-};
-
-/**
- * Hook to get a Telegram trigger for a specific workflow
- */
 export const useTelegramTrigger = (
   workflowId: string | null,
-  options?: SWRConfiguration<GetTelegramTriggerResponse | null>
+  options?: SWRConfiguration<GetBotTriggerResponse | null>
 ) => {
-  const { organization } = useAuth();
-  const orgId = organization?.id;
-  const { data, error, isLoading, mutate } =
-    useSWR<GetTelegramTriggerResponse | null>(
-      orgId && workflowId
-        ? `/${orgId}${API_ENDPOINT_BASE}/${workflowId}/telegram-trigger`
-        : null,
-      orgId && workflowId
-        ? async () => {
-            try {
-              const response = await makeOrgRequest<GetTelegramTriggerResponse>(
-                orgId,
-                API_ENDPOINT_BASE,
-                `/${workflowId}/telegram-trigger`
-              );
-              return response;
-            } catch (error) {
-              if (
-                error instanceof Error &&
-                "status" in error &&
-                (error as never as { status: number }).status === 404
-              ) {
-                return null;
-              }
-              throw error;
-            }
-          }
-        : null,
-      options
-    );
-
+  const { botTrigger, botTriggerError, isBotTriggerLoading, mutateBotTrigger } =
+    useBotTrigger(workflowId, options);
   return {
-    telegramTrigger: data || null,
-    telegramTriggerError: error || null,
-    isTelegramTriggerLoading: isLoading,
-    mutateTelegramTrigger: mutate,
+    telegramTrigger: botTrigger?.provider === "telegram" ? botTrigger : null,
+    telegramTriggerError: botTriggerError,
+    isTelegramTriggerLoading: isBotTriggerLoading,
+    mutateTelegramTrigger: mutateBotTrigger,
   };
 };
 
 /**
- * Delete a Telegram trigger for a workflow
+ * Delete a bot trigger for a workflow
  */
-export const deleteTelegramTrigger = async (
+export const deleteBotTrigger = async (
   orgId: string,
   workflowId: string
 ): Promise<void> => {
-  await makeOrgRequest(
-    orgId,
-    API_ENDPOINT_BASE,
-    `/${workflowId}/telegram-trigger`,
-    { method: "DELETE" }
-  );
+  await makeOrgRequest(orgId, API_ENDPOINT_BASE, `/${workflowId}/bot-trigger`, {
+    method: "DELETE",
+  });
 };
+
+export const deleteDiscordTrigger = deleteBotTrigger;
+export const deleteTelegramTrigger = deleteBotTrigger;

@@ -4,10 +4,10 @@ import { Hono } from "hono";
 import type { ApiContext } from "../context";
 import {
   createDatabase,
+  getBot,
+  getBotById,
+  getBotTriggersByBot,
   getOrganizationBillingInfo,
-  getWhatsAppAccount,
-  getWhatsAppTriggersByAccount,
-  getWhatsAppVerifyTokenByAccount,
   resolveOrganizationPlan,
 } from "../db";
 import { getAgentByName } from "../durable-objects/agent-utils";
@@ -33,10 +33,14 @@ whatsappWebhook.get("/webhook/:whatsappAccountId", async (c) => {
   }
 
   const db = createDatabase(c.env.DB);
-  const expectedToken = await getWhatsAppVerifyTokenByAccount(
-    db,
-    whatsappAccountId
-  );
+  // Find verify token from trigger metadata
+  const triggers = await getBotTriggersByBot(db, whatsappAccountId);
+  const firstMeta = triggers[0]?.botTrigger.metadata
+    ? (JSON.parse(triggers[0].botTrigger.metadata) as {
+        verifyToken?: string;
+      })
+    : null;
+  const expectedToken = firstMeta?.verifyToken;
 
   if (!expectedToken || token !== expectedToken) {
     return c.json({ error: "Verification token mismatch" }, 403);
@@ -170,19 +174,20 @@ async function verifySignature(
   signature: string
 ): Promise<boolean> {
   try {
-    // Find the account to get the app secret
-    // We need to check all orgs since webhook is unauthenticated
-    const triggers = await getWhatsAppTriggersByAccount(db, whatsappAccountId);
-    if (triggers.length === 0) return false;
+    // Find the bot to get the encrypted app secret
+    // We need to check without org scoping since webhook is unauthenticated
+    const bot = await getBotById(db, whatsappAccountId);
+    if (!bot?.encryptedMetadata) return false;
 
-    const orgId = triggers[0].workflow.organizationId;
-    const account = await getWhatsAppAccount(db, whatsappAccountId, orgId);
-    if (!account?.encryptedAppSecret) return false; // No app secret configured, reject (app secret is required for webhook security)
+    const encMeta = JSON.parse(bot.encryptedMetadata) as {
+      encryptedAppSecret?: string;
+    };
+    if (!encMeta.encryptedAppSecret) return false;
 
     const appSecret = await decryptSecret(
-      account.encryptedAppSecret,
+      encMeta.encryptedAppSecret,
       env,
-      orgId
+      bot.organizationId
     );
 
     const encoder = new TextEncoder();
@@ -217,35 +222,31 @@ async function dispatchWorkflows(
   message: WhatsAppMessagePayload
 ): Promise<void> {
   const db = createDatabase(env.DB);
-  const triggers = await getWhatsAppTriggersByAccount(db, whatsappAccountId);
-  if (triggers.length === 0) return;
+  const allTriggers = await getBotTriggersByBot(db, whatsappAccountId);
+  if (allTriggers.length === 0) return;
 
   const workflowStore = new WorkflowStore(env);
 
-  for (const { whatsappTrigger, workflow } of triggers) {
+  for (const { botTrigger, workflow } of allTriggers) {
     try {
-      if (!whatsappTrigger.whatsappAccountId) {
+      if (!botTrigger.botId) {
         console.error(
-          `[WhatsAppWebhook] Trigger for workflow ${workflow.id} has no whatsappAccountId, skipping`
+          `[WhatsAppWebhook] Trigger for workflow ${workflow.id} has no botId, skipping`
         );
         continue;
       }
 
       let accessToken: string;
       try {
-        const account = await getWhatsAppAccount(
-          db,
-          whatsappTrigger.whatsappAccountId,
-          workflow.organizationId
-        );
-        if (!account) {
+        const bot = await getBot(db, botTrigger.botId, workflow.organizationId);
+        if (!bot) {
           console.error(
-            `[WhatsAppWebhook] Account ${whatsappTrigger.whatsappAccountId} not found for workflow ${workflow.id}, skipping`
+            `[WhatsAppWebhook] Bot ${botTrigger.botId} not found for workflow ${workflow.id}, skipping`
           );
           continue;
         }
         accessToken = await decryptSecret(
-          account.encryptedAccessToken,
+          bot.encryptedToken,
           env,
           workflow.organizationId
         );

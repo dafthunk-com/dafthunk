@@ -4,10 +4,9 @@ import { Hono } from "hono";
 import type { ApiContext } from "../context";
 import {
   createDatabase,
+  getBot,
+  getBotTriggersByBot,
   getOrganizationBillingInfo,
-  getTelegramBot,
-  getTelegramSecretTokenByBot,
-  getTelegramTriggersByBot,
   resolveOrganizationPlan,
 } from "../db";
 import { getAgentByName } from "../durable-objects/agent-utils";
@@ -25,9 +24,15 @@ telegramWebhook.post("/webhook/:telegramBotId", async (c) => {
   const telegramBotId = c.req.param("telegramBotId");
   const db = createDatabase(c.env.DB);
 
-  // Verify the secret token sent by Telegram
+  // Verify the secret token sent by Telegram (stored in trigger metadata)
   const incomingToken = c.req.header("X-Telegram-Bot-Api-Secret-Token");
-  const expectedToken = await getTelegramSecretTokenByBot(db, telegramBotId);
+  const triggers = await getBotTriggersByBot(db, telegramBotId);
+  const firstMeta = triggers[0]?.botTrigger.metadata
+    ? (JSON.parse(triggers[0].botTrigger.metadata) as {
+        secretToken?: string;
+      })
+    : null;
+  const expectedToken = firstMeta?.secretToken;
 
   if (!expectedToken || incomingToken !== expectedToken) {
     return c.json({ error: "Unauthorized" }, 401);
@@ -110,36 +115,36 @@ async function dispatchWorkflows(
 ): Promise<void> {
   const db = createDatabase(env.DB);
   const chatIdStr = String(message.chatId);
-  const triggers = await getTelegramTriggersByBot(db, telegramBotId, chatIdStr);
-  if (triggers.length === 0) return;
+  const allTriggers = await getBotTriggersByBot(
+    db,
+    telegramBotId,
+    "chatId",
+    chatIdStr
+  );
+  if (allTriggers.length === 0) return;
 
   const workflowStore = new WorkflowStore(env);
 
-  for (const { telegramTrigger, workflow } of triggers) {
+  for (const { botTrigger, workflow } of allTriggers) {
     try {
-      // Resolve per-bot token — required for workflow execution
-      if (!telegramTrigger.telegramBotId) {
+      if (!botTrigger.botId) {
         console.error(
-          `[TelegramWebhook] Trigger for workflow ${workflow.id} has no telegramBotId, skipping`
+          `[TelegramWebhook] Trigger for workflow ${workflow.id} has no botId, skipping`
         );
         continue;
       }
 
       let perBotToken: string;
       try {
-        const bot = await getTelegramBot(
-          db,
-          telegramTrigger.telegramBotId,
-          workflow.organizationId
-        );
+        const bot = await getBot(db, botTrigger.botId, workflow.organizationId);
         if (!bot) {
           console.error(
-            `[TelegramWebhook] Bot ${telegramTrigger.telegramBotId} not found for workflow ${workflow.id}, skipping`
+            `[TelegramWebhook] Bot ${botTrigger.botId} not found for workflow ${workflow.id}, skipping`
           );
           continue;
         }
         perBotToken = await decryptSecret(
-          bot.encryptedBotToken,
+          bot.encryptedToken,
           env,
           workflow.organizationId
         );

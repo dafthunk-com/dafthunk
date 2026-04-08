@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { DetailRow } from "@/components/ui/detail-row";
 import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
-import { useTelegramBot } from "@/services/telegram-bot-service";
+import { useTelegramBot } from "@/services/bot-service";
 
 import { BotTelegramEditDialog } from "./bot-telegram-edit-dialog";
 

@@ -13,7 +13,7 @@ import { DetailRow } from "@/components/ui/detail-row";
 import { getApiBaseUrl } from "@/config/api";
 import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
-import { useSlackBot } from "@/services/slack-bot-service";
+import { useSlackBot } from "@/services/bot-service";
 
 import { BotSlackEditDialog } from "./bot-slack-edit-dialog";
 

@@ -8,19 +8,20 @@ import { encryptSecret } from "../utils/encryption";
 import {
   type ApiKeyInsert,
   apiKeys,
+  type BotInsert,
+  type BotProviderType,
+  type BotRow,
+  type BotTriggerInsert,
+  type BotTriggerRow,
+  bots,
+  botTriggers,
   createDatabase,
   type DatabaseInsert,
   type DatabaseRow,
   type DatasetInsert,
   type DatasetRow,
-  type DiscordBotInsert,
-  type DiscordBotRow,
-  type DiscordTriggerInsert,
-  type DiscordTriggerRow,
   databases,
   datasets,
-  discordBots,
-  discordTriggers,
   type EmailInsert,
   type EmailRow,
   type EmailTriggerInsert,
@@ -60,31 +61,13 @@ import {
   type SchemaRow,
   type SecretInsert,
   type SenderEmailStatusType,
-  type SlackBotInsert,
-  type SlackBotRow,
-  type SlackTriggerInsert,
-  type SlackTriggerRow,
   scheduledTriggers,
   schemas,
   secrets,
-  slackBots,
-  slackTriggers,
-  type TelegramBotInsert,
-  type TelegramBotRow,
-  type TelegramTriggerInsert,
-  type TelegramTriggerRow,
-  telegramBots,
-  telegramTriggers,
   UserRole,
   type UserRoleType,
   type UserRow,
   users,
-  type WhatsAppAccountInsert,
-  type WhatsAppAccountRow,
-  type WhatsAppTriggerInsert,
-  type WhatsAppTriggerRow,
-  whatsappAccounts,
-  whatsappTriggers,
   workflows,
 } from "./index";
 
@@ -1407,849 +1390,180 @@ export async function deleteEndpointTrigger(
 }
 
 /**
- * Discord Bot Operations
+ * Bot Operations (unified)
  */
 
-export async function getDiscordBots(
+export async function getBots(
   db: ReturnType<typeof createDatabase>,
-  organizationId: string
+  organizationId: string,
+  provider?: BotProviderType
 ) {
+  const conditions = [eq(bots.organizationId, organizationId)];
+  if (provider) conditions.push(eq(bots.provider, provider));
   return await db
     .select({
-      id: discordBots.id,
-      name: discordBots.name,
-      applicationId: discordBots.applicationId,
-      publicKey: discordBots.publicKey,
-      tokenLastFour: discordBots.tokenLastFour,
-      createdAt: discordBots.createdAt,
-      updatedAt: discordBots.updatedAt,
+      id: bots.id,
+      name: bots.name,
+      provider: bots.provider,
+      tokenLastFour: bots.tokenLastFour,
+      metadata: bots.metadata,
+      createdAt: bots.createdAt,
+      updatedAt: bots.updatedAt,
     })
-    .from(discordBots)
-    .where(eq(discordBots.organizationId, organizationId));
+    .from(bots)
+    .where(and(...conditions));
 }
 
-export async function getDiscordBot(
+export async function getBot(
   db: ReturnType<typeof createDatabase>,
-  discordBotId: string,
+  botId: string,
   organizationId: string
-): Promise<DiscordBotRow | undefined> {
+): Promise<BotRow | undefined> {
   const [bot] = await db
     .select()
-    .from(discordBots)
-    .where(
-      and(
-        eq(discordBots.id, discordBotId),
-        eq(discordBots.organizationId, organizationId)
-      )
-    )
+    .from(bots)
+    .where(and(eq(bots.id, botId), eq(bots.organizationId, organizationId)))
     .limit(1);
   return bot;
 }
 
-export async function createDiscordBot(
+export async function getBotById(
   db: ReturnType<typeof createDatabase>,
-  newBot: DiscordBotInsert
-): Promise<DiscordBotRow> {
-  const [bot] = await db.insert(discordBots).values(newBot).returning();
+  botId: string
+): Promise<BotRow | undefined> {
+  const [bot] = await db.select().from(bots).where(eq(bots.id, botId)).limit(1);
   return bot;
 }
 
-export async function updateDiscordBot(
+export async function createBot(
+  db: ReturnType<typeof createDatabase>,
+  newBot: BotInsert
+): Promise<BotRow> {
+  const [bot] = await db.insert(bots).values(newBot).returning();
+  return bot;
+}
+
+export async function updateBot(
   db: ReturnType<typeof createDatabase>,
   id: string,
   organizationId: string,
-  data: Partial<DiscordBotRow>
-): Promise<DiscordBotRow> {
+  data: Partial<BotRow>
+): Promise<BotRow> {
   const [bot] = await db
-    .update(discordBots)
+    .update(bots)
     .set(data)
-    .where(
-      and(
-        eq(discordBots.id, id),
-        eq(discordBots.organizationId, organizationId)
-      )
-    )
+    .where(and(eq(bots.id, id), eq(bots.organizationId, organizationId)))
     .returning();
   return bot;
 }
 
-export async function deleteDiscordBot(
+export async function deleteBot(
   db: ReturnType<typeof createDatabase>,
   id: string,
   organizationId: string
-): Promise<DiscordBotRow | undefined> {
+): Promise<BotRow | undefined> {
   const [bot] = await db
-    .delete(discordBots)
-    .where(
-      and(
-        eq(discordBots.id, id),
-        eq(discordBots.organizationId, organizationId)
-      )
-    )
+    .delete(bots)
+    .where(and(eq(bots.id, id), eq(bots.organizationId, organizationId)))
     .returning();
   return bot;
 }
 
 /**
- * Telegram Bot Operations
+ * Bot Trigger Operations (unified)
  */
 
-export async function getTelegramBots(
-  db: ReturnType<typeof createDatabase>,
-  organizationId: string
-) {
-  return await db
-    .select({
-      id: telegramBots.id,
-      name: telegramBots.name,
-      botUsername: telegramBots.botUsername,
-      tokenLastFour: telegramBots.tokenLastFour,
-      createdAt: telegramBots.createdAt,
-      updatedAt: telegramBots.updatedAt,
-    })
-    .from(telegramBots)
-    .where(eq(telegramBots.organizationId, organizationId));
-}
-
-export async function getTelegramBot(
-  db: ReturnType<typeof createDatabase>,
-  telegramBotId: string,
-  organizationId: string
-): Promise<TelegramBotRow | undefined> {
-  const [bot] = await db
-    .select()
-    .from(telegramBots)
-    .where(
-      and(
-        eq(telegramBots.id, telegramBotId),
-        eq(telegramBots.organizationId, organizationId)
-      )
-    )
-    .limit(1);
-  return bot;
-}
-
-export async function createTelegramBot(
-  db: ReturnType<typeof createDatabase>,
-  newBot: TelegramBotInsert
-): Promise<TelegramBotRow> {
-  const [bot] = await db.insert(telegramBots).values(newBot).returning();
-  return bot;
-}
-
-export async function updateTelegramBot(
-  db: ReturnType<typeof createDatabase>,
-  id: string,
-  organizationId: string,
-  data: Partial<TelegramBotRow>
-): Promise<TelegramBotRow> {
-  const [bot] = await db
-    .update(telegramBots)
-    .set(data)
-    .where(
-      and(
-        eq(telegramBots.id, id),
-        eq(telegramBots.organizationId, organizationId)
-      )
-    )
-    .returning();
-  return bot;
-}
-
-export async function deleteTelegramBot(
-  db: ReturnType<typeof createDatabase>,
-  id: string,
-  organizationId: string
-): Promise<TelegramBotRow | undefined> {
-  const [bot] = await db
-    .delete(telegramBots)
-    .where(
-      and(
-        eq(telegramBots.id, id),
-        eq(telegramBots.organizationId, organizationId)
-      )
-    )
-    .returning();
-  return bot;
-}
-
-/**
- * Get a discord trigger for a workflow
- */
-export async function getDiscordTrigger(
+export async function getBotTrigger(
   db: ReturnType<typeof createDatabase>,
   workflowId: string,
   organizationId: string
-): Promise<DiscordTriggerRow | undefined> {
+): Promise<BotTriggerRow | undefined> {
   const [trigger] = await db
-    .select()
-    .from(discordTriggers)
-    .innerJoin(workflows, eq(discordTriggers.workflowId, workflows.id))
+    .select({ botTrigger: botTriggers })
+    .from(botTriggers)
+    .innerJoin(workflows, eq(botTriggers.workflowId, workflows.id))
     .where(
       and(
-        eq(discordTriggers.workflowId, workflowId),
+        eq(botTriggers.workflowId, workflowId),
         eq(workflows.organizationId, organizationId)
       )
     )
     .limit(1);
 
-  return trigger?.discord_triggers;
+  return trigger?.botTrigger;
 }
 
-/**
- * Get all active discord triggers for a bot + command name
- */
-export async function getDiscordTriggersByBot(
+export async function getBotTriggersByBot(
   db: ReturnType<typeof createDatabase>,
-  discordBotId: string,
-  commandName: string
-) {
-  return await db
-    .select({
-      discordTrigger: discordTriggers,
-      workflow: workflows,
-    })
-    .from(discordTriggers)
-    .innerJoin(workflows, eq(discordTriggers.workflowId, workflows.id))
-    .where(
-      and(
-        eq(discordTriggers.discordBotId, discordBotId),
-        eq(discordTriggers.commandName, commandName),
-        eq(discordTriggers.active, true)
-      )
-    );
-}
-
-/**
- * Get a discord bot by ID without org scoping (for webhook handler)
- */
-export async function getDiscordBotById(
-  db: ReturnType<typeof createDatabase>,
-  discordBotId: string
-): Promise<DiscordBotRow | undefined> {
-  const [bot] = await db
-    .select()
-    .from(discordBots)
-    .where(eq(discordBots.id, discordBotId))
-    .limit(1);
-  return bot;
-}
-
-/**
- * Upsert a discord trigger for a workflow
- */
-export async function upsertDiscordTrigger(
-  db: ReturnType<typeof createDatabase>,
-  trigger: DiscordTriggerInsert
-): Promise<DiscordTriggerRow> {
-  const [discordTrigger] = await db
-    .insert(discordTriggers)
-    .values(trigger)
-    .onConflictDoUpdate({
-      target: discordTriggers.workflowId,
-      set: {
-        commandName: trigger.commandName,
-        commandDescription: trigger.commandDescription,
-        discordBotId: trigger.discordBotId,
-        guildId: trigger.guildId,
-        active: trigger.active,
-        updatedAt: new Date(),
-      },
-    })
-    .returning();
-
-  return discordTrigger;
-}
-
-/**
- * Delete a discord trigger for a workflow
- */
-export async function deleteDiscordTrigger(
-  db: ReturnType<typeof createDatabase>,
-  workflowId: string,
-  organizationId: string
-): Promise<DiscordTriggerRow | undefined> {
-  const [trigger] = await db
-    .delete(discordTriggers)
-    .where(
-      and(
-        eq(discordTriggers.workflowId, workflowId),
-        eq(
-          discordTriggers.workflowId,
-          db
-            .select({ id: workflows.id })
-            .from(workflows)
-            .where(
-              and(
-                eq(workflows.id, workflowId),
-                eq(workflows.organizationId, organizationId)
-              )
-            )
-        )
-      )
-    )
-    .returning();
-
-  return trigger;
-}
-
-/**
- * Get a telegram trigger for a workflow
- */
-export async function getTelegramTrigger(
-  db: ReturnType<typeof createDatabase>,
-  workflowId: string,
-  organizationId: string
-): Promise<TelegramTriggerRow | undefined> {
-  const [trigger] = await db
-    .select()
-    .from(telegramTriggers)
-    .innerJoin(workflows, eq(telegramTriggers.workflowId, workflows.id))
-    .where(
-      and(
-        eq(telegramTriggers.workflowId, workflowId),
-        eq(workflows.organizationId, organizationId)
-      )
-    )
-    .limit(1);
-
-  return trigger?.telegram_triggers;
-}
-
-/**
- * Get all active telegram triggers for a bot, optionally filtered by chat ID.
- * Triggers with no chatId match any chat.
- */
-export async function getTelegramTriggersByBot(
-  db: ReturnType<typeof createDatabase>,
-  telegramBotId: string,
-  chatId?: string
+  botId: string,
+  filterKey?: string,
+  filterValue?: string
 ) {
   const results = await db
     .select({
-      telegramTrigger: telegramTriggers,
+      botTrigger: botTriggers,
       workflow: workflows,
     })
-    .from(telegramTriggers)
-    .innerJoin(workflows, eq(telegramTriggers.workflowId, workflows.id))
-    .where(
-      and(
-        eq(telegramTriggers.telegramBotId, telegramBotId),
-        eq(telegramTriggers.active, true)
-      )
-    );
+    .from(botTriggers)
+    .innerJoin(workflows, eq(botTriggers.workflowId, workflows.id))
+    .where(and(eq(botTriggers.botId, botId), eq(botTriggers.active, true)));
 
-  if (!chatId) return results;
+  if (!filterKey || !filterValue) return results;
 
-  // Return triggers that either match the specific chatId or have no chatId filter
-  return results.filter(
-    (r) => !r.telegramTrigger.chatId || r.telegramTrigger.chatId === chatId
-  );
+  // Filter by metadata field (e.g., commandName, channelId, chatId, phoneNumberId)
+  return results.filter((r) => {
+    const metadata = r.botTrigger.metadata
+      ? (JSON.parse(r.botTrigger.metadata) as Record<string, string>)
+      : null;
+    return !metadata?.[filterKey] || metadata[filterKey] === filterValue;
+  });
 }
 
-/**
- * Get the secret token for a telegram bot trigger (for webhook verification)
- */
-export async function getTelegramSecretTokenByBot(
+export async function upsertBotTrigger(
   db: ReturnType<typeof createDatabase>,
-  telegramBotId: string
-): Promise<string | undefined> {
+  trigger: BotTriggerInsert
+): Promise<BotTriggerRow> {
   const [result] = await db
-    .select({ secretToken: telegramTriggers.secretToken })
-    .from(telegramTriggers)
-    .where(
-      and(
-        eq(telegramTriggers.telegramBotId, telegramBotId),
-        eq(telegramTriggers.active, true)
-      )
-    )
-    .limit(1);
-
-  return result?.secretToken ?? undefined;
-}
-
-/**
- * Upsert a telegram trigger for a workflow
- */
-export async function upsertTelegramTrigger(
-  db: ReturnType<typeof createDatabase>,
-  trigger: TelegramTriggerInsert
-): Promise<TelegramTriggerRow> {
-  const [telegramTrigger] = await db
-    .insert(telegramTriggers)
+    .insert(botTriggers)
     .values(trigger)
     .onConflictDoUpdate({
-      target: telegramTriggers.workflowId,
+      target: botTriggers.workflowId,
       set: {
-        chatId: trigger.chatId ?? null,
-        telegramBotId: trigger.telegramBotId,
-        secretToken: trigger.secretToken,
+        botId: trigger.botId,
+        provider: trigger.provider,
+        metadata: trigger.metadata ?? null,
         active: trigger.active,
         updatedAt: new Date(),
       },
     })
     .returning();
 
-  return telegramTrigger;
+  return result;
 }
 
-/**
- * Update the secret token for all triggers using a specific bot.
- * Needed because Telegram only allows one webhook (and one secret) per bot.
- */
-export async function updateTelegramBotSecretToken(
+export async function updateBotTriggerMetadataByBot(
   db: ReturnType<typeof createDatabase>,
-  telegramBotId: string,
-  secretToken: string
-): Promise<void> {
+  botId: string,
+  metadata: string
+) {
   await db
-    .update(telegramTriggers)
-    .set({ secretToken, updatedAt: new Date() })
-    .where(eq(telegramTriggers.telegramBotId, telegramBotId));
+    .update(botTriggers)
+    .set({ metadata })
+    .where(eq(botTriggers.botId, botId));
 }
 
-/**
- * Delete a telegram trigger for a workflow
- */
-export async function deleteTelegramTrigger(
+export async function deleteBotTrigger(
   db: ReturnType<typeof createDatabase>,
   workflowId: string,
   organizationId: string
-): Promise<TelegramTriggerRow | undefined> {
+): Promise<BotTriggerRow | undefined> {
   const [trigger] = await db
-    .delete(telegramTriggers)
+    .delete(botTriggers)
     .where(
       and(
-        eq(telegramTriggers.workflowId, workflowId),
+        eq(botTriggers.workflowId, workflowId),
         eq(
-          telegramTriggers.workflowId,
-          db
-            .select({ id: workflows.id })
-            .from(workflows)
-            .where(
-              and(
-                eq(workflows.id, workflowId),
-                eq(workflows.organizationId, organizationId)
-              )
-            )
-        )
-      )
-    )
-    .returning();
-
-  return trigger;
-}
-
-// ── WhatsApp Accounts ──────────────────────────────────────────────────
-
-export async function getWhatsAppAccounts(
-  db: ReturnType<typeof createDatabase>,
-  organizationId: string
-) {
-  return await db
-    .select({
-      id: whatsappAccounts.id,
-      name: whatsappAccounts.name,
-      phoneNumberId: whatsappAccounts.phoneNumberId,
-      wabaId: whatsappAccounts.wabaId,
-      tokenLastFour: whatsappAccounts.tokenLastFour,
-      createdAt: whatsappAccounts.createdAt,
-      updatedAt: whatsappAccounts.updatedAt,
-    })
-    .from(whatsappAccounts)
-    .where(eq(whatsappAccounts.organizationId, organizationId));
-}
-
-export async function getWhatsAppAccount(
-  db: ReturnType<typeof createDatabase>,
-  whatsappAccountId: string,
-  organizationId: string
-): Promise<WhatsAppAccountRow | undefined> {
-  const [account] = await db
-    .select()
-    .from(whatsappAccounts)
-    .where(
-      and(
-        eq(whatsappAccounts.id, whatsappAccountId),
-        eq(whatsappAccounts.organizationId, organizationId)
-      )
-    )
-    .limit(1);
-  return account;
-}
-
-export async function createWhatsAppAccount(
-  db: ReturnType<typeof createDatabase>,
-  newAccount: WhatsAppAccountInsert
-): Promise<WhatsAppAccountRow> {
-  const [account] = await db
-    .insert(whatsappAccounts)
-    .values(newAccount)
-    .returning();
-  return account;
-}
-
-export async function updateWhatsAppAccount(
-  db: ReturnType<typeof createDatabase>,
-  id: string,
-  organizationId: string,
-  data: Partial<WhatsAppAccountRow>
-): Promise<WhatsAppAccountRow> {
-  const [account] = await db
-    .update(whatsappAccounts)
-    .set(data)
-    .where(
-      and(
-        eq(whatsappAccounts.id, id),
-        eq(whatsappAccounts.organizationId, organizationId)
-      )
-    )
-    .returning();
-  return account;
-}
-
-export async function deleteWhatsAppAccount(
-  db: ReturnType<typeof createDatabase>,
-  id: string,
-  organizationId: string
-): Promise<WhatsAppAccountRow | undefined> {
-  const [account] = await db
-    .delete(whatsappAccounts)
-    .where(
-      and(
-        eq(whatsappAccounts.id, id),
-        eq(whatsappAccounts.organizationId, organizationId)
-      )
-    )
-    .returning();
-  return account;
-}
-
-// ── WhatsApp Triggers ──────────────────────────────────────────────────
-
-/**
- * Get a whatsapp trigger for a workflow
- */
-export async function getWhatsAppTrigger(
-  db: ReturnType<typeof createDatabase>,
-  workflowId: string,
-  organizationId: string
-): Promise<WhatsAppTriggerRow | undefined> {
-  const [trigger] = await db
-    .select()
-    .from(whatsappTriggers)
-    .innerJoin(workflows, eq(whatsappTriggers.workflowId, workflows.id))
-    .where(
-      and(
-        eq(whatsappTriggers.workflowId, workflowId),
-        eq(workflows.organizationId, organizationId)
-      )
-    )
-    .limit(1);
-
-  return trigger?.whatsapp_triggers;
-}
-
-/**
- * Get all active whatsapp triggers for an account, optionally filtered by phone number ID.
- * Triggers with no phoneNumberId match any phone number.
- */
-export async function getWhatsAppTriggersByAccount(
-  db: ReturnType<typeof createDatabase>,
-  whatsappAccountId: string
-) {
-  const results = await db
-    .select({
-      whatsappTrigger: whatsappTriggers,
-      workflow: workflows,
-    })
-    .from(whatsappTriggers)
-    .innerJoin(workflows, eq(whatsappTriggers.workflowId, workflows.id))
-    .where(
-      and(
-        eq(whatsappTriggers.whatsappAccountId, whatsappAccountId),
-        eq(whatsappTriggers.active, true)
-      )
-    );
-
-  return results;
-}
-
-/**
- * Get the verify token for a whatsapp account trigger (for webhook verification)
- */
-export async function getWhatsAppVerifyTokenByAccount(
-  db: ReturnType<typeof createDatabase>,
-  whatsappAccountId: string
-): Promise<string | undefined> {
-  const [result] = await db
-    .select({ verifyToken: whatsappTriggers.verifyToken })
-    .from(whatsappTriggers)
-    .where(
-      and(
-        eq(whatsappTriggers.whatsappAccountId, whatsappAccountId),
-        eq(whatsappTriggers.active, true)
-      )
-    )
-    .limit(1);
-  return result?.verifyToken ?? undefined;
-}
-
-/**
- * Upsert a whatsapp trigger for a workflow
- */
-export async function upsertWhatsAppTrigger(
-  db: ReturnType<typeof createDatabase>,
-  trigger: WhatsAppTriggerInsert
-): Promise<WhatsAppTriggerRow> {
-  const [whatsappTrigger] = await db
-    .insert(whatsappTriggers)
-    .values(trigger)
-    .onConflictDoUpdate({
-      target: whatsappTriggers.workflowId,
-      set: {
-        phoneNumberId: trigger.phoneNumberId ?? null,
-        whatsappAccountId: trigger.whatsappAccountId,
-        verifyToken: trigger.verifyToken,
-        active: trigger.active,
-        updatedAt: new Date(),
-      },
-    })
-    .returning();
-
-  return whatsappTrigger;
-}
-
-/**
- * Update verify token for all triggers using a whatsapp account
- */
-export async function updateWhatsAppAccountVerifyToken(
-  db: ReturnType<typeof createDatabase>,
-  whatsappAccountId: string,
-  verifyToken: string
-): Promise<void> {
-  await db
-    .update(whatsappTriggers)
-    .set({ verifyToken, updatedAt: new Date() })
-    .where(eq(whatsappTriggers.whatsappAccountId, whatsappAccountId));
-}
-
-/**
- * Delete a whatsapp trigger for a workflow
- */
-export async function deleteWhatsAppTrigger(
-  db: ReturnType<typeof createDatabase>,
-  workflowId: string,
-  organizationId: string
-): Promise<WhatsAppTriggerRow | undefined> {
-  const [trigger] = await db
-    .delete(whatsappTriggers)
-    .where(
-      and(
-        eq(whatsappTriggers.workflowId, workflowId),
-        eq(
-          whatsappTriggers.workflowId,
-          db
-            .select({ id: workflows.id })
-            .from(workflows)
-            .where(
-              and(
-                eq(workflows.id, workflowId),
-                eq(workflows.organizationId, organizationId)
-              )
-            )
-        )
-      )
-    )
-    .returning();
-
-  return trigger;
-}
-
-// ── Slack Bots ────────────────────────────────────────────────────────
-
-export async function getSlackBots(
-  db: ReturnType<typeof createDatabase>,
-  organizationId: string
-) {
-  return await db
-    .select({
-      id: slackBots.id,
-      name: slackBots.name,
-      appId: slackBots.appId,
-      teamId: slackBots.teamId,
-      teamName: slackBots.teamName,
-      tokenLastFour: slackBots.tokenLastFour,
-      createdAt: slackBots.createdAt,
-      updatedAt: slackBots.updatedAt,
-    })
-    .from(slackBots)
-    .where(eq(slackBots.organizationId, organizationId));
-}
-
-export async function getSlackBot(
-  db: ReturnType<typeof createDatabase>,
-  slackBotId: string,
-  organizationId: string
-): Promise<SlackBotRow | undefined> {
-  const [bot] = await db
-    .select()
-    .from(slackBots)
-    .where(
-      and(
-        eq(slackBots.id, slackBotId),
-        eq(slackBots.organizationId, organizationId)
-      )
-    )
-    .limit(1);
-  return bot;
-}
-
-/**
- * Get a slack bot by ID without org scoping (for webhook handler)
- */
-export async function getSlackBotById(
-  db: ReturnType<typeof createDatabase>,
-  slackBotId: string
-): Promise<SlackBotRow | undefined> {
-  const [bot] = await db
-    .select()
-    .from(slackBots)
-    .where(eq(slackBots.id, slackBotId))
-    .limit(1);
-  return bot;
-}
-
-export async function createSlackBot(
-  db: ReturnType<typeof createDatabase>,
-  newBot: SlackBotInsert
-): Promise<SlackBotRow> {
-  const [bot] = await db.insert(slackBots).values(newBot).returning();
-  return bot;
-}
-
-export async function updateSlackBot(
-  db: ReturnType<typeof createDatabase>,
-  id: string,
-  organizationId: string,
-  data: Partial<SlackBotRow>
-): Promise<SlackBotRow> {
-  const [bot] = await db
-    .update(slackBots)
-    .set(data)
-    .where(
-      and(eq(slackBots.id, id), eq(slackBots.organizationId, organizationId))
-    )
-    .returning();
-  return bot;
-}
-
-export async function deleteSlackBot(
-  db: ReturnType<typeof createDatabase>,
-  id: string,
-  organizationId: string
-): Promise<SlackBotRow | undefined> {
-  const [bot] = await db
-    .delete(slackBots)
-    .where(
-      and(eq(slackBots.id, id), eq(slackBots.organizationId, organizationId))
-    )
-    .returning();
-  return bot;
-}
-
-// ── Slack Triggers ────────────────────────────────────────────────────
-
-export async function getSlackTrigger(
-  db: ReturnType<typeof createDatabase>,
-  workflowId: string,
-  organizationId: string
-): Promise<SlackTriggerRow | undefined> {
-  const [trigger] = await db
-    .select()
-    .from(slackTriggers)
-    .innerJoin(workflows, eq(slackTriggers.workflowId, workflows.id))
-    .where(
-      and(
-        eq(slackTriggers.workflowId, workflowId),
-        eq(workflows.organizationId, organizationId)
-      )
-    )
-    .limit(1);
-
-  return trigger?.slack_triggers;
-}
-
-/**
- * Get all active slack triggers for a bot, optionally filtered by channel ID.
- * Triggers with no channelId match any channel.
- */
-export async function getSlackTriggersByBot(
-  db: ReturnType<typeof createDatabase>,
-  slackBotId: string,
-  channelId?: string
-) {
-  const results = await db
-    .select({
-      slackTrigger: slackTriggers,
-      workflow: workflows,
-    })
-    .from(slackTriggers)
-    .innerJoin(workflows, eq(slackTriggers.workflowId, workflows.id))
-    .where(
-      and(
-        eq(slackTriggers.slackBotId, slackBotId),
-        eq(slackTriggers.active, true)
-      )
-    );
-
-  if (!channelId) return results;
-
-  // Return triggers that either match the specific channelId or have no channelId filter
-  return results.filter(
-    (r) => !r.slackTrigger.channelId || r.slackTrigger.channelId === channelId
-  );
-}
-
-/**
- * Upsert a slack trigger for a workflow
- */
-export async function upsertSlackTrigger(
-  db: ReturnType<typeof createDatabase>,
-  trigger: SlackTriggerInsert
-): Promise<SlackTriggerRow> {
-  const [slackTrigger] = await db
-    .insert(slackTriggers)
-    .values(trigger)
-    .onConflictDoUpdate({
-      target: slackTriggers.workflowId,
-      set: {
-        channelId: trigger.channelId ?? null,
-        slackBotId: trigger.slackBotId,
-        active: trigger.active,
-        updatedAt: new Date(),
-      },
-    })
-    .returning();
-
-  return slackTrigger;
-}
-
-/**
- * Delete a slack trigger for a workflow
- */
-export async function deleteSlackTrigger(
-  db: ReturnType<typeof createDatabase>,
-  workflowId: string,
-  organizationId: string
-): Promise<SlackTriggerRow | undefined> {
-  const [trigger] = await db
-    .delete(slackTriggers)
-    .where(
-      and(
-        eq(slackTriggers.workflowId, workflowId),
-        eq(
-          slackTriggers.workflowId,
+          botTriggers.workflowId,
           db
             .select({ id: workflows.id })
             .from(workflows)

@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useDiscordBots } from "@/services/discord-bot-service";
+import { useDiscordBots } from "@/services/bot-service";
 import { cn } from "@/utils/utils";
 
 import { DiscordBotCreateDialog } from "../widgets/input/discord-bot-create-dialog";
