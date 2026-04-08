@@ -1,7 +1,5 @@
-import Copy from "lucide-react/icons/copy";
 import ExternalLink from "lucide-react/icons/external-link";
 import { useState } from "react";
-import { toast } from "sonner";
 
 import { useAuth } from "@/components/auth-context";
 import { Button } from "@/components/ui/button";
@@ -17,18 +15,23 @@ import { Spinner } from "@/components/ui/spinner";
 import { getApiBaseUrl } from "@/config/api";
 import { createSlackBot } from "@/services/bot-service";
 
-type Step = "credentials" | "setup";
+import { CopyableValue } from "./copyable-value";
+
+type Step = "credentials" | "webhook" | "setup";
 
 const STEP_TITLES: Record<Step, string> = {
   credentials: "Create a Slack Bot",
-  setup: "Bot Created",
+  webhook: "Event Subscriptions",
+  setup: "Invite Bot",
 };
 
 const STEP_DESCRIPTIONS: Record<Step, string> = {
   credentials:
     "Create a Slack app at api.slack.com/apps, then copy the Bot User OAuth Token and Signing Secret.",
+  webhook:
+    "Copy the webhook URL below and paste it as the Request URL in the Event Subscriptions page of your Slack app.",
   setup:
-    "Your bot is ready. Configure the Event Subscriptions URL in your Slack app settings.",
+    "Verify permissions, invite the bot to a channel, and create a workflow.",
 };
 
 interface SlackBotCreateDialogProps {
@@ -83,7 +86,7 @@ export function SlackBotCreateDialog({
         (response.metadata as Record<string, string | undefined> | null)
           ?.teamName ?? ""
       );
-      setStep("setup");
+      setStep("webhook");
       onCreated(response.id);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create bot");
@@ -93,7 +96,7 @@ export function SlackBotCreateDialog({
   };
 
   const webhookUrl = createdBotId
-    ? `${getApiBaseUrl()}/slack/webhook/${createdBotId}`
+    ? `${getApiBaseUrl().replace(/\/$/, "")}/slack/webhook/${createdBotId}`
     : "";
 
   return (
@@ -206,7 +209,7 @@ export function SlackBotCreateDialog({
           </div>
         )}
 
-        {step === "setup" && (
+        {step === "webhook" && (
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-sm">
               <span className="text-xs px-2 py-0.5 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 rounded-md font-medium">
@@ -223,29 +226,12 @@ export function SlackBotCreateDialog({
               </span>
             </div>
 
-            <div className="space-y-2">
-              <Label>Webhook URL</Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  value={webhookUrl}
-                  readOnly
-                  className="font-mono text-xs"
-                />
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="shrink-0"
-                  onClick={() => {
-                    navigator.clipboard.writeText(webhookUrl);
-                    toast.success("Webhook URL copied");
-                  }}
-                >
-                  <Copy className="h-4 w-4" />
-                </Button>
-              </div>
-              <ol className="text-xs text-muted-foreground list-decimal list-inside space-y-1.5 mt-2">
-                <li>
-                  Go to{" "}
+            <div className="space-y-2 text-sm">
+              <div className="space-y-1">
+                <p className="font-medium text-foreground">Request URL</p>
+                <CopyableValue value={webhookUrl} />
+                <p className="text-muted-foreground text-xs">
+                  Paste this as the Request URL in the{" "}
                   <a
                     href="https://api.slack.com/apps"
                     target="_blank"
@@ -255,18 +241,24 @@ export function SlackBotCreateDialog({
                     Event Subscriptions
                     <ExternalLink className="w-2.5 h-2.5" />
                   </a>{" "}
-                  in your Slack app and toggle{" "}
+                  page of your Slack app. Slack will verify it automatically.
+                </p>
+              </div>
+
+              <ol className="text-xs text-muted-foreground list-decimal list-inside space-y-1.5 mt-3">
+                <li>
+                  Go to{" "}
+                  <span className="font-medium text-foreground">
+                    Event Subscriptions
+                  </span>{" "}
+                  and toggle{" "}
                   <span className="font-medium text-foreground">
                     Enable Events
                   </span>{" "}
                   to On.
                 </li>
                 <li>
-                  Paste the Webhook URL above as the{" "}
-                  <span className="font-medium text-foreground">
-                    Request URL
-                  </span>
-                  . Slack will verify it automatically.
+                  Paste the Request URL above and wait for Slack to verify it.
                 </li>
                 <li>
                   Under{" "}
@@ -276,17 +268,55 @@ export function SlackBotCreateDialog({
                   , add <span className="font-mono">message.channels</span> and{" "}
                   <span className="font-mono">message.groups</span>, then save.
                 </li>
-                <li>
-                  Invite the bot to a channel and create a workflow with a{" "}
-                  <span className="font-medium text-foreground">
-                    Receive Slack Message
-                  </span>{" "}
-                  trigger.
-                </li>
               </ol>
             </div>
 
             <div className="flex justify-end">
+              <Button onClick={() => setStep("setup")}>Next</Button>
+            </div>
+          </div>
+        )}
+
+        {step === "setup" && (
+          <div className="space-y-4">
+            <ol className="text-xs text-muted-foreground list-decimal list-inside space-y-1.5">
+              <li>
+                Under{" "}
+                <a
+                  href="https://api.slack.com/apps"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline inline-flex items-center gap-0.5"
+                >
+                  OAuth &amp; Permissions
+                  <ExternalLink className="w-2.5 h-2.5" />
+                </a>
+                , verify the bot has{" "}
+                <span className="font-mono">channels:history</span>,{" "}
+                <span className="font-mono">groups:history</span>, and{" "}
+                <span className="font-mono">chat:write</span> scopes.
+              </li>
+              <li>
+                Invite the bot to a channel with{" "}
+                <span className="font-mono">/invite @{name || "botname"}</span>.
+              </li>
+              <li>
+                Create a workflow with a{" "}
+                <span className="font-medium text-foreground">
+                  Receive Slack Message
+                </span>{" "}
+                trigger.
+              </li>
+            </ol>
+
+            <div className="flex justify-end gap-2 pt-1">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setStep("webhook")}
+              >
+                Back
+              </Button>
               <Button onClick={handleClose}>Done</Button>
             </div>
           </div>
