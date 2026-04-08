@@ -78,7 +78,6 @@ function SlackTriggerInputWidget({
       edges,
       deleteEdge
     );
-    setIsCreateDialogOpen(false);
   };
 
   const handleChannelIdChange = (value: string) => {
