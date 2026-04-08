@@ -199,10 +199,10 @@ export function SlackBotCreateDialog({
                 {isSubmitting ? (
                   <>
                     <Spinner className="h-4 w-4 mr-1" />
-                    Creating...
+                    Connecting...
                   </>
                 ) : (
-                  "Create Bot"
+                  "Next"
                 )}
               </Button>
             </div>
