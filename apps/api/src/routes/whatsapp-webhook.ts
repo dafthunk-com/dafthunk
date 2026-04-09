@@ -33,14 +33,23 @@ whatsappWebhook.get("/webhook/:whatsappAccountId", async (c) => {
   }
 
   const db = createDatabase(c.env.DB);
-  // Find verify token from trigger metadata
+  // Find verify token from trigger metadata, then fall back to bot metadata
   const triggers = await getBotTriggersByBot(db, whatsappAccountId);
+  let expectedToken: string | undefined;
   const firstMeta = triggers[0]?.botTrigger.metadata
     ? (JSON.parse(triggers[0].botTrigger.metadata) as {
         verifyToken?: string;
       })
     : null;
-  const expectedToken = firstMeta?.verifyToken;
+  expectedToken = firstMeta?.verifyToken;
+
+  if (!expectedToken) {
+    const bot = await getBotById(db, whatsappAccountId);
+    const botMeta = bot?.metadata
+      ? (JSON.parse(bot.metadata) as { verifyToken?: string })
+      : null;
+    expectedToken = botMeta?.verifyToken;
+  }
 
   if (!expectedToken || token !== expectedToken) {
     return c.json({ error: "Verification token mismatch" }, 403);

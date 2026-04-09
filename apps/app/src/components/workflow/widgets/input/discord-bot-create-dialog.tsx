@@ -12,14 +12,22 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
+import { getApiBaseUrl } from "@/config/api";
 import { createDiscordBot } from "@/services/bot-service";
 
-import { DiscordBotSetupInfo } from "./discord-setup-info";
+import { CopyableValue } from "./copyable-value";
 
-type Step = "application" | "bot-token" | "webhook" | "command" | "invite";
+type Step =
+  | "name"
+  | "application"
+  | "bot-token"
+  | "webhook"
+  | "command"
+  | "invite";
 
 const STEP_TITLES: Record<Step, string> = {
-  application: "Create a Discord Application",
+  name: "Create a Discord Bot",
+  application: "Application Info",
   "bot-token": "Bot Token",
   webhook: "Interactions Endpoint",
   command: "Slash Command",
@@ -27,8 +35,9 @@ const STEP_TITLES: Record<Step, string> = {
 };
 
 const STEP_DESCRIPTIONS: Record<Step, string> = {
+  name: "Choose a display name to identify this Discord bot in Dafthunk.",
   application:
-    "Create a new application in the Discord Developer Portal, then copy the Application ID and Public Key from the General Information page.",
+    "Copy the Application ID and Public Key from the General Information page in the Discord Developer Portal.",
   "bot-token":
     "Copy the token from the Bot page in the Discord Developer Portal.",
   webhook:
@@ -54,7 +63,7 @@ export function DiscordBotCreateDialog({
   showCommandStep = true,
 }: DiscordBotCreateDialogProps) {
   const { organization } = useAuth();
-  const [step, setStep] = useState<Step>("application");
+  const [step, setStep] = useState<Step>("name");
   const [name, setName] = useState("");
   const [applicationId, setApplicationId] = useState("");
   const [publicKey, setPublicKey] = useState("");
@@ -65,7 +74,7 @@ export function DiscordBotCreateDialog({
   const [createdBotId, setCreatedBotId] = useState<string | null>(null);
 
   const resetForm = () => {
-    setStep("application");
+    setStep("name");
     setName("");
     setApplicationId("");
     setPublicKey("");
@@ -116,14 +125,13 @@ export function DiscordBotCreateDialog({
     ? `https://discord.com/developers/applications/${applicationId}/bot`
     : "https://discord.com/developers/applications";
 
+  const webhookUrl = createdBotId
+    ? `${getApiBaseUrl().replace(/\/$/, "")}/discord/webhook/${createdBotId}`
+    : "";
+
   const inviteUrl = applicationId
     ? `https://discord.com/oauth2/authorize?client_id=${applicationId}&scope=bot+applications.commands&permissions=2048`
     : null;
-
-  const canAdvanceToToken =
-    name.trim() !== "" &&
-    applicationId.trim() !== "" &&
-    publicKey.trim() !== "";
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
@@ -134,7 +142,7 @@ export function DiscordBotCreateDialog({
           </DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground mt-1">
             {STEP_DESCRIPTIONS[step]}
-            {step === "application" && (
+            {(step === "application" || step === "webhook") && (
               <>
                 {" "}
                 <a
@@ -148,10 +156,24 @@ export function DiscordBotCreateDialog({
                 </a>
               </>
             )}
+            {step === "bot-token" && (
+              <>
+                {" "}
+                <a
+                  href={botSettingsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline inline-flex items-center gap-0.5"
+                >
+                  Open Discord Developer Portal
+                  <ExternalLink className="w-2.5 h-2.5" />
+                </a>
+              </>
+            )}
           </DialogDescription>
         </div>
 
-        {step === "application" && (
+        {step === "name" && (
           <div className="space-y-3">
             <div className="space-y-1.5">
               <Label htmlFor="discord-name">Name</Label>
@@ -162,10 +184,27 @@ export function DiscordBotCreateDialog({
                 placeholder="My Discord Bot"
               />
               <p className="text-xs text-muted-foreground">
-                A display name for this bot in Dafthunk.
+                A display name for this bot in Dafthunk. This is not visible to
+                your Discord users.
               </p>
             </div>
 
+            <div className="flex justify-end gap-2 pt-1">
+              <Button type="button" variant="outline" onClick={handleClose}>
+                Cancel
+              </Button>
+              <Button
+                onClick={() => setStep("application")}
+                disabled={name.trim() === ""}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {step === "application" && (
+          <div className="space-y-3">
             <div className="space-y-1.5">
               <Label htmlFor="discord-app-id">Application ID</Label>
               <Input
@@ -176,15 +215,9 @@ export function DiscordBotCreateDialog({
               />
               <p className="text-xs text-muted-foreground">
                 Copy from the{" "}
-                <a
-                  href={generalInfoUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline inline-flex items-center gap-0.5"
-                >
+                <span className="font-medium text-foreground">
                   General Information
-                  <ExternalLink className="w-2.5 h-2.5" />
-                </a>{" "}
+                </span>{" "}
                 page in the Discord Developer Portal.
               </p>
             </div>
@@ -199,26 +232,26 @@ export function DiscordBotCreateDialog({
               />
               <p className="text-xs text-muted-foreground">
                 Copy from the same{" "}
-                <a
-                  href={generalInfoUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline inline-flex items-center gap-0.5"
-                >
+                <span className="font-medium text-foreground">
                   General Information
-                  <ExternalLink className="w-2.5 h-2.5" />
-                </a>{" "}
+                </span>{" "}
                 page. Used to verify interaction signatures.
               </p>
             </div>
 
             <div className="flex justify-end gap-2 pt-1">
-              <Button type="button" variant="outline" onClick={handleClose}>
-                Cancel
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setStep("name")}
+              >
+                Back
               </Button>
               <Button
                 onClick={() => setStep("bot-token")}
-                disabled={!canAdvanceToToken}
+                disabled={
+                  applicationId.trim() === "" || publicKey.trim() === ""
+                }
               >
                 Next
               </Button>
@@ -235,20 +268,12 @@ export function DiscordBotCreateDialog({
                 type="password"
                 value={botToken}
                 onChange={(e) => setBotToken(e.target.value)}
-                placeholder="••••••••"
+                placeholder="Paste your bot token here"
               />
               <p className="text-xs text-muted-foreground">
                 Copy the token from the{" "}
-                <a
-                  href={botSettingsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline inline-flex items-center gap-0.5"
-                >
-                  Bot
-                  <ExternalLink className="w-2.5 h-2.5" />
-                </a>{" "}
-                page in the Discord Developer Portal.
+                <span className="font-medium text-foreground">Bot</span> page in
+                the Discord Developer Portal.
               </p>
             </div>
 
@@ -277,10 +302,10 @@ export function DiscordBotCreateDialog({
                 {isSubmitting ? (
                   <>
                     <Spinner className="h-4 w-4 mr-1" />
-                    Creating...
+                    Connecting...
                   </>
                 ) : (
-                  "Create Bot"
+                  "Next"
                 )}
               </Button>
             </div>
@@ -296,12 +321,27 @@ export function DiscordBotCreateDialog({
               <span className="font-medium">{name}</span>
             </div>
 
-            {createdBotId && (
-              <DiscordBotSetupInfo
-                botId={createdBotId}
-                applicationId={applicationId}
-              />
-            )}
+            <div className="space-y-2 text-sm">
+              <div className="space-y-1">
+                <p className="font-medium text-foreground">
+                  Interactions Endpoint URL
+                </p>
+                <CopyableValue value={webhookUrl} />
+                <p className="text-muted-foreground text-xs">
+                  Paste this as the Interactions Endpoint URL in the{" "}
+                  <a
+                    href={generalInfoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline inline-flex items-center gap-0.5"
+                  >
+                    General Information
+                    <ExternalLink className="w-2.5 h-2.5" />
+                  </a>{" "}
+                  page of your Discord application.
+                </p>
+              </div>
+            </div>
 
             <div className="flex justify-end">
               <Button

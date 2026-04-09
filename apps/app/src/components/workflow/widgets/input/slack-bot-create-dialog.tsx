@@ -1,4 +1,4 @@
-import ExternalLink from "lucide-react/icons/external-link";
+import { ExternalLink } from "lucide-react";
 import { useState } from "react";
 
 import { useAuth } from "@/components/auth-context";
@@ -17,22 +17,34 @@ import { createSlackBot } from "@/services/bot-service";
 
 import { CopyableValue } from "./copyable-value";
 
-type Step = "credentials" | "webhook" | "setup";
+type Step =
+  | "name"
+  | "signing-secret"
+  | "bot-token"
+  | "event-subscriptions"
+  | "setup";
 
 const STEP_TITLES: Record<Step, string> = {
-  credentials: "Create a Slack Bot",
-  webhook: "Event Subscriptions",
+  name: "Create a Slack Bot",
+  "signing-secret": "Signing Secret",
+  "bot-token": "Bot Token",
+  "event-subscriptions": "Event Subscriptions",
   setup: "Invite Bot",
 };
 
 const STEP_DESCRIPTIONS: Record<Step, string> = {
-  credentials:
-    "Create a Slack app at api.slack.com/apps, then copy the Bot User OAuth Token and Signing Secret.",
-  webhook:
+  name: "Choose a display name to identify this Slack bot in Dafthunk.",
+  "signing-secret":
+    "Copy the Signing Secret from the Basic Information page of your Slack app.",
+  "bot-token":
+    "Copy the Bot User OAuth Token from the OAuth & Permissions page of your Slack app.",
+  "event-subscriptions":
     "Copy the webhook URL below and paste it as the Request URL in the Event Subscriptions page of your Slack app.",
   setup:
     "Verify permissions, invite the bot to a channel, and create a workflow.",
 };
+
+const SLACK_API_URL = "https://api.slack.com/apps";
 
 interface SlackBotCreateDialogProps {
   isOpen: boolean;
@@ -46,20 +58,20 @@ export function SlackBotCreateDialog({
   onCreated,
 }: SlackBotCreateDialogProps) {
   const { organization } = useAuth();
-  const [step, setStep] = useState<Step>("credentials");
+  const [step, setStep] = useState<Step>("name");
   const [name, setName] = useState("");
-  const [botToken, setBotToken] = useState("");
   const [signingSecret, setSigningSecret] = useState("");
+  const [botToken, setBotToken] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [createdBotId, setCreatedBotId] = useState<string | null>(null);
   const [createdTeamName, setCreatedTeamName] = useState<string | null>(null);
 
   const resetForm = () => {
-    setStep("credentials");
+    setStep("name");
     setName("");
-    setBotToken("");
     setSigningSecret("");
+    setBotToken("");
     setError(null);
     setCreatedBotId(null);
     setCreatedTeamName(null);
@@ -86,7 +98,7 @@ export function SlackBotCreateDialog({
         (response.metadata as Record<string, string | undefined> | null)
           ?.teamName ?? ""
       );
-      setStep("webhook");
+      setStep("event-subscriptions");
       onCreated(response.id);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create bot");
@@ -108,11 +120,13 @@ export function SlackBotCreateDialog({
           </DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground mt-1">
             {STEP_DESCRIPTIONS[step]}
-            {step === "credentials" && (
+            {(step === "signing-secret" ||
+              step === "bot-token" ||
+              step === "event-subscriptions") && (
               <>
                 {" "}
                 <a
-                  href="https://api.slack.com/apps"
+                  href={SLACK_API_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-primary hover:underline inline-flex items-center gap-0.5"
@@ -125,7 +139,7 @@ export function SlackBotCreateDialog({
           </DialogDescription>
         </div>
 
-        {step === "credentials" && (
+        {step === "name" && (
           <div className="space-y-3">
             <div className="space-y-1.5">
               <Label htmlFor="slack-name">Name</Label>
@@ -136,10 +150,66 @@ export function SlackBotCreateDialog({
                 placeholder="My Slack Bot"
               />
               <p className="text-xs text-muted-foreground">
-                A display name for this bot in Dafthunk.
+                A display name for this bot in Dafthunk. This is not visible to
+                your Slack users.
               </p>
             </div>
 
+            <div className="flex justify-end gap-2 pt-1">
+              <Button type="button" variant="outline" onClick={handleClose}>
+                Cancel
+              </Button>
+              <Button
+                onClick={() => setStep("signing-secret")}
+                disabled={name.trim() === ""}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {step === "signing-secret" && (
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="slack-signing-secret">Signing Secret</Label>
+              <Input
+                id="slack-signing-secret"
+                type="password"
+                value={signingSecret}
+                onChange={(e) => setSigningSecret(e.target.value)}
+                placeholder="Paste your signing secret here"
+              />
+              <p className="text-xs text-muted-foreground">
+                Find this under{" "}
+                <span className="font-medium text-foreground">
+                  Basic Information
+                </span>{" "}
+                in your Slack app settings. Used to verify that incoming webhook
+                messages are genuinely from Slack.
+              </p>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-1">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setStep("name")}
+              >
+                Back
+              </Button>
+              <Button
+                onClick={() => setStep("bot-token")}
+                disabled={signingSecret.trim() === ""}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {step === "bot-token" && (
+          <div className="space-y-3">
             <div className="space-y-1.5">
               <Label htmlFor="slack-token">Bot User OAuth Token</Label>
               <Input
@@ -150,25 +220,11 @@ export function SlackBotCreateDialog({
                 placeholder="xoxb-..."
               />
               <p className="text-xs text-muted-foreground">
-                Found under{" "}
-                <span className="font-medium">OAuth &amp; Permissions</span> in
-                your Slack app settings.
-              </p>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="slack-signing-secret">Signing Secret</Label>
-              <Input
-                id="slack-signing-secret"
-                type="password"
-                value={signingSecret}
-                onChange={(e) => setSigningSecret(e.target.value)}
-                placeholder="••••••••"
-              />
-              <p className="text-xs text-muted-foreground">
-                Found under{" "}
-                <span className="font-medium">Basic Information</span> in your
-                Slack app settings.
+                Find this under{" "}
+                <span className="font-medium text-foreground">
+                  OAuth &amp; Permissions
+                </span>{" "}
+                in your Slack app settings.
               </p>
             </div>
 
@@ -182,19 +238,17 @@ export function SlackBotCreateDialog({
               <Button
                 type="button"
                 variant="outline"
-                onClick={handleClose}
+                onClick={() => {
+                  setError(null);
+                  setStep("signing-secret");
+                }}
                 disabled={isSubmitting}
               >
-                Cancel
+                Back
               </Button>
               <Button
                 onClick={handleSubmit}
-                disabled={
-                  isSubmitting ||
-                  name.trim() === "" ||
-                  botToken.trim() === "" ||
-                  signingSecret.trim() === ""
-                }
+                disabled={isSubmitting || botToken.trim() === ""}
               >
                 {isSubmitting ? (
                   <>
@@ -209,7 +263,7 @@ export function SlackBotCreateDialog({
           </div>
         )}
 
-        {step === "webhook" && (
+        {step === "event-subscriptions" && (
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-sm">
               <span className="text-xs px-2 py-0.5 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 rounded-md font-medium">
@@ -230,19 +284,6 @@ export function SlackBotCreateDialog({
               <div className="space-y-1">
                 <p className="font-medium text-foreground">Request URL</p>
                 <CopyableValue value={webhookUrl} />
-                <p className="text-muted-foreground text-xs">
-                  Paste this as the Request URL in the{" "}
-                  <a
-                    href="https://api.slack.com/apps"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary hover:underline inline-flex items-center gap-0.5"
-                  >
-                    Event Subscriptions
-                    <ExternalLink className="w-2.5 h-2.5" />
-                  </a>{" "}
-                  page of your Slack app. Slack will verify it automatically.
-                </p>
               </div>
 
               <ol className="text-xs text-muted-foreground list-decimal list-inside space-y-1.5 mt-3">
@@ -283,7 +324,7 @@ export function SlackBotCreateDialog({
               <li>
                 Under{" "}
                 <a
-                  href="https://api.slack.com/apps"
+                  href={SLACK_API_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-primary hover:underline inline-flex items-center gap-0.5"
@@ -305,7 +346,7 @@ export function SlackBotCreateDialog({
                 <span className="font-medium text-foreground">
                   Receive Slack Message
                 </span>{" "}
-                trigger.
+                trigger and select this bot.
               </li>
             </ol>
 
@@ -313,7 +354,7 @@ export function SlackBotCreateDialog({
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setStep("webhook")}
+                onClick={() => setStep("event-subscriptions")}
               >
                 Back
               </Button>

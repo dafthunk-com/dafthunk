@@ -113,80 +113,39 @@ export function BotSlackDetailPage() {
           <h3 className="text-sm font-medium">Setup Instructions</h3>
           <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
             <li>
-              Go to your{" "}
-              <a
-                href="https://api.slack.com/apps"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary hover:underline inline-flex items-center gap-0.5"
-              >
-                Slack App settings
-                <ExternalLink className="h-3 w-3" />
-              </a>{" "}
-              and select your app.
-            </li>
-            <li>
               Under{" "}
               <span className="font-medium text-foreground">
                 Event Subscriptions
               </span>
               , toggle{" "}
               <span className="font-medium text-foreground">Enable Events</span>{" "}
-              to On, then paste the{" "}
-              <span className="font-medium text-foreground">Webhook URL</span>{" "}
-              above as the{" "}
-              <span className="font-medium text-foreground">Request URL</span>.
-              Slack will verify the URL automatically.
-            </li>
-            <li>
-              Under{" "}
+              to On. Paste the Webhook URL above as the Request URL. Under{" "}
               <span className="font-medium text-foreground">
                 Subscribe to bot events
               </span>
-              , add{" "}
-              <span className="font-mono text-xs text-foreground">
-                message.channels
-              </span>{" "}
-              (public channels) and{" "}
-              <span className="font-mono text-xs text-foreground">
-                message.groups
-              </span>{" "}
-              (private channels), then click{" "}
-              <span className="font-medium text-foreground">Save Changes</span>.
+              , add <span className="font-mono">message.channels</span> and{" "}
+              <span className="font-mono">message.groups</span>, then save.
             </li>
             <li>
               Under{" "}
               <span className="font-medium text-foreground">
                 OAuth &amp; Permissions
               </span>
-              , verify that the{" "}
-              <span className="font-mono text-xs text-foreground">
-                channels:history
-              </span>
-              ,{" "}
-              <span className="font-mono text-xs text-foreground">
-                groups:history
-              </span>
-              , and{" "}
-              <span className="font-mono text-xs text-foreground">
-                chat:write
-              </span>{" "}
-              scopes are present. If you added new scopes, reinstall the app to
-              your workspace.
+              , verify the bot has{" "}
+              <span className="font-mono">channels:history</span>,{" "}
+              <span className="font-mono">groups:history</span>, and{" "}
+              <span className="font-mono">chat:write</span> scopes.
             </li>
             <li>
-              Invite the bot to a Slack channel by typing{" "}
-              <span className="font-mono text-xs text-foreground">
-                /invite @{slackBot.name}
-              </span>{" "}
-              in the channel.
+              Invite the bot to a channel with{" "}
+              <span className="font-mono">/invite @{slackBot.name}</span>.
             </li>
             <li>
               Create a workflow with a{" "}
               <span className="font-medium text-foreground">
                 Receive Slack Message
               </span>{" "}
-              trigger node, select this bot, and enable the workflow.
+              trigger, select this bot, and enable it.
             </li>
           </ol>
         </div>

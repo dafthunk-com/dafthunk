@@ -106,7 +106,7 @@ export function BotDiscordDetailPage() {
               className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
             >
               <ExternalLink className="h-3.5 w-3.5" />
-              Invite bot to a server
+              Invite Bot to a Server
             </a>
             <a
               href={devPortalUrl}
@@ -115,7 +115,7 @@ export function BotDiscordDetailPage() {
               className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
             >
               <ExternalLink className="h-3.5 w-3.5" />
-              Open in Discord Developer Portal
+              Open Discord Developer Portal
             </a>
           </div>
         </div>
@@ -154,7 +154,7 @@ export function BotDiscordDetailPage() {
               <span className="font-medium text-foreground">
                 Receive Discord Message
               </span>{" "}
-              trigger node and select this bot.
+              trigger, select this bot, and enable it.
             </li>
           </ol>
         </div>

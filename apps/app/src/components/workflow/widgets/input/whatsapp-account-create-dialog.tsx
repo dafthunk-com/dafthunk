@@ -12,17 +12,19 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
+import { getApiBaseUrl } from "@/config/api";
 import { createWhatsAppAccount } from "@/services/bot-service";
 
-import { WhatsAppSetupInfo } from "./whatsapp-setup-info";
+import { CopyableValue } from "./copyable-value";
 
-type Step = "name" | "app-secret" | "api-credentials" | "setup";
+type Step = "name" | "app-secret" | "api-credentials" | "webhook" | "setup";
 
 const STEP_TITLES: Record<Step, string> = {
-  name: "Add WhatsApp Account",
+  name: "Add a WhatsApp Account",
   "app-secret": "App Secret",
   "api-credentials": "WhatsApp API Credentials",
-  setup: "Account Created",
+  webhook: "Webhook Configuration",
+  setup: "Setup",
 };
 
 const STEP_DESCRIPTIONS: Record<Step, string> = {
@@ -31,7 +33,10 @@ const STEP_DESCRIPTIONS: Record<Step, string> = {
     "Copy the App Secret from your Meta app. Navigate to Apps > App Settings > Basic in the Meta Developer Portal.",
   "api-credentials":
     "Copy your Access Token and Phone Number ID from the WhatsApp API Setup page in the Meta Developer Portal.",
-  setup: "Your account is ready. Follow these steps to complete the setup.",
+  webhook:
+    "Copy the Callback URL and Verify Token below into the webhook settings of your Meta app.",
+  setup:
+    "Verify the webhook is configured and create a workflow to start receiving messages.",
 };
 
 const META_PORTAL_URL = "https://developers.facebook.com/apps/";
@@ -56,6 +61,10 @@ export function WhatsAppAccountCreateDialog({
   const [wabaId, setWabaId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [createdAccountId, setCreatedAccountId] = useState<string | null>(null);
+  const [createdVerifyToken, setCreatedVerifyToken] = useState<string | null>(
+    null
+  );
 
   const resetForm = () => {
     setStep("name");
@@ -65,6 +74,8 @@ export function WhatsAppAccountCreateDialog({
     setPhoneNumberId("");
     setWabaId("");
     setError(null);
+    setCreatedAccountId(null);
+    setCreatedVerifyToken(null);
   };
 
   const handleClose = () => {
@@ -89,7 +100,12 @@ export function WhatsAppAccountCreateDialog({
         },
         organization.id
       );
-      setStep("setup");
+      setCreatedAccountId(response.id);
+      setCreatedVerifyToken(
+        (response.metadata as Record<string, string | undefined> | null)
+          ?.verifyToken ?? null
+      );
+      setStep("webhook");
       onCreated(response.id);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create account");
@@ -97,6 +113,10 @@ export function WhatsAppAccountCreateDialog({
       setIsSubmitting(false);
     }
   };
+
+  const webhookUrl = createdAccountId
+    ? `${getApiBaseUrl().replace(/\/$/, "")}/whatsapp/webhook/${createdAccountId}`
+    : "";
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
@@ -107,7 +127,9 @@ export function WhatsAppAccountCreateDialog({
           </DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground mt-1">
             {STEP_DESCRIPTIONS[step]}
-            {(step === "app-secret" || step === "api-credentials") && (
+            {(step === "app-secret" ||
+              step === "api-credentials" ||
+              step === "webhook") && (
               <>
                 {" "}
                 <a
@@ -291,17 +313,17 @@ export function WhatsAppAccountCreateDialog({
                 {isSubmitting ? (
                   <>
                     <Spinner className="h-4 w-4 mr-1" />
-                    Creating...
+                    Connecting...
                   </>
                 ) : (
-                  "Create Account"
+                  "Next"
                 )}
               </Button>
             </div>
           </div>
         )}
 
-        {step === "setup" && (
+        {step === "webhook" && (
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-sm">
               <span className="text-xs px-2 py-0.5 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 rounded-md font-medium">
@@ -310,9 +332,73 @@ export function WhatsAppAccountCreateDialog({
               <span className="font-medium">{name}</span>
             </div>
 
-            <WhatsAppSetupInfo />
+            <div className="space-y-2 text-sm">
+              <div className="space-y-1">
+                <p className="font-medium text-foreground">Callback URL</p>
+                <CopyableValue value={webhookUrl} />
+              </div>
+
+              {createdVerifyToken && (
+                <div className="space-y-1">
+                  <p className="font-medium text-foreground">Verify Token</p>
+                  <CopyableValue value={createdVerifyToken} />
+                </div>
+              )}
+
+              <ol className="text-xs text-muted-foreground list-decimal list-inside space-y-1.5 mt-3">
+                <li>
+                  Go to{" "}
+                  <span className="font-medium text-foreground">
+                    Apps &gt; Use cases &gt; WhatsApp &gt; API Setup
+                  </span>{" "}
+                  and click{" "}
+                  <span className="font-medium text-foreground">Configure</span>{" "}
+                  next to Webhooks.
+                </li>
+                <li>
+                  Paste the Callback URL and Verify Token, then click{" "}
+                  <span className="font-medium text-foreground">
+                    Verify and save
+                  </span>
+                  .
+                </li>
+                <li>
+                  Subscribe to the <span className="font-mono">messages</span>{" "}
+                  webhook field.
+                </li>
+              </ol>
+            </div>
 
             <div className="flex justify-end">
+              <Button onClick={() => setStep("setup")}>Next</Button>
+            </div>
+          </div>
+        )}
+
+        {step === "setup" && (
+          <div className="space-y-4">
+            <ol className="text-xs text-muted-foreground list-decimal list-inside space-y-1.5">
+              <li>
+                Create a workflow with a{" "}
+                <span className="font-medium text-foreground">
+                  Receive WhatsApp Message
+                </span>{" "}
+                trigger and select this account.
+              </li>
+              <li>
+                Enable the workflow, then send a WhatsApp message to your
+                business number to trigger it.
+              </li>
+            </ol>
+
+            <div className="flex justify-end gap-2 pt-1">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setStep("webhook")}
+              >
+                Back
+              </Button>
               <Button onClick={handleClose}>Done</Button>
             </div>
           </div>

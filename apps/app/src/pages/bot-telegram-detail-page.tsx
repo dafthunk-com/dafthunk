@@ -115,7 +115,7 @@ export function BotTelegramDetailPage() {
               <span className="font-medium text-foreground">
                 Receive Telegram Message
               </span>{" "}
-              trigger node and select this bot.
+              trigger and select this bot.
             </li>
             <li>
               Enable the workflow. The webhook will be registered automatically

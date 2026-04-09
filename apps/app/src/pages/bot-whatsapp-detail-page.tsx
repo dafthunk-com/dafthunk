@@ -166,18 +166,7 @@ export function BotWhatsAppDetailPage() {
           <h3 className="text-sm font-medium">Setup Instructions</h3>
           <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
             <li>
-              Create a workflow with a{" "}
-              <span className="font-medium text-foreground">
-                Receive WhatsApp Message
-              </span>{" "}
-              trigger node and select this account.
-            </li>
-            <li>
-              Copy the{" "}
-              <span className="font-medium text-foreground">Callback URL</span>{" "}
-              and{" "}
-              <span className="font-medium text-foreground">Verify Token</span>{" "}
-              above into the{" "}
+              Copy the Callback URL and Verify Token above into the{" "}
               <a
                 href="https://developers.facebook.com/apps/"
                 target="_blank"
@@ -188,12 +177,18 @@ export function BotWhatsAppDetailPage() {
                 <ExternalLink className="h-3 w-3" />
               </a>{" "}
               webhook settings. Subscribe to the{" "}
-              <span className="font-medium text-foreground">messages</span>{" "}
-              field.
+              <span className="font-mono">messages</span> field.
             </li>
             <li>
-              Enable the workflow, then send a WhatsApp message to your business
-              number to trigger it.
+              Create a workflow with a{" "}
+              <span className="font-medium text-foreground">
+                Receive WhatsApp Message
+              </span>{" "}
+              trigger, select this account, and enable it.
+            </li>
+            <li>
+              Send a WhatsApp message to your business number to trigger the
+              workflow.
             </li>
           </ol>
         </div>
@@ -208,7 +203,7 @@ export function BotWhatsAppDetailPage() {
               className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
             >
               <ExternalLink className="h-3.5 w-3.5" />
-              Meta Developer Portal
+              Open Meta Developer Portal
             </a>
             <a
               href="https://developers.facebook.com/docs/whatsapp/cloud-api"

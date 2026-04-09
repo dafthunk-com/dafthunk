@@ -158,6 +158,7 @@ function buildMetadata(
       return JSON.stringify({
         phoneNumberId: data.phoneNumberId,
         wabaId: data.wabaId ?? null,
+        verifyToken: crypto.randomUUID(),
       });
     case "slack":
       return JSON.stringify({
@@ -430,7 +431,7 @@ botRoutes.get("/:id/webhook-info", async (c) => {
 
   const apiHost = new URL(c.req.url).origin;
 
-  // Find verify token from trigger metadata
+  // Find verify token from trigger metadata, then fall back to bot metadata
   const triggers = await getBotTriggersByBot(db, id);
   let verifyToken: string | null = null;
   for (const t of triggers) {
@@ -444,6 +445,12 @@ botRoutes.get("/:id/webhook-info", async (c) => {
     if (meta?.secretToken) {
       verifyToken = meta.secretToken;
       break;
+    }
+  }
+  if (!verifyToken && bot.metadata) {
+    const botMeta = JSON.parse(bot.metadata) as Record<string, string>;
+    if (botMeta.verifyToken) {
+      verifyToken = botMeta.verifyToken;
     }
   }
 

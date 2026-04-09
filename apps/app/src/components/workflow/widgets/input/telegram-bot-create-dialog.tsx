@@ -14,17 +14,17 @@ import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { createTelegramBot } from "@/services/bot-service";
 
-import { TelegramBotSetupInfo } from "./telegram-setup-info";
-
-type Step = "credentials" | "setup";
+type Step = "name" | "bot-token" | "setup";
 
 const STEP_TITLES: Record<Step, string> = {
-  credentials: "Create a Telegram Bot",
-  setup: "Bot Created",
+  name: "Create a Telegram Bot",
+  "bot-token": "Bot Token",
+  setup: "Setup",
 };
 
 const STEP_DESCRIPTIONS: Record<Step, string> = {
-  credentials:
+  name: "Choose a display name to identify this Telegram bot in Dafthunk.",
+  "bot-token":
     "Create a new bot with @BotFather on Telegram, then copy the bot token it gives you.",
   setup:
     "Your bot is ready. The webhook will be auto-registered when you enable the workflow.",
@@ -42,7 +42,7 @@ export function TelegramBotCreateDialog({
   onCreated,
 }: TelegramBotCreateDialogProps) {
   const { organization } = useAuth();
-  const [step, setStep] = useState<Step>("credentials");
+  const [step, setStep] = useState<Step>("name");
   const [name, setName] = useState("");
   const [botToken, setBotToken] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -52,7 +52,7 @@ export function TelegramBotCreateDialog({
   );
 
   const resetForm = () => {
-    setStep("credentials");
+    setStep("name");
     setName("");
     setBotToken("");
     setError(null);
@@ -97,7 +97,7 @@ export function TelegramBotCreateDialog({
           </DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground mt-1">
             {STEP_DESCRIPTIONS[step]}
-            {step === "credentials" && (
+            {step === "bot-token" && (
               <>
                 {" "}
                 <a
@@ -114,7 +114,7 @@ export function TelegramBotCreateDialog({
           </DialogDescription>
         </div>
 
-        {step === "credentials" && (
+        {step === "name" && (
           <div className="space-y-3">
             <div className="space-y-1.5">
               <Label htmlFor="telegram-name">Name</Label>
@@ -125,10 +125,27 @@ export function TelegramBotCreateDialog({
                 placeholder="My Telegram Bot"
               />
               <p className="text-xs text-muted-foreground">
-                A display name for this bot in Dafthunk.
+                A display name for this bot in Dafthunk. This is not visible to
+                your Telegram users.
               </p>
             </div>
 
+            <div className="flex justify-end gap-2 pt-1">
+              <Button type="button" variant="outline" onClick={handleClose}>
+                Cancel
+              </Button>
+              <Button
+                onClick={() => setStep("bot-token")}
+                disabled={name.trim() === ""}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {step === "bot-token" && (
+          <div className="space-y-3">
             <div className="space-y-1.5">
               <Label htmlFor="telegram-token">Bot Token</Label>
               <Input
@@ -136,7 +153,7 @@ export function TelegramBotCreateDialog({
                 type="password"
                 value={botToken}
                 onChange={(e) => setBotToken(e.target.value)}
-                placeholder="••••••••"
+                placeholder="Paste your bot token here"
               />
               <p className="text-xs text-muted-foreground">
                 Copy the token from{" "}
@@ -163,24 +180,25 @@ export function TelegramBotCreateDialog({
               <Button
                 type="button"
                 variant="outline"
-                onClick={handleClose}
+                onClick={() => {
+                  setError(null);
+                  setStep("name");
+                }}
                 disabled={isSubmitting}
               >
-                Cancel
+                Back
               </Button>
               <Button
                 onClick={handleSubmit}
-                disabled={
-                  isSubmitting || name.trim() === "" || botToken.trim() === ""
-                }
+                disabled={isSubmitting || botToken.trim() === ""}
               >
                 {isSubmitting ? (
                   <>
                     <Spinner className="h-4 w-4 mr-1" />
-                    Creating...
+                    Connecting...
                   </>
                 ) : (
-                  "Create Bot"
+                  "Next"
                 )}
               </Button>
             </div>
@@ -204,7 +222,36 @@ export function TelegramBotCreateDialog({
               </span>
             </div>
 
-            <TelegramBotSetupInfo botUsername={createdBotUsername} />
+            <ol className="text-xs text-muted-foreground list-decimal list-inside space-y-1.5">
+              <li>
+                Create a workflow with a{" "}
+                <span className="font-medium text-foreground">
+                  Receive Telegram Message
+                </span>{" "}
+                trigger and select this bot.
+              </li>
+              <li>
+                Enable the workflow. The webhook will be registered
+                automatically with Telegram.
+              </li>
+              <li>
+                Send a message to{" "}
+                {createdBotUsername ? (
+                  <a
+                    href={`https://t.me/${createdBotUsername}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline inline-flex items-center gap-0.5"
+                  >
+                    @{createdBotUsername}
+                    <ExternalLink className="w-2.5 h-2.5" />
+                  </a>
+                ) : (
+                  "your bot"
+                )}{" "}
+                on Telegram to trigger the workflow.
+              </li>
+            </ol>
 
             <div className="flex justify-end">
               <Button onClick={handleClose}>Done</Button>
