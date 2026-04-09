@@ -84,7 +84,7 @@ export function BotWhatsAppDetailPage() {
             mono
           />
           <DetailRow
-            label="WABA ID"
+            label="WhatsApp Business Account ID"
             value={whatsappAccount.wabaId || "---"}
             mono
           />

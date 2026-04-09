@@ -245,7 +245,7 @@ export function WhatsAppAccountCreateDialog({
 
             <div className="space-y-1.5">
               <Label htmlFor="whatsapp-waba-id">
-                WABA ID{" "}
+                WhatsApp Business Account ID{" "}
                 <span className="text-muted-foreground font-normal">
                   (optional)
                 </span>
