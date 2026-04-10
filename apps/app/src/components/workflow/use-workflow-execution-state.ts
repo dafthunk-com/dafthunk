@@ -231,7 +231,6 @@ export function useWorkflowExecutionState({
             outputs: nodeExecution.outputs || {},
             error: nodeExecution.error,
           });
-
         });
 
         if (execution.status === "exhausted") {

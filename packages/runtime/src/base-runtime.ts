@@ -596,9 +596,7 @@ export abstract class Runtime<Env = unknown> {
 
         // Resolve pending nodes (waits for external events)
         const resolvedResults = await Promise.all(
-          pendingResults.map((result) =>
-            this.resolveAsyncNode(context, result)
-          )
+          pendingResults.map((result) => this.resolveAsyncNode(context, result))
         );
 
         // Apply resolved results to state

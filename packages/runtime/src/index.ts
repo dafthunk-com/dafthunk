@@ -67,10 +67,10 @@ export type {
   WorkflowRuntimeState,
 } from "./execution-types";
 export {
-  createHitlToken,
-  verifyHitlToken,
-  type HitlTokenPayload,
-} from "./hitl-token";
+  createFormToken,
+  type FormTokenPayload,
+  verifyFormToken,
+} from "./form-token";
 export type { MonitoringService } from "./monitoring-service";
 export { NodeToolProvider } from "./node-tool-provider";
 export type {

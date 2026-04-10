@@ -220,7 +220,7 @@ export interface NodeEnv {
   GOOGLE_API_KEY?: string;
   TAVILY_API_KEY?: string;
   WEB_HOST?: string;
-  HITL_SIGNING_KEY?: string;
+  FORM_SIGNING_KEY?: string;
 }
 
 export interface NodeContext {

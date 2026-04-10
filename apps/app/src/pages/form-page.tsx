@@ -1,6 +1,5 @@
 import Check from "lucide-react/icons/check";
 import Loader2 from "lucide-react/icons/loader-2";
-import X from "lucide-react/icons/x";
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router";
 
@@ -13,13 +12,24 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { getApiBaseUrl } from "@/config/api";
 
+// ── Types ───────────────────────────────────────────────────────────────
+
+interface SchemaField {
+  name: string;
+  type: string;
+  required?: boolean;
+}
+
 interface FormConfig {
-  prompt: string;
-  context?: string;
-  inputType: string;
+  title: string;
+  description?: string;
+  fields: SchemaField[];
   submitted: boolean;
 }
 
@@ -31,6 +41,118 @@ type FormState =
   | { status: "already_submitted" }
   | { status: "error"; message: string };
 
+// ── Schema Field Renderer ───────────────────────────────────────────────
+
+function SchemaFieldInput({
+  field,
+  value,
+  onChange,
+  disabled,
+}: {
+  field: SchemaField;
+  value: unknown;
+  onChange: (value: unknown) => void;
+  disabled: boolean;
+}) {
+  switch (field.type) {
+    case "boolean":
+      return (
+        <div className="flex items-center gap-3">
+          <Switch
+            id={field.name}
+            checked={!!value}
+            onCheckedChange={onChange}
+            disabled={disabled}
+          />
+          <Label htmlFor={field.name}>{field.name}</Label>
+        </div>
+      );
+
+    case "number":
+    case "integer":
+      return (
+        <div className="space-y-2">
+          <Label htmlFor={field.name}>
+            {field.name}
+            {field.required && <span className="text-destructive"> *</span>}
+          </Label>
+          <Input
+            id={field.name}
+            type="number"
+            step={field.type === "integer" ? "1" : "any"}
+            value={value !== undefined && value !== null ? String(value) : ""}
+            onChange={(e) => {
+              const v = e.target.value;
+              if (v === "") {
+                onChange(undefined);
+              } else {
+                onChange(
+                  field.type === "integer" ? parseInt(v, 10) : parseFloat(v)
+                );
+              }
+            }}
+            disabled={disabled}
+          />
+        </div>
+      );
+
+    case "datetime":
+      return (
+        <div className="space-y-2">
+          <Label htmlFor={field.name}>
+            {field.name}
+            {field.required && <span className="text-destructive"> *</span>}
+          </Label>
+          <Input
+            id={field.name}
+            type="datetime-local"
+            value={(value as string) ?? ""}
+            onChange={(e) => onChange(e.target.value || undefined)}
+            disabled={disabled}
+          />
+        </div>
+      );
+
+    case "json":
+      return (
+        <div className="space-y-2">
+          <Label htmlFor={field.name}>
+            {field.name}
+            {field.required && <span className="text-destructive"> *</span>}
+          </Label>
+          <Textarea
+            id={field.name}
+            placeholder="Enter JSON..."
+            value={(value as string) ?? ""}
+            onChange={(e) => onChange(e.target.value || undefined)}
+            rows={3}
+            className="font-mono text-sm"
+            disabled={disabled}
+          />
+        </div>
+      );
+
+    default:
+      return (
+        <div className="space-y-2">
+          <Label htmlFor={field.name}>
+            {field.name}
+            {field.required && <span className="text-destructive"> *</span>}
+          </Label>
+          <Input
+            id={field.name}
+            type="text"
+            value={(value as string) ?? ""}
+            onChange={(e) => onChange(e.target.value || undefined)}
+            disabled={disabled}
+          />
+        </div>
+      );
+  }
+}
+
+// ── Form Page ───────────────────────────────────────────────────────────
+
 /**
  * Public form page for human-in-the-loop workflow input.
  * No authentication required — the signed token in the URL IS the authorization.
@@ -38,7 +160,7 @@ type FormState =
 export function FormPage() {
   const { signedToken } = useParams<{ signedToken: string }>();
   const [state, setState] = useState<FormState>({ status: "loading" });
-  const [textValue, setTextValue] = useState("");
+  const [values, setValues] = useState<Record<string, unknown>>({});
 
   useEffect(() => {
     if (!signedToken) {
@@ -69,47 +191,55 @@ export function FormPage() {
       });
   }, [signedToken]);
 
-  const handleSubmit = useCallback(
-    async (body: {
-      text?: string;
-      approved?: boolean;
-      metadata?: Record<string, unknown>;
-    }) => {
-      if (state.status !== "ready") return;
+  const handleSubmit = useCallback(async () => {
+    if (state.status !== "ready") return;
 
-      setState({ status: "submitting", config: state.config });
+    setState({ status: "submitting", config: state.config });
 
-      try {
-        const apiBaseUrl = getApiBaseUrl();
-        const res = await fetch(`${apiBaseUrl}/forms/${signedToken}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        });
+    try {
+      const apiBaseUrl = getApiBaseUrl();
+      const res = await fetch(`${apiBaseUrl}/forms/${signedToken}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
 
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          const error =
-            (data as { error?: string }).error || "Failed to submit form";
-          if (res.status === 409) {
-            setState({ status: "already_submitted" });
-          } else {
-            setState({ status: "error", message: error });
-          }
-          return;
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        const error =
+          (data as { error?: string }).error || "Failed to submit form";
+        if (res.status === 409) {
+          setState({ status: "already_submitted" });
+        } else {
+          setState({ status: "error", message: error });
         }
-
-        setState({ status: "success" });
-      } catch (err) {
-        setState({
-          status: "error",
-          message:
-            err instanceof Error ? err.message : "Failed to submit form",
-        });
+        return;
       }
-    },
-    [state, signedToken]
-  );
+
+      setState({ status: "success" });
+    } catch (err) {
+      setState({
+        status: "error",
+        message: err instanceof Error ? err.message : "Failed to submit form",
+      });
+    }
+  }, [state, signedToken, values]);
+
+  const isSubmitting = state.status === "submitting";
+
+  const config =
+    state.status === "ready" || state.status === "submitting"
+      ? state.config
+      : null;
+
+  const isValid = config
+    ? config.fields
+        .filter((f) => f.required)
+        .every((f) => {
+          const v = values[f.name];
+          return v !== undefined && v !== null && v !== "";
+        })
+    : false;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted p-4">
@@ -121,101 +251,67 @@ export function FormPage() {
         )}
 
         {state.status === "error" && (
-          <>
-            <CardHeader>
-              <CardTitle>Something went wrong</CardTitle>
-              <CardDescription>{state.message}</CardDescription>
-            </CardHeader>
-          </>
+          <CardHeader>
+            <CardTitle>Something went wrong</CardTitle>
+            <CardDescription>{state.message}</CardDescription>
+          </CardHeader>
         )}
 
         {state.status === "already_submitted" && (
-          <>
-            <CardHeader>
-              <CardTitle>Already Submitted</CardTitle>
-              <CardDescription>
-                This form has already been completed. No further action is
-                needed.
-              </CardDescription>
-            </CardHeader>
-          </>
+          <CardHeader>
+            <CardTitle>Already Submitted</CardTitle>
+            <CardDescription>
+              This form has already been completed. No further action is needed.
+            </CardDescription>
+          </CardHeader>
         )}
 
         {state.status === "success" && (
-          <>
-            <CardHeader>
-              <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
-                <Check className="h-5 w-5 text-green-600" />
-              </div>
-              <CardTitle>Response Submitted</CardTitle>
-              <CardDescription>
-                Thank you. Your response has been recorded and the workflow will
-                continue.
-              </CardDescription>
-            </CardHeader>
-          </>
+          <CardHeader>
+            <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
+              <Check className="h-5 w-5 text-green-600" />
+            </div>
+            <CardTitle>Response Submitted</CardTitle>
+            <CardDescription>
+              Thank you. Your response has been recorded and the workflow will
+              continue.
+            </CardDescription>
+          </CardHeader>
         )}
 
-        {(state.status === "ready" || state.status === "submitting") && (
+        {config && (
           <>
             <CardHeader>
-              <CardTitle>{state.config.prompt}</CardTitle>
-              {state.config.context && (
-                <CardDescription>{state.config.context}</CardDescription>
+              <CardTitle>{config.title}</CardTitle>
+              {config.description && (
+                <CardDescription>{config.description}</CardDescription>
               )}
             </CardHeader>
-
-            {state.config.inputType === "approve" ? (
-              <CardFooter className="flex gap-3">
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  disabled={state.status === "submitting"}
-                  onClick={() => handleSubmit({ approved: false })}
-                >
-                  <X className="mr-2 h-4 w-4" />
-                  Reject
-                </Button>
-                <Button
-                  className="flex-1"
-                  disabled={state.status === "submitting"}
-                  onClick={() => handleSubmit({ approved: true })}
-                >
-                  {state.status === "submitting" ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Check className="mr-2 h-4 w-4" />
-                  )}
-                  Approve
-                </Button>
-              </CardFooter>
-            ) : (
-              <>
-                <CardContent>
-                  <Textarea
-                    placeholder="Type your response..."
-                    value={textValue}
-                    onChange={(e) => setTextValue(e.target.value)}
-                    rows={4}
-                    disabled={state.status === "submitting"}
-                  />
-                </CardContent>
-                <CardFooter>
-                  <Button
-                    className="w-full"
-                    disabled={
-                      state.status === "submitting" || !textValue.trim()
-                    }
-                    onClick={() => handleSubmit({ text: textValue.trim() })}
-                  >
-                    {state.status === "submitting" ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : null}
-                    Submit
-                  </Button>
-                </CardFooter>
-              </>
-            )}
+            <CardContent className="space-y-4">
+              {config.fields.map((field) => (
+                <SchemaFieldInput
+                  key={field.name}
+                  field={field}
+                  value={values[field.name]}
+                  onChange={(value) =>
+                    setValues((prev) => ({ ...prev, [field.name]: value }))
+                  }
+                  disabled={isSubmitting}
+                />
+              ))}
+            </CardContent>
+            <CardFooter>
+              <Button
+                className="w-full"
+                disabled={isSubmitting || !isValid}
+                onClick={handleSubmit}
+              >
+                {isSubmitting ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : null}
+                Submit
+              </Button>
+            </CardFooter>
           </>
         )}
       </Card>

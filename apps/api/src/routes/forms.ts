@@ -1,12 +1,12 @@
 /**
- * Public HITL Form Routes
+ * Public Form Routes
  *
  * These routes are unauthenticated — the signed token IS the authorization.
  * They allow external users to view and submit human-in-the-loop forms
  * via a shareable URL.
  */
 
-import { verifyHitlToken } from "@dafthunk/runtime";
+import { verifyFormToken } from "@dafthunk/runtime";
 import { Hono } from "hono";
 
 import type { ApiContext } from "../context";
@@ -17,12 +17,12 @@ const formRoutes = new Hono<ApiContext>();
 /**
  * GET /forms/:signedToken
  *
- * Returns the form configuration (prompt, context, input type) and
+ * Returns the form configuration (title, description, fields) and
  * submission status. No authentication required.
  */
 formRoutes.get("/:signedToken", async (c) => {
   const signedToken = c.req.param("signedToken");
-  const payload = await verifyHitlToken(signedToken, c.env.HITL_SIGNING_KEY);
+  const payload = await verifyFormToken(signedToken, c.env.FORM_SIGNING_KEY);
 
   if (!payload) {
     return c.json({ error: "Invalid or expired form link" }, 400);
@@ -30,12 +30,25 @@ formRoutes.get("/:signedToken", async (c) => {
 
   try {
     const agent = await getAgentByName(c.env.WORKFLOW_AGENT, payload.wid);
-    const { submitted } = await agent.getHitlFormStatus(payload.tok);
+    const { submitted, schema } = await agent.getFormStatus(payload.tok);
+
+    if (!schema) {
+      return c.json(
+        { error: "Form schema not yet available. Please try again shortly." },
+        404
+      );
+    }
+
+    const parsed = JSON.parse(schema) as {
+      title: string;
+      description?: string;
+      fields: Array<{ name: string; type: string; required?: boolean }>;
+    };
 
     return c.json({
-      prompt: payload.p,
-      context: payload.c,
-      inputType: payload.t,
+      title: parsed.title,
+      description: parsed.description,
+      fields: parsed.fields,
       submitted,
     });
   } catch (error) {
@@ -52,28 +65,20 @@ formRoutes.get("/:signedToken", async (c) => {
  */
 formRoutes.post("/:signedToken", async (c) => {
   const signedToken = c.req.param("signedToken");
-  const payload = await verifyHitlToken(signedToken, c.env.HITL_SIGNING_KEY);
+  const payload = await verifyFormToken(signedToken, c.env.FORM_SIGNING_KEY);
 
   if (!payload) {
     return c.json({ error: "Invalid or expired form link" }, 400);
   }
 
-  const body = await c.req.json<{
-    text?: string;
-    approved?: boolean;
-    metadata?: Record<string, unknown>;
-  }>();
+  const body = await c.req.json<Record<string, unknown>>();
 
   try {
     const agent = await getAgentByName(c.env.WORKFLOW_AGENT, payload.wid);
-    const result = await agent.checkAndSubmitHitlForm(
+    const result = await agent.checkAndSubmitForm(
       payload.tok,
       payload.eid,
-      {
-        text: body.text,
-        approved: body.approved,
-        metadata: body.metadata,
-      }
+      body
     );
 
     if (!result.success) {

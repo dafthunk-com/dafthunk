@@ -91,7 +91,7 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
   private static readonly PERSIST_DEBOUNCE_MS = 500;
   private static readonly STORAGE_KEY_DIRTY = "dirty:persist";
   private static readonly STORAGE_PREFIX_EXEC_BUFFER = "execbuf:";
-  private static readonly STORAGE_PREFIX_HITL = "hitl:";
+  private static readonly STORAGE_PREFIX_FORM = "form:";
 
   initialState: WorkflowAgentState = {};
 
@@ -512,6 +512,9 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
   private async routeExecutionUpdate(
     execution: WorkflowExecution
   ): Promise<void> {
+    // Extract and store form schemas from node outputs
+    await this.extractFormSchemas(execution);
+
     const conn = this.findConnectionByExecutionId(execution.id);
     if (conn) {
       this.sendExecutionUpdate(conn, execution);
@@ -523,6 +526,34 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
       WorkflowAgent.STORAGE_PREFIX_EXEC_BUFFER + execution.id,
       { execution, bufferedAt: Date.now() } satisfies BufferedExecution
     );
+  }
+
+  /**
+   * Scan node outputs for form schema data (`schema` + `token`) and
+   * store them in DO transactional storage. This is how form nodes
+   * register their field definitions without touching the main DB.
+   */
+  private async extractFormSchemas(
+    execution: WorkflowExecution
+  ): Promise<void> {
+    for (const nodeExec of execution.nodeExecutions) {
+      if (
+        nodeExec.status === "completed" &&
+        nodeExec.outputs &&
+        typeof nodeExec.outputs.schema === "string" &&
+        typeof nodeExec.outputs.token === "string"
+      ) {
+        const key =
+          WorkflowAgent.STORAGE_PREFIX_FORM +
+          nodeExec.outputs.token +
+          ":schema";
+        // Only store if not already present (idempotent)
+        const existing = await this.storage.get(key);
+        if (!existing) {
+          await this.storage.put(key, nodeExec.outputs.schema);
+        }
+      }
+    }
   }
 
   /**
@@ -570,29 +601,35 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
     }
   }
 
-  // ── HITL form state ───────────────────────────────────────────────────
+  // ── Form state ────────────────────────────────────────────────────────
 
   /**
-   * Check if a HITL form has already been submitted.
+   * Check if a form has already been submitted.
    * Returns `{ submitted: boolean }`.
    */
-  async getHitlFormStatus(token: string): Promise<{ submitted: boolean }> {
-    const key = WorkflowAgent.STORAGE_PREFIX_HITL + token;
+  async getFormStatus(
+    token: string
+  ): Promise<{ submitted: boolean; schema?: string }> {
+    const key = WorkflowAgent.STORAGE_PREFIX_FORM + token;
     const record = await this.storage.get<{ submitted: boolean }>(key);
-    return { submitted: record?.submitted ?? false };
+    const schema = await this.storage.get<string>(key + ":schema");
+    return {
+      submitted: record?.submitted ?? false,
+      ...(schema ? { schema } : {}),
+    };
   }
 
   /**
-   * Atomically check-and-submit a HITL form response.
+   * Atomically check-and-submit a form response.
    * Rejects duplicate submissions. On success, sends the event to the
    * EXECUTE workflow instance to resume the paused node.
    */
-  async checkAndSubmitHitlForm(
+  async checkAndSubmitForm(
     token: string,
     executionId: string,
-    response: { text?: string; approved?: boolean; metadata?: Record<string, unknown> }
+    response: Record<string, unknown>
   ): Promise<{ success: boolean; error?: string }> {
-    const key = WorkflowAgent.STORAGE_PREFIX_HITL + token;
+    const key = WorkflowAgent.STORAGE_PREFIX_FORM + token;
     const existing = await this.storage.get<{ submitted: boolean }>(key);
 
     if (existing?.submitted) {
@@ -606,19 +643,15 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
     try {
       const instance = await this.env.EXECUTE.get(executionId);
       await instance.sendEvent({
-        type: `hitl-response-${token}`,
+        type: `form-response-${token}`,
         payload: {
-          outputs: {
-            response: response.text ?? "",
-            approved: response.approved ?? false,
-            metadata: response.metadata ?? {},
-          },
+          outputs: { response },
           usage: 0,
         },
       });
       return { success: true };
     } catch (error) {
-      console.error("Failed to send HITL event:", error);
+      console.error("Failed to send form event:", error);
       return {
         success: false,
         error: "Failed to resume workflow. The execution may have expired.",

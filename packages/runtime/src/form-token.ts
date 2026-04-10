@@ -1,26 +1,20 @@
 /**
- * HITL Token Utilities
+ * Form Token Utilities
  *
  * Creates and verifies signed tokens for human-in-the-loop form URLs.
- * Tokens encode form configuration and routing information, signed with
- * HMAC-SHA256 to prevent tampering. This makes form config stateless —
- * no database or DO storage needed for the form definition itself.
+ * Tokens encode routing information, signed with HMAC-SHA256 to prevent
+ * tampering. Form content (schema, title) is stored in the WorkflowAgent
+ * DO and fetched by the form page at render time.
  */
 
-/** Decoded payload from a signed HITL token */
-export interface HitlTokenPayload {
+/** Decoded payload from a signed form token */
+export interface FormTokenPayload {
   /** Workflow execution instance ID (routes to EXECUTE DO) */
   eid: string;
   /** Workflow ID (routes to WorkflowAgent DO) */
   wid: string;
-  /** Random nonce — event type is `hitl-response-{tok}` */
+  /** Random nonce — event type is `form-response-{tok}` */
   tok: string;
-  /** Form prompt text */
-  p: string;
-  /** Optional context text */
-  c?: string;
-  /** Input type: "text" | "approve" | "json" */
-  t: string;
 }
 
 function base64urlEncode(data: Uint8Array): string {
@@ -28,7 +22,10 @@ function base64urlEncode(data: Uint8Array): string {
   for (const byte of data) {
     binary += String.fromCharCode(byte);
   }
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  return btoa(binary)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
 }
 
 function base64urlDecode(str: string): Uint8Array {
@@ -75,27 +72,27 @@ async function hmacVerify(
 }
 
 /**
- * Create a signed HITL token from a payload.
+ * Create a signed form token from a payload.
  * Format: base64url(json) + "." + base64url(hmac-sha256)
  */
-export async function createHitlToken(
-  payload: HitlTokenPayload,
+export async function createFormToken(
+  payload: FormTokenPayload,
   signingKey: string
 ): Promise<string> {
   const json = JSON.stringify(payload);
   const payloadEncoded = base64urlEncode(new TextEncoder().encode(json));
   const signature = await hmacSign(payloadEncoded, signingKey);
-  return payloadEncoded + "." + base64urlEncode(signature);
+  return `${payloadEncoded}.${base64urlEncode(signature)}`;
 }
 
 /**
- * Verify and decode a signed HITL token.
+ * Verify and decode a signed form token.
  * Returns the payload if valid, null if tampered or malformed.
  */
-export async function verifyHitlToken(
+export async function verifyFormToken(
   token: string,
   signingKey: string
-): Promise<HitlTokenPayload | null> {
+): Promise<FormTokenPayload | null> {
   const dotIndex = token.indexOf(".");
   if (dotIndex === -1) return null;
 
@@ -108,10 +105,9 @@ export async function verifyHitlToken(
     if (!valid) return null;
 
     const json = new TextDecoder().decode(base64urlDecode(payloadEncoded));
-    const payload = JSON.parse(json) as HitlTokenPayload;
+    const payload = JSON.parse(json) as FormTokenPayload;
 
-    // Validate required fields
-    if (!payload.eid || !payload.wid || !payload.tok || !payload.p || !payload.t) {
+    if (!payload.eid || !payload.wid || !payload.tok) {
       return null;
     }
 

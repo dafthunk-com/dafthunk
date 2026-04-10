@@ -203,6 +203,7 @@ describe("Types Route Tests", () => {
             "json",
             "document",
             "audio",
+            "schema",
             "any",
           ]).toContain(input.type);
         });

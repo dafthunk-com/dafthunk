@@ -352,8 +352,8 @@ import { LikePostLinkedInNode } from "@dafthunk/runtime/nodes/linkedin/like-post
 import { SharePostLinkedInNode } from "@dafthunk/runtime/nodes/linkedin/share-post-linkedin-node";
 import { ConditionalForkNode } from "@dafthunk/runtime/nodes/logic/conditional-fork-node";
 import { ConditionalJoinNode } from "@dafthunk/runtime/nodes/logic/conditional-join-node";
-import { HitlFormNode } from "@dafthunk/runtime/nodes/logic/hitl-form-node";
-import { HitlWaitNode } from "@dafthunk/runtime/nodes/logic/hitl-wait-node";
+import { CreateFormNode } from "@dafthunk/runtime/nodes/logic/create-form-node";
+import { WaitForFormNode } from "@dafthunk/runtime/nodes/logic/wait-for-form-node";
 import { AbsoluteValueNode } from "@dafthunk/runtime/nodes/math/absolute-value-node";
 import { AdditionNode } from "@dafthunk/runtime/nodes/math/addition-node";
 import { AvgNode } from "@dafthunk/runtime/nodes/math/avg-node";
@@ -674,8 +674,8 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(BooleanInputNode);
     this.registerImplementation(ConditionalForkNode);
     this.registerImplementation(ConditionalJoinNode);
-    this.registerImplementation(HitlFormNode);
-    this.registerImplementation(HitlWaitNode);
+    this.registerImplementation(CreateFormNode);
+    this.registerImplementation(WaitForFormNode);
 
     // Image operations
     this.registerImplementation(PhotonAddNoiseNode);

@@ -6,8 +6,8 @@ import {
 import { NumberInputNode } from "@dafthunk/runtime/nodes/input/number-input-node";
 import { ConditionalForkNode } from "@dafthunk/runtime/nodes/logic/conditional-fork-node";
 import { ConditionalJoinNode } from "@dafthunk/runtime/nodes/logic/conditional-join-node";
-import { HitlFormNode } from "@dafthunk/runtime/nodes/logic/hitl-form-node";
-import { HitlWaitNode } from "@dafthunk/runtime/nodes/logic/hitl-wait-node";
+import { CreateFormNode } from "@dafthunk/runtime/nodes/logic/create-form-node";
+import { WaitForFormNode } from "@dafthunk/runtime/nodes/logic/wait-for-form-node";
 import { AdditionNode } from "@dafthunk/runtime/nodes/math/addition-node";
 import { AvgNode } from "@dafthunk/runtime/nodes/math/avg-node";
 import { DivisionNode } from "@dafthunk/runtime/nodes/math/division-node";
@@ -31,7 +31,7 @@ import type { Bindings } from "../context";
  * - Addition, Subtraction, Multiplication, Division
  * - Number Input
  * - Sum, Max, Min, Avg, Median
- * - Conditional Fork, Conditional Join, HITL Form, HITL Wait
+ * - Conditional Fork, Conditional Join, Create Form, Wait for Form
  * - Multi-Step Addition, Failing Multi-Step (test nodes)
  */
 export class MockNodeRegistry extends BaseNodeRegistry<Bindings> {
@@ -48,8 +48,8 @@ export class MockNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(MedianNode);
     this.registerImplementation(ConditionalForkNode);
     this.registerImplementation(ConditionalJoinNode);
-    this.registerImplementation(HitlFormNode);
-    this.registerImplementation(HitlWaitNode);
+    this.registerImplementation(CreateFormNode);
+    this.registerImplementation(WaitForFormNode);
     this.registerImplementation(MultiStepAdditionNode);
     this.registerImplementation(FailingMultiStepNode);
   }

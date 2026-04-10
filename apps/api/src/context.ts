@@ -67,7 +67,7 @@ export interface Bindings {
   R2_SECRET_ACCESS_KEY?: string;
   R2_BUCKET_NAME?: string;
   SECRET_MASTER_KEY: string;
-  HITL_SIGNING_KEY: string;
+  FORM_SIGNING_KEY: string;
   STRIPE_SECRET_KEY?: string;
   STRIPE_WEBHOOK_SECRET?: string;
   STRIPE_PRICE_ID_PRO?: string;
