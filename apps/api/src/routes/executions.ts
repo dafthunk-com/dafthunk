@@ -116,47 +116,4 @@ executionRoutes.get("/", jwtMiddleware, async (c) => {
   return c.json(response);
 });
 
-/**
- * Submit human input for a pending node in a running execution.
- * Used for headless triggers (email, HTTP, cron) where no WebSocket is available.
- */
-executionRoutes.post(
-  "/:executionId/nodes/:nodeId/input",
-  apiKeyOrJwtMiddleware,
-  async (c) => {
-    const executionId = c.req.param("executionId");
-    const nodeId = c.req.param("nodeId");
-
-    if (!isUuid(executionId)) {
-      return c.json({ error: "Invalid execution ID format" }, 400);
-    }
-
-    const body = await c.req.json<{
-      text?: string;
-      approved?: boolean;
-      metadata?: Record<string, unknown>;
-    }>();
-
-    try {
-      const instance = await c.env.EXECUTE.get(executionId);
-      await instance.sendEvent({
-        type: `human-input-${nodeId}`,
-        payload: {
-          outputs: {
-            response: body.text ?? "",
-            approved: body.approved ?? false,
-            metadata: body.metadata ?? {},
-          },
-          usage: 0,
-        },
-      });
-
-      return c.json({ success: true });
-    } catch (error) {
-      console.error("Error submitting human input:", error);
-      return c.json({ error: "Failed to submit human input" }, 500);
-    }
-  }
-);
-
 export default executionRoutes;

@@ -543,12 +543,37 @@ export abstract class Runtime<Env = unknown> {
         })
       );
 
-      // Notify frontend of any pending nodes before parking on waitForEvent,
-      // so users can see which nodes are waiting for input (e.g. human-in-the-loop)
-      const pendingResults = results.filter(
-        (r): r is Extract<NodeExecutionResult, { status: "pending" }> =>
-          r.status === "pending"
-      );
+      // Separate completed results from pending (async) results so that
+      // completed nodes are applied to state and reported immediately,
+      // without waiting for pending nodes to resolve.
+      const immediateResults: NodeExecutionResult[] = [];
+      const pendingResults: Extract<
+        NodeExecutionResult,
+        { status: "pending" }
+      >[] = [];
+      for (const result of results) {
+        if (result.status === "pending") {
+          pendingResults.push(result);
+        } else {
+          immediateResults.push(result);
+        }
+      }
+
+      // Apply completed results to state immediately
+      for (const result of immediateResults) {
+        if (result.status === "error") {
+          const node = context.workflow.nodes.find(
+            (n) => n.id === result.nodeId
+          );
+          console.error(
+            `[Runtime] Node error: nodeId=${result.nodeId} type=${node?.type} error=${result.error}`
+          );
+        }
+        applyNodeResult(state, result);
+      }
+
+      // If there are pending nodes, send a progress update showing completed
+      // nodes alongside pending ones before parking on waitForEvent
       if (pendingResults.length > 0) {
         const pendingNodeIds = new Map(
           pendingResults.map((r) => [
@@ -568,29 +593,26 @@ export abstract class Runtime<Env = unknown> {
           ),
         };
         await this.monitoringService.sendUpdate(currentRecord);
-      }
 
-      // Resolve any pending (async) results before applying to state
-      const resolvedResults = await Promise.all(
-        results.map(async (result) => {
-          if (result.status === "pending") {
-            return this.resolveAsyncNode(context, result);
+        // Resolve pending nodes (waits for external events)
+        const resolvedResults = await Promise.all(
+          pendingResults.map((result) =>
+            this.resolveAsyncNode(context, result)
+          )
+        );
+
+        // Apply resolved results to state
+        for (const result of resolvedResults) {
+          if (result.status === "error") {
+            const node = context.workflow.nodes.find(
+              (n) => n.id === result.nodeId
+            );
+            console.error(
+              `[Runtime] Node error: nodeId=${result.nodeId} type=${node?.type} error=${result.error}`
+            );
           }
-          return result;
-        })
-      );
-
-      // Apply all results to state (nodes in same level don't affect each other)
-      for (const result of resolvedResults) {
-        if (result.status === "error") {
-          const node = context.workflow.nodes.find(
-            (n) => n.id === result.nodeId
-          );
-          console.error(
-            `[Runtime] Node error: nodeId=${result.nodeId} type=${node?.type} error=${result.error}`
-          );
+          applyNodeResult(state, result);
         }
-        applyNodeResult(state, result);
       }
 
       // Update execution record with current state and send monitoring notification

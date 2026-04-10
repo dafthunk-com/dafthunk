@@ -50,6 +50,7 @@ import { EndpointsPage } from "./pages/endpoints-page";
 import { ExecutionDetailPage } from "./pages/execution-detail-page";
 import { ExecutionsPage } from "./pages/executions-page";
 import { FeedbackPage } from "./pages/feedback-page";
+import { FormPage } from "./pages/form-page";
 import { IntegrationsPage } from "./pages/integrations-page";
 import { InvitationsPage } from "./pages/invitations-page";
 import { LoginPage } from "./pages/login-page";
@@ -820,6 +821,13 @@ export const routes: AppRouteObject[] = [
       </OrgLayout>
     ),
     handle: { head: <HeadSeo title="Edit Workflow - Dafthunk" /> },
+  },
+  {
+    path: "/f/:signedToken",
+    element: <FormPage />,
+    handle: {
+      head: <HeadSeo title="Form - Dafthunk" />,
+    },
   },
   {
     path: "/embed/templates/:templateId",

@@ -29,7 +29,6 @@ import type {
   WorkflowExecuteMessage,
   WorkflowExecution,
   WorkflowExecutionUpdateMessage,
-  WorkflowHumanInputMessage,
   WorkflowInitMessage,
   WorkflowState,
   WorkflowUpdateMessage,
@@ -92,6 +91,7 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
   private static readonly PERSIST_DEBOUNCE_MS = 500;
   private static readonly STORAGE_KEY_DIRTY = "dirty:persist";
   private static readonly STORAGE_PREFIX_EXEC_BUFFER = "execbuf:";
+  private static readonly STORAGE_PREFIX_HITL = "hitl:";
 
   initialState: WorkflowAgentState = {};
 
@@ -197,11 +197,6 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
           await this.handleExecuteMessage(
             connection,
             parsed as WorkflowExecuteMessage
-          );
-          break;
-        case "human_input":
-          await this.handleHumanInputMessage(
-            parsed as WorkflowHumanInputMessage
           );
           break;
         default:
@@ -436,24 +431,6 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
     }
   }
 
-  private async handleHumanInputMessage(
-    message: WorkflowHumanInputMessage
-  ): Promise<void> {
-    const { executionId, nodeId, response } = message;
-    const instance = await this.env.EXECUTE.get(executionId);
-    await instance.sendEvent({
-      type: `human-input-${nodeId}`,
-      payload: {
-        outputs: {
-          response: response.text ?? "",
-          approved: response.approved ?? false,
-          metadata: response.metadata ?? {},
-        },
-        usage: 0,
-      },
-    });
-  }
-
   private async subscribeToExecution(
     connection: Connection,
     executionId: string
@@ -590,6 +567,62 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
     } catch (error) {
       console.error("Error sending execution update:", error);
       return false;
+    }
+  }
+
+  // ── HITL form state ───────────────────────────────────────────────────
+
+  /**
+   * Check if a HITL form has already been submitted.
+   * Returns `{ submitted: boolean }`.
+   */
+  async getHitlFormStatus(token: string): Promise<{ submitted: boolean }> {
+    const key = WorkflowAgent.STORAGE_PREFIX_HITL + token;
+    const record = await this.storage.get<{ submitted: boolean }>(key);
+    return { submitted: record?.submitted ?? false };
+  }
+
+  /**
+   * Atomically check-and-submit a HITL form response.
+   * Rejects duplicate submissions. On success, sends the event to the
+   * EXECUTE workflow instance to resume the paused node.
+   */
+  async checkAndSubmitHitlForm(
+    token: string,
+    executionId: string,
+    response: { text?: string; approved?: boolean; metadata?: Record<string, unknown> }
+  ): Promise<{ success: boolean; error?: string }> {
+    const key = WorkflowAgent.STORAGE_PREFIX_HITL + token;
+    const existing = await this.storage.get<{ submitted: boolean }>(key);
+
+    if (existing?.submitted) {
+      return { success: false, error: "Form has already been submitted" };
+    }
+
+    // Mark as submitted before sending event (fail-safe: prevents double-submit
+    // even if the event send fails)
+    await this.storage.put(key, { submitted: true, submittedAt: Date.now() });
+
+    try {
+      const instance = await this.env.EXECUTE.get(executionId);
+      await instance.sendEvent({
+        type: `hitl-response-${token}`,
+        payload: {
+          outputs: {
+            response: response.text ?? "",
+            approved: response.approved ?? false,
+            metadata: response.metadata ?? {},
+          },
+          usage: 0,
+        },
+      });
+      return { success: true };
+    } catch (error) {
+      console.error("Failed to send HITL event:", error);
+      return {
+        success: false,
+        error: "Failed to resume workflow. The execution may have expired.",
+      };
     }
   }
 

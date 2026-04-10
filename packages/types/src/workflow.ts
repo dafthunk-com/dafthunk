@@ -535,26 +535,9 @@ export interface WorkflowExecutionUpdateMessage {
 }
 
 /**
- * Message sent from client to server to submit human input for a pending node
- */
-export interface WorkflowHumanInputMessage {
-  type: "human_input";
-  executionId: string;
-  nodeId: string;
-  response: {
-    text?: string;
-    approved?: boolean;
-    metadata?: Record<string, unknown>;
-  };
-}
-
-/**
  * Messages sent from client to server
  */
-export type ClientMessage =
-  | WorkflowUpdateMessage
-  | WorkflowExecuteMessage
-  | WorkflowHumanInputMessage;
+export type ClientMessage = WorkflowUpdateMessage | WorkflowExecuteMessage;
 
 /**
  * Messages sent from server to client

@@ -294,24 +294,6 @@ export class WorkflowWebSocket {
     );
   }
 
-  /**
-   * Submit human input for a pending node in a running execution
-   */
-  sendHumanInput(
-    executionId: string,
-    nodeId: string,
-    response: {
-      text?: string;
-      approved?: boolean;
-      metadata?: Record<string, unknown>;
-    }
-  ): void {
-    this.sendMessage(
-      { type: "human_input", executionId, nodeId, response },
-      "send human input"
-    );
-  }
-
   disconnect(): void {
     this.shouldReconnect = false;
     if (this.ws) {

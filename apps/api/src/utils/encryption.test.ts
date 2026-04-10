@@ -33,6 +33,7 @@ const createMockEnv = (masterKey?: string): Bindings => ({
   WEBSITE_URL: "",
   EMAIL_DOMAIN: "",
   JWT_SECRET: "",
+  HITL_SIGNING_KEY: "test-hitl-signing-key",
   CLOUDFLARE_ENV: "",
   CLOUDFLARE_ACCOUNT_ID: "",
   CLOUDFLARE_API_TOKEN: "",

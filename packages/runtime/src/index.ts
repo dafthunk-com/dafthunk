@@ -66,6 +66,11 @@ export type {
   WorkflowExecutionContext,
   WorkflowRuntimeState,
 } from "./execution-types";
+export {
+  createHitlToken,
+  verifyHitlToken,
+  type HitlTokenPayload,
+} from "./hitl-token";
 export type { MonitoringService } from "./monitoring-service";
 export { NodeToolProvider } from "./node-tool-provider";
 export type {

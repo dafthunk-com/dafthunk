@@ -78,7 +78,6 @@ export function EditorPage() {
     handleEdgesChange,
     executeWorkflow: wsExecuteWorkflow,
     updateMetadata: wsUpdateMetadata,
-    sendHumanInput: wsSendHumanInput,
   } = useEditableWorkflow({
     workflowId: id,
     nodeTypes: nodeTypes || [],
@@ -228,7 +227,6 @@ export function EditorPage() {
             onWorkflowUpdate={handleWorkflowUpdate}
             orgId={orgId}
             wsExecuteWorkflow={wsExecuteWorkflow}
-            sendHumanInput={wsSendHumanInput}
             isEnabled={isEnabled}
             isTogglingEnabled={isTogglingEnabled}
             onToggleEnabled={handleToggleEnabled}
