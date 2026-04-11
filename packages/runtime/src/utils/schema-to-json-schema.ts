@@ -27,6 +27,12 @@ export function schemaToJsonSchema(schema: Schema): Record<string, unknown> {
     if (field.type === "datetime") {
       prop.format = "date-time";
     }
+    if (field.label) {
+      prop.description = field.label;
+    }
+    if (field.defaultValue !== undefined) {
+      prop.default = field.defaultValue;
+    }
     properties[field.name] = prop;
     if (field.required) {
       required.push(field.name);

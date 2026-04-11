@@ -150,6 +150,12 @@ function validateField(
   const value = record[field.name];
 
   if (value === null || value === undefined) {
+    if (field.defaultValue !== undefined) {
+      const coerced = coerceValue(field.defaultValue, field.type);
+      if (coerced.ok) {
+        return { value: coerced.value, error: null };
+      }
+    }
     if (field.required) {
       return { value: null, error: `Missing required field '${field.name}'` };
     }

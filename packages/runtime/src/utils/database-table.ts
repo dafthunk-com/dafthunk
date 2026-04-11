@@ -114,7 +114,8 @@ export function generateCreateTableSQL(schema: Schema): string {
   const columns = fields.map((field) => {
     const sqlType = mapTypeToSqlite(field.type);
     const pk = field.primaryKey ? " PRIMARY KEY" : "";
-    return `${field.name} ${sqlType}${pk}`;
+    const uq = !field.primaryKey && field.unique ? " UNIQUE" : "";
+    return `${field.name} ${sqlType}${pk}${uq}`;
   });
 
   return `CREATE TABLE IF NOT EXISTS ${name} (${columns.join(", ")})`;

@@ -7,6 +7,7 @@
  */
 
 import { verifyFormToken } from "@dafthunk/runtime";
+import type { Field } from "@dafthunk/types";
 import { Hono } from "hono";
 
 import type { ApiContext } from "../context";
@@ -42,7 +43,7 @@ formRoutes.get("/:signedToken", async (c) => {
     const parsed = JSON.parse(schema) as {
       title: string;
       description?: string;
-      fields: Array<{ name: string; type: string; required?: boolean }>;
+      fields: Field[];
     };
 
     return c.json({

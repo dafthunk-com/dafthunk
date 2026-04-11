@@ -1,4 +1,6 @@
 import type { Field, FieldType, SchemaEntity } from "@dafthunk/types";
+import Asterisk from "lucide-react/icons/asterisk";
+import Hash from "lucide-react/icons/hash";
 import KeyRound from "lucide-react/icons/key-round";
 import PlusCircle from "lucide-react/icons/plus-circle";
 import Trash2 from "lucide-react/icons/trash-2";
@@ -22,7 +24,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
-import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Tooltip,
@@ -88,10 +89,35 @@ function FieldEditor({ fields, onChange }: FieldEditorProps) {
         return (
           <div key={index} className="flex items-center gap-2">
             <Input
-              placeholder="Field name"
+              placeholder="Name"
               value={field.name}
-              onChange={(e) => updateField(index, { name: e.target.value })}
-              className={cn("flex-1", isDuplicate && "border-destructive")}
+              onChange={(e) =>
+                updateField(index, { name: e.target.value })
+              }
+              className={cn(
+                "flex-1 min-w-0",
+                isDuplicate && "border-destructive"
+              )}
+            />
+            <Input
+              placeholder="Label"
+              value={field.label ?? ""}
+              onChange={(e) =>
+                updateField(index, {
+                  label: e.target.value || undefined,
+                })
+              }
+              className="flex-1 min-w-0"
+            />
+            <Input
+              placeholder="Default value"
+              value={field.defaultValue ?? ""}
+              onChange={(e) =>
+                updateField(index, {
+                  defaultValue: e.target.value || undefined,
+                })
+              }
+              className="flex-1 min-w-0"
             />
             <Select
               value={field.type}
@@ -99,7 +125,7 @@ function FieldEditor({ fields, onChange }: FieldEditorProps) {
                 updateField(index, { type: val as FieldType })
               }
             >
-              <SelectTrigger className="w-32">
+              <SelectTrigger className="w-28">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -110,18 +136,6 @@ function FieldEditor({ fields, onChange }: FieldEditorProps) {
                 ))}
               </SelectContent>
             </Select>
-            <div className="flex items-center gap-1">
-              <Switch
-                checked={field.required ?? false}
-                onCheckedChange={(checked) =>
-                  updateField(index, {
-                    required: checked ? true : undefined,
-                  })
-                }
-                className="scale-75"
-              />
-              <span className="text-xs text-muted-foreground">Req</span>
-            </div>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -137,7 +151,8 @@ function FieldEditor({ fields, onChange }: FieldEditorProps) {
                         onChange(
                           fields.map((f, i) => ({
                             ...f,
-                            primaryKey: i === index ? true : undefined,
+                            primaryKey:
+                              i === index ? true : undefined,
                           }))
                         );
                       }
@@ -157,6 +172,69 @@ function FieldEditor({ fields, onChange }: FieldEditorProps) {
                   {field.primaryKey
                     ? "Remove primary key"
                     : "Set as primary key"}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant={field.unique ? "secondary" : "ghost"}
+                    size="icon"
+                    className="h-8 w-8 shrink-0"
+                    disabled={field.primaryKey}
+                    onClick={() =>
+                      updateField(index, {
+                        unique: field.unique ? undefined : true,
+                      })
+                    }
+                  >
+                    <Hash
+                      className={cn(
+                        "h-4 w-4",
+                        field.unique
+                          ? "text-foreground"
+                          : "text-muted-foreground"
+                      )}
+                    />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {field.unique
+                    ? "Remove unique constraint"
+                    : "Set as unique"}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant={field.required ? "secondary" : "ghost"}
+                    size="icon"
+                    className="h-8 w-8 shrink-0"
+                    onClick={() =>
+                      updateField(index, {
+                        required: field.required ? undefined : true,
+                      })
+                    }
+                  >
+                    <Asterisk
+                      className={cn(
+                        "h-4 w-4",
+                        field.required
+                          ? "text-foreground"
+                          : "text-muted-foreground"
+                      )}
+                    />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {field.required
+                    ? "Set as optional"
+                    : "Set as required"}
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -232,7 +310,7 @@ export function SchemaDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-5xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>

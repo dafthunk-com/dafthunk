@@ -24,6 +24,8 @@ interface SchemaField {
   name: string;
   type: string;
   required?: boolean;
+  label?: string;
+  defaultValue?: string;
 }
 
 interface FormConfig {
@@ -54,6 +56,8 @@ function SchemaFieldInput({
   onChange: (value: unknown) => void;
   disabled: boolean;
 }) {
+  const displayLabel = field.label || field.name;
+
   switch (field.type) {
     case "boolean":
       return (
@@ -64,7 +68,7 @@ function SchemaFieldInput({
             onCheckedChange={onChange}
             disabled={disabled}
           />
-          <Label htmlFor={field.name}>{field.name}</Label>
+          <Label htmlFor={field.name}>{displayLabel}</Label>
         </div>
       );
 
@@ -73,7 +77,7 @@ function SchemaFieldInput({
       return (
         <div className="space-y-2">
           <Label htmlFor={field.name}>
-            {field.name}
+            {displayLabel}
             {field.required && <span className="text-destructive"> *</span>}
           </Label>
           <Input
@@ -100,7 +104,7 @@ function SchemaFieldInput({
       return (
         <div className="space-y-2">
           <Label htmlFor={field.name}>
-            {field.name}
+            {displayLabel}
             {field.required && <span className="text-destructive"> *</span>}
           </Label>
           <Input
@@ -117,7 +121,7 @@ function SchemaFieldInput({
       return (
         <div className="space-y-2">
           <Label htmlFor={field.name}>
-            {field.name}
+            {displayLabel}
             {field.required && <span className="text-destructive"> *</span>}
           </Label>
           <Textarea
@@ -136,7 +140,7 @@ function SchemaFieldInput({
       return (
         <div className="space-y-2">
           <Label htmlFor={field.name}>
-            {field.name}
+            {displayLabel}
             {field.required && <span className="text-destructive"> *</span>}
           </Label>
           <Input
@@ -183,6 +187,13 @@ export function FormPage() {
         if (config.submitted) {
           setState({ status: "already_submitted" });
         } else {
+          const defaults: Record<string, unknown> = {};
+          for (const f of config.fields) {
+            if (f.defaultValue !== undefined) {
+              defaults[f.name] = f.defaultValue;
+            }
+          }
+          setValues(defaults);
           setState({ status: "ready", config });
         }
       })

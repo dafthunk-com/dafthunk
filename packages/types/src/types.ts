@@ -26,6 +26,9 @@ export interface Field {
   type: FieldType;
   required?: boolean;
   primaryKey?: boolean;
+  label?: string;
+  defaultValue?: string;
+  unique?: boolean;
 }
 
 /**

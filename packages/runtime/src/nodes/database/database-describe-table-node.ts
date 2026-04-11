@@ -85,10 +85,44 @@ export class DatabaseDescribeTableNode extends ExecutableNode {
       // Map schema results to Field format
       // PRAGMA table_info returns: cid, name, type, notnull, dflt_value, pk
       const rows = schemaResult.results as unknown as PragmaTableInfoRow[];
+
+      // Collect unique columns from single-column unique indexes
+      const uniqueColumns = new Set<string>();
+      try {
+        const indexList = await connection.query(
+          `PRAGMA index_list(${table})`
+        );
+        if (indexList.results) {
+          for (const idx of indexList.results as unknown as Array<{
+            name: string;
+            unique: number;
+          }>) {
+            if (!idx.unique) continue;
+            const indexInfo = await connection.query(
+              `PRAGMA index_info(${idx.name})`
+            );
+            if (
+              indexInfo.results &&
+              indexInfo.results.length === 1
+            ) {
+              const col = indexInfo.results[0] as unknown as {
+                name: string;
+              };
+              uniqueColumns.add(col.name);
+            }
+          }
+        }
+      } catch {
+        // PRAGMA index_list may not be available; proceed without unique info
+      }
+
       const fields: Field[] = rows.map((col) => ({
         name: col.name,
         type: mapSqliteToType(col.type || "TEXT"),
         ...(col.pk ? { primaryKey: true } : {}),
+        ...(!col.pk && uniqueColumns.has(col.name)
+          ? { unique: true }
+          : {}),
       }));
 
       const schema: Schema = {
