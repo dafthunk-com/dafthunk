@@ -35,6 +35,7 @@ import { BotWhatsAppDetailPage } from "./pages/bot-whatsapp-detail-page";
 import { BotsPage } from "./pages/bots-page";
 import { DashboardPage } from "./pages/dashboard-page";
 import { DatabaseConsolePage } from "./pages/database-console-page";
+import { DatabaseExplorerPage } from "./pages/database-explorer-page";
 import { DatabasesPage } from "./pages/databases-page";
 import { DatasetDetailPage } from "./pages/dataset-detail-page";
 import { DatasetsPage } from "./pages/datasets-page";
@@ -629,6 +630,17 @@ export const routes: AppRouteObject[] = [
       </OrgLayout>
     ),
     handle: { head: <HeadSeo title="Console - Database - Dafthunk" /> },
+  },
+  {
+    path: "/org/:organizationId/databases/:id/explorer",
+    element: (
+      <OrgLayout title="Database Explorer">
+        <ProtectedRoute>
+          <DatabaseExplorerPage />
+        </ProtectedRoute>
+      </OrgLayout>
+    ),
+    handle: { head: <HeadSeo title="Explorer - Database - Dafthunk" /> },
   },
   {
     path: "/schemas",

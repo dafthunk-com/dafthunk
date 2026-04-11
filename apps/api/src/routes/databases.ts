@@ -3,6 +3,10 @@ import type {
   CreateDatabaseResponse,
   DatabaseQueryRequest,
   DatabaseQueryResponse,
+  DatabaseSchemaColumn,
+  DatabaseSchemaForeignKey,
+  DatabaseSchemaResponse,
+  DatabaseSchemaTable,
   DeleteDatabaseResponse,
   GetDatabaseResponse,
   ListDatabasesResponse,
@@ -174,6 +178,86 @@ databaseRoutes.delete("/:id", async (c) => {
 
   const response: DeleteDatabaseResponse = { id: deletedDatabase.id };
   return c.json(response);
+});
+
+/**
+ * Get the schema of a database (tables, columns, foreign keys)
+ */
+databaseRoutes.get("/:databaseId/schema", apiKeyOrJwtMiddleware, async (c) => {
+  const databaseId = c.req.param("databaseId");
+  const { organizationId } = getAuthContext(c);
+
+  const databaseService = new CloudflareDatabaseService(c.env);
+  const connection = await databaseService.resolve(databaseId, organizationId);
+  if (!connection) {
+    return c.json(
+      { error: "Database not found or does not belong to your organization" },
+      404
+    );
+  }
+
+  try {
+    // Get all user-defined tables
+    const tablesResult = await connection.query(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name"
+    );
+    const tableNames = (tablesResult.results as { name: string }[]).map(
+      (r) => r.name
+    );
+
+    // Fetch columns and foreign keys for each table
+    const tables: DatabaseSchemaTable[] = await Promise.all(
+      tableNames.map(async (tableName) => {
+        const [columnsResult, fksResult] = await Promise.all([
+          connection.query(`PRAGMA table_info("${tableName}")`),
+          connection.query(`PRAGMA foreign_key_list("${tableName}")`),
+        ]);
+
+        const columns: DatabaseSchemaColumn[] = (
+          columnsResult.results as {
+            cid: number;
+            name: string;
+            type: string;
+            notnull: number;
+            dflt_value: string | null;
+            pk: number;
+          }[]
+        ).map((col) => ({
+          name: col.name,
+          type: col.type,
+          notnull: col.notnull === 1,
+          defaultValue: col.dflt_value,
+          primaryKey: col.pk > 0,
+        }));
+
+        const foreignKeys: DatabaseSchemaForeignKey[] = (
+          fksResult.results as {
+            id: number;
+            seq: number;
+            table: string;
+            from: string;
+            to: string;
+          }[]
+        ).map((fk) => ({
+          column: fk.from,
+          referencedTable: fk.table,
+          referencedColumn: fk.to,
+        }));
+
+        return { name: tableName, columns, foreignKeys };
+      })
+    );
+
+    const response: DatabaseSchemaResponse = { tables };
+    return c.json(response);
+  } catch (error) {
+    return c.json(
+      {
+        error: `Failed to fetch schema: ${error instanceof Error ? error.message : String(error)}`,
+      },
+      500
+    );
+  }
 });
 
 /**

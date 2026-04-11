@@ -128,6 +128,11 @@ function createColumns(
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem asChild>
+                  <Link to={`/org/${orgId}/databases/${database.id}/explorer`}>
+                    Open Explorer
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
                   <Link to={`/org/${orgId}/databases/${database.id}/console`}>
                     Open Console
                   </Link>

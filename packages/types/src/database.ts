@@ -58,3 +58,28 @@ export interface DatabaseQueryResponse {
     lastInsertRowid?: number;
   };
 }
+
+// Schema Introspection Types
+export interface DatabaseSchemaColumn {
+  name: string;
+  type: string;
+  notnull: boolean;
+  defaultValue: string | null;
+  primaryKey: boolean;
+}
+
+export interface DatabaseSchemaForeignKey {
+  column: string;
+  referencedTable: string;
+  referencedColumn: string;
+}
+
+export interface DatabaseSchemaTable {
+  name: string;
+  columns: DatabaseSchemaColumn[];
+  foreignKeys: DatabaseSchemaForeignKey[];
+}
+
+export interface DatabaseSchemaResponse {
+  tables: DatabaseSchemaTable[];
+}

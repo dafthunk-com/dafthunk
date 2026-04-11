@@ -1,6 +1,7 @@
-import {
+import type {
   CreateDatabaseRequest,
   CreateDatabaseResponse,
+  DatabaseSchemaResponse,
   DeleteDatabaseResponse,
   GetDatabaseResponse,
   ListDatabasesResponse,
@@ -138,4 +139,34 @@ export const deleteDatabase = async (
       method: "DELETE",
     }
   );
+};
+
+/**
+ * Hook to get the schema of a specific database (tables, columns, foreign keys)
+ */
+export const useDatabaseSchema = (id: string | null) => {
+  const { organization } = useAuth();
+  const orgId = organization?.id;
+
+  const swrKey =
+    orgId && id ? `/${orgId}${API_ENDPOINT_BASE}/${id}/schema` : null;
+
+  const { data, error, isLoading } = useSWR(
+    swrKey,
+    swrKey && orgId && id
+      ? async () => {
+          return await makeOrgRequest<DatabaseSchemaResponse>(
+            orgId,
+            API_ENDPOINT_BASE,
+            `/${id}/schema`
+          );
+        }
+      : null
+  );
+
+  return {
+    schema: data,
+    schemaError: error || null,
+    isSchemaLoading: isLoading,
+  };
 };
