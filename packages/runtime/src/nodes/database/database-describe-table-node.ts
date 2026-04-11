@@ -89,9 +89,7 @@ export class DatabaseDescribeTableNode extends ExecutableNode {
       // Collect unique columns from single-column unique indexes
       const uniqueColumns = new Set<string>();
       try {
-        const indexList = await connection.query(
-          `PRAGMA index_list(${table})`
-        );
+        const indexList = await connection.query(`PRAGMA index_list(${table})`);
         if (indexList.results) {
           for (const idx of indexList.results as unknown as Array<{
             name: string;
@@ -101,10 +99,7 @@ export class DatabaseDescribeTableNode extends ExecutableNode {
             const indexInfo = await connection.query(
               `PRAGMA index_info(${idx.name})`
             );
-            if (
-              indexInfo.results &&
-              indexInfo.results.length === 1
-            ) {
+            if (indexInfo.results && indexInfo.results.length === 1) {
               const col = indexInfo.results[0] as unknown as {
                 name: string;
               };
@@ -120,9 +115,7 @@ export class DatabaseDescribeTableNode extends ExecutableNode {
         name: col.name,
         type: mapSqliteToType(col.type || "TEXT"),
         ...(col.pk ? { primaryKey: true } : {}),
-        ...(!col.pk && uniqueColumns.has(col.name)
-          ? { unique: true }
-          : {}),
+        ...(!col.pk && uniqueColumns.has(col.name) ? { unique: true } : {}),
       }));
 
       const schema: Schema = {

@@ -10,7 +10,8 @@ export class DatabasePutRowNode extends ExecutableNode {
     id: "database-put-row",
     name: "Database Put Row",
     type: "database-put-row",
-    description: "Inserts a row, or replaces it if a matching primary key exists.",
+    description:
+      "Inserts a row, or replaces it if a matching primary key exists.",
     tags: ["Database", "Put", "Row"],
     icon: "database",
     documentation:

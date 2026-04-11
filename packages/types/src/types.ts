@@ -29,6 +29,7 @@ export interface Field {
   label?: string;
   defaultValue?: string;
   unique?: boolean;
+  references?: string;
 }
 
 /**

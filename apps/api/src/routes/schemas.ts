@@ -27,6 +27,10 @@ const fieldSchema = z.object({
   type: z.enum(["string", "integer", "number", "boolean", "datetime", "json"]),
   required: z.boolean().optional(),
   primaryKey: z.boolean().optional(),
+  label: z.string().optional(),
+  defaultValue: z.string().optional(),
+  unique: z.boolean().optional(),
+  references: z.string().optional(),
 });
 
 const uniqueFields = (fields: z.infer<typeof fieldSchema>[]) => {

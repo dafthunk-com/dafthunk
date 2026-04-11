@@ -2,6 +2,7 @@ import type { Field, FieldType, SchemaEntity } from "@dafthunk/types";
 import Asterisk from "lucide-react/icons/asterisk";
 import Hash from "lucide-react/icons/hash";
 import KeyRound from "lucide-react/icons/key-round";
+import Link from "lucide-react/icons/link";
 import PlusCircle from "lucide-react/icons/plus-circle";
 import Trash2 from "lucide-react/icons/trash-2";
 import { useEffect, useState } from "react";
@@ -16,6 +17,11 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -45,9 +51,10 @@ const FIELD_TYPES: FieldType[] = [
 interface FieldEditorProps {
   fields: Field[];
   onChange: (fields: Field[]) => void;
+  schemas?: SchemaEntity[];
 }
 
-function FieldEditor({ fields, onChange }: FieldEditorProps) {
+function FieldEditor({ fields, onChange, schemas }: FieldEditorProps) {
   const addField = () => {
     onChange([...fields, { name: "", type: "string" }]);
   };
@@ -91,9 +98,7 @@ function FieldEditor({ fields, onChange }: FieldEditorProps) {
             <Input
               placeholder="Name"
               value={field.name}
-              onChange={(e) =>
-                updateField(index, { name: e.target.value })
-              }
+              onChange={(e) => updateField(index, { name: e.target.value })}
               className={cn(
                 "flex-1 min-w-0",
                 isDuplicate && "border-destructive"
@@ -151,8 +156,7 @@ function FieldEditor({ fields, onChange }: FieldEditorProps) {
                         onChange(
                           fields.map((f, i) => ({
                             ...f,
-                            primaryKey:
-                              i === index ? true : undefined,
+                            primaryKey: i === index ? true : undefined,
                           }))
                         );
                       }
@@ -201,9 +205,7 @@ function FieldEditor({ fields, onChange }: FieldEditorProps) {
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  {field.unique
-                    ? "Remove unique constraint"
-                    : "Set as unique"}
+                  {field.unique ? "Remove unique constraint" : "Set as unique"}
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -232,12 +234,73 @@ function FieldEditor({ fields, onChange }: FieldEditorProps) {
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  {field.required
-                    ? "Set as optional"
-                    : "Set as required"}
+                  {field.required ? "Set as optional" : "Set as required"}
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
+            {schemas && schemas.length > 0 && (
+              <Popover>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <PopoverTrigger asChild>
+                        <Button
+                          type="button"
+                          variant={field.references ? "secondary" : "ghost"}
+                          size="icon"
+                          className="h-8 w-8 shrink-0"
+                        >
+                          <Link
+                            className={cn(
+                              "h-4 w-4",
+                              field.references
+                                ? "text-foreground"
+                                : "text-muted-foreground"
+                            )}
+                          />
+                        </Button>
+                      </PopoverTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {field.references
+                        ? `References ${field.references}`
+                        : "Set foreign key reference"}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <PopoverContent className="w-40 p-1" align="start">
+                  <button
+                    type="button"
+                    className={cn(
+                      "w-full rounded-sm px-2 py-1.5 text-sm text-left hover:bg-accent",
+                      !field.references && "font-medium"
+                    )}
+                    onClick={() =>
+                      updateField(index, { references: undefined })
+                    }
+                  >
+                    None
+                  </button>
+                  {schemas
+                    .filter((s) => s.fields.some((f) => f.primaryKey))
+                    .map((s) => (
+                      <button
+                        key={s.id}
+                        type="button"
+                        className={cn(
+                          "w-full rounded-sm px-2 py-1.5 text-sm text-left hover:bg-accent",
+                          field.references === s.name && "font-medium"
+                        )}
+                        onClick={() =>
+                          updateField(index, { references: s.name })
+                        }
+                      >
+                        {s.name}
+                      </button>
+                    ))}
+                </PopoverContent>
+              </Popover>
+            )}
             <Button
               type="button"
               variant="ghost"
@@ -258,6 +321,7 @@ export interface SchemaDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   schema?: SchemaEntity | null;
+  schemas?: SchemaEntity[];
   onSubmit: (data: {
     name: string;
     description: string;
@@ -271,6 +335,7 @@ export function SchemaDialog({
   open,
   onOpenChange,
   schema,
+  schemas,
   onSubmit,
   title,
   submitLabel,
@@ -336,7 +401,7 @@ export function SchemaDialog({
               rows={2}
             />
           </div>
-          <FieldEditor fields={fields} onChange={setFields} />
+          <FieldEditor fields={fields} onChange={setFields} schemas={schemas} />
           <DialogFooter>
             <Button
               variant="outline"

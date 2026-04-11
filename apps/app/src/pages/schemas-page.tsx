@@ -227,6 +227,7 @@ export function SchemasPage() {
         <SchemaDialog
           open={isCreateDialogOpen}
           onOpenChange={setIsCreateDialogOpen}
+          schemas={schemas}
           onSubmit={handleCreate}
           title="Create New Schema"
           submitLabel="Create Schema"
@@ -237,6 +238,7 @@ export function SchemasPage() {
             if (!open) setEditSchema(null);
           }}
           schema={editSchema}
+          schemas={schemas}
           onSubmit={handleEdit}
           title="Edit Schema"
           submitLabel="Save Changes"

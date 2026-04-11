@@ -24,10 +24,7 @@ import { useParams } from "react-router";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
-import {
-  useDatabase,
-  useDatabaseSchema,
-} from "@/services/database-service";
+import { useDatabase, useDatabaseSchema } from "@/services/database-service";
 import { cn } from "@/utils/utils";
 
 // --- Schema Table Node ---
@@ -59,8 +56,16 @@ function SchemaTableNode({ data }: NodeProps<Node<SchemaTableNodeData>>) {
               className="!w-[9px] !h-[9px] !bg-muted !border-[1.5px] !border-border"
               isConnectable={false}
             />
-            <span className={col.primaryKey ? "font-semibold" : "text-foreground/80"}>{col.name}</span>
-            <span className="text-muted-foreground/60 font-light uppercase">{col.type || "TEXT"}</span>
+            <span
+              className={
+                col.primaryKey ? "font-semibold" : "text-foreground/80"
+              }
+            >
+              {col.name}
+            </span>
+            <span className="text-muted-foreground/60 font-light uppercase">
+              {col.type || "TEXT"}
+            </span>
             <Handle
               type="source"
               position={Position.Right}
@@ -177,7 +182,7 @@ function SchemaFlowCanvas({ tables }: SchemaFlowCanvasProps) {
       nodesConnectable={false}
       elementsSelectable={false}
       fitView
-      fitViewOptions={{ padding: 0}}
+      fitViewOptions={{ padding: 0 }}
       minZoom={0.1}
       maxZoom={4}
     >
@@ -235,9 +240,7 @@ export function DatabaseExplorerPage() {
   return (
     <div className="flex flex-col h-full">
       <div className="border-b bg-background px-6 py-4 flex items-center">
-        <h1 className="text-xl font-semibold">
-          {database.name} - Explorer
-        </h1>
+        <h1 className="text-xl font-semibold">{database.name} - Explorer</h1>
       </div>
       <div className="flex-1 min-h-0">
         <ReactFlowProvider>
