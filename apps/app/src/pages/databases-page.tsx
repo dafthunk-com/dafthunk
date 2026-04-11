@@ -1,3 +1,4 @@
+import { IDENTIFIER_PATTERN } from "@dafthunk/types";
 import { ColumnDef } from "@tanstack/react-table";
 import MoreHorizontal from "lucide-react/icons/more-horizontal";
 import PlusCircle from "lucide-react/icons/plus-circle";
@@ -34,6 +35,7 @@ import {
   deleteDatabase,
   useDatabases,
 } from "@/services/database-service";
+import { cn } from "@/utils/utils";
 
 function useDatabaseActions() {
   const { mutateDatabases } = useDatabases();
@@ -151,6 +153,7 @@ function createColumns(
 
 export function DatabasesPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [newDatabaseName, setNewDatabaseName] = useState("");
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const { organization } = useAuth();
   const orgId = organization?.id || "";
@@ -206,7 +209,13 @@ export function DatabasesPage() {
             description: "Create a new database to get started.",
           }}
         />
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <Dialog
+          open={isCreateDialogOpen}
+          onOpenChange={(open) => {
+            setIsCreateDialogOpen(open);
+            if (!open) setNewDatabaseName("");
+          }}
+        >
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Create New Database</DialogTitle>
@@ -214,9 +223,8 @@ export function DatabasesPage() {
             <form
               onSubmit={async (e) => {
                 e.preventDefault();
-                const formData = new FormData(e.currentTarget);
-                const name = formData.get("name") as string;
-                await handleCreateDatabase(name);
+                await handleCreateDatabase(newDatabaseName.trim());
+                setNewDatabaseName("");
               }}
               className="space-y-4"
             >
@@ -225,9 +233,22 @@ export function DatabasesPage() {
                 <Input
                   id="name"
                   name="name"
+                  value={newDatabaseName}
+                  onChange={(e) => setNewDatabaseName(e.target.value)}
                   placeholder="Enter database name"
-                  className="mt-2"
+                  className={cn(
+                    "mt-2",
+                    newDatabaseName.trim().length > 0 &&
+                      !IDENTIFIER_PATTERN.test(newDatabaseName.trim()) &&
+                      "border-destructive"
+                  )}
                 />
+                {newDatabaseName.trim().length > 0 &&
+                  !IDENTIFIER_PATTERN.test(newDatabaseName.trim()) && (
+                    <p className="text-xs text-destructive mt-1">
+                      Letters, digits, and underscores only (e.g. my_database)
+                    </p>
+                  )}
               </div>
               <DialogFooter>
                 <Button
@@ -237,7 +258,15 @@ export function DatabasesPage() {
                 >
                   Cancel
                 </Button>
-                <Button type="submit">Create Database</Button>
+                <Button
+                  type="submit"
+                  disabled={
+                    newDatabaseName.trim().length === 0 ||
+                    !IDENTIFIER_PATTERN.test(newDatabaseName.trim())
+                  }
+                >
+                  Create Database
+                </Button>
               </DialogFooter>
             </form>
           </DialogContent>

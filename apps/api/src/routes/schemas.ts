@@ -1,8 +1,8 @@
 import {
-  IDENTIFIER_PATTERN,
   type CreateSchemaResponse,
   type DeleteSchemaResponse,
   type GetSchemaResponse,
+  IDENTIFIER_PATTERN,
   type ListSchemasResponse,
   type SchemaEntity,
   type UpdateSchemaResponse,

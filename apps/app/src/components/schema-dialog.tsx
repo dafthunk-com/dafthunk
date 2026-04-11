@@ -1,4 +1,9 @@
-import { IDENTIFIER_PATTERN, type Field, type FieldType, type SchemaEntity } from "@dafthunk/types";
+import {
+  type Field,
+  type FieldType,
+  IDENTIFIER_PATTERN,
+  type SchemaEntity,
+} from "@dafthunk/types";
 import Asterisk from "lucide-react/icons/asterisk";
 import Hash from "lucide-react/icons/hash";
 import KeyRound from "lucide-react/icons/key-round";

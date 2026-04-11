@@ -1,17 +1,18 @@
-import type {
-  CreateDatabaseRequest,
-  CreateDatabaseResponse,
-  DatabaseQueryRequest,
-  DatabaseQueryResponse,
-  DatabaseSchemaColumn,
-  DatabaseSchemaForeignKey,
-  DatabaseSchemaResponse,
-  DatabaseSchemaTable,
-  DeleteDatabaseResponse,
-  GetDatabaseResponse,
-  ListDatabasesResponse,
-  UpdateDatabaseRequest,
-  UpdateDatabaseResponse,
+import {
+  type CreateDatabaseRequest,
+  type CreateDatabaseResponse,
+  type DatabaseQueryRequest,
+  type DatabaseQueryResponse,
+  type DatabaseSchemaColumn,
+  type DatabaseSchemaForeignKey,
+  type DatabaseSchemaResponse,
+  type DatabaseSchemaTable,
+  type DeleteDatabaseResponse,
+  type GetDatabaseResponse,
+  IDENTIFIER_PATTERN,
+  type ListDatabasesResponse,
+  type UpdateDatabaseRequest,
+  type UpdateDatabaseResponse,
 } from "@dafthunk/types";
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
@@ -64,7 +65,13 @@ databaseRoutes.post(
   zValidator(
     "json",
     z.object({
-      name: z.string().min(1, "Database name is required"),
+      name: z
+        .string()
+        .min(1, "Database name is required")
+        .regex(
+          IDENTIFIER_PATTERN,
+          "Must start with a letter or underscore, and contain only letters, digits, or underscores"
+        ),
     }) as z.ZodType<CreateDatabaseRequest>
   ),
   async (c) => {
@@ -126,7 +133,13 @@ databaseRoutes.put(
   zValidator(
     "json",
     z.object({
-      name: z.string().min(1, "Database name is required"),
+      name: z
+        .string()
+        .min(1, "Database name is required")
+        .regex(
+          IDENTIFIER_PATTERN,
+          "Must start with a letter or underscore, and contain only letters, digits, or underscores"
+        ),
     }) as z.ZodType<UpdateDatabaseRequest>
   ),
   async (c) => {
