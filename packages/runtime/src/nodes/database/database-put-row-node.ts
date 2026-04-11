@@ -10,11 +10,11 @@ export class DatabasePutRowNode extends ExecutableNode {
     id: "database-put-row",
     name: "Database Put Row",
     type: "database-put-row",
-    description: "Inserts or replaces a row by its primary key.",
+    description: "Inserts a row, or replaces it if a matching primary key exists.",
     tags: ["Database", "Put", "Row"],
     icon: "database",
     documentation:
-      "Inserts a row into a table, or replaces it if a row with the same primary key already exists. The record must include the primary key field. Uses INSERT OR REPLACE for idempotent write semantics.",
+      "Inserts a row into a table. If the schema defines a primary key and a row with the same key already exists, it replaces it (INSERT OR REPLACE). If no primary key is defined, the row is appended (INSERT INTO).",
     asTool: true,
     inputs: [
       {
@@ -34,7 +34,7 @@ export class DatabasePutRowNode extends ExecutableNode {
         name: "record",
         type: "json",
         description:
-          "Row object to insert or replace. Must include the primary key field.",
+          "Row object to insert or replace. Must include the primary key field if the schema defines one.",
         required: true,
       },
     ],
@@ -70,11 +70,6 @@ export class DatabasePutRowNode extends ExecutableNode {
     }
 
     const pkField = getPrimaryKeyField(schema);
-    if (!pkField) {
-      return this.createErrorResult(
-        "Schema has no primary key defined. Set primaryKey on a field."
-      );
-    }
 
     if (
       !recordInput ||
@@ -86,7 +81,7 @@ export class DatabasePutRowNode extends ExecutableNode {
 
     const record = recordInput as Record<string, unknown>;
 
-    if (!(pkField.name in record)) {
+    if (pkField && !(pkField.name in record)) {
       return this.createErrorResult(
         `Record must include the primary key field '${pkField.name}'.`
       );
@@ -117,10 +112,11 @@ export class DatabasePutRowNode extends ExecutableNode {
       const placeholders = columns.map(() => "?").join(", ");
       const values = columns.map((col) => record[col]);
 
-      await connection.execute(
-        `INSERT OR REPLACE INTO ${schema.name} (${columns.join(", ")}) VALUES (${placeholders})`,
-        values
-      );
+      const sql = pkField
+        ? `INSERT OR REPLACE INTO ${schema.name} (${columns.join(", ")}) VALUES (${placeholders})`
+        : `INSERT INTO ${schema.name} (${columns.join(", ")}) VALUES (${placeholders})`;
+
+      await connection.execute(sql, values);
 
       return this.createSuccessResult({
         success: true,
