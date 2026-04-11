@@ -1,4 +1,4 @@
-import type { Field, FieldType, SchemaEntity } from "@dafthunk/types";
+import { IDENTIFIER_PATTERN, type Field, type FieldType, type SchemaEntity } from "@dafthunk/types";
 import Asterisk from "lucide-react/icons/asterisk";
 import Hash from "lucide-react/icons/hash";
 import KeyRound from "lucide-react/icons/key-round";
@@ -90,20 +90,28 @@ function FieldEditor({ fields, onChange, schemas }: FieldEditorProps) {
         </p>
       )}
       {fields.map((field, index) => {
+        const trimmed = field.name.trim();
         const isDuplicate =
-          field.name.trim() !== "" &&
-          (nameCounts.get(field.name.trim()) ?? 0) > 1;
+          trimmed !== "" && (nameCounts.get(trimmed) ?? 0) > 1;
+        const isInvalidName =
+          trimmed !== "" && !IDENTIFIER_PATTERN.test(trimmed);
         return (
           <div key={index} className="flex items-center gap-2">
-            <Input
-              placeholder="Name"
-              value={field.name}
-              onChange={(e) => updateField(index, { name: e.target.value })}
-              className={cn(
-                "flex-1 min-w-0",
-                isDuplicate && "border-destructive"
+            <div className="flex-1 min-w-0">
+              <Input
+                placeholder="Name"
+                value={field.name}
+                onChange={(e) => updateField(index, { name: e.target.value })}
+                className={cn(
+                  (isDuplicate || isInvalidName) && "border-destructive"
+                )}
+              />
+              {isInvalidName && (
+                <p className="text-xs text-destructive mt-1">
+                  Letters, digits, and underscores only
+                </p>
               )}
-            />
+            </div>
             <Input
               placeholder="Label"
               value={field.label ?? ""}
@@ -366,11 +374,16 @@ export function SchemaDialog({
 
   const fieldNames = fields.map((f) => f.name.trim());
   const hasDuplicateNames = new Set(fieldNames).size !== fieldNames.length;
+  const isNameValid =
+    name.trim().length > 0 && IDENTIFIER_PATTERN.test(name.trim());
 
   const isValid =
-    name.trim().length > 0 &&
+    isNameValid &&
     fields.length > 0 &&
-    fields.every((f) => f.name.trim().length > 0) &&
+    fields.every((f) => {
+      const t = f.name.trim();
+      return t.length > 0 && IDENTIFIER_PATTERN.test(t);
+    }) &&
     !hasDuplicateNames;
 
   return (
@@ -387,8 +400,19 @@ export function SchemaDialog({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Enter schema name"
-              className="mt-2"
+              className={cn(
+                "mt-2",
+                name.trim().length > 0 &&
+                  !IDENTIFIER_PATTERN.test(name.trim()) &&
+                  "border-destructive"
+              )}
             />
+            {name.trim().length > 0 &&
+              !IDENTIFIER_PATTERN.test(name.trim()) && (
+                <p className="text-xs text-destructive mt-1">
+                  Letters, digits, and underscores only (e.g. my_schema)
+                </p>
+              )}
           </div>
           <div>
             <Label htmlFor="schema-description">Description</Label>

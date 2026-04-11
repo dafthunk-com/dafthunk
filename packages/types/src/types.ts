@@ -19,6 +19,14 @@ export type FieldType =
   | "json";
 
 /**
+ * Pattern for valid identifier names (schema names, field names).
+ * Must start with a letter or underscore, followed by letters, digits, or underscores.
+ * Valid: firstName, first_name, FIRSTNAME
+ * Invalid: first-name, "first name", 123abc
+ */
+export const IDENTIFIER_PATTERN = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+
+/**
  * Field definition
  */
 export interface Field {

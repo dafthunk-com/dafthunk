@@ -1,10 +1,11 @@
-import type {
-  CreateSchemaResponse,
-  DeleteSchemaResponse,
-  GetSchemaResponse,
-  ListSchemasResponse,
-  SchemaEntity,
-  UpdateSchemaResponse,
+import {
+  IDENTIFIER_PATTERN,
+  type CreateSchemaResponse,
+  type DeleteSchemaResponse,
+  type GetSchemaResponse,
+  type ListSchemasResponse,
+  type SchemaEntity,
+  type UpdateSchemaResponse,
 } from "@dafthunk/types";
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
@@ -22,8 +23,11 @@ import {
   updateSchemaRecord,
 } from "../db";
 
+const identifierMessage =
+  "Must start with a letter or underscore, and contain only letters, digits, or underscores";
+
 const fieldSchema = z.object({
-  name: z.string().min(1),
+  name: z.string().min(1).regex(IDENTIFIER_PATTERN, identifierMessage),
   type: z.enum(["string", "integer", "number", "boolean", "datetime", "json"]),
   required: z.boolean().optional(),
   primaryKey: z.boolean().optional(),
@@ -88,7 +92,10 @@ schemaRoutes.post(
     "json",
     z
       .object({
-        name: z.string().min(1, "Schema name is required"),
+        name: z
+          .string()
+          .min(1, "Schema name is required")
+          .regex(IDENTIFIER_PATTERN, identifierMessage),
         description: z.string().optional(),
         fields: z.array(fieldSchema).min(1, "At least one field is required"),
       })
@@ -152,7 +159,11 @@ schemaRoutes.put(
     "json",
     z
       .object({
-        name: z.string().min(1).optional(),
+        name: z
+          .string()
+          .min(1)
+          .regex(IDENTIFIER_PATTERN, identifierMessage)
+          .optional(),
         description: z.string().optional(),
         fields: z.array(fieldSchema).min(1).optional(),
       })
