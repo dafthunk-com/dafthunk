@@ -201,7 +201,7 @@ endpointRoutes.on(
   apiKeyOrJwtMiddleware,
   (c, next) => createRateLimitMiddleware(c.env.RATE_LIMIT_EXECUTE)(c, next),
   async (c) => {
-    const id = c.req.param("id");
+    const id = c.req.param("id")!;
     const db = createDatabase(c.env.DB);
     const { organizationId, userId } = getAuthContext(c);
 

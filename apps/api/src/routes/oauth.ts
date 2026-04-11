@@ -61,7 +61,7 @@ oauthRoutes.get(
   jwtMiddleware,
   resolveOrgFromQuery,
   async (c) => {
-    const providerName = c.req.param("provider");
+    const providerName = c.req.param("provider")!;
 
     try {
       const provider = getProvider(providerName);

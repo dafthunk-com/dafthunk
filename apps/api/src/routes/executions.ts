@@ -19,7 +19,7 @@ const executionRoutes = new Hono<ApiContext>();
 
 executionRoutes.get("/:id", apiKeyOrJwtMiddleware, async (c) => {
   const organizationId = c.get("organizationId")!;
-  const id = c.req.param("id");
+  const id = c.req.param("id")!;
 
   if (!isUuid(id)) {
     return c.json({ error: "Invalid execution ID format" }, 400);

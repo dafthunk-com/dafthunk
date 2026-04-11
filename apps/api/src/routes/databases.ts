@@ -184,7 +184,7 @@ databaseRoutes.delete("/:id", async (c) => {
  * Get the schema of a database (tables, columns, foreign keys)
  */
 databaseRoutes.get("/:databaseId/schema", apiKeyOrJwtMiddleware, async (c) => {
-  const databaseId = c.req.param("databaseId");
+  const databaseId = c.req.param("databaseId")!;
   const { organizationId } = getAuthContext(c);
 
   const databaseService = new CloudflareDatabaseService(c.env);

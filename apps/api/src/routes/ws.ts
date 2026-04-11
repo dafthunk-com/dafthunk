@@ -14,7 +14,7 @@ wsRoutes.get("/:workflowId", jwtMiddleware, async (c) => {
     return c.json({ error: "Unauthorized" }, 401);
   }
 
-  const workflowId = c.req.param("workflowId");
+  const workflowId = c.req.param("workflowId")!;
 
   // getAgentByName initializes the partyserver name before returning the stub
   const stub = await getAgentByName(c.env.WORKFLOW_AGENT, workflowId);

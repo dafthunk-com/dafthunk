@@ -193,7 +193,7 @@ workflowRoutes.post(
  * Get a specific workflow by ID
  */
 workflowRoutes.get("/:id", jwtMiddleware, async (c) => {
-  const id = c.req.param("id");
+  const id = c.req.param("id")!;
   const organizationId = c.get("organizationId")!;
   const userId = c.var.jwtPayload?.sub;
 
@@ -248,7 +248,7 @@ workflowRoutes.put(
     }) as z.ZodType<UpdateWorkflowRequest>
   ),
   async (c) => {
-    const id = c.req.param("id");
+    const id = c.req.param("id")!;
     const workflowStore = new WorkflowStore(c.env);
 
     const organizationId = c.get("organizationId")!;
@@ -357,7 +357,7 @@ workflowRoutes.put(
  * Delete a workflow by ID
  */
 workflowRoutes.delete("/:id", jwtMiddleware, async (c) => {
-  const id = c.req.param("id");
+  const id = c.req.param("id")!;
   const workflowStore = new WorkflowStore(c.env);
 
   const organizationId = c.get("organizationId")!;
@@ -440,7 +440,7 @@ workflowRoutes.on(
   jwtMiddleware,
   (c, next) => createRateLimitMiddleware(c.env.RATE_LIMIT_EXECUTE)(c, next),
   async (c) => {
-    const workflowId = c.req.param("workflowId");
+    const workflowId = c.req.param("workflowId")!;
     const { organizationId } = getAuthContext(c);
 
     const workflowStore = new WorkflowStore(c.env);
@@ -490,7 +490,7 @@ workflowRoutes.on(
   jwtMiddleware,
   (c, next) => createRateLimitMiddleware(c.env.RATE_LIMIT_EXECUTE)(c, next),
   async (c) => {
-    const workflowId = c.req.param("workflowId");
+    const workflowId = c.req.param("workflowId")!;
     const { organizationId } = getAuthContext(c);
 
     const workflowStore = new WorkflowStore(c.env);
@@ -527,7 +527,7 @@ workflowRoutes.post(
   jwtMiddleware,
   async (c) => {
     const organizationId = c.get("organizationId")!;
-    const executionId = c.req.param("executionId");
+    const executionId = c.req.param("executionId")!;
     const executionStore = new CloudflareExecutionStore(c.env);
 
     // Get the execution to verify it exists and belongs to this organization
@@ -614,7 +614,7 @@ workflowRoutes.post(
  * Get queue trigger for a workflow
  */
 workflowRoutes.get("/:workflowId/queue-trigger", jwtMiddleware, async (c) => {
-  const workflowId = c.req.param("workflowId");
+  const workflowId = c.req.param("workflowId")!;
   const organizationId = c.get("organizationId")!;
   const workflowStore = new WorkflowStore(c.env);
   const db = createDatabase(c.env.DB);
@@ -655,7 +655,7 @@ workflowRoutes.put(
   jwtMiddleware,
   zValidator("json", UpsertQueueTriggerRequestSchema),
   async (c) => {
-    const workflowId = c.req.param("workflowId");
+    const workflowId = c.req.param("workflowId")!;
     const organizationId = c.get("organizationId")!;
     const data = c.req.valid("json");
     const db = createDatabase(c.env.DB);
@@ -718,7 +718,7 @@ workflowRoutes.delete(
   "/:workflowId/queue-trigger",
   jwtMiddleware,
   async (c) => {
-    const workflowId = c.req.param("workflowId");
+    const workflowId = c.req.param("workflowId")!;
     const organizationId = c.get("organizationId")!;
     const workflowStore = new WorkflowStore(c.env);
     const db = createDatabase(c.env.DB);
@@ -752,7 +752,7 @@ workflowRoutes.delete(
  * Get email trigger for a workflow
  */
 workflowRoutes.get("/:workflowId/email-trigger", jwtMiddleware, async (c) => {
-  const workflowId = c.req.param("workflowId");
+  const workflowId = c.req.param("workflowId")!;
   const organizationId = c.get("organizationId")!;
   const workflowStore = new WorkflowStore(c.env);
   const db = createDatabase(c.env.DB);
@@ -787,7 +787,7 @@ workflowRoutes.get(
   "/:workflowId/endpoint-trigger",
   jwtMiddleware,
   async (c) => {
-    const workflowId = c.req.param("workflowId");
+    const workflowId = c.req.param("workflowId")!;
     const organizationId = c.get("organizationId")!;
     const workflowStore = new WorkflowStore(c.env);
     const db = createDatabase(c.env.DB);
@@ -831,7 +831,7 @@ workflowRoutes.put(
   jwtMiddleware,
   zValidator("json", UpsertEndpointTriggerRequestSchema),
   async (c) => {
-    const workflowId = c.req.param("workflowId");
+    const workflowId = c.req.param("workflowId")!;
     const organizationId = c.get("organizationId")!;
     const data = c.req.valid("json");
     const db = createDatabase(c.env.DB);
@@ -898,7 +898,7 @@ workflowRoutes.delete(
   "/:workflowId/endpoint-trigger",
   jwtMiddleware,
   async (c) => {
-    const workflowId = c.req.param("workflowId");
+    const workflowId = c.req.param("workflowId")!;
     const organizationId = c.get("organizationId")!;
     const workflowStore = new WorkflowStore(c.env);
     const db = createDatabase(c.env.DB);
@@ -933,7 +933,7 @@ workflowRoutes.delete(
  * Get bot trigger for a workflow
  */
 workflowRoutes.get("/:workflowId/bot-trigger", jwtMiddleware, async (c) => {
-  const workflowId = c.req.param("workflowId");
+  const workflowId = c.req.param("workflowId")!;
   const organizationId = c.get("organizationId")!;
   const workflowStore = new WorkflowStore(c.env);
   const db = createDatabase(c.env.DB);
@@ -968,7 +968,7 @@ workflowRoutes.post(
   "/:workflowId/bot-trigger/sync",
   jwtMiddleware,
   async (c) => {
-    const workflowId = c.req.param("workflowId");
+    const workflowId = c.req.param("workflowId")!;
     const organizationId = c.get("organizationId")!;
     const workflowStore = new WorkflowStore(c.env);
     const db = createDatabase(c.env.DB);
@@ -1048,7 +1048,7 @@ workflowRoutes.post(
  * Delete a bot trigger for a workflow
  */
 workflowRoutes.delete("/:workflowId/bot-trigger", jwtMiddleware, async (c) => {
-  const workflowId = c.req.param("workflowId");
+  const workflowId = c.req.param("workflowId")!;
   const organizationId = c.get("organizationId")!;
   const workflowStore = new WorkflowStore(c.env);
   const db = createDatabase(c.env.DB);
@@ -1116,7 +1116,7 @@ workflowRoutes.patch(
     })
   ),
   async (c) => {
-    const workflowId = c.req.param("workflowId");
+    const workflowId = c.req.param("workflowId")!;
     const organizationId = c.get("organizationId")!;
     const { enabled } = c.req.valid("json");
 
