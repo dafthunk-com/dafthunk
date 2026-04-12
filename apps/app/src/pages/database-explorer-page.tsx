@@ -136,14 +136,29 @@ function SchemaFlowCanvas({ tables }: SchemaFlowCanvasProps) {
     }));
 
     const edgeList: Edge[] = tables.flatMap((table) =>
-      table.foreignKeys.map((fk) => ({
-        id: `${table.name}-${fk.column}-${fk.referencedTable}-${fk.referencedColumn}`,
-        source: table.name,
-        sourceHandle: `${table.name}-${fk.column}-source`,
-        target: fk.referencedTable,
-        targetHandle: `${fk.referencedTable}-${fk.referencedColumn}-target`,
-        type: "smoothstep",
-      }))
+      table.foreignKeys
+        .map((fk) => {
+          // When REFERENCES omits the column, SQLite returns empty string;
+          // fall back to the primary key column of the referenced table.
+          let targetCol = fk.referencedColumn;
+          if (!targetCol) {
+            const refTable = tables.find(
+              (t) => t.name === fk.referencedTable
+            );
+            const pk = refTable?.columns.find((c) => c.primaryKey);
+            if (!pk) return null;
+            targetCol = pk.name;
+          }
+          return {
+            id: `${table.name}-${fk.column}-${fk.referencedTable}-${targetCol}`,
+            source: table.name,
+            sourceHandle: `${table.name}-${fk.column}-source`,
+            target: fk.referencedTable,
+            targetHandle: `${fk.referencedTable}-${targetCol}-target`,
+            type: "smoothstep",
+          };
+        })
+        .filter((e) => e !== null)
     );
 
     return { initialNodes: nodes, edges: edgeList };
