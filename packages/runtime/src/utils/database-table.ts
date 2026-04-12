@@ -119,7 +119,12 @@ export function generateCreateTableSQL(schema: Schema): string {
     const pk = field.primaryKey ? " PRIMARY KEY" : "";
     const ai = field.autoIncrement && field.primaryKey ? " AUTOINCREMENT" : "";
     const uq = !field.primaryKey && field.unique ? " UNIQUE" : "";
-    return `${field.name} ${sqlType}${pk}${ai}${uq}`;
+    let ref = "";
+    if (field.references) {
+      validateIdentifier(field.references, "referenced table name");
+      ref = ` REFERENCES ${field.references}`;
+    }
+    return `${field.name} ${sqlType}${pk}${ai}${uq}${ref}`;
   });
 
   return `CREATE TABLE IF NOT EXISTS ${name} (${columns.join(", ")})`;
