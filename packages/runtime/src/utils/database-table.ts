@@ -1,4 +1,9 @@
-import type { Field, FieldType, Schema } from "@dafthunk/types";
+import {
+  type Field,
+  type FieldType,
+  IDENTIFIER_PATTERN,
+  type Schema,
+} from "@dafthunk/types";
 
 /**
  * Result row from PRAGMA table_info()
@@ -12,14 +17,12 @@ export interface PragmaTableInfoRow {
   pk: number;
 }
 
-const VALID_IDENTIFIER = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
-
 /**
  * Validate that a string is a safe SQL identifier (table or column name).
  * Throws if the identifier contains characters that could enable SQL injection.
  */
 export function validateIdentifier(name: string, label: string): void {
-  if (!VALID_IDENTIFIER.test(name)) {
+  if (!IDENTIFIER_PATTERN.test(name)) {
     throw new Error(
       `Invalid ${label}: '${name}'. Must start with a letter or underscore and contain only letters, digits, and underscores.`
     );
@@ -114,8 +117,9 @@ export function generateCreateTableSQL(schema: Schema): string {
   const columns = fields.map((field) => {
     const sqlType = mapTypeToSqlite(field.type);
     const pk = field.primaryKey ? " PRIMARY KEY" : "";
+    const ai = field.autoIncrement && field.primaryKey ? " AUTOINCREMENT" : "";
     const uq = !field.primaryKey && field.unique ? " UNIQUE" : "";
-    return `${field.name} ${sqlType}${pk}${uq}`;
+    return `${field.name} ${sqlType}${pk}${ai}${uq}`;
   });
 
   return `CREATE TABLE IF NOT EXISTS ${name} (${columns.join(", ")})`;

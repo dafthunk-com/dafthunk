@@ -31,6 +31,7 @@ const fieldSchema = z.object({
   type: z.enum(["string", "integer", "number", "boolean", "datetime", "json"]),
   required: z.boolean().optional(),
   primaryKey: z.boolean().optional(),
+  autoIncrement: z.boolean().optional(),
   label: z.string().optional(),
   defaultValue: z.string().optional(),
   unique: z.boolean().optional(),
@@ -44,6 +45,12 @@ const uniqueFields = (fields: z.infer<typeof fieldSchema>[]) => {
 
 const atMostOnePrimaryKey = (fields: z.infer<typeof fieldSchema>[]) => {
   return fields.filter((f) => f.primaryKey).length <= 1;
+};
+
+const autoIncrementValid = (fields: z.infer<typeof fieldSchema>[]) => {
+  return fields.every(
+    (f) => !f.autoIncrement || (f.primaryKey && f.type === "integer")
+  );
 };
 
 const schemaRoutes = new Hono<ApiContext>();
@@ -105,6 +112,10 @@ schemaRoutes.post(
       })
       .refine((data) => atMostOnePrimaryKey(data.fields), {
         message: "At most one field can be a primary key",
+        path: ["fields"],
+      })
+      .refine((data) => autoIncrementValid(data.fields), {
+        message: "Autoincrement requires an integer primary key",
         path: ["fields"],
       })
   ),
@@ -173,6 +184,10 @@ schemaRoutes.put(
       })
       .refine((data) => !data.fields || atMostOnePrimaryKey(data.fields), {
         message: "At most one field can be a primary key",
+        path: ["fields"],
+      })
+      .refine((data) => !data.fields || autoIncrementValid(data.fields), {
+        message: "Autoincrement requires an integer primary key",
         path: ["fields"],
       })
   ),

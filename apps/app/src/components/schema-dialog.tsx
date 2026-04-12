@@ -4,6 +4,7 @@ import {
   IDENTIFIER_PATTERN,
   type SchemaEntity,
 } from "@dafthunk/types";
+import ArrowUp01 from "lucide-react/icons/arrow-up-0-1";
 import Asterisk from "lucide-react/icons/asterisk";
 import Hash from "lucide-react/icons/hash";
 import KeyRound from "lucide-react/icons/key-round";
@@ -140,7 +141,11 @@ function FieldEditor({ fields, onChange, schemas }: FieldEditorProps) {
             <Select
               value={field.type}
               onValueChange={(val) =>
-                updateField(index, { type: val as FieldType })
+                updateField(index, {
+                  type: val as FieldType,
+                  autoIncrement:
+                    val === "integer" ? field.autoIncrement : undefined,
+                })
               }
             >
               <SelectTrigger className="w-28">
@@ -164,12 +169,17 @@ function FieldEditor({ fields, onChange, schemas }: FieldEditorProps) {
                     className="h-8 w-8 shrink-0"
                     onClick={() => {
                       if (field.primaryKey) {
-                        updateField(index, { primaryKey: undefined });
+                        updateField(index, {
+                          primaryKey: undefined,
+                          autoIncrement: undefined,
+                        });
                       } else {
                         onChange(
                           fields.map((f, i) => ({
                             ...f,
                             primaryKey: i === index ? true : undefined,
+                            autoIncrement:
+                              i === index ? f.autoIncrement : undefined,
                           }))
                         );
                       }
@@ -189,6 +199,38 @@ function FieldEditor({ fields, onChange, schemas }: FieldEditorProps) {
                   {field.primaryKey
                     ? "Remove primary key"
                     : "Set as primary key"}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant={field.autoIncrement ? "secondary" : "ghost"}
+                    size="icon"
+                    className="h-8 w-8 shrink-0"
+                    disabled={!field.primaryKey || field.type !== "integer"}
+                    onClick={() =>
+                      updateField(index, {
+                        autoIncrement: field.autoIncrement ? undefined : true,
+                      })
+                    }
+                  >
+                    <ArrowUp01
+                      className={cn(
+                        "h-4 w-4",
+                        field.autoIncrement
+                          ? "text-foreground"
+                          : "text-muted-foreground"
+                      )}
+                    />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {field.autoIncrement
+                    ? "Remove autoincrement"
+                    : "Set as autoincrement"}
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>

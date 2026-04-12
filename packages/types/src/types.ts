@@ -34,6 +34,7 @@ export interface Field {
   type: FieldType;
   required?: boolean;
   primaryKey?: boolean;
+  autoIncrement?: boolean;
   label?: string;
   defaultValue?: string;
   unique?: boolean;
