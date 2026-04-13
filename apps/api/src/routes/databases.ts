@@ -218,13 +218,50 @@ databaseRoutes.get("/:databaseId/schema", apiKeyOrJwtMiddleware, async (c) => {
       (r) => r.name
     );
 
-    // Fetch columns and foreign keys for each table
+    // Fetch columns, foreign keys, indexes, and DDL for each table
     const tables: DatabaseSchemaTable[] = await Promise.all(
       tableNames.map(async (tableName) => {
-        const [columnsResult, fksResult] = await Promise.all([
-          connection.query(`PRAGMA table_info("${tableName}")`),
-          connection.query(`PRAGMA foreign_key_list("${tableName}")`),
-        ]);
+        const [columnsResult, fksResult, indexListResult, ddlResult] =
+          await Promise.all([
+            connection.query(`PRAGMA table_info("${tableName}")`),
+            connection.query(`PRAGMA foreign_key_list("${tableName}")`),
+            connection.query(`PRAGMA index_list("${tableName}")`),
+            connection.query(
+              `SELECT sql FROM sqlite_master WHERE type='table' AND name=?`,
+              [tableName]
+            ),
+          ]);
+
+        // Detect AUTOINCREMENT from the CREATE TABLE DDL
+        const ddl = (ddlResult.results as { sql: string }[])[0]?.sql ?? "";
+        const hasAutoIncrement = /AUTOINCREMENT/i.test(ddl);
+
+        // Collect unique columns from single-column unique indexes
+        const uniqueColumns = new Set<string>();
+        const indexes = indexListResult.results as {
+          seq: number;
+          name: string;
+          unique: number;
+          origin: string;
+          partial: number;
+        }[];
+        await Promise.all(
+          indexes
+            .filter((idx) => idx.unique === 1)
+            .map(async (idx) => {
+              const infoResult = await connection.query(
+                `PRAGMA index_info("${idx.name}")`
+              );
+              const cols = infoResult.results as {
+                seqno: number;
+                cid: number;
+                name: string;
+              }[];
+              if (cols.length === 1) {
+                uniqueColumns.add(cols[0].name);
+              }
+            })
+        );
 
         const columns: DatabaseSchemaColumn[] = (
           columnsResult.results as {
@@ -241,6 +278,8 @@ databaseRoutes.get("/:databaseId/schema", apiKeyOrJwtMiddleware, async (c) => {
           notnull: col.notnull === 1,
           defaultValue: col.dflt_value,
           primaryKey: col.pk > 0,
+          unique: uniqueColumns.has(col.name),
+          autoIncrement: col.pk > 0 && hasAutoIncrement,
         }));
 
         const foreignKeys: DatabaseSchemaForeignKey[] = (

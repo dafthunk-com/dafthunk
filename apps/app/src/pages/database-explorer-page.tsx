@@ -11,6 +11,7 @@ import {
   BackgroundVariant,
   Controls,
   Handle,
+  MarkerType,
   Position,
   ReactFlow,
   ReactFlowProvider,
@@ -18,6 +19,10 @@ import {
   useNodesState,
   useReactFlow,
 } from "@xyflow/react";
+import ArrowUp01 from "lucide-react/icons/arrow-up-0-1";
+import Asterisk from "lucide-react/icons/asterisk";
+import Hash from "lucide-react/icons/hash";
+import KeyRound from "lucide-react/icons/key-round";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useParams } from "react-router";
 
@@ -57,13 +62,31 @@ function SchemaTableNode({ data }: NodeProps<Node<SchemaTableNodeData>>) {
               isConnectable={false}
             />
             <span
-              className={
+              className={cn(
+                "flex items-center gap-1",
                 col.primaryKey ? "font-semibold" : "text-foreground/80"
-              }
+              )}
             >
+              {col.primaryKey && (
+                <KeyRound className="h-3 w-3 text-muted-foreground shrink-0" />
+              )}
+              {col.autoIncrement && (
+                <ArrowUp01 className="h-3 w-3 text-muted-foreground shrink-0" />
+              )}
+              {col.unique && (
+                <Hash className="h-3 w-3 text-muted-foreground shrink-0" />
+              )}
+              {col.notnull && !col.primaryKey && (
+                <Asterisk className="h-3 w-3 text-muted-foreground shrink-0" />
+              )}
               {col.name}
             </span>
-            <span className="text-muted-foreground/60 font-light uppercase">
+            <span className="flex items-center gap-1.5 text-muted-foreground/60 font-light uppercase">
+              {col.defaultValue !== null && (
+                <span className="text-[11px] normal-case font-normal bg-muted px-1 py-0.5 rounded text-muted-foreground">
+                  {col.defaultValue}
+                </span>
+              )}
               {col.type || "TEXT"}
             </span>
             <Handle
@@ -154,6 +177,11 @@ function SchemaFlowCanvas({ tables }: SchemaFlowCanvasProps) {
             target: fk.referencedTable,
             targetHandle: `${fk.referencedTable}-${targetCol}-target`,
             type: "smoothstep",
+            markerEnd: {
+              type: MarkerType.ArrowClosed,
+              width: 16,
+              height: 16,
+            },
           };
         })
         .filter((e) => e !== null)

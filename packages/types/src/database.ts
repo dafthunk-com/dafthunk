@@ -66,6 +66,8 @@ export interface DatabaseSchemaColumn {
   notnull: boolean;
   defaultValue: string | null;
   primaryKey: boolean;
+  unique: boolean;
+  autoIncrement: boolean;
 }
 
 export interface DatabaseSchemaForeignKey {
