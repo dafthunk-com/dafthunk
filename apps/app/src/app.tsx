@@ -5,6 +5,7 @@ import {
   useMatches,
 } from "react-router";
 
+import { AssistantProvider } from "@/components/assistant/assistant-provider";
 import { HeadSeo } from "@/components/head-seo";
 import { ThemeProvider } from "@/components/theme-provider";
 
@@ -50,9 +51,11 @@ function App() {
   return (
     <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
       <AuthProvider>
-        <CurrentRouteHead />
-        <Outlet />
-        <ScrollRestoration />
+        <AssistantProvider>
+          <CurrentRouteHead />
+          <Outlet />
+          <ScrollRestoration />
+        </AssistantProvider>
       </AuthProvider>
     </ThemeProvider>
   );

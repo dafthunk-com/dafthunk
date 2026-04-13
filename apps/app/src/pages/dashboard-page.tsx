@@ -6,10 +6,12 @@ import type {
 import FileDown from "lucide-react/icons/file-down";
 import Logs from "lucide-react/icons/logs";
 import MapIcon from "lucide-react/icons/map";
+import MessageCircle from "lucide-react/icons/message-circle";
 import PlusCircle from "lucide-react/icons/plus-circle";
 import Workflow from "lucide-react/icons/workflow";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
+import { useAssistant } from "@/components/assistant/assistant-provider";
 import { useAuth } from "@/components/auth-context";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
@@ -46,6 +48,7 @@ export function DashboardPage() {
   const { mutateWorkflows } = useWorkflows();
   const { nodeTypes } = useNodeTypes({ revalidateOnFocus: false });
   const { start: startTour } = useTour();
+  const { open: openAssistant } = useAssistant();
 
   useEffect(() => {
     setBreadcrumbs([{ label: "Dashboard" }]);
@@ -139,6 +142,10 @@ export function DashboardPage() {
               <FileDown className="mr-2 size-4" />
               Browse Templates
             </Link>
+          </Button>
+          <Button variant="outline" onClick={openAssistant}>
+            <MessageCircle className="mr-2 size-4" />
+            Chat with Assistant
           </Button>
         </CardContent>
       </Card>

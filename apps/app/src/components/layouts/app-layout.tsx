@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { Toaster } from "sonner";
 
 import { AppHeader } from "@/components/app-header";
+import { AssistantSidebar } from "@/components/assistant/assistant-sidebar";
 import { PageProvider } from "@/components/page-context";
 import { AppSidebar } from "@/components/sidebar/app-sidebar";
 import { NavMainProps } from "@/components/sidebar/nav-main";
@@ -46,6 +47,7 @@ export function AppLayout({ children, sidebar, className }: AppLayoutProps) {
               {children}
             </div>
           )}
+          <AssistantSidebar />
         </div>
       </div>
     </PageProvider>

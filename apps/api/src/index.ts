@@ -9,6 +9,7 @@ import { createRateLimitMiddleware } from "./middleware/rate-limit";
 import { handleQueueMessages } from "./queue";
 import adminRoutes from "./routes/admin";
 import apiKeyRoutes from "./routes/api-keys";
+import assistantRoutes from "./routes/assistant";
 import billingRoutes from "./routes/billing";
 import botRoutes from "./routes/bots";
 import dashboardRoutes from "./routes/dashboard";
@@ -129,6 +130,7 @@ app.route("/:organizationId/workflows", workflowRoutes);
 app.route("/:organizationId/objects", objectRoutes);
 app.route("/:organizationId/playground", playgroundRoutes);
 app.route("/:organizationId/usage", usageRoutes);
+app.route("/:organizationId/onboarding", assistantRoutes);
 app.route("/:organizationId/ws", wsRoutes);
 
 // Export Durable Objects
@@ -137,6 +139,7 @@ export { DatabaseDO };
 export { Sandbox } from "@cloudflare/sandbox";
 export { FFmpegContainer } from "./containers/ffmpeg-container";
 export { AgentRunner } from "./durable-objects/agent-runner";
+export { DafthunkAgent } from "./durable-objects/dafthunk-agent";
 
 export default {
   email: handleIncomingEmail,
