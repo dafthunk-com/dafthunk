@@ -21,6 +21,7 @@ export class CloudflareSchemaService implements SchemaService {
     if (!row) return undefined;
 
     return {
+      id: schemaId,
       name: row.name,
       description: row.description,
       fields: JSON.parse(row.fields),

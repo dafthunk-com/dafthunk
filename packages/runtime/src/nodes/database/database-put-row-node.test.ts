@@ -149,18 +149,25 @@ describe("DatabasePutRowNode", () => {
     expect(result.error).toContain("Invalid schema");
   });
 
-  it("should return error for schema without primary key", async () => {
+  it("should insert row with INSERT INTO for schema without primary key", async () => {
     const node = createNode();
+    const connection = createMockConnection();
     const result = await node.execute(
-      createContext({
-        database: "db-1",
-        schema: schemaWithoutPk,
-        record: { message: "test" },
-      })
+      createContext(
+        {
+          database: "db-1",
+          schema: schemaWithoutPk,
+          record: { message: "hello", level: "info" },
+        },
+        connection
+      )
     );
 
-    expect(result.status).toBe("error");
-    expect(result.error).toContain("no primary key defined");
+    expect(result.status).toBe("completed");
+    expect(connection.execute).toHaveBeenCalledWith(
+      "INSERT INTO logs (message, level) VALUES (?, ?)",
+      ["hello", "info"]
+    );
   });
 
   it("should return error for missing record", async () => {

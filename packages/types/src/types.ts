@@ -45,6 +45,7 @@ export interface Field {
  * Schema definition
  */
 export interface Schema {
+  id?: string;
   name: string;
   description?: string;
   fields: Field[];

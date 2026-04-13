@@ -142,9 +142,7 @@ function SchemaFlowCanvas({ tables }: SchemaFlowCanvasProps) {
           // fall back to the primary key column of the referenced table.
           let targetCol = fk.referencedColumn;
           if (!targetCol) {
-            const refTable = tables.find(
-              (t) => t.name === fk.referencedTable
-            );
+            const refTable = tables.find((t) => t.name === fk.referencedTable);
             const pk = refTable?.columns.find((c) => c.primaryKey);
             if (!pk) return null;
             targetCol = pk.name;
