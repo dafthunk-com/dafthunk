@@ -63,7 +63,9 @@ export function QueueField({
           <SelectTrigger>
             <SelectValue
               placeholder={connected ? "Connected" : label || "No queue"}
-            />
+            >
+              {connected ? "Connected" : label || "No queue"}
+            </SelectValue>
           </SelectTrigger>
         </Select>
       </div>

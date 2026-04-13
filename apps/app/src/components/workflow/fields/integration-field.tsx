@@ -34,7 +34,9 @@ export function IntegrationField({
           <SelectTrigger>
             <SelectValue
               placeholder={connected ? "Connected" : label || "No integration"}
-            />
+            >
+              {connected ? "Connected" : label || "No integration"}
+            </SelectValue>
           </SelectTrigger>
         </Select>
       </div>

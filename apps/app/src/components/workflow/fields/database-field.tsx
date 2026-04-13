@@ -63,7 +63,9 @@ export function DatabaseField({
           <SelectTrigger>
             <SelectValue
               placeholder={connected ? "Connected" : label || "No database"}
-            />
+            >
+              {connected ? "Connected" : label || "No database"}
+            </SelectValue>
           </SelectTrigger>
         </Select>
       </div>

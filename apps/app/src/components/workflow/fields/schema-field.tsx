@@ -87,7 +87,9 @@ export function SchemaField({
           <SelectTrigger>
             <SelectValue
               placeholder={connected ? "Connected" : label || "No schema"}
-            />
+            >
+              {connected ? "Connected" : label || "No schema"}
+            </SelectValue>
           </SelectTrigger>
         </Select>
       </div>

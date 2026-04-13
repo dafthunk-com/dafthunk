@@ -36,7 +36,9 @@ export function SlackBotField({
           <SelectTrigger>
             <SelectValue
               placeholder={connected ? "Connected" : label || "No Slack bot"}
-            />
+            >
+              {connected ? "Connected" : label || "No Slack bot"}
+            </SelectValue>
           </SelectTrigger>
         </Select>
       </div>

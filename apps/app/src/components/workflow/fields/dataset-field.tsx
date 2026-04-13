@@ -29,7 +29,9 @@ export function DatasetField({
           <SelectTrigger>
             <SelectValue
               placeholder={connected ? "Connected" : label || "No dataset"}
-            />
+            >
+              {connected ? "Connected" : label || "No dataset"}
+            </SelectValue>
           </SelectTrigger>
         </Select>
       </div>

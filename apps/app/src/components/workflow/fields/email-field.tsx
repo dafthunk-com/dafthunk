@@ -50,7 +50,9 @@ export function EmailField({
           <SelectTrigger>
             <SelectValue
               placeholder={connected ? "Connected" : label || "No email"}
-            />
+            >
+              {connected ? "Connected" : label || "No email"}
+            </SelectValue>
           </SelectTrigger>
         </Select>
       </div>
