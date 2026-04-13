@@ -293,6 +293,7 @@ export abstract class Runtime<Env = unknown> {
 
     // Initialise state and execution record
     let executionState: ExecutionState = {
+      nodeInputs: {},
       nodeOutputs: {},
       executedNodes: [],
       skippedNodes: [],
@@ -367,6 +368,7 @@ export abstract class Runtime<Env = unknown> {
 
           // Mutable state
           const state: ExecutionState = {
+            nodeInputs: {},
             nodeOutputs: {},
             executedNodes: [],
             skippedNodes: [],
@@ -746,7 +748,7 @@ export abstract class Runtime<Env = unknown> {
     const inboundEdges = context.workflow.edges.filter(
       (edge) => edge.target === nodeId
     );
-    const processedInputs = await this.collectAndTransformInputs(
+    const { inputs, resolvedInputs } = await this.collectAndTransformInputs(
       node,
       state,
       executable,
@@ -755,6 +757,10 @@ export abstract class Runtime<Env = unknown> {
       context.organizationId
     );
 
+    // Store inputs in state immediately (before execution) so they're available
+    // for both completed and pending nodes
+    state.nodeInputs[nodeId] = inputs;
+
     // Execute the node and transform outputs for runtime storage
     return this.executeAndTransformOutputs(
       executable,
@@ -762,7 +768,7 @@ export abstract class Runtime<Env = unknown> {
       node,
       context,
       this.objectStore,
-      processedInputs
+      resolvedInputs
     );
   }
 
@@ -900,8 +906,11 @@ export abstract class Runtime<Env = unknown> {
     inboundEdges: Workflow["edges"],
     objectStore: ObjectStore,
     organizationId: string
-  ): Promise<Record<string, unknown>> {
-    // Collect inputs from node defaults
+  ): Promise<{
+    inputs: NodeRuntimeValues;
+    resolvedInputs: Record<string, unknown>;
+  }> {
+    // Collect inputs from node defaults (API format, for persistence)
     const inputs: NodeRuntimeValues = {};
 
     for (const input of node.inputs) {
@@ -951,8 +960,8 @@ export abstract class Runtime<Env = unknown> {
       }
     }
 
-    // Transform inputs from API format to node-native format
-    const processedInputs: Record<string, unknown> = {};
+    // Transform inputs from API format to node-native format for execution
+    const resolvedInputs: Record<string, unknown> = {};
     const mapperContext = {
       schemaService: this.schemaService,
       organizationId,
@@ -968,9 +977,9 @@ export abstract class Runtime<Env = unknown> {
             apiToNodeParameter(parameterType, v, objectStore, mapperContext)
           )
         );
-        processedInputs[name] = transformedArray;
+        resolvedInputs[name] = transformedArray;
       } else {
-        processedInputs[name] = await apiToNodeParameter(
+        resolvedInputs[name] = await apiToNodeParameter(
           parameterType,
           value,
           objectStore,
@@ -979,7 +988,7 @@ export abstract class Runtime<Env = unknown> {
       }
     }
 
-    return processedInputs;
+    return { inputs, resolvedInputs };
   }
 
   /**
@@ -992,7 +1001,7 @@ export abstract class Runtime<Env = unknown> {
     node: Node,
     context: WorkflowExecutionContext,
     objectStore: ObjectStore,
-    processedInputs: Record<string, unknown>
+    resolvedInputs: Record<string, unknown>
   ): Promise<NodeExecutionResult> {
     try {
       const nodeContext: NodeContext = {
@@ -1001,7 +1010,7 @@ export abstract class Runtime<Env = unknown> {
         organizationId: context.organizationId,
         executionId: context.executionId,
         asyncSupported: this.supportsAsync,
-        inputs: processedInputs,
+        inputs: resolvedInputs,
         httpRequest: context.httpRequest,
         emailMessage: context.emailMessage,
         queueMessage: context.queueMessage,
@@ -1208,6 +1217,7 @@ export abstract class Runtime<Env = unknown> {
         return {
           nodeId: node.id,
           status: "completed" as const,
+          inputs: state.nodeInputs[node.id] || {},
           outputs: state.nodeOutputs[node.id] || {},
           usage: state.nodeUsage[node.id] ?? 0,
         };

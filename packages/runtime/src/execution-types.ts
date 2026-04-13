@@ -109,6 +109,8 @@ export interface WorkflowExecutionContext {
  * and the underlying execution tracking (executedNodes, skippedNodes, nodeErrors).
  */
 export interface ExecutionState {
+  /** Resolved inputs for executed nodes (API format, for persistence) */
+  nodeInputs: WorkflowRuntimeState;
   /** Outputs from executed nodes */
   nodeOutputs: WorkflowRuntimeState;
   /** Array of successfully executed node IDs */

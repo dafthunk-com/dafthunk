@@ -359,6 +359,7 @@ export interface NodeExecution {
   nodeId: string;
   status: NodeExecutionStatus;
   error?: string;
+  inputs?: Record<string, ParameterValue> | null;
   outputs?: Record<string, ParameterValue> | null;
   usage: number;
   /** Present when status is "pending" — describes the event the runtime should wait for */
