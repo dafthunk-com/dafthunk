@@ -15,7 +15,14 @@ export interface FormTokenPayload {
   wid: string;
   /** Random nonce — event type is `form-response-{tok}` */
   tok: string;
+  /** Organization ID — present for feedback-form tokens so anonymous readers can load execution data */
+  org?: string;
+  /** Expiration timestamp (unix seconds). Set automatically by createFormToken. */
+  exp?: number;
 }
+
+/** Default token lifetime: 7 days in seconds. Matches the R2 presigned URL max. */
+export const UNLISTED_LINK_TTL_SECONDS = 7 * 24 * 60 * 60;
 
 function base64urlEncode(data: Uint8Array): string {
   let binary = "";
@@ -74,12 +81,20 @@ async function hmacVerify(
 /**
  * Create a signed form token from a payload.
  * Format: base64url(json) + "." + base64url(hmac-sha256)
+ *
+ * An `exp` (unix seconds) is set automatically from `ttlSeconds` unless the
+ * caller already provided one. Verifiers reject tokens past their expiration.
  */
 export async function createFormToken(
   payload: FormTokenPayload,
-  signingKey: string
+  signingKey: string,
+  ttlSeconds: number = UNLISTED_LINK_TTL_SECONDS
 ): Promise<string> {
-  const json = JSON.stringify(payload);
+  const withExp: FormTokenPayload = {
+    ...payload,
+    exp: payload.exp ?? Math.floor(Date.now() / 1000) + ttlSeconds,
+  };
+  const json = JSON.stringify(withExp);
   const payloadEncoded = base64urlEncode(new TextEncoder().encode(json));
   const signature = await hmacSign(payloadEncoded, signingKey);
   return `${payloadEncoded}.${base64urlEncode(signature)}`;
@@ -87,7 +102,7 @@ export async function createFormToken(
 
 /**
  * Verify and decode a signed form token.
- * Returns the payload if valid, null if tampered or malformed.
+ * Returns the payload if valid, null if tampered, malformed, or expired.
  */
 export async function verifyFormToken(
   token: string,
@@ -108,6 +123,13 @@ export async function verifyFormToken(
     const payload = JSON.parse(json) as FormTokenPayload;
 
     if (!payload.eid || !payload.wid || !payload.tok) {
+      return null;
+    }
+
+    if (
+      typeof payload.exp === "number" &&
+      payload.exp < Math.floor(Date.now() / 1000)
+    ) {
       return null;
     }
 

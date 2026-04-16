@@ -92,6 +92,7 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
   private static readonly STORAGE_KEY_DIRTY = "dirty:persist";
   private static readonly STORAGE_PREFIX_EXEC_BUFFER = "execbuf:";
   private static readonly STORAGE_PREFIX_FORM = "form:";
+  private static readonly STORAGE_PREFIX_FEEDBACK_FORM = "fform:";
 
   initialState: WorkflowAgentState = {};
 
@@ -532,25 +533,33 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
    * Scan node outputs for form schema data (`schema` + `token`) and
    * store them in DO transactional storage. This is how form nodes
    * register their field definitions without touching the main DB.
+   *
+   * Also picks up `feedbackFormConfig` from create-feedback-form nodes
+   * so the public feedback page can read title/description by token.
    */
   private async extractFormSchemas(
     execution: WorkflowExecution
   ): Promise<void> {
     for (const nodeExec of execution.nodeExecutions) {
-      if (
-        nodeExec.status === "completed" &&
-        nodeExec.outputs &&
-        typeof nodeExec.outputs.schema === "string" &&
-        typeof nodeExec.outputs.token === "string"
-      ) {
-        const key =
-          WorkflowAgent.STORAGE_PREFIX_FORM +
-          nodeExec.outputs.token +
-          ":schema";
-        // Only store if not already present (idempotent)
+      if (nodeExec.status !== "completed" || !nodeExec.outputs) continue;
+
+      const token = nodeExec.outputs.token;
+      if (typeof token !== "string") continue;
+
+      if (typeof nodeExec.outputs.schema === "string") {
+        const key = WorkflowAgent.STORAGE_PREFIX_FORM + token + ":schema";
         const existing = await this.storage.get(key);
         if (!existing) {
           await this.storage.put(key, nodeExec.outputs.schema);
+        }
+      }
+
+      if (typeof nodeExec.outputs.feedbackFormConfig === "string") {
+        const key =
+          WorkflowAgent.STORAGE_PREFIX_FEEDBACK_FORM + token + ":config";
+        const existing = await this.storage.get(key);
+        if (!existing) {
+          await this.storage.put(key, nodeExec.outputs.feedbackFormConfig);
         }
       }
     }
@@ -657,6 +666,40 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
         error: "Failed to resume workflow. The execution may have expired.",
       };
     }
+  }
+
+  // ── Feedback form state ───────────────────────────────────────────────
+
+  async getFeedbackFormStatus(
+    token: string
+  ): Promise<{ submitted: boolean; config?: string }> {
+    const key = WorkflowAgent.STORAGE_PREFIX_FEEDBACK_FORM + token;
+    const [record, config] = await Promise.all([
+      this.storage.get<{ submitted: boolean }>(key),
+      this.storage.get<string>(key + ":config"),
+    ]);
+    return {
+      submitted: record?.submitted ?? false,
+      ...(config ? { config } : {}),
+    };
+  }
+
+  /**
+   * Unlike `checkAndSubmitForm`, this does not send any workflow event —
+   * feedback submission is decoupled from workflow execution.
+   */
+  async markFeedbackSubmitted(
+    token: string
+  ): Promise<{ success: boolean; error?: string }> {
+    const key = WorkflowAgent.STORAGE_PREFIX_FEEDBACK_FORM + token;
+    const existing = await this.storage.get<{ submitted: boolean }>(key);
+
+    if (existing?.submitted) {
+      return { success: false, error: "Feedback has already been submitted" };
+    }
+
+    await this.storage.put(key, { submitted: true, submittedAt: Date.now() });
+    return { success: true };
   }
 
   // ── Persistence ───────────────────────────────────────────────────────

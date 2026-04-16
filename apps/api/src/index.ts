@@ -20,6 +20,7 @@ import endpointExecuteRoutes from "./routes/endpoint-execute";
 import endpointRoutes from "./routes/endpoints";
 import executionRoutes from "./routes/executions";
 import feedbackRoutes from "./routes/feedback";
+import feedbackFormRoutes from "./routes/feedback-forms";
 import formRoutes from "./routes/forms";
 import health from "./routes/health";
 import integrationRoutes from "./routes/integrations";
@@ -108,6 +109,7 @@ app.route("/replicate", replicateRoutes);
 
 // Public routes
 app.route("/forms", formRoutes);
+app.route("/feedback-forms", feedbackFormRoutes);
 app.route("/templates", templateRoutes);
 app.route("/types", typeRoutes);
 

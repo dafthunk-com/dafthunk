@@ -123,7 +123,7 @@ export class CreateFormNode extends ExecutableNode {
       signingKey
     );
 
-    const url = `${webHost}/f/${signedToken}`;
+    const url = `${webHost}/form/${signedToken}`;
 
     return this.createSuccessResult(
       {

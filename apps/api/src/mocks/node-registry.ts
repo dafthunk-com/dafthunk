@@ -6,6 +6,7 @@ import {
 import { NumberInputNode } from "@dafthunk/runtime/nodes/input/number-input-node";
 import { ConditionalForkNode } from "@dafthunk/runtime/nodes/logic/conditional-fork-node";
 import { ConditionalJoinNode } from "@dafthunk/runtime/nodes/logic/conditional-join-node";
+import { CreateFeedbackFormNode } from "@dafthunk/runtime/nodes/logic/create-feedback-form-node";
 import { CreateFormNode } from "@dafthunk/runtime/nodes/logic/create-form-node";
 import { WaitForFormNode } from "@dafthunk/runtime/nodes/logic/wait-for-form-node";
 import { AdditionNode } from "@dafthunk/runtime/nodes/math/addition-node";
@@ -49,6 +50,7 @@ export class MockNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(ConditionalForkNode);
     this.registerImplementation(ConditionalJoinNode);
     this.registerImplementation(CreateFormNode);
+    this.registerImplementation(CreateFeedbackFormNode);
     this.registerImplementation(WaitForFormNode);
     this.registerImplementation(MultiStepAdditionNode);
     this.registerImplementation(FailingMultiStepNode);
