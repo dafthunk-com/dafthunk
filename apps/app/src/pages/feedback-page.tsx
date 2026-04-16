@@ -219,14 +219,13 @@ export function FeedbackPage() {
 
         <div className="flex items-center gap-3 mb-4">
           <Select
-            value={workflowId ?? "all"}
-            onValueChange={(v) => setWorkflowId(v === "all" ? undefined : v)}
+            value={workflowId ?? ""}
+            onValueChange={(v) => setWorkflowId(v)}
           >
             <SelectTrigger className="w-48">
-              <SelectValue placeholder="All workflows" />
+              <SelectValue placeholder="Select a workflow" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All workflows</SelectItem>
               {workflows.map((w) => (
                 <SelectItem key={w.id} value={w.id}>
                   {w.name}
@@ -315,21 +314,25 @@ export function FeedbackPage() {
 
         <DataTable
           columns={createColumns(getOrgUrl)}
-          data={feedbackList}
+          data={workflowId ? feedbackList : []}
           emptyState={{
             title: feedbackError
               ? "Error"
-              : feedbackList.length === 0
+              : !workflowId
                 ? "No feedback"
-                : "No results",
+                : feedbackList.length === 0
+                  ? "No feedback"
+                  : "No results",
             description: feedbackError
               ? errorMessage
-              : feedbackList.length === 0
-                ? "No feedback has been submitted yet."
-                : "No feedback matches your filters.",
+              : !workflowId
+                ? "No workflow has been selected yet."
+                : feedbackList.length === 0
+                  ? "No feedback has been submitted yet."
+                  : "No feedback matches your filters.",
           }}
         />
-        {!isFeedbackReachingEnd && !isFeedbackInitialLoading && (
+        {workflowId && !isFeedbackReachingEnd && !isFeedbackInitialLoading && (
           <div ref={feedbackObserverTargetRef} style={{ height: "1px" }} />
         )}
       </InsetLayout>
