@@ -84,8 +84,7 @@ export function ExecutionDetailPage() {
             id: input.name,
             type: input.type,
             name: input.name,
-            value:
-              execMap.get(node.id)?.inputs?.[input.name] ?? input.value,
+            value: execMap.get(node.id)?.inputs?.[input.name] ?? input.value,
             hidden: input.hidden,
             required: input.required,
             repeated: input.repeated,

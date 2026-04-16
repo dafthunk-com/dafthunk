@@ -28,6 +28,7 @@ import { isObjectReference } from "@/services/object-service";
 
 import type { InputOutputType, WorkflowParameter } from "../workflow-types";
 import { ClearButton } from "./clear-button";
+import { CopyButton } from "./copy-button";
 import { Field } from "./field";
 import { UnplugButton } from "./unplug-button";
 
@@ -87,6 +88,26 @@ const FILE_TYPES: InputOutputType[] = [
   "document",
 ];
 
+// Types whose values should not expose a copy action
+const NON_COPYABLE_TYPES: InputOutputType[] = [
+  ...FILE_TYPES,
+  "secret",
+  "buffergeometry",
+];
+
+const toCopyableString = (value: unknown): string | null => {
+  if (value === undefined || value === null) return null;
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+  try {
+    return JSON.stringify(value, null, 2);
+  } catch {
+    return null;
+  }
+};
+
 export function PropertyField({
   parameter,
   value,
@@ -106,6 +127,10 @@ export function PropertyField({
   const downloadUrl = hasFileValue
     ? createObjectUrl(value as ObjectReference)
     : null;
+
+  const copyableValue = NON_COPYABLE_TYPES.includes(parameter.type)
+    ? null
+    : toCopyableString(value);
 
   return (
     <div className="text-sm space-y-1">
@@ -132,6 +157,12 @@ export function PropertyField({
             >
               <DownloadIcon className="h-3 w-3 text-neutral-400 group-hover:text-neutral-700 dark:text-neutral-500 dark:group-hover:text-neutral-300" />
             </a>
+          )}
+          {copyableValue !== null && (
+            <CopyButton
+              value={copyableValue}
+              label={`Copy ${parameter.name} value`}
+            />
           )}
           {connected && onDisconnect ? (
             <UnplugButton
