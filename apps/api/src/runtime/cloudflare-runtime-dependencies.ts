@@ -17,7 +17,6 @@ import { CloudflareCredentialService } from "./cloudflare-credential-service";
 import { CloudflareCreditService } from "./cloudflare-credit-service";
 import { CloudflareDatabaseService } from "./cloudflare-database-service";
 import { CloudflareDatasetService } from "./cloudflare-dataset-service";
-import { CloudflareEmailService } from "./cloudflare-email-service";
 import { CloudflareExecutionStore } from "./cloudflare-execution-store";
 import { CloudflareNodeRegistry } from "./cloudflare-node-registry";
 import {
@@ -55,8 +54,6 @@ export function buildDependencies(
       })
   );
 
-  const emailService = new CloudflareEmailService(env);
-
   return {
     nodeRegistry,
     credentialProvider,
@@ -72,7 +69,6 @@ export function buildDependencies(
     datasetService,
     queueService,
     schemaService,
-    emailService,
     runtimeVersion,
   };
 }

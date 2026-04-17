@@ -55,10 +55,8 @@ export interface Bindings {
   TWILIO_ACCOUNT_SID?: string;
   TWILIO_AUTH_TOKEN?: string;
   TWILIO_PHONE_NUMBER?: string;
-  AWS_ACCESS_KEY_ID?: string;
-  AWS_SECRET_ACCESS_KEY?: string;
-  AWS_REGION?: string;
-  SES_DEFAULT_FROM?: string;
+  SEND_EMAIL?: SendEmail;
+  SEND_EMAIL_FROM?: string;
   HUGGINGFACE_API_KEY?: string;
   REPLICATE_API_TOKEN?: string;
   GOOGLE_API_KEY?: string;

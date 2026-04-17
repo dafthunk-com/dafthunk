@@ -18,7 +18,6 @@ import type { CreditService } from "./credit-service";
 import type { DatabaseService } from "./database-service";
 import type { DatasetService } from "./dataset-service";
 import { computeDefinitionHash } from "./definition-hash";
-import type { EmailService } from "./email-service";
 import {
   nodeNotFoundMessage,
   nodeTypeNotImplementedMessage,
@@ -96,7 +95,6 @@ export interface RuntimeDependencies<Env = unknown> {
   datasetService?: DatasetService;
   queueService?: QueueService;
   schemaService?: SchemaService;
-  emailService?: EmailService;
   runtimeVersion?: string;
 }
 
@@ -130,7 +128,6 @@ export abstract class Runtime<Env = unknown> {
   protected datasetService?: DatasetService;
   protected queueService?: QueueService;
   protected schemaService?: SchemaService;
-  protected emailService?: EmailService;
   protected env: Env;
   protected runtimeVersion?: string;
   protected userPlan?: string;
@@ -156,7 +153,6 @@ export abstract class Runtime<Env = unknown> {
     this.datasetService = dependencies.datasetService;
     this.queueService = dependencies.queueService;
     this.schemaService = dependencies.schemaService;
-    this.emailService = dependencies.emailService;
     this.runtimeVersion = dependencies.runtimeVersion;
   }
 
@@ -1035,7 +1031,6 @@ export abstract class Runtime<Env = unknown> {
           this.credentialProvider.getSecret(secretName),
         getIntegration: (integrationId: string) =>
           this.credentialProvider.getIntegration(integrationId),
-        emailService: this.emailService,
         env: this.env as NodeEnv,
       };
 

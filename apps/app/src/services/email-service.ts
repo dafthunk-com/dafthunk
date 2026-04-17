@@ -2,13 +2,10 @@ import type {
   CreateEmailRequest,
   CreateEmailResponse,
   DeleteEmailResponse,
-  DeleteSenderEmailResponse,
   GetEmailResponse,
   ListEmailsResponse,
-  SetSenderEmailResponse,
   UpdateEmailRequest,
   UpdateEmailResponse,
-  VerifySenderEmailResponse,
 } from "@dafthunk/types";
 import useSWR from "swr";
 
@@ -31,7 +28,6 @@ export const useEmails = (): {
   const { organization } = useAuth();
   const orgId = organization?.id;
 
-  // Create a unique SWR key that includes the organization ID
   const swrKey = orgId ? `/${orgId}${API_ENDPOINT_BASE}` : null;
 
   const { data, error, isLoading, mutate } = useSWR(
@@ -63,7 +59,6 @@ export const useEmail = (id: string | null) => {
   const { organization } = useAuth();
   const orgId = organization?.id;
 
-  // Create a unique SWR key that includes the organization ID and email ID
   const swrKey = orgId && id ? `/${orgId}${API_ENDPOINT_BASE}/${id}` : null;
 
   const { data, error, isLoading, mutate } = useSWR(
@@ -141,58 +136,4 @@ export const deleteEmail = async (
       method: "DELETE",
     }
   );
-};
-
-/**
- * Set the sender email for an email and trigger SES verification
- */
-export const setSenderEmail = async (
-  emailId: string,
-  senderEmailAddress: string,
-  orgId: string
-): Promise<SetSenderEmailResponse> => {
-  return makeOrgRequest<SetSenderEmailResponse>(
-    orgId,
-    API_ENDPOINT_BASE,
-    `/${emailId}/sender-email`,
-    {
-      method: "PUT",
-      body: JSON.stringify({ email: senderEmailAddress }),
-    }
-  );
-};
-
-/**
- * Check the SES verification status for an email's sender
- */
-export const verifySenderEmail = async (
-  emailId: string,
-  orgId: string
-): Promise<VerifySenderEmailResponse> => {
-  return makeOrgRequest<VerifySenderEmailResponse>(
-    orgId,
-    API_ENDPOINT_BASE,
-    `/${emailId}/sender-email/verify`,
-    {
-      method: "POST",
-    }
-  );
-};
-
-/**
- * Remove the sender email configuration for an email
- */
-export const deleteSenderEmail = async (
-  emailId: string,
-  orgId: string
-): Promise<boolean> => {
-  const response = await makeOrgRequest<DeleteSenderEmailResponse>(
-    orgId,
-    API_ENDPOINT_BASE,
-    `/${emailId}/sender-email`,
-    {
-      method: "DELETE",
-    }
-  );
-  return response.success;
 };

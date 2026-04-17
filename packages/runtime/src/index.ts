@@ -33,7 +33,6 @@ export type {
   DatasetService,
 } from "./dataset-service";
 export { computeDefinitionHash } from "./definition-hash";
-export type { EmailService } from "./email-service";
 export {
   nodeNotFoundMessage,
   nodeTypeNotImplementedMessage,

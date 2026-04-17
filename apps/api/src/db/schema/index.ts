@@ -121,16 +121,6 @@ export const SubscriptionStatus = {
 export type SubscriptionStatusType =
   (typeof SubscriptionStatus)[keyof typeof SubscriptionStatus];
 
-// Sender email verification status
-export const SenderEmailStatus = {
-  PENDING: "pending",
-  VERIFIED: "verified",
-  FAILED: "failed",
-} as const;
-
-export type SenderEmailStatusType =
-  (typeof SenderEmailStatus)[keyof typeof SenderEmailStatus];
-
 /**
  * REUSABLE COLUMNS
  */
@@ -498,10 +488,6 @@ export const emails = sqliteTable(
     organizationId: text("organization_id")
       .notNull()
       .references(() => organizations.id, { onDelete: "cascade" }),
-    senderEmail: text("sender_email"),
-    senderEmailStatus: text(
-      "sender_email_status"
-    ).$type<SenderEmailStatusType>(),
     createdAt: createCreatedAt(),
     updatedAt: createUpdatedAt(),
   },

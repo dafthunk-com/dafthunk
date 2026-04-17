@@ -1,28 +1,20 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { AwsClient } from "aws4fetch";
 
 export class SendEmailNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "send-email",
     name: "Send Email",
     type: "send-email",
-    description: "Send an email using Amazon SES",
+    description: "Send an email using Cloudflare Email Service",
     tags: ["Social", "Email", "Send"],
     icon: "mail",
     documentation:
-      "This node sends emails using Amazon SES (Simple Email Service), supporting both HTML and plain text content with advanced features.",
+      "This node sends emails using the Cloudflare Email Service binding. Emails are sent from the platform-owned sender configured on the worker; use `replyTo` to direct replies elsewhere.",
     usage: 10,
     subscription: true,
     asTool: true,
     inputs: [
-      {
-        name: "email",
-        type: "email",
-        description: "Email to send from",
-        required: false,
-        hidden: true,
-      },
       {
         name: "to",
         type: "string",
@@ -56,7 +48,7 @@ export class SendEmailNode extends ExecutableNode {
       {
         name: "replyTo",
         type: "string",
-        description: "Reply-to email address or array of addresses",
+        description: "Reply-to email address",
         required: false,
       },
     ],
@@ -64,7 +56,7 @@ export class SendEmailNode extends ExecutableNode {
       {
         name: "messageId",
         type: "string",
-        description: "SES message ID",
+        description: "Message ID returned by the email service",
         hidden: true,
       },
       {
@@ -77,14 +69,13 @@ export class SendEmailNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { email, to, subject, html, text, cc, replyTo } = context.inputs;
-    const accessKeyId = context.env.AWS_ACCESS_KEY_ID;
-    const secretAccessKey = context.env.AWS_SECRET_ACCESS_KEY;
-    const region = context.env.AWS_REGION;
+    const { to, subject, html, text, cc, replyTo } = context.inputs;
+    const sendEmail = context.env.SEND_EMAIL;
+    const from = context.env.SEND_EMAIL_FROM;
 
-    if (!accessKeyId || !secretAccessKey || !region) {
+    if (!sendEmail || !from) {
       return this.createErrorResult(
-        "AWS credentials (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION) are not set in environment variables."
+        "Cloudflare Email Service is not configured (SEND_EMAIL binding or SEND_EMAIL_FROM missing)."
       );
     }
 
@@ -98,98 +89,28 @@ export class SendEmailNode extends ExecutableNode {
       );
     }
 
-    // Resolve sender: selected email > trigger email
-    let sender: string | undefined;
-    if (email && context.emailService) {
-      sender = await context.emailService.resolveSender(email as string);
-    }
-    sender = sender || context.emailMessage?.to;
-    if (!sender) {
-      return this.createErrorResult(
-        "No sender address available. Select an email or trigger the workflow via email."
-      );
-    }
-
     try {
-      const toArray = typeof to === "string" ? [to] : (to as string[]);
-      const ccArray = cc
-        ? typeof cc === "string"
-          ? [cc]
-          : (cc as string[])
-        : [];
-      const replyToArray = replyTo
-        ? typeof replyTo === "string"
-          ? [replyTo]
-          : (replyTo as string[])
-        : [];
+      const result = await sendEmail.send({
+        from,
+        to: typeof to === "string" ? to : (to as string[]),
+        subject: subject as string,
+        ...(html ? { html: html as string } : {}),
+        ...(text ? { text: text as string } : {}),
+        ...(cc
+          ? { cc: typeof cc === "string" ? cc : (cc as string[]) }
+          : {}),
+        ...(replyTo
+          ? {
+              replyTo: Array.isArray(replyTo)
+                ? (replyTo[0] as string)
+                : (replyTo as string),
+            }
+          : {}),
+      });
 
-      const params = new URLSearchParams();
-      params.set("Action", "SendEmail");
-      params.set("Source", sender);
-
-      for (let i = 0; i < toArray.length; i++) {
-        params.set(
-          `Destination.ToAddresses.member.${i + 1}`,
-          toArray[i] as string
-        );
-      }
-      for (let i = 0; i < ccArray.length; i++) {
-        params.set(
-          `Destination.CcAddresses.member.${i + 1}`,
-          ccArray[i] as string
-        );
-      }
-      for (let i = 0; i < replyToArray.length; i++) {
-        params.set(
-          `ReplyToAddresses.member.${i + 1}`,
-          replyToArray[i] as string
-        );
-      }
-
-      params.set("Message.Subject.Data", subject as string);
-      params.set("Message.Subject.Charset", "UTF-8");
-
-      if (html) {
-        params.set("Message.Body.Html.Data", html as string);
-        params.set("Message.Body.Html.Charset", "UTF-8");
-      }
-      if (text) {
-        params.set("Message.Body.Text.Data", text as string);
-        params.set("Message.Body.Text.Charset", "UTF-8");
-      }
-
-      const client = new AwsClient({ accessKeyId, secretAccessKey });
-      const response = await client.fetch(
-        `https://email.${region}.amazonaws.com/`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: params.toString(),
-        }
-      );
-
-      const responseText = await response.text();
-
-      if (!response.ok) {
-        const errorMatch = responseText.match(/<Message>(.*?)<\/Message>/);
-        const errorMessage = errorMatch?.[1] ?? responseText;
-        return this.createErrorResult(
-          `AWS SES Error (${response.status}): ${errorMessage}`
-        );
-      }
-
-      const messageIdMatch = responseText.match(
-        /<MessageId>(.*?)<\/MessageId>/
-      );
-      if (messageIdMatch?.[1]) {
-        return this.createSuccessResult({ messageId: messageIdMatch[1] });
-      }
-
-      return this.createErrorResult(
-        "Failed to send email via Amazon SES. No MessageId returned."
-      );
+      return this.createSuccessResult({ messageId: result.messageId });
     } catch (error) {
-      console.error("SES Error:", error);
+      console.error("SendEmail error:", error);
       return this.createErrorResult(
         error instanceof Error ? error.message : String(error)
       );

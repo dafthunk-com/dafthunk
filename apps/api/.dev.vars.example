@@ -1,8 +1,7 @@
 WEB_HOST=http://localhost:3001
 WEBSITE_URL=http://localhost:3002
 
-EMAIL_DOMAIN=dafthunk.com
-EMAIL_DOMAIN=dafthunk.com
+EMAIL_DOMAIN=mail.dafthunk.com
 
 CLOUDFLARE_ENV=development
 CLOUDFLARE_ACCOUNT_ID=CHANGE_ME
@@ -67,8 +66,6 @@ TWILIO_ACCOUNT_SID=CHANGE_ME
 TWILIO_AUTH_TOKEN=CHANGE_ME
 TWILIO_PHONE_NUMBER=CHANGE_ME
 
-AWS_ACCESS_KEY_ID=CHANGE_ME
-AWS_SECRET_ACCESS_KEY=CHANGE_ME
-AWS_REGION=CHANGE_ME
-
-SES_DEFAULT_FROM=CHANGE_ME
+# Cloudflare Email Service
+# Must be an address on a domain configured in Cloudflare Email Sending
+SEND_EMAIL_FROM=noreply@mail.dafthunk.com

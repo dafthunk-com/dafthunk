@@ -60,7 +60,6 @@ import {
   type SchemaInsert,
   type SchemaRow,
   type SecretInsert,
-  type SenderEmailStatusType,
   scheduledTriggers,
   schemas,
   secrets,
@@ -853,8 +852,6 @@ export async function getEmails(
     .select({
       id: emails.id,
       name: emails.name,
-      senderEmail: emails.senderEmail,
-      senderEmailStatus: emails.senderEmailStatus,
       createdAt: emails.createdAt,
       updatedAt: emails.updatedAt,
     })
@@ -1691,75 +1688,6 @@ export async function getOrganizationBillingInfo(
     .where(eq(organizations.id, organizationId))
     .limit(1);
   return organization;
-}
-
-/**
- * Get the sender email configuration for an email
- */
-export async function getEmailSenderEmail(
-  db: ReturnType<typeof createDatabase>,
-  emailId: string,
-  organizationId: string
-): Promise<
-  | {
-      senderEmail: string | null;
-      senderEmailStatus: SenderEmailStatusType | null;
-    }
-  | undefined
-> {
-  const [email] = await db
-    .select({
-      senderEmail: emails.senderEmail,
-      senderEmailStatus: emails.senderEmailStatus,
-    })
-    .from(emails)
-    .where(
-      and(eq(emails.id, emailId), eq(emails.organizationId, organizationId))
-    )
-    .limit(1);
-  return email;
-}
-
-/**
- * Update the sender email and status for an email
- */
-export async function updateEmailSenderEmail(
-  db: ReturnType<typeof createDatabase>,
-  emailId: string,
-  organizationId: string,
-  senderEmailAddress: string,
-  status: SenderEmailStatusType
-) {
-  await db
-    .update(emails)
-    .set({
-      senderEmail: senderEmailAddress,
-      senderEmailStatus: status,
-      updatedAt: new Date(),
-    })
-    .where(
-      and(eq(emails.id, emailId), eq(emails.organizationId, organizationId))
-    );
-}
-
-/**
- * Clear the sender email configuration for an email
- */
-export async function clearEmailSenderEmail(
-  db: ReturnType<typeof createDatabase>,
-  emailId: string,
-  organizationId: string
-) {
-  await db
-    .update(emails)
-    .set({
-      senderEmail: null,
-      senderEmailStatus: null,
-      updatedAt: new Date(),
-    })
-    .where(
-      and(eq(emails.id, emailId), eq(emails.organizationId, organizationId))
-    );
 }
 
 /**

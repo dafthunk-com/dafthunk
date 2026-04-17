@@ -5,7 +5,7 @@ interface EmailSetupInfoProps {
 }
 
 export function EmailSetupInfo({ emailId }: EmailSetupInfoProps) {
-  const domain = import.meta.env.VITE_EMAIL_DOMAIN || "dafthunk.com";
+  const domain = import.meta.env.VITE_EMAIL_DOMAIN || "mail.dafthunk.com";
   const emailAddress = `${emailId}@${domain}`;
 
   return (

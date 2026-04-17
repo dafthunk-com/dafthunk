@@ -15,7 +15,6 @@ import type {
 import type { BaseToolRegistry } from "./base-tool-registry";
 import type { DatabaseService } from "./database-service";
 import type { DatasetService } from "./dataset-service";
-import type { EmailService } from "./email-service";
 import type { ObjectStore } from "./object-store";
 import type { QueueService } from "./queue-service";
 import type { SchemaService } from "./schema-service";
@@ -212,9 +211,8 @@ export interface NodeEnv {
   TWILIO_ACCOUNT_SID?: string;
   TWILIO_AUTH_TOKEN?: string;
   TWILIO_PHONE_NUMBER?: string;
-  AWS_ACCESS_KEY_ID?: string;
-  AWS_SECRET_ACCESS_KEY?: string;
-  AWS_REGION?: string;
+  SEND_EMAIL?: SendEmail;
+  SEND_EMAIL_FROM?: string;
   HUGGINGFACE_API_KEY?: string;
   REPLICATE_API_TOKEN?: string;
   GOOGLE_API_KEY?: string;
@@ -255,7 +253,6 @@ export interface NodeContext {
   // Callback-based access to sensitive data (improves security and isolation)
   getSecret?: (secretName: string) => Promise<string | undefined>;
   getIntegration: (integrationId: string) => Promise<IntegrationInfo>;
-  emailService?: EmailService;
   env: NodeEnv;
   // Multi-step execution primitives (populated for MultiStepNode instances)
   sleep?: (durationMs: number) => Promise<void>;

@@ -503,9 +503,6 @@ importers:
       '@mapbox/martini':
         specifier: ^0.2.0
         version: 0.2.0
-      aws4fetch:
-        specifier: ^1.0.20
-        version: 1.0.20
       exifreader:
         specifier: ^4.36.0
         version: 4.36.0

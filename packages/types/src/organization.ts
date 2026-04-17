@@ -165,32 +165,3 @@ export interface DeclineInvitationResponse {
 export interface DeleteInvitationResponse {
   success: boolean;
 }
-
-/**
- * Sender email verification types
- */
-
-export type SenderEmailStatus = "pending" | "verified" | "failed";
-
-export interface GetSenderEmailResponse {
-  senderEmail: string | null;
-  senderEmailStatus: SenderEmailStatus | null;
-}
-
-export interface SetSenderEmailRequest {
-  email: string;
-}
-
-export interface SetSenderEmailResponse {
-  senderEmail: string;
-  senderEmailStatus: SenderEmailStatus;
-}
-
-export interface VerifySenderEmailResponse {
-  senderEmail: string;
-  senderEmailStatus: SenderEmailStatus;
-}
-
-export interface DeleteSenderEmailResponse {
-  success: boolean;
-}

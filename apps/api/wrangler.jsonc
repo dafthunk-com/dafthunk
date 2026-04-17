@@ -105,6 +105,12 @@
       "dataset": "dafthunk_executions_development"
     }
   ],
+  "send_email": [
+    {
+      "name": "SEND_EMAIL",
+      "remote": true
+    }
+  ],
   "durable_objects": {
     "bindings": [
       {
@@ -210,7 +216,9 @@
    */
   "vars": {
     "WEB_HOST": "https://app.dafthunk.com",
-    "WEBSITE_URL": "https://www.dafthunk.com"
+    "WEBSITE_URL": "https://www.dafthunk.com",
+    "EMAIL_DOMAIN": "mail.dafthunk.com",
+    "SEND_EMAIL_FROM": "noreply@mail.dafthunk.com"
   },
   "env": {
     "production": {
@@ -277,6 +285,11 @@
         {
           "binding": "EXECUTIONS",
           "dataset": "dafthunk_executions_production"
+        }
+      ],
+      "send_email": [
+        {
+          "name": "SEND_EMAIL"
         }
       ],
       "durable_objects": {
@@ -380,7 +393,9 @@
       },
       "vars": {
         "WEB_HOST": "https://app.dafthunk.com",
-        "WEBSITE_URL": "https://www.dafthunk.com"
+        "WEBSITE_URL": "https://www.dafthunk.com",
+        "EMAIL_DOMAIN": "mail.dafthunk.com",
+        "SEND_EMAIL_FROM": "noreply@mail.dafthunk.com"
       },
       "queues": {
         "producers": [
