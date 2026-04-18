@@ -19,7 +19,7 @@ export function Layout({ children, navigation }: LayoutProps) {
 
   return (
     <div className="min-h-screen bg-stone-100 bg-dot-grid flex flex-col overflow-x-clip">
-      <header className="sticky top-0 z-50 w-full px-6 py-4 bg-stone-100/60 backdrop-blur-md backdrop-saturate-150 border-b border-white/20 shadow-sm supports-[backdrop-filter]:bg-stone-100/50">
+      <header className="sticky top-0 z-50 w-full px-6 py-4 bg-[#f1f1ef]/60 backdrop-blur-md backdrop-saturate-150 border-b border-gray-200 supports-[backdrop-filter]:bg-[#f1f1ef]/50">
         <div className="flex items-center justify-between">
           <a href="/" className="flex items-center gap-3">
             <img src="/icon.svg" alt="Dafthunk" className="h-8 w-8" />
