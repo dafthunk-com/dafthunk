@@ -21,7 +21,13 @@ export function WorkflowPreview({
   const embedUrl = `${APP_URL}/embed/templates/${templateId}${showBackground ? "" : "?bg=false"}`;
 
   return (
-    <div className={cn("rounded-xl overflow-hidden bg-neutral-50", className)}>
+    <div
+      className={cn(
+        "rounded-xl overflow-hidden",
+        showBackground && "bg-neutral-50",
+        className
+      )}
+    >
       <iframe
         src={embedUrl}
         title={`Workflow preview for ${templateId}`}

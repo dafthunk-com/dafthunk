@@ -35,6 +35,21 @@ export function TemplatePreviewPage() {
     }
   }, [templates, templateId]);
 
+  // When embedded without background, make html/body transparent so the
+  // host page's background shows through the iframe.
+  useEffect(() => {
+    if (showBackground) return;
+    const { documentElement, body } = document;
+    const prevHtml = documentElement.style.background;
+    const prevBody = body.style.background;
+    documentElement.style.background = "transparent";
+    body.style.background = "transparent";
+    return () => {
+      documentElement.style.background = prevHtml;
+      body.style.background = prevBody;
+    };
+  }, [showBackground]);
+
   // Convert template to React Flow nodes and edges
   const { nodes, edges } = useMemo(() => {
     if (!template || nodeTypes.length === 0) {
@@ -71,7 +86,14 @@ export function TemplatePreviewPage() {
   return (
     <div
       className="w-full h-screen"
-      style={{ background: showBackground ? undefined : "transparent" }}
+      style={
+        showBackground
+          ? undefined
+          : {
+              background: "transparent",
+              ["--xy-background-color" as string]: "transparent",
+            }
+      }
     >
       <ReactFlowProvider>
         <WorkflowBuilder
@@ -84,6 +106,7 @@ export function TemplatePreviewPage() {
           expandedOutputs={false}
           createObjectUrl={() => ""}
           orgId=""
+          showBackground={showBackground}
         />
       </ReactFlowProvider>
     </div>

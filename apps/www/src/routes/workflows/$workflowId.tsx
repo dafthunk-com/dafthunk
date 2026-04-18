@@ -117,34 +117,31 @@ export default function WorkflowPage({
           &larr; All use cases
         </Link>
 
-        <div className="mb-12">
-          <div className="flex items-start gap-6 mb-6">
-            <div className="flex-shrink-0 w-16 h-16 bg-white rounded-xl shadow-sm flex items-center justify-center">
-              <IconComponent className="w-8 h-8 text-gray-600" />
+        <div className="mb-12 flex items-center justify-between gap-6">
+          <div className="flex items-center gap-6 min-w-0">
+            <div className="flex-shrink-0 w-24 h-24 bg-white rounded-2xl shadow-sm flex items-center justify-center">
+              <IconComponent className="w-12 h-12 text-gray-600" />
             </div>
-            <div>
+            <div className="min-w-0">
               <h1 className="text-6xl font-light text-gray-900">
                 {workflow.name}
               </h1>
+              <div className="flex flex-wrap items-center gap-2 mt-3">
+                {workflow.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-sm"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
             </div>
-          </div>
-
-          <p className="text-3xl text-gray-500 mb-6">{workflow.description}</p>
-
-          <div className="flex flex-wrap items-center gap-3 mb-8">
-            {workflow.tags.map((tag) => (
-              <span
-                key={tag}
-                className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-sm"
-              >
-                {tag}
-              </span>
-            ))}
           </div>
 
           <a
             href={`${import.meta.env.VITE_APP_URL}/templates/${workflow.id}/try`}
-            className="inline-block text-lg bg-black text-white px-8 py-4 rounded-lg hover:bg-gray-800 transition-colors"
+            className="flex-shrink-0 inline-block text-lg bg-black text-white px-8 py-4 rounded-lg hover:bg-gray-800 transition-colors"
           >
             Try this workflow
           </a>
@@ -152,18 +149,18 @@ export default function WorkflowPage({
 
         {/* Workflow Preview */}
         <section className="mb-12">
-          <h2 className="text-2xl font-light text-gray-900 mb-4">
-            Workflow Preview
-          </h2>
           <WorkflowPreview
             templateId={workflow.id}
-            className="h-[40rem] border border-gray-200"
+            className="h-[40rem]"
+            showBackground={false}
           />
         </section>
 
+        <p className="text-3xl text-gray-500 mb-12">{workflow.description}</p>
+
         {/* Other Workflows */}
         {otherWorkflows.length > 0 && (
-          <section className="mt-32 pt-8 border-t border-gray-200">
+          <section className="mt-32">
             <h2 className="text-2xl font-light text-gray-900 mb-6">
               Other Workflows
             </h2>

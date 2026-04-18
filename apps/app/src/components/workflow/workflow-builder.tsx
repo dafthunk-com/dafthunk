@@ -89,6 +89,7 @@ export interface WorkflowBuilderProps {
     parameters?: Record<string, unknown>;
   }) => void;
   showSidebar?: boolean;
+  showBackground?: boolean;
   isEnabled?: boolean;
   isTogglingEnabled?: boolean;
   onToggleEnabled?: (checked: boolean) => void;
@@ -116,6 +117,7 @@ export function WorkflowBuilder({
   orgId,
   wsExecuteWorkflow,
   showSidebar,
+  showBackground = true,
   isEnabled,
   isTogglingEnabled,
   onToggleEnabled,
@@ -313,6 +315,7 @@ export function WorkflowBuilder({
               onPasteFromClipboard={readOnly ? undefined : pasteFromClipboard}
               hasClipboardData={hasClipboardData}
               showControls={interactive}
+              showBackground={showBackground}
             />
           </div>
 

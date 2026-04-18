@@ -172,6 +172,7 @@ export interface WorkflowCanvasProps {
   onCutSelected?: () => void;
   onPasteFromClipboard?: () => void;
   hasClipboardData?: boolean;
+  showBackground?: boolean;
 }
 
 interface ActionButtonProps {
@@ -573,6 +574,7 @@ export function WorkflowCanvas({
   onCutSelected,
   onPasteFromClipboard,
   hasClipboardData = false,
+  showBackground = true,
 }: WorkflowCanvasProps) {
   // Get selected elements for button states
   const hasSelectedElements =
@@ -606,9 +608,10 @@ export function WorkflowCanvas({
         }}
         minZoom={0.05}
         maxZoom={4}
-        className={cn("bg-neutral-100/50", {
-          "cursor-default": disabled,
-        })}
+        className={cn(
+          showBackground && "bg-neutral-100/50",
+          disabled && "cursor-default"
+        )}
         nodesDraggable={!disabled && showControls}
         nodesConnectable={!disabled && showControls}
         elementsSelectable={showControls}
@@ -627,12 +630,14 @@ export function WorkflowCanvas({
             showFitView={false}
           />
         )}
-        <Background
-          variant={BackgroundVariant.Dots}
-          gap={12}
-          size={1}
-          className="stroke-foreground/5 opacity-50"
-        />
+        {showBackground && (
+          <Background
+            variant={BackgroundVariant.Dots}
+            gap={12}
+            size={1}
+            className="stroke-foreground/5 opacity-50"
+          />
+        )}
 
         {/* Status Bar - hidden in read-only mode */}
         {!disabled && (
