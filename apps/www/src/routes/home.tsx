@@ -194,7 +194,7 @@ export default function Home() {
           </p>
           <Link
             to="/workflows"
-            className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 hover:border-gray-400 rounded-lg px-4 py-2 mt-6 transition-colors"
+            className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 bg-white hover:bg-gray-50 border border-gray-300 hover:border-gray-400 rounded-lg px-4 py-2 mt-6 transition-colors"
           >
             View all use cases &rarr;
           </Link>
@@ -215,20 +215,7 @@ export default function Home() {
                   >
                     {workflow.name}
                   </Link>
-                </div>
-                <div className="lg:col-span-8 xl:col-span-6">
-                  <p className="text-xl text-gray-600 leading-relaxed mb-4">
-                    {workflow.description}
-                  </p>
-                  <Link
-                    to={`/workflows/${workflow.id}`}
-                    className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 hover:border-gray-400 rounded-lg px-4 py-2 transition-colors"
-                  >
-                    View workflow &rarr;
-                  </Link>
-                </div>
-                <div className="lg:col-span-4 xl:col-span-3">
-                  <div className="flex flex-wrap gap-2">
+                  <div className="mt-4 flex flex-wrap gap-2">
                     {workflow.tags.map((tag) => (
                       <span
                         key={tag}
@@ -238,6 +225,19 @@ export default function Home() {
                       </span>
                     ))}
                   </div>
+                </div>
+                <div className="lg:col-span-9 xl:col-span-7">
+                  <p className="text-xl text-gray-600 leading-relaxed">
+                    {workflow.description}
+                  </p>
+                </div>
+                <div className="lg:col-span-3 xl:col-span-2">
+                  <Link
+                    to={`/workflows/${workflow.id}`}
+                    className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 bg-white hover:bg-gray-50 border border-gray-300 hover:border-gray-400 rounded-lg px-4 py-2 transition-colors"
+                  >
+                    View workflow &rarr;
+                  </Link>
                 </div>
               </div>
             ))}
@@ -262,7 +262,7 @@ export default function Home() {
           </p>
           <Link
             to="/nodes"
-            className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 hover:border-gray-400 rounded-lg px-4 py-2 mt-6 transition-colors"
+            className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 bg-white hover:bg-gray-50 border border-gray-300 hover:border-gray-400 rounded-lg px-4 py-2 mt-6 transition-colors"
           >
             View all categories &rarr;
           </Link>
@@ -283,20 +283,7 @@ export default function Home() {
                   >
                     {category.name}
                   </Link>
-                </div>
-                <div className="lg:col-span-8 xl:col-span-6">
-                  <p className="text-xl text-gray-600 leading-relaxed mb-4">
-                    {category.description}
-                  </p>
-                  <Link
-                    to={`/nodes/${category.id}`}
-                    className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 hover:border-gray-400 rounded-lg px-4 py-2 transition-colors"
-                  >
-                    View {category.nodeIds.length} nodes &rarr;
-                  </Link>
-                </div>
-                <div className="lg:col-span-4 xl:col-span-3">
-                  <div className="flex flex-wrap gap-2">
+                  <div className="mt-4 flex flex-wrap gap-2">
                     {category.tags.map((tag) => (
                       <span
                         key={tag}
@@ -306,6 +293,19 @@ export default function Home() {
                       </span>
                     ))}
                   </div>
+                </div>
+                <div className="lg:col-span-9 xl:col-span-7">
+                  <p className="text-xl text-gray-600 leading-relaxed">
+                    {category.description}
+                  </p>
+                </div>
+                <div className="lg:col-span-3 xl:col-span-2">
+                  <Link
+                    to={`/nodes/${category.id}`}
+                    className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 bg-white hover:bg-gray-50 border border-gray-300 hover:border-gray-400 rounded-lg px-4 py-2 transition-colors"
+                  >
+                    View {category.nodeIds.length} nodes &rarr;
+                  </Link>
                 </div>
               </div>
             ))}

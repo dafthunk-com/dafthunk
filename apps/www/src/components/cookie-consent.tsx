@@ -76,13 +76,13 @@ export function CookieConsent() {
       <div className="flex gap-3 shrink-0">
         <button
           onClick={handleReject}
-          className="px-4 py-2 text-base text-gray-600 border border-gray-300 rounded hover:bg-gray-50"
+          className="px-4 py-2 text-base text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
         >
           Reject
         </button>
         <button
           onClick={handleAccept}
-          className="px-4 py-2 text-base text-white bg-black rounded hover:bg-gray-800"
+          className="px-4 py-2 text-base text-white bg-black rounded-lg hover:bg-gray-800"
         >
           Accept
         </button>
