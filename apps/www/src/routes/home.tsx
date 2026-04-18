@@ -67,6 +67,13 @@ export default function Home() {
       <section className="px-6 pt-32 pb-32" aria-label="Hero">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-16 items-center">
           <div className="lg:col-span-2 max-w-xl">
+            <div className="inline-flex items-center gap-2.5 px-3 py-1 mb-8 text-xs font-medium uppercase tracking-wider text-gray-600 bg-white border border-gray-300 rounded-full">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75 animate-ping" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+              </span>
+              Open source · MIT · Running on Cloudflare
+            </div>
             <h1 className="text-7xl font-light text-gray-900 mb-8 leading-[1.1]">
               Visual workflow
               <br />
@@ -105,11 +112,43 @@ export default function Home() {
       </section>
 
       <section
+        className="relative left-1/2 right-1/2 w-screen -ml-[50vw] -mr-[50vw] py-24 bg-stone-100 border-y border-gray-200"
+        aria-label="Built on and integrates with"
+      >
+        <div className="max-w-screen-2xl mx-auto px-6 flex flex-col lg:flex-row lg:items-center gap-6 lg:gap-16">
+          <p className="text-sm font-mono text-gray-500 uppercase tracking-wider shrink-0">
+            Built on · Integrates with
+          </p>
+          <div className="flex flex-wrap items-baseline gap-x-10 gap-y-4 lg:ml-auto lg:justify-end">
+            {[
+              "Cloudflare",
+              "Anthropic",
+              "OpenAI",
+              "Google",
+              "GitHub",
+              "Discord",
+              "Gmail",
+            ].map((name) => (
+              <span
+                key={name}
+                className="text-4xl font-light text-gray-900 leading-none"
+              >
+                {name}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section
         id="features"
         className="px-6 py-32"
         aria-labelledby="features-heading"
       >
         <div className="mb-32">
+          <p className="text-sm font-mono text-gray-500 uppercase tracking-widest mb-6">
+            01 — Overview
+          </p>
           <h2
             id="features-heading"
             className="text-6xl font-light text-gray-900 mb-6"
@@ -127,51 +166,144 @@ export default function Home() {
             <h3 className="text-3xl font-light text-gray-900 mb-4">
               Visual Workflow Editor
             </h3>
-            <p className="text-xl text-gray-600 leading-relaxed">
+            <p className="text-xl text-gray-600 leading-relaxed mb-6">
               A React Flow workflow builder for creating automation workflows
               that makes command-line enthusiasts mildly uncomfortable. Build
               workflow pipelines by connecting nodes visually. No infrastructure
               setup, no Docker containers. Just workflows that run on Workers.
             </p>
+            <div className="flex flex-wrap gap-2">
+              {[
+                "React Flow",
+                "Drag & drop",
+                "Live preview",
+                "Versioning",
+              ].map((tag) => (
+                <span
+                  key={tag}
+                  className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
           </div>
 
           <div>
             <h3 className="text-3xl font-light text-gray-900 mb-4">
               Durable Workflow Execution
             </h3>
-            <p className="text-xl text-gray-600 leading-relaxed">
+            <p className="text-xl text-gray-600 leading-relaxed mb-6">
               Run automation workflows using Cloudflare Workflows and Workers
               across the edge network, where servers are merely a philosophical
               concept. Your workflows execute everywhere and nowhere
               simultaneously with built-in durability. The infrastructure
               handles scaling, you handle the logic.
             </p>
+            <div className="flex flex-wrap gap-2">
+              {[
+                "Cloudflare Workers",
+                "Workflows",
+                "Durable Objects",
+                "Auto-retry",
+              ].map((tag) => (
+                <span
+                  key={tag}
+                  className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
           </div>
 
           <div>
             <h3 className="text-3xl font-light text-gray-900 mb-4">
               Persistent Workflow Storage
             </h3>
-            <p className="text-xl text-gray-600 leading-relaxed">
+            <p className="text-xl text-gray-600 leading-relaxed mb-6">
               Save workflow state, execution history, and automation data using
               D1 SQL databases, R2 object storage and Workers Analytics Engine
               with reasonable confidence they'll still be there tomorrow.
               Durable workflow execution that persists even when things go
               sideways. Because workflows should complete, eventually.
             </p>
+            <div className="flex flex-wrap gap-2">
+              {["D1 SQL", "R2 Storage", "Analytics Engine", "KV"].map((tag) => (
+                <span
+                  key={tag}
+                  className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
           </div>
 
           <div>
             <h3 className="text-3xl font-light text-gray-900 mb-4">
               Workflow Triggers & Queues
             </h3>
-            <p className="text-xl text-gray-600 leading-relaxed">
+            <p className="text-xl text-gray-600 leading-relaxed mb-6">
               Nothing happens unless something happens. Trigger workflow
               automation via HTTP webhooks for event-driven workflows, Queues
               for reliable message processing, scheduled cron jobs for
               time-based automation, or manual triggers when you feel like it.
               Connect to any REST API, integrate with third-party services, and
               orchestrate complex automation pipelines.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {["Webhooks", "Queues", "Cron", "Manual", "Email"].map((tag) => (
+                <span
+                  key={tag}
+                  className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section
+        className="relative left-1/2 right-1/2 w-screen -ml-[50vw] -mr-[50vw] py-24 bg-stone-100 border-y border-gray-200"
+        aria-label="Platform statistics"
+      >
+        <div className="max-w-screen-2xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-12 text-center">
+          <div>
+            <p className="text-6xl font-light text-gray-900 mb-3 leading-none">
+              470
+              <span className="text-3xl text-gray-400 ml-1">+</span>
+            </p>
+            <p className="text-sm font-mono text-gray-500 uppercase tracking-wider">
+              Workflow nodes
+            </p>
+          </div>
+          <div>
+            <p className="text-6xl font-light text-gray-900 mb-3 leading-none">
+              30
+              <span className="text-3xl text-gray-400 ml-1">+</span>
+            </p>
+            <p className="text-sm font-mono text-gray-500 uppercase tracking-wider">
+              AI models
+            </p>
+          </div>
+          <div>
+            <p className="text-6xl font-light text-gray-900 mb-3 leading-none">
+              12
+              <span className="text-3xl text-gray-400 ml-1">+</span>
+            </p>
+            <p className="text-sm font-mono text-gray-500 uppercase tracking-wider">
+              Integrations
+            </p>
+          </div>
+          <div>
+            <p className="text-6xl font-light text-gray-900 mb-3 leading-none">
+              MIT
+            </p>
+            <p className="text-sm font-mono text-gray-500 uppercase tracking-wider">
+              Open source license
             </p>
           </div>
         </div>
@@ -183,6 +315,9 @@ export default function Home() {
         aria-labelledby="use-cases-heading"
       >
         <div className="mb-32">
+          <p className="text-sm font-mono text-gray-500 uppercase tracking-widest mb-6">
+            02 — Use cases
+          </p>
           <h2
             id="use-cases-heading"
             className="text-6xl font-light text-gray-900 mb-6"
@@ -250,6 +385,9 @@ export default function Home() {
         aria-labelledby="capabilities-heading"
       >
         <div className="mb-32">
+          <p className="text-sm font-mono text-gray-500 uppercase tracking-widest mb-6">
+            03 — Capabilities
+          </p>
           <h2
             id="capabilities-heading"
             className="text-6xl font-light text-gray-900 mb-6"
@@ -318,6 +456,9 @@ export default function Home() {
         aria-labelledby="open-source-heading"
       >
         <div className="mb-32">
+          <p className="text-sm font-mono text-gray-500 uppercase tracking-widest mb-6">
+            04 — Open source
+          </p>
           <h2
             id="open-source-heading"
             className="text-6xl font-light text-gray-900 mb-6"
@@ -356,6 +497,30 @@ export default function Home() {
               workflow automation infrastructure with AI assistance.
             </p>
           </div>
+        </div>
+      </section>
+
+      <section
+        className="px-6 py-32"
+        aria-labelledby="cta-heading"
+      >
+        <div className="max-w-4xl mx-auto text-center">
+          <h2
+            id="cta-heading"
+            className="text-6xl font-light text-gray-900 mb-8 leading-[1.1]"
+          >
+            Go automate something
+          </h2>
+          <p className="text-2xl text-gray-600 mb-10 leading-relaxed">
+            Your first workflow takes about four minutes. Your hundredth takes
+            about forty seconds. Cloudflare handles the rest.
+          </p>
+          <a
+            href={import.meta.env.VITE_APP_URL}
+            className="inline-block text-lg bg-black text-white px-8 py-4 rounded-lg hover:bg-gray-800 transition-colors"
+          >
+            Open the editor
+          </a>
         </div>
       </section>
     </Layout>

@@ -18,7 +18,7 @@ export function Layout({ children, navigation }: LayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-stone-100 bg-dot-grid flex flex-col">
+    <div className="min-h-screen bg-stone-100 bg-dot-grid flex flex-col overflow-x-clip">
       <header className="sticky top-0 z-50 w-full px-6 py-4 bg-stone-100/60 backdrop-blur-md backdrop-saturate-150 border-b border-white/20 shadow-sm supports-[backdrop-filter]:bg-stone-100/50">
         <div className="flex items-center justify-between">
           <a href="/" className="flex items-center gap-3">
