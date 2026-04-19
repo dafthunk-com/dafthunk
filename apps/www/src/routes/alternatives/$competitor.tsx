@@ -303,15 +303,16 @@ export default function AlternativePage({
             Try Dafthunk
           </h2>
           <p className="text-2xl text-gray-600 mb-10 leading-relaxed max-w-3xl">
-            Build a workflow in about four minutes. Self-host on Cloudflare, or
-            read the source on GitHub under MIT.
+            Start on our hosted SaaS and build your first workflow in about four
+            minutes. Self-host on your own Cloudflare account under MIT whenever
+            you need full control.
           </p>
           <div className="flex flex-wrap items-center gap-4">
             <a
               href={import.meta.env.VITE_APP_URL}
               className="inline-block text-lg bg-black text-white px-8 py-4 rounded-lg hover:bg-gray-800 transition-colors"
             >
-              Open the editor
+              Start for free
             </a>
             <a
               href="https://github.com/dafthunk-com/dafthunk"
@@ -319,7 +320,7 @@ export default function AlternativePage({
               rel="noopener noreferrer"
               className="inline-block text-lg bg-white border border-gray-300 text-gray-900 px-8 py-4 rounded-lg hover:bg-gray-50 transition-colors"
             >
-              View on GitHub
+              View source on GitHub
             </a>
           </div>
         </section>

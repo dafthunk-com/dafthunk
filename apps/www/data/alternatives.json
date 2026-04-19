@@ -4,7 +4,7 @@
       "id": "n8n",
       "name": "n8n",
       "tagline": "MIT-licensed, serverless n8n alternative on Cloudflare",
-      "intro": "Dafthunk is an MIT-licensed workflow automation platform built for Cloudflare Workers. Workflows scale to zero when idle, store state in D1 and R2, call Workers AI for inference, and expose any node as a tool for AI agents. You can fork, embed, or resell the stack without fair-code restrictions.",
+      "intro": "Dafthunk is an MIT-licensed workflow automation platform built for Cloudflare Workers. Workflows scale to zero when idle, store state in D1 and R2, call Workers AI for inference, and expose any node as a tool for AI agents. Start on our hosted SaaS, or self-host the MIT source on your own Cloudflare account. The same code powers both paths.",
       "category": "Visual workflow builder",
       "license": "Sustainable Use License (fair-code)",
       "deployment": "Self-hosted (Docker) or n8n Cloud",
@@ -153,6 +153,10 @@
       ],
       "faqs": [
         {
+          "question": "Can I use a hosted Dafthunk instead of self-hosting?",
+          "answer": "Yes, and it is the fastest way to start. Our hosted SaaS runs the same MIT-licensed code you can read on GitHub, and lets you skip Cloudflare setup, database migrations, and credential management. When you need full control over data, secrets, or infrastructure, self-host on your own Cloudflare account. You can move between the two paths at any time."
+        },
+        {
           "question": "Is there a fully open source, MIT-licensed alternative to n8n?",
           "answer": "Yes. Dafthunk is MIT licensed throughout, with no enterprise tier, no fair-code carve-outs, and no community edition that hides features. n8n moved to the Sustainable Use License in 2022, which restricts hosting n8n as a competing SaaS and embedding it in a competing commercial product. The MIT license lets you fork, embed, or resell without those restrictions."
         },
@@ -199,87 +203,836 @@
     {
       "id": "make",
       "name": "Make",
-      "tagline": "Open source, self-hostable Make alternative",
+      "tagline": "MIT-licensed, serverless Make alternative on Cloudflare",
+      "intro": "Dafthunk is an MIT-licensed workflow automation platform that runs on Cloudflare Workers. Start on our hosted SaaS, or self-host on your own Cloudflare account and run the same MIT source we do. Make is a proprietary SaaS with no self-hosting path.",
       "category": "Visual workflow builder",
       "license": "Proprietary (SaaS)",
       "deployment": "SaaS only",
       "website": "https://make.com",
       "verifiedAt": "2026-04-19",
-      "published": false,
-      "strengths": [],
-      "differentiators": [],
-      "whenCompetitorIsBetter": [],
-      "featureMatrix": [],
-      "faqs": [],
-      "sources": []
+      "published": true,
+      "strengths": [
+        "Make, formerly Integromat, is a mature visual scenario builder with strong control-flow primitives such as routers, iterators, and aggregators. It connects to 2000+ SaaS apps, handles complex branching without code, and ships with a managed cloud, paid SLA, and commercial support. Non-developers can build multi-step scenarios in minutes."
+      ],
+      "differentiators": [
+        {
+          "title": "License",
+          "dafthunk": "MIT licensed. Fork it, embed it in a commercial product, resell a hosted version, or audit every line.",
+          "competitor": "Proprietary. Make owns the platform and operates it as a hosted service. No source access, no self-hosting, no on-premise option."
+        },
+        {
+          "title": "Deployment",
+          "dafthunk": "Start on our hosted SaaS, or self-host on your own Cloudflare account. You choose where the code runs and where the data lives.",
+          "competitor": "SaaS only. Scenarios run on Make's servers, in regions they choose."
+        },
+        {
+          "title": "Pricing model",
+          "dafthunk": "Pay Cloudflare for actual Workers, D1, and R2 usage. The free tier covers light workloads; costs stay in pennies per thousand executions for most workflows.",
+          "competitor": "Per-operation pricing. Every module run, filter, or iteration counts as an operation. Costs grow with scenario complexity and volume."
+        },
+        {
+          "title": "Data residency",
+          "dafthunk": "Your Cloudflare account, your region preferences. Integration secrets and execution data stay with you.",
+          "competitor": "Make's data centers in the EU or US, depending on your plan. Data leaves your infrastructure."
+        },
+        {
+          "title": "Extensibility",
+          "dafthunk": "Full source on GitHub, plus a JavaScript node for inline code. Add custom nodes in TypeScript and deploy to your own registry.",
+          "competitor": "Custom apps through Make's SDK, reviewed and published through their marketplace."
+        },
+        {
+          "title": "Agentic workflows",
+          "dafthunk": "Any workflow node can become a tool for an AI agent. Bindings for Workers AI, OpenAI, Anthropic, and Gemini ship built in.",
+          "competitor": "AI modules for OpenAI and Anthropic. Agents are a newer add-on, not a first-class primitive."
+        }
+      ],
+      "whenCompetitorIsBetter": [
+        "Pick Make if you need a wide SaaS-integration catalog, a managed cloud with SLA, or if your team includes business users who prefer a finished product over a code-first workflow platform."
+      ],
+      "featureMatrix": [
+        {
+          "category": "License and deployment",
+          "rows": [
+            {
+              "feature": "Source license",
+              "dafthunk": "MIT",
+              "competitor": "Proprietary"
+            },
+            {
+              "feature": "Self-hostable",
+              "dafthunk": "Yes, on your Cloudflare account",
+              "competitor": "No"
+            },
+            {
+              "feature": "Source available",
+              "dafthunk": "Yes, on GitHub",
+              "competitor": "No"
+            },
+            {
+              "feature": "On-premise",
+              "dafthunk": "Via Cloudflare",
+              "competitor": "Not supported"
+            }
+          ]
+        },
+        {
+          "category": "Runtime and scale",
+          "rows": [
+            {
+              "feature": "Runtime model",
+              "dafthunk": "Serverless (Cloudflare Workers)",
+              "competitor": "Managed SaaS"
+            },
+            {
+              "feature": "Scale to zero",
+              "dafthunk": "Yes. Idle workflows cost nothing",
+              "competitor": "Not applicable (SaaS)"
+            },
+            {
+              "feature": "Pricing unit",
+              "dafthunk": "Cloudflare usage (requests, CPU, storage)",
+              "competitor": "Per-operation"
+            }
+          ]
+        },
+        {
+          "category": "Integrations and AI",
+          "rows": [
+            {
+              "feature": "Node count",
+              "dafthunk": "470+ nodes",
+              "competitor": "2000+ SaaS apps"
+            },
+            {
+              "feature": "Native AI providers",
+              "dafthunk": "Workers AI, OpenAI, Anthropic, Gemini",
+              "competitor": "OpenAI, Anthropic"
+            },
+            {
+              "feature": "Agentic (nodes as tools for AI)",
+              "dafthunk": "First-class",
+              "competitor": "Limited"
+            },
+            {
+              "feature": "Browser automation",
+              "dafthunk": "Cloudflare Browser Rendering, built in",
+              "competitor": "Via HTTP or third-party apps"
+            }
+          ]
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Do I have to self-host Dafthunk?",
+          "answer": "No. Most teams start on our hosted SaaS, which runs the same MIT-licensed code you can read on GitHub and removes the setup work. Self-hosting on your own Cloudflare account is there when you need full control over data, secrets, or infrastructure. You can move from SaaS to self-host at any time."
+        },
+        {
+          "question": "Is there a self-hosted, open source alternative to Make?",
+          "answer": "Yes. Dafthunk is MIT licensed and self-hostable on Cloudflare. You deploy the API and web app to your own Cloudflare account, store state in D1 and R2, and run workflows on Workers. Make is SaaS only; there is no way to run it on your own infrastructure."
+        },
+        {
+          "question": "Can I run Make on Cloudflare or my own servers?",
+          "answer": "No. Make is a proprietary SaaS. Scenarios run on their servers and the source is not available. If your goal is a workflow platform on Cloudflare, Dafthunk was built for that from day one."
+        },
+        {
+          "question": "How does Dafthunk pricing compare to Make?",
+          "answer": "Make charges per operation. Every module run, filter, or iteration costs one or more operations, and heavy scenarios can burn through a plan quickly. Dafthunk bills through Cloudflare for actual Workers, D1, and R2 usage, which runs to pennies per thousand executions for most workflows. Idle workflows cost nothing."
+        },
+        {
+          "question": "Which has better AI and agentic workflow support?",
+          "answer": "Dafthunk treats AI as a first-class primitive. Any node can become a tool for an AI agent, and Dafthunk ships native bindings for Workers AI, OpenAI, Anthropic, and Gemini. Make offers AI modules and a newer agent product, but AI is one integration category among thousands rather than the core of the platform."
+        },
+        {
+          "question": "What about data residency and compliance?",
+          "answer": "With Dafthunk self-hosted, data lives in your Cloudflare account. You choose the jurisdiction, you hold the secrets, and you decide retention. Make stores scenario data and credentials in their data centers. For regulated industries, self-hosting often simplifies the compliance story."
+        },
+        {
+          "question": "When is Make still the better choice?",
+          "answer": "Choose Make if you need the widest SaaS-integration catalog, a polished UI aimed at non-developers, a commercial cloud with a paid SLA, or strong visual primitives like routers, iterators, and aggregators out of the box."
+        }
+      ],
+      "sources": [
+        {
+          "label": "Make pricing",
+          "url": "https://www.make.com/en/pricing"
+        },
+        {
+          "label": "Cloudflare Workers pricing",
+          "url": "https://developers.cloudflare.com/workers/platform/pricing/"
+        },
+        {
+          "label": "Dafthunk on GitHub",
+          "url": "https://github.com/dafthunk-com/dafthunk"
+        }
+      ]
     },
     {
       "id": "zapier",
       "name": "Zapier",
       "tagline": "Self-hostable, MIT-licensed Zapier alternative for developers",
+      "intro": "Dafthunk is an MIT-licensed workflow platform that runs on Cloudflare Workers. Start on our hosted SaaS, or self-host on your own Cloudflare account under MIT. Zapier is a proprietary SaaS with no self-hosting path. It targets business users who want the widest catalog of SaaS connectors and do not want to run servers.",
       "category": "SaaS workflow builder",
       "license": "Proprietary (SaaS)",
       "deployment": "SaaS only",
       "website": "https://zapier.com",
       "verifiedAt": "2026-04-19",
-      "published": false,
-      "strengths": [],
-      "differentiators": [],
-      "whenCompetitorIsBetter": [],
-      "featureMatrix": [],
-      "faqs": [],
-      "sources": []
+      "published": true,
+      "strengths": [
+        "Zapier supports 7000+ SaaS apps, the largest integration catalog in the industry. It targets non-developers with a trigger-and-action model anyone can learn in an hour. Plans include a managed cloud with SLA, enterprise SSO, audit logs, and paid commercial support. No server to run, no code to write."
+      ],
+      "differentiators": [
+        {
+          "title": "License",
+          "dafthunk": "MIT. Full source on GitHub. Fork it, embed it, resell it, or audit every line.",
+          "competitor": "Proprietary. Zapier owns and operates the platform. No source access, no self-hosting."
+        },
+        {
+          "title": "Deployment",
+          "dafthunk": "Start on our hosted SaaS, or self-host on your own Cloudflare account under MIT. You choose where the code runs, where the secrets live, and who holds the data.",
+          "competitor": "SaaS only. Zaps run on Zapier's servers, in regions they choose."
+        },
+        {
+          "title": "Pricing model",
+          "dafthunk": "Cloudflare usage. Workers requests, D1 rows, and R2 storage. The free tier covers low volume.",
+          "competitor": "Per-task pricing. Each step in a Zap counts as a task, and multi-step Zaps move to paid tiers quickly."
+        },
+        {
+          "title": "Developer control",
+          "dafthunk": "A JavaScript node, custom TypeScript nodes, and full source on GitHub. Webhook, HTTP, cron, email, and queue triggers as first-class primitives.",
+          "competitor": "Code by Zapier for inline JavaScript or Python, plus custom Zapier Platform apps reviewed through their marketplace."
+        },
+        {
+          "title": "Data residency",
+          "dafthunk": "Your Cloudflare account, your region. Secrets and execution data stay with you.",
+          "competitor": "Zapier's US and EU data centers, depending on your plan and region settings."
+        },
+        {
+          "title": "Agentic workflows",
+          "dafthunk": "Any node can be exposed as a tool for an AI agent. Bindings for Workers AI, OpenAI, Anthropic, and Gemini ship built in.",
+          "competitor": "Zapier Agents is a separate product layered on top of Zaps. Agents are not the core primitive."
+        }
+      ],
+      "whenCompetitorIsBetter": [
+        "Pick Zapier if you need the widest SaaS-integration catalog, a product aimed at non-technical teams, or an enterprise plan with SSO, audit logs, and commercial SLA. For teams without engineers, Zapier is often the fastest path to a working workflow."
+      ],
+      "featureMatrix": [
+        {
+          "category": "License and deployment",
+          "rows": [
+            {
+              "feature": "Source license",
+              "dafthunk": "MIT",
+              "competitor": "Proprietary"
+            },
+            {
+              "feature": "Self-hostable",
+              "dafthunk": "Yes, on your Cloudflare account",
+              "competitor": "No"
+            },
+            {
+              "feature": "Source available",
+              "dafthunk": "Yes, on GitHub",
+              "competitor": "No"
+            },
+            {
+              "feature": "On-premise",
+              "dafthunk": "Via Cloudflare",
+              "competitor": "Not supported"
+            }
+          ]
+        },
+        {
+          "category": "Runtime and scale",
+          "rows": [
+            {
+              "feature": "Runtime model",
+              "dafthunk": "Serverless (Cloudflare Workers)",
+              "competitor": "Managed SaaS"
+            },
+            {
+              "feature": "Scale to zero",
+              "dafthunk": "Yes. Idle workflows cost nothing",
+              "competitor": "Not applicable (SaaS)"
+            },
+            {
+              "feature": "Pricing unit",
+              "dafthunk": "Cloudflare usage",
+              "competitor": "Per-task"
+            }
+          ]
+        },
+        {
+          "category": "Integrations and AI",
+          "rows": [
+            {
+              "feature": "Node / app count",
+              "dafthunk": "470+ nodes",
+              "competitor": "7000+ apps"
+            },
+            {
+              "feature": "Native AI providers",
+              "dafthunk": "Workers AI, OpenAI, Anthropic, Gemini",
+              "competitor": "OpenAI, Anthropic, others via integrations"
+            },
+            {
+              "feature": "Agentic (nodes as tools)",
+              "dafthunk": "First-class",
+              "competitor": "Via Zapier Agents"
+            },
+            {
+              "feature": "Custom code",
+              "dafthunk": "JavaScript node and custom TypeScript nodes",
+              "competitor": "Code by Zapier (JS / Python)"
+            }
+          ]
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Do I need to run my own infrastructure to use Dafthunk?",
+          "answer": "No. Our hosted SaaS is the fastest path to your first workflow and runs the same MIT-licensed code as the open-source project. Self-hosting on your own Cloudflare account is available when you need full control over data, secrets, or infrastructure. You can switch between the two at any time."
+        },
+        {
+          "question": "Is there an open source, self-hostable alternative to Zapier?",
+          "answer": "Yes. Dafthunk is MIT licensed and runs on Cloudflare Workers. You deploy the API and web app to your own Cloudflare account, and you hold the source, the secrets, and the data. Zapier is proprietary SaaS with no self-hosting option."
+        },
+        {
+          "question": "Can I run Zapier on Cloudflare or my own servers?",
+          "answer": "No. Zapier is proprietary and SaaS only. If your goal is a workflow automation platform that runs on your Cloudflare account, Dafthunk was built for that from day one."
+        },
+        {
+          "question": "How does Dafthunk pricing compare to Zapier?",
+          "answer": "Zapier charges per task. Each step in a Zap counts as a task, and multi-step or higher-volume Zaps move into paid tiers quickly. Dafthunk bills through Cloudflare for actual Workers, D1, and R2 usage, which runs to pennies per thousand executions in most cases. Idle workflows cost nothing."
+        },
+        {
+          "question": "Does Dafthunk have as many integrations as Zapier?",
+          "answer": "No. Zapier has a 7000+ app catalog built over more than a decade and optimized for SaaS connectivity. Dafthunk ships 470+ nodes focused on AI models, browser automation, geo, media, data transformation, and protocols. If your stack lives in SaaS, Zapier has more ready-made connectors. If you need AI, data, or custom code in workflows, Dafthunk covers that natively."
+        },
+        {
+          "question": "Which is better for AI agents and LLM workflows?",
+          "answer": "Dafthunk. Any node in a workflow can be exposed as a tool for an AI agent, and the platform ships native bindings for Workers AI, OpenAI, Anthropic, and Gemini. Zapier offers Zapier Agents as a separate product, but agents are layered on top of the task model rather than baked into the runtime."
+        },
+        {
+          "question": "When is Zapier still the better choice?",
+          "answer": "Choose Zapier if you need the widest SaaS-integration catalog, a product aimed at non-developers, or an enterprise plan with SSO, audit logs, and commercial SLA."
+        }
+      ],
+      "sources": [
+        {
+          "label": "Zapier pricing",
+          "url": "https://zapier.com/pricing"
+        },
+        {
+          "label": "Cloudflare Workers pricing",
+          "url": "https://developers.cloudflare.com/workers/platform/pricing/"
+        },
+        {
+          "label": "Dafthunk on GitHub",
+          "url": "https://github.com/dafthunk-com/dafthunk"
+        }
+      ]
     },
     {
       "id": "dify",
       "name": "Dify",
-      "tagline": "Workflow automation beyond LLM apps, with Cloudflare-native deployment",
+      "tagline": "MIT-licensed, Cloudflare-native alternative to Dify",
+      "intro": "Dafthunk is an MIT-licensed workflow platform built for Cloudflare Workers. Workflows scale to zero when idle, state persists in D1 and R2, and any node can become a tool for an AI agent. Start on our hosted SaaS, or self-host on your own Cloudflare account under MIT. Dify focuses on LLM app development with RAG pipelines and a dataset UI. Dafthunk covers a broader scope, from HTTP APIs and cron jobs to browser automation, geo, and media, with AI as one first-class category rather than the whole product.",
       "category": "AI app builder",
       "license": "Apache 2.0 (with commercial terms)",
       "deployment": "Self-hosted (Docker) or Dify Cloud",
       "website": "https://dify.ai",
       "verifiedAt": "2026-04-19",
-      "published": false,
-      "strengths": [],
-      "differentiators": [],
-      "whenCompetitorIsBetter": [],
-      "featureMatrix": [],
-      "faqs": [],
-      "sources": []
+      "published": true,
+      "strengths": [
+        "Dify ships a focused stack for LLM applications. It includes a visual prompt designer, RAG pipelines with built-in dataset management, LLM observability, a conversation UI for chatbots, and an agent framework. The open-source community is active, and the commercial Dify Cloud offers a managed plan with support. If your goal is a production LLM app with RAG, Dify covers the end-to-end path out of the box."
+      ],
+      "differentiators": [
+        {
+          "title": "License",
+          "dafthunk": "MIT throughout. Fork it, embed it in a commercial product, or resell a hosted version without restriction.",
+          "competitor": "Apache 2.0 with additional commercial terms. Multi-tenant SaaS use and removal of the Dify logo require a commercial license."
+        },
+        {
+          "title": "Runtime",
+          "dafthunk": "Cloudflare Workers and Cloudflare Workflows. Serverless, scales to zero when idle, no containers to run.",
+          "competitor": "Python backend with Flask, Celery, and Postgres. Self-hosting runs as a multi-container Docker stack that stays online 24/7."
+        },
+        {
+          "title": "Scope",
+          "dafthunk": "General workflow automation. HTTP, webhook, cron, email, and queue triggers, plus nodes for AI, browser, geo, media, data transforms, and protocols.",
+          "competitor": "Focused on LLM apps, chatbots, and RAG pipelines. Strong for AI assistants, lighter for general automation or non-AI workflows."
+        },
+        {
+          "title": "Data layer",
+          "dafthunk": "Built-in D1 (SQL), R2 (object storage), Workers AI, and Analytics Engine. Nothing external to provision.",
+          "competitor": "Postgres, Redis, and a vector database such as Weaviate, Qdrant, or Milvus, provisioned as separate services."
+        },
+        {
+          "title": "RAG and datasets",
+          "dafthunk": "RAG nodes plus Cloudflare Vectorize and AutoRAG bindings. Retrieval is a step in a larger workflow.",
+          "competitor": "First-class dataset UI with chunking, embeddings, and retrieval management baked into the product."
+        },
+        {
+          "title": "Agentic workflows",
+          "dafthunk": "Any workflow node can become a tool for an AI agent. Bindings for Workers AI, OpenAI, Anthropic, and Gemini ship built in.",
+          "competitor": "Agent and tool abstractions are built around Dify's integration surface. Bindings cover major LLM providers and a growing tool library."
+        }
+      ],
+      "whenCompetitorIsBetter": [
+        "Pick Dify if you are building an LLM-native application with RAG, dataset management, and a polished chat UI, and you want an opinionated stack that covers the whole path from prompt to production."
+      ],
+      "featureMatrix": [
+        {
+          "category": "License and deployment",
+          "rows": [
+            {
+              "feature": "Source license",
+              "dafthunk": "MIT",
+              "competitor": "Apache 2.0 + commercial terms"
+            },
+            {
+              "feature": "Self-hostable",
+              "dafthunk": "Yes, on your Cloudflare account",
+              "competitor": "Yes, via Docker Compose"
+            },
+            {
+              "feature": "Commercial SaaS reuse",
+              "dafthunk": "Allowed under MIT",
+              "competitor": "Requires commercial license"
+            }
+          ]
+        },
+        {
+          "category": "Runtime and scale",
+          "rows": [
+            {
+              "feature": "Runtime model",
+              "dafthunk": "Serverless (Cloudflare Workers)",
+              "competitor": "Multi-container Python stack"
+            },
+            {
+              "feature": "Scale to zero",
+              "dafthunk": "Yes. Idle workflows cost nothing",
+              "competitor": "No. Containers run 24/7"
+            },
+            {
+              "feature": "Minimum infrastructure",
+              "dafthunk": "Cloudflare free tier covers light usage",
+              "competitor": "VPS with Postgres, Redis, and a vector database"
+            }
+          ]
+        },
+        {
+          "category": "AI and automation",
+          "rows": [
+            {
+              "feature": "Focus",
+              "dafthunk": "General workflow automation",
+              "competitor": "LLM apps and chatbots"
+            },
+            {
+              "feature": "Node count",
+              "dafthunk": "470+",
+              "competitor": "Focused node library"
+            },
+            {
+              "feature": "Dataset / RAG UI",
+              "dafthunk": "RAG nodes, Vectorize, AutoRAG",
+              "competitor": "Built-in dataset management"
+            },
+            {
+              "feature": "Agentic (nodes as tools)",
+              "dafthunk": "First-class",
+              "competitor": "Tool framework with provider bindings"
+            },
+            {
+              "feature": "Browser automation",
+              "dafthunk": "Cloudflare Browser Rendering, built in",
+              "competitor": "Via integrations"
+            }
+          ]
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can I use a hosted Dafthunk instead of self-hosting?",
+          "answer": "Yes. Our hosted SaaS is the fastest way to start and runs the same MIT-licensed code as the open-source project. Self-hosting on your own Cloudflare account is available when you need full control over data, secrets, or infrastructure. You can move between the two paths at any time."
+        },
+        {
+          "question": "Is Dafthunk a Cloudflare-native alternative to Dify?",
+          "answer": "Yes. Dafthunk runs on Cloudflare Workers and Workflows, stores state in D1 and R2, and calls Workers AI for inference. Dify runs as a multi-container Python stack with Postgres, Redis, and a vector database. If your infrastructure is Cloudflare, Dafthunk is the native option."
+        },
+        {
+          "question": "Is Dify truly open source?",
+          "answer": "Dify is licensed under Apache 2.0 with additional commercial terms. You can use it internally for free, but offering a multi-tenant SaaS based on Dify or removing the Dify logo requires a commercial license. Dafthunk is MIT licensed throughout, with no additional terms, no enterprise tier, and no commercial carve-outs."
+        },
+        {
+          "question": "What is the difference between Dafthunk and Dify in scope?",
+          "answer": "Dify is a focused LLM app builder with first-class dataset management, RAG pipelines, and chat UIs. Dafthunk is a general workflow platform where AI is one first-class category among many, alongside HTTP, cron, email, browser, geo, and media. If you want to build an AI chatbot end to end, Dify covers it in one product. If you want to orchestrate AI as part of broader automation, Dafthunk fits better."
+        },
+        {
+          "question": "How do RAG and vector search compare?",
+          "answer": "Dify ships a built-in dataset UI with chunking, embeddings, and retrieval that you configure in the product. Dafthunk exposes RAG and vector search as workflow nodes backed by Cloudflare Vectorize and AutoRAG, so retrieval is a step in a larger pipeline. Dify is more turnkey for chatbots with a knowledge base; Dafthunk is more composable when RAG is part of a larger workflow."
+        },
+        {
+          "question": "Which has better agent support?",
+          "answer": "Both support agents. Dafthunk makes every workflow node a tool available to an AI agent and ships bindings for Workers AI, OpenAI, Anthropic, and Gemini. Dify structures agents around its tool framework and LLM provider bindings. Dafthunk is stronger when you want agents that reach into browser, geo, and media nodes; Dify is stronger when you want a polished chat agent with a knowledge base."
+        },
+        {
+          "question": "When is Dify still the better choice?",
+          "answer": "Pick Dify if you are building an LLM-native product with RAG, dataset management, and a chat UI, and you want an opinionated stack that covers the whole path. Dafthunk is broader and more composable, but does not ship a dedicated dataset UI or chatbot frontend out of the box."
+        }
+      ],
+      "sources": [
+        {
+          "label": "Dify license",
+          "url": "https://github.com/langgenius/dify/blob/main/LICENSE"
+        },
+        {
+          "label": "Dify pricing",
+          "url": "https://dify.ai/pricing"
+        },
+        {
+          "label": "Cloudflare Workers pricing",
+          "url": "https://developers.cloudflare.com/workers/platform/pricing/"
+        },
+        {
+          "label": "Dafthunk on GitHub",
+          "url": "https://github.com/dafthunk-com/dafthunk"
+        }
+      ]
     },
     {
       "id": "langflow",
       "name": "Langflow",
-      "tagline": "Serverless, production-ready alternative to Langflow",
+      "tagline": "Serverless, TypeScript-native alternative to Langflow on Cloudflare",
+      "intro": "Dafthunk is an MIT-licensed workflow automation platform that runs on Cloudflare Workers. Workflows scale to zero, state lives in D1 and R2, and any node can become a tool for an AI agent. Start on our hosted SaaS, or self-host on your own Cloudflare account under MIT. Langflow is a Python-based visual builder for LangChain flows. Both are MIT licensed; the difference is the runtime and the scope.",
       "category": "Visual LLM / agent builder",
       "license": "MIT",
       "deployment": "Self-hosted (Python, Docker) or Langflow Cloud",
       "website": "https://langflow.org",
       "verifiedAt": "2026-04-19",
-      "published": false,
-      "strengths": [],
-      "differentiators": [],
-      "whenCompetitorIsBetter": [],
-      "featureMatrix": [],
-      "faqs": [],
-      "sources": []
+      "published": true,
+      "strengths": [
+        "Langflow is a Python-first visual builder for LangChain flows. It exposes the LangChain component library as drag-and-drop nodes, which suits ML engineers who already think in chains, agents, retrievers, and embeddings. It supports rapid prototyping of LLM pipelines, ships with a managed Langflow Cloud, and stays close to the LangChain ecosystem as it evolves."
+      ],
+      "differentiators": [
+        {
+          "title": "Runtime",
+          "dafthunk": "Cloudflare Workers and Cloudflare Workflows. Serverless, scales to zero, no containers to run.",
+          "competitor": "Python process (FastAPI plus workers). Self-hosting needs a server or Docker host running 24/7."
+        },
+        {
+          "title": "Language",
+          "dafthunk": "TypeScript throughout. Nodes, runtime, and web app live in one JavaScript-native stack.",
+          "competitor": "Python backend with LangChain. Custom components are Python modules."
+        },
+        {
+          "title": "Scope",
+          "dafthunk": "General workflow automation. HTTP, webhook, cron, email, and queue triggers; nodes for AI, browser, geo, media, data transforms, and protocols.",
+          "competitor": "Focused on LLM chains and agents. Non-AI automation such as cron jobs, email parsing, or SaaS integrations sits outside the primary scope."
+        },
+        {
+          "title": "Data layer",
+          "dafthunk": "Built-in D1 (SQL), R2 (object storage), Workers AI, and Vectorize. Nothing external to provision.",
+          "competitor": "External vector stores such as Chroma, Pinecone, or Weaviate, and an external database for persistence."
+        },
+        {
+          "title": "Production deployment",
+          "dafthunk": "Deploy to your Cloudflare account with wrangler. Global network, durable execution via Cloudflare Workflows, scale-to-zero.",
+          "competitor": "Langflow flows are quick to prototype; production deployment typically means building a FastAPI or containerized service around the flow."
+        },
+        {
+          "title": "Pricing floor",
+          "dafthunk": "Cloudflare free tier covers light usage. Pay for actual Workers, D1, and R2 consumption.",
+          "competitor": "Self-hosted needs a VPS or container host. Langflow Cloud charges for a managed plan."
+        }
+      ],
+      "whenCompetitorIsBetter": [
+        "Pick Langflow if your team is Python-first, you already build on LangChain, and you want a visual layer on top of the LangChain component library for fast experimentation."
+      ],
+      "featureMatrix": [
+        {
+          "category": "License and deployment",
+          "rows": [
+            {
+              "feature": "Source license",
+              "dafthunk": "MIT",
+              "competitor": "MIT"
+            },
+            {
+              "feature": "Self-hostable",
+              "dafthunk": "Yes, on Cloudflare",
+              "competitor": "Yes, via Python or Docker"
+            },
+            {
+              "feature": "Managed cloud",
+              "dafthunk": "Hosted instance",
+              "competitor": "Langflow Cloud"
+            }
+          ]
+        },
+        {
+          "category": "Runtime and language",
+          "rows": [
+            {
+              "feature": "Runtime model",
+              "dafthunk": "Serverless (Cloudflare Workers)",
+              "competitor": "Python process (FastAPI)"
+            },
+            {
+              "feature": "Scale to zero",
+              "dafthunk": "Yes",
+              "competitor": "No. Server runs 24/7"
+            },
+            {
+              "feature": "Primary language",
+              "dafthunk": "TypeScript",
+              "competitor": "Python"
+            },
+            {
+              "feature": "Durable long-running execution",
+              "dafthunk": "Cloudflare Workflows",
+              "competitor": "Custom workers or queues"
+            }
+          ]
+        },
+        {
+          "category": "Scope and integrations",
+          "rows": [
+            {
+              "feature": "Focus",
+              "dafthunk": "General workflow automation",
+              "competitor": "LangChain flows and agents"
+            },
+            {
+              "feature": "Node count",
+              "dafthunk": "470+",
+              "competitor": "LangChain component library"
+            },
+            {
+              "feature": "Triggers",
+              "dafthunk": "HTTP, webhook, cron, email, queue, manual",
+              "competitor": "HTTP / API, manual"
+            },
+            {
+              "feature": "Built-in browser, geo, media nodes",
+              "dafthunk": "Yes",
+              "competitor": "No"
+            }
+          ]
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can I try Dafthunk without setting up Cloudflare?",
+          "answer": "Yes. Our hosted SaaS is the fastest way to start and runs the same MIT-licensed code as the open-source project. Self-hosting on your own Cloudflare account is available when you need full control over data, secrets, or infrastructure. You can move between the two at any time."
+        },
+        {
+          "question": "Is there a serverless alternative to Langflow?",
+          "answer": "Yes. Dafthunk runs on Cloudflare Workers and Workflows, so flows scale to zero when idle and scale up with traffic. You pay Cloudflare for actual execution. Langflow is a long-running Python process that expects a server to be available 24/7."
+        },
+        {
+          "question": "Langflow is already MIT. Why switch to Dafthunk?",
+          "answer": "License is only one dimension. Langflow is Python-first, built around LangChain, and centered on LLM flows. Dafthunk is TypeScript-first, built on Cloudflare, and covers a broader scope from HTTP and cron triggers to browser, geo, and media nodes. Pick the one that matches your runtime and the kind of work you want to automate."
+        },
+        {
+          "question": "Can I deploy Langflow to Cloudflare Workers?",
+          "answer": "No. Langflow is a Python process with FastAPI and background workers. It does not run on Cloudflare Workers. If your infrastructure is Cloudflare, Dafthunk was built for that from day one."
+        },
+        {
+          "question": "How does Dafthunk compare for LangChain-style agent work?",
+          "answer": "Dafthunk treats any workflow node as a potential tool for an AI agent. You get native bindings for Workers AI, OpenAI, Anthropic, and Gemini, plus a workflow graph that an agent can call. Langflow gives you direct access to LangChain's chains, agents, and retrievers. If you live in the LangChain world, Langflow feels more native; if you want agents plus broader automation on Cloudflare, Dafthunk fits better."
+        },
+        {
+          "question": "What about production deployment?",
+          "answer": "Dafthunk deploys with wrangler to your Cloudflare account. Workflows run durably through Cloudflare Workflows, state persists in D1 and R2, and the global network handles requests. Langflow flows are easy to prototype, but moving to production usually means wrapping a flow in a FastAPI service, setting up a database, and managing containers or a PaaS."
+        },
+        {
+          "question": "When is Langflow still the better choice?",
+          "answer": "Pick Langflow if your team is Python-first, you already build on LangChain, and you want a visual layer on top of the LangChain component library. The LangChain ecosystem moves fast, and Langflow tracks it closely."
+        }
+      ],
+      "sources": [
+        {
+          "label": "Langflow on GitHub",
+          "url": "https://github.com/langflow-ai/langflow"
+        },
+        {
+          "label": "Cloudflare Workers pricing",
+          "url": "https://developers.cloudflare.com/workers/platform/pricing/"
+        },
+        {
+          "label": "Dafthunk on GitHub",
+          "url": "https://github.com/dafthunk-com/dafthunk"
+        }
+      ]
     },
     {
       "id": "flowise",
       "name": "Flowise",
-      "tagline": "Cloudflare-native alternative to Flowise for production workflows",
+      "tagline": "MIT-licensed, serverless alternative to Flowise on Cloudflare",
+      "intro": "Dafthunk is an MIT-licensed workflow automation platform that runs on Cloudflare Workers. Workflows scale to zero, state lives in D1 and R2, and any node can become a tool for an AI agent. Start on our hosted SaaS, or self-host on your own Cloudflare account under MIT. Flowise is a Node.js visual builder for LangChain and LlamaIndex flows, run as a long-running server. Both are JavaScript runtimes, but Dafthunk is serverless and broader in scope.",
       "category": "Visual LLM / agent builder",
       "license": "Apache 2.0",
       "deployment": "Self-hosted (Node.js, Docker) or Flowise Cloud",
       "website": "https://flowiseai.com",
       "verifiedAt": "2026-04-19",
-      "published": false,
-      "strengths": [],
-      "differentiators": [],
-      "whenCompetitorIsBetter": [],
-      "featureMatrix": [],
-      "faqs": [],
-      "sources": []
+      "published": true,
+      "strengths": [
+        "Flowise is a Node.js visual builder for LangChain and LlamaIndex. It exposes chains, agents, retrievers, and memory as drag-and-drop nodes, supports chatbots and RAG apps, and ships with a managed Flowise Cloud. The community is active, and the LangChain and LlamaIndex node libraries stay current with the wider ecosystem."
+      ],
+      "differentiators": [
+        {
+          "title": "License",
+          "dafthunk": "MIT. Full freedom to fork, embed in a commercial product, or resell a hosted version.",
+          "competitor": "Apache 2.0. Permissive, but the trademark and branding belong to FlowiseAI."
+        },
+        {
+          "title": "Runtime",
+          "dafthunk": "Cloudflare Workers and Cloudflare Workflows. Serverless, scales to zero, durable long-running execution through Workflows.",
+          "competitor": "Long-running Node.js server. Self-hosting needs a VPS, Docker host, or Kubernetes cluster running 24/7."
+        },
+        {
+          "title": "Scope",
+          "dafthunk": "General workflow automation. HTTP, webhook, cron, email, and queue triggers. Nodes for AI, browser, geo, media, data transforms, and protocols.",
+          "competitor": "Focused on LLM chains, agents, and chatbots. Non-AI automation such as cron jobs, email parsing, or SaaS integrations sits outside the primary scope."
+        },
+        {
+          "title": "Data layer",
+          "dafthunk": "Built-in D1 (SQL), R2 (object storage), Vectorize, and Workers AI. Nothing external to provision.",
+          "competitor": "External SQL database, external vector store such as Pinecone, Weaviate, or Qdrant, and external object storage."
+        },
+        {
+          "title": "Durability",
+          "dafthunk": "Cloudflare Workflows provide durable, replayable execution with auto-retries and survival across restarts.",
+          "competitor": "Flows run in a single Node.js process. Long-running or stateful flows depend on external queues and storage."
+        },
+        {
+          "title": "Agentic workflows",
+          "dafthunk": "Any node in the graph can be exposed as a tool for an AI agent. Bindings for Workers AI, OpenAI, Anthropic, and Gemini ship built in.",
+          "competitor": "Agent and tool abstractions are provided by LangChain and LlamaIndex nodes."
+        }
+      ],
+      "whenCompetitorIsBetter": [
+        "Pick Flowise if you are building chatbots or RAG apps with LangChain or LlamaIndex, you already have a Node.js host, and you want a visual layer that tracks those libraries closely."
+      ],
+      "featureMatrix": [
+        {
+          "category": "License and deployment",
+          "rows": [
+            {
+              "feature": "Source license",
+              "dafthunk": "MIT",
+              "competitor": "Apache 2.0"
+            },
+            {
+              "feature": "Self-hostable",
+              "dafthunk": "Yes, on Cloudflare",
+              "competitor": "Yes, via Node.js or Docker"
+            },
+            {
+              "feature": "Managed cloud",
+              "dafthunk": "Hosted instance",
+              "competitor": "Flowise Cloud"
+            }
+          ]
+        },
+        {
+          "category": "Runtime and scale",
+          "rows": [
+            {
+              "feature": "Runtime model",
+              "dafthunk": "Serverless (Cloudflare Workers)",
+              "competitor": "Long-running Node.js server"
+            },
+            {
+              "feature": "Scale to zero",
+              "dafthunk": "Yes. Idle workflows cost nothing",
+              "competitor": "No. Server runs 24/7"
+            },
+            {
+              "feature": "Durable long-running execution",
+              "dafthunk": "Cloudflare Workflows",
+              "competitor": "External queues"
+            },
+            {
+              "feature": "Minimum infrastructure cost",
+              "dafthunk": "Cloudflare free tier covers light usage",
+              "competitor": "VPS or Docker host (typically 5 to 50 USD per month)"
+            }
+          ]
+        },
+        {
+          "category": "Scope and integrations",
+          "rows": [
+            {
+              "feature": "Focus",
+              "dafthunk": "General workflow automation",
+              "competitor": "LangChain / LlamaIndex flows"
+            },
+            {
+              "feature": "Node count",
+              "dafthunk": "470+",
+              "competitor": "LangChain / LlamaIndex components"
+            },
+            {
+              "feature": "Triggers",
+              "dafthunk": "HTTP, webhook, cron, email, queue, manual",
+              "competitor": "HTTP / API, chat"
+            },
+            {
+              "feature": "Built-in browser, geo, media nodes",
+              "dafthunk": "Yes",
+              "competitor": "No"
+            }
+          ]
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can I try Dafthunk without setting up Cloudflare?",
+          "answer": "Yes. Our hosted SaaS is the fastest way to start and runs the same MIT-licensed code as the open-source project. Self-hosting on your own Cloudflare account is available when you need full control over data, secrets, or infrastructure. You can move between the two at any time."
+        },
+        {
+          "question": "Is there a Cloudflare-native alternative to Flowise?",
+          "answer": "Yes. Dafthunk runs on Cloudflare Workers and Workflows, stores data in D1 and R2, and calls Workers AI for inference. Flowise runs as a long-running Node.js server with external databases and vector stores. If your infrastructure is Cloudflare, Dafthunk is the native option."
+        },
+        {
+          "question": "Can I run Flowise on Cloudflare Workers?",
+          "answer": "Not cleanly. Flowise is a Node.js server built for a long-running process with filesystem access and background workers. Cloudflare Workers use a different runtime model. Dafthunk was built for Workers from day one."
+        },
+        {
+          "question": "How does Dafthunk differ from Flowise in license?",
+          "answer": "Flowise is Apache 2.0, which is permissive but keeps the Flowise trademark and branding with FlowiseAI. Dafthunk is MIT throughout, with no trademark carve-outs and no enterprise tier. You can fork, embed, or resell without friction."
+        },
+        {
+          "question": "Which is better for chatbots and RAG apps?",
+          "answer": "Flowise is purpose-built for chatbots and RAG with a UI that matches the LangChain and LlamaIndex primitives. Dafthunk supports RAG through vector search nodes, Cloudflare Vectorize, and AutoRAG, but the product is broader. If your goal is only a chatbot, Flowise covers it faster. If you want agents that reach into browser, geo, media, and SaaS nodes, Dafthunk covers more."
+        },
+        {
+          "question": "What about production cost?",
+          "answer": "Flowise needs a server running 24/7, plus an external database and a vector store. Dafthunk runs on Workers and scales to zero, so idle workflows cost nothing. Active costs stay in pennies per thousand executions for most workloads."
+        },
+        {
+          "question": "When is Flowise still the better choice?",
+          "answer": "Pick Flowise if you are building a chatbot or RAG app around LangChain or LlamaIndex, you already have a Node.js host, and you want a visual layer that tracks those libraries closely."
+        }
+      ],
+      "sources": [
+        {
+          "label": "Flowise on GitHub",
+          "url": "https://github.com/FlowiseAI/Flowise"
+        },
+        {
+          "label": "Cloudflare Workers pricing",
+          "url": "https://developers.cloudflare.com/workers/platform/pricing/"
+        },
+        {
+          "label": "Dafthunk on GitHub",
+          "url": "https://github.com/dafthunk-com/dafthunk"
+        }
+      ]
     }
   ]
 }
