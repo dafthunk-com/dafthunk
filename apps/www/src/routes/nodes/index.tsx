@@ -10,6 +10,7 @@ interface Category {
   name: string;
   summary: string;
   description: string;
+  metaDescription: string;
   tags: string[];
   nodeIds: string[];
 }
@@ -19,36 +20,75 @@ const { categories: allCategories } = categories as {
 };
 
 export const meta: MetaFunction = () => {
-  const title = "Workflow Automation Nodes - Dafthunk";
+  const title =
+    "470+ Workflow Nodes for AI, Browser & Data Automation | Dafthunk";
   const description =
-    "Explore all workflow automation nodes available in Dafthunk. From AI models and browser automation to data processing, media generation, integrations, and developer tools.";
+    "470+ visual workflow nodes for AI agents, headless browsers, data pipelines, media, and APIs. Open source, MIT licensed, serverless on Cloudflare Workers.";
   const url = `${websiteUrl}/nodes`;
+  const ogImage = `${websiteUrl}/og-image.webp`;
 
   return [
     { title },
     { name: "description", content: description },
-    {
-      name: "keywords",
-      content:
-        "workflow nodes, automation nodes, AI nodes, integrations, data processing, Dafthunk",
-    },
     { property: "og:type", content: "website" },
     { property: "og:url", content: url },
     { property: "og:title", content: title },
     { property: "og:description", content: description },
+    { property: "og:image", content: ogImage },
     { property: "og:site_name", content: "Dafthunk" },
-    { name: "twitter:card", content: "summary" },
+    { name: "twitter:card", content: "summary_large_image" },
     { name: "twitter:url", content: url },
     { name: "twitter:title", content: title },
     { name: "twitter:description", content: description },
+    { name: "twitter:image", content: ogImage },
     { tagName: "link", rel: "canonical", href: url },
     { name: "robots", content: "index, follow" },
   ];
 };
 
 export default function NodesPage() {
+  const collectionJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: "Dafthunk workflow automation nodes",
+    url: `${websiteUrl}/nodes`,
+    description:
+      "Open source, MIT-licensed workflow automation nodes for AI, browser automation, data processing, media, and integrations, running serverless on Cloudflare Workers.",
+    mainEntity: {
+      "@type": "ItemList",
+      itemListElement: allCategories.map((category, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        url: `${websiteUrl}/nodes/${category.id}`,
+        name: category.name,
+      })),
+    },
+  };
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: websiteUrl },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Workflow nodes",
+        item: `${websiteUrl}/nodes`,
+      },
+    ],
+  };
+
   return (
     <Layout>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <main className="px-6 py-32">
         <Link
           to="/"
@@ -59,11 +99,11 @@ export default function NodesPage() {
 
         <div className="mb-32">
           <h1 className="text-6xl font-light text-gray-900 mb-6">
-            Automation capabilities
+            Workflow automation nodes
           </h1>
           <p className="text-3xl text-gray-500">
-            Workflow nodes across AI, browser automation, data processing,
-            media, and integrations
+            470+ open source nodes for AI, browser automation, data pipelines,
+            media, and integrations &mdash; all serverless on Cloudflare
           </p>
         </div>
 

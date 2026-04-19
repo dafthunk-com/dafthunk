@@ -3,41 +3,27 @@ import { Layout } from "../components/layout";
 const websiteUrl = import.meta.env.VITE_WEBSITE_URL;
 
 export function meta() {
+  const title = "Privacy Policy - Dafthunk";
+  const description =
+    "How Dafthunk collects, uses, stores, and protects account data, workflow definitions, execution logs, and third-party integration data you connect.";
+  const url = `${websiteUrl}/privacy`;
+  const ogImage = `${websiteUrl}/og-image.webp`;
+
   return [
-    { title: "Privacy Policy - Dafthunk" },
-    {
-      name: "description",
-      content:
-        "Read our Privacy Policy. Learn how Dafthunk collects, uses, and protects your personal information and workflow data.",
-    },
+    { title },
+    { name: "description", content: description },
     { property: "og:type", content: "website" },
-    { property: "og:url", content: `${websiteUrl}/privacy` },
-    {
-      property: "og:title",
-      content: "Privacy Policy - Dafthunk",
-    },
-    {
-      property: "og:description",
-      content:
-        "Read our Privacy Policy. Learn how Dafthunk collects, uses, and protects your personal information and workflow data.",
-    },
+    { property: "og:url", content: url },
+    { property: "og:title", content: title },
+    { property: "og:description", content: description },
+    { property: "og:image", content: ogImage },
     { property: "og:site_name", content: "Dafthunk" },
-    { name: "twitter:card", content: "summary" },
-    { name: "twitter:url", content: `${websiteUrl}/privacy` },
-    {
-      name: "twitter:title",
-      content: "Privacy Policy - Dafthunk",
-    },
-    {
-      name: "twitter:description",
-      content:
-        "Read our Privacy Policy. Learn how Dafthunk collects, uses, and protects your personal information and workflow data.",
-    },
-    {
-      tagName: "link",
-      rel: "canonical",
-      href: `${websiteUrl}/privacy`,
-    },
+    { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:url", content: url },
+    { name: "twitter:title", content: title },
+    { name: "twitter:description", content: description },
+    { name: "twitter:image", content: ogImage },
+    { tagName: "link", rel: "canonical", href: url },
     { name: "robots", content: "index, follow" },
   ];
 }

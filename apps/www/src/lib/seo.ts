@@ -1,0 +1,2 @@
+export const META_DESCRIPTION_MIN = 110;
+export const META_DESCRIPTION_MAX = 160;

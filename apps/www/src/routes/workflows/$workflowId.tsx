@@ -13,6 +13,7 @@ interface WorkflowData {
   name: string;
   summary: string;
   description: string;
+  metaDescription: string;
   icon: string;
   type: string;
   tags: string[];
@@ -44,28 +45,25 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data) return [{ title: "Not Found - Dafthunk" }];
 
   const { workflow } = data;
-  const title = `${workflow.name} - Workflow - Dafthunk`;
-  const description =
-    workflow.description ||
-    `Learn how to automate ${workflow.name} with Dafthunk workflows.`;
+  const title = `${workflow.name} Workflow Template | Dafthunk`;
+  const description = workflow.metaDescription;
   const url = `${websiteUrl}/workflows/${workflow.id}`;
-  const keywords = [...workflow.tags, "workflow automation", "Dafthunk"].join(
-    ", "
-  );
+  const ogImage = `${websiteUrl}/og-image.webp`;
 
   return [
     { title },
     { name: "description", content: description },
-    { name: "keywords", content: keywords },
     { property: "og:type", content: "website" },
     { property: "og:url", content: url },
     { property: "og:title", content: title },
     { property: "og:description", content: description },
+    { property: "og:image", content: ogImage },
     { property: "og:site_name", content: "Dafthunk" },
     { name: "twitter:card", content: "summary_large_image" },
     { name: "twitter:url", content: url },
     { name: "twitter:title", content: title },
     { name: "twitter:description", content: description },
+    { name: "twitter:image", content: ogImage },
     { tagName: "link", rel: "canonical", href: url },
     { name: "robots", content: "index, follow" },
   ];
@@ -94,8 +92,32 @@ export default function WorkflowPage({
   const { workflow, otherWorkflows } = loaderData;
   const IconComponent = getIconComponent(workflow.icon);
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: websiteUrl },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Workflow templates",
+        item: `${websiteUrl}/workflows`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: workflow.name,
+        item: `${websiteUrl}/workflows/${workflow.id}`,
+      },
+    ],
+  };
+
   return (
     <Layout>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <main className="px-6 py-32">
         <Link
           to="/workflows"
