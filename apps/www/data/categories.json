@@ -5,6 +5,7 @@
       "name": "Artificial Intelligence",
       "summary": "Text generation, vision AI, and natural language processing with Claude, GPT, Gemini, and Workers AI",
       "description": "Build AI workflow automation integrating Anthropic Claude, OpenAI GPT, Google Gemini, and Workers AI for text generation, natural language processing, sentiment analysis, and intelligent automation. Create AI and RAG powered workflows that leverage large language models for content creation, data extraction, translation, summarization, and vision AI capabilities. Automate complex reasoning tasks and build intelligent agents that understand and generate human-like responses.",
+      "metaDescription": "Claude, GPT, Gemini, and Workers AI nodes for text generation, vision, embeddings, and natural language processing on Cloudflare Workers.",
       "tags": [
         "Claude",
         "GPT",
@@ -35,6 +36,7 @@
       "name": "Browser Automation",
       "summary": "Web scraping, screenshots, PDF generation, and data extraction with headless browsers",
       "description": "Automate web scraping, data extraction, screenshot capture, and PDF generation powered by Browser Rendering at the edge. Extract structured data from websites, monitor web pages for changes, capture full-page screenshots, convert web pages to PDF documents, and interact with dynamic JavaScript-heavy sites. Build headless browser automation workflows that run globally with low latency and handle complex web scraping tasks at scale.",
+      "metaDescription": "Headless browser nodes for web scraping, full-page screenshots, PDF generation, link extraction, and DOM snapshots on Cloudflare Browser Rendering.",
       "tags": [
         "Web scraping",
         "Screenshots",
@@ -59,6 +61,7 @@
       "name": "Data Processing",
       "summary": "JSON manipulation, CSV parsing, text operations, and data transformations",
       "description": "Transform and process data in your workflow automation with comprehensive JSON manipulation, CSV parsing and generation, text operations, string formatting, and mathematical computations. Parse, validate, transform, and merge data from multiple sources. Filter, sort, aggregate, and reshape datasets. Perform data cleansing, normalization, and enrichment. Build pipelines that handle complex data transformations and prepare data for analytics, machine learning, or storage.",
+      "metaDescription": "JSON, CSV, regex, string, and math nodes for ETL, parsing, filtering, aggregation, and data transformation in serverless workflows on Cloudflare.",
       "tags": ["JSON", "CSV", "Text processing", "Math operations", "ETL"],
       "nodeIds": [
         "json-extract-string",
@@ -83,6 +86,7 @@
       "name": "Media Generation",
       "summary": "Image generation, audio processing, 3D models, and document creation",
       "description": "Generate and manipulate images, audio files, documents, and 3D models in your workflow automation for creative content production. Create AI-generated images, edit and transform existing images with Photon, process and convert audio formats, generate PDF documents from templates, and create 3D models programmatically. Build automated media workflow pipelines for marketing materials, social media content, podcasts, documentation, and digital assets at scale.",
+      "metaDescription": "Image generation, Photon image editing, Whisper speech-to-text, text-to-speech, 3D, and document nodes for serverless media automation on Cloudflare.",
       "tags": [
         "Image generation",
         "Audio processing",
@@ -110,6 +114,7 @@
       "name": "Integrations",
       "summary": "Connect with GitHub, Discord, LinkedIn, Reddit, Google Calendar, and Gmail",
       "description": "Connect your workflow automation with popular platforms including GitHub for repository management, Discord for community engagement and bot interactions, LinkedIn for professional networking and content publishing, Reddit for community monitoring and content posting, Google Calendar for event scheduling and meeting automation, and Gmail for email management and automated communications. Sync data across platforms and build cross-platform workflow integrations.",
+      "metaDescription": "GitHub, Discord, LinkedIn, Reddit, Google Calendar, and Gmail nodes for cross-platform workflow automation on Cloudflare Workers.",
       "tags": [
         "GitHub",
         "Discord",
@@ -119,7 +124,6 @@
         "Gmail"
       ],
       "nodeIds": [
-        "create-issue-github",
         "search-repositories-github",
         "list-user-repositories-github",
         "send-message-discord",
@@ -140,6 +144,7 @@
       "name": "Developer Tools",
       "summary": "JavaScript execution, HTTP requests and webhooks, database queries, and workflow logic",
       "description": "Execute custom JavaScript code within your workflow automation, make HTTP and REST API requests to any service, work with SQL databases and textual datasets, implement conditional logic and branching, persist data, iterate with queues, handle errors and retries, and build complex workflow orchestration. Integrate with any API, transform data programmatically, implement custom business logic, and extend workflow automation capabilities with code when visual nodes aren't enough.",
+      "metaDescription": "JavaScript code, HTTP and webhook, SQL database, queues, and conditional logic nodes for extending visual workflows with code on Cloudflare.",
       "tags": ["JavaScript", "HTTP/API", "Database", "Logic flows", "REST API"],
       "nodeIds": [
         "javascript-script",

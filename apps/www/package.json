@@ -15,7 +15,8 @@
     "check": "biome check --write",
     "preview": "vite preview",
     "deploy": "pnpm run build && wrangler deploy",
-    "format": "biome format --write"
+    "format": "biome format --write",
+    "test": "vitest run"
   },
   "dependencies": {
     "clsx": "^2.1.1",
@@ -39,6 +40,7 @@
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vite": "^7.3.2",
+    "vitest": "^4.1.0",
     "wrangler": "^4.76.0"
   }
 }

@@ -34,7 +34,7 @@ export function loader() {
     loc: "/nodes",
     lastmod: today,
     changefreq: "weekly",
-    priority: "0.8",
+    priority: "0.9",
   };
 
   const categoryPages = categories.categories.map((category) => ({
@@ -57,7 +57,7 @@ export function loader() {
     loc: "/workflows",
     lastmod: today,
     changefreq: "weekly",
-    priority: "0.8",
+    priority: "0.9",
   };
 
   const workflowPages = workflowsData.workflows.map((workflow) => ({
@@ -71,7 +71,7 @@ export function loader() {
     loc: "/alternatives",
     lastmod: today,
     changefreq: "weekly",
-    priority: "0.8",
+    priority: "0.9",
   };
 
   const alternativePages = alternativesData.alternatives
@@ -80,7 +80,7 @@ export function loader() {
       loc: `/alternatives/${alternative.id}`,
       lastmod: alternative.verifiedAt,
       changefreq: "monthly",
-      priority: "0.9",
+      priority: "0.8",
     }));
 
   const allPages = [

@@ -36,6 +36,7 @@ interface Alternative {
   id: string;
   name: string;
   tagline: string;
+  metaDescription: string;
   intro?: string;
   category: string;
   license: string;
@@ -74,21 +75,13 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data) return [{ title: "Not Found - Dafthunk" }];
 
   const { alternative } = data;
-  const title = `Dafthunk vs ${alternative.name}: ${alternative.tagline}`;
-  const description = `${alternative.tagline}. Compare Dafthunk and ${alternative.name} on license, runtime, pricing, AI, and integrations. Last verified ${alternative.verifiedAt}.`;
+  const title = `${alternative.name} Alternative: MIT, Serverless | Dafthunk`;
+  const description = alternative.metaDescription;
   const url = `${websiteUrl}/alternatives/${alternative.id}`;
-  const keywords = [
-    `${alternative.name} alternative`,
-    `open source ${alternative.name}`,
-    `${alternative.name} vs Dafthunk`,
-    "workflow automation",
-    "Dafthunk",
-  ].join(", ");
 
   return [
     { title },
     { name: "description", content: description },
-    { name: "keywords", content: keywords },
     { property: "og:type", content: "website" },
     { property: "og:url", content: url },
     { property: "og:title", content: title },

@@ -3,41 +3,27 @@ import { Layout } from "../components/layout";
 const websiteUrl = import.meta.env.VITE_WEBSITE_URL;
 
 export function meta() {
+  const title = "Terms of Service - Dafthunk";
+  const description =
+    "Terms of Service for Dafthunk: alpha release disclosures, acceptable use, prohibited activities, AI-generated components, and data handling in workflows.";
+  const url = `${websiteUrl}/terms`;
+  const ogImage = `${websiteUrl}/og-image.webp`;
+
   return [
-    { title: "Terms of Service - Dafthunk" },
-    {
-      name: "description",
-      content:
-        "Read our Terms of Service. Learn about the acceptable use, limitations, and conditions for using Dafthunk's workflow automation platform.",
-    },
+    { title },
+    { name: "description", content: description },
     { property: "og:type", content: "website" },
-    { property: "og:url", content: `${websiteUrl}/terms` },
-    {
-      property: "og:title",
-      content: "Terms of Service - Dafthunk",
-    },
-    {
-      property: "og:description",
-      content:
-        "Read our Terms of Service. Learn about the acceptable use, limitations, and conditions for using Dafthunk's workflow automation platform.",
-    },
+    { property: "og:url", content: url },
+    { property: "og:title", content: title },
+    { property: "og:description", content: description },
+    { property: "og:image", content: ogImage },
     { property: "og:site_name", content: "Dafthunk" },
-    { name: "twitter:card", content: "summary" },
-    { name: "twitter:url", content: `${websiteUrl}/terms` },
-    {
-      name: "twitter:title",
-      content: "Terms of Service - Dafthunk",
-    },
-    {
-      name: "twitter:description",
-      content:
-        "Read our Terms of Service. Learn about the acceptable use, limitations, and conditions for using Dafthunk's workflow automation platform.",
-    },
-    {
-      tagName: "link",
-      rel: "canonical",
-      href: `${websiteUrl}/terms`,
-    },
+    { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:url", content: url },
+    { name: "twitter:title", content: title },
+    { name: "twitter:description", content: description },
+    { name: "twitter:image", content: ogImage },
+    { tagName: "link", rel: "canonical", href: url },
     { name: "robots", content: "index, follow" },
   ];
 }

@@ -9,6 +9,7 @@ interface Alternative {
   id: string;
   name: string;
   tagline: string;
+  metaDescription: string;
   category: string;
   license: string;
   deployment: string;
@@ -22,17 +23,12 @@ const { alternatives } = alternativesData as { alternatives: Alternative[] };
 export const meta: MetaFunction = () => {
   const title = "Dafthunk alternatives to n8n, Zapier, Make, and more";
   const description =
-    "Compare Dafthunk with popular workflow automation tools. MIT licensed, serverless on Cloudflare, with native AI and agentic workflow support.";
+    "Compare Dafthunk with n8n, Zapier, Make, Dify, and more. Open source, serverless visual workflow automation with AI on Cloudflare. MIT licensed.";
   const url = `${websiteUrl}/alternatives`;
 
   return [
     { title },
     { name: "description", content: description },
-    {
-      name: "keywords",
-      content:
-        "n8n alternative, Zapier alternative, Make alternative, Dify alternative, open source workflow automation, serverless workflow automation, Dafthunk",
-    },
     { property: "og:type", content: "website" },
     { property: "og:url", content: url },
     { property: "og:title", content: title },
@@ -52,8 +48,42 @@ export const meta: MetaFunction = () => {
 export default function AlternativesIndexPage() {
   const published = alternatives.filter((a) => a.published);
 
+  const itemListJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "Dafthunk alternatives to n8n, Zapier, Make, Dify, Langflow, Flowise",
+    itemListElement: published.map((alt, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      url: `${websiteUrl}/alternatives/${alt.id}`,
+      name: `Dafthunk vs ${alt.name}`,
+    })),
+  };
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: websiteUrl },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Alternatives",
+        item: `${websiteUrl}/alternatives`,
+      },
+    ],
+  };
+
   return (
     <Layout>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <main className="px-6 py-32">
         <Link
           to="/"

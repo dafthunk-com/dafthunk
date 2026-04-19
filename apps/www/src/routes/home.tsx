@@ -7,43 +7,26 @@ import { YouTubeFacade } from "../components/youtube-facade";
 const websiteUrl = import.meta.env.VITE_WEBSITE_URL;
 
 export function meta() {
+  const title =
+    "Dafthunk - Open Source Visual Workflow Automation on Cloudflare";
+  const description =
+    "Open source, serverless visual workflow automation with AI on Cloudflare. Build AI workflows, web scraping, and data pipelines visually. MIT licensed.";
+  const ogImage = `${websiteUrl}/og-image.webp`;
+
   return [
-    {
-      title: "Dafthunk - Visual Workflow Automation Platform",
-    },
-    {
-      name: "description",
-      content:
-        "Build serverless workflow automation with a React Flow editor. Deploy AI workflows, web scraping pipelines, data transformations, and integrations on Cloudflare's edge infrastructure.",
-    },
+    { title },
+    { name: "description", content: description },
     { property: "og:type", content: "website" },
     { property: "og:url", content: `${websiteUrl}/` },
-    {
-      property: "og:title",
-      content: "Dafthunk - Visual Workflow Automation Platform",
-    },
-    {
-      property: "og:description",
-      content:
-        "Build serverless workflow automation with a React Flow editor. Deploy AI workflows, web scraping pipelines, data transformations, and integrations on Cloudflare's edge infrastructure.",
-    },
-    { property: "og:image", content: `${websiteUrl}/og-image.webp` },
+    { property: "og:title", content: title },
+    { property: "og:description", content: description },
+    { property: "og:image", content: ogImage },
     { property: "og:site_name", content: "Dafthunk" },
     { name: "twitter:card", content: "summary_large_image" },
     { name: "twitter:url", content: `${websiteUrl}/` },
-    {
-      name: "twitter:title",
-      content: "Dafthunk - Visual Workflow Automation Platform",
-    },
-    {
-      name: "twitter:description",
-      content:
-        "Build serverless workflow automation with a React Flow editor. Deploy AI workflows, web scraping pipelines, data transformations, and integrations on Cloudflare's edge infrastructure.",
-    },
-    {
-      name: "twitter:image",
-      content: `${websiteUrl}/og-image.webp`,
-    },
+    { name: "twitter:title", content: title },
+    { name: "twitter:description", content: description },
+    { name: "twitter:image", content: ogImage },
     { tagName: "link", rel: "canonical", href: `${websiteUrl}/` },
   ];
 }
@@ -117,11 +100,11 @@ export default function Home() {
               automation on Cloudflare
             </h1>
             <p className="text-2xl text-gray-600 mb-10 leading-relaxed">
-              Build workflows visually by connecting AI models, browsers, data
-              pipelines and APIs, then deploy them on Cloudflare's serverless
-              platform. Workflows scale to zero when idle and up with demand,
-              and the entire stack is yours under MIT. No enterprise tier, no
-              fair-code carve-outs, no asterisks.
+              Build workflows visually by connecting artificial intelligence
+              (AI) models, browsers, data pipelines and APIs, then deploy them
+              on Cloudflare's serverless platform. Workflows scale to zero when
+              idle and up with demand, and the entire stack is yours under MIT.
+              No enterprise tier, no fair-code carve-outs, no asterisks.
             </p>
             <a
               href={import.meta.env.VITE_APP_URL}
@@ -363,7 +346,7 @@ export default function Home() {
             to="/workflows"
             className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 bg-white hover:bg-gray-50 border border-gray-300 hover:border-gray-400 rounded-lg px-4 py-2 mt-6 transition-colors"
           >
-            View all use cases &rarr;
+            Browse all workflow templates &rarr;
           </Link>
         </div>
 
@@ -434,7 +417,7 @@ export default function Home() {
             to="/nodes"
             className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 bg-white hover:bg-gray-50 border border-gray-300 hover:border-gray-400 rounded-lg px-4 py-2 mt-6 transition-colors"
           >
-            View all categories &rarr;
+            Browse all workflow nodes &rarr;
           </Link>
         </div>
 

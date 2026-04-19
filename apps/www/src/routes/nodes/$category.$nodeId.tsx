@@ -3,6 +3,7 @@ import * as icons from "lucide-react";
 import type { LoaderFunctionArgs, MetaFunction } from "react-router";
 import { data, Link } from "react-router";
 import categories from "../../../data/categories.json";
+import nodeMetaDescriptions from "../../../data/node-meta-descriptions.json";
 import allNodes from "../../../data/nodes.json";
 import { Layout } from "../../components/layout";
 
@@ -72,30 +73,31 @@ export function loader({ params }: LoaderFunctionArgs) {
   return { category, node, relatedNodes };
 }
 
+const nodeMetaMap = nodeMetaDescriptions as Record<string, string>;
+
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data) return [{ title: "Not Found - Dafthunk" }];
 
   const { category, node } = data;
-  const title = `${node.name} - ${category.name} Workflow Node - Dafthunk`;
-  const description =
-    node.description ||
-    `Use ${node.name} in your Dafthunk workflow automation.`;
+  const title = `${node.name} ${category.name} Node | Dafthunk`;
+  const description = nodeMetaMap[node.id] ?? node.description ?? "";
   const url = `${websiteUrl}/nodes/${category.id}/${node.id}`;
-  const keywords = [...node.tags, "workflow automation", "Dafthunk"].join(", ");
+  const ogImage = `${websiteUrl}/og-image.webp`;
 
   return [
     { title },
     { name: "description", content: description },
-    { name: "keywords", content: keywords },
     { property: "og:type", content: "website" },
     { property: "og:url", content: url },
     { property: "og:title", content: title },
     { property: "og:description", content: description },
+    { property: "og:image", content: ogImage },
     { property: "og:site_name", content: "Dafthunk" },
-    { name: "twitter:card", content: "summary" },
+    { name: "twitter:card", content: "summary_large_image" },
     { name: "twitter:url", content: url },
     { name: "twitter:title", content: title },
     { name: "twitter:description", content: description },
+    { name: "twitter:image", content: ogImage },
     { tagName: "link", rel: "canonical", href: url },
     { name: "robots", content: "index, follow" },
   ];
@@ -134,8 +136,38 @@ export default function NodePage({ loaderData }: { loaderData: LoaderData }) {
   const { category, node, relatedNodes } = loaderData;
   const IconComponent = getIconComponent(node.icon);
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: websiteUrl },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Workflow nodes",
+        item: `${websiteUrl}/nodes`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: category.name,
+        item: `${websiteUrl}/nodes/${category.id}`,
+      },
+      {
+        "@type": "ListItem",
+        position: 4,
+        name: node.name,
+        item: `${websiteUrl}/nodes/${category.id}/${node.id}`,
+      },
+    ],
+  };
+
   return (
     <Layout>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <main className="px-6 py-32">
         <Link
           to={`/nodes/${category.id}`}

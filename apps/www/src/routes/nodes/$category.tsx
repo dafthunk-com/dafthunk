@@ -36,6 +36,7 @@ interface Category {
   name: string;
   summary: string;
   description: string;
+  metaDescription: string;
   tags: string[];
   nodeIds: string[];
 }
@@ -68,26 +69,25 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data) return [{ title: "Not Found - Dafthunk" }];
 
   const { category } = data;
-  const title = `${category.name} Workflow Nodes - Dafthunk`;
-  const description = category.summary;
+  const title = `${category.name} Nodes | Dafthunk`;
+  const description = category.metaDescription;
   const url = `${websiteUrl}/nodes/${category.id}`;
+  const ogImage = `${websiteUrl}/og-image.webp`;
 
   return [
     { title },
     { name: "description", content: description },
-    {
-      name: "keywords",
-      content: `${category.name}, workflow automation, AI nodes, Dafthunk`,
-    },
     { property: "og:type", content: "website" },
     { property: "og:url", content: url },
     { property: "og:title", content: title },
     { property: "og:description", content: description },
+    { property: "og:image", content: ogImage },
     { property: "og:site_name", content: "Dafthunk" },
-    { name: "twitter:card", content: "summary" },
+    { name: "twitter:card", content: "summary_large_image" },
     { name: "twitter:url", content: url },
     { name: "twitter:title", content: title },
     { name: "twitter:description", content: description },
+    { name: "twitter:image", content: ogImage },
     { tagName: "link", rel: "canonical", href: url },
     { name: "robots", content: "index, follow" },
   ];
@@ -114,8 +114,48 @@ export default function CategoryPage({
 }) {
   const { category, nodes } = loaderData;
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: websiteUrl },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Workflow nodes",
+        item: `${websiteUrl}/nodes`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: category.name,
+        item: `${websiteUrl}/nodes/${category.id}`,
+      },
+    ],
+  };
+
+  const itemListJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: `${category.name} workflow nodes`,
+    itemListElement: nodes.map((node, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      url: `${websiteUrl}/nodes/${category.id}/${node.id}`,
+      name: node.name,
+    })),
+  };
+
   return (
     <Layout>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
+      />
       <main className="px-6 py-32">
         <Link
           to="/nodes"
@@ -126,7 +166,7 @@ export default function CategoryPage({
 
         <div className="mb-32">
           <h1 className="text-6xl font-light text-gray-900 mb-6">
-            {category.name} Workflow Nodes
+            {category.name}
           </h1>
           <p className="text-3xl text-gray-500 mb-6">{category.description}</p>
           <div className="flex flex-wrap gap-2">

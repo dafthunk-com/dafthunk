@@ -12,6 +12,7 @@ interface WorkflowData {
   name: string;
   summary: string;
   description: string;
+  metaDescription: string;
   icon: string;
   type: string;
   tags: string[];
@@ -21,28 +22,26 @@ interface WorkflowData {
 const { workflows } = workflowsData as { workflows: WorkflowData[] };
 
 export const meta: MetaFunction = () => {
-  const title = "Workflow Automation Use Cases - Dafthunk";
+  const title = "Workflow Automation Templates & Use Cases | Dafthunk";
   const description =
-    "Explore automation use cases built with Dafthunk. From AI image generation and text translation to sentiment analysis and speech processing, discover workflows you can deploy on Cloudflare's edge infrastructure.";
+    "AI image generation, translation, web scraping, speech-to-text and more. Open source, MIT-licensed workflow templates running serverless on Cloudflare Workers.";
   const url = `${websiteUrl}/workflows`;
+  const ogImage = `${websiteUrl}/og-image.webp`;
 
   return [
     { title },
     { name: "description", content: description },
-    {
-      name: "keywords",
-      content:
-        "workflow automation, AI workflows, use cases, automation templates, Dafthunk",
-    },
     { property: "og:type", content: "website" },
     { property: "og:url", content: url },
     { property: "og:title", content: title },
     { property: "og:description", content: description },
+    { property: "og:image", content: ogImage },
     { property: "og:site_name", content: "Dafthunk" },
-    { name: "twitter:card", content: "summary" },
+    { name: "twitter:card", content: "summary_large_image" },
     { name: "twitter:url", content: url },
     { name: "twitter:title", content: title },
     { name: "twitter:description", content: description },
+    { name: "twitter:image", content: ogImage },
     { tagName: "link", rel: "canonical", href: url },
     { name: "robots", content: "index, follow" },
   ];
@@ -58,8 +57,48 @@ function getIconComponent(iconName: string): LucideIcon {
 }
 
 export default function WorkflowsPage() {
+  const collectionJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: "Dafthunk workflow automation templates",
+    url: `${websiteUrl}/workflows`,
+    description:
+      "Open source, MIT-licensed workflow automation templates for AI, browser automation, and data pipelines, running serverless on Cloudflare Workers.",
+    mainEntity: {
+      "@type": "ItemList",
+      itemListElement: workflows.map((workflow, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        url: `${websiteUrl}/workflows/${workflow.id}`,
+        name: workflow.name,
+      })),
+    },
+  };
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: websiteUrl },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Workflow templates",
+        item: `${websiteUrl}/workflows`,
+      },
+    ],
+  };
+
   return (
     <Layout>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <main className="px-6 py-32">
         <Link
           to="/"
@@ -70,10 +109,11 @@ export default function WorkflowsPage() {
 
         <div className="mb-32">
           <h1 className="text-6xl font-light text-gray-900 mb-6">
-            Automation use cases
+            Workflow automation templates
           </h1>
           <p className="text-3xl text-gray-500">
-            Explore what you can build with workflow automation
+            Ready-made AI, browser, and data automation templates you can run
+            serverless on Cloudflare
           </p>
         </div>
 
