@@ -42,22 +42,9 @@ export function meta() {
   ];
 }
 
-const navigation = [
-  { href: "/", label: "Home" },
-  { href: "/#features", label: "Overview" },
-  { href: "/#capabilities", label: "Capabilities" },
-  { href: "/#use-cases", label: "Use Cases" },
-  { href: "/#open-source", label: "Open Source" },
-  {
-    href: "https://github.com/dafthunk-com/dafthunk",
-    label: "GitHub",
-    external: true,
-  },
-];
-
 export default function Privacy() {
   return (
-    <Layout navigation={navigation}>
+    <Layout>
       <main className="px-6 py-32">
         <article className="max-w-4xl mx-auto">
           <a

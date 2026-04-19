@@ -9,12 +9,25 @@ interface NavigationItem {
   external?: boolean;
 }
 
+const navigation: NavigationItem[] = [
+  { href: "/", label: "Home" },
+  { href: "/#features", label: "Overview" },
+  { href: "/#capabilities", label: "Capabilities" },
+  { href: "/#use-cases", label: "Use Cases" },
+  { href: "/#open-source", label: "Open Source" },
+  { href: "/#faq", label: "FAQ" },
+  {
+    href: "https://github.com/dafthunk-com/dafthunk",
+    label: "GitHub",
+    external: true,
+  },
+];
+
 interface LayoutProps {
   children: ReactNode;
-  navigation: NavigationItem[];
 }
 
-export function Layout({ children, navigation }: LayoutProps) {
+export function Layout({ children }: LayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -133,6 +146,9 @@ export function Layout({ children, navigation }: LayoutProps) {
             <a href="#open-source" className="text-base hover:text-white">
               Open Source
             </a>
+            <a href="#faq" className="text-base hover:text-white">
+              FAQ
+            </a>
           </div>
           <div className="flex flex-col gap-3">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">
@@ -197,6 +213,9 @@ export function Layout({ children, navigation }: LayoutProps) {
               className="text-base hover:text-white"
             >
               Support
+            </a>
+            <a href="/alternatives" className="text-base hover:text-white">
+              Alternatives
             </a>
           </div>
         </div>

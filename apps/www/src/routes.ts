@@ -12,4 +12,6 @@ export default [
   route("nodes/:category/:nodeId", "routes/nodes/$category.$nodeId.tsx"),
   route("workflows", "routes/workflows/index.tsx"),
   route("workflows/:workflowId", "routes/workflows/$workflowId.tsx"),
+  route("alternatives", "routes/alternatives/index.tsx"),
+  route("alternatives/:competitor", "routes/alternatives/$competitor.tsx"),
 ] satisfies RouteConfig;

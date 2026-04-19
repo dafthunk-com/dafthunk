@@ -1,3 +1,4 @@
+import alternativesData from "../../data/alternatives.json";
 import categories from "../../data/categories.json";
 import workflowsData from "../../data/workflows.json";
 
@@ -66,6 +67,22 @@ export function loader() {
     priority: "0.7",
   }));
 
+  const alternativesIndexPage = {
+    loc: "/alternatives",
+    lastmod: today,
+    changefreq: "weekly",
+    priority: "0.8",
+  };
+
+  const alternativePages = alternativesData.alternatives
+    .filter((alternative) => alternative.published)
+    .map((alternative) => ({
+      loc: `/alternatives/${alternative.id}`,
+      lastmod: alternative.verifiedAt,
+      changefreq: "monthly",
+      priority: "0.9",
+    }));
+
   const allPages = [
     ...staticPages,
     nodesIndexPage,
@@ -73,6 +90,8 @@ export function loader() {
     ...nodePages,
     workflowIndexPage,
     ...workflowPages,
+    alternativesIndexPage,
+    ...alternativePages,
   ];
 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>

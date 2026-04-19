@@ -48,22 +48,59 @@ export function meta() {
   ];
 }
 
-const navigation = [
-  { href: "/", label: "Home" },
-  { href: "#features", label: "Overview" },
-  { href: "#capabilities", label: "Capabilities" },
-  { href: "#use-cases", label: "Use Cases" },
-  { href: "#open-source", label: "Open Source" },
+const faqs = [
   {
-    href: "https://github.com/dafthunk-com/dafthunk",
-    label: "GitHub",
-    external: true,
+    question: "What is Dafthunk?",
+    answer:
+      "Dafthunk is an open source visual workflow automation platform. You build workflows by connecting nodes in a React Flow editor, and they run as serverless workflows on Cloudflare Workers and Workflows, with state persisted in D1, R2, and Durable Objects.",
+  },
+  {
+    question: "Is Dafthunk free and open source?",
+    answer:
+      "Yes. Dafthunk is fully MIT licensed, with no enterprise tier, no fair-code restrictions, and no community edition that hides features. The entire workflow engine, node library, and runtime is on GitHub under the same permissive license.",
+  },
+  {
+    question: "How is Dafthunk different from n8n, Zapier, or Make?",
+    answer:
+      "Dafthunk is MIT licensed rather than fair-code like n8n, and it runs natively on Cloudflare's serverless platform. Workflows scale to zero when idle and scale up automatically with demand, with no containers or infrastructure to provision. You can self-host it for free or embed it in commercial products.",
+  },
+  {
+    question: "Do I need to manage servers or containers to run Dafthunk?",
+    answer:
+      "No. Workflows run on Cloudflare Workers and Workflows, so execution is serverless and durable by default. There is nothing to provision or scale. State is persisted in D1 SQL databases, R2 object storage, and Durable Objects, and long-running workflows survive restarts and retries automatically.",
+  },
+  {
+    question: "What kinds of workflows can I build with Dafthunk?",
+    answer:
+      "You can build AI workflows, web scraping and browser automation, data transformations, API integrations, scheduled cron jobs, webhook handlers, and email pipelines using 470+ nodes across AI models, browsers, data processing, media, and third-party integrations.",
+  },
+  {
+    question: "Can I self-host Dafthunk on my own Cloudflare account?",
+    answer:
+      "Yes. The full source is on GitHub and deploys to a standard Cloudflare account using Workers, Workflows, D1, R2, and the Workers AI and Analytics Engine bindings. You own your data, your deployment, and your costs.",
   },
 ];
 
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqs.map((f) => ({
+    "@type": "Question",
+    name: f.question,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: f.answer,
+    },
+  })),
+};
+
 export default function Home() {
   return (
-    <Layout navigation={navigation}>
+    <Layout>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
       <section className="px-6 pt-32 pb-32" aria-label="Hero">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-16 items-center">
           <div className="lg:col-span-2 max-w-xl">
@@ -77,7 +114,7 @@ export default function Home() {
             <h1 className="text-7xl font-light text-gray-900 mb-8 leading-[1.1]">
               Visual workflow
               <br />
-              automation
+              automation on Cloudflare
             </h1>
             <p className="text-2xl text-gray-600 mb-10 leading-relaxed">
               Build workflows visually by connecting AI models, browsers, data
@@ -154,8 +191,8 @@ export default function Home() {
             Serverless workflows, zero infrastructure
           </h2>
           <p className="text-3xl text-gray-500">
-            Scale to zero when idle, to whatever traffic throws at you when
-            it's not
+            Scale to zero when idle, to whatever traffic throws at you when it's
+            not
           </p>
         </div>
 
@@ -171,19 +208,16 @@ export default function Home() {
               setup, no Docker containers. Just workflows that run on Workers.
             </p>
             <div className="flex flex-wrap gap-2">
-              {[
-                "React Flow",
-                "Drag & drop",
-                "Live preview",
-                "Versioning",
-              ].map((tag) => (
-                <span
-                  key={tag}
-                  className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base"
-                >
-                  {tag}
-                </span>
-              ))}
+              {["React Flow", "Drag & drop", "Live preview", "Versioning"].map(
+                (tag) => (
+                  <span
+                    key={tag}
+                    className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-base"
+                  >
+                    {tag}
+                  </span>
+                )
+              )}
             </div>
           </div>
 
@@ -193,8 +227,8 @@ export default function Home() {
             </h3>
             <p className="text-xl text-gray-600 leading-relaxed mb-6">
               Run workflows on Cloudflare Workflows and Workers, where servers
-              are merely a philosophical concept. Executions scale to zero
-              when idle and up to whatever traffic throws at you, with no
+              are merely a philosophical concept. Executions scale to zero when
+              idle and up to whatever traffic throws at you, with no
               infrastructure to provision. Durability is built in, so long
               workflows survive restarts and retries.
             </p>
@@ -476,10 +510,9 @@ export default function Home() {
             <p className="text-xl text-gray-600 leading-relaxed">
               Fully MIT licensed, with no enterprise tier, no fair-code
               carve-outs, no "community edition" hiding the good parts. Every
-              line of the workflow engine, node library and runtime is on
-              GitHub under the same permissive license. Fork it, self-host it,
-              embed it in a commercial product. Provided as-is without
-              warranty.
+              line of the workflow engine, node library and runtime is on GitHub
+              under the same permissive license. Fork it, self-host it, embed it
+              in a commercial product. Provided as-is without warranty.
             </p>
           </div>
 
@@ -498,10 +531,44 @@ export default function Home() {
         </div>
       </section>
 
-      <section
-        className="px-6 py-32"
-        aria-labelledby="cta-heading"
-      >
+      <section id="faq" className="px-6 py-32" aria-labelledby="faq-heading">
+        <div className="mb-32">
+          <p className="text-sm font-mono text-gray-500 uppercase tracking-widest mb-6">
+            05 — FAQ
+          </p>
+          <h2
+            id="faq-heading"
+            className="text-6xl font-light text-gray-900 mb-6"
+          >
+            Frequently asked questions
+          </h2>
+          <p className="text-3xl text-gray-500">
+            What people ask before they try Dafthunk
+          </p>
+        </div>
+
+        <div className="space-y-16">
+          {faqs.map((faq) => (
+            <div
+              key={faq.question}
+              className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16"
+            >
+              <div className="lg:col-span-12 xl:col-span-4">
+                <h3 className="text-3xl font-light text-gray-900">
+                  {faq.question}
+                </h3>
+              </div>
+              <div className="lg:col-span-12 xl:col-span-8">
+                <p className="text-xl text-gray-600 leading-relaxed">
+                  {faq.answer}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="px-6 py-32" aria-labelledby="cta-heading">
         <div className="max-w-4xl mx-auto text-center">
           <h2
             id="cta-heading"

@@ -1,0 +1,285 @@
+{
+  "alternatives": [
+    {
+      "id": "n8n",
+      "name": "n8n",
+      "tagline": "MIT-licensed, serverless n8n alternative on Cloudflare",
+      "intro": "Dafthunk is an MIT-licensed workflow automation platform built for Cloudflare Workers. Workflows scale to zero when idle, store state in D1 and R2, call Workers AI for inference, and expose any node as a tool for AI agents. You can fork, embed, or resell the stack without fair-code restrictions.",
+      "category": "Visual workflow builder",
+      "license": "Sustainable Use License (fair-code)",
+      "deployment": "Self-hosted (Docker) or n8n Cloud",
+      "website": "https://n8n.io",
+      "verifiedAt": "2026-04-19",
+      "published": true,
+      "strengths": [
+        "n8n is a mature visual workflow builder that runs as a long-running Node.js process, self-hosted on Docker or Kubernetes or managed through n8n Cloud. It ships 400+ SaaS integrations, supports air-gapped on-premise deployment, and offers a commercial Cloud plan with paid SLA and vendor support."
+      ],
+      "differentiators": [
+        {
+          "title": "License",
+          "dafthunk": "MIT licensed throughout. You can fork it, embed it in a commercial product, or resell a hosted version without restriction.",
+          "competitor": "Sustainable Use License since 2022, a fair-code license. Internal use is free. Hosting n8n as a competing SaaS or embedding it in a competing commercial product is restricted."
+        },
+        {
+          "title": "Runtime",
+          "dafthunk": "Cloudflare Workers and Cloudflare Workflows. Serverless by default, scales to zero when idle, scales up with demand. No containers to run.",
+          "competitor": "Long-running Node.js process. Self-hosting needs a VPS, Docker host, or Kubernetes cluster running 24/7."
+        },
+        {
+          "title": "Native edge data layer",
+          "dafthunk": "Built-in D1 (SQL), R2 (object storage), Workers AI, and Analytics Engine. No external database or storage to provision.",
+          "competitor": "Requires an external Postgres, MySQL, or SQLite database, plus your own storage for files and blobs."
+        },
+        {
+          "title": "Agentic workflows",
+          "dafthunk": "Any workflow node can become a tool for an AI agent, letting agents call your existing nodes directly. Bindings to Workers AI, OpenAI, Anthropic, and Gemini come built in.",
+          "competitor": "AI agent nodes use LangChain integrations. n8n treats AI as an integration category, not a first-class primitive."
+        },
+        {
+          "title": "Integration breadth vs depth",
+          "dafthunk": "470+ nodes focused on AI models, browser automation, geo, media, data transformation, and protocols.",
+          "competitor": "400+ nodes focused on SaaS integrations like CRMs, marketing, project management, and communication tools."
+        }
+      ],
+      "whenCompetitorIsBetter": [
+        "Pick n8n if you need the widest SaaS-integration library, an air-gapped on-premise deployment, a commercial SLA, or existing Docker or Kubernetes infrastructure without adding Cloudflare as a platform dependency."
+      ],
+      "featureMatrix": [
+        {
+          "category": "License and deployment",
+          "rows": [
+            {
+              "feature": "Source license",
+              "dafthunk": "MIT",
+              "competitor": "Sustainable Use License (fair-code)"
+            },
+            {
+              "feature": "Self-hostable",
+              "dafthunk": "Yes, on your Cloudflare account",
+              "competitor": "Yes, via Docker or Node.js"
+            },
+            {
+              "feature": "Commercial reuse or embedding",
+              "dafthunk": "Allowed under MIT",
+              "competitor": "Restricted by SUL (see n8n license docs)"
+            },
+            {
+              "feature": "Air-gapped on-premise",
+              "dafthunk": "Not supported (requires Cloudflare)",
+              "competitor": "Supported"
+            }
+          ]
+        },
+        {
+          "category": "Runtime and scale",
+          "rows": [
+            {
+              "feature": "Runtime model",
+              "dafthunk": "Serverless (Cloudflare Workers)",
+              "competitor": "Long-running Node.js process"
+            },
+            {
+              "feature": "Scale to zero",
+              "dafthunk": "Yes. Idle workflows cost nothing",
+              "competitor": "No. Server runs 24/7"
+            },
+            {
+              "feature": "Durable long-running execution",
+              "dafthunk": "Cloudflare Workflows (survives restarts, auto-retries)",
+              "competitor": "Built-in queue with retry policies"
+            },
+            {
+              "feature": "Minimum infrastructure cost",
+              "dafthunk": "Cloudflare free tier covers light usage",
+              "competitor": "VPS or Docker host (typically $5 to $50+ per month)"
+            }
+          ]
+        },
+        {
+          "category": "Data and storage",
+          "rows": [
+            {
+              "feature": "Database",
+              "dafthunk": "D1 SQL, built in",
+              "competitor": "Postgres, MySQL, or SQLite (self-provisioned)"
+            },
+            {
+              "feature": "Object storage",
+              "dafthunk": "R2, built in",
+              "competitor": "External (S3, filesystem, etc.)"
+            },
+            {
+              "feature": "Analytics and metrics",
+              "dafthunk": "Workers Analytics Engine, built in",
+              "competitor": "External (Prometheus, Grafana, etc.)"
+            },
+            {
+              "feature": "Key-value store",
+              "dafthunk": "KV, built in",
+              "competitor": "External (Redis, etc.)"
+            }
+          ]
+        },
+        {
+          "category": "Integrations and AI",
+          "rows": [
+            {
+              "feature": "Node count",
+              "dafthunk": "470+",
+              "competitor": "400+"
+            },
+            {
+              "feature": "Native AI providers",
+              "dafthunk": "Workers AI, OpenAI, Anthropic, Gemini",
+              "competitor": "OpenAI, Anthropic, others via LangChain nodes"
+            },
+            {
+              "feature": "Agentic (nodes as tools for AI)",
+              "dafthunk": "First-class",
+              "competitor": "Via LangChain AI agent nodes"
+            },
+            {
+              "feature": "Browser automation",
+              "dafthunk": "Cloudflare Browser Rendering, built in",
+              "competitor": "Via third-party integrations"
+            },
+            {
+              "feature": "Trigger types",
+              "dafthunk": "HTTP, webhook, cron, email, queue, manual",
+              "competitor": "HTTP, webhook, cron, email, manual, polling"
+            }
+          ]
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Is there a fully open source, MIT-licensed alternative to n8n?",
+          "answer": "Yes. Dafthunk is MIT licensed throughout, with no enterprise tier, no fair-code carve-outs, and no community edition that hides features. n8n moved to the Sustainable Use License in 2022, which restricts hosting n8n as a competing SaaS and embedding it in a competing commercial product. The MIT license lets you fork, embed, or resell without those restrictions."
+        },
+        {
+          "question": "Can I run n8n on Cloudflare Workers?",
+          "answer": "No. n8n is built around a long-running Node.js process and relies on a SQL database you provision yourself. Dafthunk was built for Cloudflare from day one. Workflows run on Workers and Cloudflare Workflows, state persists in D1 and R2, and AI calls go through Workers AI. If your goal is workflow automation on Cloudflare, Dafthunk is the native option."
+        },
+        {
+          "question": "Is there a serverless, scale-to-zero alternative to n8n?",
+          "answer": "Yes. Dafthunk workflows run on Cloudflare Workers, so they scale to zero when idle and scale up with traffic. You pay Cloudflare for actual execution, not for a server running 24/7. n8n Cloud meters per execution, and self-hosted n8n needs a long-running server."
+        },
+        {
+          "question": "How much does it cost to self-host Dafthunk vs n8n?",
+          "answer": "Self-hosted Dafthunk has no idle cost. You pay Cloudflare only for actual Workers, D1, and R2 usage, which runs to pennies per thousand executions in most cases. Self-hosted n8n needs a 24/7 VPS or Kubernetes cluster (typically 5 to 50 USD per month) plus an external Postgres database. Exact figures depend on your workload."
+        },
+        {
+          "question": "Which has better AI and agentic workflow support?",
+          "answer": "Dafthunk treats AI as a first-class primitive. Any node can become a tool for an AI agent, and Dafthunk ships native bindings for Workers AI, OpenAI, Anthropic, and Gemini. n8n offers LangChain-based AI agent nodes and strong LLM integrations, but structures AI as an integration category, not a primitive."
+        },
+        {
+          "question": "When is n8n still the better choice?",
+          "answer": "Choose n8n if you need the widest SaaS-integration library, an air-gapped on-premise deployment, a commercial cloud with paid SLA and support, or existing Docker and Kubernetes infrastructure. Dafthunk requires a Cloudflare account and does not fit air-gapped environments."
+        }
+      ],
+      "sources": [
+        {
+          "label": "n8n Sustainable Use License",
+          "url": "https://docs.n8n.io/sustainable-use-license/"
+        },
+        {
+          "label": "n8n Cloud pricing",
+          "url": "https://n8n.io/pricing/"
+        },
+        {
+          "label": "Cloudflare Workers pricing",
+          "url": "https://developers.cloudflare.com/workers/platform/pricing/"
+        },
+        {
+          "label": "Dafthunk on GitHub",
+          "url": "https://github.com/dafthunk-com/dafthunk"
+        }
+      ]
+    },
+    {
+      "id": "make",
+      "name": "Make",
+      "tagline": "Open source, self-hostable Make alternative",
+      "category": "Visual workflow builder",
+      "license": "Proprietary (SaaS)",
+      "deployment": "SaaS only",
+      "website": "https://make.com",
+      "verifiedAt": "2026-04-19",
+      "published": false,
+      "strengths": [],
+      "differentiators": [],
+      "whenCompetitorIsBetter": [],
+      "featureMatrix": [],
+      "faqs": [],
+      "sources": []
+    },
+    {
+      "id": "zapier",
+      "name": "Zapier",
+      "tagline": "Self-hostable, MIT-licensed Zapier alternative for developers",
+      "category": "SaaS workflow builder",
+      "license": "Proprietary (SaaS)",
+      "deployment": "SaaS only",
+      "website": "https://zapier.com",
+      "verifiedAt": "2026-04-19",
+      "published": false,
+      "strengths": [],
+      "differentiators": [],
+      "whenCompetitorIsBetter": [],
+      "featureMatrix": [],
+      "faqs": [],
+      "sources": []
+    },
+    {
+      "id": "dify",
+      "name": "Dify",
+      "tagline": "Workflow automation beyond LLM apps, with Cloudflare-native deployment",
+      "category": "AI app builder",
+      "license": "Apache 2.0 (with commercial terms)",
+      "deployment": "Self-hosted (Docker) or Dify Cloud",
+      "website": "https://dify.ai",
+      "verifiedAt": "2026-04-19",
+      "published": false,
+      "strengths": [],
+      "differentiators": [],
+      "whenCompetitorIsBetter": [],
+      "featureMatrix": [],
+      "faqs": [],
+      "sources": []
+    },
+    {
+      "id": "langflow",
+      "name": "Langflow",
+      "tagline": "Serverless, production-ready alternative to Langflow",
+      "category": "Visual LLM / agent builder",
+      "license": "MIT",
+      "deployment": "Self-hosted (Python, Docker) or Langflow Cloud",
+      "website": "https://langflow.org",
+      "verifiedAt": "2026-04-19",
+      "published": false,
+      "strengths": [],
+      "differentiators": [],
+      "whenCompetitorIsBetter": [],
+      "featureMatrix": [],
+      "faqs": [],
+      "sources": []
+    },
+    {
+      "id": "flowise",
+      "name": "Flowise",
+      "tagline": "Cloudflare-native alternative to Flowise for production workflows",
+      "category": "Visual LLM / agent builder",
+      "license": "Apache 2.0",
+      "deployment": "Self-hosted (Node.js, Docker) or Flowise Cloud",
+      "website": "https://flowiseai.com",
+      "verifiedAt": "2026-04-19",
+      "published": false,
+      "strengths": [],
+      "differentiators": [],
+      "whenCompetitorIsBetter": [],
+      "featureMatrix": [],
+      "faqs": [],
+      "sources": []
+    }
+  ]
+}
