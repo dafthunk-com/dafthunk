@@ -96,9 +96,7 @@ export class SendEmailNode extends ExecutableNode {
         subject: subject as string,
         ...(html ? { html: html as string } : {}),
         ...(text ? { text: text as string } : {}),
-        ...(cc
-          ? { cc: typeof cc === "string" ? cc : (cc as string[]) }
-          : {}),
+        ...(cc ? { cc: typeof cc === "string" ? cc : (cc as string[]) } : {}),
         ...(replyTo
           ? {
               replyTo: Array.isArray(replyTo)

@@ -29,11 +29,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { EmailCreateDialog } from "@/components/workflow/widgets/input/email-create-dialog";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
-import {
-  deleteEmail,
-  updateEmail,
-  useEmails,
-} from "@/services/email-service";
+import { deleteEmail, updateEmail, useEmails } from "@/services/email-service";
 
 const EMAIL_DOMAIN = import.meta.env.VITE_EMAIL_DOMAIN || "mail.dafthunk.com";
 
