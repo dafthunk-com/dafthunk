@@ -80,12 +80,11 @@ export default function Home() {
               automation
             </h1>
             <p className="text-2xl text-gray-600 mb-10 leading-relaxed">
-              Dafthunk is a visual workflow automation platform. Build and
-              deploy serverless workflows by connecting AI models, web scraping
-              tools, data transformations, and APIs through a drag-and-drop
-              editor. Your workflows run on Cloudflare's global edge network
-              with built-in durability and scaling. Open source and
-              self-hostable.
+              Build workflows visually by connecting AI models, browsers, data
+              pipelines and APIs, then deploy them on Cloudflare's serverless
+              platform. Workflows scale to zero when idle and up with demand,
+              and the entire stack is yours under MIT. No enterprise tier, no
+              fair-code carve-outs, no asterisks.
             </p>
             <a
               href={import.meta.env.VITE_APP_URL}
@@ -152,11 +151,11 @@ export default function Home() {
             id="features-heading"
             className="text-6xl font-light text-gray-900 mb-6"
           >
-            Prototype workflows on edge infrastructure
+            Serverless workflows, zero infrastructure
           </h2>
           <p className="text-3xl text-gray-500">
-            Everything you need to build and deploy automation workflows on
-            Cloudflare
+            Scale to zero when idle, to whatever traffic throws at you when
+            it's not
           </p>
         </div>
 
@@ -193,11 +192,11 @@ export default function Home() {
               Durable Workflow Execution
             </h3>
             <p className="text-xl text-gray-600 leading-relaxed mb-6">
-              Run automation workflows using Cloudflare Workflows and Workers
-              across the edge network, where servers are merely a philosophical
-              concept. Your workflows execute everywhere and nowhere
-              simultaneously with built-in durability. The infrastructure
-              handles scaling, you handle the logic.
+              Run workflows on Cloudflare Workflows and Workers, where servers
+              are merely a philosophical concept. Executions scale to zero
+              when idle and up to whatever traffic throws at you, with no
+              infrastructure to provision. Durability is built in, so long
+              workflows survive restarts and retries.
             </p>
             <div className="flex flex-wrap gap-2">
               {[
@@ -475,11 +474,11 @@ export default function Home() {
               Open Source & Self-Hosted
             </h3>
             <p className="text-xl text-gray-600 leading-relaxed">
-              MIT licensed workflow automation software with all code available
-              on GitHub. Fork it, self-host the workflow engine on your own
-              infrastructure, extend the node library with custom workflow
-              nodes, or read the source code to understand how serverless
-              workflow orchestration works on Cloudflare. Provided as-is without
+              Fully MIT licensed, with no enterprise tier, no fair-code
+              carve-outs, no "community edition" hiding the good parts. Every
+              line of the workflow engine, node library and runtime is on
+              GitHub under the same permissive license. Fork it, self-host it,
+              embed it in a commercial product. Provided as-is without
               warranty.
             </p>
           </div>
