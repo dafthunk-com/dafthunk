@@ -60,6 +60,7 @@ import { CloudflareBrowserPdfNode } from "@dafthunk/runtime/nodes/browser/cloudf
 import { CloudflareBrowserScrapeNode } from "@dafthunk/runtime/nodes/browser/cloudflare-browser-scrape-node";
 import { CloudflareBrowserScreenshotNode } from "@dafthunk/runtime/nodes/browser/cloudflare-browser-screenshot-node";
 import { CloudflareBrowserSnapshotNode } from "@dafthunk/runtime/nodes/browser/cloudflare-browser-snapshot-node";
+import { CloudflareModelNode } from "@dafthunk/runtime/nodes/cloudflare/cloudflare-model-node";
 import { CsvExtractColumnNode } from "@dafthunk/runtime/nodes/csv/csv-extract-column-node";
 import { CsvFilterRowsNode } from "@dafthunk/runtime/nodes/csv/csv-filter-rows-node";
 import { CsvParseNode } from "@dafthunk/runtime/nodes/csv/csv-parse-node";
@@ -705,6 +706,9 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
 
     // Generic Replicate model node
     this.registerImplementation(ReplicateModelNode);
+
+    // Generic Cloudflare Workers AI model node
+    this.registerImplementation(CloudflareModelNode);
 
     // Video processing nodes (Cloudflare Containers)
     if (this.env.FFMPEG_CONTAINER) {

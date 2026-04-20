@@ -38,6 +38,12 @@ import { SubscriptionBadge } from "./subscription-badge";
 import { ToolConfigPanel } from "./tool-config-panel";
 import { registry } from "./widgets";
 import {
+  CF_META_INPUT_NAME,
+  CLOUDFLARE_MODEL_NODE_TYPE,
+  decodeCloudflareModelMeta,
+  deriveCloudflareModelDocs,
+} from "./widgets/input/cloudflare-model-utils";
+import {
   clearNodeInput,
   convertValueByType,
   updateNodeInput,
@@ -49,6 +55,27 @@ import {
   NodeExecutionState,
   WorkflowParameter,
 } from "./workflow-types";
+
+/**
+ * Derive docs-dialog overrides for generic node types whose description /
+ * documentation / referenceUrl depend on user-selected configuration (e.g.
+ * the Cloudflare Model node's selected model id). Returns an empty object
+ * for every other node type, leaving the template's static fields in place.
+ */
+function deriveDocOverridesForNode(
+  nodeType: string,
+  inputs: WorkflowParameter[]
+): { description?: string; documentation?: string; referenceUrl?: string } {
+  if (nodeType === CLOUDFLARE_MODEL_NODE_TYPE) {
+    const modelId = inputs.find((i) => i.id === "model")?.value;
+    if (typeof modelId !== "string" || !modelId) return {};
+    const meta = decodeCloudflareModelMeta(
+      inputs.find((i) => i.id === CF_META_INPUT_NAME)?.value
+    );
+    return deriveCloudflareModelDocs(modelId, meta);
+  }
+  return {};
+}
 
 export interface WorkflowNodeType {
   name: string;
@@ -238,16 +265,27 @@ export const WorkflowNode = memo(
     // Get node type
     const nodeType = data.nodeType || "";
 
-    // Resolve node type from templates for docs
+    // Resolve node type from templates for docs, merging live inputs and
+    // outputs plus any per-node-type overrides that generic model nodes
+    // derive from their persisted metadata.
     const resolvedNodeType = (() => {
       if (!nodeTypes || nodeTypes.length === 0) return null;
-      // Prefer matching by type identifier when available
-      if (nodeType) {
-        const byType = nodeTypes.find((t) => t.type === nodeType);
-        if (byType) return byType;
+      let template = nodeType
+        ? nodeTypes.find((t) => t.type === nodeType)
+        : undefined;
+      if (!template) {
+        template = nodeTypes.find((t) => t.name === data.name);
       }
-      // Fallback to name match
-      return nodeTypes.find((t) => t.name === data.name) || null;
+      if (!template) return null;
+
+      const overrides = deriveDocOverridesForNode(nodeType, data.inputs);
+
+      return {
+        ...template,
+        ...overrides,
+        inputs: data.inputs ?? template.inputs,
+        outputs: data.outputs ?? template.outputs,
+      };
     })();
 
     // Get widget for this node type

@@ -68,3 +68,22 @@ export interface ReplicateModelSchema {
   inputs: Parameter[];
   outputs: Parameter[];
 }
+
+/**
+ * Response from the Cloudflare Workers AI model schema endpoint
+ */
+export interface CloudflareModelSchema {
+  model: string;
+  inputs: Parameter[];
+  outputs: Parameter[];
+}
+
+/**
+ * A model entry returned by the Cloudflare Workers AI models search endpoint
+ */
+export interface CloudflareModelInfo {
+  id: string;
+  name: string;
+  description?: string;
+  task?: { id: string; name: string };
+}
