@@ -9,7 +9,6 @@ import { AdminProtectedRoute } from "./components/admin-protected-route";
 import { HeadSeo } from "./components/head-seo";
 import { AdminLayout } from "./components/layouts/admin-layout";
 import { AppLayout } from "./components/layouts/app-layout";
-import { DocsLayout } from "./components/layouts/docs-layout";
 import { OrgLayout } from "./components/org-layout";
 import { OrgRedirect } from "./components/org-redirect";
 import { ProtectedRoute } from "./components/protected-route";
@@ -40,11 +39,6 @@ import { DatabasesPage } from "./pages/databases-page";
 import { DatasetDetailPage } from "./pages/dataset-detail-page";
 import { DatasetsPage } from "./pages/datasets-page";
 
-import { DocsApiPage } from "./pages/docs/api-page";
-import { DocsOverviewPage } from "./pages/docs/concepts-page";
-import { DocsDevelopersPage } from "./pages/docs/developers-page";
-import { DocsNodesPage } from "./pages/docs/nodes-page";
-import { DocsPage } from "./pages/docs-page";
 import { EditorPage } from "./pages/editor-page";
 import { EmailsPage } from "./pages/emails-page";
 import { EndpointsPage } from "./pages/endpoints-page";
@@ -514,86 +508,6 @@ export const routes: AppRouteObject[] = [
       </OrgLayout>
     ),
     handle: { head: <HeadSeo title="Integrations - Settings - Dafthunk" /> },
-  },
-  {
-    path: "/docs",
-    element: (
-      <DocsLayout>
-        <DocsPage />
-      </DocsLayout>
-    ),
-    handle: {
-      head: (
-        <HeadSeo
-          title="Documentation - Dafthunk"
-          description="Explore the Dafthunk documentation."
-        />
-      ),
-    },
-  },
-  {
-    path: "/docs/concepts",
-    element: (
-      <DocsLayout>
-        <DocsOverviewPage />
-      </DocsLayout>
-    ),
-    handle: {
-      head: (
-        <HeadSeo
-          title="Core Concepts - Documentation - Dafthunk"
-          description="Get started with Dafthunk's core concepts and features."
-        />
-      ),
-    },
-  },
-  {
-    path: "/docs/nodes",
-    element: (
-      <DocsLayout>
-        <DocsNodesPage />
-      </DocsLayout>
-    ),
-    handle: {
-      head: (
-        <HeadSeo
-          title="Nodes Reference - Documentation - Dafthunk"
-          description="Comprehensive reference for all 50+ node types available in Dafthunk."
-        />
-      ),
-    },
-  },
-  {
-    path: "/docs/api",
-    element: (
-      <DocsLayout>
-        <DocsApiPage />
-      </DocsLayout>
-    ),
-    handle: {
-      head: (
-        <HeadSeo
-          title="API Reference - Documentation - Dafthunk"
-          description="Complete API documentation for integrating with Dafthunk workflows."
-        />
-      ),
-    },
-  },
-  {
-    path: "/docs/developers",
-    element: (
-      <DocsLayout>
-        <DocsDevelopersPage />
-      </DocsLayout>
-    ),
-    handle: {
-      head: (
-        <HeadSeo
-          title="Developers Guide - Documentation - Dafthunk"
-          description="Complete developers guide for contributing to Dafthunk."
-        />
-      ),
-    },
   },
   {
     path: "/org/:organizationId/datasets/:datasetId",

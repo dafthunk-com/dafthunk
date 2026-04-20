@@ -14,4 +14,9 @@ export default [
   route("workflows/:workflowId", "routes/workflows/$workflowId.tsx"),
   route("alternatives", "routes/alternatives/index.tsx"),
   route("alternatives/:competitor", "routes/alternatives/$competitor.tsx"),
+  route("docs", "routes/docs/index.tsx"),
+  route("docs/concepts", "routes/docs/concepts.tsx"),
+  route("docs/nodes", "routes/docs/nodes.tsx"),
+  route("docs/api", "routes/docs/api.tsx"),
+  route("docs/developers", "routes/docs/developers.tsx"),
 ] satisfies RouteConfig;

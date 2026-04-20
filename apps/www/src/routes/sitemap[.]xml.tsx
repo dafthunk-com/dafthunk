@@ -83,6 +83,14 @@ export function loader() {
       priority: "0.8",
     }));
 
+  const docsPages = [
+    { loc: "/docs", changefreq: "weekly", priority: "0.9" },
+    { loc: "/docs/concepts", changefreq: "monthly", priority: "0.8" },
+    { loc: "/docs/nodes", changefreq: "monthly", priority: "0.8" },
+    { loc: "/docs/api", changefreq: "monthly", priority: "0.8" },
+    { loc: "/docs/developers", changefreq: "monthly", priority: "0.8" },
+  ].map((page) => ({ ...page, lastmod: today }));
+
   const allPages = [
     ...staticPages,
     nodesIndexPage,
@@ -92,6 +100,7 @@ export function loader() {
     ...workflowPages,
     alternativesIndexPage,
     ...alternativePages,
+    ...docsPages,
   ];
 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>

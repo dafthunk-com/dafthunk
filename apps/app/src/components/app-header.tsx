@@ -19,7 +19,6 @@ export function AppHeader() {
   const location = useLocation();
   const isAdminSection = location.pathname.startsWith("/admin");
   const isSettingsSection = location.pathname.startsWith("/settings");
-  const isDocsSection = location.pathname.startsWith("/docs");
 
   const navLinkClasses =
     "px-2.5 py-1 text-sm rounded-md hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50 transition-colors flex items-center whitespace-nowrap";
@@ -40,10 +39,6 @@ export function AppHeader() {
           ) : isSettingsSection ? (
             <span className="h-8 px-2 text-sm font-semibold flex items-center rounded-md bg-neutral-300/50 dark:bg-neutral-600/50">
               Settings
-            </span>
-          ) : isDocsSection ? (
-            <span className="h-8 px-2 text-sm font-semibold flex items-center rounded-md bg-neutral-300/50 dark:bg-neutral-600/50">
-              Documentation
             </span>
           ) : (
             <OrganizationSwitcher />
@@ -92,15 +87,16 @@ export function AppHeader() {
               Login
             </NavLink>
           )}
-          <NavLink
-            to="/docs"
+          <a
+            href={`${import.meta.env.VITE_WEBSITE_URL}/docs`}
+            target="_blank"
+            rel="noopener noreferrer"
             className={navLinkClasses}
-            activeClassName={activeNavLinkClasses}
             data-tour="documentation-link"
           >
             <BookOpen className="h-4 w-4 mr-1.5" />
             <span>Documentation</span>
-          </NavLink>
+          </a>
           <a
             href="https://github.com/dafthunk-com/dafthunk"
             target="_blank"
