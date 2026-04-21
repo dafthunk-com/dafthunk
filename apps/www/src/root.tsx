@@ -197,7 +197,7 @@ export function ErrorBoundary() {
         <Links />
       </head>
       <body className="font-sans">
-        <main className="min-h-screen bg-stone-100 bg-dot-grid flex items-center justify-center px-6 py-32">
+        <main className="min-h-screen bg-neutral-50 bg-dot-grid flex items-center justify-center px-6 py-32">
           <div className="max-w-2xl text-center">
             <p className="text-sm font-medium uppercase tracking-wider text-gray-500 mb-6">
               Error {status}

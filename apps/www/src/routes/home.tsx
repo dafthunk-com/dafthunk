@@ -131,7 +131,7 @@ export default function Home() {
       </section>
 
       <section
-        className="relative left-1/2 right-1/2 w-screen -ml-[50vw] -mr-[50vw] py-24 bg-[#f1f1ef] border-y border-gray-200"
+        className="relative left-1/2 right-1/2 w-screen -ml-[50vw] -mr-[50vw] py-24 bg-neutral-100 border-y border-gray-200"
         aria-label="Built on and integrates with"
       >
         <div className="max-w-screen-2xl mx-auto px-6 flex flex-col lg:flex-row lg:items-center gap-6 lg:gap-16">
@@ -282,7 +282,7 @@ export default function Home() {
       </section>
 
       <section
-        className="relative left-1/2 right-1/2 w-screen -ml-[50vw] -mr-[50vw] py-24 bg-[#f1f1ef] border-y border-gray-200"
+        className="relative left-1/2 right-1/2 w-screen -ml-[50vw] -mr-[50vw] py-24 bg-neutral-100 border-y border-gray-200"
         aria-label="Platform statistics"
       >
         <div className="max-w-screen-2xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-12 text-center">
