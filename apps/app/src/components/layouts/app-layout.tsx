@@ -39,7 +39,7 @@ export function AppLayout({ children, sidebar, className }: AppLayoutProps) {
           ) : (
             <div
               className={cn(
-                "relative flex w-full flex-1 flex-col border rounded-md mx-2 mb-2 bg-background overflow-auto",
+                "relative flex w-full flex-1 flex-col bg-background overflow-auto",
                 className
               )}
             >

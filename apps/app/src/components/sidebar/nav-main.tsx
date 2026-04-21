@@ -86,7 +86,7 @@ export function NavMain({ groups, footerItems }: NavMainProps) {
   const { toggleSidebar, open } = useSidebar();
 
   return (
-    <div className="flex-1 flex flex-col justify-between py-2 pb-0">
+    <div className="flex-1 flex flex-col justify-between pt-4 pb-0">
       <div className="flex flex-col gap-2 px-4">
         {groups.map((group, index) => (
           <SidebarGroup
