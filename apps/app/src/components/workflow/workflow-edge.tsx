@@ -99,7 +99,7 @@ export const WorkflowEdge = memo(
     const getColor = () => {
       if (!isValid) return "#f87171"; // red-400
       if (selected) return "#3b82f6"; // blue-500
-      return "#d1d5db"; // gray-300
+      return "#d4d4d4"; // neutral-300
     };
 
     return renderPath(edgePath, getColor(), isActive, zIndex);
@@ -131,7 +131,7 @@ export const WorkflowConnectionLine = memo(
     const getColor = () => {
       if (connectionStatus === "invalid") return "#f87171"; // red-400
       if (connectionStatus === "valid") return "#16a34a"; // green-600
-      return "#d1d5db"; // gray-300
+      return "#d4d4d4"; // neutral-300
     };
 
     return renderPath(edgePath, getColor(), false, undefined);

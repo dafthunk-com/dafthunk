@@ -89,8 +89,8 @@ function StatusBar({ workflowStatus, errorMessage }: StatusBarProps) {
       label: "Error",
     },
     cancelled: {
-      color: "text-gray-600 dark:text-gray-400",
-      bg: "bg-gray-200 dark:bg-gray-700",
+      color: "text-neutral-600 dark:text-neutral-400",
+      bg: "bg-neutral-200 dark:bg-neutral-700",
       label: "Cancelled",
     },
     paused: {

@@ -71,14 +71,14 @@ export function LoginForm({ className, returnTo, ...props }: LoginFormProps) {
         By signing up, you agree to our{" "}
         <a
           href={`${import.meta.env.VITE_WEBSITE_URL}/terms`}
-          className="underline hover:text-gray-700"
+          className="underline hover:text-neutral-700"
         >
           Terms of Service
         </a>{" "}
         and{" "}
         <a
           href={`${import.meta.env.VITE_WEBSITE_URL}/privacy`}
-          className="underline hover:text-gray-700"
+          className="underline hover:text-neutral-700"
         >
           Privacy Policy
         </a>

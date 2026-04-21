@@ -24,7 +24,7 @@ export function InsetLayout({
         {title && (
           <div
             className={cn(
-              "flex justify-between items-center mb-2 border-b px-6 py-2 sticky top-0 bg-background z-10",
+              "flex justify-between items-center mb-2 border-b border-neutral-200 dark:border-neutral-800 px-6 py-2 sticky top-0 bg-background z-10",
               titleClassName
             )}
           >

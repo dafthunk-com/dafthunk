@@ -74,12 +74,12 @@ export function CodeBlock({ children, className, language }: CodeBlockProps) {
       <div className="relative group">
         <pre
           className={cn(
-            "mb-4 mt-6 overflow-x-auto rounded-lg border bg-zinc-950 text-white p-4",
+            "mb-4 mt-6 overflow-x-auto rounded-lg border bg-neutral-950 text-white p-4",
             className
           )}
         >
           <div className="flex items-center justify-center h-20">
-            <div className="text-zinc-400 text-sm">
+            <div className="text-neutral-400 text-sm">
               Loading syntax highlighting...
             </div>
           </div>
@@ -93,7 +93,7 @@ export function CodeBlock({ children, className, language }: CodeBlockProps) {
       <Button
         size="icon"
         variant="ghost"
-        className="absolute right-0 top-0 h-8 w-8 text-zinc-400 z-10"
+        className="absolute right-0 top-0 h-8 w-8 text-neutral-400 z-10"
         onClick={handleCopy}
       >
         {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}

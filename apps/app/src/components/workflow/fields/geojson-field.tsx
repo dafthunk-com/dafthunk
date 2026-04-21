@@ -55,7 +55,7 @@ export function GeoJSONField({
         strokeColor: "#3b82f6",
         strokeWidth: 2,
         fillColor: "rgba(59, 130, 246, 0.2)",
-        backgroundColor: "#f8fafc",
+        backgroundColor: "#fafafa",
       };
 
       const result = geojsonToSvg(

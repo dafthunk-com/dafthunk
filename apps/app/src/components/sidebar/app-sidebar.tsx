@@ -14,7 +14,7 @@ export function AppSidebar({
   return (
     <Sidebar
       collapsible="icon"
-      className="flex-1 border-none sticky overflow-x-hidden"
+      className="flex-1 border-none sticky overflow-x-hidden bg-neutral-50 dark:bg-neutral-800"
       {...props}
     >
       <SidebarContent className="h-full">

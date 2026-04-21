@@ -26,7 +26,7 @@ export function AppHeader() {
     "bg-neutral-300/50 hover:bg-neutral-300/50 dark:bg-neutral-600/50 dark:hover:bg-neutral-600/50";
 
   return (
-    <header className="flex h-12 shrink-0 items-center justify-between gap-2 ps-5 pe-3 border-b">
+    <header className="flex h-12 shrink-0 items-center justify-between gap-2 ps-5 pe-3 border-b border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-900">
       <div className="flex items-center gap-2">
         <Link to="/" className="flex items-center gap-2">
           <Bot className="h-6 w-6" />
