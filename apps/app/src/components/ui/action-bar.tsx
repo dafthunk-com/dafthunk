@@ -20,11 +20,11 @@ export function ActionBarGroup({
   className = "",
 }: ActionBarGroupProps) {
   const baseClasses =
-    "backdrop-blur-sm border border-neutral-200 dark:border-neutral-700 rounded-lg shadow";
+    "backdrop-blur-xs border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-sm";
   const horizontalClasses =
-    "flex items-center [&>*:first-child]:rounded-l-lg [&>*:first-child]:rounded-r-none [&>*:last-child]:rounded-r-lg [&>*:last-child]:rounded-l-none [&>*:only-child]:rounded-lg [&>*:not(:last-child)]:border-r [&>*:not(:last-child)]:border-neutral-200 [&>*:not(:last-child)]:dark:border-neutral-700";
+    "flex items-center [&>*:first-child]:rounded-l-lg [&>*:first-child]:rounded-r-none [&>*:last-child]:rounded-r-lg [&>*:last-child]:rounded-l-none [&>*:only-child]:rounded-lg [&>*:not(:last-child)]:border-r [&>*:not(:last-child)]:border-neutral-200 dark:[&>*:not(:last-child)]:border-neutral-700";
   const verticalClasses =
-    "flex flex-col items-center [&>*:first-child]:rounded-t-lg [&>*:first-child]:rounded-b-none [&>*:last-child]:rounded-b-lg [&>*:last-child]:rounded-t-none [&>*:only-child]:rounded-lg [&>*:not(:last-child)]:border-b [&>*:not(:last-child)]:border-neutral-200 [&>*:not(:last-child)]:dark:border-neutral-700";
+    "flex flex-col items-center [&>*:first-child]:rounded-t-lg [&>*:first-child]:rounded-b-none [&>*:last-child]:rounded-b-lg [&>*:last-child]:rounded-t-none [&>*:only-child]:rounded-lg [&>*:not(:last-child)]:border-b [&>*:not(:last-child)]:border-neutral-200 dark:[&>*:not(:last-child)]:border-neutral-700";
 
   return (
     <div
@@ -61,7 +61,7 @@ export function ActionBarButton({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "h-10 px-3 rounded-none border-0 disabled:!opacity-100",
+        "h-10 px-3 rounded-none border-0 disabled:opacity-100!",
         className,
         {
           "cursor-not-allowed": disabled,

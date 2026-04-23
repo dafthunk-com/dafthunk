@@ -119,7 +119,7 @@ export default function DocsIndex() {
             <a
               key={card.href}
               href={card.href}
-              className="group block bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow border border-gray-200"
+              className="group block bg-white rounded-xl p-6 shadow-xs hover:shadow-md transition-shadow border border-gray-200"
             >
               <div className="flex items-center gap-3 mb-3">
                 <div
@@ -145,7 +145,7 @@ export default function DocsIndex() {
         })}
       </div>
 
-      <div className="not-prose mt-12 rounded-xl bg-white border border-gray-200 p-8 text-center shadow-sm">
+      <div className="not-prose mt-12 rounded-xl bg-white border border-gray-200 p-8 text-center shadow-xs">
         <h2 className="text-2xl font-light text-gray-900 mb-3">
           Ready to build?
         </h2>

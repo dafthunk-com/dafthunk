@@ -162,7 +162,7 @@ export function ExecutionDetailPage() {
   return (
     <ReactFlowProvider>
       <div className="h-full w-full flex flex-col relative">
-        <div className="h-full w-full flex-grow">
+        <div className="h-full w-full grow">
           {reactFlowNodes.length > 0 &&
           workflowBuilderExecution &&
           nodeTypes !== undefined ? (

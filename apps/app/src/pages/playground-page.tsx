@@ -95,7 +95,7 @@ export function PlaygroundPage() {
   return (
     <InsetLayout
       title="Playground"
-      childrenClassName="flex flex-col h-[calc(100%-theme(spacing.12))]"
+      childrenClassName="flex flex-col h-[calc(100%-(--spacing(12)))]"
     >
       <div className="flex flex-col gap-4 min-h-0 h-full">
         {/* Search */}

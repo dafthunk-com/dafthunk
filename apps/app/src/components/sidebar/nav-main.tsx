@@ -59,7 +59,7 @@ function NavMainItem({ item, open }: { item: NavMainItem; open: boolean }) {
           to={item.url}
           end={item.end}
           className="whitespace-nowrap"
-          activeClassName="[&>span]:!text-foreground bg-neutral-300/50 dark:bg-neutral-600/50 hover:bg-neutral-300/50 dark:hover:bg-neutral-600/50 focus:bg-neutral-300/50 dark:focus:bg-neutral-600/50 active:bg-neutral-300/50 dark:active:bg-neutral-600/50"
+          activeClassName="[&>span]:text-foreground! bg-neutral-300/50 dark:bg-neutral-600/50 hover:bg-neutral-300/50 dark:hover:bg-neutral-600/50 focus:bg-neutral-300/50 dark:focus:bg-neutral-600/50 active:bg-neutral-300/50 dark:active:bg-neutral-600/50"
         >
           {item.icon && <item.icon />}
           <span

@@ -349,7 +349,7 @@ export function WorkflowSidebar({
               </button>
               {errorExpanded && (
                 <div className="px-4 pb-4">
-                  <p className="text-sm text-red-600 dark:text-red-400 break-words">
+                  <p className="text-sm text-red-600 dark:text-red-400 wrap-break-word">
                     {workflowErrorMessage}
                   </p>
                 </div>

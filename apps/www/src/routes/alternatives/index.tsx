@@ -106,7 +106,7 @@ export default function AlternativesIndexPage() {
             <Link
               key={alternative.id}
               to={`/alternatives/${alternative.id}`}
-              className="group block bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow"
+              className="group block bg-white rounded-xl p-6 shadow-xs hover:shadow-md transition-shadow"
             >
               <h2 className="text-2xl font-light text-gray-900 group-hover:text-black transition-colors">
                 Dafthunk vs {alternative.name}

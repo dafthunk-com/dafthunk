@@ -125,7 +125,7 @@ function OutputPreview({ output }: { output: VisibleOutput }) {
 
   if (typeof value === "string") {
     return (
-      <div className="whitespace-pre-wrap text-sm break-words">{value}</div>
+      <div className="whitespace-pre-wrap text-sm wrap-break-word">{value}</div>
     );
   }
 

@@ -127,7 +127,7 @@ function AudioRecorderWidget({
               aria-label="Clear recording"
               disabled={isUploading || disabled}
             >
-              <Trash2 className="!size-3" />
+              <Trash2 className="size-3!" />
             </button>
           ) : isRecording ? (
             <button
@@ -136,7 +136,7 @@ function AudioRecorderWidget({
               aria-label="Stop recording"
               disabled={isUploading || disabled}
             >
-              <Square className="!size-3" />
+              <Square className="size-3!" />
             </button>
           ) : (
             <button
@@ -145,7 +145,7 @@ function AudioRecorderWidget({
               aria-label="Start recording"
               disabled={isUploading || disabled}
             >
-              <Mic className="!size-3" />
+              <Mic className="size-3!" />
             </button>
           )}
         </div>

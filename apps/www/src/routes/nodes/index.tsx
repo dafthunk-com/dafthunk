@@ -112,7 +112,7 @@ export default function NodesPage() {
             <Link
               key={category.id}
               to={`/nodes/${category.id}`}
-              className="group block bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow"
+              className="group block bg-white rounded-xl p-6 shadow-xs hover:shadow-md transition-shadow"
             >
               <div className="flex-1 min-w-0">
                 <h2 className="text-lg font-medium text-gray-900 group-hover:text-black transition-colors">
@@ -125,7 +125,7 @@ export default function NodesPage() {
                   {category.tags.slice(0, 4).map((tag) => (
                     <span
                       key={tag}
-                      className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs"
+                      className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-sm text-xs"
                     >
                       {tag}
                     </span>

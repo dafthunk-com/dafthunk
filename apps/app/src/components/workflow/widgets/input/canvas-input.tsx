@@ -209,7 +209,7 @@ function CanvasDoodleWidget({
             disabled={isUploading || disabled}
             aria-label="Clear"
           >
-            <Trash2 className="!size-3" />
+            <Trash2 className="size-3!" />
           </button>
           <button
             onClick={saveCanvas}
@@ -217,7 +217,7 @@ function CanvasDoodleWidget({
             disabled={isUploading || disabled}
             aria-label="Save"
           >
-            <Save className="!size-3" />
+            <Save className="size-3!" />
           </button>
         </div>
         <div className="relative overflow-hidden bg-white">

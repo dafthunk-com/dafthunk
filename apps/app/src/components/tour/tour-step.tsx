@@ -28,7 +28,7 @@ export function TourStepPopover({
     <div
       className={cn(
         "fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2",
-        "z-[60] w-[560px] h-[380px] rounded-lg border bg-popover p-10 text-popover-foreground shadow-lg",
+        "z-60 w-[560px] h-[380px] rounded-lg border bg-popover p-10 text-popover-foreground shadow-lg",
         "animate-in fade-in-0 zoom-in-95",
         "flex flex-col justify-center"
       )}

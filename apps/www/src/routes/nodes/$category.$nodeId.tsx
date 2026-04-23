@@ -178,7 +178,7 @@ export default function NodePage({ loaderData }: { loaderData: LoaderData }) {
 
         <div className="mb-32">
           <div className="flex items-start gap-6 mb-6">
-            <div className="flex-shrink-0 w-16 h-16 bg-white rounded-xl shadow-sm flex items-center justify-center">
+            <div className="shrink-0 w-16 h-16 bg-white rounded-xl shadow-xs flex items-center justify-center">
               <IconComponent className="w-8 h-8 text-gray-600" />
             </div>
             <div>
@@ -212,7 +212,7 @@ export default function NodePage({ loaderData }: { loaderData: LoaderData }) {
         {node.inputs.length > 0 && (
           <section className="mb-12">
             <h2 className="text-2xl font-light text-gray-900 mb-4">Inputs</h2>
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden overflow-x-auto">
+            <div className="bg-white rounded-xl shadow-xs overflow-hidden overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
@@ -238,7 +238,7 @@ export default function NodePage({ loaderData }: { loaderData: LoaderData }) {
                       </td>
                       <td className="px-6 py-4">
                         <span
-                          className={`px-2 py-1 rounded text-xs font-medium ${getTypeColor(input.type)}`}
+                          className={`px-2 py-1 rounded-sm text-xs font-medium ${getTypeColor(input.type)}`}
                         >
                           {input.type}
                         </span>
@@ -264,7 +264,7 @@ export default function NodePage({ loaderData }: { loaderData: LoaderData }) {
         {node.outputs.length > 0 && (
           <section className="mb-12">
             <h2 className="text-2xl font-light text-gray-900 mb-4">Outputs</h2>
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden overflow-x-auto">
+            <div className="bg-white rounded-xl shadow-xs overflow-hidden overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
@@ -287,7 +287,7 @@ export default function NodePage({ loaderData }: { loaderData: LoaderData }) {
                       </td>
                       <td className="px-6 py-4">
                         <span
-                          className={`px-2 py-1 rounded text-xs font-medium ${getTypeColor(output.type)}`}
+                          className={`px-2 py-1 rounded-sm text-xs font-medium ${getTypeColor(output.type)}`}
                         >
                           {output.type}
                         </span>
@@ -332,10 +332,10 @@ export default function NodePage({ loaderData }: { loaderData: LoaderData }) {
                   <Link
                     key={relatedNode.id}
                     to={`/nodes/${category.id}/${relatedNode.id}`}
-                    className="group block bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
+                    className="group block bg-white rounded-xl p-4 shadow-xs hover:shadow-md transition-shadow"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="flex-shrink-0 w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center group-hover:bg-gray-200 transition-colors">
+                      <div className="shrink-0 w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center group-hover:bg-gray-200 transition-colors">
                         <RelatedIconComponent className="w-4 h-4 text-gray-600" />
                       </div>
                       <div className="flex-1 min-w-0">

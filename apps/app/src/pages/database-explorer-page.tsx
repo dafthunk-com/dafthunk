@@ -58,7 +58,7 @@ function SchemaTableNode({ data }: NodeProps<Node<SchemaTableNodeData>>) {
               type="target"
               position={Position.Left}
               id={`${data.tableName}-${col.name}-target`}
-              className="!w-[9px] !h-[9px] !bg-muted !border-[1.5px] !border-border"
+              className="w-[9px]! h-[9px]! bg-muted! border-[1.5px]! border-border!"
               isConnectable={false}
             />
             <span
@@ -93,7 +93,7 @@ function SchemaTableNode({ data }: NodeProps<Node<SchemaTableNodeData>>) {
               type="source"
               position={Position.Right}
               id={`${data.tableName}-${col.name}-source`}
-              className="!w-[9px] !h-[9px] !bg-muted !border-[1.5px] !border-border"
+              className="w-[9px]! h-[9px]! bg-muted! border-[1.5px]! border-border!"
               isConnectable={false}
             />
           </div>

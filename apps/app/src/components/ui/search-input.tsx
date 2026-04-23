@@ -14,7 +14,7 @@ const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
         <input
           type="search"
           className={cn(
-            "flex h-10 w-full rounded-md border border-input bg-background pl-10 pr-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:border-blue-500 disabled:cursor-not-allowed disabled:opacity-50",
+            "flex h-10 w-full rounded-md border border-input bg-background pl-10 pr-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:border-blue-500 disabled:cursor-not-allowed disabled:opacity-50",
             className
           )}
           ref={ref}

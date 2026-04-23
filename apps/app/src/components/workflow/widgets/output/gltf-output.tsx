@@ -25,7 +25,7 @@ function GltfOutputWidget({
         onClear={() => {}}
         createObjectUrl={createObjectUrl}
         disabled
-        className="!h-[160px]"
+        className="h-[160px]!"
       />
     </div>
   );

@@ -3,6 +3,11 @@
   "files": {
     "includes": ["!data/nodes.json"]
   },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
+  },
   "linter": {
     "rules": { "recommended": false }
   },

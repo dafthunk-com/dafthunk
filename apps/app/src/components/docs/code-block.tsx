@@ -100,7 +100,7 @@ export function CodeBlock({ children, className, language }: CodeBlockProps) {
       </Button>
       <div
         className={cn(
-          "mb-4 mt-2 text-sm rounded-lg [&_pre]:m-0 [&_pre]:p-4 [&_pre]:overflow-x-auto [&_pre]:!bg-secondary [&_pre]:dark:!bg-neutral-900 [&_code]:whitespace-pre",
+          "mb-4 mt-2 text-sm rounded-lg [&_pre]:m-0 [&_pre]:p-4 [&_pre]:overflow-x-auto [&_pre]:bg-secondary! dark:[&_pre]:bg-neutral-900! [&_code]:whitespace-pre",
           className
         )}
         dangerouslySetInnerHTML={{ __html: highlightedCode }}

@@ -102,7 +102,7 @@ export function DocumentField({
           className
         )}
       >
-        <File className="h-4 w-4 flex-shrink-0 text-neutral-500" />
+        <File className="h-4 w-4 shrink-0 text-neutral-500" />
         <span
           className="text-xs text-neutral-700 dark:text-neutral-300 truncate flex-1"
           title={filename}

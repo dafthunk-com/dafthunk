@@ -132,7 +132,7 @@ export function WorkflowCriteriaManager({
                     }}
                     onBlur={() => handleEditSave(criterion.id)}
                     autoFocus
-                    className="flex-1 text-sm bg-transparent outline-none min-w-0"
+                    className="flex-1 text-sm bg-transparent outline-hidden min-w-0"
                   />
                 ) : (
                   <button

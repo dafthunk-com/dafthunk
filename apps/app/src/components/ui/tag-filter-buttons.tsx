@@ -56,7 +56,7 @@ export function TagFilterButtons({
         ref={(el) => setCategoryButtonRef?.(el, buttonIndex++)}
         className={cn(
           "inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors",
-          "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+          "focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2",
           "border-transparent text-secondary-foreground",
           "cursor-pointer",
           isHierarchical && selectedArray.length > 0
@@ -88,7 +88,7 @@ export function TagFilterButtons({
               ref={(el) => setCategoryButtonRef?.(el, currentButtonIndex)}
               className={cn(
                 "inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors",
-                "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+                "focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2",
                 "border-transparent bg-blue-100 text-secondary-foreground",
                 "dark:bg-blue-900 dark:text-secondary-foreground",
                 "cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-800",
@@ -131,7 +131,7 @@ export function TagFilterButtons({
               ref={(el) => setCategoryButtonRef?.(el, currentButtonIndex)}
               className={cn(
                 "inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors",
-                "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+                "focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2",
                 "border-transparent bg-secondary text-secondary-foreground",
                 "cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-800",
                 activeElement === "categories" &&

@@ -107,7 +107,7 @@ function FileWidget({ value, onChange, disabled = false }: FileWidgetProps) {
             {isAudio && objectUrl ? (
               <div className="w-full h-full flex items-center justify-between gap-4 px-2 py-2">
                 <audio src={objectUrl} controls className="flex-1" />
-                <div className="flex gap-1 flex-shrink-0">
+                <div className="flex gap-1 shrink-0">
                   <Button
                     variant="ghost"
                     size="icon"
@@ -156,12 +156,12 @@ function FileWidget({ value, onChange, disabled = false }: FileWidgetProps) {
                 {!isImage && !isVideo && !isGltf && objectUrl && (
                   <div className="w-full h-full flex items-center justify-between gap-4 px-2 py-2">
                     <div className="flex items-center gap-3 min-w-0">
-                      <File className="h-5 w-5 text-neutral-400 flex-shrink-0" />
+                      <File className="h-5 w-5 text-neutral-400 shrink-0" />
                       <p className="text-sm font-medium text-neutral-700 truncate">
                         {getMimeTypeDisplay(mimeType)}
                       </p>
                     </div>
-                    <div className="flex gap-1 flex-shrink-0">
+                    <div className="flex gap-1 shrink-0">
                       <Button
                         variant="ghost"
                         size="icon"
@@ -197,7 +197,7 @@ function FileWidget({ value, onChange, disabled = false }: FileWidgetProps) {
             )}
           >
             <div className="w-full flex items-center justify-center gap-2 border border-dashed border-neutral-300 dark:border-neutral-700 rounded-lg px-4 py-2">
-              <Upload className="h-4 w-4 text-neutral-400 flex-shrink-0" />
+              <Upload className="h-4 w-4 text-neutral-400 shrink-0" />
               <div className="text-xs text-blue-500 hover:text-blue-600">
                 {isUploading ? "Uploading..." : "Upload"}
               </div>

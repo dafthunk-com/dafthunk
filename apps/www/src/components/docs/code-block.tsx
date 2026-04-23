@@ -38,7 +38,7 @@ export function CodeBlock({ html, raw, className }: CodeBlockProps) {
         {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
       </button>
       <div
-        className="text-sm overflow-x-auto [&_pre]:!m-0 [&_pre]:p-4 [&_pre]:!bg-transparent"
+        className="text-sm overflow-x-auto [&_pre]:m-0! [&_pre]:p-4 [&_pre]:bg-transparent!"
         dangerouslySetInnerHTML={{ __html: html }}
       />
     </div>

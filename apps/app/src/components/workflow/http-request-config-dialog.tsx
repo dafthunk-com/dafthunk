@@ -50,7 +50,7 @@ function ToggleButtons<T extends string>({
           className={cn(
             "px-3 py-1 text-sm font-medium rounded transition-colors",
             value === option.value
-              ? "bg-background text-foreground shadow-sm"
+              ? "bg-background text-foreground shadow-xs"
               : "text-muted-foreground hover:text-foreground"
           )}
         >

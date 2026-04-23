@@ -44,7 +44,7 @@ function OperationButton({
       className={cn(
         "flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors text-left",
         isActive
-          ? "bg-background text-foreground shadow-sm"
+          ? "bg-background text-foreground shadow-xs"
           : "text-muted-foreground hover:text-foreground"
       )}
     >

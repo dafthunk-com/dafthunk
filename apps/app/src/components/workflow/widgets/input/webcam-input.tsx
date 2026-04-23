@@ -113,7 +113,7 @@ function WebcamWidget({
               aria-label="Clear image"
               disabled={disabled}
             >
-              <X className="!size-3" />
+              <X className="size-3!" />
             </button>
           ) : (
             <button
@@ -122,7 +122,7 @@ function WebcamWidget({
               aria-label="Capture image"
               disabled={isUploading || disabled}
             >
-              <Camera className="!size-3" />
+              <Camera className="size-3!" />
             </button>
           )}
         </div>

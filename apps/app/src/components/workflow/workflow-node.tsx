@@ -117,7 +117,7 @@ export const TypeBadge = ({
   selected?: boolean;
 }) => {
   const { edges = [] } = useWorkflow();
-  const iconSize = "!size-2.5";
+  const iconSize = "size-2.5!";
 
   const icon: Record<InputOutputType, React.ReactNode> = {
     string: <TypeIcon className={iconSize} />,
@@ -182,7 +182,7 @@ export const TypeBadge = ({
       {repeated && (
         <div
           className={cn(
-            "absolute inset-0 rounded-lg border shadow-sm bg-background",
+            "absolute inset-0 rounded-lg border shadow-xs bg-background",
             {
               "border-border": !selected && executionState === "idle",
               "border-yellow-400":
@@ -207,18 +207,18 @@ export const TypeBadge = ({
         position={position}
         id={id}
         className={cn(
-          "!w-4 !h-4 !border !rounded-md !inline-flex !items-center !justify-center p !shadow-sm",
+          "w-4! h-4! border! rounded-md! inline-flex! items-center! justify-center! p shadow-xs!",
           {
-            "!bg-neutral-200 dark:!bg-neutral-700": isActive,
-            "!bg-white dark:!bg-neutral-900": !isActive,
-            "!border-border": !selected && executionState === "idle",
-            "!border-yellow-400":
+            "bg-neutral-200! dark:bg-neutral-700!": isActive,
+            "bg-white! dark:bg-neutral-900!": !isActive,
+            "border-border!": !selected && executionState === "idle",
+            "border-yellow-400!":
               !selected &&
               (executionState === "executing" || executionState === "pending"),
-            "!border-green-500": !selected && executionState === "completed",
-            "!border-red-500": !selected && executionState === "error",
-            "!border-blue-400": !selected && executionState === "skipped",
-            "!border-blue-500": selected,
+            "border-green-500!": !selected && executionState === "completed",
+            "border-red-500!": !selected && executionState === "error",
+            "border-blue-400!": !selected && executionState === "skipped",
+            "border-blue-500!": selected,
           },
           className
         )}
@@ -449,7 +449,7 @@ export const WorkflowNode = memo(
     return (
       <TooltipProvider>
         <div
-          className={cn("bg-card shadow-sm w-[220px] rounded-md border", {
+          className={cn("bg-card shadow-xs w-[220px] rounded-md border", {
             "border-border": !selected && data.executionState === "idle",
             "border-yellow-400":
               !selected &&

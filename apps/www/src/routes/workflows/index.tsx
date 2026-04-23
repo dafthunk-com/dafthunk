@@ -124,10 +124,10 @@ export default function WorkflowsPage() {
               <Link
                 key={workflow.id}
                 to={`/workflows/${workflow.id}`}
-                className="group block bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow"
+                className="group block bg-white rounded-xl p-6 shadow-xs hover:shadow-md transition-shadow"
               >
                 <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center group-hover:bg-gray-200 transition-colors">
+                  <div className="shrink-0 w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center group-hover:bg-gray-200 transition-colors">
                     <IconComponent className="w-5 h-5 text-gray-600" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -141,7 +141,7 @@ export default function WorkflowsPage() {
                       {workflow.tags.map((tag) => (
                         <span
                           key={tag}
-                          className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs"
+                          className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-sm text-xs"
                         >
                           {tag}
                         </span>

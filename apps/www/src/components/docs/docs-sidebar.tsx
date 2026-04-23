@@ -121,7 +121,7 @@ export function DocsSidebar() {
   const activeSection = docsSections.find((s) => s.href === pathname);
 
   return (
-    <aside className="w-full lg:w-64 lg:flex-shrink-0">
+    <aside className="w-full lg:w-64 lg:shrink-0">
       {/* Mobile: collapsible menu */}
       <div className="lg:hidden mb-6">
         <button
@@ -129,7 +129,7 @@ export function DocsSidebar() {
           onClick={() => setMobileOpen((v) => !v)}
           aria-expanded={mobileOpen}
           aria-controls="docs-mobile-nav"
-          className="w-full flex items-center justify-between gap-2 px-4 py-3 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 shadow-sm"
+          className="w-full flex items-center justify-between gap-2 px-4 py-3 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 shadow-xs"
         >
           <span className="flex items-center gap-2">
             <Menu className="h-4 w-4 text-gray-500" />
@@ -148,7 +148,7 @@ export function DocsSidebar() {
         {mobileOpen && (
           <nav
             id="docs-mobile-nav"
-            className="mt-2 p-2 bg-white border border-gray-200 rounded-lg shadow-sm"
+            className="mt-2 p-2 bg-white border border-gray-200 rounded-lg shadow-xs"
           >
             <NavList
               pathname={pathname}

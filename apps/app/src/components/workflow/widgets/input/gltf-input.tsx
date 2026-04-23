@@ -27,7 +27,7 @@ function GltfInputWidget({
         createObjectUrl={createObjectUrl}
         disabled={disabled}
         clearable
-        className="!h-[160px]"
+        className="h-[160px]!"
       />
     </div>
   );

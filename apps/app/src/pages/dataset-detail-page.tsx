@@ -146,7 +146,7 @@ export function DatasetDetailPage() {
   return (
     <InsetLayout title={dataset.name}>
       <div className="space-y-6">
-        <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+        <div className="rounded-lg border bg-card text-card-foreground shadow-xs p-6">
           <h3 className="font-semibold leading-none tracking-tight mb-4">
             Dataset Information
           </h3>
@@ -172,7 +172,7 @@ export function DatasetDetailPage() {
           </div>
         </div>
 
-        <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+        <div className="rounded-lg border bg-card text-card-foreground shadow-xs p-6">
           <div className="flex justify-between items-center mb-4">
             <div>
               <h3 className="font-semibold leading-none tracking-tight">

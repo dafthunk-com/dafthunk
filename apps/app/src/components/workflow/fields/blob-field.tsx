@@ -59,7 +59,7 @@ export function BlobField({
                 key={ref.id}
                 className="flex items-center gap-2 p-2 bg-muted/50 rounded-md border border-border"
               >
-                <File className="h-4 w-4 flex-shrink-0 text-neutral-500" />
+                <File className="h-4 w-4 shrink-0 text-neutral-500" />
                 <span className="text-xs truncate flex-1" title={filename}>
                   {filename}
                 </span>
@@ -192,7 +192,7 @@ export function BlobField({
           className
         )}
       >
-        <File className="h-4 w-4 flex-shrink-0 text-neutral-500" />
+        <File className="h-4 w-4 shrink-0 text-neutral-500" />
         <span className="text-xs truncate flex-1" title={filename}>
           {filename}
         </span>

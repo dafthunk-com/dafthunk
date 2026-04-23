@@ -50,7 +50,7 @@ const renderPath = (
       {/* Invisible hit slop area for easier clicking */}
       <path
         d={path}
-        className="stroke-[12] fill-none pointer-events-stroke"
+        className="stroke-12 fill-none pointer-events-stroke"
         style={{
           stroke: "transparent",
           zIndex: zIndex,
@@ -59,7 +59,7 @@ const renderPath = (
       {/* Visible edge */}
       <path
         d={path}
-        className={cn("stroke-[1] fill-none", {
+        className={cn("stroke-1 fill-none", {
           "animate-pulse": isActive,
         })}
         style={{

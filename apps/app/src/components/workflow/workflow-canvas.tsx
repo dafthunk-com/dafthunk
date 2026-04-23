@@ -109,7 +109,7 @@ function StatusBar({ workflowStatus, errorMessage }: StatusBarProps) {
 
   return (
     <div className="absolute bottom-4 left-4 flex items-center gap-3 z-50">
-      <div className="bg-white dark:bg-neutral-900 backdrop-blur-sm border border-neutral-200 dark:border-neutral-700 rounded-lg px-3 py-2 shadow-sm flex items-center gap-3">
+      <div className="bg-white dark:bg-neutral-900 backdrop-blur-xs border border-neutral-200 dark:border-neutral-700 rounded-lg px-3 py-2 shadow-xs flex items-center gap-3">
         <div className="flex items-center gap-2">
           <div className={cn("w-2 h-2 rounded-full", config.bg)}>
             <div className={cn("w-full h-full rounded-full")} />
@@ -197,43 +197,43 @@ export function ActionButton({
 
   const statusConfig = {
     idle: {
-      icon: <Play className="!size-4" />,
+      icon: <Play className="size-4!" />,
       title: "Execute Workflow",
       className:
         "bg-white hover:bg-neutral-50 text-green-500 hover:text-green-600 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-green-400 dark:hover:text-green-300",
     },
     submitted: {
-      icon: <Square className="!size-4" />,
+      icon: <Square className="size-4!" />,
       title: "Stop Execution",
       className:
         "bg-white hover:bg-neutral-50 text-red-500 hover:text-red-600 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-red-400 dark:hover:text-red-300",
     },
     executing: {
-      icon: <Square className="!size-4" />,
+      icon: <Square className="size-4!" />,
       title: "Stop Execution",
       className:
         "bg-white hover:bg-neutral-50 text-red-500 hover:text-red-600 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-red-400 dark:hover:text-red-300",
     },
     completed: {
-      icon: <X className="!size-4" />,
+      icon: <X className="size-4!" />,
       title: "Clear Outputs & Reset",
       className:
         "bg-white hover:bg-neutral-50 text-amber-500 hover:text-amber-600 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-amber-400 dark:hover:text-amber-300",
     },
     error: {
-      icon: <X className="!size-4" />,
+      icon: <X className="size-4!" />,
       title: "Clear Errors & Reset",
       className:
         "bg-white hover:bg-neutral-50 text-amber-500 hover:text-amber-600 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-amber-400 dark:hover:text-amber-300",
     },
     cancelled: {
-      icon: <X className="!size-4" />,
+      icon: <X className="size-4!" />,
       title: "Clear Outputs & Reset",
       className:
         "bg-white hover:bg-neutral-50 text-amber-500 hover:text-amber-600 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-amber-400 dark:hover:text-amber-300",
     },
     paused: {
-      icon: <Play className="!size-4" />,
+      icon: <Play className="size-4!" />,
       title: "Resume Workflow",
       className:
         "bg-white hover:bg-neutral-50 text-sky-500 hover:text-sky-600 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-sky-400 dark:hover:text-sky-300",
@@ -287,9 +287,9 @@ function SidebarToggle({ onClick, isSidebarVisible }: SidebarToggleProps) {
       className={actionBarButtonOutlineClassName}
     >
       {isSidebarVisible ? (
-        <PanelRightClose className="!size-4" />
+        <PanelRightClose className="size-4!" />
       ) : (
-        <PanelRightOpen className="!size-4" />
+        <PanelRightOpen className="size-4!" />
       )}
     </ActionBarButton>
   );
@@ -307,7 +307,7 @@ function FitToScreenButton({
       tooltipSide="right"
       tooltip="Fit to Screen"
     >
-      <Maximize className="!size-4" />
+      <Maximize className="size-4!" />
     </ActionBarButton>
   );
 }
@@ -336,7 +336,7 @@ function DeleteButton({
         </div>
       }
     >
-      <Trash2 className="!size-4" />
+      <Trash2 className="size-4!" />
     </ActionBarButton>
   );
 }
@@ -369,7 +369,7 @@ function DuplicateButton({
         </div>
       }
     >
-      <Layers2 className="!size-4" />
+      <Layers2 className="size-4!" />
     </ActionBarButton>
   );
 }
@@ -389,7 +389,7 @@ function ApplyLayoutButton({
       tooltipSide="right"
       tooltip={<p>Reorganize Layout</p>}
     >
-      <Network className="!size-4" />
+      <Network className="size-4!" />
     </ActionBarButton>
   );
 }
@@ -408,11 +408,11 @@ function AddNodeButton({
       tooltip="Add Node"
       className={cn(
         actionBarButtonOutlineClassName,
-        "size-10 !p-0 text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+        "size-10 p-0! text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
       )}
       tooltipSide="right"
     >
-      <Plus className="!size-5" />
+      <Plus className="size-5!" />
     </ActionBarButton>
   );
 }
@@ -438,7 +438,7 @@ export function SetScheduleButton({
       tooltipSide="bottom"
       tooltip={tooltip}
     >
-      <Clock className="!size-4" />
+      <Clock className="size-4!" />
       {text}
     </ActionBarButton>
   );
@@ -472,7 +472,7 @@ function CopyButton({
         </div>
       }
     >
-      <Copy className="!size-4" />
+      <Copy className="size-4!" />
     </ActionBarButton>
   );
 }
@@ -505,7 +505,7 @@ function CutButton({
         </div>
       }
     >
-      <Scissors className="!size-4" />
+      <Scissors className="size-4!" />
     </ActionBarButton>
   );
 }
@@ -538,7 +538,7 @@ function PasteButton({
         </div>
       }
     >
-      <ClipboardPaste className="!size-4" />
+      <ClipboardPaste className="size-4!" />
     </ActionBarButton>
   );
 }

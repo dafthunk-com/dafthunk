@@ -128,7 +128,7 @@ export default function WorkflowPage({
 
         <div className="mb-12 flex items-center justify-between gap-6">
           <div className="flex items-center gap-6 min-w-0">
-            <div className="flex-shrink-0 w-24 h-24 bg-white rounded-2xl shadow-sm flex items-center justify-center">
+            <div className="shrink-0 w-24 h-24 bg-white rounded-2xl shadow-xs flex items-center justify-center">
               <IconComponent className="w-12 h-12 text-gray-600" />
             </div>
             <div className="min-w-0">
@@ -150,7 +150,7 @@ export default function WorkflowPage({
 
           <a
             href={`${import.meta.env.VITE_APP_URL}/templates/${workflow.id}/try`}
-            className="flex-shrink-0 inline-block text-lg bg-black text-white px-8 py-4 rounded-lg hover:bg-gray-800 transition-colors"
+            className="shrink-0 inline-block text-lg bg-black text-white px-8 py-4 rounded-lg hover:bg-gray-800 transition-colors"
           >
             Try this workflow
           </a>
@@ -160,7 +160,7 @@ export default function WorkflowPage({
         <section className="mb-12">
           <WorkflowPreview
             templateId={workflow.id}
-            className="h-[40rem]"
+            className="h-160"
             showBackground={false}
           />
         </section>
@@ -180,10 +180,10 @@ export default function WorkflowPage({
                   <Link
                     key={other.id}
                     to={`/workflows/${other.id}`}
-                    className="group block bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
+                    className="group block bg-white rounded-xl p-4 shadow-xs hover:shadow-md transition-shadow"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="flex-shrink-0 w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center group-hover:bg-gray-200 transition-colors">
+                      <div className="shrink-0 w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center group-hover:bg-gray-200 transition-colors">
                         <OtherIconComponent className="w-4 h-4 text-gray-600" />
                       </div>
                       <div className="flex-1 min-w-0">

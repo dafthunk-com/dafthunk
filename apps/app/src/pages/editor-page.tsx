@@ -201,7 +201,7 @@ export function EditorPage() {
   return (
     <ReactFlowProvider>
       <div className="h-full w-full flex flex-col relative">
-        <div className="h-full w-full flex-grow">
+        <div className="h-full w-full grow">
           <WorkflowBuilder
             workflowId={id || ""}
             workflowTrigger={
