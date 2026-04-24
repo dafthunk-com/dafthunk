@@ -11,7 +11,6 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { cn } from "@/utils/utils";
 
 import { NavLink } from "../nav-link";
 
@@ -45,7 +44,7 @@ const NAV_ITEM_TOUR_MAP: Record<string, string> = {
   Billing: "billing-nav",
 };
 
-function NavMainItem({ item, open }: { item: NavMainItem; open: boolean }) {
+function NavMainItem({ item }: { item: NavMainItem }) {
   const dataTour = NAV_ITEM_TOUR_MAP[item.title];
 
   return (
@@ -58,16 +57,11 @@ function NavMainItem({ item, open }: { item: NavMainItem; open: boolean }) {
         <NavLink
           to={item.url}
           end={item.end}
-          className="whitespace-nowrap"
+          className="overflow-hidden whitespace-nowrap"
           activeClassName="[&>span]:text-foreground! bg-neutral-300/50 dark:bg-neutral-600/50 hover:bg-neutral-300/50 dark:hover:bg-neutral-600/50 focus:bg-neutral-300/50 dark:focus:bg-neutral-600/50 active:bg-neutral-300/50 dark:active:bg-neutral-600/50"
         >
           {item.icon && <item.icon />}
-          <span
-            className={cn(
-              "text-sm transition-opacity text-neutral-600 dark:text-neutral-400",
-              open ? "opacity-100" : "opacity-0"
-            )}
-          >
+          <span className="text-sm text-neutral-600 dark:text-neutral-400 group-data-[collapsible=icon]:hidden">
             {item.title}
           </span>
         </NavLink>
@@ -103,7 +97,7 @@ export function NavMain({ groups, footerItems }: NavMainProps) {
             )}
             <SidebarMenu className="bg-transparent">
               {group.items.map((item) => (
-                <NavMainItem key={item.title} item={item} open={open} />
+                <NavMainItem key={item.title} item={item} />
               ))}
             </SidebarMenu>
           </SidebarGroup>
@@ -113,21 +107,16 @@ export function NavMain({ groups, footerItems }: NavMainProps) {
         <SidebarMenu className="bg-transparent px-4">
           {footerItems &&
             footerItems.map((item) => (
-              <NavMainItem key={item.title} item={item} open={open} />
+              <NavMainItem key={item.title} item={item} />
             ))}
           <SidebarMenuItem>
             <SidebarMenuButton
               tooltip="Toggle sidebar"
               onClick={toggleSidebar}
-              className="hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50 transition-colors mt-1 mb-5"
+              className="hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50 transition-colors mt-1 mb-5 overflow-hidden whitespace-nowrap"
             >
               {open ? <PanelLeftClose /> : <PanelLeftOpen />}
-              <span
-                className={cn(
-                  "uppercase text-semibold text-xs transition-opacity",
-                  open ? "opacity-100" : "opacity-0"
-                )}
-              >
+              <span className="uppercase text-semibold text-xs group-data-[collapsible=icon]:hidden">
                 Collapse
               </span>
             </SidebarMenuButton>

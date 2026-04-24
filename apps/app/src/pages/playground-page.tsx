@@ -93,10 +93,7 @@ export function PlaygroundPage() {
   };
 
   return (
-    <InsetLayout
-      title="Playground"
-      childrenClassName="flex flex-col h-full"
-    >
+    <InsetLayout title="Playground" childrenClassName="flex flex-col h-full">
       <div className="flex flex-col gap-4 min-h-0 flex-1">
         {/* Search */}
         <div className="relative shrink-0">

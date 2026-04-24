@@ -119,10 +119,7 @@ export function TemplatesPage() {
   }
 
   return (
-    <InsetLayout
-      title="Templates"
-      childrenClassName="flex flex-col h-full"
-    >
+    <InsetLayout title="Templates" childrenClassName="flex flex-col h-full">
       <div className="flex flex-col gap-4 min-h-0 flex-1">
         {/* Search */}
         <div className="relative shrink-0">
