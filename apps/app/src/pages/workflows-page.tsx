@@ -357,9 +357,11 @@ export function WorkflowsPage() {
 
   return (
     <TooltipProvider>
-      <InsetLayout
-        title="Workflows"
-        titleRight={
+      <InsetLayout title="Workflows">
+        <div className="flex items-center justify-between mb-6 min-h-10">
+          <div className="text-sm text-muted-foreground max-w-2xl">
+            Build and test your workflows.
+          </div>
           <div className="flex gap-2">
             <Button onClick={() => setIsCreateDialogOpen(true)}>
               <PlusCircle className="mr-2 size-4" />
@@ -372,10 +374,6 @@ export function WorkflowsPage() {
               </Link>
             </Button>
           </div>
-        }
-      >
-        <div className="text-sm text-muted-foreground max-w-2xl mb-6">
-          Build and test your workflows.
         </div>
         <DataTable
           columns={columns}
