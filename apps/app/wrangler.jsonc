@@ -2,12 +2,11 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "dafthunk-app",
   "compatibility_date": "2025-11-17",
-  "main": "./worker/index.ts",
 
-  // Static assets configuration
+  // Static assets configuration with native SPA fallback
   "assets": {
     "binding": "ASSETS",
     "directory": "./dist",
-    "run_worker_first": true
+    "not_found_handling": "single-page-application"
   }
 }
