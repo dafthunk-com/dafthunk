@@ -323,7 +323,7 @@ export function WorkflowBuilder({
             <>
               <div
                 className={cn(
-                  "w-1 bg-background border-l border-border cursor-col-resize",
+                  "w-1 bg-neutral-50 border-l border-border cursor-col-resize",
                   sidebar.isResizing && "bg-muted"
                 )}
                 onMouseDown={sidebar.handleResizeStart}
