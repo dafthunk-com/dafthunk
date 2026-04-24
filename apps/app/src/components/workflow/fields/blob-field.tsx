@@ -107,7 +107,8 @@ export function BlobField({
           className={cn(
             "relative rounded-md overflow-hidden border",
             disabled && "bg-muted/50 border-border",
-            !disabled && "border-neutral-300 dark:border-neutral-700",
+            !disabled &&
+              "bg-background border-neutral-300 dark:border-neutral-700",
             className
           )}
         >
@@ -122,7 +123,8 @@ export function BlobField({
           className={cn(
             "relative rounded-md overflow-hidden border",
             disabled && "bg-muted/50 border-border",
-            !disabled && "border-neutral-300 dark:border-neutral-700",
+            !disabled &&
+              "bg-background border-neutral-300 dark:border-neutral-700",
             className
           )}
         >
@@ -141,7 +143,8 @@ export function BlobField({
           className={cn(
             "relative rounded-md p-2 border",
             disabled && "bg-muted/50 border-border",
-            !disabled && "border-neutral-300 dark:border-neutral-700",
+            !disabled &&
+              "bg-background border-neutral-300 dark:border-neutral-700",
             className
           )}
         >
@@ -156,7 +159,8 @@ export function BlobField({
           className={cn(
             "relative rounded-md overflow-hidden border",
             disabled && "bg-muted/50 border-border",
-            !disabled && "border-neutral-300 dark:border-neutral-700",
+            !disabled &&
+              "bg-background border-neutral-300 dark:border-neutral-700",
             className
           )}
         >
@@ -171,7 +175,8 @@ export function BlobField({
           className={cn(
             "relative h-[200px] rounded-md overflow-hidden border",
             disabled && "bg-muted/50 border-border",
-            !disabled && "border-neutral-300 dark:border-neutral-700",
+            !disabled &&
+              "bg-background border-neutral-300 dark:border-neutral-700",
             className
           )}
         >
@@ -188,7 +193,8 @@ export function BlobField({
         className={cn(
           "flex items-center gap-2 p-2 rounded-md border",
           disabled && "bg-muted/50 border-border",
-          !disabled && "border-neutral-300 dark:border-neutral-700",
+          !disabled &&
+            "bg-background border-neutral-300 dark:border-neutral-700",
           className
         )}
       >

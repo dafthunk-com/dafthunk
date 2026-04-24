@@ -55,7 +55,7 @@ export function GeoJSONField({
         strokeColor: "#3b82f6",
         strokeWidth: 2,
         fillColor: "rgba(59, 130, 246, 0.2)",
-        backgroundColor: "#fafafa",
+        backgroundColor: "transparent",
       };
 
       const result = geojsonToSvg(
@@ -112,12 +112,12 @@ export function GeoJSONField({
   if (disabled && !hasValue) {
     return (
       <div className={cn("space-y-2", className)}>
-        <div className="h-[200px] border border-border bg-neutral-50 dark:bg-neutral-900 flex items-start justify-start p-2 rounded-md">
-          <span className="text-neutral-500 dark:text-neutral-400 text-xs">
+        <div className="h-[200px] border border-neutral-300 dark:border-neutral-700 bg-background flex items-start justify-start p-2 rounded-md">
+          <span className="text-neutral-500 dark:text-neutral-400 text-xs italic">
             {connected ? "Connected" : "No preview"}
           </span>
         </div>
-        <div className="h-[200px] flex items-start justify-start text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border">
+        <div className="h-[200px] flex items-start justify-start text-xs text-neutral-500 italic p-2 bg-background rounded-md border border-neutral-300 dark:border-neutral-700">
           {connected ? "Connected" : "No GeoJSON"}
         </div>
       </div>
@@ -132,14 +132,14 @@ export function GeoJSONField({
           {svgResult.error}
         </div>
       ) : svgResult.svg ? (
-        <div className="h-[200px] border border-border bg-neutral-50 dark:bg-neutral-900 flex items-center justify-center rounded-md">
+        <div className="h-[200px] border border-border bg-background flex items-center justify-center rounded-md">
           <div
             className="w-full h-full"
             dangerouslySetInnerHTML={{ __html: svgResult.svg }}
           />
         </div>
       ) : (
-        <div className="h-[200px] border border-border bg-neutral-50 dark:bg-neutral-900 flex items-center justify-center rounded-md">
+        <div className="h-[200px] border border-border bg-background flex items-center justify-center rounded-md">
           <span className="text-neutral-500 dark:text-neutral-400 text-xs">
             {hasValue ? "No geometries to display" : "No GeoJSON"}
           </span>
@@ -153,7 +153,7 @@ export function GeoJSONField({
           e.stopPropagation();
         }}
       >
-        <div className="min-h-[80px] max-h-[200px] rounded-md border border-border overflow-hidden">
+        <div className="min-h-[80px] max-h-[200px] rounded-md border border-border overflow-hidden bg-background">
           <CodeEditor
             value={stringValue}
             onChange={handleChange}

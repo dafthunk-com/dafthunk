@@ -132,8 +132,8 @@ export function TagFilterButtons({
               className={cn(
                 "inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors",
                 "focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2",
-                "border-transparent bg-secondary text-secondary-foreground",
-                "cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-800",
+                "border-border bg-card text-secondary-foreground",
+                "cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-800",
                 activeElement === "categories" &&
                   focusedIndex === currentButtonIndex &&
                   "ring-2 ring-ring",

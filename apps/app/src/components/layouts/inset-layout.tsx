@@ -19,21 +19,19 @@ export function InsetLayout({
   ...props
 }: InsetLayoutProps) {
   return (
-    <main className="h-full">
-      <div className="h-full overflow-auto" {...props}>
-        {title && (
-          <div
-            className={cn(
-              "flex justify-between items-center mb-2 border-b border-neutral-200 dark:border-neutral-800 px-6 py-2 sticky top-0 bg-background z-10",
-              titleClassName
-            )}
-          >
-            <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-            {titleRight}
-          </div>
-        )}
-        <div className={cn("px-6 py-4", childrenClassName)}>{children}</div>
-      </div>
-    </main>
+    <div className={cn("px-6 py-8", childrenClassName)} {...props}>
+      {title && (
+        <div
+          className={cn(
+            "flex justify-between items-center mb-4",
+            titleClassName
+          )}
+        >
+          <h1 className="text-3xl font-semibold tracking-tight">{title}</h1>
+          {titleRight}
+        </div>
+      )}
+      {children}
+    </div>
   );
 }

@@ -23,7 +23,7 @@ export function TextField({
     return (
       <div
         className={cn(
-          "text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border",
+          "text-xs text-neutral-500 italic p-2 bg-background rounded-md border border-neutral-300 dark:border-neutral-700",
           className
         )}
       >
@@ -39,11 +39,7 @@ export function TextField({
         value={stringValue}
         onChange={(e) => onChange(e.target.value || undefined)}
         placeholder={connected ? "Connected" : "Enter text"}
-        className={cn(
-          "resize-y rounded-md",
-          disabled && "bg-muted/50 border border-border",
-          !disabled && "border border-neutral-300 dark:border-neutral-700"
-        )}
+        className="resize-y rounded-md border border-neutral-300 dark:border-neutral-700"
         disabled={disabled}
         readOnly={disabled}
         autoFocus={autoFocus}

@@ -121,9 +121,9 @@ export function TemplatesPage() {
   return (
     <InsetLayout
       title="Templates"
-      childrenClassName="flex flex-col h-[calc(100%-(--spacing(12)))]"
+      childrenClassName="flex flex-col h-full"
     >
-      <div className="flex flex-col gap-4 min-h-0 h-full">
+      <div className="flex flex-col gap-4 min-h-0 flex-1">
         {/* Search */}
         <div className="relative shrink-0">
           <Input
@@ -195,31 +195,29 @@ function TemplateCard({
       to={href}
       className="block border rounded-lg bg-card border-border hover:border-primary/50 transition-colors"
     >
-      <div className="grid grid-cols-[1fr_auto] gap-6 p-4">
-        <div className="flex items-start gap-4 min-w-0">
-          <DynamicIcon
-            name={template.icon as any}
-            className="h-5 w-5 text-blue-500 shrink-0 mt-0.5"
-          />
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-sm leading-tight mb-1">
-              {highlightMatch(template.name, searchQuery)}
-            </h3>
-            {template.description && (
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                {highlightMatch(template.description, searchQuery)}
-              </p>
-            )}
-          </div>
-        </div>
-        <div className="flex items-start pt-0.5">
-          <div className="flex flex-wrap gap-1">
-            {template.tags.slice(0, 3).map((tag) => (
-              <Badge key={tag} variant="secondary" className="text-xs">
-                {tag}
-              </Badge>
-            ))}
-          </div>
+      <div className="flex items-start gap-4 p-4 min-w-0">
+        <DynamicIcon
+          name={template.icon as any}
+          className="h-5 w-5 text-blue-500 shrink-0 mt-0.5"
+        />
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold text-sm leading-tight mb-1">
+            {highlightMatch(template.name, searchQuery)}
+          </h3>
+          {template.description && (
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              {highlightMatch(template.description, searchQuery)}
+            </p>
+          )}
+          {template.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-2">
+              {template.tags.slice(0, 3).map((tag) => (
+                <Badge key={tag} variant="secondary" className="text-xs">
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </Link>

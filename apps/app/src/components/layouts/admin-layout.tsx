@@ -84,7 +84,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         <div className="flex flex-1 overflow-hidden">
           <Sidebar.SidebarProvider>
             <AppSidebar title="Admin" groups={adminSidebarItems} />
-            <Sidebar.SidebarInset>
+            <Sidebar.SidebarInset className="bg-neutral-50 dark:bg-neutral-800">
               <div className="h-full w-full overflow-y-auto">{children}</div>
             </Sidebar.SidebarInset>
           </Sidebar.SidebarProvider>

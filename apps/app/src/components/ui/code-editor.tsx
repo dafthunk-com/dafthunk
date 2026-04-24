@@ -51,7 +51,7 @@ const theme = EditorView.theme({
   "&": {
     height: "100%",
     fontSize: "12px",
-    backgroundColor: "hsl(var(--muted) / 0.5)",
+    backgroundColor: "transparent",
   },
   ".cm-scroller": {
     overflow: "auto",
@@ -59,7 +59,7 @@ const theme = EditorView.theme({
   },
   ".cm-gutters": {
     fontSize: "12px",
-    backgroundColor: "hsl(var(--muted) / 0.5)",
+    backgroundColor: "transparent",
     color: "hsl(var(--muted-foreground))",
     border: "none",
   },

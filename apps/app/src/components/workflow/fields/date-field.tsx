@@ -92,16 +92,29 @@ export function DateField({
     }
   };
 
-  // Disabled state - show formatted date in readonly input
+  // Disabled state without value - show placeholder message
+  if (disabled && !hasValue) {
+    return (
+      <div
+        className={cn(
+          "text-xs text-neutral-500 italic p-2 bg-background rounded-md border border-neutral-300 dark:border-neutral-700",
+          className
+        )}
+      >
+        {connected ? "Connected" : "No date"}
+      </div>
+    );
+  }
+
+  // Disabled state with value - show formatted date in readonly input
   if (disabled) {
     return (
       <div className={cn("relative", className)}>
         <Input
           type="text"
-          value={hasValue ? formatDateValue(isoValue) : ""}
+          value={formatDateValue(isoValue)}
           readOnly
           disabled
-          placeholder={connected ? "Connected" : "No date"}
           className="rounded-md border border-neutral-300 dark:border-neutral-700"
         />
       </div>

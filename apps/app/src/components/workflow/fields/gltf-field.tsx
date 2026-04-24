@@ -26,22 +26,19 @@ export function GltfField({
   disabled,
   onChange,
   parameter,
-  uploadError,
   value,
-}: GltfFieldProps & { uploadError?: string | null }) {
-  const {
-    isUploading,
-    uploadError: internalUploadError,
-    handleUpload,
-  } = useFileUpload(UPLOAD_CONFIG, onChange);
+}: GltfFieldProps) {
+  const { isUploading, uploadError, handleUpload } = useFileUpload(
+    UPLOAD_CONFIG,
+    onChange
+  );
   const objectUrl = getObjectUrl(value, createObjectUrl);
   const hasValue = objectUrl !== null;
-  const displayError = uploadError ?? internalUploadError;
 
   if (disabled && !hasValue) {
     return (
       <FileFieldPlaceholder
-        className={cn("h-[320px] flex items-start", className)}
+        className={className}
         connected={connected}
         label="No 3D model"
       />
@@ -60,9 +57,9 @@ export function GltfField({
         )}
       >
         <ModelViewer parameter={parameter} objectUrl={objectUrl} />
-        {displayError && (
+        {uploadError && (
           <p className="absolute bottom-1 left-1 text-xs text-red-600 dark:text-red-400 bg-white/80 dark:bg-neutral-900/80 rounded px-1">
-            {displayError}
+            {uploadError}
           </p>
         )}
       </div>
@@ -70,21 +67,15 @@ export function GltfField({
   }
 
   return (
-    <div
-      className={cn(
-        "relative h-[320px] flex flex-col items-center justify-center space-y-2 p-3 rounded-md border border-neutral-300 dark:border-neutral-700",
-        className
-      )}
-    >
-      <FileUploadZone
-        accept=".gltf,.glb"
-        disabled={disabled}
-        isUploading={isUploading}
-        uploadError={displayError}
-        onFileUpload={handleUpload}
-        parameterId={parameter.id}
-        fieldType="gltf"
-      />
-    </div>
+    <FileUploadZone
+      className={className}
+      accept=".gltf,.glb"
+      disabled={disabled}
+      isUploading={isUploading}
+      uploadError={uploadError}
+      onFileUpload={handleUpload}
+      parameterId={parameter.id}
+      fieldType="gltf"
+    />
   );
 }

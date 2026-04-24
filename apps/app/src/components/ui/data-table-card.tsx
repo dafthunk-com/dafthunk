@@ -102,7 +102,7 @@ export function DataTableCard<TData, TValue>({
               </TableRow>
             ) : (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} className="border-t hover:bg-muted/50">
+                <TableRow key={row.id} className="border-t">
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="px-6 py-3">
                       {flexRender(

@@ -46,7 +46,7 @@ export function SchemaField({
           e.stopPropagation();
         }}
       >
-        <div className="h-[200px] rounded-md border border-border overflow-hidden">
+        <div className="h-[200px] rounded-md border border-border overflow-hidden bg-background">
           <CodeEditor
             value={jsonString}
             onChange={() => {}}

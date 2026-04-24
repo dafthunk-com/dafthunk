@@ -42,7 +42,7 @@ interface SchemaTableNodeData extends Record<string, unknown> {
 function SchemaTableNode({ data }: NodeProps<Node<SchemaTableNodeData>>) {
   return (
     <div className="rounded-xl border border-border bg-card shadow-[0_1px_3px_0_rgba(0,0,0,0.04)] min-w-[240px]">
-      <div className="px-4 py-2 border-b border-border bg-muted rounded-t-xl">
+      <div className="px-4 py-2 border-b border-border bg-neutral-200 dark:bg-neutral-700 rounded-t-[11px]">
         <span className="font-semibold text-sm">{data.tableName}</span>
       </div>
       <div>
@@ -280,7 +280,7 @@ export function DatabaseExplorerPage() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="border-b bg-background px-6 py-4 flex items-center">
+      <div className="border-b bg-neutral-50 dark:bg-neutral-800 px-6 py-4 flex items-center">
         <h1 className="text-xl font-semibold">{database.name} - Explorer</h1>
       </div>
       <div className="flex-1 min-h-0">

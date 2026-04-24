@@ -77,7 +77,7 @@ export function NumberField({
     return (
       <div
         className={cn(
-          "text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border",
+          "text-xs text-neutral-500 italic p-2 bg-background rounded-md border border-neutral-300 dark:border-neutral-700",
           className
         )}
       >
@@ -97,11 +97,7 @@ export function NumberField({
         onBlur={handleBlur}
         placeholder={connected ? "Connected" : "Enter number"}
         disabled={disabled}
-        className={cn(
-          "rounded-md",
-          disabled && "bg-muted/50 border border-border",
-          !disabled && "border border-neutral-300 dark:border-neutral-700"
-        )}
+        className="rounded-md border border-neutral-300 dark:border-neutral-700"
         autoFocus={autoFocus}
       />
       {clearable && hasValue && (

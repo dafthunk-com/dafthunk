@@ -118,7 +118,7 @@ export function DashboardPage() {
   return (
     <InsetLayout title="Dashboard">
       {/* Getting Started */}
-      <Card className="mb-6 bg-neutral-50 dark:bg-neutral-950/20">
+      <Card className="mb-6">
         <CardHeader>
           <CardTitle>Getting Started</CardTitle>
           <CardDescription>

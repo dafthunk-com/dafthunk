@@ -21,7 +21,7 @@ export function GenericField({
     return (
       <div
         className={cn(
-          "text-xs text-neutral-500 italic p-2 bg-muted/50 rounded-md border border-border",
+          "text-xs text-neutral-500 italic p-2 bg-background rounded-md border border-neutral-300 dark:border-neutral-700",
           className
         )}
       >
@@ -35,7 +35,7 @@ export function GenericField({
     return (
       <div
         className={cn(
-          "text-xs p-2 bg-muted/50 rounded-md border border-border",
+          "text-xs p-2 bg-background rounded-md border border-neutral-300 dark:border-neutral-700",
           className
         )}
       >

@@ -90,7 +90,7 @@ export function TemplateDetailPage() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="border-b bg-background px-6 py-4 flex items-center justify-between">
+      <div className="border-b bg-neutral-50 dark:bg-neutral-800 px-6 py-4 flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold">{template.name}</h1>
           <p className="text-sm text-muted-foreground">

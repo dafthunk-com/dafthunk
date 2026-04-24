@@ -22,7 +22,7 @@ export function WorkflowEdgeInspector({
   if (!edge) return null;
 
   return (
-    <div className="flex flex-col h-full bg-card">
+    <div className="flex flex-col h-full bg-neutral-50 dark:bg-neutral-800">
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
         {/* Connection Properties Section */}
