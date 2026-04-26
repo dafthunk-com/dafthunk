@@ -20,6 +20,7 @@ import { formatDate } from "@/utils/date";
 import { cn } from "@/utils/utils";
 
 import { ClearButton } from "./clear-button";
+import { FieldPlaceholder } from "./field-placeholder";
 import type { FieldProps } from "./types";
 
 // GMT offset timezones
@@ -95,14 +96,11 @@ export function DateField({
   // Disabled state without value - show placeholder message
   if (disabled && !hasValue) {
     return (
-      <div
-        className={cn(
-          "text-xs text-neutral-500 italic p-2 bg-background rounded-md border border-neutral-300 dark:border-neutral-700",
-          className
-        )}
-      >
-        {connected ? "Connected" : "No date"}
-      </div>
+      <FieldPlaceholder
+        className={className}
+        connected={connected}
+        label="No date"
+      />
     );
   }
 
@@ -115,7 +113,6 @@ export function DateField({
           value={formatDateValue(isoValue)}
           readOnly
           disabled
-          className="rounded-md border border-neutral-300 dark:border-neutral-700"
         />
       </div>
     );

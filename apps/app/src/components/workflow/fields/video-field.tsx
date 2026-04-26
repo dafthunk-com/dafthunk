@@ -1,8 +1,8 @@
 import { isObjectReference } from "@/services/object-service";
 import { cn } from "@/utils/utils";
 
+import { FieldPlaceholder } from "./field-placeholder";
 import {
-  FileFieldPlaceholder,
   FileUploadZone,
   getObjectUrl,
   useFileUpload,
@@ -41,7 +41,7 @@ export function VideoField({
 
   if (disabled && !hasValue) {
     return (
-      <FileFieldPlaceholder
+      <FieldPlaceholder
         className={className}
         connected={connected}
         label="No video"
@@ -54,7 +54,7 @@ export function VideoField({
       <div
         className={cn(
           "relative rounded-md p-2",
-          disabled && "bg-muted/50 border border-border",
+          disabled && "bg-background border border-input opacity-50",
           !disabled &&
             "bg-background border border-neutral-300 dark:border-neutral-700",
           className

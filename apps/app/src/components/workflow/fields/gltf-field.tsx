@@ -1,8 +1,8 @@
 import { cn } from "@/utils/utils";
 
 import { ModelViewer } from "../model-viewer";
+import { FieldPlaceholder } from "./field-placeholder";
 import {
-  FileFieldPlaceholder,
   FileUploadZone,
   getObjectUrl,
   useFileUpload,
@@ -37,7 +37,7 @@ export function GltfField({
 
   if (disabled && !hasValue) {
     return (
-      <FileFieldPlaceholder
+      <FieldPlaceholder
         className={className}
         connected={connected}
         label="No 3D model"
@@ -50,7 +50,7 @@ export function GltfField({
       <div
         className={cn(
           "relative h-[320px] rounded-md overflow-hidden",
-          disabled && "bg-muted/50 border border-border",
+          disabled && "bg-background border border-input opacity-50",
           !disabled &&
             "bg-white dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700",
           className

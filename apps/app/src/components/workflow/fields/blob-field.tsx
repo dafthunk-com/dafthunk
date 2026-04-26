@@ -4,8 +4,8 @@ import { isObjectReference } from "@/services/object-service";
 import { cn } from "@/utils/utils";
 
 import { ModelViewer } from "../model-viewer";
+import { FieldPlaceholder } from "./field-placeholder";
 import {
-  FileFieldPlaceholder,
   FileUploadZone,
   getObjectUrl,
   useFileUpload,
@@ -41,7 +41,7 @@ export function BlobField({
 
     if (disabled && validRefs.length === 0) {
       return (
-        <FileFieldPlaceholder
+        <FieldPlaceholder
           className={className}
           connected={connected}
           label="No files"
@@ -83,7 +83,7 @@ export function BlobField({
 
   if (disabled && !hasRef) {
     return (
-      <FileFieldPlaceholder
+      <FieldPlaceholder
         className={className}
         connected={connected}
         label="No file"
@@ -94,10 +94,7 @@ export function BlobField({
   if (hasRef) {
     if (!objectUrl) {
       return (
-        <FileFieldPlaceholder
-          className={className}
-          label="No preview available"
-        />
+        <FieldPlaceholder className={className} label="No preview available" />
       );
     }
 
@@ -106,7 +103,7 @@ export function BlobField({
         <div
           className={cn(
             "relative rounded-md overflow-hidden border",
-            disabled && "bg-muted/50 border-border",
+            disabled && "bg-background border-input opacity-50",
             !disabled &&
               "bg-background border-neutral-300 dark:border-neutral-700",
             className
@@ -122,7 +119,7 @@ export function BlobField({
         <div
           className={cn(
             "relative rounded-md overflow-hidden border",
-            disabled && "bg-muted/50 border-border",
+            disabled && "bg-background border-input opacity-50",
             !disabled &&
               "bg-background border-neutral-300 dark:border-neutral-700",
             className
@@ -142,7 +139,7 @@ export function BlobField({
         <div
           className={cn(
             "relative rounded-md p-2 border",
-            disabled && "bg-muted/50 border-border",
+            disabled && "bg-background border-input opacity-50",
             !disabled &&
               "bg-background border-neutral-300 dark:border-neutral-700",
             className
@@ -158,7 +155,7 @@ export function BlobField({
         <div
           className={cn(
             "relative rounded-md overflow-hidden border",
-            disabled && "bg-muted/50 border-border",
+            disabled && "bg-background border-input opacity-50",
             !disabled &&
               "bg-background border-neutral-300 dark:border-neutral-700",
             className
@@ -174,7 +171,7 @@ export function BlobField({
         <div
           className={cn(
             "relative h-[200px] rounded-md overflow-hidden border",
-            disabled && "bg-muted/50 border-border",
+            disabled && "bg-background border-input opacity-50",
             !disabled &&
               "bg-background border-neutral-300 dark:border-neutral-700",
             className
@@ -192,7 +189,7 @@ export function BlobField({
       <div
         className={cn(
           "flex items-center gap-2 p-2 rounded-md border",
-          disabled && "bg-muted/50 border-border",
+          disabled && "bg-background border-input opacity-50",
           !disabled &&
             "bg-background border-neutral-300 dark:border-neutral-700",
           className

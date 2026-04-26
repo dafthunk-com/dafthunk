@@ -3,8 +3,8 @@ import File from "lucide-react/icons/file";
 import { isObjectReference } from "@/services/object-service";
 import { cn } from "@/utils/utils";
 
+import { FieldPlaceholder } from "./field-placeholder";
 import {
-  FileFieldPlaceholder,
   FileUploadZone,
   getObjectUrl,
   useFileUpload,
@@ -42,7 +42,7 @@ export function DocumentField({
 
   if (disabled && !hasRef) {
     return (
-      <FileFieldPlaceholder
+      <FieldPlaceholder
         className={className}
         connected={connected}
         label="No document"
@@ -53,7 +53,7 @@ export function DocumentField({
   if (hasRef) {
     if (!objectUrl) {
       return (
-        <FileFieldPlaceholder
+        <FieldPlaceholder
           className={className}
           label="No document preview available"
         />
@@ -65,7 +65,7 @@ export function DocumentField({
         <div
           className={cn(
             "relative rounded-md overflow-hidden border",
-            disabled && "bg-muted/50 border-border",
+            disabled && "bg-background border-input opacity-50",
             !disabled &&
               "bg-background border-neutral-300 dark:border-neutral-700",
             className
@@ -81,7 +81,7 @@ export function DocumentField({
         <div
           className={cn(
             "relative rounded-md overflow-hidden border",
-            disabled && "bg-muted/50 border-border",
+            disabled && "bg-background border-input opacity-50",
             !disabled &&
               "bg-background border-neutral-300 dark:border-neutral-700",
             className
@@ -99,7 +99,7 @@ export function DocumentField({
       <div
         className={cn(
           "flex items-center gap-2 p-2 rounded-md border",
-          disabled && "bg-muted/50 border-border",
+          disabled && "bg-background border-input opacity-50",
           !disabled &&
             "bg-background border-neutral-300 dark:border-neutral-700",
           className

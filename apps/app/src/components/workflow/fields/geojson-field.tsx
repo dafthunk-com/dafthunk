@@ -6,6 +6,7 @@ import { CodeEditor } from "@/components/ui/code-editor";
 import { cn } from "@/utils/utils";
 
 import { ClearButton } from "./clear-button";
+import { FieldPlaceholder } from "./field-placeholder";
 import type { FieldProps } from "./types";
 
 export function GeoJSONField({
@@ -112,14 +113,16 @@ export function GeoJSONField({
   if (disabled && !hasValue) {
     return (
       <div className={cn("space-y-2", className)}>
-        <div className="h-[200px] border border-neutral-300 dark:border-neutral-700 bg-background flex items-start justify-start p-2 rounded-md">
-          <span className="text-neutral-500 dark:text-neutral-400 text-xs italic">
-            {connected ? "Connected" : "No preview"}
-          </span>
-        </div>
-        <div className="h-[200px] flex items-start justify-start text-xs text-neutral-500 italic p-2 bg-background rounded-md border border-neutral-300 dark:border-neutral-700">
-          {connected ? "Connected" : "No GeoJSON"}
-        </div>
+        <FieldPlaceholder
+          className="h-[200px] items-start"
+          connected={connected}
+          label="No preview"
+        />
+        <FieldPlaceholder
+          className="h-[200px] items-start"
+          connected={connected}
+          label="No GeoJSON"
+        />
       </div>
     );
   }

@@ -25,30 +25,6 @@ export function getObjectUrl(
 }
 
 /**
- * Placeholder shown when a file field is disabled and has no value.
- */
-export function FileFieldPlaceholder({
-  className,
-  connected,
-  label,
-}: {
-  className?: string;
-  connected?: boolean;
-  label: string;
-}) {
-  return (
-    <div
-      className={cn(
-        "text-xs text-neutral-500 italic p-2 bg-background rounded-md border border-neutral-300 dark:border-neutral-700",
-        className
-      )}
-    >
-      {connected ? "Connected" : label}
-    </div>
-  );
-}
-
-/**
  * Upload zone with file input, upload label, and error display.
  */
 export function FileUploadZone({

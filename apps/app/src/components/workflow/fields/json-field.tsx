@@ -5,6 +5,7 @@ import { CodeEditor } from "@/components/ui/code-editor";
 import { cn } from "@/utils/utils";
 
 import { ClearButton } from "./clear-button";
+import { FieldPlaceholder } from "./field-placeholder";
 import type { FieldProps } from "./types";
 
 export function JsonField({
@@ -61,14 +62,11 @@ export function JsonField({
   // Disabled state without value - show placeholder message
   if (disabled && !hasValue) {
     return (
-      <div
-        className={cn(
-          "h-[200px] text-xs text-neutral-500 italic p-2 bg-background rounded-md border border-neutral-300 dark:border-neutral-700",
-          className
-        )}
-      >
-        {connected ? "Connected" : "No value"}
-      </div>
+      <FieldPlaceholder
+        className={cn("h-[200px] items-start", className)}
+        connected={connected}
+        label="No value"
+      />
     );
   }
 

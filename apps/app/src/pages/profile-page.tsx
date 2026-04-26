@@ -5,6 +5,7 @@ import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { updateProfile, useProfile } from "@/services/profile-service";
@@ -90,12 +91,7 @@ export function ProfilePage() {
         <form className="flex flex-col gap-6">
           <div>
             <label className="block text-sm font-medium mb-1">Name</label>
-            <input
-              type="text"
-              value={profile.name}
-              readOnly
-              className="w-full rounded-md border border-input bg-muted px-3 py-2 text-base"
-            />
+            <Input type="text" value={profile.name} readOnly disabled />
             <p className="text-xs text-muted-foreground mt-1">
               The name associated with this account
             </p>
@@ -104,12 +100,7 @@ export function ProfilePage() {
             <label className="block text-sm font-medium mb-1">
               Email address
             </label>
-            <input
-              type="email"
-              value={profile.email || ""}
-              readOnly
-              className="w-full rounded-md border border-input bg-muted px-3 py-2 text-base"
-            />
+            <Input type="email" value={profile.email || ""} readOnly disabled />
             <p className="text-xs text-muted-foreground mt-1">
               The email address associated with this account
             </p>
@@ -118,11 +109,11 @@ export function ProfilePage() {
             <label className="block text-sm font-medium mb-1">
               Authentication Provider
             </label>
-            <input
+            <Input
               type="text"
               value={formatProviderName(profile)}
               readOnly
-              className="w-full rounded-md border border-input bg-muted px-3 py-2 text-base"
+              disabled
             />
             <p className="text-xs text-muted-foreground mt-1">
               The service you used to sign up or log in (e.g., Google, GitHub).
@@ -130,11 +121,11 @@ export function ProfilePage() {
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Role</label>
-            <input
+            <Input
               type="text"
               value={formatRoleName(profile.role)}
               readOnly
-              className="w-full rounded-md border border-input bg-muted px-3 py-2 text-base"
+              disabled
             />
             <p className="text-xs text-muted-foreground mt-1">
               Your access level or permissions within the application.
@@ -142,11 +133,11 @@ export function ProfilePage() {
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Plan</label>
-            <input
+            <Input
               type="text"
               value={formatPlanName(profile.plan)}
               readOnly
-              className="w-full rounded-md border border-input bg-muted px-3 py-2 text-base"
+              disabled
             />
             <p className="text-xs text-muted-foreground mt-1">
               Your current subscription plan.
