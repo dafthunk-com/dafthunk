@@ -12,7 +12,7 @@ import { createDatabase } from "../db/index";
 import {
   getOrganization,
   getOrganizationBillingInfo,
-  resolveOrganizationPlan,
+  resolveOrganizationBillingOptions,
 } from "../db/queries";
 import {
   WorkflowExecutor,
@@ -54,7 +54,6 @@ export class ExecutionManager {
     if (!organization || !billingInfo) {
       throw new Error("Organization not found");
     }
-    const { computeCredits, subscriptionStatus, overageLimit } = billingInfo;
 
     validateWorkflowForExecution(state);
 
@@ -80,11 +79,11 @@ export class ExecutionManager {
       },
       userId,
       organizationId,
-      computeCredits,
-      subscriptionStatus: subscriptionStatus ?? undefined,
-      overageLimit: overageLimit ?? null,
+      ...resolveOrganizationBillingOptions(
+        billingInfo,
+        this.env.CLOUDFLARE_ENV
+      ),
       parameters: executorParameters,
-      userPlan: resolveOrganizationPlan(billingInfo, this.env.CLOUDFLARE_ENV),
       env: this.env,
     });
   }

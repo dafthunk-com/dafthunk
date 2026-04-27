@@ -62,6 +62,8 @@ export interface RuntimeParams {
   readonly subscriptionStatus?: string;
   /** Maximum additional usage allowed beyond included credits. null = unlimited */
   readonly overageLimit?: number | null;
+  /** When true, all credit checks are bypassed (e.g., internal/test accounts). */
+  readonly unlimitedUsage?: boolean;
   readonly httpRequest?: HttpRequest;
   readonly emailMessage?: EmailMessage;
   readonly queueMessage?: QueueMessage;
@@ -260,6 +262,7 @@ export abstract class Runtime<Env = unknown> {
       computeCredits,
       subscriptionStatus,
       overageLimit,
+      unlimitedUsage,
       httpRequest,
       emailMessage,
       queueMessage,
@@ -397,6 +400,7 @@ export abstract class Runtime<Env = unknown> {
         estimatedUsage,
         subscriptionStatus,
         overageLimit,
+        unlimitedUsage,
       });
 
       if (!hasCredits) {

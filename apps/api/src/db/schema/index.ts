@@ -154,6 +154,9 @@ export const organizations = sqliteTable(
     currentPeriodStart: integer("current_period_start", { mode: "timestamp" }),
     currentPeriodEnd: integer("current_period_end", { mode: "timestamp" }),
     overageLimit: integer("overage_limit"), // null = unlimited
+    unlimitedUsage: integer("unlimited_usage", { mode: "boolean" })
+      .notNull()
+      .default(false),
     createdAt: createCreatedAt(),
     updatedAt: createUpdatedAt(),
   },

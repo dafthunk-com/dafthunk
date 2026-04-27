@@ -45,7 +45,7 @@ import {
   getOrganizationBillingInfo,
   getQueue,
   getQueueTrigger,
-  resolveOrganizationPlan,
+  resolveOrganizationBillingOptions,
   upsertEndpointTrigger as upsertDbEndpointTrigger,
   upsertQueueTrigger as upsertDbQueueTrigger,
   workflows,
@@ -388,7 +388,6 @@ async function executeWorkflow(
   if (!billingInfo) {
     return c.json({ error: "Organization not found" }, 404);
   }
-  const { computeCredits, subscriptionStatus, overageLimit } = billingInfo;
 
   // Prepare workflow for execution
   const preparationResult = await prepareWorkflowExecution(c, workflowData);
@@ -410,11 +409,8 @@ async function executeWorkflow(
     },
     userId,
     organizationId,
-    computeCredits,
-    subscriptionStatus: subscriptionStatus ?? undefined,
-    overageLimit: overageLimit ?? null,
+    ...resolveOrganizationBillingOptions(billingInfo, c.env.CLOUDFLARE_ENV),
     parameters,
-    userPlan: resolveOrganizationPlan(billingInfo, c.env.CLOUDFLARE_ENV),
     env: c.env,
   });
 

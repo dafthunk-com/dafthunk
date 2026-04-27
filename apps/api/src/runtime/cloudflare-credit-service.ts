@@ -24,10 +24,17 @@ export class CloudflareCreditService implements CreditService {
       estimatedUsage,
       subscriptionStatus,
       overageLimit,
+      unlimitedUsage,
     } = params;
 
     // Skip credit limit enforcement in development mode
     if (this.isDevelopment) {
+      return true;
+    }
+
+    // Organizations flagged as unlimited (e.g., internal/test accounts) bypass
+    // all credit checks regardless of subscription state.
+    if (unlimitedUsage) {
       return true;
     }
 

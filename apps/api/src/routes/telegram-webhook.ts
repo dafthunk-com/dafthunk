@@ -7,7 +7,7 @@ import {
   getBot,
   getBotTriggersByBot,
   getOrganizationBillingInfo,
-  resolveOrganizationPlan,
+  resolveOrganizationBillingOptions,
 } from "../db";
 import { getAgentByName } from "../durable-objects/agent-utils";
 import { createWorkerRuntime } from "../runtime/cloudflare-worker-runtime";
@@ -220,8 +220,7 @@ async function executeWorkflow(
   const executionParams = {
     userId: "telegram_trigger",
     organizationId,
-    computeCredits: billingInfo.computeCredits,
-    userPlan: resolveOrganizationPlan(billingInfo, env.CLOUDFLARE_ENV),
+    ...resolveOrganizationBillingOptions(billingInfo, env.CLOUDFLARE_ENV),
     workflow: {
       id: workflow.id,
       name: workflow.name,

@@ -1674,6 +1674,7 @@ export async function getOrganizationBillingInfo(
       subscriptionStatus: string | null;
       currentPeriodEnd: Date | null;
       overageLimit: number | null;
+      unlimitedUsage: boolean;
     }
   | undefined
 > {
@@ -1683,6 +1684,7 @@ export async function getOrganizationBillingInfo(
       subscriptionStatus: organizations.subscriptionStatus,
       currentPeriodEnd: organizations.currentPeriodEnd,
       overageLimit: organizations.overageLimit,
+      unlimitedUsage: organizations.unlimitedUsage,
     })
     .from(organizations)
     .where(eq(organizations.id, organizationId))
@@ -1711,6 +1713,26 @@ export function resolveOrganizationPlan(
       billingInfo.currentPeriodEnd !== null &&
       billingInfo.currentPeriodEnd > new Date());
   return hasProAccess ? "pro" : "trial";
+}
+
+/**
+ * Build the billing-related options consumed by WorkflowExecutor and Runtime
+ * from a raw organization billing row. Centralises null coercion and plan
+ * resolution so all execution call sites stay in sync as billing fields evolve.
+ */
+export function resolveOrganizationBillingOptions(
+  billingInfo: NonNullable<
+    Awaited<ReturnType<typeof getOrganizationBillingInfo>>
+  >,
+  cloudflareEnv?: string
+) {
+  return {
+    computeCredits: billingInfo.computeCredits,
+    subscriptionStatus: billingInfo.subscriptionStatus ?? undefined,
+    overageLimit: billingInfo.overageLimit ?? null,
+    unlimitedUsage: billingInfo.unlimitedUsage,
+    userPlan: resolveOrganizationPlan(billingInfo, cloudflareEnv),
+  };
 }
 
 /**

@@ -4,7 +4,7 @@ import type { Bindings } from "./context";
 import {
   createDatabase,
   getOrganizationBillingInfo,
-  resolveOrganizationPlan,
+  resolveOrganizationBillingOptions,
 } from "./db";
 import { getAgentByName } from "./durable-objects/agent-utils";
 import { createWorkerRuntime } from "./runtime/cloudflare-worker-runtime";
@@ -178,8 +178,7 @@ async function triggerWorkflowForEmail({
   const executionParams = {
     userId: "email_trigger",
     organizationId,
-    computeCredits: billingInfo.computeCredits,
-    userPlan: resolveOrganizationPlan(billingInfo, env.CLOUDFLARE_ENV),
+    ...resolveOrganizationBillingOptions(billingInfo, env.CLOUDFLARE_ENV),
     workflow: {
       id: workflow.id,
       name: workflow.name,

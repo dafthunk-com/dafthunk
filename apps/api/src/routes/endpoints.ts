@@ -23,7 +23,7 @@ import {
   getEndpoints,
   getEndpointTriggersByEndpoint,
   getOrganizationBillingInfo,
-  resolveOrganizationPlan,
+  resolveOrganizationBillingOptions,
   updateEndpoint,
 } from "../db";
 import { createRateLimitMiddleware } from "../middleware/rate-limit";
@@ -230,7 +230,6 @@ endpointRoutes.on(
     if (!billingInfo) {
       return c.json({ error: "Organization not found" }, 404);
     }
-    const { computeCredits, subscriptionStatus, overageLimit } = billingInfo;
 
     const workflowStore = new WorkflowStore(c.env);
     const executions: ExecuteWorkflowResponse[] = [];
@@ -273,11 +272,8 @@ endpointRoutes.on(
         },
         userId,
         organizationId,
-        computeCredits,
-        subscriptionStatus: subscriptionStatus ?? undefined,
-        overageLimit: overageLimit ?? null,
+        ...resolveOrganizationBillingOptions(billingInfo, c.env.CLOUDFLARE_ENV),
         parameters,
-        userPlan: resolveOrganizationPlan(billingInfo, c.env.CLOUDFLARE_ENV),
         env: c.env,
       });
 

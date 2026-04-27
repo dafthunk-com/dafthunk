@@ -28,6 +28,8 @@ export interface WorkflowExecutorOptions {
   subscriptionStatus?: string;
   /** Maximum additional usage allowed beyond included credits. null = unlimited */
   overageLimit?: number | null;
+  /** When true, all credit checks are bypassed (e.g., internal/test accounts). */
+  unlimitedUsage?: boolean;
   parameters?: WorkflowExecutorParameters;
   userPlan?: string;
   env: Bindings;
@@ -72,6 +74,7 @@ export class WorkflowExecutor {
       computeCredits,
       subscriptionStatus,
       overageLimit,
+      unlimitedUsage,
       parameters,
       userPlan,
       env,
@@ -91,6 +94,7 @@ export class WorkflowExecutor {
       computeCredits,
       ...(subscriptionStatus && { subscriptionStatus }),
       ...(overageLimit !== undefined && { overageLimit }),
+      ...(unlimitedUsage !== undefined && { unlimitedUsage }),
       ...(userPlan && { userPlan }),
     };
 

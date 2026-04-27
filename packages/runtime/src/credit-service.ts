@@ -11,6 +11,8 @@ export interface CreditCheckParams {
   subscriptionStatus?: string;
   /** Maximum overage allowed beyond included credits. null = unlimited */
   overageLimit?: number | null;
+  /** When true, all credit checks are bypassed (e.g., internal/test accounts). */
+  unlimitedUsage?: boolean;
 }
 
 /**
