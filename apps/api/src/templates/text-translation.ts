@@ -1,7 +1,8 @@
 import { TextInputNode } from "@dafthunk/runtime/nodes/input/text-input-node";
 import { TextOutputNode } from "@dafthunk/runtime/nodes/output/text-output-node";
-import { M2m10012bNode } from "@dafthunk/runtime/nodes/text/m2m100-1-2b-node";
 import type { WorkflowTemplate } from "@dafthunk/types";
+
+import { createCloudflareModelNode } from "./cloudflare-model-template";
 
 export const textTranslationTemplate: WorkflowTemplate = {
   id: "text-translation",
@@ -42,10 +43,37 @@ export const textTranslationTemplate: WorkflowTemplate = {
         rows: 1,
       },
     }),
-    M2m10012bNode.create({
+    createCloudflareModelNode({
       id: "text-translator",
       name: "Text Translator",
       position: { x: 500, y: 200 },
+      model: "@cf/meta/m2m100-1.2b",
+      inputs: [
+        {
+          name: "text",
+          type: "string",
+          description: "Text to translate",
+          required: true,
+        },
+        {
+          name: "source_lang",
+          type: "string",
+          description: "Source language code (e.g., 'en')",
+        },
+        {
+          name: "target_lang",
+          type: "string",
+          description: "Target language code (e.g., 'es')",
+          required: true,
+        },
+      ],
+      outputs: [
+        {
+          name: "translated_text",
+          type: "string",
+          description: "Translated text in the target language",
+        },
+      ],
     }),
     TextOutputNode.create({
       id: "translation-preview",
@@ -64,18 +92,18 @@ export const textTranslationTemplate: WorkflowTemplate = {
       source: "source-language",
       target: "text-translator",
       sourceOutput: "value",
-      targetInput: "sourceLang",
+      targetInput: "source_lang",
     },
     {
       source: "target-language",
       target: "text-translator",
       sourceOutput: "value",
-      targetInput: "targetLang",
+      targetInput: "target_lang",
     },
     {
       source: "text-translator",
       target: "translation-preview",
-      sourceOutput: "translatedText",
+      sourceOutput: "translated_text",
       targetInput: "value",
     },
   ],

@@ -104,7 +104,8 @@ export function PlaygroundExecutePage() {
         selectedNodeType.type,
         selectedNodeType.type,
         workflowInputs,
-        workflowOutputs
+        workflowOutputs,
+        selectedNodeType.metadata
       )
     : null;
 

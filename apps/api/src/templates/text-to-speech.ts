@@ -1,7 +1,8 @@
-import { MelottsNode } from "@dafthunk/runtime/nodes/audio/melotts-node";
 import { TextInputNode } from "@dafthunk/runtime/nodes/input/text-input-node";
 import { AudioOutputNode } from "@dafthunk/runtime/nodes/output/audio-output-node";
 import type { WorkflowTemplate } from "@dafthunk/types";
+
+import { createCloudflareModelNode } from "./cloudflare-model-template";
 
 export const textToSpeechTemplate: WorkflowTemplate = {
   id: "text-to-speech",
@@ -22,10 +23,32 @@ export const textToSpeechTemplate: WorkflowTemplate = {
         rows: 4,
       },
     }),
-    MelottsNode.create({
+    createCloudflareModelNode({
       id: "speech-generator",
       name: "Speech Generator",
       position: { x: 500, y: 100 },
+      model: "@cf/myshell-ai/melotts",
+      inputs: [
+        {
+          name: "prompt",
+          type: "string",
+          description: "Text to convert to speech",
+          required: true,
+        },
+        {
+          name: "lang",
+          type: "string",
+          description: "Speech language code (e.g., 'en', 'fr')",
+          value: "en",
+        },
+      ],
+      outputs: [
+        {
+          name: "audio",
+          type: "audio",
+          description: "Generated speech audio",
+        },
+      ],
     }),
     AudioOutputNode.create({
       id: "audio-preview",

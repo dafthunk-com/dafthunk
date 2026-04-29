@@ -423,4 +423,70 @@ describe("mapCloudflareSchema", () => {
       value: "fast",
     });
   });
+
+  it("unions properties when input is oneOf of multiple object branches (llama-style)", () => {
+    const result = mapCloudflareSchema({
+      input: {
+        oneOf: [
+          {
+            type: "object",
+            properties: {
+              prompt: {
+                type: "string",
+                description: "The input text prompt",
+              },
+              max_tokens: {
+                type: "integer",
+                default: 256,
+              },
+            },
+            required: ["prompt"],
+          },
+          {
+            type: "object",
+            properties: {
+              messages: {
+                type: "array",
+                items: { type: "object" },
+                description: "Chat messages",
+              },
+              tools: {
+                type: "array",
+                items: { type: "object" },
+                description: "Function-calling tool definitions",
+              },
+              max_tokens: {
+                type: "integer",
+                default: 256,
+              },
+            },
+            required: ["messages"],
+          },
+        ],
+      },
+      output: {
+        type: "object",
+        properties: {
+          response: { type: "string" },
+          tool_calls: { type: "array", items: { type: "object" } },
+        },
+      },
+    });
+
+    const inputNames = result.inputs.map((i) => i.name);
+    expect(inputNames).toEqual(
+      expect.arrayContaining(["prompt", "messages", "tools", "max_tokens"])
+    );
+
+    // Branch-conditional inputs are not globally required, so the editor
+    // doesn't force the user to fill both `prompt` AND `messages`.
+    const prompt = result.inputs.find((i) => i.name === "prompt");
+    const messages = result.inputs.find((i) => i.name === "messages");
+    expect(prompt?.required).toBe(false);
+    expect(messages?.required).toBe(false);
+
+    const tools = result.inputs.find((i) => i.name === "tools");
+    expect(tools).toBeDefined();
+    expect(tools?.hidden).toBe(true);
+  });
 });

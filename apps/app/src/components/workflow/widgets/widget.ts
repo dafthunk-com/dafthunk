@@ -28,11 +28,12 @@ export interface WidgetDescriptor {
   /** Additional input fields managed by this widget (hidden from default rendering) */
   managedFields?: string[];
 
-  /** Extract widget config from node inputs and outputs */
+  /** Extract widget config from node inputs, outputs, and metadata */
   extractConfig: (
     nodeId: string,
     inputs: WorkflowParameter[],
-    outputs?: WorkflowParameter[]
+    outputs?: WorkflowParameter[],
+    metadata?: Record<string, string>
   ) => any;
 }
 

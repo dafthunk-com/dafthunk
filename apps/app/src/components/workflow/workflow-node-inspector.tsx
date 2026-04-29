@@ -140,7 +140,7 @@ export function WorkflowNodeInspector({
 
   const nodeType = node.data.nodeType || node.type;
   const widget = nodeType
-    ? registry.for(nodeType, node.id, inputs, outputs)
+    ? registry.for(nodeType, node.id, inputs, outputs, node.data.metadata)
     : null;
 
   const handleWidgetChange = (value: unknown) => {

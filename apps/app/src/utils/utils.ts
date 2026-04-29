@@ -124,6 +124,7 @@ export function adaptBackendNodesToReactFlowNodes(
         outputs: adaptedOutputs,
         executionState: "idle",
         nodeTypes,
+        metadata: depNode.metadata ? { ...depNode.metadata } : undefined,
       },
     } as Node<WorkflowNodeType>;
   });

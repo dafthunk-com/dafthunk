@@ -38,7 +38,7 @@ import { SubscriptionBadge } from "./subscription-badge";
 import { ToolConfigPanel } from "./tool-config-panel";
 import { registry } from "./widgets";
 import {
-  CF_META_INPUT_NAME,
+  CF_META_KEY,
   CLOUDFLARE_MODEL_NODE_TYPE,
   decodeCloudflareModelMeta,
   deriveCloudflareModelDocs,
@@ -64,14 +64,13 @@ import {
  */
 function deriveDocOverridesForNode(
   nodeType: string,
-  inputs: WorkflowParameter[]
+  inputs: WorkflowParameter[],
+  metadata?: Record<string, string>
 ): { description?: string; documentation?: string; referenceUrl?: string } {
   if (nodeType === CLOUDFLARE_MODEL_NODE_TYPE) {
     const modelId = inputs.find((i) => i.id === "model")?.value;
     if (typeof modelId !== "string" || !modelId) return {};
-    const meta = decodeCloudflareModelMeta(
-      inputs.find((i) => i.id === CF_META_INPUT_NAME)?.value
-    );
+    const meta = decodeCloudflareModelMeta(metadata?.[CF_META_KEY]);
     return deriveCloudflareModelDocs(modelId, meta);
   }
   return {};
@@ -88,6 +87,8 @@ export interface WorkflowNodeType {
   functionCalling?: boolean;
   asTool?: boolean;
   dragHandle?: string;
+  /** Editor-/runtime-internal flags that round-trip through save/load. */
+  metadata?: Record<string, string>;
   createObjectUrl: (objectReference: ObjectReference) => string;
 }
 
@@ -278,7 +279,11 @@ export const WorkflowNode = memo(
       }
       if (!template) return null;
 
-      const overrides = deriveDocOverridesForNode(nodeType, data.inputs);
+      const overrides = deriveDocOverridesForNode(
+        nodeType,
+        data.inputs,
+        data.metadata
+      );
 
       return {
         ...template,
@@ -290,7 +295,7 @@ export const WorkflowNode = memo(
 
     // Get widget for this node type
     const widget = nodeType
-      ? registry.for(nodeType, id, data.inputs, data.outputs)
+      ? registry.for(nodeType, id, data.inputs, data.outputs, data.metadata)
       : null;
 
     const handleWidgetChange = (value: any) => {

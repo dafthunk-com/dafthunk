@@ -228,10 +228,21 @@ function mapInputProperty(
  *  - an object with properties (the common case)
  *  - oneOf/anyOf where one branch is a binary string and another is an object
  *    holding a byte-array property (e.g. whisper, resnet-50)
+ *  - oneOf with multiple object branches representing alternative call shapes
+ *    (e.g. llama: `{prompt}` vs `{messages, tools, ...}`) — we union the
+ *    properties so the editor exposes every parameter the model accepts
  *  - a raw binary string (no named properties → we expose a single blob input)
  */
 function mapInputSchema(schema: CloudflareJsonSchema | undefined): Parameter[] {
   if (!schema) return [];
+
+  const merged = mergeInputBranches(schema);
+  if (merged) {
+    const { properties, required } = merged;
+    return Object.entries(properties).map(([name, prop]) =>
+      mapInputProperty(name, prop, required.has(name))
+    );
+  }
 
   const resolved = resolveSchema(schema);
 
@@ -255,6 +266,47 @@ function mapInputSchema(schema: CloudflareJsonSchema | undefined): Parameter[] {
   }
 
   return [];
+}
+
+/**
+ * When the top-level input is a `oneOf`/`anyOf` of multiple object branches —
+ * Cloudflare's pattern for "use prompt OR messages" — union their properties
+ * so the editor exposes the full parameter surface (including function-calling
+ * fields like `tools`). A property is treated as required only when every
+ * object branch lists it as required. Returns `null` when the schema has at
+ * most one object branch (in which case the existing single-branch logic is
+ * the right fallback).
+ */
+function mergeInputBranches(schema: CloudflareJsonSchema): {
+  properties: Record<string, CloudflareJsonSchema>;
+  required: Set<string>;
+} | null {
+  const alternatives = schema.oneOf ?? schema.anyOf;
+  if (!alternatives) return null;
+
+  const objectBranches = alternatives
+    .map(resolveSchema)
+    .filter(
+      (alt) =>
+        (alt.type === "object" || alt.properties) &&
+        alt.properties !== undefined
+    );
+  if (objectBranches.length < 2) return null;
+
+  const properties: Record<string, CloudflareJsonSchema> = {};
+  const branchRequired: Set<string>[] = [];
+  for (const branch of objectBranches) {
+    branchRequired.push(new Set(branch.required ?? []));
+    for (const [name, prop] of Object.entries(branch.properties ?? {})) {
+      if (!(name in properties)) properties[name] = prop;
+    }
+  }
+
+  const required = new Set<string>();
+  for (const name of Object.keys(properties)) {
+    if (branchRequired.every((set) => set.has(name))) required.add(name);
+  }
+  return { properties, required };
 }
 
 /**

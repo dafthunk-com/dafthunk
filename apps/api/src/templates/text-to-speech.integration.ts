@@ -19,7 +19,7 @@ describe("Text to Speech Template", () => {
     expect(textToSpeechTemplate.name).toBe("Text to Speech");
     expect(textToSpeechTemplate.trigger).toBe("manual");
     expect(textToSpeechTemplate.tags).toContain("audio");
-    expect(textToSpeechTemplate.tags).toContain("tts");
+    expect(textToSpeechTemplate.tags).toContain("ai");
   });
 
   it("should have correct node configuration", () => {
@@ -33,7 +33,7 @@ describe("Text to Speech Template", () => {
       (n) => n.id === "speech-generator"
     );
     expect(speechNode).toBeDefined();
-    expect(speechNode?.type).toBe("melotts");
+    expect(speechNode?.type).toBe("cloudflare-model");
 
     const previewNode = textToSpeechTemplate.nodes.find(
       (n) => n.id === "audio-preview"

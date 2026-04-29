@@ -1,7 +1,8 @@
 import { TextInputNode } from "@dafthunk/runtime/nodes/input/text-input-node";
 import { TextOutputNode } from "@dafthunk/runtime/nodes/output/text-output-node";
-import { BartLargeCnnNode } from "@dafthunk/runtime/nodes/text/bart-large-cnn-node";
 import type { WorkflowTemplate } from "@dafthunk/types";
+
+import { createCloudflareModelNode } from "./cloudflare-model-template";
 
 export const textSummarizationTemplate: WorkflowTemplate = {
   id: "text-summarization",
@@ -22,14 +23,33 @@ export const textSummarizationTemplate: WorkflowTemplate = {
         rows: 4,
       },
     }),
-    BartLargeCnnNode.create({
+    createCloudflareModelNode({
       id: "text-summarizer",
       name: "Text Summarizer",
       position: { x: 500, y: 100 },
-      inputs: {
-        inputText: "",
-        maxLength: 20,
-      },
+      model: "@cf/facebook/bart-large-cnn",
+      inputs: [
+        {
+          name: "input_text",
+          type: "string",
+          description: "Text to summarize",
+          required: true,
+        },
+        {
+          name: "max_length",
+          type: "number",
+          description: "Maximum length of the generated summary (in tokens)",
+          hidden: true,
+          value: 20,
+        },
+      ],
+      outputs: [
+        {
+          name: "summary",
+          type: "string",
+          description: "Summarized version of the input text",
+        },
+      ],
     }),
     TextOutputNode.create({
       id: "summary-preview",
@@ -42,7 +62,7 @@ export const textSummarizationTemplate: WorkflowTemplate = {
       source: "text-to-summarize",
       target: "text-summarizer",
       sourceOutput: "value",
-      targetInput: "inputText",
+      targetInput: "input_text",
     },
     {
       source: "text-summarizer",

@@ -1,7 +1,7 @@
 import { env } from "cloudflare:test";
+import { CloudflareModelNode } from "@dafthunk/runtime/nodes/cloudflare/cloudflare-model-node";
 import { TextInputNode } from "@dafthunk/runtime/nodes/input/text-input-node";
 import { TextOutputNode } from "@dafthunk/runtime/nodes/output/text-output-node";
-import { M2m10012bNode } from "@dafthunk/runtime/nodes/text/m2m100-1-2b-node";
 import type { Parameter } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 import type { Bindings } from "../context";
@@ -14,7 +14,7 @@ describe("Text Translation Template", () => {
 
     const nodeTypes = textTranslationTemplate.nodes.map((n) => n.type);
     expect(nodeTypes).toContain("text-input");
-    expect(nodeTypes).toContain("m2m100-1-2b");
+    expect(nodeTypes).toContain("cloudflare-model");
     expect(nodeTypes).toContain("output-text");
   });
 
@@ -81,20 +81,23 @@ describe("Text Translation Template", () => {
     const translatorNode = textTranslationTemplate.nodes.find(
       (n) => n.id === "text-translator"
     )!;
-    const translatorInstance = new M2m10012bNode(translatorNode);
+    const translatorInstance = new CloudflareModelNode(translatorNode);
     const translatorResult = await translatorInstance.execute({
       nodeId: translatorNode.id,
       inputs: {
+        model: "@cf/meta/m2m100-1.2b",
         text: inputTextResult.outputs?.value,
-        sourceLang: sourceLangResult.outputs?.value,
-        targetLang: targetLangResult.outputs?.value,
+        source_lang: sourceLangResult.outputs?.value,
+        target_lang: targetLangResult.outputs?.value,
       },
       env: env as Bindings,
     } as any);
     expect(translatorResult.status).toBe("completed");
-    expect(translatorResult.outputs?.translatedText).toBeDefined();
-    expect(typeof translatorResult.outputs?.translatedText).toBe("string");
-    expect(translatorResult.outputs?.translatedText.length).toBeGreaterThan(0);
+    expect(translatorResult.outputs?.translated_text).toBeDefined();
+    expect(typeof translatorResult.outputs?.translated_text).toBe("string");
+    expect(
+      (translatorResult.outputs?.translated_text as string).length
+    ).toBeGreaterThan(0);
 
     // Execute output node
     const outputNode = textTranslationTemplate.nodes.find(
@@ -104,7 +107,7 @@ describe("Text Translation Template", () => {
     const outputResult = await outputInstance.execute({
       nodeId: outputNode.id,
       inputs: {
-        value: translatorResult.outputs?.translatedText,
+        value: translatorResult.outputs?.translated_text,
       },
       env: env as Bindings,
     } as any);

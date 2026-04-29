@@ -1,7 +1,8 @@
-import { WhisperNode } from "@dafthunk/runtime/nodes/audio/whisper-node";
 import { AudioRecorderInputNode } from "@dafthunk/runtime/nodes/input/audio-recorder-input-node";
 import { TextOutputNode } from "@dafthunk/runtime/nodes/output/text-output-node";
 import type { WorkflowTemplate } from "@dafthunk/types";
+
+import { createCloudflareModelNode } from "./cloudflare-model-template";
 
 export const speechToTextTemplate: WorkflowTemplate = {
   id: "speech-to-text",
@@ -16,10 +17,49 @@ export const speechToTextTemplate: WorkflowTemplate = {
       name: "Audio Recorder",
       position: { x: 100, y: 100 },
     }),
-    WhisperNode.create({
+    createCloudflareModelNode({
       id: "transcriber",
       name: "Transcriber",
       position: { x: 500, y: 100 },
+      model: "@cf/openai/whisper",
+      meta: {
+        description:
+          "Whisper is a general-purpose speech recognition model. It is trained on a large dataset of diverse audio and is also a multitasking model that can perform multilingual speech recognition, speech translation, and language identification.",
+        taskName: "Automatic Speech Recognition",
+      },
+      inputs: [
+        {
+          name: "audio",
+          type: "audio",
+          description: "Audio file to transcribe",
+          required: true,
+        },
+      ],
+      outputs: [
+        {
+          name: "text",
+          type: "string",
+          description: "Transcribed text",
+        },
+        {
+          name: "word_count",
+          type: "number",
+          description: "Number of words in the transcription",
+          hidden: true,
+        },
+        {
+          name: "words",
+          type: "json",
+          description: "Per-word timing information",
+          hidden: true,
+        },
+        {
+          name: "vtt",
+          type: "string",
+          description: "WebVTT-formatted transcription",
+          hidden: true,
+        },
+      ],
     }),
     TextOutputNode.create({
       id: "transcription-preview",

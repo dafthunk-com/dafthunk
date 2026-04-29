@@ -28,6 +28,12 @@ export interface WorkflowNodeType extends Record<string, unknown> {
   functionCalling?: boolean;
   asTool?: boolean;
   icon?: string;
+  /**
+   * Editor- / runtime-internal flags that survive save/load alongside
+   * inputs/outputs. Used for non-user-facing state that needs to round-trip
+   * through the wire format without polluting the parameter list.
+   */
+  metadata?: Record<string, string>;
 }
 
 // Edge Types

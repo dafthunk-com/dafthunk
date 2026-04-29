@@ -283,6 +283,13 @@ export interface NodeType {
   trigger?: boolean; // Node is a workflow trigger entry point (max one per workflow)
   subscription?: boolean; // Node requires a paid subscription to execute
   dynamicInputs?: DynamicInputsConfig; // User-adjustable numbered inputs
+  /**
+   * Editor- / runtime-internal flags that survive save/load alongside
+   * `inputs`/`outputs`. Use this for non-user-facing state that needs to
+   * round-trip through the wire format (e.g. picker locks, display
+   * metadata) — anything user-visible belongs in `inputs` instead.
+   */
+  metadata?: Record<string, string>;
 }
 
 /**
@@ -307,6 +314,8 @@ export interface Node {
   outputs: Parameter[];
   error?: string;
   functionCalling?: boolean;
+  /** See `NodeType.metadata` — same purpose, propagated per instance. */
+  metadata?: Record<string, string>;
 }
 
 /**

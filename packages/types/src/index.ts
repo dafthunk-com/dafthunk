@@ -2,6 +2,7 @@ export * from "./api-key";
 export * from "./auth";
 export * from "./billing";
 export * from "./bot";
+export * from "./cloudflare";
 export * from "./dashboard";
 export * from "./database";
 export * from "./dataset";

@@ -204,6 +204,9 @@ export function useEditableWorkflow({
               position: node.position,
               icon: node.data.icon,
               functionCalling: node.data.functionCalling,
+              ...(node.data.metadata
+                ? { metadata: { ...node.data.metadata } }
+                : {}),
               inputs: node.data.inputs.map((input) => {
                 const isConnected = incomingEdges.some(
                   (edge) => edge.targetHandle === input.id

@@ -145,6 +145,7 @@ function createReactFlowNode(
       icon: nodeType.icon,
       functionCalling: nodeType.functionCalling,
       asTool: nodeType.asTool,
+      metadata: nodeType.metadata ? { ...nodeType.metadata } : undefined,
       createObjectUrl,
     },
   };

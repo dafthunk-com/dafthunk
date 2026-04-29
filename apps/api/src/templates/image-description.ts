@@ -1,7 +1,8 @@
-import { UformGen2Qwen500mNode } from "@dafthunk/runtime/nodes/image/uform-gen2-qwen-500m-node";
 import { CanvasInputNode } from "@dafthunk/runtime/nodes/input/canvas-input-node";
 import { TextOutputNode } from "@dafthunk/runtime/nodes/output/text-output-node";
 import type { WorkflowTemplate } from "@dafthunk/types";
+
+import { createCloudflareModelNode } from "./cloudflare-model-template";
 
 export const imageDescriptionTemplate: WorkflowTemplate = {
   id: "image-description",
@@ -22,10 +23,40 @@ export const imageDescriptionTemplate: WorkflowTemplate = {
         strokeWidth: 2,
       },
     }),
-    UformGen2Qwen500mNode.create({
+    createCloudflareModelNode({
       id: "image-describer",
       name: "Image Describer",
       position: { x: 500, y: 100 },
+      model: "@cf/unum/uform-gen2-qwen-500m",
+      inputs: [
+        {
+          name: "image",
+          type: "image",
+          description: "The image to generate a description for",
+          required: true,
+        },
+        {
+          name: "prompt",
+          type: "string",
+          description: "Text prompt that guides the model's response",
+          hidden: true,
+          value: "Generate a caption for this image",
+        },
+        {
+          name: "max_tokens",
+          type: "number",
+          description: "Maximum number of tokens to generate",
+          hidden: true,
+          value: 512,
+        },
+      ],
+      outputs: [
+        {
+          name: "description",
+          type: "string",
+          description: "Generated text description of the image",
+        },
+      ],
     }),
     TextOutputNode.create({
       id: "description-preview",

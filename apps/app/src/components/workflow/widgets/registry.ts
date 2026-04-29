@@ -38,12 +38,13 @@ class WidgetRegistry {
     nodeType: string,
     nodeId: string,
     inputs: WorkflowParameter[],
-    outputs?: WorkflowParameter[]
+    outputs?: WorkflowParameter[],
+    metadata?: Record<string, string>
   ): Widget | null {
     const descriptor = this.widgets.get(nodeType);
     if (!descriptor) return null;
 
-    const config = descriptor.extractConfig(nodeId, inputs, outputs);
+    const config = descriptor.extractConfig(nodeId, inputs, outputs, metadata);
     if (!config) return null;
 
     const managedFields = new Set([

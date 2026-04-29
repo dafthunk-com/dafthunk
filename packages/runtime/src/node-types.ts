@@ -315,6 +315,7 @@ export abstract class ExecutableNode {
       inputs,
       outputs: nodeType.outputs.map((output) => ({ ...output })),
       ...(nodeType.functionCalling && { functionCalling: true }),
+      ...(nodeType.metadata && { metadata: { ...nodeType.metadata } }),
     } as Node;
   }
 

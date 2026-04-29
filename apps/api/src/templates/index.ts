@@ -22,8 +22,8 @@ import { whatsappBotTemplate } from "./whatsapp-bot";
 
 export const workflowTemplates: WorkflowTemplate[] = [
   textSummarizationTemplate,
-  imageGenerationTemplate,
   sentimentAnalysisTemplate,
+  imageGenerationTemplate,
   textTranslationTemplate,
   textFormatterTemplate,
   emailReplyTemplate,

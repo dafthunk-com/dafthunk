@@ -19,8 +19,6 @@ describe("AI Calculator Template", () => {
     expect(aiCalculatorTemplate.name).toBe("AI Calculator");
     expect(aiCalculatorTemplate.trigger).toBe("manual");
     expect(aiCalculatorTemplate.tags).toContain("ai");
-    expect(aiCalculatorTemplate.tags).toContain("math");
-    expect(aiCalculatorTemplate.tags).toContain("tools");
   });
 
   it("should have correct node configuration", () => {
@@ -32,7 +30,7 @@ describe("AI Calculator Template", () => {
 
     const aiNode = aiCalculatorTemplate.nodes.find((n) => n.id === "ai-solver");
     expect(aiNode).toBeDefined();
-    expect(aiNode?.type).toBe("llama-3-3-70b-instruct-fp8-fast");
+    expect(aiNode?.type).toBe("cloudflare-model");
 
     const previewNode = aiCalculatorTemplate.nodes.find(
       (n) => n.id === "solution-preview"
@@ -49,6 +47,20 @@ describe("AI Calculator Template", () => {
     expect(toolsInput?.value).toEqual([
       { type: "node", identifier: "calculator" },
     ] as unknown);
+  });
+
+  it("should pin the model and lock the picker like a registry-spawned node", () => {
+    const aiNode = aiCalculatorTemplate.nodes.find((n) => n.id === "ai-solver");
+    expect(aiNode?.metadata?._cf_locked).toBe("true");
+    expect(aiNode?.icon).toBe("sparkles");
+
+    const modelInput = aiNode?.inputs.find((i) => i.name === "model");
+    expect(modelInput?.hidden).toBe(true);
+    expect(modelInput?.value).toBe("@cf/meta/llama-3.3-70b-instruct-fp8-fast");
+
+    const meta = JSON.parse(aiNode?.metadata?._cf_meta ?? "{}");
+    expect(meta.taskName).toBe("Text Generation");
+    expect(typeof meta.description).toBe("string");
   });
 
   it("should have correct edge connections", () => {

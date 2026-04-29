@@ -62,7 +62,7 @@ Use kebab-case IDs that describe the node's purpose:
 | ------------- | ---------------------------------------- |
 | Input data    | `text-to-summarize`, `image-prompt`      |
 | Configuration | `source-language`, `target-language`     |
-| Processing    | `text-summarizer`, `sentiment-analyzer`  |
+| Processing    | `text-summarizer`, `image-describer`     |
 | Output        | `summary-preview`, `translation-preview` |
 
 ### Node Names

@@ -18,7 +18,7 @@ describe("Image Description Template", () => {
     expect(imageDescriptionTemplate.id).toBe("image-description");
     expect(imageDescriptionTemplate.name).toBe("Image Description");
     expect(imageDescriptionTemplate.trigger).toBe("manual");
-    expect(imageDescriptionTemplate.tags).toContain("canvas");
+    expect(imageDescriptionTemplate.tags).toContain("image");
     expect(imageDescriptionTemplate.tags).toContain("ai");
   });
 
@@ -33,7 +33,7 @@ describe("Image Description Template", () => {
       (n) => n.id === "image-describer"
     );
     expect(describerNode).toBeDefined();
-    expect(describerNode?.type).toBe("uform-gen2-qwen-500m");
+    expect(describerNode?.type).toBe("cloudflare-model");
 
     const previewNode = imageDescriptionTemplate.nodes.find(
       (n) => n.id === "description-preview"

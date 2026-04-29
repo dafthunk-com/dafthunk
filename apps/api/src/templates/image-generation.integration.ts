@@ -1,5 +1,5 @@
 import { env } from "cloudflare:test";
-import { StableDiffusionXLLightningNode } from "@dafthunk/runtime/nodes/image/stable-diffusion-xl-lightning-node";
+import { CloudflareModelNode } from "@dafthunk/runtime/nodes/cloudflare/cloudflare-model-node";
 import { TextInputNode } from "@dafthunk/runtime/nodes/input/text-input-node";
 import { ImageOutputNode } from "@dafthunk/runtime/nodes/output/image-output-node";
 import type { Parameter } from "@dafthunk/types";
@@ -14,7 +14,7 @@ describe("Image Generation Template", () => {
 
     const nodeTypes = imageGenerationTemplate.nodes.map((n) => n.type);
     expect(nodeTypes).toContain("text-input");
-    expect(nodeTypes).toContain("stable-diffusion-xl-lightning");
+    expect(nodeTypes).toContain("cloudflare-model");
     expect(nodeTypes).toContain("output-image");
   });
 
@@ -43,10 +43,11 @@ describe("Image Generation Template", () => {
     const generatorNode = imageGenerationTemplate.nodes.find(
       (n) => n.id === "image-generator"
     )!;
-    const generatorInstance = new StableDiffusionXLLightningNode(generatorNode);
+    const generatorInstance = new CloudflareModelNode(generatorNode);
     const generatorResult = await generatorInstance.execute({
       nodeId: generatorNode.id,
       inputs: {
+        model: "@cf/bytedance/stable-diffusion-xl-lightning",
         prompt: inputResult.outputs?.value,
       },
       env: env as Bindings,

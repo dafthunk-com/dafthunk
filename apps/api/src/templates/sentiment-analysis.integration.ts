@@ -1,79 +1,82 @@
+import { env } from "cloudflare:test";
+import { CloudflareModelNode } from "@dafthunk/runtime/nodes/cloudflare/cloudflare-model-node";
+import { TextInputNode } from "@dafthunk/runtime/nodes/input/text-input-node";
+import { JsonOutputNode } from "@dafthunk/runtime/nodes/output/json-output-node";
+import type { Parameter } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
-
+import type { Bindings } from "../context";
 import { sentimentAnalysisTemplate } from "./sentiment-analysis";
 
 describe("Sentiment Analysis Template", () => {
-  it("should have valid structure", () => {
-    expect(sentimentAnalysisTemplate.nodes).toHaveLength(4);
-    expect(sentimentAnalysisTemplate.edges).toHaveLength(3);
+  it("should have correct node types defined", () => {
+    expect(sentimentAnalysisTemplate.nodes).toHaveLength(3);
+    expect(sentimentAnalysisTemplate.edges).toHaveLength(2);
 
-    const nodeIds = new Set(sentimentAnalysisTemplate.nodes.map((n) => n.id));
-    for (const edge of sentimentAnalysisTemplate.edges) {
-      expect(nodeIds.has(edge.source)).toBe(true);
-      expect(nodeIds.has(edge.target)).toBe(true);
-    }
+    const nodeTypes = sentimentAnalysisTemplate.nodes.map((n) => n.type);
+    expect(nodeTypes).toContain("text-input");
+    expect(nodeTypes).toContain("cloudflare-model");
+    expect(nodeTypes).toContain("output-json");
   });
 
-  it("should have correct template metadata", () => {
-    expect(sentimentAnalysisTemplate.id).toBe("sentiment-analysis");
-    expect(sentimentAnalysisTemplate.name).toBe("Sentiment Analysis");
-    expect(sentimentAnalysisTemplate.trigger).toBe("manual");
-    expect(sentimentAnalysisTemplate.tags).toContain("sentiment");
-    expect(sentimentAnalysisTemplate.tags).toContain("ai");
-  });
+  it("should execute all nodes in the template", async () => {
+    const inputText =
+      "I absolutely loved this product! It exceeded all my expectations.";
 
-  it("should have correct node configuration", () => {
+    // Execute text input node
     const inputNode = sentimentAnalysisTemplate.nodes.find(
       (n) => n.id === "text-to-analyze"
-    );
-    expect(inputNode).toBeDefined();
-    expect(inputNode?.type).toBe("text-input");
+    )!;
+    const inputInstance = new TextInputNode({
+      ...inputNode,
+      inputs: inputNode.inputs.map((input) =>
+        input.name === "value" ? { ...input, value: inputText } : input
+      ) as Parameter[],
+    });
+    const inputResult = await inputInstance.execute({
+      nodeId: inputNode.id,
+      inputs: { value: inputText },
+      env: env as Bindings,
+    } as any);
+    expect(inputResult.status).toBe("completed");
+    expect(inputResult.outputs?.value).toBe(inputText);
 
+    // Execute sentiment analyzer node
     const analyzerNode = sentimentAnalysisTemplate.nodes.find(
       (n) => n.id === "sentiment-analyzer"
-    );
-    expect(analyzerNode).toBeDefined();
-    expect(analyzerNode?.type).toBe("distilbert-sst-2-int8");
+    )!;
+    const analyzerInstance = new CloudflareModelNode(analyzerNode);
+    const analyzerResult = await analyzerInstance.execute({
+      nodeId: analyzerNode.id,
+      inputs: {
+        model: "@cf/huggingface/distilbert-sst-2-int8",
+        text: inputResult.outputs?.value,
+      },
+      env: env as Bindings,
+    } as any);
+    expect(analyzerResult.status).toBe("completed");
+    const classifications = analyzerResult.outputs?.output as
+      | Array<{ label: string; score: number }>
+      | undefined;
+    expect(Array.isArray(classifications)).toBe(true);
+    expect(classifications!.length).toBeGreaterThan(0);
+    for (const entry of classifications!) {
+      expect(typeof entry.label).toBe("string");
+      expect(typeof entry.score).toBe("number");
+    }
 
-    const positiveOutputNode = sentimentAnalysisTemplate.nodes.find(
-      (n) => n.id === "positive-score-preview"
-    );
-    expect(positiveOutputNode).toBeDefined();
-    expect(positiveOutputNode?.type).toBe("output-number");
-
-    const negativeOutputNode = sentimentAnalysisTemplate.nodes.find(
-      (n) => n.id === "negative-score-preview"
-    );
-    expect(negativeOutputNode).toBeDefined();
-    expect(negativeOutputNode?.type).toBe("output-number");
-  });
-
-  it("should have correct edge connections", () => {
-    const edges = sentimentAnalysisTemplate.edges;
-
-    const inputToAnalyzer = edges.find(
-      (e) => e.source === "text-to-analyze" && e.target === "sentiment-analyzer"
-    );
-    expect(inputToAnalyzer).toBeDefined();
-    expect(inputToAnalyzer?.sourceOutput).toBe("value");
-    expect(inputToAnalyzer?.targetInput).toBe("text");
-
-    const analyzerToPositive = edges.find(
-      (e) =>
-        e.source === "sentiment-analyzer" &&
-        e.target === "positive-score-preview"
-    );
-    expect(analyzerToPositive).toBeDefined();
-    expect(analyzerToPositive?.sourceOutput).toBe("positive");
-    expect(analyzerToPositive?.targetInput).toBe("value");
-
-    const analyzerToNegative = edges.find(
-      (e) =>
-        e.source === "sentiment-analyzer" &&
-        e.target === "negative-score-preview"
-    );
-    expect(analyzerToNegative).toBeDefined();
-    expect(analyzerToNegative?.sourceOutput).toBe("negative");
-    expect(analyzerToNegative?.targetInput).toBe("value");
+    // Execute output node
+    const outputNode = sentimentAnalysisTemplate.nodes.find(
+      (n) => n.id === "sentiment-preview"
+    )!;
+    const outputInstance = new JsonOutputNode(outputNode);
+    const outputResult = await outputInstance.execute({
+      nodeId: outputNode.id,
+      inputs: {
+        value: classifications,
+      },
+      env: env as Bindings,
+    } as any);
+    expect(outputResult.status).toBe("completed");
+    expect(outputResult.outputs?.displayValue).toBeDefined();
   });
 });

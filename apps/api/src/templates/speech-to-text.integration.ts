@@ -19,7 +19,7 @@ describe("Speech to Text Template", () => {
     expect(speechToTextTemplate.name).toBe("Speech to Text");
     expect(speechToTextTemplate.trigger).toBe("manual");
     expect(speechToTextTemplate.tags).toContain("audio");
-    expect(speechToTextTemplate.tags).toContain("stt");
+    expect(speechToTextTemplate.tags).toContain("ai");
   });
 
   it("should have correct node configuration", () => {
@@ -33,7 +33,7 @@ describe("Speech to Text Template", () => {
       (n) => n.id === "transcriber"
     );
     expect(transcriberNode).toBeDefined();
-    expect(transcriberNode?.type).toBe("whisper");
+    expect(transcriberNode?.type).toBe("cloudflare-model");
 
     const previewNode = speechToTextTemplate.nodes.find(
       (n) => n.id === "transcription-preview"

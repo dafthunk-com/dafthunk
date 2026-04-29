@@ -1,7 +1,7 @@
 import { env } from "cloudflare:test";
+import { CloudflareModelNode } from "@dafthunk/runtime/nodes/cloudflare/cloudflare-model-node";
 import { TextInputNode } from "@dafthunk/runtime/nodes/input/text-input-node";
 import { TextOutputNode } from "@dafthunk/runtime/nodes/output/text-output-node";
-import { BartLargeCnnNode } from "@dafthunk/runtime/nodes/text/bart-large-cnn-node";
 import type { Parameter } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 import type { Bindings } from "../context";
@@ -14,7 +14,7 @@ describe("Text Summarization Template", () => {
 
     const nodeTypes = textSummarizationTemplate.nodes.map((n) => n.type);
     expect(nodeTypes).toContain("text-input");
-    expect(nodeTypes).toContain("bart-large-cnn");
+    expect(nodeTypes).toContain("cloudflare-model");
     expect(nodeTypes).toContain("output-text");
   });
 
@@ -44,19 +44,20 @@ describe("Text Summarization Template", () => {
     const summarizerNode = textSummarizationTemplate.nodes.find(
       (n) => n.id === "text-summarizer"
     )!;
-    const summarizerInstance = new BartLargeCnnNode(summarizerNode);
+    const summarizerInstance = new CloudflareModelNode(summarizerNode);
     const summarizerResult = await summarizerInstance.execute({
       nodeId: summarizerNode.id,
       inputs: {
-        inputText: inputResult.outputs?.value,
-        maxLength: 1024,
+        model: "@cf/facebook/bart-large-cnn",
+        input_text: inputResult.outputs?.value,
+        max_length: 1024,
       },
       env: env as Bindings,
     } as any);
     expect(summarizerResult.status).toBe("completed");
     expect(summarizerResult.outputs?.summary).toBeDefined();
     expect(typeof summarizerResult.outputs?.summary).toBe("string");
-    expect(summarizerResult.outputs?.summary.length).toBeLessThan(
+    expect((summarizerResult.outputs?.summary as string).length).toBeLessThan(
       inputText.length
     );
 

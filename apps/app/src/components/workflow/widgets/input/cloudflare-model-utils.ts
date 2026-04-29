@@ -1,49 +1,19 @@
-import type { CloudflareModelInfo } from "@dafthunk/types";
+import { type CloudflareModelMeta, cloudflareDocsUrl } from "@dafthunk/types";
+
+export type { CloudflareModelMeta } from "@dafthunk/types";
+export {
+  CF_LOCKED_KEY,
+  CF_META_KEY,
+  CLOUDFLARE_MODEL_NODE_TYPE,
+  cloudflareDocsUrl,
+  encodeCloudflareModelMeta,
+  shortName,
+} from "@dafthunk/types";
 
 /**
- * Node-type identifier for the generic Cloudflare Workers AI model node.
- * Matches `CloudflareModelNode.nodeType.type` in the runtime package and is
- * referenced by both the widget registration and the docs-override lookup
- * in `workflow-node.tsx`.
- */
-export const CLOUDFLARE_MODEL_NODE_TYPE = "cloudflare-model";
-
-/**
- * Hidden input name used to round-trip per-model metadata (description,
- * task) through the backend save path. The docs dialog reads this input's
- * value at render time and synthesises description/documentation fields
- * from it — storing them directly on node data doesn't survive the save
- * round-trip because the backend wire format only preserves inputs/outputs.
- */
-export const CF_META_INPUT_NAME = "_cf_meta";
-
-export interface CloudflareModelMeta {
-  description?: string;
-  taskName?: string;
-}
-
-/** Short display name for a Cloudflare model id: last path segment. */
-export function shortName(id: string): string {
-  const slash = id.lastIndexOf("/");
-  return slash === -1 ? id : id.slice(slash + 1);
-}
-
-/** Public Cloudflare docs URL for a model — catalog page path == short name. */
-export function cloudflareDocsUrl(modelId: string): string {
-  return `https://developers.cloudflare.com/workers-ai/models/${shortName(modelId)}/`;
-}
-
-export function encodeCloudflareModelMeta(info: CloudflareModelInfo): string {
-  const meta: CloudflareModelMeta = {};
-  if (info.description) meta.description = info.description;
-  if (info.task?.name) meta.taskName = info.task.name;
-  return JSON.stringify(meta);
-}
-
-/**
- * Best-effort parse of a stored `_cf_meta` input value. Returns an empty
- * object when the value is missing or malformed so callers can safely
- * spread the result.
+ * Best-effort parse of a stored `_cf_meta` value (from `node.metadata`).
+ * Returns an empty object when the value is missing or malformed so callers
+ * can safely spread the result.
  */
 export function decodeCloudflareModelMeta(value: unknown): CloudflareModelMeta {
   if (typeof value !== "string" || value.length === 0) return {};

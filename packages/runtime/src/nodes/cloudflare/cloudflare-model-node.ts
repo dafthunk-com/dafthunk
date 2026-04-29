@@ -1,21 +1,39 @@
+import { runWithTools } from "@cloudflare/ai-utils";
 import {
   ExecutableNode,
   isBlobParameter,
   type NodeContext,
+  ToolCallTracker,
+  type ToolReference,
   toUint8Array,
 } from "@dafthunk/runtime";
-import type { NodeExecution, NodeType, Parameter } from "@dafthunk/types";
+import type {
+  NodeExecution,
+  NodeType,
+  Parameter,
+  Schema,
+} from "@dafthunk/types";
 import {
   type CloudflareModelPricing,
   getCloudflareModelPricing,
 } from "../../utils/cloudflare-pricing";
+import { schemaToJsonSchema } from "../../utils/schema-to-json-schema";
 import { calculateTokenUsage } from "../../utils/usage";
 
 const BLOB_TYPES = new Set(["image", "audio", "video", "blob"]);
 
-// Node config inputs that should not be forwarded to the AI binding.
-// `_cf_meta` carries UI-only metadata persisted from the model picker.
-const CONFIG_INPUTS = new Set(["model", "_cf_meta"]);
+interface ChatMessage {
+  role: string;
+  content: string;
+}
+
+// Inputs that drive node behavior but aren't forwarded to AI.run as part
+// of the input payload. `model` selects the Workers AI model; `schema` is
+// a Dafthunk-typed shortcut that the runtime translates into the
+// model-native `response_format` field. Editor-only flags (display
+// metadata, picker locks) ride on `node.metadata` instead of `inputs`, so
+// they don't reach the runtime here.
+const CONFIG_INPUTS = new Set(["model", "schema"]);
 
 const MIME_FALLBACKS: Record<string, string> = {
   image: "image/png",
@@ -123,8 +141,30 @@ For example: \`@cf/meta/llama-3.2-3b-instruct\`, \`@cf/openai/whisper\`, \`@cf/b
         return this.createErrorResult("AI service is not available");
       }
 
-      const aiInput = this.buildAiInput(context);
-      const promptBytes = JSON.stringify(aiInput).length;
+      const { input: aiInput, promptBytes } = this.buildAiInput(context);
+      const schemaInput = extractSchemaInput(context.inputs.schema);
+      const toolRefs = extractDafthunkToolRefs(aiInput.tools);
+
+      if (toolRefs.length > 0) {
+        return await this.executeWithTools(
+          context,
+          modelInput,
+          aiInput,
+          toolRefs,
+          schemaInput,
+          promptBytes
+        );
+      }
+
+      // Native structured-output path. The catalog only surfaces the
+      // `schema` Dafthunk input on models whose published schema includes
+      // `response_format`, so setting it directly here is safe. Schema
+      // wins over a manually-pasted `response_format` JSON value — the
+      // schema picker is the friendly path and is checked into the
+      // workflow, while raw JSON tends to drift.
+      if (schemaInput) {
+        aiInput.response_format = buildJsonSchemaResponseFormat(schemaInput);
+      }
 
       const result = await context.env.AI.run(
         modelInput as keyof AiModels,
@@ -141,11 +181,104 @@ For example: \`@cf/meta/llama-3.2-3b-instruct\`, \`@cf/openai/whisper\`, \`@cf/b
   }
 
   /**
-   * Build the AI.run() input payload from context inputs, converting blob
-   * parameters into the byte-array form Workers AI models expect.
+   * Function-calling path. When the user wires Dafthunk tool references into
+   * the `tools` input, resolve them via the tool registry and run a multi-turn
+   * agent loop with `runWithTools`. The tool calls executed during the loop
+   * are surfaced on the `tool_calls` output (when the model schema declares
+   * one).
    */
-  private buildAiInput(context: NodeContext): Record<string, unknown> {
+  private async executeWithTools(
+    context: NodeContext,
+    modelId: string,
+    aiInput: Record<string, unknown>,
+    toolRefs: ToolReference[],
+    schemaInput: Schema | null,
+    promptBytes: number
+  ): Promise<NodeExecution> {
+    const toolDefinitions = await this.convertFunctionCallsToToolDefinitions(
+      toolRefs,
+      context
+    );
+
+    if (toolDefinitions.length === 0) {
+      // Fall back to plain AI.run when the registry can't resolve any tool.
+      // The structured-output translation still applies here.
+      if (schemaInput) {
+        aiInput.response_format = buildJsonSchemaResponseFormat(schemaInput);
+      }
+      const result = await context.env.AI.run(
+        modelId as keyof AiModels,
+        aiInput as never,
+        context.env.AI_OPTIONS
+      );
+      return await this.processOutput(modelId, promptBytes, result);
+    }
+
+    const messages = buildMessagesFromInput(aiInput);
+    if (!messages) {
+      return this.createErrorResult(
+        "Tool calling requires a `prompt` or `messages` input."
+      );
+    }
+
+    // `runWithTools` controls the request shape and doesn't reliably forward
+    // `response_format`, so when the user combines tools with a schema we
+    // fall back to a system-message instruction. The model still runs the
+    // tool loop normally; the constraint applies to the final reply.
+    const finalMessages = schemaInput
+      ? prependSchemaSystemMessage(messages, schemaInput)
+      : messages;
+
+    const tracker = new ToolCallTracker();
+    const trackedTools = tracker.wrapToolDefinitions(toolDefinitions);
+
+    // `runWithTools` rebuilds messages and tools internally; pass the rest of
+    // the inputs through (temperature, max_tokens, etc.) but strip the keys it
+    // owns to avoid duplication.
+    const rest: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(aiInput)) {
+      if (k !== "tools" && k !== "prompt" && k !== "messages") rest[k] = v;
+    }
+
+    const result = (await runWithTools(
+      context.env.AI as never,
+      modelId as never,
+      {
+        messages: finalMessages,
+        tools: trackedTools,
+        ...rest,
+      } as never
+    )) as unknown;
+
+    const executedToolCalls = tracker.getToolCalls();
+    const augmented =
+      result &&
+      typeof result === "object" &&
+      !Array.isArray(result) &&
+      !(result instanceof ReadableStream) &&
+      executedToolCalls.length > 0
+        ? {
+            ...(result as Record<string, unknown>),
+            tool_calls: executedToolCalls,
+          }
+        : result;
+
+    return await this.processOutput(modelId, promptBytes, augmented);
+  }
+
+  /**
+   * Build the AI.run() input payload from context inputs, converting blob
+   * parameters into the byte-array form Workers AI models expect. Tracks an
+   * approximate prompt byte count alongside the payload so the pricing
+   * estimator doesn't have to re-stringify the (potentially MB-sized) blob
+   * arrays after the fact.
+   */
+  private buildAiInput(context: NodeContext): {
+    input: Record<string, unknown>;
+    promptBytes: number;
+  } {
     const input: Record<string, unknown> = {};
+    let promptBytes = 0;
 
     for (const [key, value] of Object.entries(context.inputs)) {
       if (CONFIG_INPUTS.has(key) || value === undefined || value === null)
@@ -155,14 +288,17 @@ For example: \`@cf/meta/llama-3.2-3b-instruct\`, \`@cf/openai/whisper\`, \`@cf/b
       const isBlobType = paramDef && BLOB_TYPES.has(paramDef.type);
 
       if (isBlobType && isBlobParameter(value)) {
-        input[key] = Array.from(toUint8Array(value.data));
+        const bytes = toUint8Array(value.data);
+        input[key] = Array.from(bytes);
+        promptBytes += bytes.length;
         continue;
       }
 
       input[key] = value;
+      promptBytes += JSON.stringify(value).length;
     }
 
-    return input;
+    return { input, promptBytes };
   }
 
   /**
@@ -367,6 +503,53 @@ function estimateInputTokens(promptBytes: number): number {
 }
 
 /**
+ * Detect a non-empty array of Dafthunk-shaped tool references on the `tools`
+ * input. Returns `[]` for any other shape (empty array, raw Cloudflare tool
+ * schemas, undefined, etc.) so the node falls through to a plain `AI.run`.
+ */
+function extractDafthunkToolRefs(value: unknown): ToolReference[] {
+  if (!Array.isArray(value) || value.length === 0) return [];
+  const isDafthunkRef = value.every(
+    (item) =>
+      item !== null &&
+      typeof item === "object" &&
+      typeof (item as { type?: unknown }).type === "string" &&
+      typeof (item as { identifier?: unknown }).identifier === "string"
+  );
+  return isDafthunkRef ? (value as ToolReference[]) : [];
+}
+
+/**
+ * `runWithTools` operates on a chat-style messages array. Build one from
+ * either a `messages` input (array or JSON-encoded string) or a single
+ * `prompt` string. Returns `null` when neither is usable.
+ */
+function buildMessagesFromInput(
+  aiInput: Record<string, unknown>
+): ChatMessage[] | null {
+  const { messages, prompt } = aiInput;
+
+  if (Array.isArray(messages) && messages.length > 0) {
+    return messages as ChatMessage[];
+  }
+
+  if (typeof messages === "string") {
+    try {
+      const parsed = JSON.parse(messages);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    } catch {
+      // fall through to prompt
+    }
+  }
+
+  if (typeof prompt === "string" && prompt.length > 0) {
+    return [{ role: "user", content: prompt }];
+  }
+
+  return null;
+}
+
+/**
  * Convert decoded response bytes to the output-token count used by pricing.
  * Mirrors the heuristics in the dedicated single-model nodes:
  *   - images: bytes / 1000
@@ -385,4 +568,58 @@ function estimateOutputTokens(
     default:
       return Math.ceil(responseBytes / 4);
   }
+}
+
+/**
+ * Type guard for a resolved Dafthunk Schema. Picked schemas come through
+ * the parameter mapper as either a fully hydrated Schema object (from
+ * SchemaService) or a raw JSON string the user pasted. Anything else
+ * (null/undefined/wired upstream non-schema) falls through to `null`.
+ */
+function extractSchemaInput(value: unknown): Schema | null {
+  if (
+    value &&
+    typeof value === "object" &&
+    "fields" in value &&
+    Array.isArray((value as Schema).fields)
+  ) {
+    return value as Schema;
+  }
+  return null;
+}
+
+/**
+ * Wrap a Dafthunk Schema as the OpenAI-style `response_format` payload that
+ * Cloudflare Workers AI accepts on Llama 3.x, Mistral and similar models.
+ */
+function buildJsonSchemaResponseFormat(schema: Schema): {
+  type: "json_schema";
+  json_schema: { name: string; schema: Record<string, unknown> };
+} {
+  return {
+    type: "json_schema",
+    json_schema: {
+      name: schema.name || "Response",
+      schema: schemaToJsonSchema(schema),
+    },
+  };
+}
+
+/**
+ * Tool-calling fallback: prepend a system message instructing the model to
+ * reply in JSON matching the schema. Used when `runWithTools` controls the
+ * request shape and won't reliably forward `response_format`.
+ */
+function prependSchemaSystemMessage(
+  messages: ChatMessage[],
+  schema: Schema
+): ChatMessage[] {
+  const jsonSchema = schemaToJsonSchema(schema);
+  return [
+    {
+      role: "system",
+      content: `You MUST respond with valid JSON matching this schema:\n${JSON.stringify(jsonSchema)}`,
+    },
+    ...messages,
+  ];
 }

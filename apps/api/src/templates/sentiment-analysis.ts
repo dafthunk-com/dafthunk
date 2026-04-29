@@ -1,7 +1,8 @@
 import { TextInputNode } from "@dafthunk/runtime/nodes/input/text-input-node";
-import { NumberOutputNode } from "@dafthunk/runtime/nodes/output/number-output-node";
-import { DistilbertSst2Int8Node } from "@dafthunk/runtime/nodes/text/distilbert-sst-2-int8-node";
+import { JsonOutputNode } from "@dafthunk/runtime/nodes/output/json-output-node";
 import type { WorkflowTemplate } from "@dafthunk/types";
+
+import { createCloudflareModelNode } from "./cloudflare-model-template";
 
 export const sentimentAnalysisTemplate: WorkflowTemplate = {
   id: "sentiment-analysis",
@@ -9,7 +10,7 @@ export const sentimentAnalysisTemplate: WorkflowTemplate = {
   description: "Analyze the sentiment of text",
   icon: "smile",
   trigger: "manual",
-  tags: ["text", "ai"],
+  tags: ["text", "ai", "sentiment"],
   nodes: [
     TextInputNode.create({
       id: "text-to-analyze",
@@ -22,20 +23,37 @@ export const sentimentAnalysisTemplate: WorkflowTemplate = {
         rows: 4,
       },
     }),
-    DistilbertSst2Int8Node.create({
+    createCloudflareModelNode({
       id: "sentiment-analyzer",
       name: "Sentiment Analyzer",
       position: { x: 500, y: 100 },
+      model: "@cf/huggingface/distilbert-sst-2-int8",
+      meta: {
+        description:
+          "Distilled BERT model that was finetuned on SST-2 for sentiment classification.",
+        taskName: "Text Classification",
+      },
+      inputs: [
+        {
+          name: "text",
+          type: "string",
+          description: "The text that you want to classify",
+          required: true,
+        },
+      ],
+      outputs: [
+        {
+          name: "output",
+          type: "json",
+          description:
+            "Array of classification results with `label` and `score`",
+        },
+      ],
     }),
-    NumberOutputNode.create({
-      id: "positive-score-preview",
-      name: "Positive Score",
-      position: { x: 900, y: 50 },
-    }),
-    NumberOutputNode.create({
-      id: "negative-score-preview",
-      name: "Negative Score",
-      position: { x: 900, y: 200 },
+    JsonOutputNode.create({
+      id: "sentiment-preview",
+      name: "Sentiment Scores",
+      position: { x: 900, y: 100 },
     }),
   ],
   edges: [
@@ -47,14 +65,8 @@ export const sentimentAnalysisTemplate: WorkflowTemplate = {
     },
     {
       source: "sentiment-analyzer",
-      target: "positive-score-preview",
-      sourceOutput: "positive",
-      targetInput: "value",
-    },
-    {
-      source: "sentiment-analyzer",
-      target: "negative-score-preview",
-      sourceOutput: "negative",
+      target: "sentiment-preview",
+      sourceOutput: "output",
       targetInput: "value",
     },
   ],

@@ -27,7 +27,8 @@ import { createWidget, getInputValue } from "../widget";
 
 import { CloudflareModelDialog } from "./cloudflare-model-dialog";
 import {
-  CF_META_INPUT_NAME,
+  CF_LOCKED_KEY,
+  CF_META_KEY,
   CLOUDFLARE_MODEL_NODE_TYPE,
   encodeCloudflareModelMeta,
   shortName,
@@ -75,19 +76,6 @@ function CloudflareModelInputWidget({
           value: info.name,
         };
 
-        // Persist per-model metadata via a hidden string input so the docs
-        // dialog can reconstruct description / documentation / referenceUrl
-        // after a save round-trip (input values survive; arbitrary data
-        // fields don't).
-        const metaParam: WorkflowParameter = {
-          id: CF_META_INPUT_NAME,
-          name: CF_META_INPUT_NAME,
-          type: "string",
-          description: "Cloudflare model metadata (internal)",
-          hidden: true,
-          value: encodeCloudflareModelMeta(info),
-        };
-
         const schemaInputs: WorkflowParameter[] = schema.inputs.map((p) => ({
           ...p,
           id: p.name,
@@ -105,10 +93,20 @@ function CloudflareModelInputWidget({
           }
         }
 
-        updateNodeData?.(nodeId, {
-          inputs: [modelParam, metaParam, ...schemaInputs],
+        // Persist per-model display metadata via the node's metadata bag so
+        // the docs dialog can reconstruct description / documentation /
+        // referenceUrl after a save round-trip without re-fetching the
+        // catalog client-side. Picking a model on the fallback node never
+        // sets `_cf_locked` — the picker stays available for further
+        // switches.
+        updateNodeData?.(nodeId, (current) => ({
+          inputs: [modelParam, ...schemaInputs],
           outputs: schemaOutputs,
-        });
+          metadata: {
+            ...(current.metadata ?? {}),
+            [CF_META_KEY]: encodeCloudflareModelMeta(info),
+          },
+        }));
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Failed to load model schema"
@@ -196,9 +194,15 @@ export const cloudflareModelInputWidget = createWidget({
   component: CloudflareModelInputWidget,
   nodeTypes: [CLOUDFLARE_MODEL_NODE_TYPE],
   inputField: "model",
-  extractConfig: (nodeId, inputs, outputs) => ({
-    nodeId,
-    model: getInputValue(inputs, "model", ""),
-    hasSchemaParams: inputs.length > 1 || (outputs ?? []).length > 0,
-  }),
+  extractConfig: (nodeId, inputs, outputs, metadata) => {
+    // Synthesized per-model nodes are locked to their identity — returning
+    // null suppresses the widget entirely so the node body doesn't show a
+    // model picker that would (destructively) swap its inputs/outputs.
+    if (metadata?.[CF_LOCKED_KEY] === "true") return null;
+    return {
+      nodeId,
+      model: getInputValue(inputs, "model", ""),
+      hasSchemaParams: inputs.length > 1 || (outputs ?? []).length > 0,
+    };
+  },
 });
