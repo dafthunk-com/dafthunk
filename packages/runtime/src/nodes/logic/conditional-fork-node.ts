@@ -25,16 +25,16 @@ export class ConditionalForkNode extends ExecutableNode {
     inlinable: true,
     inputs: [
       {
+        name: "value",
+        type: "any",
+        description: "The value to pass to the selected branch.",
+        required: true,
+      },
+      {
         name: "condition",
         type: "boolean",
         description:
           "The boolean condition to evaluate (true → 'true', false → 'false').",
-        required: true,
-      },
-      {
-        name: "value",
-        type: "any",
-        description: "The value to pass to the selected branch.",
         required: true,
       },
     ],

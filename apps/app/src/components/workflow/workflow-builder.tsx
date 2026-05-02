@@ -93,6 +93,7 @@ export interface WorkflowBuilderProps {
   isEnabled?: boolean;
   isTogglingEnabled?: boolean;
   onToggleEnabled?: (checked: boolean) => void;
+  fitViewPadding?: number;
 }
 
 export function WorkflowBuilder({
@@ -121,6 +122,7 @@ export function WorkflowBuilder({
   isEnabled,
   isTogglingEnabled,
   onToggleEnabled,
+  fitViewPadding = 0.25,
 }: WorkflowBuilderProps) {
   const readOnly = mode !== "edit";
   const interactive = mode !== "preview";
@@ -210,8 +212,12 @@ export function WorkflowBuilder({
   });
 
   const handleFitToScreen = useCallback(() => {
-    reactFlowInstance?.fitView({ padding: 0.25, duration: 200, maxZoom: 2 });
-  }, [reactFlowInstance]);
+    reactFlowInstance?.fitView({
+      padding: fitViewPadding,
+      duration: 200,
+      maxZoom: 2,
+    });
+  }, [reactFlowInstance, fitViewPadding]);
 
   const handleNodeDoubleClick = useCallback(() => {
     sidebar.setIsSidebarVisible(true);
@@ -316,6 +322,7 @@ export function WorkflowBuilder({
               hasClipboardData={hasClipboardData}
               showControls={interactive}
               showBackground={showBackground}
+              fitViewPadding={fitViewPadding}
             />
           </div>
 

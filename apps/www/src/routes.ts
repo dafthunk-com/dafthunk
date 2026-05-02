@@ -14,6 +14,8 @@ export default [
   route("workflows/:workflowId", "routes/workflows/$workflowId.tsx"),
   route("alternatives", "routes/alternatives/index.tsx"),
   route("alternatives/:competitor", "routes/alternatives/$competitor.tsx"),
+  route("blog", "routes/blog/index.tsx"),
+  route("blog/:slug", "routes/blog/$slug.tsx"),
   route("docs", "routes/docs/index.tsx"),
   route("docs/concepts", "routes/docs/concepts.tsx"),
   route("docs/nodes", "routes/docs/nodes.tsx"),

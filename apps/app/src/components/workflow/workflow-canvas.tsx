@@ -173,6 +173,8 @@ export interface WorkflowCanvasProps {
   onPasteFromClipboard?: () => void;
   hasClipboardData?: boolean;
   showBackground?: boolean;
+  /** Padding for React Flow's `fitView`. Defaults to 0.25. */
+  fitViewPadding?: number;
 }
 
 interface ActionButtonProps {
@@ -575,6 +577,7 @@ export function WorkflowCanvas({
   onPasteFromClipboard,
   hasClipboardData = false,
   showBackground = true,
+  fitViewPadding = 0.25,
 }: WorkflowCanvasProps) {
   // Get selected elements for button states
   const hasSelectedElements =
@@ -603,7 +606,7 @@ export function WorkflowCanvas({
         isValidConnection={isValidConnection}
         fitView
         fitViewOptions={{
-          padding: 0.25,
+          padding: fitViewPadding,
           maxZoom: 2,
         }}
         minZoom={0.05}

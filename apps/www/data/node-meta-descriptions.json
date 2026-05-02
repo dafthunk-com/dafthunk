@@ -3,5 +3,6 @@
   "booleanOverlap": "Compare two geometries of the same dimension. Returns true when their intersection is a geometry of that dimension but different from both inputs.",
   "line-slice-along": "Take a line, a start distance and a stop distance along it, and return the subsection of the line between those two points on the original path.",
   "sector": "Create a circular sector of a given radius centered at a Point, between two bearings measured clockwise from North (0 is due North of the center).",
-  "json-execute-javascript": "Execute a JavaScript script with a JSON object bound as the global variable 'json'. Returns the value of the last expression evaluated in the script."
+  "json-execute-javascript": "Execute a JavaScript script with a JSON object bound as the global variable 'json'. Returns the value of the last expression evaluated in the script.",
+  "cloudflare-model": "Run any model from the Cloudflare Workers AI catalog. Pick one and the node rebuilds its inputs and outputs from the model's published schema."
 }

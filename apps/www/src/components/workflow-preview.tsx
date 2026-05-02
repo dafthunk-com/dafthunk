@@ -4,6 +4,12 @@ interface WorkflowPreviewProps {
   templateId: string;
   className?: string;
   showBackground?: boolean;
+  /**
+   * Whitespace around the workflow inside the embed, expressed as a fraction
+   * of the iframe (passed to React Flow's `fitView`). Lower values crop
+   * tighter; higher values leave more breathing room. Defaults to 0.25.
+   */
+  padding?: number;
 }
 
 // App URL - in production this would point to the app domain
@@ -17,8 +23,13 @@ export function WorkflowPreview({
   templateId,
   className = "",
   showBackground = true,
+  padding,
 }: WorkflowPreviewProps) {
-  const embedUrl = `${APP_URL}/embed/templates/${templateId}${showBackground ? "" : "?bg=false"}`;
+  const params = new URLSearchParams();
+  if (!showBackground) params.set("bg", "false");
+  if (padding !== undefined) params.set("padding", String(padding));
+  const query = params.toString();
+  const embedUrl = `${APP_URL}/embed/templates/${templateId}${query ? `?${query}` : ""}`;
 
   return (
     <div

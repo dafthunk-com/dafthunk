@@ -1,4 +1,5 @@
 import alternativesData from "../../data/alternatives.json";
+import blogData from "../../data/blog-posts.json";
 import categories from "../../data/categories.json";
 import workflowsData from "../../data/workflows.json";
 
@@ -91,6 +92,22 @@ export function loader() {
     { loc: "/docs/developers", changefreq: "monthly", priority: "0.8" },
   ].map((page) => ({ ...page, lastmod: today }));
 
+  const blogIndexPage = {
+    loc: "/blog",
+    lastmod: today,
+    changefreq: "weekly",
+    priority: "0.8",
+  };
+
+  const blogPostPages = blogData.posts
+    .filter((post) => post.published)
+    .map((post) => ({
+      loc: `/blog/${post.id}`,
+      lastmod: post.date,
+      changefreq: "monthly",
+      priority: "0.7",
+    }));
+
   const allPages = [
     ...staticPages,
     nodesIndexPage,
@@ -101,6 +118,8 @@ export function loader() {
     alternativesIndexPage,
     ...alternativePages,
     ...docsPages,
+    blogIndexPage,
+    ...blogPostPages,
   ];
 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>

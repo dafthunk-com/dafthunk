@@ -22,8 +22,8 @@ export const aiCalculatorTemplate: WorkflowTemplate = {
       },
     }),
     createCloudflareModelNode({
-      id: "ai-solver",
-      name: "AI Solver",
+      id: "ai-calculator",
+      name: "AI Calculator",
       position: { x: 500, y: 100 },
       model: "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
       functionCalling: true,
@@ -75,12 +75,12 @@ export const aiCalculatorTemplate: WorkflowTemplate = {
   edges: [
     {
       source: "problem-input",
-      target: "ai-solver",
+      target: "ai-calculator",
       sourceOutput: "value",
       targetInput: "prompt",
     },
     {
-      source: "ai-solver",
+      source: "ai-calculator",
       target: "solution-preview",
       sourceOutput: "response",
       targetInput: "value",

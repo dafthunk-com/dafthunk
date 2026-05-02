@@ -6,6 +6,24 @@ import {
   type Parameter,
 } from "@dafthunk/types";
 
+/**
+ * Llama 3.3 70B fp8-fast: the default Cloudflare Workers AI text-generation
+ * model used by the Building Effective Agents templates. Spread directly
+ * into a `createCloudflareModelNode({ ...LLAMA_3_3_70B_FP8_FAST, ... })`
+ * call to set both `model` and `meta`.
+ */
+export const LLAMA_3_3_70B_FP8_FAST: {
+  model: string;
+  meta: CloudflareModelMeta;
+} = {
+  model: "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+  meta: {
+    description:
+      "Llama 3.3 70B quantized to fp8 with function calling support, optimized for fast inference.",
+    taskName: "Text Generation",
+  },
+};
+
 interface CloudflareModelNodeOptions {
   id: string;
   name: string;

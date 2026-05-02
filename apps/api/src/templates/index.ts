@@ -10,8 +10,11 @@ import { imageDescriptionTemplate } from "./image-description";
 import { imageGenerationTemplate } from "./image-generation";
 import { imageProcessingTemplate } from "./image-processing";
 import { imageToTextTemplate } from "./image-to-text";
+import { outlineAndWriteTemplate } from "./outline-and-write";
+import { parallelArticleCardTemplate } from "./parallel-article-card";
 import { sentimentAnalysisTemplate } from "./sentiment-analysis";
 import { speechToTextTemplate } from "./speech-to-text";
+import { supportRoutingTemplate } from "./support-routing";
 import { telegramBotTemplate } from "./telegram-bot";
 import { textFormatterTemplate } from "./text-formatter";
 import { textSummarizationTemplate } from "./text-summarization";
@@ -19,6 +22,7 @@ import { textToSpeechTemplate } from "./text-to-speech";
 import { textTranslationTemplate } from "./text-translation";
 import { webScreenshotTemplate } from "./web-screenshot";
 import { whatsappBotTemplate } from "./whatsapp-bot";
+import { wikiResearchAgentTemplate } from "./wiki-research-agent";
 
 export const workflowTemplates: WorkflowTemplate[] = [
   textSummarizationTemplate,
@@ -34,7 +38,11 @@ export const workflowTemplates: WorkflowTemplate[] = [
   imageProcessingTemplate,
   webScreenshotTemplate,
   aiCalculatorTemplate,
+  outlineAndWriteTemplate,
   conditionalBranchingTemplate,
+  supportRoutingTemplate,
+  parallelArticleCardTemplate,
+  wikiResearchAgentTemplate,
   httpEchoTemplate,
   imageToTextTemplate,
   discordBotTemplate,

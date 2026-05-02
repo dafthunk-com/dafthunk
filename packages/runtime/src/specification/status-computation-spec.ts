@@ -208,8 +208,8 @@ export function testStatusComputation(
             type: "conditional-join",
             position: { x: 400, y: 0 },
             inputs: [
-              { name: "a", type: "any", required: false },
-              { name: "b", type: "any", required: false },
+              { name: "true", type: "any", required: false },
+              { name: "false", type: "any", required: false },
             ],
             outputs: [{ name: "result", type: "any" }],
           },
@@ -231,13 +231,13 @@ export function testStatusComputation(
             source: "trueAdd",
             sourceOutput: "result",
             target: "join",
-            targetInput: "a",
+            targetInput: "true",
           },
           {
             source: "falseSub",
             sourceOutput: "result",
             target: "join",
-            targetInput: "b",
+            targetInput: "false",
           },
         ],
       };

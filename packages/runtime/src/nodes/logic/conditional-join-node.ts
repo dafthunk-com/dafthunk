@@ -4,7 +4,7 @@ import type { NodeExecution, NodeType } from "@dafthunk/types";
 /**
  * Conditional Join Node
  *
- * Joins two mutually exclusive branches ('a' and 'b') into a single flow.
+ * Joins two mutually exclusive branches ('true' and 'false') into a single flow.
  * Emits the value from whichever branch was active. If both or neither are provided, throws an error.
  *
  * Typically used to join the outputs of a Conditional Fork node.
@@ -15,7 +15,7 @@ export class ConditionalJoinNode extends ExecutableNode {
     name: "Conditional Join",
     type: "conditional-join",
     description:
-      "Joins two mutually exclusive branches ('a' and 'b') into a single flow. Emits the value from the active branch. Errors if both or neither are provided.",
+      "Joins two mutually exclusive branches ('true' and 'false') into a single flow. Emits the value from the active branch. Errors if both or neither are provided.",
     tags: ["Logic", "Branch", "Join"],
     icon: "git-merge",
     documentation:
@@ -23,15 +23,15 @@ export class ConditionalJoinNode extends ExecutableNode {
     inlinable: true,
     inputs: [
       {
-        name: "a",
+        name: "true",
         type: "any",
-        description: "Value from branch 'a' (e.g., 'true' output of a fork).",
+        description: "Value from the 'true' branch of a Conditional Fork.",
         required: false, // Non-required so node can execute with only one input
       },
       {
-        name: "b",
+        name: "false",
         type: "any",
-        description: "Value from branch 'b' (e.g., 'false' output of a fork).",
+        description: "Value from the 'false' branch of a Conditional Fork.",
         required: false, // Non-required so node can execute with only one input
       },
     ],
@@ -45,27 +45,25 @@ export class ConditionalJoinNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { a, b } = context.inputs;
+    const trueValue = context.inputs.true;
+    const falseValue = context.inputs.false;
 
-    // Check which inputs are present (not undefined)
-    const hasA = a !== undefined;
-    const hasB = b !== undefined;
+    const hasTrue = trueValue !== undefined;
+    const hasFalse = falseValue !== undefined;
 
-    // Validate exclusive condition: exactly one input should be present
-    if (!hasA && !hasB) {
+    if (!hasTrue && !hasFalse) {
       return this.createErrorResult(
-        "ConditionalJoin node requires exactly one input, but neither 'a' nor 'b' was provided. This suggests an error in the workflow design."
+        "ConditionalJoin node requires exactly one input, but neither 'true' nor 'false' was provided. This suggests an error in the workflow design."
       );
     }
 
-    if (hasA && hasB) {
+    if (hasTrue && hasFalse) {
       return this.createErrorResult(
-        "ConditionalJoin node requires exactly one input, but both 'a' and 'b' were provided. This violates the exclusive join condition."
+        "ConditionalJoin node requires exactly one input, but both 'true' and 'false' were provided. This violates the exclusive join condition."
       );
     }
 
-    // Emit the value from whichever branch was active
-    const result = hasA ? a : b;
+    const result = hasTrue ? trueValue : falseValue;
 
     return this.createSuccessResult({
       result,

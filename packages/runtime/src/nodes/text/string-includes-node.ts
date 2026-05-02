@@ -6,8 +6,8 @@ export class StringIncludesNode extends ExecutableNode {
     id: "string-includes",
     name: "Includes",
     type: "string-includes",
-    description: "Check if one string includes another string",
-    tags: ["Text", "Query", "Includes"],
+    description: "Check if one string contains another string",
+    tags: ["Text", "Query", "Includes", "Contains"],
     icon: "search",
     documentation:
       "This node checks if one string contains another string as a substring, returning true if found and false otherwise.",

@@ -339,6 +339,8 @@ import { ConditionalForkNode } from "@dafthunk/runtime/nodes/logic/conditional-f
 import { ConditionalJoinNode } from "@dafthunk/runtime/nodes/logic/conditional-join-node";
 import { CreateFeedbackFormNode } from "@dafthunk/runtime/nodes/logic/create-feedback-form-node";
 import { CreateFormNode } from "@dafthunk/runtime/nodes/logic/create-form-node";
+import { SwitchForkNode } from "@dafthunk/runtime/nodes/logic/switch-fork-node";
+import { SwitchJoinNode } from "@dafthunk/runtime/nodes/logic/switch-join-node";
 import { WaitForFormNode } from "@dafthunk/runtime/nodes/logic/wait-for-form-node";
 import { AbsoluteValueNode } from "@dafthunk/runtime/nodes/math/absolute-value-node";
 import { AdditionNode } from "@dafthunk/runtime/nodes/math/addition-node";
@@ -409,6 +411,7 @@ import { RegexMatchNode } from "@dafthunk/runtime/nodes/text/regex-match-node";
 import { RegexReplaceNode } from "@dafthunk/runtime/nodes/text/regex-replace-node";
 import { RegexSplitNode } from "@dafthunk/runtime/nodes/text/regex-split-node";
 import { StringConcatNode } from "@dafthunk/runtime/nodes/text/string-concat-node";
+import { StringEqualsNode } from "@dafthunk/runtime/nodes/text/string-equals-node";
 import { StringIncludesNode } from "@dafthunk/runtime/nodes/text/string-includes-node";
 import { StringIndexOfNode } from "@dafthunk/runtime/nodes/text/string-index-of-node";
 import { StringLastIndexOfNode } from "@dafthunk/runtime/nodes/text/string-last-index-of-node";
@@ -589,6 +592,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
 
     // String operations
     this.registerImplementation(StringConcatNode);
+    this.registerImplementation(StringEqualsNode);
     this.registerImplementation(StringIncludesNode);
     this.registerImplementation(StringIndexOfNode);
     this.registerImplementation(StringLastIndexOfNode);
@@ -605,6 +609,8 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(BooleanInputNode);
     this.registerImplementation(ConditionalForkNode);
     this.registerImplementation(ConditionalJoinNode);
+    this.registerImplementation(SwitchForkNode);
+    this.registerImplementation(SwitchJoinNode);
     this.registerImplementation(CreateFormNode);
     this.registerImplementation(CreateFeedbackFormNode);
     this.registerImplementation(WaitForFormNode);

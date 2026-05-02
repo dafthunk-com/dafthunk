@@ -34,6 +34,7 @@ import { schemaExtractInputWidget } from "./input/schema-extract-input";
 import { secretInputWidget } from "./input/secret-input";
 import { slackTriggerInputWidget } from "./input/slack-trigger-input";
 import { sliderInputWidget } from "./input/slider-input";
+import { createSwitchForkCasesWidget } from "./input/switch-fork-cases-widget";
 import { telegramTriggerInputWidget } from "./input/telegram-trigger-input";
 import { textInputWidget } from "./input/text-input";
 import { videoInputWidget } from "./input/video-input";
@@ -101,6 +102,19 @@ const widgets = [
     prefix: "var",
     type: "string",
     defaultCount: 1,
+    minCount: 1,
+  }),
+  createDynamicInputsWidget(
+    "switch-join",
+    {
+      prefix: "case",
+      type: "any",
+      defaultCount: 2,
+      minCount: 1,
+    },
+    { inputField: "cases", label: "case" }
+  ),
+  createSwitchForkCasesWidget("switch-fork", {
     minCount: 1,
   }),
 

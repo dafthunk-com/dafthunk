@@ -91,6 +91,9 @@ export function SiteFooter() {
           <a href="/docs/developers" className="text-base hover:text-white">
             Developers Guide
           </a>
+          <a href="/blog" className="text-base hover:text-white">
+            Blog
+          </a>
           <a
             href="https://github.com/dafthunk-com/dafthunk/issues"
             target="_blank"

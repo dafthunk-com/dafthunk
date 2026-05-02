@@ -11,13 +11,13 @@ describe("ConditionalForkNode", () => {
     position: { x: 0, y: 0 },
     inputs: [
       {
-        name: "condition",
-        type: "boolean",
+        name: "value",
+        type: "any",
         required: true,
       },
       {
-        name: "value",
-        type: "any",
+        name: "condition",
+        type: "boolean",
         required: true,
       },
     ],

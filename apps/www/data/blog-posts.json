@@ -1,0 +1,15 @@
+{
+  "posts": [
+    {
+      "id": "building-effective-agents",
+      "title": "Building Effective Agents on Dafthunk",
+      "description": "How Anthropic's agent patterns map onto the Dafthunk runtime. Prompt chaining, routing, parallelization, orchestrator and workers, evaluator and optimizer, and autonomous agents, each shown as a shape you draw on the canvas.",
+      "tagline": "Six patterns, one visual canvas, on the Cloudflare stack.",
+      "date": "2026-04-29",
+      "author": "The Dafthunk team",
+      "readingMinutes": 5,
+      "tags": ["Agents", "Architecture", "Runtime"],
+      "published": true
+    }
+  ]
+}

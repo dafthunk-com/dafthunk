@@ -1,10 +1,9 @@
-import type { WorkflowTemplate } from "@dafthunk/types";
 import { ReactFlowProvider } from "@xyflow/react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useParams, useSearchParams } from "react-router";
 
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
-import { useTemplates } from "@/services/template-service";
+import { useTemplate } from "@/services/template-service";
 import { useNodeTypes } from "@/services/type-service";
 import {
   convertTemplateEdgesToReactFlowEdges,
@@ -19,21 +18,16 @@ export function TemplatePreviewPage() {
   const { templateId } = useParams<{ templateId: string }>();
   const [searchParams] = useSearchParams();
   const showBackground = searchParams.get("bg") !== "false";
+  const paddingParam = searchParams.get("padding");
+  const fitViewPadding =
+    paddingParam !== null && Number.isFinite(Number(paddingParam))
+      ? Number(paddingParam)
+      : undefined;
 
-  const { templates, isTemplatesLoading } = useTemplates();
+  const { template, isTemplateLoading } = useTemplate(templateId);
   const { nodeTypes, isNodeTypesLoading } = useNodeTypes({
     revalidateOnFocus: false,
   });
-
-  const [template, setTemplate] = useState<WorkflowTemplate | null>(null);
-
-  // Find the requested template
-  useEffect(() => {
-    if (templates.length > 0 && templateId) {
-      const found = templates.find((t) => t.id === templateId);
-      setTemplate(found || null);
-    }
-  }, [templates, templateId]);
 
   // When embedded without background, make html/body transparent so the
   // host page's background shows through the iframe.
@@ -66,7 +60,7 @@ export function TemplatePreviewPage() {
   }, [template, nodeTypes]);
 
   // Loading state
-  if (isTemplatesLoading || isNodeTypesLoading) {
+  if (isTemplateLoading || isNodeTypesLoading) {
     return (
       <div className="w-full h-screen flex items-center justify-center bg-neutral-50">
         <div className="animate-pulse text-neutral-400">Loading...</div>
@@ -107,6 +101,7 @@ export function TemplatePreviewPage() {
           createObjectUrl={() => ""}
           orgId=""
           showBackground={showBackground}
+          fitViewPadding={fitViewPadding}
         />
       </ReactFlowProvider>
     </div>

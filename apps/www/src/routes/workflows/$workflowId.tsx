@@ -162,6 +162,7 @@ export default function WorkflowPage({
             templateId={workflow.id}
             className="h-160"
             showBackground={false}
+            padding={0.05}
           />
         </section>
 

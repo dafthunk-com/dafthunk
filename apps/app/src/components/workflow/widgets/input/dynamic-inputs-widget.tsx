@@ -14,12 +14,16 @@ interface DynamicInputsWidgetProps extends BaseWidgetProps {
   nodeId: string;
   nodeType: string;
   inputCount: number;
+  label: string;
+  labelPlural: string;
 }
 
 function DynamicInputsWidget({
   nodeId,
   nodeType,
   inputCount,
+  label,
+  labelPlural,
   className,
   disabled = false,
 }: DynamicInputsWidgetProps) {
@@ -89,7 +93,7 @@ function DynamicInputsWidget({
         <MinusIcon className="h-3 w-3" />
       </button>
       <span className="flex-1 text-center text-xs text-muted-foreground tabular-nums">
-        {inputCount} {inputCount === 1 ? "input" : "inputs"}
+        {inputCount} {inputCount === 1 ? label : labelPlural}
       </span>
       <button
         type="button"
@@ -122,19 +126,35 @@ function countDynamicInputs(
 
 /**
  * Creates a dynamic inputs widget descriptor for a given node type.
+ *
+ * By default the widget binds to `${prefix}_1`, replacing its rendering with
+ * the +/- counter. Pass `inputField` to bind to a different (typically hidden)
+ * field so the dynamic inputs themselves render with their default UI.
+ *
+ * The counter label defaults to "input"/"inputs"; pass `label` (and optionally
+ * `labelPlural`) to override (e.g. "case"/"cases").
  */
 export function createDynamicInputsWidget(
   nodeType: string,
-  config: DynamicInputsConfig
+  config: DynamicInputsConfig,
+  options?: {
+    inputField?: string;
+    label?: string;
+    labelPlural?: string;
+  }
 ) {
+  const label = options?.label ?? "input";
+  const labelPlural = options?.labelPlural ?? `${label}s`;
   return createWidget({
     component: DynamicInputsWidget,
     nodeTypes: [nodeType],
-    inputField: `${config.prefix}_1`,
+    inputField: options?.inputField ?? `${config.prefix}_1`,
     extractConfig: (nodeId, inputs) => ({
       nodeId,
       nodeType,
       inputCount: countDynamicInputs(inputs, config),
+      label,
+      labelPlural,
     }),
   });
 }

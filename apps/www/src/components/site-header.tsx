@@ -15,6 +15,7 @@ const navigation: NavigationItem[] = [
   { href: "/#open-source", label: "Open Source" },
   { href: "/#faq", label: "FAQ" },
   { href: "/docs", label: "Docs" },
+  { href: "/blog", label: "Blog" },
   {
     href: "https://github.com/dafthunk-com/dafthunk",
     label: "GitHub",

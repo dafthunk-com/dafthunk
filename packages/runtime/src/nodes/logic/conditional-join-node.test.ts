@@ -11,12 +11,12 @@ describe("ConditionalJoinNode", () => {
     position: { x: 0, y: 0 },
     inputs: [
       {
-        name: "a",
+        name: "true",
         type: "any",
         required: false,
       },
       {
-        name: "b",
+        name: "false",
         type: "any",
         required: false,
       },
@@ -41,28 +41,28 @@ describe("ConditionalJoinNode", () => {
     env: {} as any,
   });
 
-  it("should output 'a' when only 'a' is provided", async () => {
+  it("should output 'true' when only 'true' is provided", async () => {
     const node = new ConditionalJoinNode(createTestNode());
     const context = createNodeContext({
-      a: "hello from a",
+      true: "hello from true",
     });
 
     const result = await node.execute(context);
 
     expect(result.status).toBe("completed");
-    expect(result.outputs?.result).toBe("hello from a");
+    expect(result.outputs?.result).toBe("hello from true");
   });
 
-  it("should output 'b' when only 'b' is provided", async () => {
+  it("should output 'false' when only 'false' is provided", async () => {
     const node = new ConditionalJoinNode(createTestNode());
     const context = createNodeContext({
-      b: "hello from b",
+      false: "hello from false",
     });
 
     const result = await node.execute(context);
 
     expect(result.status).toBe("completed");
-    expect(result.outputs?.result).toBe("hello from b");
+    expect(result.outputs?.result).toBe("hello from false");
   });
 
   it("should handle complex data types correctly", async () => {
@@ -73,7 +73,7 @@ describe("ConditionalJoinNode", () => {
       items: [1, 2, 3],
     };
     const context = createNodeContext({
-      a: complexData,
+      true: complexData,
     });
 
     const result = await node.execute(context);
@@ -85,14 +85,14 @@ describe("ConditionalJoinNode", () => {
   it("should error when both inputs are provided (violates exclusive join)", async () => {
     const node = new ConditionalJoinNode(createTestNode());
     const context = createNodeContext({
-      a: "hello from a",
-      b: "hello from b",
+      true: "hello from true",
+      false: "hello from false",
     });
 
     const result = await node.execute(context);
 
     expect(result.status).toBe("error");
-    expect(result.error).toContain("both 'a' and 'b' were provided");
+    expect(result.error).toContain("both 'true' and 'false' were provided");
     expect(result.error).toContain("exclusive join condition");
   });
 
@@ -103,7 +103,7 @@ describe("ConditionalJoinNode", () => {
     const result = await node.execute(context);
 
     expect(result.status).toBe("error");
-    expect(result.error).toContain("neither 'a' nor 'b' was provided");
+    expect(result.error).toContain("neither 'true' nor 'false' was provided");
     expect(result.error).toContain("error in the workflow design");
   });
 
@@ -111,7 +111,7 @@ describe("ConditionalJoinNode", () => {
     const node = new ConditionalJoinNode(createTestNode());
     // null is a valid value, undefined means input wasn't provided
     const contextWithNull = createNodeContext({
-      a: null,
+      true: null,
     });
 
     const result = await node.execute(contextWithNull);
@@ -126,7 +126,7 @@ describe("ConditionalJoinNode", () => {
     const falsyValues = [false, 0, "", null];
     for (const value of falsyValues) {
       const context = createNodeContext({
-        a: value,
+        true: value,
       });
       const result = await node.execute(context);
       expect(result.status).toBe("completed");

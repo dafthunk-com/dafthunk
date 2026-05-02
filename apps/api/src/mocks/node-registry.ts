@@ -8,6 +8,8 @@ import { ConditionalForkNode } from "@dafthunk/runtime/nodes/logic/conditional-f
 import { ConditionalJoinNode } from "@dafthunk/runtime/nodes/logic/conditional-join-node";
 import { CreateFeedbackFormNode } from "@dafthunk/runtime/nodes/logic/create-feedback-form-node";
 import { CreateFormNode } from "@dafthunk/runtime/nodes/logic/create-form-node";
+import { SwitchForkNode } from "@dafthunk/runtime/nodes/logic/switch-fork-node";
+import { SwitchJoinNode } from "@dafthunk/runtime/nodes/logic/switch-join-node";
 import { WaitForFormNode } from "@dafthunk/runtime/nodes/logic/wait-for-form-node";
 import { AdditionNode } from "@dafthunk/runtime/nodes/math/addition-node";
 import { AvgNode } from "@dafthunk/runtime/nodes/math/avg-node";
@@ -49,6 +51,8 @@ export class MockNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(MedianNode);
     this.registerImplementation(ConditionalForkNode);
     this.registerImplementation(ConditionalJoinNode);
+    this.registerImplementation(SwitchForkNode);
+    this.registerImplementation(SwitchJoinNode);
     this.registerImplementation(CreateFormNode);
     this.registerImplementation(CreateFeedbackFormNode);
     this.registerImplementation(WaitForFormNode);
