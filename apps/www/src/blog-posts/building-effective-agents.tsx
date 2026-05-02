@@ -79,6 +79,7 @@ export const buildingEffectiveAgentsContent = (
         className="h-96 md:h-[28rem]"
         showBackground={false}
         padding={0.05}
+        showCopyButton
       />
       <figcaption className="mt-3 text-sm text-gray-500 italic">
         The AI Calculator template. The model is wired to a calculator node as a
@@ -104,6 +105,7 @@ export const buildingEffectiveAgentsContent = (
         className="h-96 md:h-[28rem]"
         showBackground={false}
         padding={0.05}
+        showCopyButton
       />
       <figcaption className="mt-3 text-sm text-gray-500 italic">
         The Outline and Write template. The outliner feeds the writer.
@@ -148,6 +150,7 @@ export const buildingEffectiveAgentsContent = (
         className="h-96 md:h-[28rem]"
         showBackground={false}
         padding={0.05}
+        showCopyButton
       />
       <figcaption className="mt-3 text-sm text-gray-500 italic">
         The Support Routing template. The switch fork sends the message to a
@@ -180,6 +183,7 @@ export const buildingEffectiveAgentsContent = (
         className="h-96 md:h-[28rem]"
         showBackground={false}
         padding={0.05}
+        showCopyButton
       />
       <figcaption className="mt-3 text-sm text-gray-500 italic">
         The Parallel Article Card template. Three independent calls fan out from
@@ -215,6 +219,7 @@ export const buildingEffectiveAgentsContent = (
         className="h-96 md:h-[28rem]"
         showBackground={false}
         padding={0.05}
+        showCopyButton
       />
       <figcaption className="mt-3 text-sm text-gray-500 italic">
         The Wiki Research Agent template. Three nodes: the question, the agent,
@@ -228,7 +233,7 @@ export const buildingEffectiveAgentsContent = (
       The patterns are building blocks, not boxes. Place an agent inside a
       routing branch. Wrap a chain in a fork-join. None of this is novel. What
       feels novel is how cheap it becomes once the node and tool registries
-      share the same building blocks.
+      draw from the same catalog.
     </p>
 
     <p>

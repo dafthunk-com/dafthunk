@@ -1,3 +1,5 @@
+import { Copy } from "lucide-react";
+
 import { cn } from "../lib/utils";
 
 interface WorkflowPreviewProps {
@@ -10,6 +12,11 @@ interface WorkflowPreviewProps {
    * tighter; higher values leave more breathing room. Defaults to 0.25.
    */
   padding?: number;
+  /**
+   * When true, overlays a button on the preview that opens the template in
+   * the workflow editor as a copy. Defaults to false.
+   */
+  showCopyButton?: boolean;
 }
 
 // App URL - in production this would point to the app domain
@@ -24,6 +31,7 @@ export function WorkflowPreview({
   className = "",
   showBackground = true,
   padding,
+  showCopyButton = false,
 }: WorkflowPreviewProps) {
   const params = new URLSearchParams();
   if (!showBackground) params.set("bg", "false");
@@ -34,7 +42,7 @@ export function WorkflowPreview({
   return (
     <div
       className={cn(
-        "rounded-xl overflow-hidden",
+        "relative rounded-xl overflow-hidden",
         showBackground && "bg-neutral-50",
         className
       )}
@@ -46,6 +54,15 @@ export function WorkflowPreview({
         loading="lazy"
         sandbox="allow-scripts allow-same-origin"
       />
+      {showCopyButton && (
+        <a
+          href={`${APP_URL}/templates/${templateId}/try`}
+          className="absolute top-4 right-4 inline-flex items-center gap-2 text-sm bg-black text-white hover:text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors shadow-md !no-underline"
+        >
+          <Copy className="w-4 h-4" />
+          Copy
+        </a>
+      )}
     </div>
   );
 }
