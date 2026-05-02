@@ -147,7 +147,7 @@
       "metaDescription": "JavaScript code, HTTP and webhook, SQL database, queues, and conditional logic nodes for extending visual workflows with code on Cloudflare.",
       "tags": ["JavaScript", "HTTP/API", "Database", "Logic flows", "REST API"],
       "nodeIds": [
-        "javascript-script",
+        "javascript",
         "http-request",
         "http-webhook",
         "fetch",

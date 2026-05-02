@@ -1,6 +1,8 @@
 import type { NodeContext } from "@dafthunk/runtime";
 import type { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
+
+import { MockCodeModeExecutor } from "../../utils/mock-code-mode-executor";
 import { JsonExecuteJavascriptNode } from "./json-execute-javascript-node";
 
 describe("JsonJavascriptProcessorNode", () => {
@@ -22,6 +24,7 @@ describe("JsonJavascriptProcessorNode", () => {
         json,
         javascript,
       },
+      codeModeExecutor: new MockCodeModeExecutor(),
       getIntegration: async () => {
         throw new Error("No integrations in test");
       },
@@ -62,6 +65,7 @@ describe("JsonJavascriptProcessorNode", () => {
         json,
         javascript,
       },
+      codeModeExecutor: new MockCodeModeExecutor(),
       getIntegration: async () => {
         throw new Error("No integrations in test");
       },
@@ -96,6 +100,7 @@ describe("JsonJavascriptProcessorNode", () => {
         json,
         javascript,
       },
+      codeModeExecutor: new MockCodeModeExecutor(),
       getIntegration: async () => {
         throw new Error("No integrations in test");
       },
@@ -129,6 +134,7 @@ describe("JsonJavascriptProcessorNode", () => {
         json,
         javascript,
       },
+      codeModeExecutor: new MockCodeModeExecutor(),
       getIntegration: async () => {
         throw new Error("No integrations in test");
       },
@@ -158,6 +164,7 @@ describe("JsonJavascriptProcessorNode", () => {
         json: null,
         javascript,
       },
+      codeModeExecutor: new MockCodeModeExecutor(),
       getIntegration: async () => {
         throw new Error("No integrations in test");
       },
@@ -181,6 +188,7 @@ describe("JsonJavascriptProcessorNode", () => {
         json: undefined,
         javascript,
       },
+      codeModeExecutor: new MockCodeModeExecutor(),
       getIntegration: async () => {
         throw new Error("No integrations in test");
       },
@@ -204,6 +212,7 @@ describe("JsonJavascriptProcessorNode", () => {
         json,
         javascript: "",
       },
+      codeModeExecutor: new MockCodeModeExecutor(),
       getIntegration: async () => {
         throw new Error("No integrations in test");
       },
@@ -227,6 +236,7 @@ describe("JsonJavascriptProcessorNode", () => {
         json,
         javascript: null,
       },
+      codeModeExecutor: new MockCodeModeExecutor(),
       getIntegration: async () => {
         throw new Error("No integrations in test");
       },
@@ -250,6 +260,7 @@ describe("JsonJavascriptProcessorNode", () => {
         json,
         javascript: undefined,
       },
+      codeModeExecutor: new MockCodeModeExecutor(),
       getIntegration: async () => {
         throw new Error("No integrations in test");
       },
@@ -274,6 +285,7 @@ describe("JsonJavascriptProcessorNode", () => {
         json,
         javascript,
       },
+      codeModeExecutor: new MockCodeModeExecutor(),
       getIntegration: async () => {
         throw new Error("No integrations in test");
       },
@@ -298,6 +310,7 @@ describe("JsonJavascriptProcessorNode", () => {
         json,
         javascript,
       },
+      codeModeExecutor: new MockCodeModeExecutor(),
       getIntegration: async () => {
         throw new Error("No integrations in test");
       },
@@ -333,6 +346,7 @@ describe("JsonJavascriptProcessorNode", () => {
         json,
         javascript,
       },
+      codeModeExecutor: new MockCodeModeExecutor(),
       getIntegration: async () => {
         throw new Error("No integrations in test");
       },
@@ -364,6 +378,7 @@ describe("JsonJavascriptProcessorNode", () => {
         json,
         javascript,
       },
+      codeModeExecutor: new MockCodeModeExecutor(),
       getIntegration: async () => {
         throw new Error("No integrations in test");
       },
@@ -390,6 +405,7 @@ describe("JsonJavascriptProcessorNode", () => {
         json,
         javascript,
       },
+      codeModeExecutor: new MockCodeModeExecutor(),
       getIntegration: async () => {
         throw new Error("No integrations in test");
       },
@@ -423,6 +439,7 @@ describe("JsonJavascriptProcessorNode", () => {
         json,
         javascript,
       },
+      codeModeExecutor: new MockCodeModeExecutor(),
       getIntegration: async () => {
         throw new Error("No integrations in test");
       },
@@ -451,6 +468,7 @@ describe("JsonJavascriptProcessorNode", () => {
         json,
         javascript,
       },
+      codeModeExecutor: new MockCodeModeExecutor(),
       getIntegration: async () => {
         throw new Error("No integrations in test");
       },
@@ -485,6 +503,7 @@ describe("JsonJavascriptProcessorNode", () => {
         json,
         javascript,
       },
+      codeModeExecutor: new MockCodeModeExecutor(),
       getIntegration: async () => {
         throw new Error("No integrations in test");
       },
@@ -527,6 +546,7 @@ describe("JsonJavascriptProcessorNode", () => {
         json,
         javascript,
       },
+      codeModeExecutor: new MockCodeModeExecutor(),
       getIntegration: async () => {
         throw new Error("No integrations in test");
       },
@@ -569,6 +589,7 @@ describe("JsonJavascriptProcessorNode", () => {
         json,
         javascript,
       },
+      codeModeExecutor: new MockCodeModeExecutor(),
       getIntegration: async () => {
         throw new Error("No integrations in test");
       },

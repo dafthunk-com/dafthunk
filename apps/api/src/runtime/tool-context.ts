@@ -5,6 +5,7 @@ import type {
 } from "@dafthunk/runtime";
 
 import type { Bindings } from "../context";
+import { createCodeModeExecutor } from "./code-mode-executor";
 
 /** Optional services that tool-executed nodes may need */
 interface ToolContextServices {
@@ -12,6 +13,7 @@ interface ToolContextServices {
   datasetService?: NodeContext["datasetService"];
   queueService?: NodeContext["queueService"];
   schemaService?: NodeContext["schemaService"];
+  codeModeExecutor?: NodeContext["codeModeExecutor"];
 }
 
 /**
@@ -39,6 +41,8 @@ export function createToolContext(
     datasetService: services?.datasetService,
     queueService: services?.queueService,
     schemaService: services?.schemaService,
+    codeModeExecutor:
+      services?.codeModeExecutor ?? createCodeModeExecutor(env) ?? undefined,
     env,
   };
 }

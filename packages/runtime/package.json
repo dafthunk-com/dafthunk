@@ -18,7 +18,6 @@
     "@anthropic-ai/sdk": "^0.71.2",
     "@cf-wasm/photon": "^0.3.4",
     "@cf-wasm/png": "^0.3.2",
-    "@cf-wasm/quickjs": "^0.2.4",
     "@cf-wasm/resvg": "^0.3.3",
     "@cloudflare/ai-utils": "^1.0.1",
     "@cloudflare/sandbox": "^0.7.17",

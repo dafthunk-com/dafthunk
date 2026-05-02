@@ -14,9 +14,12 @@
 
 import { RpcTarget } from "cloudflare:workers";
 
-import type {
-  CodeModeExecutor,
-  CodeModeResult,
+import {
+  type CodeModeExecutor,
+  type CodeModeOptions,
+  type CodeModeResult,
+  LOG_PREFIX_ERROR,
+  LOG_PREFIX_WARN,
 } from "@dafthunk/runtime/utils/code-mode";
 
 import type { Bindings } from "../context";
@@ -49,18 +52,19 @@ class ToolDispatcher extends RpcTarget {
 
 class DynamicWorkerExecutor implements CodeModeExecutor {
   #loader: WorkerLoader;
-  #timeout: number;
+  #defaultTimeout: number;
 
-  constructor(loader: WorkerLoader, timeout = 30_000) {
+  constructor(loader: WorkerLoader, defaultTimeout = 30_000) {
     this.#loader = loader;
-    this.#timeout = timeout;
+    this.#defaultTimeout = defaultTimeout;
   }
 
   async execute(
     code: string,
-    fns: Record<string, (...args: unknown[]) => Promise<unknown>>
+    fns: Record<string, (...args: unknown[]) => Promise<unknown>>,
+    options?: CodeModeOptions
   ): Promise<CodeModeResult> {
-    const timeoutMs = this.#timeout;
+    const timeoutMs = options?.timeoutMs ?? this.#defaultTimeout;
 
     // Build a self-contained ES module that wraps the LLM-generated code.
     // The code is wrapped in `(async () => { CODE })()` so the LLM can
@@ -72,8 +76,8 @@ class DynamicWorkerExecutor implements CodeModeExecutor {
       "  async evaluate(dispatcher) {",
       "    const __logs = [];",
       '    console.log = (...a) => { __logs.push(a.map(String).join(" ")); };',
-      '    console.warn = (...a) => { __logs.push("[warn] " + a.map(String).join(" ")); };',
-      '    console.error = (...a) => { __logs.push("[error] " + a.map(String).join(" ")); };',
+      `    console.warn = (...a) => { __logs.push(${JSON.stringify(LOG_PREFIX_WARN)} + a.map(String).join(" ")); };`,
+      `    console.error = (...a) => { __logs.push(${JSON.stringify(LOG_PREFIX_ERROR)} + a.map(String).join(" ")); };`,
       "    const codemode = new Proxy({}, {",
       "      get: (_, toolName) => async (args) => {",
       "        const resJson = await dispatcher.call(String(toolName), JSON.stringify(args ?? {}));",

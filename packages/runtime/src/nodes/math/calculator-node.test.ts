@@ -1,6 +1,8 @@
 import type { NodeContext } from "@dafthunk/runtime";
 import type { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
+
+import { MockCodeModeExecutor } from "../../utils/mock-code-mode-executor";
 import { CalculatorNode } from "./calculator-node";
 
 describe("CalculatorNode", () => {
@@ -19,6 +21,7 @@ describe("CalculatorNode", () => {
       executionId: "test-execution",
       organizationId: "test-org",
       mode: "dev" as const,
+      codeModeExecutor: new MockCodeModeExecutor(),
       getIntegration: async () => {
         throw new Error("No integrations in test");
       },

@@ -232,8 +232,8 @@ export const buildingEffectiveAgentsContent = (
     <p>
       The patterns are building blocks, not boxes. Place an agent inside a
       routing branch. Wrap a chain in a fork-join. None of this is novel. What
-      feels novel is how cheap it becomes once the node and tool registries
-      draw from the same catalog.
+      feels novel is how cheap it becomes once the node and tool registries draw
+      from the same catalog.
     </p>
 
     <p>

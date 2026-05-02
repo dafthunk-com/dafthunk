@@ -52,6 +52,7 @@ import type { ObjectStore } from "./object-store";
 import { apiToNodeParameter, nodeToApiParameter } from "./parameter-mapper";
 import type { QueueService } from "./queue-service";
 import type { SchemaService } from "./schema-service";
+import type { CodeModeExecutor } from "./utils/code-mode";
 import { validateWorkflow } from "./validate-workflow";
 
 export interface RuntimeParams {
@@ -97,6 +98,8 @@ export interface RuntimeDependencies<Env = unknown> {
   datasetService?: DatasetService;
   queueService?: QueueService;
   schemaService?: SchemaService;
+  /** Sandboxed JavaScript executor (Cloudflare Dynamic Workers in production). */
+  codeModeExecutor?: CodeModeExecutor;
   runtimeVersion?: string;
 }
 
@@ -130,6 +133,7 @@ export abstract class Runtime<Env = unknown> {
   protected datasetService?: DatasetService;
   protected queueService?: QueueService;
   protected schemaService?: SchemaService;
+  protected codeModeExecutor?: CodeModeExecutor;
   protected env: Env;
   protected runtimeVersion?: string;
   protected userPlan?: string;
@@ -155,6 +159,7 @@ export abstract class Runtime<Env = unknown> {
     this.datasetService = dependencies.datasetService;
     this.queueService = dependencies.queueService;
     this.schemaService = dependencies.schemaService;
+    this.codeModeExecutor = dependencies.codeModeExecutor;
     this.runtimeVersion = dependencies.runtimeVersion;
   }
 
@@ -1031,6 +1036,7 @@ export abstract class Runtime<Env = unknown> {
         datasetService: this.datasetService,
         queueService: this.queueService,
         schemaService: this.schemaService,
+        codeModeExecutor: this.codeModeExecutor,
         getSecret: (secretName: string) =>
           this.credentialProvider.getSecret(secretName),
         getIntegration: (integrationId: string) =>

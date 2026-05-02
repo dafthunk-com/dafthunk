@@ -15,7 +15,6 @@ export default defineConfig({
       "@cloudflare/containers": emptyStub,
       "@cf-wasm/photon": emptyStub,
       "@cf-wasm/png": emptyStub,
-      "@cf-wasm/quickjs": emptyStub,
       "@cf-wasm/resvg": emptyStub,
     },
   },

@@ -18,11 +18,84 @@ export interface CodeModeResult {
   logs?: string[];
 }
 
+export interface CodeModeOptions {
+  /** Per-call execution timeout in milliseconds. Falls back to executor default. */
+  timeoutMs?: number;
+}
+
 export interface CodeModeExecutor {
   execute(
     code: string,
-    fns: Record<string, (...args: unknown[]) => Promise<unknown>>
+    fns: Record<string, (...args: unknown[]) => Promise<unknown>>,
+    options?: CodeModeOptions
   ): Promise<CodeModeResult>;
+}
+
+// ── Console-capture log-line prefix convention ──────────────────────────
+// The wrapper module in `apps/api/src/runtime/code-mode-executor.ts` and the
+// `MockCodeModeExecutor` route console.warn / console.error through these
+// prefixes so a single `logs[]` array can carry both streams over RPC.
+
+export const LOG_PREFIX_WARN = "[warn] ";
+export const LOG_PREFIX_ERROR = "[error] ";
+
+// ── Shared error message for nodes when LOADER is unavailable ───────────
+
+export const EXECUTOR_UNAVAILABLE_MESSAGE =
+  "JavaScript executor unavailable (LOADER binding missing).";
+
+// ── Source transformation: last-expression → return ─────────────────────
+
+/**
+ * Auto-`return` the trailing expression when the user hasn't written one.
+ *
+ * `CodeModeExecutor` runs user code as the body of an async function — only
+ * `return` surfaces a value. Workflow scripts conventionally rely on
+ * last-expression semantics, so this bridges the two with a heuristic:
+ * any `\breturn\b` in the source disables the rewrite.
+ */
+export function autoReturnLastExpression(code: string): string {
+  const stripped = code.replace(/;\s*$/, "").trimEnd();
+  const trimmed = stripped.trim();
+  if (trimmed === "") return code;
+
+  // Defer to explicit user flow if `return` appears anywhere (false positives
+  // in string literals are acceptable — they can wrap with `return (...)`).
+  if (/\breturn\b/.test(trimmed)) return code;
+
+  // Object-literal-only script: wrap in parens so it parses as expression.
+  if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+    return `return (${trimmed});`;
+  }
+
+  if (!stripped.includes(";") && !/[\n\r]/.test(stripped)) {
+    return `return (${trimmed});`;
+  }
+
+  // Multi-statement: split on the final `;` and return the trailing tail.
+  // Heuristic — won't handle `;` embedded in strings/templates.
+  const lastSemi = stripped.lastIndexOf(";");
+  if (lastSemi === -1) return `return (${trimmed});`;
+
+  const before = stripped.slice(0, lastSemi + 1);
+  const tail = stripped.slice(lastSemi + 1).trim();
+  if (tail === "") return before;
+  return `${before}\nreturn (${tail});`;
+}
+
+// ── Bind a host value into the user script's lexical scope ──────────────
+
+/**
+ * Build executor-ready code that binds `value` to `bindingName` in the user
+ * script's scope, then auto-returns the trailing expression. Used by the
+ * `args` (script node) and `json` (json-execute node) bindings.
+ */
+export function buildScriptWithBinding(
+  bindingName: string,
+  value: unknown,
+  userScript: string
+): string {
+  return `const ${bindingName} = ${JSON.stringify(value)};\n${autoReturnLastExpression(userScript)}`;
 }
 
 // ── JSON Schema → TypeScript type string ────────────────────────────────

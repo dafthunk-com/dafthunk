@@ -301,7 +301,7 @@ import { SliderInputNode } from "@dafthunk/runtime/nodes/input/slider-input-node
 import { TextInputNode } from "@dafthunk/runtime/nodes/input/text-input-node";
 import { VideoInputNode } from "@dafthunk/runtime/nodes/input/video-input-node";
 import { WebcamInputNode } from "@dafthunk/runtime/nodes/input/webcam-input-node";
-import { JavascriptScriptNode } from "@dafthunk/runtime/nodes/javascript/javascript-script-node";
+import { JavascriptNode } from "@dafthunk/runtime/nodes/javascript/javascript-node";
 import { JsonAggNode } from "@dafthunk/runtime/nodes/json/json-agg-node";
 import { JsonArrayLengthNode } from "@dafthunk/runtime/nodes/json/json-array-length-node";
 import { JsonContainsNode } from "@dafthunk/runtime/nodes/json/json-contains-node";
@@ -585,7 +585,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(JsonStringTemplateNode);
     this.registerImplementation(VarStringTemplateNode);
     this.registerImplementation(JavaScriptInputNode);
-    this.registerImplementation(JavascriptScriptNode);
+    this.registerImplementation(JavascriptNode);
     this.registerImplementation(CanvasInputNode);
     this.registerImplementation(ExifReaderNode);
     this.registerImplementation(WebcamInputNode);

@@ -26,6 +26,7 @@ import {
 import { CloudflareQueueService } from "./cloudflare-queue-service";
 import { CloudflareSchemaService } from "./cloudflare-schema-service";
 import { CloudflareToolRegistry } from "./cloudflare-tool-registry";
+import { createCodeModeExecutor } from "./code-mode-executor";
 import { createToolContext } from "./tool-context";
 import { runtimeVersion } from "./version";
 
@@ -54,6 +55,8 @@ export function buildDependencies(
       })
   );
 
+  const codeModeExecutor = createCodeModeExecutor(env) ?? undefined;
+
   return {
     nodeRegistry,
     credentialProvider,
@@ -69,6 +72,7 @@ export function buildDependencies(
     datasetService,
     queueService,
     schemaService,
+    codeModeExecutor,
     runtimeVersion,
   };
 }
