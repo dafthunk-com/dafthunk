@@ -7,6 +7,7 @@ import { googleCalendarProvider } from "./google-calendar";
 import { googleMailProvider } from "./google-mail";
 import { linkedinProvider } from "./linkedin";
 import { redditProvider } from "./reddit";
+import { wordpressProvider } from "./wordpress";
 import { xProvider } from "./x";
 
 /**
@@ -21,6 +22,7 @@ export const PROVIDER_REGISTRY: Record<IntegrationProvider, ProviderConfig> = {
   linkedin: linkedinProvider,
   github: githubProvider,
   x: xProvider,
+  wordpress: wordpressProvider,
 };
 
 /**

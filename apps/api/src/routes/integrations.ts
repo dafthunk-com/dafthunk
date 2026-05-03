@@ -78,6 +78,12 @@ integrationRoutes.get("/providers", async (c) => {
   if (env.INTEGRATION_X_CLIENT_ID && env.INTEGRATION_X_CLIENT_SECRET) {
     availableProviders.push("x");
   }
+  if (
+    env.INTEGRATION_WORDPRESS_CLIENT_ID &&
+    env.INTEGRATION_WORDPRESS_CLIENT_SECRET
+  ) {
+    availableProviders.push("wordpress");
+  }
 
   return c.json({ providers: availableProviders });
 });
@@ -126,6 +132,7 @@ integrationRoutes.post(
         "linkedin",
         "github",
         "x",
+        "wordpress",
       ]),
       token: z.string().min(1, "Token is required"),
       refreshToken: z.string().optional(),

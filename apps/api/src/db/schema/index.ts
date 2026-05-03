@@ -83,6 +83,7 @@ export const IntegrationProvider = {
   REDDIT: "reddit",
   LINKEDIN: "linkedin",
   X: "x",
+  WORDPRESS: "wordpress",
 } as const;
 
 export type IntegrationProviderType =

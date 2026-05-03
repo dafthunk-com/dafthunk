@@ -19,6 +19,8 @@ export type {
   RedditToken,
   RedditUser,
   ValidatedState,
+  WordPressToken,
+  WordPressUser,
 } from "./types";
 
 // Errors

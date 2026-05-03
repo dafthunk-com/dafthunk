@@ -16,6 +16,7 @@ describe("OAuth Module", () => {
       expect(getProvider("linkedin")).toBeDefined();
       expect(getProvider("reddit")).toBeDefined();
       expect(getProvider("github")).toBeDefined();
+      expect(getProvider("wordpress")).toBeDefined();
     });
 
     it("should throw error for unknown provider", () => {
@@ -30,7 +31,7 @@ describe("OAuth Module", () => {
 
     it("should return all providers", () => {
       const providers = getAllProviders();
-      expect(providers).toHaveLength(7);
+      expect(providers).toHaveLength(8);
     });
   });
 
@@ -61,6 +62,11 @@ describe("OAuth Module", () => {
     it("should have correct refresh configuration for GitHub", () => {
       const github = getProvider("github");
       expect(github.refreshEnabled).toBe(false);
+    });
+
+    it("should have correct refresh configuration for WordPress", () => {
+      const wordpress = getProvider("wordpress");
+      expect(wordpress.refreshEnabled).toBe(false);
     });
   });
 

@@ -436,6 +436,16 @@ import { BotSendMessageWhatsAppNode } from "@dafthunk/runtime/nodes/whatsapp/bot
 import { BotSendTemplateWhatsAppNode } from "@dafthunk/runtime/nodes/whatsapp/bot-send-template-whatsapp-node";
 import { SearchMediaWikiNode } from "@dafthunk/runtime/nodes/wikipedia/search-mediawiki-node";
 import { SearchWikipediaNode } from "@dafthunk/runtime/nodes/wikipedia/search-wikipedia-node";
+import { CreatePostWordPressNode } from "@dafthunk/runtime/nodes/wordpress/create-post-wordpress-node";
+import { CreateTagWordPressNode } from "@dafthunk/runtime/nodes/wordpress/create-tag-wordpress-node";
+import { DeletePostWordPressNode } from "@dafthunk/runtime/nodes/wordpress/delete-post-wordpress-node";
+import { GetPostWordPressNode } from "@dafthunk/runtime/nodes/wordpress/get-post-wordpress-node";
+import { GetSiteWordPressNode } from "@dafthunk/runtime/nodes/wordpress/get-site-wordpress-node";
+import { ListCategoriesWordPressNode } from "@dafthunk/runtime/nodes/wordpress/list-categories-wordpress-node";
+import { ListPostsWordPressNode } from "@dafthunk/runtime/nodes/wordpress/list-posts-wordpress-node";
+import { SearchWordPressNode } from "@dafthunk/runtime/nodes/wordpress/search-wordpress-node";
+import { UpdatePostWordPressNode } from "@dafthunk/runtime/nodes/wordpress/update-post-wordpress-node";
+import { UploadMediaWordPressNode } from "@dafthunk/runtime/nodes/wordpress/upload-media-wordpress-node";
 import { DeletePostXNode } from "@dafthunk/runtime/nodes/x/delete-post-x-node";
 import { FollowUserXNode } from "@dafthunk/runtime/nodes/x/follow-user-x-node";
 import { GetPostXNode } from "@dafthunk/runtime/nodes/x/get-post-x-node";
@@ -489,6 +499,10 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     );
     const hasX = !!(
       this.env.INTEGRATION_X_CLIENT_ID && this.env.INTEGRATION_X_CLIENT_SECRET
+    );
+    const hasWordPress = !!(
+      this.env.INTEGRATION_WORDPRESS_CLIENT_ID &&
+      this.env.INTEGRATION_WORDPRESS_CLIENT_SECRET
     );
 
     // Register all core nodes
@@ -844,6 +858,19 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
       this.registerImplementation(DeleteFileGithubNode);
       this.registerImplementation(ListUserRepositoriesGithubNode);
       this.registerImplementation(ListOrganizationRepositoriesGithubNode);
+    }
+
+    if (hasWordPress) {
+      this.registerImplementation(ListPostsWordPressNode);
+      this.registerImplementation(GetPostWordPressNode);
+      this.registerImplementation(CreatePostWordPressNode);
+      this.registerImplementation(UpdatePostWordPressNode);
+      this.registerImplementation(DeletePostWordPressNode);
+      this.registerImplementation(ListCategoriesWordPressNode);
+      this.registerImplementation(CreateTagWordPressNode);
+      this.registerImplementation(SearchWordPressNode);
+      this.registerImplementation(UploadMediaWordPressNode);
+      this.registerImplementation(GetSiteWordPressNode);
     }
 
     // Dataset nodes

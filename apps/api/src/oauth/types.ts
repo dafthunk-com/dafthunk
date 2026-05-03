@@ -185,3 +185,32 @@ export interface GitHubUser {
   email: string;
   avatar_url: string;
 }
+
+/**
+ * WordPress.com OAuth token response
+ *
+ * WordPress.com tokens do not expire and have no refresh token.
+ * `blog_id` and `blog_url` are present when the token is bound to a single site
+ * (i.e. when the user picks a site during the OAuth grant); when `scope=global`
+ * is requested they are absent and the user's sites must be discovered via /me/sites.
+ */
+export interface WordPressToken {
+  access_token: string;
+  token_type: string;
+  blog_id?: string | number;
+  blog_url?: string;
+  scope?: string;
+}
+
+/**
+ * WordPress.com user information from /rest/v1.1/me
+ */
+export interface WordPressUser {
+  ID: number;
+  username: string;
+  display_name?: string;
+  email?: string;
+  primary_blog?: number;
+  primary_blog_url?: string;
+  avatar_URL?: string;
+}

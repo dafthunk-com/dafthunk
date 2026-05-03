@@ -10,7 +10,8 @@ export type IntegrationProvider =
   | "reddit"
   | "linkedin"
   | "github"
-  | "x";
+  | "x"
+  | "wordpress";
 
 // Integration status types
 export type IntegrationStatus = "active" | "expired" | "revoked";
@@ -143,5 +144,13 @@ export const OAUTH_PROVIDERS: OAuthProvider[] = [
       "Connect your X account to post tweets, search, and interact with users",
     supportsOAuth: true,
     oauthEndpoint: "/oauth/x/connect",
+  },
+  {
+    id: "wordpress",
+    name: "WordPress",
+    description:
+      "Connect your WordPress.com site to publish posts, manage content, and read media",
+    supportsOAuth: true,
+    oauthEndpoint: "/oauth/wordpress/connect",
   },
 ];
