@@ -53,10 +53,7 @@ export function AudioField({
     return (
       <div
         className={cn(
-          "relative rounded-md p-2",
-          disabled && "bg-background border border-input opacity-50",
-          !disabled &&
-            "bg-background border border-neutral-300 dark:border-neutral-700",
+          "relative rounded-md p-2 bg-background border border-neutral-300 dark:border-neutral-700",
           className
         )}
       >

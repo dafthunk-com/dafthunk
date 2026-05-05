@@ -48,10 +48,7 @@ export function ImageField({
     return (
       <div
         className={cn(
-          "relative rounded-md overflow-hidden",
-          disabled && "bg-background border border-input opacity-50",
-          !disabled &&
-            "bg-white dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700",
+          "relative rounded-md overflow-hidden bg-white dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700",
           className
         )}
       >

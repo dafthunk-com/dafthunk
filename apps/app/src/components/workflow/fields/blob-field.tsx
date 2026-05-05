@@ -102,10 +102,7 @@ export function BlobField({
       return (
         <div
           className={cn(
-            "relative rounded-md overflow-hidden border",
-            disabled && "bg-background border-input opacity-50",
-            !disabled &&
-              "bg-background border-neutral-300 dark:border-neutral-700",
+            "relative rounded-md overflow-hidden border bg-background border-neutral-300 dark:border-neutral-700",
             className
           )}
         >
@@ -118,10 +115,7 @@ export function BlobField({
       return (
         <div
           className={cn(
-            "relative rounded-md overflow-hidden border",
-            disabled && "bg-background border-input opacity-50",
-            !disabled &&
-              "bg-background border-neutral-300 dark:border-neutral-700",
+            "relative rounded-md overflow-hidden border bg-background border-neutral-300 dark:border-neutral-700",
             className
           )}
         >
@@ -138,10 +132,7 @@ export function BlobField({
       return (
         <div
           className={cn(
-            "relative rounded-md p-2 border",
-            disabled && "bg-background border-input opacity-50",
-            !disabled &&
-              "bg-background border-neutral-300 dark:border-neutral-700",
+            "relative rounded-md p-2 border bg-background border-neutral-300 dark:border-neutral-700",
             className
           )}
         >
@@ -154,10 +145,7 @@ export function BlobField({
       return (
         <div
           className={cn(
-            "relative rounded-md overflow-hidden border",
-            disabled && "bg-background border-input opacity-50",
-            !disabled &&
-              "bg-background border-neutral-300 dark:border-neutral-700",
+            "relative rounded-md overflow-hidden border bg-background border-neutral-300 dark:border-neutral-700",
             className
           )}
         >
@@ -170,10 +158,7 @@ export function BlobField({
       return (
         <div
           className={cn(
-            "relative h-[200px] rounded-md overflow-hidden border",
-            disabled && "bg-background border-input opacity-50",
-            !disabled &&
-              "bg-background border-neutral-300 dark:border-neutral-700",
+            "relative h-[200px] rounded-md overflow-hidden border bg-background border-neutral-300 dark:border-neutral-700",
             className
           )}
         >
@@ -188,10 +173,7 @@ export function BlobField({
     return (
       <div
         className={cn(
-          "flex items-center gap-2 p-2 rounded-md border",
-          disabled && "bg-background border-input opacity-50",
-          !disabled &&
-            "bg-background border-neutral-300 dark:border-neutral-700",
+          "flex items-center gap-2 p-2 rounded-md border bg-background border-neutral-300 dark:border-neutral-700",
           className
         )}
       >
