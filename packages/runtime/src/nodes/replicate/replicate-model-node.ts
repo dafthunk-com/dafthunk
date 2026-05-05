@@ -2,15 +2,24 @@ import {
   isBlobParameter,
   MultiStepNode,
   type MultiStepNodeContext,
+  type ParameterValue,
   toUint8Array,
 } from "@dafthunk/runtime";
-import type { NodeExecution, NodeType } from "@dafthunk/types";
+import {
+  type NodeExecution,
+  type NodeType,
+  replicateOwnerName,
+} from "@dafthunk/types";
 
 type ReplicateOutput =
   | string
+  | number
+  | boolean
+  | null
   | string[]
   | Record<string, unknown>
-  | Record<string, unknown>[];
+  | Record<string, unknown>[]
+  | unknown[];
 
 interface ReplicatePrediction {
   id: string;
@@ -35,10 +44,8 @@ const MIME_FALLBACKS: Record<string, string> = {
   blob: "application/octet-stream",
 };
 
-/**
- * Download a Replicate output URL and return binary data with MIME type.
- * Output URLs are temporary, so we download immediately after prediction completes.
- */
+// Replicate output URLs are temporary, so blobs are downloaded immediately
+// after prediction completes.
 async function downloadBlob(
   url: string,
   outputType: string,
@@ -46,7 +53,9 @@ async function downloadBlob(
 ): Promise<{ data: Uint8Array; mimeType: string }> {
   const response = await fetch(url);
   if (!response.ok) {
-    throw new Error(`Failed to download ${label}: ${response.status}`);
+    throw new Error(
+      `Failed to download ${label} (${response.status} ${response.statusText})`
+    );
   }
   const contentType = response.headers.get("content-type");
   return {
@@ -54,6 +63,23 @@ async function downloadBlob(
     mimeType:
       contentType ?? MIME_FALLBACKS[outputType] ?? "application/octet-stream",
   };
+}
+
+// Some models wrap their object output inside a single-element array.
+function extractOutputObject(
+  output: ReplicateOutput
+): Record<string, unknown> | null {
+  const candidate = Array.isArray(output) ? output[0] : output;
+  if (candidate && typeof candidate === "object" && !Array.isArray(candidate)) {
+    return candidate as Record<string, unknown>;
+  }
+  return null;
+}
+
+function extractOutputUrl(output: ReplicateOutput): string | null {
+  if (typeof output === "string") return output;
+  if (Array.isArray(output) && typeof output[0] === "string") return output[0];
+  return null;
 }
 
 /**
@@ -127,9 +153,20 @@ For example: \`google/veo-3\`, \`openai/whisper\`, \`xai/grok-imagine-video\`.`,
   async execute(context: MultiStepNodeContext): Promise<NodeExecution> {
     try {
       const modelInput = context.inputs.model;
-      if (!modelInput || typeof modelInput !== "string") {
+      if (typeof modelInput !== "string" || !modelInput.trim()) {
         return this.createErrorResult(
           "Model identifier is required (e.g., 'stability-ai/sdxl')"
+        );
+      }
+
+      const trimmedModel = modelInput.trim();
+      const ownerName = replicateOwnerName(trimmedModel).trim();
+      const [, rawVersion] = trimmedModel.split(":", 2);
+      const version = rawVersion?.trim() || undefined;
+
+      if (!/^[^/\s]+\/[^/\s]+$/.test(ownerName)) {
+        return this.createErrorResult(
+          `Invalid model identifier "${trimmedModel}" — expected provider/model or provider/model:version`
         );
       }
 
@@ -140,7 +177,6 @@ For example: \`google/veo-3\`, \`openai/whisper\`, \`xai/grok-imagine-video\`.`,
         );
       }
 
-      const [ownerName, version] = modelInput.split(":");
       const timeoutMinutes = Math.max(1, Number(context.inputs.timeout) || 30);
       const pollIntervalSec = Math.max(
         1,
@@ -150,7 +186,7 @@ For example: \`google/veo-3\`, \`openai/whisper\`, \`xai/grok-imagine-video\`.`,
       const input = await this.buildInput(context);
       const { output, predictTime } = await this.runPrediction(
         context,
-        ownerName.trim(),
+        ownerName,
         version,
         REPLICATE_API_TOKEN,
         input,
@@ -171,61 +207,85 @@ For example: \`google/veo-3\`, \`openai/whisper\`, \`xai/grok-imagine-video\`.`,
     }
   }
 
-  /**
-   * Build the Replicate API input payload from context inputs.
-   * Handles blob uploads (single and repeated) by presigning through the object store.
-   */
+  // String URLs pass through unchanged so values can be chained from upstream
+  // nodes that emit URLs directly (rather than blob parameters).
   private async buildInput(
     context: MultiStepNodeContext
   ): Promise<Record<string, string | number | boolean | string[]>> {
-    const input: Record<string, string | number | boolean | string[]> = {};
+    const paramByName = new Map(
+      (this.node.inputs ?? []).map((p) => [p.name, p])
+    );
 
-    for (const [key, value] of Object.entries(context.inputs)) {
-      if (CONFIG_INPUTS.has(key) || value === undefined || value === null)
-        continue;
-
-      const paramDef = this.node.inputs?.find((p) => p.name === key);
-      const isBlobType = paramDef && BLOB_TYPES.has(paramDef.type);
-
-      if (isBlobType) {
-        if (!context.objectStore) {
-          throw new Error(
-            "ObjectStore not available (required for blob inputs)"
-          );
-        }
-
-        if (paramDef?.repeated && Array.isArray(value)) {
-          const urls: string[] = [];
-          for (const item of value) {
-            if (isBlobParameter(item)) {
-              urls.push(
-                await context.objectStore.writeAndPresign(
-                  toUint8Array(item.data),
-                  item.mimeType,
-                  context.organizationId
-                )
-              );
-            }
+    const entries = await Promise.all(
+      Object.entries(context.inputs)
+        .filter(
+          ([key, value]) =>
+            !CONFIG_INPUTS.has(key) && value !== undefined && value !== null
+        )
+        .map(async ([key, value]) => {
+          const paramDef = paramByName.get(key);
+          if (paramDef && BLOB_TYPES.has(paramDef.type)) {
+            const presigned = await this.presignBlobInput(
+              context,
+              key,
+              value,
+              paramDef.repeated ?? false
+            );
+            if (presigned !== undefined) return [key, presigned] as const;
           }
-          input[key] = urls;
-          continue;
-        }
+          return [key, value as string | number | boolean] as const;
+        })
+    );
 
-        if (isBlobParameter(value)) {
-          const url = await context.objectStore.writeAndPresign(
-            toUint8Array(value.data),
-            value.mimeType,
-            context.organizationId
-          );
-          input[key] = paramDef?.repeated ? [url] : url;
-          continue;
-        }
+    return Object.fromEntries(entries);
+  }
+
+  // Accepts blob parameters, string URLs, and arrays mixing both. Returns
+  // undefined to fall through to the generic value passthrough.
+  private async presignBlobInput(
+    context: MultiStepNodeContext,
+    key: string,
+    value: unknown,
+    repeated: boolean
+  ): Promise<string | string[] | undefined> {
+    const presignBlob = (blob: { data: unknown; mimeType: string }) => {
+      if (!context.objectStore) {
+        throw new Error(
+          `ObjectStore not available (required for blob input "${key}")`
+        );
       }
+      return context.objectStore.writeAndPresign(
+        toUint8Array(blob.data as Uint8Array | Record<string, number>),
+        blob.mimeType,
+        context.organizationId
+      );
+    };
 
-      input[key] = value as string | number | boolean;
+    if (Array.isArray(value)) {
+      const pending: Array<string | Promise<string>> = [];
+      for (const item of value) {
+        if (isBlobParameter(item)) pending.push(presignBlob(item));
+        else if (typeof item === "string" && item.length > 0)
+          pending.push(item);
+      }
+      if (pending.length === 0) {
+        throw new Error(
+          `Input "${key}" is an array but contains no blob or URL values`
+        );
+      }
+      return Promise.all(pending);
     }
 
-    return input;
+    if (isBlobParameter(value)) {
+      const url = await presignBlob(value);
+      return repeated ? [url] : url;
+    }
+
+    if (typeof value === "string" && value.length > 0) {
+      return repeated ? [value] : value;
+    }
+
+    return undefined;
   }
 
   /**
@@ -323,78 +383,70 @@ For example: \`google/veo-3\`, \`openai/whisper\`, \`xai/grok-imagine-video\`.`,
     return { output: result.output, predictTime: result.metrics?.predict_time };
   }
 
-  /**
-   * Convert Replicate output into a NodeExecution result.
-   * Handles multi-output objects, blob downloads, strings, and JSON passthrough.
-   */
   private async processOutput(
     output: ReplicateOutput,
     usage: number
   ): Promise<NodeExecution> {
-    // Multi-output: object with keys matching named output definitions
     const multiResult = await this.tryProcessMultiOutput(output, usage);
     if (multiResult) return multiResult;
 
-    // Single output: extract URL string if present
-    const outputUrl =
-      typeof output === "string"
-        ? output
-        : Array.isArray(output) &&
-            output.length > 0 &&
-            typeof output[0] === "string"
-          ? output[0]
-          : null;
+    // Use the first declared output name so wires keep working when the schema
+    // declared more outputs than Replicate actually returned.
+    const declaredOutputs = this.node.outputs ?? [];
+    const primaryName = declaredOutputs[0]?.name ?? "output";
+    const primaryType = declaredOutputs[0]?.type ?? "any";
+    const outputUrl = extractOutputUrl(output);
 
-    const outputType = this.node.outputs?.[0]?.type ?? "any";
-
-    // Blob output — download immediately (Replicate URLs are temporary)
-    if (BLOB_TYPES.has(outputType) && outputUrl) {
-      const blob = await downloadBlob(outputUrl, outputType, "output");
-      return this.createSuccessResult({ output: blob }, usage);
+    if (BLOB_TYPES.has(primaryType) && outputUrl) {
+      const blob = await downloadBlob(outputUrl, primaryType, primaryName);
+      return this.createSuccessResult({ [primaryName]: blob }, usage);
     }
 
     if (outputUrl) {
-      return this.createSuccessResult({ output: outputUrl }, usage);
+      return this.createSuccessResult({ [primaryName]: outputUrl }, usage);
     }
 
-    return this.createSuccessResult({ output }, usage);
+    return this.createSuccessResult(
+      { [primaryName]: output as ParameterValue },
+      usage
+    );
   }
 
-  /**
-   * Try to interpret output as a multi-output object where each key maps to a
-   * named blob output definition. Returns null if the node has <= 1 output or
-   * no blob outputs were found in the object.
-   */
+  // Returns null when the node has <= 1 declared output, the output isn't
+  // object-shaped, or no declared output keys matched — caller falls back to
+  // single-output handling.
   private async tryProcessMultiOutput(
     output: ReplicateOutput,
     usage: number
   ): Promise<NodeExecution | null> {
     if ((this.node.outputs?.length ?? 0) <= 1) return null;
 
-    // Extract the object: either directly or unwrap first array element
-    const obj =
-      typeof output === "object" && !Array.isArray(output)
-        ? output
-        : Array.isArray(output) &&
-            output.length > 0 &&
-            typeof output[0] === "object" &&
-            output[0] !== null
-          ? (output[0] as Record<string, unknown>)
-          : null;
-
+    const obj = extractOutputObject(output);
     if (!obj) return null;
 
-    const results: Record<string, { data: Uint8Array; mimeType: string }> = {};
-    for (const outputDef of this.node.outputs ?? []) {
-      const value = obj[outputDef.name];
-      if (!BLOB_TYPES.has(outputDef.type) || typeof value !== "string")
-        continue;
-      results[outputDef.name] = await downloadBlob(
-        value,
-        outputDef.type,
-        outputDef.name
-      );
-    }
+    const entries = await Promise.all(
+      (this.node.outputs ?? []).map(
+        async (
+          outputDef
+        ): Promise<readonly [string, ParameterValue] | null> => {
+          const value = obj[outputDef.name];
+          if (value === undefined || value === null) return null;
+
+          if (BLOB_TYPES.has(outputDef.type)) {
+            if (typeof value !== "string") return null;
+            return [
+              outputDef.name,
+              await downloadBlob(value, outputDef.type, outputDef.name),
+            ];
+          }
+          return [outputDef.name, value as ParameterValue];
+        }
+      )
+    );
+
+    const results = Object.fromEntries(
+      entries.filter((e): e is readonly [string, ParameterValue] => e !== null)
+    );
 
     return Object.keys(results).length > 0
       ? this.createSuccessResult(results, usage)

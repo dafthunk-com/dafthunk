@@ -65,6 +65,7 @@ export interface Table {
 export interface ReplicateModelSchema {
   model: string;
   version: string;
+  description?: string;
   inputs: Parameter[];
   outputs: Parameter[];
 }

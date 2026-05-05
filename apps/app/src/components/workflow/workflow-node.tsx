@@ -44,6 +44,12 @@ import {
   deriveCloudflareModelDocs,
 } from "./widgets/input/cloudflare-model-utils";
 import {
+  decodeReplicateModelMeta,
+  deriveReplicateModelDocs,
+  REPLICATE_MODEL_NODE_TYPE,
+  RP_META_KEY,
+} from "./widgets/input/replicate-model-utils";
+import {
   clearNodeInput,
   convertValueByType,
   updateNodeInput,
@@ -72,6 +78,12 @@ function deriveDocOverridesForNode(
     if (typeof modelId !== "string" || !modelId) return {};
     const meta = decodeCloudflareModelMeta(metadata?.[CF_META_KEY]);
     return deriveCloudflareModelDocs(modelId, meta);
+  }
+  if (nodeType === REPLICATE_MODEL_NODE_TYPE) {
+    const modelId = inputs.find((i) => i.id === "model")?.value;
+    if (typeof modelId !== "string" || !modelId) return {};
+    const meta = decodeReplicateModelMeta(metadata?.[RP_META_KEY]);
+    return deriveReplicateModelDocs(modelId, meta);
   }
   return {};
 }

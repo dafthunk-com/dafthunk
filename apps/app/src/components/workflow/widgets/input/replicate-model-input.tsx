@@ -23,6 +23,12 @@ import type { WorkflowParameter } from "../../workflow-types";
 import type { BaseWidgetProps } from "../widget";
 import { createWidget, getInputValue } from "../widget";
 
+import {
+  encodeReplicateModelMeta,
+  REPLICATE_MODEL_NODE_TYPE,
+  RP_META_KEY,
+} from "./replicate-model-utils";
+
 interface ReplicateModelInputProps extends BaseWidgetProps {
   nodeId: string;
   model: string;
@@ -115,11 +121,20 @@ function ReplicateModelInputWidget({
           }
         }
 
-        // Replace the entire inputs/outputs arrays
-        updateNodeData?.(nodeId, {
+        // Persist per-model display metadata via the node's metadata bag so
+        // the docs dialog can reconstruct description / documentation /
+        // referenceUrl after a save round-trip without re-fetching the
+        // schema client-side.
+        updateNodeData?.(nodeId, (current) => ({
           inputs: newInputs,
           outputs: newOutputs,
-        });
+          metadata: {
+            ...(current.metadata ?? {}),
+            [RP_META_KEY]: encodeReplicateModelMeta({
+              description: schema.description,
+            }),
+          },
+        }));
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Failed to load model schema"
@@ -212,7 +227,7 @@ function ReplicateModelInputWidget({
 
 export const replicateModelInputWidget = createWidget({
   component: ReplicateModelInputWidget,
-  nodeTypes: ["replicate-model"],
+  nodeTypes: [REPLICATE_MODEL_NODE_TYPE],
   inputField: "model",
   extractConfig: (nodeId, inputs, outputs) => ({
     nodeId,

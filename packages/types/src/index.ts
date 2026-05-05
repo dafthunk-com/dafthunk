@@ -17,6 +17,7 @@ export * from "./organization";
 export * from "./playground";
 export * from "./profile";
 export * from "./queue";
+export * from "./replicate";
 export * from "./scheduled";
 export * from "./schema";
 export * from "./secret";
