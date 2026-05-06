@@ -1,9 +1,14 @@
 import type { WorkflowTrigger } from "@dafthunk/types";
+import {
+  isSubscriptionRequiredError,
+  parseSubscriptionRequiredError,
+} from "@dafthunk/utils";
 import type { Node as ReactFlowNode } from "@xyflow/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { EmailData } from "@/components/workflow/execution-email-dialog";
 import type { HttpRequestConfig } from "@/components/workflow/http-request-config-dialog";
+import { useBilling } from "@/services/billing-service";
 import { useWorkflowExecution } from "@/services/workflow-service";
 
 import type {
@@ -49,6 +54,13 @@ interface UseWorkflowExecutionStateReturn {
   submitEmailFormData: (data: EmailData) => void;
   closeExecutionForm: () => void;
   executeRef: React.RefObject<((triggerData?: unknown) => void) | null>;
+  /** Open when a run is blocked by a subscription requirement (pre- or post-flight). */
+  upgradeDialogOpen: boolean;
+  setUpgradeDialogOpen: (open: boolean) => void;
+  /** "preflight" = blocked before execution; "post-failure" = surfaced after failure. */
+  upgradeDialogVariant: "preflight" | "post-failure";
+  /** Subscription-gated node types that triggered the upgrade prompt. */
+  upgradeDialogGatedNodeTypes: NodeType[];
 }
 
 // Apply initial execution state to nodes
@@ -109,6 +121,43 @@ export function useWorkflowExecutionState({
   const [currentExecutionId, setCurrentExecutionId] = useState<
     string | undefined
   >(initialWorkflowExecution?.id);
+
+  // Subscription upgrade prompt — surfaced for both pre-flight gating and
+  // post-failure detection of `subscriptionRequiredMessage` errors.
+  const { billing } = useBilling();
+  const isPro = billing?.plan === "pro";
+  const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
+  const [upgradeDialogVariant, setUpgradeDialogVariant] = useState<
+    "preflight" | "post-failure"
+  >("preflight");
+  const [upgradeDialogGatedNodeTypes, setUpgradeDialogGatedNodeTypes] =
+    useState<NodeType[]>([]);
+
+  // Map of nodeType id → NodeType for fast lookup of subscription metadata
+  const nodeTypeById = useMemo(() => {
+    const map = new Map<string, NodeType>();
+    for (const nt of nodeTypes) map.set(nt.type, nt);
+    return map;
+  }, [nodeTypes]);
+
+  /**
+   * Returns the subscription-gated node types currently present in the
+   * workflow. Empty array means the workflow can run on any plan.
+   */
+  const findGatedNodeTypes = useCallback((): NodeType[] => {
+    const seen = new Set<string>();
+    const gated: NodeType[] = [];
+    for (const node of nodes) {
+      const typeId = node.data.nodeType;
+      if (!typeId || seen.has(typeId)) continue;
+      const nt = nodeTypeById.get(typeId);
+      if (nt?.subscription) {
+        seen.add(typeId);
+        gated.push(nt);
+      }
+    }
+    return gated;
+  }, [nodes, nodeTypeById]);
 
   const cleanupRef = useRef<(() => void | Promise<void>) | null>(null);
   const initializedRef = useRef(false);
@@ -236,9 +285,54 @@ export function useWorkflowExecutionState({
         if (execution.status === "exhausted") {
           setErrorDialogOpen(true);
         }
+
+        // Post-failure: if any node failed because it requires a subscription,
+        // surface the upgrade dialog. Covers triggered/scheduled runs that
+        // bypass the pre-flight gate (and any race where billing was still
+        // loading on Run).
+        if (execution.status === "error") {
+          const subscriptionErrorTypes: string[] = [];
+          for (const ne of execution.nodeExecutions) {
+            const parsed = parseSubscriptionRequiredError(ne.error);
+            if (parsed) subscriptionErrorTypes.push(parsed.nodeType);
+          }
+          if (
+            subscriptionErrorTypes.length === 0 &&
+            isSubscriptionRequiredError(execution.error)
+          ) {
+            const parsed = parseSubscriptionRequiredError(execution.error);
+            if (parsed) subscriptionErrorTypes.push(parsed.nodeType);
+          }
+          if (subscriptionErrorTypes.length > 0) {
+            const seen = new Set<string>();
+            const gated: NodeType[] = [];
+            for (const typeId of subscriptionErrorTypes) {
+              if (seen.has(typeId)) continue;
+              seen.add(typeId);
+              const nt = nodeTypeById.get(typeId);
+              // Synthesize a minimal NodeType if the registry hasn't loaded
+              // it (e.g. in read-only views with a partial type list).
+              gated.push(
+                nt ?? {
+                  id: typeId,
+                  type: typeId,
+                  name: typeId,
+                  icon: "sparkles",
+                  tags: [],
+                  inputs: [],
+                  outputs: [],
+                  subscription: true,
+                }
+              );
+            }
+            setUpgradeDialogGatedNodeTypes(gated);
+            setUpgradeDialogVariant("post-failure");
+            setUpgradeDialogOpen(true);
+          }
+        }
       };
     },
-    [resetNodeStates, updateNodeExecution, nodes]
+    [resetNodeStates, updateNodeExecution, nodes, nodeTypeById]
   );
 
   const handleExecuteRequest = useCallback(
@@ -297,11 +391,32 @@ export function useWorkflowExecutionState({
   const startExecution = useCallback(() => {
     deselectAll();
 
+    // Pre-flight gate: if the workflow contains subscription-gated nodes and
+    // the user isn't on Pro, intercept and prompt for upgrade rather than
+    // letting the runtime fail the execution. Skipped while billing is still
+    // loading (no `billing`) — the runtime remains the authoritative gate.
+    if (billing && !isPro) {
+      const gated = findGatedNodeTypes();
+      if (gated.length > 0) {
+        setUpgradeDialogGatedNodeTypes(gated);
+        setUpgradeDialogVariant("preflight");
+        setUpgradeDialogOpen(true);
+        return;
+      }
+    }
+
     handleExecuteRequest((triggerData) => {
       const cleanup = handleExecute(triggerData);
       if (cleanup) cleanupRef.current = cleanup;
     });
-  }, [deselectAll, handleExecute, handleExecuteRequest]);
+  }, [
+    deselectAll,
+    handleExecute,
+    handleExecuteRequest,
+    billing,
+    isPro,
+    findGatedNodeTypes,
+  ]);
 
   const handleActionButtonClick = useCallback(
     (e: React.MouseEvent) => {
@@ -346,5 +461,9 @@ export function useWorkflowExecutionState({
     submitEmailFormData,
     closeExecutionForm,
     executeRef,
+    upgradeDialogOpen,
+    setUpgradeDialogOpen,
+    upgradeDialogVariant,
+    upgradeDialogGatedNodeTypes,
   };
 }

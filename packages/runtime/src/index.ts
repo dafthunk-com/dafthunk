@@ -34,8 +34,10 @@ export type {
 } from "./dataset-service";
 export { computeDefinitionHash } from "./definition-hash";
 export {
+  isSubscriptionRequiredError,
   nodeNotFoundMessage,
   nodeTypeNotImplementedMessage,
+  parseSubscriptionRequiredError,
   subscriptionRequiredMessage,
 } from "./execution-errors";
 export {

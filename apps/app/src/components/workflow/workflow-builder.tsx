@@ -33,6 +33,7 @@ import { cn } from "@/utils/utils";
 
 import { ExecutionEmailDialog } from "./execution-email-dialog";
 import { HttpRequestConfigDialog } from "./http-request-config-dialog";
+import { UpgradeRequiredDialog } from "./upgrade-required-dialog";
 import { useKeyboardShortcuts } from "./use-keyboard-shortcuts";
 import { useResizableSidebar } from "./use-resizable-sidebar";
 import { useWorkflowExecutionState } from "./use-workflow-execution-state";
@@ -415,6 +416,13 @@ export function WorkflowBuilder({
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        <UpgradeRequiredDialog
+          open={execution.upgradeDialogOpen}
+          onOpenChange={execution.setUpgradeDialogOpen}
+          gatedNodeTypes={execution.upgradeDialogGatedNodeTypes}
+          variant={execution.upgradeDialogVariant}
+        />
 
         <AlertDialog
           open={triggerConfirmOpen}
