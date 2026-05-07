@@ -23,11 +23,8 @@
         "gpt-5-mini",
         "gemini-2-5-pro",
         "gemini-2-5-flash",
-        "llama-4-scout-17b-16e-instruct",
-        "llama-3-3-70b-instruct-fp8-fast",
-        "deepseek-r1-distill-qwen-32b",
-        "mistral-small-3-1-24b-instruct",
-        "hermes-2-pro-mistral-7b"
+        "cloudflare-model",
+        "replicate-model"
       ],
       "featured": true
     },
@@ -95,16 +92,14 @@
         "PDF"
       ],
       "nodeIds": [
-        "flux-1-schnell",
-        "stable-diffusion-xl-lightning",
         "imagen",
         "gemini-2-5-flash-image-preview",
+        "cloudflare-model",
+        "replicate-model",
         "photon-resize",
         "photon-crop",
         "photon-gaussian-blur",
         "photon-grayscale",
-        "whisper-large-v3-turbo",
-        "melotts",
         "to-markdown"
       ],
       "featured": true
