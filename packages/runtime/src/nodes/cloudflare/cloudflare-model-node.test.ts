@@ -75,16 +75,13 @@ describe("CloudflareModelNode — response_format translation", () => {
     expect(aiPayload.response_format).toEqual({
       type: "json_schema",
       json_schema: {
-        name: "Person",
-        schema: {
-          type: "object",
-          properties: {
-            name: { type: "string" },
-            age: { type: "integer" },
-          },
-          required: ["name"],
-          additionalProperties: false,
+        type: "object",
+        properties: {
+          name: { type: "string" },
+          age: { type: "integer" },
         },
+        required: ["name"],
+        additionalProperties: false,
       },
     });
 

@@ -176,4 +176,35 @@ describe("buildModelNodeType", () => {
     const node = buildModelNodeType(whisperInfo, whisperSchema);
     expect(node.inputs.some((p) => p.name === "schema")).toBe(false);
   });
+
+  it("retypes string outputs to `any` for models with `response_format`", () => {
+    // Cloudflare's published schema declares `response` as a string, but with
+    // a wired schema the model returns a structured object. Without retyping,
+    // the `string` parameter converter rejects object values.
+    const llamaWithStringResponse: CloudflareModelSchema = {
+      model: "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+      inputs: [
+        { name: "prompt", type: "string", required: true },
+        { name: "response_format", type: "json", hidden: true },
+      ],
+      outputs: [
+        { name: "response", type: "string" },
+        { name: "usage", type: "json" },
+      ],
+    };
+    const node = buildModelNodeType(llamaInfo, llamaWithStringResponse);
+
+    const responseOutput = node.outputs.find((p) => p.name === "response");
+    expect(responseOutput?.type).toBe("any");
+
+    // Non-string outputs (json, etc.) are left alone.
+    const usageOutput = node.outputs.find((p) => p.name === "usage");
+    expect(usageOutput?.type).toBe("json");
+  });
+
+  it("leaves string outputs as `string` for models without `response_format`", () => {
+    const node = buildModelNodeType(whisperInfo, whisperSchema);
+    const textOutput = node.outputs.find((p) => p.name === "text");
+    expect(textOutput?.type).toBe("string");
+  });
 });

@@ -261,7 +261,7 @@ export async function getCloudflareModelNodeTypes(
   env: Bindings,
   ctx: ExecutionContext
 ): Promise<NodeType[]> {
-  const cacheKey = `${CACHE_HOST}/cf-ai/node-types/v9`;
+  const cacheKey = `${CACHE_HOST}/cf-ai/node-types/v10`;
 
   // Inline the cache lookup so we can refuse to persist an empty bundle —
   // emptiness is almost always a transient signal (catalog fetch failed,
@@ -434,6 +434,17 @@ export function buildModelNodeType(
 
   const hasTools = mappedInputs.some((p) => p.name === "tools");
 
+  // When the model supports `response_format`, its `response` output is a
+  // string in the published schema but Cloudflare returns a structured object
+  // once `response_format: { type: "json_schema", ... }` is set. The string
+  // converter rejects object values (`undefined` out), so retype to `any` —
+  // accepts plain text when no schema is wired and the JSON object when one is.
+  const outputs: Parameter[] = schema.outputs.map((o) =>
+    supportsResponseFormat && o.type === "string"
+      ? ({ ...o, type: "any" } as Parameter)
+      : { ...o }
+  );
+
   return {
     id: `cf-model:${modelId}`,
     name: displayName(model),
@@ -446,7 +457,7 @@ export function buildModelNodeType(
     referenceUrl: cloudflareDocsUrl(modelId),
     usage: 1,
     inputs,
-    outputs: schema.outputs.map((o) => ({ ...o })),
+    outputs,
     metadata: {
       [CF_META_KEY]: encodeCloudflareModelMeta(model),
       [CF_LOCKED_KEY]: "true",

@@ -589,19 +589,21 @@ function extractSchemaInput(value: unknown): Schema | null {
 }
 
 /**
- * Wrap a Dafthunk Schema as the OpenAI-style `response_format` payload that
- * Cloudflare Workers AI accepts on Llama 3.x, Mistral and similar models.
+ * Wrap a Dafthunk Schema as the `response_format` payload Cloudflare Workers AI
+ * expects on Llama 3.x, Mistral and similar models. Note: Workers AI's shape
+ * is *not* OpenAI's — `json_schema` is the JSON Schema itself, not a wrapper
+ * with `name`/`schema` fields. Passing the OpenAI shape silently makes Workers
+ * AI ignore the constraint (or return an empty/error response).
+ *
+ * @see https://developers.cloudflare.com/workers-ai/features/json-mode/
  */
 function buildJsonSchemaResponseFormat(schema: Schema): {
   type: "json_schema";
-  json_schema: { name: string; schema: Record<string, unknown> };
+  json_schema: Record<string, unknown>;
 } {
   return {
     type: "json_schema",
-    json_schema: {
-      name: schema.name || "Response",
-      schema: schemaToJsonSchema(schema),
-    },
+    json_schema: schemaToJsonSchema(schema),
   };
 }
 
