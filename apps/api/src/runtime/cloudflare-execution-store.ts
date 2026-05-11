@@ -310,6 +310,29 @@ export class CloudflareExecutionStore implements ExecutionStore {
         whereConditions.push(`blob2 = '${options.workflowId}'`);
       }
 
+      if (options?.status) {
+        if (!/^[a-z]+$/.test(options.status)) {
+          throw new Error(`Invalid status filter: ${options.status}`);
+        }
+        whereConditions.push(`blob4 = '${options.status}'`);
+      }
+
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+
+      if (options?.startDate) {
+        if (!dateRegex.test(options.startDate)) {
+          throw new Error(`Invalid startDate: ${options.startDate}`);
+        }
+        whereConditions.push(`timestamp >= '${options.startDate} 00:00:00'`);
+      }
+
+      if (options?.endDate) {
+        if (!dateRegex.test(options.endDate)) {
+          throw new Error(`Invalid endDate: ${options.endDate}`);
+        }
+        whereConditions.push(`timestamp <= '${options.endDate} 23:59:59'`);
+      }
+
       const limit = options?.limit ?? 20;
       const offset = options?.offset ?? 0;
 

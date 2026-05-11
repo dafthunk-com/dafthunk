@@ -4,20 +4,30 @@ import type {
   WorkflowTrigger,
   WorkflowWithMetadata,
 } from "@dafthunk/types";
-import { ColumnDef } from "@tanstack/react-table";
+import type { LucideIcon } from "lucide-react";
+import Clock from "lucide-react/icons/clock";
 import FileDown from "lucide-react/icons/file-down";
+import Globe from "lucide-react/icons/globe";
+import Hash from "lucide-react/icons/hash";
+import Inbox from "lucide-react/icons/inbox";
+import Mail from "lucide-react/icons/mail";
+import MessageCircle from "lucide-react/icons/message-circle";
+import MessageSquare from "lucide-react/icons/message-square";
 import MoreHorizontal from "lucide-react/icons/more-horizontal";
+import Play from "lucide-react/icons/play";
 import PlusCircle from "lucide-react/icons/plus-circle";
-import { useEffect, useState } from "react";
+import Send from "lucide-react/icons/send";
+import Wand from "lucide-react/icons/wand";
+import Webhook from "lucide-react/icons/webhook";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router";
 
 import { useAuth } from "@/components/auth-context";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { DataTable } from "@/components/ui/data-table";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -34,7 +44,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Spinner } from "@/components/ui/spinner";
+import { TagFilterButtons } from "@/components/ui/tag-filter-buttons";
 import { Textarea } from "@/components/ui/textarea";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { CreateWorkflowDialog } from "@/components/workflow/create-workflow-dialog";
@@ -49,8 +61,53 @@ import {
   updateWorkflow,
   useWorkflows,
 } from "@/services/workflow-service";
+import { formatRelativeDate } from "@/utils/date";
 
-// --- Inline useWorkflowActions ---
+const triggerMeta: Record<
+  WorkflowTrigger,
+  { label: string; icon: LucideIcon }
+> = {
+  manual: { label: "Manual", icon: Play },
+  scheduled: { label: "Scheduled", icon: Clock },
+  http_webhook: { label: "HTTP Webhook", icon: Webhook },
+  http_request: { label: "HTTP Request", icon: Globe },
+  email_message: { label: "Email Message", icon: Mail },
+  queue_message: { label: "Queue Message", icon: Inbox },
+  discord_event: { label: "Discord Event", icon: MessageSquare },
+  telegram_event: { label: "Telegram Event", icon: Send },
+  whatsapp_event: { label: "WhatsApp Event", icon: MessageCircle },
+  slack_event: { label: "Slack Event", icon: Hash },
+};
+
+function highlightMatch(text: string, searchTerm: string) {
+  if (!searchTerm.trim()) return text;
+
+  const words = searchTerm
+    .trim()
+    .split(/\s+/)
+    .map((word) => word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+    .filter((word) => word.length > 0);
+
+  if (words.length === 0) return text;
+
+  const regex = new RegExp(`(${words.join("|")})`, "gi");
+  const parts = text.split(regex);
+
+  return parts.map((part, index) => {
+    if (words.some((word) => new RegExp(`^${word}$`, "i").test(part))) {
+      return (
+        <mark
+          key={index}
+          className="bg-yellow-200 dark:bg-yellow-900 font-semibold"
+        >
+          {part}
+        </mark>
+      );
+    }
+    return part;
+  });
+}
+
 function useWorkflowActions() {
   const { mutateWorkflows } = useWorkflows();
   const { organization } = useAuth();
@@ -86,7 +143,6 @@ function useWorkflowActions() {
     if (!workflowToRename || !orgId) return;
     setIsRenaming(true);
     try {
-      // Fetch the full workflow data with nodes and edges from the server
       const fullWorkflow = await getWorkflow(workflowToRename.id, orgId);
 
       await updateWorkflow(
@@ -105,7 +161,6 @@ function useWorkflowActions() {
       mutateWorkflows();
     } catch (error) {
       console.error("Error updating workflow metadata:", error);
-      // Re-throw to show user there was an error
       throw error;
     } finally {
       setIsRenaming(false);
@@ -208,92 +263,10 @@ function useWorkflowActions() {
   };
 }
 
-// --- Inline createColumns ---
-function createColumns(
-  openDeleteDialog: (workflow: WorkflowWithMetadata) => void,
-  openRenameDialog: (workflow: WorkflowWithMetadata) => void,
-  navigate: ReturnType<typeof useNavigate>,
-  getOrgUrl: (path: string) => string
-): ColumnDef<WorkflowWithMetadata>[] {
-  return [
-    {
-      accessorKey: "name",
-      header: "Name",
-      cell: ({ row }) => {
-        const name = row.getValue("name") as string;
-        const workflowId = row.original.id;
-        return (
-          <Link
-            to={getOrgUrl(`workflows/${workflowId}`)}
-            className="hover:underline"
-          >
-            <div className="font-medium">{name || "Untitled Workflow"}</div>
-          </Link>
-        );
-      },
-    },
-    {
-      accessorKey: "trigger",
-      header: "Trigger",
-      cell: ({ row }) => {
-        const trigger = row.getValue("trigger") as WorkflowTrigger;
-        const triggerLabels: Record<WorkflowTrigger, string> = {
-          manual: "Manual",
-          http_webhook: "HTTP Webhook",
-          http_request: "HTTP Request",
-          email_message: "Email Message",
-          scheduled: "Scheduled",
-          queue_message: "Queue Message",
-          discord_event: "Discord Event",
-          telegram_event: "Telegram Event",
-          whatsapp_event: "WhatsApp Event",
-          slack_event: "Slack Event",
-        };
-        return (
-          <Badge variant="outline" className="text-xs">
-            {triggerLabels[trigger]}
-          </Badge>
-        );
-      },
-    },
-    {
-      id: "actions",
-      cell: ({ row }) => {
-        const workflow = row.original;
-        return (
-          <div className="text-right">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                  <span className="sr-only">Open menu</span>
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  onClick={() =>
-                    navigate(getOrgUrl(`workflows/${workflow.id}`))
-                  }
-                >
-                  Edit Workflow
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => openRenameDialog(workflow)}>
-                  Edit Metadata
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => openDeleteDialog(workflow)}>
-                  Delete Workflow
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        );
-      },
-    },
-  ];
-}
-
 export function WorkflowsPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTrigger, setSelectedTrigger] = useState<string | null>(null);
   const navigate = useNavigate();
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const { organization } = useAuth();
@@ -307,16 +280,40 @@ export function WorkflowsPage() {
   const { deleteDialog, renameDialog, openDeleteDialog, openRenameDialog } =
     useWorkflowActions();
 
-  const columns = createColumns(
-    openDeleteDialog,
-    openRenameDialog,
-    navigate,
-    getOrgUrl
-  );
-
   useEffect(() => {
     setBreadcrumbs([{ label: "Workflows" }]);
   }, [setBreadcrumbs]);
+
+  const searchFilteredWorkflows = useMemo(() => {
+    const term = searchQuery.toLowerCase().trim();
+    if (!term) return workflows;
+    return workflows.filter(
+      (w) =>
+        w.name.toLowerCase().includes(term) ||
+        (w.description ?? "").toLowerCase().includes(term)
+    );
+  }, [workflows, searchQuery]);
+
+  const filteredWorkflows = useMemo(() => {
+    const sorted = [...searchFilteredWorkflows].sort((a, b) =>
+      a.name.localeCompare(b.name)
+    );
+    if (!selectedTrigger) return sorted;
+    return sorted.filter((w) => w.trigger === selectedTrigger);
+  }, [searchFilteredWorkflows, selectedTrigger]);
+
+  const triggerCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const w of searchFilteredWorkflows) {
+      counts[w.trigger] = (counts[w.trigger] || 0) + 1;
+    }
+    return Object.entries(counts)
+      .sort(([a, ca], [b, cb]) => {
+        if (cb !== ca) return cb - ca;
+        return a.localeCompare(b);
+      })
+      .map(([tag, count]) => ({ tag, count }));
+  }, [searchFilteredWorkflows]);
 
   const handleCreateWorkflow = async (
     name: string,
@@ -343,7 +340,6 @@ export function WorkflowsPage() {
       navigate(getOrgUrl(`workflows/${newWorkflow.id}`));
     } catch (error) {
       console.error("Failed to create workflow:", error);
-      // Optionally show a toast here
     }
   };
 
@@ -357,8 +353,8 @@ export function WorkflowsPage() {
 
   return (
     <TooltipProvider>
-      <InsetLayout title="Workflows">
-        <div className="flex items-center justify-between mb-6 min-h-10">
+      <InsetLayout title="Workflows" childrenClassName="flex flex-col h-full">
+        <div className="flex items-center justify-between mb-4 min-h-10">
           <div className="text-sm text-muted-foreground max-w-2xl">
             Build and test your workflows.
           </div>
@@ -375,14 +371,71 @@ export function WorkflowsPage() {
             </Button>
           </div>
         </div>
-        <DataTable
-          columns={columns}
-          data={workflows || []}
-          emptyState={{
-            title: "No workflows found",
-            description: "Create a new workflow to get started.",
-          }}
-        />
+
+        <div className="flex flex-col gap-4 min-h-0 flex-1">
+          <div className="relative shrink-0">
+            <Input
+              placeholder="Search workflows..."
+              className="pl-4 text-base h-12"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+
+          <div className="flex gap-4 flex-1 min-h-0">
+            <div className="flex-1 min-h-0">
+              <ScrollArea className="h-full">
+                {filteredWorkflows.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Wand className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p className="text-sm">
+                      {workflows.length === 0
+                        ? "No workflows found. Create a new workflow to get started."
+                        : "No workflows match your search."}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-2 pr-4">
+                    {filteredWorkflows.map((workflow) => (
+                      <WorkflowCard
+                        key={workflow.id}
+                        workflow={workflow}
+                        searchQuery={searchQuery}
+                        href={getOrgUrl(`workflows/${workflow.id}`)}
+                        executionsHref={getOrgUrl(
+                          `executions?workflowId=${workflow.id}`
+                        )}
+                        feedbackHref={getOrgUrl(
+                          `feedback?workflowId=${workflow.id}`
+                        )}
+                        onRename={openRenameDialog}
+                        onDelete={openDeleteDialog}
+                      />
+                    ))}
+                  </div>
+                )}
+              </ScrollArea>
+            </div>
+
+            {triggerCounts.length > 1 && (
+              <div className="w-72 shrink-0">
+                <TagFilterButtons
+                  categories={triggerCounts.map(({ tag, count }) => ({
+                    tag,
+                    count,
+                  }))}
+                  selectedTag={selectedTrigger}
+                  onTagChange={setSelectedTrigger}
+                  totalCount={searchFilteredWorkflows.length}
+                />
+                <div className="text-xs text-muted-foreground/60 pt-3 text-right">
+                  {filteredWorkflows.length} of {workflows.length} workflows
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
         <CreateWorkflowDialog
           open={isCreateDialogOpen}
           onOpenChange={setIsCreateDialogOpen}
@@ -392,5 +445,102 @@ export function WorkflowsPage() {
         {renameDialog}
       </InsetLayout>
     </TooltipProvider>
+  );
+}
+
+function WorkflowCard({
+  workflow,
+  searchQuery,
+  href,
+  executionsHref,
+  feedbackHref,
+  onRename,
+  onDelete,
+}: {
+  workflow: WorkflowWithMetadata;
+  searchQuery: string;
+  href: string;
+  executionsHref: string;
+  feedbackHref: string;
+  onRename: (workflow: WorkflowWithMetadata) => void;
+  onDelete: (workflow: WorkflowWithMetadata) => void;
+}) {
+  const meta = triggerMeta[workflow.trigger];
+  const Icon = meta.icon;
+  const workflowName = workflow.name || "Untitled Workflow";
+
+  return (
+    <Card className="relative group hover:border-primary/50 transition-colors">
+      <Link
+        to={href}
+        aria-label={`Open ${workflowName}`}
+        className="absolute inset-0 rounded-lg"
+      />
+      <CardContent className="relative flex items-start gap-4 p-4 min-w-0 pointer-events-none">
+        <Icon className="h-5 w-5 text-blue-500 shrink-0 mt-0.5" />
+        <div className="flex-1 min-w-0 pr-10">
+          <h3 className="font-semibold text-sm leading-tight mb-1">
+            {highlightMatch(workflowName, searchQuery)}
+          </h3>
+          {workflow.description && (
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              {highlightMatch(workflow.description, searchQuery)}
+            </p>
+          )}
+        </div>
+      </CardContent>
+      <CardFooter className="relative justify-between gap-3 px-4 py-2 border-t bg-muted/50 rounded-b-lg text-xs text-muted-foreground pointer-events-none">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="truncate">{meta.label}</span>
+          <span aria-hidden="true">·</span>
+          <span className="truncate">
+            Updated {formatRelativeDate(workflow.updatedAt)}
+          </span>
+        </div>
+        <div className="flex items-center gap-3 shrink-0">
+          <Link
+            to={executionsHref}
+            className="hover:text-foreground hover:underline pointer-events-auto"
+          >
+            Executions
+          </Link>
+          <span aria-hidden="true">·</span>
+          <Link
+            to={feedbackHref}
+            className="hover:text-foreground hover:underline pointer-events-auto"
+          >
+            Feedback
+          </Link>
+        </div>
+      </CardFooter>
+      <div className="absolute top-3 right-3">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className="h-8 w-8 p-0"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+            >
+              <span className="sr-only">Open menu</span>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+            <DropdownMenuItem asChild>
+              <Link to={href}>Edit Workflow</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onRename(workflow)}>
+              Edit Metadata
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onDelete(workflow)}>
+              Delete Workflow
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </Card>
   );
 }

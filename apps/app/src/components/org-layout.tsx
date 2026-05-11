@@ -25,17 +25,13 @@ import { useAuth } from "@/components/auth-context";
 import { AppLayout } from "@/components/layouts/app-layout";
 import { TourProvider } from "@/components/tour";
 import { useOrganizations } from "@/services/organizations-service";
-import { useProfile } from "@/services/profile-service";
 
 interface OrgLayoutProps {
   children: React.ReactNode;
   title: string;
 }
 
-export const getDashboardSidebarGroups = (
-  orgId: string,
-  developerMode: boolean = false
-) => {
+export const getDashboardSidebarGroups = (orgId: string) => {
   const groups = [
     {
       items: [
@@ -59,6 +55,11 @@ export const getDashboardSidebarGroups = (
           title: "Executions",
           url: `/org/${orgId}/executions`,
           icon: Logs,
+        },
+        {
+          title: "Feedback",
+          url: `/org/${orgId}/feedback`,
+          icon: MessageSquareText,
         },
         {
           title: "Templates",
@@ -129,20 +130,6 @@ export const getDashboardSidebarGroups = (
     },
   ];
 
-  // Only add Analytics section if developer mode is enabled
-  if (developerMode) {
-    groups.push({
-      label: "Analytics",
-      items: [
-        {
-          title: "Feedback",
-          url: `/org/${orgId}/feedback`,
-          icon: MessageSquareText,
-        },
-      ],
-    });
-  }
-
   // Add Settings section
   groups.push({
     label: "Settings",
@@ -172,7 +159,6 @@ export const OrgLayout: React.FC<OrgLayoutProps> = ({ children, title }) => {
   const params = useParams<{ organizationId: string }>();
   const { organization, setSelectedOrganization } = useAuth();
   const { organizations: orgList } = useOrganizations();
-  const { profile } = useProfile();
 
   useEffect(() => {
     if (params.organizationId && organization?.id && orgList.length > 0) {
@@ -202,10 +188,7 @@ export const OrgLayout: React.FC<OrgLayoutProps> = ({ children, title }) => {
     return <div>Loading...</div>;
   }
 
-  const sidebarGroups = getDashboardSidebarGroups(
-    organization.id,
-    profile?.developerMode ?? false
-  );
+  const sidebarGroups = getDashboardSidebarGroups(organization.id);
 
   return (
     <AppLayout

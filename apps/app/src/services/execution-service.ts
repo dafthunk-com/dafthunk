@@ -1,4 +1,5 @@
 import {
+  type ExecutionStatusType,
   GetExecutionResponse,
   ListExecutionsResponse,
   WorkflowExecution,
@@ -41,11 +42,18 @@ interface UseExecution {
 // Hooks
 //-----------------------------------------------------------------------
 
+export interface ExecutionFilters {
+  workflowId?: string;
+  status?: ExecutionStatusType;
+  startDate?: string;
+  endDate?: string;
+}
+
 /**
  * Hook to use paginated executions with infinite scroll
  */
 export const usePaginatedExecutions = (
-  workflowId?: string
+  filters: ExecutionFilters = {}
 ): UsePaginatedExecutions => {
   const { organization } = useAuth();
   const orgId = organization?.id;
@@ -67,7 +75,11 @@ export const usePaginatedExecutions = (
     queryParams.append("offset", String(pageIndex * EXECUTIONS_PAGE_SIZE));
     queryParams.append("limit", String(EXECUTIONS_PAGE_SIZE));
 
-    if (workflowId) queryParams.append("workflowId", workflowId);
+    if (filters.workflowId)
+      queryParams.append("workflowId", filters.workflowId);
+    if (filters.status) queryParams.append("status", filters.status);
+    if (filters.startDate) queryParams.append("startDate", filters.startDate);
+    if (filters.endDate) queryParams.append("endDate", filters.endDate);
 
     const queryString = queryParams.toString();
     return orgId ? `/${orgId}${API_ENDPOINT_BASE}?${queryString}` : null;

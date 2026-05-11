@@ -426,13 +426,13 @@ export const routes: AppRouteObject[] = [
   {
     path: "/org/:organizationId/feedback",
     element: (
-      <OrgLayout title="Analytics">
+      <OrgLayout title="Feedback">
         <ProtectedRoute>
           <FeedbackPage />
         </ProtectedRoute>
       </OrgLayout>
     ),
-    handle: { head: <HeadSeo title="Feedback - Analytics - Dafthunk" /> },
+    handle: { head: <HeadSeo title="Feedback - Dafthunk" /> },
   },
   {
     path: "/api-keys",

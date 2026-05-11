@@ -6,7 +6,7 @@ import DownloadIcon from "lucide-react/icons/download";
 import ThumbsDown from "lucide-react/icons/thumbs-down";
 import ThumbsUp from "lucide-react/icons/thumbs-up";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import { toast } from "sonner";
 import { useAuth } from "@/components/auth-context";
 import { InsetError } from "@/components/inset-error";
@@ -134,7 +134,16 @@ export function FeedbackPage() {
   const [isExporting, setIsExporting] = useState(false);
 
   // Filters
-  const [workflowId, setWorkflowId] = useState<string | undefined>();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const workflowId = searchParams.get("workflowId") ?? undefined;
+  const setWorkflowId = (id: string | undefined) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (id) next.set("workflowId", id);
+      else next.delete("workflowId");
+      return next;
+    });
+  };
   const [criterionId, setCriterionId] = useState<string | undefined>();
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
@@ -219,13 +228,14 @@ export function FeedbackPage() {
 
         <div className="flex items-center gap-3 mb-4">
           <Select
-            value={workflowId ?? ""}
-            onValueChange={(v) => setWorkflowId(v)}
+            value={workflowId ?? "all"}
+            onValueChange={(v) => setWorkflowId(v === "all" ? undefined : v)}
           >
             <SelectTrigger className="w-48">
-              <SelectValue placeholder="Select a workflow" />
+              <SelectValue placeholder="All workflows" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="all">All workflows</SelectItem>
               {workflows.map((w) => (
                 <SelectItem key={w.id} value={w.id}>
                   {w.name}
@@ -237,6 +247,7 @@ export function FeedbackPage() {
           <Select
             value={criterionId ?? "all"}
             onValueChange={(v) => setCriterionId(v === "all" ? undefined : v)}
+            disabled={!workflowId}
           >
             <SelectTrigger className="w-48">
               <SelectValue placeholder="All criteria" />
@@ -314,25 +325,21 @@ export function FeedbackPage() {
 
         <DataTable
           columns={createColumns(getOrgUrl)}
-          data={workflowId ? feedbackList : []}
+          data={feedbackList}
           emptyState={{
             title: feedbackError
               ? "Error"
-              : !workflowId
+              : feedbackList.length === 0
                 ? "No feedback"
-                : feedbackList.length === 0
-                  ? "No feedback"
-                  : "No results",
+                : "No results",
             description: feedbackError
               ? errorMessage
-              : !workflowId
-                ? "No workflow has been selected yet."
-                : feedbackList.length === 0
-                  ? "No feedback has been submitted yet."
-                  : "No feedback matches your filters.",
+              : feedbackList.length === 0
+                ? "No feedback has been submitted yet."
+                : "No feedback matches your filters.",
           }}
         />
-        {workflowId && !isFeedbackReachingEnd && !isFeedbackInitialLoading && (
+        {!isFeedbackReachingEnd && !isFeedbackInitialLoading && (
           <div ref={feedbackObserverTargetRef} style={{ height: "1px" }} />
         )}
       </InsetLayout>

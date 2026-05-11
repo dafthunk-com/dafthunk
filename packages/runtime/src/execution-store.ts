@@ -49,6 +49,9 @@ export interface SaveExecutionRecord {
  */
 export interface ListExecutionsOptions {
   workflowId?: string;
+  status?: string;
+  startDate?: string;
+  endDate?: string;
   limit?: number;
   offset?: number;
 }

@@ -1,17 +1,21 @@
-import type {
-  ListExecutionsResponse,
+import type { ExecutionStatusType } from "@dafthunk/types";
+import {
+  type ListExecutionsResponse,
   WorkflowExecution,
 } from "@dafthunk/types";
 import { ColumnDef } from "@tanstack/react-table";
+import { format } from "date-fns";
+import CalendarIcon from "lucide-react/icons/calendar";
 import MoreHorizontal from "lucide-react/icons/more-horizontal";
-import { useEffect } from "react";
-import { Link } from "react-router";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useSearchParams } from "react-router";
 import { toast } from "sonner";
 import { ExecutionStatusBadge } from "@/components/executions/execution-status-badge";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import { DataTable } from "@/components/ui/data-table";
 import {
   DropdownMenu,
@@ -19,11 +23,36 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
-import { usePaginatedExecutions } from "@/services/execution-service";
+import {
+  type ExecutionFilters,
+  usePaginatedExecutions,
+} from "@/services/execution-service";
+import { useWorkflows } from "@/services/workflow-service";
 import { formatDate } from "@/utils/date";
+import { cn } from "@/utils/utils";
+
+const STATUS_OPTIONS: { value: ExecutionStatusType; label: string }[] = [
+  { value: "started", label: "Started" },
+  { value: "executing", label: "Executing" },
+  { value: "completed", label: "Completed" },
+  { value: "error", label: "Error" },
+  { value: "cancelled", label: "Cancelled" },
+];
 
 export const createColumns = (
   getOrgUrl: (path: string) => string
@@ -145,6 +174,31 @@ export const createColumns = (
 export function ExecutionsPage() {
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const { getOrgUrl } = useOrgUrl();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const workflowId = searchParams.get("workflowId") ?? undefined;
+  const setWorkflowId = (id: string | undefined) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (id) next.set("workflowId", id);
+      else next.delete("workflowId");
+      return next;
+    });
+  };
+  const [status, setStatus] = useState<ExecutionStatusType | undefined>();
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [endDate, setEndDate] = useState<Date | undefined>();
+
+  const { workflows } = useWorkflows();
+
+  const filters = useMemo<ExecutionFilters>(
+    () => ({
+      workflowId,
+      status,
+      startDate: startDate ? format(startDate, "yyyy-MM-dd") : undefined,
+      endDate: endDate ? format(endDate, "yyyy-MM-dd") : undefined,
+    }),
+    [workflowId, status, startDate, endDate]
+  );
 
   const {
     paginatedExecutions,
@@ -152,7 +206,7 @@ export function ExecutionsPage() {
     isExecutionsInitialLoading,
     isExecutionsReachingEnd,
     executionsObserverTargetRef,
-  } = usePaginatedExecutions();
+  } = usePaginatedExecutions(filters);
 
   // Get error message in a type-safe way
   const errorMessage = executionsError
@@ -182,11 +236,98 @@ export function ExecutionsPage() {
   return (
     <TooltipProvider>
       <InsetLayout title="Executions">
-        <div className="flex items-center justify-between mb-6 min-h-10">
+        <div className="mb-6 min-h-10">
           <div className="text-sm text-muted-foreground max-w-2xl">
             Monitor the executions of your workflows.
           </div>
         </div>
+
+        <div className="flex items-center gap-3 mb-4">
+          <Select
+            value={workflowId ?? "all"}
+            onValueChange={(v) => setWorkflowId(v === "all" ? undefined : v)}
+          >
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="All workflows" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All workflows</SelectItem>
+              {workflows.map((w) => (
+                <SelectItem key={w.id} value={w.id}>
+                  {w.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={status ?? "all"}
+            onValueChange={(v) =>
+              setStatus(v === "all" ? undefined : (v as ExecutionStatusType))
+            }
+          >
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="All statuses" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All statuses</SelectItem>
+              {STATUS_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className={cn(
+                  "w-36 justify-start text-left font-normal",
+                  !startDate && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="h-4 w-4 mr-2" />
+                {startDate ? formatDate(startDate) : "Start date"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={startDate}
+                onSelect={setStartDate}
+                disabled={(date) => (endDate ? date > endDate : false)}
+              />
+            </PopoverContent>
+          </Popover>
+
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className={cn(
+                  "w-36 justify-start text-left font-normal",
+                  !endDate && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="h-4 w-4 mr-2" />
+                {endDate ? formatDate(endDate) : "End date"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={endDate}
+                onSelect={setEndDate}
+                disabled={(date) => (startDate ? date < startDate : false)}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+
         <DataTable
           columns={createColumns(getOrgUrl)}
           data={paginatedExecutions}

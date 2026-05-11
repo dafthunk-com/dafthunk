@@ -1,4 +1,6 @@
 import {
+  ExecutionStatus,
+  type ExecutionStatusType,
   GetExecutionResponse,
   ListExecutionsRequest,
   ListExecutionsResponse,
@@ -80,11 +82,24 @@ executionRoutes.get("/:id", apiKeyOrJwtMiddleware, async (c) => {
 
 executionRoutes.get("/", jwtMiddleware, async (c) => {
   const executionStore = new CloudflareExecutionStore(c.env);
-  const { workflowId, limit, offset } = c.req.query();
+  const { workflowId, status, startDate, endDate, limit, offset } =
+    c.req.query();
 
   const organizationId = c.get("organizationId")!;
 
   const validatedWorkflowId = parseUuid(workflowId);
+
+  const validStatuses = Object.values(ExecutionStatus) as string[];
+  const validatedStatus: ExecutionStatusType | undefined =
+    status && validStatuses.includes(status)
+      ? (status as ExecutionStatusType)
+      : undefined;
+
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  const validatedStartDate =
+    startDate && dateRegex.test(startDate) ? startDate : undefined;
+  const validatedEndDate =
+    endDate && dateRegex.test(endDate) ? endDate : undefined;
 
   // Parse and validate pagination params
   const parsedLimit = Math.min(Math.max(1, parseInt(limit, 10) || 20), 100);
@@ -93,6 +108,9 @@ executionRoutes.get("/", jwtMiddleware, async (c) => {
   // List executions with optional filtering
   const queryParams: ListExecutionsRequest = {
     workflowId: validatedWorkflowId,
+    status: validatedStatus,
+    startDate: validatedStartDate,
+    endDate: validatedEndDate,
     limit: parsedLimit,
     offset: parsedOffset,
   };
