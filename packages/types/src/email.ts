@@ -3,39 +3,28 @@ export interface CreateEmailRequest {
   name: string;
 }
 
-export interface CreateEmailResponse {
+interface EmailResponseBase {
   id: string;
   name: string;
+  handle: string;
+  address: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export interface GetEmailResponse {
-  id: string;
-  name: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+export type CreateEmailResponse = EmailResponseBase;
+
+export type GetEmailResponse = EmailResponseBase;
 
 export interface ListEmailsResponse {
-  emails: {
-    id: string;
-    name: string;
-    createdAt: Date;
-    updatedAt: Date;
-  }[];
+  emails: EmailResponseBase[];
 }
 
 export interface UpdateEmailRequest {
   name: string;
 }
 
-export interface UpdateEmailResponse {
-  id: string;
-  name: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+export type UpdateEmailResponse = EmailResponseBase;
 
 export interface DeleteEmailResponse {
   id: string;

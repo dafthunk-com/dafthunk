@@ -43,13 +43,13 @@ export function EmailCreateDialog({
   const [name, setName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [createdHandle, setCreatedHandle] = useState<string | null>(null);
+  const [createdAddress, setCreatedAddress] = useState<string | null>(null);
 
   const resetForm = () => {
     setStep("name");
     setName("");
     setError(null);
-    setCreatedHandle(null);
+    setCreatedAddress(null);
   };
 
   const handleClose = () => {
@@ -65,7 +65,7 @@ export function EmailCreateDialog({
 
     try {
       const response = await createEmail({ name }, organization.id);
-      setCreatedHandle(response.id);
+      setCreatedAddress(response.address);
       setStep("setup");
       onCreated(response.id);
     } catch (err) {
@@ -143,7 +143,7 @@ export function EmailCreateDialog({
               <span className="font-medium">{name}</span>
             </div>
 
-            {createdHandle && <EmailSetupInfo emailId={createdHandle} />}
+            {createdAddress && <EmailSetupInfo emailAddress={createdAddress} />}
 
             <div className="flex justify-end">
               <Button onClick={handleClose}>Done</Button>

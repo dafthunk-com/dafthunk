@@ -489,6 +489,7 @@ export const emails = sqliteTable(
   {
     id: text("id").primaryKey(),
     name: text("name").notNull(),
+    handle: text("handle").notNull(),
     organizationId: text("organization_id")
       .notNull()
       .references(() => organizations.id, { onDelete: "cascade" }),
@@ -497,6 +498,7 @@ export const emails = sqliteTable(
   },
   (table) => [
     index("emails_name_idx").on(table.name),
+    uniqueIndex("emails_handle_unique_idx").on(table.handle),
     index("emails_organization_id_idx").on(table.organizationId),
     index("emails_created_at_idx").on(table.createdAt),
   ]

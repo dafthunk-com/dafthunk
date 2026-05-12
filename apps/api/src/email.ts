@@ -43,24 +43,25 @@ export async function handleIncomingEmail(
 ): Promise<void> {
   const { from, to, headers, raw } = message;
 
-  // Extract email ID from the to address: emailId@domain.com
-  const emailId = to.split("@")[0];
+  // Extract handle from the to address: <handle>@domain.com.
+  // Lowercase defensively — we only persist lowercase handles, and some MTAs
+  // do not preserve case across the relay.
+  const handle = to.split("@")[0]?.toLowerCase();
 
-  if (!emailId) {
-    console.error(`Invalid email format: ${to}. Expected <emailId>@domain.com`);
+  if (!handle) {
+    console.error(`Invalid email format: ${to}. Expected <handle>@domain.com`);
     return;
   }
 
-  console.log(`Processing email trigger for email: ${emailId}`);
+  console.log(`Processing email trigger for handle: ${handle}`);
 
   const db = createDatabase(env.DB);
   const workflowStore = new WorkflowStore(env);
 
-  // Get email (globally unique UUID, org derived from record)
-  const { getEmailById, getEmailTriggersByEmail } = await import("./db");
-  const email = await getEmailById(db, emailId);
+  const { getEmailByHandle, getEmailTriggersByEmail } = await import("./db");
+  const email = await getEmailByHandle(db, handle);
   if (!email) {
-    console.error(`Email '${emailId}' not found`);
+    console.error(`Email '${handle}' not found`);
     return;
   }
 
@@ -74,12 +75,12 @@ export async function handleIncomingEmail(
   );
 
   if (emailTriggersWithWorkflows.length === 0) {
-    console.log(`No active workflows found for email: ${emailId}`);
+    console.log(`No active workflows found for email: ${handle}`);
     return;
   }
 
   console.log(
-    `Found ${emailTriggersWithWorkflows.length} workflow(s) to trigger for email ${emailId}`
+    `Found ${emailTriggersWithWorkflows.length} workflow(s) to trigger for email ${handle}`
   );
 
   // Read raw email content once (stream can only be consumed once)

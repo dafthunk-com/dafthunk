@@ -22,6 +22,12 @@ import {
   getEmails,
   updateEmail,
 } from "../db";
+import type { EmailRow } from "../db/schema";
+import {
+  formatEmailAddress,
+  generateEmailHandle,
+  isUniqueHandleError,
+} from "../utils/email-handle";
 
 // Extend the ApiContext with our custom variable
 type ExtendedApiContext = ApiContext & {
@@ -30,10 +36,26 @@ type ExtendedApiContext = ApiContext & {
   };
 };
 
+const MAX_HANDLE_ATTEMPTS = 5;
+
 const emailRoutes = new Hono<ExtendedApiContext>();
 
 // Apply JWT middleware to all email routes
 emailRoutes.use("*", jwtMiddleware);
+
+const nameSchema = z.string().trim().min(1, "Email name is required").max(120);
+
+const toEmailPayload = (
+  email: Pick<EmailRow, "id" | "name" | "handle" | "createdAt" | "updatedAt">,
+  domain: string
+) => ({
+  id: email.id,
+  name: email.name,
+  handle: email.handle,
+  address: formatEmailAddress(email.handle, domain),
+  createdAt: email.createdAt,
+  updatedAt: email.updatedAt,
+});
 
 /**
  * List all emails for the current organization
@@ -44,7 +66,9 @@ emailRoutes.get("/", async (c) => {
 
   const allEmails = await getEmails(db, organizationId);
 
-  const response: ListEmailsResponse = { emails: allEmails };
+  const response: ListEmailsResponse = {
+    emails: allEmails.map((email) => toEmailPayload(email, c.env.EMAIL_DOMAIN)),
+  };
   return c.json(response);
 });
 
@@ -56,7 +80,7 @@ emailRoutes.post(
   zValidator(
     "json",
     z.object({
-      name: z.string().min(1, "Email name is required"),
+      name: nameSchema,
     }) as z.ZodType<CreateEmailRequest>
   ),
   async (c) => {
@@ -65,23 +89,37 @@ emailRoutes.post(
     const organizationId = c.get("organizationId")!;
     const db = createDatabase(c.env.DB);
 
-    const emailId = uuid();
-    const emailName = data.name || "Untitled Email";
+    const emailName = data.name;
 
-    const newEmail = await createEmail(db, {
-      id: emailId,
-      name: emailName,
-      organizationId: organizationId,
-      createdAt: now,
-      updatedAt: now,
-    });
+    let created: EmailRow | undefined;
+    let lastError: unknown;
+    for (let attempt = 0; attempt < MAX_HANDLE_ATTEMPTS; attempt++) {
+      const handle = generateEmailHandle(emailName);
+      try {
+        created = await createEmail(db, {
+          id: uuid(),
+          name: emailName,
+          handle,
+          organizationId,
+          createdAt: now,
+          updatedAt: now,
+        });
+        break;
+      } catch (err) {
+        lastError = err;
+        if (!isUniqueHandleError(err)) throw err;
+      }
+    }
 
-    const response: CreateEmailResponse = {
-      id: newEmail.id,
-      name: newEmail.name,
-      createdAt: newEmail.createdAt,
-      updatedAt: newEmail.updatedAt,
-    };
+    if (!created) {
+      console.error("Failed to allocate unique email handle", lastError);
+      return c.json({ error: "Failed to create email" }, 500);
+    }
+
+    const response: CreateEmailResponse = toEmailPayload(
+      created,
+      c.env.EMAIL_DOMAIN
+    );
 
     return c.json(response, 201);
   }
@@ -100,12 +138,7 @@ emailRoutes.get("/:id", async (c) => {
     return c.json({ error: "Email not found" }, 404);
   }
 
-  const response: GetEmailResponse = {
-    id: email.id,
-    name: email.name,
-    createdAt: email.createdAt,
-    updatedAt: email.updatedAt,
-  };
+  const response: GetEmailResponse = toEmailPayload(email, c.env.EMAIL_DOMAIN);
 
   return c.json(response);
 });
@@ -118,7 +151,7 @@ emailRoutes.put(
   zValidator(
     "json",
     z.object({
-      name: z.string().min(1, "Email name is required"),
+      name: nameSchema,
     }) as z.ZodType<UpdateEmailRequest>
   ),
   async (c) => {
@@ -139,12 +172,10 @@ emailRoutes.put(
       updatedAt: now,
     });
 
-    const response: UpdateEmailResponse = {
-      id: updatedEmail.id,
-      name: updatedEmail.name,
-      createdAt: updatedEmail.createdAt,
-      updatedAt: updatedEmail.updatedAt,
-    };
+    const response: UpdateEmailResponse = toEmailPayload(
+      updatedEmail,
+      c.env.EMAIL_DOMAIN
+    );
 
     return c.json(response);
   }

@@ -31,11 +31,11 @@ import { EmailCreateDialog } from "@/components/workflow/widgets/input/email-cre
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { deleteEmail, updateEmail, useEmails } from "@/services/email-service";
 
-const EMAIL_DOMAIN = import.meta.env.VITE_EMAIL_DOMAIN || "mail.dafthunk.com";
-
 interface EmailRow {
   id: string;
   name: string;
+  handle: string;
+  address: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -43,7 +43,7 @@ interface EmailRow {
 function downloadVCard(email: EmailRow) {
   const rawName = email.name || "Untitled Email";
   const displayName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
-  const emailAddress = `${email.id}@${EMAIL_DOMAIN}`;
+  const emailAddress = email.address;
   const fullName = `Dafthunk (${displayName})`;
   const vcard = [
     "BEGIN:VCARD",
@@ -82,13 +82,12 @@ function createColumns(
       header: "Email",
       cell: ({ row }) => {
         const email = row.original;
-        const emailAddress = `${email.id}@${EMAIL_DOMAIN}`;
         return (
           <a
-            href={`mailto:${emailAddress}`}
+            href={`mailto:${email.address}`}
             className="text-sm text-muted-foreground hover:underline"
           >
-            {emailAddress}
+            {email.address}
           </a>
         );
       },

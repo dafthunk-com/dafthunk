@@ -1,13 +1,10 @@
 import { CopyableValue } from "./copyable-value";
 
 interface EmailSetupInfoProps {
-  emailId: string;
+  emailAddress: string;
 }
 
-export function EmailSetupInfo({ emailId }: EmailSetupInfoProps) {
-  const domain = import.meta.env.VITE_EMAIL_DOMAIN || "mail.dafthunk.com";
-  const emailAddress = `${emailId}@${domain}`;
-
+export function EmailSetupInfo({ emailAddress }: EmailSetupInfoProps) {
   return (
     <div className="space-y-2 text-sm">
       <div className="space-y-1">

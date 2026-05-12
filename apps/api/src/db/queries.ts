@@ -852,6 +852,7 @@ export async function getEmails(
     .select({
       id: emails.id,
       name: emails.name,
+      handle: emails.handle,
       createdAt: emails.createdAt,
       updatedAt: emails.updatedAt,
     })
@@ -860,21 +861,18 @@ export async function getEmails(
 }
 
 /**
- * Get an email by ID, ensuring it belongs to the specified organization
- *
- * @param db Database instance
- * @param emailId Email ID
- * @param organizationId Organization ID
- * @returns Email record or undefined if not found
+ * Look up an email by its externally-visible handle. Used by the
+ * incoming-mail handler to route a message to the right organization's
+ * workflows.
  */
-export async function getEmailById(
+export async function getEmailByHandle(
   db: ReturnType<typeof createDatabase>,
-  emailId: string
+  handle: string
 ): Promise<EmailRow | undefined> {
   const [email] = await db
     .select()
     .from(emails)
-    .where(eq(emails.id, emailId))
+    .where(eq(emails.handle, handle))
     .limit(1);
   return email;
 }
