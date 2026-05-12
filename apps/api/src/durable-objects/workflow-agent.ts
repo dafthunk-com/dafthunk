@@ -362,6 +362,7 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
     const workflowData = workflowWithData?.data || {
       id: workflowId,
       name: workflow.name,
+      description: workflow.description ?? undefined,
       trigger: workflow.trigger,
       runtime: workflow.runtime,
       nodes: [],
@@ -371,6 +372,7 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
     this.workflowState = {
       id: workflowId,
       name: workflowData.name,
+      description: workflowData.description,
       trigger: workflowData.trigger as WorkflowState["trigger"],
       runtime: workflowData.runtime,
       nodes: workflowData.nodes,
@@ -753,6 +755,7 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
       const workflowData = {
         id: pending.workflowState.id,
         name: pending.workflowState.name,
+        description: pending.workflowState.description,
         trigger: pending.workflowState.trigger,
         runtime: pending.workflowState.runtime,
         organizationId: pending.organizationId,
@@ -764,7 +767,9 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
       await Promise.all([
         workflowStore.update(pending.workflowState.id, pending.organizationId, {
           name: pending.workflowState.name,
+          description: pending.workflowState.description ?? null,
           trigger: pending.workflowState.trigger,
+          runtime: pending.workflowState.runtime,
         }),
         workflowStore.save(workflowData as SaveWorkflowRecord),
       ]);

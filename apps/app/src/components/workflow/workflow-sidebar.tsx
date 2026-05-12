@@ -141,12 +141,7 @@ export function WorkflowSidebar({
     if (updateTimeoutRef.current) clearTimeout(updateTimeoutRef.current);
     updateTimeoutRef.current = setTimeout(() => {
       const s = localStateRef.current;
-      onWorkflowUpdate?.(
-        s.name,
-        s.description || undefined,
-        s.trigger,
-        s.runtime
-      );
+      onWorkflowUpdate?.(s.name, s.description, s.trigger, s.runtime);
     }, 500);
   };
 
@@ -171,12 +166,7 @@ export function WorkflowSidebar({
   const handleRuntimeChange = (newRuntime: WorkflowRuntime) => {
     setLocalRuntime(newRuntime);
     const s = localStateRef.current;
-    onWorkflowUpdate?.(
-      s.name,
-      s.description || undefined,
-      s.trigger,
-      newRuntime
-    );
+    onWorkflowUpdate?.(s.name, s.description, s.trigger, newRuntime);
   };
 
   // Cleanup timeout on unmount
