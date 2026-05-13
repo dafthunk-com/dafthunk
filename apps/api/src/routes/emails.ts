@@ -166,11 +166,39 @@ emailRoutes.put(
 
     const data = c.req.valid("json");
     const now = new Date();
+    const nameChanged = data.name !== existingEmail.name;
 
-    const updatedEmail = await updateEmail(db, id, organizationId, {
-      name: data.name,
-      updatedAt: now,
-    });
+    let updatedEmail: EmailRow | undefined;
+    if (nameChanged) {
+      let lastError: unknown;
+      for (let attempt = 0; attempt < MAX_HANDLE_ATTEMPTS; attempt++) {
+        const handle = generateEmailHandle(data.name);
+        try {
+          updatedEmail = await updateEmail(db, id, organizationId, {
+            name: data.name,
+            handle,
+            updatedAt: now,
+          });
+          break;
+        } catch (err) {
+          lastError = err;
+          if (!isUniqueHandleError(err)) throw err;
+        }
+      }
+
+      if (!updatedEmail) {
+        console.error(
+          "Failed to allocate unique email handle on rename",
+          lastError
+        );
+        return c.json({ error: "Failed to update email" }, 500);
+      }
+    } else {
+      updatedEmail = await updateEmail(db, id, organizationId, {
+        name: data.name,
+        updatedAt: now,
+      });
+    }
 
     const response: UpdateEmailResponse = toEmailPayload(
       updatedEmail,

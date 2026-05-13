@@ -233,6 +233,16 @@ export function EmailsPage() {
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
               />
+              {emailToEdit &&
+                editName.trim() !== "" &&
+                editName.trim() !== emailToEdit.name && (
+                  <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-3 py-2 rounded-md">
+                    Renaming will replace the email address (currently{" "}
+                    <span className="font-medium">{emailToEdit.address}</span>).
+                    Senders using the old address will no longer reach this
+                    email.
+                  </p>
+                )}
             </div>
             <DialogFooter>
               <Button
