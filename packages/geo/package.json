@@ -18,10 +18,10 @@
     "polyclip-ts": "^0.16.8"
   },
   "devDependencies": {
-    "@turf/helpers": "^7.3.2",
-    "@turf/turf": "^7.3.2",
+    "@turf/helpers": "^7.3.5",
+    "@turf/turf": "^7.3.5",
     "@types/d3-delaunay": "^6.0.4",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.0"
+    "vitest": "^4.1.6"
   }
 }
