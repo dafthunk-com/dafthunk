@@ -28,18 +28,6 @@ importers:
       '@anthropic-ai/sdk':
         specifier: ^0.71.2
         version: 0.71.2(zod@4.4.3)
-      '@cf-wasm/photon':
-        specifier: ^0.3.5
-        version: 0.3.5
-      '@cf-wasm/png':
-        specifier: ^0.3.3
-        version: 0.3.3
-      '@cf-wasm/resvg':
-        specifier: ^0.3.4
-        version: 0.3.4
-      '@cloudflare/ai-utils':
-        specifier: ^1.0.1
-        version: 1.0.1
       '@cloudflare/containers':
         specifier: ^0.1.1
         version: 0.1.1
@@ -52,12 +40,6 @@ importers:
       '@dafthunk/types':
         specifier: workspace:*
         version: link:../../packages/types
-      '@dafthunk/utils':
-        specifier: workspace:*
-        version: link:../../packages/utils
-      '@gltf-transform/core':
-        specifier: ^4.3.0
-        version: 4.3.0
       '@google/genai':
         specifier: ^1.52.0
         version: 1.52.0(@modelcontextprotocol/sdk@1.26.0(@cfworker/json-schema@4.1.1)(zod@4.4.3))(bufferutil@4.1.0)(utf-8-validate@6.0.6)
@@ -70,51 +52,24 @@ importers:
       '@hono/zod-validator':
         specifier: ^0.7.6
         version: 0.7.6(hono@4.12.18)(zod@4.4.3)
-      '@mapbox/martini':
-        specifier: ^0.2.0
-        version: 0.2.0
-      '@turf/helpers':
-        specifier: ^7.3.5
-        version: 7.3.5
-      '@turf/turf':
-        specifier: ^7.3.5
-        version: 7.3.5
       agents:
         specifier: ^0.7.9
         version: 0.7.9(@cloudflare/workers-types@4.20260511.1)(ai@6.0.182(zod@4.4.3))(react@19.2.6)(viem@2.47.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@4.4.3))(zod@4.4.3)
-      ai:
-        specifier: ^6.0.182
-        version: 6.0.182(zod@4.4.3)
       aws4fetch:
         specifier: ^1.0.20
         version: 1.0.20
-      cloudflare:
-        specifier: ^5.2.0
-        version: 5.2.0
       cron-parser:
         specifier: ^5.5.0
         version: 5.5.0
       drizzle-orm:
         specifier: 0.45.2
         version: 0.45.2(@cloudflare/workers-types@4.20260511.1)(@opentelemetry/api@1.9.1)
-      exifreader:
-        specifier: ^4.38.1
-        version: 4.38.1
-      geotiff:
-        specifier: ^2.1.3
-        version: 2.1.3
       hono:
         specifier: ^4.12.18
         version: 4.12.18
       jose:
         specifier: ^6.2.3
         version: 6.2.3
-      jsonpath-plus:
-        specifier: ^10.4.0
-        version: 10.4.0
-      mailparser:
-        specifier: ^3.9.8
-        version: 3.9.8
       nanoid:
         specifier: ^5.1.11
         version: 5.1.11
@@ -124,21 +79,9 @@ importers:
       stripe:
         specifier: ^20.4.1
         version: 20.4.1(@types/node@22.19.19)
-      three:
-        specifier: ^0.182.0
-        version: 0.182.0
-      three-bvh-csg:
-        specifier: ^0.0.17
-        version: 0.0.17(three-mesh-bvh@0.9.2(three@0.182.0))(three@0.182.0)
-      twilio:
-        specifier: ^5.13.1
-        version: 5.13.1
       uuid:
         specifier: ^13.0.2
         version: 13.0.2
-      wellknown:
-        specifier: ^0.5.0
-        version: 0.5.0
       zod:
         specifier: ^4.4.3
         version: 4.4.3
@@ -149,24 +92,12 @@ importers:
       '@cloudflare/workers-types':
         specifier: ^4.20260511.1
         version: 4.20260511.1
-      '@types/mailparser':
-        specifier: ^3.4.6
-        version: 3.4.6
       '@types/node':
         specifier: ^22.19.19
         version: 22.19.19
-      '@types/three':
-        specifier: ^0.181.0
-        version: 0.181.0
-      '@types/wellknown':
-        specifier: ^0.5.8
-        version: 0.5.8
       drizzle-kit:
         specifier: 0.31.10
         version: 0.31.10
-      globals:
-        specifier: ^15.15.0
-        version: 15.15.0
       partyserver:
         specifier: ^0.3.3
         version: 0.3.3(@cloudflare/workers-types@4.20260511.1)
@@ -333,9 +264,6 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
-      globals:
-        specifier: ^15.15.0
-        version: 15.15.0
       react-markdown:
         specifier: ^10.1.0
         version: 10.1.0(@types/react@19.2.14)(react@19.2.6)
@@ -397,9 +325,6 @@ importers:
       '@cloudflare/workers-types':
         specifier: ^4.20260511.1
         version: 4.20260511.1
-      '@react-router/cloudflare':
-        specifier: ^7.15.0
-        version: 7.15.0(@cloudflare/workers-types@4.20260511.1)(react-router@7.15.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(typescript@5.9.3)
       '@react-router/dev':
         specifier: ^7.15.0
         version: 7.15.0(@types/node@22.19.19)(jiti@2.7.0)(lightningcss@1.32.0)(react-router@7.15.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(tsx@4.21.0)(typescript@5.9.3)(vite@7.3.3(@types/node@22.19.19)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.21.0)(yaml@2.9.0))(wrangler@4.90.1(@cloudflare/workers-types@4.20260511.1)(bufferutil@4.1.0)(utf-8-validate@6.0.6))(yaml@2.9.0)
@@ -415,9 +340,6 @@ importers:
       '@types/react-dom':
         specifier: ^19.2.3
         version: 19.2.3(@types/react@19.2.14)
-      globals:
-        specifier: ^15.15.0
-        version: 15.15.0
       tailwindcss:
         specifier: ^4.3.0
         version: 4.3.0
@@ -509,9 +431,6 @@ importers:
       geotiff:
         specifier: ^2.1.3
         version: 2.1.3
-      iconv-lite:
-        specifier: ^0.7.2
-        version: 0.7.2
       jsonpath-plus:
         specifier: ^10.4.0
         version: 10.4.0
@@ -543,9 +462,6 @@ importers:
       '@cloudflare/workers-types':
         specifier: ^4.20260511.1
         version: 4.20260511.1
-      '@turf/turf':
-        specifier: ^7.3.5
-        version: 7.3.5
       '@types/mailparser':
         specifier: ^3.4.6
         version: 3.4.6
@@ -564,9 +480,6 @@ importers:
 
   packages/types:
     devDependencies:
-      globals:
-        specifier: ^15.15.0
-        version: 15.15.0
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -580,9 +493,6 @@ importers:
       '@types/d3-geo':
         specifier: ^3.1.0
         version: 3.1.0
-      globals:
-        specifier: ^15.15.0
-        version: 15.15.0
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -2475,17 +2385,6 @@ packages:
   '@radix-ui/rect@1.1.1':
     resolution: {integrity: sha512-HPwpGIzkl28mWyZqG52jiqDJ12waP11Pa1lGoiyUkIEuMLBP0oeK/C89esbXrxsky5we7dfd8U58nm0SgAWpVw==}
 
-  '@react-router/cloudflare@7.15.0':
-    resolution: {integrity: sha512-DhzLEpZDXK7vS5d9ZyHwjzecySrXsuaCKkcGJF37gLqR0Qv5QbleBFhP67t0OR0HonUaQE/Q+sq/SjvZq1lpmw==}
-    engines: {node: '>=20.0.0'}
-    peerDependencies:
-      '@cloudflare/workers-types': ^4.0.0
-      react-router: ^7.15.0
-      typescript: ^5.1.0 || ^6.0.0
-    peerDependenciesMeta:
-      typescript:
-        optional: true
-
   '@react-router/dev@7.15.0':
     resolution: {integrity: sha512-ZwUQu4KNZrViFqdeFWqh00Bk/QbLNvoWRDfjsqOp3oyuG3jSRLYnqRD3VAMK/FYMpL+s37ByT7XqqLXaF7Nw1g==}
     engines: {node: '>=20.0.0'}
@@ -3247,12 +3146,6 @@ packages:
   '@types/ms@2.1.0':
     resolution: {integrity: sha512-GsCCIZDE/p3i96vtEqx+7dBUGXrc7zeSK3wwPHIaRThS+9OhWIXRqzs4d6k1SVU8g91DrNRWxWUGhp5KXQb2VA==}
 
-  '@types/node-fetch@2.6.13':
-    resolution: {integrity: sha512-QGpRVpzSaUs30JBSGPjOg4Uveu384erbHBoT1zeONvyCfwQxIkUshLAOqN/k9EjGviPRmWTTe6aH2qySWKTVSw==}
-
-  '@types/node@18.19.130':
-    resolution: {integrity: sha512-GRaXQx6jGfL8sKfaIDD6OupbIHBr9jv7Jnaml9tB7l4v068PAOXqfcujMMo5PhbIs6ggR1XODELqahT2R8v0fg==}
-
   '@types/node@22.19.19':
     resolution: {integrity: sha512-dyh/xO2Fh5bYrfWaaqGrRQQGkNdmYw6AmaAUvYeUMNTWQtvb796ikLdmTchRmOlOiIJ1TDXfWgVx1QkUlQ6Hew==}
 
@@ -3360,10 +3253,6 @@ packages:
       zod:
         optional: true
 
-  abort-controller@3.0.0:
-    resolution: {integrity: sha512-h8lQ8tacZYnR3vNQTgibj+tODHI5/+l06Au2Pcriv/Gmet0eaj4TwWH41sO9wnHDiQsEj19q0drzdWdeAHtweg==}
-    engines: {node: '>=6.5'}
-
   accepts@2.0.0:
     resolution: {integrity: sha512-5cvg6CtKwfgdmVqY1WIiXKc3Q1bkRqGLi+2W/6ao+6Y7gu/RCwRuAhGEzh5B4KlszSuTLgZYuqFqo5bImjNKng==}
     engines: {node: '>= 0.6'}
@@ -3375,10 +3264,6 @@ packages:
   agent-base@7.1.4:
     resolution: {integrity: sha512-MnA+YT8fwfJPgBx3m60MNqakm30XOkyIoH1y6huTQvC0PwZG7ki8NacLBcrPbNoo8vEZy7Jpuk7+jMO+CUovTQ==}
     engines: {node: '>= 14'}
-
-  agentkeepalive@4.6.0:
-    resolution: {integrity: sha512-kja8j7PjmncONqaTsB8fQ+wE2mSU2DJ9D4XKoJ5PFWIdRMa6SLSN1ff4mOr4jCbfRSsxR4keIiySJU0N9T5hIQ==}
-    engines: {node: '>= 8.0.0'}
 
   agents@0.7.9:
     resolution: {integrity: sha512-NNzFkDLrsZQC9oJlDOcgktQxeNWUfZuftimhGmcin+7kULsmdks1AUPXTXQ4mHJZBilKpL0pQzCq5aQMQCYEKA==}
@@ -3562,9 +3447,6 @@ packages:
   cliui@9.0.1:
     resolution: {integrity: sha512-k7ndgKhwoQveBL+/1tqGJYNz097I7WOvwbmmU2AR5+magtbjPWQTS1C5vzGkBC8Ym8UWRzfKUzUUqFLypY4Q+w==}
     engines: {node: '>=20'}
-
-  cloudflare@5.2.0:
-    resolution: {integrity: sha512-dVzqDpPFYR9ApEC9e+JJshFJZXcw4HzM8W+3DHzO5oy9+8rLC53G7x6fEf9A7/gSuSCxuvndzui5qJKftfIM9A==}
 
   clsx@2.1.1:
     resolution: {integrity: sha512-eYm0QWBtUrBWZWG0d386OGAw16Z995PiOVo2B7bjWSbHedGl5e0ZWaq65kOGgUSNesEIDkB9ISbTg/JK9dhCZA==}
@@ -3975,10 +3857,6 @@ packages:
   event-target-polyfill@0.0.4:
     resolution: {integrity: sha512-Gs6RLjzlLRdT8X9ZipJdIZI/Y6/HhRLyq9RdDlCsnpxr/+Nn6bU2EFGuC94GjxqhM+Nmij2Vcq98yoHrU8uNFQ==}
 
-  event-target-shim@5.0.1:
-    resolution: {integrity: sha512-i/2XbnSz/uxRCU6+NdVJgKWDTM427+MqYbkQzD321DuCQJUqOuJKIA0IM2+W2xtYHdKOmZ4dR6fExsd4SXL+WQ==}
-    engines: {node: '>=6'}
-
   eventemitter3@5.0.1:
     resolution: {integrity: sha512-GWkBvjiSZK87ELrYOSESUYeVIc9mvLLf/nXalMOS5dYrgZq9o5OVkbZAVM06CVxYsCwH9BDZFPlQTlPA1j4ahA==}
 
@@ -4066,9 +3944,6 @@ packages:
       debug:
         optional: true
 
-  form-data-encoder@1.7.2:
-    resolution: {integrity: sha512-qfqtYan3rxrnCk1VYaA4H+Ms9xdpPqvLZa6xmMgFvhO32x7/3J/ExcTd6qpxM0vH2GdMI+poehyBZvqfMTto8A==}
-
   form-data@4.0.5:
     resolution: {integrity: sha512-8RipRLol37bNs2bhoV67fiTEvdTrbMUYcFTiy3+wuuOnUog2QBHCZWXDRijWQfAkhBj2Uf5UnVaiWwA5vdd82w==}
     engines: {node: '>= 6'}
@@ -4077,10 +3952,6 @@ packages:
     resolution: {integrity: sha512-9XNj/o4wrRFyhSMJOvsuyMwy8aUfBaZ1VrqHVfohyXf0Sw0e+yfKG+xZaY3arGCOMdwFsqObtzVOc1gU9KiT9w==}
     engines: {node: '>=18.3.0'}
     hasBin: true
-
-  formdata-node@4.4.1:
-    resolution: {integrity: sha512-0iirZp3uVDjVGt9p49aTaqjk84TrglENEDuqfdlZQ1roC9CWlPk6Avf8EEnZNcAqPonwkG35x4n3ww/1THYAeQ==}
-    engines: {node: '>= 12.20'}
 
   formdata-polyfill@4.0.10:
     resolution: {integrity: sha512-buewHzMvYL29jdeQTVILecSaZKnt/RJWjoZCF5OW60Z67/GmSLBkOFM7qh1PI3zFNtJbaZL5eQu1vLfazOwj4g==}
@@ -4151,10 +4022,6 @@ packages:
     resolution: {integrity: sha512-AOIgSQCepiJYwP3ARnGx+5VnTu2HBYdzbGP45eLw1vr3zB3vZLeyed1sC9hnbcOc9/SrMyM5RPQrkGz4aS9Zow==}
     engines: {node: '>= 6'}
 
-  globals@15.15.0:
-    resolution: {integrity: sha512-7ACyT3wmyp3I61S4fG682L0VA2RGD9otkqGJIwNUMF1SWUombIIk+af1unuDYgMm082aHYwD+mzJvv9Iu8dsgg==}
-    engines: {node: '>=18'}
-
   google-auth-library@10.6.2:
     resolution: {integrity: sha512-e27Z6EThmVNNvtYASwQxose/G57rkRuaRbQyxM2bvYLLX/GqWZ5chWq2EBoUchJbCc57eC9ArzO5wMsEmWftCw==}
     engines: {node: '>=18'}
@@ -4223,9 +4090,6 @@ packages:
   https-proxy-agent@7.0.6:
     resolution: {integrity: sha512-vK9P5/iUfdl95AI+JVyUuIcVtd4ofvtrOr3HNtM2yxC9bnMbEdp3x01OhQNnjb8IJYi38VlTE3mBXwcfvywuSw==}
     engines: {node: '>= 14'}
-
-  humanize-ms@1.2.1:
-    resolution: {integrity: sha512-Fl70vYtsAFb/C06PTS9dZBo7ihau+Tu/DNCk/OyHhea07S+aeMWpFFkUaXRa8fI+ScZbEI8dfSxwY7gxZ9SAVQ==}
 
   iconv-lite@0.6.3:
     resolution: {integrity: sha512-4fCk79wshMdzMp2rH06qWrJE4iolqLhCUH+OiuIgU++RB0+94NlDL81atO7GX55uUKueo0txHNtvEyI6D7WdMw==}
@@ -4702,15 +4566,6 @@ packages:
     resolution: {integrity: sha512-/jKZoMpw0F8GRwl4/eLROPA3cfcXtLApP0QzLmUT/HuPCZWyB7IY9ZrMeKw2O/nFIqPQB3PVM9aYm0F312AXDQ==}
     engines: {node: '>=10.5.0'}
     deprecated: Use your platform's native DOMException instead
-
-  node-fetch@2.7.0:
-    resolution: {integrity: sha512-c4FRfUm/dbcWZ7U+1Wq0AwCyFL+3nt2bEw05wfxSz+DWpWsitgmSgYmy2dQdWyKC1694ELPqMs/YzUSNozLt8A==}
-    engines: {node: 4.x || >=6.0.0}
-    peerDependencies:
-      encoding: ^0.1.0
-    peerDependenciesMeta:
-      encoding:
-        optional: true
 
   node-fetch@3.3.2:
     resolution: {integrity: sha512-dRB78srN/l6gqWulah9SrxeYnxeddIG30+GOqK/9OlLVyLg3HPnr6SqOWTWOXKRwC2eGYCkZ59NNuSgvSrpgOA==}
@@ -5276,9 +5131,6 @@ packages:
     resolution: {integrity: sha512-/VS9j/ffKr2XAOjlZ9CgyyeLmgJ9dMwq6Y0YEON8O7p/tGGk+dCWnrE03zEdu7i4L7YsFZLEPZPzCvcB7lEEXw==}
     hasBin: true
 
-  tr46@0.0.3:
-    resolution: {integrity: sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==}
-
   trim-lines@3.0.1:
     resolution: {integrity: sha512-kRj8B+YHZCc9kQYdWfJB2/oUl9rA99qbowYYBtr4ui4mZyAQ2JpvVBd/6U2YloATfqBhBTSMhTpgBHtU0Mf3Rg==}
 
@@ -5321,9 +5173,6 @@ packages:
   unbash@2.2.0:
     resolution: {integrity: sha512-X2wH19RAPZE3+ldGicOkoj/SIA83OIxcJ6Cuaw23hf8Xc6fQpvZXY0SftE2JgS0QhYLUG4uwodSI3R53keyh7w==}
     engines: {node: '>=14'}
-
-  undici-types@5.26.5:
-    resolution: {integrity: sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA==}
 
   undici-types@6.21.0:
     resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
@@ -5526,22 +5375,12 @@ packages:
     resolution: {integrity: sha512-d2JWLCivmZYTSIoge9MsgFCZrt571BikcWGYkjC1khllbTeDlGqZ2D8vD8E/lJa8WGWbb7Plm8/XJYV7IJHZZw==}
     engines: {node: '>= 8'}
 
-  web-streams-polyfill@4.0.0-beta.3:
-    resolution: {integrity: sha512-QW95TCTaHmsYfHDybGMwO5IJIM93I/6vTRk+daHTWFPhwh+C8Cg7j7XyKrwrj8Ib6vYXe0ocYNrmzY4xAAN6ug==}
-    engines: {node: '>= 14'}
-
   web-worker@1.5.0:
     resolution: {integrity: sha512-RiMReJrTAiA+mBjGONMnjVDP2u3p9R1vkcGz6gDIrOMT3oGuYwX2WRMYI9ipkphSuE5XKEhydbhNEJh4NY9mlw==}
-
-  webidl-conversions@3.0.1:
-    resolution: {integrity: sha512-2JAn3z8AR6rjK8Sm8orRC0h/bcl/DqL7tRPdGZ4I1CjdF+EaMLmYxBHyXuKL849eucPFhvBoxMsflfOb8kxaeQ==}
 
   wellknown@0.5.0:
     resolution: {integrity: sha512-za5vTLuPF9nmrVOovYQwNEWE/PwJCM+yHMAj4xN1WWUvtq9OElsvKiPL0CR9rO8xhrYqL7NpI7IknqR8r6eYOg==}
     hasBin: true
-
-  whatwg-url@5.0.0:
-    resolution: {integrity: sha512-saE57nupxk6v3HY35+jzBwYa0rKSy0XR8JSxZPwgLr7ys0IBzhGviA1/TUGJLmSVqs8pb9AnvICXEuOHLprYTw==}
 
   which@2.0.2:
     resolution: {integrity: sha512-BLI3Tl1TW3Pvl70l3yq3Y64i+awpwXqsGBYWkkqMtnbXgrMD+yj7rhW0kuEDxzJaYXGjEW5ogapKNMEKNMjibA==}
@@ -7349,13 +7188,6 @@ snapshots:
 
   '@radix-ui/rect@1.1.1': {}
 
-  '@react-router/cloudflare@7.15.0(@cloudflare/workers-types@4.20260511.1)(react-router@7.15.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(typescript@5.9.3)':
-    dependencies:
-      '@cloudflare/workers-types': 4.20260511.1
-      react-router: 7.15.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
-    optionalDependencies:
-      typescript: 5.9.3
-
   '@react-router/dev@7.15.0(@types/node@22.19.19)(jiti@2.7.0)(lightningcss@1.32.0)(react-router@7.15.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(tsx@4.21.0)(typescript@5.9.3)(vite@7.3.3(@types/node@22.19.19)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.21.0)(yaml@2.9.0))(wrangler@4.90.1(@cloudflare/workers-types@4.20260511.1)(bufferutil@4.1.0)(utf-8-validate@6.0.6))(yaml@2.9.0)':
     dependencies:
       '@babel/core': 7.29.0
@@ -8874,15 +8706,6 @@ snapshots:
 
   '@types/ms@2.1.0': {}
 
-  '@types/node-fetch@2.6.13':
-    dependencies:
-      '@types/node': 22.19.19
-      form-data: 4.0.5
-
-  '@types/node@18.19.130':
-    dependencies:
-      undici-types: 5.26.5
-
   '@types/node@22.19.19':
     dependencies:
       undici-types: 6.21.0
@@ -9016,10 +8839,6 @@ snapshots:
       zod: 4.4.3
     optional: true
 
-  abort-controller@3.0.0:
-    dependencies:
-      event-target-shim: 5.0.1
-
   accepts@2.0.0:
     dependencies:
       mime-types: 3.0.2
@@ -9032,10 +8851,6 @@ snapshots:
       - supports-color
 
   agent-base@7.1.4: {}
-
-  agentkeepalive@4.6.0:
-    dependencies:
-      humanize-ms: 1.2.1
 
   agents@0.7.9(@cloudflare/workers-types@4.20260511.1)(ai@6.0.182(zod@4.4.3))(react@19.2.6)(viem@2.47.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@4.4.3))(zod@4.4.3):
     dependencies:
@@ -9211,18 +9026,6 @@ snapshots:
       string-width: 7.2.0
       strip-ansi: 7.2.0
       wrap-ansi: 9.0.2
-
-  cloudflare@5.2.0:
-    dependencies:
-      '@types/node': 18.19.130
-      '@types/node-fetch': 2.6.13
-      abort-controller: 3.0.0
-      agentkeepalive: 4.6.0
-      form-data-encoder: 1.7.2
-      formdata-node: 4.4.1
-      node-fetch: 2.7.0
-    transitivePeerDependencies:
-      - encoding
 
   clsx@2.1.1: {}
 
@@ -9565,8 +9368,6 @@ snapshots:
 
   event-target-polyfill@0.0.4: {}
 
-  event-target-shim@5.0.1: {}
-
   eventemitter3@5.0.1:
     optional: true
 
@@ -9674,8 +9475,6 @@ snapshots:
 
   follow-redirects@1.16.0: {}
 
-  form-data-encoder@1.7.2: {}
-
   form-data@4.0.5:
     dependencies:
       asynckit: 0.4.0
@@ -9687,11 +9486,6 @@ snapshots:
   formatly@0.3.0:
     dependencies:
       fd-package-json: 2.0.0
-
-  formdata-node@4.4.1:
-    dependencies:
-      node-domexception: 1.0.0
-      web-streams-polyfill: 4.0.0-beta.3
 
   formdata-polyfill@4.0.10:
     dependencies:
@@ -9774,8 +9568,6 @@ snapshots:
   glob-parent@5.1.2:
     dependencies:
       is-glob: 4.0.3
-
-  globals@15.15.0: {}
 
   google-auth-library@10.6.2:
     dependencies:
@@ -9886,10 +9678,6 @@ snapshots:
       debug: 4.4.3
     transitivePeerDependencies:
       - supports-color
-
-  humanize-ms@1.2.1:
-    dependencies:
-      ms: 2.1.3
 
   iconv-lite@0.6.3:
     dependencies:
@@ -10480,10 +10268,6 @@ snapshots:
   negotiator@1.0.0: {}
 
   node-domexception@1.0.0: {}
-
-  node-fetch@2.7.0:
-    dependencies:
-      whatwg-url: 5.0.0
 
   node-fetch@3.3.2:
     dependencies:
@@ -11129,8 +10913,6 @@ snapshots:
     dependencies:
       commander: 2.20.3
 
-  tr46@0.0.3: {}
-
   trim-lines@3.0.1: {}
 
   trough@2.2.0: {}
@@ -11174,8 +10956,6 @@ snapshots:
   uc.micro@2.1.0: {}
 
   unbash@2.2.0: {}
-
-  undici-types@5.26.5: {}
 
   undici-types@6.21.0: {}
 
@@ -11361,21 +11141,12 @@ snapshots:
 
   web-streams-polyfill@3.3.3: {}
 
-  web-streams-polyfill@4.0.0-beta.3: {}
-
   web-worker@1.5.0: {}
-
-  webidl-conversions@3.0.1: {}
 
   wellknown@0.5.0:
     dependencies:
       concat-stream: 1.5.2
       minimist: 1.2.8
-
-  whatwg-url@5.0.0:
-    dependencies:
-      tr46: 0.0.3
-      webidl-conversions: 3.0.1
 
   which@2.0.2:
     dependencies:
