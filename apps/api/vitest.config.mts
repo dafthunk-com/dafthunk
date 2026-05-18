@@ -16,6 +16,9 @@ export default defineConfig({
       "@cf-wasm/photon": emptyStub,
       "@cf-wasm/png": emptyStub,
       "@cf-wasm/resvg": emptyStub,
+      // twilio's CJS bundle `require("node:os")` which vitest-pool-workers
+      // does not expose; the TwilioSmsNode it backs is not exercised here.
+      twilio: emptyStub,
     },
   },
   plugins: [
