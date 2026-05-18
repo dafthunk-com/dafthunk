@@ -17,8 +17,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useAdminUsers } from "@/services/admin-service";
+import { type OnboardingStage, useAdminUsers } from "@/services/admin-service";
 import { formatDate } from "@/utils/date";
+
+const ONBOARDING_STAGE_LABEL: Record<OnboardingStage, string> = {
+  signed_up: "Signed up",
+  workflow_created: "Workflow created",
+};
 
 export function AdminUsersPage() {
   const [page, setPage] = useState(1);
@@ -90,6 +95,7 @@ export function AdminUsersPage() {
               <TableHead>Email</TableHead>
               <TableHead>Plan</TableHead>
               <TableHead>Role</TableHead>
+              <TableHead>Onboarding</TableHead>
               <TableHead>Created</TableHead>
               <TableHead></TableHead>
             </TableRow>
@@ -125,6 +131,19 @@ export function AdminUsersPage() {
                     {user.role}
                   </Badge>
                 </TableCell>
+                <TableCell>
+                  <Badge
+                    variant={
+                      user.furthestSqliteStage === "workflow_created"
+                        ? "default"
+                        : "outline"
+                    }
+                  >
+                    {ONBOARDING_STAGE_LABEL[
+                      user.furthestSqliteStage ?? "signed_up"
+                    ] ?? "Signed up"}
+                  </Badge>
+                </TableCell>
                 <TableCell className="text-muted-foreground">
                   {formatDate(user.createdAt)}
                 </TableCell>
@@ -137,7 +156,7 @@ export function AdminUsersPage() {
             ))}
             {users.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8">
+                <TableCell colSpan={7} className="text-center py-8">
                   {search
                     ? "No users found matching your search"
                     : "No users found"}

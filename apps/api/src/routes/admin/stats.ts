@@ -1,7 +1,9 @@
+import { zValidator } from "@hono/zod-validator";
 import { count, gte, sql } from "drizzle-orm";
 import { Hono } from "hono";
+import { z } from "zod";
 
-import { ApiContext } from "../../context";
+import { ApiContext, Bindings } from "../../context";
 import {
   createDatabase,
   memberships,
@@ -74,5 +76,215 @@ adminStatsRoutes.get("/", async (c) => {
     return c.json({ error: "Failed to fetch admin stats" }, 500);
   }
 });
+
+interface DailyCountPoint {
+  date: string;
+  count: number;
+}
+
+interface DailyExecutionPoint extends DailyCountPoint {
+  successCount: number;
+  errorCount: number;
+}
+
+function toDayKey(d: Date): string {
+  // Build a stable YYYY-MM-DD key in UTC so the frontend can render any
+  // timezone without us baking the request locale into the response.
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(d.getUTCDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function buildEmptyBuckets(from: Date, days: number): string[] {
+  const keys: string[] = [];
+  for (let i = 0; i < days; i++) {
+    const d = new Date(from);
+    d.setUTCDate(d.getUTCDate() + i);
+    keys.push(toDayKey(d));
+  }
+  return keys;
+}
+
+function densifyCounts(
+  buckets: string[],
+  rows: Array<{ date: string; count: number }>
+): DailyCountPoint[] {
+  const map = new Map<string, number>();
+  for (const row of rows) {
+    map.set(row.date, Number(row.count) || 0);
+  }
+  return buckets.map((date) => ({ date, count: map.get(date) ?? 0 }));
+}
+
+/**
+ * GET /admin/stats/timeseries?days=30
+ *
+ * Bundled time-series for the admin dashboard: daily signups, workflow
+ * creations, and executions (with success/error breakdown). Server-side
+ * zero-fill means the frontend can render gaps as zeros without extra
+ * logic.
+ */
+adminStatsRoutes.get(
+  "/timeseries",
+  zValidator(
+    "query",
+    z.object({
+      days: z.coerce.number().int().min(1).max(180).default(30),
+    })
+  ),
+  async (c) => {
+    const db = createDatabase(c.env.DB);
+    const { days } = c.req.valid("query");
+
+    try {
+      // Range ends at end-of-today (UTC) and starts `days - 1` days back,
+      // so a request for 30 days yields exactly 30 buckets including today.
+      const now = new Date();
+      const to = new Date(
+        Date.UTC(
+          now.getUTCFullYear(),
+          now.getUTCMonth(),
+          now.getUTCDate(),
+          23,
+          59,
+          59,
+          999
+        )
+      );
+      const from = new Date(to);
+      from.setUTCDate(from.getUTCDate() - (days - 1));
+      from.setUTCHours(0, 0, 0, 0);
+
+      const buckets = buildEmptyBuckets(from, days);
+
+      const userDayBucket = sql<string>`strftime('%Y-%m-%d', ${users.createdAt}, 'unixepoch')`;
+      const workflowDayBucket = sql<string>`strftime('%Y-%m-%d', ${workflows.createdAt}, 'unixepoch')`;
+
+      const [signupRows, workflowRows] = await Promise.all([
+        db
+          .select({ date: userDayBucket, count: count() })
+          .from(users)
+          .where(gte(users.createdAt, from))
+          .groupBy(userDayBucket),
+        db
+          .select({ date: workflowDayBucket, count: count() })
+          .from(workflows)
+          .where(gte(workflows.createdAt, from))
+          .groupBy(workflowDayBucket),
+      ]);
+
+      const signups = densifyCounts(buckets, signupRows);
+      const workflowsCreated = densifyCounts(buckets, workflowRows);
+
+      // Executions live in Cloudflare Analytics Engine, indexed per org.
+      // Group by date bucket + status so we can split success/error.
+      const executions: DailyExecutionPoint[] = await fetchExecutionsSeries(
+        c.env,
+        from,
+        buckets
+      );
+
+      return c.json({
+        range: {
+          from: from.toISOString(),
+          to: to.toISOString(),
+          days,
+        },
+        series: {
+          signups,
+          workflowsCreated,
+          executions,
+        },
+      });
+    } catch (error) {
+      console.error("Error fetching admin timeseries:", error);
+      return c.json({ error: "Failed to fetch timeseries" }, 500);
+    }
+  }
+);
+
+async function fetchExecutionsSeries(
+  env: Bindings,
+  from: Date,
+  buckets: string[]
+): Promise<DailyExecutionPoint[]> {
+  const emptySeries: DailyExecutionPoint[] = buckets.map((date) => ({
+    date,
+    count: 0,
+    successCount: 0,
+    errorCount: 0,
+  }));
+
+  if (!env.CLOUDFLARE_ACCOUNT_ID || !env.CLOUDFLARE_API_TOKEN) {
+    return emptySeries;
+  }
+
+  const dataset =
+    (env.CLOUDFLARE_ENV || "development") === "production"
+      ? "dafthunk_executions_production"
+      : "dafthunk_executions_development";
+
+  // Analytics Engine speaks ClickHouse SQL. `toDateTime` reliably parses
+  // `YYYY-MM-DD HH:MM:SS` — the ISO `T...Z` form can silently return zero
+  // rows on some ClickHouse versions. `from` is always a server-derived
+  // `Date.toISOString()` (not user input), so direct interpolation is safe.
+  const fromTs = from.toISOString().slice(0, 19).replace("T", " ");
+  const aeSql = `
+    SELECT formatDateTime(timestamp, '%Y-%m-%d', 'UTC') AS date,
+           blob4 AS status,
+           COUNT(*) AS count
+    FROM ${dataset}
+    WHERE timestamp >= toDateTime('${fromTs}', 'UTC')
+    GROUP BY date, status
+  `;
+
+  const url = `https://api.cloudflare.com/client/v4/accounts/${env.CLOUDFLARE_ACCOUNT_ID}/analytics_engine/sql`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${env.CLOUDFLARE_API_TOKEN}` },
+    body: aeSql,
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    console.error(
+      `Admin timeseries executions query failed: ${response.status} - ${error}`
+    );
+    return emptySeries;
+  }
+
+  const result = (await response.json()) as {
+    data?: Array<{ date: string; status: string; count: number }>;
+  };
+  const rows = result.data || [];
+
+  const byDate = new Map<
+    string,
+    { count: number; successCount: number; errorCount: number }
+  >();
+  for (const row of rows) {
+    const entry = byDate.get(row.date) ?? {
+      count: 0,
+      successCount: 0,
+      errorCount: 0,
+    };
+    const rowCount = Number(row.count) || 0;
+    entry.count += rowCount;
+    if (row.status === "completed") entry.successCount += rowCount;
+    if (row.status === "error") entry.errorCount += rowCount;
+    byDate.set(row.date, entry);
+  }
+
+  return buckets.map((date) => {
+    const e = byDate.get(date);
+    return {
+      date,
+      count: e?.count ?? 0,
+      successCount: e?.successCount ?? 0,
+      errorCount: e?.errorCount ?? 0,
+    };
+  });
+}
 
 export default adminStatsRoutes;

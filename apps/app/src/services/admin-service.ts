@@ -14,6 +14,8 @@ export interface AdminStats {
   activeUsers24h: number;
 }
 
+export type OnboardingStage = "signed_up" | "workflow_created";
+
 export interface AdminUser {
   id: string;
   name: string;
@@ -22,6 +24,7 @@ export interface AdminUser {
   plan: string;
   role: string;
   developerMode: boolean;
+  furthestSqliteStage: OnboardingStage;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -30,6 +33,45 @@ export interface AdminUserDetail extends AdminUser {
   githubId: string | null;
   googleId: string | null;
   tourCompleted: boolean;
+}
+
+export interface AdminUserFunnelStage {
+  reached: boolean;
+  at: Date | null;
+}
+
+export interface AdminUserFunnel {
+  signedUp: AdminUserFunnelStage;
+  workflowCreated: AdminUserFunnelStage & { count: number };
+  furthestStage: OnboardingStage;
+  daysSinceAdvance: number;
+}
+
+export interface AdminUserExecutionsSummary {
+  firstExecutionAt: Date | null;
+  firstSuccessAt: Date | null;
+  totalExecutions: number;
+  successCount: number;
+  errorCount: number;
+}
+
+export interface DailyCountPoint {
+  date: string;
+  count: number;
+}
+
+export interface DailyExecutionPoint extends DailyCountPoint {
+  successCount: number;
+  errorCount: number;
+}
+
+export interface AdminStatsTimeseries {
+  range: { from: string; to: string; days: number };
+  series: {
+    signups: DailyCountPoint[];
+    workflowsCreated: DailyCountPoint[];
+    executions: DailyExecutionPoint[];
+  };
 }
 
 export interface AdminUserMembership {
@@ -228,6 +270,64 @@ export const useAdminUserDetail = (userId: string | undefined) => {
     userError: error || null,
     isUserLoading: isLoading,
     mutateUser: mutate,
+  };
+};
+
+/**
+ * Hook to fetch admin dashboard time-series (signups, workflows, executions)
+ */
+export const useAdminStatsTimeseries = (days = 30) => {
+  const swrKey = `${ADMIN_API_ENDPOINT}/stats/timeseries?days=${days}`;
+  const { data, error, isLoading, mutate } = useSWR<AdminStatsTimeseries>(
+    swrKey,
+    async () => makeRequest<AdminStatsTimeseries>(swrKey)
+  );
+
+  return {
+    timeseries: data || null,
+    timeseriesError: error || null,
+    isTimeseriesLoading: isLoading,
+    mutateTimeseries: mutate,
+  };
+};
+
+/**
+ * Hook to fetch a user's onboarding funnel (D1-only, fast)
+ */
+export const useAdminUserFunnel = (userId: string | undefined) => {
+  const swrKey = userId
+    ? `${ADMIN_API_ENDPOINT}/onboarding/users/${userId}/funnel`
+    : null;
+  const { data, error, isLoading, mutate } = useSWR<AdminUserFunnel>(
+    swrKey,
+    swrKey ? async () => makeRequest<AdminUserFunnel>(swrKey) : null
+  );
+
+  return {
+    funnel: data || null,
+    funnelError: error || null,
+    isFunnelLoading: isLoading,
+    mutateFunnel: mutate,
+  };
+};
+
+/**
+ * Hook to fetch a user's execution summary (Analytics Engine, slower)
+ */
+export const useAdminUserExecutionsSummary = (userId: string | undefined) => {
+  const swrKey = userId
+    ? `${ADMIN_API_ENDPOINT}/onboarding/users/${userId}/executions-summary`
+    : null;
+  const { data, error, isLoading, mutate } = useSWR<AdminUserExecutionsSummary>(
+    swrKey,
+    swrKey ? async () => makeRequest<AdminUserExecutionsSummary>(swrKey) : null
+  );
+
+  return {
+    executionsSummary: data || null,
+    executionsSummaryError: error || null,
+    isExecutionsSummaryLoading: isLoading,
+    mutateExecutionsSummary: mutate,
   };
 };
 

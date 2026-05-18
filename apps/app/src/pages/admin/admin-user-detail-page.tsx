@@ -1,6 +1,7 @@
 import Github from "lucide-react/icons/github";
 import { useEffect } from "react";
 import { Link, useParams } from "react-router";
+import { OnboardingFunnel } from "@/components/admin/onboarding-funnel";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
@@ -23,13 +24,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useAdminUserDetail } from "@/services/admin-service";
+import {
+  useAdminUserDetail,
+  useAdminUserExecutionsSummary,
+  useAdminUserFunnel,
+} from "@/services/admin-service";
 import { formatDate } from "@/utils/date";
 
 export function AdminUserDetailPage() {
   const { userId } = useParams<{ userId: string }>();
   const { user, memberships, userError, isUserLoading } =
     useAdminUserDetail(userId);
+  const { funnel, isFunnelLoading } = useAdminUserFunnel(userId);
+  const { executionsSummary, isExecutionsSummaryLoading } =
+    useAdminUserExecutionsSummary(userId);
   const setBreadcrumbs = useBreadcrumbsSetter();
 
   useEffect(() => {
@@ -148,6 +156,15 @@ export function AdminUserDetailPage() {
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      <div className="mt-6">
+        <OnboardingFunnel
+          funnel={funnel}
+          isFunnelLoading={isFunnelLoading}
+          executionsSummary={executionsSummary}
+          isExecutionsSummaryLoading={isExecutionsSummaryLoading}
+        />
       </div>
 
       <Card className="mt-6">

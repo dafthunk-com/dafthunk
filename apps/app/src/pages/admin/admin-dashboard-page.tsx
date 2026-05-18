@@ -4,15 +4,21 @@ import Users from "lucide-react/icons/users";
 import Workflow from "lucide-react/icons/workflow";
 import { useEffect } from "react";
 
+import { AdminTrendsCharts } from "@/components/admin/admin-trends-charts";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { useBreadcrumbsSetter } from "@/components/page-context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAdminStats } from "@/services/admin-service";
+import {
+  useAdminStats,
+  useAdminStatsTimeseries,
+} from "@/services/admin-service";
 
 export function AdminDashboardPage() {
   const { stats, statsError, isStatsLoading } = useAdminStats();
+  const { timeseries, timeseriesError, isTimeseriesLoading } =
+    useAdminStatsTimeseries(30);
   const setBreadcrumbs = useBreadcrumbsSetter();
 
   useEffect(() => {
@@ -30,7 +36,7 @@ export function AdminDashboardPage() {
 
   return (
     <InsetLayout title="Dashboard">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Users</CardTitle>
@@ -110,6 +116,12 @@ export function AdminDashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      <AdminTrendsCharts
+        timeseries={timeseries}
+        isLoading={isTimeseriesLoading}
+        error={timeseriesError}
+      />
     </InsetLayout>
   );
 }

@@ -1,11 +1,12 @@
 import type {
   NodeExecution,
+  ObjectReference,
   WorkflowExecution,
   WorkflowRuntime,
   WorkflowTrigger,
 } from "@dafthunk/types";
 import { ReactFlowProvider } from "@xyflow/react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "react-router";
 
 import { InsetError } from "@/components/inset-error";
@@ -20,7 +21,7 @@ import {
   useAdminExecutionDetail,
   useAdminWorkflowStructure,
 } from "@/services/admin-service";
-import { useObjectService } from "@/services/object-service";
+import { createAdminObjectUrl } from "@/services/object-service";
 import {
   convertToReactFlowEdges,
   validateConnection,
@@ -35,7 +36,16 @@ export function AdminExecutionDetailPage() {
     useAdminExecutionDetail(executionId, organizationId);
   const setBreadcrumbs = useBreadcrumbsSetter();
 
-  const { createObjectUrl } = useObjectService();
+  // Resolve object URLs through the admin endpoint, which streams blobs from
+  // any org provided we pass the right organizationId. The default
+  // useObjectService() URL is scoped to the admin's own org and 403s for
+  // any cross-org execution.
+  const executionOrgId = execution?.organizationId || organizationId || "";
+  const createObjectUrl = useCallback(
+    (objectReference: ObjectReference) =>
+      createAdminObjectUrl(objectReference, executionOrgId),
+    [executionOrgId]
+  );
 
   // Use empty node templates array since we're in readonly mode
   const nodeTypes: never[] = [];

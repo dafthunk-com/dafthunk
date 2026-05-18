@@ -110,6 +110,30 @@ export const createObjectUrl = (
 };
 
 /**
+ * Creates a URL to an object via the admin endpoint, which can stream any
+ * org's blob given an explicit organizationId. Used by admin pages so an
+ * admin viewing another org's execution can render its outputs without the
+ * usual org-scoped 403.
+ */
+export const createAdminObjectUrl = (
+  objectReference: ObjectReference,
+  organizationId: string
+): string => {
+  if (!objectReference?.id || !objectReference?.mimeType) {
+    throw new Error("Invalid object reference: must include id and mimeType");
+  }
+  if (!organizationId) {
+    throw new Error("Organization ID is required for admin object URLs");
+  }
+
+  const url = new URL(`${getApiBaseUrl()}/admin/objects`);
+  url.searchParams.set("id", objectReference.id);
+  url.searchParams.set("mimeType", objectReference.mimeType);
+  url.searchParams.set("organizationId", organizationId);
+  return url.toString();
+};
+
+/**
  * Determines if a value is an object reference
  *
  * @param value - The value to check
