@@ -1,16 +1,21 @@
-import { count, eq, min } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 
 import { ApiContext } from "../../context";
-import { createDatabase, users, workflows } from "../../db";
+import { createDatabase, users } from "../../db";
 
 const adminOnboardingRoutes = new Hono<ApiContext>();
 
 // Funnel stages a user can reach using only data that lives in D1.
-// Anything that requires an Analytics Engine round-trip (executions) is
-// served by the separate /executions-summary endpoint so the funnel
-// renders immediately while execution counts fill in asynchronously.
-type FurthestSqliteStage = "signed_up" | "workflow_created";
+// Anything that requires an Analytics Engine round-trip (execution counts /
+// success-vs-error breakdowns) is served by the separate /executions-summary
+// endpoint so the funnel renders immediately while AE data fills in async.
+type OnboardingStage =
+  | "signed_up"
+  | "tour_completed"
+  | "workflow_created"
+  | "workflow_executed"
+  | "workflow_executed_ok";
 
 interface FunnelStage {
   reached: boolean;
@@ -19,8 +24,11 @@ interface FunnelStage {
 
 interface FunnelResponse {
   signedUp: FunnelStage;
-  workflowCreated: FunnelStage & { count: number };
-  furthestStage: FurthestSqliteStage;
+  tourCompleted: FunnelStage;
+  workflowCreated: FunnelStage;
+  workflowExecuted: FunnelStage;
+  workflowExecutedOk: FunnelStage;
+  furthestStage: OnboardingStage;
   daysSinceAdvance: number;
 }
 
@@ -29,13 +37,16 @@ function daysBetween(from: Date, to: Date): number {
   return Math.max(0, Math.floor(ms / (24 * 60 * 60 * 1000)));
 }
 
+function toStage(at: Date | null): FunnelStage {
+  return { reached: at !== null, at };
+}
+
 /**
  * GET /admin/onboarding/users/:id/funnel
  *
- * Per-user onboarding funnel built from D1 only. Attribution to a user is
- * via `users.organizationId` — for multi-member orgs this reads as
- * "the user's primary org has activity", which is correct for solo
- * onboarding and acknowledged in admin UI copy.
+ * Per-user onboarding funnel built from D1 only — every stage is a
+ * nullable timestamp column on the users row, so this is a single
+ * primary-key lookup with no joins.
  */
 adminOnboardingRoutes.get("/users/:id/funnel", async (c) => {
   const db = createDatabase(c.env.DB);
@@ -44,9 +55,11 @@ adminOnboardingRoutes.get("/users/:id/funnel", async (c) => {
   try {
     const [user] = await db
       .select({
-        id: users.id,
-        organizationId: users.organizationId,
         createdAt: users.createdAt,
+        tourCompleted: users.tourCompleted,
+        workflowCreated: users.workflowCreated,
+        workflowExecuted: users.workflowExecuted,
+        workflowExecutedOk: users.workflowExecutedOk,
       })
       .from(users)
       .where(eq(users.id, userId));
@@ -55,34 +68,37 @@ adminOnboardingRoutes.get("/users/:id/funnel", async (c) => {
       return c.json({ error: "User not found" }, 404);
     }
 
-    const [workflowAgg] = await db
-      .select({
-        firstCreatedAt: min(workflows.createdAt),
-        count: count(),
-      })
-      .from(workflows)
-      .where(eq(workflows.organizationId, user.organizationId));
-
-    const workflowCount = workflowAgg?.count ?? 0;
-    const firstWorkflowCreatedAt = workflowAgg?.firstCreatedAt ?? null;
-
     const signedUp: FunnelStage = { reached: true, at: user.createdAt };
-    const workflowCreated = {
-      reached: workflowCount > 0,
-      at: firstWorkflowCreatedAt,
-      count: workflowCount,
-    };
+    const tourCompleted = toStage(user.tourCompleted);
+    const workflowCreated = toStage(user.workflowCreated);
+    const workflowExecuted = toStage(user.workflowExecuted);
+    const workflowExecutedOk = toStage(user.workflowExecutedOk);
 
-    let furthestStage: FurthestSqliteStage = "signed_up";
+    let furthestStage: OnboardingStage = "signed_up";
     let furthestAt: Date = user.createdAt;
-    if (workflowCreated.reached && workflowCreated.at) {
+    if (tourCompleted.at) {
+      furthestStage = "tour_completed";
+      furthestAt = tourCompleted.at;
+    }
+    if (workflowCreated.at) {
       furthestStage = "workflow_created";
       furthestAt = workflowCreated.at;
+    }
+    if (workflowExecuted.at) {
+      furthestStage = "workflow_executed";
+      furthestAt = workflowExecuted.at;
+    }
+    if (workflowExecutedOk.at) {
+      furthestStage = "workflow_executed_ok";
+      furthestAt = workflowExecutedOk.at;
     }
 
     const response: FunnelResponse = {
       signedUp,
+      tourCompleted,
       workflowCreated,
+      workflowExecuted,
+      workflowExecutedOk,
       furthestStage,
       daysSinceAdvance: daysBetween(furthestAt, new Date()),
     };

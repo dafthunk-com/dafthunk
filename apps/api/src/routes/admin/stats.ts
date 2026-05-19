@@ -108,16 +108,23 @@ adminStatsRoutes.get(
         totalWorkflowsResult,
         recentSignupsResult,
         activeUsersResult,
+        funnelRow,
         signupRows,
         workflowRows,
         executions,
       ] = await Promise.all([
         // Total users
-        db.select({ count: count() }).from(users),
+        db
+          .select({ count: count() })
+          .from(users),
         // Total organizations
-        db.select({ count: count() }).from(organizations),
+        db
+          .select({ count: count() })
+          .from(organizations),
         // Total workflows
-        db.select({ count: count() }).from(workflows),
+        db
+          .select({ count: count() })
+          .from(workflows),
         // Recent signups (last 7 days)
         db
           .select({ count: count() })
@@ -132,6 +139,18 @@ adminStatsRoutes.get(
             sql`${memberships.organizationId} = ${workflows.organizationId}`
           )
           .where(gte(workflows.updatedAt, oneDayAgo)),
+        // Cross-user onboarding funnel. COUNT(col) ignores nulls, so each
+        // stage column gives us "users who reached that stage" in a single
+        // scan with no joins or per-stage queries.
+        db
+          .select({
+            signedUp: sql<number>`COUNT(*)`,
+            tourCompleted: sql<number>`COUNT(${users.tourCompleted})`,
+            workflowCreated: sql<number>`COUNT(${users.workflowCreated})`,
+            workflowExecuted: sql<number>`COUNT(${users.workflowExecuted})`,
+            workflowExecutedOk: sql<number>`COUNT(${users.workflowExecutedOk})`,
+          })
+          .from(users),
         // Daily signups bucketed by day
         db
           .select({ date: userDayBucket, count: count() })
@@ -152,12 +171,27 @@ adminStatsRoutes.get(
       const signups = densifyCounts(buckets, signupRows);
       const workflowsCreated = densifyCounts(buckets, workflowRows);
 
+      const funnel = funnelRow[0] ?? {
+        signedUp: 0,
+        tourCompleted: 0,
+        workflowCreated: 0,
+        workflowExecuted: 0,
+        workflowExecutedOk: 0,
+      };
+
       return c.json({
         totalUsers: totalUsersResult[0]?.count ?? 0,
         totalOrganizations: totalOrganizationsResult[0]?.count ?? 0,
         totalWorkflows: totalWorkflowsResult[0]?.count ?? 0,
         recentSignups: recentSignupsResult[0]?.count ?? 0,
         activeUsers24h: activeUsersResult[0]?.count ?? 0,
+        funnel: {
+          signedUp: Number(funnel.signedUp) || 0,
+          tourCompleted: Number(funnel.tourCompleted) || 0,
+          workflowCreated: Number(funnel.workflowCreated) || 0,
+          workflowExecuted: Number(funnel.workflowExecuted) || 0,
+          workflowExecutedOk: Number(funnel.workflowExecutedOk) || 0,
+        },
         timeseries: {
           range: {
             from: from.toISOString(),

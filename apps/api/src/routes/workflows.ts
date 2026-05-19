@@ -46,6 +46,7 @@ import {
   getQueue,
   getQueueTrigger,
   resolveOrganizationBillingOptions,
+  stampOnboardingStage,
   upsertEndpointTrigger as upsertDbEndpointTrigger,
   upsertQueueTrigger as upsertDbQueueTrigger,
   workflows,
@@ -126,6 +127,7 @@ workflowRoutes.post(
     const now = new Date();
 
     const organizationId = c.get("organizationId")!;
+    const userId = c.var.jwtPayload?.sub;
 
     const workflowId = uuid();
     const workflowName = data.name || "Untitled Workflow";
@@ -172,6 +174,16 @@ workflowRoutes.post(
       updatedAt: now,
       apiHost: new URL(c.req.url).origin,
     });
+
+    // Best-effort onboarding stamp; never fail the request on a stamp error.
+    if (userId) {
+      try {
+        const db = createDatabase(c.env.DB);
+        await stampOnboardingStage(db, userId, "workflowCreated");
+      } catch (error) {
+        console.error("Failed to stamp workflow_created onboarding:", error);
+      }
+    }
 
     const response: CreateWorkflowResponse = {
       id: savedWorkflow.id,

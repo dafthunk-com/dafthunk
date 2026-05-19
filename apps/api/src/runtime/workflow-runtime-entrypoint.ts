@@ -15,6 +15,7 @@ import type { RuntimeParams } from "@dafthunk/runtime";
 import type { WorkflowExecution } from "@dafthunk/types";
 import { AgentWorkflow } from "agents/workflows";
 import type { Bindings } from "../context";
+import { createDatabase, stampOnboardingStage } from "../db";
 import {
   createWorkflowRuntime,
   type WorkflowRuntime,
@@ -60,6 +61,20 @@ export class WorkflowRuntimeEntrypoint extends AgentWorkflowBase {
       console.log(
         `[WorkflowRuntime] done instanceId=${event.instanceId} status=${result.status} error=${result.error ?? "none"}`
       );
+
+      // Best-effort onboarding stamp on first successful execution.
+      if (result.status === "completed" && params.userId) {
+        try {
+          const db = createDatabase(this.env.DB);
+          await stampOnboardingStage(db, params.userId, "workflowExecutedOk");
+        } catch (error) {
+          console.error(
+            "Failed to stamp workflow_executed_ok onboarding:",
+            error
+          );
+        }
+      }
+
       return result;
     } catch (error) {
       console.error(

@@ -14,6 +14,7 @@ import {
   createDatabase,
   getOrganizationBillingInfo,
   resolveOrganizationPlan,
+  stampOnboardingStage,
   users,
 } from "../db";
 
@@ -62,7 +63,7 @@ profile.get("/", async (c) => {
       plan,
       role: user.role,
       developerMode: user.developerMode,
-      tourCompleted: user.tourCompleted,
+      tourCompleted: user.tourCompleted !== null,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
@@ -114,15 +115,28 @@ profile.patch(
 
       const updateData: Partial<{
         developerMode: boolean;
-        tourCompleted: boolean;
+        tourCompleted: Date | null;
       }> = {};
       if (developerMode !== undefined) updateData.developerMode = developerMode;
-      if (tourCompleted !== undefined) updateData.tourCompleted = tourCompleted;
 
-      await db
-        .update(users)
-        .set(updateData)
-        .where(eq(users.id, jwtPayload.sub));
+      // Update non-onboarding fields first; tour_completed is stamped via the
+      // shared helper so its set-if-null semantics match the other stages.
+      if (Object.keys(updateData).length > 0) {
+        await db
+          .update(users)
+          .set(updateData)
+          .where(eq(users.id, jwtPayload.sub));
+      }
+
+      if (tourCompleted === true) {
+        await stampOnboardingStage(db, jwtPayload.sub, "tourCompleted");
+      } else if (tourCompleted === false) {
+        // Allow explicit clearing for symmetry with the prior boolean API.
+        await db
+          .update(users)
+          .set({ tourCompleted: null })
+          .where(eq(users.id, jwtPayload.sub));
+      }
 
       const response: UpdateProfileResponse = {
         success: true,

@@ -9,5 +9,6 @@ export function createDatabase(d1: D1Database): Database {
 }
 
 // Re-export schema
+export * from "./onboarding";
 export * from "./queries";
 export * from "./schema";

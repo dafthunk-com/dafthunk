@@ -10,13 +10,29 @@ import {
   organizations,
   resolveOrganizationPlan,
   users,
-  workflows,
 } from "../../db";
 
-type FurthestSqliteStage = "signed_up" | "workflow_created";
+type OnboardingStage =
+  | "signed_up"
+  | "tour_completed"
+  | "workflow_created"
+  | "workflow_executed"
+  | "workflow_executed_ok";
 
-function deriveFurthestSqliteStage(workflowCount: number): FurthestSqliteStage {
-  if (workflowCount > 0) return "workflow_created";
+// Derive the furthest reached stage from the four stamp columns. Order is
+// canonical: a user can have workflow_executed_ok stamped without
+// workflow_executed (e.g. legacy data), but for display we always pick the
+// latest stage they qualify for in canonical order.
+function deriveFurthestStage(stamps: {
+  tourCompleted: Date | null;
+  workflowCreated: Date | null;
+  workflowExecuted: Date | null;
+  workflowExecutedOk: Date | null;
+}): OnboardingStage {
+  if (stamps.workflowExecutedOk) return "workflow_executed_ok";
+  if (stamps.workflowExecuted) return "workflow_executed";
+  if (stamps.workflowCreated) return "workflow_created";
+  if (stamps.tourCompleted) return "tour_completed";
   return "signed_up";
 }
 
@@ -54,9 +70,8 @@ adminUsersRoutes.get(
         .from(users)
         .where(whereClause);
 
-      // Get paginated users with org billing info to derive plan, plus a
-      // cheap workflow count for the user's primary org so we can show an
-      // onboarding stage badge without an N+1 query per row.
+      // Get paginated users with org billing info to derive plan. Onboarding
+      // stage stamps live on the users row itself, so no workflow JOIN needed.
       const rows = await db
         .select({
           id: users.id,
@@ -67,29 +82,28 @@ adminUsersRoutes.get(
           currentPeriodEnd: organizations.currentPeriodEnd,
           role: users.role,
           developerMode: users.developerMode,
+          tourCompleted: users.tourCompleted,
+          workflowCreated: users.workflowCreated,
+          workflowExecuted: users.workflowExecuted,
+          workflowExecutedOk: users.workflowExecutedOk,
           createdAt: users.createdAt,
           updatedAt: users.updatedAt,
-          workflowCount: sql<number>`COUNT(${workflows.id})`,
         })
         .from(users)
         .innerJoin(organizations, eq(users.organizationId, organizations.id))
-        .leftJoin(workflows, eq(workflows.organizationId, users.organizationId))
         .where(whereClause)
-        .groupBy(users.id)
         .orderBy(desc(users.createdAt))
         .limit(limit)
         .offset(offset);
 
       const usersList = rows.map(
-        ({ subscriptionStatus, currentPeriodEnd, workflowCount, ...user }) => ({
+        ({ subscriptionStatus, currentPeriodEnd, ...user }) => ({
           ...user,
           plan: resolveOrganizationPlan({
             subscriptionStatus,
             currentPeriodEnd,
           }),
-          furthestSqliteStage: deriveFurthestSqliteStage(
-            Number(workflowCount) || 0
-          ),
+          furthestStage: deriveFurthestStage(user),
         })
       );
 

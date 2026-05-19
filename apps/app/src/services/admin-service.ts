@@ -12,10 +12,42 @@ export interface AdminStats {
   totalWorkflows: number;
   recentSignups: number;
   activeUsers24h: number;
+  funnel: AdminStatsFunnel;
   timeseries: AdminStatsTimeseries;
 }
 
-export type OnboardingStage = "signed_up" | "workflow_created";
+export interface AdminStatsFunnel {
+  signedUp: number;
+  tourCompleted: number;
+  workflowCreated: number;
+  workflowExecuted: number;
+  workflowExecutedOk: number;
+}
+
+export type OnboardingStage =
+  | "signed_up"
+  | "tour_completed"
+  | "workflow_created"
+  | "workflow_executed"
+  | "workflow_executed_ok";
+
+// Canonical funnel order. Used both for rendering and to derive the furthest
+// stage a user has reached from their stamp columns.
+export const ONBOARDING_STAGES: OnboardingStage[] = [
+  "signed_up",
+  "tour_completed",
+  "workflow_created",
+  "workflow_executed",
+  "workflow_executed_ok",
+];
+
+export const ONBOARDING_STAGE_LABEL: Record<OnboardingStage, string> = {
+  signed_up: "Signed up",
+  tour_completed: "Tour completed",
+  workflow_created: "Workflow created",
+  workflow_executed: "Workflow executed",
+  workflow_executed_ok: "Successful execution",
+};
 
 export interface AdminUser {
   id: string;
@@ -25,7 +57,11 @@ export interface AdminUser {
   plan: string;
   role: string;
   developerMode: boolean;
-  furthestSqliteStage: OnboardingStage;
+  tourCompleted: Date | null;
+  workflowCreated: Date | null;
+  workflowExecuted: Date | null;
+  workflowExecutedOk: Date | null;
+  furthestStage: OnboardingStage;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -33,7 +69,6 @@ export interface AdminUser {
 export interface AdminUserDetail extends AdminUser {
   githubId: string | null;
   googleId: string | null;
-  tourCompleted: boolean;
 }
 
 export interface AdminUserFunnelStage {
@@ -43,7 +78,10 @@ export interface AdminUserFunnelStage {
 
 export interface AdminUserFunnel {
   signedUp: AdminUserFunnelStage;
-  workflowCreated: AdminUserFunnelStage & { count: number };
+  tourCompleted: AdminUserFunnelStage;
+  workflowCreated: AdminUserFunnelStage;
+  workflowExecuted: AdminUserFunnelStage;
+  workflowExecutedOk: AdminUserFunnelStage;
   furthestStage: OnboardingStage;
   daysSinceAdvance: number;
 }

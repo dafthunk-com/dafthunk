@@ -189,9 +189,13 @@ export const users = sqliteTable(
     developerMode: integer("developer_mode", { mode: "boolean" })
       .notNull()
       .default(false),
-    tourCompleted: integer("tour_completed", { mode: "boolean" })
-      .notNull()
-      .default(false),
+    // Onboarding stage timestamps. Null until the user first performs that
+    // milestone, then stamped with CURRENT_TIMESTAMP. Powers the admin
+    // onboarding funnel; tour_completed replaces the prior boolean column.
+    tourCompleted: integer("tour_completed", { mode: "timestamp" }),
+    workflowCreated: integer("workflow_created", { mode: "timestamp" }),
+    workflowExecuted: integer("workflow_executed", { mode: "timestamp" }),
+    workflowExecutedOk: integer("workflow_executed_ok", { mode: "timestamp" }),
     createdAt: createCreatedAt(),
     updatedAt: createUpdatedAt(),
   },

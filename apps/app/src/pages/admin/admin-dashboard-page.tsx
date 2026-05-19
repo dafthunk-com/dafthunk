@@ -7,6 +7,7 @@ import Workflow from "lucide-react/icons/workflow";
 import { useEffect } from "react";
 
 import { AdminTrendsCharts } from "@/components/admin/admin-trends-charts";
+import { GlobalOnboardingFunnel } from "@/components/admin/global-onboarding-funnel";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
@@ -133,6 +134,12 @@ export function AdminDashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {stats?.funnel && (
+        <div className="mb-6">
+          <GlobalOnboardingFunnel funnel={stats.funnel} />
+        </div>
+      )}
 
       <AdminTrendsCharts timeseries={timeseries} isLoading={false} />
     </InsetLayout>

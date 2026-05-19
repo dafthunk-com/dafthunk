@@ -8,6 +8,7 @@
 import type { BlobParameter } from "@dafthunk/runtime";
 import type { Node, WorkflowExecution, WorkflowRuntime } from "@dafthunk/types";
 import type { Bindings } from "../context";
+import { createDatabase, stampOnboardingStage } from "../db";
 import { getAgentByName } from "../durable-objects/agent-utils";
 import { createWorkerRuntime } from "../runtime/cloudflare-worker-runtime";
 import { createSimulatedEmailMessage } from "../utils/email";
@@ -80,6 +81,16 @@ export class WorkflowExecutor {
       env,
     } = options;
 
+    // Best-effort onboarding stamp: capture "this user attempted an execution"
+    // regardless of whether it ultimately succeeds. The ok-stamp happens after
+    // execution finalizes (worker path below, or in WorkflowRuntimeEntrypoint).
+    try {
+      const db = createDatabase(env.DB);
+      await stampOnboardingStage(db, userId, "workflowExecuted");
+    } catch (error) {
+      console.error("Failed to stamp workflow_executed onboarding:", error);
+    }
+
     // Build base execution parameters
     const baseExecutionParams = {
       workflow: {
@@ -148,6 +159,21 @@ export class WorkflowExecutor {
       console.log(
         `[Execution] ${execution.id} workflow=${workflow.id} runtime=worker trigger=${workflow.trigger}`
       );
+
+      // Worker runtime is synchronous — stamp ok here. Durable runtime stamps
+      // in WorkflowRuntimeEntrypoint.run() once the workflow completes.
+      if (execution.status === "completed") {
+        try {
+          const db = createDatabase(env.DB);
+          await stampOnboardingStage(db, userId, "workflowExecutedOk");
+        } catch (error) {
+          console.error(
+            "Failed to stamp workflow_executed_ok onboarding:",
+            error
+          );
+        }
+      }
+
       return { executionId: execution.id, execution };
     }
 
