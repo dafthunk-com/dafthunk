@@ -96,7 +96,10 @@ adminWorkflowsRoutes.get(
 /**
  * GET /admin/workflows/:id
  *
- * Get details for a specific workflow
+ * Get full details for a specific workflow including nodes/edges so the
+ * admin detail page can render with a single round-trip. No org filter —
+ * the admin auth middleware on this router is the safety net, matching how
+ * every other /admin/* endpoint exposes cross-org data.
  */
 adminWorkflowsRoutes.get("/:id", async (c) => {
   const db = createDatabase(c.env.DB);
@@ -125,8 +128,20 @@ adminWorkflowsRoutes.get("/:id", async (c) => {
       return c.json({ error: "Workflow not found" }, 404);
     }
 
+    // Load nodes/edges from R2 via the workflow store. We already have the
+    // org from the row above, so this is a single object fetch.
+    const workflowStore = new WorkflowStore(c.env);
+    const fullWorkflow = await workflowStore.getWithData(
+      workflowId,
+      workflow.organizationId
+    );
+
     return c.json({
-      workflow,
+      workflow: {
+        ...workflow,
+        nodes: fullWorkflow?.data.nodes ?? [],
+        edges: fullWorkflow?.data.edges ?? [],
+      },
     });
   } catch (error) {
     console.error("Error fetching admin workflow detail:", error);

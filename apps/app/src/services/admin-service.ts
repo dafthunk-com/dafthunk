@@ -175,6 +175,11 @@ export interface AdminWorkflow {
   updatedAt: Date;
 }
 
+export interface AdminWorkflowDetail extends AdminWorkflow {
+  nodes: any[];
+  edges: any[];
+}
+
 export interface AdminExecution {
   id: string;
   workflowId: string;
@@ -474,6 +479,32 @@ export const useAdminWorkflows = (
     workflowsError: error || null,
     isWorkflowsLoading: isLoading,
     mutateWorkflows: mutate,
+  };
+};
+
+/**
+ * Hook to fetch a single admin workflow including its nodes/edges, so the
+ * detail page can render with one round-trip.
+ */
+export const useAdminWorkflowDetail = (workflowId: string | undefined) => {
+  const swrKey = workflowId
+    ? `${ADMIN_API_ENDPOINT}/workflows/${workflowId}`
+    : null;
+
+  const { data, error, isLoading, mutate } = useSWR<{
+    workflow: AdminWorkflowDetail;
+  }>(
+    swrKey,
+    swrKey
+      ? async () => makeRequest<{ workflow: AdminWorkflowDetail }>(swrKey)
+      : null
+  );
+
+  return {
+    workflow: data?.workflow || null,
+    workflowError: error || null,
+    isWorkflowLoading: isLoading,
+    mutateWorkflow: mutate,
   };
 };
 

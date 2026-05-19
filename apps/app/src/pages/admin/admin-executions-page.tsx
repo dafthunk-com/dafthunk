@@ -60,15 +60,25 @@ export function AdminExecutionsPage() {
   }, [setBreadcrumbs]);
 
   const organizationId = searchParams.get("organizationId") || undefined;
+  const workflowId = searchParams.get("workflowId") || undefined;
 
   const { executions, executionsError, isExecutionsLoading } =
     useAdminExecutions(
       page,
       limit,
       organizationId,
-      undefined,
+      workflowId,
       status === "all" ? undefined : status
     );
+
+  // Drop a single search param while preserving the rest (e.g. clearing the
+  // workflow filter keeps the org filter active).
+  const clearParam = (key: string) => {
+    const next = new URLSearchParams(searchParams);
+    next.delete(key);
+    setSearchParams(next);
+    setPage(1);
+  };
 
   if (isExecutionsLoading) {
     return <InsetLoading title="Executions" />;
@@ -104,12 +114,14 @@ export function AdminExecutionsPage() {
         {organizationId && (
           <Button
             variant="outline"
-            onClick={() => {
-              setSearchParams({});
-              setPage(1);
-            }}
+            onClick={() => clearParam("organizationId")}
           >
             Clear Organization Filter
+          </Button>
+        )}
+        {workflowId && (
+          <Button variant="outline" onClick={() => clearParam("workflowId")}>
+            Clear Workflow Filter
           </Button>
         )}
       </div>

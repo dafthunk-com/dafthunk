@@ -24,6 +24,7 @@ import { AdminOrganizationsPage } from "./pages/admin/admin-organizations-page";
 import { AdminQueuesPage } from "./pages/admin/admin-queues-page";
 import { AdminUserDetailPage } from "./pages/admin/admin-user-detail-page";
 import { AdminUsersPage } from "./pages/admin/admin-users-page";
+import { AdminWorkflowDetailPage } from "./pages/admin/admin-workflow-detail-page";
 import { AdminWorkflowsPage } from "./pages/admin/admin-workflows-page";
 import { ApiKeysPage } from "./pages/api-keys-page";
 import { BillingPage } from "./pages/billing-page";
@@ -208,6 +209,19 @@ export const routes: AppRouteObject[] = [
       </AdminLayout>
     ),
     handle: { head: <HeadSeo title="Workflows - Admin - Dafthunk" /> },
+  },
+  {
+    path: "/admin/workflows/:workflowId",
+    element: (
+      <AdminLayout>
+        <AdminProtectedRoute>
+          <AdminWorkflowDetailPage />
+        </AdminProtectedRoute>
+      </AdminLayout>
+    ),
+    handle: {
+      head: <HeadSeo title="Workflow Details - Admin - Dafthunk" />,
+    },
   },
 
   {

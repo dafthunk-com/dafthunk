@@ -112,7 +112,12 @@ export function AdminWorkflowsPage() {
               <TableRow key={workflow.id}>
                 <TableCell>
                   <div>
-                    <div className="font-medium">{workflow.name}</div>
+                    <Link
+                      to={`/admin/workflows/${workflow.id}`}
+                      className="font-medium hover:underline"
+                    >
+                      {workflow.name}
+                    </Link>
                     <div className="text-xs text-muted-foreground font-mono">
                       {workflow.id}
                     </div>
