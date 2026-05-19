@@ -12,6 +12,7 @@ export interface AdminStats {
   totalWorkflows: number;
   recentSignups: number;
   activeUsers24h: number;
+  timeseries: AdminStatsTimeseries;
 }
 
 export type OnboardingStage = "signed_up" | "workflow_created";
@@ -207,12 +208,13 @@ export interface PaginationInfo {
 // Hooks
 
 /**
- * Hook to fetch admin dashboard statistics
+ * Hook to fetch admin dashboard statistics (counters + time-series)
  */
-export const useAdminStats = () => {
+export const useAdminStats = (days = 30) => {
+  const swrKey = `${ADMIN_API_ENDPOINT}/stats?days=${days}`;
   const { data, error, isLoading, mutate } = useSWR<AdminStats>(
-    `${ADMIN_API_ENDPOINT}/stats`,
-    async () => makeRequest<AdminStats>(`${ADMIN_API_ENDPOINT}/stats`)
+    swrKey,
+    async () => makeRequest<AdminStats>(swrKey)
   );
 
   return {
@@ -270,24 +272,6 @@ export const useAdminUserDetail = (userId: string | undefined) => {
     userError: error || null,
     isUserLoading: isLoading,
     mutateUser: mutate,
-  };
-};
-
-/**
- * Hook to fetch admin dashboard time-series (signups, workflows, executions)
- */
-export const useAdminStatsTimeseries = (days = 30) => {
-  const swrKey = `${ADMIN_API_ENDPOINT}/stats/timeseries?days=${days}`;
-  const { data, error, isLoading, mutate } = useSWR<AdminStatsTimeseries>(
-    swrKey,
-    async () => makeRequest<AdminStatsTimeseries>(swrKey)
-  );
-
-  return {
-    timeseries: data || null,
-    timeseriesError: error || null,
-    isTimeseriesLoading: isLoading,
-    mutateTimeseries: mutate,
   };
 };
 

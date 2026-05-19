@@ -1,5 +1,7 @@
+import Activity from "lucide-react/icons/activity";
 import Building2 from "lucide-react/icons/building-2";
 import TrendingUp from "lucide-react/icons/trending-up";
+import UserCheck from "lucide-react/icons/user-check";
 import Users from "lucide-react/icons/users";
 import Workflow from "lucide-react/icons/workflow";
 import { useEffect } from "react";
@@ -10,15 +12,10 @@ import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { useBreadcrumbsSetter } from "@/components/page-context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  useAdminStats,
-  useAdminStatsTimeseries,
-} from "@/services/admin-service";
+import { useAdminStats } from "@/services/admin-service";
 
 export function AdminDashboardPage() {
-  const { stats, statsError, isStatsLoading } = useAdminStats();
-  const { timeseries, timeseriesError, isTimeseriesLoading } =
-    useAdminStatsTimeseries(30);
+  const { stats, statsError, isStatsLoading } = useAdminStats(30);
   const setBreadcrumbs = useBreadcrumbsSetter();
 
   useEffect(() => {
@@ -33,6 +30,13 @@ export function AdminDashboardPage() {
   if (statsError) {
     return <InsetError title="Dashboard" errorMessage={statsError.message} />;
   }
+
+  const timeseries = stats?.timeseries ?? null;
+  const executions30d =
+    timeseries?.series.executions.reduce(
+      (sum, point) => sum + point.count,
+      0
+    ) ?? 0;
 
   return (
     <InsetLayout title="Dashboard">
@@ -104,7 +108,7 @@ export function AdminDashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Users</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <UserCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -115,13 +119,22 @@ export function AdminDashboardPage() {
             </p>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Executions</CardTitle>
+            <Activity className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{executions30d}</div>
+            <p className="text-xs text-muted-foreground">
+              Workflow runs in the last 30 days
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
-      <AdminTrendsCharts
-        timeseries={timeseries}
-        isLoading={isTimeseriesLoading}
-        error={timeseriesError}
-      />
+      <AdminTrendsCharts timeseries={timeseries} isLoading={false} />
     </InsetLayout>
   );
 }

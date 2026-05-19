@@ -14,69 +14,6 @@ import {
 
 const adminStatsRoutes = new Hono<ApiContext>();
 
-/**
- * GET /admin/stats
- *
- * Get platform-wide statistics for the admin dashboard
- */
-adminStatsRoutes.get("/", async (c) => {
-  const db = createDatabase(c.env.DB);
-
-  try {
-    // Get current date info for time-based queries
-    const now = new Date();
-    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-
-    // Run all count queries in parallel
-    const [
-      totalUsersResult,
-      totalOrganizationsResult,
-      totalWorkflowsResult,
-      recentSignupsResult,
-      activeUsersResult,
-    ] = await Promise.all([
-      // Total users
-      db
-        .select({ count: count() })
-        .from(users),
-      // Total organizations
-      db
-        .select({ count: count() })
-        .from(organizations),
-      // Total workflows
-      db
-        .select({ count: count() })
-        .from(workflows),
-      // Recent signups (last 7 days)
-      db
-        .select({ count: count() })
-        .from(users)
-        .where(gte(users.createdAt, sevenDaysAgo)),
-      // Active users (users who are members of orgs with workflows updated in last 24h)
-      db
-        .select({ count: sql<number>`COUNT(DISTINCT ${memberships.userId})` })
-        .from(memberships)
-        .innerJoin(
-          workflows,
-          sql`${memberships.organizationId} = ${workflows.organizationId}`
-        )
-        .where(gte(workflows.updatedAt, oneDayAgo)),
-    ]);
-
-    return c.json({
-      totalUsers: totalUsersResult[0]?.count ?? 0,
-      totalOrganizations: totalOrganizationsResult[0]?.count ?? 0,
-      totalWorkflows: totalWorkflowsResult[0]?.count ?? 0,
-      recentSignups: recentSignupsResult[0]?.count ?? 0,
-      activeUsers24h: activeUsersResult[0]?.count ?? 0,
-    });
-  } catch (error) {
-    console.error("Error fetching admin stats:", error);
-    return c.json({ error: "Failed to fetch admin stats" }, 500);
-  }
-});
-
 interface DailyCountPoint {
   date: string;
   count: number;
@@ -118,15 +55,15 @@ function densifyCounts(
 }
 
 /**
- * GET /admin/stats/timeseries?days=30
+ * GET /admin/stats?days=30
  *
- * Bundled time-series for the admin dashboard: daily signups, workflow
- * creations, and executions (with success/error breakdown). Server-side
- * zero-fill means the frontend can render gaps as zeros without extra
- * logic.
+ * Platform-wide statistics for the admin dashboard: counter totals plus
+ * the daily time-series (signups, workflow creations, executions split
+ * by success/error). Server-side zero-fill means the frontend can render
+ * gaps as zeros without extra logic.
  */
 adminStatsRoutes.get(
-  "/timeseries",
+  "/",
   zValidator(
     "query",
     z.object({
@@ -138,9 +75,13 @@ adminStatsRoutes.get(
     const { days } = c.req.valid("query");
 
     try {
+      // Get current date info for time-based queries
+      const now = new Date();
+      const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
       // Range ends at end-of-today (UTC) and starts `days - 1` days back,
       // so a request for 30 days yields exactly 30 buckets including today.
-      const now = new Date();
       const to = new Date(
         Date.UTC(
           now.getUTCFullYear(),
@@ -161,45 +102,78 @@ adminStatsRoutes.get(
       const userDayBucket = sql<string>`strftime('%Y-%m-%d', ${users.createdAt}, 'unixepoch')`;
       const workflowDayBucket = sql<string>`strftime('%Y-%m-%d', ${workflows.createdAt}, 'unixepoch')`;
 
-      const [signupRows, workflowRows] = await Promise.all([
+      const [
+        totalUsersResult,
+        totalOrganizationsResult,
+        totalWorkflowsResult,
+        recentSignupsResult,
+        activeUsersResult,
+        signupRows,
+        workflowRows,
+        executions,
+      ] = await Promise.all([
+        // Total users
+        db.select({ count: count() }).from(users),
+        // Total organizations
+        db.select({ count: count() }).from(organizations),
+        // Total workflows
+        db.select({ count: count() }).from(workflows),
+        // Recent signups (last 7 days)
+        db
+          .select({ count: count() })
+          .from(users)
+          .where(gte(users.createdAt, sevenDaysAgo)),
+        // Active users (members of orgs with workflows updated in last 24h)
+        db
+          .select({ count: sql<number>`COUNT(DISTINCT ${memberships.userId})` })
+          .from(memberships)
+          .innerJoin(
+            workflows,
+            sql`${memberships.organizationId} = ${workflows.organizationId}`
+          )
+          .where(gte(workflows.updatedAt, oneDayAgo)),
+        // Daily signups bucketed by day
         db
           .select({ date: userDayBucket, count: count() })
           .from(users)
           .where(gte(users.createdAt, from))
           .groupBy(userDayBucket),
+        // Daily workflow creations bucketed by day
         db
           .select({ date: workflowDayBucket, count: count() })
           .from(workflows)
           .where(gte(workflows.createdAt, from))
           .groupBy(workflowDayBucket),
+        // Executions live in Cloudflare Analytics Engine, indexed per org.
+        // Group by date bucket + status so we can split success/error.
+        fetchExecutionsSeries(c.env, from, buckets),
       ]);
 
       const signups = densifyCounts(buckets, signupRows);
       const workflowsCreated = densifyCounts(buckets, workflowRows);
 
-      // Executions live in Cloudflare Analytics Engine, indexed per org.
-      // Group by date bucket + status so we can split success/error.
-      const executions: DailyExecutionPoint[] = await fetchExecutionsSeries(
-        c.env,
-        from,
-        buckets
-      );
-
       return c.json({
-        range: {
-          from: from.toISOString(),
-          to: to.toISOString(),
-          days,
-        },
-        series: {
-          signups,
-          workflowsCreated,
-          executions,
+        totalUsers: totalUsersResult[0]?.count ?? 0,
+        totalOrganizations: totalOrganizationsResult[0]?.count ?? 0,
+        totalWorkflows: totalWorkflowsResult[0]?.count ?? 0,
+        recentSignups: recentSignupsResult[0]?.count ?? 0,
+        activeUsers24h: activeUsersResult[0]?.count ?? 0,
+        timeseries: {
+          range: {
+            from: from.toISOString(),
+            to: to.toISOString(),
+            days,
+          },
+          series: {
+            signups,
+            workflowsCreated,
+            executions,
+          },
         },
       });
     } catch (error) {
-      console.error("Error fetching admin timeseries:", error);
-      return c.json({ error: "Failed to fetch timeseries" }, 500);
+      console.error("Error fetching admin stats:", error);
+      return c.json({ error: "Failed to fetch admin stats" }, 500);
     }
   }
 );
