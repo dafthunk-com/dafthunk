@@ -147,9 +147,11 @@ adminOnboardingRoutes.get("/users/:id/executions-summary", async (c) => {
         ? "dafthunk_executions_production"
         : "dafthunk_executions_development";
 
+    // CF Analytics Engine SQL requires `COUNT()` with zero arguments —
+    // `COUNT(*)` is rejected with `COUNT() function must have 0 arguments`.
     const sql = `
       SELECT blob4 AS status,
-             COUNT(*) AS count,
+             COUNT() AS count,
              MIN(double2) AS first_started_at
       FROM ${dataset}
       WHERE index1 = '${user.organizationId}'

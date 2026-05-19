@@ -232,13 +232,21 @@ async function fetchExecutionsSeries(
   // chars to recover the `YYYY-MM-DD` bucket key. `from` is always a
   // server-derived `Date.toISOString()` (not user input), so direct
   // interpolation is safe.
+  //
+  // The `timestamp` column is a DateTime; comparing it against a bare
+  // string literal errors with `cannot combine the DateTime and String
+  // types`. Wrap with single-arg `toDateTime(...)` — the two-arg form
+  // `toDateTime(..., 'UTC')` silently returns zero rows on CF AE.
+  //
+  // CF Analytics Engine SQL also requires `COUNT()` with zero arguments —
+  // `COUNT(*)` fails with `COUNT() function must have 0 arguments`.
   const fromTs = from.toISOString().slice(0, 19).replace("T", " ");
   const aeSql = `
     SELECT toStartOfInterval(timestamp, INTERVAL '1' DAY, 'Etc/UTC') AS day,
            blob4 AS status,
-           COUNT(*) AS count
+           COUNT() AS count
     FROM ${dataset}
-    WHERE timestamp >= '${fromTs}'
+    WHERE timestamp >= toDateTime('${fromTs}')
     GROUP BY day, status
   `;
 
@@ -252,28 +260,14 @@ async function fetchExecutionsSeries(
   if (!response.ok) {
     const error = await response.text();
     console.error(
-      `Admin timeseries executions query failed: ${response.status} - ${error}`,
-      { sql: aeSql }
+      `Admin timeseries executions query failed: ${response.status} - ${error}`
     );
     return emptySeries;
   }
 
-  // Temporary diagnostic logging while we track down why the executions
-  // chart returns empty buckets in production. Remove once verified.
-  const rawBody = await response.text();
-  console.log("[admin/stats/timeseries] AE SQL:", aeSql);
-  console.log("[admin/stats/timeseries] AE response:", rawBody);
-
-  let result: { data?: Array<{ day: string; status: string; count: number }> };
-  try {
-    result = JSON.parse(rawBody);
-  } catch (parseError) {
-    console.error(
-      "[admin/stats/timeseries] Failed to parse AE response JSON",
-      parseError
-    );
-    return emptySeries;
-  }
+  const result = (await response.json()) as {
+    data?: Array<{ day: string; status: string; count: number }>;
+  };
   const rows = result.data || [];
 
   const byDate = new Map<
