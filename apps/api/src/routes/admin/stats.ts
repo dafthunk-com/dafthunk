@@ -225,20 +225,21 @@ async function fetchExecutionsSeries(
       ? "dafthunk_executions_production"
       : "dafthunk_executions_development";
 
-  // Match CloudflareExecutionStore.listFromAnalytics: a plain
-  // `'YYYY-MM-DD HH:MM:SS'` literal compared against `timestamp`. Wrapping
-  // in `toDateTime(..., 'UTC')` returns zero rows on CF Analytics Engine
-  // even though the docs list it as supported. `from` is always a
+  // Use `toStartOfInterval` (the canonical CF AE bucketing function shown
+  // in the docs) instead of `formatDateTime` + `toDateTime`, which both
+  // returned zero rows in practice. The returned `day` is a DateTime
+  // serialized as e.g. `"2026-04-20 00:00:00"`; we slice the first 10
+  // chars to recover the `YYYY-MM-DD` bucket key. `from` is always a
   // server-derived `Date.toISOString()` (not user input), so direct
   // interpolation is safe.
   const fromTs = from.toISOString().slice(0, 19).replace("T", " ");
   const aeSql = `
-    SELECT formatDateTime(timestamp, '%Y-%m-%d', 'Etc/UTC') AS date,
+    SELECT toStartOfInterval(timestamp, INTERVAL '1' DAY, 'Etc/UTC') AS day,
            blob4 AS status,
            COUNT(*) AS count
     FROM ${dataset}
     WHERE timestamp >= '${fromTs}'
-    GROUP BY date, status
+    GROUP BY day, status
   `;
 
   const url = `https://api.cloudflare.com/client/v4/accounts/${env.CLOUDFLARE_ACCOUNT_ID}/analytics_engine/sql`;
@@ -251,14 +252,28 @@ async function fetchExecutionsSeries(
   if (!response.ok) {
     const error = await response.text();
     console.error(
-      `Admin timeseries executions query failed: ${response.status} - ${error}`
+      `Admin timeseries executions query failed: ${response.status} - ${error}`,
+      { sql: aeSql }
     );
     return emptySeries;
   }
 
-  const result = (await response.json()) as {
-    data?: Array<{ date: string; status: string; count: number }>;
-  };
+  // Temporary diagnostic logging while we track down why the executions
+  // chart returns empty buckets in production. Remove once verified.
+  const rawBody = await response.text();
+  console.log("[admin/stats/timeseries] AE SQL:", aeSql);
+  console.log("[admin/stats/timeseries] AE response:", rawBody);
+
+  let result: { data?: Array<{ day: string; status: string; count: number }> };
+  try {
+    result = JSON.parse(rawBody);
+  } catch (parseError) {
+    console.error(
+      "[admin/stats/timeseries] Failed to parse AE response JSON",
+      parseError
+    );
+    return emptySeries;
+  }
   const rows = result.data || [];
 
   const byDate = new Map<
@@ -266,7 +281,9 @@ async function fetchExecutionsSeries(
     { count: number; successCount: number; errorCount: number }
   >();
   for (const row of rows) {
-    const entry = byDate.get(row.date) ?? {
+    const date = String(row.day || "").slice(0, 10);
+    if (!date) continue;
+    const entry = byDate.get(date) ?? {
       count: 0,
       successCount: 0,
       errorCount: 0,
@@ -275,7 +292,7 @@ async function fetchExecutionsSeries(
     entry.count += rowCount;
     if (row.status === "completed") entry.successCount += rowCount;
     if (row.status === "error") entry.errorCount += rowCount;
-    byDate.set(row.date, entry);
+    byDate.set(date, entry);
   }
 
   return buckets.map((date) => {
