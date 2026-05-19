@@ -225,17 +225,19 @@ async function fetchExecutionsSeries(
       ? "dafthunk_executions_production"
       : "dafthunk_executions_development";
 
-  // Analytics Engine speaks ClickHouse SQL. `toDateTime` reliably parses
-  // `YYYY-MM-DD HH:MM:SS` — the ISO `T...Z` form can silently return zero
-  // rows on some ClickHouse versions. `from` is always a server-derived
-  // `Date.toISOString()` (not user input), so direct interpolation is safe.
+  // Match CloudflareExecutionStore.listFromAnalytics: a plain
+  // `'YYYY-MM-DD HH:MM:SS'` literal compared against `timestamp`. Wrapping
+  // in `toDateTime(..., 'UTC')` returns zero rows on CF Analytics Engine
+  // even though the docs list it as supported. `from` is always a
+  // server-derived `Date.toISOString()` (not user input), so direct
+  // interpolation is safe.
   const fromTs = from.toISOString().slice(0, 19).replace("T", " ");
   const aeSql = `
-    SELECT formatDateTime(timestamp, '%Y-%m-%d', 'UTC') AS date,
+    SELECT formatDateTime(timestamp, '%Y-%m-%d', 'Etc/UTC') AS date,
            blob4 AS status,
            COUNT(*) AS count
     FROM ${dataset}
-    WHERE timestamp >= toDateTime('${fromTs}', 'UTC')
+    WHERE timestamp >= '${fromTs}'
     GROUP BY date, status
   `;
 
