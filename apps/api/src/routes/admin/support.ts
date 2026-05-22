@@ -1,16 +1,15 @@
 import { zValidator } from "@hono/zod-validator";
 import { and, asc, desc, eq, inArray, isNull, lt, or, sql } from "drizzle-orm";
 import { Hono } from "hono";
-import { v7 as uuidv7 } from "uuid";
 import { z } from "zod";
 
 import { ApiContext } from "../../context";
 import {
   attachments,
   createDatabase,
+  createThread,
+  findUserByEmail,
   getLastInboundMessage,
-  insertMessage,
-  MessageDirection,
   messages,
   organizations,
   ThreadStatus,
@@ -19,9 +18,7 @@ import {
   threads,
   users,
 } from "../../db";
-import { createEmailService } from "../../services/email-service";
-import { buildReplyToAddress } from "../../support-reply-token";
-import { buildSnippet, stripHtml } from "../../support-utils";
+import { sendOutboundSupportMessage } from "../../support-send";
 
 const adminSupportRoutes = new Hono<ApiContext>();
 
@@ -303,6 +300,71 @@ adminSupportRoutes.get("/attachments/:id", async (c) => {
   });
 });
 
+/**
+ * POST /admin/support/threads — admin-initiated outbound thread. Creates a
+ * new thread addressed to an arbitrary email and sends the first message
+ * via the shared outbound path. Auto-links to a registered user when the
+ * recipient's address matches `users.email`.
+ */
+adminSupportRoutes.post(
+  "/threads",
+  zValidator(
+    "json",
+    z.object({
+      toEmail: z.string().email(),
+      subject: z.string().trim().min(1),
+      text: z.string().optional(),
+      html: z.string().optional(),
+    }).refine((v) => Boolean(v.text || v.html), {
+      message: "Provide at least one of 'text' or 'html'",
+    })
+  ),
+  async (c) => {
+    const db = createDatabase(c.env.DB);
+    const { toEmail, subject, text, html } = c.req.valid("json");
+    const normalizedTo = toEmail.toLowerCase();
+
+    const linkedUser = await findUserByEmail(db, normalizedTo);
+    const now = new Date();
+    const thread = await createThread(db, {
+      subject,
+      fromEmail: normalizedTo,
+      fromName: null,
+      userId: linkedUser?.id ?? null,
+      organizationId: linkedUser?.organizationId ?? null,
+      status: ThreadStatus.OPEN,
+      lastMessageAt: now,
+    });
+
+    const result = await sendOutboundSupportMessage(
+      db,
+      c.env,
+      c.executionCtx,
+      {
+        threadId: thread.id,
+        toAddress: normalizedTo,
+        subject,
+        ...(text ? { text } : {}),
+        ...(html ? { html } : {}),
+        adminUserId: c.get("jwtPayload")?.sub ?? null,
+      }
+    );
+
+    if (!result.ok) {
+      // Roll back the thread we just created so a failed send doesn't leave
+      // an orphaned empty thread in the inbox.
+      try {
+        await db.delete(threads).where(eq(threads.id, thread.id));
+      } catch (cleanupError) {
+        console.error("[support create] thread cleanup failed", cleanupError);
+      }
+      return c.json({ error: result.error }, result.status);
+    }
+
+    return c.json({ thread, messageId: result.messageId });
+  }
+);
+
 /** POST /admin/support/threads/:id/reply — threaded reply via SUPPORT_EMAIL_FROM. */
 adminSupportRoutes.post(
   "/threads/:id/reply",
@@ -333,143 +395,30 @@ adminSupportRoutes.post(
     }
 
     const lastInbound = await getLastInboundMessage(db, threadId);
-
     const subject = (body.subject ?? thread.subject).trim() || thread.subject;
-    const from = c.env.SUPPORT_EMAIL_FROM;
-    if (!from) {
-      return c.json({ error: "SUPPORT_EMAIL_FROM is not configured" }, 500);
-    }
-
-    const emailService = createEmailService(c.env);
-    if (!emailService) {
-      return c.json({ error: "Email service not configured" }, 500);
-    }
-
+    const replySubject = subject.startsWith("Re:") ? subject : `Re: ${subject}`;
     const references = lastInbound?.referencesChain
       ? lastInbound.referencesChain.split(/\s+/).filter(Boolean)
       : [];
-    const fullChain = buildReferencesChain(
-      references,
-      lastInbound?.rfc822MessageId ?? null
-    );
 
-    const replySubject = subject.startsWith("Re:") ? subject : `Re: ${subject}`;
-    const messageRowId = uuidv7();
-    const fromDomain = from.includes("@") ? from.split("@")[1] : "mail.local";
-    const rfc822MessageId = `<${messageRowId}@${fromDomain}>`;
-    const rawR2Key = `support/${messageRowId}/raw.eml`;
-    const adminUserId = c.get("jwtPayload")?.sub ?? null;
-
-    // Pre-insert closes the gap where send succeeds but persistence doesn't —
-    // the recipient would otherwise receive a reply we have no record of. The
-    // unique index on rfc822_message_id also gives retry idempotency.
-    try {
-      await insertMessage(db, {
-        id: messageRowId,
+    const result = await sendOutboundSupportMessage(
+      db,
+      c.env,
+      c.executionCtx,
+      {
         threadId,
-        direction: MessageDirection.OUTBOUND,
-        rfc822MessageId,
-        inReplyTo: lastInbound?.rfc822MessageId ?? null,
-        referencesChain: fullChain,
-        fromEmail: from,
-        toEmail: thread.fromEmail,
+        toAddress: thread.fromEmail,
         subject: replySubject,
-        snippet: buildSnippet(body.text ?? stripHtml(body.html)),
-        hasHtml: Boolean(body.html),
-        hasText: Boolean(body.text),
-        attachmentCount: 0,
-        rawR2Key,
-        authorAdminUserId: adminUserId,
-      });
-    } catch (error) {
-      console.error("[support reply] pre-insert failed", error);
-      return c.json({ error: "Failed to record outbound message" }, 500);
-    }
-
-    // Tokenized Reply-To lets the recipient reply from any address and have
-    // the response still attach to this thread — see `support-reply-token.ts`.
-    const replyTo = (await buildReplyToAddress(threadId, c.env)) ?? undefined;
-
-    const sendResult = await emailService.sendThreaded({
-      from,
-      to: thread.fromEmail,
-      subject: replySubject,
-      ...(body.html ? { html: body.html } : {}),
-      ...(body.text ? { text: body.text } : {}),
-      ...(lastInbound?.rfc822MessageId
-        ? { inReplyTo: lastInbound.rfc822MessageId }
-        : {}),
-      ...(references.length > 0 ? { references } : {}),
-      messageId: rfc822MessageId,
-      ...(replyTo ? { replyTo } : {}),
-    });
-
-    if (!sendResult.success) {
-      try {
-        await db.delete(messages).where(eq(messages.id, messageRowId));
-      } catch (cleanupError) {
-        console.error(
-          "[support reply] cleanup after send failure failed",
-          cleanupError
-        );
+        ...(body.text ? { text: body.text } : {}),
+        ...(body.html ? { html: body.html } : {}),
+        inReplyTo: lastInbound?.rfc822MessageId ?? null,
+        references,
+        adminUserId: c.get("jwtPayload")?.sub ?? null,
       }
-      return c.json({ error: sendResult.error ?? "Failed to send email" }, 502);
-    }
-
-    // Email is already on the wire and the DB row is persisted. The R2
-    // archive (raw MIME + body parts the detail view streams from) and the
-    // lastMessageAt bump are best-effort — defer them so the admin client
-    // returns immediately instead of waiting on R2. The bytes sent on the
-    // wire are echoed back via `sendResult.rawMime` so the archive matches
-    // what the recipient actually received.
-    const now = new Date();
-    const keyBase = `support/${messageRowId}`;
-    const outboundMime = sendResult.rawMime;
-    const deferred: Promise<unknown>[] = [
-      db
-        .update(threads)
-        .set({ lastMessageAt: now, updatedAt: now })
-        .where(eq(threads.id, threadId)),
-    ];
-    if (outboundMime) {
-      deferred.push(
-        c.env.RESSOURCES.put(rawR2Key, outboundMime, {
-          httpMetadata: { contentType: "message/rfc822" },
-        })
-      );
-    }
-    if (body.text) {
-      deferred.push(
-        c.env.RESSOURCES.put(
-          `${keyBase}/body.txt`,
-          new TextEncoder().encode(body.text),
-          { httpMetadata: { contentType: "text/plain; charset=utf-8" } }
-        )
-      );
-    }
-    if (body.html) {
-      deferred.push(
-        c.env.RESSOURCES.put(
-          `${keyBase}/body.html`,
-          new TextEncoder().encode(body.html),
-          { httpMetadata: { contentType: "text/html; charset=utf-8" } }
-        )
-      );
-    }
-    c.executionCtx.waitUntil(
-      Promise.allSettled(deferred).then((results) => {
-        results.forEach((r, i) => {
-          if (r.status === "rejected") {
-            console.error(
-              `[support reply] deferred task ${i} failed`,
-              r.reason
-            );
-          }
-        });
-      })
     );
 
-    return c.json({ messageId: messageRowId });
+    if (!result.ok) return c.json({ error: result.error }, result.status);
+    return c.json({ messageId: result.messageId });
   }
 );
 
@@ -494,14 +443,5 @@ adminSupportRoutes.patch(
     return c.json({ thread: result[0] });
   }
 );
-
-function buildReferencesChain(
-  existing: string[],
-  lastInboundId: string | null
-): string | null {
-  if (existing.length === 0 && !lastInboundId) return null;
-  const chain = lastInboundId ? [...existing, lastInboundId] : existing;
-  return Array.from(new Set(chain)).join(" ");
-}
 
 export default adminSupportRoutes;

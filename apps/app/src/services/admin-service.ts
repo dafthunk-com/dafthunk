@@ -872,6 +872,22 @@ export const sendAdminSupportReply = async (
 };
 
 /**
+ * Create a new outbound thread from the admin inbox. The server auto-links
+ * the recipient to a registered user when their email matches `users.email`.
+ */
+export const createAdminSupportThread = async (body: {
+  toEmail: string;
+  subject: string;
+  text?: string;
+  html?: string;
+}): Promise<{ thread: AdminThreadSummary; messageId: string }> => {
+  return makeRequest<{ thread: AdminThreadSummary; messageId: string }>(
+    `${ADMIN_API_ENDPOINT}/support/threads`,
+    { method: "POST", body: JSON.stringify(body) }
+  );
+};
+
+/**
  * Patch a thread's status (open / pending / closed).
  */
 export const updateAdminSupportThreadStatus = async (

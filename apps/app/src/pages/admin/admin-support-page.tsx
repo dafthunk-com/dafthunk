@@ -1,5 +1,6 @@
 import Inbox from "lucide-react/icons/inbox";
 import Paperclip from "lucide-react/icons/paperclip";
+import PenSquare from "lucide-react/icons/pen-square";
 import Send from "lucide-react/icons/send";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
@@ -11,6 +12,15 @@ import { useBreadcrumbsSetter } from "@/components/page-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { SearchInput } from "@/components/ui/search-input";
 import {
   Select,
@@ -26,6 +36,7 @@ import {
   type AdminThreadStatus,
   type AdminThreadSummary,
   adminSupportAttachmentUrl,
+  createAdminSupportThread,
   fetchAdminSupportMessageBody,
   sendAdminSupportReply,
   updateAdminSupportThreadStatus,
@@ -86,6 +97,7 @@ export function AdminSupportPage() {
   const { mutateUnreadCount } = useAdminSupportUnreadCount();
 
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
+  const [composeOpen, setComposeOpen] = useState(false);
 
   useEffect(() => {
     if (threads.length === 0) return;
@@ -151,8 +163,22 @@ export function AdminSupportPage() {
               ))}
             </SelectContent>
           </Select>
+          <Button size="sm" onClick={() => setComposeOpen(true)}>
+            <PenSquare className="h-4 w-4 mr-2" />
+            New thread
+          </Button>
         </div>
       </div>
+
+      <ComposeThreadDialog
+        open={composeOpen}
+        onOpenChange={setComposeOpen}
+        onCreated={(thread) => {
+          mutateThreads();
+          mutateUnreadCount();
+          setSelectedThreadId(thread.id);
+        }}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-4 h-[calc(100vh-220px)] min-h-[500px]">
         <ThreadList
@@ -562,6 +588,115 @@ function HtmlBodyFrame({ html }: { html: string | null }) {
       srcDoc={html}
       className="w-full min-h-[200px] border-0"
     />
+  );
+}
+
+function ComposeThreadDialog({
+  open,
+  onOpenChange,
+  onCreated,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onCreated: (thread: AdminThreadSummary) => void;
+}) {
+  const [toEmail, setToEmail] = useState("");
+  const [subject, setSubject] = useState("");
+  const [text, setText] = useState("");
+  const [isSending, setIsSending] = useState(false);
+
+  useEffect(() => {
+    if (!open) {
+      setToEmail("");
+      setSubject("");
+      setText("");
+      setIsSending(false);
+    }
+  }, [open]);
+
+  const canSubmit =
+    toEmail.trim().length > 0 &&
+    subject.trim().length > 0 &&
+    text.trim().length > 0 &&
+    !isSending;
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!canSubmit) return;
+    setIsSending(true);
+    try {
+      const { thread } = await createAdminSupportThread({
+        toEmail: toEmail.trim(),
+        subject: subject.trim(),
+        text,
+      });
+      toast.success("Thread created");
+      onCreated(thread);
+      onOpenChange(false);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to create thread");
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>New thread</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={onSubmit} className="space-y-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="compose-to">To</Label>
+            <Input
+              id="compose-to"
+              type="email"
+              value={toEmail}
+              onChange={(e) => setToEmail(e.target.value)}
+              placeholder="customer@example.com"
+              required
+              autoFocus
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="compose-subject">Subject</Label>
+            <Input
+              id="compose-subject"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              placeholder="What's this about?"
+              required
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="compose-body">Message</Label>
+            <Textarea
+              id="compose-body"
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              rows={8}
+              required
+              className="resize-none"
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={isSending}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={!canSubmit}>
+              <Send className="h-4 w-4 mr-2" />
+              {isSending ? "Sending…" : "Send"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 
