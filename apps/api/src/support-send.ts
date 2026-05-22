@@ -11,6 +11,7 @@ import {
 } from "./db";
 import { createEmailService } from "./services/email-service";
 import { buildReplyToAddress } from "./support-reply-token";
+import { inboxKeys } from "./support-storage";
 import { buildSnippet, stripHtml } from "./support-utils";
 
 /**
@@ -30,6 +31,7 @@ export async function sendOutboundSupportMessage(
   executionCtx: ExecutionContext,
   args: {
     threadId: string;
+    inboxId: string;
     toAddress: string;
     subject: string;
     text?: string;
@@ -59,8 +61,7 @@ export async function sendOutboundSupportMessage(
   const messageRowId = uuidv7();
   const fromDomain = from.includes("@") ? from.split("@")[1] : "mail.local";
   const rfc822MessageId = `<${messageRowId}@${fromDomain}>`;
-  const keyBase = `support/${messageRowId}`;
-  const rawR2Key = `${keyBase}/raw.eml`;
+  const keys = inboxKeys(args.inboxId, messageRowId);
   const references = args.references ?? [];
   const referencesChain = buildReferencesChain(
     references,
@@ -82,7 +83,7 @@ export async function sendOutboundSupportMessage(
       hasHtml: Boolean(args.html),
       hasText: Boolean(args.text),
       attachmentCount: 0,
-      rawR2Key,
+      rawR2Key: keys.raw,
       authorAdminUserId: args.adminUserId,
     });
   } catch (error) {
@@ -134,27 +135,23 @@ export async function sendOutboundSupportMessage(
   ];
   if (outboundMime) {
     deferred.push(
-      env.RESSOURCES.put(rawR2Key, outboundMime, {
+      env.INBOXES.put(keys.raw, outboundMime, {
         httpMetadata: { contentType: "message/rfc822" },
       })
     );
   }
   if (args.text) {
     deferred.push(
-      env.RESSOURCES.put(
-        `${keyBase}/body.txt`,
-        new TextEncoder().encode(args.text),
-        { httpMetadata: { contentType: "text/plain; charset=utf-8" } }
-      )
+      env.INBOXES.put(keys.textBody, new TextEncoder().encode(args.text), {
+        httpMetadata: { contentType: "text/plain; charset=utf-8" },
+      })
     );
   }
   if (args.html) {
     deferred.push(
-      env.RESSOURCES.put(
-        `${keyBase}/body.html`,
-        new TextEncoder().encode(args.html),
-        { httpMetadata: { contentType: "text/html; charset=utf-8" } }
-      )
+      env.INBOXES.put(keys.htmlBody, new TextEncoder().encode(args.html), {
+        httpMetadata: { contentType: "text/html; charset=utf-8" },
+      })
     );
   }
   executionCtx.waitUntil(

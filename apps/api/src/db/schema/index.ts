@@ -549,14 +549,33 @@ export const emailTriggers = sqliteTable(
   ]
 );
 
+// Inboxes - Logical inboxes (e.g. "support"). The `id` is the opaque UUID used
+// as the top-level R2 key segment so the bucket layout doesn't depend on the
+// alias; renaming an inbox doesn't move any data. The handler that decides
+// which inbox an inbound message belongs to looks the row up by `alias`.
+export const inboxes = sqliteTable(
+  "inboxes",
+  {
+    id: text("id").primaryKey(),
+    alias: text("alias").notNull().unique(),
+    createdAt: createCreatedAt(),
+    updatedAt: createUpdatedAt(),
+  },
+  (table) => [index("inboxes_alias_idx").on(table.alias)]
+);
+
 // Threads - Conversations in the admin inbox (e.g. support email). One row per
 // distinct conversation, threaded by RFC 5322 In-Reply-To / References, with
 // subject + fromEmail as a fallback. Only minimal metadata lives here; raw
-// MIME, parsed bodies, and attachments live in R2.
+// MIME, parsed bodies, and attachments live in R2 under `{inboxId}/...`.
 export const threads = sqliteTable(
   "threads",
   {
     id: text("id").primaryKey(),
+    // `.notNull()` is TS-only; SQL column is nullable (migration 0059).
+    inboxId: text("inbox_id")
+      .notNull()
+      .references(() => inboxes.id, { onDelete: "restrict" }),
     subject: text("subject").notNull(),
     fromEmail: text("from_email").notNull(),
     fromName: text("from_name"),
@@ -575,6 +594,7 @@ export const threads = sqliteTable(
     updatedAt: createUpdatedAt(),
   },
   (table) => [
+    index("threads_inbox_id_idx").on(table.inboxId),
     index("threads_status_idx").on(table.status),
     index("threads_last_message_at_idx").on(table.lastMessageAt),
     index("threads_from_email_idx").on(table.fromEmail),

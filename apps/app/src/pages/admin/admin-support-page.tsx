@@ -496,12 +496,7 @@ function MessageCard({ message }: { message: AdminThreadMessage }) {
   const [showQuoted, setShowQuoted] = useState(false);
 
   return (
-    <div
-      className={cn(
-        "pl-4",
-        !isInbound && "border-l-2 border-l-primary"
-      )}
-    >
+    <div className={cn("pl-4", !isInbound && "border-l-2 border-l-primary")}>
       <div className="flex items-baseline justify-between gap-2 text-xs mb-1">
         <span className="font-medium text-sm">
           {isInbound ? message.fromEmail : "You"}
@@ -513,10 +508,7 @@ function MessageCard({ message }: { message: AdminThreadMessage }) {
 
       <div className="text-sm">
         {bodyError && (
-          <p
-            className="text-muted-foreground italic text-xs"
-            title={bodyError}
-          >
+          <p className="text-muted-foreground italic text-xs" title={bodyError}>
             Message body unavailable
           </p>
         )}
@@ -535,7 +527,9 @@ function MessageCard({ message }: { message: AdminThreadMessage }) {
                   onClick={() => setShowQuoted((v) => !v)}
                   className="mt-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  {showQuoted ? "‹ Hide trimmed content" : "› Show trimmed content"}
+                  {showQuoted
+                    ? "‹ Hide trimmed content"
+                    : "› Show trimmed content"}
                 </button>
                 {showQuoted && (
                   <pre className="whitespace-pre-wrap font-sans text-muted-foreground mt-2 border-l-2 border-l-neutral-200 dark:border-l-neutral-700 pl-3">

@@ -5,6 +5,7 @@ import {
   type AttachmentInsert,
   attachments,
   type Database,
+  inboxes,
   MessageDirection,
   type MessageInsert,
   type MessageRow,
@@ -15,6 +16,37 @@ import {
   threads,
   users,
 } from "./index";
+
+// The alias→row mapping is effectively immutable for the isolate's lifetime
+// (no UI to rename inboxes), so the first lookup hits D1 and the rest serve
+// from this cache. The cached value is the *Promise* so concurrent first
+// callers dedupe onto one query. Failures (rejections and missing rows) are
+// evicted so tests/dev can fix the seed without restarting the isolate.
+const inboxCache = new Map<
+  string,
+  Promise<{ id: string; alias: string } | undefined>
+>();
+
+/** Look up an inbox by its human-readable alias (e.g. "support"). */
+export function getInboxByAlias(
+  db: Database,
+  alias: string
+): Promise<{ id: string; alias: string } | undefined> {
+  const cached = inboxCache.get(alias);
+  if (cached) return cached;
+  const promise = (async () => {
+    const [hit] = await db
+      .select({ id: inboxes.id, alias: inboxes.alias })
+      .from(inboxes)
+      .where(eq(inboxes.alias, alias))
+      .limit(1);
+    if (!hit) inboxCache.delete(alias);
+    return hit;
+  })();
+  promise.catch(() => inboxCache.delete(alias));
+  inboxCache.set(alias, promise);
+  return promise;
+}
 
 // Subject prefixes added by mail clients on reply/forward. Stripped before
 // using subject as a thread-matching fallback so "Re: hello" matches "hello".
@@ -130,11 +162,13 @@ export async function insertMessage(
   return row;
 }
 
-export async function getLastInboundMessage(
-  db: Database,
-  threadId: string
-): Promise<MessageRow | undefined> {
-  const [row] = await db
+/**
+ * Returns the un-awaited query builder so callers can either `await` it
+ * directly or pass it to `db.batch()` to share a round-trip with another
+ * query. The result is always an array; the caller pulls `[0]`.
+ */
+export function selectLastInboundMessage(db: Database, threadId: string) {
+  return db
     .select()
     .from(messages)
     .where(
@@ -145,7 +179,6 @@ export async function getLastInboundMessage(
     )
     .orderBy(desc(messages.createdAt))
     .limit(1);
-  return row;
 }
 
 export async function insertAttachments(

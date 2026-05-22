@@ -72,6 +72,11 @@
       "binding": "DATASETS",
       "bucket_name": "dafthunk-datasets-development",
       "preview_bucket_name": "dafthunk-datasets-development"
+    },
+    {
+      "binding": "INBOXES",
+      "bucket_name": "dafthunk-inboxes-development",
+      "preview_bucket_name": "dafthunk-inboxes-development"
     }
   ],
   "workflows": [
@@ -220,7 +225,10 @@
     "EMAIL_DOMAIN": "mail.dafthunk.com",
     "SEND_EMAIL_FROM": "noreply@mail.dafthunk.com",
     "SUPPORT_EMAIL_HANDLE": "support",
-    "SUPPORT_EMAIL_FROM": "support@mail.dafthunk.com"
+    "SUPPORT_EMAIL_FROM": "support@mail.dafthunk.com",
+    // Placeholder for the future AutoRAG instance over the INBOXES bucket;
+    // wire it up via the Cloudflare dashboard, then set this to the name.
+    "INBOXES_AUTORAG": ""
   },
   "env": {
     "production": {
@@ -281,6 +289,10 @@
         {
           "binding": "DATASETS",
           "bucket_name": "dafthunk-datasets-production"
+        },
+        {
+          "binding": "INBOXES",
+          "bucket_name": "dafthunk-inboxes-production"
         }
       ],
       "analytics_engine_datasets": [
@@ -399,7 +411,10 @@
         "EMAIL_DOMAIN": "mail.dafthunk.com",
         "SEND_EMAIL_FROM": "noreply@mail.dafthunk.com",
         "SUPPORT_EMAIL_HANDLE": "support",
-        "SUPPORT_EMAIL_FROM": "support@mail.dafthunk.com"
+        "SUPPORT_EMAIL_FROM": "support@mail.dafthunk.com",
+        // Placeholder for the future AutoRAG instance over the INBOXES bucket;
+        // wire it up via the Cloudflare dashboard, then set this to the name.
+        "INBOXES_AUTORAG": ""
       },
       "queues": {
         "producers": [

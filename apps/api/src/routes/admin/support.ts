@@ -9,9 +9,10 @@ import {
   createDatabase,
   createThread,
   findUserByEmail,
-  getLastInboundMessage,
+  getInboxByAlias,
   messages,
   organizations,
+  selectLastInboundMessage,
   ThreadStatus,
   type ThreadStatusType,
   threadReads,
@@ -19,6 +20,7 @@ import {
   users,
 } from "../../db";
 import { sendOutboundSupportMessage } from "../../support-send";
+import { inboxKeys, SUPPORT_INBOX_ALIAS } from "../../support-storage";
 
 const adminSupportRoutes = new Hono<ApiContext>();
 
@@ -227,22 +229,30 @@ adminSupportRoutes.get(
     const id = c.req.param("id");
     const { part } = c.req.valid("query");
 
-    const [msg] = await db
-      .select()
+    const [row] = await db
+      .select({ inboxId: threads.inboxId })
       .from(messages)
+      .innerJoin(threads, eq(threads.id, messages.threadId))
       .where(eq(messages.id, id))
       .limit(1);
-    if (!msg) {
+    if (!row) {
       return c.json({ error: "Message not found" }, 404);
     }
 
-    const filename = part === "html" ? "body.html" : "body.txt";
-    const contentType =
+    const keys = inboxKeys(row.inboxId, id);
+    const bodyPart =
       part === "html"
-        ? "text/html; charset=utf-8"
-        : "text/plain; charset=utf-8";
-    const key = `support/${id}/${filename}`;
-    const obj = await c.env.RESSOURCES.get(key);
+        ? {
+            key: keys.htmlBody,
+            filename: "body.html",
+            contentType: "text/html; charset=utf-8",
+          }
+        : {
+            key: keys.textBody,
+            filename: "body.txt",
+            contentType: "text/plain; charset=utf-8",
+          };
+    const obj = await c.env.INBOXES.get(bodyPart.key);
     if (!obj) {
       return c.json({ error: "Body part not stored" }, 404);
     }
@@ -254,10 +264,10 @@ adminSupportRoutes.get(
     return new Response(obj.body, {
       status: 200,
       headers: {
-        "Content-Type": contentType,
+        "Content-Type": bodyPart.contentType,
         "X-Content-Type-Options": "nosniff",
         "Content-Security-Policy": "sandbox",
-        "Content-Disposition": `attachment; filename="${filename}"`,
+        "Content-Disposition": `attachment; filename="${bodyPart.filename}"`,
       },
     });
   }
@@ -277,7 +287,7 @@ adminSupportRoutes.get("/attachments/:id", async (c) => {
     return c.json({ error: "Attachment not found" }, 404);
   }
 
-  const obj = await c.env.RESSOURCES.get(att.r2Key);
+  const obj = await c.env.INBOXES.get(att.r2Key);
   if (!obj) {
     return c.json({ error: "Attachment blob missing" }, 404);
   }
@@ -326,9 +336,16 @@ adminSupportRoutes.post(
     const { toEmail, subject, text, html } = c.req.valid("json");
     const normalizedTo = toEmail.toLowerCase();
 
-    const linkedUser = await findUserByEmail(db, normalizedTo);
+    const [inbox, linkedUser] = await Promise.all([
+      getInboxByAlias(db, SUPPORT_INBOX_ALIAS),
+      findUserByEmail(db, normalizedTo),
+    ]);
+    if (!inbox) {
+      return c.json({ error: "Support inbox not configured" }, 500);
+    }
     const now = new Date();
     const thread = await createThread(db, {
+      inboxId: inbox.id,
       subject,
       fromEmail: normalizedTo,
       fromName: null,
@@ -340,6 +357,7 @@ adminSupportRoutes.post(
 
     const result = await sendOutboundSupportMessage(db, c.env, c.executionCtx, {
       threadId: thread.id,
+      inboxId: inbox.id,
       toAddress: normalizedTo,
       subject,
       ...(text ? { text } : {}),
@@ -382,16 +400,23 @@ adminSupportRoutes.post(
     const threadId = c.req.param("id");
     const body = c.req.valid("json");
 
-    const [thread] = await db
-      .select()
-      .from(threads)
-      .where(eq(threads.id, threadId))
-      .limit(1);
+    const [threadRows, lastInboundRows] = await db.batch([
+      db
+        .select({
+          inboxId: threads.inboxId,
+          subject: threads.subject,
+          fromEmail: threads.fromEmail,
+        })
+        .from(threads)
+        .where(eq(threads.id, threadId))
+        .limit(1),
+      selectLastInboundMessage(db, threadId),
+    ]);
+    const thread = threadRows[0];
+    const lastInbound = lastInboundRows[0];
     if (!thread) {
       return c.json({ error: "Thread not found" }, 404);
     }
-
-    const lastInbound = await getLastInboundMessage(db, threadId);
     const subject = (body.subject ?? thread.subject).trim() || thread.subject;
     const replySubject = subject.startsWith("Re:") ? subject : `Re: ${subject}`;
     const references = lastInbound?.referencesChain
@@ -400,6 +425,7 @@ adminSupportRoutes.post(
 
     const result = await sendOutboundSupportMessage(db, c.env, c.executionCtx, {
       threadId,
+      inboxId: thread.inboxId,
       toAddress: thread.fromEmail,
       subject: replySubject,
       ...(body.text ? { text: body.text } : {}),

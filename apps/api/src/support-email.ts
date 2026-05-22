@@ -8,6 +8,7 @@ import {
   createDatabase,
   createThread,
   findUserByEmail,
+  getInboxByAlias,
   insertAttachments,
   insertMessage,
   MessageDirection,
@@ -17,6 +18,7 @@ import {
   touchThreadOnInbound,
 } from "./db";
 import { verifyReplyToken } from "./support-reply-token";
+import { inboxKeys, SUPPORT_INBOX_ALIAS } from "./support-storage";
 import { buildSnippet, stripHtml } from "./support-utils";
 
 /**
@@ -92,20 +94,43 @@ export async function handleSupportEmail(
     return;
   }
 
+  const db = createDatabase(env.DB);
   const messageRowId = uuidv7();
-  const keyBase = `support/${messageRowId}`;
-  const rawKey = `${keyBase}/raw.eml`;
 
-  let rawBytes: Uint8Array;
-  try {
-    rawBytes = await streamToBytes(message.raw);
-  } catch (error) {
-    console.error("[support-email] failed to read raw stream", error);
+  // Today the support handler always targets the "support" inbox. When
+  // multi-inbox routing arrives, the alias will come from the routing layer.
+  // The lookup and the (potentially slow) stream read are independent — run
+  // them in parallel so a cold-cache lookup doesn't add latency. Use
+  // allSettled so we can distinguish which side failed when one rejects.
+  const [inboxResult, rawResult] = await Promise.allSettled([
+    getInboxByAlias(db, SUPPORT_INBOX_ALIAS),
+    streamToBytes(message.raw),
+  ]);
+  if (inboxResult.status === "rejected") {
+    console.error("[support-email] inbox lookup failed", inboxResult.reason);
+    return;
+  }
+  if (rawResult.status === "rejected") {
+    console.error(
+      "[support-email] failed to read raw stream",
+      rawResult.reason
+    );
+    return;
+  }
+  const inbox = inboxResult.value;
+  const rawBytes = rawResult.value;
+
+  if (!inbox) {
+    console.error(
+      "[support-email] support inbox row missing; refusing to ingest mail"
+    );
     return;
   }
 
+  const keys = inboxKeys(inbox.id, messageRowId);
+
   try {
-    await env.RESSOURCES.put(rawKey, rawBytes, {
+    await env.INBOXES.put(keys.raw, rawBytes, {
       httpMetadata: { contentType: "message/rfc822" },
     });
   } catch (error) {
@@ -140,14 +165,13 @@ export async function handleSupportEmail(
   const attachmentInserts: AttachmentInsert[] = parsedAttachments.map(
     (att, i) => {
       const filename = att.filename || `attachment-${i + 1}`;
-      const safeFilename = filename.replace(/[^\w.-]+/g, "_");
       return {
         id: uuidv7(),
         messageId: messageRowId,
         filename,
         contentType: att.mimeType || "application/octet-stream",
         sizeBytes: toUint8Array(att.content).byteLength,
-        r2Key: `${keyBase}/attachments/${i}-${safeFilename}`,
+        r2Key: keys.attachment(i, filename),
         contentId: att.contentId ?? null,
       };
     }
@@ -159,38 +183,28 @@ export async function handleSupportEmail(
   const r2Puts: Promise<unknown>[] = [];
   if (textBody) {
     r2Puts.push(
-      env.RESSOURCES.put(
-        `${keyBase}/body.txt`,
-        new TextEncoder().encode(textBody),
-        { httpMetadata: { contentType: "text/plain; charset=utf-8" } }
-      )
+      env.INBOXES.put(keys.textBody, new TextEncoder().encode(textBody), {
+        httpMetadata: { contentType: "text/plain; charset=utf-8" },
+      })
     );
   }
   if (htmlBody) {
     r2Puts.push(
-      env.RESSOURCES.put(
-        `${keyBase}/body.html`,
-        new TextEncoder().encode(htmlBody),
-        { httpMetadata: { contentType: "text/html; charset=utf-8" } }
-      )
+      env.INBOXES.put(keys.htmlBody, new TextEncoder().encode(htmlBody), {
+        httpMetadata: { contentType: "text/html; charset=utf-8" },
+      })
     );
   }
   parsedAttachments.forEach((att, i) => {
     r2Puts.push(
-      env.RESSOURCES.put(
-        attachmentInserts[i].r2Key,
-        toUint8Array(att.content),
-        {
-          httpMetadata: {
-            contentType: att.mimeType || "application/octet-stream",
-          },
-        }
-      )
+      env.INBOXES.put(attachmentInserts[i].r2Key, toUint8Array(att.content), {
+        httpMetadata: {
+          contentType: att.mimeType || "application/octet-stream",
+        },
+      })
     );
   });
   await Promise.all(r2Puts);
-
-  const db = createDatabase(env.DB);
 
   const now = new Date();
   let threadId: string;
@@ -234,6 +248,7 @@ export async function handleSupportEmail(
     } else {
       const linkedUser = await findUserByEmail(db, fromAddress);
       const thread = await createThread(db, {
+        inboxId: inbox.id,
         subject,
         fromEmail: fromAddress,
         fromName: fromName ?? null,
@@ -260,7 +275,7 @@ export async function handleSupportEmail(
     hasHtml: Boolean(htmlBody),
     hasText: Boolean(textBody),
     attachmentCount: attachmentInserts.length,
-    rawR2Key: rawKey,
+    rawR2Key: keys.raw,
     authorAdminUserId: null,
   });
 

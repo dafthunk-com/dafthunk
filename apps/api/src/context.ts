@@ -21,6 +21,8 @@ export interface Bindings {
   RESSOURCES: R2Bucket;
   DATASETS: R2Bucket;
   DATASETS_AUTORAG: string;
+  INBOXES: R2Bucket;
+  INBOXES_AUTORAG: string;
   AI: Ai;
   AI_OPTIONS: AiOptions;
   LOADER?: any; // worker_loaders binding for Code Mode sandbox
