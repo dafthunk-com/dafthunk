@@ -418,25 +418,48 @@ adminSupportRoutes.post(
       return c.json({ error: sendResult.error ?? "Failed to send email" }, 502);
     }
 
-    // Email is already on the wire and the DB row is persisted. The MIME
-    // archive and lastMessageAt bump are best-effort — defer them so the
-    // admin client returns immediately instead of waiting on R2. The bytes
-    // sent on the wire are echoed back via `sendResult.rawMime` so the
-    // archive matches what the recipient actually received.
+    // Email is already on the wire and the DB row is persisted. The R2
+    // archive (raw MIME + body parts the detail view streams from) and the
+    // lastMessageAt bump are best-effort — defer them so the admin client
+    // returns immediately instead of waiting on R2. The bytes sent on the
+    // wire are echoed back via `sendResult.rawMime` so the archive matches
+    // what the recipient actually received.
     const now = new Date();
+    const keyBase = `support/${messageRowId}`;
     const outboundMime = sendResult.rawMime;
+    const deferred: Promise<unknown>[] = [
+      db
+        .update(threads)
+        .set({ lastMessageAt: now, updatedAt: now })
+        .where(eq(threads.id, threadId)),
+    ];
+    if (outboundMime) {
+      deferred.push(
+        c.env.RESSOURCES.put(rawR2Key, outboundMime, {
+          httpMetadata: { contentType: "message/rfc822" },
+        })
+      );
+    }
+    if (body.text) {
+      deferred.push(
+        c.env.RESSOURCES.put(
+          `${keyBase}/body.txt`,
+          new TextEncoder().encode(body.text),
+          { httpMetadata: { contentType: "text/plain; charset=utf-8" } }
+        )
+      );
+    }
+    if (body.html) {
+      deferred.push(
+        c.env.RESSOURCES.put(
+          `${keyBase}/body.html`,
+          new TextEncoder().encode(body.html),
+          { httpMetadata: { contentType: "text/html; charset=utf-8" } }
+        )
+      );
+    }
     c.executionCtx.waitUntil(
-      Promise.allSettled([
-        outboundMime
-          ? c.env.RESSOURCES.put(rawR2Key, outboundMime, {
-              httpMetadata: { contentType: "message/rfc822" },
-            })
-          : Promise.resolve(),
-        db
-          .update(threads)
-          .set({ lastMessageAt: now, updatedAt: now })
-          .where(eq(threads.id, threadId)),
-      ]).then((results) => {
+      Promise.allSettled(deferred).then((results) => {
         results.forEach((r, i) => {
           if (r.status === "rejected") {
             console.error(
