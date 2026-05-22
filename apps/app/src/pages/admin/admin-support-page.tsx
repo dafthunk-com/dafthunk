@@ -649,7 +649,7 @@ function ComposeThreadDialog({
               id="compose-to"
               value={toEmail}
               onChange={setToEmail}
-              placeholder="customer@example.com or pick a registered user"
+              placeholder="Search by name or email…"
               autoFocus
               required
             />
@@ -745,7 +745,7 @@ function UserSearchInput({
       <PopoverAnchor asChild>
         <Input
           id={id}
-          type="email"
+          type="text"
           value={value}
           onChange={(e) => {
             onChange(e.target.value);
