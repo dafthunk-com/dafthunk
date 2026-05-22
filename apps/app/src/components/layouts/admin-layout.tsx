@@ -36,6 +36,12 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           end: true,
         },
         {
+          title: "Support",
+          url: "/admin/support",
+          icon: Inbox,
+          badgeCount: unreadCount,
+        },
+        {
           title: "Users",
           url: "/admin/users",
           icon: Users,
@@ -59,12 +65,6 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           title: "Emails",
           url: "/admin/emails",
           icon: Mail,
-        },
-        {
-          title: "Support",
-          url: "/admin/support",
-          icon: Inbox,
-          badgeCount: unreadCount,
         },
         {
           title: "Queues",
