@@ -33,6 +33,12 @@ export interface ThreadedEmailOptions {
    * the DB record in sync with the wire.
    */
   messageId?: string;
+  /**
+   * Optional Reply-To address. Used by the support inbox to advertise a
+   * per-thread tokenized address so the recipient's reply can be attached
+   * to the right thread without trusting the From: header.
+   */
+  replyTo?: string;
 }
 
 export interface ThreadedEmailResult {
@@ -112,8 +118,17 @@ export class EmailService {
   async sendThreaded(
     options: ThreadedEmailOptions
   ): Promise<ThreadedEmailResult> {
-    const { from, to, subject, html, text, inReplyTo, references, messageId } =
-      options;
+    const {
+      from,
+      to,
+      subject,
+      html,
+      text,
+      inReplyTo,
+      references,
+      messageId,
+      replyTo,
+    } = options;
 
     if (!to || !subject) {
       return { success: false, error: "'to' and 'subject' are required" };
@@ -147,6 +162,7 @@ export class EmailService {
       text,
       html,
       date: new Date(),
+      replyTo: replyTo ?? null,
     });
 
     try {
@@ -178,6 +194,7 @@ export function buildThreadedMime(args: {
   text?: string;
   html?: string;
   date: Date;
+  replyTo?: string | null;
 }): string {
   const boundary = `dafthunk-${uuidv7()}`;
   const headers: string[] = [
@@ -187,6 +204,7 @@ export function buildThreadedMime(args: {
     `Date: ${args.date.toUTCString()}`,
     `Message-ID: ${args.messageId}`,
   ];
+  if (args.replyTo) headers.push(`Reply-To: ${args.replyTo}`);
   if (args.inReplyTo) headers.push(`In-Reply-To: ${args.inReplyTo}`);
   // RFC 5322 §3.6.4: References should chain the parent message's id alongside
   // any prior References. Dedupe in case the caller already included it.

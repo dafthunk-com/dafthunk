@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { InsetError } from "@/components/inset-error";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { useBreadcrumbsSetter } from "@/components/page-context";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/search-input";
@@ -223,52 +224,62 @@ function ThreadList({
                     isSelected && "bg-neutral-100 dark:bg-neutral-800"
                   )}
                 >
-                  <div className="flex items-center justify-between gap-2 mb-1">
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      {t.unread && (
-                        <span
-                          className="h-2 w-2 rounded-full bg-blue-600 shrink-0"
-                          aria-label="Unread"
-                        />
-                      )}
+                  <div className="flex items-start gap-3">
+                    <SenderAvatar
+                      name={t.fromName || t.userName || t.fromEmail}
+                      avatarUrl={t.userAvatarUrl}
+                      linked={Boolean(t.userId)}
+                      className="h-9 w-9 shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          {t.unread && (
+                            <span
+                              className="h-2 w-2 rounded-full bg-blue-600 shrink-0"
+                              aria-label="Unread"
+                            />
+                          )}
+                          <div
+                            className={cn(
+                              "truncate text-sm",
+                              t.unread ? "font-semibold" : "font-medium"
+                            )}
+                          >
+                            {t.fromName || t.userName || t.fromEmail}
+                          </div>
+                        </div>
+                        <span className="text-xs text-muted-foreground shrink-0">
+                          {formatDate(t.lastMessageAt)}
+                        </span>
+                      </div>
                       <div
                         className={cn(
-                          "truncate text-sm",
-                          t.unread ? "font-semibold" : "font-medium"
+                          "text-sm truncate mb-1",
+                          t.unread
+                            ? "text-foreground font-medium"
+                            : "text-muted-foreground"
                         )}
                       >
-                        {t.fromName || t.fromEmail}
+                        {t.subject || "(no subject)"}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge
+                          variant="secondary"
+                          className={cn(
+                            "text-xs",
+                            STATUS_BADGE[t.status].className
+                          )}
+                        >
+                          {STATUS_BADGE[t.status].label}
+                        </Badge>
+                        {t.userId && t.organizationId && (
+                          <span className="text-xs text-muted-foreground truncate">
+                            {t.organizationName ?? t.userName}
+                          </span>
+                        )}
                       </div>
                     </div>
-                    <span className="text-xs text-muted-foreground shrink-0">
-                      {formatDate(t.lastMessageAt)}
-                    </span>
-                  </div>
-                  <div
-                    className={cn(
-                      "text-sm truncate mb-1",
-                      t.unread
-                        ? "text-foreground font-medium"
-                        : "text-muted-foreground"
-                    )}
-                  >
-                    {t.subject || "(no subject)"}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge
-                      variant="secondary"
-                      className={cn(
-                        "text-xs",
-                        STATUS_BADGE[t.status].className
-                      )}
-                    >
-                      {STATUS_BADGE[t.status].label}
-                    </Badge>
-                    {t.userId && t.organizationId && (
-                      <span className="text-xs text-muted-foreground truncate">
-                        {t.organizationName ?? t.userName}
-                      </span>
-                    )}
                   </div>
                 </button>
               </li>
@@ -370,22 +381,30 @@ function ThreadDetail({
   return (
     <div className="flex flex-col h-full">
       <div className="px-5 py-4 border-b flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h2 className="font-semibold truncate">{thread.subject}</h2>
-          <p className="text-sm text-muted-foreground truncate">
-            <span className="font-mono">{thread.fromEmail}</span>
-            {thread.userId && thread.organizationId && (
-              <>
-                {" · "}
-                <Link
-                  to={`/admin/organizations/${thread.organizationId}`}
-                  className="hover:underline"
-                >
-                  {thread.organizationName ?? thread.userName}
-                </Link>
-              </>
-            )}
-          </p>
+        <div className="flex items-start gap-3 min-w-0">
+          <SenderAvatar
+            name={thread.fromName || thread.userName || thread.fromEmail}
+            avatarUrl={thread.userAvatarUrl}
+            linked={Boolean(thread.userId)}
+            className="h-10 w-10 shrink-0"
+          />
+          <div className="min-w-0">
+            <h2 className="font-semibold truncate">{thread.subject}</h2>
+            <p className="text-sm text-muted-foreground truncate">
+              <span className="font-mono">{thread.fromEmail}</span>
+              {thread.userId && thread.organizationId && (
+                <>
+                  {" · "}
+                  <Link
+                    to={`/admin/organizations/${thread.organizationId}`}
+                    className="hover:underline"
+                  >
+                    {thread.organizationName ?? thread.userName}
+                  </Link>
+                </>
+              )}
+            </p>
+          </div>
         </div>
         <Select
           value={thread.status}
@@ -543,6 +562,32 @@ function HtmlBodyFrame({ html }: { html: string | null }) {
       srcDoc={html}
       className="w-full min-h-[200px] border-0"
     />
+  );
+}
+
+function SenderAvatar({
+  name,
+  avatarUrl,
+  linked,
+  className,
+}: {
+  name: string;
+  avatarUrl: string | null;
+  linked: boolean;
+  className?: string;
+}) {
+  const initial = name?.trim().charAt(0).toUpperCase() || "?";
+  return (
+    <Avatar
+      className={cn(
+        className,
+        !linked && "opacity-60 ring-1 ring-dashed ring-neutral-300"
+      )}
+      title={linked ? undefined : "Unlinked sender (no matching user)"}
+    >
+      <AvatarImage src={avatarUrl || undefined} />
+      <AvatarFallback>{initial}</AvatarFallback>
+    </Avatar>
   );
 }
 

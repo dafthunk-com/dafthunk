@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import PostalMime from "postal-mime";
 import { v7 as uuidv7 } from "uuid";
 
@@ -12,8 +13,10 @@ import {
   MessageDirection,
   resolveThreadForInbound,
   ThreadStatus,
+  threads,
   touchThreadOnInbound,
 } from "./db";
+import { verifyReplyToken } from "./support-reply-token";
 import { buildSnippet, stripHtml } from "./support-utils";
 
 /**
@@ -71,11 +74,16 @@ function parseReferences(value: string | undefined | null): string[] {
  * Failure mode: this runs in the email-routing path, where throwing would
  * cause Cloudflare to bounce the message back to the sender. Catch + log so
  * a parse failure never nukes legitimate mail.
+ *
+ * `replySubaddress` is the RFC 5233 plus-tag from the inbound address. When
+ * it verifies as a reply token we trust it alone and skip the subject/From
+ * heuristics — see `support-reply-token.ts`.
  */
 export async function handleSupportEmail(
   message: ForwardableEmailMessage,
   env: Bindings,
-  _ctx: ExecutionContext
+  _ctx: ExecutionContext,
+  replySubaddress: string | null = null
 ): Promise<void> {
   if (!isAuthenticated(message.headers)) {
     console.warn(
@@ -184,31 +192,58 @@ export async function handleSupportEmail(
 
   const db = createDatabase(env.DB);
 
-  const existingThread = await resolveThreadForInbound(db, {
-    inReplyTo,
-    references,
-    fromEmail: fromAddress,
-    subject,
-  });
-
   const now = new Date();
   let threadId: string;
 
-  if (existingThread) {
-    threadId = existingThread.id;
+  const verifiedThreadId =
+    replySubaddress && env.JWT_SECRET
+      ? await verifyReplyToken(replySubaddress, env.JWT_SECRET)
+      : null;
+
+  if (verifiedThreadId) {
+    const [existing] = await db
+      .select({ id: threads.id })
+      .from(threads)
+      .where(eq(threads.id, verifiedThreadId))
+      .limit(1);
+    if (!existing) {
+      // Drop rather than silently creating a thread under a forged id —
+      // when the token verifies, the From: is intentionally untrusted.
+      console.warn(
+        `[support-email] tokenized reply for missing thread ${verifiedThreadId} from ${fromAddress}; dropping`
+      );
+      return;
+    }
+    threadId = existing.id;
     await touchThreadOnInbound(db, threadId, now);
   } else {
-    const linkedUser = await findUserByEmail(db, fromAddress);
-    const thread = await createThread(db, {
-      subject,
+    if (replySubaddress) {
+      console.warn(
+        `[support-email] unverified reply subaddress from ${fromAddress}; falling back to header/subject resolution`
+      );
+    }
+    const existingThread = await resolveThreadForInbound(db, {
+      inReplyTo,
+      references,
       fromEmail: fromAddress,
-      fromName: fromName ?? null,
-      userId: linkedUser?.id ?? null,
-      organizationId: linkedUser?.organizationId ?? null,
-      status: ThreadStatus.OPEN,
-      lastMessageAt: now,
+      subject,
     });
-    threadId = thread.id;
+    if (existingThread) {
+      threadId = existingThread.id;
+      await touchThreadOnInbound(db, threadId, now);
+    } else {
+      const linkedUser = await findUserByEmail(db, fromAddress);
+      const thread = await createThread(db, {
+        subject,
+        fromEmail: fromAddress,
+        fromName: fromName ?? null,
+        userId: linkedUser?.id ?? null,
+        organizationId: linkedUser?.organizationId ?? null,
+        status: ThreadStatus.OPEN,
+        lastMessageAt: now,
+      });
+      threadId = thread.id;
+    }
   }
 
   await insertMessage(db, {

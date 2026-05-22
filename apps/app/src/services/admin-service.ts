@@ -270,6 +270,7 @@ export interface AdminThreadSummary {
   updatedAt: Date;
   userId: string | null;
   userName: string | null;
+  userAvatarUrl: string | null;
   organizationId: string | null;
   organizationName: string | null;
   unread: boolean;

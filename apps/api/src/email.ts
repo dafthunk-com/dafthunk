@@ -44,22 +44,24 @@ export async function handleIncomingEmail(
 ): Promise<void> {
   const { from, to, headers, raw } = message;
 
-  // Extract handle from the to address: <handle>@domain.com.
-  // Lowercase defensively — we only persist lowercase handles, and some MTAs
-  // do not preserve case across the relay.
-  const handle = to.split("@")[0]?.toLowerCase();
+  // Lowercase defensively — MTAs may case-fold local parts in transit.
+  const localPart = to.split("@")[0]?.toLowerCase();
 
-  if (!handle) {
+  if (!localPart) {
     console.error(`Invalid email format: ${to}. Expected <handle>@domain.com`);
     return;
   }
+
+  const plusIdx = localPart.indexOf("+");
+  const handle = plusIdx === -1 ? localPart : localPart.slice(0, plusIdx);
+  const subaddress = plusIdx === -1 ? null : localPart.slice(plusIdx + 1);
 
   // Reserved global address (e.g. support@) routes to the admin inbox path
   // instead of the per-org workflow-trigger lookup. Configured via
   // SUPPORT_EMAIL_HANDLE so we can move it without code changes.
   const supportHandle = env.SUPPORT_EMAIL_HANDLE?.toLowerCase();
   if (supportHandle && handle === supportHandle) {
-    return handleSupportEmail(message, env, ctx);
+    return handleSupportEmail(message, env, ctx, subaddress);
   }
 
   console.log(`Processing email trigger for handle: ${handle}`);

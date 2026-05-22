@@ -20,6 +20,7 @@ import {
   users,
 } from "../../db";
 import { createEmailService } from "../../services/email-service";
+import { buildReplyToAddress } from "../../support-reply-token";
 import { buildSnippet, stripHtml } from "../../support-utils";
 
 const adminSupportRoutes = new Hono<ApiContext>();
@@ -29,6 +30,22 @@ const statusEnum = z.enum([
   ThreadStatus.PENDING,
   ThreadStatus.CLOSED,
 ]);
+
+const threadSummaryColumns = {
+  id: threads.id,
+  subject: threads.subject,
+  fromEmail: threads.fromEmail,
+  fromName: threads.fromName,
+  status: threads.status,
+  lastMessageAt: threads.lastMessageAt,
+  createdAt: threads.createdAt,
+  updatedAt: threads.updatedAt,
+  userId: threads.userId,
+  userName: users.name,
+  userAvatarUrl: users.avatarUrl,
+  organizationId: threads.organizationId,
+  organizationName: organizations.name,
+} as const;
 
 /** GET /admin/support/threads — paginated. `unread` projected per row. */
 adminSupportRoutes.get(
@@ -69,18 +86,7 @@ adminSupportRoutes.get(
 
     const rows = await db
       .select({
-        id: threads.id,
-        subject: threads.subject,
-        fromEmail: threads.fromEmail,
-        fromName: threads.fromName,
-        status: threads.status,
-        lastMessageAt: threads.lastMessageAt,
-        createdAt: threads.createdAt,
-        updatedAt: threads.updatedAt,
-        userId: threads.userId,
-        userName: users.name,
-        organizationId: threads.organizationId,
-        organizationName: organizations.name,
+        ...threadSummaryColumns,
         lastReadAt: threadReads.lastReadAt,
       })
       .from(threads)
@@ -145,20 +151,7 @@ adminSupportRoutes.get("/threads/:id", async (c) => {
   const id = c.req.param("id");
 
   const [thread] = await db
-    .select({
-      id: threads.id,
-      subject: threads.subject,
-      fromEmail: threads.fromEmail,
-      fromName: threads.fromName,
-      status: threads.status,
-      lastMessageAt: threads.lastMessageAt,
-      createdAt: threads.createdAt,
-      updatedAt: threads.updatedAt,
-      userId: threads.userId,
-      userName: users.name,
-      organizationId: threads.organizationId,
-      organizationName: organizations.name,
-    })
+    .select(threadSummaryColumns)
     .from(threads)
     .leftJoin(users, eq(threads.userId, users.id))
     .leftJoin(organizations, eq(threads.organizationId, organizations.id))
@@ -393,6 +386,10 @@ adminSupportRoutes.post(
       return c.json({ error: "Failed to record outbound message" }, 500);
     }
 
+    // Tokenized Reply-To lets the recipient reply from any address and have
+    // the response still attach to this thread — see `support-reply-token.ts`.
+    const replyTo = (await buildReplyToAddress(threadId, c.env)) ?? undefined;
+
     const sendResult = await emailService.sendThreaded({
       from,
       to: thread.fromEmail,
@@ -404,6 +401,7 @@ adminSupportRoutes.post(
         : {}),
       ...(references.length > 0 ? { references } : {}),
       messageId: rfc822MessageId,
+      ...(replyTo ? { replyTo } : {}),
     });
 
     if (!sendResult.success) {
