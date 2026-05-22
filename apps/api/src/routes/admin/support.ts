@@ -13,9 +13,9 @@ import {
   MessageDirection,
   messages,
   organizations,
-  threadReads,
   ThreadStatus,
   type ThreadStatusType,
+  threadReads,
   threads,
   users,
 } from "../../db";
@@ -90,9 +90,7 @@ adminSupportRoutes.get(
         threadReads,
         and(
           eq(threadReads.threadId, threads.id),
-          adminUserId
-            ? eq(threadReads.userId, adminUserId)
-            : sql`1 = 0`
+          adminUserId ? eq(threadReads.userId, adminUserId) : sql`1 = 0`
         )
       )
       .where(whereClause)
@@ -250,7 +248,9 @@ adminSupportRoutes.get(
 
     const filename = part === "html" ? "body.html" : "body.txt";
     const contentType =
-      part === "html" ? "text/html; charset=utf-8" : "text/plain; charset=utf-8";
+      part === "html"
+        ? "text/html; charset=utf-8"
+        : "text/plain; charset=utf-8";
     const key = `support/${id}/${filename}`;
     const obj = await c.env.RESSOURCES.get(key);
     if (!obj) {
@@ -415,32 +415,23 @@ adminSupportRoutes.post(
           cleanupError
         );
       }
-      return c.json(
-        { error: sendResult.error ?? "Failed to send email" },
-        502
-      );
+      return c.json({ error: sendResult.error ?? "Failed to send email" }, 502);
     }
 
     // Email is already on the wire and the DB row is persisted. The MIME
     // archive and lastMessageAt bump are best-effort — defer them so the
-    // admin client returns immediately instead of waiting on R2.
-    const outboundMime = buildOutboundMimeArchive({
-      from,
-      to: thread.fromEmail,
-      subject: replySubject,
-      messageId: rfc822MessageId,
-      inReplyTo: lastInbound?.rfc822MessageId ?? null,
-      references,
-      text: body.text,
-      html: body.html,
-      date: new Date(),
-    });
+    // admin client returns immediately instead of waiting on R2. The bytes
+    // sent on the wire are echoed back via `sendResult.rawMime` so the
+    // archive matches what the recipient actually received.
     const now = new Date();
+    const outboundMime = sendResult.rawMime;
     c.executionCtx.waitUntil(
       Promise.allSettled([
-        c.env.RESSOURCES.put(rawR2Key, outboundMime, {
-          httpMetadata: { contentType: "message/rfc822" },
-        }),
+        outboundMime
+          ? c.env.RESSOURCES.put(rawR2Key, outboundMime, {
+              httpMetadata: { contentType: "message/rfc822" },
+            })
+          : Promise.resolve(),
         db
           .update(threads)
           .set({ lastMessageAt: now, updatedAt: now })
@@ -490,59 +481,6 @@ function buildReferencesChain(
   if (existing.length === 0 && !lastInboundId) return null;
   const chain = lastInboundId ? [...existing, lastInboundId] : existing;
   return Array.from(new Set(chain)).join(" ");
-}
-
-function buildOutboundMimeArchive(args: {
-  from: string;
-  to: string;
-  subject: string;
-  messageId: string;
-  inReplyTo: string | null;
-  references: string[];
-  text?: string;
-  html?: string;
-  date: Date;
-}): Uint8Array {
-  const boundary = `dafthunk-${uuidv7()}`;
-  const headers: string[] = [
-    `From: ${args.from}`,
-    `To: ${args.to}`,
-    `Subject: ${args.subject}`,
-    `Date: ${args.date.toUTCString()}`,
-    `Message-ID: ${args.messageId}`,
-  ];
-  if (args.inReplyTo) headers.push(`In-Reply-To: ${args.inReplyTo}`);
-  if (args.references.length > 0) {
-    headers.push(`References: ${args.references.join(" ")}`);
-  }
-  headers.push("MIME-Version: 1.0");
-
-  let body: string;
-  if (args.text && args.html) {
-    headers.push(`Content-Type: multipart/alternative; boundary="${boundary}"`);
-    body = [
-      ``,
-      `--${boundary}`,
-      `Content-Type: text/plain; charset=utf-8`,
-      ``,
-      args.text,
-      `--${boundary}`,
-      `Content-Type: text/html; charset=utf-8`,
-      ``,
-      args.html,
-      `--${boundary}--`,
-      ``,
-    ].join("\r\n");
-  } else if (args.html) {
-    headers.push("Content-Type: text/html; charset=utf-8");
-    body = `\r\n${args.html}`;
-  } else {
-    headers.push("Content-Type: text/plain; charset=utf-8");
-    body = `\r\n${args.text ?? ""}`;
-  }
-
-  const mime = headers.join("\r\n") + "\r\n" + body;
-  return new TextEncoder().encode(mime);
 }
 
 export default adminSupportRoutes;

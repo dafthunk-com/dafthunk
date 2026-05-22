@@ -132,7 +132,7 @@ export async function handleSupportEmail(
   const attachmentInserts: AttachmentInsert[] = parsedAttachments.map(
     (att, i) => {
       const filename = att.filename || `attachment-${i + 1}`;
-      const safeFilename = filename.replace(/[^\w.\-]+/g, "_");
+      const safeFilename = filename.replace(/[^\w.-]+/g, "_");
       return {
         id: uuidv7(),
         messageId: messageRowId,

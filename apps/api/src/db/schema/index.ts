@@ -129,8 +129,7 @@ export const ThreadStatus = {
   CLOSED: "closed",
 } as const;
 
-export type ThreadStatusType =
-  (typeof ThreadStatus)[keyof typeof ThreadStatus];
+export type ThreadStatusType = (typeof ThreadStatus)[keyof typeof ThreadStatus];
 
 // Inbox message direction
 export const MessageDirection = {

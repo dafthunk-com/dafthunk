@@ -61,9 +61,7 @@ export class ExtractEmailAttachmentsNode extends ExecutableNode {
   }
 }
 
-function toUint8Array(
-  content: ArrayBuffer | Uint8Array | string
-): Uint8Array {
+function toUint8Array(content: ArrayBuffer | Uint8Array | string): Uint8Array {
   if (content instanceof Uint8Array) return content;
   if (content instanceof ArrayBuffer) return new Uint8Array(content);
   return new TextEncoder().encode(content);

@@ -11,8 +11,8 @@ import {
   messages,
   type ThreadInsert,
   type ThreadRow,
-  threads,
   ThreadStatus,
+  threads,
   users,
 } from "./index";
 
@@ -81,9 +81,7 @@ export async function resolveThreadForInbound(
     .orderBy(desc(threads.lastMessageAt))
     .limit(20);
 
-  return candidates.find(
-    (t) => normalizeSubject(t.subject) === normalized
-  );
+  return candidates.find((t) => normalizeSubject(t.subject) === normalized);
 }
 
 /** Look up a user by lowercased email; used to link inbound mail to the sender. */
@@ -104,9 +102,19 @@ export async function createThread(
   values: Omit<ThreadInsert, "id">
 ): Promise<ThreadRow> {
   const id = uuidv7();
+  // The schema's `DEFAULT CURRENT_TIMESTAMP` produces a TEXT value, which
+  // SQLite stores as-is in an INTEGER-affinity column. Drizzle's `timestamp`
+  // mode then reads it back as NaN -> Invalid Date -> null on the wire, so
+  // we must populate these explicitly with real Dates.
+  const now = new Date();
   const [row] = await db
     .insert(threads)
-    .values({ id, ...values })
+    .values({
+      id,
+      ...values,
+      createdAt: values.createdAt ?? now,
+      updatedAt: values.updatedAt ?? now,
+    })
     .returning();
   return row;
 }
@@ -115,7 +123,10 @@ export async function insertMessage(
   db: Database,
   values: MessageInsert
 ): Promise<MessageRow> {
-  const [row] = await db.insert(messages).values(values).returning();
+  const [row] = await db
+    .insert(messages)
+    .values({ ...values, createdAt: values.createdAt ?? new Date() })
+    .returning();
   return row;
 }
 

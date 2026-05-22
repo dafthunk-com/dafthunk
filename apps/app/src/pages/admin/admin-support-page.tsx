@@ -257,7 +257,10 @@ function ThreadList({
                   <div className="flex items-center gap-2">
                     <Badge
                       variant="secondary"
-                      className={cn("text-xs", STATUS_BADGE[t.status].className)}
+                      className={cn(
+                        "text-xs",
+                        STATUS_BADGE[t.status].className
+                      )}
                     >
                       {STATUS_BADGE[t.status].label}
                     </Badge>
@@ -453,7 +456,8 @@ function MessageCard({ message }: { message: AdminThreadMessage }) {
         if (!cancelled) setBody(text);
       })
       .catch((e) => {
-        if (!cancelled) setBodyError(e instanceof Error ? e.message : String(e));
+        if (!cancelled)
+          setBodyError(e instanceof Error ? e.message : String(e));
       });
     return () => {
       cancelled = true;
@@ -486,7 +490,9 @@ function MessageCard({ message }: { message: AdminThreadMessage }) {
 
       <div className="px-4 py-3 text-sm">
         {bodyError && (
-          <p className="text-red-600 text-xs">Failed to load body: {bodyError}</p>
+          <p className="text-red-600 text-xs">
+            Failed to load body: {bodyError}
+          </p>
         )}
         {!bodyError && !preferredPart && (
           <p className="text-muted-foreground italic">(no body)</p>
