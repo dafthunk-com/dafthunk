@@ -107,11 +107,13 @@ export function AdminSupportPage() {
             setPage(1);
           }}
         >
-          <SearchInput
-            placeholder="Search by subject or sender…"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-          />
+          <div className="flex-1">
+            <SearchInput
+              placeholder="Search by subject or sender…"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+            />
+          </div>
           <Button type="submit" variant="outline" className="h-10">
             Search
           </Button>
@@ -213,7 +215,7 @@ function ThreadList({
   return (
     <div className="flex flex-col overflow-hidden lg:border-r">
       <div className="p-2">
-        <Button size="sm" className="w-full" onClick={onCompose}>
+        <Button className="w-full h-10" onClick={onCompose}>
           <PenSquare className="h-4 w-4 mr-2" />
           New thread
         </Button>
@@ -300,16 +302,16 @@ function ThreadList({
           </span>
           <div className="flex gap-1">
             <Button
-              size="sm"
               variant="outline"
+              className="h-10"
               disabled={page === 1}
               onClick={() => onPageChange(page - 1)}
             >
               Prev
             </Button>
             <Button
-              size="sm"
               variant="outline"
+              className="h-10"
               disabled={page >= pagination.totalPages}
               onClick={() => onPageChange(page + 1)}
             >
@@ -417,7 +419,7 @@ function ThreadDetail({
           disabled={isUpdatingStatus}
           onValueChange={(v) => onStatusChange(v as AdminThreadStatus)}
         >
-          <SelectTrigger className="w-32 shrink-0">
+          <SelectTrigger className="w-32 h-10 shrink-0">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -449,7 +451,7 @@ function ThreadDetail({
           <Button
             onClick={onSend}
             disabled={isSending || !replyText.trim()}
-            size="sm"
+            className="h-10"
           >
             <Send className="h-4 w-4 mr-2" />
             {isSending ? "Sending…" : "Send reply"}
