@@ -218,7 +218,9 @@
     "WEB_HOST": "https://app.dafthunk.com",
     "WEBSITE_URL": "https://www.dafthunk.com",
     "EMAIL_DOMAIN": "mail.dafthunk.com",
-    "SEND_EMAIL_FROM": "noreply@mail.dafthunk.com"
+    "SEND_EMAIL_FROM": "noreply@mail.dafthunk.com",
+    "SUPPORT_EMAIL_HANDLE": "support",
+    "SUPPORT_EMAIL_FROM": "support@mail.dafthunk.com"
   },
   "env": {
     "production": {
@@ -395,7 +397,9 @@
         "WEB_HOST": "https://app.dafthunk.com",
         "WEBSITE_URL": "https://www.dafthunk.com",
         "EMAIL_DOMAIN": "mail.dafthunk.com",
-        "SEND_EMAIL_FROM": "noreply@mail.dafthunk.com"
+        "SEND_EMAIL_FROM": "noreply@mail.dafthunk.com",
+        "SUPPORT_EMAIL_HANDLE": "support",
+        "SUPPORT_EMAIL_FROM": "support@mail.dafthunk.com"
       },
       "queues": {
         "producers": [

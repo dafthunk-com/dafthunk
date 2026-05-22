@@ -1,5 +1,7 @@
 import useSWR from "swr";
 
+import { getApiBaseUrl } from "@/config/api";
+
 import { makeRequest } from "./utils";
 
 // Admin API base endpoint
@@ -246,6 +248,64 @@ export interface PaginationInfo {
   limit: number;
   total: number;
   totalPages: number;
+}
+
+export const AdminMessageDirection = {
+  INBOUND: "inbound",
+  OUTBOUND: "outbound",
+} as const;
+export type AdminMessageDirection =
+  (typeof AdminMessageDirection)[keyof typeof AdminMessageDirection];
+
+export type AdminThreadStatus = "open" | "pending" | "closed";
+
+export interface AdminThreadSummary {
+  id: string;
+  subject: string;
+  fromEmail: string;
+  fromName: string | null;
+  status: AdminThreadStatus;
+  lastMessageAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  userId: string | null;
+  userName: string | null;
+  organizationId: string | null;
+  organizationName: string | null;
+  unread: boolean;
+}
+
+export interface AdminThreadAttachment {
+  id: string;
+  filename: string;
+  contentType: string;
+  sizeBytes: number;
+  contentId: string | null;
+}
+
+export interface AdminThreadMessage {
+  id: string;
+  threadId: string;
+  direction: AdminMessageDirection;
+  rfc822MessageId: string;
+  inReplyTo: string | null;
+  referencesChain: string | null;
+  fromEmail: string;
+  toEmail: string;
+  subject: string;
+  snippet: string;
+  hasHtml: boolean;
+  hasText: boolean;
+  attachmentCount: number;
+  rawR2Key: string;
+  authorAdminUserId: string | null;
+  createdAt: Date;
+  attachments: AdminThreadAttachment[];
+}
+
+export interface AdminThreadDetail {
+  thread: AdminThreadSummary;
+  messages: AdminThreadMessage[];
 }
 
 // Hooks
@@ -740,5 +800,125 @@ export const useAdminWorkflowStructure = (
     workflowStructureError: error || null,
     isWorkflowStructureLoading: isLoading,
     mutateWorkflowStructure: mutate,
+  };
+};
+
+/**
+ * Hook to fetch admin support inbox threads (paginated)
+ */
+export const useAdminSupportThreads = (
+  page = 1,
+  limit = 20,
+  status?: AdminThreadStatus,
+  search?: string
+) => {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString(),
+    ...(status && { status }),
+    ...(search && { search }),
+  });
+  const key = `${ADMIN_API_ENDPOINT}/support/threads?${params}`;
+  const { data, error, isLoading, mutate } = useSWR<{
+    threads: AdminThreadSummary[];
+    pagination: PaginationInfo;
+  }>(key, async () =>
+    makeRequest<{ threads: AdminThreadSummary[]; pagination: PaginationInfo }>(
+      key
+    )
+  );
+  return {
+    threads: data?.threads || [],
+    pagination: data?.pagination || null,
+    threadsError: error || null,
+    isThreadsLoading: isLoading,
+    mutateThreads: mutate,
+  };
+};
+
+/**
+ * Hook to fetch a single thread + its messages.
+ */
+export const useAdminSupportThread = (threadId: string | undefined) => {
+  const key = threadId
+    ? `${ADMIN_API_ENDPOINT}/support/threads/${threadId}`
+    : null;
+  const { data, error, isLoading, mutate } = useSWR<AdminThreadDetail>(
+    key,
+    key ? async () => makeRequest<AdminThreadDetail>(key) : null
+  );
+  return {
+    thread: data?.thread || null,
+    messages: data?.messages || [],
+    threadError: error || null,
+    isThreadLoading: isLoading,
+    mutateThread: mutate,
+  };
+};
+
+/**
+ * Send a reply on a thread. Server picks `In-Reply-To` from the last inbound
+ * message; we just pass the body.
+ */
+export const sendAdminSupportReply = async (
+  threadId: string,
+  body: { subject?: string; text?: string; html?: string }
+): Promise<{ messageId: string }> => {
+  return makeRequest<{ messageId: string }>(
+    `${ADMIN_API_ENDPOINT}/support/threads/${threadId}/reply`,
+    { method: "POST", body: JSON.stringify(body) }
+  );
+};
+
+/**
+ * Patch a thread's status (open / pending / closed).
+ */
+export const updateAdminSupportThreadStatus = async (
+  threadId: string,
+  status: AdminThreadStatus
+): Promise<{ thread: AdminThreadSummary }> => {
+  return makeRequest<{ thread: AdminThreadSummary }>(
+    `${ADMIN_API_ENDPOINT}/support/threads/${threadId}`,
+    { method: "PATCH", body: JSON.stringify({ status }) }
+  );
+};
+
+/**
+ * Fetch a message body part (text or html) as a string. The endpoint streams
+ * from R2; we read it as text since both parts are utf-8 encoded.
+ */
+export const fetchAdminSupportMessageBody = async (
+  messageId: string,
+  part: "text" | "html"
+): Promise<string> => {
+  const url = `${getApiBaseUrl()}${ADMIN_API_ENDPOINT}/support/messages/${messageId}/body?part=${part}`;
+  const res = await fetch(url, { credentials: "include" });
+  if (!res.ok) {
+    throw new Error(`Failed to fetch body (${res.status})`);
+  }
+  return res.text();
+};
+
+/**
+ * Absolute URL for downloading an attachment. The endpoint sets a download
+ * Content-Disposition; pass it as `href` on an anchor.
+ */
+export const adminSupportAttachmentUrl = (attachmentId: string): string =>
+  `${getApiBaseUrl()}${ADMIN_API_ENDPOINT}/support/attachments/${attachmentId}`;
+
+/**
+ * Hook for the number of unread support threads for the current admin.
+ * Polls every 30s so the sidebar badge updates without manual refresh.
+ */
+export const useAdminSupportUnreadCount = () => {
+  const key = `${ADMIN_API_ENDPOINT}/support/unread-count`;
+  const { data, mutate } = useSWR<{ count: number }>(
+    key,
+    async () => makeRequest<{ count: number }>(key),
+    { refreshInterval: 30_000 }
+  );
+  return {
+    unreadCount: data?.count ?? 0,
+    mutateUnreadCount: mutate,
   };
 };

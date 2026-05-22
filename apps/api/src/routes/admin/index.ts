@@ -12,6 +12,7 @@ import adminOnboardingRoutes from "./onboarding";
 import adminOrganizationsRoutes from "./organizations";
 import adminQueuesRoutes from "./queues";
 import adminStatsRoutes from "./stats";
+import adminSupportRoutes from "./support";
 import adminUsersRoutes from "./users";
 import adminWorkflowsRoutes from "./workflows";
 
@@ -32,6 +33,7 @@ adminRoutes.route("/workflows", adminWorkflowsRoutes);
 adminRoutes.route("/executions", adminExecutionsRoutes);
 adminRoutes.route("/objects", adminObjectsRoutes);
 adminRoutes.route("/emails", adminEmailsRoutes);
+adminRoutes.route("/support", adminSupportRoutes);
 adminRoutes.route("/queues", adminQueuesRoutes);
 adminRoutes.route("/datasets", adminDatasetsRoutes);
 adminRoutes.route("/databases", adminDatabasesRoutes);

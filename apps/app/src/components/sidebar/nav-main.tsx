@@ -20,6 +20,8 @@ interface NavMainItem {
   icon?: LucideIcon;
   isActive?: boolean;
   end?: boolean;
+  /** When > 0, renders a small pill at the right of the nav row. */
+  badgeCount?: number;
 }
 
 interface NavMainGroup {
@@ -64,6 +66,11 @@ function NavMainItem({ item }: { item: NavMainItem }) {
           <span className="text-sm text-neutral-600 dark:text-neutral-400 group-data-[collapsible=icon]:hidden">
             {item.title}
           </span>
+          {item.badgeCount && item.badgeCount > 0 ? (
+            <span className="ml-auto rounded-full bg-blue-600 text-white text-[10px] leading-none px-1.5 py-0.5 group-data-[collapsible=icon]:hidden">
+              {item.badgeCount > 99 ? "99+" : item.badgeCount}
+            </span>
+          ) : null}
         </NavLink>
       </SidebarMenuButton>
     </SidebarMenuItem>

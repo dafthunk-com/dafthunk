@@ -9,6 +9,7 @@ import {
 import { getAgentByName } from "./durable-objects/agent-utils";
 import { createWorkerRuntime } from "./runtime/cloudflare-worker-runtime";
 import { WorkflowStore } from "./stores/workflow-store";
+import { handleSupportEmail } from "./support-email";
 
 async function streamToString(
   stream: ReadableStream<Uint8Array>
@@ -39,7 +40,7 @@ function headersToRecord(headers: Headers): Record<string, string> {
 export async function handleIncomingEmail(
   message: ForwardableEmailMessage,
   env: Bindings,
-  _ctx: ExecutionContext
+  ctx: ExecutionContext
 ): Promise<void> {
   const { from, to, headers, raw } = message;
 
@@ -51,6 +52,14 @@ export async function handleIncomingEmail(
   if (!handle) {
     console.error(`Invalid email format: ${to}. Expected <handle>@domain.com`);
     return;
+  }
+
+  // Reserved global address (e.g. support@) routes to the admin inbox path
+  // instead of the per-org workflow-trigger lookup. Configured via
+  // SUPPORT_EMAIL_HANDLE so we can move it without code changes.
+  const supportHandle = env.SUPPORT_EMAIL_HANDLE?.toLowerCase();
+  if (supportHandle && handle === supportHandle) {
+    return handleSupportEmail(message, env, ctx);
   }
 
   console.log(`Processing email trigger for handle: ${handle}`);

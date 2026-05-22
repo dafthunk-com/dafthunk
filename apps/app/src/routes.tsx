@@ -22,6 +22,7 @@ import { AdminExecutionsPage } from "./pages/admin/admin-executions-page";
 import { AdminOrganizationDetailPage } from "./pages/admin/admin-organization-detail-page";
 import { AdminOrganizationsPage } from "./pages/admin/admin-organizations-page";
 import { AdminQueuesPage } from "./pages/admin/admin-queues-page";
+import { AdminSupportPage } from "./pages/admin/admin-support-page";
 import { AdminUserDetailPage } from "./pages/admin/admin-user-detail-page";
 import { AdminUsersPage } from "./pages/admin/admin-users-page";
 import { AdminWorkflowDetailPage } from "./pages/admin/admin-workflow-detail-page";
@@ -258,6 +259,17 @@ export const routes: AppRouteObject[] = [
       </AdminLayout>
     ),
     handle: { head: <HeadSeo title="Emails - Admin - Dafthunk" /> },
+  },
+  {
+    path: "/admin/support",
+    element: (
+      <AdminLayout>
+        <AdminProtectedRoute>
+          <AdminSupportPage />
+        </AdminProtectedRoute>
+      </AdminLayout>
+    ),
+    handle: { head: <HeadSeo title="Support - Admin - Dafthunk" /> },
   },
   {
     path: "/admin/queues",

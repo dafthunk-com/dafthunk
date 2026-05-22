@@ -59,6 +59,8 @@ export interface Bindings {
   TWILIO_PHONE_NUMBER?: string;
   SEND_EMAIL?: SendEmail;
   SEND_EMAIL_FROM?: string;
+  SUPPORT_EMAIL_HANDLE?: string;
+  SUPPORT_EMAIL_FROM?: string;
   HUGGINGFACE_API_KEY?: string;
   REPLICATE_API_TOKEN?: string;
   GOOGLE_API_KEY?: string;

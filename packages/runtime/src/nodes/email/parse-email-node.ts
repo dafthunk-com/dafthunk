@@ -1,24 +1,43 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { type ParsedMail, simpleParser } from "mailparser";
+import PostalMime, { type Address, type Header } from "postal-mime";
 
-// Helper to ensure addresses are in the expected format
-const formatAddresses = (addresses: any) => {
+type Priority = "high" | "normal" | "low";
+
+const formatAddresses = (addresses: Address | Address[] | undefined) => {
   if (!addresses) return [];
-  if (Array.isArray(addresses)) {
-    return addresses.map((addr) => ({
-      address: addr.address || "",
-      name: addr.name || "",
-    }));
+  const arr = Array.isArray(addresses) ? addresses : [addresses];
+  return arr.map((a) => ({
+    address: a.address || "",
+    name: a.name || "",
+  }));
+};
+
+// postal-mime does not surface a priority field directly. Derive it from the
+// standard header set (Importance, X-Priority, Priority) so the node's output
+// shape stays drop-in compatible with the previous mailparser-based version.
+const getPriority = (headers: Header[] | undefined): Priority => {
+  if (!headers) return "normal";
+  const lookup = (name: string) =>
+    headers.find((h) => h.key.toLowerCase() === name.toLowerCase())?.value;
+
+  const importance = lookup("Importance")?.toLowerCase();
+  if (importance === "high" || importance === "low") return importance;
+
+  const xPriority = lookup("X-Priority");
+  if (xPriority) {
+    const n = Number.parseInt(xPriority, 10);
+    if (!Number.isNaN(n)) {
+      if (n <= 2) return "high";
+      if (n >= 4) return "low";
+    }
   }
-  // Handle single address object
-  if (addresses.value && Array.isArray(addresses.value)) {
-    return addresses.value.map((addr: any) => ({
-      address: addr.address || "",
-      name: addr.name || "",
-    }));
-  }
-  return [];
+
+  const priority = lookup("Priority")?.toLowerCase();
+  if (priority === "urgent") return "high";
+  if (priority === "non-urgent") return "low";
+
+  return "normal";
 };
 
 export class ParseEmailNode extends ExecutableNode {
@@ -104,13 +123,13 @@ export class ParseEmailNode extends ExecutableNode {
       },
       {
         name: "references",
-        type: "json", // Array of strings
+        type: "json",
         description: "Message IDs in the thread.",
         hidden: true,
       },
       {
         name: "priority",
-        type: "string", // 'high', 'normal', 'low'
+        type: "string",
         description: "The priority of the email.",
         hidden: true,
       },
@@ -127,26 +146,32 @@ export class ParseEmailNode extends ExecutableNode {
         );
       }
 
-      const parsedEmail: ParsedMail = await simpleParser(rawEmail);
+      const parsed = await new PostalMime().parse(rawEmail);
+
+      const references = parsed.references
+        ? parsed.references.split(/\s+/).filter(Boolean)
+        : [];
+
+      let dateIso = "";
+      if (parsed.date) {
+        const d = new Date(parsed.date);
+        if (!Number.isNaN(d.getTime())) dateIso = d.toISOString();
+      }
 
       const output = {
-        subject: parsedEmail.subject || "",
-        text: parsedEmail.text || "",
-        html: parsedEmail.html || "",
-        from: formatAddresses(parsedEmail.from),
-        to: formatAddresses(parsedEmail.to),
-        cc: formatAddresses(parsedEmail.cc),
-        bcc: formatAddresses(parsedEmail.bcc),
-        replyTo: formatAddresses(parsedEmail.replyTo),
-        date: parsedEmail.date ? parsedEmail.date.toISOString() : "",
-        messageId: parsedEmail.messageId || "",
-        inReplyTo: parsedEmail.inReplyTo || "",
-        references: parsedEmail.references
-          ? Array.isArray(parsedEmail.references)
-            ? parsedEmail.references
-            : [parsedEmail.references]
-          : [],
-        priority: parsedEmail.priority || "normal",
+        subject: parsed.subject || "",
+        text: parsed.text || "",
+        html: parsed.html || "",
+        from: formatAddresses(parsed.from),
+        to: formatAddresses(parsed.to),
+        cc: formatAddresses(parsed.cc),
+        bcc: formatAddresses(parsed.bcc),
+        replyTo: formatAddresses(parsed.replyTo),
+        date: dateIso,
+        messageId: parsed.messageId || "",
+        inReplyTo: parsed.inReplyTo || "",
+        references,
+        priority: getPriority(parsed.headers),
       };
 
       return this.createSuccessResult(output);

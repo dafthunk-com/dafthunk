@@ -1,6 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { type ParsedMail, simpleParser } from "mailparser";
+import PostalMime from "postal-mime";
 
 export class ExtractEmailAttachmentsNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -43,12 +43,12 @@ export class ExtractEmailAttachmentsNode extends ExecutableNode {
         );
       }
 
-      const parsedEmail: ParsedMail = await simpleParser(rawEmail);
+      const parsed = await new PostalMime().parse(rawEmail);
 
-      const attachments = (parsedEmail.attachments || []).map((attachment) => ({
-        data: new Uint8Array(attachment.content),
-        mimeType: attachment.contentType || "application/octet-stream",
-        filename: attachment.filename || "",
+      const attachments = (parsed.attachments || []).map((att) => ({
+        data: toUint8Array(att.content),
+        mimeType: att.mimeType || "application/octet-stream",
+        filename: att.filename || "",
       }));
 
       return this.createSuccessResult({ attachments });
@@ -59,4 +59,12 @@ export class ExtractEmailAttachmentsNode extends ExecutableNode {
       );
     }
   }
+}
+
+function toUint8Array(
+  content: ArrayBuffer | Uint8Array | string
+): Uint8Array {
+  if (content instanceof Uint8Array) return content;
+  if (content instanceof ArrayBuffer) return new Uint8Array(content);
+  return new TextEncoder().encode(content);
 }

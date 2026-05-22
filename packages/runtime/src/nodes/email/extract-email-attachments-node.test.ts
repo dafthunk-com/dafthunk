@@ -3,8 +3,12 @@ import type { Node } from "@dafthunk/types";
 import { describe, expect, it, vi } from "vitest";
 import { ExtractEmailAttachmentsNode } from "./extract-email-attachments-node";
 
-vi.mock("mailparser", () => ({
-  simpleParser: vi.fn(),
+const { mockParse } = vi.hoisted(() => ({ mockParse: vi.fn() }));
+
+vi.mock("postal-mime", () => ({
+  default: class PostalMimeStub {
+    parse = mockParse;
+  },
 }));
 
 describe("ExtractEmailAttachmentsNode", () => {
@@ -18,38 +22,25 @@ describe("ExtractEmailAttachmentsNode", () => {
       env: {},
     }) as unknown as NodeContext;
 
+  const toArrayBuffer = (s: string): ArrayBuffer =>
+    new TextEncoder().encode(s).buffer as ArrayBuffer;
+
   it("should extract single attachment from email", async () => {
     const node = new ExtractEmailAttachmentsNode({
       nodeId: "extract-email-attachments",
     } as unknown as Node);
 
-    const mailparser = await import("mailparser");
-    const pdfContent = Buffer.from("Hello PDF content");
-    vi.mocked(mailparser.simpleParser).mockResolvedValueOnce({
-      subject: "Email with Attachment",
-      text: "Email body with attachment.",
-      html: "",
-      from: { value: [{ address: "sender@example.com", name: "" }] },
-      to: { value: [{ address: "recipient@example.com", name: "" }] },
-      cc: null,
-      bcc: null,
-      replyTo: null,
-      date: new Date("2024-01-01T00:00:00.000Z"),
-      messageId: "",
-      inReplyTo: null,
-      references: [],
-      priority: "normal",
+    const pdfContent = toArrayBuffer("Hello PDF content");
+    mockParse.mockResolvedValueOnce({
+      headers: [],
       attachments: [
         {
           filename: "document.pdf",
-          contentType: "application/pdf",
-          contentDisposition: "attachment",
-          contentId: "",
-          size: pdfContent.length,
+          mimeType: "application/pdf",
           content: pdfContent,
         },
       ],
-    } as any);
+    });
 
     const result = await node.execute(createContext({ raw: "mock raw email" }));
     expect(result.status).toBe("completed");
@@ -66,42 +57,21 @@ describe("ExtractEmailAttachmentsNode", () => {
       nodeId: "extract-email-attachments",
     } as unknown as Node);
 
-    const mailparser = await import("mailparser");
-    const pdfContent = Buffer.from("PDF content");
-    const imageContent = Buffer.from("Image content");
-    vi.mocked(mailparser.simpleParser).mockResolvedValueOnce({
-      subject: "Multiple Attachments",
-      text: "Email with multiple attachments.",
-      html: "",
-      from: { value: [{ address: "sender@example.com", name: "" }] },
-      to: { value: [{ address: "recipient@example.com", name: "" }] },
-      cc: null,
-      bcc: null,
-      replyTo: null,
-      date: new Date("2024-01-01T00:00:00.000Z"),
-      messageId: "",
-      inReplyTo: null,
-      references: [],
-      priority: "normal",
+    mockParse.mockResolvedValueOnce({
+      headers: [],
       attachments: [
         {
           filename: "report.pdf",
-          contentType: "application/pdf",
-          contentDisposition: "attachment",
-          contentId: "",
-          size: pdfContent.length,
-          content: pdfContent,
+          mimeType: "application/pdf",
+          content: toArrayBuffer("PDF content"),
         },
         {
           filename: "screenshot.png",
-          contentType: "image/png",
-          contentDisposition: "attachment",
-          contentId: "",
-          size: imageContent.length,
-          content: imageContent,
+          mimeType: "image/png",
+          content: toArrayBuffer("Image content"),
         },
       ],
-    } as any);
+    });
 
     const result = await node.execute(createContext({ raw: "mock raw email" }));
     expect(result.status).toBe("completed");
@@ -119,23 +89,10 @@ describe("ExtractEmailAttachmentsNode", () => {
       nodeId: "extract-email-attachments",
     } as unknown as Node);
 
-    const mailparser = await import("mailparser");
-    vi.mocked(mailparser.simpleParser).mockResolvedValueOnce({
-      subject: "No attachments",
-      text: "Email body.",
-      html: "",
-      from: { value: [{ address: "sender@example.com", name: "" }] },
-      to: { value: [{ address: "recipient@example.com", name: "" }] },
-      cc: null,
-      bcc: null,
-      replyTo: null,
-      date: new Date("2024-01-01T00:00:00.000Z"),
-      messageId: "",
-      inReplyTo: null,
-      references: [],
-      priority: "normal",
+    mockParse.mockResolvedValueOnce({
+      headers: [],
       attachments: [],
-    } as any);
+    });
 
     const result = await node.execute(createContext({ raw: "mock raw email" }));
     expect(result.status).toBe("completed");
@@ -147,33 +104,16 @@ describe("ExtractEmailAttachmentsNode", () => {
       nodeId: "extract-email-attachments",
     } as unknown as Node);
 
-    const mailparser = await import("mailparser");
-    const content = Buffer.from("Binary content");
-    vi.mocked(mailparser.simpleParser).mockResolvedValueOnce({
-      subject: "Attachment without filename",
-      text: "",
-      html: "",
-      from: { value: [{ address: "sender@example.com", name: "" }] },
-      to: { value: [{ address: "recipient@example.com", name: "" }] },
-      cc: null,
-      bcc: null,
-      replyTo: null,
-      date: new Date("2024-01-01T00:00:00.000Z"),
-      messageId: "",
-      inReplyTo: null,
-      references: [],
-      priority: "normal",
+    mockParse.mockResolvedValueOnce({
+      headers: [],
       attachments: [
         {
-          filename: undefined,
-          contentType: "application/octet-stream",
-          contentDisposition: "attachment",
-          contentId: "",
-          size: content.length,
-          content: content,
+          filename: null,
+          mimeType: "application/octet-stream",
+          content: toArrayBuffer("Binary content"),
         },
       ],
-    } as any);
+    });
 
     const result = await node.execute(createContext({ raw: "mock raw email" }));
     expect(result.status).toBe("completed");
@@ -189,33 +129,16 @@ describe("ExtractEmailAttachmentsNode", () => {
       nodeId: "extract-email-attachments",
     } as unknown as Node);
 
-    const mailparser = await import("mailparser");
-    const content = Buffer.from("Binary content");
-    vi.mocked(mailparser.simpleParser).mockResolvedValueOnce({
-      subject: "Attachment without content type",
-      text: "",
-      html: "",
-      from: { value: [{ address: "sender@example.com", name: "" }] },
-      to: { value: [{ address: "recipient@example.com", name: "" }] },
-      cc: null,
-      bcc: null,
-      replyTo: null,
-      date: new Date("2024-01-01T00:00:00.000Z"),
-      messageId: "",
-      inReplyTo: null,
-      references: [],
-      priority: "normal",
+    mockParse.mockResolvedValueOnce({
+      headers: [],
       attachments: [
         {
           filename: "unknown.bin",
-          contentType: undefined,
-          contentDisposition: "attachment",
-          contentId: "",
-          size: content.length,
-          content: content,
+          mimeType: "",
+          content: toArrayBuffer("Binary content"),
         },
       ],
-    } as any);
+    });
 
     const result = await node.execute(createContext({ raw: "mock raw email" }));
     expect(result.status).toBe("completed");

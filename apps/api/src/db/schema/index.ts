@@ -122,6 +122,25 @@ export const SubscriptionStatus = {
 export type SubscriptionStatusType =
   (typeof SubscriptionStatus)[keyof typeof SubscriptionStatus];
 
+// Inbox thread status
+export const ThreadStatus = {
+  OPEN: "open",
+  PENDING: "pending",
+  CLOSED: "closed",
+} as const;
+
+export type ThreadStatusType =
+  (typeof ThreadStatus)[keyof typeof ThreadStatus];
+
+// Inbox message direction
+export const MessageDirection = {
+  INBOUND: "inbound",
+  OUTBOUND: "outbound",
+} as const;
+
+export type MessageDirectionType =
+  (typeof MessageDirection)[keyof typeof MessageDirection];
+
 /**
  * REUSABLE COLUMNS
  */
@@ -531,6 +550,119 @@ export const emailTriggers = sqliteTable(
   ]
 );
 
+// Threads - Conversations in the admin inbox (e.g. support email). One row per
+// distinct conversation, threaded by RFC 5322 In-Reply-To / References, with
+// subject + fromEmail as a fallback. Only minimal metadata lives here; raw
+// MIME, parsed bodies, and attachments live in R2.
+export const threads = sqliteTable(
+  "threads",
+  {
+    id: text("id").primaryKey(),
+    subject: text("subject").notNull(),
+    fromEmail: text("from_email").notNull(),
+    fromName: text("from_name"),
+    userId: text("user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    organizationId: text("organization_id").references(() => organizations.id, {
+      onDelete: "set null",
+    }),
+    status: text("status")
+      .$type<ThreadStatusType>()
+      .notNull()
+      .default(ThreadStatus.OPEN),
+    lastMessageAt: integer("last_message_at", { mode: "timestamp" }).notNull(),
+    createdAt: createCreatedAt(),
+    updatedAt: createUpdatedAt(),
+  },
+  (table) => [
+    index("threads_status_idx").on(table.status),
+    index("threads_last_message_at_idx").on(table.lastMessageAt),
+    index("threads_from_email_idx").on(table.fromEmail),
+    index("threads_user_id_idx").on(table.userId),
+    index("threads_organization_id_idx").on(table.organizationId),
+    index("threads_created_at_idx").on(table.createdAt),
+  ]
+);
+
+// Messages - Individual emails within a thread. `id` is our internal UUID and
+// also the R2 key prefix; `rfc822MessageId` is the RFC 5322 Message-ID used for
+// threading lookups against incoming In-Reply-To / References headers.
+export const messages = sqliteTable(
+  "messages",
+  {
+    id: text("id").primaryKey(),
+    threadId: text("thread_id")
+      .notNull()
+      .references(() => threads.id, { onDelete: "cascade" }),
+    direction: text("direction").$type<MessageDirectionType>().notNull(),
+    rfc822MessageId: text("rfc822_message_id").notNull().unique(),
+    inReplyTo: text("in_reply_to"),
+    referencesChain: text("references_chain"),
+    fromEmail: text("from_email").notNull(),
+    toEmail: text("to_email").notNull(),
+    subject: text("subject").notNull(),
+    snippet: text("snippet").notNull().default(""),
+    hasHtml: integer("has_html", { mode: "boolean" }).notNull().default(false),
+    hasText: integer("has_text", { mode: "boolean" }).notNull().default(false),
+    attachmentCount: integer("attachment_count").notNull().default(0),
+    rawR2Key: text("raw_r2_key").notNull(),
+    authorAdminUserId: text("author_admin_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    createdAt: createCreatedAt(),
+  },
+  (table) => [
+    index("messages_thread_id_idx").on(table.threadId),
+    index("messages_rfc822_message_id_idx").on(table.rfc822MessageId),
+    index("messages_direction_idx").on(table.direction),
+    index("messages_created_at_idx").on(table.createdAt),
+  ]
+);
+
+// Thread reads - Per-admin read state. One row per (thread, admin user)
+// pair, tracking the last time that admin opened the thread. Used to surface
+// an unread count and badge in the admin UI.
+export const threadReads = sqliteTable(
+  "thread_reads",
+  {
+    threadId: text("thread_id")
+      .notNull()
+      .references(() => threads.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    lastReadAt: integer("last_read_at", { mode: "timestamp" }).notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.threadId, table.userId] }),
+    index("thread_reads_user_id_idx").on(table.userId),
+    index("thread_reads_thread_id_idx").on(table.threadId),
+  ]
+);
+
+// Attachments - File parts of a message, stored in R2 with metadata indexed
+// here. `contentId` enables inline references in HTML bodies.
+export const attachments = sqliteTable(
+  "attachments",
+  {
+    id: text("id").primaryKey(),
+    messageId: text("message_id")
+      .notNull()
+      .references(() => messages.id, { onDelete: "cascade" }),
+    filename: text("filename").notNull(),
+    contentType: text("content_type").notNull(),
+    sizeBytes: integer("size_bytes").notNull(),
+    r2Key: text("r2_key").notNull(),
+    contentId: text("content_id"),
+    createdAt: createCreatedAt(),
+  },
+  (table) => [
+    index("attachments_message_id_idx").on(table.messageId),
+    index("attachments_content_id_idx").on(table.contentId),
+  ]
+);
+
 // Endpoints - HTTP webhook/request endpoints associated with organizations
 export const endpoints = sqliteTable(
   "endpoints",
@@ -907,6 +1039,48 @@ export const emailTriggersRelations = relations(emailTriggers, ({ one }) => ({
   }),
 }));
 
+export const threadsRelations = relations(threads, ({ one, many }) => ({
+  user: one(users, {
+    fields: [threads.userId],
+    references: [users.id],
+  }),
+  organization: one(organizations, {
+    fields: [threads.organizationId],
+    references: [organizations.id],
+  }),
+  messages: many(messages),
+}));
+
+export const messagesRelations = relations(messages, ({ one, many }) => ({
+  thread: one(threads, {
+    fields: [messages.threadId],
+    references: [threads.id],
+  }),
+  authorAdminUser: one(users, {
+    fields: [messages.authorAdminUserId],
+    references: [users.id],
+  }),
+  attachments: many(attachments),
+}));
+
+export const threadReadsRelations = relations(threadReads, ({ one }) => ({
+  thread: one(threads, {
+    fields: [threadReads.threadId],
+    references: [threads.id],
+  }),
+  user: one(users, {
+    fields: [threadReads.userId],
+    references: [users.id],
+  }),
+}));
+
+export const attachmentsRelations = relations(attachments, ({ one }) => ({
+  message: one(messages, {
+    fields: [attachments.messageId],
+    references: [messages.id],
+  }),
+}));
+
 export const endpointsRelations = relations(endpoints, ({ one, many }) => ({
   organization: one(organizations, {
     fields: [endpoints.organizationId],
@@ -1053,3 +1227,15 @@ export type IntegrationInsert = typeof integrations.$inferInsert;
 
 export type InvitationRow = typeof invitations.$inferSelect;
 export type InvitationInsert = typeof invitations.$inferInsert;
+
+export type ThreadRow = typeof threads.$inferSelect;
+export type ThreadInsert = typeof threads.$inferInsert;
+
+export type MessageRow = typeof messages.$inferSelect;
+export type MessageInsert = typeof messages.$inferInsert;
+
+export type AttachmentRow = typeof attachments.$inferSelect;
+export type AttachmentInsert = typeof attachments.$inferInsert;
+
+export type ThreadReadRow = typeof threadReads.$inferSelect;
+export type ThreadReadInsert = typeof threadReads.$inferInsert;

@@ -12,3 +12,4 @@ export function createDatabase(d1: D1Database): Database {
 export * from "./onboarding";
 export * from "./queries";
 export * from "./schema";
+export * from "./support-queries";

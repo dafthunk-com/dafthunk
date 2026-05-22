@@ -32,7 +32,7 @@ This is the email body.`;
     expect(result.status).toBe("completed");
     expect(result.outputs).toBeDefined();
     expect(result.outputs?.subject).toBe("Test Email");
-    expect(result.outputs?.text).toBe("This is the email body.");
+    expect(result.outputs?.text).toBe("This is the email body.\n");
     expect(result.outputs?.html).toBe("");
     expect(result.outputs?.from).toBeDefined();
     expect(result.outputs?.to).toBeDefined();
@@ -69,7 +69,7 @@ Content-Type: text/html
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs?.html).toBe(
-      "<html><body><h1>Hello</h1><p>This is HTML content.</p></body></html>"
+      "<html><body><h1>Hello</h1><p>This is HTML content.</p></body></html>\n"
     );
   });
 
