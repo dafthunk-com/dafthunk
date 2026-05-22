@@ -170,10 +170,6 @@ export function AdminSupportPage() {
               ))}
             </SelectContent>
           </Select>
-          <Button size="sm" onClick={() => setComposeOpen(true)}>
-            <PenSquare className="h-4 w-4 mr-2" />
-            New thread
-          </Button>
         </div>
       </div>
 
@@ -193,6 +189,7 @@ export function AdminSupportPage() {
           isLoading={isThreadsLoading}
           selectedThreadId={selectedThreadId}
           onSelect={setSelectedThreadId}
+          onCompose={() => setComposeOpen(true)}
           pagination={pagination}
           page={page}
           onPageChange={setPage}
@@ -221,6 +218,7 @@ function ThreadList({
   isLoading,
   selectedThreadId,
   onSelect,
+  onCompose,
   pagination,
   page,
   onPageChange,
@@ -229,12 +227,19 @@ function ThreadList({
   isLoading: boolean;
   selectedThreadId: string | null;
   onSelect: (id: string) => void;
+  onCompose: () => void;
   pagination: { total: number; totalPages: number } | null;
   page: number;
   onPageChange: (page: number) => void;
 }) {
   return (
     <div className="border rounded-md bg-white dark:bg-neutral-900 flex flex-col overflow-hidden">
+      <div className="border-b p-2">
+        <Button size="sm" className="w-full" onClick={onCompose}>
+          <PenSquare className="h-4 w-4 mr-2" />
+          New thread
+        </Button>
+      </div>
       <div className="flex-1 overflow-y-auto">
         {isLoading && threads.length === 0 && (
           <div className="p-6 text-sm text-muted-foreground">Loading…</div>
