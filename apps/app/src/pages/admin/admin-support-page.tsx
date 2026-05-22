@@ -214,7 +214,7 @@ function ThreadList({
 }) {
   return (
     <div className="flex flex-col overflow-hidden lg:border-r">
-      <div className="p-2">
+      <div className="px-4 py-2">
         <Button className="w-full h-10" onClick={onCompose}>
           <PenSquare className="h-4 w-4 mr-2" />
           New thread
@@ -388,7 +388,7 @@ function ThreadDetail({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-5 py-4 border-b flex items-start justify-between gap-3">
+      <div className="px-4 py-2 border-b flex items-start justify-between gap-3">
         <div className="flex items-start gap-3 min-w-0">
           <SenderAvatar
             name={thread.fromName || thread.userName || thread.fromEmail}
@@ -419,7 +419,7 @@ function ThreadDetail({
           disabled={isUpdatingStatus}
           onValueChange={(v) => onStatusChange(v as AdminThreadStatus)}
         >
-          <SelectTrigger className="w-32 h-10 shrink-0">
+          <SelectTrigger className="w-36 h-10 shrink-0">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -436,7 +436,7 @@ function ThreadDetail({
         ))}
       </div>
 
-      <div className="border-t px-5 py-4 space-y-2">
+      <div className="border-t px-4 py-2 space-y-2">
         <Textarea
           placeholder="Write a reply…"
           value={replyText}
