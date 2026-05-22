@@ -1,3 +1,5 @@
+import Archive from "lucide-react/icons/archive";
+import ArchiveRestore from "lucide-react/icons/archive-restore";
 import Inbox from "lucide-react/icons/inbox";
 import Paperclip from "lucide-react/icons/paperclip";
 import PenSquare from "lucide-react/icons/pen-square";
@@ -36,14 +38,14 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   AdminMessageDirection,
   type AdminThreadMessage,
-  type AdminThreadStatus,
   type AdminThreadSummary,
+  type AdminThreadView,
   type AdminUser,
   adminSupportAttachmentUrl,
   createAdminSupportThread,
   fetchAdminSupportMessageBody,
   sendAdminSupportReply,
-  updateAdminSupportThreadStatus,
+  updateAdminSupportThreadArchived,
   useAdminSupportThread,
   useAdminSupportThreads,
   useAdminSupportUnreadCount,
@@ -52,11 +54,10 @@ import {
 import { formatDate } from "@/utils/date";
 import { cn } from "@/utils/utils";
 
-const STATUS_FILTERS: { value: AdminThreadStatus | "all"; label: string }[] = [
+const VIEW_FILTERS: { value: AdminThreadView; label: string }[] = [
+  { value: "inbox", label: "Inbox" },
+  { value: "archived", label: "Archived" },
   { value: "all", label: "All" },
-  { value: "open", label: "Open" },
-  { value: "pending", label: "Pending" },
-  { value: "closed", label: "Closed" },
 ];
 
 export function AdminSupportPage() {
@@ -67,20 +68,13 @@ export function AdminSupportPage() {
   }, [setBreadcrumbs]);
 
   const [page, setPage] = useState(1);
-  const [statusFilter, setStatusFilter] = useState<AdminThreadStatus | "all">(
-    "all"
-  );
+  const [view, setView] = useState<AdminThreadView>("inbox");
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const limit = 30;
 
   const { threads, pagination, threadsError, isThreadsLoading, mutateThreads } =
-    useAdminSupportThreads(
-      page,
-      limit,
-      statusFilter === "all" ? undefined : statusFilter,
-      search || undefined
-    );
+    useAdminSupportThreads(page, limit, view, search || undefined);
   const { mutateUnreadCount } = useAdminSupportUnreadCount();
 
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
@@ -134,9 +128,9 @@ export function AdminSupportPage() {
         </form>
 
         <Select
-          value={statusFilter}
+          value={view}
           onValueChange={(v) => {
-            setStatusFilter(v as AdminThreadStatus | "all");
+            setView(v as AdminThreadView);
             setPage(1);
           }}
         >
@@ -144,7 +138,7 @@ export function AdminSupportPage() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {STATUS_FILTERS.map((f) => (
+            {VIEW_FILTERS.map((f) => (
               <SelectItem key={f.value} value={f.value}>
                 {f.label}
               </SelectItem>
@@ -214,7 +208,7 @@ function ThreadList({
 }) {
   return (
     <div className="flex flex-col overflow-hidden lg:border-r">
-      <div className="px-4 py-2">
+      <div className="px-4 py-2 border-b">
         <Button className="w-full h-10" onClick={onCompose}>
           <PenSquare className="h-4 w-4 mr-2" />
           New thread
@@ -336,7 +330,7 @@ function ThreadDetail({
 
   const [replyText, setReplyText] = useState("");
   const [isSending, setIsSending] = useState(false);
-  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [isUpdatingArchived, setIsUpdatingArchived] = useState(false);
 
   // Reset the composer when switching threads.
   useEffect(() => {
@@ -373,30 +367,33 @@ function ThreadDetail({
     }
   };
 
-  const onStatusChange = async (status: AdminThreadStatus) => {
-    setIsUpdatingStatus(true);
+  const isArchived = thread.archivedAt !== null;
+  const onToggleArchived = async () => {
+    setIsUpdatingArchived(true);
     try {
-      await updateAdminSupportThreadStatus(threadId, status);
+      await updateAdminSupportThreadArchived(threadId, !isArchived);
       await mutateThread();
       onMutated();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to update status");
+      toast.error(
+        e instanceof Error ? e.message : "Failed to update archive state"
+      );
     } finally {
-      setIsUpdatingStatus(false);
+      setIsUpdatingArchived(false);
     }
   };
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-4 py-2 border-b flex items-start justify-between gap-3">
-        <div className="flex items-start gap-3 min-w-0">
+      <div className="px-4 py-2 border-b flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
           <SenderAvatar
             name={thread.fromName || thread.userName || thread.fromEmail}
             avatarUrl={thread.userAvatarUrl}
             linked={Boolean(thread.userId)}
             className="h-10 w-10 shrink-0"
           />
-          <div className="min-w-0">
+          <div className="min-w-0 h-10 flex flex-col justify-center leading-tight">
             <h2 className="font-semibold truncate">{thread.subject}</h2>
             <p className="text-sm text-muted-foreground truncate">
               <span className="font-mono">{thread.fromEmail}</span>
@@ -414,20 +411,24 @@ function ThreadDetail({
             </p>
           </div>
         </div>
-        <Select
-          value={thread.status}
-          disabled={isUpdatingStatus}
-          onValueChange={(v) => onStatusChange(v as AdminThreadStatus)}
+        <Button
+          variant="outline"
+          className="h-10 w-36 shrink-0"
+          onClick={onToggleArchived}
+          disabled={isUpdatingArchived}
         >
-          <SelectTrigger className="w-36 h-10 shrink-0">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="open">Open</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="closed">Closed</SelectItem>
-          </SelectContent>
-        </Select>
+          {isArchived ? (
+            <>
+              <ArchiveRestore className="h-4 w-4 mr-2" />
+              Unarchive
+            </>
+          ) : (
+            <>
+              <Archive className="h-4 w-4 mr-2" />
+              Archive
+            </>
+          )}
+        </Button>
       </div>
 
       <div className="flex-1 overflow-y-auto px-5 py-4 space-y-6">

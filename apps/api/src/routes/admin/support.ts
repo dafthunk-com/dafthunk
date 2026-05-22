@@ -1,5 +1,16 @@
 import { zValidator } from "@hono/zod-validator";
-import { and, asc, desc, eq, inArray, isNull, lt, or, sql } from "drizzle-orm";
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  inArray,
+  isNotNull,
+  isNull,
+  lt,
+  or,
+  sql,
+} from "drizzle-orm";
 import { Hono } from "hono";
 import { z } from "zod";
 
@@ -13,8 +24,6 @@ import {
   messages,
   organizations,
   selectLastInboundMessage,
-  ThreadStatus,
-  type ThreadStatusType,
   threadReads,
   threads,
   users,
@@ -24,18 +33,12 @@ import { inboxKeys, SUPPORT_INBOX_ALIAS } from "../../support-storage";
 
 const adminSupportRoutes = new Hono<ApiContext>();
 
-const statusEnum = z.enum([
-  ThreadStatus.OPEN,
-  ThreadStatus.PENDING,
-  ThreadStatus.CLOSED,
-]);
-
 const threadSummaryColumns = {
   id: threads.id,
   subject: threads.subject,
   fromEmail: threads.fromEmail,
   fromName: threads.fromName,
-  status: threads.status,
+  archivedAt: threads.archivedAt,
   lastMessageAt: threads.lastMessageAt,
   createdAt: threads.createdAt,
   updatedAt: threads.updatedAt,
@@ -54,17 +57,21 @@ adminSupportRoutes.get(
     z.object({
       page: z.coerce.number().min(1).default(1),
       limit: z.coerce.number().min(1).max(100).default(20),
-      status: statusEnum.optional(),
+      // "inbox" (default) hides archived; "archived" shows only archived;
+      // "all" shows both. Kept as a string union so the URL stays readable.
+      view: z.enum(["inbox", "archived", "all"]).default("inbox"),
       search: z.string().optional(),
     })
   ),
   async (c) => {
     const db = createDatabase(c.env.DB);
-    const { page, limit, status, search } = c.req.valid("query");
+    const { page, limit, view, search } = c.req.valid("query");
     const offset = (page - 1) * limit;
 
     const conditions = [];
-    if (status) conditions.push(eq(threads.status, status));
+    if (view === "inbox") conditions.push(isNull(threads.archivedAt));
+    else if (view === "archived")
+      conditions.push(isNotNull(threads.archivedAt));
     if (search) {
       const like_ = `%${search}%`;
       conditions.push(
@@ -135,9 +142,12 @@ adminSupportRoutes.get("/unread-count", async (c) => {
       )
     )
     .where(
-      or(
-        isNull(threadReads.lastReadAt),
-        lt(threadReads.lastReadAt, threads.lastMessageAt)
+      and(
+        isNull(threads.archivedAt),
+        or(
+          isNull(threadReads.lastReadAt),
+          lt(threadReads.lastReadAt, threads.lastMessageAt)
+        )
       )
     );
 
@@ -351,7 +361,6 @@ adminSupportRoutes.post(
       fromName: null,
       userId: linkedUser?.id ?? null,
       organizationId: linkedUser?.organizationId ?? null,
-      status: ThreadStatus.OPEN,
       lastMessageAt: now,
     });
 
@@ -440,18 +449,21 @@ adminSupportRoutes.post(
   }
 );
 
-/** PATCH /admin/support/threads/:id — close / reopen. */
+/** PATCH /admin/support/threads/:id — archive / unarchive. */
 adminSupportRoutes.patch(
   "/threads/:id",
-  zValidator("json", z.object({ status: statusEnum })),
+  zValidator("json", z.object({ archived: z.boolean() })),
   async (c) => {
     const db = createDatabase(c.env.DB);
     const id = c.req.param("id");
-    const { status } = c.req.valid("json");
+    const { archived } = c.req.valid("json");
 
     const result = await db
       .update(threads)
-      .set({ status: status as ThreadStatusType, updatedAt: new Date() })
+      .set({
+        archivedAt: archived ? new Date() : null,
+        updatedAt: new Date(),
+      })
       .where(eq(threads.id, id))
       .returning();
 

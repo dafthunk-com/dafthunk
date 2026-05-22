@@ -257,14 +257,14 @@ export const AdminMessageDirection = {
 export type AdminMessageDirection =
   (typeof AdminMessageDirection)[keyof typeof AdminMessageDirection];
 
-export type AdminThreadStatus = "open" | "pending" | "closed";
+export type AdminThreadView = "inbox" | "archived" | "all";
 
 export interface AdminThreadSummary {
   id: string;
   subject: string;
   fromEmail: string;
   fromName: string | null;
-  status: AdminThreadStatus;
+  archivedAt: Date | null;
   lastMessageAt: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -810,13 +810,13 @@ export const useAdminWorkflowStructure = (
 export const useAdminSupportThreads = (
   page = 1,
   limit = 20,
-  status?: AdminThreadStatus,
+  view: AdminThreadView = "inbox",
   search?: string
 ) => {
   const params = new URLSearchParams({
     page: page.toString(),
     limit: limit.toString(),
-    ...(status && { status }),
+    view,
     ...(search && { search }),
   });
   const key = `${ADMIN_API_ENDPOINT}/support/threads?${params}`;
@@ -888,15 +888,17 @@ export const createAdminSupportThread = async (body: {
 };
 
 /**
- * Patch a thread's status (open / pending / closed).
+ * Archive or unarchive a thread. Archived threads disappear from the inbox
+ * view; a new inbound message clears `archivedAt` server-side so a reply
+ * brings the thread back automatically.
  */
-export const updateAdminSupportThreadStatus = async (
+export const updateAdminSupportThreadArchived = async (
   threadId: string,
-  status: AdminThreadStatus
+  archived: boolean
 ): Promise<{ thread: AdminThreadSummary }> => {
   return makeRequest<{ thread: AdminThreadSummary }>(
     `${ADMIN_API_ENDPOINT}/support/threads/${threadId}`,
-    { method: "PATCH", body: JSON.stringify({ status }) }
+    { method: "PATCH", body: JSON.stringify({ archived }) }
   );
 };
 

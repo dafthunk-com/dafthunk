@@ -13,7 +13,6 @@ import {
   insertMessage,
   MessageDirection,
   resolveThreadForInbound,
-  ThreadStatus,
   threads,
   touchThreadOnInbound,
 } from "./db";
@@ -254,7 +253,6 @@ export async function handleSupportEmail(
         fromName: fromName ?? null,
         userId: linkedUser?.id ?? null,
         organizationId: linkedUser?.organizationId ?? null,
-        status: ThreadStatus.OPEN,
         lastMessageAt: now,
       });
       threadId = thread.id;

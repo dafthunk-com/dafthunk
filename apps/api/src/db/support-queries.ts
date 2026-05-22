@@ -12,7 +12,6 @@ import {
   messages,
   type ThreadInsert,
   type ThreadRow,
-  ThreadStatus,
   threads,
   users,
 } from "./index";
@@ -190,9 +189,8 @@ export async function insertAttachments(
 }
 
 /**
- * Reopen and bump `lastMessageAt` on a thread that just received a new
- * inbound message. Closed threads are reopened (user replied to a resolved
- * conversation); pending threads also flip back to open.
+ * Bump `lastMessageAt` on a thread that just received a new inbound message
+ * and clear `archivedAt` so archived threads return to the inbox on reply.
  */
 export async function touchThreadOnInbound(
   db: Database,
@@ -203,7 +201,7 @@ export async function touchThreadOnInbound(
     .update(threads)
     .set({
       lastMessageAt,
-      status: ThreadStatus.OPEN,
+      archivedAt: null,
       updatedAt: new Date(),
     })
     .where(eq(threads.id, threadId));

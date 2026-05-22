@@ -122,15 +122,6 @@ export const SubscriptionStatus = {
 export type SubscriptionStatusType =
   (typeof SubscriptionStatus)[keyof typeof SubscriptionStatus];
 
-// Inbox thread status
-export const ThreadStatus = {
-  OPEN: "open",
-  PENDING: "pending",
-  CLOSED: "closed",
-} as const;
-
-export type ThreadStatusType = (typeof ThreadStatus)[keyof typeof ThreadStatus];
-
 // Inbox message direction
 export const MessageDirection = {
   INBOUND: "inbound",
@@ -585,17 +576,14 @@ export const threads = sqliteTable(
     organizationId: text("organization_id").references(() => organizations.id, {
       onDelete: "set null",
     }),
-    status: text("status")
-      .$type<ThreadStatusType>()
-      .notNull()
-      .default(ThreadStatus.OPEN),
+    archivedAt: integer("archived_at", { mode: "timestamp" }),
     lastMessageAt: integer("last_message_at", { mode: "timestamp" }).notNull(),
     createdAt: createCreatedAt(),
     updatedAt: createUpdatedAt(),
   },
   (table) => [
     index("threads_inbox_id_idx").on(table.inboxId),
-    index("threads_status_idx").on(table.status),
+    index("threads_archived_at_idx").on(table.archivedAt),
     index("threads_last_message_at_idx").on(table.lastMessageAt),
     index("threads_from_email_idx").on(table.fromEmail),
     index("threads_user_id_idx").on(table.userId),
