@@ -10,7 +10,6 @@ import { InsetError } from "@/components/inset-error";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { useBreadcrumbsSetter } from "@/components/page-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -60,24 +59,6 @@ const STATUS_FILTERS: { value: AdminThreadStatus | "all"; label: string }[] = [
   { value: "pending", label: "Pending" },
   { value: "closed", label: "Closed" },
 ];
-
-const STATUS_BADGE: Record<
-  AdminThreadStatus,
-  { label: string; className: string }
-> = {
-  open: {
-    label: "Open",
-    className: "bg-emerald-100 text-emerald-700 hover:bg-emerald-100",
-  },
-  pending: {
-    label: "Pending",
-    className: "bg-amber-100 text-amber-700 hover:bg-amber-100",
-  },
-  closed: {
-    label: "Closed",
-    className: "bg-neutral-200 text-neutral-700 hover:bg-neutral-200",
-  },
-};
 
 export function AdminSupportPage() {
   const setBreadcrumbs = useBreadcrumbsSetter();
@@ -150,27 +131,24 @@ export function AdminSupportPage() {
           )}
         </form>
 
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">Status</span>
-          <Select
-            value={statusFilter}
-            onValueChange={(v) => {
-              setStatusFilter(v as AdminThreadStatus | "all");
-              setPage(1);
-            }}
-          >
-            <SelectTrigger className="w-36">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {STATUS_FILTERS.map((f) => (
-                <SelectItem key={f.value} value={f.value}>
-                  {f.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <Select
+          value={statusFilter}
+          onValueChange={(v) => {
+            setStatusFilter(v as AdminThreadStatus | "all");
+            setPage(1);
+          }}
+        >
+          <SelectTrigger className="w-36">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {STATUS_FILTERS.map((f) => (
+              <SelectItem key={f.value} value={f.value}>
+                {f.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <ComposeThreadDialog
@@ -183,7 +161,7 @@ export function AdminSupportPage() {
         }}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-4 h-[calc(100vh-220px)] min-h-[500px]">
+      <div className="grid grid-cols-1 lg:grid-cols-[360px_1fr] h-[calc(100vh-220px)] min-h-[500px]">
         <ThreadList
           threads={threads}
           isLoading={isThreadsLoading}
@@ -195,7 +173,7 @@ export function AdminSupportPage() {
           onPageChange={setPage}
         />
 
-        <div className="border rounded-md bg-white dark:bg-neutral-900 overflow-hidden">
+        <div className="overflow-hidden">
           {selectedThreadId ? (
             <ThreadDetail
               threadId={selectedThreadId}
@@ -233,8 +211,8 @@ function ThreadList({
   onPageChange: (page: number) => void;
 }) {
   return (
-    <div className="border rounded-md bg-white dark:bg-neutral-900 flex flex-col overflow-hidden">
-      <div className="border-b p-2">
+    <div className="flex flex-col overflow-hidden lg:border-r">
+      <div className="p-2">
         <Button size="sm" className="w-full" onClick={onCompose}>
           <PenSquare className="h-4 w-4 mr-2" />
           New thread
@@ -258,8 +236,9 @@ function ThreadList({
                   type="button"
                   onClick={() => onSelect(t.id)}
                   className={cn(
-                    "w-full text-left px-4 py-3 border-b last:border-b-0 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors",
-                    isSelected && "bg-neutral-100 dark:bg-neutral-800"
+                    "w-full text-left px-4 py-3 border-l-2 border-l-transparent hover:bg-neutral-100/70 dark:hover:bg-neutral-800/50 transition-colors",
+                    isSelected &&
+                      "bg-neutral-100 dark:bg-neutral-800 border-l-primary"
                   )}
                 >
                   <div className="flex items-start gap-3">
@@ -270,7 +249,7 @@ function ThreadList({
                       className="h-9 w-9 shrink-0"
                     />
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2 mb-1">
+                      <div className="flex items-center justify-between gap-2 mb-0.5">
                         <div className="flex items-center gap-1.5 min-w-0">
                           {t.unread && (
                             <span
@@ -293,7 +272,7 @@ function ThreadList({
                       </div>
                       <div
                         className={cn(
-                          "text-sm truncate mb-1",
+                          "text-sm truncate",
                           t.unread
                             ? "text-foreground font-medium"
                             : "text-muted-foreground"
@@ -301,22 +280,11 @@ function ThreadList({
                       >
                         {t.subject || "(no subject)"}
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Badge
-                          variant="secondary"
-                          className={cn(
-                            "text-xs",
-                            STATUS_BADGE[t.status].className
-                          )}
-                        >
-                          {STATUS_BADGE[t.status].label}
-                        </Badge>
-                        {t.userId && t.organizationId && (
-                          <span className="text-xs text-muted-foreground truncate">
-                            {t.organizationName ?? t.userName}
-                          </span>
-                        )}
-                      </div>
+                      {t.userId && t.organizationId && (
+                        <div className="text-xs text-muted-foreground truncate mt-0.5">
+                          {t.organizationName ?? t.userName}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </button>
@@ -326,7 +294,7 @@ function ThreadList({
         </ul>
       </div>
       {pagination && pagination.totalPages > 1 && (
-        <div className="border-t px-3 py-2 flex items-center justify-between text-xs">
+        <div className="px-3 py-2 flex items-center justify-between text-xs">
           <span className="text-muted-foreground">
             {pagination.total} total
           </span>
@@ -460,13 +428,13 @@ function ThreadDetail({
         </Select>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+      <div className="flex-1 overflow-y-auto px-5 py-4 space-y-6">
         {messages.map((m) => (
           <MessageCard key={m.id} message={m} />
         ))}
       </div>
 
-      <div className="border-t p-3 space-y-2 bg-neutral-50 dark:bg-neutral-900/40">
+      <div className="border-t px-5 py-4 space-y-2">
         <Textarea
           placeholder="Write a reply…"
           value={replyText}
@@ -521,43 +489,62 @@ function MessageCard({ message }: { message: AdminThreadMessage }) {
     };
   }, [message.id, preferredPart]);
 
+  const { visible, quoted } =
+    body && preferredPart === "text"
+      ? splitQuotedText(body)
+      : { visible: body ?? "", quoted: "" };
+  const [showQuoted, setShowQuoted] = useState(false);
+
   return (
     <div
       className={cn(
-        "border rounded-md",
-        isInbound
-          ? "bg-white dark:bg-neutral-900"
-          : "bg-blue-50/50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-900"
+        "pl-4",
+        !isInbound && "border-l-2 border-l-primary"
       )}
     >
-      <div className="px-4 py-2 border-b flex items-center justify-between gap-2 text-xs">
-        <div className="min-w-0">
-          <span className="font-medium">
-            {isInbound ? message.fromEmail : "You"}
-          </span>
-          <span className="text-muted-foreground">
-            {" "}
-            → {isInbound ? "support" : message.toEmail}
-          </span>
-        </div>
+      <div className="flex items-baseline justify-between gap-2 text-xs mb-1">
+        <span className="font-medium text-sm">
+          {isInbound ? message.fromEmail : "You"}
+        </span>
         <span className="text-muted-foreground shrink-0">
           {formatDate(message.createdAt)}
         </span>
       </div>
 
-      <div className="px-4 py-3 text-sm">
+      <div className="text-sm">
         {bodyError && (
-          <p className="text-red-600 text-xs">
-            Failed to load body: {bodyError}
+          <p
+            className="text-muted-foreground italic text-xs"
+            title={bodyError}
+          >
+            Message body unavailable
           </p>
         )}
         {!bodyError && !preferredPart && (
-          <p className="text-muted-foreground italic">(no body)</p>
+          <p className="text-muted-foreground italic text-xs">(no body)</p>
         )}
         {!bodyError && preferredPart === "text" && (
-          <pre className="whitespace-pre-wrap font-sans">
-            {body ?? "Loading…"}
-          </pre>
+          <>
+            <pre className="whitespace-pre-wrap font-sans">
+              {body === null ? "Loading…" : visible}
+            </pre>
+            {quoted && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setShowQuoted((v) => !v)}
+                  className="mt-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showQuoted ? "‹ Hide trimmed content" : "› Show trimmed content"}
+                </button>
+                {showQuoted && (
+                  <pre className="whitespace-pre-wrap font-sans text-muted-foreground mt-2 border-l-2 border-l-neutral-200 dark:border-l-neutral-700 pl-3">
+                    {quoted}
+                  </pre>
+                )}
+              </>
+            )}
+          </>
         )}
         {!bodyError && preferredPart === "html" && (
           // Inbound HTML can be untrusted; render in a sandboxed iframe so it
@@ -567,7 +554,7 @@ function MessageCard({ message }: { message: AdminThreadMessage }) {
       </div>
 
       {message.attachments.length > 0 && (
-        <div className="px-4 py-2 border-t flex flex-wrap gap-2">
+        <div className="mt-2 flex flex-wrap gap-2">
           {message.attachments.map((a) => (
             <a
               key={a.id}
@@ -867,4 +854,34 @@ function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+// Matches Gmail-style attribution lines across the common locales we see.
+const ATTRIBUTION_RE =
+  /^On .+ (wrote|écrivait|schrieb|escribió|skrev|scrisse|napisał|napisał\(a\)):\s*$/m;
+
+/**
+ * Split an email body into the new content and the quoted tail so the UI can
+ * collapse the latter behind a "Show trimmed content" toggle. Falls back to
+ * locating the first run of two or more consecutive lines beginning with `>`
+ * for messages that omit an attribution line.
+ */
+function splitQuotedText(body: string): { visible: string; quoted: string } {
+  const attribution = body.match(ATTRIBUTION_RE);
+  if (attribution && attribution.index !== undefined) {
+    return {
+      visible: body.slice(0, attribution.index).trimEnd(),
+      quoted: body.slice(attribution.index),
+    };
+  }
+  const lines = body.split("\n");
+  for (let i = 0; i < lines.length - 1; i++) {
+    if (lines[i].startsWith(">") && lines[i + 1].startsWith(">")) {
+      return {
+        visible: lines.slice(0, i).join("\n").trimEnd(),
+        quoted: lines.slice(i).join("\n"),
+      };
+    }
+  }
+  return { visible: body, quoted: "" };
 }
