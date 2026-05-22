@@ -100,7 +100,7 @@ export function AdminSupportPage() {
     <div className="flex flex-col h-full">
       <div className="flex flex-col gap-2 px-4 py-2 border-b sm:flex-row sm:items-center">
         <form
-          className="flex gap-2 flex-1 max-w-md"
+          className="flex gap-2 flex-1"
           onSubmit={(e) => {
             e.preventDefault();
             setSearch(searchInput);
@@ -112,13 +112,14 @@ export function AdminSupportPage() {
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
           />
-          <Button type="submit" variant="outline">
+          <Button type="submit" variant="outline" className="h-10">
             Search
           </Button>
           {search && (
             <Button
               type="button"
               variant="ghost"
+              className="h-10"
               onClick={() => {
                 setSearch("");
                 setSearchInput("");
@@ -137,7 +138,7 @@ export function AdminSupportPage() {
             setPage(1);
           }}
         >
-          <SelectTrigger className="w-36">
+          <SelectTrigger className="w-36 h-10">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
