@@ -44,7 +44,11 @@ export async function sendOutboundSupportMessage(
 > {
   const from = env.SUPPORT_EMAIL_FROM;
   if (!from) {
-    return { ok: false, status: 500, error: "SUPPORT_EMAIL_FROM is not configured" };
+    return {
+      ok: false,
+      status: 500,
+      error: "SUPPORT_EMAIL_FROM is not configured",
+    };
   }
 
   const emailService = createEmailService(env);
@@ -58,7 +62,10 @@ export async function sendOutboundSupportMessage(
   const keyBase = `support/${messageRowId}`;
   const rawR2Key = `${keyBase}/raw.eml`;
   const references = args.references ?? [];
-  const referencesChain = buildReferencesChain(references, args.inReplyTo ?? null);
+  const referencesChain = buildReferencesChain(
+    references,
+    args.inReplyTo ?? null
+  );
 
   try {
     await insertMessage(db, {
@@ -80,7 +87,11 @@ export async function sendOutboundSupportMessage(
     });
   } catch (error) {
     console.error("[support send] pre-insert failed", error);
-    return { ok: false, status: 500, error: "Failed to record outbound message" };
+    return {
+      ok: false,
+      status: 500,
+      error: "Failed to record outbound message",
+    };
   }
 
   const replyTo = (await buildReplyToAddress(args.threadId, env)) ?? undefined;
@@ -101,7 +112,10 @@ export async function sendOutboundSupportMessage(
     try {
       await db.delete(messages).where(eq(messages.id, messageRowId));
     } catch (cleanupError) {
-      console.error("[support send] cleanup after send failure failed", cleanupError);
+      console.error(
+        "[support send] cleanup after send failure failed",
+        cleanupError
+      );
     }
     return {
       ok: false,

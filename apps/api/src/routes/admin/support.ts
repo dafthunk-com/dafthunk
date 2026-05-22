@@ -310,14 +310,16 @@ adminSupportRoutes.post(
   "/threads",
   zValidator(
     "json",
-    z.object({
-      toEmail: z.string().email(),
-      subject: z.string().trim().min(1),
-      text: z.string().optional(),
-      html: z.string().optional(),
-    }).refine((v) => Boolean(v.text || v.html), {
-      message: "Provide at least one of 'text' or 'html'",
-    })
+    z
+      .object({
+        toEmail: z.string().email(),
+        subject: z.string().trim().min(1),
+        text: z.string().optional(),
+        html: z.string().optional(),
+      })
+      .refine((v) => Boolean(v.text || v.html), {
+        message: "Provide at least one of 'text' or 'html'",
+      })
   ),
   async (c) => {
     const db = createDatabase(c.env.DB);
@@ -336,19 +338,14 @@ adminSupportRoutes.post(
       lastMessageAt: now,
     });
 
-    const result = await sendOutboundSupportMessage(
-      db,
-      c.env,
-      c.executionCtx,
-      {
-        threadId: thread.id,
-        toAddress: normalizedTo,
-        subject,
-        ...(text ? { text } : {}),
-        ...(html ? { html } : {}),
-        adminUserId: c.get("jwtPayload")?.sub ?? null,
-      }
-    );
+    const result = await sendOutboundSupportMessage(db, c.env, c.executionCtx, {
+      threadId: thread.id,
+      toAddress: normalizedTo,
+      subject,
+      ...(text ? { text } : {}),
+      ...(html ? { html } : {}),
+      adminUserId: c.get("jwtPayload")?.sub ?? null,
+    });
 
     if (!result.ok) {
       // Roll back the thread we just created so a failed send doesn't leave
@@ -401,21 +398,16 @@ adminSupportRoutes.post(
       ? lastInbound.referencesChain.split(/\s+/).filter(Boolean)
       : [];
 
-    const result = await sendOutboundSupportMessage(
-      db,
-      c.env,
-      c.executionCtx,
-      {
-        threadId,
-        toAddress: thread.fromEmail,
-        subject: replySubject,
-        ...(body.text ? { text: body.text } : {}),
-        ...(body.html ? { html: body.html } : {}),
-        inReplyTo: lastInbound?.rfc822MessageId ?? null,
-        references,
-        adminUserId: c.get("jwtPayload")?.sub ?? null,
-      }
-    );
+    const result = await sendOutboundSupportMessage(db, c.env, c.executionCtx, {
+      threadId,
+      toAddress: thread.fromEmail,
+      subject: replySubject,
+      ...(body.text ? { text: body.text } : {}),
+      ...(body.html ? { html: body.html } : {}),
+      inReplyTo: lastInbound?.rfc822MessageId ?? null,
+      references,
+      adminUserId: c.get("jwtPayload")?.sub ?? null,
+    });
 
     if (!result.ok) return c.json({ error: result.error }, result.status);
     return c.json({ messageId: result.messageId });

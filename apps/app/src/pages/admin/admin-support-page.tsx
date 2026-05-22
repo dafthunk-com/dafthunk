@@ -21,6 +21,11 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverAnchor,
+  PopoverContent,
+} from "@/components/ui/popover";
 import { SearchInput } from "@/components/ui/search-input";
 import {
   Select,
@@ -35,6 +40,7 @@ import {
   type AdminThreadMessage,
   type AdminThreadStatus,
   type AdminThreadSummary,
+  type AdminUser,
   adminSupportAttachmentUrl,
   createAdminSupportThread,
   fetchAdminSupportMessageBody,
@@ -43,6 +49,7 @@ import {
   useAdminSupportThread,
   useAdminSupportThreads,
   useAdminSupportUnreadCount,
+  useAdminUsers,
 } from "@/services/admin-service";
 import { formatDate } from "@/utils/date";
 import { cn } from "@/utils/utils";
@@ -649,14 +656,13 @@ function ComposeThreadDialog({
         <form onSubmit={onSubmit} className="space-y-3">
           <div className="space-y-1.5">
             <Label htmlFor="compose-to">To</Label>
-            <Input
+            <UserSearchInput
               id="compose-to"
-              type="email"
               value={toEmail}
-              onChange={(e) => setToEmail(e.target.value)}
-              placeholder="customer@example.com"
-              required
+              onChange={setToEmail}
+              placeholder="customer@example.com or pick a registered user"
               autoFocus
+              required
             />
           </div>
           <div className="space-y-1.5">
@@ -697,6 +703,123 @@ function ComposeThreadDialog({
         </form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function UserSearchInput({
+  id,
+  value,
+  onChange,
+  placeholder,
+  autoFocus,
+  required,
+}: {
+  id?: string;
+  value: string;
+  onChange: (next: string) => void;
+  placeholder?: string;
+  autoFocus?: boolean;
+  required?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [highlight, setHighlight] = useState(0);
+  const [debounced, setDebounced] = useState(value);
+
+  useEffect(() => {
+    const id = setTimeout(() => setDebounced(value.trim()), 200);
+    return () => clearTimeout(id);
+  }, [value]);
+
+  // Skip the fetch when the input is too short or already matches an email
+  // we picked from the dropdown — saves a request per keystroke after select.
+  const shouldQuery = debounced.length >= 2;
+  const { users } = useAdminUsers(1, 8, shouldQuery ? debounced : undefined);
+  const matches = shouldQuery
+    ? users.filter(
+        (u) => u.email && u.email.toLowerCase() !== value.toLowerCase().trim()
+      )
+    : [];
+
+  useEffect(() => setHighlight(0), [debounced]);
+  useEffect(() => {
+    if (matches.length === 0) setOpen(false);
+  }, [matches.length]);
+
+  const pick = (user: AdminUser) => {
+    if (!user.email) return;
+    onChange(user.email);
+    setOpen(false);
+  };
+
+  return (
+    <Popover open={open && matches.length > 0} onOpenChange={setOpen}>
+      <PopoverAnchor asChild>
+        <Input
+          id={id}
+          type="email"
+          value={value}
+          onChange={(e) => {
+            onChange(e.target.value);
+            setOpen(true);
+          }}
+          onFocus={() => setOpen(true)}
+          onKeyDown={(e) => {
+            if (matches.length === 0) return;
+            if (e.key === "ArrowDown") {
+              e.preventDefault();
+              setHighlight((h) => (h + 1) % matches.length);
+            } else if (e.key === "ArrowUp") {
+              e.preventDefault();
+              setHighlight((h) => (h - 1 + matches.length) % matches.length);
+            } else if (e.key === "Enter" && open) {
+              e.preventDefault();
+              pick(matches[highlight]);
+            } else if (e.key === "Escape") {
+              setOpen(false);
+            }
+          }}
+          placeholder={placeholder}
+          required={required}
+          autoFocus={autoFocus}
+          autoComplete="off"
+        />
+      </PopoverAnchor>
+      <PopoverContent
+        align="start"
+        className="p-1 w-[--radix-popover-trigger-width]"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
+        <ul className="max-h-64 overflow-y-auto">
+          {matches.map((u, i) => (
+            <li key={u.id}>
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => pick(u)}
+                onMouseEnter={() => setHighlight(i)}
+                className={cn(
+                  "w-full flex items-center gap-2 px-2 py-1.5 rounded text-left text-sm",
+                  i === highlight && "bg-neutral-100 dark:bg-neutral-800"
+                )}
+              >
+                <Avatar className="h-7 w-7 shrink-0">
+                  <AvatarImage src={u.avatarUrl || undefined} />
+                  <AvatarFallback>
+                    {u.name?.charAt(0).toUpperCase() || "?"}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate font-medium">{u.name}</div>
+                  <div className="truncate text-xs text-muted-foreground">
+                    {u.email}
+                  </div>
+                </div>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </PopoverContent>
+    </Popover>
   );
 }
 
