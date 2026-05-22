@@ -7,7 +7,6 @@ import { Link } from "react-router";
 import { toast } from "sonner";
 
 import { InsetError } from "@/components/inset-error";
-import { InsetLayout } from "@/components/layouts/inset-layout";
 import { useBreadcrumbsSetter } from "@/components/page-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -98,8 +97,8 @@ export function AdminSupportPage() {
   }
 
   return (
-    <InsetLayout title="Support">
-      <div className="flex flex-col gap-3 mb-4 lg:flex-row lg:items-center">
+    <div className="flex flex-col h-full">
+      <div className="flex flex-col gap-2 px-4 py-2 border-b sm:flex-row sm:items-center">
         <form
           className="flex gap-2 flex-1 max-w-md"
           onSubmit={(e) => {
@@ -161,7 +160,7 @@ export function AdminSupportPage() {
         }}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-[360px_1fr] h-[calc(100vh-220px)] min-h-[500px]">
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-[360px_1fr] min-h-0">
         <ThreadList
           threads={threads}
           isLoading={isThreadsLoading}
@@ -187,7 +186,7 @@ export function AdminSupportPage() {
           )}
         </div>
       </div>
-    </InsetLayout>
+    </div>
   );
 }
 
