@@ -5,7 +5,7 @@ import Paperclip from "lucide-react/icons/paperclip";
 import PenSquare from "lucide-react/icons/pen-square";
 import Send from "lucide-react/icons/send";
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import { toast } from "sonner";
 
 import { InsetError } from "@/components/inset-error";
@@ -79,6 +79,21 @@ export function AdminSupportPage() {
 
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
   const [composeOpen, setComposeOpen] = useState(false);
+  const [composeInitialTo, setComposeInitialTo] = useState("");
+
+  // Deep-link from elsewhere in the admin UI: `?compose=1&to=user@x` opens the
+  // composer with To: pre-filled. Strip the params after consuming so a reload
+  // doesn't re-open the dialog.
+  const [searchParams, setSearchParams] = useSearchParams();
+  useEffect(() => {
+    if (searchParams.get("compose") !== "1") return;
+    setComposeInitialTo(searchParams.get("to") ?? "");
+    setComposeOpen(true);
+    const next = new URLSearchParams(searchParams);
+    next.delete("compose");
+    next.delete("to");
+    setSearchParams(next, { replace: true });
+  }, [searchParams, setSearchParams]);
 
   useEffect(() => {
     if (threads.length === 0) return;
@@ -149,7 +164,13 @@ export function AdminSupportPage() {
 
       <ComposeThreadDialog
         open={composeOpen}
-        onOpenChange={setComposeOpen}
+        onOpenChange={(open) => {
+          setComposeOpen(open);
+          // Drop the captured deep-link seed once the dialog closes so the
+          // next manual open doesn't re-pre-fill the previous recipient.
+          if (!open) setComposeInitialTo("");
+        }}
+        initialToEmail={composeInitialTo}
         onCreated={(thread) => {
           mutateThreads();
           mutateUnreadCount();
@@ -591,10 +612,12 @@ function ComposeThreadDialog({
   open,
   onOpenChange,
   onCreated,
+  initialToEmail,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreated: (thread: AdminThreadSummary) => void;
+  initialToEmail?: string;
 }) {
   const [toEmail, setToEmail] = useState("");
   const [subject, setSubject] = useState("");
@@ -602,13 +625,17 @@ function ComposeThreadDialog({
   const [isSending, setIsSending] = useState(false);
 
   useEffect(() => {
-    if (!open) {
+    if (open) {
+      // Seed To: from the deep-link only on open; the form is otherwise
+      // controlled by the user once the dialog is mounted.
+      setToEmail(initialToEmail ?? "");
+    } else {
       setToEmail("");
       setSubject("");
       setText("");
       setIsSending(false);
     }
-  }, [open]);
+  }, [open, initialToEmail]);
 
   const canSubmit =
     toEmail.trim().length > 0 &&

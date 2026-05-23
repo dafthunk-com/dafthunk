@@ -25,7 +25,11 @@ export function getWelcomeEmail(params: WelcomeEmailParams): {
 
   const subject = "Welcome to Dafthunk";
 
-  const text = `Let's automate something${userName ? `, ${userName}` : ""}.
+  const text = `Welcome${userName ? `, ${userName}` : ""}.
+
+What would you like to automate?
+
+Just hit reply and tell us in a sentence or two what you're hoping to build. We read every message and will do our best to help you get there. If this landed in spam, mark it as "not spam" so our reply reaches you.
 
 Dafthunk is a visual way to build serverless workflows on Cloudflare. Drag nodes, connect them, deploy to the edge.
 
@@ -47,7 +51,9 @@ Bertil Chapuis
 Dafthunk · Visual workflow automation
 ${websiteUrl}`;
 
-  const html = `<p>Let's automate something${userName ? `, ${userName}` : ""}.</p>
+  const html = `<p>Welcome${userName ? `, ${userName}` : ""}.</p>
+<p>What would you like to automate?</p>
+<p>Just hit reply and tell us in a sentence or two what you're hoping to build. We read every message and will do our best to help you get there. If this landed in spam, mark it as "not spam" so our reply reaches you.</p>
 <p>Dafthunk is a visual way to build serverless workflows on Cloudflare. Drag nodes, connect them, deploy to the edge.</p>
 <p>Here are some quick tips:</p>
 <ul>
@@ -60,6 +66,7 @@ ${websiteUrl}`;
 <li><a href="${docsUrl}">Learn more</a></li>
 </ul>
 ${onboardingUrl ? `<p>Want a walkthrough? <a href="${onboardingUrl}">Book an onboarding session</a></p>\n` : ""}${discordUrl ? `<p>Prefer a quick chat? <a href="${discordUrl}">Join us on Discord</a></p>\n` : ""}${githubUrl ? `<p>Want to help? <a href="${githubUrl}">Contribute on GitHub</a></p>\n` : ""}
+<p>Happy automating,<br>Bertil Chapuis</p>
 <p>—<br>Dafthunk · Visual workflow automation<br><a href="${websiteUrl}">${websiteUrl}</a></p>`;
 
   return { subject, text, html };

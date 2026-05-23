@@ -11,6 +11,7 @@ import {
   resolveOrganizationPlan,
   users,
 } from "../../db";
+import { sendWelcomeEmail } from "../../services/welcome-email";
 
 type OnboardingStage =
   | "signed_up"
@@ -187,6 +188,48 @@ adminUsersRoutes.get("/:id", async (c) => {
     console.error("Error fetching admin user detail:", error);
     return c.json({ error: "Failed to fetch user" }, 500);
   }
+});
+
+/**
+ * POST /admin/users/:id/welcome-email
+ *
+ * Resend the welcome email to a user. Always creates a new support thread so
+ * the admin sees the outbound message in the inbox view (matching the OAuth
+ * signup flow). Surfaces a structured error if the user has no email on file.
+ */
+adminUsersRoutes.post("/:id/welcome-email", async (c) => {
+  const db = createDatabase(c.env.DB);
+  const userId = c.req.param("id");
+
+  const [user] = await db
+    .select({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      organizationId: users.organizationId,
+    })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  if (!user) {
+    return c.json({ error: "User not found" }, 404);
+  }
+  if (!user.email) {
+    return c.json({ error: "User has no email on file" }, 400);
+  }
+
+  const result = await sendWelcomeEmail(db, c.env, c.executionCtx, {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    organizationId: user.organizationId,
+  });
+
+  if (!result.ok) {
+    return c.json({ error: result.error }, result.status);
+  }
+  return c.json({ ok: true });
 });
 
 export default adminUsersRoutes;

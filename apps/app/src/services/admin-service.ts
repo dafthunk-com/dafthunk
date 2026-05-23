@@ -420,6 +420,19 @@ export const useAdminUserExecutionsSummary = (userId: string | undefined) => {
 };
 
 /**
+ * Resend the welcome email to a user. The server creates a fresh support
+ * thread so the message shows up in the inbox view (matching the signup flow).
+ */
+export const resendAdminUserWelcomeEmail = async (
+  userId: string
+): Promise<{ ok: true }> => {
+  return makeRequest<{ ok: true }>(
+    `${ADMIN_API_ENDPOINT}/users/${userId}/welcome-email`,
+    { method: "POST" }
+  );
+};
+
+/**
  * Hook to fetch admin organizations list
  */
 export const useAdminOrganizations = (

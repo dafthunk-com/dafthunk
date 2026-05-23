@@ -1,11 +1,24 @@
 import Github from "lucide-react/icons/github";
-import { useEffect } from "react";
+import Mail from "lucide-react/icons/mail";
+import PenSquare from "lucide-react/icons/pen-square";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
+import { toast } from "sonner";
 import { OnboardingFunnel } from "@/components/admin/onboarding-funnel";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { useBreadcrumbsSetter } from "@/components/page-context";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,6 +38,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  resendAdminUserWelcomeEmail,
   useAdminUserDetail,
   useAdminUserExecutionsSummary,
   useAdminUserFunnel,
@@ -39,6 +53,24 @@ export function AdminUserDetailPage() {
   const { executionsSummary, isExecutionsSummaryLoading } =
     useAdminUserExecutionsSummary(userId);
   const setBreadcrumbs = useBreadcrumbsSetter();
+  const [resendOpen, setResendOpen] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+
+  const onConfirmResend = async () => {
+    if (!userId) return;
+    setIsResending(true);
+    try {
+      await resendAdminUserWelcomeEmail(userId);
+      toast.success("Welcome email sent");
+      setResendOpen(false);
+    } catch (e) {
+      toast.error(
+        e instanceof Error ? e.message : "Failed to send welcome email"
+      );
+    } finally {
+      setIsResending(false);
+    }
+  };
 
   useEffect(() => {
     setBreadcrumbs([
@@ -60,8 +92,61 @@ export function AdminUserDetailPage() {
     return <InsetError title="User Details" errorMessage="User not found" />;
   }
 
+  const hasEmail = Boolean(user.email);
+  const composeHref = user.email
+    ? `/admin/support?compose=1&to=${encodeURIComponent(user.email)}`
+    : "/admin/support";
+
   return (
     <InsetLayout title="User Details">
+      <div className="flex flex-wrap gap-2 mb-6">
+        <Button
+          variant="outline"
+          onClick={() => setResendOpen(true)}
+          disabled={!hasEmail}
+          title={hasEmail ? undefined : "User has no email on file"}
+        >
+          <Mail className="h-4 w-4 mr-2" />
+          Resend welcome email
+        </Button>
+        <Button
+          variant="outline"
+          asChild={hasEmail}
+          disabled={!hasEmail}
+          title={hasEmail ? undefined : "User has no email on file"}
+        >
+          {hasEmail ? (
+            <Link to={composeHref}>
+              <PenSquare className="h-4 w-4 mr-2" />
+              Start new thread
+            </Link>
+          ) : (
+            <span>
+              <PenSquare className="h-4 w-4 mr-2" />
+              Start new thread
+            </span>
+          )}
+        </Button>
+      </div>
+
+      <AlertDialog open={resendOpen} onOpenChange={setResendOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Resend welcome email?</AlertDialogTitle>
+            <AlertDialogDescription>
+              A fresh support thread will be created and the welcome email sent
+              to <strong>{user.email}</strong>.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isResending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={onConfirmResend} disabled={isResending}>
+              {isResending ? "Sending…" : "Send"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>

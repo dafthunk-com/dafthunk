@@ -21,8 +21,7 @@ import {
 } from "./db";
 import type { UserData } from "./db/queries";
 import { memberships, organizations } from "./db/schema";
-import { createEmailService } from "./services/email-service";
-import { getWelcomeEmail } from "./services/email-templates";
+import { sendWelcomeEmail } from "./services/welcome-email";
 
 // Constants
 export const JWT_ACCESS_TOKEN_NAME = "access_token";
@@ -516,26 +515,17 @@ async function completeOAuthLogin(
   );
 
   if (isNewUser && userData.email) {
-    const emailService = createEmailService(c.env);
-    if (emailService) {
-      const emailContent = getWelcomeEmail({
-        userName: userData.name,
-        appUrl: c.env.WEB_HOST,
-        websiteUrl: c.env.WEBSITE_URL,
-        onboardingUrl: c.env.ONBOARDING_URL,
-        discordUrl: c.env.DISCORD_URL,
-        githubUrl: c.env.GITHUB_URL,
+    // Best-effort: never block login on a flaky welcome path.
+    try {
+      const result = await sendWelcomeEmail(db, c.env, c.executionCtx, {
+        id: savedUser.id,
+        email: userData.email,
+        name: userData.name,
+        organizationId: savedOrganization.id,
       });
-      const result = await emailService.send({
-        from: c.env.ONBOARDING_EMAIL,
-        to: userData.email,
-        subject: emailContent.subject,
-        html: emailContent.html,
-        text: emailContent.text,
-      });
-      if (!result.success) {
-        console.warn("Failed to send welcome email:", result.error);
-      }
+      if (!result.ok) console.warn("[welcome] send failed:", result.error);
+    } catch (error) {
+      console.warn("[welcome] unexpected error:", error);
     }
   }
 
