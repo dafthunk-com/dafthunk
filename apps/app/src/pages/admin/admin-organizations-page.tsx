@@ -1,30 +1,110 @@
-import Search from "lucide-react/icons/search";
-import { useEffect, useState } from "react";
-import { Link } from "react-router";
+import type { ColumnDef } from "@tanstack/react-table";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router";
+
+import { AdminPagination } from "@/components/admin/admin-pagination";
+import { AdminTableToolbar } from "@/components/admin/admin-table-toolbar";
+import { RowActionsMenu } from "@/components/admin/row-actions-menu";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { useBreadcrumbsSetter } from "@/components/page-context";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { DataTable } from "@/components/ui/data-table";
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { useAdminSearch } from "@/hooks/use-admin-search";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { useAdminOrganizations } from "@/services/admin-service";
+  type AdminOrganization,
+  useAdminOrganizations,
+} from "@/services/admin-service";
 import { formatDate } from "@/utils/date";
+
+function createColumns(
+  navigate: ReturnType<typeof useNavigate>
+): ColumnDef<AdminOrganization>[] {
+  return [
+    {
+      accessorKey: "name",
+      header: "Name",
+      cell: ({ row }) => (
+        <Link
+          to={`/admin/organizations/${row.original.id}`}
+          className="font-medium hover:underline"
+        >
+          {row.original.name}
+        </Link>
+      ),
+    },
+    {
+      accessorKey: "id",
+      header: "ID",
+      cell: ({ row }) => (
+        <span className="text-muted-foreground font-mono text-sm">
+          {row.original.id}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "memberCount",
+      header: "Members",
+    },
+    {
+      accessorKey: "workflowCount",
+      header: "Workflows",
+    },
+    {
+      accessorKey: "computeCredits",
+      header: "Credits",
+      cell: ({ row }) => row.original.computeCredits.toLocaleString(),
+    },
+    {
+      accessorKey: "subscriptionStatus",
+      header: "Status",
+      cell: ({ row }) =>
+        row.original.subscriptionStatus ? (
+          <Badge
+            variant={
+              row.original.subscriptionStatus === "active"
+                ? "default"
+                : "secondary"
+            }
+          >
+            {row.original.subscriptionStatus}
+          </Badge>
+        ) : (
+          <Badge variant="outline">trial</Badge>
+        ),
+    },
+    {
+      accessorKey: "createdAt",
+      header: "Created",
+      cell: ({ row }) => (
+        <span className="text-muted-foreground">
+          {formatDate(row.original.createdAt)}
+        </span>
+      ),
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => (
+        <RowActionsMenu>
+          <DropdownMenuItem
+            onClick={() => navigate(`/admin/organizations/${row.original.id}`)}
+          >
+            View
+          </DropdownMenuItem>
+        </RowActionsMenu>
+      ),
+    },
+  ];
+}
 
 export function AdminOrganizationsPage() {
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
-  const [searchInput, setSearchInput] = useState("");
+  const { query: search, formProps } = useAdminSearch(() => setPage(1));
   const limit = 20;
   const setBreadcrumbs = useBreadcrumbsSetter();
+  const navigate = useNavigate();
 
   useEffect(() => {
     setBreadcrumbs([{ label: "Organizations" }]);
@@ -38,11 +118,7 @@ export function AdminOrganizationsPage() {
     isOrganizationsLoading,
   } = useAdminOrganizations(page, limit, search || undefined);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSearch(searchInput);
-    setPage(1);
-  };
+  const columns = useMemo(() => createColumns(navigate), [navigate]);
 
   if (isOrganizationsLoading) {
     return <InsetLoading title="Organizations" />;
@@ -59,123 +135,31 @@ export function AdminOrganizationsPage() {
 
   return (
     <InsetLayout title="Organizations">
-      <form onSubmit={handleSearch} className="flex gap-2 mb-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search by name..."
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            className="pl-8"
-          />
-        </div>
-        <Button type="submit" variant="outline">
-          Search
-        </Button>
-        {search && (
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => {
-              setSearch("");
-              setSearchInput("");
-              setPage(1);
-            }}
-          >
-            Clear
-          </Button>
-        )}
-      </form>
+      <AdminTableToolbar
+        searchPlaceholder="Search by name..."
+        search={formProps}
+      />
 
-      <div className="rounded-md border bg-white">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>ID</TableHead>
-              <TableHead>Members</TableHead>
-              <TableHead>Workflows</TableHead>
-              <TableHead>Credits</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Created</TableHead>
-              <TableHead></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {organizations.map((org) => (
-              <TableRow key={org.id}>
-                <TableCell className="font-medium">{org.name}</TableCell>
-                <TableCell className="text-muted-foreground font-mono text-sm">
-                  {org.id}
-                </TableCell>
-                <TableCell>{org.memberCount}</TableCell>
-                <TableCell>{org.workflowCount}</TableCell>
-                <TableCell>{org.computeCredits.toLocaleString()}</TableCell>
-                <TableCell>
-                  {org.subscriptionStatus ? (
-                    <Badge
-                      variant={
-                        org.subscriptionStatus === "active"
-                          ? "default"
-                          : "secondary"
-                      }
-                    >
-                      {org.subscriptionStatus}
-                    </Badge>
-                  ) : (
-                    <Badge variant="outline">trial</Badge>
-                  )}
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {formatDate(org.createdAt)}
-                </TableCell>
-                <TableCell>
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link to={`/admin/organizations/${org.id}`}>View</Link>
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-            {organizations.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={8} className="text-center py-8">
-                  {search
-                    ? "No organizations found matching your search"
-                    : "No organizations found"}
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      <DataTable
+        columns={columns}
+        data={organizations}
+        emptyState={{
+          title: "No organizations found",
+          description: search
+            ? "No organizations match your search."
+            : "No organizations have been created yet.",
+        }}
+      />
 
-      {pagination && pagination.totalPages > 1 && (
-        <div className="flex items-center justify-between mt-4">
-          <p className="text-sm text-muted-foreground">
-            Showing {(page - 1) * limit + 1} to{" "}
-            {Math.min(page * limit, pagination.total)} of {pagination.total}{" "}
-            organizations
-          </p>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page === 1}
-              onClick={() => setPage(page - 1)}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page === pagination.totalPages}
-              onClick={() => setPage(page + 1)}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      )}
+      <AdminPagination
+        page={page}
+        limit={limit}
+        itemCount={organizations.length}
+        total={pagination?.total}
+        totalPages={pagination?.totalPages}
+        itemLabel="organizations"
+        onPageChange={setPage}
+      />
     </InsetLayout>
   );
 }

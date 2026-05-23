@@ -1,32 +1,109 @@
-import Search from "lucide-react/icons/search";
-import { useEffect, useState } from "react";
-import { Link } from "react-router";
+import type { ColumnDef } from "@tanstack/react-table";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router";
+
+import { AdminPagination } from "@/components/admin/admin-pagination";
+import { AdminTableToolbar } from "@/components/admin/admin-table-toolbar";
 import { OnboardingDots } from "@/components/admin/onboarding-dots";
+import { RowActionsMenu } from "@/components/admin/row-actions-menu";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { useBreadcrumbsSetter } from "@/components/page-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { useAdminUsers } from "@/services/admin-service";
+import { DataTable } from "@/components/ui/data-table";
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { useAdminSearch } from "@/hooks/use-admin-search";
+import { type AdminUser, useAdminUsers } from "@/services/admin-service";
 import { formatDate } from "@/utils/date";
+
+function createColumns(
+  navigate: ReturnType<typeof useNavigate>
+): ColumnDef<AdminUser>[] {
+  return [
+    {
+      accessorKey: "name",
+      header: "User",
+      cell: ({ row }) => (
+        <Link
+          to={`/admin/users/${row.original.id}`}
+          className="flex items-center gap-2 font-medium hover:underline"
+        >
+          <Avatar className="h-8 w-8">
+            <AvatarImage src={row.original.avatarUrl || undefined} />
+            <AvatarFallback>
+              {row.original.name?.charAt(0).toUpperCase() || "U"}
+            </AvatarFallback>
+          </Avatar>
+          <span>{row.original.name}</span>
+        </Link>
+      ),
+    },
+    {
+      accessorKey: "email",
+      header: "Email",
+      cell: ({ row }) => (
+        <span className="text-muted-foreground">
+          {row.original.email || "-"}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "plan",
+      header: "Plan",
+      cell: ({ row }) => (
+        <Badge variant={row.original.plan === "pro" ? "default" : "secondary"}>
+          {row.original.plan}
+        </Badge>
+      ),
+    },
+    {
+      accessorKey: "role",
+      header: "Role",
+      cell: ({ row }) => (
+        <Badge
+          variant={row.original.role === "admin" ? "destructive" : "outline"}
+        >
+          {row.original.role}
+        </Badge>
+      ),
+    },
+    {
+      id: "onboarding",
+      header: "Onboarding",
+      cell: ({ row }) => <OnboardingDots user={row.original} />,
+    },
+    {
+      accessorKey: "createdAt",
+      header: "Created",
+      cell: ({ row }) => (
+        <span className="text-muted-foreground">
+          {formatDate(row.original.createdAt)}
+        </span>
+      ),
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => (
+        <RowActionsMenu>
+          <DropdownMenuItem
+            onClick={() => navigate(`/admin/users/${row.original.id}`)}
+          >
+            View
+          </DropdownMenuItem>
+        </RowActionsMenu>
+      ),
+    },
+  ];
+}
 
 export function AdminUsersPage() {
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
-  const [searchInput, setSearchInput] = useState("");
+  const { query: search, formProps } = useAdminSearch(() => setPage(1));
   const limit = 20;
   const setBreadcrumbs = useBreadcrumbsSetter();
+  const navigate = useNavigate();
 
   useEffect(() => {
     setBreadcrumbs([{ label: "Users" }]);
@@ -39,11 +116,7 @@ export function AdminUsersPage() {
     search || undefined
   );
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSearch(searchInput);
-    setPage(1);
-  };
+  const columns = useMemo(() => createColumns(navigate), [navigate]);
 
   if (isUsersLoading) {
     return <InsetLoading title="Users" />;
@@ -55,131 +128,31 @@ export function AdminUsersPage() {
 
   return (
     <InsetLayout title="Users">
-      <form onSubmit={handleSearch} className="flex gap-2 mb-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search by name or email..."
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            className="pl-8"
-          />
-        </div>
-        <Button type="submit" variant="outline">
-          Search
-        </Button>
-        {search && (
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => {
-              setSearch("");
-              setSearchInput("");
-              setPage(1);
-            }}
-          >
-            Clear
-          </Button>
-        )}
-      </form>
+      <AdminTableToolbar
+        searchPlaceholder="Search by name or email..."
+        search={formProps}
+      />
 
-      <div className="rounded-md border bg-white">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>User</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Plan</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Onboarding</TableHead>
-              <TableHead>Created</TableHead>
-              <TableHead></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {users.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell className="font-medium">
-                  <div className="flex items-center gap-2">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={user.avatarUrl || undefined} />
-                      <AvatarFallback>
-                        {user.name?.charAt(0).toUpperCase() || "U"}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span>{user.name}</span>
-                  </div>
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {user.email || "-"}
-                </TableCell>
-                <TableCell>
-                  <Badge
-                    variant={user.plan === "pro" ? "default" : "secondary"}
-                  >
-                    {user.plan}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge
-                    variant={user.role === "admin" ? "destructive" : "outline"}
-                  >
-                    {user.role}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <OnboardingDots user={user} />
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {formatDate(user.createdAt)}
-                </TableCell>
-                <TableCell>
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link to={`/admin/users/${user.id}`}>View</Link>
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-            {users.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={7} className="text-center py-8">
-                  {search
-                    ? "No users found matching your search"
-                    : "No users found"}
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      <DataTable
+        columns={columns}
+        data={users}
+        emptyState={{
+          title: "No users found",
+          description: search
+            ? "No users match your search."
+            : "No users have signed up yet.",
+        }}
+      />
 
-      {pagination && pagination.totalPages > 1 && (
-        <div className="flex items-center justify-between mt-4">
-          <p className="text-sm text-muted-foreground">
-            Showing {(page - 1) * limit + 1} to{" "}
-            {Math.min(page * limit, pagination.total)} of {pagination.total}{" "}
-            users
-          </p>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page === 1}
-              onClick={() => setPage(page - 1)}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page === pagination.totalPages}
-              onClick={() => setPage(page + 1)}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      )}
+      <AdminPagination
+        page={page}
+        limit={limit}
+        itemCount={users.length}
+        total={pagination?.total}
+        totalPages={pagination?.totalPages}
+        itemLabel="users"
+        onPageChange={setPage}
+      />
     </InsetLayout>
   );
 }

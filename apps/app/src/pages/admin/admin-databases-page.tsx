@@ -1,30 +1,28 @@
-import Search from "lucide-react/icons/search";
-import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router";
+
+import { AdminPagination } from "@/components/admin/admin-pagination";
+import { AdminTableToolbar } from "@/components/admin/admin-table-toolbar";
+import { createOrgScopedColumns } from "@/components/admin/org-scoped-columns";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { useBreadcrumbsSetter } from "@/components/page-context";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { DataTable } from "@/components/ui/data-table";
+import { useAdminSearch } from "@/hooks/use-admin-search";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { useAdminDatabases } from "@/services/admin-service";
-import { formatDate } from "@/utils/date";
+  type AdminDatabase,
+  useAdminDatabases,
+} from "@/services/admin-service";
 
 export function AdminDatabasesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
-  const [searchInput, setSearchInput] = useState("");
+  const { query: search, formProps } = useAdminSearch(() => setPage(1));
   const limit = 20;
   const setBreadcrumbs = useBreadcrumbsSetter();
+  const navigate = useNavigate();
 
   useEffect(() => {
     setBreadcrumbs([{ label: "Databases" }]);
@@ -36,11 +34,10 @@ export function AdminDatabasesPage() {
   const { databases, pagination, databasesError, isDatabasesLoading } =
     useAdminDatabases(page, limit, search || undefined, organizationId);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSearch(searchInput);
-    setPage(1);
-  };
+  const columns = useMemo(
+    () => createOrgScopedColumns<AdminDatabase>(navigate),
+    [navigate]
+  );
 
   if (isDatabasesLoading) {
     return <InsetLoading title="Databases" />;
@@ -54,32 +51,10 @@ export function AdminDatabasesPage() {
 
   return (
     <InsetLayout title="Databases">
-      <form onSubmit={handleSearch} className="flex gap-2 mb-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search by name..."
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            className="pl-8"
-          />
-        </div>
-        <Button type="submit" variant="outline">
-          Search
-        </Button>
-        {search && (
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => {
-              setSearch("");
-              setSearchInput("");
-              setPage(1);
-            }}
-          >
-            Clear
-          </Button>
-        )}
+      <AdminTableToolbar
+        searchPlaceholder="Search by name..."
+        search={formProps}
+      >
         {organizationId && (
           <Button
             type="button"
@@ -89,84 +64,31 @@ export function AdminDatabasesPage() {
               setPage(1);
             }}
           >
-            Clear Organization Filter
+            Clear organization filter
           </Button>
         )}
-      </form>
+      </AdminTableToolbar>
 
-      <div className="rounded-md border bg-white">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Organization</TableHead>
-              <TableHead>Created</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {databases.map((database) => (
-              <TableRow key={database.id}>
-                <TableCell>
-                  <div>
-                    <div className="font-medium">{database.name}</div>
-                    <div className="text-xs text-muted-foreground font-mono">
-                      {database.id}
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Link
-                    to={`/admin/organizations/${database.organizationId}`}
-                    className="hover:underline"
-                  >
-                    {database.organizationName}
-                  </Link>
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {formatDate(database.createdAt)}
-                </TableCell>
-              </TableRow>
-            ))}
-            {databases.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={3} className="text-center py-8">
-                  {search
-                    ? "No databases found matching your search"
-                    : "No databases found"}
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      <DataTable
+        columns={columns}
+        data={databases}
+        emptyState={{
+          title: "No databases found",
+          description: search
+            ? "No databases match your search."
+            : "No databases have been created yet.",
+        }}
+      />
 
-      {pagination && pagination.totalPages > 1 && (
-        <div className="flex items-center justify-between mt-4">
-          <p className="text-sm text-muted-foreground">
-            Showing {(page - 1) * limit + 1} to{" "}
-            {Math.min(page * limit, pagination.total)} of {pagination.total}{" "}
-            databases
-          </p>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page === 1}
-              onClick={() => setPage(page - 1)}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page === pagination.totalPages}
-              onClick={() => setPage(page + 1)}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      )}
+      <AdminPagination
+        page={page}
+        limit={limit}
+        itemCount={databases.length}
+        total={pagination?.total}
+        totalPages={pagination?.totalPages}
+        itemLabel="databases"
+        onPageChange={setPage}
+      />
     </InsetLayout>
   );
 }

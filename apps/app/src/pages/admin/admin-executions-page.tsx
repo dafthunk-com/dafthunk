@@ -1,11 +1,18 @@
-import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router";
+import type { ColumnDef } from "@tanstack/react-table";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router";
+
+import { AdminPagination } from "@/components/admin/admin-pagination";
+import { AdminTableToolbar } from "@/components/admin/admin-table-toolbar";
+import { RowActionsMenu } from "@/components/admin/row-actions-menu";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { useBreadcrumbsSetter } from "@/components/page-context";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { DataTable } from "@/components/ui/data-table";
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import {
   Select,
   SelectContent,
@@ -14,14 +21,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { useAdminExecutions } from "@/services/admin-service";
+  type AdminExecution,
+  useAdminExecutions,
+} from "@/services/admin-service";
 import { formatDate } from "@/utils/date";
 
 const statusOptions = [
@@ -47,12 +49,108 @@ function getStatusVariant(status: string) {
   }
 }
 
+function createColumns(
+  navigate: ReturnType<typeof useNavigate>
+): ColumnDef<AdminExecution>[] {
+  return [
+    {
+      accessorKey: "workflowName",
+      header: "Workflow",
+      cell: ({ row }) => (
+        <Link
+          to={`/admin/executions/${row.original.id}?organizationId=${row.original.organizationId}`}
+          className="block hover:underline"
+        >
+          <div className="font-medium">{row.original.workflowName}</div>
+          <div className="text-xs text-muted-foreground font-mono">
+            {row.original.id.substring(0, 8)}...
+          </div>
+        </Link>
+      ),
+    },
+    {
+      accessorKey: "organizationName",
+      header: "Organization",
+      cell: ({ row }) => (
+        <Link
+          to={`/admin/organizations/${row.original.organizationId}`}
+          className="hover:underline"
+        >
+          {row.original.organizationName}
+        </Link>
+      ),
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => (
+        <Badge variant={getStatusVariant(row.original.status)}>
+          {row.original.status}
+        </Badge>
+      ),
+    },
+    {
+      accessorKey: "usage",
+      header: "Usage",
+    },
+    {
+      accessorKey: "startedAt",
+      header: "Started",
+      cell: ({ row }) => (
+        <span className="text-muted-foreground">
+          {formatDate(row.original.startedAt)}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "endedAt",
+      header: "Ended",
+      cell: ({ row }) => (
+        <span className="text-muted-foreground">
+          {row.original.endedAt ? formatDate(row.original.endedAt) : "-"}
+        </span>
+      ),
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => (
+        <RowActionsMenu>
+          <DropdownMenuItem
+            onClick={() =>
+              navigate(
+                `/admin/executions/${row.original.id}?organizationId=${row.original.organizationId}`
+              )
+            }
+          >
+            View execution
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() =>
+              navigate(`/admin/workflows/${row.original.workflowId}`)
+            }
+          >
+            View workflow
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() =>
+              navigate(`/admin/organizations/${row.original.organizationId}`)
+            }
+          >
+            View organization
+          </DropdownMenuItem>
+        </RowActionsMenu>
+      ),
+    },
+  ];
+}
+
 export function AdminExecutionsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState<string>("all");
   const limit = 20;
   const setBreadcrumbs = useBreadcrumbsSetter();
+  const navigate = useNavigate();
 
   useEffect(() => {
     setBreadcrumbs([{ label: "Executions" }]);
@@ -71,14 +169,14 @@ export function AdminExecutionsPage() {
       status === "all" ? undefined : status
     );
 
-  // Drop a single search param while preserving the rest (e.g. clearing the
-  // workflow filter keeps the org filter active).
   const clearParam = (key: string) => {
     const next = new URLSearchParams(searchParams);
     next.delete(key);
     setSearchParams(next);
     setPage(1);
   };
+
+  const columns = useMemo(() => createColumns(navigate), [navigate]);
 
   if (isExecutionsLoading) {
     return <InsetLoading title="Executions" />;
@@ -92,7 +190,7 @@ export function AdminExecutionsPage() {
 
   return (
     <InsetLayout title="Executions">
-      <div className="flex gap-2 mb-4">
+      <AdminTableToolbar>
         <Select
           value={status}
           onValueChange={(v) => {
@@ -116,101 +214,32 @@ export function AdminExecutionsPage() {
             variant="outline"
             onClick={() => clearParam("organizationId")}
           >
-            Clear Organization Filter
+            Clear organization filter
           </Button>
         )}
         {workflowId && (
           <Button variant="outline" onClick={() => clearParam("workflowId")}>
-            Clear Workflow Filter
+            Clear workflow filter
           </Button>
         )}
-      </div>
+      </AdminTableToolbar>
 
-      <div className="rounded-md border bg-white">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Workflow</TableHead>
-              <TableHead>Organization</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Usage</TableHead>
-              <TableHead>Started</TableHead>
-              <TableHead>Ended</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {executions.map((execution) => (
-              <TableRow key={execution.id}>
-                <TableCell>
-                  <Link
-                    to={`/admin/executions/${execution.id}?organizationId=${execution.organizationId}`}
-                    className="block hover:underline"
-                  >
-                    <div className="font-medium">{execution.workflowName}</div>
-                    <div className="text-xs text-muted-foreground font-mono">
-                      {execution.id.substring(0, 8)}...
-                    </div>
-                  </Link>
-                </TableCell>
-                <TableCell>
-                  <Link
-                    to={`/admin/organizations/${execution.organizationId}`}
-                    className="hover:underline"
-                  >
-                    {execution.organizationName}
-                  </Link>
-                </TableCell>
-                <TableCell>
-                  <Badge variant={getStatusVariant(execution.status)}>
-                    {execution.status}
-                  </Badge>
-                </TableCell>
-                <TableCell>{execution.usage}</TableCell>
-                <TableCell className="text-muted-foreground">
-                  {formatDate(execution.startedAt)}
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {execution.endedAt ? formatDate(execution.endedAt) : "-"}
-                </TableCell>
-              </TableRow>
-            ))}
-            {executions.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center py-8">
-                  No executions found
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      <DataTable
+        columns={columns}
+        data={executions}
+        emptyState={{
+          title: "No executions found",
+          description: "No executions match the current filters.",
+        }}
+      />
 
-      {(executions.length > 0 || page > 1) && (
-        <div className="flex items-center justify-between mt-4">
-          <p className="text-sm text-muted-foreground">
-            Showing {executions.length} execution
-            {executions.length !== 1 ? "s" : ""} on page {page}
-          </p>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page === 1}
-              onClick={() => setPage(page - 1)}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={executions.length < limit}
-              onClick={() => setPage(page + 1)}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      )}
+      <AdminPagination
+        page={page}
+        limit={limit}
+        itemCount={executions.length}
+        itemLabel="executions"
+        onPageChange={setPage}
+      />
     </InsetLayout>
   );
 }
