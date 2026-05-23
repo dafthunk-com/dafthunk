@@ -4,9 +4,12 @@ import type {
   WorkflowTrigger,
 } from "@dafthunk/types";
 import { ReactFlowProvider } from "@xyflow/react";
+import Building2 from "lucide-react/icons/building-2";
+import PlayCircle from "lucide-react/icons/play-circle";
 import { useCallback, useEffect, useMemo } from "react";
 import { useParams } from "react-router";
 
+import { AdminDetailContextBar } from "@/components/admin/admin-detail-context-bar";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { useBreadcrumbsSetter } from "@/components/page-context";
@@ -107,7 +110,21 @@ export function AdminWorkflowDetailPage() {
   return (
     <ReactFlowProvider>
       <div className="h-full w-full flex flex-col relative">
-        <div className="h-full w-full grow">
+        <AdminDetailContextBar
+          items={[
+            {
+              icon: Building2,
+              label: workflow.organizationName,
+              to: `/admin/organizations/${workflow.organizationId}`,
+            },
+            {
+              icon: PlayCircle,
+              label: "View executions",
+              to: `/admin/executions?workflowId=${workflow.id}&organizationId=${workflow.organizationId}`,
+            },
+          ]}
+        />
+        <div className="w-full grow min-h-0">
           <WorkflowBuilder
             workflowId={workflow.id}
             workflowName={workflow.name}

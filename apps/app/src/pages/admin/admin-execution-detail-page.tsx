@@ -6,9 +6,12 @@ import type {
   WorkflowTrigger,
 } from "@dafthunk/types";
 import { ReactFlowProvider } from "@xyflow/react";
+import Building2 from "lucide-react/icons/building-2";
+import Workflow from "lucide-react/icons/workflow";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "react-router";
 
+import { AdminDetailContextBar } from "@/components/admin/admin-detail-context-bar";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { useBreadcrumbsSetter } from "@/components/page-context";
@@ -184,7 +187,23 @@ export function AdminExecutionDetailPage() {
   return (
     <ReactFlowProvider>
       <div className="h-full w-full flex flex-col relative">
-        <div className="h-full w-full grow">
+        <AdminDetailContextBar
+          items={[
+            {
+              icon: Building2,
+              label: execution.organizationName,
+              to: `/admin/organizations/${execution.organizationId}`,
+            },
+            execution.workflowId
+              ? {
+                  icon: Workflow,
+                  label: execution.workflowName,
+                  to: `/admin/workflows/${execution.workflowId}`,
+                }
+              : { icon: Workflow, label: execution.workflowName },
+          ]}
+        />
+        <div className="w-full grow min-h-0">
           {reactFlowNodes.length > 0 &&
           workflowBuilderExecution &&
           nodeTypes !== undefined ? (

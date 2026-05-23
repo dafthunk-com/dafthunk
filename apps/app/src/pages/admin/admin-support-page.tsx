@@ -408,15 +408,37 @@ function ThreadDetail({
     <div className="flex flex-col h-full">
       <div className="px-4 py-2 border-b flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
-          <SenderAvatar
-            name={thread.fromName || thread.userName || thread.fromEmail}
-            avatarUrl={thread.userAvatarUrl}
-            linked={Boolean(thread.userId)}
-            className="h-10 w-10 shrink-0"
-          />
+          {thread.userId ? (
+            <Link to={`/admin/users/${thread.userId}`} aria-label="View user">
+              <SenderAvatar
+                name={thread.fromName || thread.userName || thread.fromEmail}
+                avatarUrl={thread.userAvatarUrl}
+                linked
+                className="h-10 w-10 shrink-0"
+              />
+            </Link>
+          ) : (
+            <SenderAvatar
+              name={thread.fromName || thread.userName || thread.fromEmail}
+              avatarUrl={thread.userAvatarUrl}
+              linked={false}
+              className="h-10 w-10 shrink-0"
+            />
+          )}
           <div className="min-w-0 h-10 flex flex-col justify-center leading-tight">
             <h2 className="font-semibold truncate">{thread.subject}</h2>
             <p className="text-sm text-muted-foreground truncate">
+              {thread.userId && thread.userName && (
+                <>
+                  <Link
+                    to={`/admin/users/${thread.userId}`}
+                    className="hover:underline"
+                  >
+                    {thread.userName}
+                  </Link>
+                  {" · "}
+                </>
+              )}
               <span className="font-mono">{thread.fromEmail}</span>
               {thread.userId && thread.organizationId && (
                 <>
