@@ -43,11 +43,17 @@ function createColumns(
     {
       accessorKey: "email",
       header: "Email",
-      cell: ({ row }) => (
-        <span className="text-muted-foreground">
-          {row.original.email || "-"}
-        </span>
-      ),
+      cell: ({ row }) =>
+        row.original.email ? (
+          <Link
+            to={`/admin/support?compose=1&to=${encodeURIComponent(row.original.email)}`}
+            className="text-muted-foreground hover:underline"
+          >
+            {row.original.email}
+          </Link>
+        ) : (
+          <span className="text-muted-foreground">-</span>
+        ),
     },
     {
       accessorKey: "plan",

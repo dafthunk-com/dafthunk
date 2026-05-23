@@ -44,11 +44,6 @@ function createColumns(
       header: "Workflows",
     },
     {
-      accessorKey: "computeCredits",
-      header: "Credits",
-      cell: ({ row }) => row.original.computeCredits.toLocaleString(),
-    },
-    {
       accessorKey: "subscriptionStatus",
       header: "Status",
       cell: ({ row }) =>

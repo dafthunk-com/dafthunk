@@ -227,9 +227,6 @@ export function AdminUserDetailPage() {
                 {user.role}
               </Badge>
               {user.developerMode && <Badge variant="outline">Developer</Badge>}
-              {user.tourCompleted && (
-                <Badge variant="outline">Tour Completed</Badge>
-              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4 text-sm">
