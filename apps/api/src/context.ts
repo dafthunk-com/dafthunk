@@ -76,7 +76,6 @@ export interface Bindings {
   STRIPE_WEBHOOK_SECRET?: string;
   STRIPE_PRICE_ID_PRO?: string;
   STRIPE_METER_ID?: string;
-  ONBOARDING_URL?: string;
   DISCORD_URL?: string;
   GITHUB_URL?: string;
 }

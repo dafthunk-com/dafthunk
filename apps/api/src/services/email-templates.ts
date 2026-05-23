@@ -6,7 +6,6 @@ export interface WelcomeEmailParams {
   userName: string;
   appUrl: string;
   websiteUrl: string;
-  onboardingUrl?: string;
   discordUrl?: string;
   githubUrl?: string;
 }
@@ -19,8 +18,7 @@ export function getWelcomeEmail(params: WelcomeEmailParams): {
   text: string;
   html: string;
 } {
-  const { userName, appUrl, websiteUrl, onboardingUrl, discordUrl, githubUrl } =
-    params;
+  const { userName, appUrl, websiteUrl, discordUrl, githubUrl } = params;
   const docsUrl = `${appUrl}/docs/concepts`;
 
   const subject = "Welcome to Dafthunk";
@@ -42,7 +40,7 @@ Here are some quick tips:
 • Bonus: it's open source (MIT). Self-host it and contribute
 • Learn more: ${docsUrl}
 
-${onboardingUrl ? `Want a walkthrough? Book an onboarding session: ${onboardingUrl}\n\n` : ""}${discordUrl ? `Prefer a quick chat? Join us on Discord: ${discordUrl}\n\n` : ""}${githubUrl ? `Want to help? Contribute on GitHub: ${githubUrl}\n\n` : ""}
+${discordUrl ? `Prefer a quick chat? Join us on Discord: ${discordUrl}\n\n` : ""}${githubUrl ? `Want to help? Contribute on GitHub: ${githubUrl}\n\n` : ""}
 
 Happy automating,
 Bertil Chapuis
@@ -65,7 +63,7 @@ ${websiteUrl}`;
 <li>Bonus: it's open source (MIT). Self-host it and contribute</li>
 <li><a href="${docsUrl}">Learn more</a></li>
 </ul>
-${onboardingUrl ? `<p>Want a walkthrough? <a href="${onboardingUrl}">Book an onboarding session</a></p>\n` : ""}${discordUrl ? `<p>Prefer a quick chat? <a href="${discordUrl}">Join us on Discord</a></p>\n` : ""}${githubUrl ? `<p>Want to help? <a href="${githubUrl}">Contribute on GitHub</a></p>\n` : ""}
+${discordUrl ? `<p>Prefer a quick chat? <a href="${discordUrl}">Join us on Discord</a></p>\n` : ""}${githubUrl ? `<p>Want to help? <a href="${githubUrl}">Contribute on GitHub</a></p>\n` : ""}
 <p>Happy automating,<br>Bertil Chapuis</p>
 <p>—<br>Dafthunk · Visual workflow automation<br><a href="${websiteUrl}">${websiteUrl}</a></p>`;
 

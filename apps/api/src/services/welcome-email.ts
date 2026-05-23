@@ -39,7 +39,6 @@ export async function sendWelcomeEmail(
     userName: user.name,
     appUrl: env.WEB_HOST,
     websiteUrl: env.WEBSITE_URL,
-    onboardingUrl: env.ONBOARDING_URL,
     discordUrl: env.DISCORD_URL,
     githubUrl: env.GITHUB_URL,
   });
