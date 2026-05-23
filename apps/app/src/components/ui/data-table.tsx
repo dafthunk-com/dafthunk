@@ -24,6 +24,7 @@ interface DataTableProps<TData, TValue> {
     title: string;
     description: string;
   };
+  bare?: boolean;
 }
 
 export function DataTable<TData, TValue>({
@@ -33,6 +34,7 @@ export function DataTable<TData, TValue>({
     title: "No results",
     description: "No data available.",
   },
+  bare = false,
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
@@ -41,73 +43,59 @@ export function DataTable<TData, TValue>({
   });
 
   if (data.length === 0) {
-    return (
-      <div className="border rounded-md bg-card">
-        <Table>
-          <TableBody>
-            <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
-                <div className="flex flex-col items-center justify-center py-8">
-                  <h3 className="font-semibold text-lg">{emptyState.title}</h3>
-                  <p className="text-muted-foreground mt-1">
-                    {emptyState.description}
-                  </p>
-                </div>
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </div>
+    const emptyTable = (
+      <Table>
+        <TableBody>
+          <TableRow>
+            <TableCell colSpan={columns.length} className="h-24 text-center">
+              <div className="flex flex-col items-center justify-center py-8">
+                <h3 className="font-semibold text-lg">{emptyState.title}</h3>
+                <p className="text-muted-foreground mt-1">
+                  {emptyState.description}
+                </p>
+              </div>
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
     );
+    if (bare) return emptyTable;
+    return <div className="border rounded-md bg-card">{emptyTable}</div>;
   }
 
-  return (
-    <div className="space-y-4">
-      <div className="rounded-md border bg-card">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                  </TableHead>
-                ))}
-              </TableRow>
+  const tableBody = (
+    <Table>
+      <TableHeader>
+        {table.getHeaderGroups().map((headerGroup) => (
+          <TableRow key={headerGroup.id}>
+            {headerGroup.headers.map((header) => (
+              <TableHead key={header.id}>
+                {header.isPlaceholder
+                  ? null
+                  : flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
+              </TableHead>
             ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-    </div>
+          </TableRow>
+        ))}
+      </TableHeader>
+      <TableBody>
+        {table.getRowModel().rows.map((row) => (
+          <TableRow key={row.id}>
+            {row.getVisibleCells().map((cell) => (
+              <TableCell key={cell.id}>
+                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+              </TableCell>
+            ))}
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   );
+
+  if (bare) return tableBody;
+
+  return <div className="rounded-md border bg-card">{tableBody}</div>;
 }

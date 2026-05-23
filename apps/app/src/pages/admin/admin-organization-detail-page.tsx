@@ -1,12 +1,14 @@
-import { useEffect } from "react";
-import { Link, useParams } from "react-router";
+import type { ColumnDef } from "@tanstack/react-table";
+import { useEffect, useMemo } from "react";
+import { Link, useNavigate, useParams } from "react-router";
+import { RoleBadge } from "@/components/admin/role-badge";
+import { RowActionsMenu } from "@/components/admin/row-actions-menu";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { useBreadcrumbsSetter } from "@/components/page-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -14,27 +16,88 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { DataTable } from "@/components/ui/data-table";
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
+  type AdminOrganizationMember,
   useAdminOrganizationDetail,
   useAdminOrganizationEntityCounts,
 } from "@/services/admin-service";
 import { formatDate } from "@/utils/date";
 
+function createMemberColumns(
+  navigate: ReturnType<typeof useNavigate>
+): ColumnDef<AdminOrganizationMember>[] {
+  return [
+    {
+      accessorKey: "userName",
+      header: "User",
+      cell: ({ row }) => (
+        <Link
+          to={`/admin/users/${row.original.userId}`}
+          className="flex items-center gap-2 font-medium hover:underline"
+        >
+          <Avatar className="h-8 w-8">
+            <AvatarImage src={row.original.userAvatarUrl || undefined} />
+            <AvatarFallback>
+              {row.original.userName?.charAt(0).toUpperCase() || "U"}
+            </AvatarFallback>
+          </Avatar>
+          <span>{row.original.userName}</span>
+        </Link>
+      ),
+    },
+    {
+      accessorKey: "userEmail",
+      header: "Email",
+      cell: ({ row }) => (
+        <span className="text-muted-foreground">
+          {row.original.userEmail || "-"}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "role",
+      header: "Role",
+      cell: ({ row }) => <RoleBadge role={row.original.role} />,
+    },
+    {
+      accessorKey: "joinedAt",
+      header: "Joined",
+      cell: ({ row }) => (
+        <span className="text-muted-foreground">
+          {formatDate(row.original.joinedAt)}
+        </span>
+      ),
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => (
+        <RowActionsMenu>
+          <DropdownMenuItem
+            onClick={() => navigate(`/admin/users/${row.original.userId}`)}
+          >
+            View user
+          </DropdownMenuItem>
+        </RowActionsMenu>
+      ),
+    },
+  ];
+}
+
 export function AdminOrganizationDetailPage() {
   const { organizationId } = useParams<{ organizationId: string }>();
+  const navigate = useNavigate();
   const { organization, members, organizationError, isOrganizationLoading } =
     useAdminOrganizationDetail(organizationId);
   const { entityCounts, isEntityCountsLoading } =
     useAdminOrganizationEntityCounts(organizationId);
   const setBreadcrumbs = useBreadcrumbsSetter();
+
+  const memberColumns = useMemo(
+    () => createMemberColumns(navigate),
+    [navigate]
+  );
 
   useEffect(() => {
     setBreadcrumbs([
@@ -166,68 +229,15 @@ export function AdminOrganizationDetailPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {members.length === 0 ? (
-            <p className="text-muted-foreground text-sm">
-              This organization has no members.
-            </p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>User</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Joined</TableHead>
-                  <TableHead></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {members.map((member) => (
-                  <TableRow key={member.userId}>
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage
-                            src={member.userAvatarUrl || undefined}
-                          />
-                          <AvatarFallback>
-                            {member.userName?.charAt(0).toUpperCase() || "U"}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span>{member.userName}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {member.userEmail || "-"}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          member.role === "owner"
-                            ? "default"
-                            : member.role === "admin"
-                              ? "secondary"
-                              : "outline"
-                        }
-                      >
-                        {member.role}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {formatDate(member.joinedAt)}
-                    </TableCell>
-                    <TableCell>
-                      <Button variant="ghost" size="sm" asChild>
-                        <Link to={`/admin/users/${member.userId}`}>
-                          View User
-                        </Link>
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+          <DataTable
+            bare
+            columns={memberColumns}
+            data={members}
+            emptyState={{
+              title: "No members",
+              description: "This organization has no members.",
+            }}
+          />
         </CardContent>
       </Card>
 

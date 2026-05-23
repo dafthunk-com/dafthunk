@@ -1,10 +1,13 @@
+import type { ColumnDef } from "@tanstack/react-table";
 import Github from "lucide-react/icons/github";
 import Mail from "lucide-react/icons/mail";
 import PenSquare from "lucide-react/icons/pen-square";
-import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 import { OnboardingFunnel } from "@/components/admin/onboarding-funnel";
+import { RoleBadge } from "@/components/admin/role-badge";
+import { RowActionsMenu } from "@/components/admin/row-actions-menu";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
@@ -29,15 +32,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { DataTable } from "@/components/ui/data-table";
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
+  type AdminUserMembership,
   resendAdminUserWelcomeEmail,
   useAdminUserDetail,
   useAdminUserExecutionsSummary,
@@ -45,8 +43,56 @@ import {
 } from "@/services/admin-service";
 import { formatDate } from "@/utils/date";
 
+function createMembershipColumns(
+  navigate: ReturnType<typeof useNavigate>
+): ColumnDef<AdminUserMembership>[] {
+  return [
+    {
+      accessorKey: "organizationName",
+      header: "Organization",
+      cell: ({ row }) => (
+        <Link
+          to={`/admin/organizations/${row.original.organizationId}`}
+          className="font-medium hover:underline"
+        >
+          {row.original.organizationName}
+        </Link>
+      ),
+    },
+    {
+      accessorKey: "role",
+      header: "Role",
+      cell: ({ row }) => <RoleBadge role={row.original.role} />,
+    },
+    {
+      accessorKey: "joinedAt",
+      header: "Joined",
+      cell: ({ row }) => (
+        <span className="text-muted-foreground">
+          {formatDate(row.original.joinedAt)}
+        </span>
+      ),
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => (
+        <RowActionsMenu>
+          <DropdownMenuItem
+            onClick={() =>
+              navigate(`/admin/organizations/${row.original.organizationId}`)
+            }
+          >
+            View organization
+          </DropdownMenuItem>
+        </RowActionsMenu>
+      ),
+    },
+  ];
+}
+
 export function AdminUserDetailPage() {
   const { userId } = useParams<{ userId: string }>();
+  const navigate = useNavigate();
   const { user, memberships, userError, isUserLoading } =
     useAdminUserDetail(userId);
   const { funnel, isFunnelLoading } = useAdminUserFunnel(userId);
@@ -55,6 +101,11 @@ export function AdminUserDetailPage() {
   const setBreadcrumbs = useBreadcrumbsSetter();
   const [resendOpen, setResendOpen] = useState(false);
   const [isResending, setIsResending] = useState(false);
+
+  const membershipColumns = useMemo(
+    () => createMembershipColumns(navigate),
+    [navigate]
+  );
 
   const onConfirmResend = async () => {
     if (!userId) return;
@@ -260,60 +311,15 @@ export function AdminUserDetailPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {memberships.length === 0 ? (
-            <p className="text-muted-foreground text-sm">
-              This user is not a member of any organizations.
-            </p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Organization</TableHead>
-                  <TableHead>Handle</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Joined</TableHead>
-                  <TableHead></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {memberships.map((membership) => (
-                  <TableRow key={membership.organizationId}>
-                    <TableCell className="font-medium">
-                      {membership.organizationName}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground font-mono text-sm">
-                      {membership.organizationId}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          membership.role === "owner"
-                            ? "default"
-                            : membership.role === "admin"
-                              ? "secondary"
-                              : "outline"
-                        }
-                      >
-                        {membership.role}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {formatDate(membership.joinedAt)}
-                    </TableCell>
-                    <TableCell>
-                      <Button variant="ghost" size="sm" asChild>
-                        <Link
-                          to={`/admin/organizations/${membership.organizationId}`}
-                        >
-                          View Org
-                        </Link>
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+          <DataTable
+            bare
+            columns={membershipColumns}
+            data={memberships}
+            emptyState={{
+              title: "No organizations",
+              description: "This user is not a member of any organizations.",
+            }}
+          />
         </CardContent>
       </Card>
     </InsetLayout>
