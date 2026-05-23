@@ -36,15 +36,6 @@ function createColumns(
       ),
     },
     {
-      accessorKey: "id",
-      header: "ID",
-      cell: ({ row }) => (
-        <span className="text-muted-foreground font-mono text-sm">
-          {row.original.id}
-        </span>
-      ),
-    },
-    {
       accessorKey: "memberCount",
       header: "Members",
     },

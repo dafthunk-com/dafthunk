@@ -7,6 +7,7 @@ import type {
 } from "@dafthunk/types";
 import { ReactFlowProvider } from "@xyflow/react";
 import Building2 from "lucide-react/icons/building-2";
+import Hash from "lucide-react/icons/hash";
 import Workflow from "lucide-react/icons/workflow";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "react-router";
@@ -201,6 +202,11 @@ export function AdminExecutionDetailPage() {
                   to: `/admin/workflows/${execution.workflowId}`,
                 }
               : { icon: Workflow, label: execution.workflowName },
+            {
+              icon: Hash,
+              label: execution.id,
+              mono: true,
+            },
           ]}
         />
         <div className="w-full grow min-h-0">

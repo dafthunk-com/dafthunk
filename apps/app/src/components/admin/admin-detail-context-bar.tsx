@@ -6,6 +6,7 @@ export interface AdminDetailContextBarItem {
   icon?: LucideIcon;
   label: string;
   to?: string;
+  mono?: boolean;
 }
 
 export function AdminDetailContextBar({
@@ -33,7 +34,9 @@ function ContextItem({ item }: { item: AdminDetailContextBarItem }) {
   const inner = (
     <>
       {Icon && <Icon className="h-4 w-4 shrink-0" />}
-      <span className="truncate">{item.label}</span>
+      <span className={item.mono ? "truncate font-mono text-xs" : "truncate"}>
+        {item.label}
+      </span>
     </>
   );
   if (item.to) {

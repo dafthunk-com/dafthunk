@@ -21,12 +21,7 @@ export function createOrgScopedColumns<T extends OrgScopedRow>(
       accessorKey: "name",
       header: "Name",
       cell: ({ row }) => (
-        <div>
-          <div className="font-medium">{row.original.name}</div>
-          <div className="text-xs text-muted-foreground font-mono">
-            {row.original.id}
-          </div>
-        </div>
+        <div className="font-medium">{row.original.name}</div>
       ),
     },
     {

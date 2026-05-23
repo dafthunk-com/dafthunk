@@ -5,6 +5,7 @@ import type {
 } from "@dafthunk/types";
 import { ReactFlowProvider } from "@xyflow/react";
 import Building2 from "lucide-react/icons/building-2";
+import Hash from "lucide-react/icons/hash";
 import PlayCircle from "lucide-react/icons/play-circle";
 import { useCallback, useEffect, useMemo } from "react";
 import { useParams } from "react-router";
@@ -121,6 +122,11 @@ export function AdminWorkflowDetailPage() {
               icon: PlayCircle,
               label: "View executions",
               to: `/admin/executions?workflowId=${workflow.id}&organizationId=${workflow.organizationId}`,
+            },
+            {
+              icon: Hash,
+              label: workflow.id,
+              mono: true,
             },
           ]}
         />

@@ -59,12 +59,9 @@ function createColumns(
       cell: ({ row }) => (
         <Link
           to={`/admin/executions/${row.original.id}?organizationId=${row.original.organizationId}`}
-          className="block hover:underline"
+          className="font-medium hover:underline"
         >
-          <div className="font-medium">{row.original.workflowName}</div>
-          <div className="text-xs text-muted-foreground font-mono">
-            {row.original.id.substring(0, 8)}...
-          </div>
+          {row.original.workflowName}
         </Link>
       ),
     },

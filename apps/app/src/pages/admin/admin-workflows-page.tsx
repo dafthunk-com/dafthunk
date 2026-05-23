@@ -28,17 +28,12 @@ function createColumns(
       accessorKey: "name",
       header: "Name",
       cell: ({ row }) => (
-        <div>
-          <Link
-            to={`/admin/workflows/${row.original.id}`}
-            className="font-medium hover:underline"
-          >
-            {row.original.name}
-          </Link>
-          <div className="text-xs text-muted-foreground font-mono">
-            {row.original.id}
-          </div>
-        </div>
+        <Link
+          to={`/admin/workflows/${row.original.id}`}
+          className="font-medium hover:underline"
+        >
+          {row.original.name}
+        </Link>
       ),
     },
     {
