@@ -61,17 +61,19 @@ adminSupportRoutes.get(
       // "all" shows both. Kept as a string union so the URL stays readable.
       view: z.enum(["inbox", "archived", "all"]).default("inbox"),
       search: z.string().optional(),
+      userId: z.string().optional(),
     })
   ),
   async (c) => {
     const db = createDatabase(c.env.DB);
-    const { page, limit, view, search } = c.req.valid("query");
+    const { page, limit, view, search, userId } = c.req.valid("query");
     const offset = (page - 1) * limit;
 
     const conditions = [];
     if (view === "inbox") conditions.push(isNull(threads.archivedAt));
     else if (view === "archived")
       conditions.push(isNotNull(threads.archivedAt));
+    if (userId) conditions.push(eq(threads.userId, userId));
     if (search) {
       const like_ = `%${search}%`;
       conditions.push(

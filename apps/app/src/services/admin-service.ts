@@ -824,13 +824,15 @@ export const useAdminSupportThreads = (
   page = 1,
   limit = 20,
   view: AdminThreadView = "inbox",
-  search?: string
+  search?: string,
+  userId?: string
 ) => {
   const params = new URLSearchParams({
     page: page.toString(),
     limit: limit.toString(),
     view,
     ...(search && { search }),
+    ...(userId && { userId }),
   });
   const key = `${ADMIN_API_ENDPOINT}/support/threads?${params}`;
   const { data, error, isLoading, mutate } = useSWR<{

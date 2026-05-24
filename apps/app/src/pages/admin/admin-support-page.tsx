@@ -4,6 +4,7 @@ import Inbox from "lucide-react/icons/inbox";
 import Paperclip from "lucide-react/icons/paperclip";
 import PenSquare from "lucide-react/icons/pen-square";
 import Send from "lucide-react/icons/send";
+import X from "lucide-react/icons/x";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import { toast } from "sonner";
@@ -49,6 +50,7 @@ import {
   useAdminSupportThread,
   useAdminSupportThreads,
   useAdminSupportUnreadCount,
+  useAdminUserDetail,
   useAdminUsers,
 } from "@/services/admin-service";
 import { formatDate } from "@/utils/date";
@@ -67,24 +69,56 @@ export function AdminSupportPage() {
     return () => setBreadcrumbs([]);
   }, [setBreadcrumbs]);
 
+  const [searchParams, setSearchParams] = useSearchParams();
+  // `?userId=` scopes the inbox to a single user (sticky filter, kept in the
+  // URL so it survives reload and can be shared). When scoped, default to the
+  // "all" view since the user typically wants every thread for that person.
+  const userIdFilter = searchParams.get("userId") || undefined;
+
   const [page, setPage] = useState(1);
-  const [view, setView] = useState<AdminThreadView>("inbox");
+  const [view, setView] = useState<AdminThreadView>(
+    userIdFilter ? "all" : "inbox"
+  );
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const limit = 30;
 
-  const { threads, pagination, threadsError, isThreadsLoading, mutateThreads } =
-    useAdminSupportThreads(page, limit, view, search || undefined);
-  const { mutateUnreadCount } = useAdminSupportUnreadCount();
+  // When the userId filter changes (cleared, swapped, or applied), reset
+  // pagination so we don't end up on a now-empty page.
+  useEffect(() => {
+    setPage(1);
+  }, [userIdFilter]);
 
-  const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
+  const { threads, pagination, threadsError, isThreadsLoading, mutateThreads } =
+    useAdminSupportThreads(
+      page,
+      limit,
+      view,
+      search || undefined,
+      userIdFilter
+    );
+  const { mutateUnreadCount } = useAdminSupportUnreadCount();
+  const { user: scopedUser } = useAdminUserDetail(userIdFilter);
+
+  // Seed the selected thread from `?threadId=` so deep-links from elsewhere
+  // (e.g. the user detail page's recent threads card) land on the right one.
+  // Read once, then drop the param so it doesn't pin the selection forever.
+  const [selectedThreadId, setSelectedThreadId] = useState<string | null>(() =>
+    searchParams.get("threadId")
+  );
+  useEffect(() => {
+    if (!searchParams.has("threadId")) return;
+    const next = new URLSearchParams(searchParams);
+    next.delete("threadId");
+    setSearchParams(next, { replace: true });
+  }, [searchParams, setSearchParams]);
+
   const [composeOpen, setComposeOpen] = useState(false);
   const [composeInitialTo, setComposeInitialTo] = useState("");
 
   // Deep-link from elsewhere in the admin UI: `?compose=1&to=user@x` opens the
   // composer with To: pre-filled. Strip the params after consuming so a reload
   // doesn't re-open the dialog.
-  const [searchParams, setSearchParams] = useSearchParams();
   useEffect(() => {
     if (searchParams.get("compose") !== "1") return;
     setComposeInitialTo(searchParams.get("to") ?? "");
@@ -94,6 +128,12 @@ export function AdminSupportPage() {
     next.delete("to");
     setSearchParams(next, { replace: true });
   }, [searchParams, setSearchParams]);
+
+  const clearUserFilter = () => {
+    const next = new URLSearchParams(searchParams);
+    next.delete("userId");
+    setSearchParams(next, { replace: true });
+  };
 
   useEffect(() => {
     if (threads.length === 0) return;
@@ -107,6 +147,34 @@ export function AdminSupportPage() {
 
   return (
     <div className="flex flex-col h-full">
+      {userIdFilter && (
+        <div className="flex items-center gap-2 px-4 py-2 border-b bg-neutral-50 dark:bg-neutral-900/50 text-sm">
+          <span className="text-muted-foreground">Filtered to user:</span>
+          <Link
+            to={`/admin/users/${userIdFilter}`}
+            className="font-medium hover:underline"
+          >
+            {scopedUser?.name ||
+              scopedUser?.email ||
+              threads.find((t) => t.userId === userIdFilter)?.userName ||
+              "Loading…"}
+          </Link>
+          {scopedUser?.email && (
+            <span className="text-muted-foreground font-mono text-xs">
+              {scopedUser.email}
+            </span>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 ml-auto"
+            onClick={clearUserFilter}
+          >
+            <X className="h-3.5 w-3.5 mr-1" />
+            Clear filter
+          </Button>
+        </div>
+      )}
       <div className="flex flex-col gap-2 px-4 py-2 border-b sm:flex-row sm:items-center">
         <form
           className="flex gap-2 flex-1"

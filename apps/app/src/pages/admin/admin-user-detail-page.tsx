@@ -1,5 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
+import Archive from "lucide-react/icons/archive";
 import Github from "lucide-react/icons/github";
+import Inbox from "lucide-react/icons/inbox";
 import Mail from "lucide-react/icons/mail";
 import PenSquare from "lucide-react/icons/pen-square";
 import { useEffect, useMemo, useState } from "react";
@@ -35,13 +37,67 @@ import {
 import { DataTable } from "@/components/ui/data-table";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import {
+  type AdminThreadSummary,
   type AdminUserMembership,
   resendAdminUserWelcomeEmail,
+  useAdminSupportThreads,
   useAdminUserDetail,
   useAdminUserExecutionsSummary,
   useAdminUserFunnel,
 } from "@/services/admin-service";
 import { formatDate } from "@/utils/date";
+
+function createThreadColumns(): ColumnDef<AdminThreadSummary>[] {
+  return [
+    {
+      accessorKey: "subject",
+      header: "Subject",
+      cell: ({ row }) => {
+        const thread = row.original;
+        const href = `/admin/support?userId=${encodeURIComponent(thread.userId ?? "")}&threadId=${thread.id}`;
+        return (
+          <div className="flex items-center gap-2 min-w-0">
+            {thread.unread && (
+              <span
+                className="h-2 w-2 rounded-full bg-blue-600 shrink-0"
+                aria-label="Unread"
+              />
+            )}
+            <Link
+              to={href}
+              className="font-medium hover:underline truncate"
+              title={thread.subject || "(no subject)"}
+            >
+              {thread.subject || "(no subject)"}
+            </Link>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "archivedAt",
+      header: "Status",
+      cell: ({ row }) =>
+        row.original.archivedAt ? (
+          <Badge variant="secondary" className="gap-1">
+            <Archive className="h-3 w-3" />
+            Archived
+          </Badge>
+        ) : (
+          <Badge variant="outline">Open</Badge>
+        ),
+    },
+    {
+      accessorKey: "lastMessageAt",
+      header: "Last message",
+      cell: ({ row }) => (
+        <span className="text-muted-foreground">
+          {formatDate(row.original.lastMessageAt)}
+        </span>
+      ),
+    },
+  ];
+}
 
 function createMembershipColumns(
   navigate: ReturnType<typeof useNavigate>
@@ -98,6 +154,11 @@ export function AdminUserDetailPage() {
   const { funnel, isFunnelLoading } = useAdminUserFunnel(userId);
   const { executionsSummary, isExecutionsSummaryLoading } =
     useAdminUserExecutionsSummary(userId);
+  const {
+    threads: recentThreads,
+    pagination: threadsPagination,
+    isThreadsLoading: isRecentThreadsLoading,
+  } = useAdminSupportThreads(1, 5, "all", undefined, userId);
   const setBreadcrumbs = useBreadcrumbsSetter();
   const [resendOpen, setResendOpen] = useState(false);
   const [isResending, setIsResending] = useState(false);
@@ -106,6 +167,10 @@ export function AdminUserDetailPage() {
     () => createMembershipColumns(navigate),
     [navigate]
   );
+  const threadColumns = useMemo(() => createThreadColumns(), []);
+  const supportFilterHref = userId
+    ? `/admin/support?userId=${encodeURIComponent(userId)}`
+    : "/admin/support";
 
   const onConfirmResend = async () => {
     if (!userId) return;
@@ -177,6 +242,12 @@ export function AdminUserDetailPage() {
               Start new thread
             </span>
           )}
+        </Button>
+        <Button variant="outline" asChild>
+          <Link to={supportFilterHref}>
+            <Inbox className="h-4 w-4 mr-2" />
+            View support threads
+          </Link>
         </Button>
       </div>
 
@@ -299,6 +370,37 @@ export function AdminUserDetailPage() {
           isExecutionsSummaryLoading={isExecutionsSummaryLoading}
         />
       </div>
+
+      <Card className="mt-6">
+        <CardHeader className="flex flex-row items-start justify-between gap-2">
+          <div>
+            <CardTitle>Recent Support Threads</CardTitle>
+            <CardDescription>
+              {isRecentThreadsLoading
+                ? "Loading…"
+                : threadsPagination
+                  ? `${threadsPagination.total} total (including archived)`
+                  : "Including archived threads"}
+            </CardDescription>
+          </div>
+          {threadsPagination && threadsPagination.total > 0 && (
+            <Button variant="outline" size="sm" asChild>
+              <Link to={supportFilterHref}>View all</Link>
+            </Button>
+          )}
+        </CardHeader>
+        <CardContent>
+          <DataTable
+            bare
+            columns={threadColumns}
+            data={recentThreads}
+            emptyState={{
+              title: "No support threads",
+              description: "This user has no support threads on file.",
+            }}
+          />
+        </CardContent>
+      </Card>
 
       <Card className="mt-6">
         <CardHeader>
