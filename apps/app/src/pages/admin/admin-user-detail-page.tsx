@@ -362,6 +362,26 @@ export function AdminUserDetailPage() {
         </Card>
       </div>
 
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>Organization Memberships</CardTitle>
+          <CardDescription>
+            Organizations this user belongs to ({memberships.length})
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <DataTable
+            bare
+            columns={membershipColumns}
+            data={memberships}
+            emptyState={{
+              title: "No organizations",
+              description: "This user is not a member of any organizations.",
+            }}
+          />
+        </CardContent>
+      </Card>
+
       <div className="mt-6">
         <OnboardingFunnel
           funnel={funnel}
@@ -397,26 +417,6 @@ export function AdminUserDetailPage() {
             emptyState={{
               title: "No support threads",
               description: "This user has no support threads on file.",
-            }}
-          />
-        </CardContent>
-      </Card>
-
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle>Organization Memberships</CardTitle>
-          <CardDescription>
-            Organizations this user belongs to ({memberships.length})
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <DataTable
-            bare
-            columns={membershipColumns}
-            data={memberships}
-            emptyState={{
-              title: "No organizations",
-              description: "This user is not a member of any organizations.",
             }}
           />
         </CardContent>
