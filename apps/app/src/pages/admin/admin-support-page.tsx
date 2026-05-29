@@ -5,7 +5,7 @@ import Paperclip from "lucide-react/icons/paperclip";
 import PenSquare from "lucide-react/icons/pen-square";
 import Send from "lucide-react/icons/send";
 import X from "lucide-react/icons/x";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import { toast } from "sonner";
 
@@ -141,14 +141,17 @@ export function AdminSupportPage() {
     if (!stillVisible) setSelectedThreadId(threads[0].id);
   }, [threads, selectedThreadId]);
 
-  // Selecting a thread triggers a GET /threads/:id, which marks it as read
-  // server-side. Optimistically clear the unread flag and decrement the
-  // sidebar badge so the UI updates immediately — revalidating the badge
-  // here would race with the server's read-mark.
+  // Mirror the server-side read-mark that GET /threads/:id will record.
+  // Refs keep mutate fns out of deps so SWR key changes don't re-fire.
+  const mutateThreadsRef = useRef(mutateThreads);
+  const mutateUnreadCountRef = useRef(mutateUnreadCount);
+  mutateThreadsRef.current = mutateThreads;
+  mutateUnreadCountRef.current = mutateUnreadCount;
   useEffect(() => {
     if (!selectedThreadId) return;
     let wasUnread = false;
-    mutateThreads(
+    let wasArchived = false;
+    mutateThreadsRef.current(
       (current) => {
         if (!current) return current;
         return {
@@ -156,14 +159,16 @@ export function AdminSupportPage() {
           threads: current.threads.map((t) => {
             if (t.id !== selectedThreadId) return t;
             wasUnread = t.unread;
+            wasArchived = t.archivedAt !== null;
             return { ...t, unread: false };
           }),
         };
       },
       { revalidate: false }
     );
-    if (wasUnread) {
-      mutateUnreadCount(
+    // /unread-count excludes archived threads; decrementing would under-report.
+    if (wasUnread && !wasArchived) {
+      mutateUnreadCountRef.current(
         (current) =>
           current && current.count > 0
             ? { count: current.count - 1 }
@@ -171,7 +176,7 @@ export function AdminSupportPage() {
         { revalidate: false }
       );
     }
-  }, [selectedThreadId, mutateThreads, mutateUnreadCount]);
+  }, [selectedThreadId]);
 
   if (threadsError) {
     return <InsetError title="Support" errorMessage={threadsError.message} />;
@@ -457,6 +462,18 @@ function ThreadDetail({
   useEffect(() => {
     setReplyText("");
   }, [threadId]);
+
+  // Sync the inbox list and badge to server truth after GET /threads/:id
+  // records the read-mark; covers the deep-link no-op optimistic path.
+  const onMutatedRef = useRef(onMutated);
+  onMutatedRef.current = onMutated;
+  const notifiedThreadIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (thread && notifiedThreadIdRef.current !== thread.id) {
+      notifiedThreadIdRef.current = thread.id;
+      onMutatedRef.current();
+    }
+  }, [thread]);
 
   if (isThreadLoading && !thread) {
     return (
