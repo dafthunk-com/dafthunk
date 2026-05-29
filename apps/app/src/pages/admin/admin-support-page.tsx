@@ -141,6 +141,38 @@ export function AdminSupportPage() {
     if (!stillVisible) setSelectedThreadId(threads[0].id);
   }, [threads, selectedThreadId]);
 
+  // Selecting a thread triggers a GET /threads/:id, which marks it as read
+  // server-side. Optimistically clear the unread flag and decrement the
+  // sidebar badge so the UI updates immediately — revalidating the badge
+  // here would race with the server's read-mark.
+  useEffect(() => {
+    if (!selectedThreadId) return;
+    let wasUnread = false;
+    mutateThreads(
+      (current) => {
+        if (!current) return current;
+        return {
+          ...current,
+          threads: current.threads.map((t) => {
+            if (t.id !== selectedThreadId) return t;
+            wasUnread = t.unread;
+            return { ...t, unread: false };
+          }),
+        };
+      },
+      { revalidate: false }
+    );
+    if (wasUnread) {
+      mutateUnreadCount(
+        (current) =>
+          current && current.count > 0
+            ? { count: current.count - 1 }
+            : current,
+        { revalidate: false }
+      );
+    }
+  }, [selectedThreadId, mutateThreads, mutateUnreadCount]);
+
   if (threadsError) {
     return <InsetError title="Support" errorMessage={threadsError.message} />;
   }

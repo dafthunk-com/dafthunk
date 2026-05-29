@@ -67,7 +67,7 @@ function NavMainItem({ item }: { item: NavMainItem }) {
             {item.title}
           </span>
           {item.badgeCount && item.badgeCount > 0 ? (
-            <span className="ml-auto rounded-full bg-blue-600 text-white text-[10px] leading-none px-1.5 py-0.5 group-data-[collapsible=icon]:hidden">
+            <span className="ml-auto rounded-full bg-blue-600 text-white! text-[10px] leading-none px-1.5 py-0.5 group-data-[collapsible=icon]:hidden">
               {item.badgeCount > 99 ? "99+" : item.badgeCount}
             </span>
           ) : null}
