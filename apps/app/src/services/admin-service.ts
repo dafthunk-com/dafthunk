@@ -1,3 +1,4 @@
+import type { GetBillingResponse } from "@dafthunk/types";
 import useSWR from "swr";
 
 import { getApiBaseUrl } from "@/config/api";
@@ -416,6 +417,25 @@ export const useAdminUserExecutionsSummary = (userId: string | undefined) => {
     executionsSummaryError: error || null,
     isExecutionsSummaryLoading: isLoading,
     mutateExecutionsSummary: mutate,
+  };
+};
+
+/**
+ * Hook to fetch billing info (including KV-stored compute usage) for a user's
+ * primary organization. Same shape as the public `useBilling` hook.
+ */
+export const useAdminUserBilling = (userId: string | undefined) => {
+  const swrKey = userId ? `${ADMIN_API_ENDPOINT}/users/${userId}/billing` : null;
+  const { data, error, isLoading, mutate } = useSWR<GetBillingResponse>(
+    swrKey,
+    swrKey ? async () => makeRequest<GetBillingResponse>(swrKey) : null
+  );
+
+  return {
+    billing: data?.billing || null,
+    billingError: error || null,
+    isBillingLoading: isLoading,
+    mutateBilling: mutate,
   };
 };
 

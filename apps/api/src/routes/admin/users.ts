@@ -1,8 +1,10 @@
+import type { GetBillingResponse } from "@dafthunk/types";
 import { zValidator } from "@hono/zod-validator";
 import { desc, eq, like, or, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { z } from "zod";
 
+import { PRO_INCLUDED_CREDITS, TRIAL_CREDITS } from "../../constants/billing";
 import { ApiContext } from "../../context";
 import {
   createDatabase,
@@ -12,6 +14,7 @@ import {
   users,
 } from "../../db";
 import { sendWelcomeEmail } from "../../services/welcome-email";
+import { getOrganizationComputeUsage } from "../../utils/credits";
 
 type OnboardingStage =
   | "signed_up"
@@ -188,6 +191,60 @@ adminUsersRoutes.get("/:id", async (c) => {
     console.error("Error fetching admin user detail:", error);
     return c.json({ error: "Failed to fetch user" }, 500);
   }
+});
+
+/**
+ * GET /admin/users/:id/billing
+ *
+ * Get billing info (including KV-stored compute usage) for the user's primary
+ * organization. Mirrors the shape of the public `GET /billing` endpoint so the
+ * admin UI can reuse the same usage card.
+ */
+adminUsersRoutes.get("/:id/billing", async (c) => {
+  const db = createDatabase(c.env.DB);
+  const userId = c.req.param("id");
+
+  const [user] = await db
+    .select({ organizationId: users.organizationId })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  if (!user) {
+    return c.json({ error: "User not found" }, 404);
+  }
+
+  const [org] = await db
+    .select()
+    .from(organizations)
+    .where(eq(organizations.id, user.organizationId))
+    .limit(1);
+
+  if (!org) {
+    return c.json({ error: "Organization not found" }, 404);
+  }
+
+  const usageThisPeriod = await getOrganizationComputeUsage(
+    c.env.KV,
+    user.organizationId
+  );
+
+  const plan = resolveOrganizationPlan(org);
+  const includedCredits = plan === "pro" ? PRO_INCLUDED_CREDITS : TRIAL_CREDITS;
+
+  const response: GetBillingResponse = {
+    billing: {
+      plan: plan as "trial" | "pro",
+      subscriptionStatus: org.subscriptionStatus ?? undefined,
+      currentPeriodStart: org.currentPeriodStart ?? undefined,
+      currentPeriodEnd: org.currentPeriodEnd ?? undefined,
+      usageThisPeriod,
+      includedCredits,
+      overageLimit: org.overageLimit ?? null,
+    },
+  };
+
+  return c.json(response);
 });
 
 /**

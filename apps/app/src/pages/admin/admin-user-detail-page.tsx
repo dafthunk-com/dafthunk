@@ -41,6 +41,7 @@ import {
   type AdminUserMembership,
   resendAdminUserWelcomeEmail,
   useAdminSupportThreads,
+  useAdminUserBilling,
   useAdminUserDetail,
   useAdminUserExecutionsSummary,
   useAdminUserFunnel,
@@ -154,6 +155,7 @@ export function AdminUserDetailPage() {
   const { funnel, isFunnelLoading } = useAdminUserFunnel(userId);
   const { executionsSummary, isExecutionsSummaryLoading } =
     useAdminUserExecutionsSummary(userId);
+  const { billing, isBillingLoading } = useAdminUserBilling(userId);
   const {
     threads: recentThreads,
     pagination: threadsPagination,
@@ -381,6 +383,106 @@ export function AdminUserDetailPage() {
           />
         </CardContent>
       </Card>
+
+      {(() => {
+        if (isBillingLoading) {
+          return (
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle>Usage</CardTitle>
+                <CardDescription>Loading…</CardDescription>
+              </CardHeader>
+            </Card>
+          );
+        }
+        if (!billing) return null;
+        const isPro = billing.plan === "pro";
+        const usageThisPeriod = billing.usageThisPeriod ?? 0;
+        const includedCredits = billing.includedCredits ?? 0;
+        const usagePercent = includedCredits
+          ? Math.min(100, (usageThisPeriod / includedCredits) * 100)
+          : 0;
+        const hasOverageLimit = billing.overageLimit != null;
+        const currentOverage = Math.max(0, usageThisPeriod - includedCredits);
+        const overageLimit = billing.overageLimit ?? 0;
+        const isOverageAtLimit = hasOverageLimit && currentOverage >= overageLimit;
+        return (
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                Usage
+                <Badge variant={isPro ? "default" : "secondary"}>
+                  {isPro ? "Early Adopter" : "Trial"}
+                </Badge>
+              </CardTitle>
+              <CardDescription>
+                {isPro
+                  ? "Monthly credits reset each billing period"
+                  : "One-time credits for Trial accounts"}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="font-medium">
+                    {isPro ? "Included Usage" : "Available Usage"}
+                  </span>
+                  <span>
+                    {Math.min(usageThisPeriod, includedCredits).toLocaleString()} /{" "}
+                    {includedCredits.toLocaleString()}
+                  </span>
+                </div>
+                <div className="h-3 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-primary transition-all rounded-full"
+                    style={{ width: `${usagePercent}%` }}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {usagePercent < 100
+                    ? `${(includedCredits - usageThisPeriod).toLocaleString()} remaining`
+                    : isPro
+                      ? "Included usage exhausted"
+                      : "Usage exhausted"}
+                </p>
+              </div>
+
+              {isPro && (
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="font-medium">Additional Usage</span>
+                    <span>
+                      {currentOverage.toLocaleString()}
+                      {hasOverageLimit && ` / ${overageLimit.toLocaleString()}`}
+                    </span>
+                  </div>
+                  <div className="h-3 bg-muted rounded-full overflow-hidden">
+                    {currentOverage > 0 && (
+                      <div
+                        className={`h-full transition-all rounded-full ${isOverageAtLimit ? "bg-red-500" : "bg-orange-500"}`}
+                        style={{
+                          width: hasOverageLimit
+                            ? `${Math.min(100, (currentOverage / overageLimit) * 100)}%`
+                            : `${Math.min(100, (currentOverage / includedCredits) * 100)}%`,
+                        }}
+                      />
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {currentOverage > 0
+                      ? isOverageAtLimit
+                        ? "Limit reached - executions will be blocked"
+                        : "Billed at the end of the billing period"
+                      : hasOverageLimit
+                        ? `Limit: ${overageLimit.toLocaleString()} credits`
+                        : "No overage charges yet"}
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        );
+      })()}
 
       <div className="mt-6">
         <OnboardingFunnel
