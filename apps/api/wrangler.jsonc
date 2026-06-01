@@ -224,8 +224,8 @@
     "WEBSITE_URL": "https://www.dafthunk.com",
     "EMAIL_DOMAIN": "mail.dafthunk.com",
     "SEND_EMAIL_FROM": "noreply@mail.dafthunk.com",
-    "SUPPORT_EMAIL_HANDLE": "support",
-    "SUPPORT_EMAIL_FROM": "support@mail.dafthunk.com",
+    "SUPPORT_EMAIL_HANDLE": "bertil",
+    "SUPPORT_EMAIL_FROM": "bertil@dafthunk.com",
     // Placeholder for the future AutoRAG instance over the INBOXES bucket;
     // wire it up via the Cloudflare dashboard, then set this to the name.
     "INBOXES_AUTORAG": ""
@@ -410,8 +410,8 @@
         "WEBSITE_URL": "https://www.dafthunk.com",
         "EMAIL_DOMAIN": "mail.dafthunk.com",
         "SEND_EMAIL_FROM": "noreply@mail.dafthunk.com",
-        "SUPPORT_EMAIL_HANDLE": "support",
-        "SUPPORT_EMAIL_FROM": "support@mail.dafthunk.com",
+        "SUPPORT_EMAIL_HANDLE": "bertil",
+        "SUPPORT_EMAIL_FROM": "bertil@dafthunk.com",
         // Placeholder for the future AutoRAG instance over the INBOXES bucket;
         // wire it up via the Cloudflare dashboard, then set this to the name.
         "INBOXES_AUTORAG": ""
