@@ -425,7 +425,9 @@ export const useAdminUserExecutionsSummary = (userId: string | undefined) => {
  * primary organization. Same shape as the public `useBilling` hook.
  */
 export const useAdminUserBilling = (userId: string | undefined) => {
-  const swrKey = userId ? `${ADMIN_API_ENDPOINT}/users/${userId}/billing` : null;
+  const swrKey = userId
+    ? `${ADMIN_API_ENDPOINT}/users/${userId}/billing`
+    : null;
   const { data, error, isLoading, mutate } = useSWR<GetBillingResponse>(
     swrKey,
     swrKey ? async () => makeRequest<GetBillingResponse>(swrKey) : null

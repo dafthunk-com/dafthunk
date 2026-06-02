@@ -170,9 +170,7 @@ export function AdminSupportPage() {
     if (wasUnread && !wasArchived) {
       mutateUnreadCountRef.current(
         (current) =>
-          current && current.count > 0
-            ? { count: current.count - 1 }
-            : current,
+          current && current.count > 0 ? { count: current.count - 1 } : current,
         { revalidate: false }
       );
     }

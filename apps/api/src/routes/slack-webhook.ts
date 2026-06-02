@@ -11,6 +11,7 @@ import {
   resolveOrganizationBillingOptions,
 } from "../db";
 import { getAgentByName } from "../durable-objects/agent-utils";
+import { isOrganizationCreditExhausted } from "../runtime/cloudflare-credit-service";
 import { createWorkerRuntime } from "../runtime/cloudflare-worker-runtime";
 import { WorkflowStore } from "../stores/workflow-store";
 import { decryptSecret } from "../utils/encryption";
@@ -290,10 +291,24 @@ async function executeWorkflow(
     return;
   }
 
+  const billingOptions = resolveOrganizationBillingOptions(
+    billingInfo,
+    env.CLOUDFLARE_ENV
+  );
+
+  if (
+    await isOrganizationCreditExhausted(env, organizationId, billingOptions)
+  ) {
+    console.log(
+      `[SlackWebhook] Skipping workflow ${workflow.id}: credits exhausted`
+    );
+    return;
+  }
+
   const executionParams = {
     userId: "slack_trigger",
     organizationId,
-    ...resolveOrganizationBillingOptions(billingInfo, env.CLOUDFLARE_ENV),
+    ...billingOptions,
     workflow: {
       id: workflow.id,
       name: workflow.name,

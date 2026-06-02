@@ -7,6 +7,7 @@ import {
   resolveOrganizationBillingOptions,
 } from "./db/queries";
 import { getAgentByName } from "./durable-objects/agent-utils";
+import { isOrganizationCreditExhausted } from "./runtime/cloudflare-credit-service";
 import { createWorkerRuntime } from "./runtime/cloudflare-worker-runtime";
 import { WorkflowStore } from "./stores/workflow-store";
 
@@ -38,10 +39,28 @@ async function executeWorkflow(
       return;
     }
 
+    const billingOptions = resolveOrganizationBillingOptions(
+      billingInfo,
+      env.CLOUDFLARE_ENV
+    );
+
+    if (
+      await isOrganizationCreditExhausted(
+        env,
+        workflowInfo.organizationId,
+        billingOptions
+      )
+    ) {
+      console.log(
+        `Skipping queue trigger for workflow ${workflowInfo.id}: credits exhausted`
+      );
+      return;
+    }
+
     const executionParams = {
       userId: "queue_trigger",
       organizationId: workflowInfo.organizationId,
-      ...resolveOrganizationBillingOptions(billingInfo, env.CLOUDFLARE_ENV),
+      ...billingOptions,
       workflow: {
         id: workflowInfo.id,
         name: workflowData.name,

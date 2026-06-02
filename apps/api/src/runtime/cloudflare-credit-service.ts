@@ -1,5 +1,6 @@
 import type { CreditCheckParams, CreditService } from "@dafthunk/runtime";
 
+import type { Bindings } from "../context";
 import {
   getOrganizationComputeUsage,
   updateOrganizationComputeUsage,
@@ -69,4 +70,36 @@ export class CloudflareCreditService implements CreditService {
       await updateOrganizationComputeUsage(this.kv, organizationId, usage);
     }
   }
+}
+
+/**
+ * Cheap pre-check used by non-interactive triggers (scheduled, email, queue,
+ * bot webhooks) to skip executions when the organisation is already out of
+ * credits — preventing noisy `exhausted` execution records from piling up
+ * for every cron tick or incoming event. Uses a baseline `estimatedUsage` of
+ * 1 so the runtime's precise per-workflow check remains the canonical gate.
+ */
+export async function isOrganizationCreditExhausted(
+  env: Bindings,
+  organizationId: string,
+  billing: {
+    computeCredits: number;
+    subscriptionStatus?: string;
+    overageLimit?: number | null;
+    unlimitedUsage?: boolean;
+  }
+): Promise<boolean> {
+  const creditService = new CloudflareCreditService(
+    env.KV,
+    env.CLOUDFLARE_ENV === "development"
+  );
+  const hasCredits = await creditService.hasEnoughCredits({
+    organizationId,
+    estimatedUsage: 1,
+    computeCredits: billing.computeCredits,
+    subscriptionStatus: billing.subscriptionStatus,
+    overageLimit: billing.overageLimit ?? null,
+    unlimitedUsage: billing.unlimitedUsage,
+  });
+  return !hasCredits;
 }

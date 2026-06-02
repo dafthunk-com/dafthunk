@@ -405,7 +405,8 @@ export function AdminUserDetailPage() {
         const hasOverageLimit = billing.overageLimit != null;
         const currentOverage = Math.max(0, usageThisPeriod - includedCredits);
         const overageLimit = billing.overageLimit ?? 0;
-        const isOverageAtLimit = hasOverageLimit && currentOverage >= overageLimit;
+        const isOverageAtLimit =
+          hasOverageLimit && currentOverage >= overageLimit;
         return (
           <Card className="mt-6">
             <CardHeader>
@@ -428,8 +429,11 @@ export function AdminUserDetailPage() {
                     {isPro ? "Included Usage" : "Available Usage"}
                   </span>
                   <span>
-                    {Math.min(usageThisPeriod, includedCredits).toLocaleString()} /{" "}
-                    {includedCredits.toLocaleString()}
+                    {Math.min(
+                      usageThisPeriod,
+                      includedCredits
+                    ).toLocaleString()}{" "}
+                    / {includedCredits.toLocaleString()}
                   </span>
                 </div>
                 <div className="h-3 bg-muted rounded-full overflow-hidden">
