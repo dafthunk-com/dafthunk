@@ -262,7 +262,9 @@ export function AdminOrganizationDetailPage() {
           <Card className="hover:bg-muted/50 transition-colors">
             <CardHeader className="pb-2">
               <CardDescription>Executions</CardDescription>
-              <CardTitle className="text-2xl">-</CardTitle>
+              <CardTitle className="text-2xl">
+                {entityCounts?.executionCount ?? "-"}
+              </CardTitle>
             </CardHeader>
           </Card>
         </Link>

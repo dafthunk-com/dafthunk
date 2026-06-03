@@ -163,6 +163,7 @@ export interface AdminOrganizationEntityCounts {
   queueCount: number;
   datasetCount: number;
   databaseCount: number;
+  executionCount: number;
 }
 
 export interface AdminWorkflow {

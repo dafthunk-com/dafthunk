@@ -153,12 +153,18 @@ adminOrganizationsRoutes.get("/:id", async (c) => {
 /**
  * GET /admin/organizations/:id/entity-counts
  *
- * Get counts of all entities (workflows, emails, queues, datasets, databases)
- * for a specific organization in a single request
+ * Get counts of all entities (workflows, executions, emails, queues, datasets,
+ * databases) for a specific organization in a single request
  */
 adminOrganizationsRoutes.get("/:id/entity-counts", async (c) => {
   const db = createDatabase(c.env.DB);
   const organizationId = c.req.param("id");
+
+  // organizationId comes from a URL path segment but is used directly in an
+  // Analytics Engine SQL string, so validate its shape before interpolating.
+  if (!/^[a-zA-Z0-9_-]+$/.test(organizationId)) {
+    return c.json({ error: "Invalid organization id" }, 400);
+  }
 
   try {
     // Verify organization exists
@@ -178,6 +184,7 @@ adminOrganizationsRoutes.get("/:id/entity-counts", async (c) => {
       queueCountResult,
       datasetCountResult,
       databaseCountResult,
+      executionCount,
     ] = await Promise.all([
       db
         .select({ count: count() })
@@ -199,6 +206,7 @@ adminOrganizationsRoutes.get("/:id/entity-counts", async (c) => {
         .select({ count: count() })
         .from(databases)
         .where(eq(databases.organizationId, organizationId)),
+      fetchExecutionCount(c.env, organizationId),
     ]);
 
     return c.json({
@@ -207,11 +215,57 @@ adminOrganizationsRoutes.get("/:id/entity-counts", async (c) => {
       queueCount: queueCountResult[0]?.count ?? 0,
       datasetCount: datasetCountResult[0]?.count ?? 0,
       databaseCount: databaseCountResult[0]?.count ?? 0,
+      executionCount,
     });
   } catch (error) {
     console.error("Error fetching admin organization entity counts:", error);
     return c.json({ error: "Failed to fetch entity counts" }, 500);
   }
 });
+
+/**
+ * Count executions for an organization from Cloudflare Analytics Engine.
+ */
+async function fetchExecutionCount(
+  env: ApiContext["Bindings"],
+  organizationId: string
+): Promise<number> {
+  if (!env.CLOUDFLARE_ACCOUNT_ID || !env.CLOUDFLARE_API_TOKEN) {
+    return 0;
+  }
+
+  const dataset =
+    (env.CLOUDFLARE_ENV || "development") === "production"
+      ? "dafthunk_executions_production"
+      : "dafthunk_executions_development";
+
+  // CF Analytics Engine SQL requires `COUNT()` with zero arguments — `COUNT(*)`
+  // is rejected with `COUNT() function must have 0 arguments`.
+  const aeSql = `
+    SELECT COUNT() AS count
+    FROM ${dataset}
+    WHERE index1 = '${organizationId}'
+  `;
+
+  const url = `https://api.cloudflare.com/client/v4/accounts/${env.CLOUDFLARE_ACCOUNT_ID}/analytics_engine/sql`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${env.CLOUDFLARE_API_TOKEN}` },
+    body: aeSql,
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    console.error(
+      `Admin execution count query failed: ${response.status} - ${error}`
+    );
+    return 0;
+  }
+
+  const result = (await response.json()) as {
+    data?: Array<{ count: number }>;
+  };
+  return Number(result.data?.[0]?.count ?? 0);
+}
 
 export default adminOrganizationsRoutes;
