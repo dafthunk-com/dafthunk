@@ -454,6 +454,155 @@ export const resendAdminUserWelcomeEmail = async (
   );
 };
 
+export type StuckStage = Exclude<OnboardingStage, "workflow_executed_ok">;
+
+export const STUCK_STAGES: StuckStage[] = [
+  "signed_up",
+  "tour_completed",
+  "workflow_created",
+  "workflow_executed",
+];
+
+// Virtual cohort surfaced as a tab alongside stuck stages. Users at any
+// pre-activation stage who've been idle 30+ days; mutually exclusive
+// with the stage tabs (which are capped at <30 days).
+export type ListStage = StuckStage | "dormant";
+
+export const LIST_STAGES: ListStage[] = [...STUCK_STAGES, "dormant"];
+
+export const LIST_STAGE_LABEL: Record<ListStage, string> = {
+  ...ONBOARDING_STAGE_LABEL,
+  dormant: "Dormant",
+} as Record<ListStage, string>;
+
+export interface AdminStuckSummary {
+  minDays: number;
+  dormantDays: number;
+  counts: Record<ListStage, number>;
+}
+
+export interface AdminStuckUser extends Omit<AdminUser, "furthestStage"> {
+  furthestStage: ListStage;
+  furthestStageAt: Date;
+  daysSinceAdvance: number;
+}
+
+/**
+ * Hook to fetch per-stage counts of users currently stuck in the funnel.
+ */
+export const useAdminStuckSummary = (minDays = 7) => {
+  const key = `${ADMIN_API_ENDPOINT}/onboarding/summary?minDays=${minDays}`;
+  const { data, error, isLoading, mutate } = useSWR<AdminStuckSummary>(
+    key,
+    async () => makeRequest<AdminStuckSummary>(key)
+  );
+  return {
+    stuckSummary: data || null,
+    stuckSummaryError: error || null,
+    isStuckSummaryLoading: isLoading,
+    mutateStuckSummary: mutate,
+  };
+};
+
+/**
+ * Hook to fetch the paginated list of users stuck at a single stage,
+ * oldest-stuck first.
+ */
+export const useAdminStuckUsers = (
+  stage: ListStage | null,
+  minDays = 7,
+  page = 1,
+  limit = 20
+) => {
+  const params = new URLSearchParams({
+    stage: stage ?? "",
+    minDays: minDays.toString(),
+    page: page.toString(),
+    limit: limit.toString(),
+  });
+  const key = stage
+    ? `${ADMIN_API_ENDPOINT}/onboarding?${params.toString()}`
+    : null;
+  const { data, error, isLoading, mutate } = useSWR<{
+    users: AdminStuckUser[];
+    pagination: PaginationInfo;
+  }>(
+    key,
+    key
+      ? async () =>
+          makeRequest<{ users: AdminStuckUser[]; pagination: PaginationInfo }>(
+            key
+          )
+      : null
+  );
+  return {
+    stuckUsers: data?.users || [],
+    pagination: data?.pagination || null,
+    stuckUsersError: error || null,
+    isStuckUsersLoading: isLoading,
+    mutateStuckUsers: mutate,
+  };
+};
+
+export interface AdminOnboardingDraft {
+  draft: { subject: string; body: string; reasoning: string };
+  // Only the per-user signals the model actually saw, so the admin can
+  // audit the draft against its inputs without surprise. Notably absent:
+  // org-scoped execution counts and error messages, which were producing
+  // contradictory drafts when teammate activity got attributed to the
+  // recipient.
+  context: {
+    furthestStage: StuckStage;
+    daysSinceAdvance: number;
+    isDormant: boolean;
+    orgWorkflowNames: string[];
+    pastSupportMessages: {
+      direction: "inbound" | "outbound";
+      subject: string;
+      snippet: string;
+      createdAt: Date;
+    }[];
+  };
+  suggestedTemplate: {
+    id: string;
+    name: string;
+    description: string;
+    tryUrl: string;
+  } | null;
+}
+
+/**
+ * Ask the server to draft a personalized onboarding message for a user.
+ * The server pulls funnel + execution context, ranks workflow templates,
+ * then calls Workers AI. The admin then edits the result before sending.
+ */
+export const draftAdminOnboardingMessage = async (
+  userId: string
+): Promise<AdminOnboardingDraft> => {
+  return makeRequest<AdminOnboardingDraft>(
+    `${ADMIN_API_ENDPOINT}/onboarding/users/${userId}/draft-message`,
+    { method: "POST" }
+  );
+};
+
+/**
+ * Send the (admin-edited) onboarding draft as a new support thread.
+ */
+export const sendAdminOnboardingMessage = async (
+  userId: string,
+  payload: {
+    subject: string;
+    body: string;
+    suggestedTemplateId?: string;
+    includeTemplateLink?: boolean;
+  }
+): Promise<{ ok: true; threadId: string; messageId: string }> => {
+  return makeRequest<{ ok: true; threadId: string; messageId: string }>(
+    `${ADMIN_API_ENDPOINT}/onboarding/users/${userId}/send-message`,
+    { method: "POST", body: JSON.stringify(payload) }
+  );
+};
+
 /**
  * Hook to fetch admin organizations list
  */

@@ -7,6 +7,7 @@ import Mail from "lucide-react/icons/mail";
 import Play from "lucide-react/icons/play";
 
 import Table from "lucide-react/icons/table";
+import UserMinus from "lucide-react/icons/user-minus";
 import Users from "lucide-react/icons/users";
 import Workflow from "lucide-react/icons/workflow";
 import { ReactNode } from "react";
@@ -45,6 +46,11 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           title: "Users",
           url: "/admin/users",
           icon: Users,
+        },
+        {
+          title: "Onboarding",
+          url: "/admin/onboarding",
+          icon: UserMinus,
         },
         {
           title: "Organizations",

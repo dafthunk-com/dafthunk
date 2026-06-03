@@ -4,8 +4,9 @@ import Github from "lucide-react/icons/github";
 import Inbox from "lucide-react/icons/inbox";
 import Mail from "lucide-react/icons/mail";
 import PenSquare from "lucide-react/icons/pen-square";
-import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router";
+import Sparkles from "lucide-react/icons/sparkles";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import { toast } from "sonner";
 import { OnboardingFunnel } from "@/components/admin/onboarding-funnel";
 import { RoleBadge } from "@/components/admin/role-badge";
@@ -35,11 +36,26 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
-import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  type AdminOnboardingDraft,
   type AdminThreadSummary,
   type AdminUserMembership,
+  draftAdminOnboardingMessage,
   resendAdminUserWelcomeEmail,
+  sendAdminOnboardingMessage,
   useAdminSupportThreads,
   useAdminUserBilling,
   useAdminUserDetail,
@@ -164,6 +180,19 @@ export function AdminUserDetailPage() {
   const setBreadcrumbs = useBreadcrumbsSetter();
   const [resendOpen, setResendOpen] = useState(false);
   const [isResending, setIsResending] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [draftOpen, setDraftOpen] = useState(false);
+  const [isDrafting, setIsDrafting] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [draft, setDraft] = useState<AdminOnboardingDraft | null>(null);
+  const [draftSubject, setDraftSubject] = useState("");
+  const [draftBody, setDraftBody] = useState("");
+  const [includeTemplateLink, setIncludeTemplateLink] = useState(true);
+  // Bumped on every openDraft so an in-flight AI call from a previous
+  // invocation (slow Workers AI, dialog cancelled and reopened, StrictMode
+  // double-mount) does not clobber the latest dialog's state.
+  const draftRequestIdRef = useRef(0);
+  const autoOpenAttemptedRef = useRef(false);
 
   const membershipColumns = useMemo(
     () => createMembershipColumns(navigate),
@@ -189,6 +218,71 @@ export function AdminUserDetailPage() {
       setIsResending(false);
     }
   };
+
+  const openDraft = async () => {
+    if (!userId || isDrafting) return;
+    const requestId = ++draftRequestIdRef.current;
+    setDraftOpen(true);
+    setIsDrafting(true);
+    setDraft(null);
+    setDraftSubject("");
+    setDraftBody("");
+    setIncludeTemplateLink(true);
+    try {
+      const result = await draftAdminOnboardingMessage(userId);
+      // Ignore the response if a newer openDraft has fired since.
+      if (requestId !== draftRequestIdRef.current) return;
+      setDraft(result);
+      setDraftSubject(result.draft.subject);
+      setDraftBody(result.draft.body);
+    } catch (e) {
+      if (requestId !== draftRequestIdRef.current) return;
+      toast.error(e instanceof Error ? e.message : "Failed to draft message");
+      setDraftOpen(false);
+    } finally {
+      if (requestId === draftRequestIdRef.current) {
+        setIsDrafting(false);
+      }
+    }
+  };
+
+  const onSendDraft = async () => {
+    if (!userId || !draft) return;
+    setIsSending(true);
+    try {
+      await sendAdminOnboardingMessage(userId, {
+        subject: draftSubject.trim(),
+        body: draftBody.trim(),
+        suggestedTemplateId: draft.suggestedTemplate?.id,
+        includeTemplateLink:
+          Boolean(draft.suggestedTemplate) && includeTemplateLink,
+      });
+      toast.success("Onboarding message sent");
+      setDraftOpen(false);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to send message");
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  // Auto-open the draft dialog when arriving with ?compose=draft (deep
+  // link from the stuck-users page). The ref-flag is the single source of
+  // truth for "already fired in this mount" — necessary because in
+  // StrictMode the effect runs twice on mount before the setSearchParams
+  // commit propagates, and the stale closure-captured state guards
+  // (isDrafting, draftOpen) would both still read `false`.
+  useEffect(() => {
+    if (autoOpenAttemptedRef.current) return;
+    if (searchParams.get("compose") !== "draft") return;
+    if (!userId) return;
+    autoOpenAttemptedRef.current = true;
+    const next = new URLSearchParams(searchParams);
+    next.delete("compose");
+    setSearchParams(next, { replace: true });
+    openDraft();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, userId]);
 
   useEffect(() => {
     setBreadcrumbs([
@@ -218,6 +312,15 @@ export function AdminUserDetailPage() {
   return (
     <InsetLayout title="User Details">
       <div className="flex flex-wrap gap-2 mb-6">
+        <Button
+          variant="outline"
+          onClick={openDraft}
+          disabled={!hasEmail || isDrafting}
+          title={hasEmail ? undefined : "User has no email on file"}
+        >
+          <Sparkles className="h-4 w-4 mr-2" />
+          Draft personalized message
+        </Button>
         <Button
           variant="outline"
           onClick={() => setResendOpen(true)}
@@ -252,6 +355,125 @@ export function AdminUserDetailPage() {
           </Link>
         </Button>
       </div>
+
+      <Dialog open={draftOpen} onOpenChange={setDraftOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Draft personalized onboarding message</DialogTitle>
+            <DialogDescription>
+              Workers AI drafts a message from the user's funnel stage, recent
+              errors, and the workflows they tried. Edit before sending — the
+              email opens a new support thread, so any reply will land in
+              /admin/support.
+            </DialogDescription>
+          </DialogHeader>
+
+          {isDrafting && (
+            <p className="text-sm text-muted-foreground">
+              Drafting with Workers AI…
+            </p>
+          )}
+
+          {!isDrafting && draft && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="draft-subject">Subject</Label>
+                <Input
+                  id="draft-subject"
+                  value={draftSubject}
+                  onChange={(e) => setDraftSubject(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="draft-body">Message</Label>
+                <Textarea
+                  id="draft-body"
+                  rows={12}
+                  value={draftBody}
+                  onChange={(e) => setDraftBody(e.target.value)}
+                />
+              </div>
+
+              {draft.suggestedTemplate && (
+                <div className="rounded-md border bg-muted/30 p-3 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <div>
+                      <div className="text-sm font-medium">
+                        Suggested template: {draft.suggestedTemplate.name}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {draft.suggestedTemplate.description}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Switch
+                        id="include-template"
+                        checked={includeTemplateLink}
+                        onCheckedChange={setIncludeTemplateLink}
+                      />
+                      <Label
+                        htmlFor="include-template"
+                        className="text-xs cursor-pointer"
+                      >
+                        Include link
+                      </Label>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="rounded-md border p-3 text-xs text-muted-foreground space-y-1">
+                <div className="font-medium text-foreground">
+                  What the model saw
+                </div>
+                <div>
+                  {draft.context.isDormant ? "Dormant" : "Stuck"} at{" "}
+                  <span className="font-medium">
+                    {draft.context.furthestStage}
+                  </span>{" "}
+                  for {draft.context.daysSinceAdvance} day
+                  {draft.context.daysSinceAdvance === 1 ? "" : "s"}.
+                </div>
+                {draft.context.orgWorkflowNames.length > 0 && (
+                  <div>
+                    Workflows in workspace (may be teammates'):{" "}
+                    {draft.context.orgWorkflowNames.slice(0, 5).join(", ")}
+                  </div>
+                )}
+                {draft.context.pastSupportMessages.length > 0 && (
+                  <div>
+                    Past support: {draft.context.pastSupportMessages.length}{" "}
+                    message
+                    {draft.context.pastSupportMessages.length === 1 ? "" : "s"}{" "}
+                    considered.
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDraftOpen(false)}
+              disabled={isSending}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={onSendDraft}
+              disabled={
+                isSending ||
+                isDrafting ||
+                !draftSubject.trim() ||
+                !draftBody.trim()
+              }
+            >
+              {isSending ? "Sending…" : "Send"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog open={resendOpen} onOpenChange={setResendOpen}>
         <AlertDialogContent>

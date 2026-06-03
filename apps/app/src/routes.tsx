@@ -22,6 +22,7 @@ import { AdminExecutionsPage } from "./pages/admin/admin-executions-page";
 import { AdminOrganizationDetailPage } from "./pages/admin/admin-organization-detail-page";
 import { AdminOrganizationsPage } from "./pages/admin/admin-organizations-page";
 import { AdminQueuesPage } from "./pages/admin/admin-queues-page";
+import { AdminStuckUsersPage } from "./pages/admin/admin-stuck-users-page";
 import { AdminSupportPage } from "./pages/admin/admin-support-page";
 import { AdminUserDetailPage } from "./pages/admin/admin-user-detail-page";
 import { AdminUsersPage } from "./pages/admin/admin-users-page";
@@ -164,6 +165,19 @@ export const routes: AppRouteObject[] = [
       </AdminLayout>
     ),
     handle: { head: <HeadSeo title="Users - Admin - Dafthunk" /> },
+  },
+  {
+    path: "/admin/onboarding",
+    element: (
+      <AdminLayout>
+        <AdminProtectedRoute>
+          <AdminStuckUsersPage />
+        </AdminProtectedRoute>
+      </AdminLayout>
+    ),
+    handle: {
+      head: <HeadSeo title="Stuck in Funnel - Admin - Dafthunk" />,
+    },
   },
   {
     path: "/admin/users/:userId",

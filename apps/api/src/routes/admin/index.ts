@@ -9,6 +9,7 @@ import adminEmailsRoutes from "./emails";
 import adminExecutionsRoutes from "./executions";
 import adminObjectsRoutes from "./objects";
 import adminOnboardingRoutes from "./onboarding";
+import adminOnboardingMessageRoutes from "./onboarding-message";
 import adminOrganizationsRoutes from "./organizations";
 import adminQueuesRoutes from "./queues";
 import adminStatsRoutes from "./stats";
@@ -27,6 +28,7 @@ adminRoutes.use("*", adminMiddleware);
 // Mount admin sub-routes
 adminRoutes.route("/stats", adminStatsRoutes);
 adminRoutes.route("/onboarding", adminOnboardingRoutes);
+adminRoutes.route("/onboarding", adminOnboardingMessageRoutes);
 adminRoutes.route("/users", adminUsersRoutes);
 adminRoutes.route("/organizations", adminOrganizationsRoutes);
 adminRoutes.route("/workflows", adminWorkflowsRoutes);
