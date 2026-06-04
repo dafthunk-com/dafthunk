@@ -48,7 +48,7 @@ export const ONBOARDING_STAGE_LABEL: Record<OnboardingStage, string> = {
   signed_up: "Signed up",
   tour_completed: "Tour completed",
   workflow_created: "Workflow created",
-  workflow_executed: "Workflow executed",
+  workflow_executed: "Attempted execution",
   workflow_executed_ok: "Successful execution",
 };
 

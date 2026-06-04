@@ -40,8 +40,9 @@ export function GlobalOnboardingFunnel({
       <CardHeader>
         <CardTitle>Onboarding funnel</CardTitle>
         <CardDescription>
-          How many users have reached each onboarding stage across the platform.
-          Stages are stamped in D1 on first occurrence per user.
+          How many users have ever reached each onboarding stage. Counts are
+          cumulative — a user who succeeded is included in every earlier stage
+          too.
         </CardDescription>
       </CardHeader>
       <CardContent>
