@@ -18,9 +18,8 @@ export {
 export type { CredentialService } from "./credential-service";
 export type {
   BillingContext,
-  CreditCheckParams,
+  CreditParams,
   CreditService,
-  SettleAvailabilityParams,
 } from "./credit-service";
 export { isUsageExhausted } from "./credit-service";
 export type {

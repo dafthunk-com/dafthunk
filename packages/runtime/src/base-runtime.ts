@@ -390,19 +390,9 @@ export abstract class Runtime<Env = unknown> {
       // ========================================================================
       // STEP 2: Check compute credit availability
       // ========================================================================
-      const estimatedUsage = workflow.nodes.reduce((acc, node) => {
-        try {
-          const nodeType = this.nodeRegistry.getNodeType(node.type);
-          return acc + (nodeType.usage ?? 1);
-        } catch (_error) {
-          return acc + 1;
-        }
-      }, 0);
-
       const hasCredits = await this.creditService.hasEnoughCredits({
         organizationId,
         computeCredits,
-        estimatedUsage,
         subscriptionStatus,
         overageLimit,
         unlimitedUsage,
@@ -457,35 +447,44 @@ export abstract class Runtime<Env = unknown> {
       executionRecord.endedAt = new Date();
 
       // ========================================================================
-      // STEP 5: Record usage + settle exhausted cache (own retry boundary)
+      // STEP 5: Record usage + settle exhausted cache
       // ========================================================================
-      // Separate step so a transient credit-service failure can't prevent the
-      // execution record from being persisted in STEP 6.
-      if (executionContext && !isExhausted) {
-        const actualTotalUsage = Object.values(executionState.nodeUsage).reduce(
-          (sum, usage) => sum + usage,
-          0
-        );
-        if (actualTotalUsage > 0) {
-          try {
-            await this.executeStep("record compute usage", async () =>
-              this.creditService.recordUsage(organizationId, actualTotalUsage)
-            );
-            await this.executeStep("settle credit availability", async () =>
-              this.creditService.settleAvailability({
-                organizationId,
-                computeCredits,
-                subscriptionStatus,
-                overageLimit,
-                unlimitedUsage,
-              })
-            );
-          } catch (error) {
-            console.error(
-              `[Runtime] Failed to record compute usage for workflow=${workflow.id}`,
-              error instanceof Error ? error.message : String(error)
-            );
+      // Settle runs on every execution, including exhausted ones, so the
+      // cache flips and non-interactive triggers stop retrying.
+      if (executionContext) {
+        if (!isExhausted) {
+          const actualTotalUsage = Object.values(
+            executionState.nodeUsage
+          ).reduce((sum, usage) => sum + usage, 0);
+          if (actualTotalUsage > 0) {
+            try {
+              await this.executeStep("record compute usage", async () =>
+                this.creditService.recordUsage(organizationId, actualTotalUsage)
+              );
+            } catch (error) {
+              console.error(
+                `[Runtime] Failed to record compute usage for workflow=${workflow.id}`,
+                error instanceof Error ? error.message : String(error)
+              );
+            }
           }
+        }
+
+        try {
+          await this.executeStep("settle credit availability", async () =>
+            this.creditService.settleAvailability({
+              organizationId,
+              computeCredits,
+              subscriptionStatus,
+              overageLimit,
+              unlimitedUsage,
+            })
+          );
+        } catch (error) {
+          console.error(
+            `[Runtime] Failed to settle credit availability for workflow=${workflow.id}`,
+            error instanceof Error ? error.message : String(error)
+          );
         }
       }
 
