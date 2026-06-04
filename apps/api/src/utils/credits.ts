@@ -20,7 +20,6 @@ export async function updateOrganizationComputeUsage(
 ): Promise<void> {
   const usageKey = getUsageKey(organizationId);
   const currentUsage = parseInt((await KV.get(usageKey)) ?? "0");
-
   await KV.put(usageKey, (currentUsage + usage).toString());
 }
 
@@ -36,10 +35,31 @@ export async function resetOrganizationComputeUsage(
   await KV.put(usageKey, "0");
 }
 
-/**
- * Gets the usage key for an organization.
- * Format: {organizationId}:compute-usage
- */
 function getUsageKey(organizationId: string): string {
   return `${organizationId}:compute-usage`;
+}
+
+export function creditChecksEnabled(cloudflareEnv?: string): boolean {
+  return cloudflareEnv !== "development";
+}
+
+export function isCreditExhausted(
+  billingInfo: { creditsExhausted: boolean; unlimitedUsage: boolean },
+  cloudflareEnv?: string
+): boolean {
+  if (!creditChecksEnabled(cloudflareEnv)) return false;
+  if (billingInfo.unlimitedUsage) return false;
+  return billingInfo.creditsExhausted;
+}
+
+/**
+ * Drizzle `.set()` fragment that clears the exhausted cache. Use at every
+ * site that restores availability so the invalidation surface stays
+ * greppable.
+ */
+export function clearCreditsExhausted(): {
+  creditsExhausted: false;
+  updatedAt: Date;
+} {
+  return { creditsExhausted: false, updatedAt: new Date() };
 }

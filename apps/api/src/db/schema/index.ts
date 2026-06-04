@@ -167,6 +167,9 @@ export const organizations = sqliteTable(
     unlimitedUsage: integer("unlimited_usage", { mode: "boolean" })
       .notNull()
       .default(false),
+    creditsExhausted: integer("credits_exhausted", { mode: "boolean" })
+      .notNull()
+      .default(false),
     createdAt: createCreatedAt(),
     updatedAt: createUpdatedAt(),
   },
@@ -178,6 +181,7 @@ export const organizations = sqliteTable(
       table.stripeSubscriptionId
     ),
     index("organizations_subscription_status_idx").on(table.subscriptionStatus),
+    index("organizations_credits_exhausted_idx").on(table.creditsExhausted),
   ]
 );
 

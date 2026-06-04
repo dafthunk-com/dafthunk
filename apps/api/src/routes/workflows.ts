@@ -58,6 +58,7 @@ import { CloudflareNodeRegistry } from "../runtime/cloudflare-node-registry";
 import { WorkflowExecutor } from "../services/workflow-executor";
 import { WorkflowStore } from "../stores/workflow-store";
 import { getAuthContext } from "../utils/auth-context";
+import { isCreditExhausted } from "../utils/credits";
 import { decryptSecret } from "../utils/encryption";
 import {
   isExecutionPreparationError,
@@ -399,6 +400,10 @@ async function executeWorkflow(
   const billingInfo = await getOrganizationBillingInfo(db, organizationId);
   if (!billingInfo) {
     return c.json({ error: "Organization not found" }, 404);
+  }
+
+  if (isCreditExhausted(billingInfo, c.env.CLOUDFLARE_ENV)) {
+    return c.json({ error: "Insufficient compute credits" }, 402 as const);
   }
 
   // Prepare workflow for execution

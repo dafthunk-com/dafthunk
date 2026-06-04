@@ -182,6 +182,7 @@ class MockWorkflowEntrypoint extends WorkflowEntrypoint<
       creditService: {
         hasEnoughCredits: async () => true,
         recordUsage: async () => {},
+        settleAvailability: async () => {},
       },
       objectStore,
       toolRegistry,

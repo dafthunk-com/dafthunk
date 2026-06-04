@@ -16,7 +16,10 @@ import { PRO_INCLUDED_CREDITS, TRIAL_CREDITS } from "../constants/billing";
 import type { ApiContext } from "../context";
 import { createDatabase, organizations, resolveOrganizationPlan } from "../db";
 import { createStripeService } from "../services/stripe-service";
-import { getOrganizationComputeUsage } from "../utils/credits";
+import {
+  clearCreditsExhausted,
+  getOrganizationComputeUsage,
+} from "../utils/credits";
 
 const billing = new Hono<ApiContext>();
 
@@ -175,10 +178,25 @@ billing.patch(
     const { overageLimit } = c.req.valid("json");
     const db = createDatabase(c.env.DB);
 
-    // Update the overage limit
+    // Lowering the cap can't restore availability, so only clear the
+    // exhausted cache when the cap was raised or removed.
+    const [prior] = await db
+      .select({ overageLimit: organizations.overageLimit })
+      .from(organizations)
+      .where(eq(organizations.id, organizationId))
+      .limit(1);
+
+    const priorLimit = prior?.overageLimit ?? null;
+    const wasRaised =
+      overageLimit === null ||
+      (priorLimit !== null && overageLimit > priorLimit);
+
     await db
       .update(organizations)
-      .set({ overageLimit, updatedAt: new Date() })
+      .set({
+        overageLimit,
+        ...(wasRaised ? clearCreditsExhausted() : { updatedAt: new Date() }),
+      })
       .where(eq(organizations.id, organizationId));
 
     const response: UpdateOverageLimitResponse = { overageLimit };

@@ -6,7 +6,10 @@ import { PRO_INCLUDED_CREDITS } from "../constants/billing";
 import type { ApiContext } from "../context";
 import { createDatabase, organizations, SubscriptionStatus } from "../db";
 import { createStripeService } from "../services/stripe-service";
-import { resetOrganizationComputeUsage } from "../utils/credits";
+import {
+  clearCreditsExhausted,
+  resetOrganizationComputeUsage,
+} from "../utils/credits";
 
 const stripeWebhooks = new Hono<ApiContext>();
 
@@ -113,14 +116,13 @@ async function handleCheckoutCompleted(
     return;
   }
 
-  // Update organization with Stripe IDs
   await db
     .update(organizations)
     .set({
       stripeCustomerId: customerId,
       stripeSubscriptionId: subscriptionId,
       subscriptionStatus: SubscriptionStatus.ACTIVE,
-      updatedAt: new Date(),
+      ...clearCreditsExhausted(),
     })
     .where(eq(organizations.id, organizationId));
 
@@ -180,12 +182,14 @@ async function handleSubscriptionDeleted(
     return;
   }
 
-  // Update organization to canceled
+  // Without clearing the cache here, a Pro+overage-exhausted org at
+  // cancellation time would stay locked out forever — no further webhook
+  // would fire to clear the flag.
   await db
     .update(organizations)
     .set({
       subscriptionStatus: SubscriptionStatus.CANCELED,
-      updatedAt: new Date(),
+      ...clearCreditsExhausted(),
     })
     .where(eq(organizations.id, org.id));
 
@@ -297,31 +301,37 @@ async function updateOrganizationSubscription(
   const periodStart = subscriptionItem?.current_period_start;
   const periodEnd = subscriptionItem?.current_period_end;
 
-  // Check if billing period has changed (new billing cycle started)
-  // If so, reset usage counter in KV
-  if (periodStart) {
-    const [currentOrg] = await db
-      .select({ currentPeriodStart: organizations.currentPeriodStart })
-      .from(organizations)
-      .where(eq(organizations.id, organizationId))
-      .limit(1);
+  // We detect genuine transitions (status going active, period actually
+  // rolling) to avoid clearing the exhausted cache on every noisy webhook.
+  const [currentOrg] = await db
+    .select({
+      subscriptionStatus: organizations.subscriptionStatus,
+      currentPeriodStart: organizations.currentPeriodStart,
+    })
+    .from(organizations)
+    .where(eq(organizations.id, organizationId))
+    .limit(1);
 
-    const newPeriodStart = new Date(periodStart * 1000);
-    const existingPeriodStart = currentOrg?.currentPeriodStart
-      ? new Date(currentOrg.currentPeriodStart)
-      : null;
+  const newPeriodStart = periodStart ? new Date(periodStart * 1000) : null;
+  const existingPeriodStart = currentOrg?.currentPeriodStart
+    ? new Date(currentOrg.currentPeriodStart)
+    : null;
+  const periodChanged =
+    newPeriodStart !== null &&
+    (existingPeriodStart === null ||
+      newPeriodStart.getTime() !== existingPeriodStart.getTime());
 
-    // Reset usage if period start has changed (new billing cycle)
-    if (
-      !existingPeriodStart ||
-      newPeriodStart.getTime() !== existingPeriodStart.getTime()
-    ) {
-      await resetOrganizationComputeUsage(KV, organizationId);
-      console.log(
-        `Reset compute usage for org ${organizationId} (new billing period: ${newPeriodStart.toISOString()})`
-      );
-    }
+  if (periodChanged) {
+    await resetOrganizationComputeUsage(KV, organizationId);
+    console.log(
+      `Reset compute usage for org ${organizationId} (new billing period: ${newPeriodStart.toISOString()})`
+    );
   }
+
+  const becameActive =
+    subscriptionStatus === SubscriptionStatus.ACTIVE &&
+    currentOrg?.subscriptionStatus !== SubscriptionStatus.ACTIVE;
+  const restored = becameActive || periodChanged;
 
   await db
     .update(organizations)
@@ -329,7 +339,7 @@ async function updateOrganizationSubscription(
       subscriptionStatus: subscriptionStatus as any,
       currentPeriodStart: periodStart ? new Date(periodStart * 1000) : null,
       currentPeriodEnd: periodEnd ? new Date(periodEnd * 1000) : null,
-      updatedAt: new Date(),
+      ...(restored ? clearCreditsExhausted() : { updatedAt: new Date() }),
     })
     .where(eq(organizations.id, organizationId));
 }

@@ -1,5 +1,5 @@
 import * as crypto from "crypto";
-import { and, eq } from "drizzle-orm";
+import { and, eq, or } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 
 import { TRIAL_CREDITS } from "../constants/billing";
@@ -1583,16 +1583,34 @@ export async function deleteBotTrigger(
  * @returns Array of scheduled trigger records with workflow info
  */
 export async function getActiveScheduledTriggers(
-  db: ReturnType<typeof createDatabase>
+  db: ReturnType<typeof createDatabase>,
+  filterExhaustedOrgs = true
 ) {
+  // The OR on `unlimitedUsage` is defensive: the flag should never be true
+  // for unlimited orgs, but a misordered admin update could leave it set.
+  const creditFilter = filterExhaustedOrgs
+    ? or(
+        eq(organizations.creditsExhausted, false),
+        eq(organizations.unlimitedUsage, true)
+      )
+    : undefined;
   return await db
     .select({
       scheduledTrigger: scheduledTriggers,
       workflow: workflows,
+      organizationBilling: {
+        computeCredits: organizations.computeCredits,
+        subscriptionStatus: organizations.subscriptionStatus,
+        currentPeriodEnd: organizations.currentPeriodEnd,
+        overageLimit: organizations.overageLimit,
+        unlimitedUsage: organizations.unlimitedUsage,
+        creditsExhausted: organizations.creditsExhausted,
+      },
     })
     .from(scheduledTriggers)
     .innerJoin(workflows, eq(scheduledTriggers.workflowId, workflows.id))
-    .where(eq(scheduledTriggers.active, true));
+    .innerJoin(organizations, eq(workflows.organizationId, organizations.id))
+    .where(and(eq(scheduledTriggers.active, true), creditFilter));
 }
 
 /**
@@ -1673,6 +1691,7 @@ export async function getOrganizationBillingInfo(
       currentPeriodEnd: Date | null;
       overageLimit: number | null;
       unlimitedUsage: boolean;
+      creditsExhausted: boolean;
     }
   | undefined
 > {
@@ -1683,6 +1702,7 @@ export async function getOrganizationBillingInfo(
       currentPeriodEnd: organizations.currentPeriodEnd,
       overageLimit: organizations.overageLimit,
       unlimitedUsage: organizations.unlimitedUsage,
+      creditsExhausted: organizations.creditsExhausted,
     })
     .from(organizations)
     .where(eq(organizations.id, organizationId))

@@ -7,10 +7,10 @@ import {
   resolveOrganizationBillingOptions,
 } from "./db";
 import { getAgentByName } from "./durable-objects/agent-utils";
-import { isOrganizationCreditExhausted } from "./runtime/cloudflare-credit-service";
 import { createWorkerRuntime } from "./runtime/cloudflare-worker-runtime";
 import { WorkflowStore } from "./stores/workflow-store";
 import { handleSupportEmail } from "./support-email";
+import { isCreditExhausted } from "./utils/credits";
 
 async function streamToString(
   stream: ReadableStream<Uint8Array>
@@ -188,19 +188,17 @@ async function triggerWorkflowForEmail({
     return;
   }
 
-  const billingOptions = resolveOrganizationBillingOptions(
-    billingInfo,
-    env.CLOUDFLARE_ENV
-  );
-
-  if (
-    await isOrganizationCreditExhausted(env, organizationId, billingOptions)
-  ) {
+  if (isCreditExhausted(billingInfo, env.CLOUDFLARE_ENV)) {
     console.log(
       `Discarding email for workflow ${workflow.id}: credits exhausted`
     );
     return;
   }
+
+  const billingOptions = resolveOrganizationBillingOptions(
+    billingInfo,
+    env.CLOUDFLARE_ENV
+  );
 
   const executionParams = {
     userId: "email_trigger",

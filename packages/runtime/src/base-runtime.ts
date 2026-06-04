@@ -457,7 +457,40 @@ export abstract class Runtime<Env = unknown> {
       executionRecord.endedAt = new Date();
 
       // ========================================================================
-      // STEP 5: Persist final state with credit usage
+      // STEP 5: Record usage + settle exhausted cache (own retry boundary)
+      // ========================================================================
+      // Separate step so a transient credit-service failure can't prevent the
+      // execution record from being persisted in STEP 6.
+      if (executionContext && !isExhausted) {
+        const actualTotalUsage = Object.values(executionState.nodeUsage).reduce(
+          (sum, usage) => sum + usage,
+          0
+        );
+        if (actualTotalUsage > 0) {
+          try {
+            await this.executeStep("record compute usage", async () =>
+              this.creditService.recordUsage(organizationId, actualTotalUsage)
+            );
+            await this.executeStep("settle credit availability", async () =>
+              this.creditService.settleAvailability({
+                organizationId,
+                computeCredits,
+                subscriptionStatus,
+                overageLimit,
+                unlimitedUsage,
+              })
+            );
+          } catch (error) {
+            console.error(
+              `[Runtime] Failed to record compute usage for workflow=${workflow.id}`,
+              error instanceof Error ? error.message : String(error)
+            );
+          }
+        }
+      }
+
+      // ========================================================================
+      // STEP 6: Persist final execution record
       // ========================================================================
       if (executionContext) {
         const ctx = executionContext;
@@ -469,17 +502,6 @@ export abstract class Runtime<Env = unknown> {
               : caughtError
                 ? ("error" as const)
                 : getExecutionStatus(ctx, executionState);
-
-            // Record actual usage
-            if (!isExhausted) {
-              const actualTotalUsage = Object.values(
-                executionState.nodeUsage
-              ).reduce((sum, usage) => sum + usage, 0);
-              await this.creditService.recordUsage(
-                organizationId,
-                actualTotalUsage
-              );
-            }
 
             // Create error report if there are node errors
             const errorReport =

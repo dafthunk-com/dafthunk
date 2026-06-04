@@ -30,6 +30,7 @@ import { createRateLimitMiddleware } from "../middleware/rate-limit";
 import { WorkflowExecutor } from "../services/workflow-executor";
 import { WorkflowStore } from "../stores/workflow-store";
 import { getAuthContext } from "../utils/auth-context";
+import { isCreditExhausted } from "../utils/credits";
 import {
   isExecutionPreparationError,
   prepareWorkflowExecution,
@@ -229,6 +230,10 @@ endpointRoutes.on(
     const billingInfo = await getOrganizationBillingInfo(db, organizationId);
     if (!billingInfo) {
       return c.json({ error: "Organization not found" }, 404);
+    }
+
+    if (isCreditExhausted(billingInfo, c.env.CLOUDFLARE_ENV)) {
+      return c.json({ error: "Insufficient compute credits" }, 402 as const);
     }
 
     const workflowStore = new WorkflowStore(c.env);

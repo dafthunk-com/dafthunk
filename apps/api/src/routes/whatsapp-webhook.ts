@@ -11,9 +11,9 @@ import {
   resolveOrganizationBillingOptions,
 } from "../db";
 import { getAgentByName } from "../durable-objects/agent-utils";
-import { isOrganizationCreditExhausted } from "../runtime/cloudflare-credit-service";
 import { createWorkerRuntime } from "../runtime/cloudflare-worker-runtime";
 import { WorkflowStore } from "../stores/workflow-store";
+import { isCreditExhausted } from "../utils/credits";
 import { decryptSecret } from "../utils/encryption";
 
 const whatsappWebhook = new Hono<ApiContext>();
@@ -329,19 +329,17 @@ async function executeWorkflow(
     return;
   }
 
-  const billingOptions = resolveOrganizationBillingOptions(
-    billingInfo,
-    env.CLOUDFLARE_ENV
-  );
-
-  if (
-    await isOrganizationCreditExhausted(env, organizationId, billingOptions)
-  ) {
+  if (isCreditExhausted(billingInfo, env.CLOUDFLARE_ENV)) {
     console.log(
       `[WhatsAppWebhook] Skipping workflow ${workflow.id}: credits exhausted`
     );
     return;
   }
+
+  const billingOptions = resolveOrganizationBillingOptions(
+    billingInfo,
+    env.CLOUDFLARE_ENV
+  );
 
   const executionParams = {
     userId: "whatsapp_trigger",

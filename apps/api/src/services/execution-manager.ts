@@ -18,6 +18,7 @@ import {
   WorkflowExecutor,
   type WorkflowExecutorParameters,
 } from "../services/workflow-executor";
+import { isCreditExhausted } from "../utils/credits";
 import { validateWorkflowForExecution } from "../utils/workflows";
 
 interface ExecutionManagerOptions {
@@ -53,6 +54,12 @@ export class ExecutionManager {
 
     if (!organization || !billingInfo) {
       throw new Error("Organization not found");
+    }
+
+    // The throw is caught by the WorkflowAgent DO and surfaced over the
+    // WebSocket as a failed execution.
+    if (isCreditExhausted(billingInfo, this.env.CLOUDFLARE_ENV)) {
+      throw new Error("Insufficient compute credits");
     }
 
     validateWorkflowForExecution(state);

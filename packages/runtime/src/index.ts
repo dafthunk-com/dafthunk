@@ -16,7 +16,13 @@ export {
 } from "./base-tool-registry";
 // Service interfaces
 export type { CredentialService } from "./credential-service";
-export type { CreditCheckParams, CreditService } from "./credit-service";
+export type {
+  BillingContext,
+  CreditCheckParams,
+  CreditService,
+  SettleAvailabilityParams,
+} from "./credit-service";
+export { isUsageExhausted } from "./credit-service";
 export type {
   DatabaseConnection,
   DatabaseService,

@@ -1,105 +1,68 @@
-import type { CreditCheckParams, CreditService } from "@dafthunk/runtime";
+import type {
+  CreditCheckParams,
+  CreditService,
+  SettleAvailabilityParams,
+} from "@dafthunk/runtime";
+import { isUsageExhausted } from "@dafthunk/runtime";
+import { and, eq } from "drizzle-orm";
 
-import type { Bindings } from "../context";
+import { createDatabase } from "../db";
+import { organizations } from "../db/schema";
 import {
   getOrganizationComputeUsage,
   updateOrganizationComputeUsage,
 } from "../utils/credits";
 
-export type { CreditCheckParams, CreditService };
+export type { CreditCheckParams, CreditService, SettleAvailabilityParams };
 
 /**
- * KV-backed implementation of CreditService.
- * Uses Cloudflare KV for storing organization usage counters.
+ * Cumulative usage lives in KV; `settleAvailability` flips the
+ * `credits_exhausted` cache on `organizations` so trigger paths can
+ * short-circuit with one indexed read.
  */
 export class CloudflareCreditService implements CreditService {
   constructor(
     private readonly kv: KVNamespace,
+    private readonly db: ReturnType<typeof createDatabase>,
     private readonly isDevelopment: boolean = false
   ) {}
 
   async hasEnoughCredits(params: CreditCheckParams): Promise<boolean> {
-    const {
-      organizationId,
-      computeCredits,
-      estimatedUsage,
-      subscriptionStatus,
-      overageLimit,
-      unlimitedUsage,
-    } = params;
+    if (this.isDevelopment) return true;
+    if (params.unlimitedUsage) return true;
 
-    // Skip credit limit enforcement in development mode
-    if (this.isDevelopment) {
-      return true;
-    }
-
-    // Organizations flagged as unlimited (e.g., internal/test accounts) bypass
-    // all credit checks regardless of subscription state.
-    if (unlimitedUsage) {
-      return true;
-    }
-
-    // Get current cumulative usage
     const currentUsage = await getOrganizationComputeUsage(
       this.kv,
-      organizationId
+      params.organizationId
     );
-
-    // Pro users with active subscription
-    if (subscriptionStatus === "active") {
-      // If no overage limit is set, allow execution (unlimited overage)
-      if (overageLimit == null) {
-        return true;
-      }
-      // Block if current overage already at or exceeds limit
-      const currentOverage = Math.max(0, currentUsage - computeCredits);
-      return currentOverage < overageLimit;
-    }
-
-    // Trial users: check cumulative usage against one-time allowance
-    return currentUsage + estimatedUsage <= computeCredits;
+    return !isUsageExhausted(currentUsage, params, params.estimatedUsage);
   }
 
   async recordUsage(organizationId: string, usage: number): Promise<void> {
-    // Skip in development mode
-    if (this.isDevelopment) {
-      return;
-    }
-
-    if (usage > 0) {
-      await updateOrganizationComputeUsage(this.kv, organizationId, usage);
-    }
+    if (this.isDevelopment || usage <= 0) return;
+    await updateOrganizationComputeUsage(this.kv, organizationId, usage);
   }
-}
 
-/**
- * Cheap pre-check used by non-interactive triggers (scheduled, email, queue,
- * bot webhooks) to skip executions when the organisation is already out of
- * credits — preventing noisy `exhausted` execution records from piling up
- * for every cron tick or incoming event. Uses a baseline `estimatedUsage` of
- * 1 so the runtime's precise per-workflow check remains the canonical gate.
- */
-export async function isOrganizationCreditExhausted(
-  env: Bindings,
-  organizationId: string,
-  billing: {
-    computeCredits: number;
-    subscriptionStatus?: string;
-    overageLimit?: number | null;
-    unlimitedUsage?: boolean;
+  async settleAvailability(params: SettleAvailabilityParams): Promise<void> {
+    if (this.isDevelopment || params.unlimitedUsage) return;
+
+    // KV is eventually consistent; we accept a narrow staleness window.
+    const currentUsage = await getOrganizationComputeUsage(
+      this.kv,
+      params.organizationId
+    );
+    if (!isUsageExhausted(currentUsage, params, 1)) return;
+
+    // Idempotent: the `creditsExhausted = false` predicate skips the write
+    // once the flag is set, avoiding contention with concurrent webhooks.
+    await this.db
+      .update(organizations)
+      .set({ creditsExhausted: true, updatedAt: new Date() })
+      .where(
+        and(
+          eq(organizations.id, params.organizationId),
+          eq(organizations.creditsExhausted, false)
+        )
+      );
   }
-): Promise<boolean> {
-  const creditService = new CloudflareCreditService(
-    env.KV,
-    env.CLOUDFLARE_ENV === "development"
-  );
-  const hasCredits = await creditService.hasEnoughCredits({
-    organizationId,
-    estimatedUsage: 1,
-    computeCredits: billing.computeCredits,
-    subscriptionStatus: billing.subscriptionStatus,
-    overageLimit: billing.overageLimit ?? null,
-    unlimitedUsage: billing.unlimitedUsage,
-  });
-  return !hasCredits;
 }

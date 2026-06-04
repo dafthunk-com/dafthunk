@@ -4,13 +4,12 @@ import type { Bindings } from "./context";
 import {
   createDatabase,
   getActiveScheduledTriggers,
-  getOrganizationBillingInfo,
   resolveOrganizationBillingOptions,
 } from "./db";
 import { getAgentByName } from "./durable-objects/agent-utils";
-import { isOrganizationCreditExhausted } from "./runtime/cloudflare-credit-service";
 import { createWorkerRuntime } from "./runtime/cloudflare-worker-runtime";
 import { WorkflowStore } from "./stores/workflow-store";
+import { creditChecksEnabled } from "./utils/credits";
 
 export async function handleScheduledEvent(
   _event: ScheduledEvent,
@@ -22,13 +21,15 @@ export async function handleScheduledEvent(
   const db = createDatabase(env.DB);
   const workflowStore = new WorkflowStore(env);
 
-  // Get all active scheduled triggers
-  const triggers = await getActiveScheduledTriggers(db);
+  const triggers = await getActiveScheduledTriggers(
+    db,
+    creditChecksEnabled(env.CLOUDFLARE_ENV)
+  );
   console.log(`Found ${triggers.length} active scheduled triggers`);
 
   const now = Date.now();
 
-  for (const { scheduledTrigger, workflow } of triggers) {
+  for (const { scheduledTrigger, workflow, organizationBilling } of triggers) {
     try {
       // Skip workflows that are not enabled
       if (!workflow.enabled) {
@@ -64,30 +65,10 @@ export async function handleScheduledEvent(
       }
       const workflowData = workflowWithData.data;
 
-      // Get organization billing info
-      const billingInfo = await getOrganizationBillingInfo(
-        db,
-        workflow.organizationId
-      );
-      if (billingInfo === undefined) continue;
-
       const billingOptions = resolveOrganizationBillingOptions(
-        billingInfo,
+        organizationBilling,
         env.CLOUDFLARE_ENV
       );
-
-      if (
-        await isOrganizationCreditExhausted(
-          env,
-          workflow.organizationId,
-          billingOptions
-        )
-      ) {
-        console.log(
-          `Skipping scheduled workflow ${workflow.id}: credits exhausted`
-        );
-        continue;
-      }
 
       const executionParams = {
         userId: "scheduled_trigger",

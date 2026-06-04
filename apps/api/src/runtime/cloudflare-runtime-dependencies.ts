@@ -13,6 +13,8 @@ import {
 } from "@dafthunk/runtime";
 
 import type { Bindings } from "../context";
+import { createDatabase } from "../db";
+import { creditChecksEnabled } from "../utils/credits";
 import { CloudflareCredentialService } from "./cloudflare-credential-service";
 import { CloudflareCreditService } from "./cloudflare-credit-service";
 import { CloudflareDatabaseService } from "./cloudflare-database-service";
@@ -64,7 +66,8 @@ export function buildDependencies(
     monitoringService,
     creditService: new CloudflareCreditService(
       env.KV,
-      env.CLOUDFLARE_ENV === "development"
+      createDatabase(env.DB),
+      !creditChecksEnabled(env.CLOUDFLARE_ENV)
     ),
     objectStore,
     toolRegistry,
