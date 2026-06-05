@@ -154,6 +154,9 @@ export function AdminOrganizationDetailPage() {
               ) : (
                 <Badge variant="outline">trial</Badge>
               )}
+              {organization.creditsExhausted && (
+                <Badge variant="destructive">credits exhausted</Badge>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4 text-sm">

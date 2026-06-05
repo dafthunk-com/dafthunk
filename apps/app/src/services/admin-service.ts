@@ -128,6 +128,7 @@ export interface AdminOrganization {
   name: string;
   computeCredits: number;
   subscriptionStatus: string | null;
+  creditsExhausted: boolean;
   createdAt: Date;
   updatedAt: Date;
   memberCount: number;
@@ -144,6 +145,7 @@ export interface AdminOrganizationDetail {
   currentPeriodStart: Date | null;
   currentPeriodEnd: Date | null;
   overageLimit: number | null;
+  creditsExhausted: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

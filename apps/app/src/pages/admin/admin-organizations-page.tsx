@@ -46,20 +46,26 @@ function createColumns(
     {
       accessorKey: "subscriptionStatus",
       header: "Status",
-      cell: ({ row }) =>
-        row.original.subscriptionStatus ? (
-          <Badge
-            variant={
-              row.original.subscriptionStatus === "active"
-                ? "default"
-                : "secondary"
-            }
-          >
-            {row.original.subscriptionStatus}
-          </Badge>
-        ) : (
-          <Badge variant="outline">trial</Badge>
-        ),
+      cell: ({ row }) => (
+        <div className="flex flex-wrap gap-1">
+          {row.original.subscriptionStatus ? (
+            <Badge
+              variant={
+                row.original.subscriptionStatus === "active"
+                  ? "default"
+                  : "secondary"
+              }
+            >
+              {row.original.subscriptionStatus}
+            </Badge>
+          ) : (
+            <Badge variant="outline">trial</Badge>
+          )}
+          {row.original.creditsExhausted && (
+            <Badge variant="destructive">credits exhausted</Badge>
+          )}
+        </div>
+      ),
     },
     {
       accessorKey: "createdAt",
