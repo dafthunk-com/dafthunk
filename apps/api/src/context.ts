@@ -1,6 +1,7 @@
 import type { RuntimeParams } from "@dafthunk/runtime";
 import { JWTTokenPayload } from "@dafthunk/types";
 import type { FFmpegContainer } from "./containers/ffmpeg-container";
+import type { LanguageSandbox } from "./containers/language-sandbox";
 import type { AgentRunner } from "./durable-objects/agent-runner";
 import { DatabaseDO } from "./durable-objects/database-do";
 import type { WorkflowAgent } from "./durable-objects/workflow-agent";
@@ -17,6 +18,7 @@ export interface Bindings {
   AGENT_RUNNER: DurableObjectNamespace<AgentRunner>;
   FFMPEG_CONTAINER?: DurableObjectNamespace<FFmpegContainer>;
   DUCKDB_SANDBOX?: DurableObjectNamespace<any>;
+  SANDBOX?: DurableObjectNamespace<LanguageSandbox>;
   WORKFLOW_QUEUE: Queue;
   RESSOURCES: R2Bucket;
   DATASETS: R2Bucket;

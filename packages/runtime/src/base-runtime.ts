@@ -53,6 +53,7 @@ import { apiToNodeParameter, nodeToApiParameter } from "./parameter-mapper";
 import type { QueueService } from "./queue-service";
 import type { SchemaService } from "./schema-service";
 import type { CodeModeExecutor } from "./utils/code-mode";
+import type { SandboxExecutor } from "./utils/sandbox-mode";
 import { validateWorkflow } from "./validate-workflow";
 
 export interface RuntimeParams {
@@ -100,6 +101,8 @@ export interface RuntimeDependencies<Env = unknown> {
   schemaService?: SchemaService;
   /** Sandboxed JavaScript executor (Cloudflare Dynamic Workers in production). */
   codeModeExecutor?: CodeModeExecutor;
+  /** Multi-language sandbox executor (Cloudflare Containers in production). */
+  sandboxExecutor?: SandboxExecutor;
   runtimeVersion?: string;
 }
 
@@ -134,6 +137,7 @@ export abstract class Runtime<Env = unknown> {
   protected queueService?: QueueService;
   protected schemaService?: SchemaService;
   protected codeModeExecutor?: CodeModeExecutor;
+  protected sandboxExecutor?: SandboxExecutor;
   protected env: Env;
   protected runtimeVersion?: string;
   protected userPlan?: string;
@@ -160,6 +164,7 @@ export abstract class Runtime<Env = unknown> {
     this.queueService = dependencies.queueService;
     this.schemaService = dependencies.schemaService;
     this.codeModeExecutor = dependencies.codeModeExecutor;
+    this.sandboxExecutor = dependencies.sandboxExecutor;
     this.runtimeVersion = dependencies.runtimeVersion;
   }
 
@@ -1058,6 +1063,7 @@ export abstract class Runtime<Env = unknown> {
         queueService: this.queueService,
         schemaService: this.schemaService,
         codeModeExecutor: this.codeModeExecutor,
+        sandboxExecutor: this.sandboxExecutor,
         getSecret: (secretName: string) =>
           this.credentialProvider.getSecret(secretName),
         getIntegration: (integrationId: string) =>

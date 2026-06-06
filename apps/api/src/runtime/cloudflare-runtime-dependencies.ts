@@ -29,6 +29,7 @@ import { CloudflareQueueService } from "./cloudflare-queue-service";
 import { CloudflareSchemaService } from "./cloudflare-schema-service";
 import { CloudflareToolRegistry } from "./cloudflare-tool-registry";
 import { createCodeModeExecutor } from "./code-mode-executor";
+import { createSandboxExecutor } from "./sandbox-executor";
 import { createToolContext } from "./tool-context";
 import { runtimeVersion } from "./version";
 
@@ -46,6 +47,12 @@ export function buildDependencies(
   const datasetService = new CloudflareDatasetService(env);
   const queueService = new CloudflareQueueService(env);
   const schemaService = new CloudflareSchemaService(env);
+  const codeModeExecutor = createCodeModeExecutor(env) ?? undefined;
+  // One sandbox container per execution — fresh ID isolates runs from each other
+  // while reusing the same sandbox across nodes within a run.
+  const sandboxExecutor =
+    createSandboxExecutor(env, `exec-${crypto.randomUUID()}`) ?? undefined;
+
   const toolRegistry = new CloudflareToolRegistry(
     nodeRegistry,
     (nodeId, inputs) =>
@@ -54,10 +61,10 @@ export function buildDependencies(
         datasetService,
         queueService,
         schemaService,
+        codeModeExecutor,
+        sandboxExecutor,
       })
   );
-
-  const codeModeExecutor = createCodeModeExecutor(env) ?? undefined;
 
   return {
     nodeRegistry,
@@ -76,6 +83,7 @@ export function buildDependencies(
     queueService,
     schemaService,
     codeModeExecutor,
+    sandboxExecutor,
     runtimeVersion,
   };
 }
