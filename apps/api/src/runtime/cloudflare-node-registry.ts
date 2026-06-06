@@ -394,6 +394,14 @@ import { SharePostRedditNode } from "@dafthunk/runtime/nodes/reddit/share-post-r
 import { SubmitCommentRedditNode } from "@dafthunk/runtime/nodes/reddit/submit-comment-reddit-node";
 import { VoteRedditNode } from "@dafthunk/runtime/nodes/reddit/vote-reddit-node";
 import { ReplicateModelNode } from "@dafthunk/runtime/nodes/replicate/replicate-model-node";
+import { BashNode } from "@dafthunk/runtime/nodes/sandbox/bash-node";
+import { CNode } from "@dafthunk/runtime/nodes/sandbox/c-node";
+import { GoNode } from "@dafthunk/runtime/nodes/sandbox/go-node";
+import { JavaNode } from "@dafthunk/runtime/nodes/sandbox/java-node";
+import { NodejsNode } from "@dafthunk/runtime/nodes/sandbox/nodejs-node";
+import { PythonNode } from "@dafthunk/runtime/nodes/sandbox/python-node";
+import { RustNode } from "@dafthunk/runtime/nodes/sandbox/rust-node";
+import { TypescriptNode } from "@dafthunk/runtime/nodes/sandbox/typescript-node";
 import { ReceiveScheduledTriggerNode } from "@dafthunk/runtime/nodes/scheduled/receive-scheduled-trigger-node";
 import { BotAddReactionSlackNode } from "@dafthunk/runtime/nodes/slack/bot-add-reaction-slack-node";
 import { BotReceiveSlackMessageNode } from "@dafthunk/runtime/nodes/slack/bot-receive-slack-message-node";
@@ -670,6 +678,18 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
       this.registerImplementation(ExtractFrameAtTimeNode);
       this.registerImplementation(ExtractFirstFrameNode);
       this.registerImplementation(ExtractLastFrameNode);
+    }
+
+    // Multi-language sandbox nodes (Cloudflare Containers)
+    if (this.env.SANDBOX) {
+      this.registerImplementation(PythonNode);
+      this.registerImplementation(BashNode);
+      this.registerImplementation(NodejsNode);
+      this.registerImplementation(TypescriptNode);
+      this.registerImplementation(GoNode);
+      this.registerImplementation(CNode);
+      this.registerImplementation(RustNode);
+      this.registerImplementation(JavaNode);
     }
 
     this.registerImplementation(AudioInputNode);

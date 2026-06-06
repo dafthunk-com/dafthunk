@@ -6,6 +6,7 @@ import type {
 
 import type { Bindings } from "../context";
 import { createCodeModeExecutor } from "./code-mode-executor";
+import { createSandboxExecutor } from "./sandbox-executor";
 
 /** Optional services that tool-executed nodes may need */
 interface ToolContextServices {
@@ -14,6 +15,7 @@ interface ToolContextServices {
   queueService?: NodeContext["queueService"];
   schemaService?: NodeContext["schemaService"];
   codeModeExecutor?: NodeContext["codeModeExecutor"];
+  sandboxExecutor?: NodeContext["sandboxExecutor"];
 }
 
 /**
@@ -43,6 +45,10 @@ export function createToolContext(
     schemaService: services?.schemaService,
     codeModeExecutor:
       services?.codeModeExecutor ?? createCodeModeExecutor(env) ?? undefined,
+    sandboxExecutor:
+      services?.sandboxExecutor ??
+      createSandboxExecutor(env, `tool-${crypto.randomUUID()}`) ??
+      undefined,
     env,
   };
 }

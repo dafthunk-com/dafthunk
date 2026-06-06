@@ -20,6 +20,7 @@ import type { QueueService } from "./queue-service";
 import type { SchemaService } from "./schema-service";
 import type { ToolDefinition, ToolReference } from "./tool-types";
 import type { CodeModeExecutor } from "./utils/code-mode";
+import type { SandboxExecutor } from "./utils/sandbox-mode";
 
 /**
  * Generic blob parameter type that accepts any MIME type.
@@ -253,6 +254,8 @@ export interface NodeContext {
   schemaService?: SchemaService;
   /** Sandboxed JavaScript executor (Cloudflare Dynamic Workers in production). */
   codeModeExecutor?: CodeModeExecutor;
+  /** Multi-language sandbox executor (Cloudflare Containers in production). */
+  sandboxExecutor?: SandboxExecutor;
   // Callback-based access to sensitive data (improves security and isolation)
   getSecret?: (secretName: string) => Promise<string | undefined>;
   getIntegration: (integrationId: string) => Promise<IntegrationInfo>;

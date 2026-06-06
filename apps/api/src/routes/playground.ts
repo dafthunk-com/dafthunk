@@ -15,6 +15,8 @@ import {
   CloudflareObjectStore,
 } from "../runtime/cloudflare-object-store";
 import { CloudflareToolRegistry } from "../runtime/cloudflare-tool-registry";
+import { createCodeModeExecutor } from "../runtime/code-mode-executor";
+import { createSandboxExecutor } from "../runtime/sandbox-executor";
 import { createToolContext } from "../runtime/tool-context";
 
 const playgroundRoutes = new Hono<ApiContext>();
@@ -111,6 +113,10 @@ playgroundRoutes.post("/", jwtMiddleware, async (c) => {
     onProgress: () => {},
     toolRegistry,
     objectStore,
+    codeModeExecutor: createCodeModeExecutor(c.env) ?? undefined,
+    sandboxExecutor:
+      createSandboxExecutor(c.env, `playground-${crypto.randomUUID()}`) ??
+      undefined,
     getSecret: (secretName) => credentialService.getSecret(secretName),
     getIntegration: (integrationId) =>
       credentialService.getIntegration(integrationId),

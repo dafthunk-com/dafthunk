@@ -44,6 +44,12 @@
       "image": "./containers/duckdb/Dockerfile",
       "max_instances": 5,
       "instance_type": "standard-1"
+    },
+    {
+      "class_name": "LanguageSandbox",
+      "image": "./Dockerfile",
+      "max_instances": 5,
+      "instance_type": "standard-1"
     }
   ],
   "worker_loaders": [{ "binding": "LOADER" }],
@@ -140,6 +146,10 @@
       {
         "name": "DUCKDB_SANDBOX",
         "class_name": "Sandbox"
+      },
+      {
+        "name": "SANDBOX",
+        "class_name": "LanguageSandbox"
       }
     ]
   },
@@ -182,6 +192,10 @@
     {
       "tag": "v10",
       "new_sqlite_classes": ["WorkflowAgent"]
+    },
+    {
+      "tag": "v11",
+      "new_sqlite_classes": ["LanguageSandbox"]
     }
   ],
   "unsafe": {
@@ -263,6 +277,12 @@
           "image": "./containers/duckdb/Dockerfile",
           "max_instances": 5,
           "instance_type": "standard-1"
+        },
+        {
+          "class_name": "LanguageSandbox",
+          "image": "./Dockerfile",
+          "max_instances": 5,
+          "instance_type": "standard-1"
         }
       ],
       "worker_loaders": [{ "binding": "LOADER" }],
@@ -330,6 +350,10 @@
           {
             "name": "DUCKDB_SANDBOX",
             "class_name": "Sandbox"
+          },
+          {
+            "name": "SANDBOX",
+            "class_name": "LanguageSandbox"
           }
         ]
       },
@@ -372,6 +396,10 @@
         {
           "tag": "v10",
           "new_sqlite_classes": ["WorkflowAgent"]
+        },
+        {
+          "tag": "v11",
+          "new_sqlite_classes": ["LanguageSandbox"]
         }
       ],
       "unsafe": {
