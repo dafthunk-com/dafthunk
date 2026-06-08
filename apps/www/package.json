@@ -30,7 +30,7 @@
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.36.4",
     "@cloudflare/workers-types": "^4.20260511.1",
-    "@react-router/dev": "^7.15.0",
+    "@react-router/dev": "^7.17.0",
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.3.0",
     "@types/react": "^19.2.14",
