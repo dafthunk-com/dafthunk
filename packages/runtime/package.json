@@ -44,6 +44,6 @@
     "@types/three": "^0.181.0",
     "@types/wellknown": "^0.5.8",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.6"
+    "vitest": "^4.1.8"
   }
 }

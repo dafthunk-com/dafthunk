@@ -22,6 +22,6 @@
     "@turf/turf": "^7.3.5",
     "@types/d3-delaunay": "^6.0.4",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.6"
+    "vitest": "^4.1.8"
   }
 }
