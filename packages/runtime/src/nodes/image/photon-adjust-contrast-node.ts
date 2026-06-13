@@ -1,16 +1,20 @@
 import { adjust_contrast } from "@cf-wasm/photon";
-import {
-  ExecutableNode,
-  type ImageParameter,
-  type NodeContext,
-} from "@dafthunk/runtime";
+import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { z } from "zod";
+import { zodErrorMessage } from "../../utils/zod";
 import { executePhotonOperation } from "./execute-photon-operation";
+import { imageInputSchema } from "./image-input-schema";
 
 /**
  * This node adjusts the contrast of an input image using the Photon library.
  */
 export class PhotonAdjustContrastNode extends ExecutableNode {
+  private static readonly inputSchema = z.object({
+    image: imageInputSchema(),
+    amount: z.number({ error: "Contrast amount must be a number." }),
+  });
+
   public static readonly nodeType: NodeType = {
     id: "photon-adjust-contrast",
     name: "Adjust Contrast",
@@ -49,16 +53,13 @@ export class PhotonAdjustContrastNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { image, amount } = context.inputs as {
-      image?: ImageParameter;
-      amount?: number;
-    };
-    if (!image || !image.data || !image.mimeType) {
-      return this.createErrorResult("Input image is missing or invalid.");
+    const parsed = PhotonAdjustContrastNode.inputSchema.safeParse(
+      context.inputs
+    );
+    if (!parsed.success) {
+      return this.createErrorResult(zodErrorMessage(parsed.error));
     }
-    if (typeof amount !== "number") {
-      return this.createErrorResult("Contrast amount must be a number.");
-    }
+    const { image, amount } = parsed.data;
     return executePhotonOperation(this, image, (img) => {
       adjust_contrast(img, amount);
       return img.get_bytes();

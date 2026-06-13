@@ -1,5 +1,7 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { z } from "zod";
+import { zodErrorMessage } from "../../utils/zod";
 
 import { resolveWordPressSite, wordPressApiUrl } from "./wordpress-utils";
 
@@ -22,6 +24,19 @@ interface WordPressSite {
  * than v2 (post count, subscriber count, site icon, etc.).
  */
 export class GetSiteWordPressNode extends ExecutableNode {
+  private static readonly inputSchema = z.object({
+    integrationId: z
+      .string({
+        error:
+          "Integration ID is required. Please select a WordPress integration.",
+      })
+      .min(1, {
+        error:
+          "Integration ID is required. Please select a WordPress integration.",
+      }),
+    site: z.string().optional(),
+  });
+
   public static readonly nodeType: NodeType = {
     id: "get-site-wordpress",
     name: "Get Site (WordPress)",
@@ -90,16 +105,11 @@ export class GetSiteWordPressNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const { integrationId, site } = context.inputs as {
-        integrationId?: string;
-        site?: string;
-      };
-
-      if (!integrationId) {
-        return this.createErrorResult(
-          "Integration ID is required. Please select a WordPress integration."
-        );
+      const parsed = GetSiteWordPressNode.inputSchema.safeParse(context.inputs);
+      if (!parsed.success) {
+        return this.createErrorResult(zodErrorMessage(parsed.error));
       }
+      const { integrationId, site } = parsed.data;
 
       const integration = await context.getIntegration(integrationId);
       const resolvedSite = resolveWordPressSite(integration, site);

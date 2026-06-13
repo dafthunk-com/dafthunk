@@ -16,10 +16,6 @@ function createConeBrush(
   openEnded: boolean = false,
   center: boolean = false
 ): Brush {
-  console.log(
-    `[CSG] Creating cone brush: height=${height}, radius=${radius}, radialSegments=${radialSegments}, center=${center}`
-  );
-
   const geometry = new ConeGeometry(
     radius,
     height,
@@ -147,10 +143,6 @@ export class CgsConeNode extends ExecutableNode {
         openEnded,
         center,
       } = validatedInput;
-
-      console.log(
-        `[CgsConeNode] Creating cone with height=${height}, radius=${radius}, radialSegments=${radialSegments}, center=${center}`
-      );
 
       // Create the cone brush using three-bvh-csg
       const brush = createConeBrush(

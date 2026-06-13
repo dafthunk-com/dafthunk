@@ -1,16 +1,29 @@
 import { saturate_hsl } from "@cf-wasm/photon";
-import {
-  ExecutableNode,
-  type ImageParameter,
-  type NodeContext,
-} from "@dafthunk/runtime";
+import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { z } from "zod";
+import { zodErrorMessage } from "../../utils/zod";
 import { executePhotonOperation } from "./execute-photon-operation";
+import { imageInputSchema } from "./image-input-schema";
 
 /**
  * This node adjusts the saturation of an input image using the HSL color space via Photon library.
  */
 export class PhotonAdjustSaturationNode extends ExecutableNode {
+  private static readonly inputSchema = z.object({
+    image: imageInputSchema(),
+    level: z
+      .number({
+        error: "Saturation level must be a number between 0.0 and 1.0.",
+      })
+      .min(0, {
+        error: "Saturation level must be a number between 0.0 and 1.0.",
+      })
+      .max(1, {
+        error: "Saturation level must be a number between 0.0 and 1.0.",
+      }),
+  });
+
   public static readonly nodeType: NodeType = {
     id: "photon-adjust-saturation",
     name: "Adjust Saturation (HSL)",
@@ -49,18 +62,13 @@ export class PhotonAdjustSaturationNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { image, level } = context.inputs as {
-      image?: ImageParameter;
-      level?: number;
-    };
-    if (!image || !image.data || !image.mimeType) {
-      return this.createErrorResult("Input image is missing or invalid.");
+    const parsed = PhotonAdjustSaturationNode.inputSchema.safeParse(
+      context.inputs
+    );
+    if (!parsed.success) {
+      return this.createErrorResult(zodErrorMessage(parsed.error));
     }
-    if (typeof level !== "number" || level < 0 || level > 1.0) {
-      return this.createErrorResult(
-        "Saturation level must be a number between 0.0 and 1.0."
-      );
-    }
+    const { image, level } = parsed.data;
     return executePhotonOperation(this, image, (img) => {
       saturate_hsl(img, level);
       return img.get_bytes();

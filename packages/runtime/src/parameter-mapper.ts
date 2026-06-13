@@ -217,6 +217,10 @@ const converters: Record<string, Converter> = {
     nodeToApi: createBlobNodeToApi(isGltfParameter),
     apiToNode: createBlobApiToNode(),
   },
+  buffergeometry: {
+    nodeToApi: createBlobNodeToApi(isNativeBlobParameter),
+    apiToNode: createBlobApiToNode(),
+  },
   video: {
     nodeToApi: createBlobNodeToApi(isVideoParameter),
     apiToNode: createBlobApiToNode(),

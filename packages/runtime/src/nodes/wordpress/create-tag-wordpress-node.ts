@@ -1,5 +1,7 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { z } from "zod";
+import { zodErrorMessage } from "../../utils/zod";
 
 import { resolveWordPressSite, wordPressApiUrl } from "./wordpress-utils";
 
@@ -17,6 +19,24 @@ interface WordPressTag {
  * The returned ID is suitable for the `tags` field on Create/Update Post.
  */
 export class CreateTagWordPressNode extends ExecutableNode {
+  private static readonly inputSchema = z.object({
+    integrationId: z
+      .string({
+        error:
+          "Integration ID is required. Please select a WordPress integration.",
+      })
+      .min(1, {
+        error:
+          "Integration ID is required. Please select a WordPress integration.",
+      }),
+    site: z.string().optional(),
+    name: z
+      .string({ error: "Tag name is required" })
+      .min(1, { error: "Tag name is required" }),
+    slug: z.string().optional(),
+    description: z.string().optional(),
+  });
+
   public static readonly nodeType: NodeType = {
     id: "create-tag-wordpress",
     name: "Create Tag (WordPress)",
@@ -80,23 +100,13 @@ export class CreateTagWordPressNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const { integrationId, site, name, slug, description } =
-        context.inputs as {
-          integrationId?: string;
-          site?: string;
-          name?: string;
-          slug?: string;
-          description?: string;
-        };
-
-      if (!integrationId) {
-        return this.createErrorResult(
-          "Integration ID is required. Please select a WordPress integration."
-        );
+      const parsed = CreateTagWordPressNode.inputSchema.safeParse(
+        context.inputs
+      );
+      if (!parsed.success) {
+        return this.createErrorResult(zodErrorMessage(parsed.error));
       }
-      if (!name) {
-        return this.createErrorResult("Tag name is required");
-      }
+      const { integrationId, site, name, slug, description } = parsed.data;
 
       const integration = await context.getIntegration(integrationId);
       const resolvedSite = resolveWordPressSite(integration, site);

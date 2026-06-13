@@ -177,7 +177,7 @@ export class JsonContainsNode extends ExecutableNode {
         isValid: true,
       });
     } catch (err) {
-      const error = err as Error;
+      const error = err instanceof Error ? err : new Error(String(err));
       return this.createErrorResult(
         `Error checking JSON contains: ${error.message}`
       );

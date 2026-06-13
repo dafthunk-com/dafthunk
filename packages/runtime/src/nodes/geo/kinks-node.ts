@@ -46,7 +46,7 @@ export class KinksNode extends ExecutableNode {
         kinks: kinkPoints,
       });
     } catch (err) {
-      const error = err as Error;
+      const error = err instanceof Error ? err : new Error(String(err));
       return this.createErrorResult(`Error finding kinks: ${error.message}`);
     }
   }

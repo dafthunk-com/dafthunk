@@ -55,7 +55,7 @@ export class DifferenceNode extends ExecutableNode {
       });
     } catch (err) {
       return this.createErrorResult(
-        `Error calculating difference: ${(err as Error).message}`
+        `Error calculating difference: ${err instanceof Error ? err.message : String(err)}`
       );
     }
   }

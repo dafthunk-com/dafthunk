@@ -1,16 +1,20 @@
 import { rotate } from "@cf-wasm/photon";
-import {
-  ExecutableNode,
-  type ImageParameter,
-  type NodeContext,
-} from "@dafthunk/runtime";
+import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { z } from "zod";
+import { zodErrorMessage } from "../../utils/zod";
 import { executePhotonOperation } from "./execute-photon-operation";
+import { imageInputSchema } from "./image-input-schema";
 
 /**
  * This node rotates an input image by a specified angle using the Photon library.
  */
 export class PhotonRotateImageNode extends ExecutableNode {
+  private static readonly inputSchema = z.object({
+    image: imageInputSchema(),
+    angle: z.number({ error: "Rotation angle must be a number." }),
+  });
+
   public static readonly nodeType: NodeType = {
     id: "photon-rotate-image",
     name: "Rotate Image",
@@ -48,16 +52,11 @@ export class PhotonRotateImageNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { image, angle } = context.inputs as {
-      image?: ImageParameter;
-      angle?: number;
-    };
-    if (!image || !image.data || !image.mimeType) {
-      return this.createErrorResult("Input image is missing or invalid.");
+    const parsed = PhotonRotateImageNode.inputSchema.safeParse(context.inputs);
+    if (!parsed.success) {
+      return this.createErrorResult(zodErrorMessage(parsed.error));
     }
-    if (typeof angle !== "number") {
-      return this.createErrorResult("Rotation angle must be a number.");
-    }
+    const { image, angle } = parsed.data;
     return executePhotonOperation(this, image, (img) => {
       const result = rotate(img, angle);
       const bytes = result.get_bytes();

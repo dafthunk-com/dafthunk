@@ -59,7 +59,7 @@ export class BooleanPointInPolygonNode extends ExecutableNode {
       });
       return this.createSuccessResult({ inside: isInside });
     } catch (err) {
-      const error = err as Error;
+      const error = err instanceof Error ? err : new Error(String(err));
       return this.createErrorResult(
         `Error testing point in polygon: ${error.message}`
       );

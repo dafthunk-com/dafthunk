@@ -1,16 +1,19 @@
 import { PhotonImage } from "@cf-wasm/photon";
-import {
-  ExecutableNode,
-  type ImageParameter,
-  type NodeContext,
-} from "@dafthunk/runtime";
+import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { z } from "zod";
+import { zodErrorMessage } from "../../utils/zod";
+import { imageInputSchema } from "./image-input-schema";
 
 /**
  * This node extracts basic information (width, height, mime type, estimated filesize)
  * from an input image using the Photon library.
  */
 export class PhotonImageInfoNode extends ExecutableNode {
+  private static readonly inputSchema = z.object({
+    image: imageInputSchema(),
+  });
+
   public static readonly nodeType: NodeType = {
     id: "photon-image-info",
     name: "Image Info",
@@ -63,15 +66,11 @@ export class PhotonImageInfoNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const inputs = context.inputs as {
-      image?: ImageParameter;
-    };
-
-    const { image } = inputs;
-
-    if (!image || !image.data || !image.mimeType) {
-      return this.createErrorResult("Input image is missing or invalid.");
+    const parsed = PhotonImageInfoNode.inputSchema.safeParse(context.inputs);
+    if (!parsed.success) {
+      return this.createErrorResult(zodErrorMessage(parsed.error));
     }
+    const { image } = parsed.data;
 
     let photonImage: PhotonImage | undefined;
 

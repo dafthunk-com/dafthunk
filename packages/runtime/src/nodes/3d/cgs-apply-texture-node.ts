@@ -85,16 +85,12 @@ export class CgsApplyTextureNode extends ExecutableNode {
       );
       const { mesh: meshInput, texture, materialProperties } = validatedInput;
 
-      console.log("[CgsApplyTextureNode] Applying texture to mesh...");
-
       // Extract GLB data from mesh input (handle both raw Uint8Array and mesh object formats)
       const meshData =
         meshInput instanceof Uint8Array ? meshInput : meshInput.data;
 
       // Parse GLB data back to brush
       const { brush } = await glTFToBrush(meshData);
-
-      console.log("[CgsApplyTextureNode] Parsed mesh, applying texture...");
 
       // Apply texture to the brush
       const glbData = await brushToGLTF(

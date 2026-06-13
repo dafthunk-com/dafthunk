@@ -46,7 +46,7 @@ export class FlipNode extends ExecutableNode {
         flipped: flippedGeometry,
       });
     } catch (err) {
-      const error = err as Error;
+      const error = err instanceof Error ? err : new Error(String(err));
       return this.createErrorResult(
         `Error flipping coordinates: ${error.message}`
       );

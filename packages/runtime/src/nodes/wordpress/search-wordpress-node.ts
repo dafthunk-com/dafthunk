@@ -1,5 +1,7 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { z } from "zod";
+import { zodErrorMessage } from "../../utils/zod";
 
 import { resolveWordPressSite, wordPressApiUrl } from "./wordpress-utils";
 
@@ -10,6 +12,26 @@ import { resolveWordPressSite, wordPressApiUrl } from "./wordpress-utils";
  * UX. Results carry a `subtype` so the caller can branch on content type.
  */
 export class SearchWordPressNode extends ExecutableNode {
+  private static readonly inputSchema = z.object({
+    integrationId: z
+      .string({
+        error:
+          "Integration ID is required. Please select a WordPress integration.",
+      })
+      .min(1, {
+        error:
+          "Integration ID is required. Please select a WordPress integration.",
+      }),
+    site: z.string().optional(),
+    search: z
+      .string({ error: "Search query is required" })
+      .min(1, { error: "Search query is required" }),
+    type: z.string().optional(),
+    subtype: z.string().optional(),
+    perPage: z.number().optional(),
+    page: z.number().optional(),
+  });
+
   public static readonly nodeType: NodeType = {
     id: "search-wordpress",
     name: "Search (WordPress)",
@@ -85,25 +107,12 @@ export class SearchWordPressNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
+      const parsed = SearchWordPressNode.inputSchema.safeParse(context.inputs);
+      if (!parsed.success) {
+        return this.createErrorResult(zodErrorMessage(parsed.error));
+      }
       const { integrationId, site, search, type, subtype, perPage, page } =
-        context.inputs as {
-          integrationId?: string;
-          site?: string;
-          search?: string;
-          type?: string;
-          subtype?: string;
-          perPage?: number;
-          page?: number;
-        };
-
-      if (!integrationId) {
-        return this.createErrorResult(
-          "Integration ID is required. Please select a WordPress integration."
-        );
-      }
-      if (!search) {
-        return this.createErrorResult("Search query is required");
-      }
+        parsed.data;
 
       const integration = await context.getIntegration(integrationId);
       const resolvedSite = resolveWordPressSite(integration, site);

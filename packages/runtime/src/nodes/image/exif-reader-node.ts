@@ -1,15 +1,18 @@
-import {
-  ExecutableNode,
-  type ImageParameter,
-  type NodeContext,
-} from "@dafthunk/runtime";
+import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
 import ExifReader from "exifreader";
+import { z } from "zod";
+import { zodErrorMessage } from "../../utils/zod";
+import { imageInputSchema } from "./image-input-schema";
 
 /**
  * Extracts EXIF data from an image using the ExifReader library.
  */
 export class ExifReaderNode extends ExecutableNode {
+  private static readonly inputSchema = z.object({
+    image: imageInputSchema(),
+  });
+
   public static readonly nodeType: NodeType = {
     id: "exif-reader",
     name: "EXIF Reader",
@@ -38,15 +41,11 @@ export class ExifReaderNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const inputs = context.inputs as {
-      image?: ImageParameter;
-    };
-
-    const { image } = inputs;
-
-    if (!image || !image.data) {
-      return this.createErrorResult("Input image is missing or invalid.");
+    const parsed = ExifReaderNode.inputSchema.safeParse(context.inputs);
+    if (!parsed.success) {
+      return this.createErrorResult(zodErrorMessage(parsed.error));
     }
+    const { image } = parsed.data;
 
     try {
       // ExifReader.load() expects a Buffer or ArrayBuffer.

@@ -75,7 +75,7 @@ describe("workflowValidation", () => {
   });
 
   describe("validateTypeCompatibility", () => {
-    it("should return null for compatible types", () => {
+    it("should return no errors for compatible types", () => {
       const workflow: Workflow = {
         id: "test",
         name: "Test Workflow",
@@ -94,7 +94,7 @@ describe("workflowValidation", () => {
       };
 
       const result = validateTypeCompatibility(workflow);
-      expect(result).toBeNull();
+      expect(result).toEqual([]);
     });
 
     it("should detect type mismatches", () => {
@@ -116,14 +116,16 @@ describe("workflowValidation", () => {
       };
 
       const result = validateTypeCompatibility(workflow);
-      expect(result).toEqual({
-        type: "TYPE_MISMATCH",
-        message: "Type mismatch: string -> number",
-        details: {
-          connectionSource: "1",
-          connectionTarget: "2",
+      expect(result).toEqual([
+        {
+          type: "TYPE_MISMATCH",
+          message: "Type mismatch: string -> number",
+          details: {
+            connectionSource: "1",
+            connectionTarget: "2",
+          },
         },
-      });
+      ]);
     });
 
     it("should detect invalid node references", () => {
@@ -136,14 +138,16 @@ describe("workflowValidation", () => {
       };
 
       const result = validateTypeCompatibility(workflow);
-      expect(result).toEqual({
-        type: "INVALID_CONNECTION",
-        message: "Invalid node reference in connection",
-        details: {
-          connectionSource: "1",
-          connectionTarget: "2",
+      expect(result).toEqual([
+        {
+          type: "INVALID_CONNECTION",
+          message: "Invalid node reference in connection",
+          details: {
+            connectionSource: "1",
+            connectionTarget: "2",
+          },
         },
-      });
+      ]);
     });
 
     it("should detect invalid parameter references", () => {
@@ -156,14 +160,16 @@ describe("workflowValidation", () => {
       };
 
       const result = validateTypeCompatibility(workflow);
-      expect(result).toEqual({
-        type: "INVALID_CONNECTION",
-        message: "Invalid parameter reference in connection",
-        details: {
-          connectionSource: "1",
-          connectionTarget: "2",
+      expect(result).toEqual([
+        {
+          type: "INVALID_CONNECTION",
+          message: "Invalid parameter reference in connection",
+          details: {
+            connectionSource: "1",
+            connectionTarget: "2",
+          },
         },
-      });
+      ]);
     });
   });
 
@@ -212,7 +218,8 @@ describe("workflowValidation", () => {
       };
 
       const result = validateWorkflow(workflow);
-      expect(result).toHaveLength(2);
+      // Both edges carry the same type mismatch, plus the duplicate connection
+      expect(result).toHaveLength(3);
       expect(result).toContainEqual({
         type: "TYPE_MISMATCH",
         message: "Type mismatch: string -> number",

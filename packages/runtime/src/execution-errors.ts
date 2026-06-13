@@ -22,8 +22,8 @@ export function nodeNotFoundMessage(nodeId: string): string {
 
 /** Message for a node whose type has no registered implementation. */
 export function nodeTypeNotImplementedMessage(
-  _nodeId: string,
+  nodeId: string,
   nodeType: string
 ): string {
-  return `Node type not implemented: ${nodeType}`;
+  return `Node type not implemented: ${nodeType} (node ${nodeId})`;
 }

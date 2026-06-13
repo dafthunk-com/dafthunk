@@ -119,7 +119,7 @@ export class RandomChoiceNode extends ExecutableNode {
 
       return this.createSuccessResult({ value: result });
     } catch (err) {
-      const error = err as Error;
+      const error = err instanceof Error ? err : new Error(String(err));
       return this.createErrorResult(
         `Error selecting random choice: ${error.message}`
       );

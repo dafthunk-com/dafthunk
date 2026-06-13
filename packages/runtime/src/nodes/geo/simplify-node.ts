@@ -70,7 +70,7 @@ export class SimplifyNode extends ExecutableNode {
         simplified: simplifiedGeometry,
       });
     } catch (err) {
-      const error = err as Error;
+      const error = err instanceof Error ? err : new Error(String(err));
       return this.createErrorResult(
         `Error simplifying geometry: ${error.message}`
       );

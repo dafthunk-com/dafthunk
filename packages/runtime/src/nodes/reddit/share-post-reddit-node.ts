@@ -1,12 +1,46 @@
 import type { ImageParameter } from "@dafthunk/runtime";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { z } from "zod";
+import { zodErrorMessage } from "../../utils/zod";
 
 /**
  * Reddit Share Post node implementation
  * Shares a new post to a subreddit
  */
 export class SharePostRedditNode extends ExecutableNode {
+  private static readonly inputSchema = z.object({
+    integrationId: z
+      .string({
+        error:
+          "Integration ID is required. Please select a Reddit integration.",
+      })
+      .min(1, {
+        error:
+          "Integration ID is required. Please select a Reddit integration.",
+      }),
+    subreddit: z
+      .string({ error: "Subreddit is required" })
+      .min(1, { error: "Subreddit is required" }),
+    title: z
+      .string({ error: "Title is required" })
+      .min(1, { error: "Title is required" }),
+    kind: z
+      .string({ error: "Post kind is required (self, link, or image)" })
+      .min(1, { error: "Post kind is required (self, link, or image)" }),
+    text: z.string().optional(),
+    url: z.string().optional(),
+    image: z
+      .object({
+        data: z.instanceof(Uint8Array),
+        mimeType: z.string(),
+        filename: z.string().optional(),
+      })
+      .optional(),
+    nsfw: z.boolean().optional(),
+    spoiler: z.boolean().optional(),
+  });
+
   public static readonly nodeType: NodeType = {
     id: "share-post-reddit",
     name: "Share Post (Reddit)",
@@ -175,6 +209,10 @@ export class SharePostRedditNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
+      const parsed = SharePostRedditNode.inputSchema.safeParse(context.inputs);
+      if (!parsed.success) {
+        return this.createErrorResult(zodErrorMessage(parsed.error));
+      }
       const {
         integrationId,
         subreddit,
@@ -185,39 +223,8 @@ export class SharePostRedditNode extends ExecutableNode {
         image,
         nsfw,
         spoiler,
-      } = context.inputs as {
-        integrationId?: string;
-        subreddit?: string;
-        title?: string;
-        kind?: string;
-        text?: string;
-        url?: string;
-        image?: ImageParameter;
-        nsfw?: boolean;
-        spoiler?: boolean;
-      };
+      } = parsed.data;
       const { organizationId } = context;
-
-      // Validate required inputs
-      if (!integrationId || typeof integrationId !== "string") {
-        return this.createErrorResult(
-          "Integration ID is required. Please select a Reddit integration."
-        );
-      }
-
-      if (!subreddit || typeof subreddit !== "string") {
-        return this.createErrorResult("Subreddit is required");
-      }
-
-      if (!title || typeof title !== "string") {
-        return this.createErrorResult("Title is required");
-      }
-
-      if (!kind || typeof kind !== "string") {
-        return this.createErrorResult(
-          "Post kind is required (self, link, or image)"
-        );
-      }
 
       if (kind !== "self" && kind !== "link" && kind !== "image") {
         return this.createErrorResult(

@@ -49,7 +49,7 @@ export class LengthNode extends ExecutableNode {
         length: calculatedLength,
       });
     } catch (err) {
-      const error = err as Error;
+      const error = err instanceof Error ? err : new Error(String(err));
       return this.createErrorResult(
         `Error calculating length: ${error.message}`
       );

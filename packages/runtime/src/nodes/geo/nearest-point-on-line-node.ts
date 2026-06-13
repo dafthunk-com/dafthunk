@@ -86,7 +86,7 @@ export class NearestPointOnLineNode extends ExecutableNode {
         nearest: nearestPoint,
       });
     } catch (err) {
-      const error = err as Error;
+      const error = err instanceof Error ? err : new Error(String(err));
       return this.createErrorResult(
         `Error finding nearest point on line: ${error.message}`
       );

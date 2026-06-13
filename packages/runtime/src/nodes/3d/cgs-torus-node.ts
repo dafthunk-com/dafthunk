@@ -14,10 +14,6 @@ function createTorusBrush(
   radialSegments: number = 16,
   tubularSegments: number = 8
 ): Brush {
-  console.log(
-    `[CSG] Creating torus brush: radius=${radius}, tubeRadius=${tubeRadius}, radialSegments=${radialSegments}, tubularSegments=${tubularSegments}`
-  );
-
   const geometry = new TorusGeometry(
     radius,
     tubeRadius,
@@ -117,10 +113,6 @@ export class CgsTorusNode extends ExecutableNode {
       );
       const { radius, tubeRadius, radialSegments, tubularSegments } =
         validatedInput;
-
-      console.log(
-        `[CgsTorusNode] Creating torus with radius=${radius}, tubeRadius=${tubeRadius}, radialSegments=${radialSegments}, tubularSegments=${tubularSegments}`
-      );
 
       // Create the torus brush using three-bvh-csg
       const brush = createTorusBrush(

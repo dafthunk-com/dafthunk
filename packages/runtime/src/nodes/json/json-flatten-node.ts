@@ -99,7 +99,7 @@ export class JsonFlattenNode extends ExecutableNode {
         success: true,
       });
     } catch (err) {
-      const error = err as Error;
+      const error = err instanceof Error ? err : new Error(String(err));
       return this.createErrorResult(`Error flattening JSON: ${error.message}`);
     }
   }

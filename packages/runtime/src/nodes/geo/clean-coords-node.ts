@@ -61,7 +61,7 @@ export class CleanCoordsNode extends ExecutableNode {
         cleaned,
       });
     } catch (err) {
-      const error = err as Error;
+      const error = err instanceof Error ? err : new Error(String(err));
       return this.createErrorResult(
         `Error cleaning coordinates: ${error.message}`
       );

@@ -81,7 +81,7 @@ export class BooleanPointOnLineNode extends ExecutableNode {
         isOnLine,
       });
     } catch (err) {
-      const error = err as Error;
+      const error = err instanceof Error ? err : new Error(String(err));
       return this.createErrorResult(
         `Error checking if point is on line: ${error.message}`
       );

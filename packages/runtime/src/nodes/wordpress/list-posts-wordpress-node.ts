@@ -1,5 +1,7 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { z } from "zod";
+import { zodErrorMessage } from "../../utils/zod";
 
 import { resolveWordPressSite, wordPressApiUrl } from "./wordpress-utils";
 
@@ -7,6 +9,24 @@ import { resolveWordPressSite, wordPressApiUrl } from "./wordpress-utils";
  * WordPress List Posts node — paginated list of posts on a site.
  */
 export class ListPostsWordPressNode extends ExecutableNode {
+  private static readonly inputSchema = z.object({
+    integrationId: z
+      .string({
+        error:
+          "Integration ID is required. Please select a WordPress integration.",
+      })
+      .min(1, {
+        error:
+          "Integration ID is required. Please select a WordPress integration.",
+      }),
+    site: z.string().optional(),
+    status: z.string().optional(),
+    search: z.string().optional(),
+    perPage: z.number().optional(),
+    page: z.number().optional(),
+    categories: z.string().optional(),
+  });
+
   public static readonly nodeType: NodeType = {
     id: "list-posts-wordpress",
     name: "List Posts (WordPress)",
@@ -85,22 +105,14 @@ export class ListPostsWordPressNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const { integrationId, site, status, search, perPage, page, categories } =
-        context.inputs as {
-          integrationId?: string;
-          site?: string;
-          status?: string;
-          search?: string;
-          perPage?: number;
-          page?: number;
-          categories?: string;
-        };
-
-      if (!integrationId) {
-        return this.createErrorResult(
-          "Integration ID is required. Please select a WordPress integration."
-        );
+      const parsed = ListPostsWordPressNode.inputSchema.safeParse(
+        context.inputs
+      );
+      if (!parsed.success) {
+        return this.createErrorResult(zodErrorMessage(parsed.error));
       }
+      const { integrationId, site, status, search, perPage, page, categories } =
+        parsed.data;
 
       const integration = await context.getIntegration(integrationId);
       const resolvedSite = resolveWordPressSite(integration, site);

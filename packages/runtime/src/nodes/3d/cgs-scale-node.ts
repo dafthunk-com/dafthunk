@@ -94,10 +94,6 @@ export class CgsScaleNode extends ExecutableNode {
         ? scale
         : [scale, scale, scale];
 
-      console.log(
-        `[CgsScaleNode] Scaling mesh by [${scaleX}, ${scaleY}, ${scaleZ}]`
-      );
-
       const meshData = mesh instanceof Uint8Array ? mesh : mesh.data;
       const { brush, materialData } = await glTFToBrush(meshData);
 

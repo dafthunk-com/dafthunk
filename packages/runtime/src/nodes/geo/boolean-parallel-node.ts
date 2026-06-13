@@ -56,7 +56,7 @@ export class BooleanParallelNode extends ExecutableNode {
         isParallel,
       });
     } catch (err) {
-      const error = err as Error;
+      const error = err instanceof Error ? err : new Error(String(err));
       return this.createErrorResult(
         `Error checking parallel lines: ${error.message}`
       );

@@ -75,7 +75,7 @@ export class RandomUuidNode extends ExecutableNode {
 
       return this.createSuccessResult({ uuid });
     } catch (err) {
-      const error = err as Error;
+      const error = err instanceof Error ? err : new Error(String(err));
       return this.createErrorResult(`Error generating UUID: ${error.message}`);
     }
   }

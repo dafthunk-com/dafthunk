@@ -72,7 +72,7 @@ export class JsonObjectValuesNode extends ExecutableNode {
         isObject: true,
       });
     } catch (err) {
-      const error = err as Error;
+      const error = err instanceof Error ? err : new Error(String(err));
       return this.createErrorResult(
         `Error extracting object values: ${error.message}`
       );

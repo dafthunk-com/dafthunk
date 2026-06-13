@@ -1,16 +1,29 @@
 import { darken_hsl, lighten_hsl } from "@cf-wasm/photon";
-import {
-  ExecutableNode,
-  type ImageParameter,
-  type NodeContext,
-} from "@dafthunk/runtime";
+import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { z } from "zod";
+import { zodErrorMessage } from "../../utils/zod";
 import { executePhotonOperation } from "./execute-photon-operation";
+import { imageInputSchema } from "./image-input-schema";
 
 /**
  * This node adjusts the lightness of an input image using the HSL color space via Photon library.
  */
 export class PhotonAdjustHslLightnessNode extends ExecutableNode {
+  private static readonly inputSchema = z.object({
+    image: imageInputSchema(),
+    amount: z
+      .number({
+        error: "Lightness amount must be a number between -1.0 and 1.0.",
+      })
+      .min(-1, {
+        error: "Lightness amount must be a number between -1.0 and 1.0.",
+      })
+      .max(1, {
+        error: "Lightness amount must be a number between -1.0 and 1.0.",
+      }),
+  });
+
   public static readonly nodeType: NodeType = {
     id: "photon-adjust-hsl-lightness",
     name: "Adjust Lightness (HSL)",
@@ -49,18 +62,13 @@ export class PhotonAdjustHslLightnessNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { image, amount } = context.inputs as {
-      image?: ImageParameter;
-      amount?: number;
-    };
-    if (!image || !image.data || !image.mimeType) {
-      return this.createErrorResult("Input image is missing or invalid.");
+    const parsed = PhotonAdjustHslLightnessNode.inputSchema.safeParse(
+      context.inputs
+    );
+    if (!parsed.success) {
+      return this.createErrorResult(zodErrorMessage(parsed.error));
     }
-    if (typeof amount !== "number" || amount < -1.0 || amount > 1.0) {
-      return this.createErrorResult(
-        "Lightness amount must be a number between -1.0 and 1.0."
-      );
-    }
+    const { image, amount } = parsed.data;
     return executePhotonOperation(this, image, (img) => {
       if (amount > 0) {
         lighten_hsl(img, amount);

@@ -24,21 +24,11 @@ async function performDifference(
   textureData?: Uint8Array
 ): Promise<CSGOperationResult> {
   try {
-    const statsA = extractBrushStats(brushA);
-    const statsB = extractBrushStats(brushB);
-    console.log(
-      `[CSG] Performing difference operation (A - B)... Input A: ${statsA.vertexCount} vertices, ${statsA.triangleCount} triangles. Input B: ${statsB.vertexCount} vertices, ${statsB.triangleCount} triangles`
-    );
-
     const evaluator = new Evaluator();
     evaluator.attributes = ["position", "normal", "uv"];
     const result = evaluator.evaluate(brushA, brushB, SUBTRACTION);
 
     const resultStats = extractBrushStats(result);
-    console.log(
-      `[CSG] Difference complete. Result: ${resultStats.vertexCount} vertices, ${resultStats.triangleCount} triangles`
-    );
-
     if (resultStats.vertexCount === 0 || resultStats.triangleCount === 0) {
       throw new Error(
         "Difference operation produced empty geometry - the second shape may completely contain the first"
@@ -121,10 +111,6 @@ export class CgsDifferenceNode extends ExecutableNode {
         context.inputs
       );
       const { meshA, meshB } = validatedInput;
-
-      console.log(
-        "[CgsDifferenceNode] Performing difference operation (A - B)..."
-      );
 
       // Extract GLB data from mesh inputs (handle both raw Uint8Array and mesh object formats)
       const meshAData = meshA instanceof Uint8Array ? meshA : meshA.data;

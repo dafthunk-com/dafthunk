@@ -56,7 +56,7 @@ export class ConvexNode extends ExecutableNode {
       const convexHull = convex(geojson as any, properties ?? {});
       return this.createSuccessResult({ convexHull: convexHull ?? null });
     } catch (err) {
-      const error = err as Error;
+      const error = err instanceof Error ? err : new Error(String(err));
       return this.createErrorResult(
         `Error creating convex hull: ${error.message}`
       );

@@ -13,10 +13,6 @@ function createSphereBrush(
   widthSegments: number = 32,
   heightSegments: number = 32
 ): Brush {
-  console.log(
-    `[CSG] Creating sphere brush: radius=${radius}, segments=${widthSegments}x${heightSegments}`
-  );
-
   const geometry = new SphereGeometry(radius, widthSegments, heightSegments);
   geometry.computeVertexNormals();
 
@@ -98,10 +94,6 @@ export class CgsSphereNode extends ExecutableNode {
         context.inputs
       );
       const { radius, widthSegments, heightSegments } = validatedInput;
-
-      console.log(
-        `[CgsSphereNode] Creating sphere with radius=${radius}, widthSegments=${widthSegments}, heightSegments=${heightSegments}`
-      );
 
       // Create the sphere brush using three-bvh-csg
       const brush = createSphereBrush(radius, widthSegments, heightSegments);

@@ -1,16 +1,25 @@
 import { blend } from "@cf-wasm/photon";
-import {
-  ExecutableNode,
-  type ImageParameter,
-  type NodeContext,
-} from "@dafthunk/runtime";
+import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { z } from "zod";
+import { zodErrorMessage } from "../../utils/zod";
 import { executePhotonDualImageOperation } from "./execute-photon-operation";
+import { imageInputSchema } from "./image-input-schema";
 
 /**
  * This node blends two images together using a specified blend mode via the Photon library.
  */
 export class PhotonBlendImagesNode extends ExecutableNode {
+  private static readonly inputSchema = z.object({
+    baseImage: imageInputSchema("Base image is missing or invalid."),
+    blendImage: imageInputSchema("Blend image is missing or invalid."),
+    blendMode: z
+      .string({ error: "Blend mode must be a non-empty string." })
+      .refine((value) => value.trim() !== "", {
+        error: "Blend mode must be a non-empty string.",
+      }),
+  });
+
   public static readonly nodeType: NodeType = {
     id: "photon-blend-images",
     name: "Blend Images",
@@ -55,17 +64,11 @@ export class PhotonBlendImagesNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { baseImage, blendImage, blendMode } = context.inputs as {
-      baseImage?: ImageParameter;
-      blendImage?: ImageParameter;
-      blendMode?: string;
-    };
-    if (!baseImage || !baseImage.data || !baseImage.mimeType) {
-      return this.createErrorResult("Base image is missing or invalid.");
+    const parsed = PhotonBlendImagesNode.inputSchema.safeParse(context.inputs);
+    if (!parsed.success) {
+      return this.createErrorResult(zodErrorMessage(parsed.error));
     }
-    if (typeof blendMode !== "string" || blendMode.trim() === "") {
-      return this.createErrorResult("Blend mode must be a non-empty string.");
-    }
+    const { baseImage, blendImage, blendMode } = parsed.data;
     return executePhotonDualImageOperation(
       this,
       baseImage,

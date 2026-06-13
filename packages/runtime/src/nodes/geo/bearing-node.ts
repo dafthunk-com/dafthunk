@@ -82,7 +82,7 @@ export class BearingNode extends ExecutableNode {
         bearing: calculatedBearing,
       });
     } catch (err) {
-      const error = err as Error;
+      const error = err instanceof Error ? err : new Error(String(err));
       return this.createErrorResult(
         `Error calculating bearing: ${error.message}`
       );

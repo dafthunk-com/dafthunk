@@ -328,7 +328,9 @@ export class NodeToolProvider implements ToolProvider {
           const num = Number(value);
           if (!Number.isNaN(num)) return num !== 0;
         }
-        return Boolean(value);
+        // Pass non-coercible values through unchanged so downstream type
+        // validation surfaces the error instead of silently producing `true`.
+        return value;
 
       case "json":
         if (typeof value === "string") {

@@ -1,7 +1,12 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
-import { GoogleGenAI } from "@google/genai";
+import {
+  type GenerateContentConfig,
+  GoogleGenAI,
+  type PartUnion,
+} from "@google/genai";
 import { getGoogleAIConfig } from "../../utils/ai-gateway";
+import { imageToBase64 } from "../../utils/images";
 import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
 
 // https://ai.google.dev/pricing (Gemini 3 Pro Preview)
@@ -152,50 +157,30 @@ export class Gemini3ProImagePreviewNode extends ExecutableNode {
         },
       });
 
-      const config: any = {
+      const config: GenerateContentConfig = {
         responseModalities: ["TEXT", "IMAGE"],
       };
 
       // Configure image generation options
       if (aspectRatio || imageSize) {
-        config.imageConfig = {};
-        if (aspectRatio) {
-          config.imageConfig.aspectRatio = aspectRatio;
-        }
-        if (imageSize) {
-          config.imageConfig.imageSize = imageSize;
-        }
+        config.imageConfig = {
+          ...(aspectRatio && { aspectRatio }),
+          ...(imageSize && { imageSize }),
+        };
       }
 
       // Prepare the prompt data
-      const promptData: any[] = [{ text: prompt }];
-
-      // Helper function to convert image data to base64
-      const convertImageToBase64 = (image: any): string => {
-        if (typeof image.data === "string") {
-          return image.data;
-        } else {
-          const buffer = new Uint8Array(image.data);
-          return btoa(
-            buffer.reduce((data, byte) => data + String.fromCharCode(byte), "")
-          );
-        }
-      };
+      const promptData: PartUnion[] = [{ text: prompt }];
 
       // Add images to prompt data
       const images = [image1, image2, image3].filter((img) => img?.data);
 
       for (const image of images) {
         if (image?.data) {
-          const base64Data = convertImageToBase64(image);
-          console.log(
-            `Adding image to prompt: mimeType=${image.mimeType}, dataLength=${base64Data.length}`
-          );
-
           promptData.push({
             inlineData: {
               mimeType: image.mimeType || "image/png",
-              data: base64Data,
+              data: imageToBase64(image),
             },
           });
         }
@@ -227,10 +212,6 @@ export class Gemini3ProImagePreviewNode extends ExecutableNode {
 
       for (const part of content.parts) {
         if (part?.inlineData?.data) {
-          console.log(
-            `Found generated image: mimeType=${part.inlineData.mimeType}, dataLength=${part.inlineData.data.length}`
-          );
-
           // Convert base64 data to Uint8Array for proper object store handling
           imageData = Uint8Array.from(atob(part.inlineData.data), (c) =>
             c.charCodeAt(0)

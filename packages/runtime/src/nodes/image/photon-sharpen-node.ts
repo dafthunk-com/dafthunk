@@ -1,16 +1,19 @@
 import { sharpen } from "@cf-wasm/photon";
-import {
-  ExecutableNode,
-  type ImageParameter,
-  type NodeContext,
-} from "@dafthunk/runtime";
+import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { z } from "zod";
+import { zodErrorMessage } from "../../utils/zod";
 import { executePhotonOperation } from "./execute-photon-operation";
+import { imageInputSchema } from "./image-input-schema";
 
 /**
  * This node sharpens an input image using the Photon library.
  */
 export class PhotonSharpenNode extends ExecutableNode {
+  private static readonly inputSchema = z.object({
+    image: imageInputSchema(),
+  });
+
   public static readonly nodeType: NodeType = {
     id: "photon-sharpen",
     name: "Sharpen",
@@ -39,8 +42,11 @@ export class PhotonSharpenNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { image } = context.inputs as { image?: ImageParameter };
-    return executePhotonOperation(this, image, (img) => {
+    const parsed = PhotonSharpenNode.inputSchema.safeParse(context.inputs);
+    if (!parsed.success) {
+      return this.createErrorResult(zodErrorMessage(parsed.error));
+    }
+    return executePhotonOperation(this, parsed.data.image, (img) => {
       sharpen(img);
       return img.get_bytes();
     });

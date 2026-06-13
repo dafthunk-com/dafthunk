@@ -55,7 +55,7 @@ export class BooleanCrossesNode extends ExecutableNode {
         crosses: crossesResult,
       });
     } catch (err) {
-      const error = err as Error;
+      const error = err instanceof Error ? err : new Error(String(err));
       return this.createErrorResult(
         `Error testing crosses relationship: ${error.message}`
       );

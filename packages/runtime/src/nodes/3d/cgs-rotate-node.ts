@@ -81,10 +81,6 @@ export class CgsRotateNode extends ExecutableNode {
       );
       const { mesh, rotation, materialProperties } = validatedInput;
 
-      console.log(
-        `[CgsRotateNode] Rotating mesh by [${rotation[0]}°, ${rotation[1]}°, ${rotation[2]}°]`
-      );
-
       const meshData = mesh instanceof Uint8Array ? mesh : mesh.data;
       const { brush, materialData } = await glTFToBrush(meshData);
 

@@ -65,7 +65,9 @@ export class IntersectNode extends ExecutableNode {
       }
       return this.createSuccessResult({ intersection: result ?? null });
     } catch (err) {
-      return this.createErrorResult((err as Error).message);
+      return this.createErrorResult(
+        err instanceof Error ? err.message : String(err)
+      );
     }
   }
 }

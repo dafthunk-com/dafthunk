@@ -70,7 +70,7 @@ export class JsonValidNode extends ExecutableNode {
         error: null,
       };
     } catch (err) {
-      const error = err as Error;
+      const error = err instanceof Error ? err : new Error(String(err));
       return {
         isValid: false,
         parsedValue: null,
@@ -99,7 +99,7 @@ export class JsonValidNode extends ExecutableNode {
         error: result.error,
       });
     } catch (err) {
-      const error = err as Error;
+      const error = err instanceof Error ? err : new Error(String(err));
       return this.createErrorResult(`Error validating JSON: ${error.message}`);
     }
   }

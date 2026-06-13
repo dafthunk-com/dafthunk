@@ -82,7 +82,7 @@ export class PolygonSmoothNode extends ExecutableNode {
         smoothed: smoothedPolygon,
       });
     } catch (err) {
-      const error = err as Error;
+      const error = err instanceof Error ? err : new Error(String(err));
       return this.createErrorResult(
         `Error smoothing polygon: ${error.message}`
       );

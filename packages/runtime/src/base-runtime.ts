@@ -2,6 +2,7 @@ import { NonRetryableError } from "cloudflare:workflows";
 import type {
   DiscordInteraction,
   Node,
+  NodeType,
   QueueMessage,
   ScheduledTrigger,
   SlackMessage,
@@ -404,38 +405,39 @@ export abstract class Runtime<Env = unknown> {
       });
 
       if (!hasCredits) {
+        // Fall through to the finally block so the exhausted record is
+        // persisted and the returned record matches what was stored.
         isExhausted = true;
         executionRecord.status = "exhausted";
         executionRecord.error = "Insufficient compute credits";
         await this.monitoringService.sendUpdate(executionRecord);
-        return executionRecord;
-      }
-
-      // ========================================================================
-      // STEP 3: Preload organization resources (secrets + integrations)
-      // ========================================================================
-      await this.executeStep("preload organization resources", async () =>
-        this.credentialProvider.initialize(organizationId)
-      );
-
-      executionRecord.status = getExecutionStatus(
-        executionContext,
-        executionState
-      );
-      await this.monitoringService.sendUpdate(executionRecord);
-
-      // ========================================================================
-      // STEP 4: Execute workflow nodes level-by-level
-      // ========================================================================
-      const { state: finalState, record: finalRecord } =
-        await this.executeWorkflowLevels(
-          executionContext,
-          executionState,
-          executionRecord
+      } else {
+        // ======================================================================
+        // STEP 3: Preload organization resources (secrets + integrations)
+        // ======================================================================
+        await this.executeStep("preload organization resources", async () =>
+          this.credentialProvider.initialize(organizationId)
         );
 
-      executionState = finalState;
-      executionRecord = finalRecord;
+        executionRecord.status = getExecutionStatus(
+          executionContext,
+          executionState
+        );
+        await this.monitoringService.sendUpdate(executionRecord);
+
+        // ======================================================================
+        // STEP 4: Execute workflow nodes level-by-level
+        // ======================================================================
+        const { state: finalState, record: finalRecord } =
+          await this.executeWorkflowLevels(
+            executionContext,
+            executionState,
+            executionRecord
+          );
+
+        executionState = finalState;
+        executionRecord = finalRecord;
+      }
     } catch (error) {
       caughtError = true;
       console.error(
@@ -892,10 +894,10 @@ export abstract class Runtime<Env = unknown> {
     | {
         executable: ReturnType<BaseNodeRegistry["createExecutableNode"]> &
           object;
-        nodeType: import("@dafthunk/types").NodeType;
+        nodeType: NodeType;
       }
     | NodeExecutionResult {
-    let nodeType: import("@dafthunk/types").NodeType;
+    let nodeType: NodeType;
     try {
       nodeType = this.nodeRegistry.getNodeType(node.type);
     } catch (_error) {

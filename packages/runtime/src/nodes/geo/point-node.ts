@@ -57,7 +57,7 @@ export class PointNode extends ExecutableNode {
         point: pointFeature,
       });
     } catch (err) {
-      const error = err as Error;
+      const error = err instanceof Error ? err : new Error(String(err));
       return this.createErrorResult(`Error creating point: ${error.message}`);
     }
   }

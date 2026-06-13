@@ -23,21 +23,11 @@ async function performIntersection(
   },
   textureData?: Uint8Array
 ): Promise<CSGOperationResult> {
-  const statsA = extractBrushStats(brushA);
-  const statsB = extractBrushStats(brushB);
-  console.log(
-    `[CSG] Performing intersection operation... Input A: ${statsA.vertexCount} vertices, ${statsA.triangleCount} triangles. Input B: ${statsB.vertexCount} vertices, ${statsB.triangleCount} triangles`
-  );
-
   const evaluator = new Evaluator();
   evaluator.attributes = ["position", "normal", "uv"];
   const result = evaluator.evaluate(brushA, brushB, INTERSECTION);
 
   const resultStats = extractBrushStats(result);
-  console.log(
-    `[CSG] Intersection complete. Result: ${resultStats.vertexCount} vertices, ${resultStats.triangleCount} triangles`
-  );
-
   if (resultStats.vertexCount === 0 || resultStats.triangleCount === 0) {
     throw new Error(
       "Intersection produced empty geometry - the shapes may not overlap or their overlap is too small"
@@ -116,8 +106,6 @@ export class CgsIntersectionNode extends ExecutableNode {
         context.inputs
       );
       const { meshA, meshB } = validatedInput;
-
-      console.log("[CgsIntersectionNode] Performing intersection operation...");
 
       // Extract GLB data from mesh inputs (handle both raw Uint8Array and mesh object formats)
       const meshAData = meshA instanceof Uint8Array ? meshA : meshA.data;

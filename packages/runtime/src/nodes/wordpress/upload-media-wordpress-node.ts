@@ -1,9 +1,7 @@
-import {
-  ExecutableNode,
-  type ImageParameter,
-  type NodeContext,
-} from "@dafthunk/runtime";
+import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { z } from "zod";
+import { zodErrorMessage } from "../../utils/zod";
 
 import { resolveWordPressSite, wordPressApiUrl } from "./wordpress-utils";
 
@@ -32,6 +30,30 @@ const MIME_EXTENSIONS: Record<string, string> = {
  * carrying the filename, which is how WordPress derives the attachment name.
  */
 export class UploadMediaWordPressNode extends ExecutableNode {
+  private static readonly inputSchema = z.object({
+    integrationId: z
+      .string({
+        error:
+          "Integration ID is required. Please select a WordPress integration.",
+      })
+      .min(1, {
+        error:
+          "Integration ID is required. Please select a WordPress integration.",
+      }),
+    site: z.string().optional(),
+    image: z.object(
+      {
+        data: z.instanceof(Uint8Array, { error: "Image is required" }),
+        mimeType: z.string({ error: "Image is required" }),
+        filename: z.string().optional(),
+      },
+      { error: "Image is required" }
+    ),
+    title: z.string().optional(),
+    altText: z.string().optional(),
+    caption: z.string().optional(),
+  });
+
   public static readonly nodeType: NodeType = {
     id: "upload-media-wordpress",
     name: "Upload Media (WordPress)",
@@ -106,24 +128,14 @@ export class UploadMediaWordPressNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
+      const parsed = UploadMediaWordPressNode.inputSchema.safeParse(
+        context.inputs
+      );
+      if (!parsed.success) {
+        return this.createErrorResult(zodErrorMessage(parsed.error));
+      }
       const { integrationId, site, image, title, altText, caption } =
-        context.inputs as {
-          integrationId?: string;
-          site?: string;
-          image?: ImageParameter;
-          title?: string;
-          altText?: string;
-          caption?: string;
-        };
-
-      if (!integrationId) {
-        return this.createErrorResult(
-          "Integration ID is required. Please select a WordPress integration."
-        );
-      }
-      if (!image || !image.data || !image.mimeType) {
-        return this.createErrorResult("Image is required");
-      }
+        parsed.data;
 
       const integration = await context.getIntegration(integrationId);
       const resolvedSite = resolveWordPressSite(integration, site);

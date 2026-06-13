@@ -78,13 +78,13 @@ export class JsonExtractNumberNode extends ExecutableNode {
           found: found,
         });
       } catch (err) {
-        const error = err as Error;
+        const error = err instanceof Error ? err : new Error(String(err));
         return this.createErrorResult(
           `Invalid JSONPath expression: ${error.message}`
         );
       }
     } catch (err) {
-      const error = err as Error;
+      const error = err instanceof Error ? err : new Error(String(err));
       return this.createErrorResult(
         `Error extracting number: ${error.message}`
       );

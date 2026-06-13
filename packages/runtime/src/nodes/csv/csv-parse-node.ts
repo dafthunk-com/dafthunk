@@ -135,7 +135,7 @@ export class CsvParseNode extends ExecutableNode {
         rowCount: data.length,
       });
     } catch (err) {
-      const error = err as Error;
+      const error = err instanceof Error ? err : new Error(String(err));
       return this.createErrorResult(`Error parsing CSV: ${error.message}`);
     }
   }

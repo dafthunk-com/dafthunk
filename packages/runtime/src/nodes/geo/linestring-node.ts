@@ -49,7 +49,7 @@ export class LineStringNode extends ExecutableNode {
         lineString: lineStringFeature,
       });
     } catch (err) {
-      const error = err as Error;
+      const error = err instanceof Error ? err : new Error(String(err));
       return this.createErrorResult(
         `Error creating LineString: ${error.message}`
       );

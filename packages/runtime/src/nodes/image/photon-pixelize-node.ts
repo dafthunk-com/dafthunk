@@ -1,16 +1,23 @@
 import { pixelize } from "@cf-wasm/photon";
-import {
-  ExecutableNode,
-  type ImageParameter,
-  type NodeContext,
-} from "@dafthunk/runtime";
+import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { z } from "zod";
+import { zodErrorMessage } from "../../utils/zod";
 import { executePhotonOperation } from "./execute-photon-operation";
+import { imageInputSchema } from "./image-input-schema";
 
 /**
  * This node pixelizes an input image using the Photon library.
  */
 export class PhotonPixelizeNode extends ExecutableNode {
+  private static readonly inputSchema = z.object({
+    image: imageInputSchema(),
+    pixelSize: z
+      .number({ error: "Pixel size must be a positive integer." })
+      .int({ error: "Pixel size must be a positive integer." })
+      .positive({ error: "Pixel size must be a positive integer." }),
+  });
+
   public static readonly nodeType: NodeType = {
     id: "photon-pixelize",
     name: "Pixelize Effect",
@@ -48,20 +55,11 @@ export class PhotonPixelizeNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { image, pixelSize } = context.inputs as {
-      image?: ImageParameter;
-      pixelSize?: number;
-    };
-    if (!image || !image.data || !image.mimeType) {
-      return this.createErrorResult("Input image is missing or invalid.");
+    const parsed = PhotonPixelizeNode.inputSchema.safeParse(context.inputs);
+    if (!parsed.success) {
+      return this.createErrorResult(zodErrorMessage(parsed.error));
     }
-    if (
-      typeof pixelSize !== "number" ||
-      !Number.isInteger(pixelSize) ||
-      pixelSize <= 0
-    ) {
-      return this.createErrorResult("Pixel size must be a positive integer.");
-    }
+    const { image, pixelSize } = parsed.data;
     return executePhotonOperation(this, image, (img) => {
       pixelize(img, pixelSize);
       return img.get_bytes();

@@ -1,16 +1,24 @@
 import { filter } from "@cf-wasm/photon";
-import {
-  ExecutableNode,
-  type ImageParameter,
-  type NodeContext,
-} from "@dafthunk/runtime";
+import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { z } from "zod";
+import { zodErrorMessage } from "../../utils/zod";
 import { executePhotonOperation } from "./execute-photon-operation";
+import { imageInputSchema } from "./image-input-schema";
 
 /**
  * This node applies a named preset filter to an input image using the Photon library.
  */
 export class PhotonApplyFilterNode extends ExecutableNode {
+  private static readonly inputSchema = z.object({
+    image: imageInputSchema(),
+    filterName: z
+      .string({ error: "Filter name must be a non-empty string." })
+      .refine((value) => value.trim() !== "", {
+        error: "Filter name must be a non-empty string.",
+      }),
+  });
+
   public static readonly nodeType: NodeType = {
     id: "photon-apply-filter",
     name: "Apply Filter by Name",
@@ -49,20 +57,11 @@ export class PhotonApplyFilterNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { image, filterName } = context.inputs as {
-      image?: ImageParameter;
-      filterName?: string;
-    };
-    if (!image || !image.data || !image.mimeType) {
-      return this.createErrorResult("Input image is missing or invalid.");
+    const parsed = PhotonApplyFilterNode.inputSchema.safeParse(context.inputs);
+    if (!parsed.success) {
+      return this.createErrorResult(zodErrorMessage(parsed.error));
     }
-    if (
-      !filterName ||
-      typeof filterName !== "string" ||
-      filterName.trim() === ""
-    ) {
-      return this.createErrorResult("Filter name must be a non-empty string.");
-    }
+    const { image, filterName } = parsed.data;
     return executePhotonOperation(this, image, (img) => {
       filter(img, filterName);
       return img.get_bytes();

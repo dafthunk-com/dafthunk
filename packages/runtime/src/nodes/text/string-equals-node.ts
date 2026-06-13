@@ -60,7 +60,7 @@ export class StringEqualsNode extends ExecutableNode {
 
       return this.createSuccessResult({ result });
     } catch (err) {
-      const error = err as Error;
+      const error = err instanceof Error ? err : new Error(String(err));
       return this.createErrorResult(
         `Error comparing strings: ${error.message}`
       );

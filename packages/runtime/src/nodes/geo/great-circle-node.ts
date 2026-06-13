@@ -112,7 +112,7 @@ export class GreatCircleNode extends ExecutableNode {
         line: greatCircleLine,
       });
     } catch (err) {
-      const error = err as Error;
+      const error = err instanceof Error ? err : new Error(String(err));
       return this.createErrorResult(
         `Error calculating great circle: ${error.message}`
       );

@@ -199,11 +199,29 @@ export async function runAgentLoop(
     }
   }
 
-  // If the model completed normally and a callFinalLLM is provided, make one
-  // additional call with schema constraints to produce structured output.
-  // We pop the last assistant message so the model generates a fresh response
-  // with the schema constraint, rather than seeing its own unformatted reply.
-  if (finishReason === "completed" && config.callFinalLLM) {
+  // When the loop exits via the while condition (rather than a break),
+  // finishReason is still "completed" — reclassify as max_steps_reached.
+  if (finishReason === "completed" && state.steps.length >= maxSteps) {
+    finishReason = "max_steps_reached";
+
+    // One final LLM call without tools to summarise
+    const finalResponse = await finalLLM(state.messages, []);
+    state.totalInputTokens += finalResponse.inputTokens;
+    state.totalOutputTokens += finalResponse.outputTokens;
+
+    state.messages.push({
+      role: "assistant",
+      content: finalResponse.content,
+    });
+
+    if (onStepComplete) {
+      await onStepComplete(state);
+    }
+  } else if (finishReason === "completed" && config.callFinalLLM) {
+    // The model completed normally and a callFinalLLM is provided: make one
+    // additional call with schema constraints to produce structured output.
+    // We pop the last assistant message so the model generates a fresh response
+    // with the schema constraint, rather than seeing its own unformatted reply.
     state.messages.pop();
 
     const formatResponse = await finalLLM(state.messages, []);
@@ -213,24 +231,6 @@ export async function runAgentLoop(
     state.messages.push({
       role: "assistant",
       content: formatResponse.content,
-    });
-
-    if (onStepComplete) {
-      await onStepComplete(state);
-    }
-  }
-
-  // If we exhausted maxSteps, do one final LLM call without tools to summarise
-  if (state.steps.length >= maxSteps) {
-    finishReason = "max_steps_reached";
-
-    const finalResponse = await finalLLM(state.messages, []);
-    state.totalInputTokens += finalResponse.inputTokens;
-    state.totalOutputTokens += finalResponse.outputTokens;
-
-    state.messages.push({
-      role: "assistant",
-      content: finalResponse.content,
     });
 
     if (onStepComplete) {

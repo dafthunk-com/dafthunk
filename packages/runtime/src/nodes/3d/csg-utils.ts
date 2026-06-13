@@ -21,8 +21,6 @@ export async function brushToGLTF(
   textureData?: Uint8Array
 ): Promise<Uint8Array> {
   try {
-    console.log("[CSG] Converting brush to glTF...");
-
     // Extract geometry from brush (Brush extends Mesh)
     const geometry = (brush as any).geometry as BufferGeometry;
 
@@ -30,27 +28,16 @@ export async function brushToGLTF(
       throw new Error("Brush has no geometry");
     }
 
-    console.log(
-      `[CSG] Brush geometry type: ${geometry?.constructor?.name}, has position: ${!!geometry?.getAttribute("position")}`
-    );
-
     // Create glTF document and buffer
     const document = new Document();
     const buffer = document.createBuffer();
 
     // Extract and convert position data
     const positionAttr = geometry.getAttribute("position");
-    console.log(
-      `[CSG] Position attribute: ${positionAttr ? "found" : "missing"}`
-    );
 
     if (!positionAttr) {
       throw new Error("Geometry has no position attribute");
     }
-
-    console.log(
-      `[CSG] Position attribute type: ${positionAttr?.constructor?.name}, has array: ${!!positionAttr?.array}, array type: ${positionAttr?.array?.constructor?.name}`
-    );
 
     // Ensure position data exists - use safer access
     const posArray = positionAttr?.array;
@@ -76,10 +63,6 @@ export async function brushToGLTF(
 
     let positions: Float32Array;
     if (needsTransform) {
-      console.log(
-        `[CSG] Applying transformation to geometry: position=[${brush.position.x}, ${brush.position.y}, ${brush.position.z}], rotation=[${brush.rotation.x}, ${brush.rotation.y}, ${brush.rotation.z}], scale=[${brush.scale.x}, ${brush.scale.y}, ${brush.scale.z}]`
-      );
-
       // Use three.js to apply transformation matrix to positions
       positions = new Float32Array(posArray.length);
       const vertex = new Vector3();
@@ -181,7 +164,6 @@ export async function brushToGLTF(
         .setArray(uvs)
         .setBuffer(buffer);
       primitive.setAttribute("TEXCOORD_0", uvAccessor);
-      console.log(`[CSG] Added UV coordinates: ${uvs.length / 2} UVs`);
     }
 
     // Apply PBR material if provided or if texture is provided
@@ -208,7 +190,6 @@ export async function brushToGLTF(
     const io = new NodeIO();
     const glbData = await io.writeBinary(document);
 
-    console.log("[CSG] glTF export completed");
     return glbData;
   } catch (error) {
     console.error("[CSG] Error converting brush to glTF:", error);
@@ -242,8 +223,6 @@ export async function glTFToBrush(glbData: Uint8Array): Promise<{
   materialData: GLTFMaterialData;
 }> {
   try {
-    console.log("[CSG] Parsing glTF to brush...");
-
     // Read the binary glTF data
     const io = new NodeIO();
     const document = await io.readBinary(glbData);
@@ -254,15 +233,11 @@ export async function glTFToBrush(glbData: Uint8Array): Promise<{
       throw new Error("No scene found in glTF document");
     }
 
-    console.log("[CSG] Scene found, listing children...");
-
     // Find the first mesh in the scene
     const meshNodes = scene.listChildren().filter((node) => node.getMesh());
     if (meshNodes.length === 0) {
       throw new Error("No mesh found in scene");
     }
-
-    console.log(`[CSG] Found ${meshNodes.length} mesh nodes`);
 
     const mesh = meshNodes[0].getMesh();
     if (!mesh) {
@@ -275,16 +250,12 @@ export async function glTFToBrush(glbData: Uint8Array): Promise<{
       throw new Error("No primitives found in mesh");
     }
 
-    console.log(`[CSG] Found ${primitives.length} primitives`);
-
     const primitive = primitives[0];
 
     // Extract material and texture data before creating geometry
     const materialData: GLTFMaterialData = {};
     const material = primitive.getMaterial();
     if (material) {
-      console.log("[CSG] Extracting material properties...");
-
       const baseColor = material.getBaseColorFactor();
       materialData.materialProperties = {
         baseColorFactor: [
@@ -300,11 +271,9 @@ export async function glTFToBrush(glbData: Uint8Array): Promise<{
       // Extract texture if present
       const baseColorTexture = material.getBaseColorTexture();
       if (baseColorTexture) {
-        console.log("[CSG] Extracting texture data...");
         const textureImage = baseColorTexture.getImage();
         if (textureImage) {
           materialData.textureData = textureImage;
-          console.log(`[CSG] Extracted texture: ${textureImage.length} bytes`);
         }
       }
     }
@@ -325,9 +294,6 @@ export async function glTFToBrush(glbData: Uint8Array): Promise<{
 
     // Ensure positions is a proper Float32Array (make a copy if needed)
     if (!(positions instanceof Float32Array)) {
-      console.log(
-        `[CSG] Position array is ${positions?.constructor?.name}, converting to Float32Array`
-      );
       positions = new Float32Array(positions as ArrayLike<number>);
     }
 
@@ -340,9 +306,6 @@ export async function glTFToBrush(glbData: Uint8Array): Promise<{
       if (normals) {
         // Ensure normals is a proper Float32Array (make a copy if needed)
         if (!(normals instanceof Float32Array)) {
-          console.log(
-            `[CSG] Normal array is ${normals?.constructor?.name}, converting to Float32Array`
-          );
           normals = new Float32Array(normals as ArrayLike<number>);
         }
         geometry.setAttribute("normal", new Float32BufferAttribute(normals, 3));
@@ -363,9 +326,6 @@ export async function glTFToBrush(glbData: Uint8Array): Promise<{
 
       // Ensure indices is a proper Uint32Array (make a copy if needed)
       if (!(indices instanceof Uint32Array)) {
-        console.log(
-          `[CSG] Index array is ${indices?.constructor?.name}, converting to Uint32Array`
-        );
         indices = new Uint32Array(indices as ArrayLike<number>);
       }
 
@@ -375,36 +335,25 @@ export async function glTFToBrush(glbData: Uint8Array): Promise<{
     // Extract UV coordinates if present (needed for texture mapping)
     const uvAccessor = primitive.getAttribute("TEXCOORD_0");
     if (uvAccessor) {
-      console.log("[CSG] Extracting UV coordinates...");
       let uvs = uvAccessor.getArray();
       if (uvs) {
         if (!(uvs instanceof Float32Array)) {
-          console.log(
-            `[CSG] UV array is ${uvs?.constructor?.name}, converting to Float32Array`
-          );
           uvs = new Float32Array(uvs as ArrayLike<number>);
         }
         geometry.setAttribute("uv", new Float32BufferAttribute(uvs, 2));
-        console.log(`[CSG] Preserved UV coordinates: ${uvs.length / 2} UVs`);
       }
     }
 
     // Ensure the geometry has proper normals (required for CSG operations)
-    console.log("[CSG] Checking/computing normals for parsed geometry...");
     if (!geometry.getAttribute("normal")) {
-      console.log("[CSG] No normal attribute found, computing normals...");
       geometry.computeVertexNormals();
     } else {
-      console.log(
-        "[CSG] Normal attribute exists, recomputing to ensure consistency..."
-      );
       // Recompute normals to ensure they're properly oriented
       geometry.computeVertexNormals();
     }
 
     // Create and return Brush with material data
     const brush = new Brush(geometry);
-    console.log("[CSG] Successfully parsed brush from glTF with material data");
     return { brush, materialData };
   } catch (error) {
     throw new Error(
@@ -424,28 +373,18 @@ export function extractBrushStats(brush: Brush): {
     // Brush extends Mesh, so it has a geometry property
     const geometry = (brush as any).geometry as BufferGeometry;
 
-    console.log(
-      `[CSG] Extracting stats - brush type: ${brush?.constructor?.name}, geometry: ${geometry?.constructor?.name}`
-    );
-
     if (!geometry) {
       console.warn("[CSG] No geometry found in brush");
       return { vertexCount: 0, triangleCount: 0 };
     }
 
     const positions = geometry.getAttribute("position");
-    console.log(
-      `[CSG] Positions attribute: ${positions ? "found" : "missing"}, type: ${positions?.constructor?.name}`
-    );
 
     const vertexCount =
       positions && typeof positions.count === "number" ? positions.count : 0;
 
     // Count triangles from index or face count
     const index = geometry.getIndex();
-    console.log(
-      `[CSG] Index attribute: ${index ? "found" : "missing"}, type: ${index?.constructor?.name}`
-    );
 
     let triangleCount = 0;
 
@@ -496,16 +435,12 @@ export function createPBRMaterial(
 
   // Add texture if provided
   if (textureData) {
-    console.log(
-      `[CSG] Applying texture to material (${textureData.length} bytes)...`
-    );
     const texture = doc
       .createTexture()
       .setImage(textureData)
       .setMimeType("image/png");
 
     material = material.setBaseColorTexture(texture);
-    console.log("[CSG] Texture applied successfully");
   }
 
   return material;

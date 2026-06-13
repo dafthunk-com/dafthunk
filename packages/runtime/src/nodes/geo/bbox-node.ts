@@ -65,7 +65,7 @@ export class BboxNode extends ExecutableNode {
         bbox: boundingBox,
       });
     } catch (err) {
-      const error = err as Error;
+      const error = err instanceof Error ? err : new Error(String(err));
       return this.createErrorResult(
         `Error calculating bounding box: ${error.message}`
       );

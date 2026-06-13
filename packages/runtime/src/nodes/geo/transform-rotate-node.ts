@@ -73,7 +73,7 @@ export class TransformRotateNode extends ExecutableNode {
         rotated: rotatedGeometry,
       });
     } catch (err) {
-      const error = err as Error;
+      const error = err instanceof Error ? err : new Error(String(err));
       return this.createErrorResult(
         `Error rotating geometry: ${error.message}`
       );

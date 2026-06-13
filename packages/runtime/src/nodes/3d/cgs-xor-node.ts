@@ -24,23 +24,12 @@ async function performXOR(
   },
   textureData?: Uint8Array
 ): Promise<CSGOperationResult> {
-  const statsA = extractBrushStats(brushA);
-  const statsB = extractBrushStats(brushB);
-  console.log(
-    `[CSG] Performing XOR operation... Input A: ${statsA.vertexCount} vertices, ${statsA.triangleCount} triangles. Input B: ${statsB.vertexCount} vertices, ${statsB.triangleCount} triangles`
-  );
-
   const evaluator = new Evaluator();
   evaluator.attributes = ["position", "normal", "uv"];
 
   const aMinusB = evaluator.evaluate(brushA, brushB, SUBTRACTION);
   const bMinusA = evaluator.evaluate(brushB, brushA, SUBTRACTION);
   const result = evaluator.evaluate(aMinusB, bMinusA, ADDITION);
-
-  const resultStats = extractBrushStats(result);
-  console.log(
-    `[CSG] XOR complete. Result: ${resultStats.vertexCount} vertices, ${resultStats.triangleCount} triangles`
-  );
 
   const glb = await brushToGLTF(result, materialProperties, textureData);
   return { glb, resultBrush: result };
@@ -111,8 +100,6 @@ export class CgsXorNode extends ExecutableNode {
     try {
       const validatedInput = CgsXorNode.xorInputSchema.parse(context.inputs);
       const { meshA, meshB } = validatedInput;
-
-      console.log("[CgsXorNode] Performing XOR operation...");
 
       const meshAData = meshA instanceof Uint8Array ? meshA : meshA.data;
       const meshBData = meshB instanceof Uint8Array ? meshB : meshB.data;

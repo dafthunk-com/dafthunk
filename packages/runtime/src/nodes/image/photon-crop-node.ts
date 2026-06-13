@@ -1,16 +1,31 @@
 import { crop } from "@cf-wasm/photon";
-import {
-  ExecutableNode,
-  type ImageParameter,
-  type NodeContext,
-} from "@dafthunk/runtime";
+import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { z } from "zod";
+import { zodErrorMessage } from "../../utils/zod";
 import { executePhotonOperation } from "./execute-photon-operation";
+import { imageInputSchema } from "./image-input-schema";
 
 /**
  * This node crops an input image to a specified rectangle using the Photon library.
  */
 export class PhotonCropNode extends ExecutableNode {
+  private static readonly inputSchema = z.object({
+    image: imageInputSchema(),
+    x: z
+      .number({ error: "x must be a non-negative number." })
+      .min(0, { error: "x must be a non-negative number." }),
+    y: z
+      .number({ error: "y must be a non-negative number." })
+      .min(0, { error: "y must be a non-negative number." }),
+    width: z
+      .number({ error: "Width must be a positive number." })
+      .positive({ error: "Width must be a positive number." }),
+    height: z
+      .number({ error: "Height must be a positive number." })
+      .positive({ error: "Height must be a positive number." }),
+  });
+
   public static readonly nodeType: NodeType = {
     id: "photon-crop",
     name: "Image Crop",
@@ -70,28 +85,11 @@ export class PhotonCropNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { image, x, y, width, height } = context.inputs as {
-      image?: ImageParameter;
-      x?: number;
-      y?: number;
-      width?: number;
-      height?: number;
-    };
-    if (!image || !image.data || !image.mimeType) {
-      return this.createErrorResult("Input image is missing or invalid.");
+    const parsed = PhotonCropNode.inputSchema.safeParse(context.inputs);
+    if (!parsed.success) {
+      return this.createErrorResult(zodErrorMessage(parsed.error));
     }
-    if (typeof x !== "number" || x < 0) {
-      return this.createErrorResult("x must be a non-negative number.");
-    }
-    if (typeof y !== "number" || y < 0) {
-      return this.createErrorResult("y must be a non-negative number.");
-    }
-    if (typeof width !== "number" || width <= 0) {
-      return this.createErrorResult("Width must be a positive number.");
-    }
-    if (typeof height !== "number" || height <= 0) {
-      return this.createErrorResult("Height must be a positive number.");
-    }
+    const { image, x, y, width, height } = parsed.data;
     return executePhotonOperation(this, image, (img) => {
       if (x + width > img.get_width()) {
         throw new Error("Crop area (x + width) exceeds image width.");

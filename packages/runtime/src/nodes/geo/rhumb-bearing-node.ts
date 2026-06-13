@@ -72,7 +72,7 @@ export class RhumbBearingNode extends ExecutableNode {
         bearing: bearing,
       });
     } catch (err) {
-      const error = err as Error;
+      const error = err instanceof Error ? err : new Error(String(err));
       return this.createErrorResult(
         `Error calculating rhumb bearing: ${error.message}`
       );

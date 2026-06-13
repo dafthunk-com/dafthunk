@@ -23,20 +23,9 @@ async function performUnion(
   },
   textureData?: Uint8Array
 ): Promise<CSGOperationResult> {
-  const statsA = extractBrushStats(brushA);
-  const statsB = extractBrushStats(brushB);
-  console.log(
-    `[CSG] Performing union operation... Input A: ${statsA.vertexCount} vertices, ${statsA.triangleCount} triangles. Input B: ${statsB.vertexCount} vertices, ${statsB.triangleCount} triangles`
-  );
-
   const evaluator = new Evaluator();
   evaluator.attributes = ["position", "normal", "uv"];
   const result = evaluator.evaluate(brushA, brushB, ADDITION);
-
-  const resultStats = extractBrushStats(result);
-  console.log(
-    `[CSG] Union complete. Result: ${resultStats.vertexCount} vertices, ${resultStats.triangleCount} triangles`
-  );
 
   const glb = await brushToGLTF(result, materialProperties, textureData);
   return { glb, resultBrush: result };
@@ -109,8 +98,6 @@ export class CgsUnionNode extends ExecutableNode {
         context.inputs
       );
       const { meshA, meshB } = validatedInput;
-
-      console.log("[CgsUnionNode] Performing union operation...");
 
       // Extract GLB data from mesh inputs (handle both raw Uint8Array and mesh object formats)
       const meshAData = meshA instanceof Uint8Array ? meshA : meshA.data;

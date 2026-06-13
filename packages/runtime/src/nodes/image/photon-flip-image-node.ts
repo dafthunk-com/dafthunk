@@ -1,16 +1,22 @@
 import { fliph, flipv } from "@cf-wasm/photon";
-import {
-  ExecutableNode,
-  type ImageParameter,
-  type NodeContext,
-} from "@dafthunk/runtime";
+import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { z } from "zod";
+import { zodErrorMessage } from "../../utils/zod";
 import { executePhotonOperation } from "./execute-photon-operation";
+import { imageInputSchema } from "./image-input-schema";
 
 /**
  * This node flips an input image horizontally or vertically using the Photon library.
  */
 export class PhotonFlipImageNode extends ExecutableNode {
+  private static readonly inputSchema = z.object({
+    image: imageInputSchema(),
+    direction: z.enum(["horizontal", "vertical"], {
+      error: "Invalid flip direction. Must be 'horizontal' or 'vertical'.",
+    }),
+  });
+
   public static readonly nodeType: NodeType = {
     id: "photon-flip-image",
     name: "Flip Image",
@@ -48,21 +54,11 @@ export class PhotonFlipImageNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { image, direction } = context.inputs as {
-      image?: ImageParameter;
-      direction?: "horizontal" | "vertical";
-    };
-    if (!image || !image.data || !image.mimeType) {
-      return this.createErrorResult("Input image is missing or invalid.");
+    const parsed = PhotonFlipImageNode.inputSchema.safeParse(context.inputs);
+    if (!parsed.success) {
+      return this.createErrorResult(zodErrorMessage(parsed.error));
     }
-    if (
-      !direction ||
-      (direction !== "horizontal" && direction !== "vertical")
-    ) {
-      return this.createErrorResult(
-        "Invalid flip direction. Must be 'horizontal' or 'vertical'."
-      );
-    }
+    const { image, direction } = parsed.data;
     return executePhotonOperation(this, image, (img) => {
       if (direction === "horizontal") {
         fliph(img);

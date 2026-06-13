@@ -1,16 +1,22 @@
 import { alter_channels } from "@cf-wasm/photon";
-import {
-  ExecutableNode,
-  type ImageParameter,
-  type NodeContext,
-} from "@dafthunk/runtime";
+import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { z } from "zod";
+import { zodErrorMessage } from "../../utils/zod";
 import { executePhotonOperation } from "./execute-photon-operation";
+import { imageInputSchema } from "./image-input-schema";
 
 /**
  * This node alters the Red, Green, and Blue channels of an input image by specified amounts using the Photon library.
  */
 export class PhotonAlterRGBChannelsNode extends ExecutableNode {
+  private static readonly inputSchema = z.object({
+    image: imageInputSchema(),
+    redAmount: z.number({ error: "Red amount must be a number." }),
+    greenAmount: z.number({ error: "Green amount must be a number." }),
+    blueAmount: z.number({ error: "Blue amount must be a number." }),
+  });
+
   public static readonly nodeType: NodeType = {
     id: "photon-alter-rgb-channels",
     name: "Alter RGB Channels",
@@ -65,24 +71,13 @@ export class PhotonAlterRGBChannelsNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { image, redAmount, greenAmount, blueAmount } = context.inputs as {
-      image?: ImageParameter;
-      redAmount?: number;
-      greenAmount?: number;
-      blueAmount?: number;
-    };
-    if (!image || !image.data || !image.mimeType) {
-      return this.createErrorResult("Input image is missing or invalid.");
+    const parsed = PhotonAlterRGBChannelsNode.inputSchema.safeParse(
+      context.inputs
+    );
+    if (!parsed.success) {
+      return this.createErrorResult(zodErrorMessage(parsed.error));
     }
-    if (typeof redAmount !== "number") {
-      return this.createErrorResult("Red amount must be a number.");
-    }
-    if (typeof greenAmount !== "number") {
-      return this.createErrorResult("Green amount must be a number.");
-    }
-    if (typeof blueAmount !== "number") {
-      return this.createErrorResult("Blue amount must be a number.");
-    }
+    const { image, redAmount, greenAmount, blueAmount } = parsed.data;
     return executePhotonOperation(this, image, (img) => {
       alter_channels(img, redAmount, greenAmount, blueAmount);
       return img.get_bytes();

@@ -46,7 +46,7 @@ export class PolygonizeNode extends ExecutableNode {
         polygons: polygonFeatures,
       });
     } catch (err) {
-      const error = err as Error;
+      const error = err instanceof Error ? err : new Error(String(err));
       return this.createErrorResult(
         `Error polygonizing lines: ${error.message}`
       );

@@ -1,5 +1,7 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { z } from "zod";
+import { zodErrorMessage } from "../../utils/zod";
 
 import { resolveWordPressSite, wordPressApiUrl } from "./wordpress-utils";
 
@@ -16,6 +18,24 @@ interface WordPressPost {
  * untouched on the post.
  */
 export class UpdatePostWordPressNode extends ExecutableNode {
+  private static readonly inputSchema = z.object({
+    integrationId: z
+      .string({
+        error:
+          "Integration ID is required. Please select a WordPress integration.",
+      })
+      .min(1, {
+        error:
+          "Integration ID is required. Please select a WordPress integration.",
+      }),
+    site: z.string().optional(),
+    postId: z.number({ error: "Post ID is required" }),
+    title: z.string().optional(),
+    content: z.string().optional(),
+    status: z.string().optional(),
+    excerpt: z.string().optional(),
+  });
+
   public static readonly nodeType: NodeType = {
     id: "update-post-wordpress",
     name: "Update Post (WordPress)",
@@ -90,25 +110,14 @@ export class UpdatePostWordPressNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
+      const parsed = UpdatePostWordPressNode.inputSchema.safeParse(
+        context.inputs
+      );
+      if (!parsed.success) {
+        return this.createErrorResult(zodErrorMessage(parsed.error));
+      }
       const { integrationId, site, postId, title, content, status, excerpt } =
-        context.inputs as {
-          integrationId?: string;
-          site?: string;
-          postId?: number;
-          title?: string;
-          content?: string;
-          status?: string;
-          excerpt?: string;
-        };
-
-      if (!integrationId) {
-        return this.createErrorResult(
-          "Integration ID is required. Please select a WordPress integration."
-        );
-      }
-      if (postId === undefined || postId === null) {
-        return this.createErrorResult("Post ID is required");
-      }
+        parsed.data;
 
       const integration = await context.getIntegration(integrationId);
       const resolvedSite = resolveWordPressSite(integration, site);

@@ -165,7 +165,7 @@ export class GeoJsonToSvgNode extends ExecutableNode {
         },
       });
     } catch (err) {
-      const error = err as Error;
+      const error = err instanceof Error ? err : new Error(String(err));
       return this.createErrorResult(
         `Error rendering GeoJSON to SVG: ${error.message}`
       );

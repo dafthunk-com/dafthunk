@@ -81,10 +81,6 @@ export class CgsTranslateNode extends ExecutableNode {
       );
       const { mesh, offset, materialProperties } = validatedInput;
 
-      console.log(
-        `[CgsTranslateNode] Translating mesh by [${offset[0]}, ${offset[1]}, ${offset[2]}]`
-      );
-
       const meshData = mesh instanceof Uint8Array ? mesh : mesh.data;
       const { brush, materialData } = await glTFToBrush(meshData);
 

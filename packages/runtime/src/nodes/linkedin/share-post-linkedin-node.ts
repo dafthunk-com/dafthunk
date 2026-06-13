@@ -1,12 +1,40 @@
 import type { ImageParameter } from "@dafthunk/runtime";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { z } from "zod";
+import { zodErrorMessage } from "../../utils/zod";
 
 /**
  * LinkedIn Share Post node implementation
  * Shares a post to LinkedIn with optional image or link attachment
  */
 export class SharePostLinkedInNode extends ExecutableNode {
+  private static readonly inputSchema = z.object({
+    integrationId: z
+      .string({
+        error:
+          "Integration ID is required. Please select a LinkedIn integration.",
+      })
+      .min(1, {
+        error:
+          "Integration ID is required. Please select a LinkedIn integration.",
+      }),
+    text: z
+      .string({ error: "Text content is required" })
+      .min(1, { error: "Text content is required" }),
+    image: z
+      .object({
+        data: z.instanceof(Uint8Array),
+        mimeType: z.string(),
+        filename: z.string().optional(),
+      })
+      .optional(),
+    linkUrl: z.string().optional(),
+    linkTitle: z.string().optional(),
+    linkDescription: z.string().optional(),
+    visibility: z.string().optional(),
+  });
+
   public static readonly nodeType: NodeType = {
     id: "share-post-linkedin",
     name: "Share Post (LinkedIn)",
@@ -153,6 +181,12 @@ export class SharePostLinkedInNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
+      const parsed = SharePostLinkedInNode.inputSchema.safeParse(
+        context.inputs
+      );
+      if (!parsed.success) {
+        return this.createErrorResult(zodErrorMessage(parsed.error));
+      }
       const {
         integrationId,
         text,
@@ -161,27 +195,8 @@ export class SharePostLinkedInNode extends ExecutableNode {
         linkTitle,
         linkDescription,
         visibility,
-      } = context.inputs as {
-        integrationId?: string;
-        text?: string;
-        image?: ImageParameter;
-        linkUrl?: string;
-        linkTitle?: string;
-        linkDescription?: string;
-        visibility?: string;
-      };
+      } = parsed.data;
       const { organizationId } = context;
-
-      // Validate required inputs
-      if (!integrationId || typeof integrationId !== "string") {
-        return this.createErrorResult(
-          "Integration ID is required. Please select a LinkedIn integration."
-        );
-      }
-
-      if (!text || typeof text !== "string") {
-        return this.createErrorResult("Text content is required");
-      }
 
       if (!organizationId || typeof organizationId !== "string") {
         return this.createErrorResult("Organization ID is required");

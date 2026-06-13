@@ -1,16 +1,22 @@
 import { gaussian_blur } from "@cf-wasm/photon";
-import {
-  ExecutableNode,
-  type ImageParameter,
-  type NodeContext,
-} from "@dafthunk/runtime";
+import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { z } from "zod";
+import { zodErrorMessage } from "../../utils/zod";
 import { executePhotonOperation } from "./execute-photon-operation";
+import { imageInputSchema } from "./image-input-schema";
 
 /**
  * This node applies Gaussian blur to an input image using the Photon library.
  */
 export class PhotonGaussianBlurNode extends ExecutableNode {
+  private static readonly inputSchema = z.object({
+    image: imageInputSchema(),
+    radius: z
+      .number({ error: "Blur radius must be a non-negative number." })
+      .min(0, { error: "Blur radius must be a non-negative number." }),
+  });
+
   public static readonly nodeType: NodeType = {
     id: "photon-gaussian-blur",
     name: "Gaussian Blur",
@@ -49,18 +55,11 @@ export class PhotonGaussianBlurNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { image, radius } = context.inputs as {
-      image?: ImageParameter;
-      radius?: number;
-    };
-    if (!image || !image.data || !image.mimeType) {
-      return this.createErrorResult("Input image is missing or invalid.");
+    const parsed = PhotonGaussianBlurNode.inputSchema.safeParse(context.inputs);
+    if (!parsed.success) {
+      return this.createErrorResult(zodErrorMessage(parsed.error));
     }
-    if (typeof radius !== "number" || radius < 0) {
-      return this.createErrorResult(
-        "Blur radius must be a non-negative number."
-      );
-    }
+    const { image, radius } = parsed.data;
     return executePhotonOperation(this, image, (img) => {
       gaussian_blur(img, Math.round(radius));
       return img.get_bytes();

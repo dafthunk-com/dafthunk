@@ -60,12 +60,25 @@ export function detectCycles(workflow: Workflow): ValidationError | null {
   return null;
 }
 
+// Blob-compatible types: a `blob` parameter can connect to any of these
+const blobTypes = new Set([
+  "image",
+  "audio",
+  "video",
+  "document",
+  "buffergeometry",
+  "gltf",
+]);
+
 /**
- * Validates type compatibility between connected parameters
+ * Validates type compatibility between connected parameters.
+ * Returns one error per invalid connection so all problems surface at once.
  */
 export function validateTypeCompatibility(
   workflow: Workflow
-): ValidationError | null {
+): ValidationError[] {
+  const errors: ValidationError[] = [];
+
   for (const connection of workflow.edges) {
     const sourceNode = workflow.nodes.find(
       (n: Workflow["nodes"][number]): boolean => n.id === connection.source
@@ -75,14 +88,15 @@ export function validateTypeCompatibility(
     );
 
     if (!sourceNode || !targetNode) {
-      return {
+      errors.push({
         type: "INVALID_CONNECTION",
         message: "Invalid node reference in connection",
         details: {
           connectionSource: connection.source,
           connectionTarget: connection.target,
         },
-      };
+      });
+      continue;
     }
 
     const sourceParam = sourceNode.outputs.find(
@@ -93,25 +107,16 @@ export function validateTypeCompatibility(
     );
 
     if (!sourceParam || !targetParam) {
-      return {
+      errors.push({
         type: "INVALID_CONNECTION",
         message: "Invalid parameter reference in connection",
         details: {
           connectionSource: connection.source,
           connectionTarget: connection.target,
         },
-      };
+      });
+      continue;
     }
-
-    // Define blob-compatible types
-    const blobTypes = new Set([
-      "image",
-      "audio",
-      "video",
-      "document",
-      "buffergeometry",
-      "gltf",
-    ]);
 
     // Check type compatibility
     const exactMatch = sourceParam.type === targetParam.type;
@@ -124,18 +129,18 @@ export function validateTypeCompatibility(
     const typesMatch = exactMatch || anyTypeMatch || blobCompatible;
 
     if (!typesMatch) {
-      return {
+      errors.push({
         type: "TYPE_MISMATCH",
         message: `Type mismatch: ${sourceParam.type.toLowerCase().replace("value", "")} -> ${targetParam.type.toLowerCase().replace("value", "")}`,
         details: {
           connectionSource: connection.source,
           connectionTarget: connection.target,
         },
-      };
+      });
     }
   }
 
-  return null;
+  return errors;
 }
 
 /**
@@ -185,10 +190,7 @@ export function validateWorkflow(
   }
 
   // Check type compatibility
-  const typeError = validateTypeCompatibility(workflow);
-  if (typeError) {
-    errors.push(typeError);
-  }
+  errors.push(...validateTypeCompatibility(workflow));
 
   // Check for duplicate connections
   const connections = new Set<string>();

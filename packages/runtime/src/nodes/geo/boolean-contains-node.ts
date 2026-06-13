@@ -57,7 +57,7 @@ export class BooleanContainsNode extends ExecutableNode {
         contains: containsResult,
       });
     } catch (err) {
-      const error = err as Error;
+      const error = err instanceof Error ? err : new Error(String(err));
       return this.createErrorResult(
         `Error testing contains relationship: ${error.message}`
       );

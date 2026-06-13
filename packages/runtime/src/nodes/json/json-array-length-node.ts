@@ -60,7 +60,7 @@ export class JsonArrayLengthNode extends ExecutableNode {
         isArray: true,
       });
     } catch (err) {
-      const error = err as Error;
+      const error = err instanceof Error ? err : new Error(String(err));
       return this.createErrorResult(
         `Error getting array length: ${error.message}`
       );

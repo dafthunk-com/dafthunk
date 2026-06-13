@@ -15,10 +15,6 @@ function createCylinderBrush(
   radialSegments: number = 32,
   center: boolean = false
 ): Brush {
-  console.log(
-    `[CSG] Creating cylinder brush: height=${height}, radiusBottom=${radiusBottom}, radiusTop=${radiusTop}`
-  );
-
   const geometry = new CylinderGeometry(
     radiusTop,
     radiusBottom,
@@ -134,10 +130,6 @@ export class CgsCylinderNode extends ExecutableNode {
 
       // If radiusTop is not provided, use radiusBottom (creating a true cylinder)
       const topRadius = radiusTop ?? radiusBottom;
-
-      console.log(
-        `[CgsCylinderNode] Creating cylinder with height=${height}, radiusBottom=${radiusBottom}, radiusTop=${topRadius}, radialSegments=${radialSegments}, center=${center}`
-      );
 
       // Create the cylinder brush using three-bvh-csg
       const brush = createCylinderBrush(

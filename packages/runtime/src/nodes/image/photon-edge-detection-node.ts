@@ -1,16 +1,19 @@
 import { edge_detection } from "@cf-wasm/photon";
-import {
-  ExecutableNode,
-  type ImageParameter,
-  type NodeContext,
-} from "@dafthunk/runtime";
+import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { z } from "zod";
+import { zodErrorMessage } from "../../utils/zod";
 import { executePhotonOperation } from "./execute-photon-operation";
+import { imageInputSchema } from "./image-input-schema";
 
 /**
  * This node applies edge detection to an input image using the Photon library.
  */
 export class PhotonEdgeDetectionNode extends ExecutableNode {
+  private static readonly inputSchema = z.object({
+    image: imageInputSchema(),
+  });
+
   public static readonly nodeType: NodeType = {
     id: "photon-edge-detection",
     name: "Edge Detection",
@@ -39,8 +42,13 @@ export class PhotonEdgeDetectionNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { image } = context.inputs as { image?: ImageParameter };
-    return executePhotonOperation(this, image, (img) => {
+    const parsed = PhotonEdgeDetectionNode.inputSchema.safeParse(
+      context.inputs
+    );
+    if (!parsed.success) {
+      return this.createErrorResult(zodErrorMessage(parsed.error));
+    }
+    return executePhotonOperation(this, parsed.data.image, (img) => {
       edge_detection(img);
       return img.get_bytes();
     });

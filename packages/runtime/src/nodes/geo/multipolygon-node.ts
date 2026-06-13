@@ -99,7 +99,7 @@ export class MultiPolygonNode extends ExecutableNode {
         multiPolygon: multiPolygonResult,
       });
     } catch (err) {
-      const error = err as Error;
+      const error = err instanceof Error ? err : new Error(String(err));
       return this.createErrorResult(
         `Error creating multi polygon: ${error.message}`
       );

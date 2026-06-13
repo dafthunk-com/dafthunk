@@ -1,5 +1,7 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { z } from "zod";
+import { zodErrorMessage } from "../../utils/zod";
 
 import { resolveWordPressSite, wordPressApiUrl } from "./wordpress-utils";
 
@@ -10,6 +12,21 @@ import { resolveWordPressSite, wordPressApiUrl } from "./wordpress-utils";
  * permanently delete it (irreversible).
  */
 export class DeletePostWordPressNode extends ExecutableNode {
+  private static readonly inputSchema = z.object({
+    integrationId: z
+      .string({
+        error:
+          "Integration ID is required. Please select a WordPress integration.",
+      })
+      .min(1, {
+        error:
+          "Integration ID is required. Please select a WordPress integration.",
+      }),
+    site: z.string().optional(),
+    postId: z.number({ error: "Post ID is required" }),
+    force: z.boolean().optional(),
+  });
+
   public static readonly nodeType: NodeType = {
     id: "delete-post-wordpress",
     name: "Delete Post (WordPress)",
@@ -69,21 +86,13 @@ export class DeletePostWordPressNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const { integrationId, site, postId, force } = context.inputs as {
-        integrationId?: string;
-        site?: string;
-        postId?: number;
-        force?: boolean;
-      };
-
-      if (!integrationId) {
-        return this.createErrorResult(
-          "Integration ID is required. Please select a WordPress integration."
-        );
+      const parsed = DeletePostWordPressNode.inputSchema.safeParse(
+        context.inputs
+      );
+      if (!parsed.success) {
+        return this.createErrorResult(zodErrorMessage(parsed.error));
       }
-      if (postId === undefined || postId === null) {
-        return this.createErrorResult("Post ID is required");
-      }
+      const { integrationId, site, postId, force } = parsed.data;
 
       const integration = await context.getIntegration(integrationId);
       const resolvedSite = resolveWordPressSite(integration, site);

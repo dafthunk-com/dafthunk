@@ -93,10 +93,6 @@ export class CgsApplyMaterialNode extends ExecutableNode {
         CgsApplyMaterialNode.applyMaterialInputSchema.parse(context.inputs);
       const { mesh: meshInput, color, metallic, roughness } = validatedInput;
 
-      console.log(
-        `[CgsApplyMaterialNode] Applying material: color=${color}, metallic=${metallic}, roughness=${roughness}`
-      );
-
       // Extract GLB data from mesh input
       const meshData =
         meshInput instanceof Uint8Array ? meshInput : meshInput.data;

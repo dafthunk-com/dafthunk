@@ -1,16 +1,20 @@
 import { hue_rotate_hsl } from "@cf-wasm/photon";
-import {
-  ExecutableNode,
-  type ImageParameter,
-  type NodeContext,
-} from "@dafthunk/runtime";
+import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { z } from "zod";
+import { zodErrorMessage } from "../../utils/zod";
 import { executePhotonOperation } from "./execute-photon-operation";
+import { imageInputSchema } from "./image-input-schema";
 
 /**
  * This node adjusts the hue of an input image using the HSL color space via Photon library.
  */
 export class PhotonAdjustHueNode extends ExecutableNode {
+  private static readonly inputSchema = z.object({
+    image: imageInputSchema(),
+    degrees: z.number({ error: "Hue rotation degrees must be a number." }),
+  });
+
   public static readonly nodeType: NodeType = {
     id: "photon-adjust-hue",
     name: "Adjust Hue (HSL)",
@@ -48,16 +52,11 @@ export class PhotonAdjustHueNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { image, degrees } = context.inputs as {
-      image?: ImageParameter;
-      degrees?: number;
-    };
-    if (!image || !image.data || !image.mimeType) {
-      return this.createErrorResult("Input image is missing or invalid.");
+    const parsed = PhotonAdjustHueNode.inputSchema.safeParse(context.inputs);
+    if (!parsed.success) {
+      return this.createErrorResult(zodErrorMessage(parsed.error));
     }
-    if (typeof degrees !== "number") {
-      return this.createErrorResult("Hue rotation degrees must be a number.");
-    }
+    const { image, degrees } = parsed.data;
     return executePhotonOperation(this, image, (img) => {
       hue_rotate_hsl(img, degrees);
       return img.get_bytes();

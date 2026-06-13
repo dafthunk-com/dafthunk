@@ -1,16 +1,24 @@
 import { oil } from "@cf-wasm/photon";
-import {
-  ExecutableNode,
-  type ImageParameter,
-  type NodeContext,
-} from "@dafthunk/runtime";
+import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { z } from "zod";
+import { zodErrorMessage } from "../../utils/zod";
 import { executePhotonOperation } from "./execute-photon-operation";
+import { imageInputSchema } from "./image-input-schema";
 
 /**
  * This node applies an oil painting effect to an input image using the Photon library.
  */
 export class PhotonOilPaintingNode extends ExecutableNode {
+  private static readonly inputSchema = z.object({
+    image: imageInputSchema(),
+    radius: z
+      .number({ error: "Radius must be a non-negative integer." })
+      .int({ error: "Radius must be a non-negative integer." })
+      .min(0, { error: "Radius must be a non-negative integer." }),
+    intensity: z.number({ error: "Intensity must be a number." }),
+  });
+
   public static readonly nodeType: NodeType = {
     id: "photon-oil-painting",
     name: "Oil Painting Effect",
@@ -56,20 +64,11 @@ export class PhotonOilPaintingNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { image, radius, intensity } = context.inputs as {
-      image?: ImageParameter;
-      radius?: number;
-      intensity?: number;
-    };
-    if (!image || !image.data || !image.mimeType) {
-      return this.createErrorResult("Input image is missing or invalid.");
+    const parsed = PhotonOilPaintingNode.inputSchema.safeParse(context.inputs);
+    if (!parsed.success) {
+      return this.createErrorResult(zodErrorMessage(parsed.error));
     }
-    if (typeof radius !== "number" || !Number.isInteger(radius) || radius < 0) {
-      return this.createErrorResult("Radius must be a non-negative integer.");
-    }
-    if (typeof intensity !== "number") {
-      return this.createErrorResult("Intensity must be a number.");
-    }
+    const { image, radius, intensity } = parsed.data;
     return executePhotonOperation(this, image, (img) => {
       oil(img, radius, intensity);
       return img.get_bytes();

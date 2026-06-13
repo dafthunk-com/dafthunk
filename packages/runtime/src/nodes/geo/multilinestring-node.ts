@@ -99,7 +99,7 @@ export class MultiLineStringNode extends ExecutableNode {
         multiLineString: multiLineStringResult,
       });
     } catch (err) {
-      const error = err as Error;
+      const error = err instanceof Error ? err : new Error(String(err));
       return this.createErrorResult(
         `Error creating multi line string: ${error.message}`
       );

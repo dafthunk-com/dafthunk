@@ -14,10 +14,6 @@ function createCubeBrush(
   sizeZ: number,
   center: boolean = false
 ): Brush {
-  console.log(
-    `[CSG] Creating cube brush: [${sizeX}, ${sizeY}, ${sizeZ}], center=${center}`
-  );
-
   const geometry = new BoxGeometry(sizeX, sizeY, sizeZ);
   geometry.computeVertexNormals();
 
@@ -101,10 +97,6 @@ export class CgsCubeNode extends ExecutableNode {
       const [sizeX, sizeY, sizeZ] = Array.isArray(size)
         ? size
         : [size, size, size];
-
-      console.log(
-        `[CgsCubeNode] Creating cube with size [${sizeX}, ${sizeY}, ${sizeZ}], center=${center}`
-      );
 
       // Create the cube brush using three-bvh-csg
       const brush = createCubeBrush(sizeX, sizeY, sizeZ, center);

@@ -1,17 +1,29 @@
 import { grayscale, threshold } from "@cf-wasm/photon";
-import {
-  ExecutableNode,
-  type ImageParameter,
-  type NodeContext,
-} from "@dafthunk/runtime";
+import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { z } from "zod";
+import { zodErrorMessage } from "../../utils/zod";
 import { executePhotonOperation } from "./execute-photon-operation";
+import { imageInputSchema } from "./image-input-schema";
 
 /**
  * This node applies a threshold to an image, converting it to black and white,
  * based on a specified threshold value using the Photon library.
  */
 export class PhotonThresholdNode extends ExecutableNode {
+  private static readonly inputSchema = z.object({
+    image: imageInputSchema(),
+    thresholdValue: z
+      .number({ error: "Threshold value must be a number between 0 and 255." })
+      .min(0, {
+        error: "Threshold value must be a number between 0 and 255.",
+      })
+      .max(255, {
+        error: "Threshold value must be a number between 0 and 255.",
+      }),
+    convertToGrayscaleFirst: z.boolean().optional(),
+  });
+
   public static readonly nodeType: NodeType = {
     id: "photon-threshold",
     name: "Threshold",
@@ -58,24 +70,11 @@ export class PhotonThresholdNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { image, thresholdValue, convertToGrayscaleFirst } =
-      context.inputs as {
-        image?: ImageParameter;
-        thresholdValue?: number;
-        convertToGrayscaleFirst?: boolean;
-      };
-    if (!image || !image.data || !image.mimeType) {
-      return this.createErrorResult("Input image is missing or invalid.");
+    const parsed = PhotonThresholdNode.inputSchema.safeParse(context.inputs);
+    if (!parsed.success) {
+      return this.createErrorResult(zodErrorMessage(parsed.error));
     }
-    if (
-      typeof thresholdValue !== "number" ||
-      thresholdValue < 0 ||
-      thresholdValue > 255
-    ) {
-      return this.createErrorResult(
-        "Threshold value must be a number between 0 and 255."
-      );
-    }
+    const { image, thresholdValue, convertToGrayscaleFirst } = parsed.data;
     return executePhotonOperation(this, image, (img) => {
       if (convertToGrayscaleFirst !== false) {
         grayscale(img);

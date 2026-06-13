@@ -82,7 +82,7 @@ export class JsonInsertNode extends ExecutableNode {
         inserted: true,
       });
     } catch (err) {
-      const error = err as Error;
+      const error = err instanceof Error ? err : new Error(String(err));
       return this.createErrorResult(
         `Error inserting JSON value: ${error.message}`
       );
