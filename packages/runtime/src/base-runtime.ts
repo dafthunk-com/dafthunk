@@ -426,10 +426,10 @@ export abstract class Runtime<Env = unknown> {
         await this.monitoringService.sendUpdate(executionRecord);
 
         // ======================================================================
-        // STEP 4: Execute workflow nodes level-by-level
+        // STEP 4: Execute workflow nodes via dependency-driven scheduling
         // ======================================================================
         const { state: finalState, record: finalRecord } =
-          await this.executeWorkflowLevels(
+          await this.executeWorkflowGraph(
             executionContext,
             executionState,
             executionRecord
@@ -551,114 +551,127 @@ export abstract class Runtime<Env = unknown> {
   // ==========================================================================
 
   /**
-   * Executes workflow nodes in parallel within each execution level.
-   * Nodes at the same level have no dependencies on each other and can run concurrently.
-   * Each node gets its own durable step for Cloudflare Workflows compatibility.
+   * Executes workflow nodes using dependency-driven (dataflow) scheduling.
+   *
+   * Each node runs as soon as *its own* direct upstream nodes have settled
+   * (completed, skipped, or errored) — not when its whole topological level is
+   * ready. This keeps independent branches decoupled: a node that parks on an
+   * external event (`status: "pending"`, e.g. a human-in-the-loop form or an
+   * async agent) only holds back its own descendants, never unrelated branches.
+   *
+   * Determinism for durable replay is preserved because each node is issued
+   * under a stable step name (`run node <id>` / `wait for <id>`); Cloudflare
+   * Workflows caches step results by name, independent of completion order.
    */
-  private async executeWorkflowLevels(
+  private async executeWorkflowGraph(
     context: WorkflowExecutionContext,
     state: ExecutionState,
     executionRecord: WorkflowExecution
   ): Promise<{ state: ExecutionState; record: WorkflowExecution }> {
     let currentRecord = executionRecord;
 
-    for (const level of context.executionLevels) {
-      // Execute all nodes in this level in parallel, collecting results
-      const results = await Promise.all(
-        level.nodeIds.map(async (nodeId) => {
-          const node = context.workflow.nodes.find((n) => n.id === nodeId);
-          if (node && this.nodeRegistry.isMultiStep(node.type)) {
-            // Multi-step: node manages its own steps via context.sleep/doStep
-            return this.executeSingleNode(context, state, nodeId);
-          }
-          // Regular: wrap entire execution in a single durable step
-          return this.executeStep(`run node ${nodeId}`, async () => {
-            return this.executeSingleNode(context, state, nodeId);
-          });
-        })
-      );
+    // Distinct upstream node ids each node depends on. A node is ready once all
+    // of these have settled — which is exactly the state checkSkipCondition and
+    // input collection need to make a correct decision for that node.
+    const dependencies = new Map<string, Set<string>>();
+    for (const node of context.workflow.nodes) {
+      dependencies.set(node.id, new Set());
+    }
+    for (const edge of context.workflow.edges) {
+      dependencies.get(edge.target)?.add(edge.source);
+    }
 
-      // Separate completed results from pending (async) results so that
-      // completed nodes are applied to state and reported immediately,
-      // without waiting for pending nodes to resolve.
-      const immediateResults: NodeExecutionResult[] = [];
-      const pendingResults: Extract<
-        NodeExecutionResult,
-        { status: "pending" }
-      >[] = [];
-      for (const result of results) {
-        if (result.status === "pending") {
-          pendingResults.push(result);
-        } else {
-          immediateResults.push(result);
+    const settled = new Set<string>(); // executed ∪ skipped ∪ errored
+    const started = new Set<string>();
+    const inFlight = new Map<
+      string,
+      Promise<{ nodeId: string; result: NodeExecutionResult }>
+    >();
+    // Nodes currently parked on an external event, surfaced in monitoring updates.
+    const pendingNodes = new Map<string, { type: string; timeout: string }>();
+
+    const isReady = (nodeId: string): boolean => {
+      if (started.has(nodeId)) return false;
+      const deps = dependencies.get(nodeId);
+      if (deps) {
+        for (const upstream of deps) {
+          if (!settled.has(upstream)) return false;
         }
       }
+      return true;
+    };
 
-      // Apply completed results to state immediately
-      for (const result of immediateResults) {
-        if (result.status === "error") {
-          const node = context.workflow.nodes.find(
-            (n) => n.id === result.nodeId
-          );
-          console.error(
-            `[Runtime] Node error: nodeId=${result.nodeId} type=${node?.type} error=${result.error}`
-          );
-        }
-        applyNodeResult(state, result);
-      }
-
-      // If there are pending nodes, send a progress update showing completed
-      // nodes alongside pending ones before parking on waitForEvent
-      if (pendingResults.length > 0) {
-        const pendingNodeIds = new Map(
-          pendingResults.map((r) => [
-            r.nodeId,
-            { type: r.eventType, timeout: r.timeout },
-          ])
-        );
-        currentRecord = {
-          ...currentRecord,
-          status: "executing",
-          nodeExecutions: this.buildNodeExecutions(
-            context.workflow,
-            context,
-            state,
-            "executing",
-            pendingNodeIds
-          ),
-        };
-        await this.monitoringService.sendUpdate(currentRecord);
-
-        // Resolve pending nodes (waits for external events)
-        const resolvedResults = await Promise.all(
-          pendingResults.map((result) => this.resolveAsyncNode(context, result))
-        );
-
-        // Apply resolved results to state
-        for (const result of resolvedResults) {
-          if (result.status === "error") {
-            const node = context.workflow.nodes.find(
-              (n) => n.id === result.nodeId
-            );
-            console.error(
-              `[Runtime] Node error: nodeId=${result.nodeId} type=${node?.type} error=${result.error}`
-            );
-          }
-          applyNodeResult(state, result);
-        }
-      }
-
-      // Update execution record with current state and send monitoring notification
+    const sendProgress = async (): Promise<void> => {
       currentRecord = {
         ...currentRecord,
         status: getExecutionStatus(context, state),
         nodeExecutions: this.buildNodeExecutions(
           context.workflow,
           context,
-          state
+          state,
+          undefined,
+          pendingNodes.size > 0 ? new Map(pendingNodes) : undefined
         ),
       };
       await this.monitoringService.sendUpdate(currentRecord);
+    };
+
+    const startNode = (nodeId: string): void => {
+      started.add(nodeId);
+      const node = context.workflow.nodes.find((n) => n.id === nodeId);
+      const runInitial = (): Promise<NodeExecutionResult> =>
+        node && this.nodeRegistry.isMultiStep(node.type)
+          ? // Multi-step: node manages its own steps via context.sleep/doStep
+            this.executeSingleNode(context, state, nodeId)
+          : // Regular: wrap entire execution in a single durable step
+            this.executeStep(`run node ${nodeId}`, async () =>
+              this.executeSingleNode(context, state, nodeId)
+            );
+
+      const promise = (async () => {
+        const initial = await runInitial();
+        if (initial.status !== "pending") {
+          return { nodeId, result: initial };
+        }
+        // Node parked on an external event. Surface it as pending and resume
+        // when the event arrives — without blocking any other branch.
+        pendingNodes.set(nodeId, {
+          type: initial.eventType,
+          timeout: initial.timeout,
+        });
+        await sendProgress();
+        const resolved = await this.resolveAsyncNode(context, initial);
+        pendingNodes.delete(nodeId);
+        return { nodeId, result: resolved };
+      })();
+      inFlight.set(nodeId, promise);
+    };
+
+    const scheduleReady = (): void => {
+      for (const nodeId of context.orderedNodeIds) {
+        if (isReady(nodeId)) startNode(nodeId);
+      }
+    };
+
+    scheduleReady();
+
+    while (inFlight.size > 0) {
+      const { nodeId, result } = await Promise.race(inFlight.values());
+      inFlight.delete(nodeId);
+
+      if (result.status === "error") {
+        const node = context.workflow.nodes.find((n) => n.id === result.nodeId);
+        console.error(
+          `[Runtime] Node error: nodeId=${result.nodeId} type=${node?.type} error=${result.error}`
+        );
+      }
+      applyNodeResult(state, result);
+      settled.add(nodeId);
+
+      // A settled node may unblock downstream nodes — launch them now.
+      scheduleReady();
+
+      await sendProgress();
     }
 
     return { state, record: currentRecord };
