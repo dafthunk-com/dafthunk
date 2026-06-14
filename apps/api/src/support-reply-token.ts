@@ -55,8 +55,24 @@ export async function verifyReplyToken(
 }
 
 /**
- * Compose the full Reply-To address for a thread, or null when any of the
- * required env bindings is missing. The address format is intentionally
+ * Compose a tokenized Reply-To address `${handle}+${token}@${domain}` for a
+ * thread. Shared by the support inbox and per-org mailboxes — the caller
+ * supplies the address parts so the same threading mechanism works for any
+ * sending address.
+ */
+export async function buildReplyAddress(
+  threadId: string,
+  handle: string,
+  domain: string,
+  secret: string
+): Promise<string> {
+  const token = await mintReplyToken(threadId, secret);
+  return `${handle.toLowerCase()}+${token}@${domain}`;
+}
+
+/**
+ * Compose the full Reply-To address for a support thread, or null when any of
+ * the required env bindings is missing. The address format is intentionally
  * owned here so the route only needs the thread id.
  */
 export async function buildReplyToAddress(
@@ -67,8 +83,7 @@ export async function buildReplyToAddress(
   const from = env.SUPPORT_EMAIL_FROM;
   const domain = from?.includes("@") ? from.split("@")[1] : undefined;
   if (!handle || !domain || !env.JWT_SECRET) return null;
-  const token = await mintReplyToken(threadId, env.JWT_SECRET);
-  return `${handle}+${token}@${domain}`;
+  return buildReplyAddress(threadId, handle, domain, env.JWT_SECRET);
 }
 
 async function computeMac(

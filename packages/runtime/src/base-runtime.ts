@@ -40,6 +40,7 @@ import type {
   RuntimeValue,
   WorkflowExecutionContext,
 } from "./execution-types";
+import type { MailboxService } from "./mailbox-service";
 import type { MonitoringService } from "./monitoring-service";
 import type {
   EmailMessage,
@@ -100,6 +101,7 @@ export interface RuntimeDependencies<Env = unknown> {
   datasetService?: DatasetService;
   queueService?: QueueService;
   schemaService?: SchemaService;
+  mailboxService?: MailboxService;
   /** Sandboxed JavaScript executor (Cloudflare Dynamic Workers in production). */
   codeModeExecutor?: CodeModeExecutor;
   /** Multi-language sandbox executor (Cloudflare Containers in production). */
@@ -137,6 +139,7 @@ export abstract class Runtime<Env = unknown> {
   protected datasetService?: DatasetService;
   protected queueService?: QueueService;
   protected schemaService?: SchemaService;
+  protected mailboxService?: MailboxService;
   protected codeModeExecutor?: CodeModeExecutor;
   protected sandboxExecutor?: SandboxExecutor;
   protected env: Env;
@@ -164,6 +167,7 @@ export abstract class Runtime<Env = unknown> {
     this.datasetService = dependencies.datasetService;
     this.queueService = dependencies.queueService;
     this.schemaService = dependencies.schemaService;
+    this.mailboxService = dependencies.mailboxService;
     this.codeModeExecutor = dependencies.codeModeExecutor;
     this.sandboxExecutor = dependencies.sandboxExecutor;
     this.runtimeVersion = dependencies.runtimeVersion;
@@ -1077,6 +1081,7 @@ export abstract class Runtime<Env = unknown> {
         datasetService: this.datasetService,
         queueService: this.queueService,
         schemaService: this.schemaService,
+        mailboxService: this.mailboxService,
         codeModeExecutor: this.codeModeExecutor,
         sandboxExecutor: this.sandboxExecutor,
         getSecret: (secretName: string) =>

@@ -1,6 +1,8 @@
 import { and, desc, eq, gte, inArray } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 
+import { normalizeSubject } from "../support-utils";
+
 import {
   type AttachmentInsert,
   attachments,
@@ -47,18 +49,10 @@ export function getInboxByAlias(
   return promise;
 }
 
-// Subject prefixes added by mail clients on reply/forward. Stripped before
-// using subject as a thread-matching fallback so "Re: hello" matches "hello".
-const SUBJECT_PREFIX_RE = /^(re|fwd?|aw|sv|tr)\s*(\[\d+\])?\s*:\s*/i;
-
-/** Strip leading Re:/Fwd: prefixes (recursively) and collapse whitespace. */
-export function normalizeSubject(subject: string): string {
-  let s = subject.trim();
-  while (SUBJECT_PREFIX_RE.test(s)) {
-    s = s.replace(SUBJECT_PREFIX_RE, "");
-  }
-  return s.replace(/\s+/g, " ").trim();
-}
+// `normalizeSubject` lives in the pure `support-utils` module so the mailbox
+// Durable Object can reuse it without importing Drizzle. Re-exported here to
+// keep existing import sites working.
+export { normalizeSubject };
 
 /**
  * Match an incoming message to an existing thread. Tries In-Reply-To /

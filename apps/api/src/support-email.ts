@@ -27,7 +27,7 @@ import { buildSnippet, stripHtml } from "./support-utils";
  * almost always a spoof — we drop without persisting. If the header is
  * absent (local dev, unusual relays) we let the message through.
  */
-function isAuthenticated(headers: Headers): boolean {
+export function isAuthenticated(headers: Headers): boolean {
   const auth = headers.get("Authentication-Results");
   if (!auth) return true;
   const lower = auth.toLowerCase();

@@ -24,6 +24,8 @@
  * - Avoids importing CloudflareNodeRegistry and heavy dependencies
  */
 
+// Export MailboxDO so the per-org mailbox can be exercised in tests.
+export { MailboxDO } from "./durable-objects/mailbox-do";
 // Export WorkflowAgent for Durable Object testing (if needed in future)
 export { WorkflowAgent } from "./durable-objects/workflow-agent";
 // Export mock runtime for workflow testing

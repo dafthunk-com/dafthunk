@@ -15,6 +15,7 @@ import type {
 import type { BaseToolRegistry } from "./base-tool-registry";
 import type { DatabaseService } from "./database-service";
 import type { DatasetService } from "./dataset-service";
+import type { MailboxService } from "./mailbox-service";
 import type { ObjectStore } from "./object-store";
 import type { QueueService } from "./queue-service";
 import type { SchemaService } from "./schema-service";
@@ -176,6 +177,13 @@ export interface EmailMessage {
   to: string;
   headers: Record<string, string>;
   raw: string;
+  /**
+   * Mailbox context, present when the email was delivered to a persisted
+   * per-org address. Lets downstream nodes thread replies and read history.
+   */
+  threadId?: string;
+  messageId?: string;
+  emailId?: string;
 }
 
 /**
@@ -252,6 +260,8 @@ export interface NodeContext {
   datasetService?: DatasetService;
   queueService?: QueueService;
   schemaService?: SchemaService;
+  /** Persisted per-org mailbox access (send/receive + thread history). */
+  mailboxService?: MailboxService;
   /** Sandboxed JavaScript executor (Cloudflare Dynamic Workers in production). */
   codeModeExecutor?: CodeModeExecutor;
   /** Multi-language sandbox executor (Cloudflare Containers in production). */

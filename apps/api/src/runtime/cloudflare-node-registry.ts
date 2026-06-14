@@ -98,6 +98,7 @@ import { SendDMDiscordNode } from "@dafthunk/runtime/nodes/discord/send-dm-disco
 import { SendMessageDiscordNode } from "@dafthunk/runtime/nodes/discord/send-message-discord-node";
 import { ToMarkdownNode } from "@dafthunk/runtime/nodes/document/to-markdown-node";
 import { ExtractEmailAttachmentsNode } from "@dafthunk/runtime/nodes/email/extract-email-attachments-node";
+import { GetEmailThreadNode } from "@dafthunk/runtime/nodes/email/get-email-thread-node";
 import { ParseEmailNode } from "@dafthunk/runtime/nodes/email/parse-email-node";
 import { ReceiveEmailNode } from "@dafthunk/runtime/nodes/email/receive-email-node";
 import { SendEmailNode } from "@dafthunk/runtime/nodes/email/send-email-node";
@@ -543,6 +544,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(ReceiveScheduledTriggerNode);
     this.registerImplementation(ParseEmailNode);
     this.registerImplementation(ExtractEmailAttachmentsNode);
+    this.registerImplementation(GetEmailThreadNode);
     this.registerImplementation(AdditionNode);
     this.registerImplementation(SubtractionNode);
     this.registerImplementation(MultiplicationNode);

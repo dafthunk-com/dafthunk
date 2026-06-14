@@ -78,6 +78,13 @@ export {
   UNLISTED_LINK_TTL_SECONDS,
   verifyFormToken,
 } from "./form-token";
+export type {
+  MailboxService,
+  MailboxThread,
+  MailboxThreadMessage,
+  SendThreadedArgs,
+  SendThreadedResult,
+} from "./mailbox-service";
 export type { MonitoringService } from "./monitoring-service";
 export { NodeToolProvider } from "./node-tool-provider";
 export type {

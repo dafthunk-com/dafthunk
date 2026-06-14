@@ -150,6 +150,11 @@
       {
         "name": "SANDBOX",
         "class_name": "LanguageSandbox"
+      },
+      {
+        "name": "MAILBOX",
+        "class_name": "MailboxDO",
+        "script_name": "dafthunk-api"
       }
     ]
   },
@@ -196,6 +201,10 @@
     {
       "tag": "v11",
       "new_sqlite_classes": ["LanguageSandbox"]
+    },
+    {
+      "tag": "v12",
+      "new_sqlite_classes": ["MailboxDO"]
     }
   ],
   "unsafe": {
@@ -354,6 +363,11 @@
           {
             "name": "SANDBOX",
             "class_name": "LanguageSandbox"
+          },
+          {
+            "name": "MAILBOX",
+            "class_name": "MailboxDO",
+            "script_name": "dafthunk-api"
           }
         ]
       },
@@ -400,6 +414,10 @@
         {
           "tag": "v11",
           "new_sqlite_classes": ["LanguageSandbox"]
+        },
+        {
+          "tag": "v12",
+          "new_sqlite_classes": ["MailboxDO"]
         }
       ],
       "unsafe": {

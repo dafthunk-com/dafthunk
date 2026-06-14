@@ -1,33 +1,44 @@
 import type { Workflow } from "@dafthunk/types";
+import { v7 as uuidv7 } from "uuid";
 
 import type { Bindings } from "./context";
+import type { EmailRow } from "./db";
 import {
   createDatabase,
+  getEmailByHandle,
+  getEmailTriggersByEmail,
   getOrganizationBillingInfo,
   resolveOrganizationBillingOptions,
 } from "./db";
 import { getAgentByName } from "./durable-objects/agent-utils";
+import { parseAndStageEmail } from "./mailbox-staging";
 import { createWorkerRuntime } from "./runtime/cloudflare-worker-runtime";
 import { WorkflowStore } from "./stores/workflow-store";
-import { handleSupportEmail } from "./support-email";
+import { handleSupportEmail, isAuthenticated } from "./support-email";
+import { verifyReplyToken } from "./support-reply-token";
 import { isCreditExhausted } from "./utils/credits";
 
-async function streamToString(
+async function streamToBytes(
   stream: ReadableStream<Uint8Array>
-): Promise<string> {
+): Promise<Uint8Array> {
   const reader = stream.getReader();
-  const decoder = new TextDecoder();
-  let result = "";
-
+  const chunks: Uint8Array[] = [];
+  let total = 0;
   while (true) {
     const { done, value } = await reader.read();
-    if (done) {
-      break;
+    if (done) break;
+    if (value) {
+      chunks.push(value);
+      total += value.byteLength;
     }
-    result += decoder.decode(value, { stream: true });
   }
-  result += decoder.decode(); // Flush any remaining bytes
-  return result;
+  const out = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    out.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return out;
 }
 
 function headersToRecord(headers: Headers): Record<string, string> {
@@ -67,10 +78,15 @@ export async function handleIncomingEmail(
 
   console.log(`Processing email trigger for handle: ${handle}`);
 
+  // Drop clearly spoofed mail before persisting (mirrors the support path).
+  if (!isAuthenticated(headers)) {
+    console.warn(`[email] dropping unauthenticated message from ${from}`);
+    return;
+  }
+
   const db = createDatabase(env.DB);
   const workflowStore = new WorkflowStore(env);
 
-  const { getEmailByHandle, getEmailTriggersByEmail } = await import("./db");
   const email = await getEmailByHandle(db, handle);
   if (!email) {
     console.error(`Email '${handle}' not found`);
@@ -78,6 +94,23 @@ export async function handleIncomingEmail(
   }
 
   const organizationId = email.organizationId;
+
+  // Read the raw stream once (it can only be consumed once) and persist the
+  // message to the org's mailbox. This happens for EVERY inbound message —
+  // even when no workflow is subscribed — so the mailbox is a complete record.
+  const rawBytes = await streamToBytes(raw);
+  const rawContent = new TextDecoder().decode(rawBytes);
+  const headersRecord = headersToRecord(headers);
+
+  const mailbox = await persistInboundEmail({
+    env,
+    email,
+    organizationId,
+    rawBytes,
+    from,
+    to,
+    subaddress,
+  });
 
   // Get all workflows triggered by this email
   const emailTriggersWithWorkflows = await getEmailTriggersByEmail(
@@ -95,10 +128,6 @@ export async function handleIncomingEmail(
     `Found ${emailTriggersWithWorkflows.length} workflow(s) to trigger for email ${handle}`
   );
 
-  // Read raw email content once (stream can only be consumed once)
-  const rawContent = await streamToString(raw);
-  const headersRecord = headersToRecord(headers);
-
   // Process each workflow that listens to this email
   for (const { workflow } of emailTriggersWithWorkflows) {
     console.log(`Triggering workflow: ${workflow.id} (${workflow.name})`);
@@ -114,6 +143,7 @@ export async function handleIncomingEmail(
         to,
         headers: headersRecord,
         rawContent,
+        mailbox,
       });
     } catch (error) {
       console.error(
@@ -125,9 +155,69 @@ export async function handleIncomingEmail(
   }
 }
 
+/**
+ * Parse + stage the inbound message to R2 and index it in the org's Mailbox
+ * Durable Object. Returns the thread/message ids so a triggered workflow can
+ * thread replies and read history. Failures are logged, never thrown — a
+ * persistence error must not bounce legitimate mail or block the trigger.
+ */
+async function persistInboundEmail({
+  env,
+  email,
+  organizationId,
+  rawBytes,
+  from,
+  to,
+  subaddress,
+}: {
+  env: Bindings;
+  email: EmailRow;
+  organizationId: string;
+  rawBytes: Uint8Array;
+  from: string;
+  to: string;
+  subaddress: string | null;
+}): Promise<{ threadId: string; messageId: string } | undefined> {
+  try {
+    const messageId = uuidv7();
+    const staged = await parseAndStageEmail(
+      env,
+      rawBytes,
+      email.id,
+      messageId,
+      {
+        from,
+        to,
+      }
+    );
+
+    const verifiedThreadId =
+      subaddress && env.JWT_SECRET
+        ? await verifyReplyToken(subaddress, env.JWT_SECRET)
+        : null;
+
+    const stub = env.MAILBOX.get(
+      env.MAILBOX.idFromName(`mailbox:${organizationId}`)
+    );
+    const result = await stub.ingestInbound({
+      emailId: email.id,
+      messageId,
+      ...staged,
+      verifiedThreadId,
+    });
+    return result;
+  } catch (error) {
+    console.error(
+      `[email] failed to persist inbound message for ${email.handle}:`,
+      error instanceof Error ? error.message : String(error)
+    );
+    return undefined;
+  }
+}
+
 async function triggerWorkflowForEmail({
   workflow,
-  email: _email,
+  email,
   organizationId,
   env,
   workflowStore,
@@ -135,9 +225,10 @@ async function triggerWorkflowForEmail({
   to,
   headers,
   rawContent,
+  mailbox,
 }: {
   workflow: any;
-  email: any;
+  email: EmailRow;
   organizationId: string;
   env: Bindings;
   workflowStore: WorkflowStore;
@@ -145,6 +236,7 @@ async function triggerWorkflowForEmail({
   to: string;
   headers: Record<string, string>;
   rawContent: string;
+  mailbox: { threadId: string; messageId: string } | undefined;
 }): Promise<void> {
   const db = createDatabase(env.DB);
 
@@ -217,6 +309,10 @@ async function triggerWorkflowForEmail({
       to,
       headers,
       raw: rawContent,
+      emailId: email.id,
+      ...(mailbox
+        ? { threadId: mailbox.threadId, messageId: mailbox.messageId }
+        : {}),
     },
   };
 

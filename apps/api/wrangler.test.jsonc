@@ -28,6 +28,11 @@
       "binding": "DATASETS",
       "bucket_name": "test-datasets",
       "preview_bucket_name": "test-datasets"
+    },
+    {
+      "binding": "INBOXES",
+      "bucket_name": "test-inboxes",
+      "preview_bucket_name": "test-inboxes"
     }
   ],
   "workflows": [
@@ -35,6 +40,20 @@
       "name": "dafthunk-api-test",
       "binding": "EXECUTE",
       "class_name": "Runtime"
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "MAILBOX",
+        "class_name": "MailboxDO"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["MailboxDO"]
     }
   ],
   "analytics_engine_datasets": [

@@ -144,6 +144,7 @@ export { Sandbox } from "@cloudflare/sandbox";
 export { FFmpegContainer } from "./containers/ffmpeg-container";
 export { LanguageSandbox } from "./containers/language-sandbox";
 export { AgentRunner } from "./durable-objects/agent-runner";
+export { MailboxDO } from "./durable-objects/mailbox-do";
 
 export default {
   email: handleIncomingEmail,

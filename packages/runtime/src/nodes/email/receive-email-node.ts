@@ -45,6 +45,19 @@ export class ReceiveEmailNode extends ExecutableNode {
         type: "string",
         description: "The raw email content as a string.",
       },
+      {
+        name: "threadId",
+        type: "string",
+        description:
+          "Mailbox thread this email belongs to (for threading replies and reading history).",
+        hidden: true,
+      },
+      {
+        name: "messageId",
+        type: "string",
+        description: "Mailbox id of this stored message.",
+        hidden: true,
+      },
     ],
   };
 
@@ -56,8 +69,15 @@ export class ReceiveEmailNode extends ExecutableNode {
         );
       }
 
+      const { from, to, headers, raw, threadId, messageId } =
+        context.emailMessage;
       return this.createSuccessResult({
-        ...context.emailMessage,
+        from,
+        to,
+        headers,
+        raw,
+        threadId,
+        messageId,
       });
     } catch (error) {
       return this.createErrorResult(

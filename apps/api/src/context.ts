@@ -4,6 +4,7 @@ import type { FFmpegContainer } from "./containers/ffmpeg-container";
 import type { LanguageSandbox } from "./containers/language-sandbox";
 import type { AgentRunner } from "./durable-objects/agent-runner";
 import { DatabaseDO } from "./durable-objects/database-do";
+import type { MailboxDO } from "./durable-objects/mailbox-do";
 import type { WorkflowAgent } from "./durable-objects/workflow-agent";
 
 export interface Bindings {
@@ -16,6 +17,7 @@ export interface Bindings {
   WORKFLOW_AGENT: DurableObjectNamespace<WorkflowAgent>;
   DATABASE: DurableObjectNamespace<DatabaseDO>;
   AGENT_RUNNER: DurableObjectNamespace<AgentRunner>;
+  MAILBOX: DurableObjectNamespace<MailboxDO>;
   FFMPEG_CONTAINER?: DurableObjectNamespace<FFmpegContainer>;
   DUCKDB_SANDBOX?: DurableObjectNamespace<any>;
   SANDBOX?: DurableObjectNamespace<LanguageSandbox>;

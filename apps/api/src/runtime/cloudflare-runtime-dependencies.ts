@@ -20,6 +20,7 @@ import { CloudflareCreditService } from "./cloudflare-credit-service";
 import { CloudflareDatabaseService } from "./cloudflare-database-service";
 import { CloudflareDatasetService } from "./cloudflare-dataset-service";
 import { CloudflareExecutionStore } from "./cloudflare-execution-store";
+import { CloudflareMailboxService } from "./cloudflare-mailbox-service";
 import { CloudflareNodeRegistry } from "./cloudflare-node-registry";
 import {
   buildPresignedUrlConfig,
@@ -47,6 +48,7 @@ export function buildDependencies(
   const datasetService = new CloudflareDatasetService(env);
   const queueService = new CloudflareQueueService(env);
   const schemaService = new CloudflareSchemaService(env);
+  const mailboxService = new CloudflareMailboxService(env);
   const codeModeExecutor = createCodeModeExecutor(env) ?? undefined;
   // One sandbox container per execution — fresh ID isolates runs from each other
   // while reusing the same sandbox across nodes within a run.
@@ -82,6 +84,7 @@ export function buildDependencies(
     datasetService,
     queueService,
     schemaService,
+    mailboxService,
     codeModeExecutor,
     sandboxExecutor,
     runtimeVersion,
