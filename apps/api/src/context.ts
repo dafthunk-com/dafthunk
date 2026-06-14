@@ -28,6 +28,7 @@ export interface Bindings {
   INBOXES: R2Bucket;
   INBOXES_AUTORAG: string;
   AI: Ai;
+  AI_SEARCH: AiSearchNamespace;
   AI_OPTIONS: AiOptions;
   LOADER?: any; // worker_loaders binding for Code Mode sandbox
   BROWSER?: Fetcher;

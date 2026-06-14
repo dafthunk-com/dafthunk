@@ -32,6 +32,14 @@
   "ai": {
     "binding": "AI"
   },
+  // AI Search (formerly AutoRAG) namespace binding. Dataset search resolves
+  // instances by name (DATASETS_AUTORAG) within this namespace at runtime.
+  "ai_search_namespaces": [
+    {
+      "binding": "AI_SEARCH",
+      "namespace": "default"
+    }
+  ],
   "containers": [
     {
       "class_name": "FFmpegContainer",
@@ -274,6 +282,14 @@
       "ai": {
         "binding": "AI"
       },
+      // AI Search (formerly AutoRAG) namespace binding. Dataset search resolves
+      // instances by name (DATASETS_AUTORAG) within this namespace at runtime.
+      "ai_search_namespaces": [
+        {
+          "binding": "AI_SEARCH",
+          "namespace": "default"
+        }
+      ],
       "containers": [
         {
           "class_name": "FFmpegContainer",

@@ -4,7 +4,7 @@ import type { NodeExecution, NodeType } from "@dafthunk/types";
 /**
  * Dataset AI Search node implementation
  * This node provides a dataset selector widget and performs AI-powered search
- * using Cloudflare's AutoRAG with multi-tenant folder filtering.
+ * using Cloudflare's AI Search (formerly AutoRAG) with multi-tenant folder filtering.
  */
 export class DatasetAiSearchNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -56,9 +56,13 @@ export class DatasetAiSearchNode extends ExecutableNode {
       {
         name: "scoreThreshold",
         type: "number",
+        // AI Search engine v3 scales match scores lower than the legacy
+        // AutoRAG engine, so a non-zero default over-filters. Default to 0
+        // to return the top `maxResults` ranked by relevance; callers can
+        // raise it to trim low-score matches.
         description: "Minimum match score for results",
         hidden: true,
-        value: 0.3,
+        value: 0,
       },
     ],
     outputs: [
@@ -137,7 +141,7 @@ export class DatasetAiSearchNode extends ExecutableNode {
       return this.createErrorResult(
         error instanceof Error
           ? error.message
-          : "Unknown error during AutoRAG search"
+          : "Unknown error during AI Search"
       );
     }
   }

@@ -1,7 +1,7 @@
 /**
  * Abstract dataset access for workflow nodes.
  *
- * Hides ownership verification, R2 file storage, and AutoRAG search
+ * Hides ownership verification, R2 file storage, and AI Search
  * behind a single resolve → Dataset capability object. Nodes never
  * touch D1, R2 buckets, or AI bindings directly.
  */

@@ -13,50 +13,77 @@ import type { Bindings } from "../context";
 import { createDatabase, getDataset } from "../db";
 
 /**
- * Builds AutoRAG search parameters from abstract options.
+ * Builds AI Search (v3) options from abstract options.
  * Shared between search() and aiSearch().
+ *
+ * Multi-tenancy is enforced with a Vectorize-style metadata filter on the
+ * `folder` attribute (implicit equality), scoping every query to the
+ * dataset's prefix.
  */
-function buildSearchParams(
-  query: string,
+function buildAiSearchOptions(
   datasetId: string,
   options?: DatasetSearchOptions
-): Record<string, unknown> {
-  const params: Record<string, unknown> = {
-    query: query.trim(),
-    filters: { type: "eq", key: "folder", value: `${datasetId}/` },
+): AiSearchOptions {
+  const retrieval: NonNullable<AiSearchOptions["retrieval"]> = {
+    filters: { folder: `${datasetId}/` },
   };
 
-  if (options?.rewriteQuery !== undefined) {
-    params.rewrite_query = options.rewriteQuery;
-  }
-
   if (options?.maxResults !== undefined) {
-    params.max_num_results = Math.min(Math.max(options.maxResults, 1), 50);
+    retrieval.max_num_results = Math.min(Math.max(options.maxResults, 1), 50);
   }
 
   if (options?.scoreThreshold !== undefined) {
-    params.ranking_options = {
-      score_threshold: Math.min(Math.max(options.scoreThreshold, 0), 1),
-    };
+    retrieval.match_threshold = Math.min(
+      Math.max(options.scoreThreshold, 0),
+      1
+    );
   }
 
-  return params;
+  const aiSearchOptions: AiSearchOptions = { retrieval };
+
+  if (options?.rewriteQuery !== undefined) {
+    aiSearchOptions.query_rewrite = { enabled: Boolean(options.rewriteQuery) };
+  }
+
+  return aiSearchOptions;
 }
 
 /**
- * Dataset capability object backed by R2 + AutoRAG.
+ * Maps AI Search response chunks to the abstract result shape, deriving a
+ * friendly `filename` from item metadata (falling back to the storage key).
+ */
+function mapChunks(
+  chunks: AiSearchSearchResponse["chunks"]
+): DatasetSearchResult["results"] {
+  return chunks.map((chunk) => ({
+    id: chunk.id,
+    score: chunk.score,
+    text: chunk.text,
+    filename:
+      (chunk.item.metadata?.filename as string | undefined) ?? chunk.item.key,
+    key: chunk.item.key,
+    metadata: chunk.item.metadata,
+  }));
+}
+
+/**
+ * Dataset capability object backed by R2 + AI Search.
  * Pre-bound to a verified dataset ID after ownership check.
  */
 class CloudflareDataset implements Dataset {
   constructor(
     private datasetId: string,
     private bucket: R2Bucket,
-    private ai: Ai,
-    private autoragName: string
+    private namespace: AiSearchNamespace,
+    private instanceName: string
   ) {}
 
   private get prefix(): string {
     return `${this.datasetId}/`;
+  }
+
+  private get instance(): AiSearchInstance {
+    return this.namespace.get(this.instanceName);
   }
 
   async listFiles(): Promise<DatasetFileInfo[]> {
@@ -100,17 +127,17 @@ class CloudflareDataset implements Dataset {
     query: string,
     options?: DatasetSearchOptions
   ): Promise<DatasetSearchResult> {
-    const params = buildSearchParams(query, this.datasetId, options);
-    const autorag = this.ai.autorag(this.autoragName);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const result = await autorag.search(params as any);
+    const aiSearchOptions = buildAiSearchOptions(this.datasetId, options);
+    const result = await this.instance.search({
+      query: query.trim(),
+      ai_search_options: aiSearchOptions,
+    });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const r = result as any;
+    const maxResults = aiSearchOptions.retrieval?.max_num_results ?? 10;
     return {
-      results: r?.data ?? [],
-      searchQuery: r?.search_query ?? query,
-      hasMore: r?.has_more ?? false,
+      results: mapChunks(result.chunks),
+      searchQuery: result.search_query ?? query,
+      hasMore: result.chunks.length >= maxResults,
     };
   }
 
@@ -118,22 +145,17 @@ class CloudflareDataset implements Dataset {
     query: string,
     options?: DatasetAiSearchOptions
   ): Promise<DatasetAiSearchResult> {
-    const params = buildSearchParams(query, this.datasetId, options);
-    params.stream = false;
-    if (options?.model) {
-      params.model = options.model;
-    }
+    const aiSearchOptions = buildAiSearchOptions(this.datasetId, options);
+    const result = await this.instance.chatCompletions({
+      messages: [{ role: "user", content: query.trim() }],
+      ai_search_options: aiSearchOptions,
+      ...(options?.model ? { model: options.model } : {}),
+    });
 
-    const autorag = this.ai.autorag(this.autoragName);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const result = await autorag.aiSearch(params as any);
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const r = result as any;
     return {
-      response: typeof r === "string" ? r : (r?.response ?? ""),
-      results: r?.data ?? [],
-      searchQuery: r?.search_query ?? query,
+      response: result.choices[0]?.message?.content ?? "",
+      results: mapChunks(result.chunks),
+      searchQuery: query,
     };
   }
 }
@@ -141,11 +163,14 @@ class CloudflareDataset implements Dataset {
 /**
  * Cloudflare-backed DatasetService.
  * Verifies dataset ownership via D1, then returns a Dataset
- * capability backed by R2 and AutoRAG.
+ * capability backed by R2 and AI Search.
  */
 export class CloudflareDatasetService implements DatasetService {
   constructor(
-    private env: Pick<Bindings, "DB" | "DATASETS" | "AI" | "DATASETS_AUTORAG">
+    private env: Pick<
+      Bindings,
+      "DB" | "DATASETS" | "AI_SEARCH" | "DATASETS_AUTORAG"
+    >
   ) {}
 
   async resolve(
@@ -160,7 +185,7 @@ export class CloudflareDatasetService implements DatasetService {
     return new CloudflareDataset(
       datasetId,
       this.env.DATASETS,
-      this.env.AI,
+      this.env.AI_SEARCH,
       this.env.DATASETS_AUTORAG
     );
   }

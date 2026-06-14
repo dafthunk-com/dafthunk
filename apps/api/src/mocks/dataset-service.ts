@@ -2,7 +2,7 @@
  * Mock Dataset Service
  *
  * Test implementation of DatasetService that returns empty datasets.
- * Provides a no-op Dataset for testing workflows that don't need real R2/AutoRAG.
+ * Provides a no-op Dataset for testing workflows that don't need real R2/AI Search.
  */
 
 import type {

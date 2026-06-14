@@ -29,6 +29,7 @@ const createMockEnv = (masterKey?: string): Bindings => ({
   INBOXES: {} as R2Bucket,
   INBOXES_AUTORAG: "",
   AI: {} as Ai,
+  AI_SEARCH: {} as AiSearchNamespace,
   BROWSER: {} as Fetcher,
   EXECUTIONS: {} as AnalyticsEngineDataset,
   WEB_HOST: "",
