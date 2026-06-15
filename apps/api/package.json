@@ -20,7 +20,9 @@
     "db:preview:reset": "wrangler d1 execute DB --remote --preview --command=\"DROP TABLE IF EXISTS datasets; DROP TABLE IF EXISTS executions; DROP TABLE IF EXISTS cron_triggers; DROP TABLE IF EXISTS deployments; DROP TABLE IF EXISTS memberships; DROP TABLE IF EXISTS api_keys; DROP TABLE IF EXISTS workflows; DROP TABLE IF EXISTS users; DROP TABLE IF EXISTS organizations; DROP TABLE IF EXISTS d1_migrations; DROP TABLE IF EXISTS integrations;\"",
     "db:prod:migrate": "wrangler d1 migrations apply DB --remote --env production",
     "db:prod:reset": "wrangler d1 execute DB --remote --env production --command=\"DROP TABLE IF EXISTS datasets; DROP TABLE IF EXISTS executions; DROP TABLE IF EXISTS cron_triggers; DROP TABLE IF EXISTS deployments; DROP TABLE IF EXISTS memberships; DROP TABLE IF EXISTS api_keys; DROP TABLE IF EXISTS workflows; DROP TABLE IF EXISTS users; DROP TABLE IF EXISTS organizations; DROP TABLE IF EXISTS d1_migrations;\" && wrangler d1 migrations apply DB --remote --env production",
-    "generate:master-key": "node scripts/generate-master-key.js"
+    "generate:master-key": "node scripts/generate-master-key.js",
+    "fonts:seed": "pnpm --filter '@dafthunk/runtime' fonts:fetch && node scripts/seed-fonts.mjs dafthunk-ressources-development --local",
+    "fonts:prod:seed": "pnpm --filter '@dafthunk/runtime' fonts:fetch && node scripts/seed-fonts.mjs dafthunk-ressources-production --remote"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.13.5",

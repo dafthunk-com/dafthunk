@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "biome check",
     "check": "biome check --write",
-    "test": "vitest run"
+    "test": "vitest run",
+    "fonts:fetch": "node scripts/fetch-fonts.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",

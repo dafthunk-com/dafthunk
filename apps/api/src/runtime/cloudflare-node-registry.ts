@@ -283,7 +283,7 @@ import { PhotonSepiaNode } from "@dafthunk/runtime/nodes/image/photon-sepia-node
 import { PhotonSharpenNode } from "@dafthunk/runtime/nodes/image/photon-sharpen-node";
 import { PhotonThresholdNode } from "@dafthunk/runtime/nodes/image/photon-threshold-node";
 import { PhotonWatermarkNode } from "@dafthunk/runtime/nodes/image/photon-watermark-node";
-// import { SvgToPngNode } from "@dafthunk/runtime/nodes/image/svg-to-png-node";
+import { SvgToPngNode } from "@dafthunk/runtime/nodes/image/svg-to-png-node";
 import { AudioInputNode } from "@dafthunk/runtime/nodes/input/audio-input-node";
 import { AudioRecorderInputNode } from "@dafthunk/runtime/nodes/input/audio-recorder-input-node";
 import { BlobInputNode } from "@dafthunk/runtime/nodes/input/blob-input-node";
@@ -666,6 +666,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(PhotonSharpenNode);
     this.registerImplementation(PhotonThresholdNode);
     this.registerImplementation(PhotonWatermarkNode);
+    this.registerImplementation(SvgToPngNode);
 
     // Generic Replicate model node
     this.registerImplementation(ReplicateModelNode);

@@ -1,4 +1,5 @@
-import { Resvg } from "@cf-wasm/resvg";
+import { PhotonImage } from "@cf-wasm/photon";
+import { Resvg, type ResvgRenderOptions } from "@cf-wasm/resvg";
 import {
   ExecutableNode,
   type ImageParameter,
@@ -6,19 +7,35 @@ import {
 } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
 
+import { detectFontSlugs, loadFonts, svgHasText } from "../../utils/fonts";
+
+const OUTPUT_FORMATS = ["png", "webp", "jpeg"] as const;
+type OutputFormat = (typeof OUTPUT_FORMATS)[number];
+
+const MIME_BY_FORMAT: Record<OutputFormat, string> = {
+  png: "image/png",
+  webp: "image/webp",
+  jpeg: "image/jpeg",
+};
+
 /**
- * This node renders SVG content to PNG using the Resvg library.
+ * Renders SVG content to a raster image (PNG, WebP, or JPEG).
+ *
+ * Text is rendered with fonts auto-detected from the SVG's `font-family`
+ * references and loaded from the STATIC bucket — resvg has no system fonts in
+ * the Workers runtime. Non-PNG output is encoded from resvg's PNG via Photon.
  */
 export class SvgToPngNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "svg-to-png",
-    name: "SVG to PNG",
+    name: "SVG to Image",
     type: "svg-to-png",
-    description: "Renders SVG content to PNG format using the Resvg library.",
-    tags: ["Image", "SVG", "Convert", "PNG"],
+    description:
+      "Renders SVG to PNG, WebP, or JPEG. Text uses fonts auto-detected from the SVG and loaded from the static asset store.",
+    tags: ["Image", "SVG", "Convert", "PNG", "WebP"],
     icon: "file-image",
     documentation:
-      "This node renders SVG content to PNG format using the Resvg library.",
+      "Renders SVG content to a raster image. Fonts referenced by the SVG's font-family are detected automatically and loaded from the static asset store, so text renders correctly. Leave the background transparent (default) to preserve the SVG's alpha channel.",
     inlinable: true,
     usage: 10,
     inputs: [
@@ -27,6 +44,13 @@ export class SvgToPngNode extends ExecutableNode {
         type: "image",
         description: "The SVG image to render.",
         required: true,
+      },
+      {
+        name: "format",
+        type: "string",
+        description: "Output format: 'png', 'webp', or 'jpeg'.",
+        required: false,
+        value: "png",
       },
       {
         name: "width",
@@ -52,7 +76,7 @@ export class SvgToPngNode extends ExecutableNode {
         name: "backgroundColor",
         type: "string",
         description:
-          "Background color (e.g., 'white', 'transparent', '#FF0000').",
+          "Background color (e.g., '#FF0000', 'white'). Leave 'transparent' to keep the alpha channel.",
         required: false,
         value: "transparent",
         hidden: true,
@@ -62,7 +86,7 @@ export class SvgToPngNode extends ExecutableNode {
       {
         name: "image",
         type: "image",
-        description: "The rendered PNG image.",
+        description: "The rendered raster image.",
       },
     ],
   };
@@ -91,6 +115,13 @@ export class SvgToPngNode extends ExecutableNode {
       }
 
       // Validate and parse optional inputs
+      const format = ((inputs.format as string) || "png").toLowerCase();
+      if (!OUTPUT_FORMATS.includes(format as OutputFormat)) {
+        return this.createErrorResult(
+          `Format must be one of: ${OUTPUT_FORMATS.join(", ")}.`
+        );
+      }
+
       const width = inputs.width as number | undefined;
       const height = inputs.height as number | undefined;
       const scale = (inputs.scale as number) || 1.0;
@@ -114,46 +145,69 @@ export class SvgToPngNode extends ExecutableNode {
         return this.createErrorResult("Scale must be between 0.1 and 10.");
       }
 
-      // Prepare Resvg options
-      const options: any = {
-        background: backgroundColor,
-      };
+      const options: ResvgRenderOptions = {};
 
-      // Add fit-to options if width or height is specified
-      if (width !== undefined && height !== undefined) {
-        options.fitTo = {
-          mode: "width", // You could also use 'height' or other modes
-          value: width,
+      // Only set a background for a real color; otherwise keep transparency.
+      // resvg expects a CSS3 color (e.g. rgba(...)) — the keyword "transparent"
+      // is not a valid value, so the alpha channel is preserved by omitting it.
+      const background = backgroundColor.trim().toLowerCase();
+      if (background && background !== "transparent" && background !== "none") {
+        options.background = backgroundColor;
+      }
+
+      // Load the fonts the SVG references — resvg has no system fonts here.
+      if (svgHasText(svg)) {
+        const bucket = context.env.RESSOURCES;
+        if (!bucket) {
+          return this.createErrorResult(
+            "Font rendering requires the resources store, which is not configured."
+          );
+        }
+        const fonts = await loadFonts(bucket, detectFontSlugs(svg));
+        options.font = {
+          loadSystemFonts: false,
+          fontBuffers: fonts.buffers,
+          defaultFontFamily: fonts.defaultFontFamily,
+          sansSerifFamily: fonts.sansSerifFamily,
+          ...(fonts.serifFamily ? { serifFamily: fonts.serifFamily } : {}),
+          ...(fonts.monospaceFamily
+            ? { monospaceFamily: fonts.monospaceFamily }
+            : {}),
         };
-      } else if (width !== undefined) {
-        options.fitTo = {
-          mode: "width",
-          value: width,
-        };
+      }
+
+      // Add fit-to options based on requested dimensions / scale.
+      if (width !== undefined) {
+        options.fitTo = { mode: "width", value: width };
       } else if (height !== undefined) {
-        options.fitTo = {
-          mode: "height",
-          value: height,
-        };
+        options.fitTo = { mode: "height", value: height };
+      } else if (scale !== 1.0) {
+        options.fitTo = { mode: "zoom", value: scale };
       }
 
-      // Apply scale if specified and no explicit dimensions
-      if (scale !== 1.0 && width === undefined && height === undefined) {
-        options.fitTo = {
-          mode: "zoom",
-          value: scale,
-        };
-      }
-
-      // Create Resvg instance and render
+      // Render the SVG to PNG pixels.
       const resvg = new Resvg(svg, options);
-      const pngData = resvg.render();
-      const pngBuffer = pngData.asPng();
+      const png = resvg.render().asPng();
 
-      // Convert to ImageParameter format
+      // Encode to the requested format (PNG is already produced by resvg).
+      let data: Uint8Array;
+      if (format === "png") {
+        data = new Uint8Array(png);
+      } else {
+        const image = PhotonImage.new_from_byteslice(png);
+        try {
+          data =
+            format === "webp"
+              ? image.get_bytes_webp()
+              : image.get_bytes_jpeg(90);
+        } finally {
+          image.free();
+        }
+      }
+
       const imageParameter: ImageParameter = {
-        data: new Uint8Array(pngBuffer),
-        mimeType: "image/png",
+        data,
+        mimeType: MIME_BY_FORMAT[format as OutputFormat],
       };
 
       return this.createSuccessResult({ image: imageParameter });
