@@ -269,6 +269,7 @@ import { PhotonBlendImagesNode } from "@dafthunk/runtime/nodes/image/photon-blen
 import { PhotonCropNode } from "@dafthunk/runtime/nodes/image/photon-crop-node";
 import { PhotonEdgeDetectionNode } from "@dafthunk/runtime/nodes/image/photon-edge-detection-node";
 import { PhotonEmbossNode } from "@dafthunk/runtime/nodes/image/photon-emboss-node";
+import { PhotonFitNode } from "@dafthunk/runtime/nodes/image/photon-fit-node";
 import { PhotonFlipImageNode } from "@dafthunk/runtime/nodes/image/photon-flip-image-node";
 import { PhotonGaussianBlurNode } from "@dafthunk/runtime/nodes/image/photon-gaussian-blur-node";
 import { PhotonGrayscaleNode } from "@dafthunk/runtime/nodes/image/photon-grayscale-node";
@@ -276,6 +277,7 @@ import { PhotonImageInfoNode } from "@dafthunk/runtime/nodes/image/photon-image-
 import { PhotonInvertColorsNode } from "@dafthunk/runtime/nodes/image/photon-invert-colors-node";
 import { PhotonMixWithColorNode } from "@dafthunk/runtime/nodes/image/photon-mix-with-color-node";
 import { PhotonOilPaintingNode } from "@dafthunk/runtime/nodes/image/photon-oil-painting-node";
+import { PhotonPadNode } from "@dafthunk/runtime/nodes/image/photon-pad-node";
 import { PhotonPixelizeNode } from "@dafthunk/runtime/nodes/image/photon-pixelize-node";
 import { PhotonResizeNode } from "@dafthunk/runtime/nodes/image/photon-resize-node";
 import { PhotonRotateImageNode } from "@dafthunk/runtime/nodes/image/photon-rotate-image-node";
@@ -652,6 +654,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(PhotonCropNode);
     this.registerImplementation(PhotonEdgeDetectionNode);
     this.registerImplementation(PhotonEmbossNode);
+    this.registerImplementation(PhotonFitNode);
     this.registerImplementation(PhotonFlipImageNode);
     this.registerImplementation(PhotonGaussianBlurNode);
     this.registerImplementation(PhotonGrayscaleNode);
@@ -659,6 +662,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(PhotonInvertColorsNode);
     this.registerImplementation(PhotonMixWithColorNode);
     this.registerImplementation(PhotonOilPaintingNode);
+    this.registerImplementation(PhotonPadNode);
     this.registerImplementation(PhotonPixelizeNode);
     this.registerImplementation(PhotonResizeNode);
     this.registerImplementation(PhotonRotateImageNode);

@@ -92,7 +92,9 @@ describe("SvgToPngNode", () => {
 
       // Text must actually rasterize: some opaque glyph pixels, with the
       // transparent background preserved around them.
-      const { opaque, transparent } = alphaStats(result.outputs!.image.data);
+      const image = result.outputs?.image;
+      if (!image) throw new Error("Expected an image output.");
+      const { opaque, transparent } = alphaStats(image.data);
       expect(opaque).toBeGreaterThan(50);
       expect(transparent).toBeGreaterThan(0);
     }
@@ -110,7 +112,9 @@ describe("SvgToPngNode", () => {
       expect(result.status).toBe("completed");
       expect(result.outputs?.image.mimeType).toBe("image/webp");
 
-      const { opaque, transparent } = alphaStats(result.outputs!.image.data);
+      const image = result.outputs?.image;
+      if (!image) throw new Error("Expected an image output.");
+      const { opaque, transparent } = alphaStats(image.data);
       expect(opaque).toBeGreaterThan(50);
       expect(transparent).toBeGreaterThan(0);
     }
