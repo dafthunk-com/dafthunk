@@ -76,6 +76,25 @@ const server = createServer(async (req, res) => {
           return;
         }
         processor = processFrameAtTime(id, jobDir, video, time);
+      } else if (type === "overlay") {
+        const { video, image, x, y } = payload;
+        if (
+          !video ||
+          !image ||
+          typeof x !== "number" ||
+          typeof y !== "number"
+        ) {
+          await rm(jobDir, { recursive: true, force: true });
+          jobs.delete(id);
+          res.writeHead(400, { "Content-Type": "application/json" });
+          res.end(
+            JSON.stringify({
+              error: "Missing video/image or invalid x/y (numbers required)",
+            })
+          );
+          return;
+        }
+        processor = processOverlay(id, jobDir, video, image, x, y);
       } else {
         await rm(jobDir, { recursive: true, force: true });
         jobs.delete(id);
@@ -251,6 +270,39 @@ async function processFrameAtTime(id, jobDir, videoUrl, time) {
   jobs.set(id, { status: "completed", outputPath, mimeType: "image/jpeg" });
 }
 
+// ─── Overlay ──────────────────────────────────────────────────────────────────
+
+/**
+ * Download a video and an image, overlay the image at (x, y) pixels from the
+ * top-left corner of the video, and re-encode to MP4. Audio is passed through
+ * when present.
+ */
+async function processOverlay(id, jobDir, videoUrl, imageUrl, x, y) {
+  const [videoRes, imageRes] = await Promise.all([
+    fetch(videoUrl),
+    fetch(imageUrl),
+  ]);
+  if (!videoRes.ok) {
+    throw new Error(`Failed to download video: HTTP ${videoRes.status}`);
+  }
+  if (!imageRes.ok) {
+    throw new Error(`Failed to download image: HTTP ${imageRes.status}`);
+  }
+
+  const videoPath = join(jobDir, "input_video");
+  const imagePath = join(jobDir, "input_image");
+  await writeFile(videoPath, Buffer.from(await videoRes.arrayBuffer()));
+  await writeFile(imagePath, Buffer.from(await imageRes.arrayBuffer()));
+
+  const probe = await probeVideo(videoPath);
+  const hasAudio = probe.streams.some((s) => s.codec_type === "audio");
+
+  const outputPath = join(jobDir, "output.mp4");
+  await runFFmpegOverlay(videoPath, imagePath, outputPath, x, y, hasAudio);
+
+  jobs.set(id, { status: "completed", outputPath, mimeType: "video/mp4" });
+}
+
 // ─── FFmpeg helpers ───────────────────────────────────────────────────────────
 
 /**
@@ -283,6 +335,47 @@ function runFFmpegConcat(inputFiles, outputPath, width, height, includeAudio) {
     "-map",
     "[outv]",
     ...(includeAudio ? ["-map", "[outa]"] : []),
+    "-c:v",
+    "libx264",
+    "-preset",
+    "fast",
+    ...(includeAudio ? ["-c:a", "aac"] : []),
+    "-movflags",
+    "+faststart",
+    "-y",
+    outputPath,
+  ];
+
+  return new Promise((resolve, reject) => {
+    execFile("ffmpeg", args, { timeout: 300_000 }, (err, _stdout, stderr) => {
+      if (err) reject(new Error(stderr || err.message));
+      else resolve();
+    });
+  });
+}
+
+/**
+ * Overlay an image onto a video at (x, y) pixels from the top-left corner.
+ * Re-encodes video to h264; passes audio through unchanged when present.
+ */
+function runFFmpegOverlay(
+  videoPath,
+  imagePath,
+  outputPath,
+  x,
+  y,
+  includeAudio
+) {
+  const args = [
+    "-i",
+    videoPath,
+    "-i",
+    imagePath,
+    "-filter_complex",
+    `[0:v][1:v]overlay=${x}:${y}[outv]`,
+    "-map",
+    "[outv]",
+    ...(includeAudio ? ["-map", "0:a"] : ["-an"]),
     "-c:v",
     "libx264",
     "-preset",

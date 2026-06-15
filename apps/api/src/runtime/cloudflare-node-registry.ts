@@ -440,6 +440,7 @@ import { ClipVideoNode } from "@dafthunk/runtime/nodes/video/clip-video-node";
 import { ExtractFirstFrameNode } from "@dafthunk/runtime/nodes/video/extract-first-frame-node";
 import { ExtractFrameAtTimeNode } from "@dafthunk/runtime/nodes/video/extract-frame-at-time-node";
 import { ExtractLastFrameNode } from "@dafthunk/runtime/nodes/video/extract-last-frame-node";
+import { OverlayImageOnVideoNode } from "@dafthunk/runtime/nodes/video/overlay-image-on-video-node";
 import { BotMarkAsReadWhatsAppNode } from "@dafthunk/runtime/nodes/whatsapp/bot-mark-as-read-whatsapp-node";
 import { BotReceiveWhatsAppMessageNode } from "@dafthunk/runtime/nodes/whatsapp/bot-receive-whatsapp-message-node";
 import { BotSendImageWhatsAppNode } from "@dafthunk/runtime/nodes/whatsapp/bot-send-image-whatsapp-node";
@@ -685,6 +686,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
       this.registerImplementation(ExtractFrameAtTimeNode);
       this.registerImplementation(ExtractFirstFrameNode);
       this.registerImplementation(ExtractLastFrameNode);
+      this.registerImplementation(OverlayImageOnVideoNode);
     }
 
     // Multi-language sandbox nodes (Cloudflare Containers)
