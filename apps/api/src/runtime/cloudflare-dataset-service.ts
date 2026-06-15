@@ -25,7 +25,12 @@ function buildAiSearchOptions(
   options?: DatasetSearchOptions
 ): AiSearchOptions {
   const retrieval: NonNullable<AiSearchOptions["retrieval"]> = {
-    filters: { folder: `${datasetId}/` },
+    // Per-tenant isolation via a "starts with" folder filter, matching every
+    // chunk under `${datasetId}/` (including subfolders). The managed AI Search
+    // binding expects this range form, not exact equality — `/` (0x2F) sorts
+    // just below `0` (0x30), so `${datasetId}/` <= folder < `${datasetId}0`.
+    // See https://developers.cloudflare.com/ai-search/how-to/per-tenant-search/
+    filters: { folder: { $gte: `${datasetId}/`, $lt: `${datasetId}0` } },
   };
 
   if (options?.maxResults !== undefined) {
