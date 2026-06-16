@@ -46,5 +46,18 @@ export interface ObjectStore {
     organizationId: string,
     expiresInSeconds?: number
   ): Promise<string>;
+  /**
+   * Reserve an object id and return a presigned PUT URL an external service can
+   * upload to directly (no bytes are written yet). The returned `reference`
+   * resolves the same object once the upload completes, so callers can
+   * `readObject(reference)` to fetch the produced file. Used for provider
+   * "upload destination" flows (e.g. Cloudflare Gateway video models that
+   * require `output.upload_url`).
+   */
+  presignUpload(
+    mimeType: string,
+    organizationId: string,
+    expiresInSeconds?: number
+  ): Promise<{ uploadUrl: string; reference: ObjectReference }>;
   listObjects(organizationId: string): Promise<ObjectMetadata[]>;
 }

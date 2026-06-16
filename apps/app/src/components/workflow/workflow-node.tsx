@@ -38,6 +38,12 @@ import { SubscriptionBadge } from "./subscription-badge";
 import { ToolConfigPanel } from "./tool-config-panel";
 import { registry } from "./widgets";
 import {
+  CFG_META_KEY,
+  CLOUDFLARE_GATEWAY_MODEL_NODE_TYPE,
+  decodeCloudflareGatewayModelMeta,
+  deriveCloudflareGatewayModelDocs,
+} from "./widgets/input/cloudflare-gateway-model-utils";
+import {
   CF_META_KEY,
   CLOUDFLARE_MODEL_NODE_TYPE,
   decodeCloudflareModelMeta,
@@ -84,6 +90,12 @@ function deriveDocOverridesForNode(
     if (typeof modelId !== "string" || !modelId) return {};
     const meta = decodeReplicateModelMeta(metadata?.[RP_META_KEY]);
     return deriveReplicateModelDocs(modelId, meta);
+  }
+  if (nodeType === CLOUDFLARE_GATEWAY_MODEL_NODE_TYPE) {
+    const modelId = inputs.find((i) => i.id === "model")?.value;
+    if (typeof modelId !== "string" || !modelId) return {};
+    const meta = decodeCloudflareGatewayModelMeta(metadata?.[CFG_META_KEY]);
+    return deriveCloudflareGatewayModelDocs(modelId, meta);
   }
   return {};
 }

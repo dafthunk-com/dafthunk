@@ -11,6 +11,7 @@ import { audioRecorderInputWidget } from "./input/audio-recorder-input";
 import { blobInputWidget } from "./input/blob-input";
 import { booleanInputWidget } from "./input/boolean-input";
 import { canvasInputWidget } from "./input/canvas-input";
+import { cloudflareGatewayModelInputWidget } from "./input/cloudflare-gateway-model-input";
 import { cloudflareModelInputWidget } from "./input/cloudflare-model-input";
 import { cronInputWidget } from "./input/cron-input";
 import { dateInputWidget } from "./input/date-input";
@@ -90,6 +91,7 @@ const widgets = [
   canvasInputWidget,
   replicateModelInputWidget,
   cloudflareModelInputWidget,
+  cloudflareGatewayModelInputWidget,
   schemaComposeInputWidget,
   schemaExtractInputWidget,
   createDynamicInputsWidget("string-concat", {

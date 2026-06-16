@@ -71,6 +71,20 @@ export interface ReplicateModelSchema {
 }
 
 /**
+ * Response from the Cloudflare Gateway (unified `author/model`) schema endpoint.
+ * `requiresUploadUrl` is true for file-output models (e.g. video generation)
+ * whose input schema declares an `output.upload_url` field — the runtime then
+ * presigns an R2 upload URL instead of expecting the file inline.
+ */
+export interface CloudflareGatewayModelSchema {
+  model: string;
+  description?: string;
+  requiresUploadUrl: boolean;
+  inputs: Parameter[];
+  outputs: Parameter[];
+}
+
+/**
  * Response from the Cloudflare Workers AI model schema endpoint
  */
 export interface CloudflareModelSchema {

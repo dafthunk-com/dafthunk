@@ -157,30 +157,37 @@ export class CloudflareObjectStore implements ObjectStore {
     reference: ObjectReference,
     expiresInSeconds: number = 3600
   ): Promise<string> {
+    return this.presignR2Url(
+      `objects/${reference.id}/object.data`,
+      "GET",
+      expiresInSeconds
+    );
+  }
+
+  /**
+   * Sign an R2 object key for direct GET (download) or PUT (upload) access.
+   * Throws when presigning isn't configured.
+   */
+  private async presignR2Url(
+    key: string,
+    method: "GET" | "PUT",
+    expiresInSeconds: number
+  ): Promise<string> {
     if (!this.presignedUrlConfig) {
       throw new Error(
         "Presigned URL configuration not set. Pass PresignedUrlConfig to the ObjectStore constructor."
       );
     }
-
     const { accountId, bucketName, accessKeyId, secretAccessKey } =
       this.presignedUrlConfig;
-
-    const client = new AwsClient({
-      accessKeyId,
-      secretAccessKey,
-    });
-
-    const key = `objects/${reference.id}/object.data`;
+    const client = new AwsClient({ accessKeyId, secretAccessKey });
     const url = new URL(
       `https://${bucketName}.${accountId}.r2.cloudflarestorage.com/${key}`
     );
     url.searchParams.set("X-Amz-Expires", String(expiresInSeconds));
-
-    const signed = await client.sign(new Request(url, { method: "GET" }), {
+    const signed = await client.sign(new Request(url, { method }), {
       aws: { signQuery: true },
     });
-
     return signed.url;
   }
 
@@ -217,17 +224,29 @@ export class CloudflareObjectStore implements ObjectStore {
       },
     });
 
-    const { accountId, bucketName, accessKeyId, secretAccessKey } =
-      this.presignedUrlConfig;
-    const client = new AwsClient({ accessKeyId, secretAccessKey });
-    const url = new URL(
-      `https://${bucketName}.${accountId}.r2.cloudflarestorage.com/${key}`
+    return this.presignR2Url(key, "GET", expiresInSeconds);
+  }
+
+  /**
+   * Reserve an object id and presign a PUT URL for it without writing any
+   * bytes. The PUT target is the canonical object key, so once an external
+   * service uploads to the URL the produced file is retrievable via
+   * `readObject(reference)`. Used for provider upload-destination flows
+   * (e.g. Cloudflare Gateway video models needing `output.upload_url`).
+   */
+  async presignUpload(
+    mimeType: string,
+    _organizationId: string,
+    expiresInSeconds: number = 3600
+  ): Promise<{ uploadUrl: string; reference: ObjectReference }> {
+    const id = uuid();
+    // Sign the canonical key so readObject(reference) resolves the upload.
+    const uploadUrl = await this.presignR2Url(
+      `objects/${id}/object.data`,
+      "PUT",
+      expiresInSeconds
     );
-    url.searchParams.set("X-Amz-Expires", String(expiresInSeconds));
-    const signed = await client.sign(new Request(url, { method: "GET" }), {
-      aws: { signQuery: true },
-    });
-    return signed.url;
+    return { uploadUrl, reference: { id, mimeType } };
   }
 
   async listObjects(organizationId: string): Promise<ObjectMetadata[]> {

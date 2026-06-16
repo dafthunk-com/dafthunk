@@ -12,6 +12,7 @@ import apiKeyRoutes from "./routes/api-keys";
 import billingRoutes from "./routes/billing";
 import botRoutes from "./routes/bots";
 import cloudflareAiRoutes from "./routes/cloudflare-ai";
+import cloudflareGatewayRoutes from "./routes/cloudflare-gateway";
 import dashboardRoutes from "./routes/dashboard";
 import databaseRoutes from "./routes/databases";
 import datasetRoutes from "./routes/datasets";
@@ -110,6 +111,7 @@ app.route("/replicate", replicateRoutes);
 
 // Cloudflare Workers AI schema proxy (JWT-authenticated, not org-scoped)
 app.route("/cloudflare-ai", cloudflareAiRoutes);
+app.route("/cloudflare-gateway", cloudflareGatewayRoutes);
 
 // Public routes
 app.route("/forms", formRoutes);
