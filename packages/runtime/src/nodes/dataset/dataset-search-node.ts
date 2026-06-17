@@ -48,6 +48,17 @@ export class DatasetSearchNode extends ExecutableNode {
         value: 10,
       },
       {
+        name: "keywordMatchMode",
+        type: "string",
+        // AI Search v3's keyword leg defaults to "and" (every query term must
+        // appear in a chunk), which over-filters and only returns hits for
+        // exact wording. "or" matches any term and is the right recall default;
+        // set to "and" to require all terms.
+        description: "How keyword terms combine: 'or' (any) or 'and' (all)",
+        hidden: true,
+        value: "or",
+      },
+      {
         name: "scoreThreshold",
         type: "number",
         // AI Search engine v3 scales match scores lower than the legacy
@@ -82,8 +93,14 @@ export class DatasetSearchNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const { query, datasetId, rewriteQuery, maxResults, scoreThreshold } =
-        context.inputs;
+      const {
+        query,
+        datasetId,
+        rewriteQuery,
+        maxResults,
+        keywordMatchMode,
+        scoreThreshold,
+      } = context.inputs;
 
       const { organizationId } = context;
 
@@ -115,6 +132,10 @@ export class DatasetSearchNode extends ExecutableNode {
         rewriteQuery:
           rewriteQuery !== undefined ? Boolean(rewriteQuery) : undefined,
         maxResults: maxResults !== undefined ? Number(maxResults) : undefined,
+        keywordMatchMode:
+          keywordMatchMode === "and" || keywordMatchMode === "or"
+            ? keywordMatchMode
+            : undefined,
         scoreThreshold:
           scoreThreshold !== undefined ? Number(scoreThreshold) : undefined,
       });

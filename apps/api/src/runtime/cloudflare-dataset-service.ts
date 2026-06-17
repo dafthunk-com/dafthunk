@@ -31,7 +31,15 @@ function buildAiSearchOptions(
     // just below `0` (0x30), so `${datasetId}/` <= folder < `${datasetId}0`.
     // See https://developers.cloudflare.com/ai-search/how-to/per-tenant-search/
     filters: { folder: { $gte: `${datasetId}/`, $lt: `${datasetId}0` } },
+    // AI Search v3's keyword leg defaults to "and", requiring every query term
+    // to appear in a chunk, which collapses recall (only exact wording hits).
+    // Default to "or" so any matching term contributes; callers can tighten it.
+    keyword_match_mode: options?.keywordMatchMode ?? "or",
   };
+
+  if (options?.retrievalType !== undefined) {
+    retrieval.retrieval_type = options.retrievalType;
+  }
 
   if (options?.maxResults !== undefined) {
     retrieval.max_num_results = Math.min(Math.max(options.maxResults, 1), 50);

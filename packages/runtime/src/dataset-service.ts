@@ -23,6 +23,17 @@ export interface DatasetSearchOptions {
   rewriteQuery?: boolean;
   maxResults?: number;
   scoreThreshold?: number;
+  /**
+   * How keyword terms are combined in hybrid/keyword retrieval.
+   * "or" (any term matches) maximizes recall; "and" (every term must match)
+   * is the strict AI Search v3 default that over-filters. Defaults to "or".
+   */
+  keywordMatchMode?: "and" | "or";
+  /**
+   * Which retrieval backend to use. Left unset, AI Search uses the instance's
+   * configured index method.
+   */
+  retrievalType?: "vector" | "keyword" | "hybrid";
 }
 
 export interface DatasetSearchResult {
