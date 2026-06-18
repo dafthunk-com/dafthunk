@@ -34,6 +34,12 @@ export interface DatasetSearchOptions {
    * configured index method.
    */
   retrievalType?: "vector" | "keyword" | "hybrid";
+  /**
+   * Enable reranking. AI Search v3 reranking applies its own match threshold
+   * (default 0.4) after retrieval, which over-filters and only returns
+   * near-exact matches. Defaults to false to preserve recall.
+   */
+  reranking?: boolean;
 }
 
 export interface DatasetSearchResult {

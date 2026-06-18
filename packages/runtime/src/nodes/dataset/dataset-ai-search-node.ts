@@ -65,6 +65,16 @@ export class DatasetAiSearchNode extends ExecutableNode {
         value: "or",
       },
       {
+        name: "reranking",
+        type: "boolean",
+        // AI Search v3 reranking applies its own match threshold (default 0.4)
+        // after retrieval, which over-filters to near-exact matches. Off by
+        // default to preserve recall; enable for relevance-ordered results.
+        description: "Rerank results (may reduce recall)",
+        hidden: true,
+        value: false,
+      },
+      {
         name: "scoreThreshold",
         type: "number",
         // AI Search engine v3 scales match scores lower than the legacy
@@ -106,6 +116,7 @@ export class DatasetAiSearchNode extends ExecutableNode {
         rewriteQuery,
         maxResults,
         keywordMatchMode,
+        reranking,
         scoreThreshold,
       } = context.inputs;
 
@@ -144,6 +155,7 @@ export class DatasetAiSearchNode extends ExecutableNode {
           keywordMatchMode === "and" || keywordMatchMode === "or"
             ? keywordMatchMode
             : undefined,
+        reranking: reranking !== undefined ? Boolean(reranking) : undefined,
         scoreThreshold:
           scoreThreshold !== undefined ? Number(scoreThreshold) : undefined,
       });

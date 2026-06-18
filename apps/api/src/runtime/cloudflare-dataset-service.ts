@@ -54,6 +54,16 @@ function buildAiSearchOptions(
 
   const aiSearchOptions: AiSearchOptions = { retrieval };
 
+  // Reranking (added in AI Search v3) runs a second model after retrieval and
+  // applies its own `reranking.match_threshold` (default 0.4) that neither
+  // `match_threshold` nor `keyword_match_mode` relaxes. When enabled on the
+  // instance it silently drops every chunk below that score, so only near-exact
+  // wording survives. Disable it by default to restore broad recall; callers
+  // can opt back in (then tune `reranking.match_threshold` separately).
+  aiSearchOptions.reranking = {
+    enabled: options?.reranking ?? false,
+  };
+
   if (options?.rewriteQuery !== undefined) {
     aiSearchOptions.query_rewrite = { enabled: Boolean(options.rewriteQuery) };
   }
