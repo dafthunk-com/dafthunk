@@ -1,5 +1,7 @@
 import type {
   Parameter,
+  Edge as WorkflowBackendEdge,
+  Node as WorkflowBackendNode,
   WorkflowExecution,
   WorkflowRuntime,
   WorkflowTrigger,
@@ -26,6 +28,65 @@ interface UseEditableWorkflowProps {
   onExecutionUpdate?: (execution: WorkflowExecution) => void;
 }
 
+/**
+ * Convert the editor's ReactFlow graph into the backend wire format.
+ *
+ * This is the single source of truth for what gets persisted, so the same
+ * function can both build the payload to send AND fingerprint a graph for
+ * change detection (see `lastSavedSerializedRef`). It deliberately omits
+ * transient/UI-only fields (execution state, object-url callbacks, ids) so
+ * that a server round-trip produces a byte-identical serialization.
+ */
+function buildWorkflowPayload(
+  nodes: Node<WorkflowNodeType>[],
+  edges: Edge<WorkflowEdgeType>[]
+): { nodes: WorkflowBackendNode[]; edges: WorkflowBackendEdge[] } {
+  const workflowNodes = nodes.map((node) => {
+    const incomingEdges = edges.filter((edge) => edge.target === node.id);
+    return {
+      id: node.id,
+      name: node.data.name,
+      type: node.data.nodeType || "default",
+      position: node.position,
+      icon: node.data.icon,
+      functionCalling: node.data.functionCalling,
+      ...(node.data.metadata ? { metadata: { ...node.data.metadata } } : {}),
+      inputs: node.data.inputs.map((input) => {
+        const isConnected = incomingEdges.some(
+          (edge) => edge.targetHandle === input.id
+        );
+        const { id: _id, value: inputValue, ...rest } = input;
+        const parameter = {
+          ...rest,
+          name: input.id,
+          description: input.name,
+        } as Parameter & { value?: unknown };
+        if (!isConnected && typeof inputValue !== "undefined") {
+          parameter.value = inputValue;
+        }
+        return parameter as Parameter;
+      }),
+      outputs: node.data.outputs.map((output) => {
+        const { id: _id, value: _value, ...rest } = output;
+        return {
+          ...rest,
+          name: output.id,
+          description: output.name,
+        } as Parameter;
+      }),
+    };
+  }) as WorkflowBackendNode[];
+
+  const workflowEdges = edges.map((edge) => ({
+    source: edge.source,
+    target: edge.target,
+    sourceOutput: edge.sourceHandle || "",
+    targetInput: edge.targetHandle || "",
+  })) as WorkflowBackendEdge[];
+
+  return { nodes: workflowNodes, edges: workflowEdges };
+}
+
 export function useEditableWorkflow({
   workflowId,
   nodeTypes = [],
@@ -37,10 +98,6 @@ export function useEditableWorkflow({
   const [savingError, setSavingError] = useState<string | null>(null);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const wsRef = useRef<WorkflowWebSocket | null>(null);
-  const remoteStateRef = useRef<{
-    nodes: Node<WorkflowNodeType>[];
-    edges: Edge<WorkflowEdgeType>[];
-  } | null>(null);
   const [isWSConnected, setIsWSConnected] = useState(false);
   const [workflowMetadata, setWorkflowMetadata] = useState<{
     id: string;
@@ -51,6 +108,64 @@ export function useEditableWorkflow({
   } | null>(null);
 
   const { organization } = useAuth();
+
+  // Canonical "latest local graph" — always reflects what the editor shows,
+  // independent of the `nodes`/`edges` state (which only changes on remote
+  // sync). Saving and reconnection resend read exclusively from these.
+  const nodesRef = useRef<Node<WorkflowNodeType>[]>([]);
+  const edgesRef = useRef<Edge<WorkflowEdgeType>[]>([]);
+
+  // True once the first `init` has been applied. Used instead of the
+  // `isInitializing` state to avoid stale closures inside the WS callbacks
+  // (the connection effect runs once, so it would capture the initial value).
+  const hasInitializedRef = useRef(false);
+
+  // Fingerprint of the graph last accepted by the server (either sent by us
+  // or received from it). A save is a no-op when the current graph matches
+  // this, which suppresses echo-saves of remote updates and redundant resends.
+  const lastSavedSerializedRef = useRef<string>("");
+  const saveScheduledRef = useRef(false);
+
+  // Send the current local graph if it differs from what the server last had.
+  // Synchronous (the underlying WS send is synchronous) so it can run from
+  // `beforeunload` and unmount cleanup.
+  const flushSave = useCallback(() => {
+    saveScheduledRef.current = false;
+
+    if (!hasInitializedRef.current || !workflowId) return;
+
+    const payload = buildWorkflowPayload(nodesRef.current, edgesRef.current);
+    const serialized = JSON.stringify(payload);
+
+    // Unchanged since the last accepted state — nothing to do. This is what
+    // swallows the persistence "echo" that follows applying a remote update.
+    if (serialized === lastSavedSerializedRef.current) return;
+
+    // Not connected: keep the edit pending (don't advance the fingerprint).
+    // It will be resent on reconnect via onInit.
+    if (!wsRef.current?.isConnected()) return;
+
+    try {
+      wsRef.current.sendStateUpdate(payload.nodes, payload.edges);
+      lastSavedSerializedRef.current = serialized;
+      setSavingError(null);
+    } catch (error) {
+      console.error("Error saving via WebSocket:", error);
+    }
+  }, [workflowId]);
+
+  // Keep a stable handle so the once-only connection effect can flush on
+  // cleanup without capturing a stale `flushSave`.
+  const flushSaveRef = useRef(flushSave);
+  flushSaveRef.current = flushSave;
+
+  // Coalesce the separate node and edge change callbacks (which fire in the
+  // same commit) into a single save once both refs are up to date.
+  const scheduleSave = useCallback(() => {
+    if (saveScheduledRef.current) return;
+    saveScheduledRef.current = true;
+    queueMicrotask(() => flushSaveRef.current());
+  }, []);
 
   // WebSocket connection effect
   useEffect(() => {
@@ -73,44 +188,53 @@ export function useEditableWorkflow({
         return;
       }
 
+      const applyRemoteState = (state: WorkflowState) => {
+        // Store workflow metadata
+        if (state.id && state.trigger) {
+          setWorkflowMetadata({
+            id: state.id,
+            name: state.name || "",
+            description: state.description,
+            trigger: state.trigger,
+            runtime: state.runtime as WorkflowRuntime | undefined,
+          });
+        }
+
+        // Convert to ReactFlow format
+        const reactFlowNodes = adaptBackendNodesToReactFlowNodes(
+          state.nodes,
+          nodeTypes
+        );
+        const reactFlowEdges = state.edges.map((edge) => ({
+          id: `${edge.source}:${edge.sourceOutput}-${edge.target}:${edge.targetInput}`,
+          source: edge.source,
+          target: edge.target,
+          sourceHandle: edge.sourceOutput,
+          targetHandle: edge.targetInput,
+          type: "workflowEdge",
+          data: {
+            isValid: true,
+            sourceType: edge.sourceOutput,
+            targetType: edge.targetInput,
+          },
+        }));
+
+        // Mark this graph as the last-saved baseline BEFORE pushing it into
+        // state, so the persistence echo it triggers is recognised as a
+        // no-op rather than bounced back to the server.
+        nodesRef.current = reactFlowNodes;
+        edgesRef.current = reactFlowEdges;
+        lastSavedSerializedRef.current = JSON.stringify(
+          buildWorkflowPayload(reactFlowNodes, reactFlowEdges)
+        );
+
+        setNodes(reactFlowNodes);
+        setEdges(reactFlowEdges);
+      };
+
       const handleStateUpdate = (state: WorkflowState) => {
         try {
-          // Store workflow metadata
-          if (state.id && state.trigger) {
-            setWorkflowMetadata({
-              id: state.id,
-              name: state.name || "",
-              description: state.description,
-              trigger: state.trigger,
-              runtime: state.runtime as WorkflowRuntime | undefined,
-            });
-          }
-
-          // Convert to ReactFlow format
-          const reactFlowNodes = adaptBackendNodesToReactFlowNodes(
-            state.nodes,
-            nodeTypes
-          );
-          const reactFlowEdges = state.edges.map((edge: any) => ({
-            id: `${edge.source}:${edge.sourceOutput}-${edge.target}:${edge.targetInput}`,
-            source: edge.source,
-            target: edge.target,
-            sourceHandle: edge.sourceOutput,
-            targetHandle: edge.targetInput,
-            type: "workflowEdge",
-            data: {
-              isValid: true,
-              sourceType: edge.sourceOutput,
-              targetType: edge.targetInput,
-            },
-          }));
-
-          remoteStateRef.current = {
-            nodes: reactFlowNodes,
-            edges: reactFlowEdges,
-          };
-          setNodes(reactFlowNodes);
-          setEdges(reactFlowEdges);
+          applyRemoteState(state);
         } catch (error) {
           console.error("Error processing WebSocket state:", error);
           // State processing error - close connection to force reconnect
@@ -121,14 +245,24 @@ export function useEditableWorkflow({
       const ws = connectWorkflowWS(organization.id, workflowId, {
         // Message-level callbacks (happy path)
         onInit: (state: WorkflowState) => {
-          handleStateUpdate(state);
-          if (isInitializing) {
+          if (!hasInitializedRef.current) {
+            // First load: take server state as the source of truth.
+            handleStateUpdate(state);
+            hasInitializedRef.current = true;
             setIsInitializing(false);
+            return;
+          }
+
+          // Reconnection: preserve any local edits made while disconnected.
+          // If the local graph diverges from what the server last had, resend
+          // it (last-write-wins) instead of letting server state clobber it.
+          const localSerialized = JSON.stringify(
+            buildWorkflowPayload(nodesRef.current, edgesRef.current)
+          );
+          if (localSerialized !== lastSavedSerializedRef.current) {
+            flushSaveRef.current();
           } else {
-            // Reconnection - server state overwrites local
-            setSavingError(
-              "Reconnected. Some unsaved changes may have been lost."
-            );
+            handleStateUpdate(state);
           }
         },
         onUpdate: (state: WorkflowState) => {
@@ -167,6 +301,8 @@ export function useEditableWorkflow({
 
     return () => {
       clearTimeout(timeoutId);
+      // Best-effort flush of any pending edit before tearing down the socket.
+      flushSaveRef.current();
       if (wsRef.current) {
         wsRef.current.disconnect();
         wsRef.current = null;
@@ -174,125 +310,28 @@ export function useEditableWorkflow({
     };
   }, [workflowId, organization?.id]);
 
-  const saveWorkflowInternal = useCallback(
-    async (
-      nodesToSave: Node<WorkflowNodeType>[],
-      edgesToSave: Edge<WorkflowEdgeType>[]
-    ) => {
-      // Block saves during initialization to prevent race condition where
-      // nodeTypes load before edges, causing empty edges to be saved
-      if (isInitializing) {
-        return;
-      }
-
-      if (!workflowId) {
-        setSavingError("Workflow ID is missing, cannot save.");
-        return;
-      }
-      setSavingError(null);
-
-      if (wsRef.current?.isConnected()) {
-        try {
-          const workflowNodes = nodesToSave.map((node) => {
-            const incomingEdges = edgesToSave.filter(
-              (edge) => edge.target === node.id
-            );
-            return {
-              id: node.id,
-              name: node.data.name,
-              type: node.data.nodeType || "default",
-              position: node.position,
-              icon: node.data.icon,
-              functionCalling: node.data.functionCalling,
-              ...(node.data.metadata
-                ? { metadata: { ...node.data.metadata } }
-                : {}),
-              inputs: node.data.inputs.map((input) => {
-                const isConnected = incomingEdges.some(
-                  (edge) => edge.targetHandle === input.id
-                );
-                const { id: _id, value: inputValue, ...rest } = input;
-                const parameter = {
-                  ...rest,
-                  name: input.id,
-                  description: input.name,
-                } as Parameter & { value?: unknown };
-                if (!isConnected && typeof inputValue !== "undefined") {
-                  parameter.value = inputValue;
-                }
-                return parameter as Parameter;
-              }),
-              outputs: node.data.outputs.map((output) => {
-                const { id: _id, value: _value, ...rest } = output;
-                return {
-                  ...rest,
-                  name: output.id,
-                  description: output.name,
-                } as Parameter;
-              }),
-            };
-          });
-
-          const workflowEdges = edgesToSave.map((edge) => ({
-            source: edge.source,
-            target: edge.target,
-            sourceOutput: edge.sourceHandle || "",
-            targetInput: edge.targetHandle || "",
-          }));
-
-          wsRef.current.sendStateUpdate(workflowNodes, workflowEdges);
-          return;
-        } catch (error) {
-          console.error("Error saving via WebSocket:", error);
-          setSavingError("Failed to save via WebSocket");
-        }
-      }
-
-      console.warn(
-        "WebSocket not available, workflow changes may not be saved"
-      );
-      setSavingError("WebSocket not connected. Please refresh the page.");
-    },
-    [workflowId, isInitializing]
-  );
-
-  const nodesRef = useRef<Node<WorkflowNodeType>[]>([]);
-  const edgesRef = useRef<Edge<WorkflowEdgeType>[]>([]);
-
-  nodesRef.current = nodes;
-  edgesRef.current = edges;
+  // Flush pending edits on tab close / refresh. React Router navigation does
+  // not fire this; the connection effect cleanup covers that case instead.
+  useEffect(() => {
+    const handleBeforeUnload = () => flushSaveRef.current();
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, []);
 
   const handleNodesChange = useCallback(
     (changedNodes: Node<WorkflowNodeType>[]) => {
       nodesRef.current = changedNodes;
-      if (
-        remoteStateRef.current &&
-        changedNodes === remoteStateRef.current.nodes
-      ) {
-        remoteStateRef.current = null;
-        return; // Skip save - this is a remote update being applied
-      }
-      if (workflowMetadata) {
-        saveWorkflowInternal(changedNodes, edgesRef.current);
-      }
+      scheduleSave();
     },
-    [saveWorkflowInternal, workflowMetadata]
+    [scheduleSave]
   );
 
   const handleEdgesChange = useCallback(
     (changedEdges: Edge<WorkflowEdgeType>[]) => {
       edgesRef.current = changedEdges;
-      if (
-        remoteStateRef.current &&
-        changedEdges === remoteStateRef.current.edges
-      ) {
-        return; // Skip save - this is a remote update being applied
-      }
-      if (workflowMetadata) {
-        saveWorkflowInternal(nodesRef.current, changedEdges);
-      }
+      scheduleSave();
     },
-    [saveWorkflowInternal, workflowMetadata]
+    [scheduleSave]
   );
 
   const executeWorkflow = useCallback(
