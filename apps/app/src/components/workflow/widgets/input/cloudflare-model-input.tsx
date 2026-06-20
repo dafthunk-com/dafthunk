@@ -3,8 +3,9 @@ import type {
   CloudflareModelSchema,
 } from "@dafthunk/types";
 import LoaderCircle from "lucide-react/icons/loader-circle";
+import RotateCw from "lucide-react/icons/rotate-cw";
 import Search from "lucide-react/icons/search";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import {
   AlertDialog,
@@ -30,6 +31,7 @@ import {
   CF_LOCKED_KEY,
   CF_META_KEY,
   CLOUDFLARE_MODEL_NODE_TYPE,
+  decodeCloudflareModelMeta,
   encodeCloudflareModelMeta,
   shortName,
 } from "./cloudflare-model-utils";
@@ -38,12 +40,14 @@ interface CloudflareModelInputProps extends BaseWidgetProps {
   nodeId: string;
   model: string;
   hasSchemaParams: boolean;
+  metaEncoded: string;
 }
 
 function CloudflareModelInputWidget({
   nodeId,
   model,
   hasSchemaParams,
+  metaEncoded,
   className,
   disabled = false,
 }: CloudflareModelInputProps) {
@@ -53,7 +57,24 @@ function CloudflareModelInputWidget({
   const [pendingModel, setPendingModel] = useState<CloudflareModelInfo | null>(
     null
   );
+  const [showReloadConfirm, setShowReloadConfirm] = useState(false);
   const { updateNodeData, edges, deleteEdge } = useWorkflow();
+
+  // Reconstruct the model info for the currently-selected model from the
+  // metadata persisted on the node so a reload can re-fetch the same model's
+  // schema (and refresh derived inputs/outputs) without re-opening the picker.
+  const currentModelInfo = useMemo<CloudflareModelInfo | null>(() => {
+    if (!model) return null;
+    const meta = decodeCloudflareModelMeta(metaEncoded);
+    return {
+      id: model,
+      name: model,
+      description: meta.description,
+      task: meta.taskName
+        ? { id: meta.taskName, name: meta.taskName }
+        : undefined,
+    };
+  }, [model, metaEncoded]);
 
   const applySchema = useCallback(
     async (info: CloudflareModelInfo) => {
@@ -137,23 +158,51 @@ function CloudflareModelInputWidget({
     applySchema(next);
   }, [pendingModel, applySchema]);
 
+  // Re-fetch the selected model's schema, picking up any parameter changes
+  // since it was last applied. Confirm first when rebuilding would clobber
+  // existing schema-derived params and their connected edges.
+  const handleReload = useCallback(() => {
+    if (!currentModelInfo || disabled) return;
+    if (hasSchemaParams) {
+      setShowReloadConfirm(true);
+    } else {
+      applySchema(currentModelInfo);
+    }
+  }, [currentModelInfo, disabled, hasSchemaParams, applySchema]);
+
+  const handleReloadConfirm = useCallback(() => {
+    setShowReloadConfirm(false);
+    if (currentModelInfo) applySchema(currentModelInfo);
+  }, [currentModelInfo, applySchema]);
+
   return (
     <div className={cn("p-2 space-y-2", className)}>
-      <Button
-        variant="outline"
-        onClick={() => setDialogOpen(true)}
-        disabled={disabled || loading}
-        className="h-auto w-full justify-between px-2 py-1.5 text-xs font-mono"
-      >
-        <span className={cn("truncate", !model && "text-muted-foreground")}>
-          {model ? shortName(model) : "Select a model…"}
-        </span>
-        {loading ? (
-          <LoaderCircle className="ml-1 h-3.5 w-3.5 shrink-0 animate-spin" />
-        ) : (
-          <Search className="ml-1 h-3.5 w-3.5 shrink-0 opacity-50" />
-        )}
-      </Button>
+      <div className="flex items-stretch gap-1">
+        <Button
+          variant="outline"
+          onClick={() => setDialogOpen(true)}
+          disabled={disabled || loading}
+          className="h-auto flex-1 justify-between px-2 py-1.5 text-xs font-mono"
+        >
+          <span className={cn("truncate", !model && "text-muted-foreground")}>
+            {model ? shortName(model) : "Select a model…"}
+          </span>
+          {loading ? (
+            <LoaderCircle className="ml-1 h-3.5 w-3.5 shrink-0 animate-spin" />
+          ) : (
+            <Search className="ml-1 h-3.5 w-3.5 shrink-0 opacity-50" />
+          )}
+        </Button>
+        <Button
+          variant="outline"
+          onClick={handleReload}
+          disabled={disabled || loading || !model}
+          title="Reload model schema"
+          className="h-auto px-2 shrink-0"
+        >
+          <RotateCw className="h-3.5 w-3.5" />
+        </Button>
+      </div>
 
       {error && <p className="text-xs text-destructive">{error}</p>}
 
@@ -186,6 +235,24 @@ function CloudflareModelInputWidget({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <AlertDialog open={showReloadConfirm} onOpenChange={setShowReloadConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reload model schema?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will replace all current parameters and remove all connected
+              edges. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleReloadConfirm}>
+              Continue
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
@@ -203,6 +270,7 @@ export const cloudflareModelInputWidget = createWidget({
       nodeId,
       model: getInputValue(inputs, "model", ""),
       hasSchemaParams: inputs.length > 1 || (outputs ?? []).length > 0,
+      metaEncoded: metadata?.[CF_META_KEY] ?? "",
     };
   },
 });
