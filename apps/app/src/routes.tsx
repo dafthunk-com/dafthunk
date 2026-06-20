@@ -44,7 +44,6 @@ import { DatasetsPage } from "./pages/datasets-page";
 
 import { EditorPage } from "./pages/editor-page";
 import { EmailsPage } from "./pages/emails-page";
-import { EndpointsPage } from "./pages/endpoints-page";
 import { ExecutionDetailPage } from "./pages/execution-detail-page";
 import { ExecutionsPage } from "./pages/executions-page";
 import { FeedbackFormPage } from "./pages/feedback-form-page";
@@ -612,23 +611,6 @@ export const routes: AppRouteObject[] = [
       </OrgLayout>
     ),
     handle: { head: <HeadSeo title="Schemas - Dafthunk" /> },
-  },
-  {
-    path: "/endpoints",
-    element: <OrgRedirect to="/org/:organizationId/endpoints" />,
-  },
-  {
-    path: "/org/:organizationId/endpoints",
-    element: (
-      <OrgLayout title="Endpoints">
-        <ProtectedRoute>
-          <EndpointsPage />
-        </ProtectedRoute>
-      </OrgLayout>
-    ),
-    handle: {
-      head: <HeadSeo title="Endpoints - Triggers - Dafthunk" />,
-    },
   },
   {
     path: "/queues",

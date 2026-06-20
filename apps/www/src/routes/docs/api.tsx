@@ -14,7 +14,7 @@ const websiteUrl = import.meta.env.VITE_WEBSITE_URL;
 const API_BASE_URL = "https://api.dafthunk.com";
 
 const SAMPLE_URLS = {
-  endpointExecute: `${API_BASE_URL}/endpoints/my-endpoint/execute`,
+  endpointExecute: `${API_BASE_URL}/http/my-workflow-id`,
   statusBase: `${API_BASE_URL}/your-org/executions`,
   objectBase: `${API_BASE_URL}/your-org/objects?id=YOUR_OBJECT_ID`,
   queuePublish: `${API_BASE_URL}/queues/my-queue/publish`,
@@ -37,22 +37,6 @@ const RAW_BLOCKS = {
     {
       "nodeId": "node_1",
       "status": "executing"
-    }
-  ]
-}`,
-  endpointResponseMulti: `{
-  "executions": [
-    {
-      "id": "exec_1234567890",
-      "workflowId": "wf_123",
-      "status": "submitted",
-      "nodeExecutions": [...]
-    },
-    {
-      "id": "exec_1234567891",
-      "workflowId": "wf_456",
-      "status": "submitted",
-      "nodeExecutions": [...]
     }
   ]
 }`,
@@ -145,7 +129,6 @@ interface LoaderData {
     authHeader: HighlightedBlock;
     endpointRequest: HighlightedBlock;
     endpointResponseSingle: HighlightedBlock;
-    endpointResponseMulti: HighlightedBlock;
     executionResponse: HighlightedBlock;
     queueRequest: HighlightedBlock;
     queueResponse: HighlightedBlock;
@@ -166,7 +149,6 @@ export async function loader(): Promise<LoaderData> {
     authHeader,
     endpointRequest,
     endpointResponseSingle,
-    endpointResponseMulti,
     executionResponse,
     queueRequest,
     queueResponse,
@@ -181,7 +163,6 @@ export async function loader(): Promise<LoaderData> {
     highlightBlock(RAW_BLOCKS.authHeader, "http"),
     highlightBlock(RAW_BLOCKS.endpointRequest, "json"),
     highlightBlock(RAW_BLOCKS.endpointResponseSingle, "json"),
-    highlightBlock(RAW_BLOCKS.endpointResponseMulti, "json"),
     highlightBlock(RAW_BLOCKS.executionResponse, "json"),
     highlightBlock(RAW_BLOCKS.queueRequest, "json"),
     highlightBlock(RAW_BLOCKS.queueResponse, "json"),
@@ -223,7 +204,6 @@ export async function loader(): Promise<LoaderData> {
       authHeader,
       endpointRequest,
       endpointResponseSingle,
-      endpointResponseMulti,
       executionResponse,
       queueRequest,
       queueResponse,
@@ -328,27 +308,26 @@ export default function DocsApi({ loaderData }: { loaderData: LoaderData }) {
       </p>
       <CodeBlock html={blocks.authHeader.html} raw={blocks.authHeader.raw} />
 
-      <h2 id="endpoint-execution">Endpoint Execution</h2>
+      <h2 id="endpoint-execution">HTTP Trigger Execution</h2>
 
-      <h3>Execute Endpoint</h3>
+      <h3>Execute Workflow</h3>
       <p>
-        Trigger workflow execution via an HTTP endpoint. Endpoints are created
-        in the Dafthunk dashboard under <strong>Endpoints</strong> and linked to
-        workflows through triggers. All enabled workflows connected to the
-        endpoint will be executed.
+        Trigger a workflow that has an HTTP trigger node. The workflow id is the
+        handle, so the URL is derived directly from the workflow. The workflow
+        must be enabled. A <code>http-request</code> trigger runs synchronously;
+        a <code>http-webhook</code> trigger runs asynchronously and returns an
+        execution id immediately.
       </p>
       <p>
-        <strong>Route:</strong>{" "}
-        <code>
-          GET or POST /{"{orgId}"}/endpoints/{"{endpointId}"}/execute
-        </code>
+        <strong>Route:</strong> <code>GET or POST /http/{"{workflowId}"}</code>
       </p>
 
       <h4>Request Body</h4>
       <p>
-        The request body can be any valid JSON that will be passed to the
-        workflow. The specific structure depends on your workflow's parameter
-        nodes.
+        The full request — method, headers, query parameters, and body — is
+        passed to the workflow and exposed through the HTTP Request (or HTTP
+        Webhook) trigger node's outputs. The body can be any content type; the
+        example below sends JSON.
       </p>
       <CodeBlock
         html={blocks.endpointRequest.html}
@@ -359,14 +338,6 @@ export default function DocsApi({ loaderData }: { loaderData: LoaderData }) {
       <CodeBlock
         html={blocks.endpointResponseSingle.html}
         raw={blocks.endpointResponseSingle.raw}
-      />
-      <p>
-        If multiple workflows are linked to the endpoint, the response contains
-        an array:
-      </p>
-      <CodeBlock
-        html={blocks.endpointResponseMulti.html}
-        raw={blocks.endpointResponseMulti.raw}
       />
 
       <h4>Code Examples</h4>

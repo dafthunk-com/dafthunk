@@ -17,17 +17,10 @@ export class HttpRequestNode extends ExecutableNode {
     tags: ["Data", "Parameter", "HTTP"],
     icon: "log-in",
     documentation:
-      "This node receives an HTTP request via an endpoint. The workflow executes synchronously and returns a response via the HTTP Response node.",
+      "This node receives an HTTP request at /http/{workflowId}. The workflow executes synchronously and the call returns the execution result, including each node's output.",
     inlinable: true,
     trigger: true,
-    inputs: [
-      {
-        name: "endpointId",
-        type: "string",
-        description: "The HTTP endpoint",
-        hidden: true,
-      },
-    ],
+    inputs: [],
     outputs: [
       {
         name: "method",

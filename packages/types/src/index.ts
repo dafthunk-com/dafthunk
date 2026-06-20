@@ -9,7 +9,6 @@ export * from "./database";
 export * from "./dataset";
 export * from "./discord";
 export * from "./email";
-export * from "./endpoint";
 export * from "./execution";
 export * from "./feedback";
 export * from "./integration";

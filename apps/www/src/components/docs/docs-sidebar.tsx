@@ -48,7 +48,7 @@ const docsSections: DocsSection[] = [
     href: "/docs/api",
     anchors: [
       { title: "Authentication", href: "#authentication" },
-      { title: "Endpoint Execution", href: "#endpoint-execution" },
+      { title: "HTTP Trigger Execution", href: "#endpoint-execution" },
       { title: "Execution Status", href: "#status-results" },
       { title: "Object Retrieval", href: "#object-retrieval" },
       { title: "Queue Publishing", href: "#queue-publishing" },

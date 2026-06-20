@@ -18,14 +18,13 @@ import databaseRoutes from "./routes/databases";
 import datasetRoutes from "./routes/datasets";
 import discordWebhook from "./routes/discord-webhook";
 import emailRoutes from "./routes/emails";
-import endpointExecuteRoutes from "./routes/endpoint-execute";
-import endpointRoutes from "./routes/endpoints";
 import executionRoutes from "./routes/executions";
 import feedbackRoutes from "./routes/feedback";
 import feedbackFormRoutes from "./routes/feedback-forms";
 import formTriggerRoutes from "./routes/form-triggers";
 import formRoutes from "./routes/forms";
 import health from "./routes/health";
+import httpTriggerRoutes from "./routes/http-triggers";
 import integrationRoutes from "./routes/integrations";
 import invitationRoutes from "./routes/invitations";
 import llmsRoutes from "./routes/llms";
@@ -104,7 +103,7 @@ app.route("/whatsapp", whatsappWebhook);
 app.route("/slack", slackWebhook);
 
 // Trigger execution (API key auth, org derived from resource record)
-app.route("/endpoints", endpointExecuteRoutes);
+app.route("/http", httpTriggerRoutes);
 app.route("/queues", queuePublishRoutes);
 
 // Replicate schema proxy (JWT-authenticated, not org-scoped)
@@ -130,7 +129,6 @@ app.route("/:organizationId/bots", botRoutes);
 app.route("/:organizationId/emails", emailRoutes);
 app.route("/:organizationId/feedback", feedbackRoutes);
 app.route("/:organizationId/executions", executionRoutes);
-app.route("/:organizationId/endpoints", endpointRoutes);
 app.route("/:organizationId/integrations", integrationRoutes);
 app.route("/:organizationId/queues", queueRoutes);
 app.route("/:organizationId/schemas", schemaRoutes);

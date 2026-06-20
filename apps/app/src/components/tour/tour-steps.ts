@@ -24,18 +24,10 @@ export const TOUR_STEPS: TourStep[] = [
     spotlightPadding: 4,
   },
   {
-    id: "triggers",
-    title: "Triggers",
-    content:
-      "Configure how your workflows are started. Use HTTP endpoints, incoming emails, message queues, or chat bots to trigger executions.",
-    targetSelector: '[data-tour="triggers-nav-group"]',
-    spotlightPadding: 4,
-  },
-  {
     id: "resources",
     title: "Resources",
     content:
-      "Manage your data and connections. Store files in datasets, persist structured data in databases, connect external services, and securely store API keys.",
+      "Manage everything your workflows draw on: schemas, databases, datasets, and secrets, plus the connections that can start a workflow — integrations, email, queues, and bots. Other triggers (manual, HTTP, form) are added as nodes inside the editor.",
     targetSelector: '[data-tour="resources-nav-group"]',
     spotlightPadding: 4,
   },

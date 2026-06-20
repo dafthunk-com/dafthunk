@@ -136,7 +136,7 @@ export class ExecutionManager {
 
   /**
    * Extract HTTP-specific parameters (for http_webhook and http_request)
-   * Aligns with the HTTP endpoint's execution-preparation.ts
+   * Aligns with the HTTP trigger route's execution-preparation.ts
    */
   private buildHttpParameters(
     parameters: Record<string, unknown>,

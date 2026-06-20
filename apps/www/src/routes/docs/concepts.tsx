@@ -102,11 +102,11 @@ export default function DocsConcepts() {
       </p>
       <ul>
         <li>
-          <strong>Endpoints:</strong> HTTP endpoints that start workflows when
-          they receive a request. Create endpoints under{" "}
-          <strong>Endpoints</strong> and connect them to workflows via triggers.
-          Endpoints support both webhook (fire-and-forget) and request
-          (synchronous response) modes.
+          <strong>HTTP triggers:</strong> Add an HTTP trigger node to a workflow
+          and it can be started with a request to{" "}
+          <code>/http/{"{workflowId}"}</code>. HTTP triggers support both
+          webhook (fire-and-forget) and request (synchronous response) modes,
+          chosen by the trigger node type.
         </li>
         <li>
           <strong>Queues:</strong> Message queues that trigger workflows when a
@@ -200,14 +200,15 @@ export default function DocsConcepts() {
           </ul>
         </li>
         <li>
-          <strong>Set Up a Trigger</strong>: Create an <strong>Endpoint</strong>{" "}
-          and add a trigger to your workflow that connects it to the endpoint.
-          Enable the workflow to make it active.
+          <strong>Set Up a Trigger</strong>: Add an{" "}
+          <strong>HTTP trigger</strong> node to your workflow. Enable the
+          workflow to make it active.
         </li>
         <li>
           <strong>Trigger and Execute</strong>: You (or an external system) send
-          a POST request containing the text prompt to the endpoint. This starts
-          an <code>Execution</code>.
+          a POST request containing the text prompt to{" "}
+          <code>/http/{"{workflowId}"}</code>. This starts an{" "}
+          <code>Execution</code>.
         </li>
         <li>
           <strong>Monitor the Result</strong>: In Dafthunk, you can observe the{" "}

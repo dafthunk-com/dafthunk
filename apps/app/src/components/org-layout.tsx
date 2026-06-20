@@ -4,7 +4,6 @@ import CreditCard from "lucide-react/icons/credit-card";
 import Database from "lucide-react/icons/database";
 import FlaskConical from "lucide-react/icons/flask-conical";
 import Folder from "lucide-react/icons/folder";
-import Globe from "lucide-react/icons/globe";
 import Inbox from "lucide-react/icons/inbox";
 import KeyRound from "lucide-react/icons/key-round";
 import LayoutDashboard from "lucide-react/icons/layout-dashboard";
@@ -74,31 +73,6 @@ export const getDashboardSidebarGroups = (orgId: string) => {
       ],
     },
     {
-      label: "Triggers",
-      items: [
-        {
-          title: "Endpoints",
-          url: `/org/${orgId}/endpoints`,
-          icon: Globe,
-        },
-        {
-          title: "Emails",
-          url: `/org/${orgId}/emails`,
-          icon: Mail,
-        },
-        {
-          title: "Queues",
-          url: `/org/${orgId}/queues`,
-          icon: Inbox,
-        },
-        {
-          title: "Bots",
-          url: `/org/${orgId}/bots`,
-          icon: Bot,
-        },
-      ],
-    },
-    {
       label: "Resources",
       items: [
         {
@@ -125,6 +99,21 @@ export const getDashboardSidebarGroups = (orgId: string) => {
           title: "Secrets",
           url: `/org/${orgId}/secrets`,
           icon: Lock,
+        },
+        {
+          title: "Emails",
+          url: `/org/${orgId}/emails`,
+          icon: Mail,
+        },
+        {
+          title: "Queues",
+          url: `/org/${orgId}/queues`,
+          icon: Inbox,
+        },
+        {
+          title: "Bots",
+          url: `/org/${orgId}/bots`,
+          icon: Bot,
         },
       ],
     },
