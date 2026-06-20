@@ -142,8 +142,26 @@ export function FormTriggerPage() {
           </CardHeader>
         )}
 
-        {state.status === "success" && (
-          <>
+        {state.status === "success" &&
+          (state.response && state.response.fields.length > 0 ? (
+            <CardContent className="pt-6">
+              <dl className="divide-y divide-border rounded-md border">
+                {state.response.fields.map((field) => (
+                  <div
+                    key={field.name}
+                    className="flex justify-between gap-4 px-3 py-2"
+                  >
+                    <dt className="text-sm text-muted-foreground">
+                      {field.label || field.name}
+                    </dt>
+                    <dd className="text-sm font-medium text-right break-words">
+                      {formatResponseValue(state.response?.record[field.name])}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </CardContent>
+          ) : (
             <CardHeader>
               <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
                 <Check className="h-5 w-5 text-green-600" />
@@ -155,29 +173,7 @@ export function FormTriggerPage() {
                   : "Thank you. Your submission has been processed."}
               </CardDescription>
             </CardHeader>
-            {state.response && state.response.fields.length > 0 && (
-              <CardContent>
-                <dl className="divide-y divide-border rounded-md border">
-                  {state.response.fields.map((field) => (
-                    <div
-                      key={field.name}
-                      className="flex justify-between gap-4 px-3 py-2"
-                    >
-                      <dt className="text-sm text-muted-foreground">
-                        {field.label || field.name}
-                      </dt>
-                      <dd className="text-sm font-medium text-right break-words">
-                        {formatResponseValue(
-                          state.response?.record[field.name]
-                        )}
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
-              </CardContent>
-            )}
-          </>
-        )}
+          ))}
 
         {config && (
           <>
