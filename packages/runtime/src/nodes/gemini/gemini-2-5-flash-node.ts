@@ -78,6 +78,7 @@ export class Gemini25FlashNode extends ExecutableNode {
       {
         name: "schema",
         type: "schema",
+        scope: "structured-output",
         description: "JSON schema to constrain the output format",
         hidden: true,
       },

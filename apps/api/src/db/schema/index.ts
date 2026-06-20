@@ -43,6 +43,8 @@ export const WorkflowTriggerType = {
   MANUAL: "manual",
   HTTP_WEBHOOK: "http_webhook",
   HTTP_REQUEST: "http_request",
+  FORM_WEBHOOK: "form_webhook",
+  FORM_REQUEST: "form_request",
   EMAIL_MESSAGE: "email_message",
   SCHEDULED: "scheduled",
   QUEUE_MESSAGE: "queue_message",

@@ -80,6 +80,7 @@ const AGENT_INPUTS: NodeType["inputs"] = [
   {
     name: "schema",
     type: "schema",
+    scope: "structured-output",
     description: "JSON schema to constrain the final output format",
     hidden: true,
   },

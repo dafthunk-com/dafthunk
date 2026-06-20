@@ -1614,6 +1614,23 @@ export async function getActiveScheduledTriggers(
 }
 
 /**
+ * Get a workflow row by id WITHOUT organization scoping. Used by the public
+ * form-trigger routes, which receive only the workflow id in the URL and must
+ * derive the owning organization to scope the form schema and execution.
+ */
+export async function getWorkflowByIdUnscoped(
+  db: ReturnType<typeof createDatabase>,
+  workflowId: string
+): Promise<typeof workflows.$inferSelect | undefined> {
+  const [row] = await db
+    .select()
+    .from(workflows)
+    .where(eq(workflows.id, workflowId))
+    .limit(1);
+  return row;
+}
+
+/**
  * Upsert a scheduled trigger for a workflow
  *
  * @param db Database instance

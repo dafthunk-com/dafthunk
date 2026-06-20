@@ -1,7 +1,10 @@
 import type { Field, FieldType, GetSchemaResponse } from "@dafthunk/types";
+import Copy from "lucide-react/icons/copy";
+import ExternalLink from "lucide-react/icons/external-link";
 import LoaderCircle from "lucide-react/icons/loader-circle";
 import RotateCw from "lucide-react/icons/rotate-cw";
 import { useCallback, useState } from "react";
+import { useParams } from "react-router";
 
 import { useAuth } from "@/components/auth-context";
 import { SchemaDialog } from "@/components/schema-dialog";
@@ -51,32 +54,44 @@ const FIELD_TYPE_TO_PARAMETER_TYPE: Record<FieldType, string> = {
   blob: "blob",
 };
 
-interface SchemaComposeInputProps extends BaseWidgetProps {
+interface ReceiveFormInputProps extends BaseWidgetProps {
   nodeId: string;
   schemaId: string;
-  hasSchemaInputs: boolean;
+  hasSchemaOutputs: boolean;
   storedHash: string;
 }
 
-function SchemaComposeInputWidget({
+/**
+ * Widget for the form trigger nodes. Picking a schema derives the node's typed
+ * outputs (one per field, with drift detection) — like the schema-extract
+ * widget — and surfaces the public form URL `/forms/:workflowId` to share.
+ */
+function ReceiveFormInputWidget({
   nodeId,
   schemaId,
-  hasSchemaInputs,
+  hasSchemaOutputs,
   storedHash,
+  onChange,
   className,
   disabled = false,
-}: SchemaComposeInputProps) {
+}: ReceiveFormInputProps) {
   const [loading, setLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const { schemas, isSchemasLoading, mutateSchemas } = useSchemas();
   const { organization } = useAuth();
   const { updateNodeData, edges, deleteEdge } = useWorkflow();
+  const { id: workflowId } = useParams<{ id: string }>();
+
+  const formUrl = workflowId
+    ? `${window.location.origin}/forms/${workflowId}`
+    : "";
 
   const applySchema = useCallback(
     async (selectedSchemaId: string) => {
       if (!organization?.id || !updateNodeData) return;
 
+      onChange(selectedSchemaId);
       setLoading(true);
       try {
         const response = await makeOrgRequest<GetSchemaResponse>(
@@ -85,7 +100,7 @@ function SchemaComposeInputWidget({
           `/${selectedSchemaId}`
         );
 
-        const fieldInputs = response.schema.fields.map(
+        const schemaOutputs = response.schema.fields.map(
           (field) =>
             ({
               id: field.name,
@@ -94,7 +109,7 @@ function SchemaComposeInputWidget({
             }) as WorkflowParameter
         );
 
-        // Remove all edges connected to this node (schema change breaks connections)
+        // Schema change breaks existing connections.
         if (edges && deleteEdge) {
           for (const edge of edges) {
             if (edge.target === nodeId || edge.source === nodeId) {
@@ -103,41 +118,29 @@ function SchemaComposeInputWidget({
           }
         }
 
-        // Stamp the field-shape signature so the widget can later detect when
-        // the source schema has drifted from these derived inputs.
         const fieldsHash = hashSchemaFields(response.schema.fields);
+        updateNodeData(nodeId, (current) => ({
+          outputs: schemaOutputs,
+          metadata: {
+            ...(current.metadata ?? {}),
+            [SCHEMA_FIELDS_HASH_KEY]: fieldsHash,
+          },
+        }));
 
-        // Build the schema input from scratch to avoid race conditions
-        // between competing input updates (onChange vs updateNodeData)
-        updateNodeData(nodeId, (current) => {
-          const existingSchema = current.inputs?.find((i) => i.id === "schema");
-          const schemaInput = {
-            ...(existingSchema ?? {
-              id: "schema",
-              name: "schema",
-              type: "schema" as const,
-              hidden: true,
-              required: true,
-            }),
-            value: selectedSchemaId,
-          } as WorkflowParameter;
-          return {
-            inputs: [schemaInput, ...fieldInputs],
-            metadata: {
-              ...(current.metadata ?? {}),
-              [SCHEMA_FIELDS_HASH_KEY]: fieldsHash,
-            },
-          };
-        });
-
-        // Refresh the cached schema list so the drift check baseline matches
-        // what we just applied (otherwise a stale list flags a false drift).
         await mutateSchemas();
       } finally {
         setLoading(false);
       }
     },
-    [organization?.id, updateNodeData, edges, deleteEdge, nodeId, mutateSchemas]
+    [
+      organization?.id,
+      updateNodeData,
+      edges,
+      deleteEdge,
+      nodeId,
+      onChange,
+      mutateSchemas,
+    ]
   );
 
   const handleChange = useCallback(
@@ -162,16 +165,14 @@ function SchemaComposeInputWidget({
     [organization?.id, mutateSchemas, applySchema]
   );
 
-  // Re-derive the inputs from the currently selected schema, picking up any
-  // field changes made to the schema since it was last applied.
   const handleReload = useCallback(() => {
     if (!schemaId || disabled) return;
-    if (hasSchemaInputs) {
+    if (hasSchemaOutputs) {
       setShowConfirm(true);
     } else {
       applySchema(schemaId);
     }
-  }, [schemaId, disabled, hasSchemaInputs, applySchema]);
+  }, [schemaId, disabled, hasSchemaOutputs, applySchema]);
 
   const handleConfirm = useCallback(() => {
     setShowConfirm(false);
@@ -182,20 +183,40 @@ function SchemaComposeInputWidget({
   const selectedSchema = schemas?.find((s) => s.id === schemaId);
   const selectedName = selectedSchema?.name;
 
-  // Drift between the schema's current field shape and the shape these inputs
-  // were last derived from. Legacy nodes without a stored hash can't be judged,
-  // so they aren't flagged.
   const currentHash = selectedSchema
     ? hashSchemaFields(selectedSchema.fields)
     : "";
   const isStale =
-    hasSchemaInputs &&
+    hasSchemaOutputs &&
     !!storedHash &&
     !!currentHash &&
     storedHash !== currentHash;
 
   return (
     <div className={cn("p-2", className)}>
+      {formUrl && (
+        <div className="mb-2 flex items-center gap-1">
+          <Button
+            variant="outline"
+            className="h-auto flex-1 gap-1.5 text-xs"
+            title={formUrl}
+            onClick={() => window.open(formUrl, "_blank", "noopener")}
+          >
+            <ExternalLink className="h-3.5 w-3.5" />
+            Open
+          </Button>
+          <Button
+            variant="outline"
+            className="h-auto flex-1 gap-1.5 text-xs"
+            title={formUrl}
+            onClick={() => navigator.clipboard.writeText(formUrl)}
+          >
+            <Copy className="h-3.5 w-3.5" />
+            Copy
+          </Button>
+        </div>
+      )}
+
       <div className="flex items-stretch gap-1">
         <Select
           value={schemaId || ""}
@@ -232,7 +253,9 @@ function SchemaComposeInputWidget({
           onClick={handleReload}
           disabled={disabled || isLoading || !schemaId}
           title={
-            isStale ? "Schema changed — reload to sync inputs" : "Reload schema"
+            isStale
+              ? "Schema changed — reload to sync outputs"
+              : "Reload schema"
           }
           className={cn("h-auto px-2 shrink-0", isStale && "border-amber-500")}
         >
@@ -257,7 +280,7 @@ function SchemaComposeInputWidget({
           <AlertDialogHeader>
             <AlertDialogTitle>Reload schema?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will rebuild the inputs from the schema and remove all
+              This will rebuild the outputs from the schema and remove all
               connected edges. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -273,14 +296,14 @@ function SchemaComposeInputWidget({
   );
 }
 
-export const schemaComposeInputWidget = createWidget({
-  component: SchemaComposeInputWidget,
-  nodeTypes: ["json-schema-compose", "form-response"],
+export const receiveFormInputWidget = createWidget({
+  component: ReceiveFormInputWidget,
+  nodeTypes: ["receive-form-request", "receive-form-webhook"],
   inputField: "schema",
-  extractConfig: (nodeId, inputs, _outputs, metadata) => ({
+  extractConfig: (nodeId, inputs, outputs, metadata) => ({
     nodeId,
     schemaId: getInputValue(inputs, "schema", ""),
-    hasSchemaInputs: (inputs ?? []).length > 1,
+    hasSchemaOutputs: (outputs ?? []).length > 0,
     storedHash: metadata?.[SCHEMA_FIELDS_HASH_KEY] ?? "",
   }),
 });

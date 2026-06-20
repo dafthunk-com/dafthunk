@@ -1,5 +1,7 @@
 import type { WorkflowRuntime, WorkflowTrigger } from "@dafthunk/types";
+import ClipboardList from "lucide-react/icons/clipboard-list";
 import Clock from "lucide-react/icons/clock";
+import FileText from "lucide-react/icons/file-text";
 import Globe from "lucide-react/icons/globe";
 import Hash from "lucide-react/icons/hash";
 import Inbox from "lucide-react/icons/inbox";
@@ -49,6 +51,18 @@ const workflowTriggers = [
     title: "HTTP Request",
     description: "Sync HTTP trigger, waits for workflow completion",
     icon: Globe,
+  },
+  {
+    trigger: "form_webhook" as WorkflowTrigger,
+    title: "Form Webhook",
+    description: "Public form that starts the workflow asynchronously",
+    icon: ClipboardList,
+  },
+  {
+    trigger: "form_request" as WorkflowTrigger,
+    title: "Form Request",
+    description: "Public form that runs the workflow and waits for completion",
+    icon: FileText,
   },
   {
     trigger: "email_message" as WorkflowTrigger,

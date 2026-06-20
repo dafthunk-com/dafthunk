@@ -9,6 +9,8 @@ const TRIGGER_TO_NODE_TYPES: Record<WorkflowTrigger, string[]> = {
   scheduled: ["receive-scheduled-trigger"],
   http_webhook: ["http-webhook"],
   http_request: ["http-request", "http-response"],
+  form_webhook: ["receive-form-webhook"],
+  form_request: ["receive-form-request", "form-response"],
   email_message: ["receive-email"],
   queue_message: ["queue-message"],
   discord_event: ["receive-discord-message"],

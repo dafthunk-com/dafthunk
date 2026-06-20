@@ -23,6 +23,7 @@ import endpointRoutes from "./routes/endpoints";
 import executionRoutes from "./routes/executions";
 import feedbackRoutes from "./routes/feedback";
 import feedbackFormRoutes from "./routes/feedback-forms";
+import formTriggerRoutes from "./routes/form-triggers";
 import formRoutes from "./routes/forms";
 import health from "./routes/health";
 import integrationRoutes from "./routes/integrations";
@@ -115,6 +116,7 @@ app.route("/cloudflare-gateway", cloudflareGatewayRoutes);
 
 // Public routes
 app.route("/forms", formRoutes);
+app.route("/form-triggers", formTriggerRoutes);
 app.route("/feedback-forms", feedbackFormRoutes);
 app.route("/templates", templateRoutes);
 app.route("/types", typeRoutes);

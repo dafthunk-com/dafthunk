@@ -93,6 +93,7 @@ export type {
   CreateNodeOptions,
   DocumentParameter,
   EmailMessage,
+  FormSubmission,
   GltfParameter,
   HttpRequest,
   ImageParameter,

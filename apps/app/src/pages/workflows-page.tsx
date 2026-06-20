@@ -5,8 +5,10 @@ import type {
   WorkflowWithMetadata,
 } from "@dafthunk/types";
 import type { LucideIcon } from "lucide-react";
+import ClipboardList from "lucide-react/icons/clipboard-list";
 import Clock from "lucide-react/icons/clock";
 import FileDown from "lucide-react/icons/file-down";
+import FileText from "lucide-react/icons/file-text";
 import Globe from "lucide-react/icons/globe";
 import Hash from "lucide-react/icons/hash";
 import Inbox from "lucide-react/icons/inbox";
@@ -71,6 +73,8 @@ const triggerMeta: Record<
   scheduled: { label: "Scheduled", icon: Clock },
   http_webhook: { label: "HTTP Webhook", icon: Webhook },
   http_request: { label: "HTTP Request", icon: Globe },
+  form_webhook: { label: "Form Webhook", icon: ClipboardList },
+  form_request: { label: "Form Request", icon: FileText },
   email_message: { label: "Email Message", icon: Mail },
   queue_message: { label: "Queue Message", icon: Inbox },
   discord_event: { label: "Discord Event", icon: MessageSquare },

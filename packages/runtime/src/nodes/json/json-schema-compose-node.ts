@@ -13,6 +13,11 @@ const FIELD_TYPE_TO_PARAMETER_TYPE: Record<FieldType, string> = {
   boolean: "boolean",
   datetime: "date",
   json: "json",
+  image: "image",
+  document: "document",
+  audio: "audio",
+  video: "video",
+  blob: "blob",
 };
 
 /**

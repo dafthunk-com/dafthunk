@@ -29,6 +29,7 @@ import { imageInputWidget } from "./input/image-input";
 import { javascriptInputWidget } from "./input/javascript-input";
 import { jsonInputWidget } from "./input/json-input";
 import { numberInputWidget } from "./input/number-input";
+import { receiveFormInputWidget } from "./input/receive-form-input";
 import { replicateModelInputWidget } from "./input/replicate-model-input";
 import { schemaComposeInputWidget } from "./input/schema-compose-input";
 import { schemaExtractInputWidget } from "./input/schema-extract-input";
@@ -94,6 +95,7 @@ const widgets = [
   cloudflareGatewayModelInputWidget,
   schemaComposeInputWidget,
   schemaExtractInputWidget,
+  receiveFormInputWidget,
   createDynamicInputsWidget("string-concat", {
     prefix: "input",
     type: "string",

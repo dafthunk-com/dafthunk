@@ -111,7 +111,14 @@ export class DatabasePutRowNode extends ExecutableNode {
         validateIdentifier(col, "column name");
       }
       const placeholders = columns.map(() => "?").join(", ");
-      const values = columns.map((col) => record[col]);
+      // SQLite bind params accept only primitives. Object/array values
+      // (json fields and blob-field ObjectReferences) are stored as JSON text.
+      const values = columns.map((col) => {
+        const value = record[col];
+        return value !== null && typeof value === "object"
+          ? JSON.stringify(value)
+          : value;
+      });
 
       const sql = pkField
         ? `INSERT OR REPLACE INTO ${schema.name} (${columns.join(", ")}) VALUES (${placeholders})`

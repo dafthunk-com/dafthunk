@@ -429,3 +429,48 @@ describe("validateRecords", () => {
     ]);
   });
 });
+
+describe("validateRecord with blob fields", () => {
+  const schema: Schema = {
+    name: "upload",
+    fields: [
+      { name: "caption", type: "string", required: true },
+      { name: "photo", type: "image", required: true },
+      { name: "attachment", type: "blob" },
+    ],
+  };
+
+  const reference = {
+    id: "obj-123",
+    mimeType: "image/png",
+    filename: "cat.png",
+  };
+
+  it("passes an ObjectReference through unchanged", () => {
+    const result = validateRecord({ caption: "hi", photo: reference }, schema);
+
+    expect(result.errors).toEqual([]);
+    expect(result.record.photo).toEqual(reference);
+  });
+
+  it("rejects a non-reference value for a blob field", () => {
+    const result = validateRecord(
+      { caption: "hi", photo: "not-a-file" },
+      schema
+    );
+
+    expect(result.errors).toEqual([
+      "Field 'photo': cannot coerce string to image",
+    ]);
+  });
+
+  it("errors when a required blob field is missing", () => {
+    const result = validateRecord({ caption: "hi" }, schema);
+    expect(result.errors).toEqual(["Missing required field 'photo'"]);
+  });
+
+  it("leaves an optional blob field null when absent", () => {
+    const result = validateRecord({ caption: "hi", photo: reference }, schema);
+    expect(result.record.attachment).toBeNull();
+  });
+});

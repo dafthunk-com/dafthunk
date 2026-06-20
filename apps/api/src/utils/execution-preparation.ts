@@ -58,11 +58,19 @@ interface DefaultParameters {
 }
 
 /**
+ * Parameters for form_request and form_webhook workflow types
+ */
+interface FormSubmissionParameters {
+  formRecord: Record<string, unknown>;
+}
+
+/**
  * Discriminated union of execution parameters based on workflow type
  */
 type ExecutionParameters =
   | EmailMessageParameters
   | HttpRequestParameters
+  | FormSubmissionParameters
   | DefaultParameters;
 
 interface ExecutionPreparationResult {
@@ -173,6 +181,21 @@ function buildParameters(
       query: data.query,
       body: data.body,
     };
+  } else if (
+    workflowTrigger === "form_request" ||
+    workflowTrigger === "form_webhook"
+  ) {
+    // The dedicated form route handles validation + file uploads and builds the
+    // record itself; this fallback only parses a JSON body for completeness.
+    let formRecord: Record<string, unknown> = {};
+    if (data.body && data.body.mimeType.includes("application/json")) {
+      try {
+        formRecord = JSON.parse(new TextDecoder().decode(data.body.data));
+      } catch {
+        // Invalid JSON — leave the record empty.
+      }
+    }
+    return { formRecord };
   } else {
     return {
       url: data.url,

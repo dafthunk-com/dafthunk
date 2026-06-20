@@ -1,4 +1,23 @@
-import type { Field, FieldType, Schema } from "@dafthunk/types";
+import {
+  type Field,
+  type FieldType,
+  isBlobFieldType,
+  type Schema,
+} from "@dafthunk/types";
+
+/**
+ * A blob field holds an `ObjectReference` ({ id, mimeType, filename? }). It is
+ * never coerced from another shape — it is produced server-side (e.g. a form
+ * upload stored in R2) and passes through validation unchanged.
+ */
+function isObjectReference(value: unknown): boolean {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    typeof (value as { id?: unknown }).id === "string" &&
+    typeof (value as { mimeType?: unknown }).mimeType === "string"
+  );
+}
 
 interface ValidationResult {
   record: Record<string, unknown>;
@@ -80,6 +99,11 @@ function coerceValue(
   value: unknown,
   targetType: FieldType
 ): { value: unknown; ok: boolean } {
+  if (isBlobFieldType(targetType)) {
+    return isObjectReference(value)
+      ? { value, ok: true }
+      : { value, ok: false };
+  }
   switch (targetType) {
     case "string": {
       const result = coerceToString(value);
@@ -123,6 +147,9 @@ function coerceValue(
 }
 
 function isCorrectType(value: unknown, type: FieldType): boolean {
+  if (isBlobFieldType(type)) {
+    return isObjectReference(value);
+  }
   switch (type) {
     case "string":
       return typeof value === "string";

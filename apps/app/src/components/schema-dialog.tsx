@@ -1,4 +1,5 @@
 import {
+  FIELD_TYPES,
   type Field,
   type FieldType,
   IDENTIFIER_PATTERN,
@@ -44,15 +45,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/utils/utils";
-
-const FIELD_TYPES: FieldType[] = [
-  "string",
-  "integer",
-  "number",
-  "boolean",
-  "datetime",
-  "json",
-];
 
 interface FieldEditorProps {
   fields: Field[];

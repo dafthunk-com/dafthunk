@@ -54,6 +54,8 @@ export interface WorkflowExecutorParameters {
   headers?: Record<string, string>;
   query?: Record<string, string>;
   body?: BlobParameter;
+  // For form workflows: the validated submission record
+  formRecord?: Record<string, unknown>;
 }
 
 export interface WorkflowExecutorResult {
@@ -137,6 +139,20 @@ export class WorkflowExecutor {
           query: parameters?.query,
           body: parameters?.body,
         }),
+      };
+    } else if (
+      workflow.trigger === "form_request" ||
+      workflow.trigger === "form_webhook"
+    ) {
+      // The public form route validates the submission against the trigger
+      // node's schema and passes it as `formRecord`. Sync vs async is decided
+      // by the runtime the route forces (worker for request, workflow for webhook).
+      finalExecutionParams = {
+        ...baseExecutionParams,
+        formSubmission: {
+          record: parameters?.formRecord ?? {},
+          timestamp: Date.now(),
+        },
       };
     } else {
       // For other workflow types, provide basic HTTP context without payload

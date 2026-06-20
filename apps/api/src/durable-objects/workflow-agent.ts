@@ -553,6 +553,14 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
         const existing = await this.storage.get(key);
         if (!existing) {
           await this.storage.put(key, nodeExec.outputs.schema);
+          // Persist the org so the public form route can scope R2 uploads
+          // even when this DO is woken cold (in-memory org would be null).
+          if (this.organizationId) {
+            await this.storage.put(
+              key.replace(":schema", ":org"),
+              this.organizationId
+            );
+          }
         }
       }
 
@@ -620,13 +628,18 @@ export class WorkflowAgent extends Agent<Bindings, WorkflowAgentState> {
    */
   async getFormStatus(
     token: string
-  ): Promise<{ submitted: boolean; schema?: string }> {
+  ): Promise<{ submitted: boolean; schema?: string; organizationId?: string }> {
     const key = WorkflowAgent.STORAGE_PREFIX_FORM + token;
     const record = await this.storage.get<{ submitted: boolean }>(key);
     const schema = await this.storage.get<string>(key + ":schema");
+    const organizationId =
+      (await this.storage.get<string>(key + ":org")) ??
+      this.organizationId ??
+      undefined;
     return {
       submitted: record?.submitted ?? false,
       ...(schema ? { schema } : {}),
+      ...(organizationId ? { organizationId } : {}),
     };
   }
 

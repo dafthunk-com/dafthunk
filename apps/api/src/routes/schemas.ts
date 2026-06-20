@@ -1,6 +1,7 @@
 import {
   type CreateSchemaResponse,
   type DeleteSchemaResponse,
+  FIELD_TYPES,
   type GetSchemaResponse,
   IDENTIFIER_PATTERN,
   type ListSchemasResponse,
@@ -28,7 +29,7 @@ const identifierMessage =
 
 const fieldSchema = z.object({
   name: z.string().min(1).regex(IDENTIFIER_PATTERN, identifierMessage),
-  type: z.enum(["string", "integer", "number", "boolean", "datetime", "json"]),
+  type: z.enum(FIELD_TYPES),
   required: z.boolean().optional(),
   primaryKey: z.boolean().optional(),
   autoIncrement: z.boolean().optional(),

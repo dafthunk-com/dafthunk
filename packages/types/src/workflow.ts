@@ -14,6 +14,8 @@ export type WorkflowTrigger =
   | "manual"
   | "http_webhook"
   | "http_request"
+  | "form_webhook"
+  | "form_request"
   | "email_message"
   | "queue_message"
   | "scheduled"
@@ -179,6 +181,11 @@ export type ParameterType =
   | {
       type: "schema";
       value?: string | Record<string, unknown>; // Schema ID (from UI) or inline Schema object (from node output)
+      // Restricts which schemas this input accepts. "structured-output" excludes
+      // schemas containing blob fields (an LLM cannot emit a file). Omitted /
+      // "data" accepts any schema. The picker filters on this; consuming nodes
+      // also enforce it at runtime.
+      scope?: "data" | "structured-output";
     }
   | {
       type: "database";

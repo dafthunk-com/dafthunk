@@ -45,6 +45,7 @@ import type { MonitoringService } from "./monitoring-service";
 import type {
   EmailMessage,
   ExecutableNode,
+  FormSubmission,
   HttpRequest,
   NodeContext,
   NodeEnv,
@@ -69,6 +70,7 @@ export interface RuntimeParams {
   /** When true, all credit checks are bypassed (e.g., internal/test accounts). */
   readonly unlimitedUsage?: boolean;
   readonly httpRequest?: HttpRequest;
+  readonly formSubmission?: FormSubmission;
   readonly emailMessage?: EmailMessage;
   readonly queueMessage?: QueueMessage;
   readonly scheduledTrigger?: ScheduledTrigger;
@@ -279,6 +281,7 @@ export abstract class Runtime<Env = unknown> {
       overageLimit,
       unlimitedUsage,
       httpRequest,
+      formSubmission,
       emailMessage,
       queueMessage,
       scheduledTrigger,
@@ -371,6 +374,7 @@ export abstract class Runtime<Env = unknown> {
             organizationId,
             executionId: instanceId,
             httpRequest,
+            formSubmission,
             emailMessage,
             queueMessage,
             scheduledTrigger,
@@ -1062,6 +1066,7 @@ export abstract class Runtime<Env = unknown> {
         asyncSupported: this.supportsAsync,
         inputs: resolvedInputs,
         httpRequest: context.httpRequest,
+        formSubmission: context.formSubmission,
         emailMessage: context.emailMessage,
         queueMessage: context.queueMessage,
         scheduledTrigger: context.scheduledTrigger,

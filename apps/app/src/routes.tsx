@@ -50,6 +50,7 @@ import { ExecutionsPage } from "./pages/executions-page";
 import { FeedbackFormPage } from "./pages/feedback-form-page";
 import { FeedbackPage } from "./pages/feedback-page";
 import { FormPage } from "./pages/form-page";
+import { FormTriggerPage } from "./pages/form-trigger-page";
 import { IntegrationsPage } from "./pages/integrations-page";
 import { InvitationsPage } from "./pages/invitations-page";
 import { LoginPage } from "./pages/login-page";
@@ -792,6 +793,13 @@ export const routes: AppRouteObject[] = [
   {
     path: "/form/:signedToken",
     element: <FormPage />,
+    handle: {
+      head: <HeadSeo title="Form - Dafthunk" />,
+    },
+  },
+  {
+    path: "/forms/:workflowId",
+    element: <FormTriggerPage />,
     handle: {
       head: <HeadSeo title="Form - Dafthunk" />,
     },

@@ -1,9 +1,10 @@
-import type { FieldType, Schema } from "@dafthunk/types";
+import { type FieldType, isBlobFieldType, type Schema } from "@dafthunk/types";
 
 /**
- * Maps internal FieldType to JSON Schema type.
+ * Maps internal FieldType to JSON Schema type. Blob field types are absent on
+ * purpose — a model cannot emit a file, so they are rejected (see below).
  */
-const FIELD_TYPE_MAP: Record<FieldType, string> = {
+const FIELD_TYPE_MAP: Partial<Record<FieldType, string>> = {
   string: "string",
   integer: "integer",
   number: "number",
@@ -21,6 +22,12 @@ export function schemaToJsonSchema(schema: Schema): Record<string, unknown> {
   const required: string[] = [];
 
   for (const field of schema.fields) {
+    if (isBlobFieldType(field.type)) {
+      throw new Error(
+        `Field '${field.name}' has type '${field.type}', which is a file/blob type ` +
+          `and cannot be used for LLM structured output. Use a schema without blob fields.`
+      );
+    }
     const prop: Record<string, unknown> = {
       type: FIELD_TYPE_MAP[field.type] ?? "string",
     };

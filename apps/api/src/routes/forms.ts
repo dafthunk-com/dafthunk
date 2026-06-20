@@ -12,6 +12,8 @@ import { Hono } from "hono";
 
 import type { ApiContext } from "../context";
 import { getAgentByName } from "../durable-objects/agent-utils";
+import { CloudflareObjectStore } from "../runtime/cloudflare-object-store";
+import { buildMultipartRecord } from "./form-upload";
 
 const formRoutes = new Hono<ApiContext>();
 
@@ -72,10 +74,42 @@ formRoutes.post("/:signedToken", async (c) => {
     return c.json({ error: "Invalid or expired form link" }, 400);
   }
 
-  const body = await c.req.json<Record<string, unknown>>();
-
   try {
     const agent = await getAgentByName(c.env.WORKFLOW_AGENT, payload.wid);
+
+    const contentType = c.req.header("content-type") ?? "";
+    let body: Record<string, unknown>;
+
+    if (contentType.includes("multipart/form-data")) {
+      // File uploads: resolve the schema (for field types) and org (to scope
+      // the R2 write), then store each file and merge its reference.
+      const { schema, organizationId } = await agent.getFormStatus(payload.tok);
+      if (!schema || !organizationId) {
+        return c.json({ error: "Form is not ready for file uploads." }, 409);
+      }
+      const fields = (JSON.parse(schema) as { fields: Field[] }).fields ?? [];
+      const objectStore = new CloudflareObjectStore(c.env.RESSOURCES);
+      const form = await c.req.formData();
+      try {
+        body = await buildMultipartRecord(
+          form,
+          fields,
+          organizationId,
+          objectStore
+        );
+      } catch (error) {
+        return c.json(
+          {
+            error:
+              error instanceof Error ? error.message : "Invalid form upload",
+          },
+          400
+        );
+      }
+    } else {
+      body = await c.req.json<Record<string, unknown>>();
+    }
+
     const result = await agent.checkAndSubmitForm(
       payload.tok,
       payload.eid,

@@ -46,6 +46,12 @@ export function mapTypeToSqlite(type: FieldType): string {
       return "TEXT"; // SQLite stores datetime as ISO8601 strings
     case "json":
       return "TEXT"; // SQLite stores JSON as TEXT
+    case "image":
+    case "document":
+    case "audio":
+    case "video":
+    case "blob":
+      return "TEXT"; // Blob fields store their ObjectReference as JSON text
     default:
       throw new Error(`Unsupported field type: ${type}`);
   }

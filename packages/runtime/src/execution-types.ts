@@ -12,7 +12,7 @@ import type {
   Workflow,
 } from "@dafthunk/types";
 
-import type { EmailMessage, HttpRequest } from "./node-types";
+import type { EmailMessage, FormSubmission, HttpRequest } from "./node-types";
 
 /**
  * Runtime value types - JSON-serializable values used during workflow execution.
@@ -83,6 +83,8 @@ export interface WorkflowExecutionContext {
   readonly executionId: string;
   /** Incoming HTTP request (for webhook-triggered workflows) */
   readonly httpRequest?: HttpRequest;
+  /** Submitted form record (for form_request/form_webhook workflows) */
+  readonly formSubmission?: FormSubmission;
   /** Incoming email message (for email-triggered workflows) */
   readonly emailMessage?: EmailMessage;
   /** Incoming queue message (for queue-triggered workflows) */

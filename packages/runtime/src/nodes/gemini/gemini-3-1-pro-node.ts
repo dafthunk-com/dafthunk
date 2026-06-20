@@ -78,6 +78,7 @@ export class Gemini31ProNode extends ExecutableNode {
       {
         name: "schema",
         type: "schema",
+        scope: "structured-output",
         description: "JSON schema to constrain the output format",
         hidden: true,
       },

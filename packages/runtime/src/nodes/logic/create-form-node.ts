@@ -1,17 +1,16 @@
-import type { NodeExecution, NodeType, Schema } from "@dafthunk/types";
+import {
+  FIELD_TYPES,
+  type NodeExecution,
+  type NodeType,
+  type Schema,
+} from "@dafthunk/types";
 
 import { createFormToken } from "../../form-token";
 import type { NodeContext } from "../../node-types";
 import { ExecutableNode } from "../../node-types";
 
-const VALID_FIELD_TYPES = new Set([
-  "string",
-  "integer",
-  "number",
-  "boolean",
-  "datetime",
-  "json",
-]);
+// All field types are valid form inputs; blob types render as file uploads.
+const VALID_FIELD_TYPES = new Set<string>(FIELD_TYPES);
 
 /**
  * Creates a human-in-the-loop form and generates a unique, signed URL.

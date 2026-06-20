@@ -37,6 +37,7 @@ export class Gpt5Node extends ExecutableNode {
       {
         name: "schema",
         type: "schema",
+        scope: "structured-output",
         description: "JSON schema to constrain the output format",
         hidden: true,
       },

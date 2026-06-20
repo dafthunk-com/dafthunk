@@ -20,42 +20,52 @@ import {
 } from "@/components/ui/card";
 import { getApiBaseUrl } from "@/config/api";
 
-// ── Types ───────────────────────────────────────────────────────────────
-
 interface FormConfig {
   title: string;
   description?: string;
   fields: SchemaFormField[];
-  submitted: boolean;
+  mode: "request" | "webhook";
+}
+
+/** Result a synchronous (request) form produces via its form-response node. */
+interface FormResponse {
+  fields: SchemaFormField[];
+  record: Record<string, unknown>;
 }
 
 type FormState =
   | { status: "loading" }
   | { status: "ready"; config: FormConfig }
   | { status: "submitting"; config: FormConfig }
-  | { status: "success" }
-  | { status: "already_submitted" }
+  | { status: "success"; mode: "request" | "webhook"; response?: FormResponse }
   | { status: "error"; message: string };
 
-// ── Form Page ───────────────────────────────────────────────────────────
+/** Renders a response field value as readable text. */
+function formatResponseValue(value: unknown): string {
+  if (value === null || value === undefined || value === "") return "—";
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  if (typeof value === "object") return JSON.stringify(value);
+  return String(value);
+}
 
 /**
- * Public form page for human-in-the-loop workflow input.
- * No authentication required — the signed token in the URL IS the authorization.
+ * Public page for a form-trigger workflow. Renders the form from the trigger
+ * node's schema and submits it to start the workflow. Unlike the HITL form,
+ * it can be submitted repeatedly.
  */
-export function FormPage() {
-  const { signedToken } = useParams<{ signedToken: string }>();
+export function FormTriggerPage() {
+  const { workflowId } = useParams<{ workflowId: string }>();
   const [state, setState] = useState<FormState>({ status: "loading" });
   const [values, setValues] = useState<Record<string, unknown>>({});
 
   useEffect(() => {
-    if (!signedToken) {
+    if (!workflowId) {
       setState({ status: "error", message: "Invalid form link" });
       return;
     }
 
     const apiBaseUrl = getApiBaseUrl();
-    fetch(`${apiBaseUrl}/forms/${signedToken}`)
+    fetch(`${apiBaseUrl}/form-triggers/${workflowId}`)
       .then(async (res) => {
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
@@ -66,62 +76,54 @@ export function FormPage() {
         return res.json();
       })
       .then((config: FormConfig) => {
-        if (config.submitted) {
-          setState({ status: "already_submitted" });
-        } else {
-          const defaults: Record<string, unknown> = {};
-          for (const f of config.fields) {
-            if (f.defaultValue !== undefined) {
-              defaults[f.name] = f.defaultValue;
-            }
-          }
-          setValues(defaults);
-          setState({ status: "ready", config });
+        const defaults: Record<string, unknown> = {};
+        for (const f of config.fields) {
+          if (f.defaultValue !== undefined) defaults[f.name] = f.defaultValue;
         }
+        setValues(defaults);
+        setState({ status: "ready", config });
       })
       .catch((err: Error) => {
         setState({ status: "error", message: err.message });
       });
-  }, [signedToken]);
+  }, [workflowId]);
 
   const handleSubmit = useCallback(async () => {
     if (state.status !== "ready") return;
 
-    setState({ status: "submitting", config: state.config });
+    const { config } = state;
+    setState({ status: "submitting", config });
 
     try {
       const apiBaseUrl = getApiBaseUrl();
-      const url = `${apiBaseUrl}/forms/${signedToken}`;
-      const res = await submitSchemaForm(url, state.config.fields, values);
+      const url = `${apiBaseUrl}/form-triggers/${workflowId}`;
+      const res = await submitSchemaForm(url, config.fields, values);
+      const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        const error =
-          (data as { error?: string }).error || "Failed to submit form";
-        if (res.status === 409) {
-          setState({ status: "already_submitted" });
-        } else {
-          setState({ status: "error", message: error });
-        }
+        setState({
+          status: "error",
+          message:
+            (data as { error?: string }).error || "Failed to submit form",
+        });
         return;
       }
 
-      setState({ status: "success" });
+      const response = (data as { response?: FormResponse }).response;
+      setState({ status: "success", mode: config.mode, response });
     } catch (err) {
       setState({
         status: "error",
         message: err instanceof Error ? err.message : "Failed to submit form",
       });
     }
-  }, [state, signedToken, values]);
+  }, [state, workflowId, values]);
 
   const isSubmitting = state.status === "submitting";
-
   const config =
     state.status === "ready" || state.status === "submitting"
       ? state.config
       : null;
-
   const isValid = config ? isFormValid(config.fields, values) : false;
 
   return (
@@ -140,26 +142,41 @@ export function FormPage() {
           </CardHeader>
         )}
 
-        {state.status === "already_submitted" && (
-          <CardHeader>
-            <CardTitle>Already Submitted</CardTitle>
-            <CardDescription>
-              This form has already been completed. No further action is needed.
-            </CardDescription>
-          </CardHeader>
-        )}
-
         {state.status === "success" && (
-          <CardHeader>
-            <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
-              <Check className="h-5 w-5 text-green-600" />
-            </div>
-            <CardTitle>Response Submitted</CardTitle>
-            <CardDescription>
-              Thank you. Your response has been recorded and the workflow will
-              continue.
-            </CardDescription>
-          </CardHeader>
+          <>
+            <CardHeader>
+              <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
+                <Check className="h-5 w-5 text-green-600" />
+              </div>
+              <CardTitle>Submitted</CardTitle>
+              <CardDescription>
+                {state.mode === "webhook"
+                  ? "Thank you. Your submission has been received and is being processed."
+                  : "Thank you. Your submission has been processed."}
+              </CardDescription>
+            </CardHeader>
+            {state.response && state.response.fields.length > 0 && (
+              <CardContent>
+                <dl className="divide-y divide-border rounded-md border">
+                  {state.response.fields.map((field) => (
+                    <div
+                      key={field.name}
+                      className="flex justify-between gap-4 px-3 py-2"
+                    >
+                      <dt className="text-sm text-muted-foreground">
+                        {field.label || field.name}
+                      </dt>
+                      <dd className="text-sm font-medium text-right break-words">
+                        {formatResponseValue(
+                          state.response?.record[field.name]
+                        )}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              </CardContent>
+            )}
+          </>
         )}
 
         {config && (

@@ -1,4 +1,4 @@
-import type { Field } from "@dafthunk/types";
+import { type Field, isBlobFieldType } from "@dafthunk/types";
 import { useMemo, useState } from "react";
 
 import { useAuth } from "@/components/auth-context";
@@ -24,11 +24,22 @@ export function SchemaField({
   connected,
   disabled,
   onChange,
+  parameter,
   value,
 }: FieldProps) {
   const { schemas, isSchemasLoading, mutateSchemas } = useSchemas();
   const { organization } = useAuth();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+
+  // Structured-output inputs (LLM nodes) can't accept schemas with blob fields —
+  // a model cannot emit a file — so hide those schemas from the picker.
+  const scope = parameter.type === "schema" ? parameter.scope : undefined;
+  const visibleSchemas = useMemo(() => {
+    if (!schemas || scope !== "structured-output") return schemas;
+    return schemas.filter(
+      (s) => !s.fields.some((f) => isBlobFieldType(f.type))
+    );
+  }, [schemas, scope]);
 
   // If the value is an object (inline Schema from a node output), render as JSON
   const isInlineSchema = typeof value === "object" && value !== null;
@@ -80,7 +91,7 @@ export function SchemaField({
   };
 
   if (disabled) {
-    const label = schemas?.find((s) => s.id === stringValue)?.name ?? "";
+    const label = visibleSchemas?.find((s) => s.id === stringValue)?.name ?? "";
     return (
       <div className={cn("relative", className)}>
         <Select value={stringValue} disabled>
@@ -110,14 +121,14 @@ export function SchemaField({
                 ? "Connected"
                 : isSchemasLoading
                   ? "Loading..."
-                  : schemas?.length === 0
+                  : visibleSchemas?.length === 0
                     ? "No schemas"
                     : "Select schema"
             }
           />
         </SelectTrigger>
         <SelectContent>
-          {schemas?.map((schema) => (
+          {visibleSchemas?.map((schema) => (
             <SelectItem key={schema.id} value={schema.id} className="text-xs">
               {schema.name}
             </SelectItem>

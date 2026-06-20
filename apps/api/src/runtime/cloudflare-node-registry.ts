@@ -104,6 +104,11 @@ import { ParseEmailNode } from "@dafthunk/runtime/nodes/email/parse-email-node";
 import { ReceiveEmailNode } from "@dafthunk/runtime/nodes/email/receive-email-node";
 import { SendEmailNode } from "@dafthunk/runtime/nodes/email/send-email-node";
 import { FetchNode } from "@dafthunk/runtime/nodes/fetch/fetch-node";
+// import { TrashMessageGoogleMailNode } from "@dafthunk/runtime/nodes/google-mail/trash-message-google-mail-node";
+// import { UpdateDraftGoogleMailNode } from "@dafthunk/runtime/nodes/google-mail/update-draft-google-mail-node";
+import { FormResponseNode } from "@dafthunk/runtime/nodes/form/form-response-node";
+import { ReceiveFormRequestNode } from "@dafthunk/runtime/nodes/form/receive-form-request-node";
+import { ReceiveFormWebhookNode } from "@dafthunk/runtime/nodes/form/receive-form-webhook-node";
 import { Gemini25FlashAudioUnderstandingNode } from "@dafthunk/runtime/nodes/gemini/gemini-2-5-flash-audio-understanding-node";
 import { Gemini25FlashImagePreviewNode } from "@dafthunk/runtime/nodes/gemini/gemini-2-5-flash-image-preview-node";
 import { Gemini25FlashImageUnderstandingNode } from "@dafthunk/runtime/nodes/gemini/gemini-2-5-flash-image-understanding-node";
@@ -249,8 +254,6 @@ import { UpdateEventGoogleCalendarNode } from "@dafthunk/runtime/nodes/google-ca
 // import { SearchMessagesGoogleMailNode } from "@dafthunk/runtime/nodes/google-mail/search-messages-google-mail-node";
 // import { SendDraftGoogleMailNode } from "@dafthunk/runtime/nodes/google-mail/send-draft-google-mail-node";
 import { SendEmailGoogleMailNode } from "@dafthunk/runtime/nodes/google-mail/send-email-google-mail-node";
-// import { TrashMessageGoogleMailNode } from "@dafthunk/runtime/nodes/google-mail/trash-message-google-mail-node";
-// import { UpdateDraftGoogleMailNode } from "@dafthunk/runtime/nodes/google-mail/update-draft-google-mail-node";
 import { HttpRequestNode } from "@dafthunk/runtime/nodes/http/http-request-node";
 import { HttpResponseNode } from "@dafthunk/runtime/nodes/http/http-response-node";
 import { HttpWebhookNode } from "@dafthunk/runtime/nodes/http/http-webhook-node";
@@ -521,6 +524,9 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     // Register all core nodes
     this.registerImplementation(HttpRequestNode);
     this.registerImplementation(HttpWebhookNode);
+    this.registerImplementation(ReceiveFormRequestNode);
+    this.registerImplementation(ReceiveFormWebhookNode);
+    this.registerImplementation(FormResponseNode);
     this.registerImplementation(JsonBodyNode);
     this.registerImplementation(TestAllTypesNode);
     this.registerImplementation(SendQueueMessageNode);

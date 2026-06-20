@@ -172,6 +172,17 @@ export interface HttpRequest {
   body?: BlobParameter; // Raw request body with MIME type
 }
 
+/**
+ * A submitted form record that started a workflow (form_request /
+ * form_webhook triggers). `record` is keyed by schema field name; blob fields
+ * hold an ObjectReference. Validated against the trigger node's schema before
+ * the workflow runs.
+ */
+export interface FormSubmission {
+  record: Record<string, unknown>;
+  timestamp: number;
+}
+
 export interface EmailMessage {
   from: string;
   to: string;
@@ -242,6 +253,7 @@ export interface NodeContext {
   inputs: Record<string, any>;
   onProgress?: (progress: number) => void;
   httpRequest?: HttpRequest;
+  formSubmission?: FormSubmission;
   emailMessage?: EmailMessage;
   queueMessage?: QueueMessage;
   scheduledTrigger?: ScheduledTrigger;
