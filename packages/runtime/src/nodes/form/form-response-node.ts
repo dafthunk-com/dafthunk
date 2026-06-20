@@ -25,6 +25,7 @@ export class FormResponseNode extends ExecutableNode {
     tags: ["Form", "Response", "HITL"],
     icon: "log-out",
     inlinable: false,
+    responder: true,
     inputs: [
       {
         name: "schema",

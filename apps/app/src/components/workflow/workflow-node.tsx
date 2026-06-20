@@ -503,7 +503,7 @@ export const WorkflowNode = memo(
                 name={data.icon as any}
                 className={cn(
                   "mx-1 h-3 w-3 shrink-0",
-                  resolvedNodeType?.trigger
+                  resolvedNodeType?.trigger || resolvedNodeType?.responder
                     ? "text-emerald-500"
                     : "text-blue-500"
                 )}

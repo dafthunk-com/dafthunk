@@ -65,10 +65,12 @@ export function WorkflowNodeSelector({
 }: WorkflowNodeSelectorProps) {
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Filter out trigger nodes if one already exists
+  // Responder nodes are auto-added with their trigger; never list them.
+  // Also filter out trigger nodes if one already exists.
   const compatibleTemplates = useMemo(() => {
-    if (!hasTriggerNode) return templates;
-    return templates.filter((template) => !template.trigger);
+    const selectable = templates.filter((template) => !template.responder);
+    if (!hasTriggerNode) return selectable;
+    return selectable.filter((template) => !template.trigger);
   }, [templates, hasTriggerNode]);
 
   const searchResults = useTemplateSearch(
@@ -184,7 +186,7 @@ export function WorkflowNodeSelector({
                           }
                           className={cn(
                             "h-5 w-5 shrink-0 mt-0.5",
-                            template.trigger
+                            template.trigger || template.responder
                               ? "text-emerald-500"
                               : "text-blue-500"
                           )}

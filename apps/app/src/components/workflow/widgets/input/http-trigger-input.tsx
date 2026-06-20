@@ -17,7 +17,6 @@ import { cn } from "@/utils/utils";
 
 import { EXECUTE_ENDPOINT_SNIPPETS } from "../../api-snippets";
 import { createWidget } from "../widget";
-import { CopyableValue } from "./copyable-value";
 
 type HttpTriggerMode = "request" | "webhook";
 
@@ -29,8 +28,9 @@ interface HttpTriggerInputProps {
 
 /**
  * Widget for the HTTP trigger nodes. The execution URL is derived from the
- * workflow id (`/http/:workflowId`) — there is no endpoint to select — and the
- * Globe button reveals copy-paste snippets for calling it with an API key.
+ * workflow id (`/http/:workflowId`) — there is no endpoint to select — so the
+ * widget is just an "Integrate" button that reveals the HTTP Trigger dialog
+ * with copy-paste snippets for calling it with an API key.
  */
 function HttpTriggerInputWidget({
   mode,
@@ -45,22 +45,17 @@ function HttpTriggerInputWidget({
     : "";
 
   return (
-    <div className={cn("p-2 space-y-2", className)}>
-      <div className="flex items-center gap-1">
-        <div className="min-w-0 flex-1">
-          <CopyableValue value={executeUrl} />
-        </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6 shrink-0"
-          disabled={disabled || !workflowId}
-          onClick={() => setIsDialogOpen(true)}
-          title="Show integration snippets"
-        >
-          <Globe className="h-3 w-3" />
-        </Button>
-      </div>
+    <div className={cn("p-2", className)}>
+      <Button
+        variant="outline"
+        size="sm"
+        className="w-full"
+        disabled={disabled || !workflowId}
+        onClick={() => setIsDialogOpen(true)}
+      >
+        <Globe className="h-3 w-3" />
+        Integrate
+      </Button>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-2xl overflow-hidden">
