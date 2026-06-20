@@ -19,6 +19,7 @@ import { discordTriggerInputWidget } from "./input/discord-trigger-input";
 import { documentInputWidget } from "./input/document-input";
 import { createDynamicInputsWidget } from "./input/dynamic-inputs-widget";
 import { fileInputWidget } from "./input/file-input";
+import { formTriggerInputWidget } from "./input/form-trigger-input";
 import { geojsonInputWidget } from "./input/geojson-input";
 import { gltfInputWidget } from "./input/gltf-input";
 import {
@@ -29,7 +30,6 @@ import { imageInputWidget } from "./input/image-input";
 import { javascriptInputWidget } from "./input/javascript-input";
 import { jsonInputWidget } from "./input/json-input";
 import { numberInputWidget } from "./input/number-input";
-import { receiveFormInputWidget } from "./input/receive-form-input";
 import { replicateModelInputWidget } from "./input/replicate-model-input";
 import { schemaComposeInputWidget } from "./input/schema-compose-input";
 import { schemaExtractInputWidget } from "./input/schema-extract-input";
@@ -95,7 +95,7 @@ const widgets = [
   cloudflareGatewayModelInputWidget,
   schemaComposeInputWidget,
   schemaExtractInputWidget,
-  receiveFormInputWidget,
+  formTriggerInputWidget,
   createDynamicInputsWidget("string-concat", {
     prefix: "input",
     type: "string",

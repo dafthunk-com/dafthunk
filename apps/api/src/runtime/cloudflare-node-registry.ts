@@ -104,11 +104,11 @@ import { ParseEmailNode } from "@dafthunk/runtime/nodes/email/parse-email-node";
 import { ReceiveEmailNode } from "@dafthunk/runtime/nodes/email/receive-email-node";
 import { SendEmailNode } from "@dafthunk/runtime/nodes/email/send-email-node";
 import { FetchNode } from "@dafthunk/runtime/nodes/fetch/fetch-node";
+import { FormRequestNode } from "@dafthunk/runtime/nodes/form/form-request-node";
 // import { TrashMessageGoogleMailNode } from "@dafthunk/runtime/nodes/google-mail/trash-message-google-mail-node";
 // import { UpdateDraftGoogleMailNode } from "@dafthunk/runtime/nodes/google-mail/update-draft-google-mail-node";
 import { FormResponseNode } from "@dafthunk/runtime/nodes/form/form-response-node";
-import { ReceiveFormRequestNode } from "@dafthunk/runtime/nodes/form/receive-form-request-node";
-import { ReceiveFormWebhookNode } from "@dafthunk/runtime/nodes/form/receive-form-webhook-node";
+import { FormWebhookNode } from "@dafthunk/runtime/nodes/form/form-webhook-node";
 import { Gemini25FlashAudioUnderstandingNode } from "@dafthunk/runtime/nodes/gemini/gemini-2-5-flash-audio-understanding-node";
 import { Gemini25FlashImagePreviewNode } from "@dafthunk/runtime/nodes/gemini/gemini-2-5-flash-image-preview-node";
 import { Gemini25FlashImageUnderstandingNode } from "@dafthunk/runtime/nodes/gemini/gemini-2-5-flash-image-understanding-node";
@@ -524,8 +524,8 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     // Register all core nodes
     this.registerImplementation(HttpRequestNode);
     this.registerImplementation(HttpWebhookNode);
-    this.registerImplementation(ReceiveFormRequestNode);
-    this.registerImplementation(ReceiveFormWebhookNode);
+    this.registerImplementation(FormRequestNode);
+    this.registerImplementation(FormWebhookNode);
     this.registerImplementation(FormResponseNode);
     this.registerImplementation(JsonBodyNode);
     this.registerImplementation(TestAllTypesNode);

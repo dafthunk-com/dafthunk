@@ -9,8 +9,8 @@ import type { Node } from "@dafthunk/types";
 
 /** Form trigger node type → public form mode (sync vs async). */
 const FORM_TRIGGER_MODE: Record<string, "request" | "webhook"> = {
-  "receive-form-request": "request",
-  "receive-form-webhook": "webhook",
+  "form-request": "request",
+  "form-webhook": "webhook",
 };
 
 /**
@@ -70,7 +70,7 @@ export interface FormResponseInfo {
 
 /**
  * Finds the `form-response` node in a workflow graph and reads its schema ref.
- * Pairs with `receive-form-request` to define the result shown to the submitter
+ * Pairs with `form-request` to define the result shown to the submitter
  * after a synchronous run. Returns null when there's no response node or its
  * schema isn't set.
  */

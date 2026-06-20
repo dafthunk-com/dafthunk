@@ -2,8 +2,8 @@ import type { NodeContext } from "@dafthunk/runtime";
 import type { Node, Schema } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
-import { ReceiveFormRequestNode } from "./receive-form-request-node";
-import { ReceiveFormWebhookNode } from "./receive-form-webhook-node";
+import { FormRequestNode } from "./form-request-node";
+import { FormWebhookNode } from "./form-webhook-node";
 
 const schema: Schema = {
   name: "signup",
@@ -29,8 +29,8 @@ function createContext(
 }
 
 describe.each([
-  ["ReceiveFormRequestNode", ReceiveFormRequestNode],
-  ["ReceiveFormWebhookNode", ReceiveFormWebhookNode],
+  ["FormRequestNode", FormRequestNode],
+  ["FormWebhookNode", FormWebhookNode],
 ])("%s", (_name, NodeClass) => {
   const node = () => new NodeClass({ nodeId: "test" } as unknown as Node);
 

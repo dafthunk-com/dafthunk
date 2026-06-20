@@ -2,7 +2,7 @@ import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType, Schema } from "@dafthunk/types";
 
 /**
- * Terminal node for a synchronous `receive-form-request` workflow. Mirrors
+ * Terminal node for a synchronous `form-request` workflow. Mirrors
  * `http-response`: it defines what the submitter sees after the form runs.
  *
  * A schema is selected in the editor and the node's inputs adapt to its fields

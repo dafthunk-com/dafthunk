@@ -54,7 +54,7 @@ const FIELD_TYPE_TO_PARAMETER_TYPE: Record<FieldType, string> = {
   blob: "blob",
 };
 
-interface ReceiveFormInputProps extends BaseWidgetProps {
+interface FormTriggerInputProps extends BaseWidgetProps {
   nodeId: string;
   schemaId: string;
   hasSchemaOutputs: boolean;
@@ -66,7 +66,7 @@ interface ReceiveFormInputProps extends BaseWidgetProps {
  * outputs (one per field, with drift detection) — like the schema-extract
  * widget — and surfaces the public form URL `/forms/:workflowId` to share.
  */
-function ReceiveFormInputWidget({
+function FormTriggerInputWidget({
   nodeId,
   schemaId,
   hasSchemaOutputs,
@@ -74,7 +74,7 @@ function ReceiveFormInputWidget({
   onChange,
   className,
   disabled = false,
-}: ReceiveFormInputProps) {
+}: FormTriggerInputProps) {
   const [loading, setLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -296,9 +296,9 @@ function ReceiveFormInputWidget({
   );
 }
 
-export const receiveFormInputWidget = createWidget({
-  component: ReceiveFormInputWidget,
-  nodeTypes: ["receive-form-request", "receive-form-webhook"],
+export const formTriggerInputWidget = createWidget({
+  component: FormTriggerInputWidget,
+  nodeTypes: ["form-request", "form-webhook"],
   inputField: "schema",
   extractConfig: (nodeId, inputs, outputs, metadata) => ({
     nodeId,

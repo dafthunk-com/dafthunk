@@ -3,9 +3,9 @@ import {
   FailingMultiStepNode,
   MultiStepAdditionNode,
 } from "@dafthunk/runtime";
+import { FormRequestNode } from "@dafthunk/runtime/nodes/form/form-request-node";
 import { FormResponseNode } from "@dafthunk/runtime/nodes/form/form-response-node";
-import { ReceiveFormRequestNode } from "@dafthunk/runtime/nodes/form/receive-form-request-node";
-import { ReceiveFormWebhookNode } from "@dafthunk/runtime/nodes/form/receive-form-webhook-node";
+import { FormWebhookNode } from "@dafthunk/runtime/nodes/form/form-webhook-node";
 import { NumberInputNode } from "@dafthunk/runtime/nodes/input/number-input-node";
 import { ConditionalForkNode } from "@dafthunk/runtime/nodes/logic/conditional-fork-node";
 import { ConditionalJoinNode } from "@dafthunk/runtime/nodes/logic/conditional-join-node";
@@ -59,8 +59,8 @@ export class MockNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(CreateFormNode);
     this.registerImplementation(CreateFeedbackFormNode);
     this.registerImplementation(WaitForFormNode);
-    this.registerImplementation(ReceiveFormRequestNode);
-    this.registerImplementation(ReceiveFormWebhookNode);
+    this.registerImplementation(FormRequestNode);
+    this.registerImplementation(FormWebhookNode);
     this.registerImplementation(FormResponseNode);
     this.registerImplementation(MultiStepAdditionNode);
     this.registerImplementation(FailingMultiStepNode);

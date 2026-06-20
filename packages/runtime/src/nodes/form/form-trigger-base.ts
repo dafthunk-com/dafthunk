@@ -20,13 +20,13 @@ export const FIELD_TYPE_TO_PARAMETER_TYPE: Record<FieldType, string> = {
 };
 
 /**
- * Base for the form trigger nodes (`receive-form-request` /
- * `receive-form-webhook`). The public form route validates the submission
- * against the node's schema and injects it as `context.formSubmission`. Each
- * schema field becomes a named, typed output — the same shape as
- * `JsonSchemaExtractNode`, but sourced from the trigger instead of a wire.
+ * Base for the form trigger nodes (`form-request` / `form-webhook`). The public
+ * form route validates the submission against the node's schema and injects it
+ * as `context.formSubmission`. Each schema field becomes a named, typed output —
+ * the same shape as `JsonSchemaExtractNode`, but sourced from the trigger
+ * instead of a wire.
  */
-export abstract class ReceiveFormNode extends ExecutableNode {
+export abstract class FormTriggerNode extends ExecutableNode {
   async execute(context: NodeContext): Promise<NodeExecution> {
     const schemaInput = context.inputs.schema;
 

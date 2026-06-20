@@ -21,7 +21,7 @@ function node(type: string, inputs: { name: string; value?: unknown }[]): Node {
 describe("findFormTrigger", () => {
   it("reads a request trigger with a schema id, title and description", () => {
     const nodes = [
-      node("receive-form-request", [
+      node("form-request", [
         { name: "schema", value: "schema-123" },
         { name: "title", value: "Sign up" },
         { name: "description", value: "Join us" },
@@ -37,17 +37,13 @@ describe("findFormTrigger", () => {
   });
 
   it("maps the webhook node to async mode", () => {
-    const nodes = [
-      node("receive-form-webhook", [{ name: "schema", value: "s1" }]),
-    ];
+    const nodes = [node("form-webhook", [{ name: "schema", value: "s1" }])];
     expect(findFormTrigger(nodes)?.mode).toBe("webhook");
   });
 
   it("accepts an inline schema object", () => {
     const inline = { name: "x", fields: [{ name: "a", type: "string" }] };
-    const nodes = [
-      node("receive-form-request", [{ name: "schema", value: inline }]),
-    ];
+    const nodes = [node("form-request", [{ name: "schema", value: inline }])];
     expect(findFormTrigger(nodes)?.schemaRef).toEqual(inline);
   });
 
@@ -56,13 +52,13 @@ describe("findFormTrigger", () => {
   });
 
   it("returns null when the schema is not set", () => {
-    const nodes = [node("receive-form-request", [{ name: "schema" }])];
+    const nodes = [node("form-request", [{ name: "schema" }])];
     expect(findFormTrigger(nodes)).toBeNull();
   });
 
   it("omits empty title/description", () => {
     const nodes = [
-      node("receive-form-webhook", [
+      node("form-webhook", [
         { name: "schema", value: "s1" },
         { name: "title", value: "" },
       ]),
@@ -76,7 +72,7 @@ describe("findFormTrigger", () => {
 describe("findFormResponse", () => {
   it("reads the response node id and schema ref", () => {
     const nodes = [
-      node("receive-form-request", [{ name: "schema", value: "s1" }]),
+      node("form-request", [{ name: "schema", value: "s1" }]),
       node("form-response", [{ name: "schema", value: "schema-456" }]),
     ];
     expect(findFormResponse(nodes)).toEqual({
@@ -92,7 +88,7 @@ describe("findFormResponse", () => {
   });
 
   it("returns null when there is no response node", () => {
-    expect(findFormResponse([node("receive-form-request", [])])).toBeNull();
+    expect(findFormResponse([node("form-request", [])])).toBeNull();
   });
 
   it("returns null when the schema is not set", () => {
