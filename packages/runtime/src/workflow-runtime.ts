@@ -68,8 +68,9 @@ export class WorkflowRuntime<Env = unknown> extends Runtime<Env> {
     return (await this.currentStep.do(
       name,
       WorkflowRuntime.defaultStepConfig,
-      // @ts-expect-error - TS2345: Cloudflare Workflows requires Serializable types
-      fn
+      // Cloudflare Workflows constrains step fns to Serializable returns; our
+      // runtime values are serializable at runtime but not in the type system.
+      fn as never
     )) as T;
   }
 
@@ -94,8 +95,9 @@ export class WorkflowRuntime<Env = unknown> extends Runtime<Env> {
     return (await this.currentStep.do(
       name,
       WorkflowRuntime.defaultStepConfig,
-      // @ts-expect-error - TS2345: Cloudflare Workflows requires Serializable types
-      fn
+      // Cloudflare Workflows constrains step fns to Serializable returns; our
+      // runtime values are serializable at runtime but not in the type system.
+      fn as never
     )) as T;
   }
 
@@ -111,11 +113,14 @@ export class WorkflowRuntime<Env = unknown> extends Runtime<Env> {
     if (!this.currentStep) {
       throw new Error("waitForNodeEvent called without workflow step context");
     }
-    // @ts-expect-error - TS2344: Cloudflare Workflows requires Serializable<T> constraint
-    const event = await this.currentStep.waitForEvent<T>(name, {
-      type: eventType,
-      timeout,
-    });
+    // Workflows constrains the event payload to Serializable and the timeout to
+    // the WorkflowSleepDuration template type; cast through a permissive
+    // signature since our payloads/timeouts are valid at runtime.
+    const waitForEvent = this.currentStep.waitForEvent as (
+      name: string,
+      opts: { type: string; timeout?: string }
+    ) => Promise<{ payload: T }>;
+    const event = await waitForEvent(name, { type: eventType, timeout });
     return event.payload as T;
   }
 }

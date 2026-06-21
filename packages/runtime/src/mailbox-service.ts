@@ -55,6 +55,8 @@ export interface SendThreadedArgs {
 
 export interface SendThreadedResult {
   messageId: string;
+  /** Thread the message was sent on — newly opened when no `threadId` was given. */
+  threadId: string;
 }
 
 export interface MailboxService {

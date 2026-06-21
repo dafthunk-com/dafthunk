@@ -113,9 +113,17 @@ export class MailboxDO extends DurableObject<Bindings> {
         archived_at     INTEGER,
         last_message_at INTEGER NOT NULL,
         created_at      INTEGER NOT NULL,
-        updated_at      INTEGER NOT NULL
+        updated_at      INTEGER NOT NULL,
+        agent_run_id    TEXT
       )
     `);
+    // Backfill the column on mailboxes created before email-agent support.
+    const threadCols = sql
+      .exec(`PRAGMA table_info(threads)`)
+      .toArray() as Record<string, unknown>[];
+    if (!threadCols.some((c) => c.name === "agent_run_id")) {
+      sql.exec(`ALTER TABLE threads ADD COLUMN agent_run_id TEXT`);
+    }
     sql.exec(
       `CREATE INDEX IF NOT EXISTS threads_email_id_idx ON threads(email_id)`
     );
@@ -178,9 +186,12 @@ export class MailboxDO extends DurableObject<Bindings> {
    * fromEmail within 30 days, else a new thread. A verified reply-token short-
    * circuits resolution.
    */
-  async ingestInbound(
-    args: IngestInboundArgs
-  ): Promise<{ threadId: string; messageId: string }> {
+  async ingestInbound(args: IngestInboundArgs): Promise<{
+    threadId: string;
+    messageId: string;
+    /** EmailAgentRunner that owns this thread, if it's an agent conversation. */
+    agentRunId: string | null;
+  }> {
     this.ensureSchema();
     const now = Date.now();
     const threadId = this.resolveThread(args) ?? this.createThread(args, now);
@@ -226,7 +237,26 @@ export class MailboxDO extends DurableObject<Bindings> {
       );
     }
 
-    return { threadId, messageId: args.messageId };
+    const agentRunId = this.threadAgentRunId(threadId);
+    return { threadId, messageId: args.messageId, agentRunId };
+  }
+
+  /**
+   * Tag (or clear) the EmailAgentRunner that owns a thread. An owned thread's
+   * inbound replies are routed to that run instead of triggering workflows;
+   * pass `null` to release ownership when the run finishes.
+   */
+  async setThreadAgentRun(
+    threadId: string,
+    runId: string | null
+  ): Promise<void> {
+    this.ensureSchema();
+    this.ctx.storage.sql.exec(
+      `UPDATE threads SET agent_run_id = ?, updated_at = ? WHERE id = ?`,
+      runId,
+      Date.now(),
+      threadId
+    );
   }
 
   /** Pre-insert an outbound message before the send is attempted. */
@@ -384,6 +414,13 @@ export class MailboxDO extends DurableObject<Bindings> {
   }
 
   // ── Internal helpers ────────────────────────────────────────────────────
+
+  private threadAgentRunId(threadId: string): string | null {
+    const rows = this.ctx.storage.sql
+      .exec(`SELECT agent_run_id FROM threads WHERE id = ? LIMIT 1`, threadId)
+      .toArray() as Record<string, unknown>[];
+    return (rows[0]?.agent_run_id as string | null) ?? null;
+  }
 
   private resolveThread(args: IngestInboundArgs): string | undefined {
     const sql = this.ctx.storage.sql;

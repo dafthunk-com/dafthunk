@@ -43,6 +43,7 @@ const createMockEnv = (masterKey?: string): Bindings => ({
   CLOUDFLARE_AI_GATEWAY_ID: "",
   AI_OPTIONS: {},
   AGENT_RUNNER: {} as DurableObjectNamespace<any>,
+  EMAIL_AGENT_RUNNER: {} as DurableObjectNamespace<any>,
   MAILBOX: {} as DurableObjectNamespace<any>,
 });
 

@@ -24,6 +24,8 @@
  * - Avoids importing CloudflareNodeRegistry and heavy dependencies
  */
 
+// Export EmailAgentRunner so the email-agent flow can be exercised in tests.
+export { EmailAgentRunner } from "./durable-objects/email-agent-runner";
 // Export MailboxDO so the per-org mailbox can be exercised in tests.
 export { MailboxDO } from "./durable-objects/mailbox-do";
 // Export WorkflowAgent for Durable Object testing (if needed in future)

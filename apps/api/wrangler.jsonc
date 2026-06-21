@@ -163,6 +163,11 @@
         "name": "MAILBOX",
         "class_name": "MailboxDO",
         "script_name": "dafthunk-api"
+      },
+      {
+        "name": "EMAIL_AGENT_RUNNER",
+        "class_name": "EmailAgentRunner",
+        "script_name": "dafthunk-api"
       }
     ]
   },
@@ -213,6 +218,10 @@
     {
       "tag": "v12",
       "new_sqlite_classes": ["MailboxDO"]
+    },
+    {
+      "tag": "v13",
+      "new_sqlite_classes": ["EmailAgentRunner"]
     }
   ],
   "unsafe": {
@@ -384,6 +393,11 @@
             "name": "MAILBOX",
             "class_name": "MailboxDO",
             "script_name": "dafthunk-api"
+          },
+          {
+            "name": "EMAIL_AGENT_RUNNER",
+            "class_name": "EmailAgentRunner",
+            "script_name": "dafthunk-api"
           }
         ]
       },
@@ -434,6 +448,10 @@
         {
           "tag": "v12",
           "new_sqlite_classes": ["MailboxDO"]
+        },
+        {
+          "tag": "v13",
+          "new_sqlite_classes": ["EmailAgentRunner"]
         }
       ],
       "unsafe": {

@@ -159,7 +159,7 @@ export class CloudflareMailboxService implements MailboxService {
       console.error("[mailbox send] touchThread failed", error);
     });
 
-    return { messageId };
+    return { messageId, threadId };
   }
 
   async getThread(

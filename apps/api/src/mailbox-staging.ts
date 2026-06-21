@@ -27,6 +27,8 @@ export interface StagedEmail {
   references: string[];
   referencesChain: string | null;
   snippet: string;
+  /** Full parsed plain-text body (falls back to stripped HTML), if any. */
+  text?: string;
   hasHtml: boolean;
   hasText: boolean;
   rawR2Key: string;
@@ -134,6 +136,7 @@ export async function parseAndStageEmail(
     references,
     referencesChain,
     snippet,
+    text: textBody ?? (htmlBody ? stripHtml(htmlBody) : undefined),
     hasHtml: Boolean(htmlBody),
     hasText: Boolean(textBody),
     rawR2Key: keys.raw,
