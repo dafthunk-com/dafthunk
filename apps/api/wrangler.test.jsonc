@@ -47,6 +47,10 @@
       {
         "name": "MAILBOX",
         "class_name": "MailboxDO"
+      },
+      {
+        "name": "EMAIL_AGENT_RUNNER",
+        "class_name": "EmailAgentRunner"
       }
     ]
   },
@@ -54,6 +58,10 @@
     {
       "tag": "v1",
       "new_sqlite_classes": ["MailboxDO"]
+    },
+    {
+      "tag": "v2",
+      "new_sqlite_classes": ["EmailAgentRunner"]
     }
   ],
   "analytics_engine_datasets": [

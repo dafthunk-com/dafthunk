@@ -12,7 +12,7 @@ describe("SendEmailNode", () => {
   it("threads + persists via the mailbox service when in mailbox context", async () => {
     const sendThreaded = vi
       .fn<MailboxService["sendThreaded"]>()
-      .mockResolvedValue({ messageId: "msg-123" });
+      .mockResolvedValue({ messageId: "msg-123", threadId: "thread-1" });
     const mailboxService = {
       sendThreaded,
       getThread: vi.fn(),

@@ -8,9 +8,7 @@
  * Supports four LLM providers: anthropic, google, openai, workers-ai.
  */
 
-import Anthropic from "@anthropic-ai/sdk";
 import type { ToolDefinition, ToolReference } from "@dafthunk/runtime";
-import { NodeToolProvider } from "@dafthunk/runtime";
 import type { AgentProvider } from "@dafthunk/runtime/nodes/agent/base-agent-node";
 import type {
   AgentLoopResult,
@@ -19,32 +17,18 @@ import type {
   LLMResponse,
 } from "@dafthunk/runtime/utils/agent-loop";
 import { runAgentLoop } from "@dafthunk/runtime/utils/agent-loop";
-import {
-  getAnthropicConfig,
-  getGoogleAIConfig,
-  getOpenAIConfig,
-} from "@dafthunk/runtime/utils/ai-gateway";
-import { createCodeModeToolDefinition } from "@dafthunk/runtime/utils/code-mode";
-import { schemaToJsonSchema } from "@dafthunk/runtime/utils/schema-to-json-schema";
 import type { TokenPricing } from "@dafthunk/runtime/utils/usage";
 import { calculateTokenUsage } from "@dafthunk/runtime/utils/usage";
-import type { Schema } from "@dafthunk/types";
-import { GoogleGenAI } from "@google/genai";
 import { Agent } from "agents";
-import OpenAI from "openai";
 
 import type { Bindings } from "../context";
-import { CloudflareCredentialService } from "../runtime/cloudflare-credential-service";
-import { CloudflareDatabaseService } from "../runtime/cloudflare-database-service";
-import { CloudflareDatasetService } from "../runtime/cloudflare-dataset-service";
-import { CloudflareNodeRegistry } from "../runtime/cloudflare-node-registry";
+import { callAgentLLM } from "./agent-llm";
 import {
-  buildPresignedUrlConfig,
-  CloudflareObjectStore,
-} from "../runtime/cloudflare-object-store";
-import { CloudflareQueueService } from "../runtime/cloudflare-queue-service";
-import { createCodeModeExecutor } from "../runtime/code-mode-executor";
-import { createToolContext } from "../runtime/tool-context";
+  applyCodeMode,
+  buildNodeToolProvider,
+  resolveTools,
+  toJsonSchema,
+} from "./agent-services";
 
 // ── Request / Response types ─────────────────────────────────────────────
 
@@ -140,34 +124,6 @@ export class AgentRunner extends Agent<Bindings, AgentRunnerState> {
     this.initialized = true;
   }
 
-  // ── Tool provider setup ──────────────────────────────────────────────
-
-  private async buildNodeToolProvider(
-    organizationId: string
-  ): Promise<NodeToolProvider> {
-    const nodeRegistry = new CloudflareNodeRegistry(this.env, false);
-    const objectStore = new CloudflareObjectStore(
-      this.env.RESSOURCES,
-      buildPresignedUrlConfig(this.env)
-    );
-    const credentialService = new CloudflareCredentialService(this.env);
-    await credentialService.initialize(organizationId);
-    const databaseService = new CloudflareDatabaseService(this.env);
-    const datasetService = new CloudflareDatasetService(this.env);
-    const queueService = new CloudflareQueueService(this.env);
-
-    return new NodeToolProvider(nodeRegistry, (nodeId, inputs) =>
-      createToolContext(
-        nodeId,
-        inputs,
-        this.env,
-        objectStore,
-        credentialService,
-        { databaseService, datasetService, queueService }
-      )
-    );
-  }
-
   // ── Main handler ───────────────────────────────────────────────────────
 
   private async handleRun(request: Request): Promise<Response> {
@@ -196,16 +152,15 @@ export class AgentRunner extends Agent<Bindings, AgentRunnerState> {
         runId
       );
 
-      const nodeToolProvider = await this.buildNodeToolProvider(
+      const nodeToolProvider = await buildNodeToolProvider(
+        this.env,
         body.organizationId
       );
 
       // Resolve tool definitions from references and apply code mode
-      const resolvedTools = await this.resolveTools(
-        body.tools,
-        nodeToolProvider
-      );
-      const toolDefinitions = this.applyCodeMode(
+      const resolvedTools = await resolveTools(body.tools, nodeToolProvider);
+      const toolDefinitions = applyCodeMode(
+        this.env,
         resolvedTools,
         body.codeMode ?? false
       );
@@ -215,9 +170,6 @@ export class AgentRunner extends Agent<Bindings, AgentRunnerState> {
         ? `Context:\n${body.context}\n\nRequest:\n${body.input}`
         : body.input;
 
-      // Build built-in Gemini tools (only effective for google provider)
-      const geminiBuiltInTools = this.buildGeminiBuiltInTools(body);
-
       // Build resume state from persisted conversation (if stateful)
       const resumeState = this.buildResumeState(
         body.agentId,
@@ -225,42 +177,14 @@ export class AgentRunner extends Agent<Bindings, AgentRunnerState> {
         body.maxHistory ?? 50
       );
 
-      // Convert schema if provided
-      const jsonSchema =
-        body.schema &&
-        typeof body.schema === "object" &&
-        "fields" in body.schema
-          ? schemaToJsonSchema(body.schema as unknown as Schema)
-          : undefined;
-
-      // Build callFinalLLM that applies schema constraint on the final turn
-      const callFinalLLM = jsonSchema
-        ? (messages: AgentMessage[], tools: ToolDefinition[]) =>
-            this.callLLM(
-              body.provider,
-              body.model,
-              body.instructions,
-              messages,
-              tools,
-              geminiBuiltInTools,
-              jsonSchema
-            )
-        : undefined;
+      const { callLLM, callFinalLLM } = this.buildLlmCallbacks(body);
 
       // Run the agent loop
       const result = await runAgentLoop({
         userMessage,
         tools: toolDefinitions,
         maxSteps: body.maxSteps,
-        callLLM: (messages, tools) =>
-          this.callLLM(
-            body.provider,
-            body.model,
-            body.instructions,
-            messages,
-            tools,
-            geminiBuiltInTools
-          ),
+        callLLM,
         callFinalLLM,
         onStepComplete: async (state) => {
           this.ctx.storage.sql.exec(
@@ -271,6 +195,12 @@ export class AgentRunner extends Agent<Bindings, AgentRunnerState> {
         },
         resumeState,
       });
+
+      // This runner configures no suspending tools, so the loop always
+      // completes; narrow the union for the persistence/response below.
+      if (result.status === "suspended") {
+        throw new Error("Agent loop suspended unexpectedly");
+      }
 
       // Persist conversation state for stateful sessions
       const agentMessages = this.persistConversationState(
@@ -389,15 +319,14 @@ export class AgentRunner extends Agent<Bindings, AgentRunnerState> {
     const { runId, executionInstanceId, nodeId, pricing } = body;
 
     try {
-      const nodeToolProvider = await this.buildNodeToolProvider(
+      const nodeToolProvider = await buildNodeToolProvider(
+        this.env,
         body.organizationId
       );
 
-      const resolvedTools = await this.resolveTools(
-        body.tools,
-        nodeToolProvider
-      );
-      const toolDefinitions = this.applyCodeMode(
+      const resolvedTools = await resolveTools(body.tools, nodeToolProvider);
+      const toolDefinitions = applyCodeMode(
+        this.env,
         resolvedTools,
         body.codeMode ?? false
       );
@@ -406,8 +335,6 @@ export class AgentRunner extends Agent<Bindings, AgentRunnerState> {
         ? `Context:\n${body.context}\n\nRequest:\n${body.input}`
         : body.input;
 
-      const geminiBuiltInTools = this.buildGeminiBuiltInTools(body);
-
       // Build resume state from persisted conversation (if stateful)
       const resumeState = this.buildResumeState(
         body.agentId,
@@ -415,41 +342,13 @@ export class AgentRunner extends Agent<Bindings, AgentRunnerState> {
         body.maxHistory ?? 50
       );
 
-      // Convert schema if provided
-      const jsonSchema =
-        body.schema &&
-        typeof body.schema === "object" &&
-        "fields" in body.schema
-          ? schemaToJsonSchema(body.schema as unknown as Schema)
-          : undefined;
-
-      // Build callFinalLLM that applies schema constraint on the final turn
-      const callFinalLLM = jsonSchema
-        ? (messages: AgentMessage[], tools: ToolDefinition[]) =>
-            this.callLLM(
-              body.provider,
-              body.model,
-              body.instructions,
-              messages,
-              tools,
-              geminiBuiltInTools,
-              jsonSchema
-            )
-        : undefined;
+      const { callLLM, callFinalLLM } = this.buildLlmCallbacks(body);
 
       const result = await runAgentLoop({
         userMessage,
         tools: toolDefinitions,
         maxSteps: body.maxSteps,
-        callLLM: (messages, tools) =>
-          this.callLLM(
-            body.provider,
-            body.model,
-            body.instructions,
-            messages,
-            tools,
-            geminiBuiltInTools
-          ),
+        callLLM,
         callFinalLLM,
         onStepComplete: async (state) => {
           this.ctx.storage.sql.exec(
@@ -460,6 +359,12 @@ export class AgentRunner extends Agent<Bindings, AgentRunnerState> {
         },
         resumeState,
       });
+
+      // This runner configures no suspending tools, so the loop always
+      // completes; narrow the union for the persistence/response below.
+      if (result.status === "suspended") {
+        throw new Error("Agent loop suspended unexpectedly");
+      }
 
       // Persist conversation state for stateful sessions
       const agentMessages = this.persistConversationState(
@@ -634,488 +539,44 @@ export class AgentRunner extends Agent<Bindings, AgentRunnerState> {
     return tools;
   }
 
-  // ── Code Mode wrapping ─────────────────────────────────────────────────
-
-  /**
-   * If code mode is enabled and tools are available, wraps all tool
-   * definitions into a single "codemode" tool. Falls back to the
-   * original tools when the executor binding is unavailable.
-   */
-  private applyCodeMode(
-    tools: ToolDefinition[],
-    codeMode: boolean
-  ): ToolDefinition[] {
-    if (!codeMode || tools.length === 0) return tools;
-
-    const executor = createCodeModeExecutor(this.env);
-    if (!executor) {
-      console.warn(
-        "Code mode requested but LOADER binding is unavailable — falling back to standard tool calling"
-      );
-      return tools;
-    }
-
-    return [createCodeModeToolDefinition(tools, executor)];
-  }
-
-  // ── Tool resolution ────────────────────────────────────────────────────
-
-  private async resolveTools(
-    toolRefs: ToolReference[],
-    nodeToolProvider: NodeToolProvider
-  ): Promise<ToolDefinition[]> {
-    if (!toolRefs || toolRefs.length === 0) return [];
-
-    const definitions: ToolDefinition[] = [];
-    for (const ref of toolRefs) {
-      try {
-        const def = await nodeToolProvider.getToolDefinition(
-          ref.identifier,
-          ref.config
-        );
-        definitions.push(def);
-      } catch (error) {
-        console.warn(`Failed to resolve tool ${ref.identifier}:`, error);
-      }
-    }
-    return definitions;
-  }
-
   // ── LLM dispatch ──────────────────────────────────────────────────────
 
-  private async callLLM(
-    provider: AgentProvider,
-    model: string,
-    instructions: string,
-    messages: AgentMessage[],
-    tools: ToolDefinition[],
-    builtInTools?: Record<string, unknown>[],
-    schema?: Record<string, unknown>
-  ): Promise<LLMResponse> {
-    switch (provider) {
-      case "anthropic":
-        return this.callAnthropic(model, instructions, messages, tools, schema);
-      case "google":
-        return this.callGoogle(
-          model,
-          instructions,
-          messages,
-          tools,
-          builtInTools,
-          schema
-        );
-      case "openai":
-        return this.callOpenAI(model, instructions, messages, tools, schema);
-      case "workers-ai":
-        return this.callWorkersAI(model, instructions, messages, tools, schema);
-      default:
-        throw new Error(`Unsupported provider: ${provider}`);
-    }
-  }
-
-  // ── Anthropic ──────────────────────────────────────────────────────────
-
-  private async callAnthropic(
-    model: string,
-    instructions: string,
-    messages: AgentMessage[],
-    tools: ToolDefinition[],
-    schema?: Record<string, unknown>
-  ): Promise<LLMResponse> {
-    const client = new Anthropic({
-      apiKey: "gateway-managed",
-      timeout: 120_000,
-      ...getAnthropicConfig(this.env),
-    });
-
-    // Convert generic messages to Anthropic format
-    const anthropicMessages: Anthropic.MessageParam[] = messages.map((m) => {
-      if (m.role === "assistant" && m.toolCalls?.length) {
-        return {
-          role: "assistant" as const,
-          content: [
-            ...(m.content ? [{ type: "text" as const, text: m.content }] : []),
-            ...m.toolCalls.map((tc) => ({
-              type: "tool_use" as const,
-              id: tc.id,
-              name: tc.name,
-              input: tc.arguments,
-            })),
-          ],
-        };
-      }
-      if (m.role === "tool") {
-        return {
-          role: "user" as const,
-          content: [
-            {
-              type: "tool_result" as const,
-              tool_use_id: m.toolCallId!,
-              content: m.content,
-            },
-          ],
-        };
-      }
-      return {
-        role: m.role === "user" ? ("user" as const) : ("assistant" as const),
-        content: m.content,
-      };
-    });
-
-    // Convert tools to Anthropic format
-    const anthropicTools: Anthropic.Tool[] = tools.map((t) => ({
-      name: t.name,
-      description: t.description,
-      input_schema: t.parameters as Anthropic.Tool.InputSchema,
-    }));
-
-    // When schema is provided, append a JSON constraint to the system prompt
-    const systemPrompt = schema
-      ? `${instructions}\n\nYou MUST respond with valid JSON matching this schema:\n${JSON.stringify(schema)}`
-      : instructions;
-
-    const response = await client.messages.create({
-      model,
-      max_tokens: 4096,
-      messages: anthropicMessages,
-      ...(systemPrompt && { system: systemPrompt }),
-      ...(anthropicTools.length > 0 && { tools: anthropicTools }),
-    });
-
-    // Parse response
-    let content = "";
-    const toolCalls: LLMResponse["toolCalls"] = [];
-
-    for (const block of response.content) {
-      if (block.type === "text") {
-        content += block.text;
-      } else if (block.type === "tool_use") {
-        toolCalls.push({
-          id: block.id,
-          name: block.name,
-          arguments: block.input as Record<string, unknown>,
-        });
-      }
-    }
-
+  /**
+   * Build the loop's `callLLM`/`callFinalLLM` callbacks for a request. The
+   * final-turn callback is only present when a structured-output schema is
+   * supplied; both dispatch through the shared `callAgentLLM`.
+   */
+  private buildLlmCallbacks(body: AgentRunRequest): {
+    callLLM: (
+      messages: AgentMessage[],
+      tools: ToolDefinition[]
+    ) => Promise<LLMResponse>;
+    callFinalLLM?: (
+      messages: AgentMessage[],
+      tools: ToolDefinition[]
+    ) => Promise<LLMResponse>;
+  } {
+    const builtInTools = this.buildGeminiBuiltInTools(body);
+    const jsonSchema = toJsonSchema(body.schema);
+    const llm = (
+      messages: AgentMessage[],
+      tools: ToolDefinition[],
+      schema?: Record<string, unknown>
+    ) =>
+      callAgentLLM(this.env, {
+        provider: body.provider,
+        model: body.model,
+        instructions: body.instructions,
+        messages,
+        tools,
+        builtInTools,
+        schema,
+      });
     return {
-      content,
-      toolCalls,
-      inputTokens: response.usage.input_tokens,
-      outputTokens: response.usage.output_tokens,
+      callLLM: (messages, tools) => llm(messages, tools),
+      callFinalLLM: jsonSchema
+        ? (messages, tools) => llm(messages, tools, jsonSchema)
+        : undefined,
     };
   }
-
-  // ── Google (Gemini) ────────────────────────────────────────────────────
-
-  private async callGoogle(
-    model: string,
-    instructions: string,
-    messages: AgentMessage[],
-    tools: ToolDefinition[],
-    builtInTools?: Record<string, unknown>[],
-    schema?: Record<string, unknown>
-  ): Promise<LLMResponse> {
-    const ai = new GoogleGenAI({
-      apiKey: "gateway-managed",
-      ...getGoogleAIConfig(this.env),
-    });
-
-    // Build contents from message history
-    const contents: Array<{
-      role: string;
-      parts: Array<Record<string, unknown>>;
-    }> = [];
-    for (const m of messages) {
-      if (m.role === "user") {
-        contents.push({ role: "user", parts: [{ text: m.content }] });
-      } else if (m.role === "assistant") {
-        const parts: Array<Record<string, unknown>> = [];
-        if (m.content) parts.push({ text: m.content });
-        if (m.toolCalls) {
-          for (const tc of m.toolCalls) {
-            parts.push({
-              functionCall: { name: tc.name, args: tc.arguments },
-              ...(tc.thoughtSignature && {
-                thoughtSignature: tc.thoughtSignature,
-              }),
-            });
-          }
-        }
-        contents.push({ role: "model", parts });
-      } else if (m.role === "tool") {
-        contents.push({
-          role: "user",
-          parts: [
-            {
-              functionResponse: {
-                name: m.toolName,
-                response: safeJsonParse(m.content),
-              },
-            },
-          ],
-        });
-      }
-    }
-
-    // Convert tools to Gemini format
-    const functionDeclarations = tools.map((t) => ({
-      name: t.name,
-      description: t.description,
-      parameters: t.parameters,
-    }));
-
-    const config: Record<string, unknown> = {};
-    const allTools: Record<string, unknown>[] = [...(builtInTools ?? [])];
-    if (functionDeclarations.length > 0) {
-      allTools.push({ functionDeclarations });
-    }
-    if (allTools.length > 0) {
-      config.tools = allTools;
-    }
-
-    // Apply schema constraint for structured JSON output
-    if (schema) {
-      config.responseMimeType = "application/json";
-      config.responseSchema = schema;
-    }
-
-    const response = await ai.models.generateContent({
-      model,
-      contents: contents as any,
-      config: config as any,
-      ...(instructions && { systemInstruction: instructions }),
-    });
-
-    // Parse response
-    let content = "";
-    const toolCalls: LLMResponse["toolCalls"] = [];
-
-    if (response.candidates?.[0]?.content?.parts) {
-      for (const part of response.candidates[0].content.parts as any[]) {
-        if (part.text) {
-          content += part.text;
-        }
-        if (part.functionCall) {
-          toolCalls.push({
-            id: `gemini_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-            name: part.functionCall.name,
-            arguments: part.functionCall.args ?? {},
-            ...(part.thoughtSignature && {
-              thoughtSignature: part.thoughtSignature,
-            }),
-          });
-        }
-      }
-    }
-
-    const usage = response.usageMetadata;
-    return {
-      content,
-      toolCalls,
-      inputTokens: usage?.promptTokenCount ?? 0,
-      outputTokens: usage?.candidatesTokenCount ?? 0,
-    };
-  }
-
-  // ── OpenAI ─────────────────────────────────────────────────────────────
-
-  private async callOpenAI(
-    model: string,
-    instructions: string,
-    messages: AgentMessage[],
-    tools: ToolDefinition[],
-    schema?: Record<string, unknown>
-  ): Promise<LLMResponse> {
-    const client = new OpenAI({
-      apiKey: "gateway-managed",
-      timeout: 120_000,
-      ...getOpenAIConfig(this.env),
-    });
-
-    // Convert generic messages to OpenAI format
-    const openaiMessages: OpenAI.ChatCompletionMessageParam[] = [];
-
-    if (instructions) {
-      openaiMessages.push({ role: "system", content: instructions });
-    }
-
-    for (const m of messages) {
-      if (m.role === "user") {
-        openaiMessages.push({ role: "user", content: m.content });
-      } else if (m.role === "assistant") {
-        openaiMessages.push({
-          role: "assistant",
-          content: m.content || null,
-          ...(m.toolCalls?.length && {
-            tool_calls: m.toolCalls.map((tc) => ({
-              id: tc.id,
-              type: "function" as const,
-              function: {
-                name: tc.name,
-                arguments: JSON.stringify(tc.arguments),
-              },
-            })),
-          }),
-        });
-      } else if (m.role === "tool") {
-        openaiMessages.push({
-          role: "tool",
-          tool_call_id: m.toolCallId!,
-          content: m.content,
-        });
-      }
-    }
-
-    // Convert tools to OpenAI format
-    const openaiTools: OpenAI.ChatCompletionTool[] = tools.map((t) => ({
-      type: "function" as const,
-      function: {
-        name: t.name,
-        description: t.description,
-        parameters: t.parameters,
-      },
-    }));
-
-    // Build response_format when a schema is provided
-    const responseFormat = schema
-      ? {
-          type: "json_schema" as const,
-          json_schema: {
-            name: "response",
-            schema,
-            strict: true,
-          },
-        }
-      : undefined;
-
-    const completion = await client.chat.completions.create({
-      model,
-      max_tokens: 4096,
-      messages: openaiMessages,
-      ...(openaiTools.length > 0 && { tools: openaiTools }),
-      ...(responseFormat && { response_format: responseFormat }),
-    });
-
-    const choice = completion.choices[0];
-    const content = choice?.message?.content ?? "";
-    const toolCalls: LLMResponse["toolCalls"] = [];
-
-    if (choice?.message?.tool_calls) {
-      for (const tc of choice.message.tool_calls) {
-        if (tc.type === "function") {
-          toolCalls.push({
-            id: tc.id,
-            name: tc.function.name,
-            arguments: safeJsonParse(tc.function.arguments),
-          });
-        }
-      }
-    }
-
-    return {
-      content,
-      toolCalls,
-      inputTokens: completion.usage?.prompt_tokens ?? 0,
-      outputTokens: completion.usage?.completion_tokens ?? 0,
-    };
-  }
-
-  // ── Workers AI ─────────────────────────────────────────────────────────
-
-  private async callWorkersAI(
-    model: string,
-    _instructions: string,
-    messages: AgentMessage[],
-    tools: ToolDefinition[],
-    schema?: Record<string, unknown>
-  ): Promise<LLMResponse> {
-    // Workers AI uses OpenAI-compatible chat format
-    const aiMessages: Array<{ role: string; content: string }> = [];
-
-    // When schema is provided, append a JSON constraint to the system prompt
-    // (Workers AI models don't reliably support response_format)
-    const systemPrompt = schema
-      ? `${_instructions}\n\nYou MUST respond with valid JSON matching this schema:\n${JSON.stringify(schema)}`
-      : _instructions;
-
-    if (systemPrompt) {
-      aiMessages.push({ role: "system", content: systemPrompt });
-    }
-
-    for (const m of messages) {
-      if (m.role === "tool") {
-        // Workers AI doesn't have a native tool role — inject as user message
-        aiMessages.push({
-          role: "user",
-          content: `Tool result for ${m.toolName}: ${m.content}`,
-        });
-      } else {
-        aiMessages.push({ role: m.role, content: m.content });
-      }
-    }
-
-    // Workers AI tool format (OpenAI-compatible)
-    const aiTools =
-      tools.length > 0
-        ? tools.map((t) => ({
-            type: "function" as const,
-            function: {
-              name: t.name,
-              description: t.description,
-              parameters: t.parameters,
-            },
-          }))
-        : undefined;
-
-    const result = (await this.env.AI.run(
-      model as keyof AiModels,
-      {
-        messages: aiMessages,
-        ...(aiTools && { tools: aiTools }),
-        stream: false,
-      } as any
-    )) as any;
-
-    // Workers AI returns OpenAI chat-completions format
-    const choice = result?.choices?.[0]?.message;
-    const content: string = choice?.content ?? "";
-    const toolCalls: LLMResponse["toolCalls"] = [];
-
-    if (choice?.tool_calls) {
-      for (const tc of choice.tool_calls) {
-        toolCalls.push({
-          id:
-            tc.id ??
-            `wai_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-          name: tc.function.name,
-          arguments: safeJsonParse(tc.function.arguments),
-        });
-      }
-    }
-
-    const usage = result?.usage;
-    return {
-      content,
-      toolCalls,
-      inputTokens: usage?.prompt_tokens ?? 0,
-      outputTokens: usage?.completion_tokens ?? 0,
-    };
-  }
-}
-
-// ── Helpers ──────────────────────────────────────────────────────────────
-
-function safeJsonParse(value: unknown): Record<string, unknown> {
-  if (typeof value === "string") {
-    try {
-      return JSON.parse(value);
-    } catch {
-      return { raw: value };
-    }
-  }
-  if (typeof value === "object" && value !== null) {
-    return value as Record<string, unknown>;
-  }
-  return {};
 }

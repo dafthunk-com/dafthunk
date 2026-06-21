@@ -98,6 +98,7 @@ import { ListUserGuildsDiscordNode } from "@dafthunk/runtime/nodes/discord/list-
 import { SendDMDiscordNode } from "@dafthunk/runtime/nodes/discord/send-dm-discord-node";
 import { SendMessageDiscordNode } from "@dafthunk/runtime/nodes/discord/send-message-discord-node";
 import { ToMarkdownNode } from "@dafthunk/runtime/nodes/document/to-markdown-node";
+import { EmailAgentClaudeSonnet4Node } from "@dafthunk/runtime/nodes/email/email-agent-claude-sonnet-4-node";
 import { ExtractEmailAttachmentsNode } from "@dafthunk/runtime/nodes/email/extract-email-attachments-node";
 import { GetEmailThreadNode } from "@dafthunk/runtime/nodes/email/get-email-thread-node";
 import { ParseEmailNode } from "@dafthunk/runtime/nodes/email/parse-email-node";
@@ -780,6 +781,8 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
 
     if (hasSendEmail) {
       this.registerImplementation(SendEmailNode);
+      // Email coordination agent — sends + waits for replies via Durable Object
+      this.registerImplementation(EmailAgentClaudeSonnet4Node);
     }
 
     if (hasGoogleMail) {

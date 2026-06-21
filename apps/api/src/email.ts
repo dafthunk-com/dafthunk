@@ -112,6 +112,21 @@ export async function handleIncomingEmail(
     subaddress,
   });
 
+  // If the mailbox flagged this thread as owned by an email-agent run, hand the
+  // reply to that runner instead of triggering workflows afresh.
+  if (mailbox?.agentRunId) {
+    await deliverReplyToEmailAgent(
+      env,
+      mailbox.agentRunId,
+      mailbox.threadId,
+      mailbox.text ?? ""
+    );
+    console.log(
+      `[email] reply on thread ${mailbox.threadId} routed to email agent run ${mailbox.agentRunId}`
+    );
+    return;
+  }
+
   // Get all workflows triggered by this email
   const emailTriggersWithWorkflows = await getEmailTriggersByEmail(
     db,
@@ -177,7 +192,15 @@ async function persistInboundEmail({
   from: string;
   to: string;
   subaddress: string | null;
-}): Promise<{ threadId: string; messageId: string } | undefined> {
+}): Promise<
+  | {
+      threadId: string;
+      messageId: string;
+      agentRunId: string | null;
+      text?: string;
+    }
+  | undefined
+> {
   try {
     const messageId = uuidv7();
     const staged = await parseAndStageEmail(
@@ -205,13 +228,39 @@ async function persistInboundEmail({
       ...staged,
       verifiedThreadId,
     });
-    return result;
+    return { ...result, text: staged.text };
   } catch (error) {
     console.error(
       `[email] failed to persist inbound message for ${email.handle}:`,
       error instanceof Error ? error.message : String(error)
     );
     return undefined;
+  }
+}
+
+/**
+ * Deliver a reply to the EmailAgentRunner that owns its thread (best effort).
+ * The caller has already decided the thread is agent-owned, so the message is
+ * treated as handled regardless of the outcome — re-triggering workflows for an
+ * agent-owned thread would be wrong even if the specific ask already settled.
+ */
+async function deliverReplyToEmailAgent(
+  env: Bindings,
+  runId: string,
+  threadId: string,
+  text: string
+): Promise<void> {
+  if (!env.EMAIL_AGENT_RUNNER) return;
+  try {
+    const stub = env.EMAIL_AGENT_RUNNER.get(
+      env.EMAIL_AGENT_RUNNER.idFromName(runId)
+    );
+    await stub.deliverReply({ threadId, text });
+  } catch (error) {
+    console.error(
+      `[email] failed to deliver reply to email agent run ${runId}:`,
+      error instanceof Error ? error.message : String(error)
+    );
   }
 }
 

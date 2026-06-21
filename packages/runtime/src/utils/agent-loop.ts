@@ -76,6 +76,38 @@ export interface AgentLoopConfig {
 
   /** If provided, resume from a previous state instead of starting fresh */
   resumeState?: AgentLoopState;
+
+  /**
+   * Predicate marking a tool as *suspending*: its result is not available
+   * synchronously. When the model calls one or more suspending tools in a turn,
+   * the loop executes any non-suspending tool calls in that same turn, then
+   * stops and returns an {@link AgentLoopSuspension} instead of an
+   * {@link AgentLoopResult}. The caller performs the long-running work (e.g.
+   * emailing an interlocutor and parking until a reply arrives) and later
+   * resumes by calling the loop again with `resumeState` plus
+   * `resumeToolResults` for the suspended calls.
+   *
+   * Suspending and non-suspending tool calls can be mixed in a single turn; the
+   * non-suspending ones run immediately so their results are ready on resume.
+   */
+  isSuspendingTool?: (toolName: string) => boolean;
+
+  /**
+   * Results for the tool calls that suspended the loop, supplied when resuming.
+   * Must be provided together with a `resumeState` returned from a prior
+   * suspension. Each entry resolves one of the suspension's `pendingToolCalls`.
+   */
+  resumeToolResults?: ResolvedToolResult[];
+}
+
+/** Resolved result for a previously-suspended tool call, supplied on resume. */
+export interface ResolvedToolResult {
+  /** Matches {@link AgentToolCall.id} of the suspended call */
+  toolCallId: string;
+  /** Name of the tool that was called */
+  toolName: string;
+  /** The tool result content (e.g. the interlocutor's reply text) */
+  content: string;
 }
 
 export interface AgentLoopState {
@@ -86,6 +118,8 @@ export interface AgentLoopState {
 }
 
 export interface AgentLoopResult {
+  /** Discriminant: the loop ran to completion */
+  status: "completed";
   /** Final text output from the agent */
   text: string;
   /** All steps taken (tool call + result pairs) */
@@ -99,11 +133,29 @@ export interface AgentLoopResult {
   totalOutputTokens: number;
 }
 
+/**
+ * Returned instead of {@link AgentLoopResult} when the model called one or more
+ * suspending tools (see {@link AgentLoopConfig.isSuspendingTool}). The caller
+ * must fulfil every `pendingToolCall`, persist `state`, and later resume by
+ * calling {@link runAgentLoop} with `resumeState: state` and matching
+ * `resumeToolResults`.
+ */
+export interface AgentLoopSuspension {
+  /** Discriminant: the loop is parked awaiting async tool results */
+  status: "suspended";
+  /** Tool calls whose results must be supplied before the loop can resume */
+  pendingToolCalls: AgentToolCall[];
+  /** Loop state to persist and pass back as `resumeState` on resume */
+  state: AgentLoopState;
+}
+
+export type AgentLoopOutcome = AgentLoopResult | AgentLoopSuspension;
+
 // ── Core loop ────────────────────────────────────────────────────────────
 
 export async function runAgentLoop(
   config: AgentLoopConfig
-): Promise<AgentLoopResult> {
+): Promise<AgentLoopOutcome> {
   const { userMessage, tools, maxSteps, callLLM, onStepComplete } = config;
   const finalLLM = config.callFinalLLM ?? callLLM;
 
@@ -114,6 +166,17 @@ export async function runAgentLoop(
     totalInputTokens: 0,
     totalOutputTokens: 0,
   };
+
+  // Resuming a suspended turn: inject the async tool results for the calls that
+  // parked the loop, completing the in-flight turn before continuing. The
+  // suspended assistant message and any synchronous tool results are already in
+  // `state.messages`; we append the resolved results and record the step.
+  if (config.resumeState && config.resumeToolResults) {
+    recordSuspendedStep(state, config.resumeToolResults);
+    if (onStepComplete) {
+      await onStepComplete(state);
+    }
+  }
 
   let finishReason: FinishReason = "completed";
 
@@ -154,9 +217,17 @@ export async function runAgentLoop(
     };
     state.messages.push(assistantMessage);
 
-    // Execute each tool call
+    // Execute each tool call. Suspending tools are not run here — their results
+    // arrive asynchronously, so we collect them and park the loop once the
+    // synchronous calls in this turn have settled.
     const toolResults: AgentMessage[] = [];
+    const pendingToolCalls: AgentToolCall[] = [];
     for (const toolCall of llmResponse.toolCalls) {
+      if (config.isSuspendingTool?.(toolCall.name)) {
+        pendingToolCalls.push(toolCall);
+        continue;
+      }
+
       const toolDef = tools.find((t) => t.name === toolCall.name);
       let resultContent: string;
 
@@ -183,6 +254,14 @@ export async function runAgentLoop(
       };
       toolResults.push(toolMessage);
       state.messages.push(toolMessage);
+    }
+
+    // Park the loop when the turn requested async results. The assistant message
+    // and any synchronous tool results are already in `state.messages`; the
+    // caller persists `state`, fulfils the pending calls, and resumes via
+    // `resumeState` + `resumeToolResults`. The step is recorded on resume.
+    if (pendingToolCalls.length > 0) {
+      return { status: "suspended", pendingToolCalls, state };
     }
 
     // Record this step
@@ -245,6 +324,7 @@ export async function runAgentLoop(
   const text = lastAssistant?.content ?? "";
 
   return {
+    status: "completed",
     text,
     steps: state.steps,
     finishReason,
@@ -252,4 +332,44 @@ export async function runAgentLoop(
     totalInputTokens: state.totalInputTokens,
     totalOutputTokens: state.totalOutputTokens,
   };
+}
+
+/**
+ * Completes a suspended turn on resume: appends the resolved tool results to the
+ * conversation and records the step. The suspended assistant message (with its
+ * tool calls) and any synchronous tool results from the same turn are already
+ * the trailing messages in `state.messages`, so the step is reconstructed from
+ * the tail: the last assistant message followed by every consecutive tool
+ * message after it.
+ */
+function recordSuspendedStep(
+  state: AgentLoopState,
+  resolved: ResolvedToolResult[]
+): void {
+  for (const r of resolved) {
+    state.messages.push({
+      role: "tool",
+      content: r.content,
+      toolCallId: r.toolCallId,
+      toolName: r.toolName,
+    });
+  }
+
+  let i = state.messages.length - 1;
+  while (i >= 0 && state.messages[i].role === "tool") {
+    i--;
+  }
+
+  const assistantMessage = state.messages[i];
+  if (!assistantMessage || assistantMessage.role !== "assistant") {
+    throw new Error(
+      "Cannot resume: no suspended assistant turn found in state.messages"
+    );
+  }
+
+  state.steps.push({
+    stepNumber: state.steps.length + 1,
+    assistantMessage,
+    toolResults: state.messages.slice(i + 1),
+  });
 }
