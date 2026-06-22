@@ -19,64 +19,86 @@ const MAX_BACKSTOP_MS = 30 * 24 * 60 * 60 * 1000;
 const EMAIL_AGENT_INPUTS: NodeType["inputs"] = [
   {
     name: "from",
-    description: "Organization email address to send from.",
+    description:
+      "The organization email address the agent sends from. Replies route " +
+      "back to this mailbox so the agent can read them.",
     type: "email",
     required: true,
   },
   {
     name: "interlocutors",
     description:
-      "People the agent may email: an array of { id, email, name?, role? }. The agent addresses them by id.",
+      "The people the agent may email, as a JSON array. Each entry requires " +
+      "an `email`; `name` and `role` are optional context for the agent, and " +
+      "an optional short `id` is the handle it uses to address them (defaults " +
+      "to the email, and keeps real addresses out of the model's reasoning). " +
+      'Example: [{ "id": "approver", "email": "a@x.com", "name": "Alice", "role": "Budget owner" }].',
     type: "json",
     required: true,
   },
   {
     name: "objective",
-    description: "The goal the agent should pursue through the conversation.",
+    description:
+      "The goal the agent pursues through the email conversation. State it as " +
+      'a concrete outcome, e.g. "Get all three approvers to confirm the Q3 budget."',
     type: "string",
     required: true,
   },
   {
     name: "instructions",
-    description: "Optional persona / behavioural system prompt.",
+    description:
+      "Optional persona and behavioural guidance — tone, constraints, and how " +
+      "to handle non-replies. Becomes part of the agent's system prompt.",
     type: "string",
     required: false,
   },
   {
     name: "context",
-    description: "Optional background material for the agent.",
+    description:
+      "Optional background material (facts, prior decisions, reference text) " +
+      "the agent should know before it starts. Appended to the objective.",
     type: "string",
     required: false,
+    hidden: true,
   },
   {
     name: "subject",
-    description: "Default subject for newly opened email threads.",
+    description:
+      "Default subject line for new email threads the agent opens. If omitted, " +
+      "one is derived from the objective.",
     type: "string",
     required: false,
+    hidden: true,
   },
   {
     name: "max_rounds",
-    description: `Maximum conversation rounds before wrapping up (default ${DEFAULT_MAX_ROUNDS}).`,
+    description: `Maximum number of conversation rounds before the agent wraps up, even if the objective isn't met (default ${DEFAULT_MAX_ROUNDS}).`,
     type: "number",
     required: false,
     value: DEFAULT_MAX_ROUNDS,
+    hidden: true,
   },
   {
     name: "reply_timeout",
-    description: `How long to wait for each reply, e.g. "3 days", "24 hours" (default ${DEFAULT_REPLY_TIMEOUT}).`,
+    description: `How long to wait for each reply before treating that person as unresponsive and letting the agent decide how to proceed. Accepts values like "3 days", "24 hours", or "30 minutes" (default ${DEFAULT_REPLY_TIMEOUT}).`,
     type: "string",
     required: false,
     value: DEFAULT_REPLY_TIMEOUT,
+    hidden: true,
   },
   {
     name: "tools",
-    description: "Tool references the agent may call between emails.",
+    description:
+      "Optional tool references the agent may call between emails (for example " +
+      "to look something up before replying), as a JSON array.",
     type: "json",
     required: false,
+    hidden: true,
   },
   {
     name: "schema",
-    description: "Optional schema constraining the final result.",
+    description:
+      "Optional JSON schema constraining the shape of the final result.",
     type: "schema",
     required: false,
     hidden: true,
@@ -86,24 +108,28 @@ const EMAIL_AGENT_INPUTS: NodeType["inputs"] = [
 const EMAIL_AGENT_OUTPUTS: NodeType["outputs"] = [
   {
     name: "result",
-    description: "The agent's final result once the objective is reached.",
+    description:
+      "The agent's final answer once the objective is reached (or it stops). " +
+      "Matches `schema` when one is provided.",
     type: "any",
   },
   {
     name: "transcript",
     description:
-      "Per-interlocutor record of the messages sent and replies received.",
+      "Per-interlocutor record of every message sent and reply received, " +
+      "including who timed out. One entry per email thread.",
     type: "json",
-  },
-  {
-    name: "rounds",
-    description: "Number of conversation rounds taken.",
-    type: "number",
   },
   {
     name: "finish_reason",
     description: "Why the agent stopped: goal_reached, max_rounds, or error.",
     type: "string",
+  },
+  {
+    name: "rounds",
+    description: "Number of conversation rounds the agent took.",
+    type: "number",
+    hidden: true,
   },
   {
     name: "usage_metadata",
