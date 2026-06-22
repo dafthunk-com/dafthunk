@@ -4,8 +4,8 @@ import type { TokenPricing } from "../../utils/usage";
 import { executeAnthropicModel } from "./execute-anthropic-model";
 
 const PRICING: TokenPricing = {
-  inputCostPerMillion: 15.0,
-  outputCostPerMillion: 75.0,
+  inputCostPerMillion: 5.0,
+  outputCostPerMillion: 25.0,
 };
 
 export class ClaudeOpus4Node extends ExecutableNode {
@@ -46,6 +46,6 @@ export class ClaudeOpus4Node extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    return executeAnthropicModel(this, context, "claude-opus-4-0", PRICING);
+    return executeAnthropicModel(this, context, "claude-opus-4-8", PRICING);
   }
 }

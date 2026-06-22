@@ -38,7 +38,7 @@ const DORMANCY_DAYS = 30;
 // and lets the gateway inject the real key. Faster end-to-end for the
 // admin's interactive draft flow than Workers AI Llama 70B, and tool-use
 // gives reliable structured JSON.
-const DRAFT_MODEL = "claude-sonnet-4-0";
+const DRAFT_MODEL = "claude-sonnet-4-6";
 
 interface PastSupportMessage {
   direction: "inbound" | "outbound";

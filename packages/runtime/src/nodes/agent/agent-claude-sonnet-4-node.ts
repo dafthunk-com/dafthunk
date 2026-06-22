@@ -6,7 +6,7 @@ export class AgentClaudeSonnet4Node extends BaseAgentNode {
   // https://www.anthropic.com/pricing
   protected static readonly agentConfig = {
     provider: "anthropic" as const,
-    model: "claude-sonnet-4-0",
+    model: "claude-sonnet-4-6",
     pricing: { inputCostPerMillion: 3.0, outputCostPerMillion: 15.0 },
   };
 

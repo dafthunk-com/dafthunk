@@ -45,6 +45,6 @@ export class ClaudeSonnet4Node extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    return executeAnthropicModel(this, context, "claude-sonnet-4-0", PRICING);
+    return executeAnthropicModel(this, context, "claude-sonnet-4-6", PRICING);
   }
 }
