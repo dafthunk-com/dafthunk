@@ -92,6 +92,15 @@ export interface MailboxMessageRow {
   createdAt: number;
 }
 
+export interface MailboxAttachmentRow {
+  id: string;
+  messageId: string;
+  filename: string;
+  contentType: string;
+  sizeBytes: number;
+  r2Key: string;
+}
+
 export class MailboxDO extends DurableObject<Bindings> {
   private initialized = false;
 
@@ -362,6 +371,84 @@ export class MailboxDO extends DurableObject<Bindings> {
       now
     );
     return { threadId };
+  }
+
+  /**
+   * List threads belonging to one email address, newest activity first. Powers
+   * the read-only mailbox browser; the index on `last_message_at` keeps this
+   * cheap even as a mailbox accumulates conversations.
+   */
+  async listThreads(
+    emailId: string,
+    limit: number,
+    offset: number
+  ): Promise<MailboxThreadRow[]> {
+    this.ensureSchema();
+    const rows = this.ctx.storage.sql
+      .exec(
+        `SELECT id, email_id, subject, from_email, last_message_at, created_at
+         FROM threads WHERE email_id = ?
+         ORDER BY last_message_at DESC LIMIT ? OFFSET ?`,
+        emailId,
+        limit,
+        offset
+      )
+      .toArray() as Record<string, unknown>[];
+    return rows.map((r) => ({
+      id: r.id as string,
+      emailId: r.email_id as string,
+      subject: r.subject as string,
+      fromEmail: r.from_email as string,
+      lastMessageAt: Number(r.last_message_at),
+      createdAt: Number(r.created_at),
+    }));
+  }
+
+  /** Attachment metadata for every message in a thread, for the detail view. */
+  async listThreadAttachments(
+    threadId: string
+  ): Promise<MailboxAttachmentRow[]> {
+    this.ensureSchema();
+    const rows = this.ctx.storage.sql
+      .exec(
+        `SELECT a.id, a.message_id, a.filename, a.content_type, a.size_bytes, a.r2_key
+         FROM attachments a JOIN messages m ON m.id = a.message_id
+         WHERE m.thread_id = ?`,
+        threadId
+      )
+      .toArray() as Record<string, unknown>[];
+    return rows.map((r) => ({
+      id: r.id as string,
+      messageId: r.message_id as string,
+      filename: r.filename as string,
+      contentType: r.content_type as string,
+      sizeBytes: Number(r.size_bytes),
+      r2Key: r.r2_key as string,
+    }));
+  }
+
+  /** Single attachment by id, used to resolve its R2 blob for download. */
+  async getAttachment(
+    attachmentId: string
+  ): Promise<MailboxAttachmentRow | undefined> {
+    this.ensureSchema();
+    const rows = this.ctx.storage.sql
+      .exec(
+        `SELECT id, message_id, filename, content_type, size_bytes, r2_key
+         FROM attachments WHERE id = ? LIMIT 1`,
+        attachmentId
+      )
+      .toArray() as Record<string, unknown>[];
+    if (rows.length === 0) return undefined;
+    const r = rows[0];
+    return {
+      id: r.id as string,
+      messageId: r.message_id as string,
+      filename: r.filename as string,
+      contentType: r.content_type as string,
+      sizeBytes: Number(r.size_bytes),
+      r2Key: r.r2_key as string,
+    };
   }
 
   async getThread(threadId: string): Promise<MailboxThreadRow | undefined> {

@@ -152,6 +152,62 @@ describe("MailboxDO", () => {
     expect(messages).toHaveLength(1);
   });
 
+  it("lists threads scoped to an address", async () => {
+    const other = "email-2";
+    const { threadId: t1 } = await mailbox.ingestInbound(
+      inbound({ subject: "First" })
+    );
+    const { threadId: t2 } = await mailbox.ingestInbound(
+      inbound({ subject: "Second", fromEmail: "other@example.com" })
+    );
+    // A thread on a different address must not leak into the listing.
+    await mailbox.ingestInbound(
+      inbound({ emailId: other, subject: "Elsewhere" })
+    );
+
+    const threads = await mailbox.listThreads(EMAIL_ID, 100, 0);
+    expect(new Set(threads.map((t) => t.id))).toEqual(new Set([t1, t2]));
+
+    const elsewhere = await mailbox.listThreads(other, 100, 0);
+    expect(elsewhere).toHaveLength(1);
+    expect(elsewhere[0].subject).toBe("Elsewhere");
+  });
+
+  it("lists and fetches attachments scoped to a thread", async () => {
+    const messageId = uuidv7();
+    const attachmentId = uuidv7();
+    const r2Key = `${EMAIL_ID}/${messageId}/attachments/0-report.pdf`;
+    const { threadId } = await mailbox.ingestInbound(
+      inbound({
+        messageId,
+        attachments: [
+          {
+            id: attachmentId,
+            filename: "report.pdf",
+            contentType: "application/pdf",
+            sizeBytes: 1234,
+            r2Key,
+            contentId: null,
+          },
+        ],
+      })
+    );
+
+    const rows = await mailbox.listThreadAttachments(threadId);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      id: attachmentId,
+      messageId,
+      filename: "report.pdf",
+      sizeBytes: 1234,
+      r2Key,
+    });
+
+    const att = await mailbox.getAttachment(attachmentId);
+    expect(att?.r2Key).toBe(r2Key);
+    expect(await mailbox.getAttachment("missing")).toBeUndefined();
+  });
+
   it("prunes inactive threads and reports their R2 prefixes", async () => {
     const args = inbound();
     const { threadId, messageId } = await mailbox.ingestInbound(args);

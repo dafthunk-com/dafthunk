@@ -43,6 +43,7 @@ import { DatasetDetailPage } from "./pages/dataset-detail-page";
 import { DatasetsPage } from "./pages/datasets-page";
 
 import { EditorPage } from "./pages/editor-page";
+import { EmailInboxPage } from "./pages/email-inbox-page";
 import { EmailsPage } from "./pages/emails-page";
 import { ExecutionDetailPage } from "./pages/execution-detail-page";
 import { ExecutionsPage } from "./pages/executions-page";
@@ -641,6 +642,17 @@ export const routes: AppRouteObject[] = [
       </OrgLayout>
     ),
     handle: { head: <HeadSeo title="Emails - Emails - Dafthunk" /> },
+  },
+  {
+    path: "/org/:organizationId/emails/:emailId",
+    element: (
+      <OrgLayout title="Emails">
+        <ProtectedRoute>
+          <EmailInboxPage />
+        </ProtectedRoute>
+      </OrgLayout>
+    ),
+    handle: { head: <HeadSeo title="Inbox - Emails - Dafthunk" /> },
   },
   {
     path: "/bots",

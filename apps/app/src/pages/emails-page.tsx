@@ -2,6 +2,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import MoreHorizontal from "lucide-react/icons/more-horizontal";
 import PlusCircle from "lucide-react/icons/plus-circle";
 import { useEffect, useState } from "react";
+import { Link } from "react-router";
 
 import { useAuth } from "@/components/auth-context";
 import { InsetError } from "@/components/inset-error";
@@ -65,6 +66,7 @@ function downloadVCard(email: EmailRow) {
 }
 
 function createColumns(
+  orgId: string,
   openEditDialog: (email: EmailRow) => void,
   openDeleteDialog: (email: EmailRow) => void
 ): ColumnDef<EmailRow>[] {
@@ -73,8 +75,16 @@ function createColumns(
       accessorKey: "name",
       header: "Name",
       cell: ({ row }) => {
-        const name = row.getValue("name") as string;
-        return <span className="font-medium">{name || "Untitled Email"}</span>;
+        const email = row.original;
+        const name = email.name || "Untitled Email";
+        return (
+          <Link
+            to={`/org/${orgId}/emails/${email.id}`}
+            className="font-medium hover:underline"
+          >
+            {name}
+          </Link>
+        );
       },
     },
     {
@@ -106,6 +116,11 @@ function createColumns(
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                  <Link to={`/org/${orgId}/emails/${email.id}`}>
+                    View messages
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => downloadVCard(email)}>
                   Save to Address Book
                 </DropdownMenuItem>
@@ -186,7 +201,7 @@ export function EmailsPage() {
     setIsCreateDialogOpen(false);
   };
 
-  const columns = createColumns(openEditDialog, openDeleteDialog);
+  const columns = createColumns(orgId, openEditDialog, openDeleteDialog);
 
   if (isEmailsLoading) {
     return <InsetLoading title="Emails" />;
