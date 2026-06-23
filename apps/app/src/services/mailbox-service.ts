@@ -22,9 +22,10 @@ const THREADS_PAGE_SIZE = 50;
  * scroll. Pages are fetched lazily as the observer target scrolls into view,
  * so there is no upper bound on how many conversations can be browsed.
  */
-export const useMailboxThreads = (emailId: string | null) => {
+export const useMailboxThreads = (emailId: string | null, search?: string) => {
   const { organization } = useAuth();
   const orgId = organization?.id;
+  const trimmedSearch = search?.trim();
 
   const getKey = (
     pageIndex: number,
@@ -38,6 +39,9 @@ export const useMailboxThreads = (emailId: string | null) => {
       offset: String(pageIndex * THREADS_PAGE_SIZE),
       limit: String(THREADS_PAGE_SIZE),
     });
+    // Folding the term into the key restarts pagination when the search
+    // changes, so results never mix terms across pages.
+    if (trimmedSearch) query.set("search", trimmedSearch);
     return `/${orgId}${API_ENDPOINT_BASE}/${emailId}/threads?${query}`;
   };
 

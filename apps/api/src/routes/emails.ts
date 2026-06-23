@@ -269,6 +269,7 @@ emailRoutes.get(
     z.object({
       limit: z.coerce.number().min(1).max(100).default(50),
       offset: z.coerce.number().min(0).default(0),
+      search: z.string().trim().optional(),
     })
   ),
   async (c) => {
@@ -281,11 +282,12 @@ emailRoutes.get(
       return c.json({ error: "Email not found" }, 404);
     }
 
-    const { limit, offset } = c.req.valid("query");
+    const { limit, offset, search } = c.req.valid("query");
     const threads = await mailboxStub(c.env, organizationId).listThreads(
       id,
       limit,
-      offset
+      offset,
+      search
     );
 
     const response: ListMailboxThreadsResponse = {

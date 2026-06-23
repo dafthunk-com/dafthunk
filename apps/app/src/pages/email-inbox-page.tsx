@@ -4,13 +4,15 @@ import type {
 } from "@dafthunk/types";
 import Inbox from "lucide-react/icons/inbox";
 import Paperclip from "lucide-react/icons/paperclip";
-import type { ReactNode, RefObject } from "react";
+import type { RefObject } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router";
 
 import { useAuth } from "@/components/auth-context";
 import { InsetError } from "@/components/inset-error";
-import { InsetLayout } from "@/components/layouts/inset-layout";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { SearchInput } from "@/components/ui/search-input";
 import { Spinner } from "@/components/ui/spinner";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { useEmail } from "@/services/email-service";
@@ -28,6 +30,10 @@ export function EmailInboxPage() {
   const orgId = organization?.id || "";
 
   const { email, emailError } = useEmail(emailId || null);
+
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState("");
+
   const {
     threads,
     isThreadsLoading,
@@ -35,10 +41,11 @@ export function EmailInboxPage() {
     isThreadsReachingEnd,
     threadsObserverTargetRef,
     threadsError,
-  } = useMailboxThreads(emailId || null);
+  } = useMailboxThreads(emailId || null, search || undefined);
 
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
-  // Default the selection to the most recent conversation once threads load.
+  // Default the selection to the most recent conversation in the current
+  // result set once threads load.
   const activeThreadId = selectedThreadId ?? threads[0]?.id ?? null;
 
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
@@ -53,22 +60,52 @@ export function EmailInboxPage() {
     return <InsetError title="Inbox" errorMessage={emailError.message} />;
   }
 
+  const runSearch = () => {
+    setSearch(searchInput);
+    // Drop the prior selection so the view lands on the first match.
+    setSelectedThreadId(null);
+  };
+
+  const clearSearch = () => {
+    setSearch("");
+    setSearchInput("");
+    setSelectedThreadId(null);
+  };
+
   return (
-    <InsetLayout
-      title={email?.name || "Inbox"}
-      titleRight={
-        email ? (
-          <span className="text-sm text-muted-foreground">{email.address}</span>
-        ) : null
-      }
-      childrenClassName="h-full flex flex-col"
-    >
-      <div className="text-sm text-muted-foreground max-w-2xl mb-6">
-        A read-only history of the conversations your workflows have recorded
-        for this address.
+    <div className="flex flex-col h-full">
+      <div className="flex flex-col gap-2 px-4 py-2 border-b sm:flex-row sm:items-center">
+        <form
+          className="flex gap-2 flex-1"
+          onSubmit={(e) => {
+            e.preventDefault();
+            runSearch();
+          }}
+        >
+          <div className="flex-1">
+            <SearchInput
+              placeholder="Search by subject or sender…"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+            />
+          </div>
+          <Button type="submit" variant="outline" className="h-10">
+            Search
+          </Button>
+          {search && (
+            <Button
+              type="button"
+              variant="ghost"
+              className="h-10"
+              onClick={clearSearch}
+            >
+              Clear
+            </Button>
+          )}
+        </form>
       </div>
 
-      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[20rem_1fr] gap-6">
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-[360px_1fr] min-h-0">
         <ThreadList
           threads={threads}
           isLoading={isThreadsLoading}
@@ -79,26 +116,19 @@ export function EmailInboxPage() {
           activeThreadId={activeThreadId}
           onSelect={setSelectedThreadId}
         />
-        <ThreadDetail
-          orgId={orgId}
-          emailId={emailId || ""}
-          threadId={activeThreadId}
-        />
+
+        <div className="overflow-hidden">
+          {activeThreadId ? (
+            <ThreadDetail
+              orgId={orgId}
+              emailId={emailId || ""}
+              threadId={activeThreadId}
+            />
+          ) : (
+            <EmptyState />
+          )}
+        </div>
       </div>
-    </InsetLayout>
-  );
-}
-
-// Shared full-height panel chrome. The bordered, white box is always rendered
-// at the pane's full size so loading/empty/error states fill it instead of
-// collapsing to a line of text. Grid `stretch` gives it height on desktop.
-const PANEL_CLASS =
-  "min-h-0 flex flex-col border rounded-lg overflow-hidden bg-card";
-
-function PanelMessage({ children }: { children: ReactNode }) {
-  return (
-    <div className="flex-1 min-h-0 flex flex-col items-center justify-center gap-2 text-center text-sm text-muted-foreground p-6">
-      {children}
     </div>
   );
 }
@@ -122,61 +152,64 @@ function ThreadList({
   activeThreadId: string | null;
   onSelect: (id: string) => void;
 }) {
-  let content: ReactNode;
-  if (isLoading) {
-    content = (
-      <PanelMessage>
-        <span className="flex items-center gap-2">
-          <Spinner className="size-4" /> Loading conversations…
-        </span>
-      </PanelMessage>
-    );
-  } else if (error) {
-    content = (
-      <PanelMessage>
-        <span className="text-destructive">
-          Failed to load conversations: {error.message}
-        </span>
-      </PanelMessage>
-    );
-  } else if (threads.length === 0) {
-    content = (
-      <PanelMessage>
-        <Inbox className="size-6" />
-        <span>No conversations yet</span>
-      </PanelMessage>
-    );
-  } else {
-    content = (
-      <div className="flex-1 min-h-0 overflow-y-auto divide-y">
-        {threads.map((thread) => {
-          const isActive = thread.id === activeThreadId;
-          return (
-            <button
-              key={thread.id}
-              type="button"
-              onClick={() => onSelect(thread.id)}
-              className={cn(
-                "w-full text-left px-3 py-2.5 hover:bg-muted/60 transition-colors",
-                isActive && "bg-muted"
-              )}
-            >
-              <div className="flex items-baseline justify-between gap-2">
-                <span className="font-medium text-sm truncate">
-                  {thread.subject || "(no subject)"}
-                </span>
-                <span className="text-xs text-muted-foreground shrink-0">
-                  {formatDate(thread.lastMessageAt)}
-                </span>
-              </div>
-              <p className="text-xs text-muted-foreground truncate">
-                {thread.fromEmail}
-              </p>
-            </button>
-          );
-        })}
+  return (
+    <div className="flex flex-col overflow-hidden lg:border-r">
+      <div className="flex-1 overflow-y-auto">
+        {isLoading && threads.length === 0 && (
+          <div className="p-6 text-sm text-muted-foreground">
+            Loading conversations…
+          </div>
+        )}
+        {error && (
+          <div className="p-6 text-sm text-destructive">
+            Failed to load conversations: {error.message}
+          </div>
+        )}
+        {!isLoading && !error && threads.length === 0 && (
+          <div className="p-6 text-sm text-muted-foreground text-center">
+            No conversations
+          </div>
+        )}
+        <ul>
+          {threads.map((thread) => {
+            const isSelected = thread.id === activeThreadId;
+            return (
+              <li key={thread.id}>
+                <button
+                  type="button"
+                  onClick={() => onSelect(thread.id)}
+                  className={cn(
+                    "w-full text-left px-4 py-3 border-l-2 border-l-transparent hover:bg-neutral-100/70 dark:hover:bg-neutral-800/50 transition-colors",
+                    isSelected &&
+                      "bg-neutral-100 dark:bg-neutral-800 border-l-primary"
+                  )}
+                >
+                  <div className="flex items-start gap-3">
+                    <SenderAvatar
+                      name={thread.fromEmail}
+                      className="h-9 w-9 shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2 mb-0.5">
+                        <div className="truncate text-sm font-medium">
+                          {thread.fromEmail}
+                        </div>
+                        <span className="text-xs text-muted-foreground shrink-0">
+                          {formatDate(thread.lastMessageAt)}
+                        </span>
+                      </div>
+                      <div className="text-sm truncate text-muted-foreground">
+                        {thread.subject || "(no subject)"}
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
         {/* Sentinel: scrolling this into view loads the next page. */}
-        {!isReachingEnd && (
+        {threads.length > 0 && !isReachingEnd && (
           <div
             ref={observerTargetRef}
             className="flex items-center justify-center gap-2 py-3 text-xs text-muted-foreground"
@@ -186,10 +219,8 @@ function ThreadList({
           </div>
         )}
       </div>
-    );
-  }
-
-  return <div className={PANEL_CLASS}>{content}</div>;
+    </div>
+  );
 }
 
 function ThreadDetail({
@@ -199,56 +230,55 @@ function ThreadDetail({
 }: {
   orgId: string;
   emailId: string;
-  threadId: string | null;
+  threadId: string;
 }) {
   const { thread, messages, isThreadLoading, threadError } = useMailboxThread(
     emailId || null,
     threadId
   );
 
-  let content: ReactNode;
-  if (!threadId) {
-    content = <PanelMessage>Select a conversation to read it.</PanelMessage>;
-  } else if (isThreadLoading) {
-    content = (
-      <PanelMessage>
-        <span className="flex items-center gap-2">
-          <Spinner className="size-4" /> Loading conversation…
-        </span>
-      </PanelMessage>
-    );
-  } else if (threadError) {
-    content = (
-      <PanelMessage>
-        <span className="text-destructive">
-          Failed to load conversation: {threadError.message}
-        </span>
-      </PanelMessage>
-    );
-  } else {
-    content = (
-      <>
-        <div className="shrink-0 px-4 py-4 border-b">
-          <h2 className="text-lg font-semibold">
-            {thread?.subject || "(no subject)"}
-          </h2>
-          <p className="text-sm text-muted-foreground">{thread?.fromEmail}</p>
-        </div>
-        <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 flex flex-col gap-6">
-          {messages.map((message) => (
-            <MessageCard
-              key={message.id}
-              message={message}
-              orgId={orgId}
-              emailId={emailId}
-            />
-          ))}
-        </div>
-      </>
+  if (isThreadLoading && !thread) {
+    return (
+      <div className="p-6 text-sm text-muted-foreground">
+        Loading conversation…
+      </div>
     );
   }
+  if (threadError) {
+    return (
+      <div className="p-6 text-sm text-destructive">{threadError.message}</div>
+    );
+  }
+  if (!thread) {
+    return <EmptyState />;
+  }
 
-  return <div className={PANEL_CLASS}>{content}</div>;
+  return (
+    <div className="flex flex-col h-full">
+      <div className="px-4 py-2 border-b flex items-center gap-3">
+        <SenderAvatar name={thread.fromEmail} className="h-10 w-10 shrink-0" />
+        <div className="min-w-0 h-10 flex flex-col justify-center leading-tight">
+          <h2 className="font-semibold truncate">
+            {thread.subject || "(no subject)"}
+          </h2>
+          <p className="text-sm text-muted-foreground truncate font-mono">
+            {thread.fromEmail}
+          </p>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-5 py-4 space-y-6">
+        {messages.map((message) => (
+          <MessageCard
+            key={message.id}
+            message={message}
+            orgId={orgId}
+            emailId={emailId}
+          />
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function MessageCard({
@@ -380,6 +410,30 @@ function HtmlBodyFrame({ html }: { html: string | null }) {
       srcDoc={html}
       className="w-full min-h-[200px] border-0"
     />
+  );
+}
+
+function SenderAvatar({
+  name,
+  className,
+}: {
+  name: string;
+  className?: string;
+}) {
+  const initial = name?.trim().charAt(0).toUpperCase() || "?";
+  return (
+    <Avatar className={className}>
+      <AvatarFallback>{initial}</AvatarFallback>
+    </Avatar>
+  );
+}
+
+function EmptyState() {
+  return (
+    <div className="h-full flex flex-col items-center justify-center text-muted-foreground gap-2">
+      <Inbox className="h-8 w-8" />
+      <p className="text-sm">Select a conversation to read it</p>
+    </div>
   );
 }
 

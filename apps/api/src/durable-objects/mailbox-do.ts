@@ -381,19 +381,38 @@ export class MailboxDO extends DurableObject<Bindings> {
   async listThreads(
     emailId: string,
     limit: number,
-    offset: number
+    offset: number,
+    search?: string
   ): Promise<MailboxThreadRow[]> {
     this.ensureSchema();
-    const rows = this.ctx.storage.sql
-      .exec(
-        `SELECT id, email_id, subject, from_email, last_message_at, created_at
-         FROM threads WHERE email_id = ?
-         ORDER BY last_message_at DESC LIMIT ? OFFSET ?`,
-        emailId,
-        limit,
-        offset
-      )
-      .toArray() as Record<string, unknown>[];
+    const term = search?.trim();
+    const sql = this.ctx.storage.sql;
+    // Escape the LIKE wildcards a user might type so they match themselves
+    // rather than acting as patterns.
+    const like = term && `%${term.replace(/[\\%_]/g, "\\$&")}%`;
+    const rows = (
+      like
+        ? sql.exec(
+            `SELECT id, email_id, subject, from_email, last_message_at, created_at
+             FROM threads
+             WHERE email_id = ?
+               AND (subject LIKE ? ESCAPE '\\' OR from_email LIKE ? ESCAPE '\\')
+             ORDER BY last_message_at DESC LIMIT ? OFFSET ?`,
+            emailId,
+            like,
+            like,
+            limit,
+            offset
+          )
+        : sql.exec(
+            `SELECT id, email_id, subject, from_email, last_message_at, created_at
+             FROM threads WHERE email_id = ?
+             ORDER BY last_message_at DESC LIMIT ? OFFSET ?`,
+            emailId,
+            limit,
+            offset
+          )
+    ).toArray() as Record<string, unknown>[];
     return rows.map((r) => ({
       id: r.id as string,
       emailId: r.email_id as string,
