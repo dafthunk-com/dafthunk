@@ -173,6 +173,51 @@ describe("MailboxDO", () => {
     expect(elsewhere[0].subject).toBe("Elsewhere");
   });
 
+  it("scopes thread search to the address, even when another address matches", async () => {
+    // A thread on a *different* address whose sender matches the search term.
+    // If the email_id filter and the OR'd LIKE clauses were not parenthesized,
+    // this would leak into the searched address's results.
+    await mailbox.ingestInbound(
+      inbound({
+        emailId: "email-other",
+        subject: "Unrelated subject",
+        fromEmail: "alice@example.com",
+      })
+    );
+    const { threadId: mine } = await mailbox.ingestInbound(
+      inbound({ subject: "Quarterly report", fromEmail: "alice@example.com" })
+    );
+    // A second thread on our address that should NOT match "alice".
+    await mailbox.ingestInbound(
+      inbound({ subject: "Nothing to see", fromEmail: "bob@example.com" })
+    );
+
+    // Match by sender — only our address's matching thread is returned.
+    const bySender = await mailbox.listThreads(EMAIL_ID, 100, 0, "alice");
+    expect(bySender.map((t) => t.id)).toEqual([mine]);
+
+    // Match by subject — same isolation.
+    const bySubject = await mailbox.listThreads(EMAIL_ID, 100, 0, "report");
+    expect(bySubject.map((t) => t.id)).toEqual([mine]);
+
+    // The other address can still find its own thread by the same sender.
+    const other = await mailbox.listThreads("email-other", 100, 0, "alice");
+    expect(other).toHaveLength(1);
+    expect(other[0].subject).toBe("Unrelated subject");
+  });
+
+  it("treats typed LIKE wildcards as literals in search", async () => {
+    const { threadId: literal } = await mailbox.ingestInbound(
+      inbound({ subject: "50% off sale" })
+    );
+    await mailbox.ingestInbound(inbound({ subject: "plain subject" }));
+
+    // "%" must match a literal percent sign, not act as a wildcard (which
+    // would otherwise also return "plain subject").
+    const results = await mailbox.listThreads(EMAIL_ID, 100, 0, "50%");
+    expect(results.map((t) => t.id)).toEqual([literal]);
+  });
+
   it("lists and fetches attachments scoped to a thread", async () => {
     const messageId = uuidv7();
     const attachmentId = uuidv7();
