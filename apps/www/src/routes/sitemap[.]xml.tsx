@@ -5,134 +5,88 @@ import workflowsData from "../../data/workflows.json";
 
 const websiteUrl = import.meta.env.VITE_WEBSITE_URL;
 
+interface SitemapEntry {
+  loc: string;
+  // Only set when a genuine content-change date is known; stamping every URL
+  // with the build date teaches crawlers to ignore the signal entirely.
+  lastmod?: string;
+}
+
 export function loader() {
   const baseUrl = websiteUrl;
-  const today = new Date().toISOString().split("T")[0];
 
-  const staticPages = [
-    { loc: "/", lastmod: today, changefreq: "weekly", priority: "1.0" },
-    {
-      loc: "/terms",
-      lastmod: today,
-      changefreq: "monthly",
-      priority: "0.3",
-    },
-    {
-      loc: "/privacy",
-      lastmod: today,
-      changefreq: "monthly",
-      priority: "0.3",
-    },
-    {
-      loc: "/cookies",
-      lastmod: "2025-11-23",
-      changefreq: "monthly",
-      priority: "0.3",
-    },
+  const staticPages: SitemapEntry[] = [
+    { loc: "/" },
+    { loc: "/terms" },
+    { loc: "/privacy" },
+    { loc: "/cookies", lastmod: "2025-11-23" },
   ];
 
-  const nodesIndexPage = {
-    loc: "/nodes",
-    lastmod: today,
-    changefreq: "weekly",
-    priority: "0.9",
-  };
+  const nodePages: SitemapEntry[] = [
+    { loc: "/nodes" },
+    ...categories.categories.flatMap((category) => [
+      { loc: `/nodes/${category.id}` },
+      ...category.nodeIds.map((nodeId) => ({
+        loc: `/nodes/${category.id}/${nodeId}`,
+      })),
+    ]),
+  ];
 
-  const categoryPages = categories.categories.map((category) => ({
-    loc: `/nodes/${category.id}`,
-    lastmod: today,
-    changefreq: "weekly",
-    priority: "0.8",
-  }));
+  const workflowPages: SitemapEntry[] = [
+    { loc: "/workflows" },
+    ...workflowsData.workflows.map((workflow) => ({
+      loc: `/workflows/${workflow.id}`,
+    })),
+  ];
 
-  const nodePages = categories.categories.flatMap((category) =>
-    category.nodeIds.map((nodeId) => ({
-      loc: `/nodes/${category.id}/${nodeId}`,
-      lastmod: today,
-      changefreq: "monthly",
-      priority: "0.6",
-    }))
-  );
+  const alternativePages: SitemapEntry[] = [
+    { loc: "/alternatives" },
+    ...alternativesData.alternatives
+      .filter((alternative) => alternative.published)
+      .map((alternative) => ({
+        loc: `/alternatives/${alternative.id}`,
+        lastmod: alternative.verifiedAt,
+      })),
+  ];
 
-  const workflowIndexPage = {
-    loc: "/workflows",
-    lastmod: today,
-    changefreq: "weekly",
-    priority: "0.9",
-  };
+  const docsPages: SitemapEntry[] = [
+    { loc: "/docs" },
+    { loc: "/docs/concepts" },
+    { loc: "/docs/nodes" },
+    { loc: "/docs/api" },
+    { loc: "/docs/developers" },
+  ];
 
-  const workflowPages = workflowsData.workflows.map((workflow) => ({
-    loc: `/workflows/${workflow.id}`,
-    lastmod: today,
-    changefreq: "weekly",
-    priority: "0.7",
-  }));
-
-  const alternativesIndexPage = {
-    loc: "/alternatives",
-    lastmod: today,
-    changefreq: "weekly",
-    priority: "0.9",
-  };
-
-  const alternativePages = alternativesData.alternatives
-    .filter((alternative) => alternative.published)
-    .map((alternative) => ({
-      loc: `/alternatives/${alternative.id}`,
-      lastmod: alternative.verifiedAt,
-      changefreq: "monthly",
-      priority: "0.8",
-    }));
-
-  const docsPages = [
-    { loc: "/docs", changefreq: "weekly", priority: "0.9" },
-    { loc: "/docs/concepts", changefreq: "monthly", priority: "0.8" },
-    { loc: "/docs/nodes", changefreq: "monthly", priority: "0.8" },
-    { loc: "/docs/api", changefreq: "monthly", priority: "0.8" },
-    { loc: "/docs/developers", changefreq: "monthly", priority: "0.8" },
-  ].map((page) => ({ ...page, lastmod: today }));
-
-  const blogIndexPage = {
-    loc: "/blog",
-    lastmod: today,
-    changefreq: "weekly",
-    priority: "0.8",
-  };
-
-  const blogPostPages = blogData.posts
-    .filter((post) => post.published)
-    .map((post) => ({
-      loc: `/blog/${post.id}`,
-      lastmod: post.date,
-      changefreq: "monthly",
-      priority: "0.7",
-    }));
+  const blogPages: SitemapEntry[] = [
+    { loc: "/blog" },
+    ...blogData.posts
+      .filter((post) => post.published)
+      .map((post: { id: string; date: string; updated?: string }) => ({
+        loc: `/blog/${post.id}`,
+        lastmod: post.updated ?? post.date,
+      })),
+  ];
 
   const allPages = [
     ...staticPages,
-    nodesIndexPage,
-    ...categoryPages,
     ...nodePages,
-    workflowIndexPage,
     ...workflowPages,
-    alternativesIndexPage,
     ...alternativePages,
     ...docsPages,
-    blogIndexPage,
-    ...blogPostPages,
+    ...blogPages,
   ];
 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${allPages
-  .map(
-    (page) => `  <url>
-    <loc>${baseUrl}${page.loc}</loc>
-    <lastmod>${page.lastmod}</lastmod>
-    <changefreq>${page.changefreq}</changefreq>
-    <priority>${page.priority}</priority>
-  </url>`
-  )
+  .map((page) => {
+    const lastmod = page.lastmod
+      ? `\n    <lastmod>${page.lastmod}</lastmod>`
+      : "";
+    return `  <url>
+    <loc>${baseUrl}${page.loc}</loc>${lastmod}
+  </url>`;
+  })
   .join("\n")}
 </urlset>`;
 

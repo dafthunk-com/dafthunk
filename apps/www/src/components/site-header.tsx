@@ -14,6 +14,7 @@ const navigation: NavigationItem[] = [
   { href: "/#use-cases", label: "Use Cases" },
   { href: "/#open-source", label: "Open Source" },
   { href: "/#faq", label: "FAQ" },
+  { href: "/alternatives", label: "Compare" },
   { href: "/docs", label: "Docs" },
   { href: "/blog", label: "Blog" },
   {

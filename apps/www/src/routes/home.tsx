@@ -31,7 +31,13 @@ export function meta() {
   ];
 }
 
-const faqs = [
+interface Faq {
+  question: string;
+  answer: string;
+  link?: { to: string; label: string };
+}
+
+const faqs: Faq[] = [
   {
     question: "What is Dafthunk?",
     answer:
@@ -46,6 +52,7 @@ const faqs = [
     question: "How is Dafthunk different from n8n, Zapier, or Make?",
     answer:
       "Dafthunk is MIT licensed rather than fair-code like n8n, and it runs natively on Cloudflare's serverless platform. Workflows scale to zero when idle and scale up automatically with demand, with no containers or infrastructure to provision. You can self-host it for free or embed it in commercial products.",
+    link: { to: "/alternatives", label: "See the full comparisons" },
   },
   {
     question: "Do I need to manage servers or containers to run Dafthunk?",
@@ -77,12 +84,29 @@ const faqJsonLd = {
   })),
 };
 
+const videoJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "VideoObject",
+  name: "Dafthunk Demo",
+  description:
+    "Product demo: build a visual workflow by connecting AI models, browsers, and APIs, then deploy it on Cloudflare's serverless platform with Dafthunk.",
+  thumbnailUrl: ["https://i.ytimg.com/vi/5EjJz1Dhtz0/maxresdefault.jpg"],
+  uploadDate: "2025-06-26T04:23:31-07:00",
+  contentUrl: "https://www.youtube.com/watch?v=5EjJz1Dhtz0",
+  embedUrl: "https://www.youtube-nocookie.com/embed/5EjJz1Dhtz0",
+  publisher: { "@id": `${websiteUrl}/#organization` },
+};
+
 export default function Home() {
   return (
     <Layout>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(videoJsonLd) }}
       />
       <section className="px-6 pt-32 pb-32" aria-label="Hero">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-16 items-center">
@@ -94,24 +118,34 @@ export default function Home() {
               </span>
               Open source · MIT · Running on Cloudflare
             </div>
-            <h1 className="text-7xl font-light text-gray-900 mb-8 leading-[1.1]">
+            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-light text-gray-900 mb-8 leading-[1.1]">
               Visual workflow
               <br />
               automation on Cloudflare
             </h1>
-            <p className="text-2xl text-gray-600 mb-10 leading-relaxed">
+            <p className="text-lg sm:text-xl lg:text-2xl text-gray-600 mb-10 leading-relaxed">
               Build workflows visually by connecting artificial intelligence
               (AI) models, browsers, data pipelines and APIs, then deploy them
               on Cloudflare's serverless platform. Workflows scale to zero when
               idle and up with demand, and the entire stack is yours under MIT.
               No enterprise tier, no fair-code carve-outs, no asterisks.
             </p>
-            <a
-              href={import.meta.env.VITE_APP_URL}
-              className="inline-block text-lg bg-black text-white px-8 py-4 rounded-lg hover:bg-gray-800 transition-colors"
-            >
-              Automate something
-            </a>
+            <div className="flex flex-wrap items-center gap-4">
+              <a
+                href={import.meta.env.VITE_APP_URL}
+                className="inline-block text-lg bg-black text-white px-8 py-4 rounded-lg hover:bg-gray-800 transition-colors"
+              >
+                Automate something
+              </a>
+              <a
+                href="https://github.com/dafthunk-com/dafthunk"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block text-lg bg-white border border-gray-300 text-gray-900 px-8 py-4 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                View on GitHub
+              </a>
+            </div>
             <p className="mt-6 text-sm text-gray-500">
               By signing up, you agree to our{" "}
               <Link to="/terms" className="underline hover:text-gray-700">
@@ -169,11 +203,11 @@ export default function Home() {
           </p>
           <h2
             id="features-heading"
-            className="text-6xl font-light text-gray-900 mb-6"
+            className="text-4xl lg:text-6xl font-light text-gray-900 mb-6"
           >
             Serverless workflows, zero infrastructure
           </h2>
-          <p className="text-3xl text-gray-500">
+          <p className="text-2xl lg:text-3xl text-gray-500">
             Scale to zero when idle, to whatever traffic throws at you when it's
             not
           </p>
@@ -335,11 +369,11 @@ export default function Home() {
           </p>
           <h2
             id="use-cases-heading"
-            className="text-6xl font-light text-gray-900 mb-6"
+            className="text-4xl lg:text-6xl font-light text-gray-900 mb-6"
           >
             Automation use cases
           </h2>
-          <p className="text-3xl text-gray-500">
+          <p className="text-2xl lg:text-3xl text-gray-500">
             What you can build with workflow automation
           </p>
           <Link
@@ -405,11 +439,11 @@ export default function Home() {
           </p>
           <h2
             id="capabilities-heading"
-            className="text-6xl font-light text-gray-900 mb-6"
+            className="text-4xl lg:text-6xl font-light text-gray-900 mb-6"
           >
             Automation capabilities
           </h2>
-          <p className="text-3xl text-gray-500">
+          <p className="text-2xl lg:text-3xl text-gray-500">
             Workflow nodes across AI, browser automation, data processing,
             media, and integrations
           </p>
@@ -476,11 +510,11 @@ export default function Home() {
           </p>
           <h2
             id="open-source-heading"
-            className="text-6xl font-light text-gray-900 mb-6"
+            className="text-4xl lg:text-6xl font-light text-gray-900 mb-6"
           >
             Open source workflow platform
           </h2>
-          <p className="text-3xl text-gray-500">
+          <p className="text-2xl lg:text-3xl text-gray-500">
             MIT licensed and developed in public
           </p>
         </div>
@@ -521,11 +555,11 @@ export default function Home() {
           </p>
           <h2
             id="faq-heading"
-            className="text-6xl font-light text-gray-900 mb-6"
+            className="text-4xl lg:text-6xl font-light text-gray-900 mb-6"
           >
             Frequently asked questions
           </h2>
-          <p className="text-3xl text-gray-500">
+          <p className="text-2xl lg:text-3xl text-gray-500">
             What people ask before they try Dafthunk
           </p>
         </div>
@@ -545,6 +579,14 @@ export default function Home() {
                 <p className="text-xl text-gray-600 leading-relaxed">
                   {faq.answer}
                 </p>
+                {faq.link && (
+                  <Link
+                    to={faq.link.to}
+                    className="inline-flex items-center gap-2 mt-4 text-lg text-gray-900 underline hover:text-gray-600"
+                  >
+                    {faq.link.label} &rarr;
+                  </Link>
+                )}
               </div>
             </div>
           ))}
@@ -555,7 +597,7 @@ export default function Home() {
         <div className="max-w-4xl mx-auto text-center">
           <h2
             id="cta-heading"
-            className="text-6xl font-light text-gray-900 mb-8 leading-[1.1]"
+            className="text-4xl lg:text-6xl font-light text-gray-900 mb-8 leading-[1.1]"
           >
             Go automate something
           </h2>

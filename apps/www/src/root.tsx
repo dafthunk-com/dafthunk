@@ -38,9 +38,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
         url: websiteUrl,
         logo: {
           "@type": "ImageObject",
-          url: `${websiteUrl}/icon.svg`,
+          url: `${websiteUrl}/logo-black.png`,
         },
-        sameAs: ["https://github.com/dafthunk-com/dafthunk"],
+        sameAs: [
+          "https://github.com/dafthunk-com/dafthunk",
+          "https://discord.gg/Z6xHWA9sPN",
+        ],
         contactPoint: {
           "@type": "ContactPoint",
           email: "contact@dafthunk.com",

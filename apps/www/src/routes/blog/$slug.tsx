@@ -13,6 +13,7 @@ interface BlogPost {
   description: string;
   tagline: string;
   date: string;
+  updated?: string;
   author: string;
   readingMinutes: number;
   tags: string[];
@@ -91,8 +92,14 @@ export default function BlogPostPage({
     "@type": "BlogPosting",
     headline: post.title,
     description: post.description,
+    image: `${websiteUrl}/og-image.webp`,
     datePublished: post.date,
-    author: { "@type": "Organization", name: post.author },
+    dateModified: post.updated ?? post.date,
+    author: {
+      "@type": "Organization",
+      name: post.author,
+      url: "https://github.com/dafthunk-com",
+    },
     publisher: {
       "@type": "Organization",
       name: "Dafthunk",
@@ -105,6 +112,7 @@ export default function BlogPostPage({
       "@type": "WebPage",
       "@id": `${websiteUrl}/blog/${post.id}`,
     },
+    articleSection: post.tags[0],
     keywords: post.tags.join(", "),
   };
 

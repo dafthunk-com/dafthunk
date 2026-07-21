@@ -109,7 +109,7 @@ export function SiteFooter() {
       </div>
       <div className="border-t border-white/10 pt-8 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <p className="text-base text-gray-400">
-          © 2025 Dafthunk. All rights reserved.
+          © {new Date().getFullYear()} Dafthunk. All rights reserved.
         </p>
         <nav className="flex flex-wrap items-center gap-8">
           <a
