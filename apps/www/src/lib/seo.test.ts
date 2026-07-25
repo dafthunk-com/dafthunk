@@ -4,11 +4,13 @@ import categoriesData from "../../data/categories.json";
 import nodeMetaDescriptions from "../../data/node-meta-descriptions.json";
 import nodesData from "../../data/nodes.json";
 import workflowsData from "../../data/workflows.json";
+import { canonicalNodePath, canonicalNodePaths } from "./nodes";
 import { META_DESCRIPTION_MAX, META_DESCRIPTION_MIN } from "./seo";
 
 interface CategoryLike {
   id: string;
   metaDescription?: string;
+  nodeIds: string[];
 }
 
 interface WorkflowLike {
@@ -96,6 +98,35 @@ describe("node descriptions fit SERP bounds", () => {
   it("node overrides reference real node IDs", () => {
     const unknown = Object.keys(nodeOverrides).filter((id) => !nodes[id]);
     expect(unknown).toEqual([]);
+  });
+});
+
+describe("node URLs are unique", () => {
+  // A node in two category arrays used to be emitted at two sitemap URLs with
+  // identical content; Google indexed both and self-canonicalized each.
+  it("emits exactly one path per node, with no duplicate paths", () => {
+    const paths = canonicalNodePaths();
+    const nodeIds = new Set(categories.flatMap((c) => c.nodeIds));
+
+    expect(new Set(paths).size).toBe(paths.length);
+    expect(paths.length).toBe(nodeIds.size);
+  });
+
+  it("resolves every category listing of a node to the same canonical path", () => {
+    const pathsByNode = new Map<string, Set<string>>();
+    for (const category of categories) {
+      for (const nodeId of category.nodeIds) {
+        const seen = pathsByNode.get(nodeId) ?? new Set<string>();
+        seen.add(canonicalNodePath(nodeId, category.id));
+        pathsByNode.set(nodeId, seen);
+      }
+    }
+
+    const divergent = [...pathsByNode]
+      .filter(([, seen]) => seen.size > 1)
+      .map(([nodeId, seen]) => `${nodeId}: ${[...seen].join(", ")}`);
+
+    expect(divergent).toEqual([]);
   });
 });
 

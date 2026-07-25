@@ -5,5 +5,10 @@
   "sector": "Create a circular sector of a given radius centered at a Point, between two bearings measured clockwise from North (0 is due North of the center).",
   "json-execute-javascript": "Execute a JavaScript script with a JSON object bound as the global variable 'json'. Returns the value of the last expression evaluated in the script.",
   "cloudflare-model": "Run any model from the Cloudflare Workers AI catalog. Pick one and the node rebuilds its inputs and outputs from the model's published schema.",
-  "cloudflare-gateway-model": "Run any third-party model from Cloudflare's unified AI catalog (xAI, OpenAI, Google) via the AI Gateway. Pick one and the node adapts its inputs and outputs."
+  "cloudflare-gateway-model": "Run any third-party model from Cloudflare's unified AI catalog (xAI, OpenAI, Google) via the AI Gateway. Pick one and the node adapts its inputs and outputs.",
+  "cloudflare-browser-json": "Extract structured JSON from a JavaScript-rendered page. Give it a URL plus a prompt or a JSON schema, and get typed data back instead of raw HTML.",
+  "cloudflare-browser-screenshot": "Capture a screenshot of any URL or raw HTML string. Set the viewport, cookies and authentication, then pass the resulting image straight to the next node.",
+  "cloudflare-browser-markdown": "Convert a rendered web page into clean Markdown, ready for an LLM prompt or a RAG index. Handles JavaScript-heavy pages that a plain HTTP fetch would miss.",
+  "photon-crop": "Crop an image to an exact rectangle given x, y, width and height. Runs on Photon compiled to WebAssembly, so no external image service is involved.",
+  "photon-resize": "Resize an image to an exact width and height, choosing the sampling filter that fits the quality you need. Runs on Photon compiled to WebAssembly."
 }

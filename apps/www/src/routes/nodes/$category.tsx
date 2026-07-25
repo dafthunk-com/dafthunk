@@ -5,6 +5,7 @@ import { data, Link } from "react-router";
 import categories from "../../../data/categories.json";
 import allNodes from "../../../data/nodes.json";
 import { Layout } from "../../components/layout";
+import { canonicalNodePath } from "../../lib/nodes";
 
 const websiteUrl = import.meta.env.VITE_WEBSITE_URL;
 
@@ -187,7 +188,7 @@ export default function CategoryPage({
             return (
               <Link
                 key={node.id}
-                to={`/nodes/${category.id}/${node.id}`}
+                to={canonicalNodePath(node.id, category.id)}
                 className="group block bg-white rounded-xl p-6 shadow-xs hover:shadow-md transition-shadow"
               >
                 <div className="flex items-start gap-4">

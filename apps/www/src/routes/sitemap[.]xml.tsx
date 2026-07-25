@@ -2,6 +2,7 @@ import alternativesData from "../../data/alternatives.json";
 import blogData from "../../data/blog-posts.json";
 import categories from "../../data/categories.json";
 import workflowsData from "../../data/workflows.json";
+import { canonicalNodePaths } from "../lib/nodes";
 
 const websiteUrl = import.meta.env.VITE_WEBSITE_URL;
 
@@ -22,14 +23,14 @@ export function loader() {
     { loc: "/cookies", lastmod: "2025-11-23" },
   ];
 
+  // Node paths come from canonicalNodePaths(), not from the category arrays, so
+  // a node listed in two categories is still advertised at a single URL.
   const nodePages: SitemapEntry[] = [
     { loc: "/nodes" },
-    ...categories.categories.flatMap((category) => [
-      { loc: `/nodes/${category.id}` },
-      ...category.nodeIds.map((nodeId) => ({
-        loc: `/nodes/${category.id}/${nodeId}`,
-      })),
-    ]),
+    ...categories.categories.map((category) => ({
+      loc: `/nodes/${category.id}`,
+    })),
+    ...canonicalNodePaths().map((loc) => ({ loc })),
   ];
 
   const workflowPages: SitemapEntry[] = [

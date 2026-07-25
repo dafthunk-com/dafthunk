@@ -6,6 +6,7 @@ import categories from "../../../data/categories.json";
 import nodeMetaDescriptions from "../../../data/node-meta-descriptions.json";
 import allNodes from "../../../data/nodes.json";
 import { Layout } from "../../components/layout";
+import { canonicalNodePath } from "../../lib/nodes";
 
 const websiteUrl = import.meta.env.VITE_WEBSITE_URL;
 
@@ -81,7 +82,9 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   const { category, node } = data;
   const title = `${node.name} ${category.name} Node | Dafthunk`;
   const description = nodeMetaMap[node.id] ?? node.description ?? "";
-  const url = `${websiteUrl}/nodes/${category.id}/${node.id}`;
+  // Not the requested URL: a node listed in two categories is reachable at two
+  // paths, and both must point at the same canonical one.
+  const url = `${websiteUrl}${canonicalNodePath(node.id, category.id)}`;
   const ogImage = `${websiteUrl}/og-image.webp`;
 
   return [
@@ -157,7 +160,7 @@ export default function NodePage({ loaderData }: { loaderData: LoaderData }) {
         "@type": "ListItem",
         position: 4,
         name: node.name,
-        item: `${websiteUrl}/nodes/${category.id}/${node.id}`,
+        item: `${websiteUrl}${canonicalNodePath(node.id, category.id)}`,
       },
     ],
   };
@@ -331,7 +334,7 @@ export default function NodePage({ loaderData }: { loaderData: LoaderData }) {
                 return (
                   <Link
                     key={relatedNode.id}
-                    to={`/nodes/${category.id}/${relatedNode.id}`}
+                    to={canonicalNodePath(relatedNode.id, category.id)}
                     className="group block bg-white rounded-xl p-4 shadow-xs hover:shadow-md transition-shadow"
                   >
                     <div className="flex items-center gap-3">
