@@ -76,10 +76,10 @@ export function loader({ params }: LoaderFunctionArgs) {
 
 const nodeMetaMap = nodeMetaDescriptions as Record<string, string>;
 
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
-  if (!data) return [{ title: "Not Found - Dafthunk" }];
+export const meta: MetaFunction<typeof loader> = ({ loaderData }) => {
+  if (!loaderData) return [{ title: "Not Found - Dafthunk" }];
 
-  const { category, node } = data;
+  const { category, node } = loaderData;
   const title = `${node.name} ${category.name} Node | Dafthunk`;
   const description = nodeMetaMap[node.id] ?? node.description ?? "";
   // Not the requested URL: a node listed in two categories is reachable at two

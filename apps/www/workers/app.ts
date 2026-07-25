@@ -8,15 +8,6 @@ interface Env {
   VITE_GA_MEASUREMENT_ID?: string;
 }
 
-declare module "react-router" {
-  interface AppLoadContext {
-    cloudflare: {
-      env: Env;
-      ctx: ExecutionContext;
-    };
-  }
-}
-
 const requestHandler = createRequestHandler(
   // @ts-expect-error - virtual module
   () => import("virtual:react-router/server-build"),
@@ -47,10 +38,8 @@ const securityHeaders: Record<string, string> = {
 };
 
 export default {
-  async fetch(request: Request, env: Env, ctx: ExecutionContext) {
-    const response = await requestHandler(request, {
-      cloudflare: { env, ctx },
-    });
+  async fetch(request: Request) {
+    const response = await requestHandler(request);
     const withHeaders = new Response(response.body, response);
     for (const [name, value] of Object.entries(securityHeaders)) {
       withHeaders.headers.set(name, value);

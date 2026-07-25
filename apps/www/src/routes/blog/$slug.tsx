@@ -44,10 +44,10 @@ export function loader({ params }: LoaderFunctionArgs) {
   return { post };
 }
 
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
-  if (!data) return [{ title: "Not Found - Dafthunk" }];
+export const meta: MetaFunction<typeof loader> = ({ loaderData }) => {
+  if (!loaderData) return [{ title: "Not Found - Dafthunk" }];
 
-  const { post } = data;
+  const { post } = loaderData;
   const title = `${post.title} - Dafthunk Blog`;
   const description = post.description;
   const url = `${websiteUrl}/blog/${post.id}`;

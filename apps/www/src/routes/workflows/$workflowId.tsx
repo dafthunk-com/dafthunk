@@ -41,10 +41,10 @@ export function loader({ params }: LoaderFunctionArgs) {
   return { workflow, otherWorkflows };
 }
 
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
-  if (!data) return [{ title: "Not Found - Dafthunk" }];
+export const meta: MetaFunction<typeof loader> = ({ loaderData }) => {
+  if (!loaderData) return [{ title: "Not Found - Dafthunk" }];
 
-  const { workflow } = data;
+  const { workflow } = loaderData;
   const title = `${workflow.name} Workflow Template | Dafthunk`;
   const description = workflow.metaDescription;
   const url = `${websiteUrl}/workflows/${workflow.id}`;

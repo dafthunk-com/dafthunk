@@ -71,10 +71,10 @@ export function loader({ params }: LoaderFunctionArgs) {
   return { alternative };
 }
 
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
-  if (!data) return [{ title: "Not Found - Dafthunk" }];
+export const meta: MetaFunction<typeof loader> = ({ loaderData }) => {
+  if (!loaderData) return [{ title: "Not Found - Dafthunk" }];
 
-  const { alternative } = data;
+  const { alternative } = loaderData;
   const title = `${alternative.name} Alternative: MIT, Serverless | Dafthunk`;
   const description = alternative.metaDescription;
   const url = `${websiteUrl}/alternatives/${alternative.id}`;

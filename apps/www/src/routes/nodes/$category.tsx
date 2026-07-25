@@ -66,10 +66,10 @@ export function loader({ params }: LoaderFunctionArgs) {
   return { category, nodes };
 }
 
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
-  if (!data) return [{ title: "Not Found - Dafthunk" }];
+export const meta: MetaFunction<typeof loader> = ({ loaderData }) => {
+  if (!loaderData) return [{ title: "Not Found - Dafthunk" }];
 
-  const { category } = data;
+  const { category } = loaderData;
   const title = `${category.name} Nodes | Dafthunk`;
   const description = category.metaDescription;
   const url = `${websiteUrl}/nodes/${category.id}`;
