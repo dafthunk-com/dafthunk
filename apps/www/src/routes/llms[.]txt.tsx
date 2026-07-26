@@ -30,6 +30,7 @@ export function loader() {
 - [Workflow templates](${websiteUrl}/workflows): example automations you can copy
 - [Node catalog](${websiteUrl}/nodes): browse nodes by category
 - [Blog](${websiteUrl}/blog): engineering notes on agents and workflows
+- [Best low-code workflow automation tools](${websiteUrl}/blog/best-low-code-workflow-automation-tools): ten tools compared by job, hosting model, and licensing terms
 
 ## Source
 

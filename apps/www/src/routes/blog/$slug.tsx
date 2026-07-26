@@ -18,6 +18,8 @@ interface BlogPost {
   readingMinutes: number;
   tags: string[];
   published: boolean;
+  /** Roundup posts declare the products they rank, emitted as ItemList JSON-LD. */
+  listItems?: { name: string; url: string }[];
 }
 
 const { posts } = blogData as { posts: BlogPost[] };
@@ -136,6 +138,20 @@ export default function BlogPostPage({
     ],
   };
 
+  const itemListJsonLd = post.listItems && {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: post.title,
+    itemListOrder: "https://schema.org/ItemListUnordered",
+    numberOfItems: post.listItems.length,
+    itemListElement: post.listItems.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      url: item.url,
+    })),
+  };
+
   return (
     <BlogLayout meta={post}>
       <script
@@ -146,6 +162,12 @@ export default function BlogPostPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
+      {itemListJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
+        />
+      )}
       {content}
     </BlogLayout>
   );

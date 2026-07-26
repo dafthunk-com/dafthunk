@@ -123,6 +123,18 @@ export default function AlternativesIndexPage() {
             Comparison pages are being written. Check back soon.
           </p>
         )}
+
+        <p className="text-xl text-gray-600 mt-16 leading-relaxed">
+          Looking wider than one comparison? We reviewed the{" "}
+          <Link
+            to="/blog/best-low-code-workflow-automation-tools"
+            className="text-gray-900 underline hover:text-black"
+          >
+            ten best low-code workflow automation tools
+          </Link>
+          , grouped by the job they do, with the hosting and licensing terms of
+          each one checked at source.
+        </p>
       </main>
     </Layout>
   );

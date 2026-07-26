@@ -1,6 +1,32 @@
 {
   "posts": [
     {
+      "id": "best-low-code-workflow-automation-tools",
+      "title": "The 10 best low-code workflow automation tools in 2026",
+      "description": "Ten workflow automation tools compared by job, hosting, and terms: five proprietary, two source-available, three open source. Verified July 2026.",
+      "tagline": "Ten tools, three ownership models, and the question most roundups skip: can you run it yourself, and on whose terms?",
+      "date": "2026-07-26",
+      "author": "The Dafthunk team",
+      "readingMinutes": 9,
+      "tags": ["Workflow automation", "Low-code", "Comparison"],
+      "published": true,
+      "listItems": [
+        { "name": "Zapier", "url": "https://zapier.com" },
+        {
+          "name": "Microsoft Power Automate",
+          "url": "https://www.microsoft.com/power-platform/products/power-automate"
+        },
+        { "name": "Make", "url": "https://www.make.com" },
+        { "name": "Workato", "url": "https://www.workato.com" },
+        { "name": "Pipedream", "url": "https://pipedream.com" },
+        { "name": "n8n", "url": "https://n8n.io" },
+        { "name": "Activepieces", "url": "https://www.activepieces.com" },
+        { "name": "Node-RED", "url": "https://nodered.org" },
+        { "name": "Langflow", "url": "https://www.langflow.org" },
+        { "name": "Dify", "url": "https://dify.ai" }
+      ]
+    },
+    {
       "id": "building-effective-agents",
       "title": "Building Effective Agents on Dafthunk",
       "description": "How Anthropic's agent patterns map onto the Dafthunk runtime. The augmented LLM, prompt chaining, routing, parallelization, and autonomous agents, each shown as a shape on the canvas, with one catalog feeding both the node and tool registries.",
