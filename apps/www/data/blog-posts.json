@@ -1,6 +1,17 @@
 {
   "posts": [
     {
+      "id": "workflow-automation-examples",
+      "title": "10 workflow automation examples you can copy and run",
+      "description": "Ten workflow automation examples, each a live graph you can copy: screenshots, transcription, translation, sentiment scoring, and image generation.",
+      "tagline": "Ten runnable graphs, what each one does, and the step every examples list skips: adding the trigger.",
+      "date": "2026-07-28",
+      "author": "The Dafthunk team",
+      "readingMinutes": 8,
+      "tags": ["Workflow automation", "Examples", "Templates"],
+      "published": true
+    },
+    {
       "id": "best-low-code-workflow-automation-tools",
       "title": "The 10 best low-code workflow automation tools in 2026",
       "description": "Ten workflow automation tools compared by job, hosting, and terms: five proprietary, two source-available, three open source. Verified July 2026.",
