@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 
-import type { Bindings } from "./context";
+import type { Bindings, DeferredWorkContext } from "./context";
 import {
   type Database,
   insertMessage,
@@ -28,7 +28,7 @@ import { buildSnippet, stripHtml } from "./support-utils";
 export async function sendOutboundSupportMessage(
   db: Database,
   env: Bindings,
-  executionCtx: ExecutionContext,
+  executionCtx: DeferredWorkContext,
   args: {
     threadId: string;
     inboxId: string;

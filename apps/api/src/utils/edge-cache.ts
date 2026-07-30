@@ -14,10 +14,13 @@
  * - Only JSON-serialisable values are supported. Non-JSON responses belong
  *   in the raw Response-based Cache API idiom.
  */
+
+import type { DeferredWorkContext } from "../context";
+
 export async function cachedJson<T>(
   cacheKey: string,
   ttlSeconds: number,
-  ctx: ExecutionContext,
+  ctx: DeferredWorkContext,
   fetcher: () => Promise<T>
 ): Promise<T> {
   const request = new Request(cacheKey);

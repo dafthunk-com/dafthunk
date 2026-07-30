@@ -16,7 +16,7 @@
 # Image size note: this adds ~1.5 GB on top of the base image, which raises
 # cold-start latency. Trim languages you don't need before deploying.
 
-FROM docker.io/cloudflare/sandbox:0.7.21
+FROM docker.io/cloudflare/sandbox:0.12.4
 
 # System toolchains — single layer, cache cleaned to keep the image small.
 RUN apt-get update && apt-get install -y --no-install-recommends \

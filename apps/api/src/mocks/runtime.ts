@@ -108,12 +108,12 @@ class MockWorkflowRuntime extends Runtime<Bindings> {
     if (!this.currentStep) {
       throw new Error("executeStep called without workflow step context");
     }
-    // Type assertion needed due to Cloudflare Workflows type constraints
     return (await this.currentStep.do(
       name,
       MockWorkflowRuntime.defaultStepConfig,
-      // @ts-expect-error - TS2345: Cloudflare Workflows requires Serializable types
-      fn
+      // Cloudflare Workflows constrains step fns to Serializable returns; our
+      // runtime values are serializable at runtime but not in the type system.
+      fn as never
     )) as T;
   }
 
@@ -138,8 +138,9 @@ class MockWorkflowRuntime extends Runtime<Bindings> {
     return (await this.currentStep.do(
       name,
       MockWorkflowRuntime.defaultStepConfig,
-      // @ts-expect-error - TS2345: Cloudflare Workflows requires Serializable types
-      fn
+      // Cloudflare Workflows constrains step fns to Serializable returns; our
+      // runtime values are serializable at runtime but not in the type system.
+      fn as never
     )) as T;
   }
 }

@@ -25,26 +25,26 @@
     "fonts:prod:seed": "pnpm --filter '@dafthunk/runtime' fonts:fetch && node scripts/seed-fonts.mjs dafthunk-ressources-production --remote"
   },
   "devDependencies": {
-    "@cloudflare/vitest-pool-workers": "^0.13.5",
-    "@cloudflare/workers-types": "^4.20260511.1",
+    "@cloudflare/vitest-pool-workers": "^0.19.0",
+    "@cloudflare/workers-types": "^5.20260730.1",
     "@types/node": "^22.19.19",
     "drizzle-kit": "0.31.10",
-    "partyserver": "^0.5.6",
+    "partyserver": "^0.5.9",
     "typescript": "^5.9.3",
     "vitest": "^4.1.6",
-    "wrangler": "^4.90.1"
+    "wrangler": "^4.115.0"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",
-    "@cloudflare/containers": "^0.1.1",
-    "@cloudflare/sandbox": "^0.7.21",
+    "@cloudflare/containers": "^0.3.7",
+    "@cloudflare/sandbox": "^0.12.4",
     "@dafthunk/runtime": "workspace:*",
     "@dafthunk/types": "workspace:*",
     "@google/genai": "^1.52.0",
     "@hono-rate-limiter/cloudflare": "^0.2.2",
     "@hono/oauth-providers": "^0.8.5",
     "@hono/zod-validator": "^0.7.6",
-    "agents": "^0.13.2",
+    "agents": "^0.20.1",
     "aws4fetch": "^1.0.20",
     "cron-parser": "^5.5.0",
     "drizzle-orm": "0.45.2",

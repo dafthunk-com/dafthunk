@@ -87,6 +87,17 @@ export interface Bindings {
   GITHUB_URL?: string;
 }
 
+/**
+ * Minimal execution-context surface for helpers that only defer background
+ * work. Hono's `c.executionCtx` and the Workers runtime `ExecutionContext`
+ * are structurally different (workers-types v5 added a required `tracing`
+ * member Hono does not model), so depending on the narrow shape keeps both
+ * call paths assignable.
+ */
+export interface DeferredWorkContext {
+  waitUntil(promise: Promise<unknown>): void;
+}
+
 export interface Variables {
   // JWT payload containing authenticated user data
   jwtPayload?: JWTTokenPayload;

@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 
-import type { Bindings } from "../context";
+import type { Bindings, DeferredWorkContext } from "../context";
 import { createThread, type Database, getInboxByAlias, threads } from "../db";
 import { sendOutboundSupportMessage } from "../support-send";
 import { SUPPORT_INBOX_ALIAS } from "../support-storage";
@@ -22,7 +22,7 @@ export type WelcomeEmailResult =
 export async function sendWelcomeEmail(
   db: Database,
   env: Bindings,
-  executionCtx: ExecutionContext,
+  executionCtx: DeferredWorkContext,
   user: {
     id: string;
     email: string;

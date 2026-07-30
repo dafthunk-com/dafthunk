@@ -16,7 +16,7 @@ import {
   shortName,
 } from "@dafthunk/types";
 
-import type { Bindings } from "../context";
+import type { Bindings, DeferredWorkContext } from "../context";
 import { cachedJson } from "../utils/edge-cache";
 
 /**
@@ -153,7 +153,7 @@ function requireCredentials(env: Bindings): {
  */
 export async function fetchCloudflareModelCatalog(
   env: Bindings,
-  ctx: ExecutionContext
+  ctx: DeferredWorkContext
 ): Promise<CloudflareModelInfo[]> {
   const { accountId, apiToken } = requireCredentials(env);
   const cacheKey = `${CACHE_HOST}/cf-ai/models/list`;
@@ -194,7 +194,7 @@ export async function fetchCloudflareModelCatalog(
  */
 async function fetchCloudflareModelSchemaOrNull(
   env: Bindings,
-  ctx: ExecutionContext,
+  ctx: DeferredWorkContext,
   modelIdRaw: string
 ): Promise<CloudflareModelSchema | null> {
   const model = normaliseModelId(modelIdRaw);
@@ -238,7 +238,7 @@ async function fetchCloudflareModelSchemaOrNull(
  */
 export async function fetchCloudflareModelSchemaPayload(
   env: Bindings,
-  ctx: ExecutionContext,
+  ctx: DeferredWorkContext,
   modelIdRaw: string
 ): Promise<CloudflareModelSchema> {
   const schema = await fetchCloudflareModelSchemaOrNull(env, ctx, modelIdRaw);
@@ -259,7 +259,7 @@ export async function fetchCloudflareModelSchemaPayload(
  */
 export async function getCloudflareModelNodeTypes(
   env: Bindings,
-  ctx: ExecutionContext
+  ctx: DeferredWorkContext
 ): Promise<NodeType[]> {
   const cacheKey = `${CACHE_HOST}/cf-ai/node-types/v10`;
 

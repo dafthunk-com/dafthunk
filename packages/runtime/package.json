@@ -21,7 +21,7 @@
     "@cf-wasm/png": "^0.3.3",
     "@cf-wasm/resvg": "^0.3.4",
     "@cloudflare/ai-utils": "^1.0.1",
-    "@cloudflare/sandbox": "^0.7.21",
+    "@cloudflare/sandbox": "^0.12.4",
     "@dafthunk/geo": "workspace:*",
     "@dafthunk/types": "workspace:*",
     "@dafthunk/utils": "workspace:*",
@@ -41,7 +41,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20260511.1",
+    "@cloudflare/workers-types": "^5.20260730.1",
     "@types/three": "^0.181.0",
     "@types/wellknown": "^0.5.8",
     "typescript": "^5.9.3",

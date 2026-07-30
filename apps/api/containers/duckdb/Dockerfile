@@ -1,4 +1,4 @@
-FROM docker.io/cloudflare/sandbox:0.7.17
+FROM docker.io/cloudflare/sandbox:0.12.4
 
 # Install DuckDB CLI
 RUN apt-get update -qq && \
