@@ -1,6 +1,17 @@
 {
   "posts": [
     {
+      "id": "durable-execution",
+      "title": "Durable execution: what it is and which engine to choose",
+      "description": "Durable execution journals each step so a workflow resumes where it crashed. What it guarantees, what replay costs, and how the engines differ.",
+      "tagline": "One mechanic, six engines, and the tax nobody mentions until the first non-determinism error.",
+      "date": "2026-08-02",
+      "author": "The Dafthunk team",
+      "readingMinutes": 11,
+      "tags": ["Durable execution", "Architecture", "Runtime"],
+      "published": true
+    },
+    {
       "id": "workflow-automation-examples",
       "title": "10 workflow automation examples you can copy and run",
       "description": "Ten workflow automation examples, each a live graph you can copy: screenshots, transcription, translation, sentiment scoring, and image generation.",

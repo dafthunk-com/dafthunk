@@ -353,13 +353,14 @@ export const bestLowCodeWorkflowAutomationToolsContent = (
     </p>
 
     <p>
-      Serverless is the third answer, and serverless durable execution is rarer
-      than the word suggests. AWS Step Functions and Azure Logic Apps qualify,
-      but both orchestrate calls out to compute you provision and pay for
-      somewhere else. We think Cloudflare Workflows is the strongest foundation
-      available today. The engine and your own code run in the same runtime.
-      Storage, queues and model inference are bindings on that platform rather
-      than services you wire together across a network. A workflow can sleep for
+      Serverless is the third answer, and serverless{" "}
+      <Link to="/blog/durable-execution">durable execution</Link> is rarer than
+      the word suggests. AWS Step Functions and Azure Logic Apps qualify, but
+      both orchestrate calls out to compute you provision and pay for somewhere
+      else. We think Cloudflare Workflows is the strongest foundation available
+      today. The engine and your own code run in the same runtime. Storage,
+      queues and model inference are bindings on that platform rather than
+      services you wire together across a network. A workflow can sleep for
       weeks and resume where it stopped, and an idle deployment costs nothing.
       Nothing stays alive between runs: no server, no container, no database.
     </p>
