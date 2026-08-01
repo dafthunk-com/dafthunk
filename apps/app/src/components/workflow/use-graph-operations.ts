@@ -7,6 +7,7 @@ import type {
   OnConnectEnd,
   OnConnectStart,
   OnEdgesChange,
+  OnNodeDrag,
   OnNodesChange,
   Edge as ReactFlowEdge,
   ReactFlowInstance,
@@ -18,8 +19,14 @@ import {
   useEdgesState,
   useNodesState,
 } from "@xyflow/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { createEdgeId, createNodeId } from "./graph-ids";
+import {
+  mergeRemoteNodes,
+  serializeEdges,
+  serializeNodes,
+} from "./graph-projection";
 import {
   ALL_TRIGGER_NODE_TYPE_IDS,
   getTriggerNodeTypes,
@@ -36,103 +43,94 @@ import type {
 
 // --- Pure helper functions ---
 
-function updateNodesWithExecutionState(
+/**
+ * Apply a batch of execution updates in one pass over the node array.
+ *
+ * A running workflow reports every node on each progress frame, so applying
+ * updates one at a time rewrote the whole array once per node.
+ *
+ * Field semantics, preserved from the per-node version this replaces:
+ * - `state` also resets `error`, unless the new state is itself "error"
+ * - `outputs` and `error` are only touched when the update carries them
+ */
+export function applyExecutionUpdates(
   nodes: ReactFlowNode<WorkflowNodeType>[],
-  nodeId: string,
-  state: NodeExecutionState
+  updates: NodeExecutionUpdate[]
 ): ReactFlowNode<WorkflowNodeType>[] {
-  return nodes.map((node) =>
-    node.id === nodeId
-      ? {
-          ...node,
-          data: {
-            ...node.data,
-            executionState: state,
-            error: state === "error" ? node.data.error : null,
-          },
-        }
-      : node
+  if (updates.length === 0) return nodes;
+
+  const updatesByNodeId = new Map(
+    updates.map((update) => [update.nodeId, update])
   );
+
+  return nodes.map((node) => {
+    const update = updatesByNodeId.get(node.id);
+    if (!update) return node;
+
+    const data = { ...node.data };
+
+    if (update.state !== undefined) {
+      data.executionState = update.state;
+      data.error = update.state === "error" ? node.data.error : null;
+    }
+
+    if (update.outputs !== undefined) {
+      const outputs = update.outputs;
+      data.outputs = node.data.outputs.map(
+        (output) =>
+          ({
+            ...output,
+            value: outputs[output.id] ?? outputs[output.name],
+          }) as WorkflowParameter
+      );
+    }
+
+    if (update.error !== undefined) {
+      data.error = update.error;
+    }
+
+    return { ...node, data };
+  });
 }
 
-function updateEdgesForNodeExecution(
+/**
+ * Edge highlighting is a pure function of node execution state: an edge is
+ * active while either endpoint is executing. Deriving it (rather than tracking
+ * it alongside) means a frame that moves several nodes at once can't leave a
+ * stale highlight behind.
+ *
+ * Returns the original array when nothing changed, so the caller's setState
+ * bails out instead of re-rendering.
+ */
+export function updateEdgesForExecution(
   edges: ReactFlowEdge<WorkflowEdgeType>[],
-  state: NodeExecutionState,
-  connectedEdgeIds: string[]
+  nodes: ReactFlowNode<WorkflowNodeType>[]
 ): ReactFlowEdge<WorkflowEdgeType>[] {
-  if (state === "executing") {
-    return edges.map((edge) => ({
-      ...edge,
-      data: {
-        ...(edge.data || {}),
-        isActive: connectedEdgeIds.includes(edge.id),
-      },
-    }));
-  }
-
-  if (state === "completed" || state === "error") {
-    return edges.map((edge) => ({
-      ...edge,
-      data: {
-        ...(edge.data || {}),
-        isActive: false,
-      },
-    }));
-  }
-
-  return edges;
-}
-
-function updateNodesWithExecutionOutputs(
-  nodes: ReactFlowNode<WorkflowNodeType>[],
-  nodeId: string,
-  outputs: Record<string, unknown>
-): ReactFlowNode<WorkflowNodeType>[] {
-  return nodes.map((node) =>
-    node.id === nodeId
-      ? {
-          ...node,
-          data: {
-            ...node.data,
-            outputs: node.data.outputs.map(
-              (output) =>
-                ({
-                  ...output,
-                  value: outputs[output.id] ?? outputs[output.name],
-                }) as WorkflowParameter
-            ),
-          },
-        }
-      : node
+  const executingNodeIds = new Set(
+    nodes
+      .filter((node) => node.data.executionState === "executing")
+      .map((node) => node.id)
   );
-}
 
-function updateNodesWithExecutionError(
-  nodes: ReactFlowNode<WorkflowNodeType>[],
-  nodeId: string,
-  error: string | undefined
-): ReactFlowNode<WorkflowNodeType>[] {
-  return nodes.map((node) =>
-    node.id === nodeId
-      ? {
-          ...node,
-          data: {
-            ...node.data,
-            error,
-          },
-        }
-      : node
-  );
+  let changed = false;
+  const next = edges.map((edge) => {
+    const isActive =
+      executingNodeIds.has(edge.source) || executingNodeIds.has(edge.target);
+    if ((edge.data?.isActive ?? false) === isActive) return edge;
+    changed = true;
+    return { ...edge, data: { ...(edge.data || {}), isActive } };
+  });
+
+  return changed ? next : edges;
 }
 
 function createReactFlowNode(
   nodeType: NodeType,
   position: { x: number; y: number },
-  createObjectUrl: (objectReference: ObjectReference) => string,
-  id?: string
+  createObjectUrl: (objectReference: ObjectReference) => string
 ): ReactFlowNode<WorkflowNodeType> {
   return {
-    id: id ?? `${nodeType.type}-${Date.now()}`,
+    id: createNodeId(nodeType.type),
     type: "workflowNode",
     position,
     selected: false,
@@ -199,17 +197,14 @@ export interface UseGraphOperationsReturn {
   onConnectStart: OnConnectStart;
   onConnectEnd: OnConnectEnd;
   onNodeDragStart: () => void;
-  onNodeDragStop: (
-    event: React.MouseEvent,
-    node: ReactFlowNode<WorkflowNodeType>
-  ) => void;
+  onNodeDragStop: OnNodeDrag<ReactFlowNode<WorkflowNodeType>>;
   isDraggingRef: React.RefObject<boolean>;
   isValidConnection: IsValidConnection<ReactFlowEdge<WorkflowEdgeType>>;
 
   // Actions
   handleAddNode: () => void;
   handleNodeSelect: (template: NodeType) => void;
-  updateNodeExecution: (nodeId: string, update: NodeExecutionUpdate) => void;
+  applyNodeExecutions: (updates: NodeExecutionUpdate[]) => void;
   updateNodeData: (
     nodeId: string,
     data:
@@ -252,8 +247,16 @@ export function useGraphOperations({
   const edgesRef = useRef(initialEdges);
   const isDraggingRef = useRef(false);
 
-  const selectedNodes = nodes.filter((node) => node.selected);
-  const selectedEdges = edges.filter((edge) => edge.selected);
+  // Memoized: these are passed to the canvas and to the keyboard-shortcut
+  // effect, which would otherwise re-subscribe on every single render.
+  const selectedNodes = useMemo(
+    () => nodes.filter((node) => node.selected),
+    [nodes]
+  );
+  const selectedEdges = useMemo(
+    () => edges.filter((edge) => edge.selected),
+    [edges]
+  );
 
   useEffect(() => {
     nodesRef.current = nodes;
@@ -263,72 +266,58 @@ export function useGraphOperations({
     edgesRef.current = edges;
   }, [edges]);
 
-  // Sync initialNodes prop
+  // Sync nodes pushed from the server.
+  //
+  // A remote push only carries the persisted graph — it has no execution
+  // results, and no notion of what is selected or being dragged. Replacing
+  // wholesale would therefore wipe the outputs and error badges of a run that
+  // is still on screen. So: compare on the persistable projection only, and
+  // carry the session-local state across the merge.
   useEffect(() => {
-    const newNodesWithCreateObjectUrl = initialNodes.map((node) => ({
-      ...node,
-      data: {
-        ...node.data,
-        createObjectUrl,
-      },
-    }));
-
     if (!disabled && initialNodes.length === 0 && nodesRef.current.length > 0) {
       return;
     }
 
-    const newNodesStrippedForCompare = newNodesWithCreateObjectUrl.map((n) => ({
-      id: n.id,
-      type: n.type,
-      position: n.position,
-      data: { ...n.data, createObjectUrl: undefined },
-    }));
-    const currentNodesStrippedForCompare = nodesRef.current.map((n) => ({
-      id: n.id,
-      type: n.type,
-      position: n.position,
-      data: { ...n.data, createObjectUrl: undefined },
-    }));
+    const merged = mergeRemoteNodes(
+      initialNodes,
+      nodesRef.current,
+      createObjectUrl
+    );
 
-    const newNodesStructurallyDifferent =
-      JSON.stringify(newNodesStrippedForCompare) !==
-      JSON.stringify(currentNodesStrippedForCompare);
+    const graphChanged =
+      serializeNodes(merged) !== serializeNodes(nodesRef.current);
 
+    // Nodes restored from a source that couldn't carry the callback (it isn't
+    // serializable) need it re-injected even when the graph itself matches.
     const anyCurrentNodeMissingFunction =
-      newNodesWithCreateObjectUrl.length > 0 &&
+      merged.length > 0 &&
       nodesRef.current.some(
         (n) => typeof n.data.createObjectUrl !== "function"
       );
 
-    if (newNodesStructurallyDifferent || anyCurrentNodeMissingFunction) {
-      const currentNodesById = new Map(nodesRef.current.map((n) => [n.id, n]));
-      const updatedNodes = newNodesWithCreateObjectUrl.map((newNode) => {
-        const currentNode = currentNodesById.get(newNode.id);
-        if (currentNode) {
-          return {
-            ...newNode,
-            selected: currentNode.selected,
-            dragging: currentNode.dragging,
-            // Preserve the user's active drag position instead of snapping to server state
-            ...(currentNode.dragging && { position: currentNode.position }),
-          };
-        }
-        return newNode;
-      });
-
-      setNodes(updatedNodes);
+    if (graphChanged || anyCurrentNodeMissingFunction) {
+      setNodes(merged);
     }
-  }, [initialNodes, disabled, setNodes, createObjectUrl]);
+  }, [initialNodes, disabled, setNodes, createObjectUrl, nodesRef]);
 
-  // Sync initialEdges prop
+  // Sync edges pushed from the server, preserving local selection.
   useEffect(() => {
     if (!disabled && initialEdges.length === 0 && edgesRef.current.length > 0) {
       return;
     }
-    if (JSON.stringify(edgesRef.current) !== JSON.stringify(initialEdges)) {
-      setEdges(initialEdges);
+    if (serializeEdges(initialEdges) === serializeEdges(edgesRef.current)) {
+      return;
     }
-  }, [initialEdges, disabled, setEdges]);
+
+    const selectedIds = new Set(
+      edgesRef.current.filter((e) => e.selected).map((e) => e.id)
+    );
+    setEdges(
+      initialEdges.map((edge) =>
+        selectedIds.has(edge.id) ? { ...edge, selected: true } : edge
+      )
+    );
+  }, [initialEdges, disabled, setEdges, edgesRef]);
 
   // In disabled mode, only allow selection changes.
   // Always prevent removal of trigger nodes (use trigger type selector instead).
@@ -486,7 +475,12 @@ export function useGraphOperations({
 
       const newEdge: ReactFlowEdge<WorkflowEdgeType> = {
         ...connection,
-        id: `${connection.source}-${connection.sourceHandle}-${connection.target}-${connection.targetHandle}-${Date.now()}`,
+        id: createEdgeId(
+          connection.source,
+          connection.sourceHandle,
+          connection.target,
+          connection.targetHandle
+        ),
         type: "workflowEdge",
         data: {
           isValid: true,
@@ -548,54 +542,21 @@ export function useGraphOperations({
     [reactFlowInstance, setNodes, createObjectUrl]
   );
 
-  // Update node execution data
-  const updateNodeExecution = useCallback(
-    (nodeId: string, update: NodeExecutionUpdate) => {
-      const { state, outputs, error } = update;
-
-      setNodes((nds) => {
-        let updatedNodes = nds;
-
-        if (state !== undefined) {
-          updatedNodes = updateNodesWithExecutionState(
-            updatedNodes,
-            nodeId,
-            state
-          );
-        }
-
-        if (outputs !== undefined) {
-          updatedNodes = updateNodesWithExecutionOutputs(
-            updatedNodes,
-            nodeId,
-            outputs
-          );
-        }
-
-        if (error !== undefined) {
-          updatedNodes = updateNodesWithExecutionError(
-            updatedNodes,
-            nodeId,
-            error
-          );
-        }
-
-        return [...updatedNodes];
-      });
-
-      if (state !== undefined) {
-        setEdges((eds) => {
-          const nodeEdges = getConnectedEdges(
-            [{ id: nodeId } as ReactFlowNode<WorkflowNodeType>],
-            eds
-          );
-          const connectedEdgeIds = nodeEdges.map((edge) => edge.id);
-          return [...updateEdgesForNodeExecution(eds, state, connectedEdgeIds)];
-        });
-      }
+  // Apply a whole progress frame in a single commit.
+  const applyNodeExecutions = useCallback(
+    (updates: NodeExecutionUpdate[]) => {
+      if (updates.length === 0) return;
+      setNodes((nds) => applyExecutionUpdates(nds, updates));
     },
-    [setNodes, setEdges]
+    [setNodes]
   );
+
+  // Edge highlighting follows node execution state. Kept as a derivation so
+  // it cannot drift; `updateEdgesForExecution` returns the same array when
+  // nothing changed, so this settles immediately instead of looping.
+  useEffect(() => {
+    setEdges((eds) => updateEdgesForExecution(eds, nodes));
+  }, [nodes, setEdges]);
 
   const updateNodeData = useCallback(
     (
@@ -624,6 +585,7 @@ export function useGraphOperations({
 
   const updateEdgeData = useCallback(
     (edgeId: string, data: Partial<WorkflowEdgeType>) => {
+      if (disabled) return;
       setEdges((eds) =>
         eds.map((edge) =>
           edge.id === edgeId
@@ -638,7 +600,7 @@ export function useGraphOperations({
         )
       );
     },
-    [setEdges]
+    [disabled, setEdges]
   );
 
   // Delete nodes and their connected edges (trigger nodes are protected)
@@ -697,6 +659,7 @@ export function useGraphOperations({
   }, [setNodes, setEdges]);
 
   const removeTriggerNodes = useCallback(() => {
+    if (disabled) return;
     const triggerNodes = nodesRef.current.filter(
       (n) => n.data.nodeType && ALL_TRIGGER_NODE_TYPE_IDS.has(n.data.nodeType)
     );
@@ -712,10 +675,11 @@ export function useGraphOperations({
       setEdges((eds) => eds.filter((e) => !edgeIdsToRemove.includes(e.id)));
     }
     setNodes((nds) => nds.filter((n) => !triggerNodeIds.has(n.id)));
-  }, [nodesRef, edgesRef, setNodes, setEdges]);
+  }, [disabled, nodesRef, edgesRef, setNodes, setEdges]);
 
   const addTriggerNodes = useCallback(
     (trigger: WorkflowTrigger) => {
+      if (disabled) return;
       const nodeTypeIds = getTriggerNodeTypes(trigger);
       if (nodeTypeIds.length === 0) return;
 
@@ -725,8 +689,7 @@ export function useGraphOperations({
         return createReactFlowNode(
           nodeType,
           { x: i * 400, y: 0 },
-          createObjectUrl,
-          `${nodeType.type}-${Date.now()}-${i}`
+          createObjectUrl
         );
       });
 
@@ -734,7 +697,7 @@ export function useGraphOperations({
         setNodes((nds) => [...nds, ...newNodes]);
       }
     },
-    [nodeTypes, setNodes, createObjectUrl]
+    [disabled, nodeTypes, setNodes, createObjectUrl]
   );
 
   return {
@@ -767,14 +730,18 @@ export function useGraphOperations({
     isValidConnection,
     handleAddNode,
     handleNodeSelect,
-    updateNodeExecution,
+    // Every mutating operation above enforces `disabled` itself, so there is
+    // no second gate here. The deliberate exceptions are `applyNodeExecutions`,
+    // `updateNodeData` and `deselectAll`: read-only views (execution details,
+    // template previews) still need to paint execution results onto the graph.
+    applyNodeExecutions,
     updateNodeData,
-    updateEdgeData: disabled ? NOOP : updateEdgeData,
-    deleteNode: disabled ? NOOP : deleteNode,
-    deleteEdge: disabled ? NOOP : deleteEdge,
-    deleteSelected: disabled ? NOOP : deleteSelected,
+    updateEdgeData,
+    deleteNode,
+    deleteEdge,
+    deleteSelected,
     deselectAll,
-    addTriggerNodes: disabled ? NOOP : addTriggerNodes,
-    removeTriggerNodes: disabled ? NOOP : removeTriggerNodes,
+    addTriggerNodes,
+    removeTriggerNodes,
   };
 }

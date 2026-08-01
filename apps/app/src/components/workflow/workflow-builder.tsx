@@ -40,6 +40,7 @@ import { useWorkflowExecutionState } from "./use-workflow-execution-state";
 import { useWorkflowState } from "./use-workflow-state";
 import { WorkflowCanvas } from "./workflow-canvas";
 import { WorkflowProvider } from "./workflow-context";
+import { WorkflowErrorBoundary } from "./workflow-error-boundary";
 import { WorkflowNodeSelector } from "./workflow-node-selector";
 import { WorkflowSidebar } from "./workflow-sidebar";
 import type {
@@ -144,7 +145,7 @@ export function WorkflowBuilder({
     onConnectEnd,
     handleAddNode,
     handleNodeSelect,
-    updateNodeExecution,
+    applyNodeExecutions,
     setReactFlowInstance,
     reactFlowInstance,
     connectionValidationState,
@@ -185,8 +186,7 @@ export function WorkflowBuilder({
     initialWorkflowExecution,
     executeWorkflow,
     wsExecuteWorkflow,
-    updateNodeExecution,
-    updateNodeData,
+    applyNodeExecutions,
     deselectAll,
   });
 
@@ -286,45 +286,47 @@ export function WorkflowBuilder({
                 : "100%",
             }}
           >
-            <WorkflowCanvas
-              nodes={nodes}
-              edges={edges}
-              connectionValidationState={connectionValidationState}
-              onNodesChange={onNodesChange}
-              onEdgesChange={onEdgesChange}
-              onConnect={onConnect}
-              onConnectStart={onConnectStart}
-              onConnectEnd={onConnectEnd}
-              onNodeDoubleClick={handleNodeDoubleClick}
-              onNodeDragStart={onNodeDragStart}
-              onNodeDragStop={onNodeDragStop}
-              onInit={setReactFlowInstance}
-              onAddNode={readOnly ? undefined : handleAddNode}
-              onAction={handleActionButtonClick}
-              workflowStatus={execution.workflowStatus}
-              workflowErrorMessage={execution.workflowErrorMessage}
-              onToggleSidebar={
-                sidebarEnabled ? sidebar.toggleSidebar : undefined
-              }
-              isSidebarVisible={
-                sidebarEnabled ? sidebar.isSidebarVisible : false
-              }
-              isValidConnection={isValidConnection}
-              disabled={readOnly}
-              onFitToScreen={handleFitToScreen}
-              selectedNodes={selectedNodes}
-              selectedEdges={selectedEdges}
-              onDeleteSelected={readOnly ? undefined : deleteSelected}
-              onDuplicateSelected={readOnly ? undefined : duplicateSelected}
-              onApplyLayout={readOnly ? undefined : applyLayout}
-              onCopySelected={readOnly ? undefined : copySelected}
-              onCutSelected={readOnly ? undefined : cutSelected}
-              onPasteFromClipboard={readOnly ? undefined : pasteFromClipboard}
-              hasClipboardData={hasClipboardData}
-              showControls={interactive}
-              showBackground={showBackground}
-              fitViewPadding={fitViewPadding}
-            />
+            <WorkflowErrorBoundary resetKey={workflowId}>
+              <WorkflowCanvas
+                nodes={nodes}
+                edges={edges}
+                connectionValidationState={connectionValidationState}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                onConnect={onConnect}
+                onConnectStart={onConnectStart}
+                onConnectEnd={onConnectEnd}
+                onNodeDoubleClick={handleNodeDoubleClick}
+                onNodeDragStart={onNodeDragStart}
+                onNodeDragStop={onNodeDragStop}
+                onInit={setReactFlowInstance}
+                onAddNode={readOnly ? undefined : handleAddNode}
+                onAction={handleActionButtonClick}
+                workflowStatus={execution.workflowStatus}
+                workflowErrorMessage={execution.workflowErrorMessage}
+                onToggleSidebar={
+                  sidebarEnabled ? sidebar.toggleSidebar : undefined
+                }
+                isSidebarVisible={
+                  sidebarEnabled ? sidebar.isSidebarVisible : false
+                }
+                isValidConnection={isValidConnection}
+                disabled={readOnly}
+                onFitToScreen={handleFitToScreen}
+                selectedNodes={selectedNodes}
+                selectedEdges={selectedEdges}
+                onDeleteSelected={readOnly ? undefined : deleteSelected}
+                onDuplicateSelected={readOnly ? undefined : duplicateSelected}
+                onApplyLayout={readOnly ? undefined : applyLayout}
+                onCopySelected={readOnly ? undefined : copySelected}
+                onCutSelected={readOnly ? undefined : cutSelected}
+                onPasteFromClipboard={readOnly ? undefined : pasteFromClipboard}
+                hasClipboardData={hasClipboardData}
+                showControls={interactive}
+                showBackground={showBackground}
+                fitViewPadding={fitViewPadding}
+              />
+            </WorkflowErrorBoundary>
           </div>
 
           {sidebar.isSidebarVisible && (
@@ -337,29 +339,35 @@ export function WorkflowBuilder({
                 onMouseDown={sidebar.handleResizeStart}
               />
               <div style={{ width: `${sidebar.sidebarWidth}px` }}>
-                <WorkflowSidebar
-                  nodes={nodes}
-                  selectedNodes={selectedNodes}
-                  selectedEdges={selectedEdges}
-                  onNodeUpdate={readOnly ? undefined : updateNodeData}
-                  onEdgeUpdate={readOnly ? undefined : updateEdgeData}
-                  createObjectUrl={createObjectUrl}
-                  disabledWorkflow={readOnly}
-                  disabledFeedback={disabledFeedback}
-                  workflowId={workflowId}
-                  workflowName={workflowName}
-                  workflowDescription={workflowDescription}
-                  workflowTrigger={workflowTrigger}
-                  workflowRuntime={workflowRuntime}
-                  onWorkflowUpdate={readOnly ? undefined : onWorkflowUpdate}
-                  workflowStatus={execution.workflowStatus}
-                  workflowErrorMessage={execution.workflowErrorMessage}
-                  executionId={execution.currentExecutionId}
-                  isEnabled={isEnabled}
-                  isTogglingEnabled={isTogglingEnabled}
-                  onToggleEnabled={readOnly ? undefined : onToggleEnabled}
-                  onTriggerChange={readOnly ? undefined : handleTriggerChange}
-                />
+                {/* Separate boundary: an inspector crash (usually a malformed
+                    value in one field) must not take the canvas down with it. */}
+                <WorkflowErrorBoundary
+                  resetKey={selectedNodes[0]?.id ?? selectedEdges[0]?.id ?? ""}
+                >
+                  <WorkflowSidebar
+                    nodes={nodes}
+                    selectedNodes={selectedNodes}
+                    selectedEdges={selectedEdges}
+                    onNodeUpdate={readOnly ? undefined : updateNodeData}
+                    onEdgeUpdate={readOnly ? undefined : updateEdgeData}
+                    createObjectUrl={createObjectUrl}
+                    disabledWorkflow={readOnly}
+                    disabledFeedback={disabledFeedback}
+                    workflowId={workflowId}
+                    workflowName={workflowName}
+                    workflowDescription={workflowDescription}
+                    workflowTrigger={workflowTrigger}
+                    workflowRuntime={workflowRuntime}
+                    onWorkflowUpdate={readOnly ? undefined : onWorkflowUpdate}
+                    workflowStatus={execution.workflowStatus}
+                    workflowErrorMessage={execution.workflowErrorMessage}
+                    executionId={execution.currentExecutionId}
+                    isEnabled={isEnabled}
+                    isTogglingEnabled={isTogglingEnabled}
+                    onToggleEnabled={readOnly ? undefined : onToggleEnabled}
+                    onTriggerChange={readOnly ? undefined : handleTriggerChange}
+                  />
+                </WorkflowErrorBoundary>
               </div>
             </>
           )}

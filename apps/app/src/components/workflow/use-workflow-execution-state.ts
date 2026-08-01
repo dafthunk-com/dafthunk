@@ -5,6 +5,7 @@ import {
 } from "@dafthunk/utils";
 import type { Node as ReactFlowNode } from "@xyflow/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 
 import type { EmailData } from "@/components/workflow/execution-email-dialog";
 import type { HttpRequestConfig } from "@/components/workflow/http-request-config-dialog";
@@ -18,7 +19,6 @@ import type {
   WorkflowExecution,
   WorkflowExecutionStatus,
   WorkflowNodeType,
-  WorkflowParameter,
 } from "./workflow-types";
 
 interface UseWorkflowExecutionStateProps {
@@ -36,8 +36,7 @@ interface UseWorkflowExecutionStateProps {
   wsExecuteWorkflow?: (options?: {
     parameters?: Record<string, unknown>;
   }) => void;
-  updateNodeExecution: (nodeId: string, update: NodeExecutionUpdate) => void;
-  updateNodeData: (nodeId: string, data: Partial<WorkflowNodeType>) => void;
+  applyNodeExecutions: (updates: NodeExecutionUpdate[]) => void;
   deselectAll: () => void;
 }
 
@@ -47,7 +46,8 @@ interface UseWorkflowExecutionStateReturn {
   currentExecutionId?: string;
   errorDialogOpen: boolean;
   setErrorDialogOpen: (open: boolean) => void;
-  handleActionButtonClick: (e: React.MouseEvent) => void;
+  /** Run / cancel / reset, depending on the current status. */
+  handleActionButtonClick: () => void;
   isEmailFormDialogVisible: boolean;
   isHttpRequestConfigDialogVisible: boolean;
   submitHttpRequestConfig: (data: HttpRequestConfig) => void;
@@ -63,34 +63,37 @@ interface UseWorkflowExecutionStateReturn {
   upgradeDialogGatedNodeTypes: NodeType[];
 }
 
-// Apply initial execution state to nodes
-function applyInitialExecution(
+/**
+ * Translate a stored execution into node updates.
+ *
+ * A node reported as "idle" that nevertheless carries output values comes from
+ * a finished run whose per-node status was never written back; treat it as
+ * completed so the canvas doesn't show a blank node next to real output.
+ */
+export function toNodeExecutionUpdates(
   execution: WorkflowExecution,
-  nodes: ReactFlowNode<WorkflowNodeType>[],
-  updateNodeData: (nodeId: string, data: Partial<WorkflowNodeType>) => void
-) {
-  execution.nodeExecutions.forEach((nodeExec) => {
-    const node = nodes.find((n) => n.id === nodeExec.nodeId);
-    if (!node) return;
+  nodes: ReactFlowNode<WorkflowNodeType>[]
+): NodeExecutionUpdate[] {
+  const nodeIds = new Set(nodes.map((node) => node.id));
 
-    const updatedOutputs = node.data.outputs.map((output) => {
-      const outputValue =
-        nodeExec.outputs?.[output.id] ?? nodeExec.outputs?.[output.name];
-      return { ...output, value: outputValue } as WorkflowParameter;
+  return execution.nodeExecutions
+    .filter((nodeExec) => nodeIds.has(nodeExec.nodeId))
+    .map((nodeExec) => {
+      const outputs = nodeExec.outputs ?? {};
+      const hasOutputValues = Object.values(outputs).some(
+        (value) => value !== undefined
+      );
+
+      return {
+        nodeId: nodeExec.nodeId,
+        state:
+          nodeExec.status === "idle" && hasOutputValues
+            ? ("completed" as NodeExecutionState)
+            : nodeExec.status,
+        outputs,
+        error: nodeExec.error,
+      };
     });
-
-    const executionState =
-      nodeExec.status === "idle" &&
-      updatedOutputs.some((o) => o.value !== undefined)
-        ? "completed"
-        : nodeExec.status;
-
-    updateNodeData(nodeExec.nodeId, {
-      outputs: updatedOutputs,
-      executionState,
-      error: nodeExec.error,
-    });
-  });
 }
 
 export function useWorkflowExecutionState({
@@ -102,16 +105,24 @@ export function useWorkflowExecutionState({
   initialWorkflowExecution,
   executeWorkflow,
   wsExecuteWorkflow,
-  updateNodeExecution,
-  updateNodeData,
+  applyNodeExecutions,
   deselectAll,
 }: UseWorkflowExecutionStateProps): UseWorkflowExecutionStateReturn {
-  const [workflowStatus, setWorkflowStatus] = useState<WorkflowExecutionStatus>(
-    initialWorkflowExecution?.status || "idle"
-  );
-  const statusRef = useRef<WorkflowExecutionStatus>(
-    initialWorkflowExecution?.status || "idle"
-  );
+  const [workflowStatus, setWorkflowStatusState] =
+    useState<WorkflowExecutionStatus>(
+      initialWorkflowExecution?.status || "idle"
+    );
+
+  // The status is read by callbacks that outlive the render which created them
+  // (execution callbacks stored in a ref), so it needs a ref as well as state.
+  // This setter is the only writer of either — keeping them in lockstep here
+  // rather than at each call site, and keeping the ref write out of a setState
+  // updater, where StrictMode would run it twice.
+  const statusRef = useRef<WorkflowExecutionStatus>(workflowStatus);
+  const setWorkflowStatus = useCallback((next: WorkflowExecutionStatus) => {
+    statusRef.current = next;
+    setWorkflowStatusState(next);
+  }, []);
   const [workflowErrorMessage, setWorkflowErrorMessage] = useState<
     string | undefined
   >(initialWorkflowExecution?.error);
@@ -160,7 +171,6 @@ export function useWorkflowExecutionState({
   }, [nodes, nodeTypeById]);
 
   const cleanupRef = useRef<(() => void | Promise<void>) | null>(null);
-  const initializedRef = useRef(false);
   const executeRef = useRef<((triggerData?: unknown) => void) | null>(null);
   const executionCallbackRef = useRef<
     ((execution: WorkflowExecution) => void) | null
@@ -185,6 +195,7 @@ export function useWorkflowExecutionState({
   // Execution form dialogs
   const {
     executeWorkflow: executeWorkflowWithForm,
+    cancelWorkflowExecution,
     isEmailFormDialogVisible,
     isHttpRequestConfigDialogVisible,
     submitHttpRequestConfig,
@@ -192,36 +203,52 @@ export function useWorkflowExecutionState({
     closeExecutionForm,
   } = useWorkflowExecution(orgId, wsExecuteWorkflowWrapper);
 
-  // Apply initial execution state once
-  useEffect(() => {
-    if (
-      initialWorkflowExecution &&
-      !initializedRef.current &&
-      nodes.length > 0
-    ) {
-      initializedRef.current = true;
-      statusRef.current = initialWorkflowExecution.status;
-      setWorkflowStatus(initialWorkflowExecution.status);
-      applyInitialExecution(initialWorkflowExecution, nodes, updateNodeData);
+  // Executions pushed from the backend (scheduled runs, webhooks) arrive as a
+  // changing prop. Apply each one exactly once, keyed on the execution object
+  // itself — a boolean latch would drop every run after the first.
+  //
+  // `nodes` is read through a ref because applying an execution rewrites node
+  // data: depending on the array here would re-trigger this effect forever.
+  // `nodes.length` is a safe dependency (applying an execution never changes
+  // the count) and covers an execution arriving before the graph has loaded.
+  const nodesRef = useRef(nodes);
+  nodesRef.current = nodes;
+  const appliedExecutionRef = useRef<WorkflowExecution | null>(null);
 
-      if (initialWorkflowExecution.status === "exhausted") {
-        setErrorDialogOpen(true);
-      }
+  useEffect(() => {
+    if (!initialWorkflowExecution) return;
+    if (appliedExecutionRef.current === initialWorkflowExecution) return;
+    if (nodesRef.current.length === 0) return;
+
+    appliedExecutionRef.current = initialWorkflowExecution;
+    setWorkflowStatus(initialWorkflowExecution.status);
+    applyNodeExecutions(
+      toNodeExecutionUpdates(initialWorkflowExecution, nodesRef.current)
+    );
+
+    if (initialWorkflowExecution.status === "exhausted") {
+      setErrorDialogOpen(true);
     }
-  }, [initialWorkflowExecution, nodes, updateNodeData]);
+  }, [
+    initialWorkflowExecution,
+    nodes.length,
+    applyNodeExecutions,
+    setWorkflowStatus,
+  ]);
 
   const resetNodeStates = useCallback(
     (state: NodeExecutionState = "idle") => {
-      nodes.forEach((node) => {
-        updateNodeExecution(node.id, {
+      applyNodeExecutions(
+        nodesRef.current.map((node) => ({
+          nodeId: node.id,
           state,
           outputs: {},
           error: undefined,
-        });
-      });
+        }))
+      );
       setWorkflowErrorMessage(undefined);
     },
-    [nodes, updateNodeExecution]
+    [applyNodeExecutions]
   );
 
   // Unified execution callback factory — eliminates the two duplicate closures
@@ -243,44 +270,32 @@ export function useWorkflowExecutionState({
           resetNodeStates("executing");
         }
 
-        setWorkflowStatus((currentStatus) => {
-          let newStatus: WorkflowExecutionStatus;
-          if (eagerStart) {
-            // handleExecute path: already set to "executing", ignore "submitted" echoes
-            if (
-              currentStatus === "executing" &&
-              execution.status === "submitted"
-            ) {
-              newStatus = currentStatus;
-            } else {
-              newStatus = execution.status;
-            }
-          } else {
-            // handleExecuteRequest path: wait for first real callback
-            if (currentStatus === "idle") {
-              newStatus = "executing";
-            } else if (
-              currentStatus === "executing" &&
-              execution.status === "submitted"
-            ) {
-              newStatus = currentStatus;
-            } else {
-              newStatus = execution.status;
-            }
-          }
-          statusRef.current = newStatus;
-          return newStatus;
-        });
+        const currentStatus = statusRef.current;
+        let newStatus: WorkflowExecutionStatus;
+        if (!eagerStart && currentStatus === "idle") {
+          // handleExecuteRequest path: wait for the first real callback
+          newStatus = "executing";
+        } else if (
+          currentStatus === "executing" &&
+          execution.status === "submitted"
+        ) {
+          // Already running locally — ignore a late "submitted" echo
+          newStatus = currentStatus;
+        } else {
+          newStatus = execution.status;
+        }
+        setWorkflowStatus(newStatus);
 
         setWorkflowErrorMessage(execution.error);
 
-        execution.nodeExecutions.forEach((nodeExecution) => {
-          updateNodeExecution(nodeExecution.nodeId, {
+        applyNodeExecutions(
+          execution.nodeExecutions.map((nodeExecution) => ({
+            nodeId: nodeExecution.nodeId,
             state: nodeExecution.status,
             outputs: nodeExecution.outputs || {},
             error: nodeExecution.error,
-          });
-        });
+          }))
+        );
 
         if (execution.status === "exhausted") {
           setErrorDialogOpen(true);
@@ -332,7 +347,7 @@ export function useWorkflowExecutionState({
         }
       };
     },
-    [resetNodeStates, updateNodeExecution, nodes, nodeTypeById]
+    [resetNodeStates, applyNodeExecutions, setWorkflowStatus, nodeTypeById]
   );
 
   const handleExecuteRequest = useCallback(
@@ -377,7 +392,6 @@ export function useWorkflowExecutionState({
       if (!executeWorkflow) return null;
 
       resetNodeStates("executing");
-      statusRef.current = "executing";
       setWorkflowStatus("executing");
 
       const executionCallback = createExecutionCallback(true);
@@ -385,8 +399,53 @@ export function useWorkflowExecutionState({
 
       return executeWorkflow(workflowId, executionCallback, triggerData);
     },
-    [executeWorkflow, workflowId, resetNodeStates, createExecutionCallback]
+    [
+      executeWorkflow,
+      workflowId,
+      resetNodeStates,
+      createExecutionCallback,
+      setWorkflowStatus,
+    ]
   );
+
+  /**
+   * Stop a run that is in flight.
+   *
+   * Detaching the local callback only stops the canvas from updating — the run
+   * keeps going, and keeps consuming compute. So terminate it server-side too,
+   * and report it honestly when that fails: a run that finished between the
+   * click and the request is rejected by the API, and the user should see that
+   * rather than a "Cancelled" badge over a run that actually completed.
+   */
+  const cancelExecution = useCallback(async () => {
+    const executionId = currentExecutionId;
+
+    if (cleanupRef.current) {
+      Promise.resolve(cleanupRef.current()).catch((error) =>
+        console.error("Error during cleanup:", error)
+      );
+      cleanupRef.current = null;
+    }
+
+    setWorkflowStatus("cancelled");
+
+    if (!executionId || !workflowId) return;
+
+    try {
+      await cancelWorkflowExecution(workflowId, executionId);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to cancel execution";
+      console.error("Failed to cancel execution:", error);
+      setWorkflowErrorMessage(message);
+      toast.error(message);
+    }
+  }, [
+    currentExecutionId,
+    workflowId,
+    cancelWorkflowExecution,
+    setWorkflowStatus,
+  ]);
 
   const startExecution = useCallback(() => {
     deselectAll();
@@ -418,35 +477,29 @@ export function useWorkflowExecutionState({
     findGatedNodeTypes,
   ]);
 
-  const handleActionButtonClick = useCallback(
-    (e: React.MouseEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
+  const handleActionButtonClick = useCallback(() => {
+    if (workflowStatus === "idle") {
+      startExecution();
+      return;
+    }
 
-      if (workflowStatus === "idle") {
-        startExecution();
-      } else if (
-        workflowStatus === "submitted" ||
-        workflowStatus === "executing"
-      ) {
-        deselectAll();
-        if (cleanupRef.current) {
-          Promise.resolve(cleanupRef.current()).catch((error) =>
-            console.error("Error during cleanup:", error)
-          );
-          cleanupRef.current = null;
-        }
-        statusRef.current = "cancelled";
-        setWorkflowStatus("cancelled");
-      } else {
-        deselectAll();
-        resetNodeStates();
-        statusRef.current = "idle";
-        setWorkflowStatus("idle");
-      }
-    },
-    [workflowStatus, resetNodeStates, startExecution, deselectAll]
-  );
+    deselectAll();
+
+    if (workflowStatus === "submitted" || workflowStatus === "executing") {
+      void cancelExecution();
+      return;
+    }
+
+    resetNodeStates();
+    setWorkflowStatus("idle");
+  }, [
+    workflowStatus,
+    resetNodeStates,
+    startExecution,
+    deselectAll,
+    cancelExecution,
+    setWorkflowStatus,
+  ]);
 
   return {
     workflowStatus,

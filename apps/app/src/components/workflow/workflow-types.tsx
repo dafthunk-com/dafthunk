@@ -58,8 +58,14 @@ export type WorkflowExecutionStatus =
   | "paused"
   | "exhausted";
 
-// Update payload for node execution state changes
+/**
+ * Update payload for a single node's execution state.
+ *
+ * Applied in batches — a running workflow reports every node on each progress
+ * frame, and rewriting the node array once per node made that quadratic.
+ */
 export interface NodeExecutionUpdate {
+  nodeId: string;
   state?: NodeExecutionState;
   outputs?: Record<string, unknown>;
   error?: string;

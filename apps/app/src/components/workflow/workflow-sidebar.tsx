@@ -136,12 +136,36 @@ export function WorkflowSidebar({
     setLocalRuntime(workflowRuntime);
   }, [workflowRuntime]);
 
+  // Stable handle so the unmount cleanup can flush without re-subscribing
+  // whenever the callback prop changes identity.
+  const onWorkflowUpdateRef = useRef(onWorkflowUpdate);
+  onWorkflowUpdateRef.current = onWorkflowUpdate;
+
+  // Send the pending edit now and cancel the timer. Safe to call when nothing
+  // is pending.
+  const flushPendingUpdate = () => {
+    if (!updateTimeoutRef.current) return;
+    clearTimeout(updateTimeoutRef.current);
+    updateTimeoutRef.current = null;
+    const s = localStateRef.current;
+    onWorkflowUpdateRef.current?.(s.name, s.description, s.trigger, s.runtime);
+  };
+
+  const flushPendingUpdateRef = useRef(flushPendingUpdate);
+  flushPendingUpdateRef.current = flushPendingUpdate;
+
   // Shared debounced update — reads latest values from ref when timer fires
   const scheduleDebouncedUpdate = () => {
     if (updateTimeoutRef.current) clearTimeout(updateTimeoutRef.current);
     updateTimeoutRef.current = setTimeout(() => {
+      updateTimeoutRef.current = null;
       const s = localStateRef.current;
-      onWorkflowUpdate?.(s.name, s.description, s.trigger, s.runtime);
+      onWorkflowUpdateRef.current?.(
+        s.name,
+        s.description,
+        s.trigger,
+        s.runtime
+      );
     }, 500);
   };
 
@@ -169,11 +193,11 @@ export function WorkflowSidebar({
     onWorkflowUpdate?.(s.name, s.description, s.trigger, newRuntime);
   };
 
-  // Cleanup timeout on unmount
+  // Flush — not discard — the pending edit on unmount, otherwise the last
+  // 500ms of typing is lost when navigating away. Child cleanups run before
+  // the parent's, so the socket in `useEditableWorkflow` is still open here.
   useEffect(() => {
-    return () => {
-      if (updateTimeoutRef.current) clearTimeout(updateTimeoutRef.current);
-    };
+    return () => flushPendingUpdateRef.current();
   }, []);
 
   return (

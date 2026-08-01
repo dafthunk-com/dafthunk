@@ -70,7 +70,13 @@ export function useLayout({
         };
       })
     );
-    reactFlowInstance?.fitView();
+
+    // fitView reads committed positions out of the React Flow store, so it has
+    // to wait for the setNodes above to render — calling it inline framed the
+    // pre-layout graph.
+    requestAnimationFrame(() => {
+      reactFlowInstance?.fitView({ padding: 0.25, duration: 200 });
+    });
   }, [setNodes, disabled, reactFlowInstance, nodesRef, edgesRef]);
 
   return { applyLayout };

@@ -2,7 +2,7 @@ import type {
   Edge as ReactFlowEdge,
   Node as ReactFlowNode,
 } from "@xyflow/react";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 import type { WorkflowEdgeType, WorkflowNodeType } from "./workflow-types";
 
@@ -15,8 +15,30 @@ interface UseKeyboardShortcutsProps {
   cutSelected: () => void;
   pasteFromClipboard: () => void;
   duplicateSelected: () => void;
-  onAction?: (e: React.MouseEvent) => void;
+  onAction?: () => void;
   nodeCount: number;
+}
+
+/**
+ * True when the event came from somewhere the user is typing, or from inside
+ * a modal. Either way the canvas shortcuts must stay out of the way: the
+ * editor's dialogs contain their own text fields, code editors and forms.
+ */
+function shouldIgnoreTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false;
+
+  if (
+    target.isContentEditable ||
+    target.tagName === "INPUT" ||
+    target.tagName === "TEXTAREA" ||
+    target.tagName === "SELECT" ||
+    target.getAttribute("role") === "textbox"
+  ) {
+    return true;
+  }
+
+  // Radix dialogs, alert dialogs and popovers mark their content this way.
+  return target.closest("[role='dialog'], [role='alertdialog']") !== null;
 }
 
 /**
@@ -35,68 +57,9 @@ export function useKeyboardShortcuts({
   onAction,
   nodeCount,
 }: UseKeyboardShortcutsProps): void {
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      // Ignore when typing in input fields
-      const target = event.target as HTMLElement;
-      const isInputField =
-        target.tagName === "INPUT" ||
-        target.tagName === "TEXTAREA" ||
-        target.contentEditable === "true";
-
-      if (isInputField) return;
-
-      const isMac = /mac/i.test(navigator.userAgent);
-      const isCtrlOrCmd = isMac ? event.metaKey : event.ctrlKey;
-
-      if (!isCtrlOrCmd) return;
-
-      // Cmd+Enter — execute workflow
-      if (event.key === "Enter") {
-        event.preventDefault();
-        if (onAction && !disabled && nodeCount > 0) {
-          const syntheticEvent = new MouseEvent("click", {
-            bubbles: true,
-            cancelable: true,
-          }) as unknown as React.MouseEvent;
-          onAction(syntheticEvent);
-        }
-        return;
-      }
-
-      const hasSelection = selectedNodes.length > 0 || selectedEdges.length > 0;
-
-      switch (event.key.toLowerCase()) {
-        case "c":
-          if (!disabled && hasSelection) {
-            event.preventDefault();
-            copySelected();
-          }
-          break;
-        case "x":
-          if (!disabled && hasSelection) {
-            event.preventDefault();
-            cutSelected();
-          }
-          break;
-        case "v":
-          if (!disabled && hasClipboardData) {
-            event.preventDefault();
-            pasteFromClipboard();
-          }
-          break;
-        case "d":
-          if (!disabled && hasSelection) {
-            event.preventDefault();
-            duplicateSelected();
-          }
-          break;
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [
+  // The handler reads everything through this ref so the listener is bound
+  // once, instead of being torn down and re-registered on every render.
+  const latest = useRef({
     disabled,
     selectedNodes,
     selectedEdges,
@@ -107,5 +70,73 @@ export function useKeyboardShortcuts({
     duplicateSelected,
     onAction,
     nodeCount,
-  ]);
+  });
+  latest.current = {
+    disabled,
+    selectedNodes,
+    selectedEdges,
+    hasClipboardData,
+    copySelected,
+    cutSelected,
+    pasteFromClipboard,
+    duplicateSelected,
+    onAction,
+    nodeCount,
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (shouldIgnoreTarget(event.target)) return;
+
+      const current = latest.current;
+
+      const isMac = /mac/i.test(navigator.userAgent);
+      const isCtrlOrCmd = isMac ? event.metaKey : event.ctrlKey;
+      if (!isCtrlOrCmd) return;
+
+      // Cmd+Enter — run / cancel the workflow
+      if (event.key === "Enter") {
+        if (current.onAction && !current.disabled && current.nodeCount > 0) {
+          event.preventDefault();
+          current.onAction();
+        }
+        return;
+      }
+
+      if (current.disabled) return;
+
+      const hasSelection =
+        current.selectedNodes.length > 0 || current.selectedEdges.length > 0;
+
+      switch (event.key.toLowerCase()) {
+        case "c":
+          if (hasSelection) {
+            event.preventDefault();
+            current.copySelected();
+          }
+          break;
+        case "x":
+          if (hasSelection) {
+            event.preventDefault();
+            current.cutSelected();
+          }
+          break;
+        case "v":
+          if (current.hasClipboardData) {
+            event.preventDefault();
+            current.pasteFromClipboard();
+          }
+          break;
+        case "d":
+          if (hasSelection) {
+            event.preventDefault();
+            current.duplicateSelected();
+          }
+          break;
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
 }

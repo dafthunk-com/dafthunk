@@ -6,6 +6,7 @@ import type {
   OnConnectEnd,
   OnConnectStart,
   OnEdgesChange,
+  OnNodeDrag,
   OnNodesChange,
   Edge as ReactFlowEdge,
   ReactFlowInstance,
@@ -52,10 +53,7 @@ interface UseWorkflowStateReturn {
   onConnectStart: OnConnectStart;
   onConnectEnd: OnConnectEnd;
   onNodeDragStart: () => void;
-  onNodeDragStop: (
-    event: React.MouseEvent,
-    node: ReactFlowNode<WorkflowNodeType>
-  ) => void;
+  onNodeDragStop: OnNodeDrag<ReactFlowNode<WorkflowNodeType>>;
   connectionValidationState: ConnectionValidationState;
   isValidConnection: IsValidConnection<ReactFlowEdge<WorkflowEdgeType>>;
   handleAddNode: () => void;
@@ -66,7 +64,7 @@ interface UseWorkflowStateReturn {
       ReactFlowEdge<WorkflowEdgeType>
     > | null
   ) => void;
-  updateNodeExecution: (nodeId: string, update: NodeExecutionUpdate) => void;
+  applyNodeExecutions: (updates: NodeExecutionUpdate[]) => void;
   updateNodeData: (
     nodeId: string,
     data:
@@ -88,8 +86,6 @@ interface UseWorkflowStateReturn {
   pasteFromClipboard: () => void;
   hasClipboardData: boolean;
 }
-
-const NOOP = () => {};
 
 export function useWorkflowState({
   initialNodes = [],
@@ -143,14 +139,16 @@ export function useWorkflowState({
     createObjectUrl,
   });
 
+  // `useClipboard` and `useLayout` both take `disabled` and enforce it on each
+  // operation, so this layer only composes — it does not re-gate.
   return {
     ...graphOps,
     applyLayout,
-    duplicateNode: disabled ? NOOP : clipboard.duplicateNode,
-    duplicateSelected: disabled ? NOOP : clipboard.duplicateSelected,
-    copySelected: disabled ? NOOP : clipboard.copySelected,
-    cutSelected: disabled ? NOOP : clipboard.cutSelected,
-    pasteFromClipboard: disabled ? NOOP : clipboard.pasteFromClipboard,
+    duplicateNode: clipboard.duplicateNode,
+    duplicateSelected: clipboard.duplicateSelected,
+    copySelected: clipboard.copySelected,
+    cutSelected: clipboard.cutSelected,
+    pasteFromClipboard: clipboard.pasteFromClipboard,
     hasClipboardData: clipboard.hasClipboardData,
   };
 }

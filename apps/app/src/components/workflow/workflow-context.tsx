@@ -1,6 +1,6 @@
 import type { WorkflowTrigger } from "@dafthunk/types";
 import type { Edge as ReactFlowEdge } from "@xyflow/react";
-import { createContext, ReactNode, useContext } from "react";
+import { createContext, ReactNode, useContext, useMemo } from "react";
 
 import {
   NodeType,
@@ -68,16 +68,30 @@ export function WorkflowProvider({
   nodeTypes = [],
   workflowTrigger,
 }: WorkflowProviderProps) {
-  const workflowContextValue = {
-    updateNodeData,
-    updateEdgeData,
-    deleteEdge,
-    edges,
-    disabled,
-    expandedOutputs,
-    nodeTypes,
-    workflowTrigger,
-  };
+  // Every node and every field consumes this context, so an unmemoized value
+  // object would re-render the whole canvas on each builder render.
+  const workflowContextValue = useMemo(
+    () => ({
+      updateNodeData,
+      updateEdgeData,
+      deleteEdge,
+      edges,
+      disabled,
+      expandedOutputs,
+      nodeTypes,
+      workflowTrigger,
+    }),
+    [
+      updateNodeData,
+      updateEdgeData,
+      deleteEdge,
+      edges,
+      disabled,
+      expandedOutputs,
+      nodeTypes,
+      workflowTrigger,
+    ]
+  );
 
   return (
     <WorkflowContext.Provider value={workflowContextValue}>
@@ -116,10 +130,16 @@ export const updateNodeInput = (
     input.id === inputId ? ({ ...input, value } as WorkflowParameter) : input
   );
 
-  // Delete any edges connected to this input when manually setting a value
+  // Setting a value by hand replaces whatever was feeding the input, so drop
+  // its connections. Inputs can be wired from either end (see the reversed
+  // branch in `isValidConnection`), so both directions have to be checked —
+  // matching only on `target` left reversed edges attached to an input that
+  // now has a literal value.
   if (edges && deleteEdge) {
     const connectedEdges = edges.filter(
-      (edge) => edge.target === nodeId && edge.targetHandle === inputId
+      (edge) =>
+        (edge.target === nodeId && edge.targetHandle === inputId) ||
+        (edge.source === nodeId && edge.sourceHandle === inputId)
     );
     connectedEdges.forEach((edge) => deleteEdge(edge.id));
   }

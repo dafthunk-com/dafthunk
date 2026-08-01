@@ -5,6 +5,7 @@ import type {
 } from "@xyflow/react";
 import { useCallback, useState } from "react";
 
+import { createEdgeId, createNodeId } from "./graph-ids";
 import type {
   NodeExecutionState,
   WorkflowEdgeType,
@@ -66,7 +67,7 @@ export function useClipboard({
 
       const newNode: ReactFlowNode<WorkflowNodeType> = {
         ...nodeToDuplicate,
-        id: `${nodeToDuplicate.data.nodeType || "node"}-${Date.now()}`,
+        id: createNodeId(nodeToDuplicate.data.nodeType),
         position: {
           x: nodeToDuplicate.position.x + 250,
           y: nodeToDuplicate.position.y + 50,
@@ -118,12 +119,11 @@ export function useClipboard({
       ];
 
       const duplicateOffset = { x: 50, y: 50 };
-      const timestamp = Date.now();
 
       const nodeIdMap = new Map<string, string>();
 
-      const newNodes = selectedNodes.map((node, index) => {
-        const newId = `${node.data.nodeType || "node"}-${timestamp}-${index}`;
+      const newNodes = selectedNodes.map((node) => {
+        const newId = createNodeId(node.data.nodeType);
         nodeIdMap.set(node.id, newId);
 
         return {
@@ -153,7 +153,12 @@ export function useClipboard({
         )
         .map((edge) => ({
           ...edge,
-          id: `${nodeIdMap.get(edge.source)}-${edge.sourceHandle}-${nodeIdMap.get(edge.target)}-${edge.targetHandle}`,
+          id: createEdgeId(
+            nodeIdMap.get(edge.source)!,
+            edge.sourceHandle,
+            nodeIdMap.get(edge.target)!,
+            edge.targetHandle
+          ),
           source: nodeIdMap.get(edge.source)!,
           target: nodeIdMap.get(edge.target)!,
           selected: true,
@@ -243,10 +248,9 @@ export function useClipboard({
     const pasteOffset = { x: 50, y: 50 };
 
     const nodeIdMap = new Map<string, string>();
-    const timestamp = Date.now();
 
-    const newNodes = clipboardData.nodes.map((node, index) => {
-      const newId = `${node.data.nodeType || "node"}-${timestamp}-${index}`;
+    const newNodes = clipboardData.nodes.map((node) => {
+      const newId = createNodeId(node.data.nodeType);
       nodeIdMap.set(node.id, newId);
 
       return {
@@ -277,7 +281,12 @@ export function useClipboard({
       )
       .map((edge) => ({
         ...edge,
-        id: `${nodeIdMap.get(edge.source)}-${edge.sourceHandle}-${nodeIdMap.get(edge.target)}-${edge.targetHandle}`,
+        id: createEdgeId(
+          nodeIdMap.get(edge.source)!,
+          edge.sourceHandle,
+          nodeIdMap.get(edge.target)!,
+          edge.targetHandle
+        ),
         source: nodeIdMap.get(edge.source)!,
         target: nodeIdMap.get(edge.target)!,
         selected: true,

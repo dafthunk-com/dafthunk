@@ -5,30 +5,8 @@ import type {
 import type { RefObject } from "react";
 import { useEffect, useRef } from "react";
 
+import { serializeEdges, serializeNodes } from "./graph-projection";
 import type { WorkflowEdgeType, WorkflowNodeType } from "./workflow-types";
-
-// Strip execution-only fields so persistence ignores transient state
-const stripExecutionFields = (
-  data: WorkflowNodeType
-): Omit<WorkflowNodeType, "executionState" | "error"> & {
-  outputs: Omit<WorkflowNodeType["outputs"][number], "value">[];
-  inputs: WorkflowNodeType["inputs"];
-} => {
-  const { executionState, error, ...rest } = data;
-
-  return {
-    ...rest,
-    outputs: data.outputs.map(({ value, ...outputRest }) => outputRest),
-    inputs: data.inputs,
-  };
-};
-
-const stripEdgeExecutionFields = (
-  data: WorkflowEdgeType = {}
-): Omit<WorkflowEdgeType, "isActive"> => {
-  const { isActive, ...rest } = data;
-  return rest;
-};
 
 interface UseGraphPersistenceProps {
   nodes: ReactFlowNode<WorkflowNodeType>[];
@@ -41,7 +19,7 @@ interface UseGraphPersistenceProps {
 
 /**
  * Side-effect-only hook that notifies the parent when persistable
- * graph data (nodes/edges minus execution state) actually changes.
+ * graph data (see `graph-projection`) actually changes.
  */
 export function useGraphPersistence({
   nodes,
@@ -54,40 +32,24 @@ export function useGraphPersistence({
   const lastPersistedNodesRef = useRef<string>("");
   const lastPersistedEdgesRef = useRef<string>("");
 
-  // Persist nodes when their persistable data changes (skip during drag)
+  // Persist nodes when their persistable data changes. Skipped mid-drag: the
+  // final position is persisted by the re-render that `onNodeDragStop` forces.
   useEffect(() => {
     if (disabled || isDraggingRef.current) return;
 
-    const normalizedNodes = nodes.map((node) => ({
-      id: node.id,
-      type: node.type,
-      position: node.position,
-      data: stripExecutionFields(node.data),
-    }));
-
-    const serialized = JSON.stringify(normalizedNodes);
+    const serialized = serializeNodes(nodes);
 
     if (serialized !== lastPersistedNodesRef.current) {
       lastPersistedNodesRef.current = serialized;
       onNodesChangePersist?.(nodes);
     }
-  }, [nodes, onNodesChangePersist, disabled]);
+  }, [nodes, onNodesChangePersist, disabled, isDraggingRef]);
 
   // Persist edges when their persistable data changes
   useEffect(() => {
     if (disabled) return;
 
-    const normalizedEdges = edges.map((edge) => ({
-      id: edge.id,
-      source: edge.source,
-      target: edge.target,
-      sourceHandle: edge.sourceHandle,
-      targetHandle: edge.targetHandle,
-      type: edge.type,
-      data: stripEdgeExecutionFields(edge.data),
-    }));
-
-    const serialized = JSON.stringify(normalizedEdges);
+    const serialized = serializeEdges(edges);
 
     if (serialized !== lastPersistedEdgesRef.current) {
       lastPersistedEdgesRef.current = serialized;

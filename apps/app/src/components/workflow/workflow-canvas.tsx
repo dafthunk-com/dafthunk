@@ -6,6 +6,7 @@ import type {
   OnConnectEnd,
   OnConnectStart,
   OnEdgesChange,
+  OnNodeDrag,
   OnNodesChange,
   Edge as ReactFlowEdge,
   ReactFlowInstance,
@@ -142,10 +143,7 @@ export interface WorkflowCanvasProps {
   onConnectStart: OnConnectStart;
   onConnectEnd: OnConnectEnd;
   onNodeDragStart?: () => void;
-  onNodeDragStop: (
-    event: React.MouseEvent,
-    node: ReactFlowNode<WorkflowNodeType>
-  ) => void;
+  onNodeDragStop: OnNodeDrag<ReactFlowNode<WorkflowNodeType>>;
   onNodeDoubleClick?: (event: React.MouseEvent) => void;
   onInit: (
     instance: ReactFlowInstance<
@@ -154,7 +152,8 @@ export interface WorkflowCanvasProps {
     >
   ) => void;
   onAddNode?: () => void;
-  onAction?: (e: React.MouseEvent) => void;
+  /** Run / cancel / reset. Also invoked by the Cmd+Enter shortcut. */
+  onAction?: () => void;
   workflowStatus?: WorkflowExecutionStatus;
   workflowErrorMessage?: string;
   onToggleSidebar?: (e: React.MouseEvent) => void;
@@ -178,7 +177,7 @@ export interface WorkflowCanvasProps {
 }
 
 interface ActionButtonProps {
-  onClick: (e: React.MouseEvent) => void;
+  onClick: () => void;
   workflowStatus?: WorkflowExecutionStatus;
   disabled?: boolean;
   className?: string;
@@ -658,7 +657,7 @@ export function WorkflowCanvas({
               {onAction && (
                 <ActionBarGroup>
                   <ActionButton
-                    onClick={onAction}
+                    onClick={() => onAction()}
                     workflowStatus={workflowStatus}
                     disabled={
                       disabled ||

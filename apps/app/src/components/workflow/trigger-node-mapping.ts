@@ -1,5 +1,7 @@
 import type { Node, NodeType, WorkflowTrigger } from "@dafthunk/types";
 
+import { createNodeId } from "./graph-ids";
+
 /**
  * Maps workflow trigger types to the node type(s) that should be auto-added.
  * `manual` has no trigger nodes.
@@ -46,7 +48,7 @@ export function buildInitialTriggerNodes(
     if (!nodeType) continue;
 
     nodes.push({
-      id: `${nodeType.type}-${Date.now()}-${i}`,
+      id: createNodeId(nodeType.type),
       name: nodeType.name,
       type: nodeType.type,
       icon: nodeType.icon,
