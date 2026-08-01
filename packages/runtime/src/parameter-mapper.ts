@@ -1,8 +1,11 @@
 import type {
   ParameterValue as ApiParameterValue,
+  Node,
   ObjectReference,
   Schema,
 } from "@dafthunk/types";
+
+import type { RuntimeValue } from "./execution-types";
 import {
   isObjectReference,
   type AudioParameter as NodeAudioParameter,
@@ -493,4 +496,75 @@ export async function apiToNodeParameter(
   const converter = converters[type];
   if (!converter) throw new Error(`No converter for type: ${type}`);
   return Promise.resolve(converter.apiToNode(value, objectStore, context));
+}
+
+/**
+ * Converts a node's emitted outputs from node-native format to API format,
+ * resolving each value against the parameter type declared on the node.
+ *
+ * Only parameters declared `repeated` are mapped element-wise; an array value
+ * on a non-repeated output is a single JSON value and is converted as one.
+ */
+export async function nodeOutputsToApi(
+  node: Node,
+  outputs: Record<string, unknown>,
+  objectStore?: ObjectStore,
+  organizationId?: string,
+  executionId?: string
+): Promise<Record<string, RuntimeValue | RuntimeValue[]>> {
+  const mapped: Record<string, RuntimeValue | RuntimeValue[]> = {};
+
+  for (const [name, value] of Object.entries(outputs)) {
+    const output = node.outputs.find((o) => o.name === name);
+    const convert = (item: unknown) =>
+      nodeToApiParameter(
+        (output?.type ?? "string") as ParameterType,
+        item as NodeParameterValue,
+        objectStore,
+        organizationId,
+        executionId
+      ) as Promise<RuntimeValue>;
+
+    mapped[name] =
+      output?.repeated && Array.isArray(value)
+        ? await Promise.all(value.map(convert))
+        : await convert(value);
+  }
+
+  return mapped;
+}
+
+/**
+ * Converts collected inputs from API format to the node-native format a node's
+ * `execute` expects, resolving each value against its declared parameter type.
+ *
+ * Unlike outputs, any array value is mapped element-wise: input collection has
+ * already folded repeated parameters into arrays.
+ */
+export async function apiInputsToNode(
+  node: Node,
+  inputs: Record<string, RuntimeValue | RuntimeValue[]>,
+  objectStore?: ObjectStore,
+  context?: ParameterMapperContext
+): Promise<Record<string, unknown>> {
+  const resolved: Record<string, unknown> = {};
+
+  for (const [name, value] of Object.entries(inputs)) {
+    const declaredType = node.inputs.find((i) => i.name === name)?.type;
+    const convert = (item: RuntimeValue) =>
+      apiToNodeParameter(
+        (declaredType ?? "string") as ParameterType,
+        item as ApiParameterValue,
+        objectStore,
+        context
+      );
+
+    // A repeated parameter arrives as RuntimeValue[]; a `json` parameter can
+    // also be an array, but its elements are converted the same way.
+    resolved[name] = Array.isArray(value)
+      ? await Promise.all((value as RuntimeValue[]).map(convert))
+      : await convert(value);
+  }
+
+  return resolved;
 }

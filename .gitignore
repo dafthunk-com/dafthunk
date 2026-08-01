@@ -8,6 +8,7 @@ dist
 .wrangler
 tsconfig.tsbuildinfo
 .react-router
+coverage
 
 .idea
 .pnpm-store

@@ -1,8 +1,4 @@
-import {
-  BaseNodeRegistry,
-  FailingMultiStepNode,
-  MultiStepAdditionNode,
-} from "@dafthunk/runtime";
+import { BaseNodeRegistry } from "@dafthunk/runtime";
 import { CgsApplyMaterialNode } from "@dafthunk/runtime/nodes/3d/cgs-apply-material-node";
 import { CgsApplyTextureNode } from "@dafthunk/runtime/nodes/3d/cgs-apply-texture-node";
 import { CgsConeNode } from "@dafthunk/runtime/nodes/3d/cgs-cone-node";
@@ -475,6 +471,12 @@ import { ListUserPostsXNode } from "@dafthunk/runtime/nodes/x/list-user-posts-x-
 import { RepostXNode } from "@dafthunk/runtime/nodes/x/repost-x-node";
 import { SearchPostsXNode } from "@dafthunk/runtime/nodes/x/search-posts-x-node";
 import { SharePostXNode } from "@dafthunk/runtime/nodes/x/share-post-x-node";
+// Imported from the module directly rather than the specification barrel: the
+// barrel pulls in vitest, and these two nodes ship in the real registry.
+import {
+  FailingMultiStepNode,
+  MultiStepAdditionNode,
+} from "@dafthunk/runtime/specification/multi-step-test-nodes";
 import type { Bindings } from "../context";
 
 export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {

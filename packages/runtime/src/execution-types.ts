@@ -1,18 +1,12 @@
 import type {
-  DiscordInteraction,
   JsonArray,
   JsonObject,
   NodeType,
   ObjectReference,
-  QueueMessage,
-  ScheduledTrigger,
-  SlackMessage,
-  TelegramMessage,
-  WhatsAppMessage,
   Workflow,
 } from "@dafthunk/types";
 
-import type { EmailMessage, FormSubmission, HttpRequest } from "./node-types";
+import type { TriggerContext } from "./trigger";
 
 /**
  * Runtime value types - JSON-serializable values used during workflow execution.
@@ -56,49 +50,27 @@ export type NodeRuntimeValues = Record<string, RuntimeValue | RuntimeValue[]>;
 export type WorkflowRuntimeState = Record<string, NodeRuntimeValues>;
 
 /**
- * A group of node IDs that can be executed in parallel.
- * Nodes within the same level have no dependencies on each other.
- */
-export interface ExecutionLevel {
-  readonly nodeIds: readonly string[];
-}
-
-/**
  * Immutable execution context.
- * Contains workflow definition and execution levels that never change during execution.
- * Created once at initialization, passed by reference throughout execution.
+ * Identifies the run and carries whatever triggered it. Created once at
+ * initialization and passed by reference throughout execution.
+ *
+ * This value round-trips through durable-step serialization, so it holds only
+ * JSON-safe data. Derived structure (topological order, edge indexes) lives on
+ * {@link ExecutionGraph}, which is rebuilt outside the step instead.
  */
 export interface WorkflowExecutionContext {
   /** The workflow definition being executed (immutable) */
   readonly workflow: Workflow;
-  /** Execution levels - nodes grouped by dependency level for parallel execution */
-  readonly executionLevels: readonly ExecutionLevel[];
-  /** Flattened list of all node IDs (derived from executionLevels, for convenience) */
-  readonly orderedNodeIds: readonly string[];
   /** Workflow ID for reference */
   readonly workflowId: string;
   /** Organization ID for scoping */
   readonly organizationId: string;
   /** Execution instance ID */
   readonly executionId: string;
-  /** Incoming HTTP request (for webhook-triggered workflows) */
-  readonly httpRequest?: HttpRequest;
-  /** Submitted form record (for form_request/form_webhook workflows) */
-  readonly formSubmission?: FormSubmission;
-  /** Incoming email message (for email-triggered workflows) */
-  readonly emailMessage?: EmailMessage;
-  /** Incoming queue message (for queue-triggered workflows) */
-  readonly queueMessage?: QueueMessage;
-  /** Incoming scheduled trigger (for cron-triggered workflows) */
-  readonly scheduledTrigger?: ScheduledTrigger;
-  /** Incoming Discord interaction (for discord-triggered workflows) */
-  readonly discordInteraction?: DiscordInteraction;
-  /** Incoming Telegram message (for telegram-triggered workflows) */
-  readonly telegramMessage?: TelegramMessage;
-  /** Incoming WhatsApp message (for whatsapp-triggered workflows) */
-  readonly whatsappMessage?: WhatsAppMessage;
-  /** Incoming Slack message (for slack-triggered workflows) */
-  readonly slackMessage?: SlackMessage;
+  /** What caused this run, and the credentials needed to answer it */
+  readonly trigger: TriggerContext;
+  /** Billing plan of the owning organization, gating subscription-only nodes */
+  readonly userPlan?: string;
 }
 
 /**
@@ -129,11 +101,19 @@ export interface ExecutionState {
  * Result of executing a single node.
  * Immutable description of what happened - no state mutation required.
  * Used to decouple node execution from state management.
+ *
+ * Every field a node execution produces must travel on this result rather than
+ * being written to ExecutionState as a side effect. Node execution runs inside a
+ * durable step; on replay the step body is skipped and only the cached result is
+ * returned, so a side-effect write would silently be lost. `inputs` is carried
+ * here for exactly that reason.
  */
 export type NodeExecutionResult =
   | {
       nodeId: string;
       status: "completed";
+      /** Resolved inputs in API format, for persistence and display */
+      inputs?: NodeRuntimeValues;
       outputs: NodeRuntimeValues;
       usage: number;
     }
@@ -152,6 +132,8 @@ export type NodeExecutionResult =
   | {
       nodeId: string;
       status: "error";
+      /** Resolved inputs, when the node failed after inputs were collected */
+      inputs?: NodeRuntimeValues;
       error: string;
       /** Usage consumed before the error (e.g., API call made but parsing failed) */
       usage?: number;
@@ -159,6 +141,8 @@ export type NodeExecutionResult =
   | {
       nodeId: string;
       status: "pending";
+      /** Resolved inputs, carried forward to the result the event resolves to */
+      inputs?: NodeRuntimeValues;
       /** Event type the runtime should wait for (e.g., "agent-complete:nodeId") */
       eventType: string;
       /** How long to wait before timing out (e.g., "30 minutes") */
@@ -181,6 +165,15 @@ export interface SkipReasonResult {
   readonly reason: SkipReason;
   /** Node IDs that directly caused this node to be skipped */
   readonly blockedBy: readonly string[];
+}
+
+/**
+ * Verdict on a node's upstream dependencies: whether it can run at all, and how
+ * to describe the blockage if it can't.
+ */
+export interface UpstreamAnalysis extends SkipReasonResult {
+  /** True when every inbound edge is blocked, so the node cannot execute */
+  readonly shouldSkip: boolean;
 }
 
 /**

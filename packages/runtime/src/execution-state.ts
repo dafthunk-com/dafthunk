@@ -4,18 +4,15 @@
  * (aside from the controlled mutation in applyNodeResult).
  */
 
-import type {
-  NodeType,
-  Workflow,
-  WorkflowExecutionStatus,
-} from "@dafthunk/types";
+import type { NodeType, WorkflowExecutionStatus } from "@dafthunk/types";
 
+import type { ExecutionGraph } from "./execution-graph";
 import type {
   ExecutableNodeConstructor,
   ExecutionState,
   NodeExecutionResult,
   SkipReasonResult,
-  WorkflowExecutionContext,
+  UpstreamAnalysis,
 } from "./execution-types";
 
 /**
@@ -26,6 +23,10 @@ export function applyNodeResult(
   state: ExecutionState,
   result: NodeExecutionResult
 ): void {
+  if (result.status !== "skipped" && result.inputs) {
+    state.nodeInputs[result.nodeId] = result.inputs;
+  }
+
   switch (result.status) {
     case "completed":
       state.nodeOutputs[result.nodeId] = result.outputs;
@@ -42,8 +43,9 @@ export function applyNodeResult(
       }
       break;
     case "pending":
-      // Pending nodes haven't produced outputs yet — no state mutation needed.
-      // The runtime will resolve them via waitForNodeEvent and apply the final result.
+      // Pending nodes haven't produced outputs yet — inputs (applied above) are
+      // all they contribute. The runtime resolves them via waitForNodeEvent and
+      // applies the final result.
       break;
   }
 }
@@ -61,18 +63,16 @@ export function applyNodeResult(
  * - "error": Any nodes failed or were skipped due to upstream failures
  */
 export function getExecutionStatus(
-  context: WorkflowExecutionContext,
+  graph: ExecutionGraph,
   state: ExecutionState
 ): WorkflowExecutionStatus {
-  const { workflow, orderedNodeIds } = context;
-  const { executedNodes, skippedNodes, nodeErrors } = state;
+  const { skippedNodes, nodeErrors } = state;
 
-  // Check if all nodes have been visited (executed, skipped, or errored)
-  const allNodesVisited = orderedNodeIds.every(
-    (nodeId) =>
-      executedNodes.includes(nodeId) ||
-      skippedNodes.includes(nodeId) ||
-      nodeId in nodeErrors
+  // Membership is checked once per node, so index the arrays first rather than
+  // scanning them per lookup — this runs on every progress update.
+  const visited = new Set([...state.executedNodes, ...skippedNodes]);
+  const allNodesVisited = graph.nodeIds.every(
+    (nodeId) => visited.has(nodeId) || nodeId in nodeErrors
   );
 
   if (!allNodesVisited) {
@@ -86,7 +86,7 @@ export function getExecutionStatus(
 
   // Check if any skipped nodes are due to upstream failures (not conditional branching)
   for (const skippedNodeId of skippedNodes) {
-    const { reason } = inferSkipReason(workflow, state, skippedNodeId);
+    const { reason } = inferSkipReason(graph, state, skippedNodeId);
     if (reason === "upstream_failure") {
       return "error";
     }
@@ -97,29 +97,29 @@ export function getExecutionStatus(
 }
 
 /**
- * Infers the reason a node was skipped, with full traceability.
+ * Analyzes a node's upstream edges to decide whether it can run, and if not,
+ * why. This is the single analyzer behind both the scheduling decision ("skip
+ * this node") and the reported classification ("because upstream failed").
  *
- * Uses recursion to trace skip chains back to their root cause:
- * - If an upstream node errored, or was skipped due to an upstream failure,
- *   this node is classified as "upstream_failure"
- * - If an upstream node executed but didn't populate the expected output
- *   (conditional branch), or was skipped due to a conditional branch,
- *   this node is classified as "conditional_branch"
+ * An edge is a *blocker* when it can never deliver a value: its source errored,
+ * its source was skipped, or its source ran without populating the specific
+ * output this edge reads (a conditional fork). A node is skipped only when
+ * every inbound edge is blocked — one live edge is enough to execute.
  *
- * Every skipped node must have a determinable reason - if we can't find one,
- * we default to "upstream_failure" to be conservative (treat as error).
+ * Blockers are classified by tracing skip chains recursively back to their root
+ * cause, and failures win over conditionals so a genuine error is never
+ * reported as expected branching.
  */
-export function inferSkipReason(
-  workflow: Workflow,
+export function analyzeUpstream(
+  graph: ExecutionGraph,
   state: ExecutionState,
   nodeId: string
-): SkipReasonResult {
-  const inboundEdges = workflow.edges.filter((edge) => edge.target === nodeId);
+): UpstreamAnalysis {
+  const inboundEdges = graph.inboundEdges(nodeId);
 
   const failureBlockers: string[] = [];
   const conditionalBlockers: string[] = [];
 
-  // Analyze each upstream edge
   for (const edge of inboundEdges) {
     // Upstream errored directly
     if (edge.source in state.nodeErrors) {
@@ -129,8 +129,8 @@ export function inferSkipReason(
 
     // Upstream was skipped - recursively determine why
     if (state.skippedNodes.includes(edge.source)) {
-      const upstreamResult = inferSkipReason(workflow, state, edge.source);
-      if (upstreamResult.reason === "upstream_failure") {
+      const upstream = analyzeUpstream(graph, state, edge.source);
+      if (upstream.reason === "upstream_failure") {
         failureBlockers.push(edge.source);
       } else {
         conditionalBlockers.push(edge.source);
@@ -149,28 +149,39 @@ export function inferSkipReason(
     // This edge has available data - doesn't contribute to skip
   }
 
-  // Prioritize upstream failures over conditional branches
-  if (failureBlockers.length > 0) {
-    return {
-      reason: "upstream_failure",
-      blockedBy: failureBlockers,
-    };
-  }
+  const blockedCount = failureBlockers.length + conditionalBlockers.length;
+  const shouldSkip =
+    inboundEdges.length > 0 && blockedCount === inboundEdges.length;
 
-  if (conditionalBlockers.length > 0) {
+  // Prioritize upstream failures over conditional branches. When no blocker is
+  // identifiable we fall back to "upstream_failure" so an unexplained skip
+  // surfaces as an error rather than being masked as expected branching.
+  if (conditionalBlockers.length > 0 && failureBlockers.length === 0) {
     return {
+      shouldSkip,
       reason: "conditional_branch",
       blockedBy: conditionalBlockers,
     };
   }
 
-  // If we reach here, we couldn't determine a specific reason.
-  // This shouldn't happen in a well-formed workflow, but if it does,
-  // treat it as a failure to be conservative (don't mask potential bugs).
   return {
+    shouldSkip,
     reason: "upstream_failure",
-    blockedBy: [],
+    blockedBy: failureBlockers,
   };
+}
+
+/**
+ * Infers the reason an already-skipped node was skipped.
+ * Thin projection of {@link analyzeUpstream} for reporting call sites.
+ */
+export function inferSkipReason(
+  graph: ExecutionGraph,
+  state: ExecutionState,
+  nodeId: string
+): SkipReasonResult {
+  const { reason, blockedBy } = analyzeUpstream(graph, state, nodeId);
+  return { reason, blockedBy };
 }
 
 /**

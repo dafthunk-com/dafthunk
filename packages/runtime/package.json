@@ -4,6 +4,8 @@
   "private": true,
   "exports": {
     ".": "./src/index.ts",
+    "./specification": "./src/specification/index.ts",
+    "./specification/*": "./src/specification/*.ts",
     "./nodes/*": "./src/nodes/*.ts",
     "./utils/*": "./src/utils/*.ts",
     "./node-utils": "./src/node-utils.ts"
@@ -13,6 +15,7 @@
     "lint": "biome check",
     "check": "biome check --write",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage.enabled --coverage.provider=v8 --coverage.include='src/*.ts' --coverage.exclude='src/index.ts'",
     "fonts:fetch": "node scripts/fetch-fonts.mjs"
   },
   "dependencies": {
@@ -44,6 +47,7 @@
     "@cloudflare/workers-types": "^5.20260730.1",
     "@types/three": "^0.181.0",
     "@types/wellknown": "^0.5.8",
+    "@vitest/coverage-v8": "^4.1.6",
     "typescript": "^5.9.3",
     "vitest": "^4.1.6"
   }

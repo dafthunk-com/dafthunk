@@ -1,16 +1,10 @@
 // Types for workflows
 import type {
-  DiscordInteraction,
   GeoJSON,
   Node,
   NodeExecution,
   NodeType,
   ObjectReference,
-  QueueMessage,
-  ScheduledTrigger,
-  SlackMessage,
-  TelegramMessage,
-  WhatsAppMessage,
 } from "@dafthunk/types";
 import type { BaseToolRegistry } from "./base-tool-registry";
 import type { DatabaseService } from "./database-service";
@@ -20,6 +14,9 @@ import type { ObjectStore } from "./object-store";
 import type { QueueService } from "./queue-service";
 import type { SchemaService } from "./schema-service";
 import type { ToolDefinition, ToolReference } from "./tool-types";
+// Type-only cycle with ./trigger: it needs BlobParameter for HTTP bodies, this
+// module needs TriggerContext for NodeContext. Erased at compile time.
+import type { TriggerContext } from "./trigger";
 import type { CodeModeExecutor } from "./utils/code-mode";
 import type { SandboxExecutor } from "./utils/sandbox-mode";
 
@@ -162,40 +159,14 @@ export type ParameterType =
 
 export type ParameterValue = ParameterType["value"];
 
-export interface HttpRequest {
-  url?: string;
-  path?: string;
-  method?: string;
-  headers?: Record<string, string>;
-  query?: Record<string, string>;
-  queryParams?: Record<string, string>; // Alias for query
-  body?: BlobParameter; // Raw request body with MIME type
-}
-
-/**
- * A submitted form record that started a workflow (form_request /
- * form_webhook triggers). `record` is keyed by schema field name; blob fields
- * hold an ObjectReference. Validated against the trigger node's schema before
- * the workflow runs.
- */
-export interface FormSubmission {
-  record: Record<string, unknown>;
-  timestamp: number;
-}
-
-export interface EmailMessage {
-  from: string;
-  to: string;
-  headers: Record<string, string>;
-  raw: string;
-  /**
-   * Mailbox context, present when the email was delivered to a persisted
-   * per-org address. Lets downstream nodes thread replies and read history.
-   */
-  threadId?: string;
-  messageId?: string;
-  emailId?: string;
-}
+// Trigger payloads live in ./trigger alongside the rest of the trigger surface.
+// Re-exported here because nodes import their context types from this module.
+export type {
+  EmailMessage,
+  FormSubmission,
+  HttpRequest,
+  TriggerContext,
+} from "./trigger";
 
 /**
  * Minimal integration information exposed to nodes.
@@ -244,7 +215,7 @@ export interface NodeEnv {
   FORM_SIGNING_KEY?: string;
 }
 
-export interface NodeContext {
+export interface NodeContext extends TriggerContext {
   nodeId: string;
   workflowId: string;
   organizationId: string;
@@ -254,20 +225,6 @@ export interface NodeContext {
   asyncSupported?: boolean;
   inputs: Record<string, any>;
   onProgress?: (progress: number) => void;
-  httpRequest?: HttpRequest;
-  formSubmission?: FormSubmission;
-  emailMessage?: EmailMessage;
-  queueMessage?: QueueMessage;
-  scheduledTrigger?: ScheduledTrigger;
-  discordInteraction?: DiscordInteraction;
-  discordBotToken?: string;
-  telegramMessage?: TelegramMessage;
-  telegramBotToken?: string;
-  whatsappMessage?: WhatsAppMessage;
-  whatsappAccessToken?: string;
-  whatsappPhoneNumberId?: string;
-  slackMessage?: SlackMessage;
-  slackBotToken?: string;
   toolRegistry?: BaseToolRegistry;
   objectStore?: ObjectStore;
   databaseService?: DatabaseService;

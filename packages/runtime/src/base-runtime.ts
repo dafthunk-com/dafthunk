@@ -1,65 +1,35 @@
 import { NonRetryableError } from "cloudflare:workflows";
 import type {
-  DiscordInteraction,
-  Node,
-  NodeType,
-  QueueMessage,
-  ScheduledTrigger,
-  SlackMessage,
-  TelegramMessage,
-  WhatsAppMessage,
   Workflow,
   WorkflowExecution,
+  WorkflowExecutionStatus,
 } from "@dafthunk/types";
 
-import type { BaseNodeRegistry } from "./base-node-registry";
-import type { BaseToolRegistry } from "./base-tool-registry";
-import type { CredentialService } from "./credential-service";
-import type { CreditService } from "./credit-service";
-import type { DatabaseService } from "./database-service";
-import type { DatasetService } from "./dataset-service";
+import { executeDataflow } from "./dataflow-scheduler";
 import { computeDefinitionHash } from "./definition-hash";
-import {
-  nodeNotFoundMessage,
-  nodeTypeNotImplementedMessage,
-  subscriptionRequiredMessage,
-} from "./execution-errors";
-import {
-  applyNodeResult,
-  getExecutionStatus,
-  getNodeType,
-  inferSkipReason,
-  isRuntimeValue,
-} from "./execution-state";
-import type { ExecutionStore } from "./execution-store";
+import { ExecutionGraph } from "./execution-graph";
+import { buildNodeExecutions, type PendingEvent } from "./execution-report";
+import { getExecutionStatus } from "./execution-state";
 import type {
-  ExecutionLevel,
   ExecutionState,
   NodeExecutionResult,
-  NodeRuntimeValues,
-  RuntimeValue,
   WorkflowExecutionContext,
 } from "./execution-types";
-import type { MailboxService } from "./mailbox-service";
-import type { MonitoringService } from "./monitoring-service";
-import type {
-  EmailMessage,
-  ExecutableNode,
-  FormSubmission,
-  HttpRequest,
-  NodeContext,
-  NodeEnv,
-} from "./node-types";
-import { MultiStepNode } from "./node-types";
-import type { ObjectStore } from "./object-store";
-import { apiToNodeParameter, nodeToApiParameter } from "./parameter-mapper";
-import type { QueueService } from "./queue-service";
-import type { SchemaService } from "./schema-service";
-import type { CodeModeExecutor } from "./utils/code-mode";
-import type { SandboxExecutor } from "./utils/sandbox-mode";
+import { NodeExecutor } from "./node-executor";
+import { nodeOutputsToApi } from "./parameter-mapper";
+import type { RuntimeDependencies } from "./runtime-dependencies";
+import { extractTrigger, type TriggerContext } from "./trigger";
 import { validateWorkflow } from "./validate-workflow";
 
-export interface RuntimeParams {
+export type { RuntimeDependencies } from "./runtime-dependencies";
+
+/**
+ * Everything a single workflow run needs. This is the Cloudflare Workflows
+ * event payload, so it must stay JSON-serializable and backward compatible:
+ * instances parked on `waitForEvent` resume against whatever code is deployed
+ * when their event finally arrives.
+ */
+export interface RuntimeParams extends TriggerContext {
   readonly workflow: Workflow;
   readonly userId: string;
   readonly organizationId: string;
@@ -69,110 +39,43 @@ export interface RuntimeParams {
   readonly overageLimit?: number | null;
   /** When true, all credit checks are bypassed (e.g., internal/test accounts). */
   readonly unlimitedUsage?: boolean;
-  readonly httpRequest?: HttpRequest;
-  readonly formSubmission?: FormSubmission;
-  readonly emailMessage?: EmailMessage;
-  readonly queueMessage?: QueueMessage;
-  readonly scheduledTrigger?: ScheduledTrigger;
-  readonly discordInteraction?: DiscordInteraction;
-  readonly discordBotToken?: string;
-  readonly telegramMessage?: TelegramMessage;
-  readonly telegramBotToken?: string;
-  readonly whatsappMessage?: WhatsAppMessage;
-  readonly whatsappAccessToken?: string;
-  readonly whatsappPhoneNumberId?: string;
-  readonly slackMessage?: SlackMessage;
-  readonly slackBotToken?: string;
   readonly userPlan?: string;
 }
 
-/**
- * Injectable dependencies for Runtime.
- * All dependencies are required — concrete wiring happens in factory methods
- * (e.g. createWorkflowRuntime(), createWorkerRuntime()).
- */
-export interface RuntimeDependencies<Env = unknown> {
-  nodeRegistry: BaseNodeRegistry<Env>;
-  credentialProvider: CredentialService;
-  executionStore: ExecutionStore;
-  monitoringService: MonitoringService;
-  creditService: CreditService;
-  objectStore: ObjectStore;
-  toolRegistry?: BaseToolRegistry;
-  databaseService?: DatabaseService;
-  datasetService?: DatasetService;
-  queueService?: QueueService;
-  schemaService?: SchemaService;
-  mailboxService?: MailboxService;
-  /** Sandboxed JavaScript executor (Cloudflare Dynamic Workers in production). */
-  codeModeExecutor?: CodeModeExecutor;
-  /** Multi-language sandbox executor (Cloudflare Containers in production). */
-  sandboxExecutor?: SandboxExecutor;
-  runtimeVersion?: string;
+/** Everything derived once at the start of a run and used throughout it. */
+interface PreparedRun {
+  readonly context: WorkflowExecutionContext;
+  readonly graph: ExecutionGraph;
+  readonly state: ExecutionState;
 }
 
 /**
- * Abstract Workflow Execution Engine
+ * Abstract workflow execution engine.
  *
- * Base class for executing Workflow instances from start to finish.
- * Provides core execution logic with dependency injection support.
+ * Owns the *lifecycle* of a run — validate, check credits, execute, settle
+ * usage, persist — and delegates the rest: {@link ExecutionGraph} indexes the
+ * workflow, `executeDataflow` decides which node runs when, {@link NodeExecutor}
+ * runs each one, and `buildNodeExecutions` projects state for reporting.
  *
- * This class should not be instantiated directly. Use:
- * - {@link WorkflowRuntime} for production execution
- * - {@link MockRuntime} for testing
+ * Subclasses supply only the platform primitives below. That is the entire
+ * difference between running on Cloudflare Workflows and running on a bare
+ * Worker.
  *
- * ## Dependency Injection
+ * A Runtime holds no per-run state, so one instance can serve concurrent runs.
  *
- * Accepts optional RuntimeDependencies to override default implementations:
- * - nodeRegistry: Registry of available node types
- * - credentialProvider: Manages credentials (secrets, integrations, OAuth tokens)
- * - executionStore: Persists workflow execution state
- * - monitoringService: Sends real-time execution updates
+ * @see {@link WorkflowRuntime} durable execution via Cloudflare Workflows
+ * @see {@link WorkerRuntime} direct execution, no durability
  */
 export abstract class Runtime<Env = unknown> {
-  protected nodeRegistry: BaseNodeRegistry<Env>;
-  protected credentialProvider: CredentialService;
-  protected executionStore: ExecutionStore;
-  protected monitoringService: MonitoringService;
-  protected creditService: CreditService;
-  protected objectStore: ObjectStore;
-  protected toolRegistry?: BaseToolRegistry;
-  protected databaseService?: DatabaseService;
-  protected datasetService?: DatasetService;
-  protected queueService?: QueueService;
-  protected schemaService?: SchemaService;
-  protected mailboxService?: MailboxService;
-  protected codeModeExecutor?: CodeModeExecutor;
-  protected sandboxExecutor?: SandboxExecutor;
+  protected readonly deps: RuntimeDependencies<Env>;
   protected env: Env;
-  protected runtimeVersion?: string;
-  protected userPlan?: string;
-  protected discordBotToken?: string;
-  protected telegramBotToken?: string;
-  protected whatsappAccessToken?: string;
-  protected whatsappPhoneNumberId?: string;
-  protected slackBotToken?: string;
 
   /** Whether this runtime supports async node execution via waitForEvent */
   protected readonly supportsAsync: boolean = false;
 
   constructor(env: Env, dependencies: RuntimeDependencies<Env>) {
     this.env = env;
-    this.nodeRegistry = dependencies.nodeRegistry;
-    this.credentialProvider = dependencies.credentialProvider;
-    this.executionStore = dependencies.executionStore;
-    this.monitoringService = dependencies.monitoringService;
-    this.creditService = dependencies.creditService;
-    this.objectStore = dependencies.objectStore;
-    this.toolRegistry = dependencies.toolRegistry;
-    this.databaseService = dependencies.databaseService;
-    this.datasetService = dependencies.datasetService;
-    this.queueService = dependencies.queueService;
-    this.schemaService = dependencies.schemaService;
-    this.mailboxService = dependencies.mailboxService;
-    this.codeModeExecutor = dependencies.codeModeExecutor;
-    this.sandboxExecutor = dependencies.sandboxExecutor;
-    this.runtimeVersion = dependencies.runtimeVersion;
+    this.deps = dependencies;
   }
 
   /**
@@ -255,12 +158,9 @@ export abstract class Runtime<Env = unknown> {
   /**
    * The main entrypoint for workflow execution.
    *
-   * Orchestrates the complete workflow lifecycle:
-   * 1. Validates workflow and creates execution levels (topological sort)
-   * 2. Checks compute credit availability
-   * 3. Preloads organization resources (secrets + integrations)
-   * 4. Executes nodes level-by-level with parallel execution within levels
-   * 5. Persists final state with credit usage
+   * Runs the lifecycle in order: prepare (validate + index the graph), check
+   * credits, preload credentials, execute the graph, then — always, even when
+   * the run failed or ran out of credits — settle usage and persist the record.
    *
    * Error handling strategy:
    * - Workflow-level errors (validation, cycles) → throw NonRetryableError
@@ -272,53 +172,13 @@ export abstract class Runtime<Env = unknown> {
     params: RuntimeParams,
     instanceId: string
   ): Promise<WorkflowExecution> {
-    const {
-      userId,
-      organizationId,
-      workflow,
-      computeCredits,
-      subscriptionStatus,
-      overageLimit,
-      unlimitedUsage,
-      httpRequest,
-      formSubmission,
-      emailMessage,
-      queueMessage,
-      scheduledTrigger,
-      discordInteraction,
-      discordBotToken,
-      telegramMessage,
-      telegramBotToken,
-      whatsappMessage,
-      whatsappAccessToken,
-      whatsappPhoneNumberId,
-      slackMessage,
-      slackBotToken,
-      userPlan,
-    } = params;
-
-    this.userPlan = userPlan;
-    this.discordBotToken = discordBotToken;
-    this.telegramBotToken = telegramBotToken;
-    this.whatsappAccessToken = whatsappAccessToken;
-    this.whatsappPhoneNumberId = whatsappPhoneNumberId;
-    this.slackBotToken = slackBotToken;
+    const { workflow, organizationId } = params;
 
     console.log(
-      `[Runtime] run workflow=${workflow.id} trigger=${workflow.trigger} nodes=${workflow.nodes.length} telegramMessage=${!!telegramMessage} telegramBotToken=${!!telegramBotToken}`
+      `[Runtime] run workflow=${workflow.id} trigger=${workflow.trigger} nodes=${workflow.nodes.length}`
     );
 
-    // Initialise state and execution record
-    let executionState: ExecutionState = {
-      nodeInputs: {},
-      nodeOutputs: {},
-      executedNodes: [],
-      skippedNodes: [],
-      nodeErrors: {},
-      nodeUsage: {},
-    };
-
-    let executionRecord: WorkflowExecution = {
+    let record: WorkflowExecution = {
       id: instanceId,
       workflowId: workflow.id,
       status: "submitted",
@@ -327,124 +187,42 @@ export abstract class Runtime<Env = unknown> {
       endedAt: undefined,
     } as WorkflowExecution;
 
-    await this.monitoringService.sendUpdate(executionRecord);
+    await this.notify(record);
 
-    // Compute definition hash for provenance tracking
+    // Provenance: which definition produced this execution.
     const definitionHash = await computeDefinitionHash(workflow);
 
-    // Declare context and exhaustion flag outside try block for finally access
-    let executionContext: WorkflowExecutionContext | undefined;
+    // Declared outside the try so the finally block can still settle and
+    // persist when execution throws part-way through.
+    let prepared: PreparedRun | undefined;
     let isExhausted = false;
     let caughtError = false;
 
     try {
-      // ========================================================================
-      // STEP 1: Validate workflow and create execution levels
-      // ========================================================================
-      const { context, state } = await this.executeStep(
-        "initialise workflow",
-        async () => {
-          const validationErrors = validateWorkflow(workflow);
-          if (validationErrors.length > 0) {
-            throw new NonRetryableError(
-              `Workflow validation failed: ${validationErrors
-                .map((e) => e.message)
-                .join(", ")}`
-            );
-          }
+      prepared = await this.prepare(params, instanceId);
 
-          const executionLevels = this.createTopologicalLevels(workflow);
-          if (executionLevels.length === 0 && workflow.nodes.length > 0) {
-            throw new NonRetryableError(
-              "Unable to derive execution order. The graph may contain a cycle."
-            );
-          }
+      if (await this.hasCredits(params)) {
+        await this.executeStep("preload organization resources", async () =>
+          this.deps.credentialProvider.initialize(organizationId)
+        );
 
-          // Derive flat ordered list from levels (for getExecutionStatus compatibility)
-          const orderedNodeIds = executionLevels.flatMap(
-            (level) => level.nodeIds
-          );
+        record = {
+          ...record,
+          status: getExecutionStatus(prepared.graph, prepared.state),
+        };
+        await this.notify(record);
 
-          // Immutable context
-          const context: WorkflowExecutionContext = {
-            workflow,
-            executionLevels,
-            orderedNodeIds,
-            workflowId: workflow.id,
-            organizationId,
-            executionId: instanceId,
-            httpRequest,
-            formSubmission,
-            emailMessage,
-            queueMessage,
-            scheduledTrigger,
-            discordInteraction,
-            telegramMessage,
-            whatsappMessage,
-            slackMessage,
-          };
-
-          // Mutable state
-          const state: ExecutionState = {
-            nodeInputs: {},
-            nodeOutputs: {},
-            executedNodes: [],
-            skippedNodes: [],
-            nodeErrors: {},
-            nodeUsage: {},
-          };
-
-          return { context, state };
-        }
-      );
-
-      executionContext = context;
-      executionState = state;
-
-      // ========================================================================
-      // STEP 2: Check compute credit availability
-      // ========================================================================
-      const hasCredits = await this.creditService.hasEnoughCredits({
-        organizationId,
-        computeCredits,
-        subscriptionStatus,
-        overageLimit,
-        unlimitedUsage,
-      });
-
-      if (!hasCredits) {
+        record = await this.executeGraph(prepared, record);
+      } else {
         // Fall through to the finally block so the exhausted record is
         // persisted and the returned record matches what was stored.
         isExhausted = true;
-        executionRecord.status = "exhausted";
-        executionRecord.error = "Insufficient compute credits";
-        await this.monitoringService.sendUpdate(executionRecord);
-      } else {
-        // ======================================================================
-        // STEP 3: Preload organization resources (secrets + integrations)
-        // ======================================================================
-        await this.executeStep("preload organization resources", async () =>
-          this.credentialProvider.initialize(organizationId)
-        );
-
-        executionRecord.status = getExecutionStatus(
-          executionContext,
-          executionState
-        );
-        await this.monitoringService.sendUpdate(executionRecord);
-
-        // ======================================================================
-        // STEP 4: Execute workflow nodes via dependency-driven scheduling
-        // ======================================================================
-        const { state: finalState, record: finalRecord } =
-          await this.executeWorkflowGraph(
-            executionContext,
-            executionState,
-            executionRecord
-          );
-
-        executionState = finalState;
-        executionRecord = finalRecord;
+        record = {
+          ...record,
+          status: "exhausted",
+          error: "Insufficient compute credits",
+        };
+        await this.notify(record);
       }
     } catch (error) {
       caughtError = true;
@@ -452,861 +230,339 @@ export abstract class Runtime<Env = unknown> {
         `[Runtime] Execution error: workflow=${workflow.id}`,
         error instanceof Error ? error.message : String(error)
       );
-      executionRecord = {
-        ...executionRecord,
+      record = {
+        ...record,
         status: "error",
         error: error instanceof Error ? error.message : String(error),
       };
-      await this.monitoringService.sendUpdate(executionRecord);
+      await this.notify(record);
     } finally {
-      executionRecord.endedAt = new Date();
+      record.endedAt = new Date();
 
-      // ========================================================================
-      // STEP 5: Record usage + settle exhausted cache
-      // ========================================================================
-      // Settle runs on every execution, including exhausted ones, so the
-      // cache flips and non-interactive triggers stop retrying.
-      if (executionContext) {
-        if (!isExhausted) {
-          const actualTotalUsage = Object.values(
-            executionState.nodeUsage
-          ).reduce((sum, usage) => sum + usage, 0);
-          if (actualTotalUsage > 0) {
-            try {
-              await this.executeStep("record compute usage", async () =>
-                this.creditService.recordUsage(organizationId, actualTotalUsage)
-              );
-            } catch (error) {
-              console.error(
-                `[Runtime] Failed to record compute usage for workflow=${workflow.id}`,
-                error instanceof Error ? error.message : String(error)
-              );
-            }
-          }
-        }
-
-        try {
-          await this.executeStep("settle credit availability", async () =>
-            this.creditService.settleAvailability({
-              organizationId,
-              computeCredits,
-              subscriptionStatus,
-              overageLimit,
-              unlimitedUsage,
-            })
-          );
-        } catch (error) {
-          console.error(
-            `[Runtime] Failed to settle credit availability for workflow=${workflow.id}`,
-            error instanceof Error ? error.message : String(error)
-          );
-        }
-      }
-
-      // ========================================================================
-      // STEP 6: Persist final execution record
-      // ========================================================================
-      if (executionContext) {
-        const ctx = executionContext;
-        executionRecord = await this.executeStep(
-          "persist final execution record",
-          async () => {
-            const finalStatus = isExhausted
-              ? ("exhausted" as const)
-              : caughtError
-                ? ("error" as const)
-                : getExecutionStatus(ctx, executionState);
-
-            // Create error report if there are node errors
-            const errorReport =
-              Object.keys(executionState.nodeErrors).length > 0
-                ? "Workflow execution failed"
-                : undefined;
-
-            // Save to execution store - this happens exactly once per execution
-            return this.executionStore.save({
-              id: instanceId,
-              workflowId: ctx.workflowId,
-              workflowName: ctx.workflow.name,
-              userId,
-              organizationId,
-              status: finalStatus,
-              nodeExecutions: this.buildNodeExecutions(
-                ctx.workflow,
-                ctx,
-                executionState,
-                finalStatus
-              ),
-              error: errorReport ?? executionRecord.error,
-              startedAt: executionRecord.startedAt,
-              endedAt: executionRecord.endedAt,
-              workflowDefinition: ctx.workflow,
-              definitionHash,
-              runtimeVersion: this.runtimeVersion,
-            });
-          }
-        );
-      }
-
-      await this.monitoringService.sendUpdate(executionRecord);
-    }
-
-    return executionRecord;
-  }
-
-  // ==========================================================================
-  // PRIVATE - Main execution logic
-  // ==========================================================================
-
-  /**
-   * Executes workflow nodes using dependency-driven (dataflow) scheduling.
-   *
-   * Each node runs as soon as *its own* direct upstream nodes have settled
-   * (completed, skipped, or errored) — not when its whole topological level is
-   * ready. This keeps independent branches decoupled: a node that parks on an
-   * external event (`status: "pending"`, e.g. a human-in-the-loop form or an
-   * async agent) only holds back its own descendants, never unrelated branches.
-   *
-   * Determinism for durable replay is preserved because each node is issued
-   * under a stable step name (`run node <id>` / `wait for <id>`); Cloudflare
-   * Workflows caches step results by name, independent of completion order.
-   */
-  private async executeWorkflowGraph(
-    context: WorkflowExecutionContext,
-    state: ExecutionState,
-    executionRecord: WorkflowExecution
-  ): Promise<{ state: ExecutionState; record: WorkflowExecution }> {
-    let currentRecord = executionRecord;
-
-    // Distinct upstream node ids each node depends on. A node is ready once all
-    // of these have settled — which is exactly the state checkSkipCondition and
-    // input collection need to make a correct decision for that node.
-    const dependencies = new Map<string, Set<string>>();
-    for (const node of context.workflow.nodes) {
-      dependencies.set(node.id, new Set());
-    }
-    for (const edge of context.workflow.edges) {
-      dependencies.get(edge.target)?.add(edge.source);
-    }
-
-    const settled = new Set<string>(); // executed ∪ skipped ∪ errored
-    const started = new Set<string>();
-    const inFlight = new Map<
-      string,
-      Promise<{ nodeId: string; result: NodeExecutionResult }>
-    >();
-    // Nodes currently parked on an external event, surfaced in monitoring updates.
-    const pendingNodes = new Map<string, { type: string; timeout: string }>();
-
-    const isReady = (nodeId: string): boolean => {
-      if (started.has(nodeId)) return false;
-      const deps = dependencies.get(nodeId);
-      if (deps) {
-        for (const upstream of deps) {
-          if (!settled.has(upstream)) return false;
-        }
-      }
-      return true;
-    };
-
-    const sendProgress = async (): Promise<void> => {
-      currentRecord = {
-        ...currentRecord,
-        status: getExecutionStatus(context, state),
-        nodeExecutions: this.buildNodeExecutions(
-          context.workflow,
-          context,
-          state,
-          undefined,
-          pendingNodes.size > 0 ? new Map(pendingNodes) : undefined
-        ),
-      };
-      await this.monitoringService.sendUpdate(currentRecord);
-    };
-
-    const startNode = (nodeId: string): void => {
-      started.add(nodeId);
-      const node = context.workflow.nodes.find((n) => n.id === nodeId);
-      const runInitial = (): Promise<NodeExecutionResult> =>
-        node && this.nodeRegistry.isMultiStep(node.type)
-          ? // Multi-step: node manages its own steps via context.sleep/doStep
-            this.executeSingleNode(context, state, nodeId)
-          : // Regular: wrap entire execution in a single durable step
-            this.executeStep(`run node ${nodeId}`, async () =>
-              this.executeSingleNode(context, state, nodeId)
-            );
-
-      const promise = (async () => {
-        const initial = await runInitial();
-        if (initial.status !== "pending") {
-          return { nodeId, result: initial };
-        }
-        // Node parked on an external event. Surface it as pending and resume
-        // when the event arrives — without blocking any other branch.
-        pendingNodes.set(nodeId, {
-          type: initial.eventType,
-          timeout: initial.timeout,
+      if (prepared) {
+        await this.settleUsage(params, prepared.state, isExhausted);
+        record = await this.persist(prepared, record, {
+          params,
+          instanceId,
+          definitionHash,
+          finalStatus: isExhausted
+            ? "exhausted"
+            : caughtError
+              ? "error"
+              : getExecutionStatus(prepared.graph, prepared.state),
         });
-        await sendProgress();
-        const resolved = await this.resolveAsyncNode(context, initial);
-        pendingNodes.delete(nodeId);
-        return { nodeId, result: resolved };
-      })();
-      inFlight.set(nodeId, promise);
-    };
-
-    const scheduleReady = (): void => {
-      for (const nodeId of context.orderedNodeIds) {
-        if (isReady(nodeId)) startNode(nodeId);
       }
-    };
 
-    scheduleReady();
-
-    while (inFlight.size > 0) {
-      const { nodeId, result } = await Promise.race(inFlight.values());
-      inFlight.delete(nodeId);
-
-      if (result.status === "error") {
-        const node = context.workflow.nodes.find((n) => n.id === result.nodeId);
-        console.error(
-          `[Runtime] Node error: nodeId=${result.nodeId} type=${node?.type} error=${result.error}`
-        );
-      }
-      applyNodeResult(state, result);
-      settled.add(nodeId);
-
-      // A settled node may unblock downstream nodes — launch them now.
-      scheduleReady();
-
-      await sendProgress();
+      await this.notify(record);
     }
 
-    return { state, record: currentRecord };
+    return record;
   }
 
   /**
-   * Resolves an async (pending) node by waiting for its completion event.
-   * Transforms the event payload into a standard NodeExecutionResult.
+   * Validates the workflow and derives everything the run needs from it.
+   *
+   * Only the JSON-safe half goes through the durable step; the graph is rebuilt
+   * on this side of it because Maps and Sets don't survive serialization.
+   * Rebuilding is safe because indexing is a pure function of the workflow.
+   */
+  private async prepare(
+    params: RuntimeParams,
+    instanceId: string
+  ): Promise<PreparedRun> {
+    const { workflow, organizationId, userPlan } = params;
+
+    const { context, state } = await this.executeStep(
+      "initialise workflow",
+      async () => {
+        const validationErrors = validateWorkflow(workflow);
+        if (validationErrors.length > 0) {
+          throw new NonRetryableError(
+            `Workflow validation failed: ${validationErrors
+              .map((e) => e.message)
+              .join(", ")}`
+          );
+        }
+
+        const context: WorkflowExecutionContext = {
+          workflow,
+          workflowId: workflow.id,
+          organizationId,
+          executionId: instanceId,
+          // Carried on the context rather than on `this`, so concurrent runs
+          // through one Runtime instance cannot see each other's trigger.
+          trigger: extractTrigger(params),
+          userPlan,
+        };
+
+        const state: ExecutionState = {
+          nodeInputs: {},
+          nodeOutputs: {},
+          executedNodes: [],
+          skippedNodes: [],
+          nodeErrors: {},
+          nodeUsage: {},
+        };
+
+        return { context, state };
+      }
+    );
+
+    // Validation above already rejects cycles, so indexing cannot fail here.
+    return { context, graph: ExecutionGraph.build(workflow), state };
+  }
+
+  /**
+   * Publishes a progress update, swallowing any failure.
+   *
+   * Monitoring is best-effort telemetry: it tells connected clients what is
+   * happening, and nothing depends on it having arrived. Letting a broken
+   * monitoring service abort the run would trade a cosmetic problem for a lost
+   * execution record, so failures are logged and stepped over.
+   */
+  private async notify(record: WorkflowExecution): Promise<void> {
+    try {
+      await this.deps.monitoringService.sendUpdate(record);
+    } catch (error) {
+      console.error(
+        `[Runtime] Failed to publish progress for execution=${record.id}`,
+        error instanceof Error ? error.message : String(error)
+      );
+    }
+  }
+
+  private async hasCredits(params: RuntimeParams): Promise<boolean> {
+    return this.deps.creditService.hasEnoughCredits({
+      organizationId: params.organizationId,
+      computeCredits: params.computeCredits,
+      subscriptionStatus: params.subscriptionStatus,
+      overageLimit: params.overageLimit,
+      unlimitedUsage: params.unlimitedUsage,
+    });
+  }
+
+  /**
+   * Schedules and runs the graph, streaming progress as nodes settle.
+   * Returns the final in-memory record; persistence happens separately.
+   */
+  private async executeGraph(
+    prepared: PreparedRun,
+    startingRecord: WorkflowExecution
+  ): Promise<WorkflowExecution> {
+    const { context, graph, state } = prepared;
+    const executor = this.createNodeExecutor();
+    let record = startingRecord;
+
+    const reportErrors = (result: NodeExecutionResult): NodeExecutionResult => {
+      if (result.status === "error") {
+        console.error(
+          `[Runtime] Node error: nodeId=${result.nodeId} type=${graph.node(result.nodeId)?.type} error=${result.error}`
+        );
+      }
+      return result;
+    };
+
+    await executeDataflow(graph, state, {
+      runNode: (nodeId) => {
+        const node = graph.node(nodeId);
+        const execute = () => executor.execute(context, graph, state, nodeId);
+        // Multi-step nodes drive their own durability via context.sleep/doStep;
+        // everything else gets wrapped in one durable step.
+        const started =
+          node && this.deps.nodeRegistry.isMultiStep(node.type)
+            ? execute()
+            : this.executeStep(`run node ${nodeId}`, execute);
+        return started.then(reportErrors);
+      },
+
+      resolvePending: (pending) =>
+        this.resolveAsyncNode(context, graph, pending).then(reportErrors),
+
+      onProgress: async (pendingNodes) => {
+        record = {
+          ...record,
+          status: getExecutionStatus(graph, state),
+          nodeExecutions: buildNodeExecutions(
+            graph,
+            state,
+            undefined,
+            pendingNodes.size > 0
+              ? new Map<string, PendingEvent>(pendingNodes)
+              : undefined
+          ),
+        };
+        await this.notify(record);
+      },
+    });
+
+    return record;
+  }
+
+  private createNodeExecutor(): NodeExecutor<Env> {
+    return new NodeExecutor(
+      this.env,
+      this.deps,
+      {
+        sleep: (name, durationMs) => this.executeSleep(name, durationMs),
+        doStep: (name, fn) => this.executeSubStep(name, fn),
+      },
+      this.supportsAsync
+    );
+  }
+
+  /**
+   * Resolves a node parked on an external event, turning the event payload into
+   * a normal result. Inputs collected before parking are carried forward so the
+   * finished node reports them like any other.
    */
   private async resolveAsyncNode(
     context: WorkflowExecutionContext,
+    graph: ExecutionGraph,
     pendingResult: Extract<NodeExecutionResult, { status: "pending" }>
   ): Promise<NodeExecutionResult> {
+    const { nodeId, inputs } = pendingResult;
+
     try {
       const event = await this.waitForNodeEvent<{
         outputs: Record<string, unknown>;
         usage: number;
         error?: string;
-      }>(
-        `wait for ${pendingResult.nodeId}`,
-        pendingResult.eventType,
-        pendingResult.timeout
-      );
+      }>(`wait for ${nodeId}`, pendingResult.eventType, pendingResult.timeout);
+
+      // The payload crosses a trust boundary — it is posted by a form, an agent
+      // callback, or anything else holding the event token — so every field is
+      // treated as optional regardless of what the type says.
+      const usage = Number.isFinite(event.usage) ? event.usage : 0;
 
       if (event.error) {
-        return {
-          nodeId: pendingResult.nodeId,
-          status: "error",
-          error: event.error,
-          usage: event.usage,
-        };
+        return { nodeId, status: "error", inputs, error: event.error, usage };
       }
 
-      // Find the node definition to transform outputs to runtime format
-      const node = context.workflow.nodes.find(
-        (n) => n.id === pendingResult.nodeId
-      );
+      const node = graph.node(nodeId);
       if (!node) {
         return {
-          nodeId: pendingResult.nodeId,
-          status: "error",
-          error: `Node ${pendingResult.nodeId} not found in workflow`,
-        };
-      }
-
-      // Transform outputs from node-native format to runtime format
-      const outputsForRuntime: Record<string, RuntimeValue> = {};
-      for (const [name, value] of Object.entries(event.outputs)) {
-        const output = node.outputs.find((o) => o.name === name);
-        const parameterType = output?.type ?? "string";
-
-        if (output?.repeated && Array.isArray(value)) {
-          const transformedArray = await Promise.all(
-            value.map((v) =>
-              nodeToApiParameter(
-                parameterType,
-                v,
-                this.objectStore,
-                context.organizationId,
-                context.executionId
-              )
-            )
-          );
-          outputsForRuntime[name] = transformedArray;
-        } else {
-          outputsForRuntime[name] = await nodeToApiParameter(
-            parameterType,
-            value,
-            this.objectStore,
-            context.organizationId,
-            context.executionId
-          );
-        }
-      }
-
-      return {
-        nodeId: pendingResult.nodeId,
-        status: "completed",
-        outputs: outputsForRuntime as NodeRuntimeValues,
-        usage: event.usage,
-      };
-    } catch (error) {
-      return {
-        nodeId: pendingResult.nodeId,
-        status: "error",
-        error: error instanceof Error ? error.message : String(error),
-      };
-    }
-  }
-
-  /**
-   * Executes a single node, including skip detection and I/O transforms.
-   * Returns a result describing what happened - no state mutation.
-   */
-  private async executeSingleNode(
-    context: WorkflowExecutionContext,
-    state: ExecutionState,
-    nodeId: string
-  ): Promise<NodeExecutionResult> {
-    // Check if node should be skipped (upstream failures, conditional branches)
-    const skipResult = this.checkSkipCondition(context, state, nodeId);
-    if (skipResult) return skipResult;
-
-    const node = this.findNode(context.workflow, nodeId);
-    if (!node) {
-      return {
-        nodeId,
-        status: "error",
-        error: nodeNotFoundMessage(nodeId),
-      };
-    }
-
-    // Resolve executable node instance and validate subscription
-    const resolved = this.resolveExecutable(node);
-    if ("status" in resolved) return resolved;
-
-    const { executable, nodeType } = resolved;
-
-    // Collect inputs from defaults + upstream edges, transform for node execution
-    const inboundEdges = context.workflow.edges.filter(
-      (edge) => edge.target === nodeId
-    );
-    const { inputs, resolvedInputs } = await this.collectAndTransformInputs(
-      node,
-      state,
-      executable,
-      inboundEdges,
-      this.objectStore,
-      context.organizationId
-    );
-
-    // Store inputs in state immediately (before execution) so they're available
-    // for both completed and pending nodes
-    state.nodeInputs[nodeId] = inputs;
-
-    // Execute the node and transform outputs for runtime storage
-    return this.executeAndTransformOutputs(
-      executable,
-      nodeType,
-      node,
-      context,
-      this.objectStore,
-      resolvedInputs
-    );
-  }
-
-  /**
-   * Checks if a node should be skipped based on upstream dependencies.
-   * Returns a skip/error result if the node should not execute, or null to proceed.
-   */
-  private checkSkipCondition(
-    context: WorkflowExecutionContext,
-    state: ExecutionState,
-    nodeId: string
-  ): NodeExecutionResult | null {
-    // Already skipped or errored
-    if (state.skippedNodes.includes(nodeId) || nodeId in state.nodeErrors) {
-      const { reason, blockedBy } = inferSkipReason(
-        context.workflow,
-        state,
-        nodeId
-      );
-      return {
-        nodeId,
-        status: "skipped",
-        outputs: null,
-        usage: 0,
-        skipReason: reason,
-        blockedBy: [...blockedBy],
-      };
-    }
-
-    const node = this.findNode(context.workflow, nodeId);
-    if (!node) {
-      return {
-        nodeId,
-        status: "error",
-        error: nodeNotFoundMessage(nodeId),
-      };
-    }
-
-    // Analyze upstream dependencies to determine if node should skip
-    const inboundEdges = context.workflow.edges.filter(
-      (edge) => edge.target === nodeId
-    );
-
-    if (inboundEdges.length > 0) {
-      let unavailableCount = 0;
-
-      for (const edge of inboundEdges) {
-        if (edge.source in state.nodeErrors) {
-          unavailableCount++;
-          continue;
-        }
-        if (state.skippedNodes.includes(edge.source)) {
-          unavailableCount++;
-          continue;
-        }
-        if (state.executedNodes.includes(edge.source)) {
-          const sourceOutputs = state.nodeOutputs[edge.source];
-          if (sourceOutputs && !(edge.sourceOutput in sourceOutputs)) {
-            unavailableCount++;
-          }
-        }
-      }
-
-      // Skip if ALL upstream dependencies are unavailable
-      if (unavailableCount === inboundEdges.length) {
-        const { reason, blockedBy } = inferSkipReason(
-          context.workflow,
-          state,
-          nodeId
-        );
-        return {
           nodeId,
-          status: "skipped",
-          outputs: null,
-          usage: 0,
-          skipReason: reason,
-          blockedBy: [...blockedBy],
-        };
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * Looks up node type in registry, validates subscription, and creates executable.
-   * Returns the executable + nodeType on success, or a NodeExecutionResult on failure.
-   */
-  private resolveExecutable(node: Node):
-    | {
-        executable: ReturnType<BaseNodeRegistry["createExecutableNode"]> &
-          object;
-        nodeType: NodeType;
-      }
-    | NodeExecutionResult {
-    let nodeType: NodeType;
-    try {
-      nodeType = this.nodeRegistry.getNodeType(node.type);
-    } catch (_error) {
-      return {
-        nodeId: node.id,
-        status: "error",
-        error: nodeTypeNotImplementedMessage(node.id, node.type),
-      };
-    }
-
-    if (nodeType.subscription && this.userPlan !== "pro") {
-      return {
-        nodeId: node.id,
-        status: "error",
-        error: subscriptionRequiredMessage(node.id, node.type),
-      };
-    }
-
-    const executable = this.nodeRegistry.createExecutableNode(node);
-    if (!executable) {
-      return {
-        nodeId: node.id,
-        status: "error",
-        error: nodeTypeNotImplementedMessage(node.id, node.type),
-      };
-    }
-
-    return { executable, nodeType };
-  }
-
-  /**
-   * Collects inputs from node defaults and upstream edges, then transforms them
-   * from API format to node-native format for execution.
-   */
-  private async collectAndTransformInputs(
-    node: Node,
-    state: ExecutionState,
-    executable: object,
-    inboundEdges: Workflow["edges"],
-    objectStore: ObjectStore,
-    organizationId: string
-  ): Promise<{
-    inputs: NodeRuntimeValues;
-    resolvedInputs: Record<string, unknown>;
-  }> {
-    // Collect inputs from node defaults (API format, for persistence)
-    const inputs: NodeRuntimeValues = {};
-
-    for (const input of node.inputs) {
-      if (input.value !== undefined && isRuntimeValue(input.value)) {
-        inputs[input.name] = input.value;
-      }
-    }
-
-    // Group edges by target input name
-    const edgesByInput = new Map<string, typeof inboundEdges>();
-    for (const edge of inboundEdges) {
-      const inputName = edge.targetInput;
-      if (!edgesByInput.has(inputName)) {
-        edgesByInput.set(inputName, []);
-      }
-      edgesByInput.get(inputName)?.push(edge);
-    }
-
-    // Resolve upstream edge values
-    for (const [inputName, edges] of edgesByInput) {
-      const nodeTypeInput = getNodeType(executable)?.inputs?.find(
-        (input) => input.name === inputName
-      );
-      const acceptsMultiple = nodeTypeInput?.repeated ?? false;
-
-      const values: RuntimeValue[] = [];
-      for (const edge of edges) {
-        const sourceOutputs = state.nodeOutputs[edge.source];
-        if (sourceOutputs && sourceOutputs[edge.sourceOutput] !== undefined) {
-          const value = sourceOutputs[edge.sourceOutput];
-          if (acceptsMultiple && Array.isArray(value)) {
-            for (const item of value) {
-              if (isRuntimeValue(item)) {
-                values.push(item);
-              }
-            }
-          } else if (isRuntimeValue(value)) {
-            values.push(value);
-          }
-        }
-      }
-
-      if (values.length > 0) {
-        inputs[inputName] = acceptsMultiple
-          ? values
-          : values[values.length - 1];
-      }
-    }
-
-    // Transform inputs from API format to node-native format for execution
-    const resolvedInputs: Record<string, unknown> = {};
-    const mapperContext = {
-      schemaService: this.schemaService,
-      organizationId,
-    };
-
-    for (const [name, value] of Object.entries(inputs)) {
-      const input = node.inputs.find((i) => i.name === name);
-      const parameterType = input?.type ?? "string";
-
-      if (Array.isArray(value)) {
-        const transformedArray = await Promise.all(
-          value.map((v) =>
-            apiToNodeParameter(parameterType, v, objectStore, mapperContext)
-          )
-        );
-        resolvedInputs[name] = transformedArray;
-      } else {
-        resolvedInputs[name] = await apiToNodeParameter(
-          parameterType,
-          value,
-          objectStore,
-          mapperContext
-        );
-      }
-    }
-
-    return { inputs, resolvedInputs };
-  }
-
-  /**
-   * Calls executable.execute(), then transforms outputs from node-native format
-   * to API/runtime format for storage.
-   */
-  private async executeAndTransformOutputs(
-    executable: ExecutableNode,
-    nodeType: import("@dafthunk/types").NodeType,
-    node: Node,
-    context: WorkflowExecutionContext,
-    objectStore: ObjectStore,
-    resolvedInputs: Record<string, unknown>
-  ): Promise<NodeExecutionResult> {
-    try {
-      const nodeContext: NodeContext = {
-        nodeId: node.id,
-        workflowId: context.workflowId,
-        organizationId: context.organizationId,
-        executionId: context.executionId,
-        asyncSupported: this.supportsAsync,
-        inputs: resolvedInputs,
-        httpRequest: context.httpRequest,
-        formSubmission: context.formSubmission,
-        emailMessage: context.emailMessage,
-        queueMessage: context.queueMessage,
-        scheduledTrigger: context.scheduledTrigger,
-        discordInteraction: context.discordInteraction,
-        discordBotToken: this.discordBotToken,
-        telegramMessage: context.telegramMessage,
-        telegramBotToken: this.telegramBotToken,
-        whatsappMessage: context.whatsappMessage,
-        whatsappAccessToken: this.whatsappAccessToken,
-        whatsappPhoneNumberId: this.whatsappPhoneNumberId,
-        slackMessage: context.slackMessage,
-        slackBotToken: this.slackBotToken,
-        onProgress: () => {},
-        toolRegistry: this.toolRegistry,
-        objectStore: this.objectStore,
-        databaseService: this.databaseService,
-        datasetService: this.datasetService,
-        queueService: this.queueService,
-        schemaService: this.schemaService,
-        mailboxService: this.mailboxService,
-        codeModeExecutor: this.codeModeExecutor,
-        sandboxExecutor: this.sandboxExecutor,
-        getSecret: (secretName: string) =>
-          this.credentialProvider.getSecret(secretName),
-        getIntegration: (integrationId: string) =>
-          this.credentialProvider.getIntegration(integrationId),
-        env: this.env as NodeEnv,
-      };
-
-      // Populate step primitives for multi-step nodes
-      if (executable instanceof MultiStepNode) {
-        let sleepCounter = 0;
-        let stepCounter = 0;
-        nodeContext.sleep = async (durationMs: number) => {
-          await this.executeSleep(
-            `${node.id}-sleep-${sleepCounter++}`,
-            durationMs
-          );
-        };
-        nodeContext.doStep = async <T>(fn: () => Promise<T>): Promise<T> => {
-          return this.executeSubStep(`${node.id}-step-${stepCounter++}`, fn);
-        };
-      }
-
-      const result = await executable.execute(nodeContext);
-
-      // Node signalled async work — return pending for the runtime to wait on
-      if (result.status === "pending" && result.pendingEvent) {
-        return {
-          nodeId: node.id,
-          status: "pending",
-          eventType: result.pendingEvent.type,
-          timeout: result.pendingEvent.timeout ?? "30 minutes",
-        };
-      }
-
-      if (result.status === "completed") {
-        const outputs = result.outputs ?? {};
-        const outputsForRuntime: Record<string, RuntimeValue> = {};
-
-        for (const [name, value] of Object.entries(outputs)) {
-          const output = node.outputs.find((o) => o.name === name);
-          const parameterType = output?.type ?? "string";
-
-          if (output?.repeated && Array.isArray(value)) {
-            const transformedArray = await Promise.all(
-              value.map((v) =>
-                nodeToApiParameter(
-                  parameterType,
-                  v,
-                  objectStore,
-                  context.organizationId,
-                  context.executionId
-                )
-              )
-            );
-            outputsForRuntime[name] = transformedArray;
-          } else {
-            outputsForRuntime[name] = await nodeToApiParameter(
-              parameterType,
-              value,
-              objectStore,
-              context.organizationId,
-              context.executionId
-            );
-          }
-        }
-
-        return {
-          nodeId: node.id,
-          status: "completed",
-          outputs: outputsForRuntime as NodeRuntimeValues,
-          usage: result.usage ?? nodeType.usage ?? 1,
-        };
-      } else {
-        return {
-          nodeId: node.id,
           status: "error",
-          error: result.error ?? "Unknown error",
-          usage: result.usage,
+          inputs,
+          error: `Node ${nodeId} not found in workflow`,
         };
       }
+
+      return {
+        nodeId,
+        status: "completed",
+        inputs,
+        outputs: await nodeOutputsToApi(
+          node,
+          event.outputs ?? {},
+          this.deps.objectStore,
+          context.organizationId,
+          context.executionId
+        ),
+        usage,
+      };
     } catch (error) {
       return {
-        nodeId: node.id,
+        nodeId,
         status: "error",
+        inputs,
         error: error instanceof Error ? error.message : String(error),
       };
     }
   }
 
-  // ==========================================================================
-  // PRIVATE - Utilities (reused or complex algorithms)
-  // ==========================================================================
-
   /**
-   * Calculates a topological ordering of nodes grouped by execution level.
-   * Nodes within the same level have no dependencies on each other and can execute in parallel.
-   * Returns an empty array if a cycle is detected.
+   * Records what the run consumed and re-checks the organization's balance.
    *
-   * Uses a modified Kahn's algorithm that tracks levels instead of a flat queue:
-   * - Level 0: All nodes with in-degree 0 (no dependencies)
-   * - Level N: Nodes whose dependencies are all in levels 0 to N-1
+   * Settling runs on every execution, including exhausted ones, so the cached
+   * availability flag flips and non-interactive triggers stop retrying. Neither
+   * step may fail the run: the work is already done and the record must persist.
    */
-  private createTopologicalLevels(workflow: Workflow): ExecutionLevel[] {
-    const inDegree: Record<string, number> = {};
-    const adjacency: Record<string, string[]> = {};
+  private async settleUsage(
+    params: RuntimeParams,
+    state: ExecutionState,
+    isExhausted: boolean
+  ): Promise<void> {
+    const {
+      organizationId,
+      computeCredits,
+      subscriptionStatus,
+      overageLimit,
+      unlimitedUsage,
+      workflow,
+    } = params;
 
-    for (const node of workflow.nodes) {
-      inDegree[node.id] = 0;
-      adjacency[node.id] = [];
-    }
-
-    for (const edge of workflow.edges) {
-      adjacency[edge.source].push(edge.target);
-      inDegree[edge.target] += 1;
-    }
-
-    // Start with all nodes that have no dependencies (in-degree 0)
-    let currentLevel: string[] = Object.keys(inDegree).filter(
-      (id) => inDegree[id] === 0
+    // Defence in depth: usage values round-trip through JSON and originate in
+    // node implementations, so a single bad entry must not poison the sum. An
+    // arithmetic NaN here would silently drop billing for the whole run.
+    const totalUsage = Object.values(state.nodeUsage).reduce(
+      (sum, usage) => (Number.isFinite(usage) ? sum + usage : sum),
+      0
     );
 
-    const levels: ExecutionLevel[] = [];
-    let processedCount = 0;
-
-    while (currentLevel.length > 0) {
-      levels.push({ nodeIds: [...currentLevel] });
-      processedCount += currentLevel.length;
-
-      // Find next level: nodes whose in-degree becomes 0 after processing current level
-      const nextLevel: string[] = [];
-
-      for (const nodeId of currentLevel) {
-        for (const neighbour of adjacency[nodeId]) {
-          inDegree[neighbour] -= 1;
-          if (inDegree[neighbour] === 0) {
-            nextLevel.push(neighbour);
-          }
-        }
+    if (!isExhausted && totalUsage > 0) {
+      try {
+        await this.executeStep("record compute usage", async () =>
+          this.deps.creditService.recordUsage(organizationId, totalUsage)
+        );
+      } catch (error) {
+        console.error(
+          `[Runtime] Failed to record compute usage for workflow=${workflow.id}`,
+          error instanceof Error ? error.message : String(error)
+        );
       }
-
-      currentLevel = nextLevel;
     }
 
-    // If we didn't process all nodes, a cycle exists
-    return processedCount === workflow.nodes.length ? levels : [];
+    try {
+      await this.executeStep("settle credit availability", async () =>
+        this.deps.creditService.settleAvailability({
+          organizationId,
+          computeCredits,
+          subscriptionStatus,
+          overageLimit,
+          unlimitedUsage,
+        })
+      );
+    } catch (error) {
+      console.error(
+        `[Runtime] Failed to settle credit availability for workflow=${workflow.id}`,
+        error instanceof Error ? error.message : String(error)
+      );
+    }
   }
 
-  /**
-   * Finds a node in the workflow by its ID.
-   */
-  private findNode(workflow: Workflow, nodeId: string): Node | undefined {
-    return workflow.nodes.find((n) => n.id === nodeId);
-  }
+  /** Writes the execution record. Wrapped in a step so it happens exactly once. */
+  private async persist(
+    prepared: PreparedRun,
+    record: WorkflowExecution,
+    meta: {
+      params: RuntimeParams;
+      instanceId: string;
+      definitionHash: string;
+      finalStatus: WorkflowExecutionStatus;
+    }
+  ): Promise<WorkflowExecution> {
+    const { context, graph, state } = prepared;
+    const { params, instanceId, definitionHash, finalStatus } = meta;
 
-  /**
-   * Builds node execution list from execution state.
-   * Maps workflow nodes to their execution status for persistence and monitoring.
-   * For skipped nodes, infers skip reason and details from state.
-   */
-  private buildNodeExecutions(
-    workflow: Workflow,
-    context: WorkflowExecutionContext,
-    state: ExecutionState,
-    overrideStatus?: import("@dafthunk/types").WorkflowExecutionStatus,
-    pendingNodes?: Map<string, { type: string; timeout: string }>
-  ) {
-    // Determine if workflow is still running
-    const isStillRunning =
-      (overrideStatus ?? getExecutionStatus(context, state)) === "executing";
+    const hasNodeErrors = Object.keys(state.nodeErrors).length > 0;
 
-    return workflow.nodes.map((node) => {
-      // Check for pending nodes (e.g. waiting for human input) before other states
-      const pendingEvent = pendingNodes?.get(node.id);
-      if (pendingEvent) {
-        return {
-          nodeId: node.id,
-          status: "pending" as const,
-          usage: 0,
-          pendingEvent,
-        };
-      }
-      if (state.executedNodes.includes(node.id)) {
-        return {
-          nodeId: node.id,
-          status: "completed" as const,
-          inputs: state.nodeInputs[node.id] || {},
-          outputs: state.nodeOutputs[node.id] || {},
-          usage: state.nodeUsage[node.id] ?? 0,
-        };
-      }
-      if (node.id in state.nodeErrors) {
-        return {
-          nodeId: node.id,
-          status: "error" as const,
-          error: state.nodeErrors[node.id],
-          usage: state.nodeUsage[node.id] ?? 0,
-        };
-      }
-      if (state.skippedNodes.includes(node.id)) {
-        // Infer skip reason and details from state
-        const { reason, blockedBy } = inferSkipReason(workflow, state, node.id);
-        return {
-          nodeId: node.id,
-          status: "skipped" as const,
-          outputs: null,
-          usage: 0,
-          skipReason: reason,
-          blockedBy: [...blockedBy],
-        };
-      }
-      // If node hasn't been processed yet:
-      // - If workflow is still running, mark as "executing"
-      // - If workflow has completed/errored, mark as "idle" (never reached)
-      return {
-        nodeId: node.id,
-        status: isStillRunning ? ("executing" as const) : ("idle" as const),
-        usage: 0,
-      };
-    });
+    return this.executeStep("persist final execution record", async () =>
+      this.deps.executionStore.save({
+        id: instanceId,
+        workflowId: context.workflowId,
+        workflowName: context.workflow.name,
+        userId: params.userId,
+        organizationId: params.organizationId,
+        status: finalStatus,
+        nodeExecutions: buildNodeExecutions(graph, state, finalStatus),
+        error: hasNodeErrors ? "Workflow execution failed" : record.error,
+        startedAt: record.startedAt,
+        endedAt: record.endedAt,
+        workflowDefinition: context.workflow,
+        definitionHash,
+        runtimeVersion: this.deps.runtimeVersion,
+      })
+    );
   }
 }

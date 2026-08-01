@@ -26,7 +26,7 @@ import {
   testSuccessfulExecution,
   testTopologicalOrdering,
   testWorkflowValidation,
-} from "@dafthunk/runtime";
+} from "@dafthunk/runtime/specification";
 import type { Bindings } from "../context";
 import { createWorkerRuntime } from "./cloudflare-worker-runtime";
 

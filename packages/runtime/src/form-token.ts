@@ -45,6 +45,23 @@ function base64urlDecode(str: string): Uint8Array {
   return bytes;
 }
 
+/**
+ * Rejects an absent or empty signing key.
+ *
+ * `FORM_SIGNING_KEY` is optional in the environment types, so an unconfigured
+ * deployment can reach this code with `undefined`. WebCrypto happens to reject
+ * zero-length HMAC keys today, which fails closed by luck rather than by
+ * design; checking here makes the precondition explicit and portable, and
+ * distinguishes "misconfigured server" from "bad token" for the caller.
+ */
+function assertSigningKey(signingKey: string): void {
+  if (!signingKey) {
+    throw new Error(
+      "A non-empty FORM_SIGNING_KEY is required to sign or verify form tokens"
+    );
+  }
+}
+
 async function hmacSign(data: string, secret: string): Promise<Uint8Array> {
   const encoder = new TextEncoder();
   const key = await crypto.subtle.importKey(
@@ -90,6 +107,8 @@ export async function createFormToken(
   signingKey: string,
   ttlSeconds: number = UNLISTED_LINK_TTL_SECONDS
 ): Promise<string> {
+  assertSigningKey(signingKey);
+
   const withExp: FormTokenPayload = {
     ...payload,
     exp: payload.exp ?? Math.floor(Date.now() / 1000) + ttlSeconds,
@@ -103,16 +122,25 @@ export async function createFormToken(
 /**
  * Verify and decode a signed form token.
  * Returns the payload if valid, null if tampered, malformed, or expired.
+ *
+ * Every rejection returns null rather than throwing, so callers cannot leak
+ * *why* a token failed. The one exception is a missing signing key, which is a
+ * server misconfiguration rather than a property of the token.
+ *
+ * @throws if `signingKey` is empty or absent.
  */
 export async function verifyFormToken(
   token: string,
   signingKey: string
 ): Promise<FormTokenPayload | null> {
+  assertSigningKey(signingKey);
+
   const dotIndex = token.indexOf(".");
   if (dotIndex === -1) return null;
 
   const payloadEncoded = token.slice(0, dotIndex);
   const signatureEncoded = token.slice(dotIndex + 1);
+  if (!payloadEncoded || !signatureEncoded) return null;
 
   try {
     const signature = base64urlDecode(signatureEncoded);
@@ -122,19 +150,32 @@ export async function verifyFormToken(
     const json = new TextDecoder().decode(base64urlDecode(payloadEncoded));
     const payload = JSON.parse(json) as FormTokenPayload;
 
-    if (!payload.eid || !payload.wid || !payload.tok) {
-      return null;
-    }
-
-    if (
-      typeof payload.exp === "number" &&
-      payload.exp < Math.floor(Date.now() / 1000)
-    ) {
-      return null;
-    }
-
-    return payload;
+    return isUsablePayload(payload) ? payload : null;
   } catch {
     return null;
   }
+}
+
+/**
+ * Checks a decoded payload is well-formed and still live.
+ *
+ * Expiry is mandatory: `createFormToken` always stamps one, so a token without
+ * `exp` did not come from a path we control and must not be honoured forever.
+ * Treating a missing `exp` as "never expires" would fail open.
+ */
+function isUsablePayload(payload: FormTokenPayload): boolean {
+  const hasRouting =
+    typeof payload?.eid === "string" &&
+    payload.eid.length > 0 &&
+    typeof payload.wid === "string" &&
+    payload.wid.length > 0 &&
+    typeof payload.tok === "string" &&
+    payload.tok.length > 0;
+
+  if (!hasRouting) return false;
+  if (typeof payload.exp !== "number" || !Number.isFinite(payload.exp)) {
+    return false;
+  }
+
+  return payload.exp >= Math.floor(Date.now() / 1000);
 }

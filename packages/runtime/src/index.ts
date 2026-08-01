@@ -45,7 +45,13 @@ export {
   parseSubscriptionRequiredError,
   subscriptionRequiredMessage,
 } from "./execution-errors";
+export { ExecutionGraph } from "./execution-graph";
 export {
+  buildNodeExecutions,
+  type PendingEvent,
+} from "./execution-report";
+export {
+  analyzeUpstream,
   applyNodeResult,
   getExecutionStatus,
   getNodeType,
@@ -61,7 +67,6 @@ export type {
 // Types
 export type {
   ExecutableNodeConstructor,
-  ExecutionLevel,
   ExecutionState,
   IntegrationData,
   NodeExecutionResult,
@@ -69,6 +74,7 @@ export type {
   RuntimeValue,
   SkipReason,
   SkipReasonResult,
+  UpstreamAnalysis,
   WorkflowExecutionContext,
   WorkflowRuntimeState,
 } from "./execution-types";
@@ -117,39 +123,14 @@ export {
 export type { ObjectMetadata, ObjectStore } from "./object-store";
 // Pure functions
 export {
+  apiInputsToNode,
   apiToNodeParameter,
+  nodeOutputsToApi,
   nodeToApiParameter,
   type ParameterMapperContext,
 } from "./parameter-mapper";
 export type { Queue, QueueService } from "./queue-service";
 export type { SchemaService } from "./schema-service";
-export { testConcurrentErrors } from "./specification/concurrent-errors-spec";
-export { testConditionalBranching } from "./specification/conditional-branching-spec";
-export { testEdgeCases } from "./specification/edge-cases-spec";
-export { testFailingExecution } from "./specification/failing-execution-spec";
-
-// Specification test library
-export {
-  createInstanceId,
-  createParams,
-  type RuntimeFactory,
-} from "./specification/helpers";
-export { testInputCollection } from "./specification/input-collection-spec";
-export { testMonitoringUpdates } from "./specification/monitoring-updates-spec";
-export { testMultiStepExecution } from "./specification/multi-step-execution-spec";
-export {
-  FailingMultiStepNode,
-  MultiStepAdditionNode,
-} from "./specification/multi-step-test-nodes";
-export { testNodeExecutionErrors } from "./specification/node-execution-errors-spec";
-export { testOutputHandling } from "./specification/output-handling-spec";
-export { testParallelExecution } from "./specification/parallel-execution-spec";
-export { testSkipLogic } from "./specification/skip-logic-spec";
-export { testStateConsistency } from "./specification/state-consistency-spec";
-export { testStatusComputation } from "./specification/status-computation-spec";
-export { testSuccessfulExecution } from "./specification/successful-execution-spec";
-export { testTopologicalOrdering } from "./specification/topological-ordering-spec";
-export { testWorkflowValidation } from "./specification/workflow-validation-spec";
 export type {
   JSONSchema,
   ToolDefinition,
@@ -158,6 +139,7 @@ export type {
   ToolReference,
   ToolResult,
 } from "./tool-types";
+export { extractTrigger, type TriggerContext } from "./trigger";
 // Validation
 export {
   detectCycles,

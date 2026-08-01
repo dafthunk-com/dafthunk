@@ -98,11 +98,11 @@ playgroundRoutes.post("/", jwtMiddleware, async (c) => {
       nodes: [syntheticNode],
       edges: [],
     },
-    executionLevels: [{ nodeIds: ["playground"] }],
-    orderedNodeIds: ["playground"],
     workflowId: "playground",
     organizationId,
     executionId: `playground_${Date.now()}`,
+    // The playground runs a single node on demand, never from a trigger.
+    trigger: {},
   };
 
   const nodeContext: NodeContext = {
