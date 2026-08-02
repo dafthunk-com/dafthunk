@@ -1,12 +1,12 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
-import type { NodeExecution, NodeType } from "@dafthunk/types";
+import type { JsonValue, NodeExecution, NodeType } from "@dafthunk/types";
 
 export class JsonBodyNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "body-json",
     name: "JSON Body",
     type: "body-json",
-    description: "Extracts JSON data from the body of the HTTP request.",
+    description: "Extracts JSON data from the body of the HTTP request",
     tags: ["Data", "Parameter", "JSON"],
     icon: "braces",
     documentation:
@@ -63,7 +63,7 @@ export class JsonBodyNode extends ExecutableNode {
       }
 
       // Handle BlobParameter (production) or plain objects (legacy/tests)
-      let parsedValue: any;
+      let parsedValue: JsonValue;
 
       // Check if body is a BlobParameter
       if (
@@ -85,7 +85,7 @@ export class JsonBodyNode extends ExecutableNode {
         }
       } else {
         // Legacy format: body is already parsed (for backward compatibility and tests)
-        parsedValue = body;
+        parsedValue = body as unknown as JsonValue;
       }
 
       return this.createSuccessResult({

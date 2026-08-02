@@ -7,24 +7,25 @@ export class DatabaseTruncateTableNode extends ExecutableNode {
     id: "database-truncate-table",
     name: "Database Truncate Table",
     type: "database-truncate-table",
-    description: "Deletes all rows from a table while keeping its structure.",
+    description: "Deletes all rows from a table while keeping its structure",
     tags: ["Database", "Truncate", "Clear"],
     icon: "database",
     documentation:
       "Deletes all rows from a table while preserving the table structure. The table definition (fields, types) remains intact. This is useful for clearing data without recreating the table. Returns the number of rows deleted.",
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "database",
         type: "database",
-        description: "Database ID.",
+        description: "Database ID",
         required: true,
         hidden: true,
       },
       {
         name: "table",
         type: "string",
-        description: "Name of the table to truncate.",
+        description: "Name of the table to truncate",
         required: true,
       },
     ],
@@ -32,17 +33,17 @@ export class DatabaseTruncateTableNode extends ExecutableNode {
       {
         name: "success",
         type: "boolean",
-        description: "True if the operation succeeded.",
+        description: "True if the operation succeeded",
       },
       {
         name: "deleted",
         type: "number",
-        description: "Number of rows deleted.",
+        description: "Number of rows deleted",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const { database, table } = context.inputs;
 
     // Validate required inputs

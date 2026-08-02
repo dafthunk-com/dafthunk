@@ -11,24 +11,25 @@ export class DatabasePutRowNode extends ExecutableNode {
     name: "Database Put Row",
     type: "database-put-row",
     description:
-      "Inserts a row, or replaces it if a matching primary key exists.",
+      "Inserts a row, or replaces it if a matching primary key exists",
     tags: ["Database", "Put", "Row"],
     icon: "database",
     documentation:
       "Inserts a row into a table. If the schema defines a primary key and a row with the same key already exists, it replaces it (INSERT OR REPLACE). If no primary key is defined, the row is appended (INSERT INTO).",
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "database",
         type: "database",
-        description: "Database ID.",
+        description: "Database ID",
         required: true,
         hidden: true,
       },
       {
         name: "schema",
         type: "schema",
-        description: "Schema defining the table structure with a primary key.",
+        description: "Schema defining the table structure with a primary key",
         required: true,
       },
       {
@@ -43,12 +44,12 @@ export class DatabasePutRowNode extends ExecutableNode {
       {
         name: "success",
         type: "boolean",
-        description: "True if the operation succeeded.",
+        description: "True if the operation succeeded",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const {
       database,
       schema: schemaInput,

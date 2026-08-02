@@ -76,11 +76,21 @@ export class JsonExecuteJavascriptNode extends ExecutableNode {
       return this.createErrorResult(EXECUTOR_UNAVAILABLE_MESSAGE);
     }
 
-    const { result, error } = await executor.execute(
-      buildScriptWithBinding("json", json, javascript),
-      {},
-      { timeoutMs: timeout }
-    );
+    let result: unknown;
+    let error: string | undefined;
+    try {
+      ({ result, error } = await executor.execute(
+        buildScriptWithBinding("json", json, javascript),
+        {},
+        { timeoutMs: timeout }
+      ));
+    } catch (err) {
+      // The sandbox itself failed rather than the script — report it against
+      // this node so the error names the step that broke.
+      return this.createErrorResult(
+        `Script execution failed: ${err instanceof Error ? err.message : String(err)}`
+      );
+    }
 
     if (error) {
       return this.createErrorResult(`Script execution error: ${error}`);

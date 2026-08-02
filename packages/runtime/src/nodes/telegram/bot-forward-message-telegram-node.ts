@@ -14,6 +14,8 @@ export class BotForwardMessageTelegramNode extends ExecutableNode {
       "This node forwards messages between Telegram chats using the Telegram Bot API.",
     usage: 10,
     subscription: true,
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "chatId",
@@ -56,7 +58,7 @@ export class BotForwardMessageTelegramNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { chatId, fromChatId, messageId } = context.inputs;
       const botToken = context.telegramBotToken;

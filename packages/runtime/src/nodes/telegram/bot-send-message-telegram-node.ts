@@ -13,6 +13,8 @@ export class BotSendMessageTelegramNode extends ExecutableNode {
       "This node sends text messages to Telegram chats using the Telegram Bot API.",
     usage: 10,
     subscription: true,
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "chatId",
@@ -56,7 +58,7 @@ export class BotSendMessageTelegramNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { chatId, text, parseMode } = context.inputs;
       const botToken = context.telegramBotToken;

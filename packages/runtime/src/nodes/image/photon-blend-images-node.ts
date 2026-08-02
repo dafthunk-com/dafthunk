@@ -25,24 +25,23 @@ export class PhotonBlendImagesNode extends ExecutableNode {
     name: "Blend Images",
     type: "photon-blend-images",
     description:
-      "Blends two images using a specified blend mode (e.g., 'overlay', 'multiply', 'screen', 'lighten', 'darken').",
+      "Blends two images using a specified blend mode (e.g., 'overlay', 'multiply', 'screen', 'lighten', 'darken')",
     tags: ["Image", "Photon", "Blend"],
     icon: "layers",
-    documentation:
-      "This node blends two images using a specified blend mode (e.g., 'overlay', 'multiply', 'screen', 'lighten', 'darken').",
     inlinable: true,
     usage: 10,
+    asTool: false,
     inputs: [
       {
         name: "baseImage",
         type: "image",
-        description: "The base image.",
+        description: "The base image",
         required: true,
       },
       {
         name: "blendImage",
         type: "image",
-        description: "The image to blend onto the base image.",
+        description: "The image to blend onto the base image",
         required: true,
       },
       {
@@ -58,12 +57,12 @@ export class PhotonBlendImagesNode extends ExecutableNode {
       {
         name: "image",
         type: "image",
-        description: "The blended image (PNG format).",
+        description: "The blended image (PNG format)",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const parsed = PhotonBlendImagesNode.inputSchema.safeParse(context.inputs);
     if (!parsed.success) {
       return this.createErrorResult(zodErrorMessage(parsed.error));

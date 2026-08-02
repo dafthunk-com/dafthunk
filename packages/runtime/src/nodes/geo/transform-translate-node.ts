@@ -4,16 +4,17 @@ import type { NodeExecution, NodeType } from "@dafthunk/types";
 
 export class TransformTranslateNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "transformTranslate",
+    id: "transform-translate",
     name: "Transform Translate",
-    type: "transformTranslate",
+    type: "transform-translate",
     description:
-      "Moves any GeoJSON geometry by a specified distance and direction.",
+      "Moves any GeoJSON geometry by a specified distance and direction",
     tags: ["Geo", "GeoJSON", "Transform", "Translate"],
     icon: "move",
     documentation:
       "This node moves a GeoJSON geometry by a specified distance in a given direction.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "geojson",

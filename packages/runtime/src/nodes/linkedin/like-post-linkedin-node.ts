@@ -18,6 +18,7 @@ export class LikePostLinkedInNode extends ExecutableNode {
     usage: 10,
     subscription: true,
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "integrationId",
@@ -51,7 +52,7 @@ export class LikePostLinkedInNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { integrationId, postUrn } = context.inputs;
       const { organizationId } = context;

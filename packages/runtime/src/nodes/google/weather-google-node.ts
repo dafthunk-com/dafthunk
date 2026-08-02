@@ -17,6 +17,7 @@ export class WeatherGoogleNode extends ExecutableNode {
       "This node retrieves current weather conditions for a given latitude/longitude using the Google Weather API. Returns temperature, humidity, wind, precipitation, and more.",
     usage: 10,
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "latitude",
@@ -77,7 +78,7 @@ export class WeatherGoogleNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { latitude, longitude, languageCode } = context.inputs;
       const apiKey = context.env.GOOGLE_API_KEY;

@@ -8,12 +8,13 @@ export class LineOverlapNode extends ExecutableNode {
     name: "Line Overlap",
     type: "line-overlap",
     description:
-      "Takes any LineString or Polygon and returns the overlapping lines between both features.",
+      "Takes any LineString or Polygon and returns the overlapping lines between both features",
     tags: ["Geo", "GeoJSON", "Geometry", "LineOverlap"],
     icon: "layers",
     documentation:
       "This node finds overlapping line segments between two LineString or Polygon geometries.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "line1",
@@ -75,7 +76,7 @@ export class LineOverlapNode extends ExecutableNode {
       }
 
       // Delegate everything to Turf.js lineOverlap function
-      const overlapFeatures = lineOverlap(line1 as any, line2 as any, options);
+      const overlapFeatures = lineOverlap(line1, line2, options);
 
       return this.createSuccessResult({
         overlaps: overlapFeatures,

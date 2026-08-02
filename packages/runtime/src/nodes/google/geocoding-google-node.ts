@@ -17,6 +17,7 @@ export class GeocodingGoogleNode extends ExecutableNode {
       "This node geocodes an address to coordinates, or reverse-geocodes coordinates to an address using the Google Geocoding API. Provide either an address for forward geocoding, or latitude/longitude for reverse geocoding.",
     usage: 10,
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "address",
@@ -89,7 +90,7 @@ export class GeocodingGoogleNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { address, latitude, longitude, language, region } = context.inputs;
       const apiKey = context.env.GOOGLE_API_KEY;

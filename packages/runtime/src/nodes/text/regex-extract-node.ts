@@ -7,7 +7,7 @@ export class RegexExtractNode extends ExecutableNode {
     name: "Regex Extract",
     type: "regex-extract",
     description:
-      "Extract all matches of a regular expression pattern from a string.",
+      "Extract all matches of a regular expression pattern from a string",
     tags: ["Text", "Regex", "Extract"],
     icon: "search",
     documentation:
@@ -18,13 +18,13 @@ export class RegexExtractNode extends ExecutableNode {
       {
         name: "string",
         type: "string",
-        description: "The string to search.",
+        description: "The string to search",
         required: true,
       },
       {
         name: "pattern",
         type: "string",
-        description: "The regex pattern.",
+        description: "The regex pattern",
         required: true,
       },
       {
@@ -39,7 +39,7 @@ export class RegexExtractNode extends ExecutableNode {
       {
         name: "matches",
         type: "json",
-        description: "Array of matched strings (empty if no match).",
+        description: "Array of matched strings (empty if no match)",
       },
     ],
   };

@@ -101,10 +101,9 @@ describe("GeoTiffMetadataReaderNode", () => {
         getSamplesPerPixel: vi.fn().mockReturnValue(3),
         getSampleFormat: vi.fn().mockReturnValue(1),
         getBitsPerSample: vi.fn().mockReturnValue(8),
-        getNoDataValue: vi.fn().mockReturnValue(-9999),
+        getGDALNoData: vi.fn().mockReturnValue(-9999),
         getResolution: vi.fn().mockReturnValue([30, 30]),
         getGeoKeys: vi.fn().mockReturnValue({ GeographicTypeGeoKey: 4326 }),
-        getWKT: vi.fn().mockReturnValue(null),
       };
 
       const mockTiff = {

@@ -12,7 +12,6 @@ export class SquareRootNode extends ExecutableNode {
     description: "Calculates the square root of a number",
     tags: ["Math", "SquareRoot"],
     icon: "radical",
-    documentation: "This node calculates the square root of a number.",
     specification: "result = √value, where value ≥ 0",
     inlinable: true,
     asTool: true,
@@ -33,7 +32,7 @@ export class SquareRootNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       if (context.inputs.value === undefined || context.inputs.value === null) {
         return this.createErrorResult("Input 'value' is required");

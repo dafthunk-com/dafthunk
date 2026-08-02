@@ -10,30 +10,31 @@ export class DatabaseRowExistsNode extends ExecutableNode {
     id: "database-row-exists",
     name: "Database Row Exists",
     type: "database-row-exists",
-    description: "Checks if a row with the given primary key exists.",
+    description: "Checks if a row with the given primary key exists",
     tags: ["Database", "Row", "Exists"],
     icon: "database",
     documentation:
       "Checks whether a row with the given primary key exists in a table. Returns a boolean without fetching the full row.",
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "database",
         type: "database",
-        description: "Database ID.",
+        description: "Database ID",
         required: true,
         hidden: true,
       },
       {
         name: "schema",
         type: "schema",
-        description: "Schema defining the table structure with a primary key.",
+        description: "Schema defining the table structure with a primary key",
         required: true,
       },
       {
         name: "key",
         type: "json",
-        description: "Primary key value to check.",
+        description: "Primary key value to check",
         required: true,
       },
     ],
@@ -41,12 +42,12 @@ export class DatabaseRowExistsNode extends ExecutableNode {
       {
         name: "exists",
         type: "boolean",
-        description: "True if a row with the given primary key exists.",
+        description: "True if a row with the given primary key exists",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const { database, schema: schemaInput, key } = context.inputs;
 
     if (!database) {

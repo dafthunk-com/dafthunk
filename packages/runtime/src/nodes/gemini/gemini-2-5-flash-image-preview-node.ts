@@ -31,6 +31,8 @@ export class Gemini25FlashImagePreviewNode extends ExecutableNode {
       "This node uses Google's Gemini 2.5 Flash Image Preview model to generate images from text prompts and optional input images.",
     usage: 1,
     subscription: true,
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "prompt",
@@ -108,7 +110,7 @@ export class Gemini25FlashImagePreviewNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     let ai: GoogleGenAI | undefined;
 
     try {

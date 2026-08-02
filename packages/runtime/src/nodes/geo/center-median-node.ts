@@ -8,12 +8,13 @@ export class CenterMedianNode extends ExecutableNode {
     name: "Center Median",
     type: "center-median",
     description:
-      "Takes a Feature or FeatureCollection and returns the median center, using the median of the vertices of each feature.",
+      "Takes a Feature or FeatureCollection and returns the median center, using the median of the vertices of each feature",
     tags: ["Geo", "GeoJSON", "Measurement", "CenterMedian"],
     icon: "align-center",
     documentation:
       "This node calculates the median center of a feature or feature collection by finding the median of all vertex coordinates.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "features",
@@ -47,7 +48,7 @@ export class CenterMedianNode extends ExecutableNode {
       }
 
       // Delegate everything to Turf.js centerMedian function
-      const center = centerMedian(features as any, options as any);
+      const center = centerMedian(features, options);
 
       return this.createSuccessResult({
         center,

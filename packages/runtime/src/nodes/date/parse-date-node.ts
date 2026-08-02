@@ -31,7 +31,7 @@ export class ParseDateNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const value = context.inputs.value as unknown;
       let iso: string | undefined;

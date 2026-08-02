@@ -17,6 +17,7 @@ export class SecretInputNode extends ExecutableNode {
     documentation:
       "This node provides a secret input widget for selecting stored secrets.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "value",
@@ -34,7 +35,7 @@ export class SecretInputNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const value = context.inputs.value;
 

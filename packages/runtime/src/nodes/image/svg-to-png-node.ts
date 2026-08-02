@@ -38,36 +38,37 @@ export class SvgToPngNode extends ExecutableNode {
       "Renders SVG content to a raster image. Fonts referenced by the SVG's font-family are detected automatically and loaded from the static asset store, so text renders correctly. Leave the background transparent (default) to preserve the SVG's alpha channel.",
     inlinable: true,
     usage: 10,
+    asTool: false,
     inputs: [
       {
         name: "svg",
         type: "image",
-        description: "The SVG image to render.",
+        description: "The SVG image to render",
         required: true,
       },
       {
         name: "format",
         type: "string",
-        description: "Output format: 'png', 'webp', or 'jpeg'.",
+        description: "Output format: 'png', 'webp', or 'jpeg'",
         required: false,
         value: "png",
       },
       {
         name: "width",
         type: "number",
-        description: "Output width in pixels (optional).",
+        description: "Output width in pixels (optional)",
         required: false,
       },
       {
         name: "height",
         type: "number",
-        description: "Output height in pixels (optional).",
+        description: "Output height in pixels (optional)",
         required: false,
       },
       {
         name: "scale",
         type: "number",
-        description: "Scale factor for rendering (default: 1.0).",
+        description: "Scale factor for rendering (default: 1.0)",
         required: false,
         value: 1.0,
         hidden: true,
@@ -86,7 +87,7 @@ export class SvgToPngNode extends ExecutableNode {
       {
         name: "image",
         type: "image",
-        description: "The rendered raster image.",
+        description: "The rendered raster image",
       },
     ],
   };

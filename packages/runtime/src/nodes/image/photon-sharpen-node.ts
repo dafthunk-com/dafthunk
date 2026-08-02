@@ -18,17 +18,17 @@ export class PhotonSharpenNode extends ExecutableNode {
     id: "photon-sharpen",
     name: "Sharpen",
     type: "photon-sharpen",
-    description: "Sharpens an image using Photon.",
+    description: "Sharpens an image using Photon",
     tags: ["Image", "Photon", "Effect", "Sharpen"],
     icon: "trending-up",
-    documentation: "This node sharpens an image using Photon.",
     inlinable: true,
     usage: 10,
+    asTool: false,
     inputs: [
       {
         name: "image",
         type: "image",
-        description: "The input image to sharpen.",
+        description: "The input image to sharpen",
         required: true,
       },
     ],
@@ -36,12 +36,12 @@ export class PhotonSharpenNode extends ExecutableNode {
       {
         name: "image",
         type: "image",
-        description: "The sharpened image (PNG format).",
+        description: "The sharpened image (PNG format)",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const parsed = PhotonSharpenNode.inputSchema.safeParse(context.inputs);
     if (!parsed.success) {
       return this.createErrorResult(zodErrorMessage(parsed.error));

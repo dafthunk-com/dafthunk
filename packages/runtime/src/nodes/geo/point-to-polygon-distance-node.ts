@@ -1,6 +1,8 @@
+import type { Units } from "@dafthunk/geo";
 import { pointToPolygonDistance } from "@dafthunk/geo";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { isUnits, UNITS_LIST } from "./geo-input";
 
 export class PointToPolygonDistanceNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -14,6 +16,7 @@ export class PointToPolygonDistanceNode extends ExecutableNode {
     documentation:
       "This node calculates the distance from a point to the nearest edge of a polygon, with negative values for points inside the polygon.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "point",
@@ -66,11 +69,11 @@ export class PointToPolygonDistanceNode extends ExecutableNode {
       }
 
       // Prepare options for pointToPolygonDistance calculation
-      const options: { units?: string; method?: string } = {};
+      const options: { units?: Units; method?: "geodesic" | "planar" } = {};
 
       if (units !== undefined && units !== null) {
-        if (typeof units !== "string") {
-          return this.createErrorResult("Units must be a string");
+        if (!isUnits(units)) {
+          return this.createErrorResult(`Units must be one of: ${UNITS_LIST}`);
         }
         options.units = units;
       }
@@ -88,11 +91,7 @@ export class PointToPolygonDistanceNode extends ExecutableNode {
       }
 
       // Delegate to Turf.js pointToPolygonDistance function
-      const distance = pointToPolygonDistance(
-        point as any,
-        polygon as any,
-        options as any
-      );
+      const distance = pointToPolygonDistance(point, polygon, options);
 
       return this.createSuccessResult({
         distance,

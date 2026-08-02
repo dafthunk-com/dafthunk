@@ -29,6 +29,7 @@ export class SearchTavilyNode extends ExecutableNode {
     usage: 10,
     subscription: true,
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "query",
@@ -112,7 +113,7 @@ export class SearchTavilyNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const {
         query,

@@ -42,7 +42,7 @@ export class AggregateItemsNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { values } = context.inputs;
 

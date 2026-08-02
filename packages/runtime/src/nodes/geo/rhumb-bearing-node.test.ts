@@ -18,7 +18,7 @@ describe("RhumbBearingNode", () => {
   const node = new RhumbBearingNode({
     id: "test-node",
     name: "Test Node",
-    type: "rhumbBearing",
+    type: "rhumb-bearing",
     position: { x: 0, y: 0 },
     inputs: [],
     outputs: [],

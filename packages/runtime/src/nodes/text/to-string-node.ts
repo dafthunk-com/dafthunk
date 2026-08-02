@@ -13,9 +13,8 @@ export class ToStringNode extends ExecutableNode {
     description: "Converts any input value to its string representation",
     tags: ["Text", "Convert"],
     icon: "text",
-    documentation:
-      "This node converts any input value to its string representation.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "value",
@@ -33,7 +32,7 @@ export class ToStringNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const value = context.inputs.value;
       let result: string;

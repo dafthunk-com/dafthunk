@@ -17,6 +17,8 @@ export class AudioRecorderInputNode extends ExecutableNode {
     icon: "mic",
     documentation:
       "This node provides an audio recorder widget that allows users to record audio from their microphone and outputs the recording.",
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "value",
@@ -48,7 +50,7 @@ export class AudioRecorderInputNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { value } = context.inputs;
 

@@ -7,12 +7,13 @@ export class CleanCoordsNode extends ExecutableNode {
     id: "clean-coords",
     name: "Clean Coordinates",
     type: "clean-coords",
-    description: "Removes redundant coordinates from any GeoJSON Geometry.",
+    description: "Removes redundant coordinates from any GeoJSON Geometry",
     tags: ["Geo", "GeoJSON", "Transform", "CleanCoords"],
     icon: "scissors",
     documentation:
       "This node removes redundant coordinates from GeoJSON geometries to optimize data size and processing.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "geojson",
@@ -55,7 +56,7 @@ export class CleanCoordsNode extends ExecutableNode {
       }
 
       // Delegate to Turf.js cleanCoords function
-      const cleaned = cleanCoords(geojson as any, options);
+      const cleaned = cleanCoords(geojson, options);
 
       return this.createSuccessResult({
         cleaned,

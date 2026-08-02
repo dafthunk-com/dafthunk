@@ -17,6 +17,7 @@ export class DatasetDeleteFileNode extends ExecutableNode {
       "This node deletes a specific file from a dataset. The file is permanently removed from R2 storage.",
     usage: 3,
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "datasetId",
@@ -46,7 +47,7 @@ export class DatasetDeleteFileNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { datasetId, filename } = context.inputs;
       const { organizationId } = context;

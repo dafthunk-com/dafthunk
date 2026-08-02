@@ -24,18 +24,17 @@ export class PhotonApplyFilterNode extends ExecutableNode {
     name: "Apply Filter by Name",
     type: "photon-apply-filter",
     description:
-      "Applies a named preset filter to an image (e.g., 'vintage', 'oceanic', 'lofi').",
+      "Applies a named preset filter to an image (e.g., 'vintage', 'oceanic', 'lofi')",
     tags: ["Image", "Photon", "Filter"],
     icon: "list-filter",
-    documentation:
-      "This node applies a named preset filter to an image (e.g., 'vintage', 'oceanic', 'lofi').",
     inlinable: true,
     usage: 10,
+    asTool: false,
     inputs: [
       {
         name: "image",
         type: "image",
-        description: "The input image to apply the filter to.",
+        description: "The input image to apply the filter to",
         required: true,
       },
       {
@@ -51,12 +50,12 @@ export class PhotonApplyFilterNode extends ExecutableNode {
       {
         name: "image",
         type: "image",
-        description: "The filtered image (PNG format).",
+        description: "The filtered image (PNG format)",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const parsed = PhotonApplyFilterNode.inputSchema.safeParse(context.inputs);
     if (!parsed.success) {
       return this.createErrorResult(zodErrorMessage(parsed.error));

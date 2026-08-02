@@ -21,6 +21,7 @@ export class Claude3OpusNode extends ExecutableNode {
     inlinable: false,
     usage: 1,
     subscription: true,
+    asTool: false,
     inputs: [
       {
         name: "instructions",
@@ -45,7 +46,7 @@ export class Claude3OpusNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     return executeAnthropicModel(
       this,
       context,

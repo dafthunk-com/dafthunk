@@ -96,7 +96,7 @@ export abstract class BaseSandboxNode extends ExecutableNode {
   /** Subclasses must define this to select the sandbox language. */
   protected static readonly language: SandboxLanguage;
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const language = (this.constructor as typeof BaseSandboxNode).language;
     const { script, args = [], stdin, timeout = 30_000 } = context.inputs;
 

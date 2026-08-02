@@ -20,6 +20,8 @@ export class ClaudeOpus41Node extends ExecutableNode {
       "This node uses Anthropic's Claude Opus 4.1 model, the most advanced Claude model with latest capabilities.",
     usage: 1,
     subscription: true,
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "instructions",
@@ -44,7 +46,7 @@ export class ClaudeOpus41Node extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     return executeAnthropicModel(this, context, "claude-opus-4-1", PRICING);
   }
 }

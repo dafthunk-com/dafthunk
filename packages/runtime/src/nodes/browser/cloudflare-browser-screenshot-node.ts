@@ -16,12 +16,14 @@ export class CloudflareBrowserScreenshotNode extends ExecutableNode {
     name: "Browser Screenshot",
     type: "cloudflare-browser-screenshot",
     description:
-      "Capture a screenshot of a webpage using Cloudflare Browser Rendering.",
+      "Capture a screenshot of a webpage using Cloudflare Browser Rendering",
     tags: ["Browser", "Web", "Cloudflare", "Screenshot"],
     icon: "camera",
     documentation:
       "Captures screenshots of web pages. Either url or html is required (not both). See [Cloudflare Browser Rendering Screenshot Endpoint](https://developers.cloudflare.com/browser-rendering/rest-api/screenshot-endpoint/) for details.",
     usage: 10,
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "url",
@@ -99,7 +101,7 @@ export class CloudflareBrowserScreenshotNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const validationError = validateBrowserInputs(this, context);
     if (validationError) return validationError;
 

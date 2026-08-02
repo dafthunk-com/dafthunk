@@ -18,7 +18,7 @@ describe("BooleanContainsNode", () => {
   const node = new BooleanContainsNode({
     id: "test-node",
     name: "Test Node",
-    type: "booleanContains",
+    type: "boolean-contains",
     position: { x: 0, y: 0 },
     inputs: [],
     outputs: [],

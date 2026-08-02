@@ -1,5 +1,10 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
-import type { NodeExecution, NodeType } from "@dafthunk/types";
+import type {
+  JsonObject,
+  JsonValue,
+  NodeExecution,
+  NodeType,
+} from "@dafthunk/types";
 
 export class JsonStripNullsNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -80,7 +85,10 @@ export class JsonStripNullsNode extends ExecutableNode {
     }
   }
 
-  private stripNullsShallow(value: any, nullsRemoved: { count: number }): any {
+  private stripNullsShallow(
+    value: JsonValue,
+    nullsRemoved: { count: number }
+  ): JsonValue {
     if (Array.isArray(value)) {
       // For arrays, filter out null values
       const filtered = value.filter((item) => item !== null);
@@ -88,7 +96,7 @@ export class JsonStripNullsNode extends ExecutableNode {
       return filtered;
     } else if (typeof value === "object" && value !== null) {
       // For objects, remove properties with null values
-      const result: any = {};
+      const result: JsonObject = {};
       for (const [key, val] of Object.entries(value)) {
         if (val !== null) {
           result[key] = val;
@@ -104,12 +112,12 @@ export class JsonStripNullsNode extends ExecutableNode {
   }
 
   private stripNullsRecursive(
-    value: any,
+    value: JsonValue,
     nullsRemoved: { count: number }
-  ): any {
+  ): JsonValue {
     if (Array.isArray(value)) {
       // For arrays, filter out null values and recursively process remaining items
-      const result: any[] = [];
+      const result: JsonValue[] = [];
       for (const item of value) {
         if (item !== null) {
           result.push(this.stripNullsRecursive(item, nullsRemoved));
@@ -120,7 +128,7 @@ export class JsonStripNullsNode extends ExecutableNode {
       return result;
     } else if (typeof value === "object" && value !== null) {
       // For objects, remove properties with null values and recursively process remaining values
-      const result: any = {};
+      const result: JsonObject = {};
       for (const [key, val] of Object.entries(value)) {
         if (val !== null) {
           result[key] = this.stripNullsRecursive(val, nullsRemoved);

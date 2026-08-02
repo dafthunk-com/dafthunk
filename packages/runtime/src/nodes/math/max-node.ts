@@ -12,7 +12,6 @@ export class MaxNode extends ExecutableNode {
     description: "Returns the maximum value from multiple numbers",
     tags: ["Math", "Maximum"],
     icon: "arrow-up",
-    documentation: "This node returns the maximum value from multiple numbers.",
     specification: "result = max(numbers), where |numbers| > 0",
     inlinable: true,
     asTool: true,
@@ -35,7 +34,7 @@ export class MaxNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { numbers } = context.inputs;
 

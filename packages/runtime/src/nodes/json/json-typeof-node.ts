@@ -1,5 +1,5 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
-import type { NodeExecution, NodeType } from "@dafthunk/types";
+import type { JsonValue, NodeExecution, NodeType } from "@dafthunk/types";
 
 export class JsonTypeofNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -32,7 +32,7 @@ export class JsonTypeofNode extends ExecutableNode {
     ],
   };
 
-  private getJsonType(value: any): string {
+  private getJsonType(value: JsonValue): string {
     if (value === null) {
       return "null";
     }

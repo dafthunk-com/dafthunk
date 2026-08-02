@@ -8,17 +8,18 @@ export class ExtractEmailAttachmentsNode extends ExecutableNode {
     name: "Extract Email Attachments",
     type: "extract-email-attachments",
     description:
-      "Extracts attachments from raw email content as blobs with filename and mime type.",
+      "Extracts attachments from raw email content as blobs with filename and mime type",
     tags: ["Social", "Email", "Parse"],
     icon: "paperclip",
     documentation:
       "This node parses raw email content and extracts all attachments as blobs. Each attachment includes the binary data, mime type, and original filename.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "raw",
         type: "string",
-        description: "The raw email content as a string.",
+        description: "The raw email content as a string",
         required: true,
       },
     ],
@@ -27,7 +28,7 @@ export class ExtractEmailAttachmentsNode extends ExecutableNode {
         name: "attachments",
         type: "blob",
         description:
-          "Email attachments as blobs with data, mimeType, and filename.",
+          "Email attachments as blobs with data, mimeType, and filename",
         repeated: true,
       },
     ],

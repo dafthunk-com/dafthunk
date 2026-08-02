@@ -1,5 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import type { GenerateImagesConfig } from "@google/genai";
 import { GoogleGenAI } from "@google/genai";
 import { getGoogleAIConfig } from "../../utils/ai-gateway";
 import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
@@ -27,6 +28,8 @@ export class ImagenNode extends ExecutableNode {
       "This node uses Google's Imagen model to generate high-fidelity images from text prompts.",
     usage: 1,
     subscription: true,
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "prompt",
@@ -83,7 +86,7 @@ export class ImagenNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { prompt, aspectRatio, sampleImageSize, personGeneration, model } =
         context.inputs;
@@ -123,15 +126,15 @@ export class ImagenNode extends ExecutableNode {
       });
 
       // Build configuration object
-      const config: any = {
+      const config: GenerateImagesConfig = {
         numberOfImages: 1, // Always generate exactly one image
         aspectRatio: aspectRatio || "1:1",
         personGeneration: personGeneration || "allow_adult",
       };
 
-      // Add sampleImageSize only if specified (not supported by all models)
+      // Only set the size when asked for; not every model supports it.
       if (sampleImageSize) {
-        config.sampleImageSize = sampleImageSize;
+        config.imageSize = sampleImageSize;
       }
 
       const response = await ai.models.generateImages({
@@ -158,13 +161,14 @@ export class ImagenNode extends ExecutableNode {
       const imageMimeType = image.mimeType || "image/png";
 
       // Extract usage metadata if available
-      const responseAny = response as any;
-      const usageMetadata = responseAny.usageMetadata
-        ? {
-            promptTokenCount: responseAny.usageMetadata.promptTokenCount,
-            totalTokenCount: responseAny.usageMetadata.totalTokenCount,
-          }
-        : null;
+      // generateImages does not declare usage metadata, but the REST response
+      // carries it when the model reports token counts.
+      const { usageMetadata } = response as {
+        usageMetadata?: {
+          promptTokenCount?: number;
+          totalTokenCount?: number;
+        };
+      };
 
       // Calculate usage based on token counts
       const usage = calculateTokenUsage(

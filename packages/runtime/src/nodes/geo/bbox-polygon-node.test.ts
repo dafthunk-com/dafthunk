@@ -18,7 +18,7 @@ describe("BboxPolygonNode", () => {
   const node = new BboxPolygonNode({
     id: "test-node",
     name: "Test Node",
-    type: "bboxPolygon",
+    type: "bbox-polygon",
     position: { x: 0, y: 0 },
     inputs: [],
     outputs: [],
@@ -26,9 +26,9 @@ describe("BboxPolygonNode", () => {
 
   describe("Node definition", () => {
     it("should have correct node type definition", () => {
-      expect(BboxPolygonNode.nodeType.id).toBe("bboxPolygon");
+      expect(BboxPolygonNode.nodeType.id).toBe("bbox-polygon");
       expect(BboxPolygonNode.nodeType.name).toBe("Bbox Polygon");
-      expect(BboxPolygonNode.nodeType.type).toBe("bboxPolygon");
+      expect(BboxPolygonNode.nodeType.type).toBe("bbox-polygon");
       expect(BboxPolygonNode.nodeType.tags).toContain("Geo");
     });
 

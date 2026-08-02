@@ -12,6 +12,7 @@ export class CsvExtractColumnNode extends ExecutableNode {
     documentation:
       "Extracts all values from a specified column in a Table, returning them as an array. Useful for analyzing or processing a single column of data.",
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "table",

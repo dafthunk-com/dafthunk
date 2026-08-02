@@ -18,17 +18,17 @@ export class PhotonSepiaNode extends ExecutableNode {
     id: "photon-sepia",
     name: "Sepia Tone",
     type: "photon-sepia",
-    description: "Applies a sepia tone to an image using Photon.",
+    description: "Applies a sepia tone to an image using Photon",
     tags: ["Image", "Photon", "Effect", "Sepia"],
     icon: "coffee",
-    documentation: "This node applies a sepia tone to an image using Photon.",
     inlinable: true,
     usage: 10,
+    asTool: false,
     inputs: [
       {
         name: "image",
         type: "image",
-        description: "The input image to apply sepia tone to.",
+        description: "The input image to apply sepia tone to",
         required: true,
       },
     ],
@@ -36,12 +36,12 @@ export class PhotonSepiaNode extends ExecutableNode {
       {
         name: "image",
         type: "image",
-        description: "The sepia-toned image (PNG format).",
+        description: "The sepia-toned image (PNG format)",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const parsed = PhotonSepiaNode.inputSchema.safeParse(context.inputs);
     if (!parsed.success) {
       return this.createErrorResult(zodErrorMessage(parsed.error));

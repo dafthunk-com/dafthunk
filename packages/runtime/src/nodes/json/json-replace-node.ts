@@ -1,5 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
-import type { NodeExecution, NodeType } from "@dafthunk/types";
+import type { JsonValue, NodeExecution, NodeType } from "@dafthunk/types";
+import { deepClone, isJsonArray, isJsonObject, writeKey } from "./json-access";
 
 export class JsonReplaceNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -72,12 +73,12 @@ export class JsonReplaceNode extends ExecutableNode {
 
       // Deep clone the input JSON to avoid modifying the original
       // Use structuredClone if available, otherwise JSON.parse/stringify
-      let result: unknown;
+      let result: JsonValue;
       try {
         result = structuredClone(base);
       } catch {
-        // For functions and other non-serializable objects, use a custom deep clone
-        result = this.deepClone(base);
+        // structuredClone rejects functions and other non-JSON values.
+        result = deepClone(base);
       }
 
       // Replace or create (upsert) the value at path
@@ -96,7 +97,11 @@ export class JsonReplaceNode extends ExecutableNode {
     }
   }
 
-  private replaceValueAtPath(obj: any, path: string, value: any): boolean {
+  private replaceValueAtPath(
+    obj: JsonValue,
+    path: string,
+    value: JsonValue
+  ): boolean {
     try {
       const pathParts = this.parsePath(path);
 
@@ -112,16 +117,15 @@ export class JsonReplaceNode extends ExecutableNode {
         const part = pathParts[i];
 
         if (typeof part === "string") {
-          if (typeof current !== "object" || current === null) {
+          if (!isJsonObject(current)) {
             return false;
           }
           if (!(part in current)) {
-            const nextPart = pathParts[i + 1];
-            current[part] = typeof nextPart === "number" ? [] : {};
+            current[part] = typeof pathParts[i + 1] === "number" ? [] : {};
           }
           current = current[part];
         } else if (typeof part === "number") {
-          if (!Array.isArray(current)) {
+          if (!isJsonArray(current)) {
             return false;
           }
           const actualIndex = part < 0 ? current.length + part : part;
@@ -142,13 +146,10 @@ export class JsonReplaceNode extends ExecutableNode {
       // Replace or set the value at the final path part
       const finalPart = pathParts[pathParts.length - 1];
       if (typeof finalPart === "string") {
-        if (typeof current !== "object" || current === null) {
-          return false;
-        }
-        current[finalPart] = value;
-        return true;
-      } else if (typeof finalPart === "number") {
-        if (!Array.isArray(current)) {
+        return writeKey(current, finalPart, value);
+      }
+      if (typeof finalPart === "number") {
+        if (!isJsonArray(current)) {
           return false;
         }
         const actualIndex =
@@ -223,31 +224,5 @@ export class JsonReplaceNode extends ExecutableNode {
     }
 
     return parts;
-  }
-
-  private deepClone(obj: any): any {
-    if (obj === null || typeof obj !== "object") {
-      return obj;
-    }
-
-    if (obj instanceof Date) {
-      return new Date(obj.getTime());
-    }
-
-    if (Array.isArray(obj)) {
-      return obj.map((item) => this.deepClone(item));
-    }
-
-    if (typeof obj === "object") {
-      const cloned: Record<string, any> = {};
-      for (const key in obj) {
-        if (Object.hasOwn(obj, key)) {
-          cloned[key] = this.deepClone(obj[key]);
-        }
-      }
-      return cloned;
-    }
-
-    return obj;
   }
 }

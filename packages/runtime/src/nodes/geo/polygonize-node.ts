@@ -8,12 +8,13 @@ export class PolygonizeNode extends ExecutableNode {
     name: "Polygonize",
     type: "polygonize",
     description:
-      "Takes a set of line features and returns a set of polygon features constructed from the lines.",
+      "Takes a set of line features and returns a set of polygon features constructed from the lines",
     tags: ["Geo", "GeoJSON", "Transform", "Polygonize"],
     icon: "square",
     documentation:
       "This node converts a set of LineString features into polygon features by connecting intersecting lines.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "lines",
@@ -40,7 +41,7 @@ export class PolygonizeNode extends ExecutableNode {
       }
 
       // Delegate everything to Turf.js polygonize function
-      const polygonFeatures = polygonize(lines as any);
+      const polygonFeatures = polygonize(lines);
 
       return this.createSuccessResult({
         polygons: polygonFeatures,

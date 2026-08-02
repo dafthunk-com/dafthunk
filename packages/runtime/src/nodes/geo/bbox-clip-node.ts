@@ -13,6 +13,7 @@ export class BboxClipNode extends ExecutableNode {
     icon: "scissors",
     documentation: "This node clips a geometry to a bounding box area.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "geojson",
@@ -68,7 +69,7 @@ export class BboxClipNode extends ExecutableNode {
 
       // Delegate to Turf.js bboxClip function
       const clipped = bboxClip(
-        geojson as any,
+        geojson,
         bbox as [number, number, number, number]
       );
 

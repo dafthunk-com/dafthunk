@@ -13,9 +13,12 @@ export class GeoTiffQueryNode extends ExecutableNode {
     description:
       "Query a Cloud Optimized GeoTIFF with an optional bounding box and return an image. Uses full GeoTIFF bounds if bbox not provided.",
     tags: ["3D", "GeoTIFF", "Query"],
+    documentation:
+      "Reads a window of a Cloud Optimized GeoTIFF and returns it as an image. Only the tiles overlapping the bounding box are fetched; omit the bounding box to read the raster's full extent.",
     icon: "search",
     inlinable: false,
     usage: 10,
+    asTool: false,
     inputs: [
       {
         name: "url",

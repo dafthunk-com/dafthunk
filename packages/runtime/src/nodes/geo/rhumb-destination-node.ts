@@ -1,19 +1,23 @@
+import type { Units } from "@dafthunk/geo";
 import { rhumbDestination } from "@dafthunk/geo";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import type { GeoProperties } from "./geo-input";
+import { isUnits, UNITS_LIST } from "./geo-input";
 
 export class RhumbDestinationNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "rhumbDestination",
+    id: "rhumb-destination",
     name: "Rhumb Destination",
-    type: "rhumbDestination",
+    type: "rhumb-destination",
     description:
-      "Calculates the destination point along a rhumb line (constant bearing) from an origin point.",
+      "Calculates the destination point along a rhumb line (constant bearing) from an origin point",
     tags: ["Geo", "GeoJSON", "Measurement", "RhumbDestination"],
     icon: "map-pin",
     documentation:
       "This node calculates a destination point given a starting point, bearing, and distance using rhumb lines.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "origin",
@@ -73,9 +77,12 @@ export class RhumbDestinationNode extends ExecutableNode {
       }
 
       // Prepare options for rhumb destination calculation
-      const options: { units?: string; properties?: any } = {};
+      const options: { units?: Units; properties?: GeoProperties } = {};
 
       if (units !== undefined && units !== null) {
+        if (!isUnits(units)) {
+          return this.createErrorResult(`Units must be one of: ${UNITS_LIST}`);
+        }
         options.units = units;
       }
 
@@ -85,10 +92,10 @@ export class RhumbDestinationNode extends ExecutableNode {
 
       // Calculate the rhumb destination using Turf.js
       const destinationPoint = rhumbDestination(
-        origin as any,
+        origin,
         distance,
         bearing,
-        options as any
+        options
       );
 
       return this.createSuccessResult({

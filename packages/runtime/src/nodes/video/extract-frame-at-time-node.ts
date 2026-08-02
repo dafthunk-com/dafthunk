@@ -37,6 +37,7 @@ export class ExtractFrameAtTimeNode extends MultiStepNode {
       "This node extracts a single frame from a video at a given time (in seconds) and returns it as a JPEG image. Useful for generating thumbnails at a precise moment or extracting key frames for analysis.",
     inlinable: false,
     usage: 3,
+    asTool: false,
     inputs: [
       {
         name: "video",
@@ -61,7 +62,7 @@ export class ExtractFrameAtTimeNode extends MultiStepNode {
     ],
   };
 
-  async execute(context: MultiStepNodeContext): Promise<NodeExecution> {
+  public async execute(context: MultiStepNodeContext): Promise<NodeExecution> {
     const { sleep, doStep } = context;
 
     try {
@@ -69,10 +70,8 @@ export class ExtractFrameAtTimeNode extends MultiStepNode {
         context.inputs
       );
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const containerBinding = (context.env as any).FFMPEG_CONTAINER as
-        | DurableObjectNamespace
-        | undefined;
+      const containerBinding: DurableObjectNamespace | undefined =
+        context.env.FFMPEG_CONTAINER;
       if (!containerBinding) {
         return this.createErrorResult(
           "FFMPEG_CONTAINER binding is not configured"

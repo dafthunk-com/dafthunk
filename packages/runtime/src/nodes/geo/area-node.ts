@@ -1,7 +1,7 @@
-import type { AllGeoJSON } from "@dafthunk/geo";
 import { area } from "@dafthunk/geo";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { isGeoJSONOf } from "./geo-input";
 
 export class AreaNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -9,12 +9,11 @@ export class AreaNode extends ExecutableNode {
     name: "Area",
     type: "area",
     description:
-      "Calculates the area of polygons or feature collections in square meters.",
+      "Calculates the area of polygons or feature collections in square meters",
     tags: ["Geo", "GeoJSON", "Measurement", "Area"],
     icon: "square",
-    documentation:
-      "This node calculates the area of polygons or feature collections in square meters.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "geojson",
@@ -32,20 +31,6 @@ export class AreaNode extends ExecutableNode {
     ],
   };
 
-  private isValidGeoJSON(geojson: any): geojson is AllGeoJSON {
-    if (!geojson || typeof geojson !== "object") {
-      return false;
-    }
-
-    const validTypes = [
-      "Feature",
-      "FeatureCollection",
-      "Polygon",
-      "MultiPolygon",
-    ];
-    return validTypes.includes(geojson.type);
-  }
-
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { geojson } = context.inputs;
@@ -54,7 +39,15 @@ export class AreaNode extends ExecutableNode {
         return this.createErrorResult("Missing GeoJSON input");
       }
 
-      if (!this.isValidGeoJSON(geojson)) {
+      if (
+        !isGeoJSONOf(
+          geojson,
+          "Polygon",
+          "MultiPolygon",
+          "FeatureCollection",
+          "GeometryCollection"
+        )
+      ) {
         return this.createErrorResult(
           "Invalid GeoJSON provided - must be a Polygon, MultiPolygon, Feature, or FeatureCollection"
         );

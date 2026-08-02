@@ -1,9 +1,16 @@
 import type { NodeContext, ToolReference } from "@dafthunk/runtime";
 import type { NodeExecution, Schema } from "@dafthunk/types";
+import type { GenerateContentResponse } from "@google/genai";
 import { GoogleGenAI } from "@google/genai";
 import { getGoogleAIConfig } from "../../utils/ai-gateway";
 import { schemaToJsonSchema } from "../../utils/schema-to-json-schema";
 import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
+
+/** A function call the model asked for, paired with its decoded arguments. */
+interface ExecutedToolCall {
+  name?: string;
+  arguments: unknown;
+}
 
 interface GeminiModelConfig {
   modelId: string;
@@ -86,9 +93,9 @@ export async function executeGeminiModel(
     const builtInTools: Record<string, unknown>[] = [];
     if (googleSearch) builtInTools.push({ googleSearch: {} });
 
-    let response: any;
-    const executedToolCalls: any[] = [];
-    let intermediaryMessages: any[] = [];
+    let response: GenerateContentResponse;
+    const executedToolCalls: ExecutedToolCall[] = [];
+    let intermediaryMessages: Array<Record<string, unknown>> = [];
 
     // Merge function declarations with built-in tools
     const allTools: Record<string, unknown>[] = [...builtInTools];
@@ -210,10 +217,10 @@ export async function executeGeminiModel(
 }
 
 async function executeToolCalls(
-  toolCalls: Array<{ name: string; arguments: unknown }>,
+  toolCalls: ExecutedToolCall[],
   tools: ToolReference[],
   context: NodeContext
-): Promise<Array<{ name: string; result: unknown }>> {
+): Promise<Array<{ name?: string; result: unknown }>> {
   const results = [];
   for (const toolCall of toolCalls) {
     try {

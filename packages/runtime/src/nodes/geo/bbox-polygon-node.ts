@@ -1,18 +1,21 @@
+import type { BBox } from "@dafthunk/geo";
 import { bboxPolygon } from "@dafthunk/geo";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import type { GeoProperties } from "./geo-input";
 
 export class BboxPolygonNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "bboxPolygon",
+    id: "bbox-polygon",
     name: "Bbox Polygon",
-    type: "bboxPolygon",
-    description: "Takes a bbox and returns an equivalent polygon.",
+    type: "bbox-polygon",
+    description: "Takes a bbox and returns an equivalent polygon",
     tags: ["Geo", "GeoJSON", "BBox", "Polygon"],
     icon: "square",
     documentation:
       "This node creates a bounding box polygon from a GeoJSON geometry.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "bbox",
@@ -64,9 +67,10 @@ export class BboxPolygonNode extends ExecutableNode {
           );
         }
       }
+      const bounds: BBox = [bbox[0], bbox[1], bbox[2], bbox[3]];
 
       // Prepare options object for Turf.js bboxPolygon function
-      const options: { properties?: any; id?: string | number } = {};
+      const options: { properties?: GeoProperties; id?: string | number } = {};
 
       if (properties !== undefined && properties !== null) {
         if (typeof properties !== "object") {
@@ -83,7 +87,7 @@ export class BboxPolygonNode extends ExecutableNode {
       }
 
       // Delegate to Turf.js bboxPolygon function
-      const polygon = bboxPolygon(bbox as any, options);
+      const polygon = bboxPolygon(bounds, options);
 
       return this.createSuccessResult({
         polygon,

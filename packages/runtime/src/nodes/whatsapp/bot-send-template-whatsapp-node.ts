@@ -14,6 +14,8 @@ export class BotSendTemplateWhatsAppNode extends ExecutableNode {
       "This node sends pre-approved template messages via the WhatsApp Business Cloud API. Template messages are required to start conversations outside the 24-hour customer service window.",
     usage: 10,
     subscription: true,
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "to",
@@ -51,7 +53,7 @@ export class BotSendTemplateWhatsAppNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { to, templateName, languageCode, components } = context.inputs;
       const accessToken = context.whatsappAccessToken;

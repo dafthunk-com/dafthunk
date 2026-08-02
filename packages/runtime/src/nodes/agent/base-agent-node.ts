@@ -66,8 +66,7 @@ const AGENT_INPUTS: NodeType["inputs"] = [
     type: "json",
     description: "Array of tool references for the agent to use",
     hidden: true,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    value: [] as any,
+    value: [],
   },
   {
     name: "code_mode",
@@ -207,7 +206,7 @@ export abstract class BaseAgentNode extends ExecutableNode {
   /** Subclasses must define this to configure the provider + model */
   protected static readonly agentConfig: AgentNodeConfig;
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const config = (this.constructor as typeof BaseAgentNode).agentConfig;
 
     if (context.asyncSupported && context.executionId) {

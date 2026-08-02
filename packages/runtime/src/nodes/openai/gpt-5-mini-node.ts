@@ -20,6 +20,8 @@ export class Gpt5MiniNode extends ExecutableNode {
       "This node uses OpenAI's GPT-5 Mini model, a faster, cost-effective version of GPT-5.",
     usage: 1,
     subscription: true,
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "instructions",
@@ -51,7 +53,7 @@ export class Gpt5MiniNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     return executeOpenAIModel(this, context, "gpt-5-mini", PRICING);
   }
 }

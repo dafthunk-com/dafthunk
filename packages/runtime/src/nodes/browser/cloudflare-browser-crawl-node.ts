@@ -40,7 +40,7 @@ export class CloudflareBrowserCrawlNode extends MultiStepNode {
     id: "cloudflare-browser-crawl",
     name: "Browser Crawl",
     type: "cloudflare-browser-crawl",
-    description: "Crawl a website and return all pages at once.",
+    description: "Crawl a website and return all pages at once",
     documentation: `Crawls a website starting from a URL and returns all the crawled pages in a single output. This is the simplest way to crawl a site when you expect a manageable number of pages.
 
 By default returns markdown. You can request multiple formats: \`html\`, \`markdown\`, \`json\`.
@@ -145,7 +145,7 @@ See [Cloudflare Browser Rendering Crawl Endpoint](https://developers.cloudflare.
     ],
   };
 
-  async execute(context: MultiStepNodeContext): Promise<NodeExecution> {
+  public async execute(context: MultiStepNodeContext): Promise<NodeExecution> {
     const startTime = Date.now();
 
     try {

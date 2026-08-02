@@ -24,7 +24,7 @@ export class CalculatorNode extends ExecutableNode {
     name: "Calculator",
     type: "calculator",
     description:
-      "Evaluates mathematical expressions with support for arithmetic, functions, and constants.",
+      "Evaluates mathematical expressions with support for arithmetic, functions, and constants",
     tags: ["Math", "Calculate"],
     icon: "calculator",
     documentation:
@@ -80,7 +80,7 @@ Expression must contain only numbers, allowed operators, exact function names, c
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const { expression } = context.inputs;
 
     if (
@@ -110,11 +110,21 @@ Expression must contain only numbers, allowed operators, exact function names, c
 
     const code = `${PRELUDE}\nreturn (${jsExpression});`;
 
-    const { result, error } = await executor.execute(
-      code,
-      {},
-      { timeoutMs: 5000 }
-    );
+    let result: unknown;
+    let error: string | undefined;
+    try {
+      ({ result, error } = await executor.execute(
+        code,
+        {},
+        { timeoutMs: 5000 }
+      ));
+    } catch (err) {
+      // The sandbox itself failed (unreachable, timed out starting, …) rather
+      // than the expression — report it against this node, not the workflow.
+      return this.createErrorResult(
+        `Expression evaluation failed: ${err instanceof Error ? err.message : String(err)}`
+      );
+    }
 
     if (error) {
       return this.createErrorResult(`Expression evaluation error: ${error}`);

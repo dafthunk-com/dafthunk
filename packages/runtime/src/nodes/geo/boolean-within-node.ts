@@ -8,12 +8,13 @@ export class BooleanWithinNode extends ExecutableNode {
     name: "Boolean Within",
     type: "boolean-within",
     description:
-      "Returns true if the first geometry is completely within the second geometry.",
+      "Returns true if the first geometry is completely within the second geometry",
     tags: ["Geo", "GeoJSON", "Boolean", "Within"],
     icon: "mouse-pointer-2",
     documentation:
       "This node checks if one geometry is completely within another geometry.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "feature1",
@@ -52,7 +53,7 @@ export class BooleanWithinNode extends ExecutableNode {
       }
 
       // Delegate everything to Turf.js booleanWithin function
-      const within = booleanWithin(feature1 as any, feature2 as any);
+      const within = booleanWithin(feature1, feature2);
 
       return this.createSuccessResult({
         within,

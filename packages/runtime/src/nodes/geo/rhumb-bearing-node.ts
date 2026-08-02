@@ -4,16 +4,17 @@ import type { NodeExecution, NodeType } from "@dafthunk/types";
 
 export class RhumbBearingNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "rhumbBearing",
+    id: "rhumb-bearing",
     name: "Rhumb Bearing",
-    type: "rhumbBearing",
+    type: "rhumb-bearing",
     description:
-      "Calculates the rhumb line bearing (constant bearing) between two points.",
+      "Calculates the rhumb line bearing (constant bearing) between two points",
     tags: ["Geo", "GeoJSON", "Measurement", "RhumbBearing"],
     icon: "navigation",
     documentation:
       "This node calculates the rhumb line bearing (constant bearing) between two points on Earth's surface.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "start",

@@ -26,30 +26,31 @@ export class SwitchJoinNode extends ExecutableNode {
       defaultCount: 2,
       minCount: 1,
     },
+    asTool: false,
     inputs: [
       {
         name: "default",
         type: "any",
-        description: "Value from the unmatched ('default') branch.",
+        description: "Value from the unmatched ('default') branch",
         required: false,
       },
       {
         name: "cases",
         type: "any",
         description:
-          "Number of case branches (managed by the inspector widget).",
+          "Number of case branches (managed by the inspector widget)",
         hidden: true,
       },
       {
         name: "case_1",
         type: "any",
-        description: "Value from branch 'case_1'.",
+        description: "Value from branch 'case_1'",
         required: false,
       },
       {
         name: "case_2",
         type: "any",
-        description: "Value from branch 'case_2'.",
+        description: "Value from branch 'case_2'",
         required: false,
       },
     ],
@@ -57,12 +58,12 @@ export class SwitchJoinNode extends ExecutableNode {
       {
         name: "result",
         type: "any",
-        description: "The value from whichever branch was active.",
+        description: "The value from whichever branch was active",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const present = Object.entries(context.inputs).filter(([key, value]) => {
       if (value === undefined) return false;
       return key === "default" || /^case_\d+$/.test(key);

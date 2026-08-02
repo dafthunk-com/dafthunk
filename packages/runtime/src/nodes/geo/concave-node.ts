@@ -1,6 +1,8 @@
+import type { Units } from "@dafthunk/geo";
 import { concave } from "@dafthunk/geo";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { isUnits, UNITS_LIST } from "./geo-input";
 
 export class ConcaveNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -14,6 +16,7 @@ export class ConcaveNode extends ExecutableNode {
     documentation:
       "This node creates a concave hull (alpha shape) from a set of points.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "points",
@@ -54,7 +57,7 @@ export class ConcaveNode extends ExecutableNode {
       }
 
       // Prepare options for concave
-      const options: { maxEdge?: number; units?: string } = {};
+      const options: { maxEdge?: number; units?: Units } = {};
 
       if (maxEdge !== undefined && maxEdge !== null) {
         if (typeof maxEdge !== "number") {
@@ -67,14 +70,14 @@ export class ConcaveNode extends ExecutableNode {
       }
 
       if (units !== undefined && units !== null) {
-        if (typeof units !== "string") {
-          return this.createErrorResult("Units must be a string");
+        if (!isUnits(units)) {
+          return this.createErrorResult(`Units must be one of: ${UNITS_LIST}`);
         }
         options.units = units;
       }
 
       // Delegate to Turf.js concave function
-      const concaveHull = concave(points as any, options as any);
+      const concaveHull = concave(points, options);
 
       return this.createSuccessResult({
         concave: concaveHull,

@@ -17,6 +17,8 @@ export class BotAddReactionDiscordNode extends ExecutableNode {
       "This node adds a reaction emoji to a Discord message using the bot token.",
     usage: 10,
     subscription: true,
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "channelId",
@@ -47,7 +49,7 @@ export class BotAddReactionDiscordNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { channelId, messageId, emoji } = context.inputs;
       const botToken = context.discordBotToken;

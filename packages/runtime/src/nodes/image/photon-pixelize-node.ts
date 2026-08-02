@@ -22,25 +22,24 @@ export class PhotonPixelizeNode extends ExecutableNode {
     id: "photon-pixelize",
     name: "Pixelize Effect",
     type: "photon-pixelize",
-    description: "Applies a pixelization effect to an image using Photon.",
+    description: "Applies a pixelization effect to an image using Photon",
     tags: ["Image", "Photon", "Effect", "Pixelize"],
     icon: "grid-3x3",
-    documentation:
-      "This node applies a pixelization effect to an image using Photon.",
     inlinable: true,
     usage: 10,
+    asTool: false,
     inputs: [
       {
         name: "image",
         type: "image",
-        description: "The input image to pixelize.",
+        description: "The input image to pixelize",
         required: true,
       },
       {
         name: "pixelSize",
         type: "number",
         description:
-          "Targeted pixel size for the generated blocks (positive integer, e.g., 5, 10, 20).",
+          "Targeted pixel size for the generated blocks (positive integer, e.g., 5, 10, 20)",
         required: true,
         value: 10,
       },
@@ -49,12 +48,12 @@ export class PhotonPixelizeNode extends ExecutableNode {
       {
         name: "image",
         type: "image",
-        description: "The pixelized image (PNG format).",
+        description: "The pixelized image (PNG format)",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const parsed = PhotonPixelizeNode.inputSchema.safeParse(context.inputs);
     if (!parsed.success) {
       return this.createErrorResult(zodErrorMessage(parsed.error));

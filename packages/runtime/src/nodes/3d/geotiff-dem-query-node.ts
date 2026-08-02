@@ -1,6 +1,7 @@
 import { encode } from "@cf-wasm/png";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import type { GeoTIFFImage } from "geotiff";
 import { fromUrl } from "geotiff";
 
 type TypedArray = Uint8Array | Uint16Array | Int16Array | Float32Array;
@@ -35,9 +36,12 @@ export class GeoTiffDemQueryNode extends ExecutableNode {
     description:
       "Query a Digital Elevation Model GeoTIFF and return terrain data encoded as Mapbox Terrain-RGB PNG",
     tags: ["3D", "GeoTIFF", "DEM", "Query"],
+    documentation:
+      "Reads elevation samples from a Digital Elevation Model stored as a Cloud Optimized GeoTIFF and encodes them as a Mapbox Terrain-RGB PNG, the format terrain renderers expect. Only the tiles covering the requested bounding box are fetched, so a global DEM can be queried without downloading it.",
     icon: "search",
     inlinable: false,
     usage: 10,
+    asTool: false,
     inputs: [
       {
         name: "url",
@@ -328,7 +332,7 @@ export class GeoTiffDemQueryNode extends ExecutableNode {
     };
   }
 
-  private detectVerticalDatum(image: any): string | undefined {
+  private detectVerticalDatum(image: GeoTIFFImage): string | undefined {
     try {
       const geoKeys = image.getGeoKeys();
       if (geoKeys?.VerticalDatumGeoKey) {

@@ -14,6 +14,7 @@ export class PolygonSmoothNode extends ExecutableNode {
     documentation:
       "This node smooths polygon geometries using Chaikin's algorithm to create more rounded shapes.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "polygon",
@@ -76,7 +77,7 @@ export class PolygonSmoothNode extends ExecutableNode {
       }
 
       // Delegate to Turf.js polygonSmooth function
-      const smoothedPolygon = polygonSmooth(polygon as any, options as any);
+      const smoothedPolygon = polygonSmooth(polygon, options);
 
       return this.createSuccessResult({
         smoothed: smoothedPolygon,

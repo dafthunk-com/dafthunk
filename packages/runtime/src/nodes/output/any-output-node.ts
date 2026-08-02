@@ -1,4 +1,8 @@
-import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
+import {
+  ExecutableNode,
+  type NodeContext,
+  type ParameterValue,
+} from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
 
 /**
@@ -17,6 +21,7 @@ export class AnyOutputNode extends ExecutableNode {
     documentation:
       "This node displays any data type in the workflow. It accepts any parameter type and persists the value for viewing in read-only execution views. Useful for generic data inspection.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "value",
@@ -35,12 +40,11 @@ export class AnyOutputNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const value = context.inputs.value as any;
-
-      // The "any" type accepts anything - no validation needed
-      // Just pass through the value as-is
+      // The "any" port accepts every parameter type, so there is nothing to
+      // validate: the value is forwarded untouched.
+      const value: ParameterValue = context.inputs.value;
 
       // Store value in output for persistence across executions
       return this.createSuccessResult({

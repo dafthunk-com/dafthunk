@@ -16,6 +16,7 @@ export class DateOutputNode extends ExecutableNode {
     documentation:
       "This node displays date/time data (ISO 8601 format) in the workflow. The value is persisted for viewing in read-only execution views.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "value",
@@ -34,7 +35,7 @@ export class DateOutputNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const value = context.inputs.value as string | undefined;
 

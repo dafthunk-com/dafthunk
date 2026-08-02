@@ -17,6 +17,7 @@ export class ElevationGoogleNode extends ExecutableNode {
       "This node retrieves elevation data for a given latitude/longitude using the Google Maps Elevation API. Returns elevation in meters and data resolution.",
     usage: 10,
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "latitude",
@@ -46,7 +47,7 @@ export class ElevationGoogleNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { latitude, longitude } = context.inputs;
       const apiKey = context.env.GOOGLE_API_KEY;

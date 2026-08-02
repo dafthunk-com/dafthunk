@@ -22,6 +22,8 @@ export class Gemini25FlashNode extends ExecutableNode {
     usage: 1,
     subscription: true,
     functionCalling: true,
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "instructions",
@@ -65,7 +67,7 @@ export class Gemini25FlashNode extends ExecutableNode {
         type: "json",
         description: "Array of tool references for function calling",
         hidden: true,
-        value: [] as any,
+        value: [],
       },
       {
         name: "googleSearch",
@@ -136,7 +138,7 @@ export class Gemini25FlashNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     return executeGeminiModel(this, context, {
       modelId: "gemini-2.5-flash",
       pricing: PRICING,

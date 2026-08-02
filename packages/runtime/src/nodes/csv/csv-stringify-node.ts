@@ -12,6 +12,7 @@ export class CsvStringifyNode extends ExecutableNode {
     documentation:
       "Converts a structured Table format into a CSV string. Handles proper escaping of special characters and quotes.",
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "table",

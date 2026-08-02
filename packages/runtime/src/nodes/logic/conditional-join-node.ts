@@ -21,17 +21,18 @@ export class ConditionalJoinNode extends ExecutableNode {
     documentation:
       "This node joins two mutually exclusive workflow branches into a single flow, emitting the value from whichever branch was active.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "true",
         type: "any",
-        description: "Value from the 'true' branch of a Conditional Fork.",
+        description: "Value from the 'true' branch of a Conditional Fork",
         required: false, // Non-required so node can execute with only one input
       },
       {
         name: "false",
         type: "any",
-        description: "Value from the 'false' branch of a Conditional Fork.",
+        description: "Value from the 'false' branch of a Conditional Fork",
         required: false, // Non-required so node can execute with only one input
       },
     ],
@@ -39,12 +40,12 @@ export class ConditionalJoinNode extends ExecutableNode {
       {
         name: "result",
         type: "any",
-        description: "The value from whichever branch was active.",
+        description: "The value from whichever branch was active",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const trueValue = context.inputs.true;
     const falseValue = context.inputs.false;
 

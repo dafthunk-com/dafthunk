@@ -6,30 +6,31 @@ export class DatabaseExecuteNode extends ExecutableNode {
     id: "database-execute",
     name: "Database Execute",
     type: "database-execute",
-    description: "Executes INSERT, UPDATE, or DELETE operations on a database.",
+    description: "Executes INSERT, UPDATE, or DELETE operations on a database",
     tags: ["Database", "Execute", "SQL"],
     icon: "database",
     documentation:
       "Executes INSERT, UPDATE, or DELETE operations on a database. Returns metadata about the operation including rows affected and last insert ID.",
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "database",
         type: "database",
-        description: "Database ID.",
+        description: "Database ID",
         required: true,
         hidden: true,
       },
       {
         name: "sql",
         type: "string",
-        description: "SQL command to execute (INSERT, UPDATE, DELETE, or DDL).",
+        description: "SQL command to execute (INSERT, UPDATE, DELETE, or DDL)",
         required: true,
       },
       {
         name: "params",
         type: "json",
-        description: "Query parameters (array of values).",
+        description: "Query parameters (array of values)",
         required: false,
       },
     ],
@@ -37,22 +38,22 @@ export class DatabaseExecuteNode extends ExecutableNode {
       {
         name: "success",
         type: "boolean",
-        description: "True if the operation succeeded.",
+        description: "True if the operation succeeded",
       },
       {
         name: "affected",
         type: "number",
-        description: "Number of rows affected by the operation.",
+        description: "Number of rows affected by the operation",
       },
       {
         name: "lastRowId",
         type: "number",
-        description: "Last inserted row ID (for INSERT operations).",
+        description: "Last inserted row ID (for INSERT operations)",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const { database, sql, params } = context.inputs;
 
     // Validate required inputs

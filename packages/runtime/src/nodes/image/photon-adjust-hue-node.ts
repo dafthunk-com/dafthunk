@@ -23,21 +23,20 @@ export class PhotonAdjustHueNode extends ExecutableNode {
       "Adjusts image hue using HSL. Degrees from 0 to 360 for hue rotation.",
     tags: ["Image", "Photon", "Adjust", "Hue"],
     icon: "rotate-3d",
-    documentation:
-      "This node adjusts image hue using HSL. Degrees from 0 to 360 for hue rotation.",
     inlinable: true,
     usage: 10,
+    asTool: false,
     inputs: [
       {
         name: "image",
         type: "image",
-        description: "The input image to adjust hue.",
+        description: "The input image to adjust hue",
         required: true,
       },
       {
         name: "degrees",
         type: "number",
-        description: "Hue rotation angle in degrees (0 to 360).",
+        description: "Hue rotation angle in degrees (0 to 360)",
         required: true,
         value: 0,
       },
@@ -46,12 +45,12 @@ export class PhotonAdjustHueNode extends ExecutableNode {
       {
         name: "image",
         type: "image",
-        description: "The hue-adjusted image (PNG format).",
+        description: "The hue-adjusted image (PNG format)",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const parsed = PhotonAdjustHueNode.inputSchema.safeParse(context.inputs);
     if (!parsed.success) {
       return this.createErrorResult(zodErrorMessage(parsed.error));

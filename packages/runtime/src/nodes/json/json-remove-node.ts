@@ -1,5 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
-import type { NodeExecution, NodeType } from "@dafthunk/types";
+import type { JsonValue, NodeExecution, NodeType } from "@dafthunk/types";
+import { isJsonObject } from "./json-access";
 
 export class JsonRemoveNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -90,7 +91,7 @@ export class JsonRemoveNode extends ExecutableNode {
   }
 
   private removeValueAtPath(
-    obj: any,
+    obj: JsonValue,
     path: string
   ): { success: boolean; removed: boolean } {
     try {
@@ -134,7 +135,7 @@ export class JsonRemoveNode extends ExecutableNode {
       // Remove the value at the final path part
       const finalPart = pathParts[pathParts.length - 1];
       if (typeof finalPart === "string") {
-        if (typeof current !== "object" || current === null) {
+        if (!isJsonObject(current)) {
           return { success: false, removed: false };
         }
         if (finalPart in current) {

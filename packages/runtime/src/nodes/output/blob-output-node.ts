@@ -21,6 +21,7 @@ export class BlobOutputNode extends ExecutableNode {
     documentation:
       "This node displays binary blob data in the workflow. The blob reference is persisted for viewing in read-only execution views. No data is duplicated - the blob passes through unchanged.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "value",
@@ -39,7 +40,7 @@ export class BlobOutputNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const value = context.inputs.value as BlobParameter | undefined;
 

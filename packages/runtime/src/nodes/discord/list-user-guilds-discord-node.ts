@@ -17,6 +17,8 @@ export class ListUserGuildsDiscordNode extends ExecutableNode {
       "This node retrieves all guilds the authenticated user is a member of. Requires a connected Discord integration with guilds scope.",
     usage: 10,
     subscription: true,
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "integrationId",
@@ -43,7 +45,7 @@ export class ListUserGuildsDiscordNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { integrationId } = context.inputs;
       const { organizationId } = context;

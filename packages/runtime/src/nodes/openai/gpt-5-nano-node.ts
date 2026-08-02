@@ -20,6 +20,8 @@ export class Gpt5NanoNode extends ExecutableNode {
       "This node uses OpenAI's GPT-5 Nano model, an ultra-lightweight, high-speed model.",
     usage: 1,
     subscription: true,
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "instructions",
@@ -51,7 +53,7 @@ export class Gpt5NanoNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     return executeOpenAIModel(this, context, "gpt-5-nano", PRICING);
   }
 }

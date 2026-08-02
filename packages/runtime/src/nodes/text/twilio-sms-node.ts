@@ -14,6 +14,7 @@ export class TwilioSmsNode extends ExecutableNode {
       "This node sends SMS messages using Twilio's messaging service.",
     usage: 10,
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "to",
@@ -53,7 +54,7 @@ export class TwilioSmsNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const { to, body, from } = context.inputs;
     const accountSid = context.env.TWILIO_ACCOUNT_SID;
     const authToken = context.env.TWILIO_AUTH_TOKEN;

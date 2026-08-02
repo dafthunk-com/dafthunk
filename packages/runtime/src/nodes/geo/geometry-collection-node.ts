@@ -14,6 +14,7 @@ export class GeometryCollectionNode extends ExecutableNode {
     documentation:
       "This node creates a GeometryCollection GeoJSON feature from an array of different geometry types.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "geometries",
@@ -91,9 +92,9 @@ export class GeometryCollectionNode extends ExecutableNode {
 
       // Delegate everything to Turf.js geometryCollection function
       const geometryCollectionResult = geometryCollection(
-        geometries as any,
-        properties as any,
-        options as any
+        geometries,
+        properties,
+        options
       );
 
       return this.createSuccessResult({

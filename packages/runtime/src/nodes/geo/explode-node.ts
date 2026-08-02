@@ -8,12 +8,13 @@ export class ExplodeNode extends ExecutableNode {
     name: "Explode",
     type: "explode",
     description:
-      "Extracts all vertices from geometries as individual Point features.",
+      "Extracts all vertices from geometries as individual Point features",
     tags: ["Geo", "GeoJSON", "Transform", "Explode"],
     icon: "chart-scatter",
     documentation:
       "This node extracts all vertices from a geometry as individual Point features.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "geojson",

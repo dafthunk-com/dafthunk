@@ -1,5 +1,10 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
-import type { NodeExecution, NodeType } from "@dafthunk/types";
+import type {
+  JsonObject,
+  JsonValue,
+  NodeExecution,
+  NodeType,
+} from "@dafthunk/types";
 
 export class JsonTemplateNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -13,6 +18,7 @@ export class JsonTemplateNode extends ExecutableNode {
     documentation:
       "This node creates JSON objects using templates with variable injection using \\${variableName} syntax.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "template",
@@ -44,11 +50,11 @@ export class JsonTemplateNode extends ExecutableNode {
     ],
   };
 
-  private extractVariableNames(obj: any): string[] {
+  private extractVariableNames(obj: JsonValue): string[] {
     const variableNames: string[] = [];
     const regex = /\${([^}]+)}/g;
 
-    const traverse = (value: any) => {
+    const traverse = (value: JsonValue) => {
       if (typeof value === "string") {
         const matches = value.match(regex) || [];
         variableNames.push(...matches.map((match) => match.slice(2, -1)));
@@ -64,15 +70,15 @@ export class JsonTemplateNode extends ExecutableNode {
   }
 
   private replaceVariables(
-    template: any,
-    variables: Record<string, any>
-  ): { result: any; missingVariables: string[] } {
+    template: JsonValue,
+    variables: Record<string, JsonValue>
+  ): { result: JsonValue; missingVariables: string[] } {
     const variableNames = this.extractVariableNames(template);
     const missingVariables = variableNames.filter(
       (varName) => !Object.hasOwn(variables, varName)
     );
 
-    const replaceValue = (value: any): any => {
+    const replaceValue = (value: JsonValue): JsonValue => {
       if (typeof value === "string") {
         return value.replace(/\${([^}]+)}/g, (match, varName) => {
           if (Object.hasOwn(variables, varName)) {
@@ -84,7 +90,7 @@ export class JsonTemplateNode extends ExecutableNode {
       } else if (Array.isArray(value)) {
         return value.map(replaceValue);
       } else if (value && typeof value === "object") {
-        const result: Record<string, any> = {};
+        const result: JsonObject = {};
         for (const [key, val] of Object.entries(value)) {
           result[key] = replaceValue(val);
         }

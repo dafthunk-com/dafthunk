@@ -8,12 +8,13 @@ export class MaskNode extends ExecutableNode {
     name: "Mask",
     type: "mask",
     description:
-      "Takes polygons or multipolygons and an optional mask, and returns an exterior ring polygon with holes.",
+      "Takes polygons or multipolygons and an optional mask, and returns an exterior ring polygon with holes",
     tags: ["Geo", "GeoJSON", "Transform", "Mask"],
     icon: "eye-off",
     documentation:
       "This node masks one geometry using another geometry as a clipping boundary.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "polygon",
@@ -64,7 +65,7 @@ export class MaskNode extends ExecutableNode {
       }
 
       // Delegate everything to Turf.js mask function
-      const maskedPolygon = mask(polygon as any, maskInput as any);
+      const maskedPolygon = mask(polygon, maskInput);
 
       return this.createSuccessResult({
         masked: maskedPolygon,

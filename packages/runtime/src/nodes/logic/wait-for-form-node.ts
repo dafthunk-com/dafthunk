@@ -10,7 +10,7 @@ import { ExecutableNode } from "../../node-types";
  * the workflow resumes with the submitted data as a JSON output.
  */
 export class WaitForFormNode extends ExecutableNode {
-  static readonly nodeType: NodeType = {
+  public static readonly nodeType: NodeType = {
     id: "wait-for-form",
     name: "Wait for Form",
     type: "wait-for-form",
@@ -18,6 +18,10 @@ export class WaitForFormNode extends ExecutableNode {
     icon: "user-check",
     usage: 0,
     tags: ["Logic", "HITL", "Approval"],
+    documentation:
+      "Suspends the workflow on the token emitted by Create Form and resumes when that form is submitted, for up to 24 hours. Suspension is durable, so the run survives restarts while it waits. Requires durable workflow execution — it cannot run in worker mode.",
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "token",
@@ -35,7 +39,7 @@ export class WaitForFormNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const token = context.inputs.token as string;
 
     if (!token) {

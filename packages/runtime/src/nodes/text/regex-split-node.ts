@@ -6,7 +6,7 @@ export class RegexSplitNode extends ExecutableNode {
     id: "regex-split",
     name: "Regex Split",
     type: "regex-split",
-    description: "Split a string by a regular expression pattern.",
+    description: "Split a string by a regular expression pattern",
     tags: ["Text", "Regex", "Split"],
     icon: "divide",
     documentation: "This node splits a string by a regular expression pattern.",
@@ -16,13 +16,13 @@ export class RegexSplitNode extends ExecutableNode {
       {
         name: "string",
         type: "string",
-        description: "The string to split.",
+        description: "The string to split",
         required: true,
       },
       {
         name: "pattern",
         type: "string",
-        description: "The regex pattern.",
+        description: "The regex pattern",
         required: true,
       },
       {
@@ -36,7 +36,7 @@ export class RegexSplitNode extends ExecutableNode {
       {
         name: "result",
         type: "json",
-        description: "Array of strings split by the pattern.",
+        description: "Array of strings split by the pattern",
       },
     ],
   };

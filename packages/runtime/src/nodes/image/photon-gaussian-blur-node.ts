@@ -25,15 +25,14 @@ export class PhotonGaussianBlurNode extends ExecutableNode {
       "Applies Gaussian blur to an image. Higher radius means more blur.",
     tags: ["Image", "Photon", "Effect", "Blur"],
     icon: "scan-eye",
-    documentation:
-      "This node applies Gaussian blur to an image. Higher radius means more blur.",
     inlinable: true,
     usage: 10,
+    asTool: false,
     inputs: [
       {
         name: "image",
         type: "image",
-        description: "The input image to blur.",
+        description: "The input image to blur",
         required: true,
       },
       {
@@ -49,12 +48,12 @@ export class PhotonGaussianBlurNode extends ExecutableNode {
       {
         name: "image",
         type: "image",
-        description: "The blurred image (PNG format).",
+        description: "The blurred image (PNG format)",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const parsed = PhotonGaussianBlurNode.inputSchema.safeParse(context.inputs);
     if (!parsed.success) {
       return this.createErrorResult(zodErrorMessage(parsed.error));

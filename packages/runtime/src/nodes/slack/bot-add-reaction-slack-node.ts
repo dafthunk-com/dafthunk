@@ -13,6 +13,8 @@ export class BotAddReactionSlackNode extends ExecutableNode {
       "This node adds an emoji reaction to a message in a Slack channel using the bot token.",
     usage: 10,
     subscription: true,
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "channelId",
@@ -43,7 +45,7 @@ export class BotAddReactionSlackNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { channelId, messageTs, emoji } = context.inputs;
       const botToken = context.slackBotToken;

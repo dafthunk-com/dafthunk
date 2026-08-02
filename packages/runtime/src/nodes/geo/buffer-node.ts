@@ -1,6 +1,8 @@
+import type { Units } from "@dafthunk/geo";
 import { buffer } from "@dafthunk/geo";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { isUnits, UNITS_LIST } from "./geo-input";
 
 export class BufferNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -14,6 +16,7 @@ export class BufferNode extends ExecutableNode {
     documentation:
       "This node creates a buffer zone around a geometry by expanding it outward (or inward with negative radius) by a specified distance.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "geojson",
@@ -62,8 +65,11 @@ export class BufferNode extends ExecutableNode {
       }
 
       // Prepare options for buffer
-      const options: { units?: string; steps?: number } = {};
+      const options: { units?: Units; steps?: number } = {};
       if (units !== undefined && units !== null) {
+        if (!isUnits(units)) {
+          return this.createErrorResult(`Units must be one of: ${UNITS_LIST}`);
+        }
         options.units = units;
       }
       if (steps !== undefined && steps !== null) {
@@ -71,7 +77,7 @@ export class BufferNode extends ExecutableNode {
       }
 
       // Buffer the geometry using Turf.js
-      const buffered = buffer(geojson as any, radius, options as any);
+      const buffered = buffer(geojson, radius, options);
       return this.createSuccessResult({
         buffered,
       });

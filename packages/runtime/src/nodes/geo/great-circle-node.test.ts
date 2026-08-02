@@ -18,7 +18,7 @@ describe("GreatCircleNode", () => {
   const node = new GreatCircleNode({
     id: "test-node",
     name: "Test Node",
-    type: "greatCircle",
+    type: "great-circle",
     position: { x: 0, y: 0 },
     inputs: [],
     outputs: [],

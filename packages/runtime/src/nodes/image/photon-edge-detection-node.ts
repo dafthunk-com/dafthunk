@@ -18,17 +18,17 @@ export class PhotonEdgeDetectionNode extends ExecutableNode {
     id: "photon-edge-detection",
     name: "Edge Detection",
     type: "photon-edge-detection",
-    description: "Highlights edges in an image using Photon.",
+    description: "Highlights edges in an image using Photon",
     tags: ["Image", "Photon", "Effect", "EdgeDetection"],
     icon: "minimize-2",
-    documentation: "This node highlights edges in an image using Photon.",
     inlinable: true,
     usage: 10,
+    asTool: false,
     inputs: [
       {
         name: "image",
         type: "image",
-        description: "The input image to apply edge detection to.",
+        description: "The input image to apply edge detection to",
         required: true,
       },
     ],
@@ -36,12 +36,12 @@ export class PhotonEdgeDetectionNode extends ExecutableNode {
       {
         name: "image",
         type: "image",
-        description: "The edge-detected image (PNG format).",
+        description: "The edge-detected image (PNG format)",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const parsed = PhotonEdgeDetectionNode.inputSchema.safeParse(
       context.inputs
     );

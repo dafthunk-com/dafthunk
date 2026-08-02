@@ -1,7 +1,8 @@
-import type { Units } from "@dafthunk/geo";
+import type { FeatureCollection, Polygon, Units } from "@dafthunk/geo";
 import { shortestPath } from "@dafthunk/geo";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { isUnits } from "./geo-input";
 
 export class ShortestPathNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -15,6 +16,7 @@ export class ShortestPathNode extends ExecutableNode {
     documentation:
       "This node calculates the shortest path between two points while avoiding specified obstacle polygons.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "start",
@@ -71,31 +73,30 @@ export class ShortestPathNode extends ExecutableNode {
       }
 
       // Prepare options for shortestPath function
-      const options: { obstacles?: any; units?: Units; resolution?: number } =
-        {};
+      const options: {
+        obstacles?: FeatureCollection<Polygon>;
+        units?: Units;
+        resolution?: number;
+      } = {};
 
       if (obstacles !== undefined && obstacles !== null) {
         options.obstacles = obstacles;
       }
 
       if (units !== undefined && units !== null) {
-        if (typeof units !== "string") {
-          return this.createErrorResult("Units must be a string");
-        }
-
-        const validUnits: Units[] = [
+        // shortestPath walks a grid, so only the units it can step in are valid.
+        const supported: Units[] = [
           "degrees",
           "radians",
           "miles",
           "kilometers",
         ];
-        if (!validUnits.includes(units as Units)) {
+        if (!isUnits(units) || !supported.includes(units)) {
           return this.createErrorResult(
-            "Units must be one of: degrees, radians, miles, kilometers"
+            `Units must be one of: ${supported.join(", ")}`
           );
         }
-
-        options.units = units as Units;
+        options.units = units;
       }
 
       if (resolution !== undefined && resolution !== null) {
@@ -111,7 +112,7 @@ export class ShortestPathNode extends ExecutableNode {
       }
 
       // Delegate everything to Turf.js shortestPath function
-      const path = shortestPath(start as any, end as any, options);
+      const path = shortestPath(start, end, options);
 
       return this.createSuccessResult({
         path: path,

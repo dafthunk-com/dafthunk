@@ -27,7 +27,7 @@ export const FIELD_TYPE_TO_PARAMETER_TYPE: Record<FieldType, string> = {
  * instead of a wire.
  */
 export abstract class FormTriggerNode extends ExecutableNode {
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const schemaInput = context.inputs.schema;
 
     if (

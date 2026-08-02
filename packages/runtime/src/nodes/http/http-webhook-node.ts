@@ -7,13 +7,14 @@ export class HttpWebhookNode extends ExecutableNode {
     name: "HTTP Webhook",
     type: "http-webhook",
     description:
-      "Receives an HTTP webhook and executes the workflow asynchronously.",
+      "Receives an HTTP webhook and executes the workflow asynchronously",
     tags: ["Data", "Parameter", "HTTP"],
     icon: "webhook",
     documentation:
       "This node receives an HTTP webhook at /http/{workflowId}. The workflow executes asynchronously and returns an execution ID immediately.",
     inlinable: true,
     trigger: true,
+    asTool: false,
     inputs: [],
     outputs: [
       {

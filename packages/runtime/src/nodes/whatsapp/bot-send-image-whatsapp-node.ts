@@ -13,6 +13,8 @@ export class BotSendImageWhatsAppNode extends ExecutableNode {
       "This node sends images via the WhatsApp Business Cloud API using a publicly accessible URL.",
     usage: 10,
     subscription: true,
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "to",
@@ -43,7 +45,7 @@ export class BotSendImageWhatsAppNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { to, imageUrl, caption } = context.inputs;
       const accessToken = context.whatsappAccessToken;

@@ -18,7 +18,7 @@ describe("TransformRotateNode", () => {
   const node = new TransformRotateNode({
     id: "test-node",
     name: "Test Node",
-    type: "transformRotate",
+    type: "transform-rotate",
     position: { x: 0, y: 0 },
     inputs: [],
     outputs: [],

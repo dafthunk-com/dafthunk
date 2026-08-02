@@ -24,6 +24,7 @@ export class TestAllTypesNode extends ExecutableNode {
     documentation:
       "This node provides inputs and outputs for all available parameter types. It's useful for testing field components, type handling, and debugging workflows.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "string",
@@ -161,7 +162,7 @@ export class TestAllTypesNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     // Simply pass through all inputs to outputs
     const outputs: Record<string, ParameterValue> = {};
 

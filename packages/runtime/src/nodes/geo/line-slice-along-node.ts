@@ -2,6 +2,7 @@ import type { Units } from "@dafthunk/geo";
 import { lineSliceAlong } from "@dafthunk/geo";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { isUnits } from "./geo-input";
 
 export class LineSliceAlongNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -9,12 +10,13 @@ export class LineSliceAlongNode extends ExecutableNode {
     name: "Line Slice Along",
     type: "line-slice-along",
     description:
-      "Takes a line, a specified distance along the line to a start Point, and a specified distance along the line to a stop point and returns a subsection of the line in-between those points.",
+      "Takes a line, a specified distance along the line to a start Point, and a specified distance along the line to a stop point and returns a subsection of the line in-between those points",
     tags: ["Geo", "GeoJSON", "Transform", "LineSliceAlong"],
     icon: "ruler",
     documentation:
       "This node extracts a portion of a line between two points along the line.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "line",
@@ -79,32 +81,23 @@ export class LineSliceAlongNode extends ExecutableNode {
       const options: { units?: Units } = {};
 
       if (units !== undefined && units !== null) {
-        if (typeof units !== "string") {
-          return this.createErrorResult("Units must be a string");
-        }
-
-        const validUnits: Units[] = [
+        // This operation only supports a subset of the unit list.
+        const supported: Units[] = [
           "degrees",
           "radians",
           "miles",
           "kilometers",
         ];
-        if (!validUnits.includes(units as Units)) {
+        if (!isUnits(units) || !supported.includes(units)) {
           return this.createErrorResult(
             "Units must be one of: degrees, radians, miles, kilometers"
           );
         }
-
-        options.units = units as Units;
+        options.units = units;
       }
 
       // Delegate everything to Turf.js lineSliceAlong function
-      const slicedLine = lineSliceAlong(
-        line as any,
-        startDist,
-        stopDist,
-        options
-      );
+      const slicedLine = lineSliceAlong(line, startDist, stopDist, options);
 
       return this.createSuccessResult({
         sliced: slicedLine,

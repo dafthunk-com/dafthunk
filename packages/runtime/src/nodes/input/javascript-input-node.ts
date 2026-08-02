@@ -19,6 +19,8 @@ export class JavaScriptInputNode extends ExecutableNode {
     icon: "code",
     documentation:
       "This node provides a JavaScript Editor widget for editing and validating JavaScript code.",
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "javascript",
@@ -37,7 +39,7 @@ export class JavaScriptInputNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { javascript } = context.inputs;
       return this.createSuccessResult({

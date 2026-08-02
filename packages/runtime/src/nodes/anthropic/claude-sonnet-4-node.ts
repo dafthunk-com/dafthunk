@@ -20,6 +20,8 @@ export class ClaudeSonnet4Node extends ExecutableNode {
       "This node uses Anthropic's Claude Sonnet 4 model to generate text responses based on input prompts.",
     usage: 1,
     subscription: true,
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "instructions",
@@ -44,7 +46,7 @@ export class ClaudeSonnet4Node extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     return executeAnthropicModel(this, context, "claude-sonnet-4-6", PRICING);
   }
 }

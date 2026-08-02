@@ -14,10 +14,9 @@ export class ToMarkdownNode extends ExecutableNode {
       "Converts various document formats to Markdown using Cloudflare Workers AI",
     tags: ["Document", "Markdown", "Convert"],
     icon: "file-text",
-    documentation:
-      "This node converts various document formats to Markdown using Cloudflare Workers AI.",
     usage: 10,
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "document",
@@ -35,7 +34,7 @@ export class ToMarkdownNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const documentInput = context.inputs.document as {
         data: Uint8Array;

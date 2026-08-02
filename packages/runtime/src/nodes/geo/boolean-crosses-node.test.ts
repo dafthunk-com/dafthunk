@@ -19,7 +19,7 @@ describe("BooleanCrossesNode", () => {
   const node = new BooleanCrossesNode({
     id: "test-node",
     name: "Test Node",
-    type: "booleanCrosses",
+    type: "boolean-crosses",
     position: { x: 0, y: 0 },
     inputs: [],
     outputs: [],
@@ -270,9 +270,9 @@ describe("BooleanCrossesNode", () => {
 
   describe("Node type definition", () => {
     it("should have correct node type metadata", () => {
-      expect(BooleanCrossesNode.nodeType.id).toBe("booleanCrosses");
+      expect(BooleanCrossesNode.nodeType.id).toBe("boolean-crosses");
       expect(BooleanCrossesNode.nodeType.name).toBe("Boolean Crosses");
-      expect(BooleanCrossesNode.nodeType.type).toBe("booleanCrosses");
+      expect(BooleanCrossesNode.nodeType.type).toBe("boolean-crosses");
       expect(BooleanCrossesNode.nodeType.tags).toContain("Geo");
     });
 

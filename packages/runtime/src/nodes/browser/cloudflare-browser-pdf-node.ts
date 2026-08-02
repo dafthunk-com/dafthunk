@@ -16,12 +16,14 @@ export class CloudflareBrowserPdfNode extends ExecutableNode {
     name: "Browser PDF",
     type: "cloudflare-browser-pdf",
     description:
-      "Fetch a PDF from a rendered page using Cloudflare Browser Rendering.",
+      "Fetch a PDF from a rendered page using Cloudflare Browser Rendering",
     tags: ["Browser", "Web", "Cloudflare", "PDF"],
     icon: "file-text",
     documentation:
       "Generates PDF documents from web pages. Either url or html is required (not both). See [Cloudflare Browser Rendering PDF Endpoint](https://developers.cloudflare.com/browser-rendering/rest-api/pdf-endpoint/) for details.",
     usage: 10,
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "url",
@@ -86,7 +88,7 @@ export class CloudflareBrowserPdfNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const validationError = validateBrowserInputs(this, context);
     if (validationError) return validationError;
 

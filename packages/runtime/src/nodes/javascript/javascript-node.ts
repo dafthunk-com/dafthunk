@@ -85,11 +85,22 @@ export class JavascriptNode extends ExecutableNode {
       return this.createErrorResult(EXECUTOR_UNAVAILABLE_MESSAGE);
     }
 
-    const { result, error, logs } = await executor.execute(
-      buildScriptWithBinding("args", args, script),
-      {},
-      { timeoutMs: timeout }
-    );
+    let result: unknown;
+    let error: string | undefined;
+    let logs: string[] | undefined;
+    try {
+      ({ result, error, logs } = await executor.execute(
+        buildScriptWithBinding("args", args, script),
+        {},
+        { timeoutMs: timeout }
+      ));
+    } catch (err) {
+      // The sandbox itself failed rather than the script — report it against
+      // this node so the error names the step that broke.
+      return this.createErrorResult(
+        `Script execution failed: ${err instanceof Error ? err.message : String(err)}`
+      );
+    }
 
     const { stdout, stderr } = splitLogs(logs ?? []);
 

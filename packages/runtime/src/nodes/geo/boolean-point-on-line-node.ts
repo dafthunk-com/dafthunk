@@ -14,6 +14,7 @@ export class BooleanPointOnLineNode extends ExecutableNode {
     documentation:
       "This node tests whether a point lies exactly on a LineString geometry.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "pt",
@@ -64,7 +65,7 @@ export class BooleanPointOnLineNode extends ExecutableNode {
       }
 
       // Build options object for Turf.js
-      const options: any = {};
+      const options: { ignoreEndVertices?: boolean; epsilon?: number } = {};
 
       if (ignoreEndVertices !== undefined) {
         options.ignoreEndVertices = ignoreEndVertices;
@@ -75,7 +76,7 @@ export class BooleanPointOnLineNode extends ExecutableNode {
       }
 
       // Delegate everything to Turf.js booleanPointOnLine function
-      const isOnLine = booleanPointOnLine(pt as any, line as any, options);
+      const isOnLine = booleanPointOnLine(pt, line, options);
 
       return this.createSuccessResult({
         isOnLine,

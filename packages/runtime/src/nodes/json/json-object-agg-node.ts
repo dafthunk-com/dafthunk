@@ -1,5 +1,5 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
-import type { NodeExecution, NodeType } from "@dafthunk/types";
+import type { JsonValue, NodeExecution, NodeType } from "@dafthunk/types";
 
 /**
  * JSON Object Aggregation node implementation that aggregates key-value pairs into a JSON object
@@ -36,7 +36,7 @@ export class JsonObjectAggNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { pairs } = context.inputs;
 
@@ -103,7 +103,9 @@ export class JsonObjectAggNode extends ExecutableNode {
     }
   }
 
-  private processPair(pair: any): { key: string; value: any } | null {
+  private processPair(
+    pair: JsonValue
+  ): { key: string; value: JsonValue } | null {
     // Handle object format: { key: "someKey", value: "someValue" }
     if (typeof pair === "object" && pair !== null && !Array.isArray(pair)) {
       if (pair.key !== undefined) {

@@ -19,6 +19,7 @@ export class VarStringTemplateNode extends ExecutableNode {
       defaultCount: 1,
       minCount: 1,
     },
+    asTool: false,
     inputs: [
       {
         name: "template",

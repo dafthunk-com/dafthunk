@@ -1,17 +1,19 @@
+import type { Units } from "@dafthunk/geo";
 import { distance } from "@dafthunk/geo";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { isUnits, UNITS_LIST } from "./geo-input";
 
 export class DistanceNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "distance",
     name: "Distance",
     type: "distance",
-    description: "Calculates the distance between two points.",
+    description: "Calculates the distance between two points",
     tags: ["Geo", "GeoJSON", "Measurement", "Distance"],
     icon: "ruler",
-    documentation: "This node calculates the distance between two points.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "from",
@@ -54,9 +56,12 @@ export class DistanceNode extends ExecutableNode {
       }
 
       // Prepare options for distance calculation
-      const options: any = {};
+      const options: { units?: Units } = {};
 
       if (units !== undefined && units !== null) {
+        if (!isUnits(units)) {
+          return this.createErrorResult(`Units must be one of: ${UNITS_LIST}`);
+        }
         options.units = units;
       }
 

@@ -4,16 +4,15 @@ import type { NodeExecution, NodeType } from "@dafthunk/types";
 
 export class BooleanContainsNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "booleanContains",
+    id: "boolean-contains",
     name: "Boolean Contains",
-    type: "booleanContains",
+    type: "boolean-contains",
     description:
-      "Tests whether one geometry completely contains another geometry.",
+      "Tests whether one geometry completely contains another geometry",
     tags: ["Geo", "GeoJSON", "Boolean", "Contains"],
     icon: "box",
-    documentation:
-      "This node tests whether one geometry completely contains another geometry.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "feature1",

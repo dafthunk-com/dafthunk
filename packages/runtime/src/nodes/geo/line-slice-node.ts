@@ -8,12 +8,13 @@ export class LineSliceNode extends ExecutableNode {
     name: "Line Slice",
     type: "line-slice",
     description:
-      "Takes a line, a start Point, and a stop point and returns a subsection of the line in-between those points.",
+      "Takes a line, a start Point, and a stop point and returns a subsection of the line in-between those points",
     tags: ["Geo", "GeoJSON", "Transform", "LineSlice"],
     icon: "scissors",
     documentation:
       "This node extracts a portion of a LineString between two specified points.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "startPt",
@@ -60,7 +61,7 @@ export class LineSliceNode extends ExecutableNode {
       }
 
       // Delegate everything to Turf.js lineSlice function
-      const slicedLine = lineSlice(startPt as any, stopPt as any, line as any);
+      const slicedLine = lineSlice(startPt, stopPt, line);
 
       return this.createSuccessResult({
         sliced: slicedLine,

@@ -8,12 +8,13 @@ export class DifferenceNode extends ExecutableNode {
     name: "Difference",
     type: "difference",
     description:
-      "Returns the difference between two (multi)polygon features as a new (multi)polygon feature.",
+      "Returns the difference between two (multi)polygon features as a new (multi)polygon feature",
     tags: ["Geo", "GeoJSON", "Transform", "Difference"],
     icon: "square-minus",
     documentation:
       "This node calculates the geometric difference between two geometries.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "featureCollection",
@@ -47,8 +48,8 @@ export class DifferenceNode extends ExecutableNode {
     }
     try {
       const diff = difference(
-        featureCollection.features[0] as any,
-        featureCollection.features[1] as any
+        featureCollection.features[0],
+        featureCollection.features[1]
       );
       return this.createSuccessResult({
         difference: diff || null,

@@ -21,6 +21,7 @@ export class NumberInputNode extends ExecutableNode {
     specification:
       "result = value, where min ≤ value ≤ max (if constraints specified)",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "value",
@@ -67,7 +68,7 @@ export class NumberInputNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { value, min, max } = context.inputs;
 

@@ -11,18 +11,19 @@ export class FetchNode extends ExecutableNode {
     id: "fetch",
     name: "Fetch",
     type: "fetch",
-    description: "Fetch data from a URL using the Fetch API.",
+    description: "Fetch data from a URL using the Fetch API",
     tags: ["Network", "HTTP", "Fetch"],
     icon: "globe",
     documentation:
       "This node fetches data from a URL using the Fetch API with support for custom methods, headers, query parameters, and timeouts.",
     asTool: true,
     usage: 10,
+    inlinable: false,
     inputs: [
       {
         name: "url",
         type: "string",
-        description: "The URL to fetch.",
+        description: "The URL to fetch",
         required: true,
       },
       {
@@ -83,7 +84,7 @@ export class FetchNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const {
       url,
       method = "GET",
@@ -178,13 +179,13 @@ export class FetchNode extends ExecutableNode {
     return undefined;
   }
 
-  private isBlobParameter(value: any): value is BlobParameter {
+  private isBlobParameter(value: unknown): value is BlobParameter {
     return (
-      value &&
+      !!value &&
       typeof value === "object" &&
       "data" in value &&
       "mimeType" in value &&
-      value.data instanceof Uint8Array
+      (value as { data: unknown }).data instanceof Uint8Array
     );
   }
 }

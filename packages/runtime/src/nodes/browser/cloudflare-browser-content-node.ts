@@ -16,13 +16,14 @@ export class CloudflareBrowserContentNode extends ExecutableNode {
     name: "Browser Content",
     type: "cloudflare-browser-content",
     description:
-      "Fetch fully rendered HTML from a URL using Cloudflare Browser Rendering.",
+      "Fetch fully rendered HTML from a URL using Cloudflare Browser Rendering",
     tags: ["Browser", "Web", "Cloudflare", "Content"],
     icon: "globe",
     documentation:
       "Fetches fully rendered HTML content from a web page. Either url or html is required (not both). See [Cloudflare Browser Rendering Content Endpoint](https://developers.cloudflare.com/browser-rendering/rest-api/content-endpoint/) for details.",
     usage: 10,
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "url",
@@ -100,7 +101,7 @@ export class CloudflareBrowserContentNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const validationError = validateBrowserInputs(this, context);
     if (validationError) return validationError;
 

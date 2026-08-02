@@ -32,15 +32,14 @@ export class PhotonAdjustSaturationNode extends ExecutableNode {
       "Adjusts image saturation using HSL. Level from 0.0 (no change) to 1.0 (max saturation increase).",
     tags: ["Image", "Photon", "Adjust", "Saturation"],
     icon: "thermometer",
-    documentation:
-      "This node adjusts image saturation using HSL. Level from 0.0 (no change) to 1.0 (max saturation increase).",
     inlinable: true,
     usage: 10,
+    asTool: false,
     inputs: [
       {
         name: "image",
         type: "image",
-        description: "The input image to adjust saturation.",
+        description: "The input image to adjust saturation",
         required: true,
       },
       {
@@ -56,12 +55,12 @@ export class PhotonAdjustSaturationNode extends ExecutableNode {
       {
         name: "image",
         type: "image",
-        description: "The saturation-adjusted image (PNG format).",
+        description: "The saturation-adjusted image (PNG format)",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const parsed = PhotonAdjustSaturationNode.inputSchema.safeParse(
       context.inputs
     );

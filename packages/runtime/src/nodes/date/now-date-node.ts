@@ -23,7 +23,7 @@ export class NowDateNode extends ExecutableNode {
     ],
   };
 
-  async execute(_context: NodeContext): Promise<NodeExecution> {
+  public async execute(_context: NodeContext): Promise<NodeExecution> {
     try {
       const iso = new Date().toISOString();
       return this.createSuccessResult({ date: iso });

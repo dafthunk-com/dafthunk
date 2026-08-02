@@ -8,12 +8,13 @@ export class RoundNode extends ExecutableNode {
     name: "Round",
     type: "round",
     description:
-      "Rounds the precision of a coordinate to a specified number of decimal places.",
+      "Rounds the precision of a coordinate to a specified number of decimal places",
     tags: ["Geo", "GeoJSON", "Transform", "Round"],
     icon: "hash",
     documentation:
       "This node rounds the coordinates of a GeoJSON geometry to a specified precision.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "geojson",
@@ -73,7 +74,7 @@ export class RoundNode extends ExecutableNode {
       }
 
       // Delegate to Turf.js round function
-      const rounded = round(geojson as any, precisionValue);
+      const rounded = round(geojson, precisionValue);
 
       return this.createSuccessResult({
         rounded,

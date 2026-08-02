@@ -13,7 +13,6 @@ export class JsonAggNode extends ExecutableNode {
     description: "Aggregates multiple values into a JSON array",
     tags: ["Data", "JSON", "Aggregate"],
     icon: "list",
-    documentation: "This node aggregates multiple values into a JSON array.",
     inlinable: true,
     asTool: true,
     inputs: [
@@ -35,7 +34,7 @@ export class JsonAggNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { values } = context.inputs;
 

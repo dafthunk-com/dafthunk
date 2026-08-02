@@ -1,6 +1,8 @@
+import type { Units } from "@dafthunk/geo";
 import { along } from "@dafthunk/geo";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { isUnits, UNITS_LIST } from "./geo-input";
 
 export class AlongNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -8,12 +10,13 @@ export class AlongNode extends ExecutableNode {
     name: "Along",
     type: "along",
     description:
-      "Takes a LineString and returns a Point at a specified distance along the line.",
+      "Takes a LineString and returns a Point at a specified distance along the line",
     tags: ["Geo", "GeoJSON", "Geometry", "Along"],
     icon: "map-pin",
     documentation:
       "This node finds a point at a specified distance along a LineString geometry.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "line",
@@ -60,17 +63,17 @@ export class AlongNode extends ExecutableNode {
       }
 
       // Prepare options for along calculation
-      const options: { units?: string } = {};
+      const options: { units?: Units } = {};
 
       if (units !== undefined && units !== null) {
-        if (typeof units !== "string") {
-          return this.createErrorResult("Units must be a string");
+        if (!isUnits(units)) {
+          return this.createErrorResult(`Units must be one of: ${UNITS_LIST}`);
         }
         options.units = units;
       }
 
       // Delegate to Turf.js along function
-      const pointAlong = along(line as any, distance, options as any);
+      const pointAlong = along(line, distance, options);
 
       return this.createSuccessResult({
         point: pointAlong,

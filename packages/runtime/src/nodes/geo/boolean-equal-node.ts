@@ -8,12 +8,13 @@ export class BooleanEqualNode extends ExecutableNode {
     name: "Boolean Equal",
     type: "boolean-equal",
     description:
-      "Determines whether two geometries of the same type have identical X,Y coordinate values.",
+      "Determines whether two geometries of the same type have identical X,Y coordinate values",
     tags: ["Geo", "GeoJSON", "Boolean", "Equal"],
     icon: "equal",
     documentation:
       "This node tests whether two geometries have identical coordinate values.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "feature1",
@@ -50,7 +51,7 @@ export class BooleanEqualNode extends ExecutableNode {
       }
 
       // Delegate everything to Turf.js booleanEqual function
-      const isEqual = booleanEqual(feature1 as any, feature2 as any);
+      const isEqual = booleanEqual(feature1, feature2);
 
       return this.createSuccessResult({
         isEqual,

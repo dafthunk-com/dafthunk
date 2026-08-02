@@ -23,6 +23,7 @@ export class SliderInputNode extends ExecutableNode {
     specification:
       "result = min + round((value - min) / step) * step, where min ≤ result ≤ max, step > 0, min < max",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "min",
@@ -61,7 +62,7 @@ export class SliderInputNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       // Get default values from nodeType
       const defaultMin = SliderInputNode.nodeType.inputs.find(

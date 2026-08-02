@@ -29,11 +29,9 @@ export class PhotonResizeNode extends ExecutableNode {
     name: "Image Resize",
     type: "photon-resize",
     description:
-      "Resizes an image to the specified width and height using Photon.",
+      "Resizes an image to the specified width and height using Photon",
     tags: ["Image", "Photon", "Transform", "Resize"],
     icon: "scaling",
-    documentation:
-      "This node resizes an image to the specified width and height using Photon.",
     inlinable: true,
     usage: 10,
     asTool: true,
@@ -41,27 +39,27 @@ export class PhotonResizeNode extends ExecutableNode {
       {
         name: "image",
         type: "image",
-        description: "The input image to resize.",
+        description: "The input image to resize",
         required: true,
       },
       {
         name: "width",
         type: "number",
-        description: "Target width in pixels for the resized image.",
+        description: "Target width in pixels for the resized image",
         required: true,
         value: 640,
       },
       {
         name: "height",
         type: "number",
-        description: "Target height in pixels for the resized image.",
+        description: "Target height in pixels for the resized image",
         required: true,
         value: 480,
       },
       {
         name: "samplingFilter",
         type: "string",
-        description: "The sampling filter to use for resizing.",
+        description: "The sampling filter to use for resizing",
         value: "Nearest", // "Nearest", "Triangle", "CatmullRom", "Gaussian", "Lanczos3"
         hidden: true,
       },
@@ -70,12 +68,12 @@ export class PhotonResizeNode extends ExecutableNode {
       {
         name: "image",
         type: "image",
-        description: "The resized image (WebP format).",
+        description: "The resized image (WebP format)",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const parsed = PhotonResizeNode.inputSchema.safeParse(context.inputs);
     if (!parsed.success) {
       return this.createErrorResult(zodErrorMessage(parsed.error));

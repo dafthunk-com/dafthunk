@@ -18,6 +18,7 @@ export class SharePostXNode extends ExecutableNode {
     usage: 20,
     subscription: true,
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "integrationId",
@@ -68,7 +69,7 @@ export class SharePostXNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { integrationId, text, replyToId, quoteId } = context.inputs;
 

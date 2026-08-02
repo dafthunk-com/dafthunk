@@ -13,6 +13,8 @@ export class GeoJsonToSvgNode extends ExecutableNode {
     icon: "map",
     documentation:
       "This node converts GeoJSON data into an SVG image with customizable styling and dimensions.",
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "geojson",

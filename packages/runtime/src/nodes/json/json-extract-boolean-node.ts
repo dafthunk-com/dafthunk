@@ -1,5 +1,5 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
-import type { NodeExecution, NodeType } from "@dafthunk/types";
+import type { JsonValue, NodeExecution, NodeType } from "@dafthunk/types";
 import { JSONPath } from "jsonpath-plus";
 
 export class JsonExtractBooleanNode extends ExecutableNode {
@@ -64,7 +64,7 @@ export class JsonExtractBooleanNode extends ExecutableNode {
 
         // Get the first result that is a boolean
         const booleanValue = results.find(
-          (value: any) => typeof value === "boolean"
+          (value: JsonValue) => typeof value === "boolean"
         );
         const found = typeof booleanValue === "boolean";
 

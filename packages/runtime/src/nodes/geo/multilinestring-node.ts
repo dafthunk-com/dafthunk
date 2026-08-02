@@ -4,9 +4,9 @@ import type { NodeExecution, NodeType } from "@dafthunk/types";
 
 export class MultiLineStringNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "multi-line-string",
+    id: "multilinestring",
     name: "Multi Line String",
-    type: "multi-line-string",
+    type: "multilinestring",
     description:
       "Creates a Feature<MultiLineString> based on a coordinate array. Properties can be added optionally.",
     tags: ["Geo", "GeoJSON", "MultiLineString"],
@@ -14,6 +14,7 @@ export class MultiLineStringNode extends ExecutableNode {
     documentation:
       "This node creates a MultiLineString geometry from multiple line geometries.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "coordinates",
@@ -90,9 +91,9 @@ export class MultiLineStringNode extends ExecutableNode {
 
       // Delegate everything to Turf.js multiLineString function
       const multiLineStringResult = multiLineString(
-        coordinates as any,
-        properties as any,
-        options as any
+        coordinates,
+        properties,
+        options
       );
 
       return this.createSuccessResult({

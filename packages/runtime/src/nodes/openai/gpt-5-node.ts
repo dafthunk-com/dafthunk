@@ -20,6 +20,8 @@ export class Gpt5Node extends ExecutableNode {
       "This node uses OpenAI's GPT-5 model to generate text responses based on input prompts.",
     usage: 1,
     subscription: true,
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "instructions",
@@ -51,7 +53,7 @@ export class Gpt5Node extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     return executeOpenAIModel(this, context, "gpt-5", PRICING);
   }
 }

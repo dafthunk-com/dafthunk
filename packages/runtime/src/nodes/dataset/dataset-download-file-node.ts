@@ -16,6 +16,8 @@ export class DatasetDownloadFileNode extends ExecutableNode {
     documentation:
       "This node downloads and retrieves the content of a file from a dataset.",
     usage: 10,
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "datasetId",
@@ -55,7 +57,7 @@ export class DatasetDownloadFileNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { datasetId, filename } = context.inputs;
       const { organizationId } = context;

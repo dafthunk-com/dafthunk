@@ -14,7 +14,7 @@ export class HttpResponseNode extends ExecutableNode {
     name: "HTTP Response",
     type: "http-response",
     description:
-      "Define the HTTP response for synchronous HTTP Request workflows.",
+      "Define the HTTP response for synchronous HTTP Request workflows",
     tags: ["Network", "HTTP", "Response"],
     icon: "log-out",
     responder: true,
@@ -22,6 +22,8 @@ export class HttpResponseNode extends ExecutableNode {
       "This node defines the HTTP response to be returned when using a synchronous HTTP Request trigger. " +
       "It allows you to set the status code, headers, and body content that will be sent back to the HTTP client. " +
       "The body can be any type (string, json, blob, image, etc.) and the Content-Type will be auto-detected if not provided in headers.",
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "statusCode",
@@ -63,7 +65,7 @@ export class HttpResponseNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const { statusCode = 200, headers = {}, body = "" } = context.inputs;
 
     // Validate status code

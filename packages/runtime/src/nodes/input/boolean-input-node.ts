@@ -20,6 +20,7 @@ export class BooleanInputNode extends ExecutableNode {
     documentation:
       "This node provides a boolean input widget for entering true/false values.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "value",
@@ -38,7 +39,7 @@ export class BooleanInputNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const value = context.inputs.value;
 

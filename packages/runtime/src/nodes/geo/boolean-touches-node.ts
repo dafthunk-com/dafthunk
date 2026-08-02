@@ -8,12 +8,13 @@ export class BooleanTouchesNode extends ExecutableNode {
     name: "Boolean Touches",
     type: "boolean-touches",
     description:
-      "Returns true if none of the points common to both geometries intersect the interiors of both geometries.",
+      "Returns true if none of the points common to both geometries intersect the interiors of both geometries",
     tags: ["Geo", "GeoJSON", "Boolean", "Touches"],
     icon: "touchpad",
     documentation:
       "This node checks if two geometries touch each other at their boundaries.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "feature1",
@@ -50,7 +51,7 @@ export class BooleanTouchesNode extends ExecutableNode {
       }
 
       // Delegate everything to Turf.js booleanTouches function
-      const touches = booleanTouches(feature1 as any, feature2 as any);
+      const touches = booleanTouches(feature1, feature2);
 
       return this.createSuccessResult({
         touches,

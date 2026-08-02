@@ -20,6 +20,7 @@ export class DateInputNode extends ExecutableNode {
     documentation:
       "This node provides a date/time input widget for entering date values.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "value",
@@ -38,7 +39,7 @@ export class DateInputNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const value = context.inputs.value as string;
 

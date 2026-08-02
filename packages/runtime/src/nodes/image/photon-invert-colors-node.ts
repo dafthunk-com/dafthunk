@@ -18,17 +18,17 @@ export class PhotonInvertColorsNode extends ExecutableNode {
     id: "photon-invert-colors",
     name: "Invert Colors",
     type: "photon-invert-colors",
-    description: "Inverts the colors of an image using Photon.",
+    description: "Inverts the colors of an image using Photon",
     tags: ["Image", "Photon", "Effect", "Invert"],
     icon: "aperture",
-    documentation: "This node inverts the colors of an image using Photon.",
     inlinable: true,
     usage: 10,
+    asTool: false,
     inputs: [
       {
         name: "image",
         type: "image",
-        description: "The input image to invert.",
+        description: "The input image to invert",
         required: true,
       },
     ],
@@ -36,12 +36,12 @@ export class PhotonInvertColorsNode extends ExecutableNode {
       {
         name: "image",
         type: "image",
-        description: "The color-inverted image (PNG format).",
+        description: "The color-inverted image (PNG format)",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const parsed = PhotonInvertColorsNode.inputSchema.safeParse(context.inputs);
     if (!parsed.success) {
       return this.createErrorResult(zodErrorMessage(parsed.error));

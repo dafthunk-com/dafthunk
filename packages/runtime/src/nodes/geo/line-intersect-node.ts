@@ -8,12 +8,13 @@ export class LineIntersectNode extends ExecutableNode {
     name: "Line Intersect",
     type: "line-intersect",
     description:
-      "Takes any LineString or Polygon GeoJSON and returns the intersecting point(s).",
+      "Takes any LineString or Polygon GeoJSON and returns the intersecting point(s)",
     tags: ["Geo", "GeoJSON", "Geometry", "LineIntersect"],
     icon: "cross",
     documentation:
       "This node finds the intersection points between two LineString or Polygon geometries.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "line1",
@@ -51,7 +52,7 @@ export class LineIntersectNode extends ExecutableNode {
       }
 
       // Delegate everything to Turf.js lineIntersect function
-      const intersectionPoints = lineIntersect(line1 as any, line2 as any);
+      const intersectionPoints = lineIntersect(line1, line2);
 
       return this.createSuccessResult({
         intersections: intersectionPoints,

@@ -1,18 +1,18 @@
 import { bearing } from "@dafthunk/geo";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { extractPosition } from "./geo-input";
 
 export class BearingNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "bearing",
     name: "Bearing",
     type: "bearing",
-    description: "Calculates the bearing in degrees between two points.",
+    description: "Calculates the bearing in degrees between two points",
     tags: ["Geo", "GeoJSON", "Measurement", "Bearing"],
     icon: "compass",
-    documentation:
-      "This node calculates the bearing in degrees between two points.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "start",
@@ -55,8 +55,8 @@ export class BearingNode extends ExecutableNode {
       }
 
       // Extract coordinates from GeoJSON if needed
-      const startCoords = this.extractCoordinates(start);
-      const endCoords = this.extractCoordinates(end);
+      const startCoords = extractPosition(start);
+      const endCoords = extractPosition(end);
 
       if (!startCoords) {
         return this.createErrorResult(
@@ -87,24 +87,5 @@ export class BearingNode extends ExecutableNode {
         `Error calculating bearing: ${error.message}`
       );
     }
-  }
-
-  private extractCoordinates(input: any): [number, number] | null {
-    // If input is already coordinates array
-    if (Array.isArray(input) && input.length >= 2) {
-      return [input[0], input[1]];
-    }
-
-    // If input is a Point geometry
-    if (input?.type === "Point" && Array.isArray(input.coordinates)) {
-      return [input.coordinates[0], input.coordinates[1]];
-    }
-
-    // If input is a Feature with Point geometry
-    if (input?.type === "Feature" && input.geometry?.type === "Point") {
-      return [input.geometry.coordinates[0], input.geometry.coordinates[1]];
-    }
-
-    return null;
   }
 }

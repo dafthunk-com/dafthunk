@@ -8,12 +8,13 @@ export class CombineNode extends ExecutableNode {
     name: "Combine",
     type: "combine",
     description:
-      "Combines features into MultiPoint, MultiLineString, or MultiPolygon features.",
+      "Combines features into MultiPoint, MultiLineString, or MultiPolygon features",
     tags: ["Geo", "GeoJSON", "Transform", "Combine"],
     icon: "layers",
     documentation:
       "This node combines multiple GeoJSON geometries into a single geometry.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "featureCollection",

@@ -8,12 +8,13 @@ export class BooleanClockwiseNode extends ExecutableNode {
     name: "Boolean Clockwise",
     type: "boolean-clockwise",
     description:
-      "Takes a ring and returns true or false whether or not the ring is clockwise or counter-clockwise.",
+      "Takes a ring and returns true or false whether or not the ring is clockwise or counter-clockwise",
     tags: ["Geo", "GeoJSON", "Boolean", "Clockwise"],
     icon: "rotate-cw",
     documentation:
       "This node determines whether a LineString or polygon ring follows a clockwise or counter-clockwise direction.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "line",
@@ -42,7 +43,7 @@ export class BooleanClockwiseNode extends ExecutableNode {
       }
 
       // Delegate everything to Turf.js booleanClockwise function
-      const isClockwise = booleanClockwise(line as any);
+      const isClockwise = booleanClockwise(line);
 
       return this.createSuccessResult({
         isClockwise,

@@ -10,9 +10,9 @@ const PRICING: TokenPricing = {
 
 export class Gpt41Node extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "gpt-4.1",
+    id: "gpt-41",
     name: "GPT-4.1",
-    type: "gpt-4.1",
+    type: "gpt-41",
     description: "Latest GPT-4 iteration with enhanced capabilities",
     tags: ["AI", "LLM", "OpenAI", "GPT"],
     icon: "sparkles",
@@ -20,6 +20,8 @@ export class Gpt41Node extends ExecutableNode {
       "This node uses OpenAI's GPT-4.1 model, the latest GPT-4 iteration with enhanced capabilities.",
     usage: 1,
     subscription: true,
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "instructions",
@@ -51,7 +53,7 @@ export class Gpt41Node extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     return executeOpenAIModel(this, context, "gpt-4.1", PRICING);
   }
 }

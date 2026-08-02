@@ -18,7 +18,7 @@ describe("CenterOfMassNode", () => {
   const node = new CenterOfMassNode({
     id: "test-node",
     name: "Test Node",
-    type: "centerOfMass",
+    type: "center-of-mass",
     position: { x: 0, y: 0 },
     inputs: [],
     outputs: [],

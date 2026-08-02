@@ -16,6 +16,8 @@ export class DatasetUploadFileNode extends ExecutableNode {
     documentation:
       "This node uploads a file to a dataset. The file is stored in R2 with multi-tenant isolation.",
     usage: 10,
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "datasetId",
@@ -74,7 +76,7 @@ export class DatasetUploadFileNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { datasetId, filename, content, contentType } = context.inputs;
       const { organizationId } = context;

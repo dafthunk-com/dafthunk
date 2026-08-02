@@ -4,16 +4,15 @@ import type { NodeExecution, NodeType } from "@dafthunk/types";
 
 export class LineStringNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "lineString",
+    id: "linestring",
     name: "LineString",
-    type: "lineString",
+    type: "linestring",
     description:
-      "Creates a LineString feature from an array of coordinate pairs.",
+      "Creates a LineString feature from an array of coordinate pairs",
     tags: ["Geo", "GeoJSON", "LineString"],
     icon: "route",
-    documentation:
-      "This node creates a LineString feature from an array of coordinate pairs.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "coordinates",

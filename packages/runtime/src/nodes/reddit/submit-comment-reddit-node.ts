@@ -18,6 +18,7 @@ export class SubmitCommentRedditNode extends ExecutableNode {
     usage: 10,
     subscription: true,
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "integrationId",
@@ -63,7 +64,7 @@ export class SubmitCommentRedditNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { integrationId, parentId, text } = context.inputs;
       const { organizationId } = context;
@@ -119,7 +120,7 @@ export class SubmitCommentRedditNode extends ExecutableNode {
 
       const result = (await response.json()) as {
         json: {
-          errors: any[];
+          errors: unknown[];
           data?: {
             things: Array<{
               data: {

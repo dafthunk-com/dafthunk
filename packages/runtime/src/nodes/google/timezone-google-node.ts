@@ -17,6 +17,7 @@ export class TimezoneGoogleNode extends ExecutableNode {
       "This node retrieves timezone information for a given latitude/longitude using the Google Time Zone API. Returns the timezone ID, name, and UTC offsets including DST.",
     usage: 10,
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "latitude",
@@ -70,7 +71,7 @@ export class TimezoneGoogleNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { latitude, longitude, timestamp, language } = context.inputs;
       const apiKey = context.env.GOOGLE_API_KEY;

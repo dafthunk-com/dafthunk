@@ -16,13 +16,14 @@ export class CloudflareBrowserScrapeNode extends ExecutableNode {
     name: "Browser Scrape",
     type: "cloudflare-browser-scrape",
     description:
-      "Scrape elements from a rendered page using Cloudflare Browser Rendering.",
+      "Scrape elements from a rendered page using Cloudflare Browser Rendering",
     tags: ["Browser", "Web", "Cloudflare", "Scrape"],
     icon: "search",
     documentation:
       "Scrapes structured data from web pages using CSS selectors. Either url or html is required (not both). Elements parameter is required. See [Cloudflare Browser Rendering Scrape Endpoint](https://developers.cloudflare.com/browser-rendering/rest-api/scrape-endpoint/) for details.",
     usage: 10,
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "url",
@@ -77,7 +78,7 @@ export class CloudflareBrowserScrapeNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const validationError = validateBrowserInputs(this, context);
     if (validationError) return validationError;
 

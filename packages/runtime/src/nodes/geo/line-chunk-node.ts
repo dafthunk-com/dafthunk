@@ -7,11 +7,12 @@ export class LineChunkNode extends ExecutableNode {
     id: "line-chunk",
     name: "Line Chunk",
     type: "line-chunk",
-    description: "Breaks a LineString into chunks of a specified length.",
+    description: "Breaks a LineString into chunks of a specified length",
     tags: ["Geo", "GeoJSON", "Transform", "LineChunk"],
     icon: "scissors",
     documentation: "This node splits a line into smaller segments or chunks.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "line",
@@ -73,7 +74,7 @@ export class LineChunkNode extends ExecutableNode {
       }
 
       // Delegate everything to Turf.js lineChunk function
-      const chunkFeatures = lineChunk(line as any, length, options);
+      const chunkFeatures = lineChunk(line, length, options);
 
       return this.createSuccessResult({
         chunks: chunkFeatures,

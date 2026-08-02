@@ -8,12 +8,13 @@ export class SquareNode extends ExecutableNode {
     name: "Square",
     type: "square",
     description:
-      "Takes a bounding box and calculates the minimum square bounding box that would contain the input.",
+      "Takes a bounding box and calculates the minimum square bounding box that would contain the input",
     tags: ["Geo", "GeoJSON", "Geometry", "Square"],
     icon: "square",
     documentation:
       "This node calculates the minimum square bounding box that would contain the input bounding box.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "bbox",

@@ -11,6 +11,7 @@ export class StringToUpperCaseNode extends ExecutableNode {
     icon: "text",
     documentation: "This node converts any string to uppercase letters.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "string",

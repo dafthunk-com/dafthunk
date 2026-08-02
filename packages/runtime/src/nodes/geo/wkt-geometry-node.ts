@@ -6,6 +6,7 @@ import type {
   NodeType,
 } from "@dafthunk/types";
 import wellknown from "wellknown";
+import { isGeoJSONOf } from "./geo-input";
 
 export class WktGeometryNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -19,6 +20,7 @@ export class WktGeometryNode extends ExecutableNode {
     documentation:
       "This node converts between Well-Known Text (WKT) format and GeoJSON geometry.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "wkt",
@@ -36,22 +38,19 @@ export class WktGeometryNode extends ExecutableNode {
     ],
   };
 
-  private isValidGeometry(geom: any): geom is Geometry | GeometryCollection {
-    if (!geom || typeof geom !== "object" || !geom.type) {
-      return false;
-    }
-
-    const validTypes = [
+  private isValidGeometry(
+    geom: unknown
+  ): geom is Geometry | GeometryCollection {
+    return isGeoJSONOf(
+      geom,
       "Point",
       "MultiPoint",
       "LineString",
       "MultiLineString",
       "Polygon",
       "MultiPolygon",
-      "GeometryCollection",
-    ];
-
-    return validTypes.includes(geom.type);
+      "GeometryCollection"
+    );
   }
 
   public async execute(context: NodeContext): Promise<NodeExecution> {

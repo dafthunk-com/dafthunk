@@ -1,6 +1,13 @@
 import { booleanValid, cleanCoords } from "@dafthunk/geo";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
-import type { GeoJSON, NodeExecution, NodeType } from "@dafthunk/types";
+import type {
+  Feature,
+  GeoJSON,
+  JsonValue,
+  NodeExecution,
+  NodeType,
+} from "@dafthunk/types";
+import { isJsonObject } from "./json-access";
 
 /**
  * This node converts JSON data to valid GeoJSON format with validation.
@@ -10,17 +17,16 @@ export class JsonToGeojsonNode extends ExecutableNode {
     id: "json-to-geojson",
     name: "JSON to GeoJSON",
     type: "json-to-geojson",
-    description: "Converts JSON data to valid GeoJSON format with validation.",
+    description: "Converts JSON data to valid GeoJSON format with validation",
     tags: ["Data", "JSON", "Convert", "GeoJSON"],
     icon: "file-json",
-    documentation:
-      "This node converts JSON data to valid GeoJSON format with validation.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "json",
         type: "json",
-        description: "JSON data to convert to GeoJSON.",
+        description: "JSON data to convert to GeoJSON",
         required: true,
       },
     ],
@@ -28,7 +34,7 @@ export class JsonToGeojsonNode extends ExecutableNode {
       {
         name: "geojson",
         type: "geojson",
-        description: "The validated and converted GeoJSON.",
+        description: "The validated and converted GeoJSON",
       },
     ],
   };
@@ -43,7 +49,7 @@ export class JsonToGeojsonNode extends ExecutableNode {
         return this.createErrorResult("JSON input is required.");
       }
 
-      let parsedData: any;
+      let parsedData: JsonValue;
 
       // Parse input if it's a string
       if (typeof input === "string") {
@@ -73,8 +79,8 @@ export class JsonToGeojsonNode extends ExecutableNode {
     }
   }
 
-  private validateAndCleanGeoJSON(data: any): GeoJSON {
-    if (!data || typeof data !== "object") {
+  private validateAndCleanGeoJSON(data: JsonValue): GeoJSON {
+    if (!isJsonObject(data)) {
       throw new Error("Input must be an object");
     }
 
@@ -89,8 +95,8 @@ export class JsonToGeojsonNode extends ExecutableNode {
       }
 
       // Clean and validate each feature in the collection
-      const cleanedFeatures = data.features.map((feature: any) => {
-        const cleaned = cleanCoords(feature);
+      const cleanedFeatures = data.features.map((feature) => {
+        const cleaned = cleanCoords(feature as unknown as Feature);
         if (!booleanValid(cleaned)) {
           throw new Error("Invalid GeoJSON format in FeatureCollection");
         }
@@ -101,7 +107,7 @@ export class JsonToGeojsonNode extends ExecutableNode {
     }
 
     // Clean the coordinates
-    const cleaned = cleanCoords(data as any);
+    const cleaned = cleanCoords(data as unknown as Feature);
 
     // Validate using booleanValid
     if (!booleanValid(cleaned)) {

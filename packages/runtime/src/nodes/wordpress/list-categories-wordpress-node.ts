@@ -36,6 +36,7 @@ export class ListCategoriesWordPressNode extends ExecutableNode {
     usage: 10,
     subscription: true,
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "integrationId",
@@ -81,7 +82,7 @@ export class ListCategoriesWordPressNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const parsed = ListCategoriesWordPressNode.inputSchema.safeParse(
         context.inputs

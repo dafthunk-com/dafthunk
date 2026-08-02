@@ -17,6 +17,7 @@ export class GltfInputNode extends ExecutableNode {
     documentation:
       "This node provides a GLTF input widget for uploading 3D models in GLTF/GLB format.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "value",
@@ -34,7 +35,7 @@ export class GltfInputNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const value = context.inputs.value;
 

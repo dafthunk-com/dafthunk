@@ -2,6 +2,8 @@ import type { Units } from "@dafthunk/geo";
 import { sector } from "@dafthunk/geo";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import type { GeoProperties } from "./geo-input";
+import { isUnits } from "./geo-input";
 
 export class SectorNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -9,12 +11,13 @@ export class SectorNode extends ExecutableNode {
     name: "Sector",
     type: "sector",
     description:
-      "Creates a circular sector of a circle of given radius and center Point, between (clockwise) bearing1 and bearing2; 0 bearing is North of center point, positive clockwise.",
+      "Creates a circular sector of a circle of given radius and center Point, between (clockwise) bearing1 and bearing2; 0 bearing is North of center point, positive clockwise",
     tags: ["Geo", "GeoJSON", "Geometry", "Sector"],
     icon: "chart-pie",
     documentation:
       "This node creates a circular sector (pie slice) polygon from a center point, radius, and two bearing angles.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "center",
@@ -105,26 +108,26 @@ export class SectorNode extends ExecutableNode {
       }
 
       // Prepare options for sector function
-      const options: { units?: Units; steps?: number; properties?: any } = {};
+      const options: {
+        units?: Units;
+        steps?: number;
+        properties?: GeoProperties;
+      } = {};
 
       if (units !== undefined && units !== null) {
-        if (typeof units !== "string") {
-          return this.createErrorResult("Units must be a string");
-        }
-
-        const validUnits: Units[] = [
+        // This operation only supports a subset of the unit list.
+        const supported: Units[] = [
           "miles",
           "kilometers",
           "degrees",
           "radians",
         ];
-        if (!validUnits.includes(units as Units)) {
+        if (!isUnits(units) || !supported.includes(units)) {
           return this.createErrorResult(
             "Units must be one of: miles, kilometers, degrees, radians"
           );
         }
-
-        options.units = units as Units;
+        options.units = units;
       }
 
       if (steps !== undefined && steps !== null) {
@@ -148,13 +151,7 @@ export class SectorNode extends ExecutableNode {
       }
 
       // Delegate everything to Turf.js sector function
-      const sectorPolygon = sector(
-        center as any,
-        radius,
-        bearing1,
-        bearing2,
-        options
-      );
+      const sectorPolygon = sector(center, radius, bearing1, bearing2, options);
 
       return this.createSuccessResult({
         sector: sectorPolygon,

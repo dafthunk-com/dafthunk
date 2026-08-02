@@ -21,6 +21,7 @@ export class DocumentOutputNode extends ExecutableNode {
     documentation:
       "This node displays document data in the workflow. The document reference is persisted for viewing in read-only execution views. No data is duplicated - the document passes through unchanged.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "value",
@@ -39,7 +40,7 @@ export class DocumentOutputNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const value = context.inputs.value as DocumentParameter | undefined;
 

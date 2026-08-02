@@ -1,18 +1,20 @@
 import { feature } from "@dafthunk/geo";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import type { GeoProperties } from "./geo-input";
 
 export class FeatureNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "feature",
     name: "Feature",
     type: "feature",
-    description: "Wraps a GeoJSON geometry in a GeoJSON Feature.",
+    description: "Wraps a GeoJSON geometry in a GeoJSON Feature",
     tags: ["Geo", "GeoJSON", "Feature"],
     icon: "map-pin",
     documentation:
       "This node wraps a GeoJSON geometry in a GeoJSON Feature with optional properties and ID.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "geometry",
@@ -51,7 +53,7 @@ export class FeatureNode extends ExecutableNode {
       }
 
       // Prepare options for feature function
-      const options: { properties?: any; id?: string | number } = {};
+      const options: { properties?: GeoProperties; id?: string | number } = {};
 
       if (properties !== undefined && properties !== null) {
         if (typeof properties !== "object") {
@@ -68,11 +70,7 @@ export class FeatureNode extends ExecutableNode {
       }
 
       // Delegate everything to Turf.js feature function
-      const featureResult = feature(
-        geometry as any,
-        options.properties,
-        options
-      );
+      const featureResult = feature(geometry, options.properties, options);
 
       return this.createSuccessResult({
         feature: featureResult,

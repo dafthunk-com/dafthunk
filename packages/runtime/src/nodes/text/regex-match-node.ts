@@ -6,7 +6,7 @@ export class RegexMatchNode extends ExecutableNode {
     id: "regex-match",
     name: "Regex Match",
     type: "regex-match",
-    description: "Test if a string matches a regular expression pattern.",
+    description: "Test if a string matches a regular expression pattern",
     tags: ["Text", "Regex", "Match"],
     icon: "search",
     documentation:
@@ -17,13 +17,13 @@ export class RegexMatchNode extends ExecutableNode {
       {
         name: "string",
         type: "string",
-        description: "The string to test.",
+        description: "The string to test",
         required: true,
       },
       {
         name: "pattern",
         type: "string",
-        description: "The regex pattern.",
+        description: "The regex pattern",
         required: true,
       },
       {
@@ -37,7 +37,7 @@ export class RegexMatchNode extends ExecutableNode {
       {
         name: "result",
         type: "boolean",
-        description: "True if the string matches the pattern, false otherwise.",
+        description: "True if the string matches the pattern, false otherwise",
       },
     ],
   };

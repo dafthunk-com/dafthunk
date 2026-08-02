@@ -18,6 +18,7 @@ export class GetUserXNode extends ExecutableNode {
     usage: 20,
     subscription: true,
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "integrationId",
@@ -98,7 +99,7 @@ export class GetUserXNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { integrationId, username } = context.inputs;
 

@@ -23,15 +23,14 @@ export class PhotonAdjustBrightnessNode extends ExecutableNode {
       "Adjusts image brightness. Positive values increase, negative values decrease.",
     tags: ["Image", "Photon", "Adjust", "Brightness"],
     icon: "sun",
-    documentation:
-      "This node adjusts image brightness. Positive values increase, negative values decrease.",
     inlinable: true,
     usage: 10,
+    asTool: false,
     inputs: [
       {
         name: "image",
         type: "image",
-        description: "The input image to adjust.",
+        description: "The input image to adjust",
         required: true,
       },
       {
@@ -47,12 +46,12 @@ export class PhotonAdjustBrightnessNode extends ExecutableNode {
       {
         name: "image",
         type: "image",
-        description: "The brightness-adjusted image (PNG format).",
+        description: "The brightness-adjusted image (PNG format)",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const parsed = PhotonAdjustBrightnessNode.inputSchema.safeParse(
       context.inputs
     );

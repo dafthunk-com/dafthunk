@@ -12,6 +12,7 @@ export class CsvParseNode extends ExecutableNode {
     documentation:
       "Parses a CSV string into a structured Table format with field definitions and data rows. Automatically infers field types from the data.",
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "csv",

@@ -18,6 +18,7 @@ export class UpdateDraftGoogleMailNode extends ExecutableNode {
     usage: 10,
     subscription: true,
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "integrationId",
@@ -68,7 +69,7 @@ export class UpdateDraftGoogleMailNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { integrationId, draftId, to, subject, body } = context.inputs;
       const { organizationId } = context;

@@ -8,12 +8,13 @@ export class BooleanIntersectsNode extends ExecutableNode {
     name: "Boolean Intersects",
     type: "boolean-intersects",
     description:
-      "Returns true if the intersection results in a geometry whose dimension is equal to the maximum dimension of the two source geometries.",
+      "Returns true if the intersection results in a geometry whose dimension is equal to the maximum dimension of the two source geometries",
     tags: ["Geo", "GeoJSON", "Boolean", "Intersects"],
     icon: "squares-intersect",
     documentation:
       "This node tests whether two geometries intersect (share any common points, lines, or areas).",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "feature1",
@@ -50,7 +51,7 @@ export class BooleanIntersectsNode extends ExecutableNode {
       }
 
       // Delegate everything to Turf.js booleanIntersects function
-      const intersects = booleanIntersects(feature1 as any, feature2 as any);
+      const intersects = booleanIntersects(feature1, feature2);
 
       return this.createSuccessResult({
         intersects,

@@ -22,18 +22,17 @@ export class PhotonAlterRGBChannelsNode extends ExecutableNode {
     name: "Alter RGB Channels",
     type: "photon-alter-rgb-channels",
     description:
-      "Adjusts the Red, Green, and Blue channels of an image by adding specified amounts (positive or negative).",
+      "Adjusts the Red, Green, and Blue channels of an image by adding specified amounts (positive or negative)",
     tags: ["Image", "Photon", "Adjust", "RGB"],
     icon: "sliders-horizontal",
-    documentation:
-      "This node adjusts the Red, Green, and Blue channels of an image by adding specified amounts (positive or negative).",
     inlinable: true,
     usage: 10,
+    asTool: false,
     inputs: [
       {
         name: "image",
         type: "image",
-        description: "The input image to alter channels.",
+        description: "The input image to alter channels",
         required: true,
       },
       {
@@ -65,12 +64,12 @@ export class PhotonAlterRGBChannelsNode extends ExecutableNode {
       {
         name: "image",
         type: "image",
-        description: "The image with altered RGB channels (PNG format).",
+        description: "The image with altered RGB channels (PNG format)",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const parsed = PhotonAlterRGBChannelsNode.inputSchema.safeParse(
       context.inputs
     );

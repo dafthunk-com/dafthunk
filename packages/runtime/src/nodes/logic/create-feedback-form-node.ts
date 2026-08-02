@@ -18,7 +18,7 @@ import { ExecutableNode } from "../../node-types";
  * URL to reviewers.
  */
 export class CreateFeedbackFormNode extends ExecutableNode {
-  static readonly nodeType: NodeType = {
+  public static readonly nodeType: NodeType = {
     id: "create-feedback-form",
     name: "Create Feedback Form",
     type: "create-feedback-form",
@@ -27,6 +27,10 @@ export class CreateFeedbackFormNode extends ExecutableNode {
     icon: "message-circle-question",
     usage: 0,
     tags: ["Logic", "HITL", "Feedback"],
+    documentation:
+      "Builds a public feedback page from a title and description and returns its signed URL. Unlike Create Form, the workflow does not pause: the URL is emitted and execution continues, so downstream nodes can deliver it by email, Slack or Discord while the run finishes.",
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "title",
@@ -55,7 +59,7 @@ export class CreateFeedbackFormNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const title = (context.inputs.title as string) || "";
     const description = context.inputs.description as string | undefined;
 
@@ -80,15 +84,22 @@ export class CreateFeedbackFormNode extends ExecutableNode {
 
     const token = crypto.randomUUID();
 
-    const signedToken = await createFormToken(
-      {
-        eid: context.executionId,
-        wid: context.workflowId,
-        tok: token,
-        org: context.organizationId,
-      },
-      signingKey
-    );
+    let signedToken: string;
+    try {
+      signedToken = await createFormToken(
+        {
+          eid: context.executionId,
+          wid: context.workflowId,
+          tok: token,
+          org: context.organizationId,
+        },
+        signingKey
+      );
+    } catch (err) {
+      return this.createErrorResult(
+        `Failed to sign form token: ${err instanceof Error ? err.message : String(err)}`
+      );
+    }
 
     const url = `${webHost}/feedback/${signedToken}`;
 

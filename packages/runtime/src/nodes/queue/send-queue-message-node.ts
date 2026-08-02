@@ -7,17 +7,18 @@ export class SendQueueMessageNode extends ExecutableNode {
     id: "queue-send",
     name: "Send Queue Message",
     type: "queue-send",
-    description: "Sends a single message to a message queue.",
+    description: "Sends a single message to a message queue",
     tags: ["Queue", "Send", "Message"],
     icon: "send",
     documentation:
       "Sends a message to a queue. The message will be delivered to all workflows subscribed to the queue, triggering their execution with the message payload as input.",
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "queueId",
         type: "queue",
-        description: "Queue ID.",
+        description: "Queue ID",
         required: true,
         hidden: true,
       },
@@ -25,14 +26,14 @@ export class SendQueueMessageNode extends ExecutableNode {
         name: "schema",
         type: "schema",
         description:
-          "Optional schema to validate and coerce message payload before sending.",
+          "Optional schema to validate and coerce message payload before sending",
         required: false,
         hidden: true,
       },
       {
         name: "message",
         type: "json",
-        description: "Message payload (any JSON value).",
+        description: "Message payload (any JSON value)",
         required: true,
       },
     ],
@@ -40,17 +41,17 @@ export class SendQueueMessageNode extends ExecutableNode {
       {
         name: "success",
         type: "boolean",
-        description: "True if message was sent successfully.",
+        description: "True if message was sent successfully",
       },
       {
         name: "messageId",
         type: "string",
-        description: "Unique identifier for the sent message.",
+        description: "Unique identifier for the sent message",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const { queueId, message, schema } = context.inputs;
 
     // Validate required inputs

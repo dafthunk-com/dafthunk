@@ -7,24 +7,25 @@ export class DatabaseGetRowCountNode extends ExecutableNode {
     id: "database-get-row-count",
     name: "Database Get Row Count",
     type: "database-get-row-count",
-    description: "Gets the number of rows in a table.",
+    description: "Gets the number of rows in a table",
     tags: ["Database", "Count", "Rows"],
     icon: "database",
     documentation:
       "Returns the total number of rows in a table. Executes a COUNT(*) query to efficiently count rows without loading data. Useful for checking table size before operations.",
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "database",
         type: "database",
-        description: "Database ID.",
+        description: "Database ID",
         required: true,
         hidden: true,
       },
       {
         name: "table",
         type: "string",
-        description: "Name of the table to count.",
+        description: "Name of the table to count",
         required: true,
       },
     ],
@@ -32,12 +33,12 @@ export class DatabaseGetRowCountNode extends ExecutableNode {
       {
         name: "count",
         type: "number",
-        description: "Number of rows in the table.",
+        description: "Number of rows in the table",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const { database, table } = context.inputs;
 
     // Validate required inputs

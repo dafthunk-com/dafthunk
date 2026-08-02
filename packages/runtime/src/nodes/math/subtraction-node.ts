@@ -40,7 +40,7 @@ export class SubtractionNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       if (context.inputs.a === undefined || context.inputs.a === null) {
         return this.createErrorResult("Input 'a' is required");

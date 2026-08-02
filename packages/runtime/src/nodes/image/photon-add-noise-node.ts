@@ -20,24 +20,24 @@ export class PhotonAddNoiseNode extends ExecutableNode {
     id: "photon-add-noise",
     name: "Add Noise",
     type: "photon-add-noise",
-    description: "Adds randomized Gaussian noise to an image.",
+    description: "Adds randomized Gaussian noise to an image",
     tags: ["Image", "Photon", "Effect", "Noise"],
     icon: "sparkles",
-    documentation: "This node adds randomized Gaussian noise to an image.",
     inlinable: true,
     usage: 10,
+    asTool: false,
     inputs: [
       {
         name: "image",
         type: "image",
-        description: "The input image to add noise to.",
+        description: "The input image to add noise to",
         required: true,
       },
       {
         name: "amount",
         type: "number",
         description:
-          "Amount of noise-like effect to add (brightness adjustment).",
+          "Amount of noise-like effect to add (brightness adjustment)",
         required: false,
         value: 10,
       },
@@ -46,12 +46,12 @@ export class PhotonAddNoiseNode extends ExecutableNode {
       {
         name: "image",
         type: "image",
-        description: "The image with added noise (PNG format).",
+        description: "The image with added noise (PNG format)",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const parsed = PhotonAddNoiseNode.inputSchema.safeParse(context.inputs);
     if (!parsed.success) {
       return this.createErrorResult(zodErrorMessage(parsed.error));

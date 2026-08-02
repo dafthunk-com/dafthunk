@@ -18,6 +18,7 @@ export class DatasetAiSearchNode extends ExecutableNode {
       "This node performs AI-powered search through datasets using RAG (Retrieval-Augmented Generation) and generates intelligent responses.",
     usage: 10,
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "query",
@@ -107,7 +108,7 @@ export class DatasetAiSearchNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const {
         query,

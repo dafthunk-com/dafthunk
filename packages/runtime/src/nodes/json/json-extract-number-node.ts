@@ -1,5 +1,5 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
-import type { NodeExecution, NodeType } from "@dafthunk/types";
+import type { JsonValue, NodeExecution, NodeType } from "@dafthunk/types";
 import { JSONPath } from "jsonpath-plus";
 
 export class JsonExtractNumberNode extends ExecutableNode {
@@ -68,7 +68,8 @@ export class JsonExtractNumberNode extends ExecutableNode {
 
         // Get the first result that is a number (including integers and floats)
         const numberValue = results.find(
-          (value: any) => typeof value === "number" && !Number.isNaN(value)
+          (value: JsonValue) =>
+            typeof value === "number" && !Number.isNaN(value)
         );
         const found =
           typeof numberValue === "number" && !Number.isNaN(numberValue);

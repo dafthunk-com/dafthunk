@@ -8,12 +8,13 @@ export class BooleanConcaveNode extends ExecutableNode {
     name: "Boolean Concave",
     type: "boolean-concave",
     description:
-      "Takes a polygon and returns true or false as to whether it is concave or not.",
+      "Takes a polygon and returns true or false as to whether it is concave or not",
     tags: ["Geo", "GeoJSON", "Boolean", "Concave"],
     icon: "square",
     documentation:
       "This node determines whether a polygon is concave (has inward angles) or convex (all angles are outward).",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "polygon",
@@ -40,7 +41,7 @@ export class BooleanConcaveNode extends ExecutableNode {
       }
 
       // Delegate everything to Turf.js booleanConcave function
-      const isConcave = booleanConcave(polygon as any);
+      const isConcave = booleanConcave(polygon);
 
       return this.createSuccessResult({
         isConcave,

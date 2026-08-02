@@ -8,12 +8,13 @@ export class PolygonToLineNode extends ExecutableNode {
     name: "Polygon To Line",
     type: "polygon-to-line",
     description:
-      "Converts a Polygon or MultiPolygon to a LineString or MultiLineString.",
+      "Converts a Polygon or MultiPolygon to a LineString or MultiLineString",
     tags: ["Geo", "GeoJSON", "Transform", "PolygonToLine"],
     icon: "route",
     documentation:
       "This node converts a polygon geometry to its boundary line.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "polygon",
@@ -55,7 +56,7 @@ export class PolygonToLineNode extends ExecutableNode {
       }
 
       // Delegate everything to Turf.js polygonToLine function
-      const lineFeature = polygonToLine(polygon as any, lineProperties);
+      const lineFeature = polygonToLine(polygon, lineProperties);
 
       return this.createSuccessResult({
         line: lineFeature,

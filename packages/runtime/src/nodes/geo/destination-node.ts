@@ -1,6 +1,9 @@
+import type { Units } from "@dafthunk/geo";
 import { destination } from "@dafthunk/geo";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import type { GeoProperties } from "./geo-input";
+import { isUnits, UNITS_LIST } from "./geo-input";
 
 export class DestinationNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -8,12 +11,13 @@ export class DestinationNode extends ExecutableNode {
     name: "Destination",
     type: "destination",
     description:
-      "Calculates a destination point given an origin point, distance, and bearing.",
+      "Calculates a destination point given an origin point, distance, and bearing",
     tags: ["Geo", "GeoJSON", "Measurement", "Destination"],
     icon: "navigation",
     documentation:
       "This node calculates a destination point given an origin point, distance, and bearing direction.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "origin",
@@ -73,9 +77,12 @@ export class DestinationNode extends ExecutableNode {
       }
 
       // Prepare options for destination calculation
-      const options: any = {};
+      const options: { units?: Units; properties?: GeoProperties } = {};
 
       if (units !== undefined && units !== null) {
+        if (!isUnits(units)) {
+          return this.createErrorResult(`Units must be one of: ${UNITS_LIST}`);
+        }
         options.units = units;
       }
 

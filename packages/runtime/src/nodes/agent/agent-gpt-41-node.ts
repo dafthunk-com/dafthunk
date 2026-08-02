@@ -11,7 +11,7 @@ export class AgentGpt41Node extends BaseAgentNode {
   };
 
   public static readonly nodeType: NodeType = buildAgentNodeType({
-    id: "agent-gpt-4.1",
+    id: "agent-gpt-41",
     name: "Agent GPT-4.1",
     description:
       "AI agent powered by GPT-4.1 that autonomously uses tools to accomplish tasks",

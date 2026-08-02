@@ -19,18 +19,17 @@ export class PhotonGrayscaleNode extends ExecutableNode {
     name: "Grayscale",
     type: "photon-grayscale",
     description:
-      "Converts an image to grayscale using Photon (human-corrected algorithm).",
+      "Converts an image to grayscale using Photon (human-corrected algorithm)",
     tags: ["Image", "Photon", "Effect", "Grayscale"],
     icon: "droplet",
-    documentation:
-      "This node converts an image to grayscale using Photon (human-corrected algorithm).",
     inlinable: true,
     usage: 10,
+    asTool: false,
     inputs: [
       {
         name: "image",
         type: "image",
-        description: "The input image to convert to grayscale.",
+        description: "The input image to convert to grayscale",
         required: true,
       },
     ],
@@ -38,12 +37,12 @@ export class PhotonGrayscaleNode extends ExecutableNode {
       {
         name: "image",
         type: "image",
-        description: "The grayscale image (PNG format).",
+        description: "The grayscale image (PNG format)",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const parsed = PhotonGrayscaleNode.inputSchema.safeParse(context.inputs);
     if (!parsed.success) {
       return this.createErrorResult(zodErrorMessage(parsed.error));

@@ -45,6 +45,7 @@ export class ListCommentsRedditNode extends ExecutableNode {
     usage: 10,
     subscription: true,
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "integrationId",
@@ -135,7 +136,7 @@ export class ListCommentsRedditNode extends ExecutableNode {
     return result;
   }
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { integrationId, postId, subreddit, sort, limit, depth } =
         context.inputs;

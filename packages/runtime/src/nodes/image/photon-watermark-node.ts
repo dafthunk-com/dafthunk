@@ -22,31 +22,30 @@ export class PhotonWatermarkNode extends ExecutableNode {
     name: "Watermark Image",
     type: "photon-watermark",
     description:
-      "Adds a watermark image onto a main image at specified x, y coordinates.",
+      "Adds a watermark image onto a main image at specified x, y coordinates",
     tags: ["Image", "Photon", "Effect", "Watermark"],
     icon: "award",
-    documentation:
-      "This node adds a watermark image onto a main image at specified x, y coordinates.",
     inlinable: true,
     usage: 10,
+    asTool: false,
     inputs: [
       {
         name: "mainImage",
         type: "image",
-        description: "The main image to add the watermark to.",
+        description: "The main image to add the watermark to",
         required: true,
       },
       {
         name: "watermarkImage",
         type: "image",
-        description: "The watermark image to overlay.",
+        description: "The watermark image to overlay",
         required: true,
       },
       {
         name: "x",
         type: "number",
         description:
-          "The x-coordinate for the top-left corner of the watermark.",
+          "The x-coordinate for the top-left corner of the watermark",
         required: true,
         value: 0,
       },
@@ -54,7 +53,7 @@ export class PhotonWatermarkNode extends ExecutableNode {
         name: "y",
         type: "number",
         description:
-          "The y-coordinate for the top-left corner of the watermark.",
+          "The y-coordinate for the top-left corner of the watermark",
         required: true,
         value: 0,
       },
@@ -63,12 +62,12 @@ export class PhotonWatermarkNode extends ExecutableNode {
       {
         name: "image",
         type: "image",
-        description: "The image with the watermark applied (PNG format).",
+        description: "The image with the watermark applied (PNG format)",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const parsed = PhotonWatermarkNode.inputSchema.safeParse(context.inputs);
     if (!parsed.success) {
       return this.createErrorResult(zodErrorMessage(parsed.error));

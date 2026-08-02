@@ -1,5 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import type { GeoTIFFImage } from "geotiff";
 import { fromUrl } from "geotiff";
 
 export class GeoTiffMetadataReaderNode extends ExecutableNode {
@@ -10,9 +11,12 @@ export class GeoTiffMetadataReaderNode extends ExecutableNode {
     description:
       "Read metadata from Cloud Optimized GeoTIFF without downloading content",
     tags: ["3D", "GeoTIFF", "Metadata"],
+    documentation:
+      "Reads the header of a Cloud Optimized GeoTIFF over HTTP range requests, so the raster itself is never downloaded. Returns the dimensions, band count, data type, no-data value, pixel size and CRS — enough to decide how to query the file before paying to read it.",
     icon: "info",
     inlinable: false,
     usage: 10,
+    asTool: false,
     inputs: [
       {
         name: "url",
@@ -81,7 +85,7 @@ export class GeoTiffMetadataReaderNode extends ExecutableNode {
     }
   }
 
-  private getDataType(image: any): string | undefined {
+  private getDataType(image: GeoTIFFImage): string | undefined {
     try {
       const sampleFormat = image.getSampleFormat();
       const bitsPerSample = image.getBitsPerSample();
@@ -95,34 +99,37 @@ export class GeoTiffMetadataReaderNode extends ExecutableNode {
     }
   }
 
-  private getNoDataValue(image: any): number | undefined {
+  private getNoDataValue(image: GeoTIFFImage): number | undefined {
     try {
-      return image.getNoDataValue();
+      return image.getGDALNoData() ?? undefined;
     } catch {
       return undefined;
     }
   }
 
-  private getPixelSize(image: any): [number, number] | undefined {
+  private getPixelSize(image: GeoTIFFImage): [number, number] | undefined {
     try {
-      return image.getResolution();
+      const [x, y] = image.getResolution();
+      if (typeof x !== "number" || typeof y !== "number") return undefined;
+      return [x, y];
     } catch {
       return undefined;
     }
   }
 
-  private getCRS(image: any): string | undefined {
+  private getCRS(image: GeoTIFFImage): string | undefined {
     try {
-      // Try to get EPSG code first, fallback to WKT
+      // Prefer the EPSG code; fall back to whichever citation the file carries.
       const geoKeys = image.getGeoKeys();
       const epsg =
         geoKeys?.ProjectedCSTypeGeoKey || geoKeys?.GeographicTypeGeoKey;
       if (epsg) return `EPSG:${epsg}`;
 
-      const wkt = image.getWKT();
-      if (wkt) return wkt;
-
-      return undefined;
+      const citation =
+        geoKeys?.PCSCitationGeoKey ||
+        geoKeys?.GeogCitationGeoKey ||
+        geoKeys?.GTCitationGeoKey;
+      return typeof citation === "string" ? citation : undefined;
     } catch {
       return undefined;
     }

@@ -1,18 +1,22 @@
+import type { Units } from "@dafthunk/geo";
 import { circle } from "@dafthunk/geo";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import type { GeoProperties } from "./geo-input";
+import { isUnits, UNITS_LIST } from "./geo-input";
 
 export class CircleNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "circle",
     name: "Circle",
     type: "circle",
-    description: "Creates a circular polygon given a center point and radius.",
+    description: "Creates a circular polygon given a center point and radius",
     tags: ["Geo", "GeoJSON", "Geometry", "Circle"],
     icon: "circle",
     documentation:
       "This node creates a circular polygon from a center point and radius with customizable precision.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "center",
@@ -75,7 +79,11 @@ export class CircleNode extends ExecutableNode {
       }
 
       // Prepare options for circle creation
-      const options: { steps?: number; units?: string; properties?: any } = {};
+      const options: {
+        steps?: number;
+        units?: Units;
+        properties?: GeoProperties;
+      } = {};
 
       if (steps !== undefined && steps !== null) {
         if (typeof steps !== "number" || !Number.isFinite(steps) || steps < 3) {
@@ -85,14 +93,14 @@ export class CircleNode extends ExecutableNode {
       }
 
       if (units !== undefined && units !== null) {
-        if (typeof units !== "string") {
-          return this.createErrorResult("Units must be a string");
+        if (!isUnits(units)) {
+          return this.createErrorResult(`Units must be one of: ${UNITS_LIST}`);
         }
         options.units = units;
       }
 
       // Create the circle using Turf.js
-      const circlePolygon = circle(center as any, radius, options as any);
+      const circlePolygon = circle(center, radius, options);
 
       // Set properties if provided
       if (properties !== undefined && properties !== null) {

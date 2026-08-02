@@ -118,6 +118,7 @@ For example: \`google/veo-3\`, \`openai/whisper\`, \`xai/grok-imagine-video\`.`,
     inlinable: false,
     usage: 100,
     subscription: true,
+    asTool: false,
     inputs: [
       {
         name: "model",
@@ -150,7 +151,7 @@ For example: \`google/veo-3\`, \`openai/whisper\`, \`xai/grok-imagine-video\`.`,
     outputs: [],
   };
 
-  async execute(context: MultiStepNodeContext): Promise<NodeExecution> {
+  public async execute(context: MultiStepNodeContext): Promise<NodeExecution> {
     try {
       const modelInput = context.inputs.model;
       if (typeof modelInput !== "string" || !modelInput.trim()) {

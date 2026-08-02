@@ -19,6 +19,7 @@ export class DatasetSearchNode extends ExecutableNode {
       "This node searches through datasets using RAG (Retrieval-Augmented Generation) to find relevant content based on a query.",
     usage: 10,
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "query",
@@ -101,7 +102,7 @@ export class DatasetSearchNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const {
         query,

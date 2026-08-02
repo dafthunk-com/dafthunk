@@ -17,6 +17,7 @@ export class AudioInputNode extends ExecutableNode {
     documentation:
       "This node provides an audio input widget for uploading audio files.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "value",
@@ -34,7 +35,7 @@ export class AudioInputNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const value = context.inputs.value;
 

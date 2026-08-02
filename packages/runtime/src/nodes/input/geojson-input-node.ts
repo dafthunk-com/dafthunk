@@ -17,6 +17,7 @@ export class GeoJSONInputNode extends ExecutableNode {
     documentation:
       "This node provides a GeoJSON input widget for editing geographic data.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "value",
@@ -34,7 +35,7 @@ export class GeoJSONInputNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const value = context.inputs.value;
 

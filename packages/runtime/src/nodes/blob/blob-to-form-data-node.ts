@@ -16,6 +16,7 @@ export class BlobToFormDataNode extends ExecutableNode {
     documentation:
       "This node parses a blob containing URL-encoded form data (application/x-www-form-urlencoded) and outputs the parsed key-value pairs as a JSON object. Values are automatically converted to appropriate types (boolean, number) when possible.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "blob",

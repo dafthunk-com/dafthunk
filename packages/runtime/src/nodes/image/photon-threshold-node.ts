@@ -32,15 +32,14 @@ export class PhotonThresholdNode extends ExecutableNode {
       "Converts an image to black and white based on a threshold value (0-255). Often best applied to a grayscale image.",
     tags: ["Image", "Photon", "Effect", "Threshold"],
     icon: "aperture",
-    documentation:
-      "This node converts an image to black and white based on a threshold value (0-255). Often best applied to a grayscale image.",
     inlinable: true,
     usage: 10,
+    asTool: false,
     inputs: [
       {
         name: "image",
         type: "image",
-        description: "The input image to apply thresholding.",
+        description: "The input image to apply thresholding",
         required: true,
       },
       {
@@ -55,7 +54,7 @@ export class PhotonThresholdNode extends ExecutableNode {
         name: "convertToGrayscaleFirst",
         type: "boolean",
         description:
-          "Convert image to grayscale before thresholding for more predictable results.",
+          "Convert image to grayscale before thresholding for more predictable results",
         required: false,
         value: true,
       },
@@ -64,12 +63,12 @@ export class PhotonThresholdNode extends ExecutableNode {
       {
         name: "image",
         type: "image",
-        description: "The thresholded (black and white) image (PNG format).",
+        description: "The thresholded (black and white) image (PNG format)",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const parsed = PhotonThresholdNode.inputSchema.safeParse(context.inputs);
     if (!parsed.success) {
       return this.createErrorResult(zodErrorMessage(parsed.error));

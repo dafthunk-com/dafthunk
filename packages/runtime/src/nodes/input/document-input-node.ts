@@ -17,6 +17,7 @@ export class DocumentInputNode extends ExecutableNode {
     documentation:
       "This node provides a document input widget for uploading documents like PDFs, Word docs, etc.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "value",
@@ -34,7 +35,7 @@ export class DocumentInputNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const value = context.inputs.value;
 

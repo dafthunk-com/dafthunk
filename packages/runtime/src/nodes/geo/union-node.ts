@@ -14,6 +14,7 @@ export class UnionNode extends ExecutableNode {
     documentation:
       "This node combines multiple polygon features into a single unified geometry using the union operation.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "features",
@@ -73,7 +74,7 @@ export class UnionNode extends ExecutableNode {
         properties && typeof properties === "object" ? { properties } : {};
 
       // Calculate the union using Turf.js
-      const unionResult = union(features as any, options);
+      const unionResult = union(features, options);
 
       if (!unionResult) {
         return this.createErrorResult(

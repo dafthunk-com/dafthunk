@@ -1,19 +1,21 @@
 import { transformRotate } from "@dafthunk/geo";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import type { GeoPosition } from "./geo-input";
 
 export class TransformRotateNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "transformRotate",
+    id: "transform-rotate",
     name: "Transform Rotate",
-    type: "transformRotate",
+    type: "transform-rotate",
     description:
-      "Rotates any GeoJSON geometry around a pivot point by a specified angle.",
+      "Rotates any GeoJSON geometry around a pivot point by a specified angle",
     tags: ["Geo", "GeoJSON", "Transform", "Rotate"],
     icon: "rotate-cw",
     documentation:
       "This node rotates a GeoJSON geometry around a pivot point by a specified angle in degrees.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "geojson",
@@ -61,7 +63,7 @@ export class TransformRotateNode extends ExecutableNode {
       }
 
       // Prepare options for rotation
-      const options: { pivot?: any } = {};
+      const options: { pivot?: GeoPosition } = {};
       if (pivot !== undefined && pivot !== null) {
         options.pivot = pivot;
       }

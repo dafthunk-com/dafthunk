@@ -15,6 +15,8 @@ export class WebcamInputNode extends ExecutableNode {
     icon: "camera",
     documentation:
       "This node provides a webcam widget that allows users to capture images and outputs them as an image reference.",
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "value",
@@ -46,7 +48,7 @@ export class WebcamInputNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { value } = context.inputs;
 

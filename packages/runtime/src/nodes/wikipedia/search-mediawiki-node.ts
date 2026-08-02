@@ -17,6 +17,7 @@ export class SearchMediaWikiNode extends ExecutableNode {
       "This node searches any MediaWiki-powered wiki using the action API. Provide the base URL of the wiki (e.g., https://en.wikipedia.org or https://wiki.example.com). Returns article titles, snippets, page IDs, and metadata. No API key required for most public wikis.",
     usage: 10,
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "baseUrl",
@@ -78,7 +79,7 @@ export class SearchMediaWikiNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { baseUrl, query, namespace, limit, offset } = context.inputs;
 

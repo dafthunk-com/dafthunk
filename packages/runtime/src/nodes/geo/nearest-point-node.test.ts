@@ -18,7 +18,7 @@ describe("NearestPointNode", () => {
   const node = new NearestPointNode({
     id: "test-node",
     name: "Test Node",
-    type: "nearestPoint",
+    type: "nearest-point",
     position: { x: 0, y: 0 },
     inputs: [],
     outputs: [],

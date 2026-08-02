@@ -152,7 +152,8 @@ export type ParameterType =
     }
   | {
       type: "json";
-      value?: JsonObject;
+      // Any JSON value, not just an object — nodes default this to arrays too.
+      value?: JsonValue;
     }
   | {
       type: "document";

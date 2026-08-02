@@ -19,6 +19,7 @@ export class TextInputNode extends ExecutableNode {
     icon: "text",
     documentation: "This node provides a text input widget for entering text.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "value",
@@ -37,7 +38,7 @@ export class TextInputNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const value = context.inputs.value as string;
 

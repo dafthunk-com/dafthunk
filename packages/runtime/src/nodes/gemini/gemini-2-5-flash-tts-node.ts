@@ -146,7 +146,7 @@ export class Gemini25FlashTtsNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { text, voice } = context.inputs;
 

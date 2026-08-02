@@ -1,5 +1,5 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
-import type { NodeExecution, NodeType } from "@dafthunk/types";
+import type { JsonValue, NodeExecution, NodeType } from "@dafthunk/types";
 
 export class JsonFlattenNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -105,7 +105,7 @@ export class JsonFlattenNode extends ExecutableNode {
   }
 
   private flattenObject(
-    obj: any,
+    obj: JsonValue,
     separator: string,
     includeArrays: boolean,
     prefix: string = ""

@@ -15,6 +15,7 @@ export class BotReceiveSlackMessageNode extends ExecutableNode {
     inlinable: true,
     usage: 0,
     subscription: true,
+    asTool: false,
     inputs: [
       {
         name: "slackBotId",

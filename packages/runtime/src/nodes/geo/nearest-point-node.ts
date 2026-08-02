@@ -4,16 +4,17 @@ import type { NodeExecution, NodeType } from "@dafthunk/types";
 
 export class NearestPointNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "nearestPoint",
+    id: "nearest-point",
     name: "Nearest Point",
-    type: "nearestPoint",
+    type: "nearest-point",
     description:
-      "Finds the nearest point from a collection of points to a target point.",
+      "Finds the nearest point from a collection of points to a target point",
     tags: ["Geo", "GeoJSON", "Measurement", "NearestPoint"],
     icon: "target",
     documentation:
       "This node finds the nearest point in a collection to a target point.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "targetPoint",

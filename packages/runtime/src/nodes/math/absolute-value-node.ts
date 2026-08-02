@@ -12,7 +12,6 @@ export class AbsoluteValueNode extends ExecutableNode {
     description: "Calculates the absolute value of a number",
     tags: ["Math", "Absolute"],
     icon: "square-plus",
-    documentation: "This node calculates the absolute value of a number.",
     specification: "result = |value|",
     inlinable: true,
     asTool: true,
@@ -33,7 +32,7 @@ export class AbsoluteValueNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       if (context.inputs.value === undefined || context.inputs.value === null) {
         return this.createErrorResult("Input 'value' is required");

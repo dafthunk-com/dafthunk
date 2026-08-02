@@ -8,12 +8,13 @@ export class KinksNode extends ExecutableNode {
     name: "Kinks",
     type: "kinks",
     description:
-      "Takes a LineString or Polygon and returns the points at all self-intersections.",
+      "Takes a LineString or Polygon and returns the points at all self-intersections",
     tags: ["Geo", "GeoJSON", "Geometry", "Kinks"],
     icon: "zap",
     documentation:
       "This node finds self-intersection points (kinks) in LineString or Polygon geometries.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "line",
@@ -40,7 +41,7 @@ export class KinksNode extends ExecutableNode {
       }
 
       // Delegate everything to Turf.js kinks function
-      const kinkPoints = kinks(line as any);
+      const kinkPoints = kinks(line);
 
       return this.createSuccessResult({
         kinks: kinkPoints,

@@ -8,12 +8,13 @@ export class LengthNode extends ExecutableNode {
     name: "Length",
     type: "length",
     description:
-      "Calculates the length of LineString or MultiLineString features.",
+      "Calculates the length of LineString or MultiLineString features",
     tags: ["Geo", "GeoJSON", "Measurement", "Length"],
     icon: "ruler",
     documentation:
       "This node calculates the length of LineString or MultiLineString geometries in specified units.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "geojson",
@@ -44,7 +45,7 @@ export class LengthNode extends ExecutableNode {
         return this.createErrorResult("Missing GeoJSON input");
       }
       const options = units ? { units } : {};
-      const calculatedLength = length(geojson as any, options as any);
+      const calculatedLength = length(geojson, options);
       return this.createSuccessResult({
         length: calculatedLength,
       });

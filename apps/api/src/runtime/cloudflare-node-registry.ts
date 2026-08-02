@@ -1,18 +1,18 @@
 import { BaseNodeRegistry } from "@dafthunk/runtime";
-import { CgsApplyMaterialNode } from "@dafthunk/runtime/nodes/3d/cgs-apply-material-node";
-import { CgsApplyTextureNode } from "@dafthunk/runtime/nodes/3d/cgs-apply-texture-node";
-import { CgsConeNode } from "@dafthunk/runtime/nodes/3d/cgs-cone-node";
-import { CgsCubeNode } from "@dafthunk/runtime/nodes/3d/cgs-cube-node";
-import { CgsCylinderNode } from "@dafthunk/runtime/nodes/3d/cgs-cylinder-node";
-import { CgsDifferenceNode } from "@dafthunk/runtime/nodes/3d/cgs-difference-node";
-import { CgsIntersectionNode } from "@dafthunk/runtime/nodes/3d/cgs-intersection-node";
-import { CgsRotateNode } from "@dafthunk/runtime/nodes/3d/cgs-rotate-node";
-import { CgsScaleNode } from "@dafthunk/runtime/nodes/3d/cgs-scale-node";
-import { CgsSphereNode } from "@dafthunk/runtime/nodes/3d/cgs-sphere-node";
-import { CgsTorusNode } from "@dafthunk/runtime/nodes/3d/cgs-torus-node";
-import { CgsTranslateNode } from "@dafthunk/runtime/nodes/3d/cgs-translate-node";
-import { CgsUnionNode } from "@dafthunk/runtime/nodes/3d/cgs-union-node";
-import { CgsXorNode } from "@dafthunk/runtime/nodes/3d/cgs-xor-node";
+import { CsgApplyMaterialNode } from "@dafthunk/runtime/nodes/3d/csg-apply-material-node";
+import { CsgApplyTextureNode } from "@dafthunk/runtime/nodes/3d/csg-apply-texture-node";
+import { CsgConeNode } from "@dafthunk/runtime/nodes/3d/csg-cone-node";
+import { CsgCubeNode } from "@dafthunk/runtime/nodes/3d/csg-cube-node";
+import { CsgCylinderNode } from "@dafthunk/runtime/nodes/3d/csg-cylinder-node";
+import { CsgDifferenceNode } from "@dafthunk/runtime/nodes/3d/csg-difference-node";
+import { CsgIntersectionNode } from "@dafthunk/runtime/nodes/3d/csg-intersection-node";
+import { CsgRotateNode } from "@dafthunk/runtime/nodes/3d/csg-rotate-node";
+import { CsgScaleNode } from "@dafthunk/runtime/nodes/3d/csg-scale-node";
+import { CsgSphereNode } from "@dafthunk/runtime/nodes/3d/csg-sphere-node";
+import { CsgTorusNode } from "@dafthunk/runtime/nodes/3d/csg-torus-node";
+import { CsgTranslateNode } from "@dafthunk/runtime/nodes/3d/csg-translate-node";
+import { CsgUnionNode } from "@dafthunk/runtime/nodes/3d/csg-union-node";
+import { CsgXorNode } from "@dafthunk/runtime/nodes/3d/csg-xor-node";
 import { DemToGltfNode } from "@dafthunk/runtime/nodes/3d/dem-to-gltf-node";
 import { GeoTiffDemQueryNode } from "@dafthunk/runtime/nodes/3d/geotiff-dem-query-node";
 import { GeoTiffMetadataReaderNode } from "@dafthunk/runtime/nodes/3d/geotiff-metadata-reader-node";
@@ -80,6 +80,7 @@ import { DatasetSearchNode } from "@dafthunk/runtime/nodes/dataset/dataset-searc
 import { DatasetUploadFileNode } from "@dafthunk/runtime/nodes/dataset/dataset-upload-file-node";
 import { AddDateNode } from "@dafthunk/runtime/nodes/date/add-date-node";
 import { DiffDateNode } from "@dafthunk/runtime/nodes/date/diff-date-node";
+import { FormatDateNode } from "@dafthunk/runtime/nodes/date/format-date-node";
 import { NowDateNode } from "@dafthunk/runtime/nodes/date/now-date-node";
 import { ParseDateNode } from "@dafthunk/runtime/nodes/date/parse-date-node";
 import { AddReactionDiscordNode } from "@dafthunk/runtime/nodes/discord/add-reaction-discord-node";
@@ -599,6 +600,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(ParseDateNode);
     this.registerImplementation(AddDateNode);
     this.registerImplementation(DiffDateNode);
+    this.registerImplementation(FormatDateNode);
     this.registerImplementation(JsonArrayLengthNode);
     this.registerImplementation(JsonContainsNode);
     this.registerImplementation(JsonContainsPathNode);
@@ -934,26 +936,26 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(GltfWireframeNode);
 
     // CSG Primitives
-    this.registerImplementation(CgsCubeNode);
-    this.registerImplementation(CgsSphereNode);
-    this.registerImplementation(CgsCylinderNode);
-    this.registerImplementation(CgsConeNode);
-    this.registerImplementation(CgsTorusNode);
+    this.registerImplementation(CsgCubeNode);
+    this.registerImplementation(CsgSphereNode);
+    this.registerImplementation(CsgCylinderNode);
+    this.registerImplementation(CsgConeNode);
+    this.registerImplementation(CsgTorusNode);
 
     // CSG Operations
-    this.registerImplementation(CgsUnionNode);
-    this.registerImplementation(CgsDifferenceNode);
-    this.registerImplementation(CgsIntersectionNode);
-    this.registerImplementation(CgsXorNode);
+    this.registerImplementation(CsgUnionNode);
+    this.registerImplementation(CsgDifferenceNode);
+    this.registerImplementation(CsgIntersectionNode);
+    this.registerImplementation(CsgXorNode);
 
     // CSG Material & Texture
-    this.registerImplementation(CgsApplyMaterialNode);
-    this.registerImplementation(CgsApplyTextureNode);
+    this.registerImplementation(CsgApplyMaterialNode);
+    this.registerImplementation(CsgApplyTextureNode);
 
     // CSG Transformations
-    this.registerImplementation(CgsTranslateNode);
-    this.registerImplementation(CgsRotateNode);
-    this.registerImplementation(CgsScaleNode);
+    this.registerImplementation(CsgTranslateNode);
+    this.registerImplementation(CsgRotateNode);
+    this.registerImplementation(CsgScaleNode);
 
     // Geo nodes
     this.registerImplementation(AlongNode);

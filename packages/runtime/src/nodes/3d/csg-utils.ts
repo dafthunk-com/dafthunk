@@ -22,7 +22,7 @@ export async function brushToGLTF(
 ): Promise<Uint8Array> {
   try {
     // Extract geometry from brush (Brush extends Mesh)
-    const geometry = (brush as any).geometry as BufferGeometry;
+    const geometry = brush.geometry as BufferGeometry;
 
     if (!geometry) {
       throw new Error("Brush has no geometry");
@@ -371,7 +371,7 @@ export function extractBrushStats(brush: Brush): {
 } {
   try {
     // Brush extends Mesh, so it has a geometry property
-    const geometry = (brush as any).geometry as BufferGeometry;
+    const geometry = brush.geometry as BufferGeometry;
 
     if (!geometry) {
       console.warn("[CSG] No geometry found in brush");

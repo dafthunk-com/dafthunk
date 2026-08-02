@@ -14,6 +14,7 @@ export class BotMarkAsReadWhatsAppNode extends ExecutableNode {
     usage: 5,
     subscription: true,
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "messageId",
@@ -32,7 +33,7 @@ export class BotMarkAsReadWhatsAppNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { messageId } = context.inputs;
       const accessToken = context.whatsappAccessToken;

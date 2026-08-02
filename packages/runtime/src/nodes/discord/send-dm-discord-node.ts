@@ -17,6 +17,8 @@ export class SendDMDiscordNode extends ExecutableNode {
       "This node sends a direct message to a Discord user. Requires a connected Discord integration. Note: The bot must share a server with the user to DM them.",
     usage: 10,
     subscription: true,
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "integrationId",
@@ -67,7 +69,7 @@ export class SendDMDiscordNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { integrationId, userId, content, embeds } = context.inputs;
       const { organizationId } = context;

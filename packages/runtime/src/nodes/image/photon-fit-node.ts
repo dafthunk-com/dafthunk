@@ -45,7 +45,7 @@ export class PhotonFitNode extends ExecutableNode {
     name: "Image Fit",
     type: "photon-fit",
     description:
-      "Scales an image to fit inside a fixed-size container while preserving aspect ratio, centering it with transparent padding.",
+      "Scales an image to fit inside a fixed-size container while preserving aspect ratio, centering it with transparent padding",
     tags: ["Image", "Photon", "Transform", "Fit"],
     icon: "scaling",
     documentation:
@@ -57,20 +57,20 @@ export class PhotonFitNode extends ExecutableNode {
       {
         name: "image",
         type: "image",
-        description: "The input image to fit into the container.",
+        description: "The input image to fit into the container",
         required: true,
       },
       {
         name: "width",
         type: "number",
-        description: "Container width in pixels.",
+        description: "Container width in pixels",
         required: true,
         value: 256,
       },
       {
         name: "height",
         type: "number",
-        description: "Container height in pixels.",
+        description: "Container height in pixels",
         required: true,
         value: 256,
       },
@@ -78,13 +78,13 @@ export class PhotonFitNode extends ExecutableNode {
         name: "allowUpscale",
         type: "boolean",
         description:
-          "Whether to enlarge images smaller than the container (default: only shrink).",
+          "Whether to enlarge images smaller than the container (default: only shrink)",
         value: false,
       },
       {
         name: "samplingFilter",
         type: "string",
-        description: "The sampling filter to use when resizing.",
+        description: "The sampling filter to use when resizing",
         value: "Lanczos3", // "Nearest", "Triangle", "CatmullRom", "Gaussian", "Lanczos3"
         hidden: true,
       },
@@ -93,12 +93,12 @@ export class PhotonFitNode extends ExecutableNode {
       {
         name: "image",
         type: "image",
-        description: "The fitted image at the container size (PNG format).",
+        description: "The fitted image at the container size (PNG format)",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const parsed = PhotonFitNode.inputSchema.safeParse(context.inputs);
     if (!parsed.success) {
       return this.createErrorResult(zodErrorMessage(parsed.error));

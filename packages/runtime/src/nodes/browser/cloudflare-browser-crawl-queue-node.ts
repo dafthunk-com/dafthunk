@@ -38,7 +38,7 @@ export class CloudflareBrowserCrawlQueueNode extends MultiStepNode {
     name: "Browser Crawl to Queue",
     type: "cloudflare-browser-crawl-queue",
     description:
-      "Crawl a website and send each page as a message to a queue for downstream processing.",
+      "Crawl a website and send each page as a message to a queue for downstream processing",
     documentation: `Crawls a website and sends each crawled page as an individual message to a queue. This lets you process pages one by one in a workflow triggered by the queue, without loading all results into memory.
 
 ### When to use this node
@@ -150,7 +150,7 @@ See [Cloudflare Browser Rendering Crawl Endpoint](https://developers.cloudflare.
     ],
   };
 
-  async execute(context: MultiStepNodeContext): Promise<NodeExecution> {
+  public async execute(context: MultiStepNodeContext): Promise<NodeExecution> {
     const startTime = Date.now();
 
     try {

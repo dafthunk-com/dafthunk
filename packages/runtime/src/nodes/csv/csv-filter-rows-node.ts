@@ -24,6 +24,7 @@ export class CsvFilterRowsNode extends ExecutableNode {
     documentation:
       "Filters rows in a Table based on a comparison operation on a specified column. Returns a new Table with only matching rows.",
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "table",

@@ -15,6 +15,7 @@ export class BotReceiveTelegramMessageNode extends ExecutableNode {
     inlinable: true,
     usage: 0,
     subscription: true,
+    asTool: false,
     inputs: [
       {
         name: "telegramBotId",

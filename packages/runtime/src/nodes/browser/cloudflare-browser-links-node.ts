@@ -16,13 +16,14 @@ export class CloudflareBrowserLinksNode extends ExecutableNode {
     name: "Browser Links",
     type: "cloudflare-browser-links",
     description:
-      "Fetch all links from a rendered page using Cloudflare Browser Rendering.",
+      "Fetch all links from a rendered page using Cloudflare Browser Rendering",
     tags: ["Browser", "Web", "Cloudflare", "Links"],
     icon: "link",
     documentation:
       "Extracts all links from a web page. Either url or html is required (not both). See [Cloudflare Browser Rendering Links Endpoint](https://developers.cloudflare.com/browser-rendering/rest-api/links-endpoint/) for details.",
     usage: 10,
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "url",
@@ -82,7 +83,7 @@ export class CloudflareBrowserLinksNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const validationError = validateBrowserInputs(this, context);
     if (validationError) return validationError;
 

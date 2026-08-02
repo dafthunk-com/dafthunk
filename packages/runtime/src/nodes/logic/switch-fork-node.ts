@@ -18,7 +18,7 @@ export class SwitchForkNode extends ExecutableNode {
     name: "Switch Fork",
     type: "switch-fork",
     description:
-      "Routes a value to a matching 'case_n' output based on a string selector, or 'default' when no case matches.",
+      "Routes a value to a matching 'case_n' output based on a string selector, or 'default' when no case matches",
     tags: ["Logic", "Branch", "Switch"],
     icon: "git-branch",
     documentation:
@@ -30,57 +30,58 @@ export class SwitchForkNode extends ExecutableNode {
       defaultCount: 2,
       minCount: 1,
     },
+    asTool: false,
     inputs: [
       {
         name: "value",
         type: "any",
-        description: "The value to forward to the selected case output.",
+        description: "The value to forward to the selected case output",
         required: true,
       },
       {
         name: "selector",
         type: "string",
-        description: "The string used to select which case output is taken.",
+        description: "The string used to select which case output is taken",
         required: true,
       },
       {
         name: "cases",
         type: "any",
         description:
-          "Number of case branches (managed by the inspector widget).",
+          "Number of case branches (managed by the inspector widget)",
         hidden: true,
       },
       {
         name: "case_1",
         type: "string",
-        description: "Case key compared against the selector.",
+        description: "Case key compared against the selector",
       },
       {
         name: "case_2",
         type: "string",
-        description: "Case key compared against the selector.",
+        description: "Case key compared against the selector",
       },
     ],
     outputs: [
       {
         name: "default",
         type: "any",
-        description: "Output when no case matches.",
+        description: "Output when no case matches",
       },
       {
         name: "case_1",
         type: "any",
-        description: "Output when selector equals case_1.",
+        description: "Output when selector equals case_1",
       },
       {
         name: "case_2",
         type: "any",
-        description: "Output when selector equals case_2.",
+        description: "Output when selector equals case_2",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const { selector, value, ...rest } = context.inputs;
 
     if (typeof selector !== "string") {

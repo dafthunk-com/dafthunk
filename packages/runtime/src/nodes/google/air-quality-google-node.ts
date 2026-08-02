@@ -18,6 +18,7 @@ export class AirQualityGoogleNode extends ExecutableNode {
       "This node retrieves current air quality conditions for a given latitude/longitude using the Google Air Quality API. Returns AQI index, pollutant concentrations, and health recommendations.",
     usage: 10,
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "latitude",
@@ -68,7 +69,7 @@ export class AirQualityGoogleNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { latitude, longitude, languageCode } = context.inputs;
       const apiKey = context.env.GOOGLE_API_KEY;

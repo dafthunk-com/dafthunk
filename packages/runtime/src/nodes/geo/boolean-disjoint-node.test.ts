@@ -25,7 +25,7 @@ describe("BooleanDisjointNode", () => {
   const node = new BooleanDisjointNode({
     id: "test-node",
     name: "Test Node",
-    type: "booleanDisjoint",
+    type: "boolean-disjoint",
     position: { x: 0, y: 0 },
     inputs: [],
     outputs: [],

@@ -1,5 +1,5 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
-import type { NodeExecution, NodeType } from "@dafthunk/types";
+import type { JsonValue, NodeExecution, NodeType } from "@dafthunk/types";
 import { JSONPath } from "jsonpath-plus";
 
 export class JsonExtractObjectNode extends ExecutableNode {
@@ -50,7 +50,7 @@ export class JsonExtractObjectNode extends ExecutableNode {
     ],
   };
 
-  private isJsonValue(value: any): boolean {
+  private isJsonValue(value: JsonValue): boolean {
     return value !== null && typeof value === "object";
   }
 
@@ -70,7 +70,9 @@ export class JsonExtractObjectNode extends ExecutableNode {
         const results = JSONPath({ path, json });
 
         // Get the first result that is a JSON value
-        const jsonValue = results.find((value: any) => this.isJsonValue(value));
+        const jsonValue = results.find((value: JsonValue) =>
+          this.isJsonValue(value)
+        );
         const found = this.isJsonValue(jsonValue);
 
         return this.createSuccessResult({

@@ -1,5 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
-import type { NodeExecution, NodeType } from "@dafthunk/types";
+import type { JsonValue, NodeExecution, NodeType } from "@dafthunk/types";
+import { getAtPath, hasKey, isJsonArray, readKey } from "./json-access";
 
 export class JsonExtractAllNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -48,19 +49,19 @@ export class JsonExtractAllNode extends ExecutableNode {
     ],
   };
 
-  private extractAllValues(obj: any, path: string): any[] {
+  private extractAllValues(obj: JsonValue, path: string): JsonValue[] {
     if (!path || path === "$") {
       return [obj];
     }
 
-    const values: any[] = [];
+    const values: JsonValue[] = [];
 
     // Handle wildcard array access like [*]
     if (path.includes("[*]")) {
       this.extractWithWildcard(obj, path, values);
     } else {
       // Handle specific path
-      const value = this.getValueAtPath(obj, path);
+      const value = getAtPath(obj, path);
       if (value !== undefined) {
         values.push(value);
       }
@@ -69,7 +70,11 @@ export class JsonExtractAllNode extends ExecutableNode {
     return values;
   }
 
-  private extractWithWildcard(obj: any, path: string, values: any[]): void {
+  private extractWithWildcard(
+    obj: JsonValue,
+    path: string,
+    values: JsonValue[]
+  ): void {
     // Simple wildcard extraction for common patterns
     // Supports $.items[*], $.items[*].name, etc.
 
@@ -77,8 +82,9 @@ export class JsonExtractAllNode extends ExecutableNode {
     const wildcardMatch = path.match(/^\$\.([^.]+)\[\*\]$/);
     if (wildcardMatch) {
       const [, key] = wildcardMatch;
-      if (obj[key] && Array.isArray(obj[key])) {
-        values.push(...obj[key]);
+      const target = readKey(obj, key);
+      if (isJsonArray(target)) {
+        values.push(...target);
       }
       return;
     }
@@ -87,10 +93,11 @@ export class JsonExtractAllNode extends ExecutableNode {
     const wildcardPropertyMatch = path.match(/^\$\.([^.]+)\[\*\]\.(.+)$/);
     if (wildcardPropertyMatch) {
       const [, key, property] = wildcardPropertyMatch;
-      if (obj[key] && Array.isArray(obj[key])) {
-        for (const item of obj[key]) {
-          if (item && typeof item === "object" && property in item) {
-            values.push(item[property]);
+      const target = readKey(obj, key);
+      if (isJsonArray(target)) {
+        for (const item of target) {
+          if (hasKey(item, property)) {
+            values.push(readKey(item, property));
           }
         }
       }
@@ -101,61 +108,18 @@ export class JsonExtractAllNode extends ExecutableNode {
     const nestedWildcardMatch = path.match(/^\$\.([^.]+)\.([^.]+)\[\*\]$/);
     if (nestedWildcardMatch) {
       const [, parentKey, childKey] = nestedWildcardMatch;
-      if (
-        obj[parentKey] &&
-        typeof obj[parentKey] === "object" &&
-        obj[parentKey][childKey] &&
-        Array.isArray(obj[parentKey][childKey])
-      ) {
-        values.push(...obj[parentKey][childKey]);
+      const child = readKey(readKey(obj, parentKey), childKey);
+      if (isJsonArray(child)) {
+        values.push(...child);
       }
       return;
     }
 
     // Fallback: try to extract as specific path
-    const value = this.getValueAtPath(obj, path);
+    const value = getAtPath(obj, path);
     if (value !== undefined) {
       values.push(value);
     }
-  }
-
-  private getValueAtPath(obj: any, path: string): any {
-    if (!path || path === "$") {
-      return obj;
-    }
-
-    // Simple path resolution for common cases
-    // Supports $.key, $.array[index], $.nested.key
-    const pathParts = path.replace(/^\$\.?/, "").split(".");
-    let current = obj;
-
-    for (const part of pathParts) {
-      if (current === null || current === undefined) {
-        return undefined;
-      }
-
-      // Handle array access like [0], [1], etc.
-      const arrayMatch = part.match(/^(.+)\[(\d+)\]$/);
-      if (arrayMatch) {
-        const [, key, index] = arrayMatch;
-        if (current[key] && Array.isArray(current[key])) {
-          const arrayIndex = parseInt(index, 10);
-          if (arrayIndex < 0 || arrayIndex >= current[key].length) {
-            return undefined;
-          }
-          current = current[key][arrayIndex];
-        } else {
-          return undefined;
-        }
-      } else {
-        if (!(part in current)) {
-          return undefined;
-        }
-        current = current[part];
-      }
-    }
-
-    return current;
   }
 
   public async execute(context: NodeContext): Promise<NodeExecution> {

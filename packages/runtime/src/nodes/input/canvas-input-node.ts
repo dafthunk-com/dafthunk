@@ -15,6 +15,8 @@ export class CanvasInputNode extends ExecutableNode {
     icon: "pencil",
     documentation:
       "This node provides a canvas widget that allows users to draw and outputs the drawing as an image.",
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "value",
@@ -60,7 +62,7 @@ export class CanvasInputNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { value } = context.inputs;
 

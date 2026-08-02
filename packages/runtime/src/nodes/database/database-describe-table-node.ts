@@ -11,24 +11,25 @@ export class DatabaseDescribeTableNode extends ExecutableNode {
     id: "database-describe-table",
     name: "Database Describe Table",
     type: "database-describe-table",
-    description: "Returns the schema (field definitions) of a table.",
+    description: "Returns the schema (field definitions) of a table",
     tags: ["Database", "Schema", "Describe"],
     icon: "database",
     documentation:
       "Describes a database table by returning its field definitions. Uses database introspection (PRAGMA table_info) to get field names and types. Useful for understanding table structure without fetching data.",
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "database",
         type: "database",
-        description: "Database ID.",
+        description: "Database ID",
         required: true,
         hidden: true,
       },
       {
         name: "table",
         type: "string",
-        description: "Name of the table to describe.",
+        description: "Name of the table to describe",
         required: true,
       },
     ],
@@ -36,12 +37,12 @@ export class DatabaseDescribeTableNode extends ExecutableNode {
       {
         name: "schema",
         type: "schema",
-        description: "Schema with name and field definitions.",
+        description: "Schema with name and field definitions",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const { database, table } = context.inputs;
 
     // Validate required inputs

@@ -7,7 +7,7 @@ export class ReceiveEmailNode extends ExecutableNode {
     name: "Receive Email",
     type: "receive-email",
     description:
-      "Extracts from, to, headers, and raw content from an incoming email.",
+      "Extracts from, to, headers, and raw content from an incoming email",
     tags: ["Social", "Email", "Receive"],
     icon: "mail",
     documentation:
@@ -15,6 +15,7 @@ export class ReceiveEmailNode extends ExecutableNode {
     trigger: true,
     subscription: true,
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "email",
@@ -28,34 +29,34 @@ export class ReceiveEmailNode extends ExecutableNode {
       {
         name: "from",
         type: "string",
-        description: "The sender's email address.",
+        description: "The sender's email address",
       },
       {
         name: "to",
         type: "string",
-        description: "The recipient's email address.",
+        description: "The recipient's email address",
       },
       {
         name: "headers",
         type: "json",
-        description: "Email headers as a JSON object.",
+        description: "Email headers as a JSON object",
       },
       {
         name: "raw",
         type: "string",
-        description: "The raw email content as a string.",
+        description: "The raw email content as a string",
       },
       {
         name: "threadId",
         type: "string",
         description:
-          "Mailbox thread this email belongs to (for threading replies and reading history).",
+          "Mailbox thread this email belongs to (for threading replies and reading history)",
         hidden: true,
       },
       {
         name: "messageId",
         type: "string",
-        description: "Mailbox id of this stored message.",
+        description: "Mailbox id of this stored message",
         hidden: true,
       },
     ],

@@ -8,11 +8,12 @@ export class LineArcNode extends ExecutableNode {
     name: "Line Arc",
     type: "line-arc",
     description:
-      "Creates a circular arc, of a circle of the given radius and center point, between bearing1 and bearing2.",
+      "Creates a circular arc, of a circle of the given radius and center point, between bearing1 and bearing2",
     tags: ["Geo", "GeoJSON", "Geometry", "LineArc"],
     icon: "circle",
     documentation: "This node creates a circular arc line between two points.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "center",
@@ -102,13 +103,7 @@ export class LineArcNode extends ExecutableNode {
       }
 
       // Delegate everything to Turf.js lineArc function
-      const arcFeature = lineArc(
-        center as any,
-        radius,
-        bearing1,
-        bearing2,
-        options
-      );
+      const arcFeature = lineArc(center, radius, bearing1, bearing2, options);
 
       return this.createSuccessResult({
         arc: arcFeature,

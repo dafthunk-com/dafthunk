@@ -11,12 +11,13 @@ export class GetEmailThreadNode extends ExecutableNode {
     name: "Get Email Thread",
     type: "get-email-thread",
     description:
-      "Retrieves the prior messages of a mailbox conversation thread.",
+      "Retrieves the prior messages of a mailbox conversation thread",
     tags: ["Social", "Email", "Receive"],
     icon: "mail",
     documentation:
       "Returns the messages of a mailbox thread in chronological order. When no thread is provided, it uses the thread of the email that triggered the workflow. Requires a persisted per-org mailbox address.",
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "threadId",
@@ -31,17 +32,17 @@ export class GetEmailThreadNode extends ExecutableNode {
         name: "messages",
         type: "json",
         description:
-          "Messages in the thread (chronological): direction, from, to, subject, snippet, timestamps.",
+          "Messages in the thread (chronological): direction, from, to, subject, snippet, timestamps",
       },
       {
         name: "subject",
         type: "string",
-        description: "Subject of the thread.",
+        description: "Subject of the thread",
       },
       {
         name: "count",
         type: "number",
-        description: "Number of messages in the thread.",
+        description: "Number of messages in the thread",
       },
     ],
   };

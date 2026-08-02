@@ -122,18 +122,18 @@ const EMAIL_AGENT_OUTPUTS: NodeType["outputs"] = [
   },
   {
     name: "finish_reason",
-    description: "Why the agent stopped: goal_reached, max_rounds, or error.",
+    description: "Why the agent stopped: goal_reached, max_rounds, or error",
     type: "string",
   },
   {
     name: "rounds",
-    description: "Number of conversation rounds the agent took.",
+    description: "Number of conversation rounds the agent took",
     type: "number",
     hidden: true,
   },
   {
     name: "usage_metadata",
-    description: "Token usage for the run.",
+    description: "Token usage for the run",
     type: "json",
     hidden: true,
   },
@@ -181,7 +181,7 @@ interface NormalizedInterlocutor {
 export abstract class BaseEmailAgentNode extends ExecutableNode {
   protected static readonly agentConfig: EmailAgentNodeConfig;
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const config = (this.constructor as typeof BaseEmailAgentNode).agentConfig;
 
     if (!context.asyncSupported || !context.executionId) {

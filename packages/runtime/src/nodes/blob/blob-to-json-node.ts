@@ -3,7 +3,7 @@ import {
   ExecutableNode,
   type NodeContext,
 } from "@dafthunk/runtime";
-import type { NodeExecution, NodeType } from "@dafthunk/types";
+import type { JsonValue, NodeExecution, NodeType } from "@dafthunk/types";
 
 export class BlobToJsonNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -67,7 +67,7 @@ export class BlobToJsonNode extends ExecutableNode {
       }
 
       // Parse the JSON string
-      let parsedJson: any;
+      let parsedJson: JsonValue;
       try {
         parsedJson = JSON.parse(jsonString);
       } catch (parseError) {

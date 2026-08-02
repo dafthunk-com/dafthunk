@@ -1,5 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import type { GenerateContentConfig } from "@google/genai";
 import { GoogleGenAI } from "@google/genai";
 import { getGoogleAIConfig } from "../../utils/ai-gateway";
 import { calculateTokenUsage, type TokenPricing } from "../../utils/usage";
@@ -27,6 +28,8 @@ export class Gemini25FlashAudioUnderstandingNode extends ExecutableNode {
       "This node uses Google's Gemini 2.5 Flash model to analyze and understand audio content.",
     usage: 1,
     subscription: true,
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "audio",
@@ -81,7 +84,7 @@ export class Gemini25FlashAudioUnderstandingNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { audio, prompt, thinking_budget } = context.inputs;
 
@@ -99,7 +102,7 @@ export class Gemini25FlashAudioUnderstandingNode extends ExecutableNode {
         ...getGoogleAIConfig(context.env),
       });
 
-      const config: any = {};
+      const config: GenerateContentConfig = {};
 
       // Configure thinking budget if provided
       if (thinking_budget !== undefined && thinking_budget !== null) {
@@ -143,8 +146,8 @@ export class Gemini25FlashAudioUnderstandingNode extends ExecutableNode {
       }
 
       const textParts = content.parts
-        .filter((part: any) => part?.text)
-        .map((part: any) => part.text)
+        .filter((part) => part?.text)
+        .map((part) => part.text)
         .join("");
 
       if (!textParts) {

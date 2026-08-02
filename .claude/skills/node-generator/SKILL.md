@@ -135,6 +135,31 @@ export class [NodeClassName]Node extends ExecutableNode {
 - Use descriptive error messages with input names and types
 - Use nested try-catch for risky operations (parsing, external APIs)
 - Handle edge cases: empty arrays/strings, zero/negative numbers
+- Never let `execute` throw — every failure path returns `createErrorResult`.
+  A thrown error still gets caught by the runtime, but the message loses the
+  node's context, so the user sees a bare "fetch failed" with no clue which
+  step broke.
+
+**Conventions enforced across all nodes:**
+
+| Rule | Why |
+|------|-----|
+| `id === type`, kebab-case, matching the filename minus `-node` | `type` is the discriminator persisted in stored workflow graphs; renaming it breaks saved workflows |
+| Descriptions (node, inputs, outputs) carry no trailing period when they are a single sentence | The UI renders them inline; multi-sentence text keeps its punctuation |
+| `documentation` only when it says something the description does not | Otherwise it is noise on the node's docs page — omit it |
+| `public async execute(...)`, `public static readonly nodeType` | Matches every other node; no implicit-visibility members |
+| No `any`, anywhere | `context.inputs` is untyped, so narrow it at the top of `execute` with guards, not casts |
+| Every node registered in `cloudflare-node-registry.ts` | An unregistered node is dead code the editor can never surface |
+
+**Shared helpers — reach for these before writing your own:**
+- `nodes/json/json-access.ts` — typed traversal of parsed JSON (`getAtPath`,
+  `hasPath`, `readKey`, `writeKey`, `deepEqual`, `deepClone`)
+- `nodes/geo/geo-input.ts` — GeoJSON and unit guards (`isGeoJSON`,
+  `isGeoJSONOf`, `isUnits`, `extractPosition`)
+- `nodes/image/execute-photon-operation.ts` — Photon lifecycle with guaranteed
+  resource cleanup
+- `utils/zod.ts` + a static `inputSchema` — the preferred validation style for
+  new nodes; `zodErrorMessage` renders a readable failure
 
 ## Step 3: Create Test File
 

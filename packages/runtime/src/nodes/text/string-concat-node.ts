@@ -18,6 +18,7 @@ export class StringConcatNode extends ExecutableNode {
       defaultCount: 2,
       minCount: 1,
     },
+    asTool: false,
     inputs: [
       {
         name: "input_1",

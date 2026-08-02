@@ -17,6 +17,8 @@ export class BotSendDMDiscordNode extends ExecutableNode {
       "This node sends a direct message to a Discord user using the bot token. The bot must share a server with the user.",
     usage: 10,
     subscription: true,
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "userId",
@@ -59,7 +61,7 @@ export class BotSendDMDiscordNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { userId, content, embeds } = context.inputs;
       const botToken = context.discordBotToken;

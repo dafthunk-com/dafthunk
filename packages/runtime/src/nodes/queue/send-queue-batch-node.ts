@@ -8,17 +8,18 @@ export class SendQueueBatchNode extends ExecutableNode {
     name: "Send Queue Batch",
     type: "queue-send-batch",
     description:
-      "Sends multiple messages to a message queue in a single batch operation.",
+      "Sends multiple messages to a message queue in a single batch operation",
     tags: ["Queue", "Send", "Message", "Batch"],
     icon: "send",
     documentation:
       "Sends multiple messages to a queue efficiently in a single batch operation. Each message will be delivered independently to all workflows subscribed to the queue. Use this for high-throughput scenarios when you need to send many messages at once.",
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "queueId",
         type: "queue",
-        description: "Queue ID.",
+        description: "Queue ID",
         required: true,
         hidden: true,
       },
@@ -26,14 +27,14 @@ export class SendQueueBatchNode extends ExecutableNode {
         name: "schema",
         type: "schema",
         description:
-          "Optional schema to validate and coerce each message payload before sending.",
+          "Optional schema to validate and coerce each message payload before sending",
         required: false,
         hidden: true,
       },
       {
         name: "messages",
         type: "json",
-        description: "Array of message payloads (array of any JSON values).",
+        description: "Array of message payloads (array of any JSON values)",
         required: true,
       },
     ],
@@ -41,22 +42,22 @@ export class SendQueueBatchNode extends ExecutableNode {
       {
         name: "success",
         type: "boolean",
-        description: "True if all messages were sent successfully.",
+        description: "True if all messages were sent successfully",
       },
       {
         name: "messageIds",
         type: "json",
-        description: "Array of unique identifiers for the sent messages.",
+        description: "Array of unique identifiers for the sent messages",
       },
       {
         name: "count",
         type: "number",
-        description: "Total number of messages sent in the batch.",
+        description: "Total number of messages sent in the batch",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const { queueId, messages, schema } = context.inputs;
 
     // Validate required inputs

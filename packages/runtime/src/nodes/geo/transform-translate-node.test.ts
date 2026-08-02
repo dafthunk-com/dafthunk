@@ -18,7 +18,7 @@ describe("TransformTranslateNode", () => {
   const node = new TransformTranslateNode({
     id: "test-node",
     name: "Test Node",
-    type: "transformTranslate",
+    type: "transform-translate",
     position: { x: 0, y: 0 },
     inputs: [],
     outputs: [],

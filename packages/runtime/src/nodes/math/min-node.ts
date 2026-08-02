@@ -12,7 +12,6 @@ export class MinNode extends ExecutableNode {
     description: "Returns the minimum value from multiple numbers",
     tags: ["Math", "Minimum"],
     icon: "arrow-down",
-    documentation: "This node returns the minimum value from multiple numbers.",
     specification: "result = min(numbers), where |numbers| > 0",
     inlinable: true,
     asTool: true,
@@ -35,7 +34,7 @@ export class MinNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { numbers } = context.inputs;
 

@@ -43,6 +43,16 @@ export function validateBrowserInputs(
 }
 
 /**
+ * Envelope every Browser Rendering endpoint returns. `result` is endpoint
+ * specific — callers narrow it themselves before use.
+ */
+export interface BrowserRenderingResponse {
+  result?: unknown;
+  errors?: Array<{ message?: string }>;
+  success?: boolean;
+}
+
+/**
  * Calls the Cloudflare Browser Rendering REST API and returns the
  * parsed JSON response. Handles auth headers, error extraction, and
  * usage calculation.
@@ -52,7 +62,10 @@ export async function fetchBrowserRenderingJson(
   endpoint: string,
   body: Record<string, unknown>,
   startTime: number
-): Promise<{ json: any; status: number; usage: number } | { error: string }> {
+): Promise<
+  | { json: BrowserRenderingResponse; status: number; usage: number }
+  | { error: string }
+> {
   const { CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN } = context.env;
   const url = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/browser-rendering/${endpoint}`;
 
@@ -67,7 +80,7 @@ export async function fetchBrowserRenderingJson(
     });
 
     const status = response.status;
-    const json: any = await response.json();
+    const json = (await response.json()) as BrowserRenderingResponse;
 
     if (
       !response.ok ||

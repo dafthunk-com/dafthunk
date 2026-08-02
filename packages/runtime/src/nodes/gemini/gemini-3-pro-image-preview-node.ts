@@ -32,6 +32,8 @@ export class Gemini3ProImagePreviewNode extends ExecutableNode {
       "This node uses Google's Gemini 3 Pro Image Preview model for high-fidelity image generation with advanced reasoning, complex multi-turn creation, and high-resolution output (up to 4K).",
     usage: 1,
     subscription: true,
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "prompt",
@@ -109,7 +111,7 @@ export class Gemini3ProImagePreviewNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     let ai: GoogleGenAI | undefined;
 
     try {

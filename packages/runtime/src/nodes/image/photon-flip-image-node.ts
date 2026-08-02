@@ -21,18 +21,17 @@ export class PhotonFlipImageNode extends ExecutableNode {
     id: "photon-flip-image",
     name: "Flip Image",
     type: "photon-flip-image",
-    description: "Flips an image horizontally or vertically using Photon.",
+    description: "Flips an image horizontally or vertically using Photon",
     tags: ["Image", "Photon", "Transform", "Flip"],
     icon: "repeat",
-    documentation:
-      "This node flips an image horizontally or vertically using Photon.",
     inlinable: true,
     usage: 10,
+    asTool: false,
     inputs: [
       {
         name: "image",
         type: "image",
-        description: "The input image to flip.",
+        description: "The input image to flip",
         required: true,
       },
       {
@@ -48,12 +47,12 @@ export class PhotonFlipImageNode extends ExecutableNode {
       {
         name: "image",
         type: "image",
-        description: "The flipped image (PNG format).",
+        description: "The flipped image (PNG format)",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const parsed = PhotonFlipImageNode.inputSchema.safeParse(context.inputs);
     if (!parsed.success) {
       return this.createErrorResult(zodErrorMessage(parsed.error));

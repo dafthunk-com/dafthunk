@@ -47,6 +47,7 @@ export class JsonSchemaExtractNode extends ExecutableNode {
     tags: ["Data", "JSON", "Schema", "Extract"],
     icon: "braces",
     inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "schema",
@@ -65,7 +66,7 @@ export class JsonSchemaExtractNode extends ExecutableNode {
     outputs: [],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const { schema: schemaInput, record } = context.inputs;
 
     if (

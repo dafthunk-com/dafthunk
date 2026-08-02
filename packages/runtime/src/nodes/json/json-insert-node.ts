@@ -1,5 +1,12 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
-import type { NodeExecution, NodeType } from "@dafthunk/types";
+import type {
+  JsonArray,
+  JsonObject,
+  JsonValue,
+  NodeExecution,
+  NodeType,
+} from "@dafthunk/types";
+import { isJsonArray, isJsonObject, writeKey } from "./json-access";
 
 export class JsonInsertNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -89,7 +96,11 @@ export class JsonInsertNode extends ExecutableNode {
     }
   }
 
-  private insertValueAtPath(obj: any, path: string, value: any): boolean {
+  private insertValueAtPath(
+    obj: JsonValue,
+    path: string,
+    value: JsonValue
+  ): boolean {
     try {
       const pathParts = this.parsePath(path);
 
@@ -105,46 +116,28 @@ export class JsonInsertNode extends ExecutableNode {
         const part = pathParts[i];
 
         if (typeof part === "string") {
-          if (typeof current !== "object" || current === null) {
-            current = {};
+          const container: JsonObject = isJsonObject(current) ? current : {};
+          if (!(part in container)) {
+            // Grow an array when the next segment indexes into it.
+            container[part] = typeof pathParts[i + 1] === "number" ? [] : {};
           }
-          if (!(part in current)) {
-            // Check if the next part is a number (array index)
-            const nextPart = pathParts[i + 1];
-            if (typeof nextPart === "number") {
-              current[part] = [];
-            } else {
-              current[part] = {};
-            }
-          }
-          current = current[part];
+          current = container[part];
         } else if (typeof part === "number") {
-          if (!Array.isArray(current)) {
-            current = [];
+          const container: JsonArray = isJsonArray(current) ? current : [];
+          while (container.length <= part) {
+            container.push(typeof pathParts[i + 1] === "string" ? {} : null);
           }
-          while (current.length <= part) {
-            // Check if the next part is a string (object property)
-            const nextPart = pathParts[i + 1];
-            if (typeof nextPart === "string") {
-              current.push({});
-            } else {
-              current.push(null);
-            }
-          }
-          current = current[part];
+          current = container[part];
         }
       }
 
       // Insert the value at the final path part (overwrite if exists)
       const finalPart = pathParts[pathParts.length - 1];
       if (typeof finalPart === "string") {
-        if (typeof current !== "object" || current === null) {
-          return false;
-        }
-        current[finalPart] = value;
-        return true;
-      } else if (typeof finalPart === "number") {
-        if (!Array.isArray(current)) {
+        return writeKey(current, finalPart, value);
+      }
+      if (typeof finalPart === "number") {
+        if (!isJsonArray(current)) {
           return false;
         }
         const actualIndex =

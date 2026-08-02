@@ -41,7 +41,7 @@ export class ParquetQueryNode extends ExecutableNode {
     name: "Parquet Query",
     type: "parquet-query",
     description:
-      "Executes a DuckDB SQL query on remote Parquet, CSV, or JSON files.",
+      "Executes a DuckDB SQL query on remote Parquet, CSV, or JSON files",
     tags: ["Database", "Parquet", "DuckDB", "Query"],
     icon: "table-2",
     documentation:
@@ -50,6 +50,7 @@ export class ParquetQueryNode extends ExecutableNode {
       "Supports read_parquet(), read_csv(), and read_json() functions. " +
       "Example: SELECT * FROM read_parquet('https://example.com/data.parquet') LIMIT 10",
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "sql",
@@ -63,23 +64,23 @@ export class ParquetQueryNode extends ExecutableNode {
       {
         name: "schema",
         type: "schema",
-        description: "Schema inferred from the query results.",
+        description: "Schema inferred from the query results",
       },
       {
         name: "results",
         type: "json",
-        description: "Query results as an array of objects.",
+        description: "Query results as an array of objects",
       },
       {
         name: "count",
         type: "number",
-        description: "Number of rows returned.",
+        description: "Number of rows returned",
         hidden: true,
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const { sql } = context.inputs;
 
     if (!sql || typeof sql !== "string") {

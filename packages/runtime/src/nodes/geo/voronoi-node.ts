@@ -8,12 +8,13 @@ export class VoronoiNode extends ExecutableNode {
     name: "Voronoi",
     type: "voronoi",
     description:
-      "Takes a collection of points and a bounding box, and returns a collection of Voronoi polygons.",
+      "Takes a collection of points and a bounding box, and returns a collection of Voronoi polygons",
     tags: ["Geo", "GeoJSON", "Geometry", "Voronoi"],
     icon: "hexagon",
     documentation:
       "This node creates Voronoi polygons from a set of points, where each polygon contains all locations closest to its input point.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "points",
@@ -73,7 +74,7 @@ export class VoronoiNode extends ExecutableNode {
       }
 
       // Delegate everything to Turf.js voronoi function
-      const voronoiPolygons = voronoi(points as any, options);
+      const voronoiPolygons = voronoi(points, options);
 
       return this.createSuccessResult({
         voronoi: voronoiPolygons,

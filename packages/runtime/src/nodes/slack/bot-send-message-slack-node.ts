@@ -13,6 +13,8 @@ export class BotSendMessageSlackNode extends ExecutableNode {
       "This node sends messages to Slack channels using the bot token. Optionally specify a thread_ts to reply in a thread.",
     usage: 10,
     subscription: true,
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "channelId",
@@ -55,7 +57,7 @@ export class BotSendMessageSlackNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { channelId, text, threadTs } = context.inputs;
       const botToken = context.slackBotToken;

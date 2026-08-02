@@ -8,12 +8,13 @@ export class UnkinkPolygonNode extends ExecutableNode {
     name: "Unkink Polygon",
     type: "unkink-polygon",
     description:
-      "Takes a kinked polygon and returns a feature collection of polygons that have no kinks.",
+      "Takes a kinked polygon and returns a feature collection of polygons that have no kinks",
     tags: ["Geo", "GeoJSON", "Transform", "UnkinkPolygon"],
     icon: "scissors",
     documentation:
       "This node removes self-intersections (kinks) from a polygon by splitting it into multiple valid polygons.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "polygon",
@@ -40,7 +41,7 @@ export class UnkinkPolygonNode extends ExecutableNode {
       }
 
       // Delegate everything to Turf.js unkinkPolygon function
-      const unkinkedPolygons = unkinkPolygon(polygon as any);
+      const unkinkedPolygons = unkinkPolygon(polygon);
 
       return this.createSuccessResult({
         unkinked: unkinkedPolygons,

@@ -39,6 +39,7 @@ export class ClipVideoNode extends MultiStepNode {
       "This node trims a video to the specified start and end times (in seconds). It uses FFmpeg running in a Cloudflare Container for processing. Input-seeking is used for fast operation — output is MP4 with H.264 video and AAC audio (when audio is present).",
     inlinable: false,
     usage: 5,
+    asTool: false,
     inputs: [
       {
         name: "video",
@@ -70,7 +71,7 @@ export class ClipVideoNode extends MultiStepNode {
     ],
   };
 
-  async execute(context: MultiStepNodeContext): Promise<NodeExecution> {
+  public async execute(context: MultiStepNodeContext): Promise<NodeExecution> {
     const { sleep, doStep } = context;
 
     try {
@@ -82,10 +83,8 @@ export class ClipVideoNode extends MultiStepNode {
         );
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const containerBinding = (context.env as any).FFMPEG_CONTAINER as
-        | DurableObjectNamespace
-        | undefined;
+      const containerBinding: DurableObjectNamespace | undefined =
+        context.env.FFMPEG_CONTAINER;
       if (!containerBinding) {
         return this.createErrorResult(
           "FFMPEG_CONTAINER binding is not configured"

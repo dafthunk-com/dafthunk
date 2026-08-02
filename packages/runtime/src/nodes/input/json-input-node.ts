@@ -18,6 +18,8 @@ export class JsonInputNode extends ExecutableNode {
     icon: "code",
     documentation:
       "This node provides a JSON editor widget for editing and validating JSON data with syntax highlighting and error checking.",
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "json",
@@ -36,7 +38,7 @@ export class JsonInputNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const { json } = context.inputs;
 
     // Handle null or undefined

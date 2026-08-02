@@ -4,15 +4,16 @@ import type { NodeExecution, NodeType } from "@dafthunk/types";
 
 export class BooleanCrossesNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "booleanCrosses",
+    id: "boolean-crosses",
     name: "Boolean Crosses",
-    type: "booleanCrosses",
+    type: "boolean-crosses",
     description:
-      "Tests whether two geometries cross each other (intersect but do not contain each other).",
+      "Tests whether two geometries cross each other (intersect but do not contain each other)",
     tags: ["Geo", "GeoJSON", "Boolean", "Crosses"],
     icon: "x",
     documentation: "This node checks if two geometries cross each other.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "feature1",

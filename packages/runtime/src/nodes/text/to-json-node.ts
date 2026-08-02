@@ -13,8 +13,8 @@ export class ToJsonNode extends ExecutableNode {
     description: "Converts any input value to its JSON representation",
     tags: ["Data", "Convert", "JSON"],
     icon: "code",
-    documentation:
-      "This node converts any input value to its JSON representation.",
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "value",
@@ -39,7 +39,7 @@ export class ToJsonNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { value, prettyPrint } = context.inputs;
 

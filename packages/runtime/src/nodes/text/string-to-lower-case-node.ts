@@ -11,6 +11,7 @@ export class StringToLowerCaseNode extends ExecutableNode {
     icon: "text",
     documentation: "This node converts any string to lowercase letters.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "string",

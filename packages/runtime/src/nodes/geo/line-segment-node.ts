@@ -8,12 +8,13 @@ export class LineSegmentNode extends ExecutableNode {
     name: "Line Segment",
     type: "line-segment",
     description:
-      "Creates a FeatureCollection of 2-vertex LineString segments from a (Multi)LineString or (Multi)Polygon.",
+      "Creates a FeatureCollection of 2-vertex LineString segments from a (Multi)LineString or (Multi)Polygon",
     tags: ["Geo", "GeoJSON", "Transform", "LineSegment"],
     icon: "git-branch",
     documentation:
       "This node breaks down a LineString or Polygon into individual 2-vertex line segments.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "geojson",
@@ -40,7 +41,7 @@ export class LineSegmentNode extends ExecutableNode {
       }
 
       // Delegate everything to Turf.js lineSegment function
-      const segmentFeatures = lineSegment(geojson as any);
+      const segmentFeatures = lineSegment(geojson);
 
       return this.createSuccessResult({
         segments: segmentFeatures,

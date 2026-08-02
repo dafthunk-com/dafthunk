@@ -23,15 +23,14 @@ export class PhotonAdjustContrastNode extends ExecutableNode {
       "Adjusts image contrast. Values typically range from -100 to 100.",
     tags: ["Image", "Photon", "Adjust", "Contrast"],
     icon: "contrast",
-    documentation:
-      "This node adjusts image contrast. Values typically range from -100 to 100.",
     inlinable: true,
     usage: 10,
+    asTool: false,
     inputs: [
       {
         name: "image",
         type: "image",
-        description: "The input image to adjust.",
+        description: "The input image to adjust",
         required: true,
       },
       {
@@ -47,12 +46,12 @@ export class PhotonAdjustContrastNode extends ExecutableNode {
       {
         name: "image",
         type: "image",
-        description: "The contrast-adjusted image (PNG format).",
+        description: "The contrast-adjusted image (PNG format)",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const parsed = PhotonAdjustContrastNode.inputSchema.safeParse(
       context.inputs
     );

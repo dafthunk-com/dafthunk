@@ -7,7 +7,7 @@ export class ReceiveQueueMessageNode extends ExecutableNode {
     id: "queue-message",
     name: "Receive Queue Message",
     type: "queue-message",
-    description: "Receives and extracts the message payload from a queue.",
+    description: "Receives and extracts the message payload from a queue",
     tags: ["Data", "Parameter", "Queue"],
     icon: "inbox",
     documentation:
@@ -19,7 +19,7 @@ export class ReceiveQueueMessageNode extends ExecutableNode {
       {
         name: "queueId",
         type: "queue",
-        description: "The queue ID to listen to for messages.",
+        description: "The queue ID to listen to for messages",
         required: true,
         hidden: true,
       },
@@ -27,7 +27,7 @@ export class ReceiveQueueMessageNode extends ExecutableNode {
         name: "schema",
         type: "schema",
         description:
-          "Optional schema to validate and coerce the received message payload.",
+          "Optional schema to validate and coerce the received message payload",
         required: false,
         hidden: true,
       },

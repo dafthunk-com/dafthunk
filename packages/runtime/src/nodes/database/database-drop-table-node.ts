@@ -7,24 +7,25 @@ export class DatabaseDropTableNode extends ExecutableNode {
     id: "database-drop-table",
     name: "Database Drop Table",
     type: "database-drop-table",
-    description: "Drops (deletes) a table from a database.",
+    description: "Drops (deletes) a table from a database",
     tags: ["Database", "Drop", "Delete"],
     icon: "database",
     documentation:
       "Drops (deletes) a table from a database. This operation is irreversible and will delete both the table structure and all its data. Use with caution.",
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "database",
         type: "database",
-        description: "Database ID.",
+        description: "Database ID",
         required: true,
         hidden: true,
       },
       {
         name: "table",
         type: "string",
-        description: "Name of the table to drop.",
+        description: "Name of the table to drop",
         required: true,
       },
     ],
@@ -32,12 +33,12 @@ export class DatabaseDropTableNode extends ExecutableNode {
       {
         name: "success",
         type: "boolean",
-        description: "True if the table was dropped successfully.",
+        description: "True if the table was dropped successfully",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const { database, table } = context.inputs;
 
     // Validate required inputs

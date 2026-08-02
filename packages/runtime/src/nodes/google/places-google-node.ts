@@ -17,6 +17,7 @@ export class PlacesGoogleNode extends ExecutableNode {
       "This node searches for places using the Google Places API (New). Search by text query with optional location bias. Returns place names, addresses, coordinates, ratings, and more.",
     usage: 100,
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "query",
@@ -90,7 +91,7 @@ export class PlacesGoogleNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const {
         query,

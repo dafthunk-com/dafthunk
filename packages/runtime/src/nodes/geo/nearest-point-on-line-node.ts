@@ -2,18 +2,20 @@ import type { Units } from "@dafthunk/geo";
 import { nearestPointOnLine } from "@dafthunk/geo";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { isUnits } from "./geo-input";
 
 export class NearestPointOnLineNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "nearest-point-on-line",
     name: "Nearest Point On Line",
     type: "nearest-point-on-line",
-    description: "Returns the nearest point on a line to a given point.",
+    description: "Returns the nearest point on a line to a given point",
     tags: ["Geo", "GeoJSON", "Measurement", "NearestPointOnLine"],
     icon: "map-pin",
     documentation:
       "This node finds the nearest point on a line to a given point.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "lines",
@@ -60,27 +62,23 @@ export class NearestPointOnLineNode extends ExecutableNode {
       const options: { units?: Units } = {};
 
       if (units !== undefined && units !== null) {
-        if (typeof units !== "string") {
-          return this.createErrorResult("Units must be a string");
-        }
-
-        const validUnits: Units[] = [
+        // This operation only supports a subset of the unit list.
+        const supported: Units[] = [
           "degrees",
           "radians",
           "miles",
           "kilometers",
         ];
-        if (!validUnits.includes(units as Units)) {
+        if (!isUnits(units) || !supported.includes(units)) {
           return this.createErrorResult(
             "Units must be one of: degrees, radians, miles, kilometers"
           );
         }
-
-        options.units = units as Units;
+        options.units = units;
       }
 
       // Delegate everything to Turf.js nearestPointOnLine function
-      const nearestPoint = nearestPointOnLine(lines as any, pt as any, options);
+      const nearestPoint = nearestPointOnLine(lines, pt, options);
 
       return this.createSuccessResult({
         nearest: nearestPoint,

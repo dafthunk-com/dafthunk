@@ -8,12 +8,13 @@ export class PointOnFeatureNode extends ExecutableNode {
     name: "Point On Feature",
     type: "point-on-feature",
     description:
-      "Takes a Feature or FeatureCollection and returns a Point guaranteed to be on the surface of the feature.",
+      "Takes a Feature or FeatureCollection and returns a Point guaranteed to be on the surface of the feature",
     tags: ["Geo", "GeoJSON", "Geometry", "PointOnFeature"],
     icon: "map-pin",
     documentation:
       "This node finds a random point that lies within a given polygon or on a line.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "geojson",
@@ -40,7 +41,7 @@ export class PointOnFeatureNode extends ExecutableNode {
       }
 
       // Delegate to Turf.js pointOnFeature function
-      const pointOnSurface = pointOnFeature(geojson as any);
+      const pointOnSurface = pointOnFeature(geojson);
 
       return this.createSuccessResult({
         point: pointOnSurface,

@@ -17,6 +17,7 @@ export class DatasetListFilesNode extends ExecutableNode {
       "This node lists all files stored in a dataset. Returns an array of files with their metadata.",
     usage: 3,
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "datasetId",
@@ -40,7 +41,7 @@ export class DatasetListFilesNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { datasetId } = context.inputs;
       const { organizationId } = context;

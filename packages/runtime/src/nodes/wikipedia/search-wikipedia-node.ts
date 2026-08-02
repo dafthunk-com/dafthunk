@@ -17,6 +17,7 @@ export class SearchWikipediaNode extends ExecutableNode {
       "This node searches Wikipedia for articles matching a query using the MediaWiki action API. Returns article titles, snippets, page IDs, and metadata. No API key required.",
     usage: 10,
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "query",
@@ -69,7 +70,7 @@ export class SearchWikipediaNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { query, language, limit, offset } = context.inputs;
 

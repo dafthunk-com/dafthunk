@@ -1,5 +1,12 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
-import type { NodeExecution, NodeType } from "@dafthunk/types";
+import type {
+  JsonArray,
+  JsonObject,
+  JsonValue,
+  NodeExecution,
+  NodeType,
+} from "@dafthunk/types";
+import { hasPath, isJsonArray, isJsonObject, writeKey } from "./json-access";
 
 export class JsonSetNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -74,7 +81,7 @@ export class JsonSetNode extends ExecutableNode {
       const result = JSON.parse(JSON.stringify(base));
 
       // Check if path exists before setting
-      const pathExists = this.pathExists(result, path);
+      const pathExists = hasPath(result, path);
 
       // Set the value at the specified path
       const success = this.setValueAtPath(result, path, value);
@@ -92,50 +99,11 @@ export class JsonSetNode extends ExecutableNode {
     }
   }
 
-  private pathExists(obj: any, path: string): boolean {
-    try {
-      const pathParts = this.parsePath(path);
-
-      // If path is invalid or empty, return false
-      if (pathParts.length === 0) {
-        return false;
-      }
-
-      let current = obj;
-
-      for (const part of pathParts) {
-        if (current === null || current === undefined) {
-          return false;
-        }
-
-        if (typeof part === "string") {
-          if (typeof current !== "object" || Array.isArray(current)) {
-            return false;
-          }
-          if (!(part in current)) {
-            return false;
-          }
-          current = current[part];
-        } else if (typeof part === "number") {
-          if (!Array.isArray(current)) {
-            return false;
-          }
-          // Handle negative indices by converting to positive
-          const actualIndex = part < 0 ? current.length + part : part;
-          if (actualIndex < 0 || actualIndex >= current.length) {
-            return false;
-          }
-          current = current[actualIndex];
-        }
-      }
-
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  private setValueAtPath(obj: any, path: string, value: any): boolean {
+  private setValueAtPath(
+    obj: JsonValue,
+    path: string,
+    value: JsonValue
+  ): boolean {
     try {
       const pathParts = this.parsePath(path);
 
@@ -151,47 +119,30 @@ export class JsonSetNode extends ExecutableNode {
         const part = pathParts[i];
 
         if (typeof part === "string") {
-          if (typeof current !== "object" || current === null) {
-            current = {};
+          const container: JsonObject = isJsonObject(current) ? current : {};
+          if (!(part in container)) {
+            // Grow an array when the next segment indexes into it.
+            container[part] = typeof pathParts[i + 1] === "number" ? [] : {};
           }
-          if (!(part in current)) {
-            // Check if the next part is a number (array index)
-            const nextPart = pathParts[i + 1];
-            if (typeof nextPart === "number") {
-              current[part] = [];
-            } else {
-              current[part] = {};
-            }
-          }
-          current = current[part];
+          current = container[part];
         } else if (typeof part === "number") {
-          if (!Array.isArray(current)) {
-            current = [];
-          }
+          const container: JsonArray = isJsonArray(current) ? current : [];
           // Handle negative indices by converting to positive
-          const actualIndex = part < 0 ? current.length + part : part;
-          while (current.length <= actualIndex) {
-            // Check if the next part is a string (object property)
-            const nextPart = pathParts[i + 1];
-            if (typeof nextPart === "string") {
-              current.push({});
-            } else {
-              current.push(null);
-            }
+          const actualIndex = part < 0 ? container.length + part : part;
+          while (container.length <= actualIndex) {
+            container.push(typeof pathParts[i + 1] === "string" ? {} : null);
           }
-          current = current[actualIndex];
+          current = container[actualIndex];
         }
       }
 
       // Set the value at the final path part
       const finalPart = pathParts[pathParts.length - 1];
       if (typeof finalPart === "string") {
-        if (typeof current !== "object" || current === null) {
-          return false;
-        }
-        current[finalPart] = value;
-      } else if (typeof finalPart === "number") {
-        if (!Array.isArray(current)) {
+        return writeKey(current, finalPart, value);
+      }
+      if (typeof finalPart === "number") {
+        if (!isJsonArray(current)) {
           return false;
         }
         // Handle negative indices by converting to positive

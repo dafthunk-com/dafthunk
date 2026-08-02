@@ -16,6 +16,7 @@ export class BotReceiveDiscordMessageNode extends ExecutableNode {
     inlinable: true,
     usage: 0,
     subscription: true,
+    asTool: false,
     inputs: [
       {
         name: "discordBotId",

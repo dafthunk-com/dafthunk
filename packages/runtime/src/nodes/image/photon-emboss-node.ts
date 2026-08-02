@@ -19,18 +19,17 @@ export class PhotonEmbossNode extends ExecutableNode {
     name: "Emboss Effect",
     type: "photon-emboss",
     description:
-      "Applies an emboss effect to an image, giving it a carved or stamped appearance.",
+      "Applies an emboss effect to an image, giving it a carved or stamped appearance",
     tags: ["Image", "Photon", "Effect", "Emboss"],
     icon: "trending-up",
-    documentation:
-      "This node applies an emboss effect to an image, giving it a carved or stamped appearance.",
     inlinable: true,
     usage: 10,
+    asTool: false,
     inputs: [
       {
         name: "image",
         type: "image",
-        description: "The input image to apply the emboss effect to.",
+        description: "The input image to apply the emboss effect to",
         required: true,
       },
     ],
@@ -38,12 +37,12 @@ export class PhotonEmbossNode extends ExecutableNode {
       {
         name: "image",
         type: "image",
-        description: "The embossed image (PNG format).",
+        description: "The embossed image (PNG format)",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const parsed = PhotonEmbossNode.inputSchema.safeParse(context.inputs);
     if (!parsed.success) {
       return this.createErrorResult(zodErrorMessage(parsed.error));

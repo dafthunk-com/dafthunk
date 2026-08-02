@@ -13,6 +13,8 @@ export class BotSendMessageDiscordNode extends ExecutableNode {
       "This node sends messages to Discord channels using the bot token. When interactionToken and applicationId are provided, it edits the deferred interaction response (resolves the 'thinking...' indicator). Otherwise, it sends a regular channel message.",
     usage: 10,
     subscription: true,
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "channelId",
@@ -68,7 +70,7 @@ export class BotSendMessageDiscordNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { channelId, content, embeds, interactionToken, applicationId } =
         context.inputs;

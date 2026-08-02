@@ -12,37 +12,38 @@ export class DatabaseImportTableNode extends ExecutableNode {
     id: "database-import-table",
     name: "Database Import Table",
     type: "database-import-table",
-    description: "Imports a table with schema and data into a database.",
+    description: "Imports a table with schema and data into a database",
     tags: ["Database", "Import", "Table"],
     icon: "database",
     documentation:
       "Imports a table into a database. If the table doesn't exist, it creates it. Supports two modes: 'append' adds data to existing table, 'replace' drops and recreates the table. Supports basic types: string, integer, number, boolean, datetime, json.",
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "database",
         type: "database",
-        description: "Database ID.",
+        description: "Database ID",
         required: true,
         hidden: true,
       },
       {
         name: "schema",
         type: "schema",
-        description: "Schema defining the table structure and field types.",
+        description: "Schema defining the table structure and field types",
         required: true,
       },
       {
         name: "data",
         type: "json",
-        description: "Array of data rows (objects).",
+        description: "Array of data rows (objects)",
         required: true,
       },
       {
         name: "mode",
         type: "string",
         description:
-          "Import mode: 'append' (default) adds data to existing table, 'replace' drops and recreates table.",
+          "Import mode: 'append' (default) adds data to existing table, 'replace' drops and recreates table",
         required: false,
         hidden: true,
         value: "append",
@@ -52,17 +53,17 @@ export class DatabaseImportTableNode extends ExecutableNode {
       {
         name: "created",
         type: "boolean",
-        description: "True if the table was created (didn't exist before).",
+        description: "True if the table was created (didn't exist before)",
       },
       {
         name: "inserted",
         type: "number",
-        description: "Number of rows inserted.",
+        description: "Number of rows inserted",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const {
       database,
       schema: schemaInput,

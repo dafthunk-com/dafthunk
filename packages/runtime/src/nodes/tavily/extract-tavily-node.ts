@@ -30,6 +30,7 @@ export class ExtractTavilyNode extends ExecutableNode {
     usage: 10,
     subscription: true,
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "urls",
@@ -81,7 +82,7 @@ export class ExtractTavilyNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { urls, extractDepth, format, includeImages } = context.inputs;
 

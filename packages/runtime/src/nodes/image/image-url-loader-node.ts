@@ -9,9 +9,9 @@ export class ImageUrlLoaderNode extends ExecutableNode {
     description: "Loads an image from a URL and converts it to a data array",
     tags: ["Image", "Load", "URL"],
     icon: "link",
-    documentation:
-      "This node loads an image from a URL and converts it to a data array.",
     usage: 10,
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "url",
@@ -29,7 +29,7 @@ export class ImageUrlLoaderNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { url } = context.inputs;
 

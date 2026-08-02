@@ -17,17 +17,16 @@ export class ExifReaderNode extends ExecutableNode {
     id: "exif-reader",
     name: "EXIF Reader",
     type: "exif-reader",
-    description: "Extracts EXIF data from an image.",
+    description: "Extracts EXIF data from an image",
     tags: ["Image", "EXIF", "Metadata"],
     icon: "file-text",
-    documentation: "This node extracts EXIF data from an image.",
     inlinable: true,
     asTool: true,
     inputs: [
       {
         name: "image",
         type: "image",
-        description: "The input image to extract EXIF data from.",
+        description: "The input image to extract EXIF data from",
         required: true,
       },
     ],
@@ -35,12 +34,12 @@ export class ExifReaderNode extends ExecutableNode {
       {
         name: "data",
         type: "json",
-        description: "EXIF data extracted from the image as a JSON string.",
+        description: "EXIF data extracted from the image as a JSON string",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const parsed = ExifReaderNode.inputSchema.safeParse(context.inputs);
     if (!parsed.success) {
       return this.createErrorResult(zodErrorMessage(parsed.error));
@@ -56,9 +55,8 @@ export class ExifReaderNode extends ExecutableNode {
       if (tags.MakerNote) {
         delete tags.MakerNote;
       }
-      // Also remove thumbnail data if present
-      // Add type assertion to handle complex type of tags["thumbnail"]
-      const thumbnailTag = tags.thumbnail as any;
+      // Drop the embedded thumbnail bitmap; only its metadata is useful here.
+      const thumbnailTag = tags.thumbnail as { image?: unknown } | undefined;
       if (thumbnailTag?.image) {
         delete thumbnailTag.image;
       }

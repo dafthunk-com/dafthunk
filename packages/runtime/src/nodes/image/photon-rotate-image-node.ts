@@ -20,24 +20,23 @@ export class PhotonRotateImageNode extends ExecutableNode {
     name: "Rotate Image",
     type: "photon-rotate-image",
     description:
-      "Rotates an image by a specified angle (in degrees) using Photon.",
+      "Rotates an image by a specified angle (in degrees) using Photon",
     tags: ["Image", "Photon", "Transform", "Rotate"],
     icon: "rotate-cw",
-    documentation:
-      "This node rotates an image by a specified angle (in degrees) using Photon.",
     inlinable: true,
     usage: 10,
+    asTool: false,
     inputs: [
       {
         name: "image",
         type: "image",
-        description: "The input image to rotate.",
+        description: "The input image to rotate",
         required: true,
       },
       {
         name: "angle",
         type: "number",
-        description: "Rotation angle in degrees (e.g., 90, -45, 180).",
+        description: "Rotation angle in degrees (e.g., 90, -45, 180)",
         required: true,
         value: 0, // Default to no rotation
       },
@@ -46,12 +45,12 @@ export class PhotonRotateImageNode extends ExecutableNode {
       {
         name: "image",
         type: "image",
-        description: "The rotated image (PNG format).",
+        description: "The rotated image (PNG format)",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const parsed = PhotonRotateImageNode.inputSchema.safeParse(context.inputs);
     if (!parsed.success) {
       return this.createErrorResult(zodErrorMessage(parsed.error));

@@ -4,16 +4,17 @@ import type { NodeExecution, NodeType } from "@dafthunk/types";
 
 export class GreatCircleNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "greatCircle",
+    id: "great-circle",
     name: "Great Circle",
-    type: "greatCircle",
+    type: "great-circle",
     description:
-      "Calculate great circles routes as LineString or MultiLineString between two points.",
+      "Calculate great circles routes as LineString or MultiLineString between two points",
     tags: ["Geo", "GeoJSON", "Geometry", "GreatCircle"],
     icon: "globe",
     documentation:
       "This node calculates a great circle route between two points on Earth's surface, following the shortest path along the globe.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "start",
@@ -102,11 +103,7 @@ export class GreatCircleNode extends ExecutableNode {
       }
 
       // Delegate to Turf.js greatCircle function
-      const greatCircleLine = greatCircle(
-        start as any,
-        end as any,
-        options as any
-      );
+      const greatCircleLine = greatCircle(start, end, options);
 
       return this.createSuccessResult({
         line: greatCircleLine,

@@ -49,66 +49,67 @@ export class PhotonPadNode extends ExecutableNode {
     name: "Image Pad",
     type: "photon-pad",
     description:
-      "Extends an image's canvas by adding padding on any side, with a configurable fill color (transparent by default).",
+      "Extends an image's canvas by adding padding on any side, with a configurable fill color (transparent by default)",
     tags: ["Image", "Photon", "Transform", "Pad"],
     icon: "expand",
     documentation:
       "This node extends an image's canvas by adding padding to the top, bottom, left, and/or right. The original image keeps its dimensions while the canvas grows in the chosen direction. The fill color defaults to fully transparent (alpha 0); set the alpha to 255 for an opaque fill.",
     inlinable: true,
     usage: 10,
+    asTool: false,
     inputs: [
       {
         name: "image",
         type: "image",
-        description: "The input image to pad.",
+        description: "The input image to pad",
         required: true,
       },
       {
         name: "top",
         type: "number",
-        description: "Pixels of padding to add above the image.",
+        description: "Pixels of padding to add above the image",
         required: true,
         value: 0,
       },
       {
         name: "bottom",
         type: "number",
-        description: "Pixels of padding to add below the image.",
+        description: "Pixels of padding to add below the image",
         required: true,
         value: 0,
       },
       {
         name: "left",
         type: "number",
-        description: "Pixels of padding to add to the left of the image.",
+        description: "Pixels of padding to add to the left of the image",
         required: true,
         value: 0,
       },
       {
         name: "right",
         type: "number",
-        description: "Pixels of padding to add to the right of the image.",
+        description: "Pixels of padding to add to the right of the image",
         required: true,
         value: 0,
       },
       {
         name: "fillRed",
         type: "number",
-        description: "Red component of the fill color (0-255).",
+        description: "Red component of the fill color (0-255)",
         required: true,
         value: 0,
       },
       {
         name: "fillGreen",
         type: "number",
-        description: "Green component of the fill color (0-255).",
+        description: "Green component of the fill color (0-255)",
         required: true,
         value: 0,
       },
       {
         name: "fillBlue",
         type: "number",
-        description: "Blue component of the fill color (0-255).",
+        description: "Blue component of the fill color (0-255)",
         required: true,
         value: 0,
       },
@@ -116,7 +117,7 @@ export class PhotonPadNode extends ExecutableNode {
         name: "fillAlpha",
         type: "number",
         description:
-          "Alpha of the fill color (0 for transparent, 255 for opaque).",
+          "Alpha of the fill color (0 for transparent, 255 for opaque)",
         required: true,
         value: 0,
       },
@@ -125,12 +126,12 @@ export class PhotonPadNode extends ExecutableNode {
       {
         name: "image",
         type: "image",
-        description: "The padded image (PNG format).",
+        description: "The padded image (PNG format)",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const parsed = PhotonPadNode.inputSchema.safeParse(context.inputs);
     if (!parsed.success) {
       return this.createErrorResult(zodErrorMessage(parsed.error));

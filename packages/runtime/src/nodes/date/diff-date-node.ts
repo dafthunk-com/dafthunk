@@ -89,7 +89,7 @@ export class DiffDateNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const a = String(context.inputs.a ?? "");
       const b = String(context.inputs.b ?? "");

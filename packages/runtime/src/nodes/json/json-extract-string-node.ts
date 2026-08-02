@@ -1,5 +1,5 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
-import type { NodeExecution, NodeType } from "@dafthunk/types";
+import type { JsonValue, NodeExecution, NodeType } from "@dafthunk/types";
 import { JSONPath } from "jsonpath-plus";
 
 export class JsonExtractStringNode extends ExecutableNode {
@@ -75,7 +75,7 @@ export class JsonExtractStringNode extends ExecutableNode {
 
         // Get the first result that is a string
         const stringValue = results.find(
-          (value: any) => typeof value === "string"
+          (value: JsonValue) => typeof value === "string"
         );
         const found = typeof stringValue === "string";
 

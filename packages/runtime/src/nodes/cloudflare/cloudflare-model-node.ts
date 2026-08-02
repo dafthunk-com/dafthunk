@@ -115,6 +115,7 @@ For example: \`@cf/meta/llama-3.2-3b-instruct\`, \`@cf/openai/whisper\`, \`@cf/b
     icon: "bot",
     inlinable: false,
     usage: 1,
+    asTool: false,
     inputs: [
       {
         name: "model",
@@ -128,7 +129,7 @@ For example: \`@cf/meta/llama-3.2-3b-instruct\`, \`@cf/openai/whisper\`, \`@cf/b
     outputs: [],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const modelInput = context.inputs.model;
       if (!modelInput || typeof modelInput !== "string") {

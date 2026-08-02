@@ -4,16 +4,17 @@ import type { NodeExecution, NodeType } from "@dafthunk/types";
 
 export class BooleanDisjointNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "booleanDisjoint",
+    id: "boolean-disjoint",
     name: "Boolean Disjoint",
-    type: "booleanDisjoint",
+    type: "boolean-disjoint",
     description:
-      "Returns true if the intersection of the two geometries is an empty set.",
+      "Returns true if the intersection of the two geometries is an empty set",
     tags: ["Geo", "GeoJSON", "Boolean", "Disjoint"],
     icon: "slash",
     documentation:
       "This node checks if two geometries are completely separate (no intersection).",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "feature1",

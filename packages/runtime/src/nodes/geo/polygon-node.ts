@@ -8,12 +8,11 @@ export class PolygonNode extends ExecutableNode {
     name: "Polygon",
     type: "polygon",
     description:
-      "Creates a Polygon feature from an array of coordinate rings (exterior ring and optional holes).",
+      "Creates a Polygon feature from an array of coordinate rings (exterior ring and optional holes)",
     tags: ["Geo", "GeoJSON", "Polygon"],
     icon: "square",
-    documentation:
-      "This node creates a Polygon feature from an array of coordinate rings (exterior ring and optional holes).",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "coordinates",

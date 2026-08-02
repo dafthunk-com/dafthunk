@@ -21,6 +21,7 @@ export class GltfOutputNode extends ExecutableNode {
     documentation:
       "This node displays glTF 3D model data in the workflow. The model reference is persisted for viewing in read-only execution views. No data is duplicated - the model passes through unchanged.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "value",
@@ -39,7 +40,7 @@ export class GltfOutputNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const value = context.inputs.value as GltfParameter | undefined;
 

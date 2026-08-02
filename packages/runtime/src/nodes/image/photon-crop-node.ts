@@ -30,47 +30,44 @@ export class PhotonCropNode extends ExecutableNode {
     id: "photon-crop",
     name: "Image Crop",
     type: "photon-crop",
-    description: "Crops an image to the specified rectangle using Photon.",
+    description: "Crops an image to the specified rectangle using Photon",
     tags: ["Image", "Photon", "Transform", "Crop"],
     icon: "crop",
-    documentation:
-      "This node crops an image to the specified rectangle using Photon.",
     inlinable: true,
     usage: 10,
+    asTool: false,
     inputs: [
       {
         name: "image",
         type: "image",
-        description: "The input image to crop.",
+        description: "The input image to crop",
         required: true,
       },
       {
         name: "x",
         type: "number",
-        description:
-          "The x-coordinate of the top-left corner of the crop area.",
+        description: "The x-coordinate of the top-left corner of the crop area",
         required: true,
         value: 0,
       },
       {
         name: "y",
         type: "number",
-        description:
-          "The y-coordinate of the top-left corner of the crop area.",
+        description: "The y-coordinate of the top-left corner of the crop area",
         required: true,
         value: 0,
       },
       {
         name: "width",
         type: "number",
-        description: "The width of the crop area.",
+        description: "The width of the crop area",
         required: true,
         value: 100,
       },
       {
         name: "height",
         type: "number",
-        description: "The height of the crop area.",
+        description: "The height of the crop area",
         required: true,
         value: 100,
       },
@@ -79,12 +76,12 @@ export class PhotonCropNode extends ExecutableNode {
       {
         name: "image",
         type: "image",
-        description: "The cropped image (PNG format).",
+        description: "The cropped image (PNG format)",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const parsed = PhotonCropNode.inputSchema.safeParse(context.inputs);
     if (!parsed.success) {
       return this.createErrorResult(zodErrorMessage(parsed.error));

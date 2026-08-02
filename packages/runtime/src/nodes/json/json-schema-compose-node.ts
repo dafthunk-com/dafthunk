@@ -47,6 +47,7 @@ export class JsonSchemaComposeNode extends ExecutableNode {
     tags: ["Data", "JSON", "Schema", "Compose"],
     icon: "braces",
     inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "schema",
@@ -65,7 +66,7 @@ export class JsonSchemaComposeNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const { schema: schemaInput, ...fieldInputs } = context.inputs;
 
     if (

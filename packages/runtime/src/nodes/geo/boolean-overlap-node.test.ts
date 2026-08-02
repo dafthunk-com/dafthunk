@@ -18,7 +18,7 @@ describe("BooleanOverlapNode", () => {
   const node = new BooleanOverlapNode({
     id: "test-node",
     name: "Test Node",
-    type: "booleanOverlap",
+    type: "boolean-overlap",
     position: { x: 0, y: 0 },
     inputs: [],
     outputs: [],
@@ -229,9 +229,9 @@ describe("BooleanOverlapNode", () => {
     it("should have correct node type definition", () => {
       const nodeType = BooleanOverlapNode.nodeType;
 
-      expect(nodeType.id).toBe("booleanOverlap");
+      expect(nodeType.id).toBe("boolean-overlap");
       expect(nodeType.name).toBe("Boolean Overlap");
-      expect(nodeType.type).toBe("booleanOverlap");
+      expect(nodeType.type).toBe("boolean-overlap");
       expect(nodeType.description).toContain(
         "Compares two geometries of the same dimension"
       );

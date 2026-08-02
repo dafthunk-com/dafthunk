@@ -13,8 +13,12 @@ export class GeoTiffTransformNode extends ExecutableNode {
     description:
       "Transform GeoTIFF metadata from WGS84 (EPSG:4326) to Web Mercator (EPSG:3857)",
     tags: ["3D", "GeoTIFF", "Transform"],
+    documentation:
+      "Reprojects GeoTIFF metadata bounds from WGS84 (EPSG:4326) to Web Mercator (EPSG:3857), the projection used by web map tiles. Only the metadata is converted — the raster itself is untouched. Input metadata already in another CRS is rejected rather than silently mis-projected.",
     icon: "map",
     usage: 10,
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "metadata",

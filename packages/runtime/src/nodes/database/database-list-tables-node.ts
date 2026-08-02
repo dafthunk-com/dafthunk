@@ -6,17 +6,18 @@ export class DatabaseListTablesNode extends ExecutableNode {
     id: "database-list-tables",
     name: "Database List Tables",
     type: "database-list-tables",
-    description: "Lists all tables in a database.",
+    description: "Lists all tables in a database",
     tags: ["Database", "Tables", "List"],
     icon: "database",
     documentation:
       "Lists all table names in a database. Returns an array of table names sorted alphabetically. Useful for discovering what tables exist in a database.",
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "database",
         type: "database",
-        description: "Database ID.",
+        description: "Database ID",
         required: true,
         hidden: true,
       },
@@ -25,12 +26,12 @@ export class DatabaseListTablesNode extends ExecutableNode {
       {
         name: "tables",
         type: "json",
-        description: "Array of table names.",
+        description: "Array of table names",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const { database } = context.inputs;
 
     // Validate required inputs

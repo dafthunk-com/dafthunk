@@ -23,7 +23,7 @@ const VALID_FIELD_TYPES = new Set<string>(FIELD_TYPES);
  * the form is submitted.
  */
 export class CreateFormNode extends ExecutableNode {
-  static readonly nodeType: NodeType = {
+  public static readonly nodeType: NodeType = {
     id: "create-form",
     name: "Create Form",
     type: "create-form",
@@ -32,6 +32,10 @@ export class CreateFormNode extends ExecutableNode {
     icon: "clipboard-list",
     usage: 0,
     tags: ["Logic", "HITL", "Form"],
+    documentation:
+      "Turns a schema into a human input form and returns a signed, single-use URL. Blob fields render as file uploads. Pair it with Wait for Form to hold the workflow until someone submits, or use the URL on its own for fire-and-forget collection.",
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "title",
@@ -67,7 +71,7 @@ export class CreateFormNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const title = (context.inputs.title as string) || "";
     const description = context.inputs.description as string | undefined;
     const schema = context.inputs.schema as Schema | undefined;
@@ -113,14 +117,21 @@ export class CreateFormNode extends ExecutableNode {
 
     const token = crypto.randomUUID();
 
-    const signedToken = await createFormToken(
-      {
-        eid: context.executionId,
-        wid: context.workflowId,
-        tok: token,
-      },
-      signingKey
-    );
+    let signedToken: string;
+    try {
+      signedToken = await createFormToken(
+        {
+          eid: context.executionId,
+          wid: context.workflowId,
+          tok: token,
+        },
+        signingKey
+      );
+    } catch (err) {
+      return this.createErrorResult(
+        `Failed to sign form token: ${err instanceof Error ? err.message : String(err)}`
+      );
+    }
 
     const url = `${webHost}/form/${signedToken}`;
 

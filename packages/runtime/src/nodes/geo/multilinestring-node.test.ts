@@ -18,7 +18,7 @@ describe("MultiLineStringNode", () => {
   const node = new MultiLineStringNode({
     id: "test-node",
     name: "Test Node",
-    type: "multi-line-string",
+    type: "multilinestring",
     position: { x: 0, y: 0 },
     inputs: [],
     outputs: [],

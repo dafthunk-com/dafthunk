@@ -23,18 +23,17 @@ export class PhotonOilPaintingNode extends ExecutableNode {
     id: "photon-oil-painting",
     name: "Oil Painting Effect",
     type: "photon-oil-painting",
-    description: "Applies an oil painting effect to an image using Photon.",
+    description: "Applies an oil painting effect to an image using Photon",
     tags: ["Image", "Photon", "Effect", "OilPainting"],
     icon: "palette",
-    documentation:
-      "This node applies an oil painting effect to an image using Photon.",
     inlinable: true,
     usage: 10,
+    asTool: false,
     inputs: [
       {
         name: "image",
         type: "image",
-        description: "The input image to apply the oil painting effect to.",
+        description: "The input image to apply the oil painting effect to",
         required: true,
       },
       {
@@ -58,12 +57,12 @@ export class PhotonOilPaintingNode extends ExecutableNode {
       {
         name: "image",
         type: "image",
-        description: "The oil painting-style image (PNG format).",
+        description: "The oil painting-style image (PNG format)",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const parsed = PhotonOilPaintingNode.inputSchema.safeParse(context.inputs);
     if (!parsed.success) {
       return this.createErrorResult(zodErrorMessage(parsed.error));

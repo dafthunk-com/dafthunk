@@ -32,15 +32,14 @@ export class PhotonAdjustHslLightnessNode extends ExecutableNode {
       "Adjusts image lightness using HSL. Amount from -1.0 (max darken) to 1.0 (max lighten).",
     tags: ["Image", "Photon", "Adjust", "Lightness"],
     icon: "sun",
-    documentation:
-      "This node adjusts image lightness using HSL. Amount from -1.0 (max darken) to 1.0 (max lighten).",
     inlinable: true,
     usage: 10,
+    asTool: false,
     inputs: [
       {
         name: "image",
         type: "image",
-        description: "The input image to adjust HSL lightness.",
+        description: "The input image to adjust HSL lightness",
         required: true,
       },
       {
@@ -56,12 +55,12 @@ export class PhotonAdjustHslLightnessNode extends ExecutableNode {
       {
         name: "image",
         type: "image",
-        description: "The HSL lightness-adjusted image (PNG format).",
+        description: "The HSL lightness-adjusted image (PNG format)",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const parsed = PhotonAdjustHslLightnessNode.inputSchema.safeParse(
       context.inputs
     );

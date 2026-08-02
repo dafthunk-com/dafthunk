@@ -23,18 +23,19 @@ export class ConditionalForkNode extends ExecutableNode {
     documentation:
       "This node splits workflow execution into two branches based on a boolean condition, routing data to either the 'true' or 'false' output.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "value",
         type: "any",
-        description: "The value to pass to the selected branch.",
+        description: "The value to pass to the selected branch",
         required: true,
       },
       {
         name: "condition",
         type: "boolean",
         description:
-          "The boolean condition to evaluate (true → 'true', false → 'false').",
+          "The boolean condition to evaluate (true → 'true', false → 'false')",
         required: true,
       },
     ],
@@ -42,17 +43,17 @@ export class ConditionalForkNode extends ExecutableNode {
       {
         name: "true",
         type: "any",
-        description: "Output if the condition is true.",
+        description: "Output if the condition is true",
       },
       {
         name: "false",
         type: "any",
-        description: "Output if the condition is false.",
+        description: "Output if the condition is false",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const { condition, value } = context.inputs;
 
     if (typeof condition !== "boolean") {

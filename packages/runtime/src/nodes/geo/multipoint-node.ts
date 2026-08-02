@@ -14,6 +14,7 @@ export class MultiPointNode extends ExecutableNode {
     documentation:
       "This node creates a MultiPoint GeoJSON feature from an array of coordinate pairs.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "coordinates",
@@ -89,11 +90,7 @@ export class MultiPointNode extends ExecutableNode {
       }
 
       // Delegate everything to Turf.js multiPoint function
-      const multiPointResult = multiPoint(
-        coordinates as any,
-        properties as any,
-        options as any
-      );
+      const multiPointResult = multiPoint(coordinates, properties, options);
 
       return this.createSuccessResult({
         multiPoint: multiPointResult,

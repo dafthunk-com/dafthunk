@@ -13,13 +13,14 @@ export class HttpRequestNode extends ExecutableNode {
     name: "HTTP Request",
     type: "http-request",
     description:
-      "Receives an HTTP request and returns the response synchronously.",
+      "Receives an HTTP request and returns the response synchronously",
     tags: ["Data", "Parameter", "HTTP"],
     icon: "log-in",
     documentation:
       "This node receives an HTTP request at /http/{workflowId}. The workflow executes synchronously and the call returns the execution result, including each node's output.",
     inlinable: true,
     trigger: true,
+    asTool: false,
     inputs: [],
     outputs: [
       {

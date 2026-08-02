@@ -18,7 +18,7 @@ describe("RhumbDestinationNode", () => {
   const node = new RhumbDestinationNode({
     id: "test-node",
     name: "Test Node",
-    type: "rhumbDestination",
+    type: "rhumb-destination",
     position: { x: 0, y: 0 },
     inputs: [],
     outputs: [],

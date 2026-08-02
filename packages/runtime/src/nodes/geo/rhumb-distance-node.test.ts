@@ -18,7 +18,7 @@ describe("RhumbDistanceNode", () => {
   const node = new RhumbDistanceNode({
     id: "test-node",
     name: "Test Node",
-    type: "rhumbDistance",
+    type: "rhumb-distance",
     position: { x: 0, y: 0 },
     inputs: [],
     outputs: [],

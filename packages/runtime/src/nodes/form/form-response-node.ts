@@ -17,7 +17,7 @@ export class FormResponseNode extends ExecutableNode {
     name: "Form Response",
     type: "form-response",
     description:
-      "Define the result shown to the user after a synchronous Form Request submission.",
+      "Define the result shown to the user after a synchronous Form Request submission",
     documentation:
       "This node defines the response returned when using a synchronous Form Request trigger. " +
       "Select a schema and the node's inputs adapt to its fields; connect a value to each one. " +
@@ -26,6 +26,7 @@ export class FormResponseNode extends ExecutableNode {
     icon: "log-out",
     inlinable: false,
     responder: true,
+    asTool: false,
     inputs: [
       {
         name: "schema",
@@ -45,7 +46,7 @@ export class FormResponseNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const { schema: schemaInput, ...fieldInputs } = context.inputs;
 
     if (

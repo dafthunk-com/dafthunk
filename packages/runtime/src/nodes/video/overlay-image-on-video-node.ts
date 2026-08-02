@@ -38,6 +38,7 @@ export class OverlayImageOnVideoNode extends MultiStepNode {
       "This node overlays an image on top of a video. The image is positioned at the given x and y offsets (in pixels) from the top-left corner of the video frame. It uses FFmpeg running in a Cloudflare Container for processing. Audio is passed through when present. Outputs MP4 with H.264 video and AAC audio.",
     inlinable: false,
     usage: 10,
+    asTool: false,
     inputs: [
       {
         name: "video",
@@ -75,7 +76,7 @@ export class OverlayImageOnVideoNode extends MultiStepNode {
     ],
   };
 
-  async execute(context: MultiStepNodeContext): Promise<NodeExecution> {
+  public async execute(context: MultiStepNodeContext): Promise<NodeExecution> {
     const { sleep, doStep } = context;
 
     try {
@@ -83,10 +84,8 @@ export class OverlayImageOnVideoNode extends MultiStepNode {
         context.inputs
       );
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const containerBinding = (context.env as any).FFMPEG_CONTAINER as
-        | DurableObjectNamespace
-        | undefined;
+      const containerBinding: DurableObjectNamespace | undefined =
+        context.env.FFMPEG_CONTAINER;
       if (!containerBinding) {
         return this.createErrorResult(
           "FFMPEG_CONTAINER binding is not configured"

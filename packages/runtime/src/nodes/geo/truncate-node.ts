@@ -8,12 +8,13 @@ export class TruncateNode extends ExecutableNode {
     name: "Truncate",
     type: "truncate",
     description:
-      "Truncates the precision of a coordinate to a specified number of decimal places.",
+      "Truncates the precision of a coordinate to a specified number of decimal places",
     tags: ["Geo", "GeoJSON", "Transform", "Truncate"],
     icon: "scissors",
     documentation:
       "This node truncates coordinate precision in GeoJSON geometries to a specified number of decimal places.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "geojson",
@@ -94,7 +95,7 @@ export class TruncateNode extends ExecutableNode {
       }
 
       // Delegate to Turf.js truncate function
-      const truncated = truncate(geojson as any, options);
+      const truncated = truncate(geojson, options);
 
       return this.createSuccessResult({
         truncated,

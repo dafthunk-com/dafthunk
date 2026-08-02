@@ -73,6 +73,7 @@ For example: \`xai/grok-imagine-video\`, \`openai/gpt-image-1.5\`, \`google/gemi
     inlinable: false,
     usage: GATEWAY_USAGE,
     subscription: true,
+    asTool: false,
     inputs: [
       {
         name: CLOUDFLARE_GATEWAY_MODEL_INPUT_NAME,
@@ -86,7 +87,7 @@ For example: \`xai/grok-imagine-video\`, \`openai/gpt-image-1.5\`, \`google/gemi
     outputs: [],
   };
 
-  async execute(context: MultiStepNodeContext): Promise<NodeExecution> {
+  public async execute(context: MultiStepNodeContext): Promise<NodeExecution> {
     try {
       const modelInput = context.inputs[CLOUDFLARE_GATEWAY_MODEL_INPUT_NAME];
       if (typeof modelInput !== "string" || !modelInput.trim()) {

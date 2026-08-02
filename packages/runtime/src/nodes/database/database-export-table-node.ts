@@ -11,24 +11,25 @@ export class DatabaseExportTableNode extends ExecutableNode {
     id: "database-export-table",
     name: "Database Export Table",
     type: "database-export-table",
-    description: "Exports a complete table with schema and data as Table.",
+    description: "Exports a complete table with schema and data as Table",
     tags: ["Database", "Export", "Table"],
     icon: "database",
     documentation:
       "Exports a complete database table including its schema and all data in Table format. Uses database introspection to determine field types. Perfect for backing up or copying tables.",
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "database",
         type: "database",
-        description: "Database ID.",
+        description: "Database ID",
         required: true,
         hidden: true,
       },
       {
         name: "table",
         type: "string",
-        description: "Name of the table to export.",
+        description: "Name of the table to export",
         required: true,
       },
     ],
@@ -36,17 +37,17 @@ export class DatabaseExportTableNode extends ExecutableNode {
       {
         name: "schema",
         type: "schema",
-        description: "Schema with name and field definitions.",
+        description: "Schema with name and field definitions",
       },
       {
         name: "data",
         type: "json",
-        description: "Array of data rows (objects).",
+        description: "Array of data rows (objects)",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const { database, table } = context.inputs;
 
     // Validate required inputs

@@ -35,6 +35,7 @@ export class GltfWireframeNode extends ExecutableNode {
       "Converts a glTF model to wireframe visualization by extracting edges as line primitives. Original faces and textures are removed, leaving only the geometry skeleton.",
     inlinable: false,
     usage: 10,
+    asTool: false,
     inputs: [
       {
         name: "gltf",

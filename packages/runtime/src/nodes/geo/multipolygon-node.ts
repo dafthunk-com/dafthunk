@@ -14,6 +14,7 @@ export class MultiPolygonNode extends ExecutableNode {
     documentation:
       "This node creates a MultiPolygon geometry from multiple polygon geometries.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "coordinates",
@@ -89,11 +90,7 @@ export class MultiPolygonNode extends ExecutableNode {
       }
 
       // Delegate everything to Turf.js multiPolygon function
-      const multiPolygonResult = multiPolygon(
-        coordinates as any,
-        properties as any,
-        options as any
-      );
+      const multiPolygonResult = multiPolygon(coordinates, properties, options);
 
       return this.createSuccessResult({
         multiPolygon: multiPolygonResult,

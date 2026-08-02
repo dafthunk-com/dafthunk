@@ -17,6 +17,7 @@ export class PollenGoogleNode extends ExecutableNode {
       "This node retrieves pollen forecasts for a given latitude/longitude using the Google Pollen API. Returns pollen type info (grass, tree, weed), index values, and plant-specific data.",
     usage: 100,
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "latitude",
@@ -61,7 +62,7 @@ export class PollenGoogleNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { latitude, longitude, days, languageCode } = context.inputs;
       const apiKey = context.env.GOOGLE_API_KEY;

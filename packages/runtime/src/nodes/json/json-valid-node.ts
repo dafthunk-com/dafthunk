@@ -1,5 +1,5 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
-import type { NodeExecution, NodeType } from "@dafthunk/types";
+import type { JsonValue, NodeExecution, NodeType } from "@dafthunk/types";
 
 export class JsonValidNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -43,7 +43,7 @@ export class JsonValidNode extends ExecutableNode {
 
   private isValidJson(value: string): {
     isValid: boolean;
-    parsedValue: any;
+    parsedValue: JsonValue;
     error: string | null;
   } {
     if (typeof value !== "string") {

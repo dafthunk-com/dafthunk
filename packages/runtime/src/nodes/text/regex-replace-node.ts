@@ -7,7 +7,7 @@ export class RegexReplaceNode extends ExecutableNode {
     name: "Regex Replace",
     type: "regex-replace",
     description:
-      "Replace all matches of a regular expression pattern in a string.",
+      "Replace all matches of a regular expression pattern in a string",
     tags: ["Text", "Regex", "Replace"],
     icon: "pencil",
     documentation:
@@ -18,19 +18,19 @@ export class RegexReplaceNode extends ExecutableNode {
       {
         name: "string",
         type: "string",
-        description: "The string to search and replace in.",
+        description: "The string to search and replace in",
         required: true,
       },
       {
         name: "pattern",
         type: "string",
-        description: "The regex pattern.",
+        description: "The regex pattern",
         required: true,
       },
       {
         name: "replacement",
         type: "string",
-        description: "The replacement string.",
+        description: "The replacement string",
         required: true,
       },
       {
@@ -45,7 +45,7 @@ export class RegexReplaceNode extends ExecutableNode {
       {
         name: "result",
         type: "string",
-        description: "The resulting string after replacement.",
+        description: "The resulting string after replacement",
       },
     ],
   };

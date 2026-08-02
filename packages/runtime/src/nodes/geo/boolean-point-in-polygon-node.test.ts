@@ -18,7 +18,7 @@ describe("BooleanPointInPolygonNode", () => {
   const node = new BooleanPointInPolygonNode({
     id: "test-node",
     name: "Test Node",
-    type: "booleanPointInPolygon",
+    type: "boolean-point-in-polygon",
     position: { x: 0, y: 0 },
     inputs: [],
     outputs: [],

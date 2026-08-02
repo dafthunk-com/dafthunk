@@ -13,6 +13,7 @@ export class JsonStringTemplateNode extends ExecutableNode {
     documentation:
       "This node creates a string using a template with variable injection from a JSON object using \\${variableName} syntax.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "template",

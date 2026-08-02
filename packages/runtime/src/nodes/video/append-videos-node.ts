@@ -43,6 +43,7 @@ export class AppendVideosNode extends MultiStepNode {
       "This node appends multiple videos end-to-end into a single output video. It uses FFmpeg running in a Cloudflare Container for processing. All inputs are scaled to match the first video's resolution (with letterboxing if aspect ratios differ). Audio is included when all inputs have audio tracks, otherwise the output is video-only. Outputs MP4 with H.264 video and AAC audio.",
     inlinable: false,
     usage: 10,
+    asTool: false,
     inputs: [
       {
         name: "video_1",
@@ -84,16 +85,14 @@ export class AppendVideosNode extends MultiStepNode {
     ],
   };
 
-  async execute(context: MultiStepNodeContext): Promise<NodeExecution> {
+  public async execute(context: MultiStepNodeContext): Promise<NodeExecution> {
     const { sleep, doStep } = context;
 
     try {
       const validatedInput = AppendVideosNode.inputSchema.parse(context.inputs);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const containerBinding = (context.env as any).FFMPEG_CONTAINER as
-        | DurableObjectNamespace
-        | undefined;
+      const containerBinding: DurableObjectNamespace | undefined =
+        context.env.FFMPEG_CONTAINER;
       if (!containerBinding) {
         return this.createErrorResult(
           "FFMPEG_CONTAINER binding is not configured"

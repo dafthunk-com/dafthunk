@@ -1,5 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { hasPath } from "./json-access";
 
 export class JsonContainsPathNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -42,45 +43,6 @@ export class JsonContainsPathNode extends ExecutableNode {
     ],
   };
 
-  private pathExists(obj: any, path: string): boolean {
-    if (!path || path === "$") {
-      return obj !== null && obj !== undefined;
-    }
-
-    // Simple path resolution for common cases
-    // Supports $.key, $.array[index], $.nested.key
-    const pathParts = path.replace(/^\$\.?/, "").split(".");
-    let current = obj;
-
-    for (const part of pathParts) {
-      if (current === null || current === undefined) {
-        return false;
-      }
-
-      // Handle array access like [0], [1], etc.
-      const arrayMatch = part.match(/^(.+)\[(\d+)\]$/);
-      if (arrayMatch) {
-        const [, key, index] = arrayMatch;
-        if (current[key] && Array.isArray(current[key])) {
-          const arrayIndex = parseInt(index, 10);
-          if (arrayIndex < 0 || arrayIndex >= current[key].length) {
-            return false;
-          }
-          current = current[key][arrayIndex];
-        } else {
-          return false;
-        }
-      } else {
-        if (!(part in current)) {
-          return false;
-        }
-        current = current[part];
-      }
-    }
-
-    return true;
-  }
-
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { json, path } = context.inputs;
@@ -101,7 +63,7 @@ export class JsonContainsPathNode extends ExecutableNode {
       }
 
       // Check if the path exists in the JSON
-      const containsPath = this.pathExists(json, path);
+      const containsPath = hasPath(json, path);
 
       return this.createSuccessResult({
         containsPath,

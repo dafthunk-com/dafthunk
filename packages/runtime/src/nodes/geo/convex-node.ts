@@ -8,12 +8,13 @@ export class ConvexNode extends ExecutableNode {
     name: "Convex Hull",
     type: "convex",
     description:
-      "Creates a convex hull polygon that encompasses all input points.",
+      "Creates a convex hull polygon that encompasses all input points",
     tags: ["Geo", "GeoJSON", "Transform", "Convex"],
     icon: "hexagon",
     documentation:
       "This node creates a convex hull polygon that encompasses all input points with the smallest possible convex area.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "geojson",
@@ -53,7 +54,7 @@ export class ConvexNode extends ExecutableNode {
     }
     try {
       // Delegate everything to turf.convex
-      const convexHull = convex(geojson as any, properties ?? {});
+      const convexHull = convex(geojson, properties ?? {});
       return this.createSuccessResult({ convexHull: convexHull ?? null });
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));

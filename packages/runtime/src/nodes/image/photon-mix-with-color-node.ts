@@ -53,38 +53,37 @@ export class PhotonMixWithColorNode extends ExecutableNode {
     name: "Mix With Color",
     type: "photon-mix-with-color",
     description:
-      "Blends the image with a solid RGB color using a specified opacity (0.0 to 1.0).",
+      "Blends the image with a solid RGB color using a specified opacity (0.0 to 1.0)",
     tags: ["Image", "Photon", "Effect", "MixColor"],
     icon: "droplet",
-    documentation:
-      "This node blends the image with a solid RGB color using a specified opacity (0.0 to 1.0).",
     inlinable: true,
     usage: 10,
+    asTool: false,
     inputs: [
       {
         name: "image",
         type: "image",
-        description: "The input image to mix with color.",
+        description: "The input image to mix with color",
         required: true,
       },
       {
         name: "mixRed",
         type: "number",
-        description: "Red component of the mix color (0-255).",
+        description: "Red component of the mix color (0-255)",
         required: true,
         value: 0,
       },
       {
         name: "mixGreen",
         type: "number",
-        description: "Green component of the mix color (0-255).",
+        description: "Green component of the mix color (0-255)",
         required: true,
         value: 0,
       },
       {
         name: "mixBlue",
         type: "number",
-        description: "Blue component of the mix color (0-255).",
+        description: "Blue component of the mix color (0-255)",
         required: true,
         value: 0,
       },
@@ -92,7 +91,7 @@ export class PhotonMixWithColorNode extends ExecutableNode {
         name: "opacity",
         type: "number",
         description:
-          "Opacity of the mix color (0.0 for no mix, 1.0 for full color).",
+          "Opacity of the mix color (0.0 for no mix, 1.0 for full color)",
         required: true,
         value: 0.5,
       },
@@ -101,12 +100,12 @@ export class PhotonMixWithColorNode extends ExecutableNode {
       {
         name: "image",
         type: "image",
-        description: "The image mixed with the specified color (PNG format).",
+        description: "The image mixed with the specified color (PNG format)",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const parsed = PhotonMixWithColorNode.inputSchema.safeParse(context.inputs);
     if (!parsed.success) {
       return this.createErrorResult(zodErrorMessage(parsed.error));

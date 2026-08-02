@@ -7,12 +7,13 @@ export class CenterNode extends ExecutableNode {
     id: "center",
     name: "Center",
     type: "center",
-    description: "Calculates the center point of any GeoJSON feature.",
+    description: "Calculates the center point of any GeoJSON feature",
     tags: ["Geo", "GeoJSON", "Measurement", "Center"],
     icon: "target",
     documentation:
       "This node calculates the center point (centroid) of a GeoJSON geometry.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "geojson",
@@ -54,7 +55,7 @@ export class CenterNode extends ExecutableNode {
       }
 
       // Calculate the center using Turf.js
-      const centerPoint = center(geojson as any);
+      const centerPoint = center(geojson);
 
       // Set properties if provided
       if (Object.keys(centerProperties).length > 0) {

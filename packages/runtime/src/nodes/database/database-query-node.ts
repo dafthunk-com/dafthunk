@@ -8,37 +8,38 @@ export class DatabaseQueryNode extends ExecutableNode {
     name: "Database Query",
     type: "database-query",
     description:
-      "Executes a SELECT query on a database and returns the results.",
+      "Executes a SELECT query on a database and returns the results",
     tags: ["Database", "Query", "SQL"],
     icon: "database",
     documentation:
       "Executes a SELECT query on a database and returns the results as JSON. Use this for retrieving data from your database.",
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "database",
         type: "database",
-        description: "Database ID.",
+        description: "Database ID",
         required: true,
         hidden: true,
       },
       {
         name: "schema",
         type: "schema",
-        description: "Optional schema to validate and coerce query results.",
+        description: "Optional schema to validate and coerce query results",
         required: false,
         hidden: true,
       },
       {
         name: "sql",
         type: "string",
-        description: "SQL SELECT query to execute.",
+        description: "SQL SELECT query to execute",
         required: true,
       },
       {
         name: "params",
         type: "json",
-        description: "Query parameters (array of values).",
+        description: "Query parameters (array of values)",
         required: false,
       },
     ],
@@ -46,18 +47,18 @@ export class DatabaseQueryNode extends ExecutableNode {
       {
         name: "results",
         type: "json",
-        description: "Query results as an array of objects.",
+        description: "Query results as an array of objects",
       },
       {
         name: "count",
         type: "number",
-        description: "Number of rows returned.",
+        description: "Number of rows returned",
         hidden: true,
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const { database, sql, params, schema } = context.inputs;
 
     // Validate required inputs

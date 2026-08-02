@@ -8,12 +8,13 @@ export class CenterMeanNode extends ExecutableNode {
     name: "Center Mean",
     type: "center-mean",
     description:
-      "Takes a Feature or FeatureCollection and returns the mean center, using the mean of the vertices of each feature.",
+      "Takes a Feature or FeatureCollection and returns the mean center, using the mean of the vertices of each feature",
     tags: ["Geo", "GeoJSON", "Measurement", "CenterMean"],
     icon: "align-center",
     documentation:
       "This node calculates the mean center of a feature or feature collection by averaging all vertex coordinates.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "features",
@@ -46,7 +47,7 @@ export class CenterMeanNode extends ExecutableNode {
       }
 
       // Delegate everything to Turf.js centerMean function
-      const center = centerMean(features as any, options as any);
+      const center = centerMean(features, options);
 
       return this.createSuccessResult({
         center,

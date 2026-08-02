@@ -8,12 +8,13 @@ export class BooleanValidNode extends ExecutableNode {
     name: "Boolean Valid",
     type: "boolean-valid",
     description:
-      "Checks if the geometry is valid according to the OGC Simple Feature Specification.",
+      "Checks if the geometry is valid according to the OGC Simple Feature Specification",
     tags: ["Geo", "GeoJSON", "Boolean", "Valid"],
     icon: "check-circle",
     documentation:
       "This node validates whether a GeoJSON geometry conforms to the OGC Simple Feature Specification.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "feature",
@@ -37,7 +38,7 @@ export class BooleanValidNode extends ExecutableNode {
 
       // Delegate everything to Turf.js booleanValid function
       // The function handles null, undefined, and invalid inputs by returning false
-      const valid = booleanValid(feature as any);
+      const valid = booleanValid(feature);
 
       return this.createSuccessResult({
         valid,

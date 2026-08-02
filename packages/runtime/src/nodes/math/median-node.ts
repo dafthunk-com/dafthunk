@@ -13,8 +13,6 @@ export class MedianNode extends ExecutableNode {
       "Returns the median value from multiple numbers (middle value when sorted)",
     tags: ["Math", "Median"],
     icon: "chart-bar-stacked",
-    documentation:
-      "This node returns the median value from multiple numbers (middle value when sorted).",
     specification:
       "result = median(sort(numbers)), where |numbers| > 0; if n is even: (numbers[n/2-1] + numbers[n/2]) / 2, else: numbers[⌊n/2⌋]",
     inlinable: true,
@@ -39,7 +37,7 @@ export class MedianNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { numbers } = context.inputs;
 

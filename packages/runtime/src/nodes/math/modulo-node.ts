@@ -13,8 +13,6 @@ export class ModuloNode extends ExecutableNode {
       "Calculates the remainder when one number is divided by another",
     tags: ["Math", "Modulo"],
     icon: "percent",
-    documentation:
-      "This node calculates the remainder when one number is divided by another.",
     specification: "result = a % b, where b ≠ 0",
     inlinable: true,
     asTool: true,
@@ -41,7 +39,7 @@ export class ModuloNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       if (context.inputs.a === undefined || context.inputs.a === null) {
         return this.createErrorResult("Input 'a' is required");

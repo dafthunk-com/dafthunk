@@ -14,6 +14,7 @@ export class SendEmailNode extends ExecutableNode {
     usage: 10,
     subscription: true,
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "to",
@@ -76,7 +77,7 @@ export class SendEmailNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const { to, subject, html, text, cc, replyTo, threadId } = context.inputs;
 
     if (!to || !subject) {

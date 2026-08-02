@@ -1,5 +1,6 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import { getAtPath, isJsonObject } from "./json-access";
 
 export class JsonKeysNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -47,45 +48,6 @@ export class JsonKeysNode extends ExecutableNode {
     ],
   };
 
-  private getValueAtPath(obj: any, path: string): any {
-    if (!path || path === "$") {
-      return obj;
-    }
-
-    // Simple path resolution for common cases
-    // Supports $.key, $.array[index], $.nested.key
-    const pathParts = path.replace(/^\$\.?/, "").split(".");
-    let current = obj;
-
-    for (const part of pathParts) {
-      if (current === null || current === undefined) {
-        return undefined;
-      }
-
-      // Handle array access like [0], [1], etc.
-      const arrayMatch = part.match(/^(.+)\[(\d+)\]$/);
-      if (arrayMatch) {
-        const [, key, index] = arrayMatch;
-        if (current[key] && Array.isArray(current[key])) {
-          const arrayIndex = parseInt(index, 10);
-          if (arrayIndex < 0 || arrayIndex >= current[key].length) {
-            return undefined;
-          }
-          current = current[key][arrayIndex];
-        } else {
-          return undefined;
-        }
-      } else {
-        if (!(part in current)) {
-          return undefined;
-        }
-        current = current[part];
-      }
-    }
-
-    return current;
-  }
-
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { json, path = "$" } = context.inputs;
@@ -100,7 +62,7 @@ export class JsonKeysNode extends ExecutableNode {
       }
 
       // Get the value at the specified path
-      const targetValue = this.getValueAtPath(json, path);
+      const targetValue = getAtPath(json, path);
 
       if (targetValue === undefined) {
         return this.createSuccessResult({
@@ -113,7 +75,7 @@ export class JsonKeysNode extends ExecutableNode {
       // Extract keys from the target value
       let keys: string[] = [];
 
-      if (typeof targetValue === "object" && !Array.isArray(targetValue)) {
+      if (isJsonObject(targetValue)) {
         // For objects, get all keys
         keys = Object.keys(targetValue);
       } else if (Array.isArray(targetValue)) {

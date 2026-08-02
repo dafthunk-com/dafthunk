@@ -21,6 +21,7 @@ export class ImageOutputNode extends ExecutableNode {
     documentation:
       "This node displays image data in the workflow. The image reference is persisted for viewing in read-only execution views. No data is duplicated - the image passes through unchanged.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "value",
@@ -39,7 +40,7 @@ export class ImageOutputNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const value = context.inputs.value as ImageParameter | undefined;
 

@@ -12,8 +12,6 @@ export class ExponentiationNode extends ExecutableNode {
     description: "Raises a base number to the power of an exponent",
     tags: ["Math", "Power"],
     icon: "superscript",
-    documentation:
-      "This node raises a base number to the power of an exponent.",
     specification: "result = base ^ exponent",
     inlinable: true,
     asTool: true,
@@ -40,7 +38,7 @@ export class ExponentiationNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       if (context.inputs.base === undefined || context.inputs.base === null) {
         return this.createErrorResult("Input 'base' is required");

@@ -16,13 +16,14 @@ export class CloudflareBrowserJsonNode extends ExecutableNode {
     name: "Browser JSON",
     type: "cloudflare-browser-json",
     description:
-      "Fetch JSON from a rendered page using Cloudflare Browser Rendering.",
+      "Fetch JSON from a rendered page using Cloudflare Browser Rendering",
     tags: ["Browser", "Web", "Cloudflare", "JSON"],
     icon: "braces",
     documentation:
       "Fetches JSON from a rendered page using Cloudflare Browser Rendering. Either url or html is required (not both). Either prompt or response_format is required. See [Cloudflare Browser Rendering JSON Endpoint](https://developers.cloudflare.com/browser-rendering/rest-api/json-endpoint/) for details.",
     usage: 10,
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "url",
@@ -82,7 +83,7 @@ export class CloudflareBrowserJsonNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const validationError = validateBrowserInputs(this, context);
     if (validationError) return validationError;
 

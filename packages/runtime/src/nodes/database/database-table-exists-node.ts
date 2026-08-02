@@ -7,24 +7,25 @@ export class DatabaseTableExistsNode extends ExecutableNode {
     id: "database-table-exists",
     name: "Database Table Exists",
     type: "database-table-exists",
-    description: "Checks if a table exists in a database.",
+    description: "Checks if a table exists in a database",
     tags: ["Database", "Table", "Exists"],
     icon: "database",
     documentation:
       "Checks whether a table exists in a database. Returns true if the table exists, false otherwise. Useful for conditional logic in workflows.",
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "database",
         type: "database",
-        description: "Database ID.",
+        description: "Database ID",
         required: true,
         hidden: true,
       },
       {
         name: "table",
         type: "string",
-        description: "Name of the table to check.",
+        description: "Name of the table to check",
         required: true,
       },
     ],
@@ -32,12 +33,12 @@ export class DatabaseTableExistsNode extends ExecutableNode {
       {
         name: "exists",
         type: "boolean",
-        description: "True if the table exists, false otherwise.",
+        description: "True if the table exists, false otherwise",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const { database, table } = context.inputs;
 
     // Validate required inputs

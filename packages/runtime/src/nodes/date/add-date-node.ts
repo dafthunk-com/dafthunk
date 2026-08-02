@@ -78,7 +78,7 @@ export class AddDateNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const base = context.inputs.date as string;
       const amount = Number(context.inputs.amount);

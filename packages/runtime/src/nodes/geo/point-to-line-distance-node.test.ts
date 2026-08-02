@@ -232,7 +232,7 @@ describe("PointToLineDistanceNode", () => {
       const result = await node.execute(context);
 
       expect(result.status).toBe("error");
-      expect(result.error).toBe("Units must be a string");
+      expect(result.error).toContain("Units must be one of");
     });
 
     it("should handle invalid method type", async () => {

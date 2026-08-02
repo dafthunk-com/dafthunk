@@ -36,6 +36,7 @@ export class ExtractLastFrameNode extends MultiStepNode {
       "This node extracts the final frame from a video and returns it as a JPEG image. Useful for generating end-of-video thumbnails or extracting the last frame for analysis.",
     inlinable: false,
     usage: 3,
+    asTool: false,
     inputs: [
       {
         name: "video",
@@ -53,7 +54,7 @@ export class ExtractLastFrameNode extends MultiStepNode {
     ],
   };
 
-  async execute(context: MultiStepNodeContext): Promise<NodeExecution> {
+  public async execute(context: MultiStepNodeContext): Promise<NodeExecution> {
     const { sleep, doStep } = context;
 
     try {
@@ -61,10 +62,8 @@ export class ExtractLastFrameNode extends MultiStepNode {
         context.inputs
       );
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const containerBinding = (context.env as any).FFMPEG_CONTAINER as
-        | DurableObjectNamespace
-        | undefined;
+      const containerBinding: DurableObjectNamespace | undefined =
+        context.env.FFMPEG_CONTAINER;
       if (!containerBinding) {
         return this.createErrorResult(
           "FFMPEG_CONTAINER binding is not configured"

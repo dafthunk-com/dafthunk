@@ -16,12 +16,14 @@ export class CloudflareBrowserSnapshotNode extends ExecutableNode {
     name: "Browser Snapshot",
     type: "cloudflare-browser-snapshot",
     description:
-      "Get HTML content and screenshot from a rendered page using Cloudflare Browser Rendering.",
+      "Get HTML content and screenshot from a rendered page using Cloudflare Browser Rendering",
     tags: ["Browser", "Web", "Cloudflare", "Snapshot"],
     icon: "camera",
     documentation:
       "Captures HTML content and screenshots from web pages. Either url or html is required (not both). See [Cloudflare Browser Rendering API](https://developers.cloudflare.com/browser-rendering/) for details.",
     usage: 10,
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "url",
@@ -86,7 +88,7 @@ export class CloudflareBrowserSnapshotNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const validationError = validateBrowserInputs(this, context);
     if (validationError) return validationError;
 
@@ -119,18 +121,19 @@ export class CloudflareBrowserSnapshotNode extends ExecutableNode {
       return this.createErrorResult(result.error);
     }
 
-    const { json } = result;
+    const snapshot = result.json.result as
+      | { content?: unknown; screenshot?: unknown }
+      | undefined;
     if (
-      !json.result ||
-      typeof json.result.content !== "string" ||
-      !json.result.screenshot
+      typeof snapshot?.content !== "string" ||
+      typeof snapshot.screenshot !== "string"
     ) {
       return this.createErrorResult(
         "Cloudflare API error: Invalid snapshot response format"
       );
     }
 
-    const screenshotData = Buffer.from(json.result.screenshot, "base64");
+    const screenshotData = Buffer.from(snapshot.screenshot, "base64");
     if (!screenshotData || screenshotData.length === 0) {
       return this.createErrorResult(
         "Cloudflare API error: Invalid screenshot data"
@@ -139,7 +142,7 @@ export class CloudflareBrowserSnapshotNode extends ExecutableNode {
 
     return this.createSuccessResult(
       {
-        content: json.result.content,
+        content: snapshot.content,
         screenshot: {
           data: new Uint8Array(screenshotData),
           mimeType: "image/png",

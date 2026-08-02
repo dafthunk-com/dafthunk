@@ -22,8 +22,6 @@ export class PhotonImageInfoNode extends ExecutableNode {
       "Extracts width, height, mime type, and estimated filesize from an image. Also passes the original image through.",
     tags: ["Image", "Photon", "Metadata"],
     icon: "info",
-    documentation:
-      "This node extracts width, height, mime type, and estimated filesize from an image. Also passes the original image through.",
     inlinable: true,
     usage: 10,
     asTool: true,
@@ -31,7 +29,7 @@ export class PhotonImageInfoNode extends ExecutableNode {
       {
         name: "image",
         type: "image",
-        description: "The input image to get information from.",
+        description: "The input image to get information from",
         required: true,
       },
     ],
@@ -39,33 +37,33 @@ export class PhotonImageInfoNode extends ExecutableNode {
       {
         name: "width",
         type: "number",
-        description: "Width of the image in pixels.",
+        description: "Width of the image in pixels",
       },
       {
         name: "height",
         type: "number",
-        description: "Height of the image in pixels.",
+        description: "Height of the image in pixels",
       },
       {
         name: "mimeType",
         type: "string",
-        description: "Mime type of the input image.",
+        description: "Mime type of the input image",
       },
       {
         name: "estimatedFilesize", // in bytes
         type: "number",
-        description: "Estimated filesize of the image in bytes (from Photon).",
+        description: "Estimated filesize of the image in bytes (from Photon)",
       },
       {
         name: "imagePassthrough",
         type: "image",
         description:
-          "The original image, passed through for further processing.",
+          "The original image, passed through for further processing",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const parsed = PhotonImageInfoNode.inputSchema.safeParse(context.inputs);
     if (!parsed.success) {
       return this.createErrorResult(zodErrorMessage(parsed.error));

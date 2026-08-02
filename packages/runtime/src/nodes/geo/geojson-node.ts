@@ -1,18 +1,27 @@
 import { booleanValid } from "@dafthunk/geo";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
-import type { NodeExecution, NodeType } from "@dafthunk/types";
+import type {
+  Feature,
+  FeatureCollection,
+  Geometry,
+  GeometryCollection,
+  NodeExecution,
+  NodeType,
+} from "@dafthunk/types";
+import { isGeoJSON } from "./geo-input";
 
 export class GeoJsonNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "geojson",
     name: "GeoJSON",
     type: "geojson",
-    description: "Parse any valid GeoJSON object from JSON input.",
+    description: "Parse any valid GeoJSON object from JSON input",
     tags: ["Geo", "GeoJSON"],
     icon: "map",
     documentation:
       "This node parses and validates GeoJSON objects from JSON input.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "json",
@@ -62,24 +71,26 @@ export class GeoJsonNode extends ExecutableNode {
     }
   }
 
-  private isValidGeoJSON(data: any): boolean {
-    // For FeatureCollection, validate each feature individually
-    if (data.type === "FeatureCollection") {
-      if (!Array.isArray(data.features)) {
-        return false;
-      }
-
-      // Validate each feature in the collection
-      for (const feature of data.features) {
-        if (!booleanValid(feature)) {
-          return false;
-        }
-      }
-
-      return true;
+  private isValidGeoJSON(data: unknown): boolean {
+    if (!isGeoJSON(data)) {
+      return false;
     }
 
-    // For other types, use Turf.js booleanValid
-    return booleanValid(data as any);
+    // booleanValid only understands a single geometry or feature, so the two
+    // collection types are validated member by member. `Geometry.type` is a
+    // plain string, so the union does not discriminate on its own.
+    if (data.type === "FeatureCollection") {
+      const { features } = data as FeatureCollection;
+      return Array.isArray(features) && features.every((f) => booleanValid(f));
+    }
+
+    if (data.type === "GeometryCollection") {
+      const { geometries } = data as GeometryCollection;
+      return (
+        Array.isArray(geometries) && geometries.every((g) => booleanValid(g))
+      );
+    }
+
+    return booleanValid(data as Feature | Geometry);
   }
 }

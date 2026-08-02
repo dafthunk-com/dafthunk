@@ -10,24 +10,25 @@ export class DatabaseCreateTableNode extends ExecutableNode {
     id: "database-create-table",
     name: "Database Create Table",
     type: "database-create-table",
-    description: "Creates a table in a database from a schema definition.",
+    description: "Creates a table in a database from a schema definition",
     tags: ["Database", "Create", "Table"],
     icon: "database",
     documentation:
       "Creates a new table in a database using a schema definition. The schema specifies the table name and field types. If the table already exists, the node succeeds without modification. Supports basic types: string, integer, number, boolean, datetime, json.",
     asTool: true,
+    inlinable: false,
     inputs: [
       {
         name: "database",
         type: "database",
-        description: "Database ID.",
+        description: "Database ID",
         required: true,
         hidden: true,
       },
       {
         name: "schema",
         type: "schema",
-        description: "Schema defining the table name and field types.",
+        description: "Schema defining the table name and field types",
         required: true,
       },
     ],
@@ -36,12 +37,12 @@ export class DatabaseCreateTableNode extends ExecutableNode {
         name: "created",
         type: "boolean",
         description:
-          "True if the table was created, false if it already existed.",
+          "True if the table was created, false if it already existed",
       },
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     const { database, schema: schemaInput } = context.inputs;
 
     if (!database) {

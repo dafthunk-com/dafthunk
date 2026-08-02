@@ -77,6 +77,7 @@ export class DemToGltfNode extends ExecutableNode {
       "Converts PNG elevation tiles to 3D mesh geometry in glTF format. Optionally apply PBR materials with textures.",
     inlinable: false,
     usage: 10,
+    asTool: false,
     inputs: [
       {
         name: "image",

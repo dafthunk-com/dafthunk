@@ -18,7 +18,7 @@ describe("TransformScaleNode", () => {
   const node = new TransformScaleNode({
     id: "test-node",
     name: "Test Node",
-    type: "transformScale",
+    type: "transform-scale",
     position: { x: 0, y: 0 },
     inputs: [],
     outputs: [],

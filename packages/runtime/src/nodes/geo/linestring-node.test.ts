@@ -18,7 +18,7 @@ describe("LineStringNode", () => {
   const node = new LineStringNode({
     id: "test-node",
     name: "Test Node",
-    type: "lineString",
+    type: "linestring",
     position: { x: 0, y: 0 },
     inputs: [],
     outputs: [],
@@ -26,9 +26,9 @@ describe("LineStringNode", () => {
 
   describe("Node definition", () => {
     it("should have correct node type definition", () => {
-      expect(LineStringNode.nodeType.id).toBe("lineString");
+      expect(LineStringNode.nodeType.id).toBe("linestring");
       expect(LineStringNode.nodeType.name).toBe("LineString");
-      expect(LineStringNode.nodeType.type).toBe("lineString");
+      expect(LineStringNode.nodeType.type).toBe("linestring");
       expect(LineStringNode.nodeType.tags).toContain("Geo");
     });
 

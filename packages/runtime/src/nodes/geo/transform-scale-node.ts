@@ -1,19 +1,21 @@
 import { transformScale } from "@dafthunk/geo";
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
 import type { NodeExecution, NodeType } from "@dafthunk/types";
+import type { GeoPosition } from "./geo-input";
 
 export class TransformScaleNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "transformScale",
+    id: "transform-scale",
     name: "Transform Scale",
-    type: "transformScale",
+    type: "transform-scale",
     description:
-      "Scales any GeoJSON geometry by a factor around an origin point.",
+      "Scales any GeoJSON geometry by a factor around an origin point",
     tags: ["Geo", "GeoJSON", "Transform", "Scale"],
     icon: "maximize",
     documentation:
       "This node scales a GeoJSON geometry by a specified factor around an origin point.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "geojson",
@@ -62,18 +64,14 @@ export class TransformScaleNode extends ExecutableNode {
       }
 
       // Prepare options for scaling
-      const options: { origin?: any } = {};
+      const options: { origin?: GeoPosition } = {};
 
       if (origin !== undefined && origin !== null) {
         options.origin = origin;
       }
 
       // Delegate to Turf.js transformScale function
-      const scaledGeometry = transformScale(
-        geojson as any,
-        factor,
-        options as any
-      );
+      const scaledGeometry = transformScale(geojson, factor, options);
 
       return this.createSuccessResult({
         scaled: scaledGeometry,

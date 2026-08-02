@@ -7,12 +7,13 @@ export class FeatureCollectionNode extends ExecutableNode {
     id: "feature-collection",
     name: "Feature Collection",
     type: "feature-collection",
-    description: "Takes one or more Features and creates a FeatureCollection.",
+    description: "Takes one or more Features and creates a FeatureCollection",
     tags: ["Geo", "GeoJSON", "FeatureCollection"],
     icon: "layers",
     documentation:
       "This node creates a FeatureCollection from an array of GeoJSON features.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "features",
@@ -83,10 +84,7 @@ export class FeatureCollectionNode extends ExecutableNode {
       }
 
       // Delegate everything to Turf.js featureCollection function
-      const featureCollectionResult = featureCollection(
-        features as any,
-        options as any
-      );
+      const featureCollectionResult = featureCollection(features, options);
 
       return this.createSuccessResult({
         featureCollection: featureCollectionResult,

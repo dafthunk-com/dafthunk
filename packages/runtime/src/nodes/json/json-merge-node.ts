@@ -1,5 +1,11 @@
 import { ExecutableNode, type NodeContext } from "@dafthunk/runtime";
-import type { NodeExecution, NodeType } from "@dafthunk/types";
+import type {
+  JsonObject,
+  JsonValue,
+  NodeExecution,
+  NodeType,
+} from "@dafthunk/types";
+import { isJsonObject } from "./json-access";
 
 export class JsonMergeNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -104,8 +110,8 @@ export class JsonMergeNode extends ExecutableNode {
     }
   }
 
-  private shallowMerge(objects: any[]): any {
-    const result: any = {};
+  private shallowMerge(objects: JsonObject[]): JsonValue {
+    const result: JsonObject = {};
 
     for (const obj of objects) {
       if (typeof obj === "object" && obj !== null && !Array.isArray(obj)) {
@@ -116,8 +122,8 @@ export class JsonMergeNode extends ExecutableNode {
     return result;
   }
 
-  private deepMerge(objects: any[]): any {
-    const result: any = {};
+  private deepMerge(objects: JsonObject[]): JsonValue {
+    const result: JsonObject = {};
 
     for (const obj of objects) {
       if (typeof obj === "object" && obj !== null && !Array.isArray(obj)) {
@@ -128,7 +134,7 @@ export class JsonMergeNode extends ExecutableNode {
     return result;
   }
 
-  private mergeObject(target: any, source: any): void {
+  private mergeObject(target: JsonObject, source: JsonObject): void {
     for (const key in source) {
       if (Object.hasOwn(source, key)) {
         const sourceValue = source[key];
@@ -151,10 +157,10 @@ export class JsonMergeNode extends ExecutableNode {
           !Array.isArray(sourceValue)
         ) {
           // For objects, recursively merge
-          if (!target[key]) {
-            target[key] = {};
-          }
-          this.mergeObject(target[key], sourceValue);
+          const nested = target[key];
+          const branch: JsonObject = isJsonObject(nested) ? nested : {};
+          target[key] = branch;
+          this.mergeObject(branch, sourceValue);
         } else {
           // For primitives, replace the target value
           target[key] = sourceValue;

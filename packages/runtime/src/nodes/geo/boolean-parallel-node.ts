@@ -8,12 +8,13 @@ export class BooleanParallelNode extends ExecutableNode {
     name: "Boolean Parallel",
     type: "boolean-parallel",
     description:
-      "Returns True if each segment of line1 is parallel to the correspondent segment of line2.",
+      "Returns True if each segment of line1 is parallel to the correspondent segment of line2",
     tags: ["Geo", "GeoJSON", "Boolean", "Parallel"],
     icon: "git-compare",
     documentation:
       "This node tests whether two LineString geometries are parallel to each other.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "line1",
@@ -50,7 +51,7 @@ export class BooleanParallelNode extends ExecutableNode {
       }
 
       // Delegate everything to Turf.js booleanParallel function
-      const isParallel = booleanParallel(line1 as any, line2 as any);
+      const isParallel = booleanParallel(line1, line2);
 
       return this.createSuccessResult({
         isParallel,

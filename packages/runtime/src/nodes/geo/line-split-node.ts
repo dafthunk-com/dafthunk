@@ -7,12 +7,13 @@ export class LineSplitNode extends ExecutableNode {
     id: "line-split",
     name: "Line Split",
     type: "line-split",
-    description: "Split a LineString by another GeoJSON Feature.",
+    description: "Split a LineString by another GeoJSON Feature",
     tags: ["Geo", "GeoJSON", "Transform", "LineSplit"],
     icon: "git-merge",
     documentation:
       "This node splits a LineString geometry into multiple segments using another GeoJSON feature as the splitting tool.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "line",
@@ -49,7 +50,7 @@ export class LineSplitNode extends ExecutableNode {
       }
 
       // Delegate everything to Turf.js lineSplit function
-      const splitLines = lineSplit(line as any, splitter as any);
+      const splitLines = lineSplit(line, splitter);
 
       return this.createSuccessResult({
         split: splitLines,

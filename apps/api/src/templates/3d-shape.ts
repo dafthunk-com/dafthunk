@@ -1,7 +1,7 @@
-import { CgsApplyMaterialNode } from "@dafthunk/runtime/nodes/3d/cgs-apply-material-node";
-import { CgsCubeNode } from "@dafthunk/runtime/nodes/3d/cgs-cube-node";
-import { CgsDifferenceNode } from "@dafthunk/runtime/nodes/3d/cgs-difference-node";
-import { CgsSphereNode } from "@dafthunk/runtime/nodes/3d/cgs-sphere-node";
+import { CsgApplyMaterialNode } from "@dafthunk/runtime/nodes/3d/csg-apply-material-node";
+import { CsgCubeNode } from "@dafthunk/runtime/nodes/3d/csg-cube-node";
+import { CsgDifferenceNode } from "@dafthunk/runtime/nodes/3d/csg-difference-node";
+import { CsgSphereNode } from "@dafthunk/runtime/nodes/3d/csg-sphere-node";
 import { GltfOutputNode } from "@dafthunk/runtime/nodes/output/gltf-output-node";
 import type { WorkflowTemplate } from "@dafthunk/types";
 
@@ -13,7 +13,7 @@ export const shape3dTemplate: WorkflowTemplate = {
   trigger: "manual",
   tags: ["3d"],
   nodes: [
-    CgsCubeNode.create({
+    CsgCubeNode.create({
       id: "cube",
       name: "Cube",
       position: { x: 100, y: 100 },
@@ -22,7 +22,7 @@ export const shape3dTemplate: WorkflowTemplate = {
         center: false,
       },
     }),
-    CgsSphereNode.create({
+    CsgSphereNode.create({
       id: "sphere",
       name: "Sphere",
       position: { x: 100, y: 300 },
@@ -32,12 +32,12 @@ export const shape3dTemplate: WorkflowTemplate = {
         heightSegments: 32,
       },
     }),
-    CgsDifferenceNode.create({
+    CsgDifferenceNode.create({
       id: "difference",
       name: "Difference",
       position: { x: 500, y: 200 },
     }),
-    CgsApplyMaterialNode.create({
+    CsgApplyMaterialNode.create({
       id: "apply-material",
       name: "Apply Material",
       position: { x: 900, y: 200 },

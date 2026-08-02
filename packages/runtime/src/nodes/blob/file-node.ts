@@ -17,6 +17,8 @@ export class FileNode extends ExecutableNode {
     icon: "file",
     documentation:
       "This node provides a generic file widget for uploading any file type and outputs them as file references. It supports images, audio, documents, and any other file format. The output type is 'blob' but can connect to nodes expecting specific types (image, audio, document, etc.) due to MIME type compatibility.",
+    inlinable: false,
+    asTool: false,
     inputs: [
       {
         name: "value",
@@ -34,7 +36,7 @@ export class FileNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { value } = context.inputs;
 

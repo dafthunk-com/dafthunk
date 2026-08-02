@@ -7,12 +7,13 @@ export class PolygonTangentsNode extends ExecutableNode {
     id: "polygon-tangents",
     name: "Polygon Tangents",
     type: "polygon-tangents",
-    description: "Finds the tangents of a (Multi)Polygon from a Point.",
+    description: "Finds the tangents of a (Multi)Polygon from a Point",
     tags: ["Geo", "GeoJSON", "Geometry", "PolygonTangents"],
     icon: "compass",
     documentation:
       "This node finds the tangent points on a polygon from a given external point.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "point",
@@ -49,7 +50,7 @@ export class PolygonTangentsNode extends ExecutableNode {
       }
 
       // Delegate to Turf.js polygonTangents function
-      const tangents = polygonTangents(point as any, polygon as any);
+      const tangents = polygonTangents(point, polygon);
 
       return this.createSuccessResult({
         tangents,

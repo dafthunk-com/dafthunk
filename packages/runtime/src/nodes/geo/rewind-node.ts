@@ -8,12 +8,13 @@ export class RewindNode extends ExecutableNode {
     name: "Rewind",
     type: "rewind",
     description:
-      "Rewind (Multi)LineString or (Multi)Polygon outer ring counterclockwise and inner rings clockwise (Uses Shoelace Formula).",
+      "Rewind (Multi)LineString or (Multi)Polygon outer ring counterclockwise and inner rings clockwise (Uses Shoelace Formula)",
     tags: ["Geo", "GeoJSON", "Transform", "Rewind"],
     icon: "rotate-ccw",
     documentation:
       "This node reverses the coordinate order of a GeoJSON geometry.",
     inlinable: true,
+    asTool: false,
     inputs: [
       {
         name: "geojson",
@@ -70,7 +71,7 @@ export class RewindNode extends ExecutableNode {
       }
 
       // Delegate to Turf.js rewind function
-      const rewound = rewind(geojson as any, options);
+      const rewound = rewind(geojson, options);
 
       return this.createSuccessResult({
         rewound,
