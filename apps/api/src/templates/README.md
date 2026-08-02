@@ -60,10 +60,17 @@ pnpm --filter '@dafthunk/api' test:integration
 
 Two things to know before trusting a result:
 
-**They call Workers AI for real.** Workers AI has no local emulation, so
-`wrangler.test.jsonc` binds it with `remote: true`. The suite needs Cloudflare
-auth and bills your account for every model call. This is why CI runs `pnpm
-test` and not `test:integration`.
+**They call Workers AI for real.** Workers AI has no local emulation, so it is
+bound with `remote: true`. The suite needs Cloudflare auth and bills your
+account for every model call. This is why CI runs `pnpm test` and not
+`test:integration`.
+
+That binding lives in `wrangler.integration.jsonc`, which exists only to keep it
+out of `wrangler.test.jsonc`. The two vitest configs would otherwise share one
+wrangler file, and a remote binding there makes the *unit* suite open a remote
+connection on every test file — which fails in CI with
+`Authentication error [code: 10000]`. Add remote bindings to the integration
+config only.
 
 **A failure is not always a defect.** The pool proxies remote bindings over a
 connection that drops when several test files call Workers AI at once, showing

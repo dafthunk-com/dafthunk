@@ -4,8 +4,11 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   plugins: [
     cloudflareTest({
+      // Deliberately not wrangler.test.jsonc: that config is shared with the
+      // unit suite, and the remote Workers AI binding this suite needs would
+      // make `pnpm test` require Cloudflare credentials.
       wrangler: {
-        configPath: "./wrangler.test.jsonc",
+        configPath: "./wrangler.integration.jsonc",
       },
     }),
   ],
