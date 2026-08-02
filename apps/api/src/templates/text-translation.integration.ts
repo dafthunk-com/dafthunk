@@ -38,7 +38,9 @@ describe("Text Translation Template", () => {
       inputs: { value: inputText },
       env: env as Bindings,
     } as any);
-    expect(inputTextResult.status).toBe("completed");
+    expect(inputTextResult.status, String(inputTextResult.error)).toBe(
+      "completed"
+    );
     expect(inputTextResult.outputs?.value).toBe(inputText);
 
     // Execute source language input node
@@ -56,7 +58,9 @@ describe("Text Translation Template", () => {
       inputs: { value: sourceLang },
       env: env as Bindings,
     } as any);
-    expect(sourceLangResult.status).toBe("completed");
+    expect(sourceLangResult.status, String(sourceLangResult.error)).toBe(
+      "completed"
+    );
     expect(sourceLangResult.outputs?.value).toBe(sourceLang);
 
     // Execute target language input node
@@ -74,7 +78,9 @@ describe("Text Translation Template", () => {
       inputs: { value: targetLang },
       env: env as Bindings,
     } as any);
-    expect(targetLangResult.status).toBe("completed");
+    expect(targetLangResult.status, String(targetLangResult.error)).toBe(
+      "completed"
+    );
     expect(targetLangResult.outputs?.value).toBe(targetLang);
 
     // Execute translation node
@@ -92,7 +98,9 @@ describe("Text Translation Template", () => {
       },
       env: env as Bindings,
     } as any);
-    expect(translatorResult.status).toBe("completed");
+    expect(translatorResult.status, String(translatorResult.error)).toBe(
+      "completed"
+    );
     expect(translatorResult.outputs?.translated_text).toBeDefined();
     expect(typeof translatorResult.outputs?.translated_text).toBe("string");
     expect(
@@ -111,7 +119,7 @@ describe("Text Translation Template", () => {
       },
       env: env as Bindings,
     } as any);
-    expect(outputResult.status).toBe("completed");
+    expect(outputResult.status, String(outputResult.error)).toBe("completed");
     expect(outputResult.outputs?.displayValue).toBeDefined();
   });
 });

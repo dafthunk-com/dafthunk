@@ -36,7 +36,7 @@ describe("Image Generation Template", () => {
       inputs: { value: prompt },
       env: env as Bindings,
     } as any);
-    expect(inputResult.status).toBe("completed");
+    expect(inputResult.status, String(inputResult.error)).toBe("completed");
     expect(inputResult.outputs?.value).toBe(prompt);
 
     // Execute generator node
@@ -52,7 +52,9 @@ describe("Image Generation Template", () => {
       },
       env: env as Bindings,
     } as any);
-    expect(generatorResult.status).toBe("completed");
+    expect(generatorResult.status, String(generatorResult.error)).toBe(
+      "completed"
+    );
     expect(generatorResult.outputs?.image).toBeDefined();
 
     // Execute output node
@@ -67,7 +69,7 @@ describe("Image Generation Template", () => {
       },
       env: env as Bindings,
     } as any);
-    expect(outputResult.status).toBe("completed");
+    expect(outputResult.status, String(outputResult.error)).toBe("completed");
     expect(outputResult.outputs?.displayValue).toBeDefined();
   });
 });

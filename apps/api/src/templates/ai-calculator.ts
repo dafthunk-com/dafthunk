@@ -44,12 +44,7 @@ export const aiCalculatorTemplate: WorkflowTemplate = {
           type: "json",
           description: "Tool references for function calling",
           hidden: true,
-          // Tool refs are a JsonArray, but our `json` Parameter declares
-          // value as JsonObject. The runtime accepts arrays here, so cast
-          // through `unknown` to satisfy the static type.
-          value: [
-            { type: "node", identifier: "calculator" },
-          ] as unknown as Record<string, never>,
+          value: [{ type: "node", identifier: "calculator" }],
         },
       ],
       outputs: [

@@ -37,7 +37,7 @@ describe("Sentiment Analysis Template", () => {
       inputs: { value: inputText },
       env: env as Bindings,
     } as any);
-    expect(inputResult.status).toBe("completed");
+    expect(inputResult.status, String(inputResult.error)).toBe("completed");
     expect(inputResult.outputs?.value).toBe(inputText);
 
     // Execute sentiment analyzer node
@@ -53,7 +53,9 @@ describe("Sentiment Analysis Template", () => {
       },
       env: env as Bindings,
     } as any);
-    expect(analyzerResult.status).toBe("completed");
+    expect(analyzerResult.status, String(analyzerResult.error)).toBe(
+      "completed"
+    );
     const classifications = analyzerResult.outputs?.output as
       | Array<{ label: string; score: number }>
       | undefined;
@@ -76,7 +78,7 @@ describe("Sentiment Analysis Template", () => {
       },
       env: env as Bindings,
     } as any);
-    expect(outputResult.status).toBe("completed");
+    expect(outputResult.status, String(outputResult.error)).toBe("completed");
     expect(outputResult.outputs?.displayValue).toBeDefined();
   });
 });

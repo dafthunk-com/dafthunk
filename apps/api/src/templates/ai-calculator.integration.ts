@@ -28,7 +28,9 @@ describe("AI Calculator Template", () => {
     expect(problemNode).toBeDefined();
     expect(problemNode?.type).toBe("text-input");
 
-    const aiNode = aiCalculatorTemplate.nodes.find((n) => n.id === "ai-solver");
+    const aiNode = aiCalculatorTemplate.nodes.find(
+      (n) => n.id === "ai-calculator"
+    );
     expect(aiNode).toBeDefined();
     expect(aiNode?.type).toBe("cloudflare-model");
 
@@ -40,7 +42,9 @@ describe("AI Calculator Template", () => {
   });
 
   it("should have calculator configured as a tool for the AI node", () => {
-    const aiNode = aiCalculatorTemplate.nodes.find((n) => n.id === "ai-solver");
+    const aiNode = aiCalculatorTemplate.nodes.find(
+      (n) => n.id === "ai-calculator"
+    );
     expect(aiNode?.functionCalling).toBe(true);
     const toolsInput = aiNode?.inputs.find((i) => i.name === "tools");
     expect(toolsInput).toBeDefined();
@@ -50,7 +54,9 @@ describe("AI Calculator Template", () => {
   });
 
   it("should pin the model and lock the picker like a registry-spawned node", () => {
-    const aiNode = aiCalculatorTemplate.nodes.find((n) => n.id === "ai-solver");
+    const aiNode = aiCalculatorTemplate.nodes.find(
+      (n) => n.id === "ai-calculator"
+    );
     expect(aiNode?.metadata?._cf_locked).toBe("true");
     expect(aiNode?.icon).toBe("sparkles");
 
@@ -67,14 +73,14 @@ describe("AI Calculator Template", () => {
     const edges = aiCalculatorTemplate.edges;
 
     const problemToAi = edges.find(
-      (e) => e.source === "problem-input" && e.target === "ai-solver"
+      (e) => e.source === "problem-input" && e.target === "ai-calculator"
     );
     expect(problemToAi).toBeDefined();
     expect(problemToAi?.sourceOutput).toBe("value");
     expect(problemToAi?.targetInput).toBe("prompt");
 
     const aiToPreview = edges.find(
-      (e) => e.source === "ai-solver" && e.target === "solution-preview"
+      (e) => e.source === "ai-calculator" && e.target === "solution-preview"
     );
     expect(aiToPreview).toBeDefined();
     expect(aiToPreview?.sourceOutput).toBe("response");

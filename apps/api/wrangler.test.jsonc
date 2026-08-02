@@ -3,6 +3,14 @@
   "name": "dafthunk-api-test",
   "compatibility_date": "2024-10-22",
   "compatibility_flags": ["nodejs_compat"],
+  // Workers AI has no local emulation, so the template integration tests run
+  // the models against the real account. Marked remote to make that explicit
+  // and to silence the billing warning: this suite costs money and needs
+  // Cloudflare auth, which is why CI runs `test` and not `test:integration`.
+  "ai": {
+    "binding": "AI",
+    "remote": true
+  },
   "d1_databases": [
     {
       "binding": "DB",

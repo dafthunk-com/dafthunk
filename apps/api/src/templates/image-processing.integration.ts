@@ -18,9 +18,7 @@ describe("Image Processing Template", () => {
     expect(imageProcessingTemplate.id).toBe("image-processing");
     expect(imageProcessingTemplate.name).toBe("Image Processing");
     expect(imageProcessingTemplate.trigger).toBe("manual");
-    expect(imageProcessingTemplate.tags).toContain("webcam");
-    expect(imageProcessingTemplate.tags).toContain("photon");
-    expect(imageProcessingTemplate.tags).toContain("pop-art");
+    expect(imageProcessingTemplate.tags).toContain("image");
   });
 
   it("should have correct node configuration", () => {

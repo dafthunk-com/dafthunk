@@ -52,6 +52,38 @@ export const workflowTemplates: WorkflowTemplate[] = [
 
 Create `{template-name}.integration.ts` to verify nodes execute correctly.
 
+## Running the integration tests
+
+```bash
+pnpm --filter '@dafthunk/api' test:integration
+```
+
+Two things to know before trusting a result:
+
+**They call Workers AI for real.** Workers AI has no local emulation, so
+`wrangler.test.jsonc` binds it with `remote: true`. The suite needs Cloudflare
+auth and bills your account for every model call. This is why CI runs `pnpm
+test` and not `test:integration`.
+
+**A failure is not always a defect.** The pool proxies remote bindings over a
+connection that drops when several test files call Workers AI at once, showing
+up as `Network connection lost.` on a different file each run — roughly two runs
+in three on a full suite. Re-run the single file before believing it:
+
+```bash
+pnpm --filter '@dafthunk/api' test:integration text-summarization
+```
+
+Retrying inside vitest does not help (the connection stays dead for that
+worker), and serializing with `fileParallelism: false` makes it worse.
+
+**Pin models that are still served.** Cloudflare retires Workers AI models on
+published dates, and a retired model fails at runtime with `5028: This model was
+deprecated`. `@cf/facebook/bart-large-cnn` and `@cf/unum/uform-gen2-qwen-500m`
+both went out on 2026-05-30 while still pinned in templates here. Assert the
+model your template pins, and have the test actually execute the node — a test
+that only checks wiring will not notice the model is gone.
+
 ## Naming Conventions
 
 ### Node IDs

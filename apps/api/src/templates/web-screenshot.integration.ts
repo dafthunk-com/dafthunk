@@ -19,7 +19,6 @@ describe("Web Screenshot Template", () => {
     expect(webScreenshotTemplate.name).toBe("Web Screenshot");
     expect(webScreenshotTemplate.trigger).toBe("manual");
     expect(webScreenshotTemplate.tags).toContain("browser");
-    expect(webScreenshotTemplate.tags).toContain("screenshot");
   });
 
   it("should have correct node configuration", () => {

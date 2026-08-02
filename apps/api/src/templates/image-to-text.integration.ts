@@ -142,7 +142,7 @@ describe("Image to Text Template", () => {
       },
     } as any);
 
-    expect(requestResult.status).toBe("completed");
+    expect(requestResult.status, String(requestResult.error)).toBe("completed");
     expect(requestResult.outputs?.body).toBeDefined();
     expect(requestResult.outputs?.body.mimeType).toBe("image/png");
 
@@ -162,7 +162,9 @@ describe("Image to Text Template", () => {
       env: env as Bindings,
     } as any);
 
-    expect(understandingResult.status).toBe("completed");
+    expect(understandingResult.status, String(understandingResult.error)).toBe(
+      "completed"
+    );
     expect(understandingResult.outputs?.text).toBe("Extracted text from image");
 
     // Step 3: Gemini TTS converts extracted text to speech
@@ -179,7 +181,7 @@ describe("Image to Text Template", () => {
       env: env as Bindings,
     } as any);
 
-    expect(ttsResult.status).toBe("completed");
+    expect(ttsResult.status, String(ttsResult.error)).toBe("completed");
     expect(ttsResult.outputs?.audio).toBeDefined();
     expect(ttsResult.outputs?.audio.data).toBeInstanceOf(Uint8Array);
     expect(ttsResult.outputs?.audio.mimeType).toBe("audio/wav");

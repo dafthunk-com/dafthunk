@@ -27,7 +27,9 @@ export const imageDescriptionTemplate: WorkflowTemplate = {
       id: "image-describer",
       name: "Image Describer",
       position: { x: 500, y: 100 },
-      model: "@cf/unum/uform-gen2-qwen-500m",
+      // uform-gen2-qwen-500m was retired on 2026-05-30; llava is the
+      // Image-to-Text model still served, with the same port shape.
+      model: "@cf/llava-hf/llava-1.5-7b-hf",
       inputs: [
         {
           name: "image",

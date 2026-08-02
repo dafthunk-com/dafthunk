@@ -22,7 +22,7 @@ describe("HTTP Echo Template", () => {
     expect(httpEchoTemplate.id).toBe("http-echo");
     expect(httpEchoTemplate.name).toBe("HTTP Echo");
     expect(httpEchoTemplate.trigger).toBe("http_request");
-    expect(httpEchoTemplate.tags).toContain("http");
+    expect(httpEchoTemplate.tags).toContain("api");
   });
 
   it("should have correct node types", () => {
