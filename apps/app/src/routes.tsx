@@ -403,6 +403,21 @@ export const routes: AppRouteObject[] = [
     handle: { head: <HeadSeo title="Generate - Workflows - Dafthunk" /> },
   },
   {
+    // The session id is the handle for an in-flight or finished run; the server
+    // replays its frame log, so this address survives leaving the page.
+    path: "/org/:organizationId/workflows/generate/:sessionId",
+    element: (
+      <OrgLayout title="Workflows">
+        <ProtectedRoute>
+          <DeveloperRoute>
+            <WorkflowGeneratePage />
+          </DeveloperRoute>
+        </ProtectedRoute>
+      </OrgLayout>
+    ),
+    handle: { head: <HeadSeo title="Generate - Workflows - Dafthunk" /> },
+  },
+  {
     path: "/templates",
     element: <OrgRedirect to="/org/:organizationId/templates" />,
   },

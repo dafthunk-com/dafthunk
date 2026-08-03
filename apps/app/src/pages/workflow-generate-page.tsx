@@ -1,11 +1,19 @@
-import type { GenerationPhase, NodeExecution, Workflow } from "@dafthunk/types";
+import type {
+  GenerationPhase,
+  GenerationValidationIssue,
+  Node,
+  NodeExecution,
+  Workflow,
+} from "@dafthunk/types";
 import AlertTriangle from "lucide-react/icons/alert-triangle";
 import ArrowRight from "lucide-react/icons/arrow-right";
 import Check from "lucide-react/icons/check";
+import ChevronDown from "lucide-react/icons/chevron-down";
+import ChevronRight from "lucide-react/icons/chevron-right";
 import Loader2 from "lucide-react/icons/loader-2";
 import Sparkles from "lucide-react/icons/sparkles";
-import { useEffect, useState } from "react";
-import { Link } from "react-router";
+import { useCallback, useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router";
 
 import { useAuth } from "@/components/auth-context";
 import { InsetLayout } from "@/components/layouts/inset-layout";
@@ -23,7 +31,14 @@ import { Field } from "@/components/workflow/fields/field";
 import type { WorkflowParameter } from "@/components/workflow/workflow-types";
 import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
-import { useWorkflowGenerator } from "@/hooks/use-workflow-generator";
+import type {
+  GenerationAttempt,
+  GenerationState,
+} from "@/hooks/use-workflow-generator";
+import {
+  latestAttempt,
+  useWorkflowGenerator,
+} from "@/hooks/use-workflow-generator";
 import { useObjectService } from "@/services/object-service";
 import { cn } from "@/utils/utils";
 
@@ -85,7 +100,115 @@ function Stepper({
   );
 }
 
-/** Nodes with no outgoing edge — what the user actually asked to see. */
+/** Fatal first — the UI renders them as one list. */
+function sortIssues(
+  issues: GenerationValidationIssue[]
+): GenerationValidationIssue[] {
+  return [...issues].sort(
+    (a, b) => Number(b.severity === "fatal") - Number(a.severity === "fatal")
+  );
+}
+
+function IssueList({ issues }: { issues: GenerationValidationIssue[] }) {
+  if (issues.length === 0) return null;
+  return (
+    <ul className="space-y-1 text-sm">
+      {sortIssues(issues).map((issue, index) => (
+        <li
+          key={`${issue.code}-${index}`}
+          className={
+            issue.severity === "fatal"
+              ? "text-destructive"
+              : "text-muted-foreground"
+          }
+        >
+          {issue.message}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function NodeList({ nodes }: { nodes: Node[] }) {
+  return (
+    <ul className="space-y-1 text-sm">
+      {nodes.map((node) => (
+        <li key={node.id} className="flex items-center gap-2">
+          <span className="font-medium">{node.name}</span>
+          <span className="text-xs text-muted-foreground">{node.type}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/**
+ * The agent's passes at producing a valid graph.
+ *
+ * Attempt 0 is the first draft; later ones are repairs driven by the validation
+ * errors shown beneath each. Only the newest is expanded — the earlier ones
+ * matter when you want to know *why* it retried.
+ */
+function AttemptHistory({ attempts }: { attempts: GenerationAttempt[] }) {
+  const [expanded, setExpanded] = useState<number | null>(null);
+  const newest = attempts[attempts.length - 1]?.attempt ?? null;
+
+  if (attempts.length < 2) return null;
+
+  return (
+    <div className="space-y-2">
+      <p className="text-sm font-medium">
+        {attempts.length} attempts at a valid graph
+      </p>
+      {attempts.map((entry) => {
+        const isOpen = (expanded ?? newest) === entry.attempt;
+        const fatal = entry.issues.filter((i) => i.severity === "fatal").length;
+
+        return (
+          <div key={entry.attempt} className="rounded-md border">
+            <button
+              type="button"
+              onClick={() => setExpanded(isOpen ? -1 : entry.attempt)}
+              className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-muted"
+            >
+              {isOpen ? (
+                <ChevronDown className="size-4 shrink-0" />
+              ) : (
+                <ChevronRight className="size-4 shrink-0" />
+              )}
+              <span className="font-medium">
+                {entry.attempt === 0
+                  ? "First draft"
+                  : `Repair ${entry.attempt}`}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {entry.workflow?.nodes.length ?? 0} nodes
+              </span>
+              {fatal > 0 ? (
+                <Badge variant="destructive" className="ml-auto">
+                  {fatal} problem{fatal === 1 ? "" : "s"}
+                </Badge>
+              ) : (
+                <Badge variant="secondary" className="ml-auto">
+                  valid
+                </Badge>
+              )}
+            </button>
+
+            {isOpen && (
+              <div className="space-y-3 border-t px-3 py-3">
+                {entry.workflow && <NodeList nodes={entry.workflow.nodes} />}
+                <IssueList issues={entry.issues} />
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/** Nodes with no outgoing edge — the ones whose output is the actual answer. */
 function terminalNodeIds(workflow: Workflow): Set<string> {
   const withOutgoing = new Set(workflow.edges.map((edge) => edge.source));
   return new Set(
@@ -93,7 +216,15 @@ function terminalNodeIds(workflow: Workflow): Set<string> {
   );
 }
 
-function ResultPanel({
+/**
+ * The whole run, node by node.
+ *
+ * Terminal nodes render their values, since that is the result the user asked
+ * for. Every other node still appears with its status, because when a run comes
+ * back partial the useful information is *which* step broke — showing only
+ * terminals left a failed run looking empty.
+ */
+function ExecutionTrace({
   workflow,
   nodeExecutions,
 }: {
@@ -104,56 +235,69 @@ function ResultPanel({
   const terminals = terminalNodeIds(workflow);
   const byId = new Map(workflow.nodes.map((node) => [node.id, node]));
 
-  const shown = nodeExecutions.filter((execution) =>
-    terminals.has(execution.nodeId)
-  );
+  // Ordered by the graph, not by however the executor reported them.
+  const ordered = workflow.nodes
+    .map((node) => ({
+      node,
+      execution: nodeExecutions.find((e) => e.nodeId === node.id),
+    }))
+    .filter((entry) => entry.execution !== undefined);
 
-  if (shown.length === 0) {
+  if (ordered.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
-        The run finished but produced no terminal output.
+        The run recorded no node executions.
       </p>
     );
   }
 
   return (
     <div className="space-y-4">
-      {shown.map((execution) => {
-        const node = byId.get(execution.nodeId);
-        if (!node) return null;
+      {ordered.map(({ node, execution }) => {
+        if (!execution) return null;
+        const isTerminal = terminals.has(node.id);
+        const failed = execution.status !== "completed";
 
         return (
-          <div key={execution.nodeId} className="space-y-2">
+          <div key={node.id} className="space-y-2">
             <div className="flex items-center gap-2">
+              {failed ? (
+                <AlertTriangle className="size-4 shrink-0 text-destructive" />
+              ) : (
+                <Check className="size-4 shrink-0 text-muted-foreground" />
+              )}
               <span className="text-sm font-medium">{node.name}</span>
-              {execution.status !== "completed" && (
+              <span className="text-xs text-muted-foreground">{node.type}</span>
+              {failed && (
                 <Badge variant="destructive">{execution.status}</Badge>
               )}
             </div>
 
             {execution.error && (
-              <p className="text-sm text-destructive">{execution.error}</p>
+              <p className="pl-6 text-sm text-destructive">{execution.error}</p>
             )}
 
-            {node.outputs.map((output) => {
-              const value = execution.outputs?.[output.name];
-              if (value === undefined) return null;
-              const parameter = {
-                ...output,
-                id: output.name,
-              } as WorkflowParameter;
-              return (
-                <Field
-                  key={output.name}
-                  parameter={parameter}
-                  value={value}
-                  onChange={() => {}}
-                  onClear={() => {}}
-                  disabled
-                  createObjectUrl={createObjectUrl}
-                />
-              );
-            })}
+            {isTerminal && (
+              <div className="space-y-2 pl-6">
+                {byId.get(node.id)?.outputs.map((output) => {
+                  const value = execution.outputs?.[output.name];
+                  if (value === undefined) return null;
+                  return (
+                    <Field
+                      key={output.name}
+                      parameter={
+                        { ...output, id: output.name } as WorkflowParameter
+                      }
+                      value={value}
+                      onChange={() => {}}
+                      onClear={() => {}}
+                      disabled
+                      createObjectUrl={createObjectUrl}
+                    />
+                  );
+                })}
+              </div>
+            )}
           </div>
         );
       })}
@@ -161,23 +305,110 @@ function ResultPanel({
   );
 }
 
+function ProgressCard({ state }: { state: GenerationState }) {
+  const { getOrgUrl } = useOrgUrl();
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Progress</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <Stepper current={state.phase} failed={state.status === "failed"} />
+
+        {state.plan && (
+          <div className="space-y-1">
+            <p className="text-sm font-medium">{state.plan.title}</p>
+            <p className="text-sm text-muted-foreground">
+              {state.plan.description}
+            </p>
+            {state.plan.steps.length > 0 && (
+              <ol className="list-decimal pl-5 text-sm text-muted-foreground">
+                {state.plan.steps.map((step) => (
+                  <li key={step}>{step}</li>
+                ))}
+              </ol>
+            )}
+          </div>
+        )}
+
+        {state.logs.map((log, index) => (
+          <p
+            key={`${log.message}-${index}`}
+            className={cn(
+              "flex items-start gap-2 text-sm",
+              log.level === "warn"
+                ? "text-amber-600 dark:text-amber-500"
+                : "text-muted-foreground"
+            )}
+          >
+            {log.level === "warn" && (
+              <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+            )}
+            <span>
+              {log.message}
+              {log.level === "warn" && (
+                <>
+                  {" "}
+                  <Link to={getOrgUrl("integrations")} className="underline">
+                    Manage connections
+                  </Link>
+                </>
+              )}
+            </span>
+          </p>
+        ))}
+
+        <AttemptHistory attempts={state.attempts} />
+      </CardContent>
+    </Card>
+  );
+}
+
 export function WorkflowGeneratePage() {
-  const [prompt, setPrompt] = useState("");
+  const { sessionId } = useParams<{ sessionId?: string }>();
+  const navigate = useNavigate();
   const { organization } = useAuth();
   const orgId = organization?.id || "";
   const { getOrgUrl } = useOrgUrl();
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
-  const { state, generate, cancel, reset } = useWorkflowGenerator(orgId);
+
+  // Putting the session in the URL is what makes a run survive navigation: the
+  // server keeps the frame log, so reopening the address replays it.
+  const onSessionStarted = useCallback(
+    (session: string) =>
+      navigate(getOrgUrl(`workflows/generate/${session}`), { replace: true }),
+    [navigate, getOrgUrl]
+  );
+
+  const { state, generate, cancel, reset } = useWorkflowGenerator(orgId, {
+    sessionId,
+    onSessionStarted,
+  });
+
+  const [prompt, setPrompt] = useState("");
 
   useEffect(() => {
     setBreadcrumbs([{ label: "Workflows" }, { label: "Generate" }]);
   }, [setBreadcrumbs]);
 
   const isRunning = state.status === "running";
-  // Fatal first; the UI only ever renders them as one list.
-  const issues = [...state.issues].sort(
-    (a, b) => Number(b.severity === "fatal") - Number(a.severity === "fatal")
-  );
+  const latest = latestAttempt(state);
+  // Sessions are reclaimed an hour after they finish, so an old link can point
+  // at nothing. Say so rather than rendering what looks like a fresh form.
+  const expired =
+    Boolean(sessionId) &&
+    state.sessionLoaded &&
+    state.status === "idle" &&
+    state.attempts.length === 0;
+  // A resumed session arrives with the original request but an empty box.
+  const promptValue = prompt || state.prompt || "";
+
+  const startOver = () => {
+    reset();
+    setPrompt("");
+    navigate(getOrgUrl("workflows/generate"), { replace: true });
+  };
 
   return (
     <InsetLayout title="Generate a workflow">
@@ -192,7 +423,7 @@ export function WorkflowGeneratePage() {
           </CardHeader>
           <CardContent className="space-y-3">
             <Textarea
-              value={prompt}
+              value={promptValue}
               onChange={(event) => setPrompt(event.target.value)}
               placeholder="Summarize incoming support emails and highlight the urgent ones"
               rows={3}
@@ -215,8 +446,8 @@ export function WorkflowGeneratePage() {
 
             <div className="flex gap-2">
               <Button
-                onClick={() => generate(prompt)}
-                disabled={isRunning || !prompt.trim()}
+                onClick={() => generate(promptValue)}
+                disabled={isRunning || !promptValue.trim()}
               >
                 {isRunning ? (
                   <Loader2 className="mr-2 size-4 animate-spin" />
@@ -231,7 +462,7 @@ export function WorkflowGeneratePage() {
                 </Button>
               )}
               {state.status !== "idle" && !isRunning && (
-                <Button variant="outline" onClick={reset}>
+                <Button variant="outline" onClick={startOver}>
                   Start over
                 </Button>
               )}
@@ -239,130 +470,53 @@ export function WorkflowGeneratePage() {
           </CardContent>
         </Card>
 
-        {state.status !== "idle" && (
+        {expired && (
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Progress</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Stepper
-                current={state.phase}
-                failed={state.status === "failed"}
-              />
-
-              {state.plan && (
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">{state.plan.title}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {state.plan.description}
-                  </p>
-                  {state.plan.steps.length > 0 && (
-                    <ol className="list-decimal pl-5 text-sm text-muted-foreground">
-                      {state.plan.steps.map((step) => (
-                        <li key={step}>{step}</li>
-                      ))}
-                    </ol>
-                  )}
-                </div>
-              )}
-
-              {state.logs.map((log, index) => (
-                <p
-                  key={`${log.message}-${index}`}
-                  className={cn(
-                    "flex items-start gap-2 text-sm",
-                    log.level === "warn"
-                      ? "text-amber-600 dark:text-amber-500"
-                      : "text-muted-foreground"
-                  )}
-                >
-                  {log.level === "warn" && (
-                    <AlertTriangle className="mt-0.5 size-4 shrink-0" />
-                  )}
-                  <span>
-                    {log.message}
-                    {log.level === "warn" && (
-                      <>
-                        {" "}
-                        <Link
-                          to={getOrgUrl("integrations")}
-                          className="underline"
-                        >
-                          Manage connections
-                        </Link>
-                      </>
-                    )}
-                  </span>
-                </p>
-              ))}
-
-              {state.attempt > 0 && (
-                <p className="text-sm text-muted-foreground">
-                  Repaired the graph {state.attempt}{" "}
-                  {state.attempt === 1 ? "time" : "times"}.
-                </p>
-              )}
+            <CardContent className="flex items-center justify-between gap-4 pt-6">
+              <p className="text-sm text-muted-foreground">
+                This generation is no longer available. Runs are kept for an
+                hour.
+              </p>
+              <Button variant="outline" onClick={startOver}>
+                Start over
+              </Button>
             </CardContent>
           </Card>
         )}
 
-        {state.workflow && (
+        {state.status !== "idle" && <ProgressCard state={state} />}
+
+        {latest?.workflow && (
           <Card>
             <CardHeader>
               <CardTitle className="text-base">
-                {state.workflow.nodes.length} nodes,{" "}
-                {state.workflow.edges.length} connections
+                {latest.workflow.nodes.length} nodes,{" "}
+                {latest.workflow.edges.length} connections
               </CardTitle>
               <CardDescription>
-                Trigger: {state.workflow.trigger}
+                Trigger: {latest.workflow.trigger}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              <ul className="space-y-1 text-sm">
-                {state.workflow.nodes.map((node) => (
-                  <li key={node.id} className="flex items-center gap-2">
-                    <span className="font-medium">{node.name}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {node.type}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-
-              {issues.length > 0 && (
-                <ul className="space-y-1 text-sm">
-                  {issues.map((issue, index) => (
-                    <li
-                      key={`${issue.code}-${index}`}
-                      className={
-                        issue.severity === "fatal"
-                          ? "text-destructive"
-                          : "text-muted-foreground"
-                      }
-                    >
-                      {issue.message}
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <NodeList nodes={latest.workflow.nodes} />
+              <IssueList issues={latest.issues} />
             </CardContent>
           </Card>
         )}
 
-        {state.execution && state.workflow && (
+        {state.execution && latest?.workflow && (
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Result</CardTitle>
-              {state.outcome === "partial" && (
-                <CardDescription>
-                  The test run did not finish cleanly. Open it in the editor to
-                  run it durably.
-                </CardDescription>
-              )}
+              <CardTitle className="text-base">Run</CardTitle>
+              <CardDescription>
+                {state.outcome === "partial"
+                  ? "The test run did not finish cleanly. Open it in the editor to run it durably."
+                  : `Finished ${state.execution.status}.`}
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <ResultPanel
-                workflow={state.workflow}
+              <ExecutionTrace
+                workflow={latest.workflow}
                 nodeExecutions={state.execution.nodeExecutions ?? []}
               />
             </CardContent>

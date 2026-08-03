@@ -131,6 +131,33 @@ describe("WorkflowGeneratorAgent", () => {
     expect(second.frames[0]).toMatchObject({ type: "session" });
   });
 
+  it("reports the original prompt so a resumed page can show it", async () => {
+    const sessionId = "test-session-prompt";
+
+    const first = await connect(sessionId, {
+      "X-User-Id": "user-1",
+      "X-Organization-Id": "org-missing",
+    });
+    await settle();
+    first.socket.send(
+      JSON.stringify({ type: "start", prompt: "summarize my emails" })
+    );
+    await settle();
+    first.socket.close();
+
+    // A fresh connection is what resuming from a URL looks like.
+    const resumed = await connect(sessionId, {
+      "X-User-Id": "user-1",
+      "X-Organization-Id": "org-missing",
+    });
+    await settle();
+
+    expect(resumed.frames[0]).toMatchObject({
+      type: "session",
+      prompt: "summarize my emails",
+    });
+  });
+
   it("does not restart a run that already happened", async () => {
     const sessionId = "test-session-idempotent";
 

@@ -59,6 +59,8 @@ export type GeneratorServerMessage =
       sessionId: string;
       status: GenerationStatus;
       phase?: GenerationPhase;
+      /** The request this session was started with, so a resumed page can show it. */
+      prompt?: string;
     }
   | { type: "phase"; phase: GenerationPhase; label: string }
   | { type: "log"; level: "info" | "warn"; message: string }

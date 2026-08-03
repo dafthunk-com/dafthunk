@@ -139,11 +139,12 @@ export class WorkflowGeneratorAgent extends Agent<
     this.ensureSchema();
     const rows = this.storageSql
       .exec(
-        `SELECT status, cancelled, updated_at FROM gen_runs WHERE session_id = ?`,
+        `SELECT status, prompt, cancelled, updated_at FROM gen_runs WHERE session_id = ?`,
         sessionId
       )
       .toArray() as Array<{
       status: string;
+      prompt: string;
       cancelled: number;
       updated_at: number;
     }>;
@@ -263,6 +264,7 @@ export class WorkflowGeneratorAgent extends Agent<
         sessionId,
         status: (run?.status as GenerationStatus) ?? "idle",
         phase: this.state?.phase,
+        prompt: run?.prompt,
       } satisfies GeneratorServerMessage)
     );
 
