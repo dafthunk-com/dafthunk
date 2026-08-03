@@ -168,6 +168,11 @@
         "name": "EMAIL_AGENT_RUNNER",
         "class_name": "EmailAgentRunner",
         "script_name": "dafthunk-api"
+      },
+      {
+        "name": "WORKFLOW_GENERATOR_AGENT",
+        "class_name": "WorkflowGeneratorAgent",
+        "script_name": "dafthunk-api"
       }
     ]
   },
@@ -222,6 +227,10 @@
     {
       "tag": "v13",
       "new_sqlite_classes": ["EmailAgentRunner"]
+    },
+    {
+      "tag": "v14",
+      "new_sqlite_classes": ["WorkflowGeneratorAgent"]
     }
   ],
   "unsafe": {
@@ -398,6 +407,11 @@
             "name": "EMAIL_AGENT_RUNNER",
             "class_name": "EmailAgentRunner",
             "script_name": "dafthunk-api"
+          },
+          {
+            "name": "WORKFLOW_GENERATOR_AGENT",
+            "class_name": "WorkflowGeneratorAgent",
+            "script_name": "dafthunk-api"
           }
         ]
       },
@@ -452,6 +466,10 @@
         {
           "tag": "v13",
           "new_sqlite_classes": ["EmailAgentRunner"]
+        },
+        {
+          "tag": "v14",
+          "new_sqlite_classes": ["WorkflowGeneratorAgent"]
         }
       ],
       "unsafe": {

@@ -1,4 +1,5 @@
 import type { ObjectReference, WorkflowTrigger } from "@dafthunk/types";
+import { areTypesCompatible } from "@dafthunk/utils";
 import type {
   Connection,
   IsValidConnection,
@@ -410,23 +411,10 @@ export function useGraphOperations({
           return false;
         }
 
-        const blobTypes = new Set([
-          "image",
-          "audio",
-          "video",
-          "document",
-          "buffergeometry",
-          "gltf",
-        ]);
-
-        const exactMatch = outputParam.type === inputParam.type;
-        const anyTypeMatch =
-          outputParam.type === "any" || inputParam.type === "any";
-        const blobCompatible =
-          (outputParam.type === "blob" && blobTypes.has(inputParam.type)) ||
-          (inputParam.type === "blob" && blobTypes.has(outputParam.type));
-
-        const typesMatch = exactMatch || anyTypeMatch || blobCompatible;
+        const typesMatch = areTypesCompatible(
+          outputParam.type,
+          inputParam.type
+        );
 
         if (!inputParam.repeated) {
           const hasExistingConnection = edges.some(

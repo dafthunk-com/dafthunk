@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { useAuth } from "@/components/auth-context";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
@@ -29,6 +30,7 @@ export function ProfilePage() {
     useProfile();
   const [isUpdating, setIsUpdating] = useState(false);
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
+  const { refreshToken } = useAuth();
 
   const handleEarlyAccessToggle = useCallback(
     async (checked: boolean) => {
@@ -37,6 +39,11 @@ export function ProfilePage() {
       setIsUpdating(true);
       try {
         await updateProfile({ developerMode: checked });
+        // Developer-mode gates read the flag off the JWT, which would otherwise
+        // keep the old value until the access token rolls over. Re-minting it
+        // here means gated features appear and disappear immediately, and the
+        // UI never disagrees with what the API will allow.
+        await refreshToken();
         toast.success(`Early access ${checked ? "enabled" : "disabled"}`);
         await mutateProfile();
       } catch (error) {
@@ -46,7 +53,7 @@ export function ProfilePage() {
         setIsUpdating(false);
       }
     },
-    [profile, mutateProfile]
+    [profile, mutateProfile, refreshToken]
   );
 
   useEffect(() => {

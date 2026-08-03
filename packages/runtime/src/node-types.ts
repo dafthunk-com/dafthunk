@@ -6,6 +6,8 @@ import type {
   NodeType,
   ObjectReference,
 } from "@dafthunk/types";
+import { buildNodeFromNodeType } from "@dafthunk/utils";
+
 import type { BaseToolRegistry } from "./base-tool-registry";
 import type { DatabaseService } from "./database-service";
 import type { DatasetService } from "./dataset-service";
@@ -282,28 +284,7 @@ export abstract class ExecutableNode {
    */
   static create(options: CreateNodeOptions): Node {
     // biome-ignore lint/complexity/noThisInStatic: `this` is the calling subclass, not ExecutableNode
-    const nodeType = this.nodeType;
-
-    const inputs = nodeType.inputs.map((input) => {
-      const override = options.inputs?.[input.name];
-      if (override !== undefined) {
-        return { ...input, value: override };
-      }
-      return { ...input };
-    });
-
-    return {
-      id: options.id,
-      name: options.name ?? nodeType.name,
-      type: nodeType.type,
-      description: options.description ?? nodeType.description,
-      icon: nodeType.icon,
-      position: options.position,
-      inputs,
-      outputs: nodeType.outputs.map((output) => ({ ...output })),
-      ...(nodeType.functionCalling && { functionCalling: true }),
-      ...(nodeType.metadata && { metadata: { ...nodeType.metadata } }),
-    } as Node;
+    return buildNodeFromNodeType(this.nodeType, options);
   }
 
   public abstract execute(context: NodeContext): Promise<NodeExecution>;

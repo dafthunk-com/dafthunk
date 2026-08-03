@@ -23,6 +23,7 @@ import feedbackRoutes from "./routes/feedback";
 import feedbackFormRoutes from "./routes/feedback-forms";
 import formTriggerRoutes from "./routes/form-triggers";
 import formRoutes from "./routes/forms";
+import generateRoutes from "./routes/generate";
 import health from "./routes/health";
 import httpTriggerRoutes from "./routes/http-triggers";
 import integrationRoutes from "./routes/integrations";
@@ -138,9 +139,11 @@ app.route("/:organizationId/objects", objectRoutes);
 app.route("/:organizationId/playground", playgroundRoutes);
 app.route("/:organizationId/usage", usageRoutes);
 app.route("/:organizationId/ws", wsRoutes);
+app.route("/:organizationId/generate", generateRoutes);
 
 // Export Durable Objects
 export { WorkflowAgent } from "./durable-objects/workflow-agent";
+export { WorkflowGeneratorAgent } from "./durable-objects/workflow-generator-agent";
 export { DatabaseDO };
 export { Sandbox } from "@cloudflare/sandbox";
 export { FFmpegContainer } from "./containers/ffmpeg-container";

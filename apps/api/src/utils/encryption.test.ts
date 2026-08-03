@@ -21,6 +21,7 @@ const createMockEnv = (masterKey?: string): Bindings => ({
   RATE_LIMIT_EXECUTE: {} as RateLimit,
   EXECUTE: {} as Workflow<any>,
   WORKFLOW_AGENT: {} as DurableObjectNamespace<any>,
+  WORKFLOW_GENERATOR_AGENT: {} as DurableObjectNamespace<any>,
   DATABASE: {} as DurableObjectNamespace<any>,
   WORKFLOW_QUEUE: {} as Queue,
   RESSOURCES: {} as R2Bucket,

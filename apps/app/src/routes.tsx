@@ -6,6 +6,7 @@ import type { RouteObject, RouterState } from "react-router";
 import { Navigate } from "react-router";
 
 import { AdminProtectedRoute } from "./components/admin-protected-route";
+import { DeveloperRoute } from "./components/developer-route";
 import { HeadSeo } from "./components/head-seo";
 import { AdminLayout } from "./components/layouts/admin-layout";
 import { AppLayout } from "./components/layouts/app-layout";
@@ -67,6 +68,7 @@ import { TemplateDetailPage } from "./pages/template-detail-page";
 import { TemplatePreviewPage } from "./pages/template-preview-page";
 import { TemplateTryPage } from "./pages/template-try-page";
 import { TemplatesPage } from "./pages/templates-page";
+import { WorkflowGeneratePage } from "./pages/workflow-generate-page";
 import { WorkflowsPage } from "./pages/workflows-page";
 
 export interface RouteHandle {
@@ -382,6 +384,23 @@ export const routes: AppRouteObject[] = [
       </OrgLayout>
     ),
     handle: { head: <HeadSeo title="Workflows - Workflows - Dafthunk" /> },
+  },
+  {
+    path: "/workflows/generate",
+    element: <OrgRedirect to="/org/:organizationId/workflows/generate" />,
+  },
+  {
+    path: "/org/:organizationId/workflows/generate",
+    element: (
+      <OrgLayout title="Workflows">
+        <ProtectedRoute>
+          <DeveloperRoute>
+            <WorkflowGeneratePage />
+          </DeveloperRoute>
+        </ProtectedRoute>
+      </OrgLayout>
+    ),
+    handle: { head: <HeadSeo title="Generate - Workflows - Dafthunk" /> },
   },
   {
     path: "/templates",

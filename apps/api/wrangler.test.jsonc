@@ -51,6 +51,10 @@
       {
         "name": "EMAIL_AGENT_RUNNER",
         "class_name": "EmailAgentRunner"
+      },
+      {
+        "name": "WORKFLOW_GENERATOR_AGENT",
+        "class_name": "WorkflowGeneratorAgent"
       }
     ]
   },
@@ -62,6 +66,10 @@
     {
       "tag": "v2",
       "new_sqlite_classes": ["EmailAgentRunner"]
+    },
+    {
+      "tag": "v3",
+      "new_sqlite_classes": ["WorkflowGeneratorAgent"]
     }
   ],
   "analytics_engine_datasets": [

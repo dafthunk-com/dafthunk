@@ -1,4 +1,5 @@
 import type { Edge, NodeType, Parameter, Workflow } from "@dafthunk/types";
+import { areTypesCompatible } from "@dafthunk/utils";
 
 export interface ValidationError {
   type:
@@ -60,16 +61,6 @@ export function detectCycles(workflow: Workflow): ValidationError | null {
   return null;
 }
 
-// Blob-compatible types: a `blob` parameter can connect to any of these
-const blobTypes = new Set([
-  "image",
-  "audio",
-  "video",
-  "document",
-  "buffergeometry",
-  "gltf",
-]);
-
 /**
  * Validates type compatibility between connected parameters.
  * Returns one error per invalid connection so all problems surface at once.
@@ -118,17 +109,7 @@ export function validateTypeCompatibility(
       continue;
     }
 
-    // Check type compatibility
-    const exactMatch = sourceParam.type === targetParam.type;
-    const anyTypeMatch =
-      sourceParam.type === "any" || targetParam.type === "any";
-    const blobCompatible =
-      (sourceParam.type === "blob" && blobTypes.has(targetParam.type)) ||
-      (targetParam.type === "blob" && blobTypes.has(sourceParam.type));
-
-    const typesMatch = exactMatch || anyTypeMatch || blobCompatible;
-
-    if (!typesMatch) {
+    if (!areTypesCompatible(sourceParam.type, targetParam.type)) {
       errors.push({
         type: "TYPE_MISMATCH",
         message: `Type mismatch: ${sourceParam.type.toLowerCase().replace("value", "")} -> ${targetParam.type.toLowerCase().replace("value", "")}`,

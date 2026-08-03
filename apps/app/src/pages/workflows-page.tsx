@@ -19,6 +19,7 @@ import MoreHorizontal from "lucide-react/icons/more-horizontal";
 import Play from "lucide-react/icons/play";
 import PlusCircle from "lucide-react/icons/plus-circle";
 import Send from "lucide-react/icons/send";
+import Sparkles from "lucide-react/icons/sparkles";
 import Wand from "lucide-react/icons/wand";
 import Webhook from "lucide-react/icons/webhook";
 import { useEffect, useMemo, useState } from "react";
@@ -273,8 +274,9 @@ export function WorkflowsPage() {
   const [selectedTrigger, setSelectedTrigger] = useState<string | null>(null);
   const navigate = useNavigate();
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
-  const { organization } = useAuth();
+  const { organization, user } = useAuth();
   const orgId = organization?.id || "";
+  const isDeveloperMode = user?.developerMode ?? false;
   const { getOrgUrl } = useOrgUrl();
 
   const { workflows, workflowsError, isWorkflowsLoading, mutateWorkflows } =
@@ -363,6 +365,14 @@ export function WorkflowsPage() {
             Build and test your workflows.
           </div>
           <div className="flex gap-2">
+            {isDeveloperMode && (
+              <Button variant="outline" asChild>
+                <Link to={getOrgUrl("workflows/generate")}>
+                  <Sparkles className="mr-2 size-4" />
+                  Generate with AI
+                </Link>
+              </Button>
+            )}
             <Button onClick={() => setIsCreateDialogOpen(true)}>
               <PlusCircle className="mr-2 size-4" />
               Create Workflow
