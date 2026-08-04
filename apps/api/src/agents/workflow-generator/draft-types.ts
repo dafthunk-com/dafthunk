@@ -14,6 +14,23 @@ export interface DraftNode {
   inputs?: Record<string, unknown>;
 }
 
+/**
+ * A named input set the workflow can be run against.
+ *
+ * Deliberately a diff rather than a complete set: `nodeValues` carries only what
+ * differs from the literals already on the nodes, and the server completes it
+ * from the graph. That keeps the model's output small, and means a second
+ * example costs a line or two rather than a restatement of every input.
+ */
+export interface DraftExample {
+  name: string;
+  description?: string;
+  /** nodeId → inputName → value, for the values that differ from the graph. */
+  nodeValues?: Record<string, Record<string, unknown>>;
+  /** Trigger-shaped payload; the fields depend on the workflow's trigger. */
+  trigger?: Record<string, unknown>;
+}
+
 export interface GeneratedWorkflowDraft {
   title: string;
   description: string;
@@ -22,7 +39,13 @@ export interface GeneratedWorkflowDraft {
   steps: string[];
   nodes: DraftNode[];
   edges: Edge[];
-  /** Simulated trigger payload for the first run; shape varies by trigger. */
+  /** Test inputs; the first one is what the generation run executes. */
+  examples?: DraftExample[];
+  /**
+   * Superseded by `examples[].trigger`, kept because the schema is appended to
+   * the system prompt rather than constraining decoding — a model that answers
+   * in the older shape still has to produce a runnable example.
+   */
   sampleTrigger?: Record<string, unknown>;
 }
 

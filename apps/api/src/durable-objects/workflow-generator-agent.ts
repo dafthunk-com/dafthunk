@@ -22,6 +22,7 @@
  * not exist until the save phase.
  */
 
+import type { InputOverrides } from "@dafthunk/runtime";
 import { calculateTokenUsage } from "@dafthunk/runtime/utils/usage";
 import type {
   GenerationPhase,
@@ -30,6 +31,7 @@ import type {
   GeneratorServerMessage,
   NodeType,
   Workflow,
+  WorkflowExample,
   WorkflowExecution,
 } from "@dafthunk/types";
 import { Agent } from "agents";
@@ -60,7 +62,6 @@ import { WorkflowExecutor } from "../services/workflow-executor";
 import { ExampleStore } from "../stores/example-store";
 import { WorkflowStore } from "../stores/workflow-store";
 import { isCreditExhausted } from "../utils/credits";
-import { extractNodeValues } from "../utils/example-inputs";
 import { callAgentLLM } from "./agent-llm";
 
 // ── Agent SDK type shim ──────────────────────────────────────────────────
@@ -91,6 +92,9 @@ export class WorkflowGeneratorAgent extends Agent<
   initialState: WorkflowGeneratorState = {};
 
   private schemaReady = false;
+
+  /** When this session first stored its workflow, so a re-save keeps the date. */
+  private createdAt?: Date;
 
   private get hiddenMethods(): HiddenAgentMethods {
     return this as unknown as HiddenAgentMethods;
@@ -413,16 +417,23 @@ export class WorkflowGeneratorAgent extends Agent<
           this.emit(frame);
         },
         callLLM: (call: GenerateCall) => this.callModel(call),
-        save: (workflow, sample) =>
-          this.saveWorkflow(workflow, sample, userId, organizationId),
-        run: (workflow, workflowId, parameters) =>
+        save: (workflow, examples, workflowId) =>
+          this.saveWorkflow(
+            workflow,
+            examples,
+            userId,
+            organizationId,
+            workflowId
+          ),
+        run: (workflow, workflowId, parameters, inputOverrides) =>
           this.runOnce(
             workflow,
             workflowId,
             userId,
             organizationId,
             billingInfo,
-            parameters
+            parameters,
+            inputOverrides
           ),
       });
 
@@ -515,14 +526,25 @@ export class WorkflowGeneratorAgent extends Agent<
     };
   }
 
+  /**
+   * Persists the graph and its examples.
+   *
+   * `existingId` makes this an update, which is how a repaired run replaces what
+   * it already stored. `createdAt` is pinned to the first save because the D1
+   * write is an upsert that would otherwise stamp the row as newly created every
+   * time the generator corrects itself.
+   */
   private async saveWorkflow(
     workflow: Workflow,
-    sample: { trigger?: Record<string, unknown> },
+    examples: WorkflowExample[],
     userId: string,
-    organizationId: string
+    organizationId: string,
+    existingId?: string
   ): Promise<string> {
-    const workflowId = crypto.randomUUID();
+    const workflowId = existingId ?? crypto.randomUUID();
     const store = new WorkflowStore(this.env);
+
+    if (!existingId) this.createdAt = new Date();
 
     await store.save({
       id: workflowId,
@@ -534,35 +556,27 @@ export class WorkflowGeneratorAgent extends Agent<
       nodes: workflow.nodes,
       edges: workflow.edges,
       apiHost: this.state?.apiHost,
+      ...(this.createdAt && { createdAt: this.createdAt }),
     });
 
-    // The values the model chose are also saved as an example, so the user can
-    // edit and re-run them without touching the graph. Best-effort: a generated
-    // workflow that saved but has no example is still usable.
+    // The test inputs the model wrote are saved beside the graph, so the user
+    // can edit and re-run them without touching it. Best-effort: a generated
+    // workflow that saved but has no examples is still usable.
     try {
-      const now = new Date();
-      await new ExampleStore(this.env).save(workflowId, [
-        {
-          id: crypto.randomUUID(),
-          name: "Generated sample",
-          description:
-            "Input values produced when this workflow was generated.",
-          isDefault: true,
-          nodeValues: extractNodeValues(workflow),
-          trigger: sample.trigger,
-          createdAt: now,
-          updatedAt: now,
-        },
-      ]);
+      await new ExampleStore(this.env).save(workflowId, examples);
     } catch (error) {
-      console.error("Failed to save the generated example:", error);
+      console.error("Failed to save the generated examples:", error);
     }
 
-    const db = createDatabase(this.env.DB);
-    try {
-      await stampOnboardingStage(db, userId, "workflowCreated");
-    } catch (error) {
-      console.error("Failed to stamp workflowCreated:", error);
+    // Only on first save: the stage records that a workflow was created, and a
+    // repair round does not create a second one.
+    if (!existingId) {
+      const db = createDatabase(this.env.DB);
+      try {
+        await stampOnboardingStage(db, userId, "workflowCreated");
+      } catch (error) {
+        console.error("Failed to stamp workflowCreated:", error);
+      }
     }
 
     return workflowId;
@@ -584,7 +598,8 @@ export class WorkflowGeneratorAgent extends Agent<
     billingInfo: NonNullable<
       Awaited<ReturnType<typeof getOrganizationBillingInfo>>
     >,
-    parameters: WorkflowExecutorParameters
+    parameters: WorkflowExecutorParameters,
+    inputOverrides?: InputOverrides
   ): Promise<WorkflowExecution> {
     const { execution } = await WorkflowExecutor.execute({
       workflow: {
@@ -602,6 +617,7 @@ export class WorkflowGeneratorAgent extends Agent<
         this.env.CLOUDFLARE_ENV
       ),
       parameters,
+      ...(inputOverrides && { inputOverrides }),
       env: this.env,
     });
 

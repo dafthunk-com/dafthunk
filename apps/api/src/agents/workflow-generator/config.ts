@@ -19,6 +19,23 @@ export const GENERATOR_PRICING: TokenPricing = {
 /** Repair rounds after the initial attempt, so 3 LLM calls worst case. */
 export const MAX_REPAIR_ATTEMPTS = 2;
 
+/**
+ * Repair rounds for a graph that validated but failed when it ran. Each one
+ * costs an LLM call and a second execution, so the worst case for a generation
+ * is 4 calls and 2 runs.
+ */
+export const MAX_RUN_REPAIR_ATTEMPTS = 1;
+
+/** Test inputs kept per generated workflow. */
+export const MAX_GENERATED_EXAMPLES = 3;
+
+/**
+ * Size ceiling for one example value. Examples are test data meant to be read
+ * and edited in the UI, so a model that pastes a whole article into one is
+ * truncated rather than stored.
+ */
+export const MAX_EXAMPLE_VALUE_CHARS = 2000;
+
 /** Upper bound on node types shown to the model, before the core kit is unioned in. */
 export const MAX_CANDIDATE_NODE_TYPES = 60;
 

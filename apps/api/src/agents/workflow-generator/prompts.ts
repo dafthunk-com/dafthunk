@@ -10,7 +10,15 @@ import { selectExamples, templateToEmitFormat } from "./template-examples";
 /** JSON Schema for the draft, appended to the system prompt by the Anthropic path. */
 export const DRAFT_SCHEMA = {
   type: "object",
-  required: ["title", "description", "trigger", "steps", "nodes", "edges"],
+  required: [
+    "title",
+    "description",
+    "trigger",
+    "steps",
+    "nodes",
+    "edges",
+    "examples",
+  ],
   properties: {
     title: { type: "string", description: "Short workflow name" },
     description: { type: "string" },
@@ -65,10 +73,28 @@ export const DRAFT_SCHEMA = {
         },
       },
     },
-    sampleTrigger: {
-      type: "object",
+    examples: {
+      type: "array",
       description:
-        "Simulated trigger payload for the first test run. email_message: {from, subject, body}. http_*: {method, query, jsonBody}. form_*: {formRecord}. Omit for other triggers.",
+        "Two or three named test inputs. The first one is executed once the workflow is saved.",
+      items: {
+        type: "object",
+        required: ["name"],
+        properties: {
+          name: { type: "string", description: "What this case exercises" },
+          description: { type: "string" },
+          nodeValues: {
+            type: "object",
+            description:
+              "Only the values that differ from the node literals, keyed nodeId -> inputName -> value",
+          },
+          trigger: {
+            type: "object",
+            description:
+              "Simulated trigger payload. email_message: {from, subject, body}. http_*: {method, query, jsonBody}. form_*: {formRecord}. Omit for other triggers.",
+          },
+        },
+      },
     },
   },
 } as const;
@@ -180,6 +206,29 @@ The trigger node is added by the server, with a fixed id. Do NOT emit trigger or
 
 ${describeTriggerOptions(input.nodeTypes)}
 
+# Test examples
+
+Also emit "examples": two or three named input sets the workflow can be run
+against. The first one is executed as soon as the workflow is saved, so it must
+be the ordinary case.
+
+- Keep them minimal. One or two short sentences per value is enough — no long
+  documents, no external URLs, no file, image or audio values.
+- Give only the values that DIFFER from the literals you put on the nodes. The
+  server fills in the rest from the graph, so an example that changes one field
+  is one field long.
+- Name each after what it exercises: "Urgent email", "Empty body", "Two items".
+- "nodeValues" is keyed by your own node ids, then by input name.
+- Put the simulated trigger payload in "trigger" — the workflow cannot be tested
+  without it when the trigger carries one.
+
+The shape, for a workflow whose input node is "article":
+
+"examples": [
+  { "name": "Short article", "nodeValues": { "article": { "value": "Rain is expected all week." } } },
+  { "name": "Empty article", "nodeValues": { "article": { "value": "" } } }
+]
+
 ${describeWithheld(input.withheld)}
 
 # Available node types
@@ -187,6 +236,9 @@ ${describeWithheld(input.withheld)}
 ${projectCatalog(input.catalog)}
 
 # Examples of correct output
+
+These are shipped workflows, shown for node and edge shape. They carry no
+"examples" field because they were built by hand; yours must still have one.
 
 ${examples.join("\n\n")}
 `;
@@ -205,6 +257,23 @@ export function buildRepairPrompt(errors: string): string {
   return `The workflow you produced has errors:
 
 ${errors}
+
+Return the COMPLETE corrected JSON object, not a patch and not only the changed parts. Keep everything that was already correct.`;
+}
+
+/**
+ * Repair round for a graph that validated but failed when it ran.
+ *
+ * Says explicitly that the graph is well-formed, because the model's instinct
+ * on seeing "errors" is to rewire ports that were never wrong. What broke is a
+ * value, a prompt or a node choice.
+ */
+export function buildRunRepairPrompt(failures: string): string {
+  return `The workflow is structurally valid and was saved, but running it failed:
+
+${failures}
+
+The connections are fine — do not rewire ports that were not named above. Look at what the failing node was given: a literal value it cannot accept, a prompt built wrongly, or a node that cannot do the job at all. If the input values in "examples" caused it, fix those too.
 
 Return the COMPLETE corrected JSON object, not a patch and not only the changed parts. Keep everything that was already correct.`;
 }

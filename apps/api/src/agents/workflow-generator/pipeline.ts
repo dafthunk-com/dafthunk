@@ -1,14 +1,23 @@
+import type { InputOverrides } from "@dafthunk/runtime";
 import type {
   GenerationValidationIssue,
   GeneratorServerMessage,
   NodeType,
   Workflow,
+  WorkflowExample,
   WorkflowExecution,
 } from "@dafthunk/types";
 import type { WorkflowExecutorParameters } from "../../services/workflow-executor";
-import { buildTriggerParameters } from "../../utils/example-inputs";
+import {
+  buildInputOverrides,
+  buildTriggerParameters,
+} from "../../utils/example-inputs";
 import { pseudoNodeTypes } from "./ai-nodes";
-import { MAX_CANDIDATE_NODE_TYPES, MAX_REPAIR_ATTEMPTS } from "./config";
+import {
+  MAX_CANDIDATE_NODE_TYPES,
+  MAX_REPAIR_ATTEMPTS,
+  MAX_RUN_REPAIR_ATTEMPTS,
+} from "./config";
 import { CORE_NODE_TYPES } from "./core-nodes";
 import type {
   EnrichedValidationError,
@@ -16,10 +25,12 @@ import type {
 } from "./draft-types";
 import { filterEligible, withheldProviders } from "./eligibility";
 import { enrichValidation, formatErrorsForLLM } from "./enrich-validation";
+import { buildGeneratedExamples } from "./examples";
 import { hydrateGeneratedWorkflow, normalizeTrigger } from "./hydrate";
 import { scoreNodeTypes } from "./node-search";
 import {
   buildRepairPrompt,
+  buildRunRepairPrompt,
   buildSystemPrompt,
   buildUserPrompt,
 } from "./prompts";
@@ -45,15 +56,21 @@ export interface PipelineDependencies {
   apiHost?: string;
   callLLM: (call: GenerateCall) => Promise<GenerateResult>;
   emit: (frame: GeneratorServerMessage) => void;
-  /** Persists the graph; `sample` is the synthesized trigger payload, if any. */
+  /**
+   * Persists the graph and its test inputs. Passing `workflowId` updates that
+   * workflow instead of creating one, which is what a repaired run re-saves
+   * through — a second workflow would leave the user with the broken one too.
+   */
   save: (
     workflow: Workflow,
-    sample: { trigger?: Record<string, unknown> }
+    examples: WorkflowExample[],
+    workflowId?: string
   ) => Promise<string>;
   run: (
     workflow: Workflow,
     workflowId: string,
-    parameters: WorkflowExecutorParameters
+    parameters: WorkflowExecutorParameters,
+    inputOverrides?: InputOverrides
   ) => Promise<WorkflowExecution>;
   isCancelled?: () => boolean;
 }
@@ -79,6 +96,42 @@ function toIssues(
     nodeId: error.nodeId,
     edge: error.edge,
   }));
+}
+
+/**
+ * Renders a failed run as instructions for the model.
+ *
+ * Node type is included because the model named the type but never saw the
+ * node's real ports, so "javascript threw" and "ai-text threw" call for
+ * completely different fixes. Messages are truncated: a stack trace from a
+ * sandboxed node can run to kilobytes and the first line carries the signal.
+ */
+export function formatRunFailures(
+  execution: WorkflowExecution,
+  workflow: Workflow
+): string {
+  const typeById = new Map(workflow.nodes.map((node) => [node.id, node.type]));
+
+  const failures = execution.nodeExecutions
+    .filter((node) => node.status === "error")
+    .map((node, index) => {
+      const type = typeById.get(node.nodeId);
+      const where = type
+        ? `node "${node.nodeId}" (type ${type})`
+        : `node "${node.nodeId}"`;
+      const message = (node.error ?? "failed with no message").slice(0, 500);
+      return `${index + 1}. ${where}: ${message}`;
+    });
+
+  if (failures.length) return failures.join("\n");
+
+  // A run can fail before any node reports — a credit ceiling, or the 30s
+  // worker timeout. There is nothing node-specific to say, so say that.
+  return `The run ended with status "${execution.status}"${
+    execution.error
+      ? `: ${execution.error.slice(0, 500)}`
+      : " and no node error."
+  }`;
 }
 
 /**
@@ -109,6 +162,9 @@ export function parseDraft(content: string): GeneratedWorkflowDraft {
     steps: Array.isArray(parsed.steps) ? parsed.steps.map(String) : [],
     nodes: Array.isArray(parsed.nodes) ? parsed.nodes : [],
     edges: Array.isArray(parsed.edges) ? parsed.edges : [],
+    // Shape is checked in `buildGeneratedExamples`, which has the graph to check
+    // it against; here it only has to survive the parse.
+    examples: Array.isArray(parsed.examples) ? parsed.examples : undefined,
     sampleTrigger:
       parsed.sampleTrigger && typeof parsed.sampleTrigger === "object"
         ? parsed.sampleTrigger
@@ -224,7 +280,11 @@ export async function runGenerationPipeline(
     });
 
     // ── Validate and repair ───────────────────────────────────────────────
+    // `attempt` keys the UI's attempt list and only ever climbs; `repairs` is
+    // the budget, shared with the run-repair round below so a generation costs
+    // at most 1 + MAX_REPAIR_ATTEMPTS + MAX_RUN_REPAIR_ATTEMPTS calls.
     let attempt = 0;
+    let repairs = 0;
     let hydrated = hydrateGeneratedWorkflow(draft, deps.nodeTypes, candidates);
     let errors = enrichValidation(
       hydrated.workflow,
@@ -240,40 +300,50 @@ export async function runGenerationPipeline(
     });
     deps.emit({ type: "validation", attempt, issues: toIssues(errors) });
 
-    while (
-      errors.some((e) => e.severity === "fatal") &&
-      attempt < MAX_REPAIR_ATTEMPTS
-    ) {
-      checkCancelled();
-      attempt++;
+    /**
+     * Repairs until the graph validates or the budget runs out. Called again
+     * after a failed run, so a correction is held to the same bar as the
+     * original: nothing is saved that would not have been saved first time.
+     */
+    const repairUntilValid = async (): Promise<void> => {
+      while (
+        errors.some((e) => e.severity === "fatal") &&
+        repairs < MAX_REPAIR_ATTEMPTS
+      ) {
+        checkCancelled();
+        attempt++;
+        repairs++;
 
-      deps.emit({
-        type: "phase",
-        phase: "repairing",
-        label: `Fixing ${errors.filter((e) => e.severity === "fatal").length} problem(s)`,
-      });
+        deps.emit({
+          type: "phase",
+          phase: "repairing",
+          label: `Fixing ${errors.filter((e) => e.severity === "fatal").length} problem(s)`,
+        });
 
-      messages.push({ role: "assistant", content: response.content });
-      messages.push({
-        role: "user",
-        content: buildRepairPrompt(formatErrorsForLLM(errors)),
-      });
+        messages.push({ role: "assistant", content: response.content });
+        messages.push({
+          role: "user",
+          content: buildRepairPrompt(formatErrorsForLLM(errors)),
+        });
 
-      response = await deps.callLLM({ system, messages });
-      inputTokens += response.inputTokens;
-      outputTokens += response.outputTokens;
+        response = await deps.callLLM({ system, messages });
+        inputTokens += response.inputTokens;
+        outputTokens += response.outputTokens;
 
-      draft = parseDraft(response.content);
-      hydrated = hydrateGeneratedWorkflow(draft, deps.nodeTypes, candidates);
-      errors = enrichValidation(
-        hydrated.workflow,
-        deps.nodeTypes,
-        hydrated.errors
-      );
+        draft = parseDraft(response.content);
+        hydrated = hydrateGeneratedWorkflow(draft, deps.nodeTypes, candidates);
+        errors = enrichValidation(
+          hydrated.workflow,
+          deps.nodeTypes,
+          hydrated.errors
+        );
 
-      deps.emit({ type: "graph", workflow: hydrated.workflow, attempt });
-      deps.emit({ type: "validation", attempt, issues: toIssues(errors) });
-    }
+        deps.emit({ type: "graph", workflow: hydrated.workflow, attempt });
+        deps.emit({ type: "validation", attempt, issues: toIssues(errors) });
+      }
+    };
+
+    await repairUntilValid();
 
     if (errors.some((e) => e.severity === "fatal")) {
       // Deliberately not saved. A graph that fails validation would be rejected
@@ -293,9 +363,12 @@ export async function runGenerationPipeline(
 
     // ── Save ──────────────────────────────────────────────────────────────
     deps.emit({ type: "phase", phase: "saving", label: "Saving workflow" });
-    const workflowId = await deps.save(hydrated.workflow, {
-      trigger: draft.sampleTrigger,
-    });
+
+    let examples = buildGeneratedExamples(draft, hydrated.workflow);
+    // What is actually stored, which stops being `hydrated.workflow` the moment
+    // a run-repair produces a correction that fails to validate.
+    let savedWorkflow = hydrated.workflow;
+    const workflowId = await deps.save(savedWorkflow, examples);
     deps.emit({
       type: "saved",
       workflowId,
@@ -305,16 +378,98 @@ export async function runGenerationPipeline(
     checkCancelled();
 
     // ── Run ───────────────────────────────────────────────────────────────
-    deps.emit({ type: "phase", phase: "running", label: "Running it once" });
+    // Driven by the default example over the `inputOverrides` channel, which is
+    // the same path the Run button takes — so what is tested here is what the
+    // user gets when they run it themselves.
+    const testWith = async (
+      workflow: Workflow,
+      example: WorkflowExample | undefined
+    ): Promise<WorkflowExecution> => {
+      deps.emit({ type: "phase", phase: "running", label: "Running it once" });
+      if (example) {
+        deps.emit({
+          type: "log",
+          level: "info",
+          message: `Testing with example "${example.name}".`,
+        });
+      }
 
-    const parameters = buildTriggerParameters(
-      hydrated.workflow.trigger,
-      draft.sampleTrigger,
-      { apiHost: deps.apiHost }
-    );
+      return deps.run(
+        workflow,
+        workflowId,
+        buildTriggerParameters(workflow.trigger, example?.trigger, {
+          apiHost: deps.apiHost,
+        }),
+        example ? buildInputOverrides(example, workflow) : undefined
+      );
+    };
 
-    const execution = await deps.run(hydrated.workflow, workflowId, parameters);
+    let execution = await testWith(savedWorkflow, examples[0]);
     deps.emit({ type: "run_result", execution });
+
+    // ── Repair a failed run ───────────────────────────────────────────────
+    // Validation cannot see any of this: a literal the node refuses, a prompt
+    // built wrongly, a node that cannot do the job. It is also the only failure
+    // the user actually witnesses, so it is worth one round.
+    let runRepairs = 0;
+    while (
+      execution.status !== "completed" &&
+      runRepairs < MAX_RUN_REPAIR_ATTEMPTS
+    ) {
+      checkCancelled();
+      runRepairs++;
+      attempt++;
+
+      deps.emit({
+        type: "phase",
+        phase: "repairing",
+        label: "Fixing what failed at run time",
+      });
+
+      messages.push({ role: "assistant", content: response.content });
+      messages.push({
+        role: "user",
+        content: buildRunRepairPrompt(
+          formatRunFailures(execution, savedWorkflow)
+        ),
+      });
+
+      response = await deps.callLLM({ system, messages });
+      inputTokens += response.inputTokens;
+      outputTokens += response.outputTokens;
+
+      draft = parseDraft(response.content);
+      hydrated = hydrateGeneratedWorkflow(draft, deps.nodeTypes, candidates);
+      errors = enrichValidation(
+        hydrated.workflow,
+        deps.nodeTypes,
+        hydrated.errors
+      );
+
+      deps.emit({ type: "graph", workflow: hydrated.workflow, attempt });
+      deps.emit({ type: "validation", attempt, issues: toIssues(errors) });
+
+      await repairUntilValid();
+
+      if (errors.some((e) => e.severity === "fatal")) {
+        // The correction is worse than what is already saved: it does not even
+        // validate. Keep the saved workflow and its result rather than
+        // replacing something that runs with something that cannot open.
+        deps.emit({
+          type: "log",
+          level: "warn",
+          message:
+            "The attempted fix did not validate, so the first version was kept.",
+        });
+        break;
+      }
+
+      savedWorkflow = hydrated.workflow;
+      examples = buildGeneratedExamples(draft, savedWorkflow);
+      await deps.save(savedWorkflow, examples, workflowId);
+      execution = await testWith(savedWorkflow, examples[0]);
+      deps.emit({ type: "run_result", execution });
+    }
 
     const outcome = execution.status === "completed" ? "ok" : "partial";
     deps.emit({
@@ -333,7 +488,7 @@ export async function runGenerationPipeline(
       outcome,
       workflowId,
       executionId: execution.id,
-      workflow: hydrated.workflow,
+      workflow: savedWorkflow,
       inputTokens,
       outputTokens,
     };

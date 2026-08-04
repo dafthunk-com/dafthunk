@@ -1,6 +1,8 @@
+import type { InputOverrides } from "@dafthunk/runtime";
 import type {
   GeneratorServerMessage,
   Workflow,
+  WorkflowExample,
   WorkflowExecution,
 } from "@dafthunk/types";
 import { describe, expect, it, vi } from "vitest";
@@ -8,7 +10,11 @@ import { describe, expect, it, vi } from "vitest";
 import { withheldProviders } from "./eligibility";
 import { FIXTURE_NODE_TYPES } from "./fixtures";
 import type { GenerateResult, PipelineDependencies } from "./pipeline";
-import { runGenerationPipeline, selectCandidates } from "./pipeline";
+import {
+  formatRunFailures,
+  runGenerationPipeline,
+  selectCandidates,
+} from "./pipeline";
 
 /** A draft whose only fault is a json -> string edge, the archetypal mistake. */
 const BROKEN_DRAFT = {
@@ -49,6 +55,15 @@ const FIXED_DRAFT = {
   ],
 };
 
+/** The same graph, with the test inputs the prompt asks for. */
+const DRAFT_WITH_EXAMPLES = {
+  ...FIXED_DRAFT,
+  examples: [
+    { name: "Small object", nodeValues: { src: { value: { a: 1 } } } },
+    { name: "Empty object", nodeValues: { src: { value: {} } } },
+  ],
+};
+
 function llmResult(payload: unknown): GenerateResult {
   return {
     content: JSON.stringify(payload),
@@ -66,22 +81,50 @@ function execution(status: WorkflowExecution["status"]): WorkflowExecution {
   } as WorkflowExecution;
 }
 
+/**
+ * `statuses` drives the run mock, one entry per execution, defaulting to
+ * "completed" once exhausted — which is how a failing first run and a healthy
+ * second one are expressed.
+ */
 function harness(
   responses: GenerateResult[],
-  overrides: Partial<PipelineDependencies> = {}
+  overrides: Partial<PipelineDependencies> = {},
+  statuses: WorkflowExecution["status"][] = []
 ) {
   const frames: GeneratorServerMessage[] = [];
   const saved: Workflow[] = [];
+  const savedExamples: WorkflowExample[][] = [];
+  const savedUnder: (string | undefined)[] = [];
+  const ranWith: Array<InputOverrides | undefined> = [];
+
   const callLLM = vi.fn(async () => {
     const next = responses.shift();
     if (!next) throw new Error("callLLM called more times than expected");
     return next;
   });
-  const save = vi.fn(async (workflow: Workflow) => {
-    saved.push(workflow);
-    return "wf-1";
-  });
-  const run = vi.fn(async () => execution("completed"));
+  const save = vi.fn(
+    async (
+      workflow: Workflow,
+      examples: WorkflowExample[],
+      workflowId?: string
+    ) => {
+      saved.push(workflow);
+      savedExamples.push(examples);
+      savedUnder.push(workflowId);
+      return "wf-1";
+    }
+  );
+  const run = vi.fn(
+    async (
+      _workflow: Workflow,
+      _workflowId: string,
+      _parameters: unknown,
+      inputOverrides?: InputOverrides
+    ) => {
+      ranWith.push(inputOverrides);
+      return execution(statuses.shift() ?? "completed");
+    }
+  );
 
   const deps: PipelineDependencies = {
     prompt: "echo a json value as text",
@@ -95,7 +138,17 @@ function harness(
     ...overrides,
   };
 
-  return { deps, frames, saved, callLLM, save, run };
+  return {
+    deps,
+    frames,
+    saved,
+    savedExamples,
+    savedUnder,
+    ranWith,
+    callLLM,
+    save,
+    run,
+  };
 }
 
 const phases = (frames: GeneratorServerMessage[]) =>
@@ -181,17 +234,87 @@ describe("runGenerationPipeline", () => {
     expect(phases(frames)).not.toContain("repairing");
   });
 
-  it("reports a partial outcome when the run itself errors", async () => {
-    const { deps, frames } = harness([llmResult(FIXED_DRAFT)], {
-      run: async () => execution("error"),
-    });
+  it("saves the model's examples and runs the default one", async () => {
+    const { deps, savedExamples, ranWith } = harness([
+      llmResult(DRAFT_WITH_EXAMPLES),
+    ]);
+
+    await runGenerationPipeline(deps);
+
+    expect(savedExamples[0].map((example) => example.name)).toEqual([
+      "Small object",
+      "Empty object",
+    ]);
+    // The run goes through the same override channel the Run button uses, so
+    // the default example's values are what executed.
+    expect(ranWith[0]).toEqual({ src: { value: { a: 1 } } });
+  });
+
+  it("repairs a run that failed, then re-saves under the same workflow", async () => {
+    const { deps, frames, savedUnder, callLLM, save, run } = harness(
+      [llmResult(FIXED_DRAFT), llmResult(FIXED_DRAFT)],
+      {},
+      ["error"]
+    );
 
     const result = await runGenerationPipeline(deps);
 
+    expect(callLLM).toHaveBeenCalledTimes(2);
+    expect(run).toHaveBeenCalledTimes(2);
+    expect(result.outcome).toBe("ok");
+
+    // One workflow, updated — not a second one alongside the broken first.
+    expect(save).toHaveBeenCalledTimes(2);
+    expect(savedUnder).toEqual([undefined, "wf-1"]);
+
+    // The failed run is still reported; the UI keeps the last one.
+    expect(frames.filter((f) => f.type === "run_result")).toHaveLength(2);
+    expect(
+      phases(frames).filter((phase) => phase === "repairing")
+    ).toHaveLength(1);
+  });
+
+  it("reports a partial outcome when the repaired run fails too", async () => {
+    const { deps, frames, run } = harness(
+      [llmResult(FIXED_DRAFT), llmResult(FIXED_DRAFT)],
+      {},
+      ["error", "error"]
+    );
+
+    const result = await runGenerationPipeline(deps);
+
+    // One round only: the budget is spent, so it stops rather than looping.
+    expect(run).toHaveBeenCalledTimes(2);
     expect(result.outcome).toBe("partial");
     expect(frames.find((f) => f.type === "done")).toMatchObject({
       outcome: "partial",
     });
+  });
+
+  it("keeps the working workflow when the run fix does not validate", async () => {
+    const { deps, frames, save, saved } = harness(
+      [
+        llmResult(FIXED_DRAFT),
+        llmResult(BROKEN_DRAFT),
+        llmResult(BROKEN_DRAFT),
+        llmResult(BROKEN_DRAFT),
+      ],
+      {},
+      ["error"]
+    );
+
+    const result = await runGenerationPipeline(deps);
+
+    // Nothing was overwritten with a graph the editor could not open.
+    expect(save).toHaveBeenCalledTimes(1);
+    expect(result.workflow).toBe(saved[0]);
+    expect(result.outcome).toBe("partial");
+    expect(
+      frames.some(
+        (f) =>
+          f.type === "log" && f.level === "warn" && f.message.includes("kept")
+      )
+    ).toBe(true);
   });
 
   it("surfaces a malformed model response instead of throwing", async () => {
@@ -219,6 +342,40 @@ describe("runGenerationPipeline", () => {
     expect(frames.find((f) => f.type === "error")).toMatchObject({
       code: "CANCELLED",
     });
+  });
+});
+
+describe("formatRunFailures", () => {
+  const workflow = {
+    id: "wf-1",
+    name: "Echo",
+    trigger: "manual",
+    nodes: [{ id: "conv", type: "to-string" }],
+    edges: [],
+  } as unknown as Workflow;
+
+  it("names the node, its type and what it said", () => {
+    const failed = {
+      ...execution("error"),
+      nodeExecutions: [
+        { nodeId: "conv", status: "error", error: "boom", usage: 0 },
+        { nodeId: "sink", status: "completed", usage: 0 },
+      ],
+    } as WorkflowExecution;
+
+    const formatted = formatRunFailures(failed, workflow);
+
+    expect(formatted).toBe('1. node "conv" (type to-string): boom');
+    // A node that worked is not something to fix.
+    expect(formatted).not.toContain("sink");
+  });
+
+  it("says so when the run failed with no node error at all", () => {
+    const failed = { ...execution("exhausted"), error: "out of credits" };
+
+    expect(formatRunFailures(failed, workflow)).toBe(
+      'The run ended with status "exhausted": out of credits'
+    );
   });
 });
 
