@@ -1,5 +1,6 @@
 import type {
   ObjectReference,
+  UpdateWorkflowExampleRequest,
   WorkflowRuntime,
   WorkflowTrigger,
 } from "@dafthunk/types";
@@ -10,6 +11,7 @@ import type {
 } from "@xyflow/react";
 import { ReactFlowProvider } from "@xyflow/react";
 import { useCallback, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,6 +31,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { ExamplePicker } from "@/components/workflow/example-picker";
+import {
+  applyValues,
+  captureValues,
+  countValues,
+} from "@/components/workflow/example-snapshot";
+import {
+  createExample,
+  deleteExample,
+  updateExample,
+  useExamples,
+} from "@/services/example-service";
 import { cn } from "@/utils/utils";
 
 import { ExecutionEmailDialog } from "./execution-email-dialog";
@@ -265,6 +279,108 @@ export function WorkflowBuilder({
     setTriggerConfirmOpen(true);
   }, []);
 
+  // Examples live here rather than in the page because applying one writes
+  // values onto the nodes, and `updateNodeData` is only in scope inside the
+  // builder. Keeping the capture/apply pair next to the graph it acts on also
+  // means the picker itself stays presentational.
+  // Read-only viewers never render the picker, so asking for the examples there
+  // is a request whose response is discarded.
+  const { examples, mutateExamples } = useExamples(
+    orgId,
+    readOnly ? undefined : workflowId
+  );
+  const [activeExampleId, setActiveExampleId] = useState<string | undefined>();
+
+  const withExamples = useCallback(
+    async (action: () => Promise<unknown>, failure: string) => {
+      try {
+        await action();
+        await mutateExamples();
+      } catch (error) {
+        console.error(failure, error);
+        toast.error(error instanceof Error ? error.message : failure);
+      }
+    },
+    [mutateExamples]
+  );
+
+  /** Rename and set-default are the same call: PATCH one field, then refetch. */
+  const patchExample = useCallback(
+    (
+      exampleId: string,
+      body: UpdateWorkflowExampleRequest,
+      failure: string
+    ): void => {
+      if (!orgId || !workflowId) return;
+      void withExamples(
+        () => updateExample(orgId, workflowId, exampleId, body),
+        failure
+      );
+    },
+    [orgId, workflowId, withExamples]
+  );
+
+  const examplePicker =
+    !readOnly && orgId && workflowId ? (
+      <ExamplePicker
+        examples={examples}
+        activeId={activeExampleId}
+        onApply={(example) => {
+          const applied = applyValues(
+            example.nodeValues ?? {},
+            nodes,
+            updateNodeData
+          );
+          setActiveExampleId(example.id);
+          toast.success(
+            applied > 0
+              ? `Applied ${applied} ${applied === 1 ? "value" : "values"} from “${example.name}”`
+              : `“${example.name}” has no values that match this workflow`
+          );
+        }}
+        onSaveCurrent={(name) =>
+          void withExamples(async () => {
+            const values = captureValues(nodes, edges);
+            const created = await createExample(orgId, workflowId, {
+              name,
+              nodeValues: values,
+            });
+            setActiveExampleId(created.id);
+            const count = countValues(values);
+            toast.success(`Saved ${count} ${count === 1 ? "value" : "values"}`);
+          }, "Could not save the example")
+        }
+        onUpdate={(example) =>
+          void withExamples(async () => {
+            const values = captureValues(nodes, edges);
+            await updateExample(orgId, workflowId, example.id, {
+              nodeValues: values,
+            });
+            // The example now holds what is on the canvas, so it is what the
+            // canvas is showing — whichever example was checked before.
+            setActiveExampleId(example.id);
+            toast.success(`Updated “${example.name}”`);
+          }, "Could not update the example")
+        }
+        onRename={(exampleId, name) =>
+          patchExample(exampleId, { name }, "Could not rename the example")
+        }
+        onSetDefault={(exampleId) =>
+          patchExample(
+            exampleId,
+            { isDefault: true },
+            "Could not set the default"
+          )
+        }
+        onDelete={(exampleId) =>
+          void withExamples(async () => {
+            await deleteExample(orgId, workflowId, exampleId);
+            if (activeExampleId === exampleId) setActiveExampleId(undefined);
+          }, "Could not delete the example")
+        }
+      />
+    ) : undefined;
+
   return (
     <ReactFlowProvider>
       <WorkflowProvider
@@ -323,6 +439,7 @@ export function WorkflowBuilder({
                 onPasteFromClipboard={readOnly ? undefined : pasteFromClipboard}
                 hasClipboardData={hasClipboardData}
                 showControls={interactive}
+                runSlot={examplePicker}
                 showBackground={showBackground}
                 fitViewPadding={fitViewPadding}
               />

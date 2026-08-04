@@ -6,6 +6,7 @@ import type {
   WorkflowExecution,
 } from "@dafthunk/types";
 import type { WorkflowExecutorParameters } from "../../services/workflow-executor";
+import { buildTriggerParameters } from "../../utils/example-inputs";
 import { pseudoNodeTypes } from "./ai-nodes";
 import { MAX_CANDIDATE_NODE_TYPES, MAX_REPAIR_ATTEMPTS } from "./config";
 import { CORE_NODE_TYPES } from "./core-nodes";
@@ -22,7 +23,6 @@ import {
   buildSystemPrompt,
   buildUserPrompt,
 } from "./prompts";
-import { buildSampleParameters } from "./sample-parameters";
 
 /** One LLM round trip, provider-agnostic so tests can stub it. */
 export interface GenerateCall {
@@ -45,7 +45,11 @@ export interface PipelineDependencies {
   apiHost?: string;
   callLLM: (call: GenerateCall) => Promise<GenerateResult>;
   emit: (frame: GeneratorServerMessage) => void;
-  save: (workflow: Workflow) => Promise<string>;
+  /** Persists the graph; `sample` is the synthesized trigger payload, if any. */
+  save: (
+    workflow: Workflow,
+    sample: { trigger?: Record<string, unknown> }
+  ) => Promise<string>;
   run: (
     workflow: Workflow,
     workflowId: string,
@@ -289,7 +293,9 @@ export async function runGenerationPipeline(
 
     // ── Save ──────────────────────────────────────────────────────────────
     deps.emit({ type: "phase", phase: "saving", label: "Saving workflow" });
-    const workflowId = await deps.save(hydrated.workflow);
+    const workflowId = await deps.save(hydrated.workflow, {
+      trigger: draft.sampleTrigger,
+    });
     deps.emit({
       type: "saved",
       workflowId,
@@ -301,7 +307,7 @@ export async function runGenerationPipeline(
     // ── Run ───────────────────────────────────────────────────────────────
     deps.emit({ type: "phase", phase: "running", label: "Running it once" });
 
-    const parameters = buildSampleParameters(
+    const parameters = buildTriggerParameters(
       hydrated.workflow.trigger,
       draft.sampleTrigger,
       { apiHost: deps.apiHost }

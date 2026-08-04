@@ -27,4 +27,5 @@ export * from "./types";
 export * from "./usage";
 export * from "./whatsapp";
 export * from "./workflow";
+export * from "./workflow-example";
 export * from "./workflow-generator";

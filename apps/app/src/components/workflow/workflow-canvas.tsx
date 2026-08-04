@@ -33,7 +33,11 @@ import Trash2 from "lucide-react/icons/trash-2";
 import X from "lucide-react/icons/x";
 import React from "react";
 
-import { ActionBarButton, ActionBarGroup } from "@/components/ui/action-bar";
+import {
+  ActionBarButton,
+  ActionBarGroup,
+  actionBarButtonOutlineClassName,
+} from "@/components/ui/action-bar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn, getModifierKey, getModifierSymbol } from "@/utils/utils";
 
@@ -53,9 +57,6 @@ const nodeTypes = {
 const edgeTypes = {
   workflowEdge: WorkflowEdge,
 };
-
-const actionBarButtonOutlineClassName =
-  "bg-white hover:bg-neutral-50 text-neutral-600 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200";
 
 interface StatusBarProps {
   workflowStatus: WorkflowExecutionStatus;
@@ -159,6 +160,8 @@ export interface WorkflowCanvasProps {
   onToggleSidebar?: (e: React.MouseEvent) => void;
   isSidebarVisible?: boolean;
   showControls?: boolean;
+  /** Extra control rendered beside Run, e.g. the example picker. */
+  runSlot?: React.ReactNode;
   isValidConnection?: IsValidConnection<ReactFlowEdge<WorkflowEdgeType>>;
   disabled?: boolean;
   onFitToScreen?: (e: React.MouseEvent) => void;
@@ -563,6 +566,7 @@ export function WorkflowCanvas({
   onToggleSidebar,
   isSidebarVisible,
   showControls = true,
+  runSlot,
   isValidConnection,
   disabled = false,
   onFitToScreen,
@@ -653,6 +657,10 @@ export function WorkflowCanvas({
         {showControls &&
           (onAction || (onToggleSidebar && isSidebarVisible !== undefined)) && (
             <div className="absolute top-4 right-4 flex items-center gap-3 z-50">
+              {/* Caller-supplied slot (e.g. the example picker). Opaque on
+                  purpose: the canvas should not know what it holds. */}
+              {runSlot && <ActionBarGroup>{runSlot}</ActionBarGroup>}
+
               {/* Runtime Actions Group - Execute */}
               {onAction && (
                 <ActionBarGroup>

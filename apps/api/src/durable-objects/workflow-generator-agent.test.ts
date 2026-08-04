@@ -53,6 +53,41 @@ async function settle(): Promise<void> {
   await scheduler.wait(50);
 }
 
+/**
+ * Resolves once a matching frame arrives.
+ *
+ * Polls rather than waiting a fixed delay: under full-suite load a frame that
+ * needs a D1 round trip takes well over 50ms, which made delay-based assertions
+ * flaky roughly one run in three.
+ */
+async function waitForFrame(
+  frames: GeneratorServerMessage[],
+  predicate: (frame: GeneratorServerMessage) => boolean,
+  timeoutMs = 5000
+): Promise<GeneratorServerMessage> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const found = frames.find(predicate);
+    if (found) return found;
+    await scheduler.wait(25);
+  }
+  throw new Error("Expected frame did not arrive in time");
+}
+
+/** Resolves with the close code once the socket closes. */
+function waitForClose(socket: WebSocket, timeoutMs = 5000): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(
+      () => reject(new Error("Socket did not close in time")),
+      timeoutMs
+    );
+    socket.addEventListener("close", (event) => {
+      clearTimeout(timer);
+      resolve(event.code);
+    });
+  });
+}
+
 describe("WorkflowGeneratorAgent", () => {
   it("sends a session frame on connect", async () => {
     const { frames } = await connect(SESSION, {
@@ -60,7 +95,7 @@ describe("WorkflowGeneratorAgent", () => {
       "X-Organization-Id": "org-1",
     });
 
-    await settle();
+    await waitForFrame(frames, (frame) => frame.type === "session");
 
     expect(frames[0]).toMatchObject({
       type: "session",
@@ -75,14 +110,7 @@ describe("WorkflowGeneratorAgent", () => {
       // no X-Organization-Id
     });
 
-    let closeCode: number | undefined;
-    socket.addEventListener("close", (event) => {
-      closeCode = event.code;
-    });
-
-    await settle();
-
-    expect(closeCode).toBe(1008);
+    await expect(waitForClose(socket)).resolves.toBe(1008);
   });
 
   it("rejects a malformed client message", async () => {
@@ -91,16 +119,13 @@ describe("WorkflowGeneratorAgent", () => {
       "X-Organization-Id": "org-1",
     });
 
-    let closeCode: number | undefined;
-    socket.addEventListener("close", (event) => {
-      closeCode = event.code;
-    });
+    // Registered before sending, so the listener cannot miss a fast close.
+    const closed = waitForClose(socket);
 
     await settle();
     socket.send("not json");
-    await settle();
 
-    expect(closeCode).toBe(1003);
+    await expect(closed).resolves.toBe(1003);
   });
 
   it("replays earlier frames to a reconnecting client", async () => {
@@ -112,19 +137,19 @@ describe("WorkflowGeneratorAgent", () => {
       "X-User-Id": "user-1",
       "X-Organization-Id": "org-missing",
     });
-    await settle();
+    await waitForFrame(first.frames, (frame) => frame.type === "session");
     first.socket.send(JSON.stringify({ type: "start", prompt: "summarize" }));
-    await settle();
 
-    const errorFrame = first.frames.find((f) => f.type === "error");
-    expect(errorFrame).toBeDefined();
+    // The run fails on a missing org, which needs a D1 round trip — poll rather
+    // than assume a fixed delay is enough.
+    await waitForFrame(first.frames, (frame) => frame.type === "error");
     first.socket.close();
 
     const second = await connect(sessionId, {
       "X-User-Id": "user-1",
       "X-Organization-Id": "org-missing",
     });
-    await settle();
+    await waitForFrame(second.frames, (frame) => frame.type === "error");
 
     // Fresh session frame, then the replayed log including the error.
     expect(second.frames.some((f) => f.type === "error")).toBe(true);
@@ -138,11 +163,11 @@ describe("WorkflowGeneratorAgent", () => {
       "X-User-Id": "user-1",
       "X-Organization-Id": "org-missing",
     });
-    await settle();
+    await waitForFrame(first.frames, (frame) => frame.type === "session");
     first.socket.send(
       JSON.stringify({ type: "start", prompt: "summarize my emails" })
     );
-    await settle();
+    await waitForFrame(first.frames, (frame) => frame.type === "error");
     first.socket.close();
 
     // A fresh connection is what resuming from a URL looks like.
@@ -150,7 +175,7 @@ describe("WorkflowGeneratorAgent", () => {
       "X-User-Id": "user-1",
       "X-Organization-Id": "org-missing",
     });
-    await settle();
+    await waitForFrame(resumed.frames, (frame) => frame.type === "session");
 
     expect(resumed.frames[0]).toMatchObject({
       type: "session",
@@ -165,9 +190,9 @@ describe("WorkflowGeneratorAgent", () => {
       "X-User-Id": "user-1",
       "X-Organization-Id": "org-missing",
     });
-    await settle();
+    await waitForFrame(first.frames, (frame) => frame.type === "session");
     first.socket.send(JSON.stringify({ type: "start", prompt: "summarize" }));
-    await settle();
+    await waitForFrame(first.frames, (frame) => frame.type === "error");
     const afterFirst = first.frames.filter((f) => f.type === "error").length;
 
     first.socket.send(JSON.stringify({ type: "start", prompt: "summarize" }));

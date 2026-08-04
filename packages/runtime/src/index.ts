@@ -68,6 +68,7 @@ export type {
 export type {
   ExecutableNodeConstructor,
   ExecutionState,
+  InputOverrides,
   IntegrationData,
   NodeExecutionResult,
   NodeRuntimeValues,

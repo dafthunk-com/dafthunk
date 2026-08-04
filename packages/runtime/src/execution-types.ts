@@ -50,6 +50,21 @@ export type NodeRuntimeValues = Record<string, RuntimeValue | RuntimeValue[]>;
 export type WorkflowRuntimeState = Record<string, NodeRuntimeValues>;
 
 /**
+ * Per-run input values, keyed nodeId → inputName. Applied over the literals
+ * configured on a node, but still overridden by inbound edges.
+ *
+ * Carried alongside the workflow rather than written into `workflow.nodes` on
+ * purpose: the definition hash covers node input values, so rewriting them there
+ * would make every set of inputs look like a new workflow version and fragment
+ * the execution history. See `computeDefinitionHash`.
+ *
+ * Values that are not {@link isRuntimeValue} are ignored by the executor.
+ */
+export type InputOverrides = Readonly<
+  Record<string, Readonly<Record<string, unknown>>>
+>;
+
+/**
  * Immutable execution context.
  * Identifies the run and carries whatever triggered it. Created once at
  * initialization and passed by reference throughout execution.
@@ -71,6 +86,7 @@ export interface WorkflowExecutionContext {
   readonly trigger: TriggerContext;
   /** Billing plan of the owning organization, gating subscription-only nodes */
   readonly userPlan?: string;
+  readonly inputOverrides?: InputOverrides;
 }
 
 /**

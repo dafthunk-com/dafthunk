@@ -48,10 +48,12 @@ import { createRateLimitMiddleware } from "../middleware/rate-limit";
 import { CloudflareExecutionStore } from "../runtime/cloudflare-execution-store";
 import { CloudflareNodeRegistry } from "../runtime/cloudflare-node-registry";
 import { WorkflowExecutor } from "../services/workflow-executor";
+import { ExampleStore } from "../stores/example-store";
 import { WorkflowStore } from "../stores/workflow-store";
 import { getAuthContext } from "../utils/auth-context";
 import { isCreditExhausted } from "../utils/credits";
 import { decryptSecret } from "../utils/encryption";
+import { buildInputOverrides, selectExample } from "../utils/example-inputs";
 import {
   isExecutionPreparationError,
   prepareWorkflowExecution,
@@ -406,6 +408,17 @@ async function executeWorkflow(
 
   const { parameters } = preparationResult;
 
+  // A saved example supplies node input values. Its trigger payload is not
+  // merged in — the request's own payload is always the one that runs.
+  const examples = await new ExampleStore(c.env).list(workflow.id);
+  const example = selectExample(examples, c.req.query("exampleId"));
+  const inputOverrides = example
+    ? buildInputOverrides(example, {
+        nodes: workflowData.nodes,
+        edges: workflowData.edges,
+      })
+    : undefined;
+
   // Execute workflow
   const { execution } = await WorkflowExecutor.execute({
     workflow: {
@@ -420,6 +433,7 @@ async function executeWorkflow(
     organizationId,
     ...resolveOrganizationBillingOptions(billingInfo, c.env.CLOUDFLARE_ENV),
     parameters,
+    ...(inputOverrides && { inputOverrides }),
     env: c.env,
   });
 

@@ -39,6 +39,17 @@ export function ActionBarGroup({
   );
 }
 
+/**
+ * Shape and size shared by every button in an action bar. Exported because a
+ * button that has to be its own trigger (a dropdown, a tooltip) cannot go
+ * through {@link ActionBarButton}, which owns its own `onClick`.
+ */
+export const actionBarButtonBaseClassName = "h-10 px-3 rounded-none border-0";
+
+/** The default, unaccented look. Colored variants pass their own instead. */
+export const actionBarButtonOutlineClassName =
+  "bg-white hover:bg-neutral-50 text-neutral-600 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200";
+
 export interface ActionBarButtonProps {
   onClick: (e: React.MouseEvent) => void;
   disabled?: boolean;
@@ -61,7 +72,8 @@ export function ActionBarButton({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "h-10 px-3 rounded-none border-0 disabled:opacity-100!",
+        actionBarButtonBaseClassName,
+        "disabled:opacity-100!",
         className,
         {
           "cursor-not-allowed": disabled,

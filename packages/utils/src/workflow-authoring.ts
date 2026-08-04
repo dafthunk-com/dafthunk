@@ -6,7 +6,12 @@
  * and the app cannot depend on `@dafthunk/runtime`.
  */
 
-import type { Node, NodeType, WorkflowTrigger } from "@dafthunk/types";
+import type {
+  Node,
+  NodeType,
+  ParameterType,
+  WorkflowTrigger,
+} from "@dafthunk/types";
 
 /**
  * Node type(s) auto-added for each trigger. `manual` has none: a manual
@@ -39,6 +44,29 @@ export const ALL_TRIGGER_NODE_TYPE_IDS: ReadonlySet<string> = new Set(
 export function getTriggerNodeTypes(trigger: WorkflowTrigger): string[] {
   return TRIGGER_TO_NODE_TYPES[trigger] ?? [];
 }
+
+/**
+ * Parameter types an example must never supply: each names an org-scoped
+ * resource or a credential, so a literal would be meaningless or unsafe.
+ *
+ * Note this is about the parameter's *type*, not its `hidden` flag. Input-widget
+ * nodes mark their value input hidden because the widget renders it inline, and
+ * those are precisely the values an example exists to set.
+ */
+export const NON_LITERAL_PARAMETER_TYPES: ReadonlySet<ParameterType["type"]> =
+  new Set<ParameterType["type"]>([
+    "secret",
+    "integration",
+    "database",
+    "dataset",
+    "queue",
+    "email",
+    "discord",
+    "telegram",
+    "whatsapp",
+    "slack",
+    "schema",
+  ]);
 
 export interface BuildNodeOptions {
   id: string;

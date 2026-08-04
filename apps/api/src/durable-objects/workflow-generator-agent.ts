@@ -57,8 +57,10 @@ import {
 import { CloudflareNodeRegistry } from "../runtime/cloudflare-node-registry";
 import type { WorkflowExecutorParameters } from "../services/workflow-executor";
 import { WorkflowExecutor } from "../services/workflow-executor";
+import { ExampleStore } from "../stores/example-store";
 import { WorkflowStore } from "../stores/workflow-store";
 import { isCreditExhausted } from "../utils/credits";
+import { extractNodeValues } from "../utils/example-inputs";
 import { callAgentLLM } from "./agent-llm";
 
 // ── Agent SDK type shim ──────────────────────────────────────────────────
@@ -411,7 +413,8 @@ export class WorkflowGeneratorAgent extends Agent<
           this.emit(frame);
         },
         callLLM: (call: GenerateCall) => this.callModel(call),
-        save: (workflow) => this.saveWorkflow(workflow, userId, organizationId),
+        save: (workflow, sample) =>
+          this.saveWorkflow(workflow, sample, userId, organizationId),
         run: (workflow, workflowId, parameters) =>
           this.runOnce(
             workflow,
@@ -514,6 +517,7 @@ export class WorkflowGeneratorAgent extends Agent<
 
   private async saveWorkflow(
     workflow: Workflow,
+    sample: { trigger?: Record<string, unknown> },
     userId: string,
     organizationId: string
   ): Promise<string> {
@@ -531,6 +535,28 @@ export class WorkflowGeneratorAgent extends Agent<
       edges: workflow.edges,
       apiHost: this.state?.apiHost,
     });
+
+    // The values the model chose are also saved as an example, so the user can
+    // edit and re-run them without touching the graph. Best-effort: a generated
+    // workflow that saved but has no example is still usable.
+    try {
+      const now = new Date();
+      await new ExampleStore(this.env).save(workflowId, [
+        {
+          id: crypto.randomUUID(),
+          name: "Generated sample",
+          description:
+            "Input values produced when this workflow was generated.",
+          isDefault: true,
+          nodeValues: extractNodeValues(workflow),
+          trigger: sample.trigger,
+          createdAt: now,
+          updatedAt: now,
+        },
+      ]);
+    } catch (error) {
+      console.error("Failed to save the generated example:", error);
+    }
 
     const db = createDatabase(this.env.DB);
     try {

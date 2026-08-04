@@ -1027,7 +1027,13 @@ export class WorkflowStore {
   }
 
   /**
-   * Delete workflow data from R2
+   * Delete every R2 object under the workflow's prefix.
+   *
+   * Deliberately a prefix sweep rather than a delete of `workflow.json`: the
+   * prefix also holds `examples.json`, and anything added later would otherwise
+   * be orphaned with no way to find it again. Note this does not cover objects
+   * *referenced* from those documents, which live under `objects/` and are
+   * deleted by their owners.
    */
   private async deleteFromR2(workflowId: string): Promise<void> {
     try {
@@ -1035,8 +1041,18 @@ export class WorkflowStore {
         throw new Error("R2 bucket is not initialized");
       }
 
-      const key = `workflows/${workflowId}/workflow.json`;
-      await this.env.RESSOURCES.delete(key);
+      const prefix = `workflows/${workflowId}/`;
+      let cursor: string | undefined;
+
+      do {
+        const listed = await this.env.RESSOURCES.list({ prefix, cursor });
+        if (listed.objects.length > 0) {
+          await this.env.RESSOURCES.delete(
+            listed.objects.map((object) => object.key)
+          );
+        }
+        cursor = listed.truncated ? listed.cursor : undefined;
+      } while (cursor);
     } catch (error) {
       console.error(
         `WorkflowStore.deleteFromR2: Failed to delete ${workflowId}:`,

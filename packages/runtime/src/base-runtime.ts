@@ -12,6 +12,7 @@ import { buildNodeExecutions, type PendingEvent } from "./execution-report";
 import { getExecutionStatus } from "./execution-state";
 import type {
   ExecutionState,
+  InputOverrides,
   NodeExecutionResult,
   WorkflowExecutionContext,
 } from "./execution-types";
@@ -40,6 +41,7 @@ export interface RuntimeParams extends TriggerContext {
   /** When true, all credit checks are bypassed (e.g., internal/test accounts). */
   readonly unlimitedUsage?: boolean;
   readonly userPlan?: string;
+  readonly inputOverrides?: InputOverrides;
 }
 
 /** Everything derived once at the start of a run and used throughout it. */
@@ -270,7 +272,7 @@ export abstract class Runtime<Env = unknown> {
     params: RuntimeParams,
     instanceId: string
   ): Promise<PreparedRun> {
-    const { workflow, organizationId, userPlan } = params;
+    const { workflow, organizationId, userPlan, inputOverrides } = params;
 
     const { context, state } = await this.executeStep(
       "initialise workflow",
@@ -293,6 +295,7 @@ export abstract class Runtime<Env = unknown> {
           // through one Runtime instance cannot see each other's trigger.
           trigger: extractTrigger(params),
           userPlan,
+          inputOverrides,
         };
 
         const state: ExecutionState = {

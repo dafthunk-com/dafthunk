@@ -79,7 +79,8 @@ export class NodeExecutor<Env = unknown> {
       state,
       executable,
       graph.inboundEdges(nodeId),
-      context.organizationId
+      context.organizationId,
+      context.inputOverrides?.[nodeId]
     );
 
     const result = await this.invoke(
@@ -178,7 +179,8 @@ export class NodeExecutor<Env = unknown> {
     state: ExecutionState,
     executable: object,
     inboundEdges: readonly Edge[],
-    organizationId: string
+    organizationId: string,
+    overrides?: Readonly<Record<string, unknown>>
   ): Promise<{
     inputs: NodeRuntimeValues;
     resolvedInputs: Record<string, unknown>;
@@ -189,6 +191,18 @@ export class NodeExecutor<Env = unknown> {
     for (const input of node.inputs) {
       if (input.value !== undefined && isRuntimeValue(input.value)) {
         inputs[input.name] = input.value;
+      }
+    }
+
+    // Per-run overrides replace those literals. Restricted to inputs the node
+    // actually declares, so a stale override cannot invent a parameter, and
+    // applied before the edge loop so a connected input still wins.
+    if (overrides) {
+      for (const input of node.inputs) {
+        const value = overrides[input.name];
+        if (value !== undefined && isRuntimeValue(value)) {
+          inputs[input.name] = value;
+        }
       }
     }
 

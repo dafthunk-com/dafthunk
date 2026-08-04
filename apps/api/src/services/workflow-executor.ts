@@ -5,7 +5,7 @@
  * Handles parameter processing, execution creation, and persistence.
  */
 
-import type { BlobParameter } from "@dafthunk/runtime";
+import type { BlobParameter, InputOverrides } from "@dafthunk/runtime";
 import type { Node, WorkflowExecution, WorkflowRuntime } from "@dafthunk/types";
 import type { Bindings } from "../context";
 import { createDatabase, stampOnboardingStage } from "../db";
@@ -33,6 +33,8 @@ export interface WorkflowExecutorOptions {
   unlimitedUsage?: boolean;
   parameters?: WorkflowExecutorParameters;
   userPlan?: string;
+  /** Per-run node input values, keyed nodeId → inputName. */
+  inputOverrides?: InputOverrides;
   env: Bindings;
 }
 
@@ -80,6 +82,7 @@ export class WorkflowExecutor {
       unlimitedUsage,
       parameters,
       userPlan,
+      inputOverrides,
       env,
     } = options;
 
@@ -109,6 +112,9 @@ export class WorkflowExecutor {
       ...(overageLimit !== undefined && { overageLimit }),
       ...(unlimitedUsage !== undefined && { unlimitedUsage }),
       ...(userPlan && { userPlan }),
+      // Per-run input values, carried beside the workflow rather than written
+      // into it so the definition hash stays stable across runs.
+      ...(inputOverrides && { inputOverrides }),
     };
 
     // Build type-specific execution parameters
