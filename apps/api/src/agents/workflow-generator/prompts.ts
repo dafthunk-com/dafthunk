@@ -1,4 +1,4 @@
-import type { NodeType } from "@dafthunk/types";
+import type { BriefDestination, NodeType } from "@dafthunk/types";
 import { TRIGGER_TO_NODE_TYPES } from "@dafthunk/utils";
 
 import { projectCatalog } from "./catalog-projection";
@@ -139,19 +139,11 @@ function describeTriggerOptions(nodeTypes: NodeType[]): string {
 
 function describeWithheld(withheld: Ineligible[]): string {
   const providers = withheldProviders(withheld);
-  const hasSubscriptionGated = withheld.some(
-    (w) => w.reason === "subscription"
-  );
 
   const notes: string[] = [];
   if (providers.length) {
     notes.push(
       `These services are NOT connected in this workspace: ${providers.join(", ")}. If the request needs one, build the workflow up to that point, end that branch in an "output-text" node named after the intended action, and say so in "description". Never pretend the step happened.`
-    );
-  }
-  if (hasSubscriptionGated) {
-    notes.push(
-      `Some premium nodes are unavailable on this plan and are absent from the catalog. Use the "ai-*" nodes for anything requiring a model.`
     );
   }
   return notes.join("\n");
@@ -163,6 +155,34 @@ export interface SystemPromptInput {
   nodeTypes: NodeType[];
   withheld: Ineligible[];
   query: string;
+  /**
+   * What the brief committed to delivering, when there was a brief.
+   *
+   * `DESTINATION_NOT_REALIZED` is the backstop for this, but a backstop costs a
+   * whole repair round every time it fires. Stating the requirement up front is
+   * what keeps that check from being the mechanism.
+   */
+  destination?: BriefDestination;
+}
+
+/**
+ * Rule 4, sharpened when we know where the result has to go.
+ *
+ * The generic rule — "every branch must end in an output node" — is satisfied
+ * by dropping a value into a widget, which is why a workflow could pass
+ * validation while delivering nothing anyone would see.
+ */
+function describeDelivery(destination: BriefDestination | undefined): string {
+  if (!destination) {
+    return `4. Every branch must end in an output node ("output-text", "output-json", "output-image", …) so the run shows the user something.`;
+  }
+
+  const recipient =
+    destination.kind === "email"
+      ? ` Leave the "to" input empty — the server fills in the address of the person who asked, which you have no way of knowing.`
+      : "";
+
+  return `4. The workflow MUST ${destination.label}. Use one of these node types to do it: ${destination.nodeTypes.join(", ")}.${recipient} This is the point of the workflow — a graph that computes the right answer and does not deliver it is wrong. Any other branch must still end in an output node.`;
 }
 
 export function buildSystemPrompt(input: SystemPromptInput): string {
@@ -193,7 +213,7 @@ You do NOT describe port shapes — only the node "type" and any literal "inputs
 1. The graph must be acyclic.
 2. Every node id must be unique.
 3. Every required input must either receive an edge or carry a literal value in "inputs".
-4. Every branch must end in an output node ("output-text", "output-json", "output-image", …) so the run shows the user something.
+${describeDelivery(input.destination)}
 5. Give input nodes realistic sample values so the first run produces a meaningful result.
 6. Prefer, in order: plain compute nodes (text, json, math, logic, date); the "ai-*" nodes for anything needing judgement, summarizing, classifying or drafting; "fetch" for arbitrary HTTP.
 7. Build model prompts in their own template node ("var-string-template" with var_1, var_2, … or "json-string-template") rather than burying instructions in a default value.
@@ -259,6 +279,25 @@ export function buildRepairPrompt(errors: string): string {
 ${errors}
 
 Return the COMPLETE corrected JSON object, not a patch and not only the changed parts. Keep everything that was already correct.`;
+}
+
+/**
+ * The user has seen the result and said what is wrong with it.
+ *
+ * Unlike the two repair prompts, nothing here is a defect report — the workflow
+ * may be perfectly well-formed and simply not what they meant. So the framing
+ * is a change request, and the instruction to change the minimum is the load-
+ * bearing part: they are correcting one thing, and a rewrite that quietly
+ * discards the parts they liked reads as the tool ignoring them.
+ */
+export function buildCritiquePrompt(note: string): string {
+  return `The workflow ran and the person who asked for it has seen the result. They say:
+
+"${note}"
+
+Change the workflow so that is true. Everything they did not mention is fine — change as little as possible. If the test inputs in "examples" are what made it look wrong, fix those instead of the graph.
+
+Return the COMPLETE corrected JSON object, not a patch and not only the changed parts.`;
 }
 
 /**

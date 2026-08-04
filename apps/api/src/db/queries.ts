@@ -1565,15 +1565,13 @@ export function resolveOrganizationPlan(
 export function resolveOrganizationBillingOptions(
   billingInfo: NonNullable<
     Awaited<ReturnType<typeof getOrganizationBillingInfo>>
-  >,
-  cloudflareEnv?: string
+  >
 ) {
   return {
     computeCredits: billingInfo.computeCredits,
     subscriptionStatus: billingInfo.subscriptionStatus ?? undefined,
     overageLimit: billingInfo.overageLimit ?? null,
     unlimitedUsage: billingInfo.unlimitedUsage,
-    userPlan: resolveOrganizationPlan(billingInfo, cloudflareEnv),
   };
 }
 

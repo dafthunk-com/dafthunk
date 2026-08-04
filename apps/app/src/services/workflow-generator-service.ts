@@ -1,4 +1,5 @@
 import type {
+  BriefAnswers,
   GeneratorClientMessage,
   GeneratorServerMessage,
 } from "@dafthunk/types";
@@ -18,9 +19,14 @@ export interface WorkflowGeneratorWSOptions {
 /**
  * Socket client for workflow generation.
  *
- * Modelled on `WorkflowWebSocket`, with one deliberate difference: it never
- * re-sends `start` after a reconnect. The server keeps a frame log and replays
- * it on connect, so resending would risk a second run rather than catching up.
+ * Modelled on `WorkflowWebSocket`, with one deliberate difference: nothing is
+ * re-sent after a reconnect. The server keeps a frame log and replays it on
+ * connect, so resending would risk a second run rather than catching up.
+ *
+ * A session is a conversation — ask, resolve, critique — so only `start`, the
+ * developer page's unmediated path, keeps a one-way latch. The server is the
+ * authority on which turn is legal; an out-of-turn message is ignored there
+ * rather than guessed at here.
  */
 export class WorkflowGeneratorWebSocket {
   private static readonly NORMAL_CLOSURE = 1000;
@@ -34,7 +40,15 @@ export class WorkflowGeneratorWebSocket {
   private shouldReconnect = true;
   /** Set once `start` has been sent for this session; never sent twice. */
   private hasStarted = false;
-  private pendingPrompt: string | null = null;
+  /**
+   * A message submitted before the socket opened.
+   *
+   * One slot is enough: only one turn can be in flight, and the UI disables
+   * its controls while it is. Cleared on close rather than retried — the
+   * server replays the session's real state on reconnect, and re-sending a
+   * turn against a session that already took it would be a second run.
+   */
+  private pending: GeneratorClientMessage | null = null;
 
   constructor(
     private orgId: string,
@@ -54,11 +68,11 @@ export class WorkflowGeneratorWebSocket {
       this.ws.onopen = () => {
         this.reconnectAttempts = 0;
         this.reconnectDelay = 1000;
-        // A prompt submitted before the socket opened is flushed here.
-        if (this.pendingPrompt !== null && !this.hasStarted) {
-          const prompt = this.pendingPrompt;
-          this.pendingPrompt = null;
-          this.start(prompt);
+        // A message submitted before the socket opened is flushed here.
+        if (this.pending) {
+          const message = this.pending;
+          this.pending = null;
+          this.send(message);
         }
       };
 
@@ -78,6 +92,9 @@ export class WorkflowGeneratorWebSocket {
       };
 
       this.ws.onclose = (event) => {
+        // Do not carry an unsent turn across a reconnect: by the time the
+        // socket is back the server has replayed the session's real state.
+        this.pending = null;
         if (this.shouldAttemptReconnect(event)) {
           this.reconnectAttempts++;
           setTimeout(() => this.connect(), this.reconnectDelay);
@@ -105,26 +122,48 @@ export class WorkflowGeneratorWebSocket {
     );
   }
 
+  /** Sends now, or queues until the socket opens. */
   private send(message: GeneratorClientMessage): void {
-    if (this.ws?.readyState !== WebSocket.OPEN) return;
+    if (this.ws?.readyState !== WebSocket.OPEN) {
+      this.pending = message;
+      return;
+    }
     this.ws.send(JSON.stringify(message));
   }
 
-  /** Queues the prompt when the socket is not open yet. */
+  /**
+   * Build straight from a prompt, with no brief.
+   *
+   * Keeps its own one-way latch: the developer generate page mounts, sends
+   * once, and relies on the server replaying rather than restarting. The brief
+   * flow has no such latch because a session there is a conversation.
+   */
   start(prompt: string): void {
     if (this.hasStarted) return;
-
-    if (this.ws?.readyState !== WebSocket.OPEN) {
-      this.pendingPrompt = prompt;
-      return;
-    }
-
     this.hasStarted = true;
     this.send({ type: "start", prompt });
   }
 
+  /** Read a request back as a brief. */
+  ask(prompt: string): void {
+    this.send({ type: "ask", prompt });
+  }
+
+  /** Accept the brief — answered, or skipped wholesale — and build it. */
+  resolve(turn: number, answers: BriefAnswers): void {
+    this.send({ type: "resolve", turn, answers });
+  }
+
+  /** Say what should be different about what was just built. */
+  critique(note: string): void {
+    this.send({ type: "critique", note });
+  }
+
   cancel(): void {
-    this.send({ type: "cancel" });
+    // Never queued: a cancel that arrives after a reconnect would apply to
+    // whatever the session is doing by then.
+    if (this.ws?.readyState !== WebSocket.OPEN) return;
+    this.ws.send(JSON.stringify({ type: "cancel" }));
   }
 
   disconnect(): void {

@@ -46,7 +46,6 @@ export class UpdatePostWordPressNode extends ExecutableNode {
     documentation:
       "Updates an existing WordPress.com post. Only inputs you supply are sent. Useful for transitioning a draft to published (set `status` to `publish`).",
     usage: 10,
-    subscription: true,
     asTool: true,
     inlinable: false,
     inputs: [

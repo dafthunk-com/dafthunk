@@ -7,7 +7,10 @@ export type OnboardingStageColumn =
   | "tourCompleted"
   | "workflowCreated"
   | "workflowExecuted"
-  | "workflowExecutedOk";
+  | "workflowExecutedOk"
+  | "briefResolved"
+  | "outcomeSeen"
+  | "workflowKept";
 
 // Set-if-null: idempotent, single UPDATE. The WHERE clause guards against
 // overwriting an earlier stamp, so callers don't need their own first-time

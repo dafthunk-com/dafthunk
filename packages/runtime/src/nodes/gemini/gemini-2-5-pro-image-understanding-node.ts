@@ -27,7 +27,6 @@ export class Gemini25ProImageUnderstandingNode extends ExecutableNode {
     documentation:
       "This node uses Google's Gemini 2.5 Pro model for high-quality image analysis with advanced reasoning capabilities. Supports up to 3 images for comparison and multi-image analysis.",
     usage: 1,
-    subscription: true,
     inlinable: false,
     asTool: false,
     inputs: [

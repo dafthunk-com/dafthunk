@@ -19,5 +19,6 @@ export {
   getProviderLabel,
   PROVIDER_REGISTRY,
 } from "./providers";
+export { rememberOAuthReturn, takeOAuthReturn } from "./return-to";
 // Types
 export type { ProviderConfig } from "./types";

@@ -7,6 +7,7 @@ import {
   FIXTURE_NODE_TYPES,
   JSON_INPUT,
   OUTPUT_TEXT,
+  SEND_EMAIL,
   TEXT_INPUT,
 } from "./fixtures";
 
@@ -188,5 +189,165 @@ describe("formatErrorsForLLM", () => {
         { code: "ORPHAN_NODE", severity: "warning", message: "m", fix: "f" },
       ])
     ).toBe("");
+  });
+});
+
+describe("the destination contract", () => {
+  const emailDestination = {
+    id: "email",
+    kind: "email" as const,
+    label: "email it to you",
+    nodeTypes: ["send-email"],
+  };
+  const displayDestination = {
+    id: "display",
+    kind: "display" as const,
+    label: "show it to you here",
+    nodeTypes: ["output-text", "output-json"],
+  };
+
+  const sendEmail = buildNodeFromNodeType(SEND_EMAIL, {
+    id: "notify",
+    position: { x: 400, y: 0 },
+    inputs: { to: "owner@example.com", subject: "Digest", text: "..." },
+  });
+
+  it("is silent when the workflow delivers what was promised", () => {
+    const errors = enrichValidation(
+      workflowOf(
+        [textInput, textOutput],
+        [
+          {
+            source: "text",
+            sourceOutput: "value",
+            target: "sink",
+            targetInput: "value",
+          },
+        ]
+      ),
+      FIXTURE_NODE_TYPES,
+      [],
+      { destination: displayDestination }
+    );
+
+    expect(errors.filter((e) => e.code === "DESTINATION_NOT_REALIZED")).toEqual(
+      []
+    );
+  });
+
+  it("catches the graph that computes an answer and delivers nothing", () => {
+    // The reported failure, reduced: a workflow that produces the right value
+    // and drops it in a widget when the user asked to be emailed.
+    const errors = enrichValidation(
+      workflowOf(
+        [textInput, textOutput],
+        [
+          {
+            source: "text",
+            sourceOutput: "value",
+            target: "sink",
+            targetInput: "value",
+          },
+        ]
+      ),
+      FIXTURE_NODE_TYPES,
+      [],
+      { destination: emailDestination }
+    );
+
+    const found = errors.find((e) => e.code === "DESTINATION_NOT_REALIZED");
+    expect(found?.severity).toBe("fatal");
+    expect(found?.message).toContain("email it to you");
+    // The fix has to name the node type and the port, or the repair round is
+    // spent guessing rather than fixing.
+    expect(found?.fix).toContain("send-email");
+    // The body, not the recipient — advice that says otherwise is worse than
+    // no advice, because the model will follow it.
+    expect(found?.fix).toContain('"text"');
+    expect(found?.fix).not.toContain('"to"');
+  });
+
+  it("catches a delivery node left dangling", () => {
+    const errors = enrichValidation(
+      workflowOf([textInput, sendEmail], []),
+      FIXTURE_NODE_TYPES,
+      [],
+      { destination: emailDestination }
+    );
+
+    const found = errors.find((e) => e.code === "DESTINATION_NOT_REALIZED");
+    expect(found?.nodeId).toBe("notify");
+    expect(found?.message).toContain("nothing to send");
+    expect(found?.fix).toContain("no incoming edge");
+  });
+
+  it("changes nothing when no destination was promised", () => {
+    const workflow = workflowOf([textInput, sendEmail], []);
+
+    // The regression guard for the optional fourth parameter: a generation
+    // that never had a brief must validate exactly as it did before.
+    expect(enrichValidation(workflow, FIXTURE_NODE_TYPES, [], {})).toEqual(
+      enrichValidation(workflow, FIXTURE_NODE_TYPES)
+    );
+  });
+});
+
+describe("inputs where one of several will do", () => {
+  const emailWith = (inputs: Record<string, unknown>) =>
+    buildNodeFromNodeType(SEND_EMAIL, {
+      id: "mail",
+      position: { x: 400, y: 0 },
+      inputs,
+    });
+
+  it("catches an email with no body at all", () => {
+    // Ports cannot express "html or text", so this graph satisfies every other
+    // rule and still fails at run time. Catching it here costs one repair
+    // round instead of a red execution.
+    const errors = enrichValidation(
+      workflowOf([emailWith({ to: "a@b.c", subject: "Hi" })], []),
+      FIXTURE_NODE_TYPES
+    );
+
+    const found = errors.find((e) => e.code === "MISSING_ONE_OF_INPUTS");
+    expect(found?.severity).toBe("fatal");
+    expect(found?.fix).toContain('"html"');
+    expect(found?.fix).toContain('"text"');
+  });
+
+  it("is satisfied by either one", () => {
+    for (const body of ["html", "text"]) {
+      const errors = enrichValidation(
+        workflowOf(
+          [emailWith({ to: "a@b.c", subject: "Hi", [body]: "x" })],
+          []
+        ),
+        FIXTURE_NODE_TYPES
+      );
+      expect(errors.filter((e) => e.code === "MISSING_ONE_OF_INPUTS")).toEqual(
+        []
+      );
+    }
+  });
+
+  it("is satisfied by an edge into one of them", () => {
+    const errors = enrichValidation(
+      workflowOf(
+        [textInput, emailWith({ to: "a@b.c", subject: "Hi" })],
+        [
+          {
+            source: "text",
+            sourceOutput: "value",
+            target: "mail",
+            targetInput: "text",
+          },
+        ]
+      ),
+      FIXTURE_NODE_TYPES
+    );
+
+    expect(errors.filter((e) => e.code === "MISSING_ONE_OF_INPUTS")).toEqual(
+      []
+    );
   });
 });

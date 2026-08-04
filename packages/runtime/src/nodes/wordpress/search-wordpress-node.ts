@@ -42,7 +42,6 @@ export class SearchWordPressNode extends ExecutableNode {
     documentation:
       "Searches across all content types on the connected WordPress.com site. Each result has a `subtype` (e.g. `post`, `page`, `category`) and a URL.",
     usage: 10,
-    subscription: true,
     asTool: true,
     inlinable: false,
     inputs: [

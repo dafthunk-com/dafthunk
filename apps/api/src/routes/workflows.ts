@@ -431,7 +431,7 @@ async function executeWorkflow(
     },
     userId,
     organizationId,
-    ...resolveOrganizationBillingOptions(billingInfo, c.env.CLOUDFLARE_ENV),
+    ...resolveOrganizationBillingOptions(billingInfo),
     parameters,
     ...(inputOverrides && { inputOverrides }),
     env: c.env,

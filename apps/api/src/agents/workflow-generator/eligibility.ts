@@ -22,8 +22,6 @@ const REPLACED_BY_PSEUDO_TYPES: ReadonlySet<string> = new Set([
 ]);
 
 export interface EligibilityContext {
-  /** Non-pro orgs cannot execute `subscription: true` nodes at all. */
-  plan: "pro" | "trial";
   /** OAuth providers the org has actually connected. */
   connectedProviders: ReadonlySet<string>;
 }
@@ -43,7 +41,7 @@ function needsOrgResource(nodeType: NodeType): boolean {
 
 export interface Ineligible {
   type: string;
-  reason: "subscription" | "integration" | "org-resource";
+  reason: "integration" | "org-resource";
   /** Set when `reason` is `integration`. */
   provider?: string;
 }
@@ -85,11 +83,6 @@ export function filterEligible(
   for (const nodeType of nodeTypes) {
     if (nodeType.trigger || nodeType.responder) continue;
     if (REPLACED_BY_PSEUDO_TYPES.has(nodeType.type)) continue;
-
-    if (nodeType.subscription && context.plan !== "pro") {
-      withheld.push({ type: nodeType.type, reason: "subscription" });
-      continue;
-    }
 
     const providers = requiredProviders(nodeType);
     const missing = providers.find((p) => !context.connectedProviders.has(p));

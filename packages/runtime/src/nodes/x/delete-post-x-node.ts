@@ -16,7 +16,6 @@ export class DeletePostXNode extends ExecutableNode {
     documentation:
       "This node deletes a post by ID. You can only delete posts authored by the authenticated user. Requires a connected X integration with tweet.write scope.",
     usage: 10,
-    subscription: true,
     asTool: true,
     inlinable: false,
     inputs: [

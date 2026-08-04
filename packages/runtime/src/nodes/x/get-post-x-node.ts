@@ -16,7 +16,6 @@ export class GetPostXNode extends ExecutableNode {
     documentation:
       "This node retrieves detailed information about a specific post by ID using the X API v2. Requires a connected X integration.",
     usage: 10,
-    subscription: true,
     asTool: true,
     inlinable: false,
     inputs: [

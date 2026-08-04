@@ -84,8 +84,6 @@ export interface WorkflowExecutionContext {
   readonly executionId: string;
   /** What caused this run, and the credentials needed to answer it */
   readonly trigger: TriggerContext;
-  /** Billing plan of the owning organization, gating subscription-only nodes */
-  readonly userPlan?: string;
   readonly inputOverrides?: InputOverrides;
 }
 

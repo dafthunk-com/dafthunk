@@ -20,7 +20,6 @@ export class Gemini25ProNode extends ExecutableNode {
     documentation:
       "This node uses Google's Gemini 2.5 Pro model, the most capable model for complex reasoning and creative tasks.",
     usage: 1,
-    subscription: true,
     functionCalling: true,
     inlinable: false,
     asTool: false,

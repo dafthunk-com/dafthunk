@@ -37,7 +37,6 @@ export class ListPostsWordPressNode extends ExecutableNode {
     documentation:
       "Lists posts on the connected WordPress.com site. Defaults to the user's primary blog when `site` is not provided.",
     usage: 10,
-    subscription: true,
     asTool: true,
     inlinable: false,
     inputs: [

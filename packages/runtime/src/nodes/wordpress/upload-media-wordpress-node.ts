@@ -64,7 +64,6 @@ export class UploadMediaWordPressNode extends ExecutableNode {
     documentation:
       "Uploads an image to the connected WordPress.com site's Media Library. The returned media ID can be used as a `featured_media` when creating posts, or as the `src` of an `<img>` in post content.",
     usage: 10,
-    subscription: true,
     asTool: true,
     inlinable: false,
     inputs: [

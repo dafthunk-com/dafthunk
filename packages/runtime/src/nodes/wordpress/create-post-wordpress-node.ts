@@ -46,7 +46,6 @@ export class CreatePostWordPressNode extends ExecutableNode {
     documentation:
       "Creates a new post on the connected WordPress.com site. Defaults to the user's primary blog when `site` is not provided. Defaults to status `draft`.",
     usage: 10,
-    subscription: true,
     asTool: true,
     inlinable: false,
     inputs: [

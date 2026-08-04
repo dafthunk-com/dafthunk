@@ -58,3 +58,19 @@ export const updateProfile = async (
 export const markTourCompleted = async (): Promise<UpdateProfileResponse> => {
   return updateProfile({ tourCompleted: true });
 };
+
+/**
+ * Mark that a generated result was actually rendered to the user.
+ *
+ * The server cannot observe this. `workflow_executed_ok` is stamped when a run
+ * finishes, which happens whether or not anyone is still looking — this is the
+ * event that time-to-first-outcome is measured against.
+ */
+export const markOutcomeSeen = async (): Promise<UpdateProfileResponse> => {
+  return updateProfile({ outcomeSeen: true });
+};
+
+/** Mark that the user chose to keep what was built for them. */
+export const markWorkflowKept = async (): Promise<UpdateProfileResponse> => {
+  return updateProfile({ workflowKept: true });
+};

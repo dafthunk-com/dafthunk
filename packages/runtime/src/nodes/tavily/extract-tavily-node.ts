@@ -28,7 +28,6 @@ export class ExtractTavilyNode extends ExecutableNode {
     documentation:
       "Extract clean, structured content from one or more web pages using the Tavily Extract API. Returns the page content in markdown or text format.",
     usage: 10,
-    subscription: true,
     asTool: true,
     inlinable: false,
     inputs: [

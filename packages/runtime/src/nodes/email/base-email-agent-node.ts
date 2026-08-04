@@ -145,7 +145,6 @@ export function buildEmailAgentNodeType(meta: {
   description: string;
   tags: string[];
   documentation: string;
-  subscription?: boolean;
 }): NodeType {
   return {
     id: meta.id,
@@ -156,7 +155,6 @@ export function buildEmailAgentNodeType(meta: {
     icon: "mail",
     documentation: meta.documentation,
     usage: 1,
-    subscription: meta.subscription,
     functionCalling: true,
     inputs: EMAIL_AGENT_INPUTS,
     outputs: EMAIL_AGENT_OUTPUTS,

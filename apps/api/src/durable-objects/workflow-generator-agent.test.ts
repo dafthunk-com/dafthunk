@@ -206,3 +206,75 @@ describe("WorkflowGeneratorAgent", () => {
     expect(first.frames.filter((f) => f.type === "session")).toHaveLength(1);
   });
 });
+
+describe("the multi-turn protocol", () => {
+  it("ignores a message type it does not understand", async () => {
+    const sessionId = "test-session-unknown-type";
+    const { socket, frames } = await connect(sessionId, {
+      "X-User-Id": "user-1",
+      "X-Organization-Id": "org-missing",
+    });
+    await waitForFrame(frames, (frame) => frame.type === "session");
+
+    // A client one deploy ahead of this worker must not lose its session. The
+    // socket used to close here, which took the whole run down with it.
+    socket.send(JSON.stringify({ type: "from-the-future", payload: 1 }));
+    await settle();
+
+    // Still usable: the session takes a real message afterwards.
+    socket.send(JSON.stringify({ type: "start", prompt: "summarize" }));
+    await waitForFrame(frames, (frame) => frame.type === "error");
+  });
+
+  it("ignores resolve when no brief is waiting", async () => {
+    const sessionId = "test-session-resolve-empty";
+    const { socket, frames } = await connect(sessionId, {
+      "X-User-Id": "user-1",
+      "X-Organization-Id": "org-missing",
+    });
+    await waitForFrame(frames, (frame) => frame.type === "session");
+
+    socket.send(JSON.stringify({ type: "resolve", turn: 0, answers: {} }));
+    await settle();
+
+    // Nothing was built, and nothing failed — there was simply nothing to do.
+    expect(frames.filter((frame) => frame.type !== "session")).toEqual([]);
+  });
+
+  it("ignores critique when nothing has been built", async () => {
+    const sessionId = "test-session-critique-empty";
+    const { socket, frames } = await connect(sessionId, {
+      "X-User-Id": "user-1",
+      "X-Organization-Id": "org-missing",
+    });
+    await waitForFrame(frames, (frame) => frame.type === "session");
+
+    socket.send(JSON.stringify({ type: "critique", note: "make it shorter" }));
+    await settle();
+
+    expect(frames.filter((frame) => frame.type !== "session")).toEqual([]);
+  });
+
+  it("lets a settled session take another turn", async () => {
+    const sessionId = "test-session-second-turn";
+    const { socket, frames } = await connect(sessionId, {
+      "X-User-Id": "user-1",
+      "X-Organization-Id": "org-missing",
+    });
+    await waitForFrame(frames, (frame) => frame.type === "session");
+
+    socket.send(JSON.stringify({ type: "ask", prompt: "summarize my emails" }));
+    await waitForFrame(frames, (frame) => frame.type === "error");
+    const afterFirst = frames.filter((frame) => frame.type === "error").length;
+
+    // `start` is single-use, but a session is a conversation: retyping after a
+    // failure has to be allowed or the user is stuck with a dead page.
+    socket.send(JSON.stringify({ type: "ask", prompt: "translate my emails" }));
+    await waitForFrame(frames, (frame) => frame.type === "error", 5000);
+    await settle();
+
+    expect(
+      frames.filter((frame) => frame.type === "error").length
+    ).toBeGreaterThan(afterFirst);
+  });
+});

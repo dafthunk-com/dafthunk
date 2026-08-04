@@ -25,6 +25,8 @@
 import type { InputOverrides } from "@dafthunk/runtime";
 import { calculateTokenUsage } from "@dafthunk/runtime/utils/usage";
 import type {
+  Brief,
+  BriefAnswers,
   GenerationPhase,
   GenerationStatus,
   GeneratorClientMessage,
@@ -34,17 +36,28 @@ import type {
   WorkflowExample,
   WorkflowExecution,
 } from "@dafthunk/types";
-import { Agent } from "agents";
-import type { Connection, ConnectionContext } from "partyserver";
-
+import { GENERATOR_PROTOCOL_VERSION } from "@dafthunk/types";
 import {
-  GENERATOR_MODEL,
-  GENERATOR_PRICING,
-  GENERATOR_PROVIDER,
+  buildSynthesisPrompt,
+  renderBriefSentence,
+  resolveDestination,
+} from "@dafthunk/utils";
+import { Agent } from "agents";
+import { eq } from "drizzle-orm";
+import type { Connection, ConnectionContext } from "partyserver";
+import { generateBrief } from "../agents/workflow-generator/brief";
+import {
+  GENERATOR_MAX_TOKENS,
+  GENERATOR_MODELS,
   RUN_RETENTION_MS,
   RUN_STALL_TIMEOUT_MS,
 } from "../agents/workflow-generator/config";
-import type { GenerateCall } from "../agents/workflow-generator/pipeline";
+import { achievableDestinations } from "../agents/workflow-generator/destinations";
+import { filterEligible } from "../agents/workflow-generator/eligibility";
+import type {
+  GenerateCall,
+  TierUsage,
+} from "../agents/workflow-generator/pipeline";
 import { runGenerationPipeline } from "../agents/workflow-generator/pipeline";
 import { DRAFT_SCHEMA } from "../agents/workflow-generator/prompts";
 import type { Bindings } from "../context";
@@ -53,10 +66,11 @@ import {
   getIntegrations,
   getOrganizationBillingInfo,
   resolveOrganizationBillingOptions,
-  resolveOrganizationPlan,
   stampOnboardingStage,
 } from "../db";
+import { users } from "../db/schema";
 import { CloudflareNodeRegistry } from "../runtime/cloudflare-node-registry";
+import { availableIntegrationProviders } from "../services/integration-availability";
 import type { WorkflowExecutorParameters } from "../services/workflow-executor";
 import { WorkflowExecutor } from "../services/workflow-executor";
 import { ExampleStore } from "../stores/example-store";
@@ -138,6 +152,29 @@ export class WorkflowGeneratorAgent extends Agent<
         frame      TEXT NOT NULL
       )
     `);
+    // The conversation that produced a workflow, so a critique can continue it
+    // rather than describe the workflow to a model that never saw it.
+    this.storageSql.exec(`
+      CREATE TABLE IF NOT EXISTS gen_turns (
+        session_id TEXT NOT NULL,
+        turn       INTEGER NOT NULL,
+        system     TEXT NOT NULL,
+        messages   TEXT NOT NULL,
+        PRIMARY KEY (session_id, turn)
+      )
+    `);
+
+    // Added after `gen_runs` shipped. There is no migration to write — sessions
+    // are reclaimed an hour after they end — but a Durable Object that was
+    // mid-flight across a deploy still holds the original table.
+    for (const column of [`turn INTEGER NOT NULL DEFAULT 0`, `brief TEXT`]) {
+      try {
+        this.storageSql.exec(`ALTER TABLE gen_runs ADD COLUMN ${column}`);
+      } catch {
+        // Already present.
+      }
+    }
+
     this.schemaReady = true;
   }
 
@@ -145,7 +182,7 @@ export class WorkflowGeneratorAgent extends Agent<
     this.ensureSchema();
     const rows = this.storageSql
       .exec(
-        `SELECT status, prompt, cancelled, updated_at FROM gen_runs WHERE session_id = ?`,
+        `SELECT status, prompt, cancelled, updated_at, turn, brief, workflow_id FROM gen_runs WHERE session_id = ?`,
         sessionId
       )
       .toArray() as Array<{
@@ -153,23 +190,48 @@ export class WorkflowGeneratorAgent extends Agent<
       prompt: string;
       cancelled: number;
       updated_at: number;
+      turn: number;
+      brief: string | null;
+      workflow_id: string | null;
     }>;
     return rows[0];
   }
 
   /**
-   * Claims the run for this session. Returns false when one already exists, in
-   * which case the caller replays frames instead of generating again.
+   * Claims the session for a new turn, or refuses.
+   *
+   * A session used to hold exactly one run. It now holds a conversation — ask,
+   * resolve, critique — so the question is no longer "has this run started" but
+   * "is it this turn's move". Only `running` is exclusive: everything else is a
+   * session sitting still, waiting for the person.
+   *
+   * Returns the turn number to work under, or undefined to ignore the message.
    */
-  private claimRun(sessionId: string, prompt: string): boolean {
+  private claimTurn(
+    sessionId: string,
+    options: { prompt?: string; from: GenerationStatus[] }
+  ): number | undefined {
     this.ensureSchema();
     const existing = this.currentRun(sessionId);
 
-    if (existing) {
-      const stalled =
-        existing.status === "running" &&
-        Date.now() - existing.updated_at > RUN_STALL_TIMEOUT_MS;
-      if (!stalled) return false;
+    if (!existing) {
+      // A first turn can only be an opening move.
+      if (!options.from.includes("idle")) return undefined;
+      this.storageSql.exec(
+        `INSERT INTO gen_runs (session_id, status, prompt, turn, updated_at) VALUES (?, 'running', ?, 0, ?)`,
+        sessionId,
+        options.prompt ?? "",
+        Date.now()
+      );
+      return 0;
+    }
+
+    // The stall clock applies only to `running`. `awaiting` is a person
+    // reading their request back to themselves, and three minutes of that is
+    // not a hung run — timing it out would delete the session mid-thought.
+    if (existing.status === "running") {
+      const stalled = Date.now() - existing.updated_at > RUN_STALL_TIMEOUT_MS;
+      if (!stalled) return undefined;
 
       // A half-finished LLM call cannot be resumed, so fail it loudly rather
       // than leaving the client watching a run that will never speak again.
@@ -184,16 +246,76 @@ export class WorkflowGeneratorAgent extends Agent<
         message: "The previous attempt stopped responding. Try again.",
         recoverable: true,
       });
-      return false;
+      return undefined;
     }
 
+    if (!options.from.includes(existing.status as GenerationStatus)) {
+      return undefined;
+    }
+
+    const turn = existing.turn + 1;
+    // `cancelled` is sticky and polled cooperatively, so a cancel during one
+    // turn would silently poison the next one if it were not cleared here.
     this.storageSql.exec(
-      `INSERT INTO gen_runs (session_id, status, prompt, updated_at) VALUES (?, 'running', ?, ?)`,
-      sessionId,
-      prompt,
-      Date.now()
+      `UPDATE gen_runs SET status = 'running', cancelled = 0, turn = ?, prompt = ?, updated_at = ? WHERE session_id = ?`,
+      turn,
+      options.prompt ?? existing.prompt,
+      Date.now(),
+      sessionId
     );
-    return true;
+    return turn;
+  }
+
+  private storeBrief(sessionId: string, brief: Brief | null): void {
+    this.storageSql.exec(
+      `UPDATE gen_runs SET status = 'awaiting', brief = ?, updated_at = ? WHERE session_id = ?`,
+      brief ? JSON.stringify(brief) : null,
+      Date.now(),
+      sessionId
+    );
+    this.setState({ ...this.state, status: "awaiting" });
+  }
+
+  private storeConversation(
+    sessionId: string,
+    turn: number,
+    system: string,
+    messages: Array<{ role: "user" | "assistant"; content: string }>
+  ): void {
+    // Only the opening request and the last draft are kept. A full conversation
+    // holds several 4k-token JSON drafts, and a critique needs to see what was
+    // built — not every step of how it got there.
+    const trimmed = [
+      ...messages.filter((message) => message.role === "user").slice(0, 1),
+      ...messages.filter((message) => message.role === "assistant").slice(-1),
+    ];
+
+    this.storageSql.exec(
+      `INSERT OR REPLACE INTO gen_turns (session_id, turn, system, messages) VALUES (?, ?, ?, ?)`,
+      sessionId,
+      turn,
+      system,
+      JSON.stringify(trimmed)
+    );
+  }
+
+  private latestConversation(sessionId: string) {
+    this.ensureSchema();
+    const rows = this.storageSql
+      .exec(
+        `SELECT system, messages FROM gen_turns WHERE session_id = ? ORDER BY turn DESC LIMIT 1`,
+        sessionId
+      )
+      .toArray() as Array<{ system: string; messages: string }>;
+    if (!rows[0]) return undefined;
+
+    return {
+      system: rows[0].system,
+      messages: JSON.parse(rows[0].messages) as Array<{
+        role: "user" | "assistant";
+        content: string;
+      }>,
+    };
   }
 
   private touch(sessionId: string): void {
@@ -271,6 +393,7 @@ export class WorkflowGeneratorAgent extends Agent<
         status: (run?.status as GenerationStatus) ?? "idle",
         phase: this.state?.phase,
         prompt: run?.prompt,
+        protocol: GENERATOR_PROTOCOL_VERSION,
       } satisfies GeneratorServerMessage)
     );
 
@@ -306,9 +429,84 @@ export class WorkflowGeneratorAgent extends Agent<
         // and return immediately so `cancel` can still be received. A duplicate
         // needs no replay here — onConnect already sent this connection the
         // whole log, and replaying again would double every frame it has.
-        if (this.claimRun(sessionId, parsed.prompt)) {
+        const turn = this.claimTurn(sessionId, {
+          prompt: parsed.prompt,
+          from: ["idle"],
+        });
+        if (turn !== undefined) {
           this.setState({ ...this.state, status: "running" });
-          this.durableCtx.waitUntil(this.runPipeline(sessionId, parsed.prompt));
+          this.durableCtx.waitUntil(
+            this.runPipeline(sessionId, turn, { prompt: parsed.prompt })
+          );
+        }
+        return;
+      }
+      case "ask": {
+        // Allowed from any settled state: retyping after suggestions, or
+        // starting over from a finished run, are both the same move.
+        const turn = this.claimTurn(sessionId, {
+          prompt: parsed.prompt,
+          from: ["idle", "awaiting", "done", "failed"],
+        });
+        if (turn !== undefined) {
+          this.setState({ ...this.state, status: "running" });
+          this.durableCtx.waitUntil(
+            this.runBrief(sessionId, turn, parsed.prompt)
+          );
+        }
+        return;
+      }
+      case "resolve": {
+        const stored = this.currentRun(sessionId);
+        if (!stored?.brief) return;
+        const brief = JSON.parse(stored.brief) as Brief;
+
+        const turn = this.claimTurn(sessionId, { from: ["awaiting"] });
+        if (turn !== undefined) {
+          // The honest "they committed to what we understood" event, and the
+          // only one of the funnel's stages that this flow alone can report.
+          const userId = this.state?.userId;
+          if (userId) {
+            this.durableCtx.waitUntil(
+              stampOnboardingStage(
+                createDatabase(this.env.DB),
+                userId,
+                "briefResolved"
+              ).catch((error) =>
+                console.error("[WorkflowGenerator] stamp failed:", error)
+              )
+            );
+          }
+          this.setState({ ...this.state, status: "running" });
+          this.durableCtx.waitUntil(
+            this.runPipeline(sessionId, turn, {
+              brief,
+              answers: parsed.answers,
+            })
+          );
+        }
+        return;
+      }
+      case "critique": {
+        const stored = this.currentRun(sessionId);
+        const conversation = this.latestConversation(sessionId);
+        // Nothing to correct without a workflow and the conversation that
+        // built it — an older session whose storage predates `gen_turns`
+        // simply cannot take a critique.
+        if (!stored?.workflow_id || !conversation) return;
+
+        const turn = this.claimTurn(sessionId, { from: ["done"] });
+        if (turn !== undefined) {
+          this.setState({ ...this.state, status: "running" });
+          this.durableCtx.waitUntil(
+            this.runPipeline(sessionId, turn, {
+              resume: {
+                ...conversation,
+                note: parsed.note,
+                workflowId: stored.workflow_id,
+              },
+            })
+          );
         }
         return;
       }
@@ -322,88 +520,299 @@ export class WorkflowGeneratorAgent extends Agent<
         return;
       }
       default:
-        connection.close(1003, "Unknown message type");
+        // Deliberately not a close. The dangerous direction is a client one
+        // deploy ahead of this worker: closing its socket mid-run loses the
+        // session, whereas ignoring the message leaves the run intact and the
+        // client free to fall back. The reverse direction is already safe —
+        // the client reducer ignores frames it does not know.
+        console.warn(
+          `[WorkflowGeneratorAgent] Ignoring unknown message type: ${
+            (parsed as { type?: unknown }).type
+          }`
+        );
     }
   }
 
   // ── Pipeline ──────────────────────────────────────────────────────────
 
-  private async runPipeline(sessionId: string, prompt: string): Promise<void> {
+  /**
+   * Everything both turns need before they can talk to a model.
+   *
+   * Emits the failure and returns undefined when the org cannot generate at
+   * all, so callers only handle the happy path. Shared because the brief turn
+   * has exactly the same preconditions as synthesis — it costs credits and
+   * needs the same catalog to know which destinations are real.
+   */
+  private async prepare(sessionId: string) {
     const userId = this.state?.userId;
     const organizationId = this.state?.organizationId;
-    if (!userId || !organizationId) return;
+    if (!userId || !organizationId) return undefined;
 
     const db = createDatabase(this.env.DB);
 
+    // Independent reads on the same key; from inside a DO each is a
+    // cross-service hop, so overlapping them saves a round trip.
+    //
+    // Guarded here rather than by the callers: this runs under `waitUntil`, so
+    // a throw that escapes is an unhandled rejection and the client is left
+    // watching a run that will never speak again.
+    let billingInfo: Awaited<ReturnType<typeof getOrganizationBillingInfo>>;
+    let integrations: Awaited<ReturnType<typeof getIntegrations>>;
     try {
-      // Independent reads on the same key; from inside a DO each is a
-      // cross-service hop, so overlapping them saves a round trip.
-      const [billingInfo, integrations] = await Promise.all([
+      [billingInfo, integrations] = await Promise.all([
         getOrganizationBillingInfo(db, organizationId),
         getIntegrations(db, organizationId),
       ]);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error("[WorkflowGenerator] pre-flight failed:", error);
+      this.fail(sessionId, {
+        type: "error",
+        code: "INTERNAL",
+        message: `Generation failed: ${message}`,
+        recoverable: true,
+      });
+      return undefined;
+    }
 
-      if (!billingInfo) {
-        this.fail(sessionId, {
-          type: "error",
-          code: "INTERNAL",
-          message: "Organization not found.",
-          recoverable: false,
-        });
-        return;
-      }
+    if (!billingInfo) {
+      this.fail(sessionId, {
+        type: "error",
+        code: "INTERNAL",
+        message: "Organization not found.",
+        recoverable: false,
+      });
+      return undefined;
+    }
 
-      if (isCreditExhausted(billingInfo, this.env.CLOUDFLARE_ENV)) {
-        this.fail(sessionId, {
-          type: "error",
-          code: "CREDITS_EXHAUSTED",
-          message: "Not enough compute credits to generate a workflow.",
-          recoverable: false,
-        });
-        return;
-      }
+    if (isCreditExhausted(billingInfo, this.env.CLOUDFLARE_ENV)) {
+      this.fail(sessionId, {
+        type: "error",
+        code: "CREDITS_EXHAUSTED",
+        message: "Not enough compute credits to generate a workflow.",
+        recoverable: false,
+      });
+      return undefined;
+    }
 
-      // The AI Gateway helpers silently degrade to an unusable client when any
-      // of these is missing, producing a confusing 404 deep in the SDK.
-      if (
-        !this.env.CLOUDFLARE_ACCOUNT_ID ||
-        !this.env.CLOUDFLARE_AI_GATEWAY_ID ||
-        !this.env.CLOUDFLARE_API_TOKEN
-      ) {
-        this.fail(sessionId, {
-          type: "error",
-          code: "MISCONFIGURED",
-          message:
-            "Workflow generation is not configured on this deployment (missing AI Gateway settings).",
-          recoverable: false,
-        });
-        return;
-      }
+    // The AI Gateway helpers silently degrade to an unusable client when any
+    // of these is missing, producing a confusing 404 deep in the SDK.
+    if (
+      !this.env.CLOUDFLARE_ACCOUNT_ID ||
+      !this.env.CLOUDFLARE_AI_GATEWAY_ID ||
+      !this.env.CLOUDFLARE_API_TOKEN
+    ) {
+      this.fail(sessionId, {
+        type: "error",
+        code: "MISCONFIGURED",
+        message:
+          "Workflow generation is not configured on this deployment (missing AI Gateway settings).",
+        recoverable: false,
+      });
+      return undefined;
+    }
 
-      const registry = new CloudflareNodeRegistry(
-        this.env,
-        this.state?.developerMode ?? false
-      );
-      const nodeTypes: NodeType[] = registry.getNodeTypes();
+    const registry = new CloudflareNodeRegistry(
+      this.env,
+      this.state?.developerMode ?? false
+    );
 
-      const connectedProviders = new Set(
+    // The address `send-email` delivers to. Read here rather than at execution:
+    // `NodeContext` carries no user identity, so the recipient has to be baked
+    // into the graph while it is being built.
+    let ownerEmail: string | undefined;
+    try {
+      const [row] = await db
+        .select({ email: users.email })
+        .from(users)
+        .where(eq(users.id, userId));
+      ownerEmail = row?.email ?? undefined;
+    } catch (error) {
+      // Not fatal: the generation can still produce an on-screen result. The
+      // destination contract will simply have nothing to pin.
+      console.error("[WorkflowGenerator] could not read owner email:", error);
+    }
+
+    return {
+      userId,
+      organizationId,
+      billingInfo,
+      ownerEmail,
+      nodeTypes: registry.getNodeTypes() as NodeType[],
+      connectedProviders: new Set(
         integrations.map((integration) => integration.provider)
-      );
+      ) as ReadonlySet<string>,
+      availableProviders: new Set(
+        availableIntegrationProviders(this.env)
+      ) as ReadonlySet<string>,
+    };
+  }
 
-      // Resolved the same way the runtime's subscription gate resolves it, env
-      // included, so the catalog offered never contains a node the executor
-      // would then refuse. Note this returns "pro" outside production, so the
-      // benchmark has to pin the plan rather than derive it.
-      const plan =
-        resolveOrganizationPlan(billingInfo, this.env.CLOUDFLARE_ENV) === "pro"
-          ? "pro"
-          : "trial";
+  /**
+   * Reads the request back, then stops and waits for the person.
+   *
+   * Everything structural is decided here rather than in the browser: which
+   * destinations are real for this org, and therefore what the brief is even
+   * allowed to offer.
+   */
+  private async runBrief(
+    sessionId: string,
+    turn: number,
+    prompt: string
+  ): Promise<void> {
+    const context = await this.prepare(sessionId);
+    if (!context) return;
+
+    try {
+      this.emit({
+        type: "phase",
+        phase: "briefing",
+        label: "Reading that back",
+      });
+      this.touch(sessionId);
+
+      const { eligible } = filterEligible(context.nodeTypes, {
+        connectedProviders: context.connectedProviders,
+      });
+
+      const outcome = await generateBrief({
+        request: prompt,
+        // The trigger is not known until the brief picks one, so responder
+        // destinations are resolved later, on `resolve`.
+        destinations: achievableDestinations({
+          eligible,
+          trigger: "manual",
+          availableProviders: context.availableProviders,
+          nodeTypes: context.nodeTypes,
+          connectedProviders: context.connectedProviders,
+        }),
+        connectedProviders: context.connectedProviders,
+        callLLM: (call: GenerateCall) => this.callModel(call),
+      });
+
+      this.logUsage(sessionId, context.organizationId, "brief", {
+        fast: outcome.usage,
+        synthesis: { inputTokens: 0, outputTokens: 0 },
+      });
+
+      if (outcome.kind === "suggestions") {
+        this.emit({ type: "suggestions", turn, prompts: outcome.prompts });
+        this.storeBrief(sessionId, null);
+        return;
+      }
+
+      this.emit({ type: "brief", turn, brief: outcome.brief });
+      this.storeBrief(sessionId, outcome.brief);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error("[WorkflowGenerator] brief crashed:", error);
+      this.fail(sessionId, {
+        type: "error",
+        code: "INTERNAL",
+        message: `Could not read that back: ${message}`,
+        recoverable: true,
+      });
+    }
+  }
+
+  private logUsage(
+    sessionId: string,
+    organizationId: string,
+    stage: string,
+    usage: TierUsage
+  ): void {
+    // Measured, not charged: generation is free while the feature is gated,
+    // but the number is what will set GA pricing. Priced per tier — the two
+    // are an order of magnitude apart, so summing the tokens first and
+    // applying one rate would misprice every mixed run.
+    const credits = (Object.keys(usage) as Array<keyof TierUsage>).reduce(
+      (total, tier) =>
+        total +
+        calculateTokenUsage(
+          usage[tier].inputTokens,
+          usage[tier].outputTokens,
+          GENERATOR_MODELS[tier].pricing
+        ),
+      0
+    );
+    console.log(
+      `[WorkflowGenerator] session=${sessionId} org=${organizationId} stage=${stage} fast=${usage.fast.inputTokens}/${usage.fast.outputTokens} synthesis=${usage.synthesis.inputTokens}/${usage.synthesis.outputTokens} credits=${credits}`
+    );
+  }
+
+  /**
+   * Builds, saves and runs — from a raw prompt, an accepted brief, or a
+   * critique of what was already built.
+   */
+  private async runPipeline(
+    sessionId: string,
+    turn: number,
+    input: {
+      prompt?: string;
+      brief?: Brief;
+      answers?: BriefAnswers;
+      resume?: {
+        system: string;
+        messages: Array<{ role: "user" | "assistant"; content: string }>;
+        note: string;
+        workflowId: string;
+      };
+    }
+  ): Promise<void> {
+    const context = await this.prepare(sessionId);
+    if (!context) return;
+
+    const { userId, organizationId, billingInfo } = context;
+
+    try {
+      // What the model is asked to build. A brief resolves to a sentence plus
+      // an explicit destination; a raw prompt is its own instruction.
+      const answers = input.answers ?? {};
+      const prompt = input.brief
+        ? buildSynthesisPrompt(input.brief, answers)
+        : (input.prompt ?? "");
+
+      const destination = input.brief
+        ? resolveDestination(input.brief, answers)
+        : undefined;
+
+      // The brief may be minutes old and the user may have gone off to link an
+      // account in the meantime — so the connection is checked now, against
+      // what is true now, rather than trusted from when the sentence was
+      // written. Building on a stale answer would produce a workflow whose
+      // delivery node fails the moment it runs.
+      if (
+        destination?.requiresConnection &&
+        destination.provider &&
+        !context.connectedProviders.has(destination.provider)
+      ) {
+        this.storeBrief(sessionId, input.brief ?? null);
+        this.emit({
+          type: "error",
+          code: "NEEDS_CONNECTION",
+          message: `Connect ${destination.provider} first — the workflow cannot ${destination.label} without it.`,
+          recoverable: true,
+        });
+        return;
+      }
+
+      if (input.brief) {
+        this.emit({
+          type: "resolved",
+          turn,
+          sentence: renderBriefSentence(input.brief, answers),
+        });
+      }
 
       const result = await runGenerationPipeline({
         prompt,
-        nodeTypes,
-        plan,
-        connectedProviders,
+        destination,
+        resume: input.resume,
+        onConversation: (system, messages) =>
+          this.storeConversation(sessionId, turn, system, messages),
+        nodeTypes: context.nodeTypes,
+        connectedProviders: context.connectedProviders,
+        ownerEmail: context.ownerEmail,
         apiHost: this.state?.apiHost,
         isCancelled: () => this.isCancelled(sessionId),
         emit: (frame) => {
@@ -437,15 +846,11 @@ export class WorkflowGeneratorAgent extends Agent<
           ),
       });
 
-      // Measured, not charged: generation is free while the feature is gated,
-      // but the number is what will set GA pricing.
-      const credits = calculateTokenUsage(
-        result.inputTokens,
-        result.outputTokens,
-        GENERATOR_PRICING
-      );
-      console.log(
-        `[WorkflowGenerator] session=${sessionId} org=${organizationId} outcome=${result.outcome} in=${result.inputTokens} out=${result.outputTokens} credits=${credits}`
+      this.logUsage(
+        sessionId,
+        organizationId,
+        `build:${result.outcome}`,
+        result.usage
       );
 
       this.storageSql.exec(
@@ -506,17 +911,34 @@ export class WorkflowGeneratorAgent extends Agent<
   }
 
   async alarm(): Promise<void> {
+    // Cleanup was scheduled when a turn finished, but a session is no longer
+    // over just because a run is: a critique moves it back to `running`, and
+    // `awaiting` is someone still reading. Deleting under either would take
+    // the session out from under a live user.
+    const status = this.state?.sessionId
+      ? this.currentRun(this.state.sessionId)?.status
+      : undefined;
+
+    if (status === "running" || status === "awaiting") {
+      await this.scheduleCleanup();
+      return;
+    }
+
     await this.durableCtx.storage.deleteAll();
   }
 
   private async callModel(call: GenerateCall) {
+    const tierName = call.tier ?? "synthesis";
+    const tier = GENERATOR_MODELS[tierName];
     const response = await callAgentLLM(this.env, {
-      provider: GENERATOR_PROVIDER,
-      model: GENERATOR_MODEL,
+      provider: tier.provider,
+      model: tier.model,
+      maxTokens: GENERATOR_MAX_TOKENS[tierName],
       instructions: call.system,
       messages: call.messages,
       tools: [],
-      schema: DRAFT_SCHEMA as unknown as Record<string, unknown>,
+      schema:
+        call.schema ?? (DRAFT_SCHEMA as unknown as Record<string, unknown>),
     });
 
     return {
@@ -612,10 +1034,7 @@ export class WorkflowGeneratorAgent extends Agent<
       },
       userId,
       organizationId,
-      ...resolveOrganizationBillingOptions(
-        billingInfo,
-        this.env.CLOUDFLARE_ENV
-      ),
+      ...resolveOrganizationBillingOptions(billingInfo),
       parameters,
       ...(inputOverrides && { inputOverrides }),
       env: this.env,

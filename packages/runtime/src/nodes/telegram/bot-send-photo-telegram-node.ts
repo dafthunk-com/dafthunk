@@ -12,7 +12,6 @@ export class BotSendPhotoTelegramNode extends ExecutableNode {
     documentation:
       "This node sends photos to Telegram chats using the Telegram Bot API. Accepts a URL or an image blob.",
     usage: 10,
-    subscription: true,
     inlinable: false,
     asTool: false,
     inputs: [

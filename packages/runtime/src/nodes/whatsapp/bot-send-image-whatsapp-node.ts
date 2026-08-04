@@ -12,7 +12,6 @@ export class BotSendImageWhatsAppNode extends ExecutableNode {
     documentation:
       "This node sends images via the WhatsApp Business Cloud API using a publicly accessible URL.",
     usage: 10,
-    subscription: true,
     inlinable: false,
     asTool: false,
     inputs: [

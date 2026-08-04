@@ -34,7 +34,40 @@ export interface CallLLMArgs {
   builtInTools?: Record<string, unknown>[];
   /** JSON schema constraining the output (structured output). */
   schema?: Record<string, unknown>;
+  /**
+   * Output ceiling for this call.
+   *
+   * A single number for every caller does not work: a chat turn is a few
+   * hundred tokens and a workflow draft is thousands. Too low is worse than
+   * slow — the model stops mid-object and the caller receives a document that
+   * looks complete enough to try parsing.
+   */
+  maxTokens?: number;
 }
+
+/** Conservative default for conversational turns. */
+const DEFAULT_MAX_TOKENS = 4096;
+
+/**
+ * Thrown when the model ran out of output budget mid-answer.
+ *
+ * Its own error type because the fix is completely different from a model
+ * mistake: nothing about the prompt is wrong, there was simply not enough room.
+ * Without this the truncated body reaches a JSON parser, which reports a syntax
+ * error at whatever position the text happened to stop — sending whoever reads
+ * the logs looking for a malformed value that does not exist.
+ */
+export class TruncatedResponseError extends Error {
+  constructor(maxTokens: number) {
+    super(
+      `The model hit its ${maxTokens}-token output limit before finishing. The answer was cut off, not malformed.`
+    );
+    this.name = "TruncatedResponseError";
+  }
+}
+
+/** Name of the synthetic tool used to constrain output to a schema. */
+const STRUCTURED_OUTPUT_TOOL = "respond_with_result";
 
 /** Dispatch an LLM call to the configured provider. */
 export function callAgentLLM(
@@ -60,7 +93,7 @@ export function callAgentLLM(
 
 async function callAnthropic(
   env: Bindings,
-  { model, instructions, messages, tools, schema }: CallLLMArgs
+  { model, instructions, messages, tools, schema, maxTokens }: CallLLMArgs
 ): Promise<LLMResponse> {
   const client = new Anthropic({
     apiKey: "gateway-managed",
@@ -107,17 +140,57 @@ async function callAnthropic(
     input_schema: t.parameters as Anthropic.Tool.InputSchema,
   }));
 
-  const systemPrompt = schema
-    ? `${instructions}\n\nYou MUST respond with valid JSON matching this schema:\n${JSON.stringify(schema)}`
-    : instructions;
+  /**
+   * Anthropic constrains decoding through tool input, not a response-format
+   * field: a tool whose `input_schema` is the schema, forced with
+   * `tool_choice`, comes back as a `tool_use` block whose input is guaranteed
+   * to match. That is a real constraint, unlike pasting the schema into the
+   * system prompt and asking nicely — which is what this did before, and which
+   * leaves every fenced-code-block and stray-preamble failure on the table.
+   *
+   * Only when the caller wants a schema and has no tools of its own. Mixing a
+   * forced response tool with real ones would stop the model calling those.
+   */
+  const useStructuredOutput = Boolean(schema) && anthropicTools.length === 0;
+
+  const structuredTool: Anthropic.Tool[] = useStructuredOutput
+    ? [
+        {
+          name: STRUCTURED_OUTPUT_TOOL,
+          description: "Return the result. Always use this tool.",
+          input_schema: schema as Anthropic.Tool.InputSchema,
+        },
+      ]
+    : [];
+
+  // Kept only for the unconstrained path; with a forced tool the schema is
+  // enforced by decoding and restating it just spends input tokens.
+  const systemPrompt =
+    schema && !useStructuredOutput
+      ? `${instructions}\n\nYou MUST respond with valid JSON matching this schema:\n${JSON.stringify(schema)}`
+      : instructions;
+
+  const limit = maxTokens ?? DEFAULT_MAX_TOKENS;
 
   const response = await client.messages.create({
     model,
-    max_tokens: 4096,
+    max_tokens: limit,
     messages: anthropicMessages,
     ...(systemPrompt && { system: systemPrompt }),
-    ...(anthropicTools.length > 0 && { tools: anthropicTools }),
+    ...(useStructuredOutput
+      ? {
+          tools: structuredTool,
+          tool_choice: { type: "tool" as const, name: STRUCTURED_OUTPUT_TOOL },
+        }
+      : anthropicTools.length > 0 && { tools: anthropicTools }),
   });
+
+  // Checked before reading the body. A truncated answer is not a malformed
+  // one, and letting it reach a JSON parser turns "ran out of room" into a
+  // syntax error at a position that means nothing to anybody.
+  if (response.stop_reason === "max_tokens") {
+    throw new TruncatedResponseError(limit);
+  }
 
   let content = "";
   const toolCalls: LLMResponse["toolCalls"] = [];
@@ -125,6 +198,12 @@ async function callAnthropic(
     if (block.type === "text") {
       content += block.text;
     } else if (block.type === "tool_use") {
+      if (block.name === STRUCTURED_OUTPUT_TOOL) {
+        // Handed back as text so callers keep one code path whether or not the
+        // provider was able to constrain decoding.
+        content += JSON.stringify(block.input);
+        continue;
+      }
       toolCalls.push({
         id: block.id,
         name: block.name,
@@ -145,7 +224,15 @@ async function callAnthropic(
 
 async function callGoogle(
   env: Bindings,
-  { model, instructions, messages, tools, builtInTools, schema }: CallLLMArgs
+  {
+    model,
+    instructions,
+    messages,
+    tools,
+    builtInTools,
+    schema,
+    maxTokens,
+  }: CallLLMArgs
 ): Promise<LLMResponse> {
   const ai = new GoogleGenAI({
     apiKey: "gateway-managed",
@@ -206,6 +293,7 @@ async function callGoogle(
     config.responseMimeType = "application/json";
     config.responseSchema = schema;
   }
+  config.maxOutputTokens = maxTokens ?? DEFAULT_MAX_TOKENS;
 
   const response = await ai.models.generateContent({
     model,
@@ -213,6 +301,10 @@ async function callGoogle(
     config: config as any,
     ...(instructions && { systemInstruction: instructions }),
   });
+
+  if (response.candidates?.[0]?.finishReason === "MAX_TOKENS") {
+    throw new TruncatedResponseError(maxTokens ?? DEFAULT_MAX_TOKENS);
+  }
 
   let content = "";
   const toolCalls: LLMResponse["toolCalls"] = [];
@@ -247,7 +339,7 @@ async function callGoogle(
 
 async function callOpenAI(
   env: Bindings,
-  { model, instructions, messages, tools, schema }: CallLLMArgs
+  { model, instructions, messages, tools, schema, maxTokens }: CallLLMArgs
 ): Promise<LLMResponse> {
   const client = new OpenAI({
     apiKey: "gateway-managed",
@@ -304,7 +396,7 @@ async function callOpenAI(
 
   const completion = await client.chat.completions.create({
     model,
-    max_tokens: 4096,
+    max_tokens: maxTokens ?? DEFAULT_MAX_TOKENS,
     messages: openaiMessages,
     ...(openaiTools.length > 0 && { tools: openaiTools }),
     ...(responseFormat && { response_format: responseFormat }),
@@ -313,6 +405,10 @@ async function callOpenAI(
   const choice = completion.choices[0];
   const content = choice?.message?.content ?? "";
   const toolCalls: LLMResponse["toolCalls"] = [];
+  if (choice?.finish_reason === "length") {
+    throw new TruncatedResponseError(maxTokens ?? DEFAULT_MAX_TOKENS);
+  }
+
   if (choice?.message?.tool_calls) {
     for (const tc of choice.message.tool_calls) {
       if (tc.type === "function") {

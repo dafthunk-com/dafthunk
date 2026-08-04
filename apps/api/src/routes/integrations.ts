@@ -3,7 +3,6 @@ import {
   CreateIntegrationResponse,
   DeleteIntegrationResponse,
   GetIntegrationResponse,
-  IntegrationProvider,
   ListIntegrationsResponse,
   UpdateIntegrationRequest,
   UpdateIntegrationResponse,
@@ -22,6 +21,7 @@ import {
   getIntegrations,
   updateIntegration,
 } from "../db";
+import { availableIntegrationProviders } from "../services/integration-availability";
 
 // Create a new Hono instance for integration endpoints
 const integrationRoutes = new Hono<ApiContext>();
@@ -35,57 +35,7 @@ integrationRoutes.use("*", jwtMiddleware);
  * List all available integration providers based on environment configuration
  */
 integrationRoutes.get("/providers", async (c) => {
-  const env = c.env;
-  const availableProviders: IntegrationProvider[] = [];
-
-  // Check for OAuth providers
-  if (
-    env.INTEGRATION_GOOGLE_MAIL_CLIENT_ID &&
-    env.INTEGRATION_GOOGLE_MAIL_CLIENT_SECRET
-  ) {
-    availableProviders.push("google-mail");
-  }
-  if (
-    env.INTEGRATION_GOOGLE_CALENDAR_CLIENT_ID &&
-    env.INTEGRATION_GOOGLE_CALENDAR_CLIENT_SECRET
-  ) {
-    availableProviders.push("google-calendar");
-  }
-  if (
-    env.INTEGRATION_DISCORD_CLIENT_ID &&
-    env.INTEGRATION_DISCORD_CLIENT_SECRET
-  ) {
-    availableProviders.push("discord");
-  }
-  if (
-    env.INTEGRATION_REDDIT_CLIENT_ID &&
-    env.INTEGRATION_REDDIT_CLIENT_SECRET
-  ) {
-    availableProviders.push("reddit");
-  }
-  if (
-    env.INTEGRATION_LINKEDIN_CLIENT_ID &&
-    env.INTEGRATION_LINKEDIN_CLIENT_SECRET
-  ) {
-    availableProviders.push("linkedin");
-  }
-  if (
-    env.INTEGRATION_GITHUB_CLIENT_ID &&
-    env.INTEGRATION_GITHUB_CLIENT_SECRET
-  ) {
-    availableProviders.push("github");
-  }
-  if (env.INTEGRATION_X_CLIENT_ID && env.INTEGRATION_X_CLIENT_SECRET) {
-    availableProviders.push("x");
-  }
-  if (
-    env.INTEGRATION_WORDPRESS_CLIENT_ID &&
-    env.INTEGRATION_WORDPRESS_CLIENT_SECRET
-  ) {
-    availableProviders.push("wordpress");
-  }
-
-  return c.json({ providers: availableProviders });
+  return c.json({ providers: availableIntegrationProviders(c.env) });
 });
 
 /**

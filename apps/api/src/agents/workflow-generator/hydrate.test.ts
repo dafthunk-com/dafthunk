@@ -217,3 +217,97 @@ describe("hydrateGeneratedWorkflow", () => {
     expect(errors[0].code).toBe("TRIGGER_INVALID");
   });
 });
+
+describe("the send-email recipient", () => {
+  const draft = {
+    title: "Digest",
+    description: "",
+    trigger: "manual" as const,
+    steps: [],
+    nodes: [
+      { id: "text", type: "text-input", inputs: { value: "hi" } },
+      { id: "mail", type: "send-email", inputs: { subject: "Digest" } },
+    ],
+    edges: [
+      {
+        source: "text",
+        sourceOutput: "value",
+        target: "mail",
+        targetInput: "text",
+      },
+    ],
+  };
+
+  const recipientOf = (workflow: {
+    nodes: Array<{
+      type: string;
+      inputs: Array<{ name: string; value?: unknown }>;
+    }>;
+  }) =>
+    workflow.nodes
+      .find((node) => node.type === "send-email")
+      ?.inputs.find((input) => input.name === "to")?.value;
+
+  it("is filled in by the server when nobody else set it", () => {
+    // The model never sees who is asking, so without this the node has no
+    // recipient and fails the moment it runs.
+    const { workflow } = hydrateGeneratedWorkflow(
+      draft,
+      FIXTURE_NODE_TYPES,
+      FIXTURE_NODE_TYPES,
+      "owner@example.com"
+    );
+    expect(recipientOf(workflow)).toBe("owner@example.com");
+  });
+
+  it("leaves a recipient the model chose alone", () => {
+    // `send-email` is also how a workflow replies to a customer. Overriding a
+    // deliberate recipient would silently redirect someone else's mail.
+    const { workflow } = hydrateGeneratedWorkflow(
+      {
+        ...draft,
+        nodes: [
+          draft.nodes[0],
+          {
+            ...draft.nodes[1],
+            inputs: { subject: "Digest", to: "customer@example.com" },
+          },
+        ],
+      },
+      FIXTURE_NODE_TYPES,
+      FIXTURE_NODE_TYPES,
+      "owner@example.com"
+    );
+    expect(recipientOf(workflow)).toBe("customer@example.com");
+  });
+
+  it("leaves a recipient fed by an edge alone", () => {
+    const { workflow } = hydrateGeneratedWorkflow(
+      {
+        ...draft,
+        edges: [
+          ...draft.edges,
+          {
+            source: "text",
+            sourceOutput: "value",
+            target: "mail",
+            targetInput: "to",
+          },
+        ],
+      },
+      FIXTURE_NODE_TYPES,
+      FIXTURE_NODE_TYPES,
+      "owner@example.com"
+    );
+    expect(recipientOf(workflow)).toBeUndefined();
+  });
+
+  it("fills nothing when no address was supplied", () => {
+    const { workflow } = hydrateGeneratedWorkflow(
+      draft,
+      FIXTURE_NODE_TYPES,
+      FIXTURE_NODE_TYPES
+    );
+    expect(recipientOf(workflow)).toBeUndefined();
+  });
+});

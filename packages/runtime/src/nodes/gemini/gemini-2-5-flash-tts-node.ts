@@ -114,7 +114,6 @@ export class Gemini25FlashTtsNode extends ExecutableNode {
     inlinable: false,
     asTool: false,
     usage: 1,
-    subscription: true,
     inputs: [
       {
         name: "text",

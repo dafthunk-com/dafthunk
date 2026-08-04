@@ -12,7 +12,6 @@ export class BotGetChatTelegramNode extends ExecutableNode {
     documentation:
       "This node retrieves information about a Telegram chat using the Telegram Bot API.",
     usage: 5,
-    subscription: true,
     inlinable: false,
     asTool: false,
     inputs: [

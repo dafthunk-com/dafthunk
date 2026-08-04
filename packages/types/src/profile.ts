@@ -20,11 +20,19 @@ export interface UserProfile {
 
 /**
  * Request to update a user's profile
- * Allows updating developerMode and tourCompleted
+ *
+ * Also the channel for onboarding milestones the server cannot observe. Both
+ * `outcomeSeen` and `workflowKept` are things that happen in a browser — a
+ * result being rendered, and someone deciding to keep it — and neither has a
+ * server-side moment that means the same thing.
  */
 export interface UpdateProfileRequest {
   developerMode?: boolean;
   tourCompleted?: boolean;
+  /** The result of a generation was actually rendered to the user. */
+  outcomeSeen?: boolean;
+  /** They chose to keep the workflow rather than walking away from it. */
+  workflowKept?: boolean;
 }
 
 /**
@@ -37,6 +45,8 @@ export type GetProfileResponse = UserProfile;
  */
 export interface UpdateProfileResponse {
   success: boolean;
+  outcomeSeen?: boolean;
+  workflowKept?: boolean;
   developerMode?: boolean;
   tourCompleted?: boolean;
 }

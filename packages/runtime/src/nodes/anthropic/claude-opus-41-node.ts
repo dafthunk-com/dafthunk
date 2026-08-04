@@ -19,7 +19,6 @@ export class ClaudeOpus41Node extends ExecutableNode {
     documentation:
       "This node uses Anthropic's Claude Opus 4.1 model, the most advanced Claude model with latest capabilities.",
     usage: 1,
-    subscription: true,
     inlinable: false,
     asTool: false,
     inputs: [

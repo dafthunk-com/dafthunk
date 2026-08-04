@@ -1,5 +1,11 @@
 import { validateWorkflow } from "@dafthunk/runtime";
-import type { Node, NodeType, Parameter, Workflow } from "@dafthunk/types";
+import type {
+  BriefDestination,
+  Node,
+  NodeType,
+  Parameter,
+  Workflow,
+} from "@dafthunk/types";
 import { areTypesCompatible, explainIncompatibility } from "@dafthunk/utils";
 
 import type { EnrichedValidationError } from "./draft-types";
@@ -33,10 +39,116 @@ function compatiblePorts(
   return usable.length ? describePorts(usable) : "(none compatible)";
 }
 
+/**
+ * Inputs where the node needs *one of* several, which ports cannot express.
+ *
+ * `send-email` marks both `html` and `text` optional because either will do,
+ * so a graph can satisfy every port rule and still fail at run time with "at
+ * least one of 'html' or 'text' must be provided". Encoding it here catches it
+ * in a repair round instead — and unlike a bespoke narrower node, it protects
+ * hand-authored workflows too.
+ */
+const ONE_OF_INPUTS: Record<string, string[]> = {
+  "send-email": ["html", "text"],
+};
+
+export interface ValidationContext {
+  /**
+   * What the brief committed to delivering. Absent for a generation that never
+   * had a brief, in which case nothing below changes.
+   */
+  destination?: BriefDestination;
+}
+
+/**
+ * Where the workflow's result belongs, when it is not the first required input.
+ *
+ * `send-email` requires `to` before anything else, so guessing by position
+ * would tell the model to wire a summary into the recipient field. The body is
+ * what carries the result, and it is optional-by-position precisely because
+ * either `text` or `html` will do.
+ */
+const RESULT_INPUT: Record<string, string> = {
+  "send-email": "text",
+};
+
+/** The input to wire the result into, for advice that is worth following. */
+function resultInputName(
+  nodeType: NodeType | undefined
+): { name: string; type: string } | undefined {
+  if (!nodeType) return undefined;
+
+  const named = RESULT_INPUT[nodeType.type];
+  const input = named
+    ? nodeType.inputs.find((p) => p.name === named)
+    : nodeType.inputs.find((p) => p.required && !p.hidden);
+
+  return input ? { name: input.name, type: input.type } : undefined;
+}
+
+/**
+ * Checks that the graph actually delivers what the brief promised.
+ *
+ * This is the one failure the rest of validation cannot see. "Every branch ends
+ * in an output node" is already a rule, and a workflow that classifies an email
+ * and drops the verdict into a text widget satisfies it completely — which is
+ * exactly how "triage my email and tell me what's urgent" came to produce
+ * something that triaged and told nobody. A promise the user confirmed is a
+ * structural requirement, so it is checked structurally.
+ */
+function checkDestination(
+  workflow: Workflow,
+  nodeTypes: NodeType[],
+  destination: BriefDestination
+): EnrichedValidationError | undefined {
+  const realized = workflow.nodes.filter((node) =>
+    destination.nodeTypes.includes(node.type)
+  );
+
+  const preferred = destination.nodeTypes[0];
+  const port = resultInputName(
+    nodeTypes.find((nodeType) => nodeType.type === preferred)
+  );
+  const where = port ? `its "${port.name}" input` : "its input";
+
+  if (realized.length === 0) {
+    return {
+      code: "DESTINATION_NOT_REALIZED",
+      severity: "fatal",
+      message: `Nothing in the workflow will ${destination.label}.`,
+      fix: `The workflow must ${destination.label}, but no node does that. Add a node of type "${preferred}" and wire the final result into ${where}. A branch that only computes a value delivers nothing. Keep everything else exactly as it is.`,
+    };
+  }
+
+  // A delivery node with no incoming edge is the subtler half of the same
+  // mistake: the model added the right node and then left it dangling.
+  const fed = realized.filter((node) =>
+    workflow.edges.some((edge) => edge.target === node.id)
+  );
+  if (fed.length === 0) {
+    const node = realized[0];
+    const nodePort = resultInputName(
+      nodeTypes.find((nodeType) => nodeType.type === node.type)
+    );
+    return {
+      code: "DESTINATION_NOT_REALIZED",
+      severity: "fatal",
+      message: `"${node.id}" would ${destination.label} but has nothing to send.`,
+      fix: `Node "${node.id}" (type ${node.type}) has no incoming edge, so it delivers nothing. Wire the result of the workflow into ${
+        nodePort ? `its "${nodePort.name}" input` : "its input"
+      }.`,
+      nodeId: node.id,
+    };
+  }
+
+  return undefined;
+}
+
 export function enrichValidation(
   workflow: Workflow,
   nodeTypes: NodeType[],
-  extra: EnrichedValidationError[] = []
+  extra: EnrichedValidationError[] = [],
+  context: ValidationContext = {}
 ): EnrichedValidationError[] {
   const errors: EnrichedValidationError[] = [...extra];
   const byId = new Map<string, Node>(workflow.nodes.map((n) => [n.id, n]));
@@ -144,6 +256,37 @@ export function enrichValidation(
       fix: `This trigger requires a response. Connect exactly one edge into "${RESPONDER_NODE_ID}" (inputs: ${describePorts(responder.inputs)}).`,
       nodeId: RESPONDER_NODE_ID,
     });
+  }
+
+  for (const node of workflow.nodes) {
+    const oneOf = ONE_OF_INPUTS[node.type];
+    if (!oneOf) continue;
+
+    const satisfied = oneOf.some(
+      (name) =>
+        connectedInputs.has(`${node.id}:${name}`) ||
+        node.inputs.find((input) => input.name === name)?.value !== undefined
+    );
+    if (satisfied) continue;
+
+    errors.push({
+      code: "MISSING_ONE_OF_INPUTS",
+      severity: "fatal",
+      message: `Node "${node.id}" needs one of: ${oneOf.join(", ")}.`,
+      fix: `Node "${node.id}" (type ${node.type}) has none of ${oneOf.map((name) => `"${name}"`).join(" or ")} set. Exactly one is enough — connect an edge into one of them, or give it a literal value.`,
+      nodeId: node.id,
+    });
+  }
+
+  // Last, so a graph that is structurally broken is reported as broken rather
+  // than as undelivered — the model can only act on one story at a time.
+  if (context.destination) {
+    const undelivered = checkDestination(
+      workflow,
+      nodeTypes,
+      context.destination
+    );
+    if (undelivered) errors.push(undelivered);
   }
 
   return errors;

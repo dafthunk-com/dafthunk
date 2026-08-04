@@ -16,7 +16,6 @@ export class CreateUpdateFileGithubNode extends ExecutableNode {
     documentation:
       "This node creates a new file or updates an existing file in a GitHub repository. Requires a connected GitHub integration with repo scope.",
     usage: 10,
-    subscription: true,
     asTool: true,
     inlinable: false,
     inputs: [

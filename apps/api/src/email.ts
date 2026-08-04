@@ -336,10 +336,7 @@ async function triggerWorkflowForEmail({
     return;
   }
 
-  const billingOptions = resolveOrganizationBillingOptions(
-    billingInfo,
-    env.CLOUDFLARE_ENV
-  );
+  const billingOptions = resolveOrganizationBillingOptions(billingInfo);
 
   const executionParams = {
     userId: "email_trigger",

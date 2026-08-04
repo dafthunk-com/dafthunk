@@ -20,6 +20,9 @@ import type {
 import { findSimilarTypes } from "./node-search";
 
 /** Fixed ids for the server-injected nodes, referenced by name in the prompt. */
+/** The node whose recipient the server can fill in when nobody else did. */
+const SEND_EMAIL_TYPE = "send-email";
+
 export const TRIGGER_NODE_ID = "trigger";
 export const RESPONDER_NODE_ID = "responder";
 
@@ -210,7 +213,17 @@ export interface HydrateResult {
 export function hydrateGeneratedWorkflow(
   draft: GeneratedWorkflowDraft,
   nodeTypes: NodeType[],
-  candidates: NodeType[]
+  candidates: NodeType[],
+  /**
+   * Address to use when a `send-email` node has no recipient.
+   *
+   * Passed only when the workflow is meant to mail the person who asked for it
+   * — the model never sees who that is, so it could not fill this in however
+   * hard it tried. A default, never an override: a node whose recipient the
+   * model set, or wired an edge into, is left exactly as it is, because
+   * "reply to the customer" must not quietly become "reply to the owner".
+   */
+  ownerEmail?: string
 ): HydrateResult {
   const errors: EnrichedValidationError[] = [];
   const byType = new Map(nodeTypes.map((nt) => [nt.type, nt]));
@@ -292,6 +305,20 @@ export function hydrateGeneratedWorkflow(
         inputs: draftNode.inputs,
       })
     );
+  }
+
+  if (ownerEmail) {
+    const fed = new Set(
+      (draft.edges ?? [])
+        .filter((edge) => edge.targetInput === "to")
+        .map((edge) => edge.target)
+    );
+
+    for (const node of nodes) {
+      if (node.type !== SEND_EMAIL_TYPE || fed.has(node.id)) continue;
+      const recipient = node.inputs.find((input) => input.name === "to");
+      if (recipient && !recipient.value) recipient.value = ownerEmail;
+    }
   }
 
   // Keep only edges whose endpoints survived, so downstream validation reports

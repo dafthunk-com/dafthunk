@@ -16,7 +16,6 @@ export class ListUserPostsXNode extends ExecutableNode {
     documentation:
       "This node retrieves posts by a specific user using their user ID. Requires a connected X integration.",
     usage: 10,
-    subscription: true,
     asTool: true,
     inlinable: false,
     inputs: [

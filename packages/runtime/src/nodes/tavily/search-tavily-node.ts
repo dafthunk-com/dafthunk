@@ -27,7 +27,6 @@ export class SearchTavilyNode extends ExecutableNode {
     documentation:
       "Search the web using the Tavily API. Returns relevant search results with titles, URLs, and content snippets. Optionally generates an AI-powered answer to the query.",
     usage: 10,
-    subscription: true,
     asTool: true,
     inlinable: false,
     inputs: [

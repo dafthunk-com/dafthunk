@@ -31,7 +31,6 @@ export class Gemini31FlashImagePreviewNode extends ExecutableNode {
     documentation:
       "This node uses Google's Gemini 3.1 Flash Image Preview model for high-efficiency image generation optimized for speed, advanced text rendering, and high-volume developer use cases.",
     usage: 1,
-    subscription: true,
     inlinable: false,
     asTool: false,
     inputs: [

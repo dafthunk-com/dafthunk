@@ -28,6 +28,15 @@ import { useOrganizations } from "@/services/organizations-service";
 interface OrgLayoutProps {
   children: React.ReactNode;
   title: string;
+  /**
+   * Drop the sidebar and the tour, keeping only the org syncing.
+   *
+   * For screens that run before the user has any reason to care that
+   * workflows, executions and datasets are separate things. The tour is
+   * excluded deliberately as well as the chrome: it auto-starts when an org
+   * has no workflows, which is exactly when a first-run screen is on display.
+   */
+  focused?: boolean;
 }
 
 export const getDashboardSidebarGroups = (orgId: string) => {
@@ -144,7 +153,11 @@ export const getDashboardSidebarGroups = (orgId: string) => {
   return groups;
 };
 
-export const OrgLayout: React.FC<OrgLayoutProps> = ({ children, title }) => {
+export const OrgLayout: React.FC<OrgLayoutProps> = ({
+  children,
+  title,
+  focused,
+}) => {
   const params = useParams<{ organizationId: string }>();
   const { organization, setSelectedOrganization } = useAuth();
   const { organizations: orgList } = useOrganizations();
@@ -175,6 +188,10 @@ export const OrgLayout: React.FC<OrgLayoutProps> = ({ children, title }) => {
   if (!organization?.id) {
     // Fallback to a loading state or redirect
     return <div>Loading...</div>;
+  }
+
+  if (focused) {
+    return <AppLayout>{children}</AppLayout>;
   }
 
   const sidebarGroups = getDashboardSidebarGroups(organization.id);

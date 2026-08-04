@@ -12,7 +12,6 @@ export class BotMarkAsReadWhatsAppNode extends ExecutableNode {
     documentation:
       "This node marks a WhatsApp message as read using the WhatsApp Business Cloud API, showing blue check marks to the sender.",
     usage: 5,
-    subscription: true,
     asTool: true,
     inlinable: false,
     inputs: [

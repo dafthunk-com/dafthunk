@@ -54,10 +54,6 @@ async function runCase(
   const result = await runGenerationPipeline({
     prompt: testCase.prompt,
     nodeTypes: catalog,
-    // Pinned rather than derived: resolveOrganizationPlan returns "pro"
-    // outside production, so deriving it would silently benchmark a catalog
-    // that trial users never see.
-    plan: "pro",
     connectedProviders: new Set([
       "slack",
       "discord",

@@ -40,7 +40,6 @@ export interface RuntimeParams extends TriggerContext {
   readonly overageLimit?: number | null;
   /** When true, all credit checks are bypassed (e.g., internal/test accounts). */
   readonly unlimitedUsage?: boolean;
-  readonly userPlan?: string;
   readonly inputOverrides?: InputOverrides;
 }
 
@@ -272,7 +271,7 @@ export abstract class Runtime<Env = unknown> {
     params: RuntimeParams,
     instanceId: string
   ): Promise<PreparedRun> {
-    const { workflow, organizationId, userPlan, inputOverrides } = params;
+    const { workflow, organizationId, inputOverrides } = params;
 
     const { context, state } = await this.executeStep(
       "initialise workflow",
@@ -294,7 +293,6 @@ export abstract class Runtime<Env = unknown> {
           // Carried on the context rather than on `this`, so concurrent runs
           // through one Runtime instance cannot see each other's trigger.
           trigger: extractTrigger(params),
-          userPlan,
           inputOverrides,
         };
 

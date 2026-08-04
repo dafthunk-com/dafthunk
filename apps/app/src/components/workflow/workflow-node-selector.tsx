@@ -10,7 +10,6 @@ import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation";
 import { cn } from "@/utils/utils";
 
 import { NodeTags } from "./node-tags";
-import { SubscriptionBadge } from "./subscription-badge";
 import { useTagFiltering, useTemplateSearch } from "./use-template-search";
 import type { NodeType } from "./workflow-types";
 
@@ -196,9 +195,6 @@ export function WorkflowNodeSelector({
                             <span>
                               {highlightMatch(template.name, searchTerm)}
                             </span>
-                            {template.subscription && (
-                              <SubscriptionBadge variant="muted" size="lg" />
-                            )}
                           </h3>
                           {template.description && (
                             <p className="text-sm text-muted-foreground leading-relaxed">

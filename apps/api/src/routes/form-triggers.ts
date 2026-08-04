@@ -217,7 +217,7 @@ formTriggerRoutes.post(
       },
       userId: "form",
       organizationId,
-      ...resolveOrganizationBillingOptions(billingInfo, c.env.CLOUDFLARE_ENV),
+      ...resolveOrganizationBillingOptions(billingInfo),
       parameters: { formRecord: validated.record },
       env: c.env,
     });

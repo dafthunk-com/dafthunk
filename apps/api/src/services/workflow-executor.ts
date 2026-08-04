@@ -32,7 +32,6 @@ export interface WorkflowExecutorOptions {
   /** When true, all credit checks are bypassed (e.g., internal/test accounts). */
   unlimitedUsage?: boolean;
   parameters?: WorkflowExecutorParameters;
-  userPlan?: string;
   /** Per-run node input values, keyed nodeId → inputName. */
   inputOverrides?: InputOverrides;
   env: Bindings;
@@ -81,7 +80,6 @@ export class WorkflowExecutor {
       overageLimit,
       unlimitedUsage,
       parameters,
-      userPlan,
       inputOverrides,
       env,
     } = options;
@@ -111,7 +109,6 @@ export class WorkflowExecutor {
       ...(subscriptionStatus && { subscriptionStatus }),
       ...(overageLimit !== undefined && { overageLimit }),
       ...(unlimitedUsage !== undefined && { unlimitedUsage }),
-      ...(userPlan && { userPlan }),
       // Per-run input values, carried beside the workflow rather than written
       // into it so the definition hash stays stable across runs.
       ...(inputOverrides && { inputOverrides }),

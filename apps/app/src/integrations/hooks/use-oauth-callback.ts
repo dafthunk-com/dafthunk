@@ -1,8 +1,9 @@
 import { useEffect } from "react";
-import { useSearchParams } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { toast } from "sonner";
 
 import { getProvider } from "../providers";
+import { takeOAuthReturn } from "../return-to";
 
 interface OAuthCallbackOptions {
   onSuccess?: () => void;
@@ -23,6 +24,7 @@ const ERROR_MESSAGES: Record<string, string> = {
  */
 export function useOAuthCallback(options: OAuthCallbackOptions = {}) {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const success = searchParams.get("success");
@@ -43,11 +45,18 @@ export function useOAuthCallback(options: OAuthCallbackOptions = {}) {
 
       options.onSuccess?.();
       setSearchParams({});
+
+      // Someone who came here from the middle of something goes back to it.
+      // The callback always lands on the integrations page, which is the right
+      // destination when that is where they started and a dead end when it is
+      // not.
+      const returnTo = takeOAuthReturn();
+      if (returnTo) navigate(returnTo, { replace: true });
     } else if (error) {
       const message = ERROR_MESSAGES[error] || "Failed to connect integration";
       toast.error(message);
       options.onError?.();
       setSearchParams({});
     }
-  }, [searchParams, setSearchParams, options]);
+  }, [searchParams, setSearchParams, navigate, options]);
 }

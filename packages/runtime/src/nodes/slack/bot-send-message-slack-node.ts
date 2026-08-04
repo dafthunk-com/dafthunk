@@ -12,7 +12,6 @@ export class BotSendMessageSlackNode extends ExecutableNode {
     documentation:
       "This node sends messages to Slack channels using the bot token. Optionally specify a thread_ts to reply in a thread.",
     usage: 10,
-    subscription: true,
     inlinable: false,
     asTool: false,
     inputs: [

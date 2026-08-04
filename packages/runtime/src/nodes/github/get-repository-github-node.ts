@@ -16,7 +16,6 @@ export class GetRepositoryGithubNode extends ExecutableNode {
     documentation:
       "This node retrieves detailed information about a GitHub repository including stars, forks, description, and more. Requires a connected GitHub integration.",
     usage: 10,
-    subscription: true,
     asTool: true,
     inlinable: false,
     inputs: [

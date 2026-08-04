@@ -3,7 +3,6 @@ import type { Edge, Node, NodeType } from "@dafthunk/types";
 import {
   nodeNotFoundMessage,
   nodeTypeNotImplementedMessage,
-  subscriptionRequiredMessage,
 } from "./execution-errors";
 import type { ExecutionGraph } from "./execution-graph";
 import {
@@ -69,7 +68,7 @@ export class NodeExecutor<Env = unknown> {
       return { nodeId, status: "error", error: nodeNotFoundMessage(nodeId) };
     }
 
-    const resolved = this.resolveExecutable(node, context.userPlan);
+    const resolved = this.resolveExecutable(node);
     if ("status" in resolved) return resolved;
 
     const { executable, nodeType } = resolved;
@@ -129,12 +128,17 @@ export class NodeExecutor<Env = unknown> {
   }
 
   /**
-   * Looks the node type up in the registry, enforces plan gating, and
-   * instantiates the implementation.
+   * Looks the node type up in the registry and instantiates the
+   * implementation.
+   *
+   * There is deliberately no plan gate here. Credits are the limit: a trial
+   * ends when they run out, which is a real constraint that scales with what
+   * someone actually uses. Withholding whole capabilities on top of that was
+   * tried and did not drive upgrades — it only made the product look smaller
+   * than it is to the people still deciding.
    */
   private resolveExecutable(
-    node: Node,
-    userPlan: string | undefined
+    node: Node
   ): { executable: ExecutableNode; nodeType: NodeType } | NodeExecutionResult {
     let nodeType: NodeType;
     try {
@@ -144,14 +148,6 @@ export class NodeExecutor<Env = unknown> {
         nodeId: node.id,
         status: "error",
         error: nodeTypeNotImplementedMessage(node.id, node.type),
-      };
-    }
-
-    if (nodeType.subscription && userPlan !== "pro") {
-      return {
-        nodeId: node.id,
-        status: "error",
-        error: subscriptionRequiredMessage(node.id, node.type),
       };
     }
 

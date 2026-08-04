@@ -45,7 +45,6 @@ export class SharePostLinkedInNode extends ExecutableNode {
     documentation:
       "This node shares a post to your LinkedIn profile. Supports text content with optional image or link attachments. Requires a connected LinkedIn integration.",
     usage: 10,
-    subscription: true,
     asTool: true,
     inlinable: false,
     inputs: [

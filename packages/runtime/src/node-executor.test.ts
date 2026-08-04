@@ -70,7 +70,6 @@ class SubscriptionNode extends ExecutableNode {
   static readonly nodeType = type({
     id: "premium",
     type: "premium",
-    subscription: true,
     outputs: [{ name: "value", type: "json" }],
   });
 
@@ -184,7 +183,6 @@ function build(options: {
   }>;
   edges?: Workflow["edges"];
   state?: Partial<ExecutionState>;
-  userPlan?: string;
 }): Built {
   const workflow = {
     id: "wf",
@@ -226,7 +224,6 @@ function build(options: {
       organizationId: "org-1",
       executionId: "exec-1",
       trigger: {},
-      userPlan: options.userPlan,
     },
     state: emptyState(options.state),
     steps,
@@ -471,20 +468,12 @@ describe("resolution failures", () => {
     });
   });
 
-  it("blocks a subscription node on a free plan", async () => {
+  it("runs every node regardless of plan", async () => {
+    // Capability is not gated. Credits are the limit — a trial ends when they
+    // run out, which is a real constraint that scales with what someone
+    // actually uses, and withholding whole node families on top of that was
+    // tried and did not drive upgrades.
     const b = build({ nodes: [{ id: "a", type: "premium" }] });
-
-    expect(await run(b, "a")).toMatchObject({
-      status: "error",
-      error: expect.stringContaining("Subscription required"),
-    });
-  });
-
-  it("allows a subscription node on the pro plan", async () => {
-    const b = build({
-      nodes: [{ id: "a", type: "premium" }],
-      userPlan: "pro",
-    });
 
     expect(await run(b, "a")).toMatchObject({ status: "completed" });
   });

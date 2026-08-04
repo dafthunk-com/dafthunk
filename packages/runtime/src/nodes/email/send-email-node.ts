@@ -12,7 +12,6 @@ export class SendEmailNode extends ExecutableNode {
     documentation:
       "This node sends emails using the Cloudflare Email Service binding. When the workflow was triggered by a persisted mailbox address, the message is sent from that address, recorded, and threaded so replies return to the same conversation; otherwise it sends from the platform-owned sender and you can use `replyTo` to direct replies elsewhere.",
     usage: 10,
-    subscription: true,
     asTool: true,
     inlinable: false,
     inputs: [

@@ -290,7 +290,6 @@ export interface NodeType {
   outputs: Parameter[];
   trigger?: boolean; // Node is a workflow trigger entry point (max one per workflow)
   responder?: boolean; // Terminal companion of a synchronous request trigger; auto-added with the trigger, hidden from the palette, and styled like a trigger
-  subscription?: boolean; // Node requires a paid subscription to execute
   dynamicInputs?: DynamicInputsConfig; // User-adjustable numbered inputs
   /**
    * Editor- / runtime-internal flags that survive save/load alongside

@@ -65,10 +65,8 @@ export async function handleScheduledEvent(
       }
       const workflowData = workflowWithData.data;
 
-      const billingOptions = resolveOrganizationBillingOptions(
-        organizationBilling,
-        env.CLOUDFLARE_ENV
-      );
+      const billingOptions =
+        resolveOrganizationBillingOptions(organizationBilling);
 
       const executionParams = {
         userId: "scheduled_trigger",

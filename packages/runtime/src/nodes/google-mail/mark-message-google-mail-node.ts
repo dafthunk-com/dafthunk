@@ -16,7 +16,6 @@ export class MarkMessageGoogleMailNode extends ExecutableNode {
     documentation:
       "This node marks a message as read or unread using Google Mail API. Requires a connected Google Mail integration from your organization's integrations.",
     usage: 10,
-    subscription: true,
     asTool: true,
     inlinable: false,
     inputs: [

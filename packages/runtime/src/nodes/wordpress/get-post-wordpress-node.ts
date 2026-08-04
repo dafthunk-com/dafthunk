@@ -45,7 +45,6 @@ export class GetPostWordPressNode extends ExecutableNode {
     documentation:
       "Retrieves a single WordPress.com post by ID. Defaults to the user's primary blog when `site` is not provided.",
     usage: 10,
-    subscription: true,
     asTool: true,
     inlinable: false,
     inputs: [

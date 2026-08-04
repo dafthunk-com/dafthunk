@@ -129,7 +129,6 @@ function harness(
   const deps: PipelineDependencies = {
     prompt: "echo a json value as text",
     nodeTypes: FIXTURE_NODE_TYPES,
-    plan: "trial",
     connectedProviders: new Set(),
     callLLM,
     emit: (frame) => frames.push(frame),
@@ -384,7 +383,6 @@ describe("selectCandidates", () => {
     const { candidates, withheld } = selectCandidates(
       "post a slack message",
       FIXTURE_NODE_TYPES,
-      "trial",
       new Set()
     );
 
@@ -396,7 +394,6 @@ describe("selectCandidates", () => {
     const { candidates } = selectCandidates(
       "post a slack message",
       FIXTURE_NODE_TYPES,
-      "pro",
       new Set()
     );
 
@@ -407,7 +404,6 @@ describe("selectCandidates", () => {
     const { candidates } = selectCandidates(
       "post a slack message",
       FIXTURE_NODE_TYPES,
-      "pro",
       new Set(["slack"])
     );
 
@@ -418,18 +414,16 @@ describe("selectCandidates", () => {
     const { withheld } = selectCandidates(
       "post a slack message",
       FIXTURE_NODE_TYPES,
-      "pro",
       new Set()
     );
 
-    expect(withheldProviders(withheld)).toEqual(["slack"]);
+    expect(withheldProviders(withheld)).toEqual(["slack", "x"]);
   });
 
   it("never offers trigger or responder nodes", () => {
     const { candidates } = selectCandidates(
       "when an email arrives",
       FIXTURE_NODE_TYPES,
-      "pro",
       new Set()
     );
 
@@ -441,12 +435,154 @@ describe("selectCandidates", () => {
     const { candidates } = selectCandidates(
       "do something unrelated",
       FIXTURE_NODE_TYPES,
-      "trial",
       new Set()
     );
 
     const types = candidates.map((c) => c.type);
     expect(types).toContain("ai-text");
     expect(types).toContain("output-text");
+  });
+});
+
+describe("token accounting", () => {
+  it("books composition against the synthesis tier", async () => {
+    const { deps } = harness([llmResult(DRAFT_WITH_EXAMPLES)]);
+    const result = await runGenerationPipeline(deps);
+
+    // The two tiers are priced an order of magnitude apart, so which one spent
+    // the tokens is the whole point of tracking them separately.
+    expect(result.usage.synthesis).toEqual({
+      inputTokens: 100,
+      outputTokens: 50,
+    });
+    expect(result.usage.fast).toEqual({ inputTokens: 0, outputTokens: 0 });
+  });
+
+  it("keeps the totals equal to the sum of the tiers", async () => {
+    const { deps } = harness([
+      llmResult(BROKEN_DRAFT),
+      llmResult(DRAFT_WITH_EXAMPLES),
+    ]);
+    const result = await runGenerationPipeline(deps);
+
+    expect(result.inputTokens).toBe(
+      result.usage.fast.inputTokens + result.usage.synthesis.inputTokens
+    );
+    expect(result.outputTokens).toBe(
+      result.usage.fast.outputTokens + result.usage.synthesis.outputTokens
+    );
+    expect(result.inputTokens).toBe(200);
+  });
+
+  it("reports usage even when the run fails outright", async () => {
+    const { deps } = harness([
+      llmResult(BROKEN_DRAFT),
+      llmResult(BROKEN_DRAFT),
+    ]);
+    const result = await runGenerationPipeline(deps);
+
+    expect(result.outcome).toBe("failed");
+    expect(result.usage.synthesis.inputTokens).toBeGreaterThan(0);
+  });
+});
+
+describe("the destination contract in the pipeline", () => {
+  it("tells the model where the result has to go, then enforces it", async () => {
+    const emailDestination = {
+      id: "email",
+      kind: "email" as const,
+      label: "email it to you",
+      nodeTypes: ["send-email"],
+    };
+
+    // Both drafts deliver into a widget, so neither satisfies the promise.
+    const responses = [
+      llmResult(DRAFT_WITH_EXAMPLES),
+      llmResult(DRAFT_WITH_EXAMPLES),
+    ];
+    const systems: string[] = [];
+    const { deps, frames } = harness([], {
+      destination: emailDestination,
+      callLLM: async (call) => {
+        systems.push(call.system);
+        const next = responses.shift();
+        if (!next) throw new Error("callLLM called more times than expected");
+        return next;
+      },
+    });
+    const result = await runGenerationPipeline(deps);
+
+    expect(systems[0]).toContain("email it to you");
+    expect(systems[0]).toContain("send-email");
+
+    const issues = frames
+      .filter((frame) => frame.type === "validation")
+      .flatMap((frame) => (frame.type === "validation" ? frame.issues : []));
+    expect(issues.map((issue) => issue.code)).toContain(
+      "DESTINATION_NOT_REALIZED"
+    );
+    expect(result.outcome).toBe("failed");
+  });
+});
+
+describe("the delivery node reaches the catalog", () => {
+  it("is offered even when the request never hints at it", () => {
+    // "send-email" scores nothing against a request about blog posts, but the
+    // destination defaults to email for any manual workflow — so without this
+    // the model is told to use a type whose ports it cannot see.
+    const { candidates } = selectCandidates(
+      "post my blog updates somewhere",
+      FIXTURE_NODE_TYPES,
+      new Set(),
+      ["send-email"]
+    );
+
+    expect(candidates.map((c) => c.type)).toContain("send-email");
+  });
+
+  it("is not offered when nothing requires it", () => {
+    const { candidates } = selectCandidates(
+      "post my blog updates somewhere",
+      FIXTURE_NODE_TYPES,
+      new Set()
+    );
+
+    expect(candidates.map((c) => c.type)).not.toContain("send-email");
+  });
+
+  it("still withholds a required type the org cannot execute", () => {
+    // Forcing a type into the catalog must not smuggle it past eligibility —
+    // this one needs an OAuth account that is not linked.
+    const { candidates } = selectCandidates(
+      "post it somewhere",
+      FIXTURE_NODE_TYPES,
+      new Set(),
+      ["share-post-x"]
+    );
+
+    expect(candidates.map((c) => c.type)).not.toContain("share-post-x");
+  });
+
+  it("threads the destination through from the pipeline", async () => {
+    const emailDestination = {
+      id: "email",
+      kind: "email" as const,
+      label: "email it to you",
+      nodeTypes: ["send-email"],
+    };
+    const systems: string[] = [];
+    const { deps } = harness([], {
+      destination: emailDestination,
+      prompt: "summarize a blog post",
+      callLLM: async (call) => {
+        systems.push(call.system);
+        return llmResult(DRAFT_WITH_EXAMPLES);
+      },
+    });
+
+    await runGenerationPipeline(deps);
+
+    // Present in the catalog section, not merely named by the delivery rule.
+    expect(systems[0]).toContain("Send Email");
   });
 });

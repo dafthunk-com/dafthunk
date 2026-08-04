@@ -12,7 +12,6 @@ export class BotAddReactionSlackNode extends ExecutableNode {
     documentation:
       "This node adds an emoji reaction to a message in a Slack channel using the bot token.",
     usage: 10,
-    subscription: true,
     inlinable: false,
     asTool: false,
     inputs: [

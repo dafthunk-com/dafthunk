@@ -16,7 +16,6 @@ export class ListFollowersXNode extends ExecutableNode {
     documentation:
       "This node retrieves a list of users who follow a specific user by their user ID. Requires a connected X integration.",
     usage: 20,
-    subscription: true,
     asTool: true,
     inlinable: false,
     inputs: [

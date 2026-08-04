@@ -16,7 +16,6 @@ export class ListPostsRedditNode extends ExecutableNode {
     documentation:
       "This node retrieves posts from a subreddit. Supports filtering by hot, new, top, rising, or controversial. Requires a connected Reddit integration.",
     usage: 10,
-    subscription: true,
     asTool: true,
     inlinable: false,
     inputs: [

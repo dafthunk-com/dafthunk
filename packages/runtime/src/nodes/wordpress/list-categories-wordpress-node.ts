@@ -34,7 +34,6 @@ export class ListCategoriesWordPressNode extends ExecutableNode {
     documentation:
       "Lists categories on the connected WordPress.com site. Useful for resolving category IDs before creating posts.",
     usage: 10,
-    subscription: true,
     asTool: true,
     inlinable: false,
     inputs: [

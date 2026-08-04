@@ -86,10 +86,7 @@ export class ExecutionManager {
       },
       userId,
       organizationId,
-      ...resolveOrganizationBillingOptions(
-        billingInfo,
-        this.env.CLOUDFLARE_ENV
-      ),
+      ...resolveOrganizationBillingOptions(billingInfo),
       parameters: executorParameters,
       env: this.env,
     });

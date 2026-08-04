@@ -21,6 +21,5 @@ export class EmailAgentClaudeSonnet4Node extends BaseEmailAgentNode {
     tags: ["AI", "Agent", "Email", "Anthropic", "Claude"],
     documentation:
       "This node runs an agent that coordinates with people over email to accomplish an objective. It can question several interlocutors in parallel and pauses the workflow — for days if needed — until replies arrive, resuming automatically. When the objective is met it returns the result and a transcript of the conversation. Requires durable workflow execution.",
-    subscription: true,
   });
 }

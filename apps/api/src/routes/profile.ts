@@ -88,11 +88,14 @@ profile.patch(
       .object({
         developerMode: z.boolean().optional(),
         tourCompleted: z.boolean().optional(),
+        outcomeSeen: z.boolean().optional(),
+        workflowKept: z.boolean().optional(),
       })
       .refine(
-        (data) =>
-          data.developerMode !== undefined || data.tourCompleted !== undefined,
-        { message: "At least one field must be provided" }
+        (data) => Object.values(data).some((value) => value !== undefined),
+        {
+          message: "At least one field must be provided",
+        }
       ) as z.ZodType<UpdateProfileRequest>
   ),
   async (c) => {
@@ -102,7 +105,8 @@ profile.patch(
     }
 
     const db = createDatabase(c.env.DB);
-    const { developerMode, tourCompleted } = c.req.valid("json");
+    const { developerMode, tourCompleted, outcomeSeen, workflowKept } =
+      c.req.valid("json");
 
     try {
       const [user] = await db
@@ -128,6 +132,18 @@ profile.patch(
           .where(eq(users.id, jwtPayload.sub));
       }
 
+      // Set-if-null and best-effort, like every other stage: these are
+      // observability, not gating, and a failed stamp must never fail the
+      // request that carried it.
+      for (const [flag, column] of [
+        [outcomeSeen, "outcomeSeen"],
+        [workflowKept, "workflowKept"],
+      ] as const) {
+        if (flag === true) {
+          await stampOnboardingStage(db, jwtPayload.sub, column);
+        }
+      }
+
       if (tourCompleted === true) {
         await stampOnboardingStage(db, jwtPayload.sub, "tourCompleted");
       } else if (tourCompleted === false) {
@@ -142,6 +158,8 @@ profile.patch(
         success: true,
         ...(developerMode !== undefined && { developerMode }),
         ...(tourCompleted !== undefined && { tourCompleted }),
+        ...(outcomeSeen !== undefined && { outcomeSeen }),
+        ...(workflowKept !== undefined && { workflowKept }),
       };
 
       return c.json(response);

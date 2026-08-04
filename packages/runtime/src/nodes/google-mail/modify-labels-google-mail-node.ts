@@ -16,7 +16,6 @@ export class ModifyLabelsGoogleMailNode extends ExecutableNode {
     documentation:
       "This node adds or removes labels from a message using Google Mail API. Requires a connected Google Mail integration from your organization's integrations.",
     usage: 10,
-    subscription: true,
     asTool: true,
     inlinable: false,
     inputs: [

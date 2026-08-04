@@ -7,6 +7,7 @@ import FileDown from "lucide-react/icons/file-down";
 import Logs from "lucide-react/icons/logs";
 import MapIcon from "lucide-react/icons/map";
 import PlusCircle from "lucide-react/icons/plus-circle";
+import Sparkles from "lucide-react/icons/sparkles";
 import Workflow from "lucide-react/icons/workflow";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
@@ -41,8 +42,11 @@ export function DashboardPage() {
     useDashboard();
   const { billing, billingError, isBillingLoading } = useBilling();
   const { getOrgUrl } = useOrgUrl();
-  const { organization } = useAuth();
+  const { organization, user } = useAuth();
   const orgId = organization?.id || "";
+  // The brief flow is the first-run path, but it stays gated until it has been
+  // dogfooded. Removing this condition is what ships it.
+  const isDeveloperMode = user?.developerMode ?? false;
   const { mutateWorkflows } = useWorkflows();
   const { nodeTypes } = useNodeTypes({ revalidateOnFocus: false });
   const { start: startTour } = useTour();
@@ -126,7 +130,18 @@ export function DashboardPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="flex gap-2">
-          <Button variant="default" onClick={startTour}>
+          {isDeveloperMode && (
+            <Button variant="default" asChild>
+              <Link to={getOrgUrl("start")}>
+                <Sparkles className="mr-2 size-4" />
+                Describe what you want
+              </Link>
+            </Button>
+          )}
+          <Button
+            variant={isDeveloperMode ? "outline" : "default"}
+            onClick={startTour}
+          >
             <MapIcon className="mr-2 size-4" />
             Take a Tour
           </Button>

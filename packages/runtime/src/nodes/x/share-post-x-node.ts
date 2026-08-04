@@ -16,7 +16,6 @@ export class SharePostXNode extends ExecutableNode {
     documentation:
       "This node shares a new post to X. Supports text content and optional reply-to. Requires a connected X integration with tweet.write scope.",
     usage: 20,
-    subscription: true,
     asTool: true,
     inlinable: false,
     inputs: [

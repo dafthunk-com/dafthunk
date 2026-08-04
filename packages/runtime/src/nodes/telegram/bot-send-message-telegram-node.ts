@@ -12,7 +12,6 @@ export class BotSendMessageTelegramNode extends ExecutableNode {
     documentation:
       "This node sends text messages to Telegram chats using the Telegram Bot API.",
     usage: 10,
-    subscription: true,
     inlinable: false,
     asTool: false,
     inputs: [

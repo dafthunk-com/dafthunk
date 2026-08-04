@@ -72,7 +72,11 @@ export type GenerationErrorCode =
   | "ORPHAN_NODE"
   | "TRIGGER_MISMATCH"
   | "MISSING_RESPONDER"
-  | "TRIGGER_INVALID";
+  | "TRIGGER_INVALID"
+  /** The graph is well-formed but does not deliver what the brief promised. */
+  | "DESTINATION_NOT_REALIZED"
+  /** A node needing one of several inputs was given none of them. */
+  | "MISSING_ONE_OF_INPUTS";
 
 export interface EnrichedValidationError {
   code: GenerationErrorCode;

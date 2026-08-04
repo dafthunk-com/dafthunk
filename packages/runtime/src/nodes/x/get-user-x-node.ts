@@ -16,7 +16,6 @@ export class GetUserXNode extends ExecutableNode {
     documentation:
       "This node retrieves an X user's profile information by username. Requires a connected X integration.",
     usage: 20,
-    subscription: true,
     asTool: true,
     inlinable: false,
     inputs: [

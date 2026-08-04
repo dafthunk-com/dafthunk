@@ -16,7 +16,6 @@ export class SearchPostsXNode extends ExecutableNode {
     documentation:
       "This node searches for recent posts (last 7 days) matching a query using the X API v2 search endpoint. Supports X search operators. Requires a connected X integration.",
     usage: 10,
-    subscription: true,
     asTool: true,
     inlinable: false,
     inputs: [

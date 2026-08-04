@@ -16,7 +16,6 @@ export class SearchRedditNode extends ExecutableNode {
     documentation:
       "This node searches Reddit for posts matching a query. Can be filtered by subreddit, sort order, time period, and result type. Requires a connected Reddit integration.",
     usage: 10,
-    subscription: true,
     asTool: true,
     inlinable: false,
     inputs: [

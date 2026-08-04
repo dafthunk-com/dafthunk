@@ -16,7 +16,6 @@ export class ListGuildChannelsDiscordNode extends ExecutableNode {
     documentation:
       "This node retrieves all channels in a Discord guild. Requires a connected Discord integration with guilds scope.",
     usage: 10,
-    subscription: true,
     asTool: true,
     inlinable: false,
     inputs: [

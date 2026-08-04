@@ -16,7 +16,6 @@ export class ListUserGuildsDiscordNode extends ExecutableNode {
     documentation:
       "This node retrieves all guilds the authenticated user is a member of. Requires a connected Discord integration with guilds scope.",
     usage: 10,
-    subscription: true,
     inlinable: false,
     asTool: false,
     inputs: [

@@ -118,7 +118,7 @@ httpTriggerRoutes.on(
       },
       userId: "api_key",
       organizationId,
-      ...resolveOrganizationBillingOptions(billingInfo, c.env.CLOUDFLARE_ENV),
+      ...resolveOrganizationBillingOptions(billingInfo),
       parameters: preparationResult.parameters,
       env: c.env,
     });

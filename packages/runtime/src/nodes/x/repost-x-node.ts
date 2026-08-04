@@ -16,7 +16,6 @@ export class RepostXNode extends ExecutableNode {
     documentation:
       "This node reposts a post on behalf of the authenticated user. Requires a connected X integration with tweet.write scope.",
     usage: 30,
-    subscription: true,
     asTool: true,
     inlinable: false,
     inputs: [

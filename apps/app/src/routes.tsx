@@ -36,6 +36,7 @@ import { BotSlackDetailPage } from "./pages/bot-slack-detail-page";
 import { BotTelegramDetailPage } from "./pages/bot-telegram-detail-page";
 import { BotWhatsAppDetailPage } from "./pages/bot-whatsapp-detail-page";
 import { BotsPage } from "./pages/bots-page";
+import { BriefPage } from "./pages/brief-page";
 import { DashboardPage } from "./pages/dashboard-page";
 import { DatabaseConsolePage } from "./pages/database-console-page";
 import { DatabaseExplorerPage } from "./pages/database-explorer-page";
@@ -384,6 +385,40 @@ export const routes: AppRouteObject[] = [
       </OrgLayout>
     ),
     handle: { head: <HeadSeo title="Workflows - Workflows - Dafthunk" /> },
+  },
+  {
+    path: "/start",
+    element: <OrgRedirect to="/org/:organizationId/start" />,
+  },
+  {
+    // Not nested under /workflows: a workflow is not a thing the user has yet,
+    // and will not be until they choose to keep what this produces.
+    path: "/org/:organizationId/start",
+    element: (
+      <OrgLayout title="Start" focused>
+        <ProtectedRoute>
+          <DeveloperRoute>
+            <BriefPage />
+          </DeveloperRoute>
+        </ProtectedRoute>
+      </OrgLayout>
+    ),
+    handle: { head: <HeadSeo title="Start - Dafthunk" /> },
+  },
+  {
+    // The session id survives a reload: the server replays the brief, the
+    // result, or whatever the session is in the middle of.
+    path: "/org/:organizationId/start/:sessionId",
+    element: (
+      <OrgLayout title="Start" focused>
+        <ProtectedRoute>
+          <DeveloperRoute>
+            <BriefPage />
+          </DeveloperRoute>
+        </ProtectedRoute>
+      </OrgLayout>
+    ),
+    handle: { head: <HeadSeo title="Start - Dafthunk" /> },
   },
   {
     path: "/workflows/generate",

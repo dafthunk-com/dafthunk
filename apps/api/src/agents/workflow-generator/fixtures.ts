@@ -139,7 +139,6 @@ export const SEND_SLACK: NodeType = {
   description: "Posts a message to a Slack channel",
   tags: ["Slack", "Social"],
   icon: "message-square",
-  subscription: true,
   inputs: [
     param("integrationId", "integration", {
       required: true,
@@ -149,6 +148,60 @@ export const SEND_SLACK: NodeType = {
     param("text", "string", { required: true }),
   ],
   outputs: [param("ok", "boolean")],
+};
+
+/** Off-platform delivery. `html` and `text` are both optional — either will do. */
+export const SEND_EMAIL: NodeType = {
+  id: "send-email",
+  name: "Send Email",
+  type: "send-email",
+  description: "Send an email to any recipient",
+  tags: ["Email", "Send"],
+  icon: "mail",
+  inputs: [
+    param("to", "string", { required: true }),
+    param("subject", "string", { required: true }),
+    param("html", "string"),
+    param("text", "string"),
+  ],
+  outputs: [param("messageId", "string", { hidden: true })],
+};
+
+/** Needs a connected OAuth provider. */
+export const SHARE_POST_X: NodeType = {
+  id: "share-post-x",
+  name: "Share Post on X",
+  type: "share-post-x",
+  description: "Publishes a post to X",
+  tags: ["X", "Social", "Send"],
+  icon: "send",
+  inputs: [
+    param("integrationId", "integration", {
+      required: true,
+      hidden: true,
+      provider: "x",
+    } as Partial<Parameter>),
+    param("text", "string", { required: true }),
+  ],
+  outputs: [param("postId", "string")],
+};
+
+/**
+ * Needs an org-scoped resource id, so it is always withheld — a generated
+ * workflow cannot invent a bot registration, and linking cannot help.
+ */
+export const BOT_SEND_DISCORD: NodeType = {
+  id: "bot-send-message-discord",
+  name: "Send Discord Message",
+  type: "bot-send-message-discord",
+  description: "Posts a message to a Discord channel as the bot",
+  tags: ["Discord", "Social", "Send"],
+  icon: "message-square",
+  inputs: [
+    param("channelId", "discord", { required: true }),
+    param("content", "string", { required: true }),
+  ],
+  outputs: [param("messageId", "string")],
 };
 
 export const GEO_BUFFER: NodeType = {
@@ -174,5 +227,8 @@ export const FIXTURE_NODE_TYPES: NodeType[] = [
   HTTP_RESPONSE,
   RECEIVE_SCHEDULED,
   SEND_SLACK,
+  SEND_EMAIL,
+  SHARE_POST_X,
+  BOT_SEND_DISCORD,
   GEO_BUFFER,
 ];

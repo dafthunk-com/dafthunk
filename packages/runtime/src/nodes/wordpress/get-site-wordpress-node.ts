@@ -47,7 +47,6 @@ export class GetSiteWordPressNode extends ExecutableNode {
     documentation:
       "Returns site metadata including name, description, URL, post count, subscriber count, and site icon. Defaults to the user's primary blog when `site` is not provided.",
     usage: 10,
-    subscription: true,
     asTool: true,
     inlinable: false,
     inputs: [

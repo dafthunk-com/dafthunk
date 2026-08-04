@@ -72,7 +72,6 @@ For example: \`xai/grok-imagine-video\`, \`openai/gpt-image-1.5\`, \`google/gemi
     icon: "bot",
     inlinable: false,
     usage: GATEWAY_USAGE,
-    subscription: true,
     asTool: false,
     inputs: [
       {

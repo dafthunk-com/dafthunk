@@ -37,7 +37,6 @@ export class DeletePostWordPressNode extends ExecutableNode {
     documentation:
       "Deletes a WordPress.com post. By default the post is moved to the trash and can be restored. Pass `force: true` to delete it permanently — this cannot be undone.",
     usage: 10,
-    subscription: true,
     asTool: true,
     inlinable: false,
     inputs: [

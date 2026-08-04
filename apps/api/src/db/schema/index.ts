@@ -211,6 +211,12 @@ export const users = sqliteTable(
     workflowCreated: integer("workflow_created", { mode: "timestamp" }),
     workflowExecuted: integer("workflow_executed", { mode: "timestamp" }),
     workflowExecutedOk: integer("workflow_executed_ok", { mode: "timestamp" }),
+    // Later stages, added with the brief flow. `workflow_created` is stamped by
+    // the generator before the user has seen anything, so on its own it cannot
+    // distinguish a workflow someone wanted from one they abandoned mid-flow.
+    briefResolved: integer("brief_resolved", { mode: "timestamp" }),
+    outcomeSeen: integer("outcome_seen", { mode: "timestamp" }),
+    workflowKept: integer("workflow_kept", { mode: "timestamp" }),
     createdAt: createCreatedAt(),
     updatedAt: createUpdatedAt(),
   },

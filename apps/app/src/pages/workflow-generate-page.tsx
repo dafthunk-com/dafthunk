@@ -41,6 +41,7 @@ import {
 } from "@/hooks/use-workflow-generator";
 import { useObjectService } from "@/services/object-service";
 import { cn } from "@/utils/utils";
+import { terminalNodeIds } from "@/utils/workflow-outcome";
 
 const EXAMPLES = [
   "Summarize a long piece of text and show me the summary",
@@ -205,14 +206,6 @@ function AttemptHistory({ attempts }: { attempts: GenerationAttempt[] }) {
         );
       })}
     </div>
-  );
-}
-
-/** Nodes with no outgoing edge — the ones whose output is the actual answer. */
-function terminalNodeIds(workflow: Workflow): Set<string> {
-  const withOutgoing = new Set(workflow.edges.map((edge) => edge.source));
-  return new Set(
-    workflow.nodes.map((n) => n.id).filter((id) => !withOutgoing.has(id))
   );
 }
 

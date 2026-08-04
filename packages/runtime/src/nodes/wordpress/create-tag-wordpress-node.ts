@@ -47,7 +47,6 @@ export class CreateTagWordPressNode extends ExecutableNode {
     documentation:
       "Creates a new tag on the connected WordPress.com site. Returns the tag ID, which can be passed to Create/Update Post via the `tags` input.",
     usage: 10,
-    subscription: true,
     asTool: true,
     inlinable: false,
     inputs: [

@@ -31,7 +31,6 @@ export class Gemini3ProImagePreviewNode extends ExecutableNode {
     documentation:
       "This node uses Google's Gemini 3 Pro Image Preview model for high-fidelity image generation with advanced reasoning, complex multi-turn creation, and high-resolution output (up to 4K).",
     usage: 1,
-    subscription: true,
     inlinable: false,
     asTool: false,
     inputs: [

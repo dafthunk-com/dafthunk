@@ -51,7 +51,6 @@ export class SharePostRedditNode extends ExecutableNode {
     documentation:
       "This node shares a new post to a specified subreddit. Supports text posts, link posts, and image posts. Requires a connected Reddit integration.",
     usage: 10,
-    subscription: true,
     asTool: true,
     inlinable: false,
     inputs: [

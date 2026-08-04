@@ -4,16 +4,66 @@ import type { TokenPricing } from "@dafthunk/runtime/utils/usage";
 /**
  * Every knob for workflow generation, in one place.
  *
- * The model is deliberately a single constant: the 23-template benchmark
- * (`benchmark.integration.ts`) is what decides which tier we can afford, and
- * swapping tiers should be a one-line change plus a benchmark run.
+ * Two tiers, because the two jobs are not alike. Reading a request back as a
+ * sentence is a short, schema-shaped call that a person is waiting on — it has
+ * to land in a couple of seconds or the screen reads as a stall. Composing a
+ * graph out of sixty node types is the expensive one, and it happens behind a
+ * progress indicator where a few more seconds cost nothing.
+ *
+ * Each tier carries its own provider, so switching one is a one-line change
+ * plus a benchmark run. That matters more than it looks: the Anthropic path
+ * appends the JSON schema to the system prompt, while the Google path
+ * constrains decoding — and the brief's failure modes are all schema-shaped.
  */
-export const GENERATOR_PROVIDER: AgentProvider = "anthropic";
-export const GENERATOR_MODEL = "claude-opus-5";
+export type ModelTier = "fast" | "synthesis";
 
-export const GENERATOR_PRICING: TokenPricing = {
-  inputCostPerMillion: 15.0,
-  outputCostPerMillion: 75.0,
+export interface ModelTierConfig {
+  provider: AgentProvider;
+  model: string;
+  pricing: TokenPricing;
+}
+
+export const GENERATOR_MODELS: Record<ModelTier, ModelTierConfig> = {
+  fast: {
+    provider: "anthropic",
+    model: "claude-sonnet-5",
+    pricing: {
+      inputCostPerMillion: 3.0,
+      outputCostPerMillion: 15.0,
+    },
+  },
+  synthesis: {
+    provider: "anthropic",
+    model: "claude-opus-5",
+    pricing: {
+      inputCostPerMillion: 15.0,
+      outputCostPerMillion: 75.0,
+    },
+  },
+};
+
+/**
+ * The synthesis tier under its old names, so the benchmark and anything else
+ * that predates the split keeps compiling.
+ */
+export const GENERATOR_PROVIDER: AgentProvider =
+  GENERATOR_MODELS.synthesis.provider;
+export const GENERATOR_MODEL = GENERATOR_MODELS.synthesis.model;
+export const GENERATOR_PRICING: TokenPricing =
+  GENERATOR_MODELS.synthesis.pricing;
+
+/**
+ * Output budget per tier.
+ *
+ * A workflow draft is a whole graph plus its test examples — nodes, edges and
+ * literal values — and the default 4096 is roughly five thousand characters of
+ * pretty-printed JSON. Drafts run past that routinely, and the failure is ugly:
+ * the model stops mid-array and the caller gets a document that looks complete
+ * enough to parse. A brief is one sentence and needs nothing like as much.
+ */
+export const GENERATOR_MAX_TOKENS: Record<ModelTier, number> = {
+  fast: 2048,
+  synthesis: 16384,
 };
 
 /** Repair rounds after the initial attempt, so 3 LLM calls worst case. */
@@ -25,6 +75,26 @@ export const MAX_REPAIR_ATTEMPTS = 2;
  * is 4 calls and 2 runs.
  */
 export const MAX_RUN_REPAIR_ATTEMPTS = 1;
+
+/**
+ * Gaps put to the user before the first run.
+ *
+ * Two, because elicitation competes with the thing it is for. Every question
+ * is a chance to leave, and the remaining ambiguity has a cheaper resolution
+ * than asking: show a result and let them react to it. People cannot enumerate
+ * what they left out, but they can correct something concrete.
+ */
+export const MAX_ASKED_BLANKS = 2;
+
+/**
+ * Below this many words a request cannot carry a sentence, so the brief turn
+ * offers three complete ones to pick from instead of interrogating a person
+ * who has given us nothing to work with.
+ */
+export const MIN_REQUEST_WORDS = 4;
+
+/** Suggestions offered when the request is too thin to read back. */
+export const BRIEF_SUGGESTION_COUNT = 3;
 
 /** Test inputs kept per generated workflow. */
 export const MAX_GENERATED_EXAMPLES = 3;
