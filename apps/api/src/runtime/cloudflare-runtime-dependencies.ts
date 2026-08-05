@@ -26,6 +26,7 @@ import {
   buildPresignedUrlConfig,
   CloudflareObjectStore,
 } from "./cloudflare-object-store";
+import { CloudflareOrganizationService } from "./cloudflare-organization-service";
 import { CloudflareQueueService } from "./cloudflare-queue-service";
 import { CloudflareSchemaService } from "./cloudflare-schema-service";
 import { CloudflareToolRegistry } from "./cloudflare-tool-registry";
@@ -49,6 +50,7 @@ export function buildDependencies(
   const queueService = new CloudflareQueueService(env);
   const schemaService = new CloudflareSchemaService(env);
   const mailboxService = new CloudflareMailboxService(env);
+  const organizationService = new CloudflareOrganizationService(env);
   const codeModeExecutor = createCodeModeExecutor(env) ?? undefined;
   // One sandbox container per execution — fresh ID isolates runs from each other
   // while reusing the same sandbox across nodes within a run.
@@ -85,6 +87,7 @@ export function buildDependencies(
     queueService,
     schemaService,
     mailboxService,
+    organizationService,
     codeModeExecutor,
     sandboxExecutor,
     runtimeVersion,

@@ -98,6 +98,7 @@ import { ToMarkdownNode } from "@dafthunk/runtime/nodes/document/to-markdown-nod
 import { EmailAgentClaudeSonnet4Node } from "@dafthunk/runtime/nodes/email/email-agent-claude-sonnet-4-node";
 import { ExtractEmailAttachmentsNode } from "@dafthunk/runtime/nodes/email/extract-email-attachments-node";
 import { GetEmailThreadNode } from "@dafthunk/runtime/nodes/email/get-email-thread-node";
+import { NotifyMeNode } from "@dafthunk/runtime/nodes/email/notify-me-node";
 import { ParseEmailNode } from "@dafthunk/runtime/nodes/email/parse-email-node";
 import { ReceiveEmailNode } from "@dafthunk/runtime/nodes/email/receive-email-node";
 import { SendEmailNode } from "@dafthunk/runtime/nodes/email/send-email-node";
@@ -785,6 +786,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
 
     if (hasSendEmail) {
       this.registerImplementation(SendEmailNode);
+      this.registerImplementation(NotifyMeNode);
       // Email coordination agent — sends + waits for replies via Durable Object
       this.registerImplementation(EmailAgentClaudeSonnet4Node);
     }

@@ -13,6 +13,7 @@ import type { DatabaseService } from "./database-service";
 import type { DatasetService } from "./dataset-service";
 import type { MailboxService } from "./mailbox-service";
 import type { ObjectStore } from "./object-store";
+import type { OrganizationService } from "./organization-service";
 import type { QueueService } from "./queue-service";
 import type { SchemaService } from "./schema-service";
 import type { ToolDefinition, ToolReference } from "./tool-types";
@@ -235,6 +236,8 @@ export interface NodeContext extends TriggerContext {
   schemaService?: SchemaService;
   /** Persisted per-org mailbox access (send/receive + thread history). */
   mailboxService?: MailboxService;
+  /** Who owns this workflow, for nodes that address the team rather than an address. */
+  organizationService?: OrganizationService;
   /** Sandboxed JavaScript executor (Cloudflare Dynamic Workers in production). */
   codeModeExecutor?: CodeModeExecutor;
   /** Multi-language sandbox executor (Cloudflare Containers in production). */

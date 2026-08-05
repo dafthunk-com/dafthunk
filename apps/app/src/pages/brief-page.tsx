@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 
 import { useAuth } from "@/components/auth-context";
+import { ApprovalCard } from "@/components/brief/approval-card";
 import { BriefBlankCard } from "@/components/brief/brief-blank-card";
 import { BriefSentence } from "@/components/brief/brief-sentence";
 import { ConnectCard } from "@/components/brief/connect-card";
@@ -41,6 +42,7 @@ const PHASE_COPY: Record<GenerationPhase, string> = {
   validating: "Checking it holds together",
   repairing: "Fixing something up",
   saving: "Almost there",
+  approving: "Waiting for you",
   running: "Trying it once",
   complete: "Done",
 };
@@ -58,10 +60,8 @@ export function BriefPage() {
     [navigate, getOrgUrl]
   );
 
-  const { state, ask, resolve, critique, cancel, reset } = useWorkflowBrief(
-    orgId,
-    { sessionId, onSessionStarted }
-  );
+  const { state, ask, resolve, critique, approve, decline, cancel, reset } =
+    useWorkflowBrief(orgId, { sessionId, onSessionStarted });
 
   const [request, setRequest] = useState("");
   const [answers, setAnswers] = useState<BriefAnswers>({});
@@ -190,6 +190,23 @@ export function BriefPage() {
     );
   }
 
+  // ── Waiting on permission to act ────────────────────────────────────────
+  // Ahead of the brief branch deliberately: a held run is also `awaiting` and
+  // still has a brief attached, so the brief screen would win and the question
+  // would never be asked.
+  if (state.pendingActions && state.pendingActions.length > 0) {
+    return (
+      <Shell>
+        <ApprovalCard
+          actions={state.pendingActions}
+          onApprove={approve}
+          onDecline={decline}
+        />
+        <BriefNotes notes={state.notes} getOrgUrl={getOrgUrl} />
+      </Shell>
+    );
+  }
+
   // ── Brief ───────────────────────────────────────────────────────────────
   if (state.brief && state.status === "awaiting") {
     return (
@@ -204,11 +221,15 @@ export function BriefPage() {
         {/* Said before they commit, not after. Someone who asked for Slack and
             is about to get email needs that in front of them while the
             sentence is still editable. */}
+        {/* Says what we cannot do and stops there. It used to add "so I've
+            used something else", which was true and was the problem: the
+            something else was whichever account happened to be linked. */}
         {state.brief.unavailableDestination && (
           <p className="rounded-md border border-dashed p-3 text-sm text-muted-foreground">
             I can't send to {state.brief.unavailableDestination} yet, so I've
-            used something else. Change it in the sentence above if that doesn't
-            work for you.
+            left the result here rather than sending it somewhere you didn't ask
+            for. Pick a destination in the sentence above if you'd rather it
+            went somewhere.
           </p>
         )}
 
@@ -316,7 +337,14 @@ export function BriefPage() {
         <p className="text-sm text-muted-foreground">{state.sentence}</p>
       )}
 
-      {state.outcome === "partial" ? (
+      {/* A declined run has no execution, and saying "it ran" over the top of
+          "nothing was sent" is the one thing that would undermine the whole
+          gate — the user refused, and the screen must agree that it obeyed. */}
+      {state.outcome === "partial" && !state.execution ? (
+        <p className="text-lg">
+          I changed it and left it unrun. Nothing was sent or posted.
+        </p>
+      ) : state.outcome === "partial" ? (
         <p className="text-lg">
           It ran, but did not finish cleanly. Tell me what to change.
         </p>

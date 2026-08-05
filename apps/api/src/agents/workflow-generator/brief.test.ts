@@ -455,7 +455,7 @@ describe("unlinked destinations in a brief", () => {
     ).toEqual(["discord", "email"]);
   });
 
-  it("moves the assumption off it", () => {
+  it("keeps the assumption on it rather than swapping in a linked account", () => {
     const brief = normalizeBrief(
       rawBrief({
         blanks: [
@@ -472,15 +472,30 @@ describe("unlinked destinations in a brief", () => {
       withDiscord
     );
 
-    // "Just try it" has to build something without an OAuth round trip first.
-    expect(brief?.blanks[0]?.assumed).toBe("email");
+    // This used to move the assumption to whatever was already linked, so
+    // "post it to Discord" could silently become "post it to X" purely because
+    // X was the one connected account. Asking someone to link the account they
+    // named is a far smaller imposition than sending their content elsewhere,
+    // so the assumption stays put and the page shows the connect card.
+    expect(brief?.blanks[0]?.assumed).toBe("discord");
   });
 
-  it("refuses an unlinked destination as the brief-level default", () => {
+  it("keeps an unlinked destination as the brief-level default", () => {
     const brief = normalizeBrief(
       rawBrief({ destinationId: "discord", blanks: [] }),
       withDiscord
     );
-    expect(brief?.destinationId).not.toBe("discord");
+    expect(brief?.destinationId).toBe("discord");
+  });
+
+  it("falls back to display, never to another outward channel", () => {
+    const brief = normalizeBrief(
+      rawBrief({ destinationId: "slack-which-does-not-exist", blanks: [] }),
+      withDiscord
+    );
+
+    // The only safe substitute for a destination we cannot offer is one that
+    // delivers nowhere. Anything else picks an audience the user never named.
+    expect(brief?.destinationId).toBe("display");
   });
 });

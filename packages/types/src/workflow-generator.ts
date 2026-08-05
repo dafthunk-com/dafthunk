@@ -21,6 +21,8 @@ export type GenerationPhase =
   | "validating"
   | "repairing"
   | "saving"
+  /** Stopped, waiting for a person to allow the outward steps. */
+  | "approving"
   | "running"
   | "complete";
 
@@ -66,6 +68,32 @@ export interface GenerationPlan {
 }
 
 /**
+ * One thing the workflow would do outside Dafthunk if it ran.
+ *
+ * The trial run executes the real graph against real credentials, so a
+ * generated workflow ending in "post it" posts. That is not something to
+ * discover afterwards, and it is not something a progress log can carry — it
+ * has to stop and ask. This is what the asking screen renders.
+ */
+export interface OutwardAction {
+  nodeId: string;
+  /** The node's display name, as it appears in the editor. */
+  name: string;
+  nodeType: string;
+  /** The linked account it would act on, when it acts on one. */
+  provider?: string;
+  /** One line, in the user's terms: "Post to X". */
+  summary: string;
+  /**
+   * The concrete values that would leave the platform, where they are known
+   * before the run. Empty when every input is computed by an earlier step —
+   * which is itself worth showing, since it means we cannot promise what the
+   * text will say.
+   */
+  details: Array<{ label: string; value: string }>;
+}
+
+/**
  * Version of this protocol, sent on the `session` frame.
  *
  * The `session` frame is the first thing every client receives and it already
@@ -89,6 +117,14 @@ export type GeneratorClientMessage =
   | { type: "resolve"; turn: number; answers: BriefAnswers }
   /** "What should be different?" — another pass on what was just built. */
   | { type: "critique"; note: string }
+  /** Go ahead and run it, outward steps and all. */
+  | { type: "approve" }
+  /**
+   * Do not run it. The reason is not just bookkeeping: it is the most precise
+   * statement of intent the user will ever give us, because they are reacting
+   * to something concrete rather than describing it from memory.
+   */
+  | { type: "decline"; reason: string }
   | { type: "cancel" };
 
 export type GeneratorServerMessage =
@@ -148,6 +184,12 @@ export type GeneratorServerMessage =
       issues: GenerationValidationIssue[];
     }
   | { type: "saved"; workflowId: string; name: string }
+  /**
+   * The run is paused because running would act outside Dafthunk. The session
+   * sits here until an `approve` or `decline` arrives — nothing is sent, posted
+   * or committed in the meantime.
+   */
+  | { type: "approval_required"; actions: OutwardAction[] }
   /**
    * The trial run. `sampleName` is set when the run was driven by a generated
    * example rather than by anything the user supplied — which is almost always,

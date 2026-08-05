@@ -114,7 +114,14 @@ const DESTINATION_SPECS: readonly DestinationSpec[] = [
     id: "email",
     kind: "email",
     label: "email it to you",
-    nodeTypes: ["send-email"],
+    /**
+     * `notify-me` first, because "email it to you" has no recipient to supply
+     * — it addresses the workspace, and the workspace is always known.
+     * `send-email` stays as the fallback for a deployment without the newer
+     * node, but it needs an address, which is the thing this destination is
+     * least able to produce reliably.
+     */
+    nodeTypes: ["notify-me", "send-email"],
   },
   {
     id: "display",

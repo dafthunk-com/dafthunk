@@ -316,6 +316,7 @@ export class NodeExecutor<Env = unknown> {
       queueService: this.deps.queueService,
       schemaService: this.deps.schemaService,
       mailboxService: this.deps.mailboxService,
+      organizationService: this.deps.organizationService,
       codeModeExecutor: this.deps.codeModeExecutor,
       sandboxExecutor: this.deps.sandboxExecutor,
       getSecret: (secretName: string) =>

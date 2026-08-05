@@ -8,6 +8,7 @@ import type { ExecutionStore } from "./execution-store";
 import type { MailboxService } from "./mailbox-service";
 import type { MonitoringService } from "./monitoring-service";
 import type { ObjectStore } from "./object-store";
+import type { OrganizationService } from "./organization-service";
 import type { QueueService } from "./queue-service";
 import type { SchemaService } from "./schema-service";
 import type { CodeModeExecutor } from "./utils/code-mode";
@@ -34,6 +35,7 @@ export interface RuntimeDependencies<Env = unknown> {
   queueService?: QueueService;
   schemaService?: SchemaService;
   mailboxService?: MailboxService;
+  organizationService?: OrganizationService;
   /** Sandboxed JavaScript executor (Cloudflare Dynamic Workers in production). */
   codeModeExecutor?: CodeModeExecutor;
   /** Multi-language sandbox executor (Cloudflare Containers in production). */

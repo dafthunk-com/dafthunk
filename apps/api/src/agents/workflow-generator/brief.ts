@@ -299,31 +299,34 @@ export function normalizeBrief(
     return { kind: "text", text: assumedLabel(decided, context.destinations) };
   });
 
-  // The assumption is what "Just try it" builds, so it can never be a
-  // destination that would first send the user through an OAuth round trip.
-  // The prompt asks for this; this is what makes it true.
-  const ready = new Set(
-    context.destinations
-      .filter((destination) => !destination.requiresConnection)
-      .map((destination) => destination.id)
-  );
-  const fallbackId =
-    [...ready].pop() ??
+  /**
+   * Where the result goes is never quietly reassigned.
+   *
+   * This used to prefer whatever was already connected, so that "post it to
+   * Slack" — Slack not being offerable at all — became "post it to X" purely
+   * because X happened to be the one linked account. The user is then one
+   * click from broadcasting to a public network they never named, and the
+   * apology above it does not even say which one it picked.
+   *
+   * Asking someone to link the account they asked for is a smaller
+   * imposition than sending their content somewhere else. So an unconnected
+   * destination is kept and the screen asks them to connect it; the only
+   * fallback is `display`, which delivers nowhere and therefore substitutes
+   * nothing.
+   */
+  const neutralId =
+    context.destinations.find((destination) => destination.kind === "display")
+      ?.id ??
     context.destinations[context.destinations.length - 1]?.id ??
     "display";
 
   const claimed =
     typeof raw.destinationId === "string" ? raw.destinationId : "";
-  const destinationId = ready.has(claimed) ? claimed : fallbackId;
+  const destinationId = known.has(claimed) ? claimed : neutralId;
 
-  for (const blank of blanks) {
-    if (blank.role !== "destination" || blank.type !== "choice") continue;
-    if (ready.has(blank.assumed)) continue;
-    // Keep the unlinked option on offer — it is very likely the one they
-    // asked for — but assume something that works today.
-    const readyOption = blank.options.find((option) => ready.has(option.id));
-    if (readyOption) blank.assumed = readyOption.id;
-  }
+  // A destination blank keeps whatever the model assumed, connected or not.
+  // `resolveDestination` carries `requiresConnection` through to the page,
+  // which shows the connect card and holds the build button until it is done.
 
   // Only trust it if it really is absent from what we offered — the model
   // naming an available destination here would produce an apology for a

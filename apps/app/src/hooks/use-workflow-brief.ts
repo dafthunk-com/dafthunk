@@ -5,6 +5,7 @@ import type {
   GenerationPlan,
   GenerationStatus,
   GeneratorServerMessage,
+  OutwardAction,
   Workflow,
   WorkflowExecution,
 } from "@dafthunk/types";
@@ -46,6 +47,12 @@ export interface BriefState {
   execution?: WorkflowExecution;
   /** Name of the invented example the trial run was fed, when there was one. */
   sampleName?: string;
+  /**
+   * The outward steps waiting on a decision. Present only while the run is
+   * held, and cleared the moment one is given — a stale list here would ask
+   * about steps that have already run.
+   */
+  pendingActions?: OutwardAction[];
   outcome?: "ok" | "partial";
   error?: { message: string; recoverable: boolean };
 }
@@ -120,6 +127,9 @@ function reduce(state: BriefState, frame: GeneratorServerMessage): BriefState {
         ...state,
         phase: frame.phase,
         status: frame.phase === "complete" ? state.status : "running",
+        // Any phase after the question means the question has been answered.
+        // Leaving the list up would keep asking about steps already taken.
+        ...(frame.phase === "approving" ? {} : { pendingActions: undefined }),
       };
 
     case "graph":
@@ -127,6 +137,9 @@ function reduce(state: BriefState, frame: GeneratorServerMessage): BriefState {
 
     case "saved":
       return { ...state, workflowId: frame.workflowId };
+
+    case "approval_required":
+      return { ...state, pendingActions: frame.actions, status: "awaiting" };
 
     case "run_result":
       return {
@@ -283,6 +296,27 @@ export function useWorkflowBrief(
     socketRef.current?.critique(note);
   }, []);
 
+  /** Let the outward steps run. */
+  const approve = useCallback(() => {
+    setState((current) => ({
+      ...current,
+      status: "running",
+      pendingActions: undefined,
+    }));
+    socketRef.current?.approve();
+  }, []);
+
+  /** Refuse, and say why — the reason is what the correction is built from. */
+  const decline = useCallback((reason: string) => {
+    if (!reason.trim()) return;
+    setState((current) => ({
+      ...current,
+      status: "running",
+      pendingActions: undefined,
+    }));
+    socketRef.current?.decline(reason);
+  }, []);
+
   const cancel = useCallback(() => socketRef.current?.cancel(), []);
 
   const reset = useCallback(() => {
@@ -292,5 +326,5 @@ export function useWorkflowBrief(
     setState(INITIAL);
   }, []);
 
-  return { state, ask, resolve, critique, cancel, reset };
+  return { state, ask, resolve, critique, approve, decline, cancel, reset };
 }

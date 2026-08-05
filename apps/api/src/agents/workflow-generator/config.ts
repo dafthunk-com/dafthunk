@@ -32,12 +32,22 @@ export const GENERATOR_MODELS: Record<ModelTier, ModelTierConfig> = {
       outputCostPerMillion: 15.0,
     },
   },
+  /**
+   * Deliberately the same model as `fast` while the feature is in development.
+   *
+   * The tier split is about job shape, not about this model choice, so it stays
+   * — flipping this back to a larger model is a one-line change plus a
+   * benchmark run. Opus was costing more than it was worth here in two ways:
+   * it prices an order of magnitude higher, and its capacity is visibly
+   * tighter, which surfaces to the user as a failed generation rather than a
+   * slower one.
+   */
   synthesis: {
     provider: "anthropic",
-    model: "claude-opus-5",
+    model: "claude-sonnet-5",
     pricing: {
-      inputCostPerMillion: 15.0,
-      outputCostPerMillion: 75.0,
+      inputCostPerMillion: 3.0,
+      outputCostPerMillion: 15.0,
     },
   },
 };
@@ -87,6 +97,17 @@ export const MAX_REPAIR_ATTEMPTS = 2;
  * is 4 calls and 2 runs.
  */
 export const MAX_RUN_REPAIR_ATTEMPTS = 1;
+
+/**
+ * Times the outward-steps question may be re-asked after a refusal.
+ *
+ * Each round costs a model call and another wait, and a person who has said no
+ * twice is not being served by a third prompt. When they run out with outward
+ * steps still in the graph, the workflow is saved unrun — refusing to act is
+ * always an available answer, so the loop has a safe end rather than a
+ * fallback that acts.
+ */
+export const MAX_APPROVAL_ROUNDS = 2;
 
 /**
  * Gaps put to the user before the first run.

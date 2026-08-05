@@ -108,6 +108,18 @@ export class WorkflowGeneratorAgent extends Agent<
   initialState: WorkflowGeneratorState = {};
 
   private schemaReady = false;
+  /**
+   * Resolver for a run parked on the outward-steps question.
+   *
+   * In memory only, and deliberately so: it is a continuation of a pipeline
+   * that is itself in memory, so persisting it would buy nothing — if this
+   * object is evicted the run is gone either way. The run's row is moved to
+   * `awaiting` while it waits, which is what keeps the stall clock off it.
+   */
+  private pendingApproval?: (decision: {
+    approved: boolean;
+    reason?: string;
+  }) => void;
 
   /** When this session first stored its workflow, so a re-save keeps the date. */
   private createdAt?: Date;
@@ -558,6 +570,52 @@ export class WorkflowGeneratorAgent extends Agent<
         }
         return;
       }
+      case "approve":
+      case "decline": {
+        const resolve = this.pendingApproval;
+        this.pendingApproval = undefined;
+
+        if (!resolve) {
+          this.ensureSchema();
+          const stored = this.currentRun(sessionId);
+
+          // Parked, but the continuation is gone — this object restarted while
+          // it waited. Both buttons would otherwise do nothing at all, and the
+          // stall clock does not apply to `awaiting`, so the session would sit
+          // there forever. Say so instead. Nothing was run, which is the one
+          // reassurance actually worth giving here.
+          if (stored?.status === "awaiting") {
+            this.fail(sessionId, {
+              type: "error",
+              code: "STALLED",
+              message:
+                "This session expired while waiting, so nothing was sent or posted. Open the workflow to look at it, or start again.",
+              recoverable: true,
+            });
+            return;
+          }
+
+          // Otherwise a duplicate click, or a message against a pipeline that
+          // has already moved on. Ignoring is right — resolving twice would
+          // run the workflow a second time.
+          return;
+        }
+
+        this.ensureSchema();
+        this.storageSql.exec(
+          `UPDATE gen_runs SET status = 'running', updated_at = ? WHERE session_id = ?`,
+          Date.now(),
+          sessionId
+        );
+        this.setState({ ...this.state, status: "running" });
+
+        resolve(
+          parsed.type === "approve"
+            ? { approved: true }
+            : { approved: false, reason: parsed.reason }
+        );
+        return;
+      }
       case "cancel": {
         this.ensureSchema();
         this.storageSql.exec(
@@ -903,6 +961,21 @@ export class WorkflowGeneratorAgent extends Agent<
             this.touch(sessionId);
           }
           this.emit(frame);
+        },
+        requestApproval: (actions) => {
+          this.emit({ type: "approval_required", actions });
+          // Parked, not polled. The row goes to `awaiting` so the stall clock
+          // — which exists for hung model calls — does not fail a run that is
+          // simply waiting for a person to read it.
+          this.storageSql.exec(
+            `UPDATE gen_runs SET status = 'awaiting', updated_at = ? WHERE session_id = ?`,
+            Date.now(),
+            sessionId
+          );
+          this.setState({ ...this.state, status: "awaiting" });
+          return new Promise((resolve) => {
+            this.pendingApproval = resolve;
+          });
         },
         callLLM: (call: GenerateCall) => this.callModel(call),
         save: (workflow, examples, workflowId) =>

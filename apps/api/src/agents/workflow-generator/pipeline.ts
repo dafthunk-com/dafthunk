@@ -5,6 +5,7 @@ import type {
   GenerationValidationIssue,
   GeneratorServerMessage,
   NodeType,
+  OutwardAction,
   Workflow,
   WorkflowExample,
   WorkflowExecution,
@@ -17,6 +18,7 @@ import {
 import { pseudoNodeTypes } from "./ai-nodes";
 import type { ModelTier } from "./config";
 import {
+  MAX_APPROVAL_ROUNDS,
   MAX_CANDIDATE_NODE_TYPES,
   MAX_REPAIR_ATTEMPTS,
   MAX_RUN_REPAIR_ATTEMPTS,
@@ -45,9 +47,11 @@ import {
   boundResourceNote,
   describeMissingResource,
 } from "./org-resources";
+import { outwardActions } from "./outward-actions";
 import { parseJsonObject } from "./parse-json";
 import {
   buildCritiquePrompt,
+  buildDeclinePrompt,
   buildRepairPrompt,
   buildRunRepairPrompt,
   buildSystemPrompt,
@@ -117,6 +121,16 @@ export interface PipelineDependencies {
     inputOverrides?: InputOverrides
   ) => Promise<WorkflowExecution>;
   isCancelled?: () => boolean;
+  /**
+   * Asks before doing anything that leaves the platform.
+   *
+   * The trial run is a real execution, so a graph ending in "post it" posts.
+   * Absent, the run proceeds unasked — which is right for the developer path
+   * and for tests, and wrong for anyone else, so the DO always supplies it.
+   */
+  requestApproval?: (
+    actions: OutwardAction[]
+  ) => Promise<{ approved: boolean; reason?: string }>;
   /**
    * Continue an earlier generation instead of starting one.
    *
@@ -612,6 +626,137 @@ export async function runGenerationPipeline(
         example ? buildInputOverrides(example, workflow) : undefined
       );
     };
+
+    // ── Ask before acting outside Dafthunk ────────────────────────────────
+    // Everything above this line is reversible: a saved workflow that nobody
+    // ran has changed nothing in the world. The run below is the first step
+    // that cannot be taken back, so it is the last point at which asking is
+    // still worth anything.
+    /**
+     * Asks, reworks, and asks again about whatever the rework produced.
+     *
+     * A loop rather than a single question because the model does not reliably
+     * do what the refusal asked: told "don't post it, just show me", it has
+     * been observed *adding* an output node and leaving the post in place. One
+     * pass would then save a workflow that still posts, under a screen saying
+     * the user declined — the worst of both. So the corrected graph is put
+     * through the same gate, and the loop only ends on a real answer.
+     */
+    let approvedToRun = true;
+
+    if (deps.requestApproval) {
+      for (let round = 0; round <= MAX_APPROVAL_ROUNDS; round++) {
+        const actions = outwardActions(savedWorkflow, deps.nodeTypes);
+        if (actions.length === 0) break;
+
+        // Out of rounds with outward steps still in the graph. Not running is
+        // the only safe end: the user has refused every version they saw.
+        if (round === MAX_APPROVAL_ROUNDS) {
+          approvedToRun = false;
+          deps.emit({
+            type: "log",
+            level: "warn",
+            message:
+              "It still ends by sending something, so I left it saved and unrun.",
+            important: true,
+          });
+          break;
+        }
+
+        deps.emit({
+          type: "phase",
+          phase: "approving",
+          label: "Waiting for you",
+        });
+
+        const decision = await deps.requestApproval(actions);
+        checkCancelled();
+
+        if (decision.approved) break;
+
+        approvedToRun = false;
+
+        // Their reason is the most precise thing they have said all session —
+        // they are reacting to something concrete instead of describing it
+        // from memory. So it is spent on a correction rather than logged.
+        const reason = decision.reason?.trim();
+        if (!reason) break;
+
+        attempt++;
+        deps.emit({
+          type: "phase",
+          phase: "repairing",
+          label: "Changing it so it does not do that",
+        });
+
+        messages.push({ role: "assistant", content: response.content });
+        messages.push({ role: "user", content: buildDeclinePrompt(reason) });
+
+        response = await deps.callLLM({ system, messages });
+        record(response);
+
+        draft = parseDraft(response.content);
+        hydrated = hydrate(draft);
+        errors = validate(hydrated);
+
+        deps.emit({ type: "graph", workflow: hydrated.workflow, attempt });
+        deps.emit({ type: "validation", attempt, issues: toIssues(errors) });
+
+        await repairUntilValid();
+
+        // Only replace what is stored if the correction is actually usable. A
+        // revision that does not validate is worse than the graph they
+        // declined, which at least opens in the editor.
+        if (errors.some((e) => e.severity === "fatal")) {
+          deps.emit({
+            type: "log",
+            level: "warn",
+            message:
+              "I could not rework it from that, so the version you declined is what was saved — unrun.",
+            // Without this the note is filtered out of the screen, leaving
+            // "I changed it and left it unrun" with nothing to explain why
+            // the change they asked for is not there.
+            important: true,
+          });
+          break;
+        }
+
+        savedWorkflow = hydrated.workflow;
+        examples = buildGeneratedExamples(draft, savedWorkflow);
+        await deps.save(savedWorkflow, examples, workflowId);
+        deps.emit({ type: "graph", workflow: savedWorkflow, attempt });
+
+        // Round again: if the rework still acts outward, the next pass asks
+        // about it rather than assuming the refusal was honoured.
+        approvedToRun = true;
+      }
+    }
+
+    if (!approvedToRun) {
+      // Saying this plainly is the whole point. A screen that showed a result
+      // here would mean the refusal did nothing.
+      deps.emit({
+        type: "log",
+        level: "info",
+        message: "Nothing was sent or posted — it was saved but not run.",
+        important: true,
+      });
+
+      deps.onConversation?.(system, [
+        ...messages,
+        { role: "assistant", content: response.content },
+      ]);
+
+      deps.emit({ type: "phase", phase: "complete", label: "Saved, not run" });
+      deps.emit({ type: "done", workflowId, outcome: "partial" });
+
+      return {
+        outcome: "partial",
+        workflowId,
+        workflow: savedWorkflow,
+        ...totals(),
+      };
+    }
 
     let execution = await testWith(savedWorkflow, examples[0]);
     deps.emit({

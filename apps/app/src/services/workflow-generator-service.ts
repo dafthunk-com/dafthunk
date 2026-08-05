@@ -159,6 +159,16 @@ export class WorkflowGeneratorWebSocket {
     this.send({ type: "critique", note });
   }
 
+  /** Allow the outward steps to run. */
+  approve(): void {
+    this.send({ type: "approve" });
+  }
+
+  /** Refuse the run, and say why so it can be corrected instead. */
+  decline(reason: string): void {
+    this.send({ type: "decline", reason });
+  }
+
   cancel(): void {
     // Never queued: a cancel that arrives after a reconnect would apply to
     // whatever the session is doing by then.

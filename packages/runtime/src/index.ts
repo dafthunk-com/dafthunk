@@ -119,6 +119,7 @@ export {
   toUint8Array,
 } from "./node-types";
 export type { ObjectMetadata, ObjectStore } from "./object-store";
+export type { OrganizationService } from "./organization-service";
 // Pure functions
 export {
   apiInputsToNode,
