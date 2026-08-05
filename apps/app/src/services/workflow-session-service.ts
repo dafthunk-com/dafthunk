@@ -10,6 +10,7 @@ import type {
 } from "@dafthunk/types";
 
 import { getApiBaseUrl } from "@/config/api";
+import { refreshAccessToken } from "@/services/utils";
 
 // Re-export for convenience
 export type { WorkflowState };
@@ -76,8 +77,23 @@ export class WorkflowWebSocket {
 
         if (this.shouldAttemptReconnect(event)) {
           this.reconnectAttempts++;
+          const attempt = this.reconnectAttempts;
 
-          setTimeout(() => this.connect(), this.reconnectDelay);
+          setTimeout(() => {
+            // The access token lives five minutes and this socket authenticates
+            // by cookie at the upgrade, so an editor left open past that gets a
+            // 401 on reconnect — which the browser reports as an ordinary
+            // abnormal close, the upgrade status never being exposed. Refresh
+            // first, on the first attempt of a burst only: if a fresh token did
+            // not fix it, the problem was never auth.
+            if (attempt > 1) {
+              this.connect();
+              return;
+            }
+            void refreshAccessToken()
+              .catch(() => false)
+              .then(() => this.connect());
+          }, this.reconnectDelay);
 
           // Exponential backoff
           this.reconnectDelay = Math.min(

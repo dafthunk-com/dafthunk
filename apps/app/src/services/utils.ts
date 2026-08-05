@@ -9,8 +9,14 @@ let refreshPromise: Promise<boolean> | null = null;
 /**
  * Refresh the access token using the refresh token
  * This is a shared function that updates both cookies and SWR cache
+ *
+ * Exported for the WebSocket clients. They cannot do what `makeRequest` does
+ * below — the browser WebSocket API never exposes the failed upgrade's status,
+ * so a rejected 401 arrives as an ordinary abnormal close and is
+ * indistinguishable from the server being down. They refresh before retrying
+ * instead, which is why this needs to be callable from outside.
  */
-const refreshAccessToken = async (): Promise<boolean> => {
+export const refreshAccessToken = async (): Promise<boolean> => {
   if (isRefreshing && refreshPromise) {
     // If already refreshing, wait for the existing refresh to complete
     return refreshPromise;

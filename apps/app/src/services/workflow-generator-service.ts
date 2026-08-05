@@ -5,6 +5,7 @@ import type {
 } from "@dafthunk/types";
 
 import { getApiBaseUrl } from "@/config/api";
+import { refreshAccessToken } from "@/services/utils";
 
 export interface WorkflowGeneratorWSOptions {
   /**
@@ -44,11 +45,22 @@ export class WorkflowGeneratorWebSocket {
    * A message submitted before the socket opened.
    *
    * One slot is enough: only one turn can be in flight, and the UI disables
-   * its controls while it is. Cleared on close rather than retried — the
-   * server replays the session's real state on reconnect, and re-sending a
-   * turn against a session that already took it would be a second run.
+   * its controls while it is. Dropped on close *once the socket has opened* —
+   * the server replays the session's real state on reconnect, and re-sending a
+   * turn it already took would be a second run.
    */
   private pending: GeneratorClientMessage | null = null;
+  /**
+   * Whether this socket has ever completed a handshake.
+   *
+   * The distinction the `pending` rule turns on. A turn queued against a socket
+   * that never opened cannot have reached the server, so there is no duplicate
+   * to fear and dropping it just loses the request — which is exactly what
+   * happened when the access token expired before the first connect: the
+   * upgrade 401'd, the queued turn was discarded, and the reconnect landed on
+   * an empty session showing a blank form.
+   */
+  private everOpened = false;
 
   constructor(
     private orgId: string,
@@ -68,6 +80,7 @@ export class WorkflowGeneratorWebSocket {
       this.ws.onopen = () => {
         this.reconnectAttempts = 0;
         this.reconnectDelay = 1000;
+        this.everOpened = true;
         // A message submitted before the socket opened is flushed here.
         if (this.pending) {
           const message = this.pending;
@@ -86,23 +99,55 @@ export class WorkflowGeneratorWebSocket {
         }
       };
 
+      // Deliberately not reported to the caller. An error is always followed
+      // by a close, and the close path knows whether a retry is still coming —
+      // reporting here surfaced "Lost connection." on the very first failure,
+      // while five reconnects were still pending behind it.
       this.ws.onerror = (event) => {
         console.error("[GeneratorWS] Connection error:", event);
-        this.options.onConnectionError?.(event);
       };
 
       this.ws.onclose = (event) => {
-        // Do not carry an unsent turn across a reconnect: by the time the
-        // socket is back the server has replayed the session's real state.
-        this.pending = null;
-        if (this.shouldAttemptReconnect(event)) {
-          this.reconnectAttempts++;
-          setTimeout(() => this.connect(), this.reconnectDelay);
-          this.reconnectDelay = Math.min(
-            this.reconnectDelay * 2,
-            WorkflowGeneratorWebSocket.MAX_RECONNECT_DELAY
-          );
+        // Do not carry an unsent turn across a reconnect once the server has
+        // had a chance to receive it — by the time the socket is back it
+        // replays the session's real state. Before the first successful
+        // handshake there is nothing to duplicate, so the turn is kept and
+        // flushed by `onopen`.
+        if (this.everOpened) this.pending = null;
+
+        if (!this.shouldAttemptReconnect(event)) {
+          // Out of retries, or closed on purpose. Only now is the connection
+          // actually lost, and only an unclean close is worth reporting.
+          if (this.shouldReconnect && !event.wasClean) {
+            this.options.onConnectionError?.(new Event("error"));
+          }
+          return;
         }
+
+        this.reconnectAttempts++;
+        const attempt = this.reconnectAttempts;
+
+        setTimeout(() => {
+          // The access token lives five minutes, and this socket authenticates
+          // by cookie at the upgrade. Anyone who spent longer than that
+          // composing their request gets a 401 on the very first connect —
+          // which arrives here as an ordinary close, since the browser never
+          // exposes the upgrade status. So the token is refreshed before
+          // retrying rather than after diagnosing, on the first attempt of a
+          // burst only: if a fresh token did not fix it, it was never auth.
+          if (attempt > 1) {
+            this.connect();
+            return;
+          }
+          void refreshAccessToken()
+            .catch(() => false)
+            .then(() => this.connect());
+        }, this.reconnectDelay);
+
+        this.reconnectDelay = Math.min(
+          this.reconnectDelay * 2,
+          WorkflowGeneratorWebSocket.MAX_RECONNECT_DELAY
+        );
       };
     } catch (error) {
       console.error("[GeneratorWS] Failed to create WebSocket:", error);
