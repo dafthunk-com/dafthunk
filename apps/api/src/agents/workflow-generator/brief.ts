@@ -20,6 +20,7 @@ import {
   MAX_ASKED_BLANKS,
   MIN_REQUEST_WORDS,
 } from "./config";
+import { defaultDestination } from "./destinations";
 import { normalizeTrigger } from "./hydrate";
 import { parseJsonObject } from "./parse-json";
 import type { GenerateCall, GenerateResult } from "./pipeline";
@@ -105,6 +106,46 @@ export function briefSuggestions(request: string): {
 
 function wordCount(text: string): number {
   return text.trim().split(/\s+/).filter(Boolean).length;
+}
+
+/**
+ * What a person would have typed if they meant this provider.
+ *
+ * Provider ids are wire values, and matching on them directly is wrong in both
+ * directions: nobody writes "google-mail", and splitting it yields "mail",
+ * which matches every request containing the word email.
+ */
+const PROVIDER_ALIASES: Record<string, string[]> = {
+  "google-mail": ["gmail", "google mail"],
+  "google-calendar": ["google calendar", "gcal"],
+  discord: ["discord"],
+  x: ["x", "twitter", "tweet"],
+  linkedin: ["linkedin"],
+  reddit: ["reddit"],
+  wordpress: ["wordpress"],
+  github: ["github"],
+};
+
+/**
+ * Whether the request actually asked for this provider by name.
+ *
+ * The question that decides whether an OAuth round trip is justified. Someone
+ * who wrote "post it to Discord" has already accepted that Discord is
+ * involved; someone who wrote "email it to me" has not asked for Gmail, and
+ * putting a Connect Google Mail button in front of them is answering a
+ * question they did not ask — with their own words still on screen saying
+ * something simpler.
+ *
+ * Word boundaries, so "x" matches "post it to X" but not "text".
+ */
+function requestNamesProvider(provider: string, request: string): boolean {
+  const aliases = PROVIDER_ALIASES[provider] ?? [provider];
+  const text = request.toLowerCase();
+  return aliases.some((alias) =>
+    new RegExp(`\\b${alias.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`).test(
+      text
+    )
+  );
 }
 
 /** A one-word description of what a value actually is, for failure logs. */
@@ -271,18 +312,37 @@ export function normalizeBrief(
     context.destinations.map((destination) => destination.id)
   );
 
-  // Highest impact first, then the budget. Ties keep the model's order.
-  const blanks = [...parsed]
-    .sort((a, b) => b.weight - a.weight)
-    .slice(0, MAX_ASKED_BLANKS)
-    // A destination blank offering something this org cannot build would let
-    // the user pick a promise we cannot keep — the one thing never allowed.
-    .filter(
-      (blank) =>
-        blank.role !== "destination" ||
-        (blank.type === "choice" &&
-          blank.options.every((option) => known.has(option.id)))
-    );
+  /**
+   * A destination blank offering something this org cannot build would let the
+   * user pick a promise we cannot keep — the one thing never allowed.
+   */
+  const offerable = (blank: BriefBlank) =>
+    blank.role !== "destination" ||
+    (blank.type === "choice" &&
+      blank.options.every((option) => known.has(option.id)));
+
+  /**
+   * The destination slot is kept outside the budget.
+   *
+   * The budget limits *questions*, and this is not one: it arrives pre-filled
+   * with an assumption the user can ignore, and "Just try it" is still a single
+   * click. Letting it compete meant the one field that decides whether the
+   * whole workflow is useful could be evicted by a heavier-weighted question
+   * about a schedule, collapsing into plain text that reads like a decision
+   * already made — which is how "email it to me" ended up meaning Gmail with
+   * nothing on screen to say so.
+   */
+  const ranked = [...parsed].sort((a, b) => b.weight - a.weight);
+  const destinationBlank = ranked.find(
+    (blank) => blank.role === "destination" && offerable(blank)
+  );
+
+  const blanks = [
+    ...(destinationBlank ? [destinationBlank] : []),
+    ...ranked
+      .filter((blank) => blank !== destinationBlank && offerable(blank))
+      .slice(0, MAX_ASKED_BLANKS),
+  ];
 
   const surviving = new Set(blanks.map((blank) => blank.id));
   const byId = new Map(parsed.map((blank) => [blank.id, blank]));
@@ -314,19 +374,66 @@ export function normalizeBrief(
    * fallback is `display`, which delivers nowhere and therefore substitutes
    * nothing.
    */
-  const neutralId =
-    context.destinations.find((destination) => destination.kind === "display")
-      ?.id ??
-    context.destinations[context.destinations.length - 1]?.id ??
-    "display";
+  const byDestinationId = new Map(
+    context.destinations.map((destination) => [destination.id, destination])
+  );
+
+  /**
+   * Whether this may stand as the assumption — the thing "Just try it" builds.
+   *
+   * An unlinked destination qualifies only when the request named it. Someone
+   * who wrote "post it to Discord" has already accepted that Discord is
+   * involved, and sending them to link it beats sending their post elsewhere.
+   * Someone who wrote "email it to me" has asked for no such thing, and the
+   * model choosing Gmail on their behalf put a Connect button and a dead Build
+   * button in front of a request that a plain email would have satisfied.
+   */
+  const assumable = (id: string): boolean => {
+    const destination = byDestinationId.get(id);
+    if (!destination) return false;
+    if (!destination.requiresConnection) return true;
+    return destination.provider
+      ? requestNamesProvider(destination.provider, context.request)
+      : false;
+  };
+
+  // Responder, then email, then the last thing that needs no account — which
+  // is `display`, delivering nowhere and so substituting nothing.
+  const fallback = defaultDestination(context.destinations);
 
   const claimed =
     typeof raw.destinationId === "string" ? raw.destinationId : "";
-  const destinationId = known.has(claimed) ? claimed : neutralId;
+  const destinationId = assumable(claimed) ? claimed : fallback.id;
 
-  // A destination blank keeps whatever the model assumed, connected or not.
-  // `resolveDestination` carries `requiresConnection` through to the page,
-  // which shows the connect card and holds the build button until it is done.
+  /**
+   * The same rule inside the sentence.
+   *
+   * The unlinked option stays on offer — it is very likely the one they want,
+   * and picking it shows the connect card. Only the *assumption* moves, and it
+   * moves to something that needs no account rather than to whichever account
+   * happens to be linked: that is the difference between offering a choice and
+   * quietly broadcasting somewhere nobody asked for.
+   */
+  for (const blank of blanks) {
+    if (blank.role !== "destination" || blank.type !== "choice") continue;
+    if (assumable(blank.assumed)) continue;
+
+    const safeOption = blank.options.find((option) => assumable(option.id));
+    if (safeOption) {
+      blank.assumed = safeOption.id;
+      continue;
+    }
+
+    // Nothing on offer is buildable without an account. Add the fallback so
+    // the sentence still states something that works today.
+    if (!blank.options.some((option) => option.id === fallback.id)) {
+      blank.options = [
+        ...blank.options,
+        { id: fallback.id, label: fallback.label },
+      ];
+    }
+    blank.assumed = fallback.id;
+  }
 
   // Only trust it if it really is absent from what we offered — the model
   // naming an available destination here would produce an apology for a

@@ -187,7 +187,9 @@ describe("normalizeBrief", () => {
       rawBrief({ destinationId: "carrier-pigeon", blanks: [] }),
       context
     );
-    expect(brief?.destinationId).toBe("display");
+    // Email rather than display: it needs no account, and it reaches the
+    // person who asked instead of a tab they have probably closed.
+    expect(brief?.destinationId).toBe("email");
   });
 
   it("falls back to a manual trigger when the model invents one", () => {
@@ -488,14 +490,39 @@ describe("unlinked destinations in a brief", () => {
     expect(brief?.destinationId).toBe("discord");
   });
 
-  it("falls back to display, never to another outward channel", () => {
+  it("falls back to the user, never to another audience", () => {
     const brief = normalizeBrief(
       rawBrief({ destinationId: "slack-which-does-not-exist", blanks: [] }),
       withDiscord
     );
 
-    // The only safe substitute for a destination we cannot offer is one that
-    // delivers nowhere. Anything else picks an audience the user never named.
-    expect(brief?.destinationId).toBe("display");
+    // A destination we cannot offer falls back to one that reaches the person
+    // who asked — never to a channel with an audience they never named. Email
+    // qualifies: it goes to them. Discord would not, even were it linked.
+    expect(brief?.destinationId).toBe("email");
+  });
+
+  it("will not assume an unlinked account the request never named", () => {
+    const brief = normalizeBrief(
+      rawBrief({
+        blanks: [
+          blank("dest", 1, {
+            role: "destination",
+            assumed: "discord",
+            options: [
+              { id: "discord", label: "post it to Discord" },
+              { id: "email", label: "email it to you" },
+            ],
+          }),
+        ],
+      }),
+      // The request is about email and says nothing about Discord.
+      { ...withDiscord, request: "summarize it and email it to me" }
+    );
+
+    // Otherwise the person gets a Connect button and a dead Build button for
+    // an account they never mentioned, with their own words on screen asking
+    // for something a plain email would have satisfied.
+    expect(brief?.blanks[0]?.assumed).toBe("email");
   });
 });

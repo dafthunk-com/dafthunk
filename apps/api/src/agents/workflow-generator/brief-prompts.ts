@@ -149,7 +149,15 @@ Rank every gap by how differently the workflow would be built if you guessed wro
 3. What the judgement is made on — the criterion, the categories, the threshold. "Urgent" means nothing until it means something.
 4. Everything else: tone, length, format, wording. Never ask about these.
 
-A gap you can fill from the request is not a gap. If they already said where the result goes, resolve it and do not ask.
+A gap you can fill from the request is not a gap — with one exception.
+
+Where the result goes is ALWAYS a blank, even when the request says it. It is
+the only part of a workflow that is guaranteed to matter, and "email it to me"
+does not say which of several ways of emailing. Emit a destination blank with
+every destination as an option, and put its slot where the delivery is
+described so the sentence still reads. This is not a question — it is
+pre-filled with your assumption and they can ignore it — so it does not count
+against the ${MAX_ASKED_BLANKS} you may ask.
 
 A blank is one question with one answer. "What starts this, and which blog
 post?" is two, and the person gets a single box to answer both in — so split it,
