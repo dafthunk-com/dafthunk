@@ -41,7 +41,7 @@ export class CreateTagWordPressNode extends ExecutableNode {
     id: "create-tag-wordpress",
     name: "Create Tag (WordPress)",
     type: "create-tag-wordpress",
-    description: "Create a new tag on a WordPress.com site",
+    description: "Create a tag for labelling blog posts on a WordPress site",
     tags: ["CMS", "WordPress", "Tag", "Create"],
     icon: "tag",
     documentation:

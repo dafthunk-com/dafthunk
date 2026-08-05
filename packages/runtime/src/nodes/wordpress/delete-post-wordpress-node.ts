@@ -31,7 +31,7 @@ export class DeletePostWordPressNode extends ExecutableNode {
     id: "delete-post-wordpress",
     name: "Delete Post (WordPress)",
     type: "delete-post-wordpress",
-    description: "Delete (trash) or permanently remove a WordPress.com post",
+    description: "Delete or trash a blog post or article on a WordPress site",
     tags: ["CMS", "WordPress", "Post", "Delete"],
     icon: "trash-2",
     documentation:

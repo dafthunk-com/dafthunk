@@ -58,7 +58,8 @@ export class UploadMediaWordPressNode extends ExecutableNode {
     id: "upload-media-wordpress",
     name: "Upload Media (WordPress)",
     type: "upload-media-wordpress",
-    description: "Upload an image to a WordPress.com site's Media Library",
+    description:
+      "Upload an image to the media library of a WordPress site or blog",
     tags: ["CMS", "WordPress", "Media", "Upload"],
     icon: "upload",
     documentation:

@@ -28,7 +28,8 @@ export class ListCategoriesWordPressNode extends ExecutableNode {
     id: "list-categories-wordpress",
     name: "List Categories (WordPress)",
     type: "list-categories-wordpress",
-    description: "List categories on a WordPress.com site",
+    description:
+      "List the categories used to organise blog posts on a WordPress site",
     tags: ["CMS", "WordPress", "Category", "List"],
     icon: "tag",
     documentation:

@@ -36,7 +36,8 @@ export class SearchWordPressNode extends ExecutableNode {
     id: "search-wordpress",
     name: "Search (WordPress)",
     type: "search-wordpress",
-    description: "Search across WordPress.com content (posts, pages, terms)",
+    description:
+      "Search a WordPress site for blog posts, pages and other content",
     tags: ["CMS", "WordPress", "Search"],
     icon: "search",
     documentation:

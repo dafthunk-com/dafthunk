@@ -40,7 +40,8 @@ export class CreatePostWordPressNode extends ExecutableNode {
     id: "create-post-wordpress",
     name: "Create Post (WordPress)",
     type: "create-post-wordpress",
-    description: "Create a new WordPress.com post",
+    description:
+      "Publish a new blog post or article to a WordPress site, as a draft or live",
     tags: ["CMS", "WordPress", "Post", "Create"],
     icon: "file-plus",
     documentation:

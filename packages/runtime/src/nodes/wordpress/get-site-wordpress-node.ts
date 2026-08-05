@@ -41,7 +41,8 @@ export class GetSiteWordPressNode extends ExecutableNode {
     id: "get-site-wordpress",
     name: "Get Site (WordPress)",
     type: "get-site-wordpress",
-    description: "Get site-level metadata for a WordPress.com site",
+    description:
+      "Get details about a WordPress site or blog, such as its name and URL",
     tags: ["CMS", "WordPress", "Site", "Get"],
     icon: "info",
     documentation:

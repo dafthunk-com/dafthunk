@@ -40,7 +40,8 @@ export class UpdatePostWordPressNode extends ExecutableNode {
     id: "update-post-wordpress",
     name: "Update Post (WordPress)",
     type: "update-post-wordpress",
-    description: "Update an existing WordPress.com post",
+    description:
+      "Edit or update an existing blog post or article on a WordPress site",
     tags: ["CMS", "WordPress", "Post", "Update"],
     icon: "file-edit",
     documentation:

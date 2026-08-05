@@ -39,7 +39,8 @@ export class GetPostWordPressNode extends ExecutableNode {
     id: "get-post-wordpress",
     name: "Get Post (WordPress)",
     type: "get-post-wordpress",
-    description: "Get a single WordPress.com post by ID",
+    description:
+      "Fetch one blog post or article from a WordPress site by its ID",
     tags: ["CMS", "WordPress", "Post", "Get"],
     icon: "file-text",
     documentation:

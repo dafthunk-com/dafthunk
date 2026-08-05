@@ -31,7 +31,8 @@ export class ListPostsWordPressNode extends ExecutableNode {
     id: "list-posts-wordpress",
     name: "List Posts (WordPress)",
     type: "list-posts-wordpress",
-    description: "List posts from a WordPress.com site",
+    description:
+      "List or fetch recent blog posts and articles published on a WordPress site",
     tags: ["CMS", "WordPress", "Post", "List"],
     icon: "list",
     documentation:
