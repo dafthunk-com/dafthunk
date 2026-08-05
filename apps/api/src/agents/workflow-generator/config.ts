@@ -43,16 +43,6 @@ export const GENERATOR_MODELS: Record<ModelTier, ModelTierConfig> = {
 };
 
 /**
- * The synthesis tier under its old names, so the benchmark and anything else
- * that predates the split keeps compiling.
- */
-export const GENERATOR_PROVIDER: AgentProvider =
-  GENERATOR_MODELS.synthesis.provider;
-export const GENERATOR_MODEL = GENERATOR_MODELS.synthesis.model;
-export const GENERATOR_PRICING: TokenPricing =
-  GENERATOR_MODELS.synthesis.pricing;
-
-/**
  * Output budget per tier.
  *
  * A workflow draft is a whole graph plus its test examples — nodes, edges and
@@ -65,6 +55,28 @@ export const GENERATOR_MAX_TOKENS: Record<ModelTier, number> = {
   fast: 2048,
   synthesis: 16384,
 };
+
+/**
+ * Tries the brief turn gets before giving up.
+ *
+ * Two, not one, because the forced-tool response occasionally arrives mangled
+ * — and one cheap retry on the fast tier is far less costly than telling a
+ * person their clear request was too vague. Not more than two: past that the
+ * fault is not transient and the wait stops being worth it.
+ */
+export const BRIEF_ATTEMPTS = 2;
+
+/**
+ * How close to the best match a withheld node must score before we tell the
+ * user about it.
+ *
+ * A share of the top score rather than a rank, because the catalogue is 450
+ * types in production and a dozen in a test — a rank cut means opposite things
+ * at those two sizes. "Scored at all" is far too loose: "post a slack message"
+ * shares the token "post" with every blogging node, and announcing WordPress
+ * there is the same noise this exists to remove.
+ */
+export const WITHHELD_RELEVANCE_RATIO = 0.5;
 
 /** Repair rounds after the initial attempt, so 3 LLM calls worst case. */
 export const MAX_REPAIR_ATTEMPTS = 2;
@@ -121,3 +133,20 @@ export const RUN_RETENTION_MS = 60 * 60 * 1000;
 /** Generation cap per organization, enforced in `rate-limit.ts`. */
 export const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000;
 export const RATE_LIMIT_MAX_PER_WINDOW = 10;
+
+/**
+ * The same cap locally, where the constraint is a person's patience rather
+ * than spend.
+ *
+ * A slot is spent per socket, not per generation, so a reload mid-run and an
+ * OAuth round trip each cost one — a testing pass exhausts ten long before it
+ * has generated ten workflows.
+ */
+export const RATE_LIMIT_MAX_PER_WINDOW_DEV = 200;
+
+/** The cap in force for a deployment. */
+export function generationRateLimit(cloudflareEnv: string): number {
+  return cloudflareEnv === "development"
+    ? RATE_LIMIT_MAX_PER_WINDOW_DEV
+    : RATE_LIMIT_MAX_PER_WINDOW;
+}

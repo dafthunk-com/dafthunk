@@ -22,18 +22,18 @@ describe("checkGenerationRateLimit", () => {
     const now = 1_000_000;
 
     for (let i = 0; i < 10; i++) {
-      const verdict = await checkGenerationRateLimit(kv, ORG, now + i);
+      const verdict = await checkGenerationRateLimit(kv, ORG, { now: now + i });
       expect(verdict.allowed).toBe(true);
     }
 
-    const blocked = await checkGenerationRateLimit(kv, ORG, now + 10);
+    const blocked = await checkGenerationRateLimit(kv, ORG, { now: now + 10 });
     expect(blocked.allowed).toBe(false);
     expect(blocked.retryAfterSeconds).toBeGreaterThan(0);
   });
 
   it("counts down the remaining allowance", async () => {
     const kv = fakeKV();
-    const first = await checkGenerationRateLimit(kv, ORG, 1_000_000);
+    const first = await checkGenerationRateLimit(kv, ORG, { now: 1_000_000 });
     expect(first.remaining).toBe(9);
   });
 
@@ -42,14 +42,29 @@ describe("checkGenerationRateLimit", () => {
     const now = 1_000_000;
 
     for (let i = 0; i < 10; i++) {
-      await checkGenerationRateLimit(kv, ORG, now + i);
+      await checkGenerationRateLimit(kv, ORG, { now: now + i });
     }
-    expect((await checkGenerationRateLimit(kv, ORG, now + 10)).allowed).toBe(
-      false
-    );
+    expect(
+      (await checkGenerationRateLimit(kv, ORG, { now: now + 10 })).allowed
+    ).toBe(false);
 
-    const later = await checkGenerationRateLimit(kv, ORG, now + HOUR + 1);
+    const later = await checkGenerationRateLimit(kv, ORG, {
+      now: now + HOUR + 1,
+    });
     expect(later.allowed).toBe(true);
+  });
+
+  it("honours a raised cap", async () => {
+    const kv = fakeKV();
+    const now = 1_000_000;
+
+    for (let i = 0; i < 12; i++) {
+      const verdict = await checkGenerationRateLimit(kv, ORG, {
+        max: 20,
+        now: now + i,
+      });
+      expect(verdict.allowed).toBe(true);
+    }
   });
 
   it("keeps organizations independent", async () => {
@@ -57,10 +72,10 @@ describe("checkGenerationRateLimit", () => {
     const now = 1_000_000;
 
     for (let i = 0; i < 10; i++) {
-      await checkGenerationRateLimit(kv, ORG, now + i);
+      await checkGenerationRateLimit(kv, ORG, { now: now + i });
     }
 
-    expect((await checkGenerationRateLimit(kv, "org-2", now)).allowed).toBe(
+    expect((await checkGenerationRateLimit(kv, "org-2", { now })).allowed).toBe(
       true
     );
   });

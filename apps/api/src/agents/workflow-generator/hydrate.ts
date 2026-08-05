@@ -23,6 +23,9 @@ import { findSimilarTypes } from "./node-search";
 /** The node whose recipient the server can fill in when nobody else did. */
 const SEND_EMAIL_TYPE = "send-email";
 
+import type { OrgResources, OrgResourceType } from "./org-resources";
+import { BINDABLE_RESOURCE_TYPES, resourceToBind } from "./org-resources";
+
 export const TRIGGER_NODE_ID = "trigger";
 export const RESPONDER_NODE_ID = "responder";
 
@@ -198,9 +201,17 @@ function layout(nodes: Node[], edges: Edge[]): Node[] {
   });
 }
 
+/** A resource this hydration chose on the user's behalf, so it can be said. */
+export interface BoundResource {
+  type: OrgResourceType;
+  name: string;
+}
+
 export interface HydrateResult {
   workflow: Workflow;
   errors: EnrichedValidationError[];
+  /** Empty unless `orgResources` was supplied and something needed binding. */
+  boundResources: BoundResource[];
 }
 
 /**
@@ -223,7 +234,15 @@ export function hydrateGeneratedWorkflow(
    * model set, or wired an edge into, is left exactly as it is, because
    * "reply to the customer" must not quietly become "reply to the owner".
    */
-  ownerEmail?: string
+  ownerEmail?: string,
+  /**
+   * What the org owns, for inputs that hold a resource id rather than a value.
+   *
+   * The model is never shown these ids — they mean nothing to it and it would
+   * only invent plausible ones. Binding happens here, after the graph exists,
+   * and only for the types `BINDABLE_RESOURCE_TYPES` allows.
+   */
+  orgResources?: OrgResources
 ): HydrateResult {
   const errors: EnrichedValidationError[] = [];
   const byType = new Map(nodeTypes.map((nt) => [nt.type, nt]));
@@ -247,6 +266,7 @@ export function hydrateGeneratedWorkflow(
           fix: `Set "trigger" to one of: ${[...VALID_TRIGGERS].join(", ")}.`,
         },
       ],
+      boundResources: [],
     };
   }
 
@@ -321,6 +341,29 @@ export function hydrateGeneratedWorkflow(
     }
   }
 
+  // Bind org-owned resources. Runs after `disarm`, and only over the passive
+  // types, so nothing here can arm a trigger — see `BINDABLE_RESOURCE_TYPES`.
+  const boundResources: BoundResource[] = [];
+  if (orgResources) {
+    const seen = new Set<string>();
+    for (const node of nodes) {
+      for (const input of node.inputs) {
+        if (!BINDABLE_RESOURCE_TYPES.has(input.type as OrgResourceType)) {
+          continue;
+        }
+        if (input.value !== undefined) continue;
+        const type = input.type as OrgResourceType;
+        const resource = resourceToBind(orgResources, type);
+        if (!resource) continue;
+        input.value = resource.id;
+        if (!seen.has(type)) {
+          seen.add(type);
+          boundResources.push({ type, name: resource.name });
+        }
+      }
+    }
+  }
+
   // Keep only edges whose endpoints survived, so downstream validation reports
   // real problems rather than fallout from a dropped node.
   const nodeIds = new Set(nodes.map((n) => n.id));
@@ -343,5 +386,6 @@ export function hydrateGeneratedWorkflow(
       edges,
     },
     errors,
+    boundResources,
   };
 }

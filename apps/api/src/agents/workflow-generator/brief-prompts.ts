@@ -48,7 +48,7 @@ export const BRIEF_SCHEMA = {
           question: {
             type: "string",
             description:
-              "Four words or so. 'Which one?', 'Where should it go?'",
+              "One question, four words or so. 'Which one?', 'Where should it go?'. Never two questions joined by 'and' — there is only one answer field.",
           },
           why: { type: "string", description: "One clause of justification" },
           assumed: {
@@ -87,6 +87,11 @@ export const BRIEF_SCHEMA = {
     destinationId: {
       type: "string",
       description: "One of the destination ids offered below",
+    },
+    unavailableDestination: {
+      type: "string",
+      description:
+        "Set only when the request named a destination by name that is not in the offered list — e.g. 'Slack'. Just the name.",
     },
     trigger: { type: "string" },
   },
@@ -146,6 +151,10 @@ Rank every gap by how differently the workflow would be built if you guessed wro
 
 A gap you can fill from the request is not a gap. If they already said where the result goes, resolve it and do not ask.
 
+A blank is one question with one answer. "What starts this, and which blog
+post?" is two, and the person gets a single box to answer both in — so split it,
+or ask only the half that matters more.
+
 Every blank carries "assumed": what you would build if they never answered. Never empty, never "TBD", never a question. For a choice blank it must be one of that blank's option ids. They can skip every blank, and what they get must still be the most likely thing they wanted.
 
 Never say you do not understand. You propose; they correct.
@@ -160,6 +169,11 @@ If the request names one of these by name, use it — including one whose accoun
 is not linked yet. Do not quietly substitute a different destination for the one
 they asked for; being sent to link an account is a far better outcome than
 silently getting something else.
+
+If the request names somewhere that is *not* on this list at all, put that name
+in "unavailableDestination" and pick the closest thing that is. Substituting is
+right; substituting in silence is not, and that field is how the person gets
+told.
 
 But never *assume* an unlinked one. It can be an option on a blank, and it can
 be what they picked, but the "assumed" value must always be something that works

@@ -69,7 +69,6 @@ import { TemplateDetailPage } from "./pages/template-detail-page";
 import { TemplatePreviewPage } from "./pages/template-preview-page";
 import { TemplateTryPage } from "./pages/template-try-page";
 import { TemplatesPage } from "./pages/templates-page";
-import { WorkflowGeneratePage } from "./pages/workflow-generate-page";
 import { WorkflowsPage } from "./pages/workflows-page";
 
 export interface RouteHandle {
@@ -419,38 +418,6 @@ export const routes: AppRouteObject[] = [
       </OrgLayout>
     ),
     handle: { head: <HeadSeo title="Start - Dafthunk" /> },
-  },
-  {
-    path: "/workflows/generate",
-    element: <OrgRedirect to="/org/:organizationId/workflows/generate" />,
-  },
-  {
-    path: "/org/:organizationId/workflows/generate",
-    element: (
-      <OrgLayout title="Workflows">
-        <ProtectedRoute>
-          <DeveloperRoute>
-            <WorkflowGeneratePage />
-          </DeveloperRoute>
-        </ProtectedRoute>
-      </OrgLayout>
-    ),
-    handle: { head: <HeadSeo title="Generate - Workflows - Dafthunk" /> },
-  },
-  {
-    // The session id is the handle for an in-flight or finished run; the server
-    // replays its frame log, so this address survives leaving the page.
-    path: "/org/:organizationId/workflows/generate/:sessionId",
-    element: (
-      <OrgLayout title="Workflows">
-        <ProtectedRoute>
-          <DeveloperRoute>
-            <WorkflowGeneratePage />
-          </DeveloperRoute>
-        </ProtectedRoute>
-      </OrgLayout>
-    ),
-    handle: { head: <HeadSeo title="Generate - Workflows - Dafthunk" /> },
   },
   {
     path: "/templates",

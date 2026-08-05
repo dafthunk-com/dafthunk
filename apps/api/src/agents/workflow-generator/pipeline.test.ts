@@ -7,11 +7,12 @@ import type {
 } from "@dafthunk/types";
 import { describe, expect, it, vi } from "vitest";
 
-import { withheldProviders } from "./eligibility";
+import { withheldProviders, withheldResources } from "./eligibility";
 import { FIXTURE_NODE_TYPES } from "./fixtures";
 import type { GenerateResult, PipelineDependencies } from "./pipeline";
 import {
   formatRunFailures,
+  isRunImprovement,
   runGenerationPipeline,
   selectCandidates,
 } from "./pipeline";
@@ -378,6 +379,54 @@ describe("formatRunFailures", () => {
   });
 });
 
+describe("isRunImprovement", () => {
+  const withFailures = (
+    status: WorkflowExecution["status"],
+    failures: number
+  ): WorkflowExecution =>
+    ({
+      ...execution(status),
+      nodeExecutions: Array.from({ length: failures }, (_, index) => ({
+        nodeId: `n${index}`,
+        status: "error",
+        error: "boom",
+        usage: 0,
+      })),
+    }) as WorkflowExecution;
+
+  it("accepts a repair that makes the run complete", () => {
+    expect(
+      isRunImprovement(withFailures("completed", 0), withFailures("error", 2))
+    ).toBe(true);
+  });
+
+  it("accepts a repair that leaves fewer steps broken", () => {
+    expect(
+      isRunImprovement(withFailures("error", 1), withFailures("error", 2))
+    ).toBe(true);
+  });
+
+  // The shape that made the loop diverge: the original failure survives and
+  // the round brings new ones with it.
+  it("rejects a repair that breaks more than it fixed", () => {
+    expect(
+      isRunImprovement(withFailures("error", 3), withFailures("error", 2))
+    ).toBe(false);
+  });
+
+  it("rejects a repair that changed nothing", () => {
+    expect(
+      isRunImprovement(withFailures("error", 2), withFailures("error", 2))
+    ).toBe(false);
+  });
+
+  it("never trades a completed run for a broken one", () => {
+    expect(
+      isRunImprovement(withFailures("error", 0), withFailures("completed", 0))
+    ).toBe(false);
+  });
+});
+
 describe("selectCandidates", () => {
   it("withholds subscription nodes from a trial org", () => {
     const { candidates, withheld } = selectCandidates(
@@ -410,14 +459,17 @@ describe("selectCandidates", () => {
     expect(candidates.map((c) => c.type)).toContain("send-slack-message");
   });
 
-  it("names the unconnected providers it had to withhold", () => {
+  it("names the unconnected provider the request was reaching for", () => {
     const { withheld } = selectCandidates(
       "post a slack message",
       FIXTURE_NODE_TYPES,
       new Set()
     );
 
-    expect(withheldProviders(withheld)).toEqual(["slack", "x"]);
+    // Only Slack. X and WordPress are also withheld and also share the token
+    // "post", but naming them here would tell someone who asked about Slack
+    // about two services they never mentioned.
+    expect(withheldProviders(withheld)).toEqual(["slack"]);
   });
 
   it("never offers trigger or responder nodes", () => {
@@ -584,5 +636,48 @@ describe("the delivery node reaches the catalog", () => {
 
     // Present in the catalog section, not merely named by the delivery rule.
     expect(systems[0]).toContain("Send Email");
+  });
+});
+
+describe("telling the user what was withheld", () => {
+  /**
+   * The reported case: "check on a schedule for new posts on my blog…" built
+   * something with no WordPress in it and said nothing about why. The nodes
+   * exist and the ranker finds them — they are withheld because the account is
+   * not connected, and that fact used to be dropped silently.
+   */
+  it("names an unconnected provider the request was reaching for", () => {
+    const { withheld } = selectCandidates(
+      "check on a schedule for new posts on my blog and email me a summary",
+      FIXTURE_NODE_TYPES,
+      new Set(),
+      []
+    );
+
+    expect(withheldProviders(withheld)).toContain("wordpress");
+  });
+
+  it("stays quiet about providers the request never reached for", () => {
+    const { withheld } = selectCandidates(
+      "count the rows in my database",
+      FIXTURE_NODE_TYPES,
+      new Set(),
+      []
+    );
+
+    // The noise this replaced: six "not connected" lines about services the
+    // person had not mentioned, on a page that shows one column of prose.
+    expect(withheldProviders(withheld)).toEqual([]);
+  });
+
+  it("names a workspace resource the request was reaching for", () => {
+    const { withheld } = selectCandidates(
+      "put a message on my queue",
+      FIXTURE_NODE_TYPES,
+      new Set(),
+      []
+    );
+
+    expect(withheldResources(withheld)).toContain("queue");
   });
 });

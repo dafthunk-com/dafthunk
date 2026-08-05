@@ -60,14 +60,14 @@ export function templateToEmitFormat(
 }
 
 /**
- * Picks the templates closest to the request. Scoring reuses the node-search
- * ranker by treating each template as a pseudo node type built from its name,
- * description, tags and the node types it uses.
+ * Templates that genuinely score against the request — possibly none.
+ *
+ * Kept separate from `selectExamples` because the two callers want opposite
+ * things from a request that matches nothing. Prompting wants an example
+ * regardless; anything shown to a *person* as "did you mean" needs to know
+ * that there was no match, so it can stop pretending it understood.
  */
-export function selectExamples(
-  query: string,
-  limit: number
-): WorkflowTemplate[] {
+export function rankExamples(query: string, limit: number): WorkflowTemplate[] {
   if (limit <= 0) return [];
 
   const asNodeTypes = workflowTemplates.map((template) => ({
@@ -81,21 +81,29 @@ export function selectExamples(
     outputs: [],
   }));
 
-  const ranked = scoreNodeTypes(query, asNodeTypes)
+  return scoreNodeTypes(query, asNodeTypes)
     .slice(0, limit)
     .map((scored) =>
       workflowTemplates.find((t) => t.id === scored.nodeType.type)
     )
     .filter((t): t is WorkflowTemplate => t !== undefined);
+}
+
+/**
+ * Picks the templates closest to the request, never returning none. Scoring
+ * reuses the node-search ranker by treating each template as a pseudo node type
+ * built from its name, description, tags and the node types it uses.
+ */
+export function selectExamples(
+  query: string,
+  limit: number
+): WorkflowTemplate[] {
+  const ranked = rankExamples(query, limit);
+  if (ranked.length > 0) return ranked;
 
   // Always ship at least one example; a request that matches nothing is exactly
   // when the model most needs to see the expected shape.
-  if (ranked.length === 0) {
-    const fallback = workflowTemplates.find(
-      (t) => t.id === "text-summarization"
-    );
-    return fallback ? [fallback] : workflowTemplates.slice(0, 1);
-  }
-
-  return ranked;
+  if (limit <= 0) return [];
+  const fallback = workflowTemplates.find((t) => t.id === "text-summarization");
+  return fallback ? [fallback] : workflowTemplates.slice(0, 1);
 }

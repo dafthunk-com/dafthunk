@@ -198,6 +198,65 @@ describe("normalizeBrief", () => {
   it("gives up when there is no sentence at all", () => {
     expect(normalizeBrief({ segments: [] }, context)).toBeUndefined();
   });
+
+  // One answer box cannot hold two answers, so the second half was being lost.
+  it("reduces a two-part question to the half that can be answered", () => {
+    const brief = normalizeBrief(
+      rawBrief({
+        blanks: [
+          {
+            id: "dest",
+            type: "open",
+            question: "What starts this, and which blog post?",
+            assumed: "a new post appears",
+            weight: 1,
+            role: "trigger",
+          },
+        ],
+      }),
+      context
+    );
+
+    expect(brief?.blanks[0].question).toBe("What starts this?");
+  });
+
+  it("leaves a single question containing 'and' alone", () => {
+    const brief = normalizeBrief(
+      rawBrief({
+        blanks: [
+          {
+            id: "dest",
+            type: "open",
+            question: "Which posts and comments?",
+            assumed: "all of them",
+            weight: 1,
+            role: "subject",
+          },
+        ],
+      }),
+      context
+    );
+
+    expect(brief?.blanks[0].question).toBe("Which posts and comments?");
+  });
+
+  it("names a destination it could not reach", () => {
+    const brief = normalizeBrief(
+      rawBrief({ unavailableDestination: "Slack" }),
+      context
+    );
+
+    expect(brief?.unavailableDestination).toBe("Slack");
+  });
+
+  it("ignores a claimed-unavailable destination we actually offer", () => {
+    const brief = normalizeBrief(
+      rawBrief({ unavailableDestination: "email" }),
+      context
+    );
+
+    expect(brief?.unavailableDestination).toBeUndefined();
+  });
 });
 
 describe("generateBrief", () => {
@@ -254,7 +313,44 @@ describe("generateBrief", () => {
     expect(outcome.kind).toBe("suggestions");
   });
 
-  it("never fails the session on malformed output", async () => {
+  it("retries once when the answer arrives unusable, then succeeds", async () => {
+    // The shape actually observed in production: `segments` encoded as a
+    // string, with the array elements spilled into top-level numeric keys.
+    const mangled = JSON.stringify({
+      "2": { kind: "slot", blankId: "dest" },
+      title: "Weekly summary",
+      segments: '\n<parameter name="1">{"kind":"text","text":"When "}',
+      blanks: [],
+      destinationId: "display",
+      trigger: "manual",
+    });
+
+    const callLLM = vi
+      .fn(async (_call: GenerateCall) => ({
+        inputTokens: 40,
+        outputTokens: 120,
+        content: JSON.stringify(rawBrief()),
+      }))
+      .mockImplementationOnce(async () => ({
+        inputTokens: 40,
+        outputTokens: 120,
+        content: mangled,
+      }));
+
+    const outcome = await generateBrief({
+      request: "sort my support email by urgency",
+      destinations: DESTINATIONS,
+      connectedProviders: new Set(),
+      callLLM,
+    });
+
+    // The point of the retry: a clear request must not be told it was vague.
+    expect(outcome.kind).toBe("brief");
+    expect(callLLM).toHaveBeenCalledTimes(2);
+    expect(outcome.usage).toEqual({ inputTokens: 80, outputTokens: 240 });
+  });
+
+  it("reports our own failure as ours, not as a thin request", async () => {
     const outcome = await generateBrief({
       request: "sort my support email by urgency",
       destinations: DESTINATIONS,
@@ -262,31 +358,60 @@ describe("generateBrief", () => {
       callLLM: callWith({ content: "I'm sorry, I can't help with that." }),
     });
 
-    expect(outcome.kind).toBe("suggestions");
-    expect(outcome.usage.inputTokens).toBe(40);
+    expect(outcome.kind).toBe("failed");
+    // Both attempts are billed, and both must show up in the ledger.
+    expect(outcome.usage.inputTokens).toBe(80);
   });
 
-  it("never fails the session when the model call throws", async () => {
+  it("reports a thrown model call as our failure", async () => {
+    const callLLM = vi.fn(async () => {
+      throw new Error("upstream down");
+    });
+
     const outcome = await generateBrief({
       request: "sort my support email by urgency",
       destinations: DESTINATIONS,
       connectedProviders: new Set(),
-      callLLM: vi.fn(async () => {
-        throw new Error("upstream down");
-      }),
+      callLLM,
     });
 
+    expect(outcome.kind).toBe("failed");
+    expect(callLLM).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not retry when the model itself says the request is too thin", async () => {
+    const callLLM = callWith({ content: '{"insufficient": true}' });
+
+    const outcome = await generateBrief({
+      request: "make my whole business run itself",
+      destinations: DESTINATIONS,
+      connectedProviders: new Set(),
+      callLLM,
+    });
+
+    // That is a judgement about the request, not a fault to retry around.
     expect(outcome.kind).toBe("suggestions");
+    expect(callLLM).toHaveBeenCalledTimes(1);
   });
 });
 
 describe("briefSuggestions", () => {
   it("always offers three distinct complete requests", () => {
     for (const request of ["", "automate", "post to social media"]) {
-      const prompts = briefSuggestions(request);
+      const { prompts } = briefSuggestions(request);
       expect(prompts).toHaveLength(3);
       expect(new Set(prompts).size).toBe(3);
     }
+  });
+
+  it("admits when the prompts are padding rather than a guess", () => {
+    // Nothing in the catalogue scores against this, so the three it returns
+    // are filler — and the screen has to be able to tell, or it claims to
+    // have understood something it did not.
+    expect(briefSuggestions("qwertyuiop zxcvbnm").matched).toBe(false);
+    expect(briefSuggestions("post my blog updates to discord").matched).toBe(
+      true
+    );
   });
 });
 

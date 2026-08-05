@@ -23,6 +23,12 @@ export interface RateLimitVerdict {
   retryAfterSeconds: number;
 }
 
+export interface RateLimitOptions {
+  /** Defaults to the production cap; local development raises it. */
+  max?: number;
+  now?: number;
+}
+
 /**
  * Records an attempt and reports whether it is allowed.
  *
@@ -33,13 +39,15 @@ export interface RateLimitVerdict {
 export async function checkGenerationRateLimit(
   kv: KVNamespace,
   organizationId: string,
-  now: number = Date.now()
+  options: RateLimitOptions = {}
 ): Promise<RateLimitVerdict> {
+  const { max = MAX_PER_WINDOW, now = Date.now() } = options;
+
   const raw = await kv.get(key(organizationId));
   const previous: number[] = raw ? (JSON.parse(raw) as number[]) : [];
   const window = previous.filter((at) => now - at < WINDOW_MS);
 
-  if (window.length >= MAX_PER_WINDOW) {
+  if (window.length >= max) {
     const oldest = Math.min(...window);
     return {
       allowed: false,
@@ -58,7 +66,7 @@ export async function checkGenerationRateLimit(
 
   return {
     allowed: true,
-    remaining: MAX_PER_WINDOW - window.length,
+    remaining: max - window.length,
     retryAfterSeconds: 0,
   };
 }

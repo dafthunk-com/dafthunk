@@ -311,3 +311,69 @@ describe("the send-email recipient", () => {
     expect(recipientOf(workflow)).toBeUndefined();
   });
 });
+
+describe("binding org-owned resources", () => {
+  const queryDraft = draft({
+    title: "Report",
+    nodes: [{ id: "q", type: "database-execute", inputs: { sql: "select 1" } }],
+  });
+
+  const databaseOf = (workflow: {
+    nodes: Array<{ inputs: Array<{ name: string; value?: unknown }> }>;
+  }) =>
+    workflow.nodes[0]?.inputs.find((input) => input.name === "databaseId")
+      ?.value;
+
+  it("binds the workspace database the model could never have named", () => {
+    const { workflow, boundResources } = hydrateGeneratedWorkflow(
+      queryDraft,
+      FIXTURE_NODE_TYPES,
+      FIXTURE_NODE_TYPES,
+      undefined,
+      { database: [{ id: "db1", name: "Main" }] }
+    );
+
+    expect(databaseOf(workflow)).toBe("db1");
+    // Reported, so a workspace with several databases can see which was used.
+    expect(boundResources).toEqual([{ type: "database", name: "Main" }]);
+  });
+
+  it("leaves the input alone when the workspace owns none", () => {
+    const { workflow, boundResources } = hydrateGeneratedWorkflow(
+      queryDraft,
+      FIXTURE_NODE_TYPES,
+      FIXTURE_NODE_TYPES,
+      undefined,
+      { database: [] }
+    );
+
+    expect(databaseOf(workflow)).toBeUndefined();
+    expect(boundResources).toEqual([]);
+  });
+
+  /**
+   * The safety property, asserted end to end: `disarm` blanks the queue id and
+   * binding must not put it back, or saving the workflow would mark the queue
+   * trigger active before anyone had reviewed it.
+   */
+  it("never binds a resource that would arm a trigger", () => {
+    const { workflow, boundResources } = hydrateGeneratedWorkflow(
+      draft({
+        title: "Enqueue",
+        nodes: [
+          { id: "s", type: "send-queue-message", inputs: { body: "hi" } },
+        ],
+      }),
+      FIXTURE_NODE_TYPES,
+      FIXTURE_NODE_TYPES,
+      undefined,
+      { queue: [{ id: "q1", name: "Jobs" }] }
+    );
+
+    const queueId = workflow.nodes[0]?.inputs.find(
+      (input) => input.name === "queueId"
+    )?.value;
+    expect(queueId).toBeUndefined();
+    expect(boundResources).toEqual([]);
+  });
+});

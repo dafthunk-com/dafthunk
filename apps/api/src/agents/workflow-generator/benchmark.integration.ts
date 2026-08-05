@@ -9,7 +9,7 @@ import { CloudflareNodeRegistry } from "../../runtime/cloudflare-node-registry";
 import { findStructuralProblems } from "../../templates/template-test-utils";
 import type { BenchmarkCase } from "./benchmark-cases";
 import { BENCHMARK_CASES } from "./benchmark-cases";
-import { GENERATOR_MODEL, GENERATOR_PROVIDER } from "./config";
+import { GENERATOR_MAX_TOKENS, GENERATOR_MODELS } from "./config";
 import type { GenerateCall } from "./pipeline";
 import { runGenerationPipeline } from "./pipeline";
 import { DRAFT_SCHEMA } from "./prompts";
@@ -62,11 +62,17 @@ async function runCase(
       "google-mail",
       "github",
     ]),
+    // Routed exactly as the Durable Object routes it — same tier, same output
+    // ceiling, same constrained decoding. A benchmark that dispatches its own
+    // way measures a path that does not ship.
     callLLM: async (call: GenerateCall) => {
       attempts++;
+      const tierName = call.tier ?? "synthesis";
+      const tier = GENERATOR_MODELS[tierName];
       const response = await callAgentLLM(bindings, {
-        provider: GENERATOR_PROVIDER,
-        model: GENERATOR_MODEL,
+        provider: tier.provider,
+        model: tier.model,
+        maxTokens: GENERATOR_MAX_TOKENS[tierName],
         instructions: call.system,
         messages: call.messages,
         tools: [],
@@ -148,7 +154,7 @@ describe("workflow generator benchmark", () => {
     const meanRepairs = results.reduce((sum, r) => sum + r.repairs, 0) / total;
 
     console.log(
-      `\n[benchmark] model=${GENERATOR_MODEL}\n` +
+      `\n[benchmark] model=${GENERATOR_MODELS.synthesis.model}\n` +
         `  ${firstTry}/${total} valid on first attempt\n` +
         `  ${afterRepair}/${total} valid after repair\n` +
         `  ${triggers}/${total} correct trigger\n` +

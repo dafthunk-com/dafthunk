@@ -48,9 +48,46 @@ function compatiblePorts(
  * in a repair round instead — and unlike a bespoke narrower node, it protects
  * hand-authored workflows too.
  */
+/**
+ * Every browser node shares one requirement through `browser-rendering-api`:
+ * a page to work on, given as either a URL or literal HTML. Neither input is
+ * marked `required`, because either will do — which meant a generated scrape
+ * node with neither passed validation cleanly and failed at run time with
+ * "Either 'url' or 'html' is required". Listed explicitly rather than inferred
+ * from "has both a url and an html input", because that shape is a coincidence
+ * in any other node and guessing at it would invent requirements.
+ */
+const BROWSER_PAGE_SOURCE_NODES = [
+  "cloudflare-browser-content",
+  "cloudflare-browser-json",
+  "cloudflare-browser-links",
+  "cloudflare-browser-markdown",
+  "cloudflare-browser-pdf",
+  "cloudflare-browser-scrape",
+  "cloudflare-browser-screenshot",
+  "cloudflare-browser-snapshot",
+];
+
 const ONE_OF_INPUTS: Record<string, string[]> = {
   "send-email": ["html", "text"],
+  ...Object.fromEntries(
+    BROWSER_PAGE_SOURCE_NODES.map((type) => [type, ["url", "html"]])
+  ),
 };
+
+/**
+ * Whether an input actually carries something the node can use.
+ *
+ * `!== undefined` is not enough. An empty string is a value by that test and
+ * nothing at all by every other one, so a `send-email` with `to: ""` validated
+ * clean and then failed the run with "'to' and 'subject' are required".
+ */
+function hasUsableValue(value: unknown): boolean {
+  if (value === undefined || value === null) return false;
+  if (typeof value === "string") return value.trim().length > 0;
+  if (Array.isArray(value)) return value.length > 0;
+  return true;
+}
 
 export interface ValidationContext {
   /**
@@ -226,7 +263,7 @@ export function enrichValidation(
     for (const input of node.inputs) {
       if (!input.required || input.hidden) continue;
       if (connectedInputs.has(`${node.id}:${input.name}`)) continue;
-      if (input.value !== undefined) continue;
+      if (hasUsableValue(input.value)) continue;
       errors.push({
         code: "MISSING_REQUIRED_INPUT",
         severity: "fatal",
@@ -265,7 +302,7 @@ export function enrichValidation(
     const satisfied = oneOf.some(
       (name) =>
         connectedInputs.has(`${node.id}:${name}`) ||
-        node.inputs.find((input) => input.name === name)?.value !== undefined
+        hasUsableValue(node.inputs.find((input) => input.name === name)?.value)
     );
     if (satisfied) continue;
 

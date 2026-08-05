@@ -117,6 +117,15 @@ export interface Brief {
   destinationOptions: BriefDestination[];
   /** The assumed one. A destination blank's answer overrides it. */
   destinationId: string;
+  /**
+   * A destination the request named by name that this workspace cannot reach —
+   * "Slack", "Teams", whatever it was.
+   *
+   * The model already works this out; before this it had nowhere to put the
+   * finding, so asking for Slack silently produced something else. Substituting
+   * is the right behaviour, doing it without saying so is not.
+   */
+  unavailableDestination?: string;
   trigger: WorkflowTrigger;
 }
 

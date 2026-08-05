@@ -15,14 +15,33 @@ import { cn } from "@/utils/utils";
  * can show is exactly how much is still unsettled.
  */
 
+/**
+ * Whether the segment after a slot opens with punctuation.
+ *
+ * The slot is a padded, margined inline box, so a following "." or "," is
+ * pushed clear of the word it belongs to and the sentence reads "email it to
+ * you ." — which looks like a typo in our writing rather than a layout detail.
+ */
+function startsWithPunctuation(text: string | undefined): boolean {
+  return text !== undefined && /^\s*[.,;:!?)\]]/.test(text);
+}
+
 interface BriefSlotProps {
   blank: BriefBlank;
   answers: BriefAnswers;
   isOpen: boolean;
   onOpen: () => void;
+  /** Drop the trailing gap so adjoining punctuation sits tight. */
+  tightRight?: boolean;
 }
 
-function BriefSlot({ blank, answers, isOpen, onOpen }: BriefSlotProps) {
+function BriefSlot({
+  blank,
+  answers,
+  isOpen,
+  onOpen,
+  tightRight,
+}: BriefSlotProps) {
   const answered = Boolean(answers[blank.id]?.trim());
   const text = resolveBlank(blank, answers);
 
@@ -34,7 +53,8 @@ function BriefSlot({ blank, answers, isOpen, onOpen }: BriefSlotProps) {
       onClick={onOpen}
       aria-expanded={isOpen}
       className={cn(
-        "mx-0.5 rounded px-1 transition-colors",
+        "ml-0.5 rounded px-1 transition-colors",
+        tightRight ? "mr-0 pr-0" : "mr-0.5",
         "animate-in fade-in-0 zoom-in-95 duration-200",
         answered
           ? "bg-primary/10 text-foreground"
@@ -84,9 +104,17 @@ export function BriefSentence({
         const blank = byId.get(segment.blankId);
         if (!blank) return null;
 
+        const next = brief.segments[index + 1];
+        const tightRight = startsWithPunctuation(
+          next?.kind === "text" ? next.text : undefined
+        );
+
         if (disabled) {
           return (
-            <span key={segment.blankId} className="rounded bg-muted px-1">
+            <span
+              key={segment.blankId}
+              className={cn("rounded bg-muted px-1", tightRight && "pr-0")}
+            >
               {resolveBlank(blank, answers)}
             </span>
           );
@@ -94,6 +122,7 @@ export function BriefSentence({
 
         return (
           <BriefSlot
+            tightRight={tightRight}
             // The changing key is load-bearing: `animate-in` is a one-shot CSS
             // animation and will not replay on a re-render unless React
             // remounts the element.

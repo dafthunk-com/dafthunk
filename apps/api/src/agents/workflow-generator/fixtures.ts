@@ -167,6 +167,77 @@ export const SEND_EMAIL: NodeType = {
   outputs: [param("messageId", "string", { hidden: true })],
 };
 
+/**
+ * Neither `url` nor `html` is `required`, because either one will do. That is
+ * exactly the shape port-level validation cannot express, so it is here to keep
+ * the one-of rule honest for the whole browser family.
+ */
+export const BROWSER_MARKDOWN: NodeType = {
+  id: "cloudflare-browser-markdown",
+  name: "Browser Markdown",
+  type: "cloudflare-browser-markdown",
+  description: "Fetches a page and returns it as markdown",
+  tags: ["Browser", "Scrape"],
+  icon: "globe",
+  inputs: [param("url", "string"), param("html", "string")],
+  outputs: [param("markdown", "string")],
+};
+
+/** Needs an org-owned database, which is safe to bind without review. */
+export const DATABASE_QUERY: NodeType = {
+  id: "database-execute",
+  name: "Run a query",
+  type: "database-execute",
+  description: "Runs SQL against one of the workspace's databases",
+  tags: ["Database"],
+  icon: "database",
+  inputs: [
+    param("databaseId", "database", { required: true, hidden: true }),
+    param("sql", "string", { required: true }),
+  ],
+  outputs: [param("rows", "json")],
+};
+
+/**
+ * Needs an org-owned queue. Kept apart from the database above because sending
+ * to a queue arms a trigger on save, so it must never be bound automatically.
+ */
+export const QUEUE_SEND: NodeType = {
+  id: "send-queue-message",
+  name: "Send to a queue",
+  type: "send-queue-message",
+  description: "Puts a message on one of the workspace's queues",
+  tags: ["Queue"],
+  icon: "inbox",
+  inputs: [
+    param("queueId", "queue", { required: true, hidden: true }),
+    param("body", "string", { required: true }),
+  ],
+  outputs: [param("messageId", "string")],
+};
+
+/**
+ * Needs a connected OAuth provider, and is the node someone means when they
+ * say "new posts on my blog" — which is how the relevance of a *withheld*
+ * capability gets tested.
+ */
+export const LIST_POSTS_WORDPRESS: NodeType = {
+  id: "list-posts-wordpress",
+  name: "List Posts (WordPress)",
+  type: "list-posts-wordpress",
+  description: "List posts from a WordPress.com site",
+  tags: ["CMS", "WordPress", "Post", "List", "Blog"],
+  icon: "file-text",
+  inputs: [
+    param("integrationId", "integration", {
+      required: true,
+      hidden: true,
+      provider: "wordpress",
+    } as Partial<Parameter>),
+  ],
+  outputs: [param("posts", "json")],
+};
+
 /** Needs a connected OAuth provider. */
 export const SHARE_POST_X: NodeType = {
   id: "share-post-x",
@@ -228,6 +299,10 @@ export const FIXTURE_NODE_TYPES: NodeType[] = [
   RECEIVE_SCHEDULED,
   SEND_SLACK,
   SEND_EMAIL,
+  BROWSER_MARKDOWN,
+  DATABASE_QUERY,
+  QUEUE_SEND,
+  LIST_POSTS_WORDPRESS,
   SHARE_POST_X,
   BOT_SEND_DISCORD,
   GEO_BUFFER,

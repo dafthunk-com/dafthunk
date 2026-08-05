@@ -54,6 +54,8 @@ import {
 } from "../agents/workflow-generator/config";
 import { achievableDestinations } from "../agents/workflow-generator/destinations";
 import { filterEligible } from "../agents/workflow-generator/eligibility";
+import type { OrgResources } from "../agents/workflow-generator/org-resources";
+import { loadOrgResources } from "../agents/workflow-generator/org-resources";
 import type {
   GenerateCall,
   TierUsage,
@@ -330,18 +332,64 @@ export class WorkflowGeneratorAgent extends Agent<
     return (this.currentRun(sessionId)?.cancelled ?? 0) === 1;
   }
 
-  /** Appends the frame to the log, then fans it out to every connection. */
+  /**
+   * Appends the frame to the log, then fans it out to every connection.
+   *
+   * The write is guarded because it is not the point of the run. SQLite
+   * refuses a row past its size limit with SQLITE_TOOBIG, and an unguarded
+   * `exec` turned that into a thrown generation — a workflow that had been
+   * built, validated, saved and run successfully was reported to the user as
+   * "Generation failed: string or blob too big". `previewExecution` keeps the
+   * usual offender in bounds; this makes any remaining one cost a replay entry
+   * rather than the whole session.
+   */
   private emit(frame: GeneratorServerMessage): void {
+    const payload = JSON.stringify(frame);
     const sessionId = this.state?.sessionId;
+
     if (sessionId) {
       this.ensureSchema();
+      try {
+        this.storageSql.exec(
+          `INSERT INTO gen_frames (session_id, frame) VALUES (?, ?)`,
+          sessionId,
+          payload
+        );
+      } catch (error) {
+        console.error(
+          `[WorkflowGenerator] could not log a ${frame.type} frame (${payload.length} bytes):`,
+          error
+        );
+        // Leave a marker rather than a hole. A client that reconnects has no
+        // way to know a frame is missing, and a gap in the middle of a replay
+        // reads as the run having stopped.
+        this.logUnstorableFrame(sessionId, frame.type, payload.length);
+      }
+    }
+
+    this.hiddenMethods.broadcast(payload);
+  }
+
+  /** Best-effort note that a frame was dropped from the replay log. */
+  private logUnstorableFrame(
+    sessionId: string,
+    type: string,
+    bytes: number
+  ): void {
+    const marker: GeneratorServerMessage = {
+      type: "log",
+      level: "warn",
+      message: `A "${type}" update was too large to keep for replay (${bytes.toLocaleString()} bytes). It is on screen now, but will not survive a reload.`,
+    };
+    try {
       this.storageSql.exec(
         `INSERT INTO gen_frames (session_id, frame) VALUES (?, ?)`,
         sessionId,
-        JSON.stringify(frame)
+        JSON.stringify(marker)
       );
+    } catch {
+      // Nothing further to try; the run continues either way.
     }
-    this.hiddenMethods.broadcast(JSON.stringify(frame));
   }
 
   private replayFrames(connection: Connection, sessionId: string): void {
@@ -633,11 +681,24 @@ export class WorkflowGeneratorAgent extends Agent<
       console.error("[WorkflowGenerator] could not read owner email:", error);
     }
 
+    // What the org owns, for node inputs that hold a resource id. Read here
+    // for the same reason as the address above: the model is never shown these
+    // ids, so the binding has to happen while the graph is being built.
+    let orgResources: OrgResources = {};
+    try {
+      orgResources = await loadOrgResources(db, organizationId);
+    } catch (error) {
+      // Not fatal: an empty set simply withholds the nodes that need one,
+      // which is the behaviour that shipped before any of this existed.
+      console.error("[WorkflowGenerator] could not read org resources:", error);
+    }
+
     return {
       userId,
       organizationId,
       billingInfo,
       ownerEmail,
+      orgResources,
       nodeTypes: registry.getNodeTypes() as NodeType[],
       connectedProviders: new Set(
         integrations.map((integration) => integration.provider)
@@ -695,8 +756,25 @@ export class WorkflowGeneratorAgent extends Agent<
         synthesis: { inputTokens: 0, outputTokens: 0 },
       });
 
+      // Our end broke. Say so, and keep it recoverable — the request was fine
+      // and retyping it is not what needs to happen.
+      if (outcome.kind === "failed") {
+        this.fail(sessionId, {
+          type: "error",
+          code: "INTERNAL",
+          message: `Something went wrong on our side reading that back (${outcome.message}). Your request was fine — try again.`,
+          recoverable: true,
+        });
+        return;
+      }
+
       if (outcome.kind === "suggestions") {
-        this.emit({ type: "suggestions", turn, prompts: outcome.prompts });
+        this.emit({
+          type: "suggestions",
+          turn,
+          prompts: outcome.prompts,
+          matched: outcome.matched,
+        });
         this.storeBrief(sessionId, null);
         return;
       }
@@ -812,6 +890,7 @@ export class WorkflowGeneratorAgent extends Agent<
           this.storeConversation(sessionId, turn, system, messages),
         nodeTypes: context.nodeTypes,
         connectedProviders: context.connectedProviders,
+        orgResources: context.orgResources,
         ownerEmail: context.ownerEmail,
         apiHost: this.state?.apiHost,
         isCancelled: () => this.isCancelled(sessionId),

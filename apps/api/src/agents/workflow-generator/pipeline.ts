@@ -20,6 +20,7 @@ import {
   MAX_CANDIDATE_NODE_TYPES,
   MAX_REPAIR_ATTEMPTS,
   MAX_RUN_REPAIR_ATTEMPTS,
+  WITHHELD_RELEVANCE_RATIO,
 } from "./config";
 import { CORE_NODE_TYPES } from "./core-nodes";
 import type {
@@ -28,11 +29,22 @@ import type {
   EnrichedValidationError,
   GeneratedWorkflowDraft,
 } from "./draft-types";
-import { filterEligible, withheldProviders } from "./eligibility";
+import {
+  filterEligible,
+  withheldProviders,
+  withheldResources,
+} from "./eligibility";
 import { enrichValidation, formatErrorsForLLM } from "./enrich-validation";
 import { buildGeneratedExamples } from "./examples";
+import { previewExecution } from "./execution-preview";
 import { hydrateGeneratedWorkflow, normalizeTrigger } from "./hydrate";
 import { scoreNodeTypes } from "./node-search";
+import type { OrgResources, OrgResourceType } from "./org-resources";
+import {
+  bindableResources,
+  boundResourceNote,
+  describeMissingResource,
+} from "./org-resources";
 import { parseJsonObject } from "./parse-json";
 import {
   buildCritiquePrompt,
@@ -76,6 +88,8 @@ export interface PipelineDependencies {
   /** Live registry types; never a hardcoded snapshot. */
   nodeTypes: NodeType[];
   connectedProviders: ReadonlySet<string>;
+  /** What the org owns, for node inputs holding a resource id. */
+  orgResources?: OrgResources;
   /** Address that `send-email` delivers to; the model never sees it. */
   ownerEmail?: string;
   /**
@@ -149,6 +163,33 @@ function toIssues(
     nodeId: error.nodeId,
     edge: error.edge,
   }));
+}
+
+/** Nodes that errored in a run. The number a repair has to bring down. */
+export function failedNodeCount(execution: WorkflowExecution): number {
+  return execution.nodeExecutions.filter((node) => node.status === "error")
+    .length;
+}
+
+/**
+ * Whether a repaired run is actually an improvement on the one before it.
+ *
+ * A repair that validates can still be worse than what it replaced — the
+ * observed shape is a model that answers "this node is missing an input" by
+ * adding more nodes around it, leaving the original failure in place and
+ * bringing new ones with it. Without this the loop reads as progress while it
+ * accumulates damage, and every extra round costs a synthesis call.
+ *
+ * Completing beats not completing; past that, fewer broken nodes wins. Equal is
+ * not an improvement: it means the round achieved nothing.
+ */
+export function isRunImprovement(
+  next: WorkflowExecution,
+  previous: WorkflowExecution
+): boolean {
+  if (next.status === "completed") return previous.status !== "completed";
+  if (previous.status === "completed") return false;
+  return failedNodeCount(next) < failedNodeCount(previous);
 }
 
 /**
@@ -236,12 +277,37 @@ export function selectCandidates(
    * the request never mentioned (an unstated "email it to me" is the whole
    * reason the brief exists), so it scores nothing and would be cut.
    */
-  required: readonly string[] = []
+  required: readonly string[] = [],
+  /** Resource types the org owns that may be bound without review. */
+  bindable: ReadonlySet<string> = new Set()
 ) {
   const withPseudo = [...nodeTypes, ...pseudoNodeTypes()];
   const { eligible, byType, withheld } = filterEligible(withPseudo, {
     connectedProviders,
+    bindableResources: bindable,
   });
+
+  /**
+   * Which unusable nodes the request was actually reaching for.
+   *
+   * "Scored at all" is too loose a test: "post a slack message" shares the
+   * token "post" with every blogging node, which would announce WordPress to
+   * someone who never mentioned it. The question worth answering is whether
+   * the node would have been *offered to the model* had it been usable — so
+   * everything is ranked together and the same cut applied.
+   */
+  const withheldByType = new Map(withheld.map((entry) => [entry.type, entry]));
+  const allRanked = scoreNodeTypes(
+    query,
+    withPseudo.filter((nodeType) => !nodeType.trigger && !nodeType.responder)
+  );
+  const topScore = allRanked[0]?.score ?? 0;
+
+  for (const scored of allRanked) {
+    if (scored.score < topScore * WITHHELD_RELEVANCE_RATIO) break;
+    const entry = withheldByType.get(scored.nodeType.type);
+    if (entry) entry.relevant = true;
+  }
 
   const ranked = scoreNodeTypes(query, eligible)
     .slice(0, MAX_CANDIDATE_NODE_TYPES)
@@ -303,7 +369,8 @@ export async function runGenerationPipeline(
       deps.prompt,
       deps.nodeTypes,
       deps.connectedProviders,
-      deps.destination?.nodeTypes ?? []
+      deps.destination?.nodeTypes ?? [],
+      deps.orgResources ? bindableResources(deps.orgResources) : new Set()
     );
 
     if (!deps.resume) {
@@ -322,7 +389,28 @@ export async function runGenerationPipeline(
         deps.emit({
           type: "log",
           level: "warn",
-          message: `${provider} is not connected in this workspace, so those steps are left out. Connect it in Settings to include them.`,
+          message: `This looks like it wanted ${provider}, which is not connected in this workspace — so those steps are left out.`,
+          link: "integrations",
+          // Safe to put in front of the user now that `withheldProviders` only
+          // returns providers the request actually scored against. It used to
+          // return every provider in the catalogue, which buried the one that
+          // mattered under five that did not.
+          important: true,
+        });
+      }
+
+      // Previously dropped on the floor: a request needing a database, a queue
+      // or a bot simply lost those steps with nothing said about it.
+      for (const resource of withheldResources(withheld)) {
+        const type = resource as OrgResourceType;
+        deps.emit({
+          type: "log",
+          level: "warn",
+          message: describeMissingResource(
+            type,
+            deps.orgResources?.[type]?.length ?? 0
+          ),
+          important: true,
         });
       }
     }
@@ -342,7 +430,8 @@ export async function runGenerationPipeline(
         input,
         deps.nodeTypes,
         candidates,
-        deps.destination?.kind === "email" ? deps.ownerEmail : undefined
+        deps.destination?.kind === "email" ? deps.ownerEmail : undefined,
+        deps.orgResources
       );
 
     // ── Generate ──────────────────────────────────────────────────────────
@@ -399,6 +488,17 @@ export async function runGenerationPipeline(
     let repairs = 0;
     let hydrated = hydrate(draft);
     let errors = validate(hydrated);
+
+    // Said once, on the first graph. A binding the user did not choose has to
+    // be visible, or a workflow quietly reads from the wrong database.
+    for (const bound of hydrated.boundResources) {
+      deps.emit({
+        type: "log",
+        level: "info",
+        message: boundResourceNote(bound.type, { id: "", name: bound.name }),
+        important: true,
+      });
+    }
 
     deps.emit({ type: "graph", workflow: hydrated.workflow, attempt });
     deps.emit({
@@ -514,7 +614,11 @@ export async function runGenerationPipeline(
     };
 
     let execution = await testWith(savedWorkflow, examples[0]);
-    deps.emit({ type: "run_result", execution });
+    deps.emit({
+      type: "run_result",
+      execution: previewExecution(execution),
+      ...(examples[0] && { sampleName: examples[0].name }),
+    });
 
     // ── Repair a failed run ───────────────────────────────────────────────
     // Validation cannot see any of this: a literal the node refuses, a prompt
@@ -568,11 +672,40 @@ export async function runGenerationPipeline(
         break;
       }
 
-      savedWorkflow = hydrated.workflow;
-      examples = buildGeneratedExamples(draft, savedWorkflow);
+      const candidateWorkflow = hydrated.workflow;
+      const candidateExamples = buildGeneratedExamples(
+        draft,
+        candidateWorkflow
+      );
+      const candidateExecution = await testWith(
+        candidateWorkflow,
+        candidateExamples[0]
+      );
+
+      // Only adopt a repair that actually moved the run forward. Saving first
+      // and comparing after would leave the worse graph on disk.
+      if (!isRunImprovement(candidateExecution, execution)) {
+        deps.emit({
+          type: "log",
+          level: "warn",
+          message: `That change did not improve the run (${failedNodeCount(
+            candidateExecution
+          )} step(s) still failing, was ${failedNodeCount(
+            execution
+          )}), so the previous version was kept.`,
+        });
+        break;
+      }
+
+      savedWorkflow = candidateWorkflow;
+      examples = candidateExamples;
+      execution = candidateExecution;
       await deps.save(savedWorkflow, examples, workflowId);
-      execution = await testWith(savedWorkflow, examples[0]);
-      deps.emit({ type: "run_result", execution });
+      deps.emit({
+        type: "run_result",
+        execution: previewExecution(execution),
+        ...(examples[0] && { sampleName: examples[0].name }),
+      });
     }
 
     // Handed back so a critique can continue this conversation rather than

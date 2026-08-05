@@ -23,7 +23,7 @@
     "generate:master-key": "node scripts/generate-master-key.js",
     "fonts:seed": "pnpm --filter '@dafthunk/runtime' fonts:fetch && node scripts/seed-fonts.mjs dafthunk-ressources-development --local",
     "fonts:prod:seed": "pnpm --filter '@dafthunk/runtime' fonts:fetch && node scripts/seed-fonts.mjs dafthunk-ressources-production --remote",
-    "benchmark:generate": "vitest run --config vitest.integration.config.mts src/agents/workflow-generator/benchmark.integration.ts"
+    "benchmark:generate": "vitest run --config vitest.benchmark.config.mts"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.19.0",

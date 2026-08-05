@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 
+import { generationRateLimit } from "../agents/workflow-generator/config";
 import { checkGenerationRateLimit } from "../agents/workflow-generator/rate-limit";
 import { jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
@@ -28,7 +29,9 @@ generateRoutes.get(
       return c.json({ error: "Unauthorized" }, 401);
     }
 
-    const verdict = await checkGenerationRateLimit(c.env.KV, organizationId);
+    const verdict = await checkGenerationRateLimit(c.env.KV, organizationId, {
+      max: generationRateLimit(c.env.CLOUDFLARE_ENV),
+    });
     if (!verdict.allowed) {
       return c.json(
         {

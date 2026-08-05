@@ -2,7 +2,10 @@ import type { NodeType, Parameter } from "@dafthunk/types";
 
 /**
  * Parameter types that reference a resource the org must already have created.
- * A generated workflow cannot invent one, so nodes needing them are withheld.
+ *
+ * A generated workflow cannot invent one. Whether a node needing one is usable
+ * depends on two things: the org owning at least one, and the type being safe
+ * to bind without review — see `BINDABLE_RESOURCE_TYPES`.
  */
 const ORG_RESOURCE_TYPES: ReadonlySet<string> = new Set([
   "database",
@@ -24,6 +27,11 @@ const REPLACED_BY_PSEUDO_TYPES: ReadonlySet<string> = new Set([
 export interface EligibilityContext {
   /** OAuth providers the org has actually connected. */
   connectedProviders: ReadonlySet<string>;
+  /**
+   * Resource types this org owns *and* that may be bound without review.
+   * Absent means none, which is the old behaviour: withhold them all.
+   */
+  bindableResources?: ReadonlySet<string>;
 }
 
 /** The `provider` of every `integration` input a node declares. */
@@ -34,9 +42,15 @@ function requiredProviders(nodeType: NodeType): string[] {
     .filter((p): p is string => typeof p === "string");
 }
 
-/** True when the node depends on an org-scoped resource id. */
-function needsOrgResource(nodeType: NodeType): boolean {
-  return nodeType.inputs.some((p: Parameter) => ORG_RESOURCE_TYPES.has(p.type));
+/** The org-scoped resource types a node's inputs reference, if any. */
+function orgResourcesNeeded(nodeType: NodeType): string[] {
+  return [
+    ...new Set(
+      nodeType.inputs
+        .map((p: Parameter) => p.type)
+        .filter((type) => ORG_RESOURCE_TYPES.has(type))
+    ),
+  ];
 }
 
 export interface Ineligible {
@@ -44,6 +58,36 @@ export interface Ineligible {
   reason: "integration" | "org-resource";
   /** Set when `reason` is `integration`. */
   provider?: string;
+  /** Set when `reason` is `org-resource`: the type that could not be supplied. */
+  resource?: string;
+  /**
+   * Whether this node scored against the request.
+   *
+   * Everything unusable is withheld, but only a fraction of it has anything to
+   * do with what was asked. Telling someone who asked about their database that
+   * LinkedIn is not connected is noise; telling someone who asked about blog
+   * posts that WordPress is not connected is the answer to their question.
+   */
+  relevant?: boolean;
+}
+
+/**
+ * The distinct org resources a request would have needed but could not use.
+ *
+ * The sibling of `withheldProviders`, and it exists for the same reason: a
+ * capability that vanishes without explanation reads as the product not
+ * understanding the request. These used to be dropped on the floor entirely.
+ */
+export function withheldResources(withheld: Ineligible[]): string[] {
+  return [
+    ...new Set(
+      withheld.flatMap((entry) =>
+        entry.reason === "org-resource" && entry.resource && entry.relevant
+          ? [entry.resource]
+          : []
+      )
+    ),
+  ];
 }
 
 /** The distinct OAuth providers a request would have needed but cannot use. */
@@ -51,7 +95,9 @@ export function withheldProviders(withheld: Ineligible[]): string[] {
   return [
     ...new Set(
       withheld.flatMap((entry) =>
-        entry.reason === "integration" && entry.provider ? [entry.provider] : []
+        entry.reason === "integration" && entry.provider && entry.relevant
+          ? [entry.provider]
+          : []
       )
     ),
   ];
@@ -95,8 +141,16 @@ export function filterEligible(
       continue;
     }
 
-    if (needsOrgResource(nodeType)) {
-      withheld.push({ type: nodeType.type, reason: "org-resource" });
+    const bindable = context.bindableResources ?? new Set<string>();
+    const unsuppliable = orgResourcesNeeded(nodeType).find(
+      (resource) => !bindable.has(resource)
+    );
+    if (unsuppliable) {
+      withheld.push({
+        type: nodeType.type,
+        reason: "org-resource",
+        resource: unsuppliable,
+      });
       continue;
     }
 

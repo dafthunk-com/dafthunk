@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import { enrichValidation, formatErrorsForLLM } from "./enrich-validation";
 import {
+  BROWSER_MARKDOWN,
   FIXTURE_NODE_TYPES,
   JSON_INPUT,
   OUTPUT_TEXT,
@@ -349,5 +350,63 @@ describe("inputs where one of several will do", () => {
     expect(errors.filter((e) => e.code === "MISSING_ONE_OF_INPUTS")).toEqual(
       []
     );
+  });
+
+  // An empty string satisfies `!== undefined` and nothing else. Observed as a
+  // send-email that validated clean and then failed the run with "'to' and
+  // 'subject' are required inputs".
+  it("does not accept a blank string as a required value", () => {
+    for (const blank of ["", "   "]) {
+      const errors = enrichValidation(
+        workflowOf([emailWith({ to: blank, subject: "Hi", text: "body" })], []),
+        FIXTURE_NODE_TYPES
+      );
+
+      const found = errors.find(
+        (e) => e.code === "MISSING_REQUIRED_INPUT" && e.message.includes('"to"')
+      );
+      expect(found?.severity).toBe("fatal");
+    }
+  });
+
+  // The failure that survived three repair rounds in a real session: a scrape
+  // node with nothing to scrape, validated clean, "Either 'url' or 'html' is
+  // required" at run time.
+  it("catches a browser node with no page to work on", () => {
+    const scrape = buildNodeFromNodeType(BROWSER_MARKDOWN, {
+      id: "scrape",
+      position: { x: 0, y: 0 },
+    });
+
+    const found = enrichValidation(
+      workflowOf([scrape], []),
+      FIXTURE_NODE_TYPES
+    ).find((e) => e.code === "MISSING_ONE_OF_INPUTS");
+
+    expect(found?.severity).toBe("fatal");
+    expect(found?.fix).toContain('"url"');
+  });
+
+  it("accepts a browser node given a url", () => {
+    const scrape = buildNodeFromNodeType(BROWSER_MARKDOWN, {
+      id: "scrape",
+      position: { x: 0, y: 0 },
+      inputs: { url: "https://example.com" },
+    });
+
+    expect(
+      enrichValidation(workflowOf([scrape], []), FIXTURE_NODE_TYPES).filter(
+        (e) => e.code === "MISSING_ONE_OF_INPUTS"
+      )
+    ).toEqual([]);
+  });
+
+  it("does not accept a blank string as one of a one-of pair", () => {
+    const errors = enrichValidation(
+      workflowOf([emailWith({ to: "a@b.c", subject: "Hi", text: "" })], []),
+      FIXTURE_NODE_TYPES
+    );
+
+    expect(errors.some((e) => e.code === "MISSING_ONE_OF_INPUTS")).toBe(true);
   });
 });

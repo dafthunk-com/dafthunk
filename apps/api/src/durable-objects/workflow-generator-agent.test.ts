@@ -74,6 +74,29 @@ async function waitForFrame(
   throw new Error("Expected frame did not arrive in time");
 }
 
+/**
+ * Waits until at least `count` frames match.
+ *
+ * `waitForFrame` cannot express "one more than last time": its predicate is
+ * satisfied by frames that arrived before the action under test, so it returns
+ * instantly and the assertion races whatever it was supposed to wait for.
+ */
+async function waitForFrames(
+  frames: GeneratorServerMessage[],
+  predicate: (frame: GeneratorServerMessage) => boolean,
+  count: number,
+  timeoutMs = 5000
+): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (frames.filter(predicate).length >= count) return;
+    await scheduler.wait(25);
+  }
+  throw new Error(
+    `Expected ${count} matching frames, saw ${frames.filter(predicate).length}`
+  );
+}
+
 /** Resolves with the close code once the socket closes. */
 function waitForClose(socket: WebSocket, timeoutMs = 5000): Promise<number> {
   return new Promise((resolve, reject) => {
@@ -270,8 +293,16 @@ describe("the multi-turn protocol", () => {
     // `start` is single-use, but a session is a conversation: retyping after a
     // failure has to be allowed or the user is stuck with a dead page.
     socket.send(JSON.stringify({ type: "ask", prompt: "translate my emails" }));
-    await waitForFrame(frames, (frame) => frame.type === "error", 5000);
-    await settle();
+
+    // Wait for a *second* error, counted — not merely for "an error exists",
+    // which the first one already satisfies. That wait returned immediately
+    // and left the assertion racing the second turn, failing about one run in
+    // four.
+    await waitForFrames(
+      frames,
+      (frame) => frame.type === "error",
+      afterFirst + 1
+    );
 
     expect(
       frames.filter((frame) => frame.type === "error").length

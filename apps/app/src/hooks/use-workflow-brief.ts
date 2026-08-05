@@ -2,6 +2,7 @@ import type {
   Brief,
   BriefAnswers,
   GenerationPhase,
+  GenerationPlan,
   GenerationStatus,
   GeneratorServerMessage,
   Workflow,
@@ -13,13 +14,12 @@ import type { WorkflowGeneratorWebSocket } from "@/services/workflow-generator-s
 import { connectWorkflowGeneratorWS } from "@/services/workflow-generator-service";
 
 /**
- * The brief flow's view of a generator session.
+ * A generator session, reduced to what the person needs to see.
  *
- * Deliberately not an extension of `useWorkflowGenerator`. That hook backs a
- * shipped debug page and models one run with no user input in the middle; this
- * one models a conversation with two places a person can intervene. Sharing a
- * reducer between them would mean every change to either risked the other, for
- * the sake of about sixty lines.
+ * This is now the only view of one. An earlier developer page consumed the same
+ * frame stream and rendered all of it — plan, validation issues, attempt
+ * history, every log line — which is why the reducer below is explicit about
+ * what it drops rather than spreading frames wholesale.
  */
 
 export interface BriefState {
@@ -33,19 +33,35 @@ export interface BriefState {
   turn: number;
   brief?: Brief;
   suggestions?: string[];
+  /** Whether the suggestions relate to the request, or are catalogue padding. */
+  suggestionsMatched?: boolean;
+  /** What it intends to build, shown during the wait. */
+  plan?: GenerationPlan;
+  /** Things about this workspace the person needs to know. */
+  notes: BriefNote[];
   /** The sentence the server is building from, echoed rather than re-derived. */
   sentence?: string;
   workflowId?: string;
   workflow?: Workflow;
   execution?: WorkflowExecution;
+  /** Name of the invented example the trial run was fed, when there was one. */
+  sampleName?: string;
   outcome?: "ok" | "partial";
   error?: { message: string; recoverable: boolean };
+}
+
+/** One thing worth telling the person about their own workspace. */
+export interface BriefNote {
+  level: "info" | "warn";
+  message: string;
+  link?: "integrations";
 }
 
 const INITIAL: BriefState = {
   status: "idle",
   sessionLoaded: false,
   turn: 0,
+  notes: [],
 };
 
 /**
@@ -82,6 +98,7 @@ function reduce(state: BriefState, frame: GeneratorServerMessage): BriefState {
         ...state,
         turn: frame.turn,
         suggestions: frame.prompts,
+        suggestionsMatched: frame.matched,
         brief: undefined,
         status: "awaiting",
       };
@@ -112,7 +129,11 @@ function reduce(state: BriefState, frame: GeneratorServerMessage): BriefState {
       return { ...state, workflowId: frame.workflowId };
 
     case "run_result":
-      return { ...state, execution: frame.execution };
+      return {
+        ...state,
+        execution: frame.execution,
+        sampleName: frame.sampleName,
+      };
 
     case "done":
       return {
@@ -129,8 +150,30 @@ function reduce(state: BriefState, frame: GeneratorServerMessage): BriefState {
         error: { message: frame.message, recoverable: frame.recoverable },
       };
 
-    // `plan`, `validation` and `log` are the debug page's business. Ignoring
-    // them here is what keeps this screen free of internals.
+    // What it is about to do, in its own words. Worth showing: the build takes
+    // the better part of a minute, and "Wiring it up" alone gives someone no
+    // way to tell a good attempt from a wrong one until it is finished.
+    case "plan":
+      return { ...state, plan: frame.plan };
+
+    // Only the messages about *their* workspace. The rest — how many node
+    // types were considered, which example the run used — is our process, and
+    // showing it is what made the old page read as a compiler transcript.
+    case "log":
+      if (!frame.important) return state;
+      return {
+        ...state,
+        notes: [
+          ...state.notes,
+          {
+            level: frame.level,
+            message: frame.message,
+            ...(frame.link ? { link: frame.link } : {}),
+          },
+        ],
+      };
+
+    // `validation` stays the debug channel's business.
     default:
       return state;
   }

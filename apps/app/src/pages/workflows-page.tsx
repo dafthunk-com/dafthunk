@@ -367,7 +367,7 @@ export function WorkflowsPage() {
           <div className="flex gap-2">
             {isDeveloperMode && (
               <Button variant="outline" asChild>
-                <Link to={getOrgUrl("workflows/generate")}>
+                <Link to={getOrgUrl("start")}>
                   <Sparkles className="mr-2 size-4" />
                   Generate with AI
                 </Link>

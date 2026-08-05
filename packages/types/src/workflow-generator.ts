@@ -103,15 +103,38 @@ export type GeneratorServerMessage =
       protocol?: number;
     }
   | { type: "phase"; phase: GenerationPhase; label: string }
-  | { type: "log"; level: "info" | "warn"; message: string }
+  /**
+   * `link` is set only when there is somewhere useful to send the reader.
+   * Warnings used to all be about OAuth, so the view appended a "Manage
+   * connections" link to every one of them — which became wrong advice the
+   * moment a warning could be about a queue or a mailbox instead.
+   *
+   * `important` marks the few messages that are about the user's workspace
+   * rather than about our process. "Considering 60 of 453 node types" is true
+   * and useless to them; "this workspace has no mailbox" changes what they can
+   * build. Only the important ones reach the main screen.
+   */
+  | {
+      type: "log";
+      level: "info" | "warn";
+      message: string;
+      link?: "integrations";
+      important?: boolean;
+    }
   /**
    * The request, read back. `turn` keys this the way `attempt` keys `graph` —
    * without it a replay holding both an original brief and a post-critique one
    * is indistinguishable from a duplicate.
    */
   | { type: "brief"; turn: number; brief: Brief }
-  /** Offered instead of a brief when the request was too thin to read back. */
-  | { type: "suggestions"; turn: number; prompts: string[] }
+  /**
+   * Offered instead of a brief when the request was too thin to read back.
+   *
+   * `matched` says whether these relate to what was asked. When nothing scored
+   * they are padding from the catalogue, and a screen that says "did you mean"
+   * over unrelated examples reads as a product that cannot understand English.
+   */
+  | { type: "suggestions"; turn: number; prompts: string[]; matched: boolean }
   /**
    * The sentence the server is actually building from. Sent so the client
    * never has to re-derive it and silently disagree.
@@ -125,7 +148,13 @@ export type GeneratorServerMessage =
       issues: GenerationValidationIssue[];
     }
   | { type: "saved"; workflowId: string; name: string }
-  | { type: "run_result"; execution: WorkflowExecution }
+  /**
+   * The trial run. `sampleName` is set when the run was driven by a generated
+   * example rather than by anything the user supplied — which is almost always,
+   * and which the outcome screen has to say out loud. Output produced from
+   * invented input is unintelligible when presented as the user's own result.
+   */
+  | { type: "run_result"; execution: WorkflowExecution; sampleName?: string }
   | {
       type: "done";
       workflowId?: string;
