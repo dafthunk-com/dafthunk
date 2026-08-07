@@ -1,6 +1,7 @@
 import type { BriefDestination, NodeType } from "@dafthunk/types";
 import { TRIGGER_TO_NODE_TYPES } from "@dafthunk/utils";
 
+import { agentToolCatalog } from "./agent-tools";
 import { projectCatalog } from "./catalog-projection";
 import type { Ineligible } from "./eligibility";
 import { withheldProviders } from "./eligibility";
@@ -174,7 +175,7 @@ export interface SystemPromptInput {
  */
 function describeDelivery(destination: BriefDestination | undefined): string {
   if (!destination) {
-    return `4. Every branch must end in an output node ("output-text", "output-json", "output-image", …) so the run shows the user something.`;
+    return `4. Every branch must end in an output node so the run shows the user something. Pick it by what was asked for, not by what the data looks like on the way: anything the person wants to see, read or be shown ends in "output-text", even when it started as structured data. "output-json" is for a result something else consumes — somebody who asked for their action items wants to read them, not receive an array. Do not pass model output through a conversion node to get there; "to-json" serializes a value rather than parsing one, so a model's answer arrives as a quoted document with its markdown fence intact instead of as the answer.`;
   }
 
   const recipient =
@@ -225,6 +226,12 @@ ${describeDelivery(input.destination)}
    that form; do not chain two model calls where one prompt would do; and do not
    add steps the request never asked for on the grounds that they might be useful.
    Fewer, clearer steps beat a thorough pipeline.
+9. Use an "agent-*" node, with "tools" set, when the number of steps depends on
+   what an earlier step returns — "read the top stories and summarize each one"
+   fans out over a list whose length nobody knows while drawing the graph, and a
+   fixed chain of nodes has to guess at it. Give the agent the tools it needs and
+   say the whole task in its "input". For work whose shape is known in advance,
+   an "ai-*" node in a plain pipeline is cheaper and easier to read — prefer it.
 
 # Triggers
 
@@ -261,7 +268,7 @@ ${describeWithheld(input.withheld)}
 
 # Available node types
 
-${projectCatalog(input.catalog)}
+${projectCatalog(input.catalog, { agentTools: agentToolCatalog(input.nodeTypes) })}
 
 # Examples of correct output
 

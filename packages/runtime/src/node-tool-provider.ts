@@ -9,6 +9,75 @@ import type {
 } from "./tool-types";
 
 /**
+ * How much of a decoded body a tool may return.
+ *
+ * A tool result is spent from the same context the model has to reason in, and
+ * it is spent for every round that follows — the result stays in the
+ * conversation. So the ceiling is not "how much fits in one message" but "how
+ * much fits multiplied by the number of steps". Twenty rounds at this size is
+ * roughly 80,000 tokens, which leaves room inside the 131,072-token window of
+ * the default agent model with the task still in it.
+ *
+ * The cut is announced in the text rather than silent, because a model that can
+ * see it was truncated can fetch a narrower thing, and one that cannot will
+ * summarize the fragment as though it were the whole.
+ */
+const MAX_TOOL_TEXT_CHARS = 16_000;
+
+/** Blob payloads that carry text rather than binary. */
+const TEXTUAL_MIME =
+  /^text\/|^application\/(json|xml|xhtml\+xml|javascript)|\+json$|\+xml$/i;
+
+function isBlobLike(
+  value: unknown
+): value is { data: Uint8Array; mimeType?: string } {
+  return (
+    !!value &&
+    typeof value === "object" &&
+    "data" in value &&
+    (value as { data: unknown }).data instanceof Uint8Array
+  );
+}
+
+/**
+ * A node's outputs, rendered as something a model can actually read.
+ *
+ * `JSON.stringify` on a `BlobParameter` serializes the `Uint8Array` index by
+ * index — `{"0":60,"1":33,…}` — so a single fetched page arrives as several
+ * hundred kilobytes of byte map with the text nowhere in it. That is not a
+ * degraded tool result, it is an unusable one, and it is why `fetch` could be
+ * offered as a tool and still leave an agent with nothing to work from.
+ *
+ * Textual payloads are decoded; binary ones are described instead of dumped,
+ * since the bytes of a PNG say nothing to a model either way.
+ */
+function readableOutputs(outputs: unknown): unknown {
+  if (isBlobLike(outputs)) return readableBlob(outputs);
+
+  if (!outputs || typeof outputs !== "object") return outputs;
+  if (Array.isArray(outputs)) return outputs.map(readableOutputs);
+
+  const rendered: Record<string, unknown> = {};
+  for (const [name, value] of Object.entries(outputs)) {
+    rendered[name] = readableOutputs(value);
+  }
+  return rendered;
+}
+
+function readableBlob(blob: { data: Uint8Array; mimeType?: string }): unknown {
+  const mimeType = blob.mimeType ?? "application/octet-stream";
+
+  if (!TEXTUAL_MIME.test(mimeType)) {
+    return { mimeType, bytes: blob.data.byteLength };
+  }
+
+  const text = new TextDecoder().decode(blob.data);
+  return text.length > MAX_TOOL_TEXT_CHARS
+    ? `${text.slice(0, MAX_TOOL_TEXT_CHARS)}\n\n[truncated: ${text.length} characters total]`
+    : text;
+}
+
+/**
  * Tool provider that exposes workflow nodes as tools
  */
 export class NodeToolProvider implements ToolProvider {
@@ -76,7 +145,7 @@ export class NodeToolProvider implements ToolProvider {
           }
 
           // Convert result to string format expected by embedded function calling
-          return JSON.stringify(result.result);
+          return JSON.stringify(readableOutputs(result.result));
         } catch (error) {
           throw new Error(
             `Tool execution failed: ${

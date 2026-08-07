@@ -111,6 +111,50 @@ class NotATool extends ExecutableNode {
   }
 }
 
+/** Returns a blob body, the way `fetch` does. */
+class BlobNode extends ExecutableNode {
+  static readonly nodeType = nodeType({
+    id: "blobber",
+    type: "blobber",
+    asTool: true,
+    inputs: [{ name: "mimeType", type: "string", description: "d" }],
+    outputs: [
+      { name: "status", type: "number" },
+      { name: "body", type: "blob" },
+    ],
+  });
+
+  async execute(context: NodeContext): Promise<NodeExecution> {
+    const mimeType = (context.inputs.mimeType as string) ?? "text/html";
+    const text = mimeType.startsWith("text/")
+      ? "<h1>Top stories</h1>"
+      : "binary";
+    return this.createSuccessResult({
+      status: 200,
+      body: { data: new TextEncoder().encode(text), mimeType },
+    });
+  }
+}
+
+/** A textual body long enough to be cut. */
+class LongBlobNode extends ExecutableNode {
+  static readonly nodeType = nodeType({
+    id: "long-blobber",
+    type: "long-blobber",
+    asTool: true,
+    outputs: [{ name: "body", type: "blob" }],
+  });
+
+  async execute(): Promise<NodeExecution> {
+    return this.createSuccessResult({
+      body: {
+        data: new TextEncoder().encode("a".repeat(30_000)),
+        mimeType: "text/plain",
+      },
+    });
+  }
+}
+
 class Registry extends BaseNodeRegistry {
   protected registerNodes(): void {
     for (const impl of [
@@ -119,6 +163,8 @@ class Registry extends BaseNodeRegistry {
       ThrowingNode,
       TypesNode,
       NotATool,
+      BlobNode,
+      LongBlobNode,
     ]) {
       this.registerImplementation(impl as never);
     }
@@ -526,5 +572,50 @@ describe("listTools", () => {
     } finally {
       vi.restoreAllMocks();
     }
+  });
+});
+
+/**
+ * What a node returns has to survive the trip back to the model.
+ *
+ * `JSON.stringify` on a `BlobParameter` serializes the `Uint8Array` index by
+ * index, so a fetched page arrived as several hundred kilobytes of `{"0":60,
+ * "1":33,…}` with the text nowhere in it. An agent given `fetch` could call it
+ * successfully and still have nothing to work from.
+ */
+describe("blob results", () => {
+  it("decodes a textual body instead of serializing its bytes", async () => {
+    const { raw, parsed } = await callTool("blobber", {
+      mimeType: "text/html",
+    });
+
+    expect(parsed.body).toBe("<h1>Top stories</h1>");
+    expect(raw).not.toContain('"0":');
+  });
+
+  it("decodes JSON bodies, which is how most APIs answer", async () => {
+    const { parsed } = await callTool("blobber", {
+      mimeType: "application/json",
+    });
+
+    expect(parsed.body).toBe("binary");
+  });
+
+  it("describes a binary body rather than dumping it", async () => {
+    const { parsed } = await callTool("blobber", { mimeType: "image/png" });
+
+    expect(parsed.body).toEqual({ mimeType: "image/png", bytes: 6 });
+  });
+
+  it("leaves the other outputs alone", async () => {
+    const { parsed } = await callTool("blobber", { mimeType: "text/html" });
+    expect(parsed.status).toBe(200);
+  });
+
+  it("truncates a long body and says so", async () => {
+    const { parsed } = await callTool("long-blobber", {});
+
+    expect(parsed.body).toContain("[truncated: 30000 characters total]");
+    expect(parsed.body.length).toBeLessThan(30_000);
   });
 });

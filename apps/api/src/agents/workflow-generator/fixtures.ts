@@ -183,6 +183,45 @@ export const BROWSER_MARKDOWN: NodeType = {
   outputs: [param("markdown", "string")],
 };
 
+/**
+ * An agent-loop node, recognized by carrying both `tools` and `max_steps`.
+ *
+ * Both are `hidden`: the editor gives tools their own panel rather than a
+ * handle on the canvas, and the generator authors them anyway through the one
+ * exception `agent-tools.ts` makes.
+ */
+export const AGENT: NodeType = {
+  id: "agent-claude-sonnet-4",
+  name: "Agent Claude Sonnet 4",
+  type: "agent-claude-sonnet-4",
+  description: "AI agent that autonomously uses tools to accomplish tasks",
+  tags: ["AI", "Agent"],
+  icon: "sparkles",
+  inputs: [
+    param("input", "string", { required: true }),
+    param("instructions", "string"),
+    param("max_steps", "number", { hidden: true, value: 10 }),
+    param("tools", "json", { hidden: true, value: [] }),
+  ],
+  outputs: [param("text", "any")],
+};
+
+/** On the agent tool allowlist, and callable with JSON arguments. */
+export const FETCH: NodeType = {
+  id: "fetch",
+  name: "Fetch",
+  type: "fetch",
+  description: "Fetch data from a URL",
+  tags: ["Network"],
+  icon: "globe",
+  asTool: true,
+  inputs: [
+    param("url", "string", { required: true }),
+    param("method", "string", { value: "GET" }),
+  ],
+  outputs: [param("status", "number"), param("body", "blob")],
+};
+
 /** Needs an org-owned database, which is safe to bind without review. */
 export const DATABASE_QUERY: NodeType = {
   id: "database-execute",
@@ -306,4 +345,6 @@ export const FIXTURE_NODE_TYPES: NodeType[] = [
   SHARE_POST_X,
   BOT_SEND_DISCORD,
   GEO_BUFFER,
+  AGENT,
+  FETCH,
 ];

@@ -24,7 +24,8 @@
     "fonts:seed": "pnpm --filter '@dafthunk/runtime' fonts:fetch && node scripts/seed-fonts.mjs dafthunk-ressources-development --local",
     "fonts:prod:seed": "pnpm --filter '@dafthunk/runtime' fonts:fetch && node scripts/seed-fonts.mjs dafthunk-ressources-production --remote",
     "benchmark:generate": "vitest run --config vitest.benchmark.config.mts",
-    "eval:generate": "vitest run --config vitest.evaluation.config.mts"
+    "eval:generate": "vitest run --config vitest.evaluation.config.mts",
+    "eval:probe": "vitest run --config vitest.probe.config.mts"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.19.0",

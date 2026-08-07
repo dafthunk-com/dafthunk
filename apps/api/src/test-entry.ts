@@ -24,6 +24,8 @@
  * - Avoids importing CloudflareNodeRegistry and heavy dependencies
  */
 
+// Export AgentRunner so agent nodes can run their tool loop in tests.
+export { AgentRunner } from "./durable-objects/agent-runner";
 // Export EmailAgentRunner so the email-agent flow can be exercised in tests.
 export { EmailAgentRunner } from "./durable-objects/email-agent-runner";
 // Export MailboxDO so the per-org mailbox can be exercised in tests.

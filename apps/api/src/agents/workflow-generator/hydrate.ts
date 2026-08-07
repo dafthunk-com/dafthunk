@@ -12,6 +12,11 @@ import {
   TRIGGER_TO_NODE_TYPES,
 } from "@dafthunk/utils";
 
+import {
+  agentToolCatalog,
+  applyAgentTools,
+  isAgentNodeType,
+} from "./agent-tools";
 import { expandPseudoNode } from "./ai-nodes";
 import type {
   EnrichedValidationError,
@@ -362,6 +367,45 @@ export function hydrateGeneratedWorkflow(
         }
       }
     }
+  }
+
+  /**
+   * Settle every agent's tools against the allowlist.
+   *
+   * Runs over the built nodes rather than the draft, so a tool reference the
+   * model put on a node that is not an agent simply never appears — the input
+   * does not exist there and `buildNodeFromNodeType` dropped it already.
+   *
+   * A refused tool is reported rather than quietly removed. Fatal when nothing
+   * usable is left, because an agent with an empty tool list is a slower
+   * `ai-text` that was asked to go and look something up: it cannot do the job
+   * and it will not say so, it will answer from what it already knows.
+   */
+  const allowedTools = new Set(
+    agentToolCatalog(nodeTypes).map((nodeType) => nodeType.type)
+  );
+
+  for (const node of nodes) {
+    // Only the loop nodes. The Gemini model nodes and the email agent also
+    // carry a `tools` input, and neither is offered here — rewriting theirs
+    // would be this pass touching something it was never asked about.
+    const nodeType = byType.get(node.type);
+    if (!nodeType || !isAgentNodeType(nodeType)) continue;
+
+    const { kept, rejected } = applyAgentTools(node, allowedTools);
+    if (rejected.length === 0) continue;
+
+    const offered = [...allowedTools].join(", ");
+    errors.push({
+      code: "UNKNOWN_TOOL",
+      severity: kept.length === 0 ? "fatal" : "warning",
+      message: `"${node.id}" asked for ${rejected.length === 1 ? "a tool" : "tools"} it cannot use: ${rejected.join(", ")}.`,
+      fix:
+        kept.length === 0
+          ? `Node "${node.id}" (type ${node.type}) has no usable tool left. Set its "tools" to references drawn from: ${offered} — for example [{"type":"node","identifier":"fetch"}]. If none of those fit the task, drop the agent and build the steps as ordinary nodes instead.`
+          : `Node "${node.id}" (type ${node.type}) kept ${kept.map((tool) => `"${tool.identifier}"`).join(", ")} and dropped the rest. Only these can be used as tools: ${offered}.`,
+      nodeId: node.id,
+    });
   }
 
   // Keep only edges whose endpoints survived, so downstream validation reports

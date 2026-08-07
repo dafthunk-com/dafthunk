@@ -42,7 +42,18 @@ const CATALOG: NodeType[] = new CloudflareNodeRegistry(
   false
 ).getNodeTypes();
 
-const RUNS = Number(process.env.EVAL_RUNS ?? "1");
+/** Delivered as a binding, since `process.env` does not cross into workerd. */
+interface EvalEnv {
+  EVAL_RUNS?: string;
+}
+
+const RUNS = Number((env as unknown as EvalEnv).EVAL_RUNS ?? "1");
+
+// Announced before the first model call rather than only in the closing
+// summary. `EVAL_RUNS` reaches the pool as a binding, and when that breaks it
+// does not fail — it quietly reads 1, which is indistinguishable from a run
+// that was meant to be single-sample until the bill arrives.
+console.log(`[eval] ${RUNS} sample(s) per case`);
 
 /** Synthetic owner. Credit checks are off and the DB writes are best-effort. */
 const USER_ID = "eval-user";
@@ -58,8 +69,30 @@ interface Sample {
   clean: boolean;
   problems: OutputProblem[];
   delivered: string[];
-  nodeCount: number;
+  /**
+   * Every node type in the graph, not just how many.
+   *
+   * A count cannot answer the question the catalog exists to settle — which
+   * shapes the generator reached for. Swapping the offered agent node and
+   * reading the pass rate afterwards measures nothing if the graphs never
+   * contained one, and a count of 4 looks identical either way.
+   */
+  nodeTypes: string[];
+  /**
+   * How generation itself ended.
+   *
+   * `built` only tests for `failed`, so a `partial` run — repairs exhausted,
+   * every node dropped as unknown — reported `built=true ran=true nodes=0` and
+   * read as a delivery problem rather than a generation one. Two rounds of
+   * diagnosis went into the wrong half of the pipeline for want of this word.
+   */
+  outcome?: string;
   error?: string;
+}
+
+/** Node types in graph order. Empty when generation never produced a graph. */
+function nodeTypesOf(workflow: Workflow | undefined): string[] {
+  return workflow?.nodes.map((node) => node.type) ?? [];
 }
 
 async function runSample(testCase: EvaluationCase): Promise<Sample> {
@@ -131,7 +164,8 @@ async function runSample(testCase: EvaluationCase): Promise<Sample> {
         clean: false,
         problems: [],
         delivered: [],
-        nodeCount: finalWorkflow?.nodes.length ?? 0,
+        nodeTypes: nodeTypesOf(finalWorkflow),
+        outcome: result.outcome,
         error: "generation failed",
       };
     }
@@ -144,13 +178,15 @@ async function runSample(testCase: EvaluationCase): Promise<Sample> {
         clean: false,
         problems: [],
         delivered: [],
-        nodeCount: finalWorkflow.nodes.length,
+        nodeTypes: nodeTypesOf(finalWorkflow),
+        outcome: result.outcome,
         error: "never ran",
       };
     }
 
     const problems = checkDelivered(finalWorkflow, execution, {
       expectsProse: testCase.expectsProse,
+      ...(testCase.maxChars !== undefined && { maxChars: testCase.maxChars }),
     });
 
     const delivered = deliveredText(finalWorkflow, execution);
@@ -162,7 +198,7 @@ async function runSample(testCase: EvaluationCase): Promise<Sample> {
       );
       if (missing.length) {
         problems.push({
-          code: "EMPTY",
+          code: "OFF_TOPIC",
           message: `Delivered text never mentions: ${missing.join(", ")}`,
         });
       }
@@ -175,7 +211,8 @@ async function runSample(testCase: EvaluationCase): Promise<Sample> {
       clean: problems.length === 0,
       problems,
       delivered,
-      nodeCount: finalWorkflow.nodes.length,
+      nodeTypes: nodeTypesOf(finalWorkflow),
+      outcome: result.outcome,
     };
   } catch (error) {
     return {
@@ -185,10 +222,33 @@ async function runSample(testCase: EvaluationCase): Promise<Sample> {
       clean: false,
       problems: [],
       delivered: [],
-      nodeCount: finalWorkflow?.nodes.length ?? 0,
+      nodeTypes: nodeTypesOf(finalWorkflow),
       error: error instanceof Error ? error.message : String(error),
     };
   }
+}
+
+const HEAD_CHARS = 1200;
+const TAIL_CHARS = 400;
+
+/**
+ * A long delivery, shown from both ends.
+ *
+ * The head alone was not enough: `TRUNCATED` is a claim about how the text
+ * *ends*, and a log that cut the text off at a fixed length made every such
+ * finding impossible to confirm from the artifact — the evidence and the
+ * logger's own truncation looked identical. Whatever else is dropped, the last
+ * few lines are the ones the finding is about.
+ */
+function excerpt(text: string): string {
+  if (text.length <= HEAD_CHARS + TAIL_CHARS) return text;
+
+  const dropped = text.length - HEAD_CHARS - TAIL_CHARS;
+  return (
+    `${text.slice(0, HEAD_CHARS)}\n` +
+    `  … [${dropped} characters omitted by this report] …\n` +
+    `${text.slice(-TAIL_CHARS)}`
+  );
 }
 
 /**
@@ -202,14 +262,18 @@ function report(sample: Sample): void {
   const status = sample.clean ? "PASS" : "FAIL";
   console.log(
     `\n[eval] ${status} ${sample.caseId} ` +
-      `(built=${sample.built} ran=${sample.ran} nodes=${sample.nodeCount})`
+      `(built=${sample.built} ran=${sample.ran} ` +
+      `outcome=${sample.outcome ?? "?"} nodes=${sample.nodeTypes.length})`
   );
+  if (sample.nodeTypes.length) {
+    console.log(`  types: ${sample.nodeTypes.join(", ")}`);
+  }
   if (sample.error) console.log(`  error: ${sample.error}`);
   for (const problem of sample.problems) {
     console.log(`  ${problem.code}: ${problem.message}`);
   }
   for (const text of sample.delivered) {
-    console.log(`  --- delivered ---\n${text.slice(0, 1200)}`);
+    console.log(`  --- delivered (${text.length} chars) ---\n${excerpt(text)}`);
   }
 }
 

@@ -14,15 +14,72 @@ import { scoreNodeTypes } from "./node-search";
  * the model follows the examples.
  */
 
-/** The pseudo type a pinned Workers AI model stands in for. */
-function pseudoTypeForModel(node: Node): string | undefined {
+/**
+ * What a template's text generation is shown as.
+ *
+ * The templates pin Workers AI models, and the catalog no longer offers one for
+ * text — so the examples have to demonstrate the agent node instead. This is
+ * the reason the projection cannot be a straight type swap: the two nodes name
+ * their ports differently, and an example that teaches `prompt`/`response` for
+ * a node with `input`/`text` is worse than no example, because the model
+ * follows the examples over the schema.
+ */
+const AGENT_TEXT_TYPE = "agent-claude-sonnet-4";
+
+/** Port names on a Workers AI text node, and their agent equivalents. */
+const MODEL_PROMPT = "prompt";
+const MODEL_RESPONSE = "response";
+const AGENT_INPUT = "input";
+const AGENT_TEXT = "text";
+
+/**
+ * The Workers AI text-generation shape: one instruction in, one string out.
+ *
+ * Decided from the node's ports rather than its model identifier, which is the
+ * correction that matters here. Guessing from the name and falling through to
+ * a text stand-in quietly relabelled every model it did not recognise —
+ * translation (`text`/`source_lang` → `translated_text`), captioning, and
+ * text-to-speech all became "text generation" while keeping ports the stand-in
+ * never had. That survived only because pseudo types are rebuilt from their own
+ * declarations at hydration, discarding the wrong names; pointing the same
+ * projection at a real registry node turned it fatal, and every node in the
+ * example was dropped as unknown.
+ */
+function isTextGeneration(node: Node): boolean {
+  const inputs = new Set(node.inputs.map((i) => i.name));
+  const outputs = new Set((node.outputs ?? []).map((o) => o.name));
+  return inputs.has(MODEL_PROMPT) && outputs.has(MODEL_RESPONSE);
+}
+
+/**
+ * The type a pinned Workers AI model stands in for, or `undefined` when the
+ * catalog has nothing that can represent it.
+ */
+function standInTypeForModel(node: Node): string | undefined {
   const model = node.inputs.find((i) => i.name === "model")?.value;
-  if (typeof model !== "string") return "ai-text";
-  if (model.includes("whisper")) return "ai-transcribe";
-  if (model.includes("flux") || model.includes("stable-diffusion")) {
-    return "ai-image";
+  if (typeof model === "string") {
+    if (model.includes("whisper")) return "ai-transcribe";
+    if (model.includes("flux") || model.includes("stable-diffusion")) {
+      return "ai-image";
+    }
   }
-  return "ai-text";
+  return isTextGeneration(node) ? AGENT_TEXT_TYPE : undefined;
+}
+
+/**
+ * Whether every pinned model in a template has a stand-in.
+ *
+ * A template that fails this cannot be shown as an example at all: there is no
+ * catalog type for the node, so any graph copied from it names something that
+ * does not exist. Losing an example is the smaller harm — the model follows
+ * examples over the schema, so a broken one is worse than none.
+ */
+export function isProjectable(template: WorkflowTemplate): boolean {
+  return template.nodes.every(
+    (node) =>
+      node.type !== "cloudflare-model" ||
+      standInTypeForModel(node) !== undefined
+  );
 }
 
 /** Literal input values, minus hidden plumbing the model never supplies. */
@@ -36,18 +93,41 @@ function draftInputs(node: Node): Record<string, unknown> | undefined {
   return Object.keys(entries).length ? entries : undefined;
 }
 
+/** `prompt` carries the instruction on both nodes; the agent calls it `input`. */
+function renamePromptInput(
+  inputs: Record<string, unknown> | undefined
+): Record<string, unknown> | undefined {
+  if (!inputs || !(MODEL_PROMPT in inputs)) return inputs;
+  const { [MODEL_PROMPT]: prompt, ...rest } = inputs;
+  return { ...rest, [AGENT_INPUT]: prompt };
+}
+
 export function templateToEmitFormat(
   template: WorkflowTemplate
 ): GeneratedWorkflowDraft {
-  const nodes: DraftNode[] = template.nodes.map((node) => ({
-    id: node.id,
-    type:
+  // Which nodes became agents, so the edges touching them can be renamed too.
+  // An edge still pointing at `prompt` would validate against nothing.
+  const asAgent = new Set<string>();
+
+  const nodes: DraftNode[] = template.nodes.map((node) => {
+    const type =
       node.type === "cloudflare-model"
-        ? (pseudoTypeForModel(node) ?? "ai-text")
-        : node.type,
-    name: node.name,
-    inputs: draftInputs(node),
-  }));
+        ? // Unreachable for templates that passed `isProjectable`, which is how
+          // they are selected; kept total rather than throwing here.
+          (standInTypeForModel(node) ?? node.type)
+        : node.type;
+    if (type === AGENT_TEXT_TYPE) asAgent.add(node.id);
+
+    return {
+      id: node.id,
+      type,
+      name: node.name,
+      inputs:
+        type === AGENT_TEXT_TYPE
+          ? renamePromptInput(draftInputs(node))
+          : draftInputs(node),
+    };
+  });
 
   return {
     title: template.name,
@@ -55,7 +135,13 @@ export function templateToEmitFormat(
     trigger: template.trigger,
     steps: [],
     nodes,
-    edges: template.edges.map((edge) => ({ ...edge })),
+    edges: template.edges.map((edge) => ({
+      ...edge,
+      ...(asAgent.has(edge.target) &&
+        edge.targetInput === MODEL_PROMPT && { targetInput: AGENT_INPUT }),
+      ...(asAgent.has(edge.source) &&
+        edge.sourceOutput === MODEL_RESPONSE && { sourceOutput: AGENT_TEXT }),
+    })),
   };
 }
 
@@ -70,16 +156,18 @@ export function templateToEmitFormat(
 export function rankExamples(query: string, limit: number): WorkflowTemplate[] {
   if (limit <= 0) return [];
 
-  const asNodeTypes = workflowTemplates.map((template) => ({
-    id: template.id,
-    name: template.name,
-    type: template.id,
-    description: template.description,
-    tags: [...template.tags, ...template.nodes.map((n) => n.type)],
-    icon: template.icon,
-    inputs: [],
-    outputs: [],
-  }));
+  const asNodeTypes = workflowTemplates
+    .filter(isProjectable)
+    .map((template) => ({
+      id: template.id,
+      name: template.name,
+      type: template.id,
+      description: template.description,
+      tags: [...template.tags, ...template.nodes.map((n) => n.type)],
+      icon: template.icon,
+      inputs: [],
+      outputs: [],
+    }));
 
   return scoreNodeTypes(query, asNodeTypes)
     .slice(0, limit)
@@ -102,8 +190,11 @@ export function selectExamples(
   if (ranked.length > 0) return ranked;
 
   // Always ship at least one example; a request that matches nothing is exactly
-  // when the model most needs to see the expected shape.
+  // when the model most needs to see the expected shape. Both candidates go
+  // through `isProjectable` — an unprojectable fallback would put a broken
+  // example in front of precisely the requests that had nothing else to go on.
   if (limit <= 0) return [];
-  const fallback = workflowTemplates.find((t) => t.id === "text-summarization");
-  return fallback ? [fallback] : workflowTemplates.slice(0, 1);
+  const projectable = workflowTemplates.filter(isProjectable);
+  const fallback = projectable.find((t) => t.id === "text-summarization");
+  return fallback ? [fallback] : projectable.slice(0, 1);
 }

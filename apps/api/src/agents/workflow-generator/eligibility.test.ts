@@ -109,3 +109,67 @@ describe("reporting withheld capabilities", () => {
     expect(withheldResources(marked)).toEqual(["queue"]);
   });
 });
+
+/**
+ * The catalog names which AI node covers each capability. These pin the two
+ * properties that make that curation worth having: the runner-up models stay
+ * out, and they stay out *silently* — a workflow is not missing a capability
+ * just because a cheaper model was not offered.
+ */
+describe("curated AI catalog", () => {
+  const modelNode = (type: string, tags = ["AI"]) => ({
+    id: type,
+    name: type,
+    type,
+    description: "A model",
+    tags,
+    icon: "sparkles",
+    inputs: [],
+    outputs: [],
+  });
+
+  it("offers the named model and withholds the rest", () => {
+    const { eligible } = filterEligible(
+      [
+        modelNode("agent-claude-sonnet-4"),
+        modelNode("gpt-5-mini"),
+        modelNode("gemini-2-5-flash"),
+        modelNode("claude-35-haiku"),
+        modelNode("agent-qwen3-30b-a3b-fp8"),
+      ],
+      { connectedProviders: new Set() }
+    );
+
+    expect(typesOf(eligible)).toEqual(new Set(["agent-claude-sonnet-4"]));
+  });
+
+  it("says nothing about the models it did not offer", () => {
+    // Reporting them would read as "unavailable, go connect something", when
+    // the truth is that a better node already covers the request.
+    const { withheld } = filterEligible([modelNode("gpt-5-mini")], {
+      connectedProviders: new Set(),
+    });
+
+    expect(reasonFor(withheld, "gpt-5-mini")).toBeUndefined();
+  });
+
+  it("keeps retrieval nodes, which are tagged AI but are not a model choice", () => {
+    const { eligible } = filterEligible(
+      [modelNode("dataset-ai-search"), modelNode("ai-image", ["AI", "Image"])],
+      { connectedProviders: new Set() }
+    );
+
+    expect(typesOf(eligible)).toEqual(
+      new Set(["dataset-ai-search", "ai-image"])
+    );
+  });
+
+  it("leaves nodes without the AI tag alone", () => {
+    const { eligible } = filterEligible(
+      [modelNode("fetch", ["Network"]), modelNode("output-text", ["Output"])],
+      { connectedProviders: new Set() }
+    );
+
+    expect(typesOf(eligible)).toEqual(new Set(["fetch", "output-text"]));
+  });
+});

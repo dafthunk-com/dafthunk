@@ -23,6 +23,7 @@ import { AgentClaudeSonnet4Node } from "@dafthunk/runtime/nodes/agent/agent-clau
 import { AgentGemini25FlashNode } from "@dafthunk/runtime/nodes/agent/agent-gemini-2-5-flash-node";
 import { AgentGemini31ProNode } from "@dafthunk/runtime/nodes/agent/agent-gemini-3-1-pro-node";
 import { AgentGemini3FlashNode } from "@dafthunk/runtime/nodes/agent/agent-gemini-3-flash-node";
+import { AgentGlm47FlashNode } from "@dafthunk/runtime/nodes/agent/agent-glm-4-7-flash-node";
 import { AgentGpt41Node } from "@dafthunk/runtime/nodes/agent/agent-gpt-41-node";
 import { AgentQwen330BA3BFp8Node } from "@dafthunk/runtime/nodes/agent/agent-qwen3-30b-a3b-fp8-node";
 import { Claude3OpusNode } from "@dafthunk/runtime/nodes/anthropic/claude-3-opus-node";
@@ -1105,6 +1106,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry<Bindings> {
     this.registerImplementation(AgentGemini3FlashNode);
     this.registerImplementation(AgentGemini31ProNode);
     this.registerImplementation(AgentGpt41Node);
+    this.registerImplementation(AgentGlm47FlashNode);
     this.registerImplementation(AgentQwen330BA3BFp8Node);
   }
 }

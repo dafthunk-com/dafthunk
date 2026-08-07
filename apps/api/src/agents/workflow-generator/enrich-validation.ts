@@ -190,6 +190,39 @@ export function enrichValidation(
   const errors: EnrichedValidationError[] = [...extra];
   const byId = new Map<string, Node>(workflow.nodes.map((n) => [n.id, n]));
 
+  /**
+   * A generated workflow with no nodes has failed, whatever else validates.
+   *
+   * `EMPTY_WORKFLOW` has been in this module's vocabulary — code, severity and
+   * repair instruction — while nothing could emit it. Every rule here and in
+   * `validateWorkflow` iterates nodes or edges, so a graph with neither
+   * produced no findings at all: the pipeline saved it, ran it (a run with
+   * nothing to run completes immediately) and reported success having delivered
+   * nothing. Two evaluation cases failed this way with `outcome=ok nodes=0`,
+   * which reads as a delivery problem and is not one.
+   *
+   * Not pushed down into `validateWorkflow`, deliberately. That gates the
+   * create and update endpoints, where an empty graph is a blank canvas
+   * somebody is still drawing on. The asymmetry is the point: a person may
+   * save nothing, a generator may not return it.
+   *
+   * Returned alone. Every other check is vacuously satisfied by an empty graph,
+   * so anything reported beside this would be noise in the repair prompt.
+   */
+  if (workflow.nodes.length === 0) {
+    return [
+      {
+        code: "EMPTY_WORKFLOW",
+        severity: "fatal",
+        message: "The workflow has no nodes.",
+        fix: fixForStructuralError(
+          "EMPTY_WORKFLOW",
+          "The workflow has no nodes."
+        ),
+      },
+    ];
+  }
+
   // Port-level detail for every edge, derived independently of the base
   // validator so we can say which side was wrong.
   for (const edge of workflow.edges) {

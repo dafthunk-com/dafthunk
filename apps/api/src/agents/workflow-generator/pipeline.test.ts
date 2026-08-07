@@ -491,7 +491,8 @@ describe("selectCandidates", () => {
     );
 
     const types = candidates.map((c) => c.type);
-    expect(types).toContain("ai-text");
+    // The agent node carries text generation now that `ai-text` is gone.
+    expect(types).toContain("agent-claude-sonnet-4");
     expect(types).toContain("output-text");
   });
 });

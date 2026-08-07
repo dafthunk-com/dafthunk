@@ -176,3 +176,179 @@ describe("CloudflareModelNode — response_format translation", () => {
     });
   });
 });
+
+/**
+ * Two response shapes coexist in the Workers AI catalog.
+ *
+ * The fixture below is the shape GLM 4.7 Flash returns — the same OpenAI schema
+ * its input follows. A node declaring a `response` output found nothing under
+ * that name and reported success with an empty payload, which reached the
+ * evaluation suite as a workflow that ran green and delivered no text.
+ */
+describe("CloudflareModelNode — chat-completion responses", () => {
+  const chatCompletion = {
+    id: "chatcmpl-1",
+    object: "chat.completion",
+    choices: [
+      {
+        index: 0,
+        message: { role: "assistant", content: "Où est la gare ?" },
+        finish_reason: "stop",
+      },
+    ],
+    usage: { prompt_tokens: 12, completion_tokens: 6, total_tokens: 18 },
+  };
+
+  it("reads the assistant text onto the declared output", async () => {
+    const aiRun = vi.fn().mockResolvedValue(chatCompletion);
+    const result = await makeNode().execute(
+      makeContext({ model: "@cf/zai-org/glm-4.7-flash", prompt: "hi" }, aiRun)
+    );
+
+    expect(result.status).toBe("completed");
+    expect(result.outputs?.response).toBe("Où est la gare ?");
+  });
+
+  it("still prefers an explicit field of that name", async () => {
+    const aiRun = vi.fn().mockResolvedValue({
+      response: "from the older shape",
+      choices: [{ message: { content: "from the newer one" } }],
+    });
+    const result = await makeNode().execute(
+      makeContext({ model: "@cf/meta/llama-3.3-70b-instruct-fp8-fast" }, aiRun)
+    );
+
+    expect(result.outputs?.response).toBe("from the older shape");
+  });
+
+  it("joins the parts of a multimodal content array", async () => {
+    const aiRun = vi.fn().mockResolvedValue({
+      choices: [
+        {
+          message: {
+            content: [
+              { type: "text", text: "Où est " },
+              { type: "text", text: "la gare ?" },
+            ],
+          },
+        },
+      ],
+    });
+    const result = await makeNode().execute(
+      makeContext({ model: "@cf/zai-org/glm-4.7-flash" }, aiRun)
+    );
+
+    expect(result.outputs?.response).toBe("Où est la gare ?");
+  });
+
+  it("leaves the output absent when there is no text anywhere", async () => {
+    const aiRun = vi.fn().mockResolvedValue({ choices: [] });
+    const result = await makeNode().execute(
+      makeContext({ model: "@cf/zai-org/glm-4.7-flash" }, aiRun)
+    );
+
+    expect(result.outputs?.response).toBeUndefined();
+  });
+});
+
+describe("CloudflareModelNode — truncation reporting", () => {
+  function captureWarnings() {
+    return vi.spyOn(console, "warn").mockImplementation(() => {});
+  }
+
+  it("reports a generation cut off at its ceiling on the OpenAI shape", async () => {
+    const warn = captureWarnings();
+    const aiRun = vi.fn().mockResolvedValue({
+      choices: [
+        { message: { content: "half a thou" }, finish_reason: "length" },
+      ],
+      usage: { prompt_tokens: 12, completion_tokens: 4096 },
+    });
+
+    await makeNode().execute(
+      makeContext(
+        { model: "@cf/zai-org/glm-4.7-flash", prompt: "hi", max_tokens: 4096 },
+        aiRun
+      )
+    );
+
+    expect(warn).toHaveBeenCalledOnce();
+    expect(warn.mock.calls[0][0]).toContain("hit its output ceiling");
+    expect(warn.mock.calls[0][0]).toContain("4096/4096");
+    expect(warn.mock.calls[0][0]).toContain("finish_reason=length");
+    warn.mockRestore();
+  });
+
+  /**
+   * The `{ response }` models carry no `finish_reason` at all, so spending the
+   * whole allowance is the only evidence available. This is the shape `ai-text`
+   * actually uses.
+   */
+  it("infers the ceiling from usage when the shape has no finish_reason", async () => {
+    const warn = captureWarnings();
+    const aiRun = vi.fn().mockResolvedValue({
+      response: "a long answer",
+      usage: { prompt_tokens: 40, completion_tokens: 512 },
+    });
+
+    await makeNode().execute(
+      makeContext(
+        {
+          model: "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+          prompt: "summarize",
+          max_tokens: 512,
+        },
+        aiRun
+      )
+    );
+
+    expect(warn).toHaveBeenCalledOnce();
+    expect(warn.mock.calls[0][0]).toContain("512/512");
+    warn.mockRestore();
+  });
+
+  /**
+   * The case the instrument exists to distinguish: a verbose answer the model
+   * chose to end. Silence here is what makes a long output a prompt problem
+   * rather than a budget one.
+   */
+  it("stays silent when the model stopped on its own", async () => {
+    const warn = captureWarnings();
+    const aiRun = vi.fn().mockResolvedValue({
+      response: "a complete answer",
+      usage: { prompt_tokens: 40, completion_tokens: 3200 },
+    });
+
+    await makeNode().execute(
+      makeContext(
+        {
+          model: "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+          prompt: "summarize",
+          max_tokens: 4096,
+        },
+        aiRun
+      )
+    );
+
+    expect(warn).not.toHaveBeenCalled();
+    warn.mockRestore();
+  });
+
+  it("stays silent when no ceiling was requested and none was reported", async () => {
+    const warn = captureWarnings();
+    const aiRun = vi.fn().mockResolvedValue({
+      response: "an answer",
+      usage: { prompt_tokens: 40, completion_tokens: 900 },
+    });
+
+    await makeNode().execute(
+      makeContext(
+        { model: "@cf/meta/llama-3.3-70b-instruct-fp8-fast", prompt: "hi" },
+        aiRun
+      )
+    );
+
+    expect(warn).not.toHaveBeenCalled();
+    warn.mockRestore();
+  });
+});

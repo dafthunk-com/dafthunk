@@ -133,6 +133,10 @@ export function validateWorkflow(
 ): ValidationError[] {
   const errors: ValidationError[] = [];
 
+  // Emptiness is deliberately not an error here: this gates POST and PUT
+  // /workflows, where a blank canvas is a legitimate thing to save. The
+  // generator holds itself to a stricter bar — see `enrich-validation.ts`.
+
   // Check for multiple trigger nodes
   if (nodeTypes) {
     const triggerTypes = new Set(

@@ -24,6 +24,31 @@ export const LLAMA_3_3_70B_FP8_FAST: {
   },
 };
 
+/**
+ * GLM 4.7 Flash: what generated workflows use for text.
+ *
+ * Cheaper than the Llama above on both halves ($0.06/$0.40 against $0.29/$2.25
+ * per M) with five times the context — 131,072 tokens against 24,000 — so there
+ * was no trade to weigh. The context is what matters for generated work, where
+ * the prompt carries whatever an upstream node fetched and nobody sized it in
+ * advance.
+ *
+ * A separate constant rather than a change to the one above, because the
+ * templates are the only hand-verified graphs in the codebase and repointing
+ * their model is not a decision to make on the way past.
+ */
+export const GLM_4_7_FLASH: {
+  model: string;
+  meta: CloudflareModelMeta;
+} = {
+  model: "@cf/zai-org/glm-4.7-flash",
+  meta: {
+    description:
+      "GLM 4.7 Flash, a multilingual model with a 131,072-token context window and function calling support.",
+    taskName: "Text Generation",
+  },
+};
+
 interface CloudflareModelNodeOptions {
   id: string;
   name: string;

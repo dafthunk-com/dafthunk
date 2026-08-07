@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import type { GeneratedWorkflowDraft } from "./draft-types";
-import { FIXTURE_NODE_TYPES, RECEIVE_SCHEDULED, TEXT_INPUT } from "./fixtures";
+import {
+  AGENT,
+  FIXTURE_NODE_TYPES,
+  RECEIVE_SCHEDULED,
+  TEXT_INPUT,
+} from "./fixtures";
 import {
   hydrateGeneratedWorkflow,
   normalizeTrigger,
@@ -375,5 +380,111 @@ describe("binding org-owned resources", () => {
     )?.value;
     expect(queueId).toBeUndefined();
     expect(boundResources).toEqual([]);
+  });
+});
+
+/**
+ * Tools are the one input the model writes that the canvas never shows.
+ *
+ * The rest of hydration materializes ports the model is not trusted to
+ * describe; this is the reverse — an input it *is* trusted to choose, checked
+ * against an allowlist on the way in.
+ */
+describe("agent tools", () => {
+  const agentDraft = (tools: unknown) =>
+    draft({
+      title: "Digest",
+      nodes: [
+        {
+          id: "agent",
+          type: AGENT.type,
+          inputs: { input: "Summarize the top stories", tools },
+        },
+      ],
+    });
+
+  const toolsOf = (workflow: {
+    nodes: Array<{
+      id: string;
+      inputs: Array<{ name: string; value?: unknown }>;
+    }>;
+  }) =>
+    workflow.nodes
+      .find((node) => node.id === "agent")
+      ?.inputs.find((input) => input.name === "tools")?.value;
+
+  const maxStepsOf = (workflow: {
+    nodes: Array<{
+      id: string;
+      inputs: Array<{ name: string; value?: unknown }>;
+    }>;
+  }) =>
+    workflow.nodes
+      .find((node) => node.id === "agent")
+      ?.inputs.find((input) => input.name === "max_steps")?.value;
+
+  it("keeps an allowlisted tool the model asked for", () => {
+    const { workflow, errors } = hydrateGeneratedWorkflow(
+      agentDraft([{ type: "node", identifier: "fetch" }]),
+      FIXTURE_NODE_TYPES,
+      FIXTURE_NODE_TYPES
+    );
+
+    expect(errors).toHaveLength(0);
+    expect(toolsOf(workflow)).toEqual([{ type: "node", identifier: "fetch" }]);
+  });
+
+  it("raises the step ceiling for an agent that has tools", () => {
+    const { workflow } = hydrateGeneratedWorkflow(
+      agentDraft(["fetch"]),
+      FIXTURE_NODE_TYPES,
+      FIXTURE_NODE_TYPES
+    );
+
+    expect(maxStepsOf(workflow)).toBe(20);
+  });
+
+  /**
+   * Fatal, not silent. An agent with nothing to call cannot go and look
+   * anything up, and it will not report that — it will answer from what it
+   * already knows, which is the fabrication this whole line of work exists to
+   * stop.
+   */
+  it("refuses a tool that is not on the allowlist", () => {
+    const { workflow, errors } = hydrateGeneratedWorkflow(
+      agentDraft([{ type: "node", identifier: "send-email" }]),
+      FIXTURE_NODE_TYPES,
+      FIXTURE_NODE_TYPES
+    );
+
+    expect(errors).toHaveLength(1);
+    expect(errors[0].code).toBe("UNKNOWN_TOOL");
+    expect(errors[0].severity).toBe("fatal");
+    expect(errors[0].fix).toContain("fetch");
+    expect(toolsOf(workflow)).toEqual([]);
+  });
+
+  it("warns rather than fails when a usable tool survives", () => {
+    const { errors } = hydrateGeneratedWorkflow(
+      agentDraft(["fetch", "send-email"]),
+      FIXTURE_NODE_TYPES,
+      FIXTURE_NODE_TYPES
+    );
+
+    expect(errors).toHaveLength(1);
+    expect(errors[0].code).toBe("UNKNOWN_TOOL");
+    expect(errors[0].severity).toBe("warning");
+  });
+
+  it("leaves a toolless agent alone", () => {
+    const { workflow, errors } = hydrateGeneratedWorkflow(
+      agentDraft(undefined),
+      FIXTURE_NODE_TYPES,
+      FIXTURE_NODE_TYPES
+    );
+
+    expect(errors).toHaveLength(0);
+    expect(toolsOf(workflow)).toEqual([]);
+    expect(maxStepsOf(workflow)).toBe(10);
   });
 });

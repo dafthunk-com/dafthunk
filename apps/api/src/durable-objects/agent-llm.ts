@@ -476,18 +476,7 @@ async function callWorkersAI(
     } as any
   )) as any;
 
-  const choice = result?.choices?.[0]?.message;
-  const content: string = choice?.content ?? "";
-  const toolCalls: LLMResponse["toolCalls"] = [];
-  if (choice?.tool_calls) {
-    for (const tc of choice.tool_calls) {
-      toolCalls.push({
-        id: tc.id ?? `wai_${geminiCallId()}`,
-        name: tc.function.name,
-        arguments: safeJsonParse(tc.function.arguments),
-      });
-    }
-  }
+  const { content, toolCalls } = readWorkersAiReply(result);
 
   const usage = result?.usage;
   return {
@@ -496,6 +485,119 @@ async function callWorkersAI(
     inputTokens: usage?.prompt_tokens ?? 0,
     outputTokens: usage?.completion_tokens ?? 0,
   };
+}
+
+/**
+ * Tool calls emitted as text, which is how several Workers AI models answer.
+ *
+ * Qwen and the other Hermes-template models write the call into the reply
+ * itself rather than into a structured field. `runWithTools` — the path the
+ * shipped templates use — knows this; the agent loop reads the response by hand
+ * and did not, so the call arrived as prose and the agent delivered its own
+ * tool syntax to the reader instead of ever running anything.
+ */
+const TOOL_CALL_BLOCK = /<tool_call>\s*([\s\S]*?)\s*<\/tool_call>/g;
+
+/** Arguments arrive as a JSON string from some providers and an object from others. */
+function readArguments(raw: unknown): Record<string, unknown> {
+  if (typeof raw === "string") return safeJsonParse(raw);
+  if (raw && typeof raw === "object") return raw as Record<string, unknown>;
+  return {};
+}
+
+/**
+ * One tool call, from whichever of the three shapes it arrived in.
+ *
+ * `{ function: { name, arguments } }` is the OpenAI shape; `{ name, arguments }`
+ * is what Workers AI puts in its top-level `tool_calls`. Neither is a variant of
+ * the other and both turn up depending on the model.
+ */
+function readToolCall(
+  raw: unknown
+): { name: string; arguments: Record<string, unknown> } | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+
+  const entry = raw as {
+    name?: unknown;
+    arguments?: unknown;
+    function?: { name?: unknown; arguments?: unknown };
+  };
+
+  const name = entry.function?.name ?? entry.name;
+  if (typeof name !== "string" || name === "") return undefined;
+
+  return {
+    name,
+    arguments: readArguments(entry.function?.arguments ?? entry.arguments),
+  };
+}
+
+/**
+ * The assistant's reply, read the way Workers AI actually answers.
+ *
+ * Three places carry tool calls and a given model uses exactly one of them:
+ * the OpenAI-shaped `choices[0].message.tool_calls`, the Workers AI top-level
+ * `tool_calls`, or `<tool_call>` blocks inside the text. Reading only the first
+ * is why a tool-equipped agent on Workers AI never called anything — it saw no
+ * calls, treated the reply as final, and handed the raw syntax to the user.
+ *
+ * Text-borne calls are stripped from the content as they are collected, so what
+ * remains is what the model meant to say rather than its plumbing.
+ */
+export function readWorkersAiReply(result: unknown): {
+  content: string;
+  toolCalls: NonNullable<LLMResponse["toolCalls"]>;
+} {
+  const reply = (result ?? {}) as {
+    response?: unknown;
+    tool_calls?: unknown;
+    choices?: Array<{ message?: { content?: unknown; tool_calls?: unknown } }>;
+  };
+
+  const message = reply.choices?.[0]?.message;
+  let content =
+    typeof message?.content === "string"
+      ? message.content
+      : typeof reply.response === "string"
+        ? reply.response
+        : "";
+
+  const structured = [
+    ...(Array.isArray(message?.tool_calls) ? message.tool_calls : []),
+    ...(Array.isArray(reply.tool_calls) ? reply.tool_calls : []),
+  ];
+
+  const toolCalls: NonNullable<LLMResponse["toolCalls"]> = [];
+  for (const raw of structured) {
+    const call = readToolCall(raw);
+    if (!call) continue;
+    toolCalls.push({
+      id: (raw as { id?: string }).id ?? `wai_${geminiCallId()}`,
+      name: call.name,
+      arguments: call.arguments,
+    });
+  }
+
+  // Only when nothing structured came back: a model that filled the field has
+  // no reason to also write the call out, and parsing prose that merely quotes
+  // the syntax would invent a call nobody asked for.
+  if (toolCalls.length === 0 && content.includes("<tool_call>")) {
+    for (const [, body] of content.matchAll(TOOL_CALL_BLOCK)) {
+      const call = readToolCall(safeJsonParse(body));
+      if (!call) continue;
+      toolCalls.push({
+        id: `wai_${geminiCallId()}`,
+        name: call.name,
+        arguments: call.arguments,
+      });
+    }
+
+    if (toolCalls.length > 0) {
+      content = content.replace(TOOL_CALL_BLOCK, "").trim();
+    }
+  }
+
+  return { content, toolCalls };
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────

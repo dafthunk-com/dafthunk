@@ -23,13 +23,77 @@ import type {
 export interface OutputProblem {
   code:
     | "EMPTY"
+    /**
+     * Delivered text that never mentions what was asked about. Raised by the
+     * harness rather than here: it needs the case's own words, and only a case
+     * that pins its input has any word that has to appear.
+     */
+    | "OFF_TOPIC"
     | "PASSED_THROUGH"
     | "PROMPT_LEAKED"
     | "META_COMMENTARY"
+    /** The model reported having nothing to work on instead of producing it. */
+    | "NO_INPUT"
+    /** The model held a conversation with the reader instead of answering. */
+    | "DIALOGUE"
     | "FABRICATED"
     | "RAW_JSON"
-    | "TRUNCATED";
+    | "TRUNCATED"
+    /**
+     * Far more text than the request could plausibly have wanted.
+     *
+     * The gap this closes: a model that fills whatever budget it is given
+     * produces answers that are individually well-formed and collectively
+     * absurd — 5,206 characters for "tell me in two sentences" scored as a
+     * clean pass across several runs, because every other check here asks
+     * whether the text is *wrong* and none asks whether there is far too much
+     * of it. Length is the one property of a bad answer that is decidable
+     * without a model.
+     */
+    | "OVERLONG";
   message: string;
+}
+
+/** Binary payloads, which a reader sees as a file rather than as text. */
+function isBinaryValue(value: object): boolean {
+  return (
+    ("data" in value && "mimeType" in value) ||
+    ("id" in value && "mimeType" in value)
+  );
+}
+
+/**
+ * One value, as the text a reader would see.
+ *
+ * Strings used to be the only thing considered, which was right until agent
+ * nodes became reachable: their `text` output is typed `any`, so a JSON answer
+ * was dropped on the floor and the run reported as having delivered nothing.
+ * "Nothing arrived" and "something arrived that I could not read" have
+ * different causes and this could not tell them apart.
+ *
+ * Rendering the JSON instead is what lets the existing checks judge it — a
+ * digest delivered as an object is exactly what `RAW_JSON` is for. Binary stays
+ * out: an image is a real delivery and simply is not text, so counting it as
+ * either prose or nothing would be a lie in one direction or the other.
+ */
+function renderValue(value: unknown): string | undefined {
+  if (typeof value === "string") {
+    return value.trim() === "" ? undefined : value;
+  }
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+  if (value === null || typeof value !== "object") return undefined;
+  if (isBinaryValue(value)) return undefined;
+
+  try {
+    const rendered = JSON.stringify(value);
+    return rendered === undefined || rendered === "{}" || rendered === "[]"
+      ? undefined
+      : rendered;
+  } catch {
+    return undefined;
+  }
 }
 
 /**
@@ -40,18 +104,40 @@ export interface OutputProblem {
  * interesting value is on the way in.
  */
 function inboundText(execution: NodeExecution): string[] {
-  const values = Object.values(execution.inputs ?? {});
-  return values.filter(
-    (value): value is string => typeof value === "string" && value.trim() !== ""
-  );
+  return Object.values(execution.inputs ?? {})
+    .map(renderValue)
+    .filter((text): text is string => text !== undefined);
 }
 
 /** Everything a node produced, as text. */
 function outboundText(execution: NodeExecution): string[] {
-  const values = Object.values(execution.outputs ?? {});
-  return values.filter(
-    (value): value is string => typeof value === "string" && value.trim() !== ""
-  );
+  return Object.values(execution.outputs ?? {})
+    .map(renderValue)
+    .filter((text): text is string => text !== undefined);
+}
+
+/**
+ * Whether anything at all arrived at a terminal node, readable or not.
+ *
+ * The difference between an empty delivery and a binary one, which the text
+ * above cannot express and which points at entirely different bugs: nothing was
+ * wired, against something was wired that nobody can read.
+ */
+function inboundValueTypes(
+  workflow: Workflow,
+  execution: WorkflowExecution
+): string[] {
+  const typeById = new Map(workflow.nodes.map((node) => [node.id, node.type]));
+
+  return execution.nodeExecutions
+    .filter((node) => TERMINAL_TYPES.test(typeById.get(node.nodeId) ?? ""))
+    .flatMap((node) => Object.values(node.inputs ?? {}))
+    .filter((value) => value !== null && value !== undefined)
+    .map((value) =>
+      typeof value === "object" && isBinaryValue(value as object)
+        ? "binary"
+        : typeof value
+    );
 }
 
 /**
@@ -106,11 +192,58 @@ const META_MARKERS = [
   /\bthe (original|revised) (instruction|response|answer)\b/i,
   /\bas an ai (language )?model\b/i,
   /\bsince the original response already\b/i,
-  /\bhere is the (corrected|revised|updated) (response|version|answer)\b/i,
+  // "rewritten" was missing until a run produced "Here is the rewritten
+  // response:" twice in a two-sentence answer and was caught only because the
+  // same output happened to also say "the final answer is".
+  /\bhere is the (corrected|revised|updated|rewritten) (response|version|answer)\b/i,
   /\bto meet the .{0,30}requirement\b/i,
+  // An agent narrating its own tool loop before answering: "I now have all the
+  // information needed. Here is the numbered list…". Anchored to the start of a
+  // line so it catches the preamble it always appears in, and not a sentence
+  // that happens to discuss having information.
+  /^\s*(?:great[,.]?\s*)?i (?:now )?have (?:all )?(?:the )?(?:information|data|details)\b/im,
   // Training-data debris. `# noqa` is a Python linter directive and has no
   // business in a summary; seeing one means the model is completing code.
   /#\s*noqa\b/i,
+];
+
+/**
+ * A model reporting that it was handed nothing, to a reader who cannot answer.
+ *
+ * The sibling of fabrication and the more common half: given an empty input,
+ * a model either invents the content or asks for it. The second reads as
+ * harmless and is not — nobody is on the other end of a scheduled workflow to
+ * supply the JSON it is waiting for, so the request simply never happened.
+ *
+ * It gets its own code because the fix is somewhere else entirely. Nothing is
+ * wrong with the model or the prompt; the node upstream delivered nothing, and
+ * that is where to look.
+ */
+const NO_INPUT_MARKERS = [
+  /\bno (json |input )?data (was )?(provided|available|given)\b/i,
+  /\bplease provide the\b/i,
+  /\bif you (provide|give|share) (me )?the\b/i,
+  /\bi'?ll wait for the (actual|real)\b/i,
+  /\bwaiting for (the )?(actual|real|json) (data|input|content)\b/i,
+  /\bonce you provide\b/i,
+];
+
+/**
+ * A model staging a conversation with the reader instead of answering them.
+ *
+ * A small model asked to check its own work can slip into taking both parts —
+ * it extracts the right answer, asks the user to confirm it, answers on their
+ * behalf, and repeats until the tokens run out. The answer is in there, which
+ * is what makes it dangerous: the content check passes and the delivered text
+ * is still unusable.
+ */
+const DIALOGUE_MARKERS = [
+  /\b(waiting for|awaiting) your confirmation\b/i,
+  /^\s*please confirm\.?\s*$/im,
+  /\byou are correct,? i confirm\b/i,
+  /\bi confirm your\b/i,
+  /\bshall i (proceed|continue)\b/i,
+  /\blet me know if you(?:'d| would) like me to\b/i,
 ];
 
 /**
@@ -166,6 +299,27 @@ function looksTruncated(text: string): boolean {
   // a long passage whose last word is a fragment ("...web development to
   // entreprene") with no terminal punctuation to end it.
   if (/[.!?:;)\]}"'`]$/.test(trimmed)) return false;
+
+  /**
+   * A list item is a finished unit, and finishing one without punctuation is
+   * ordinary formatting rather than an interruption.
+   *
+   * Nothing available here separates a complete word from a fragment: "invoice"
+   * and "entreprene" are both lowercase runs of five or more letters. So a
+   * correct answer — "- Anna: Chase the Cloudflare invoice" — was read as
+   * truncated and failed, twice, in consecutive evaluation runs.
+   *
+   * The trade is that a list cut at exactly an item boundary is no longer
+   * caught. That is the better side to err on now that genuine truncation is
+   * observed rather than guessed: the agent path raises
+   * `TruncatedResponseError` on `stop_reason === "max_tokens"`, and the Workers
+   * AI path warns on `finish_reason=length`. This heuristic became a backstop
+   * for oddly-stopping models, and a backstop that fails good answers is worth
+   * less than the ones it catches.
+   */
+  const lastLine = trimmed.slice(trimmed.lastIndexOf("\n") + 1).trim();
+  if (/^(?:[-*+•]|\d+[.)])\s/.test(lastLine)) return false;
+
   const lastWord = trimmed.split(/\s+/).pop() ?? "";
   return lastWord.length >= 5 && /^[a-z]+$/.test(lastWord);
 }
@@ -173,6 +327,17 @@ function looksTruncated(text: string): boolean {
 export interface OutputCheckContext {
   /** Whether the request asked for prose rather than data. */
   expectsProse: boolean;
+  /**
+   * Roughly the longest a reasonable answer could run, in characters.
+   *
+   * Deliberately loose — several times a sensible answer — because the target
+   * is order-of-magnitude wrongness, not phrasing. Anything tighter starts
+   * measuring style and fails good answers for being a paragraph over.
+   *
+   * Omitted where no honest ceiling exists, which is not a failing: a case with
+   * no bound simply isn't checked for length.
+   */
+  maxChars?: number;
 }
 
 /**
@@ -191,11 +356,16 @@ export function checkDelivered(
   const problems: OutputProblem[] = [];
 
   if (delivered.length === 0) {
+    // Say which of the two it was. A run that delivered an image and a run that
+    // delivered nothing are both "no text", and chasing the wrong one costs an
+    // afternoon.
+    const arrived = inboundValueTypes(workflow, execution);
     return [
       {
         code: "EMPTY",
-        message:
-          "Nothing reached a terminal node — the workflow delivered no text.",
+        message: arrived.length
+          ? `Nothing readable reached a terminal node — what arrived was ${[...new Set(arrived)].join(", ")}.`
+          : "Nothing reached a terminal node — the workflow delivered no text.",
       },
     ];
   }
@@ -230,6 +400,26 @@ export function checkDelivered(
       }
     }
 
+    for (const marker of NO_INPUT_MARKERS) {
+      if (marker.test(trimmed)) {
+        problems.push({
+          code: "NO_INPUT",
+          message: `Delivered text asks the reader for input the workflow was supposed to supply (${marker.source}).`,
+        });
+        break;
+      }
+    }
+
+    for (const marker of DIALOGUE_MARKERS) {
+      if (marker.test(trimmed)) {
+        problems.push({
+          code: "DIALOGUE",
+          message: `Delivered text talks to the reader instead of answering (${marker.source}).`,
+        });
+        break;
+      }
+    }
+
     for (const marker of FABRICATION_MARKERS) {
       if (marker.test(trimmed)) {
         problems.push({
@@ -252,6 +442,21 @@ export function checkDelivered(
       problems.push({
         code: "TRUNCATED",
         message: "Delivered text stops mid-structure — it was cut off.",
+      });
+    }
+  }
+
+  /**
+   * Measured across every terminal node rather than per value, because the
+   * length a reader experiences is the whole delivery. Two outputs of four
+   * thousand characters each are not two acceptable answers.
+   */
+  if (context.maxChars !== undefined) {
+    const total = delivered.reduce((sum, text) => sum + text.trim().length, 0);
+    if (total > context.maxChars) {
+      problems.push({
+        code: "OVERLONG",
+        message: `Delivered ${total} characters for a request that wanted at most about ${context.maxChars}.`,
       });
     }
   }

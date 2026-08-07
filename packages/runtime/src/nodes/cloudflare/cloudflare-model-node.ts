@@ -67,6 +67,54 @@ function inferMimeType(type: string): string {
   return MIME_FALLBACKS[type] ?? "application/octet-stream";
 }
 
+/** Output types that can carry generated text. */
+const TEXT_OUTPUT_TYPES = new Set(["string", "any", "json"]);
+
+/**
+ * The assistant's text from an OpenAI-shaped chat completion.
+ *
+ * Two response shapes coexist in the Workers AI catalog. The older text models
+ * answer `{ response: "..." }`; the ones added from GLM 4.7 Flash onward answer
+ * `{ choices: [{ message: { content } }] }` — the same OpenAI schema their input
+ * follows. A node declaring a `response` output finds nothing under that name in
+ * the second shape, and because a missing field is skipped rather than refused,
+ * the node reports success having emitted nothing at all. That is how a model
+ * swap produced a workflow that ran green and delivered an empty string.
+ *
+ * `content` can itself be a parts array on multimodal replies, so the text
+ * segments are joined rather than assumed to be a bare string.
+ */
+function extractChatCompletionText(
+  result: Record<string, unknown>
+): string | undefined {
+  const choices = result.choices;
+  if (!Array.isArray(choices) || choices.length === 0) return undefined;
+
+  const first = choices[0] as {
+    message?: { content?: unknown };
+    text?: unknown;
+  };
+
+  const content = first?.message?.content;
+  if (typeof content === "string") return content;
+
+  if (Array.isArray(content)) {
+    const text = content
+      .map((part) =>
+        part &&
+        typeof part === "object" &&
+        typeof (part as { text?: unknown }).text === "string"
+          ? (part as { text: string }).text
+          : ""
+      )
+      .join("");
+    return text === "" ? undefined : text;
+  }
+
+  // Completion-style replies put the text directly on the choice.
+  return typeof first?.text === "string" ? first.text : undefined;
+}
+
 async function streamToBlob(stream: ReadableStream): Promise<Uint8Array> {
   const response = new Response(stream);
   const buffer = await response.arrayBuffer();
@@ -173,7 +221,12 @@ For example: \`@cf/meta/llama-3.2-3b-instruct\`, \`@cf/openai/whisper\`, \`@cf/b
         context.env.AI_OPTIONS
       );
 
-      return await this.processOutput(modelInput, promptBytes, result);
+      return await this.processOutput(
+        modelInput,
+        promptBytes,
+        result,
+        requestedMaxTokens(aiInput)
+      );
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"
@@ -212,7 +265,12 @@ For example: \`@cf/meta/llama-3.2-3b-instruct\`, \`@cf/openai/whisper\`, \`@cf/b
         aiInput as never,
         context.env.AI_OPTIONS
       );
-      return await this.processOutput(modelId, promptBytes, result);
+      return await this.processOutput(
+        modelId,
+        promptBytes,
+        result,
+        requestedMaxTokens(aiInput)
+      );
     }
 
     const messages = buildMessagesFromInput(aiInput);
@@ -264,7 +322,12 @@ For example: \`@cf/meta/llama-3.2-3b-instruct\`, \`@cf/openai/whisper\`, \`@cf/b
           }
         : result;
 
-    return await this.processOutput(modelId, promptBytes, augmented);
+    return await this.processOutput(
+      modelId,
+      promptBytes,
+      augmented,
+      requestedMaxTokens(rest)
+    );
   }
 
   /**
@@ -310,7 +373,8 @@ For example: \`@cf/meta/llama-3.2-3b-instruct\`, \`@cf/openai/whisper\`, \`@cf/b
   private async processOutput(
     modelId: string,
     promptBytes: number,
-    result: unknown
+    result: unknown,
+    maxTokens?: number
   ): Promise<NodeExecution> {
     const outputs = this.node.outputs ?? [];
 
@@ -349,7 +413,8 @@ For example: \`@cf/meta/llama-3.2-3b-instruct\`, \`@cf/openai/whisper\`, \`@cf/b
       return this.processObjectOutput(
         modelId,
         promptBytes,
-        result as Record<string, unknown>
+        result as Record<string, unknown>,
+        maxTokens
       );
     }
 
@@ -371,11 +436,14 @@ For example: \`@cf/meta/llama-3.2-3b-instruct\`, \`@cf/openai/whisper\`, \`@cf/b
   private processObjectOutput(
     modelId: string,
     promptBytes: number,
-    result: Record<string, unknown>
+    result: Record<string, unknown>,
+    maxTokens?: number
   ): NodeExecution {
     const outputs = this.node.outputs ?? [];
     const payload: Record<string, unknown> = {};
     let decodedBlobBytes = 0;
+
+    reportTruncation(modelId, result, maxTokens);
 
     if (outputs.length === 0) {
       const responseBytes = JSON.stringify(result).length;
@@ -388,8 +456,26 @@ For example: \`@cf/meta/llama-3.2-3b-instruct\`, \`@cf/openai/whisper\`, \`@cf/b
       return this.createSuccessResult({ output: result }, usage);
     }
 
+    // Newer Workers AI text models answer in the OpenAI chat-completions shape
+    // rather than `{ response }`, so a node declaring a `response` output finds
+    // nothing under that name. Resolved once here, and only consulted when the
+    // declared name is absent, so nothing that already works changes.
+    const chatText = extractChatCompletionText(result);
+    let chatTextUsed = false;
+
     for (const outputDef of outputs) {
-      const value = result[outputDef.name];
+      let value = result[outputDef.name];
+
+      if (
+        value === undefined &&
+        chatText !== undefined &&
+        !chatTextUsed &&
+        TEXT_OUTPUT_TYPES.has(outputDef.type)
+      ) {
+        value = chatText;
+        chatTextUsed = true;
+      }
+
       if (value === undefined) continue;
 
       if (BLOB_TYPES.has(outputDef.type)) {
@@ -501,6 +587,68 @@ function extractResponseUsage(
 /** Rough conversion from serialised prompt bytes to token count (~4 bytes/token). */
 function estimateInputTokens(promptBytes: number): number {
   return Math.ceil(promptBytes / 4);
+}
+
+/** The output ceiling the request actually asked for, if it asked for one. */
+function requestedMaxTokens(
+  aiInput: Record<string, unknown>
+): number | undefined {
+  const value = aiInput.max_tokens;
+  return typeof value === "number" && value > 0 ? value : undefined;
+}
+
+/** OpenAI-shaped replies say outright why generation stopped. */
+function extractFinishReason(
+  result: Record<string, unknown>
+): string | undefined {
+  const choices = result.choices;
+  if (!Array.isArray(choices) || choices.length === 0) return undefined;
+  const reason = (choices[0] as { finish_reason?: unknown })?.finish_reason;
+  return typeof reason === "string" ? reason : undefined;
+}
+
+/**
+ * Say so when a generation stopped because it ran out of room rather than
+ * because the model was finished.
+ *
+ * Nothing else can tell those apart. Judging it from the length of the text is
+ * what produced the wrong conclusion before: output that merely *looks* long
+ * proves nothing, because `deliveredText` sums every terminal node, so a
+ * workflow reaches numbers no single call could. Truncated prose is worse than
+ * an error for exactly the same reason — it reads as finished right up to the
+ * point where it isn't.
+ *
+ * Two signals, because the catalog's two response shapes carry different ones.
+ * `finish_reason` is definitive but only present on OpenAI-shaped replies; the
+ * older `{ response }` shape has just `usage`, where landing on the ceiling is
+ * the tell. Either is enough on its own.
+ *
+ * Silence is the useful half of this: a long answer with no warning is a model
+ * choosing to be verbose, which is a prompt problem and not a budget one.
+ */
+function reportTruncation(
+  modelId: string,
+  result: Record<string, unknown>,
+  maxTokens: number | undefined
+): void {
+  const finishReason = extractFinishReason(result);
+  const completionTokens = extractResponseUsage(result)?.completion_tokens;
+
+  const hitCeiling =
+    finishReason === "length" ||
+    (maxTokens !== undefined &&
+      completionTokens !== undefined &&
+      completionTokens >= maxTokens);
+
+  if (!hitCeiling) return;
+
+  const spent = completionTokens ?? "unknown";
+  const ceiling = maxTokens ?? "unset";
+  const reason = finishReason ? `, finish_reason=${finishReason}` : "";
+  console.warn(
+    `[cloudflare-model] "${modelId}" hit its output ceiling ` +
+      `(${spent}/${ceiling} tokens${reason}). The answer is cut off, not finished.`
+  );
 }
 
 /**

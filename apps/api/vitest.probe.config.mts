@@ -7,7 +7,14 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const emptyStub = resolve(__dirname, "test/stubs/empty-module.ts");
 
 /**
- * Config for the generator evaluation.
+ * Config for the Workers AI reachability probe.
+ *
+ * Identical bindings to the evaluation config — same remote `AI`, same stubs —
+ * because the whole point is to reproduce what the evaluation suite hits with
+ * nothing else in the way. Split into its own file rather than a flag so the
+ * two suites cannot be confused for one another in a log.
+ *
+ * The original note, still accurate:
  *
  * Neither of the other two fits. The integration config exists for specs that
  * run real Workers AI models, so it carries a remote `AI` binding and loads the
@@ -36,22 +43,10 @@ export default defineConfig({
     cloudflareTest({
       wrangler: { configPath: "./wrangler.evaluation.jsonc" },
       main: "./src/test-entry.ts",
-      /**
-       * The suite runs inside workerd, which does not inherit the host shell's
-       * environment: `process.env.EVAL_RUNS` reads as undefined there however
-       * the command was invoked, so the sample count silently stayed at 1 and
-       * every result this suite has ever produced was a single sample. A
-       * build-time `define` was tried first and does not reach the worker
-       * bundle either. A binding is the supported way in, and the config file
-       * is the last hop that still has the host environment in scope.
-       */
-      miniflare: {
-        bindings: { EVAL_RUNS: process.env.EVAL_RUNS ?? "1" },
-      },
     }),
   ],
   test: {
-    include: ["**/evaluation.integration.ts"],
+    include: ["**/model-probe.integration.ts"],
     // The report is the product of this suite, and the pool swallows worker
     // console output by default — which would leave a run that measured
     // everything and said nothing.

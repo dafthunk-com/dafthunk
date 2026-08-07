@@ -76,7 +76,9 @@ export type GenerationErrorCode =
   /** The graph is well-formed but does not deliver what the brief promised. */
   | "DESTINATION_NOT_REALIZED"
   /** A node needing one of several inputs was given none of them. */
-  | "MISSING_ONE_OF_INPUTS";
+  | "MISSING_ONE_OF_INPUTS"
+  /** An agent was given a tool that is not on the allowlist, or is unreadable. */
+  | "UNKNOWN_TOOL";
 
 export interface EnrichedValidationError {
   code: GenerationErrorCode;

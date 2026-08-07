@@ -1,9 +1,6 @@
 import type { CloudflareModelMeta, Node, NodeType } from "@dafthunk/types";
 
-import {
-  createCloudflareModelNode,
-  LLAMA_3_3_70B_FP8_FAST,
-} from "../../templates/cloudflare-model-template";
+import { createCloudflareModelNode } from "../../templates/cloudflare-model-template";
 
 /**
  * Curated stand-ins for Workers AI, shown to the model instead of the raw
@@ -51,32 +48,19 @@ function pseudo(
 }
 
 const PSEUDO_NODE_TYPES: PseudoNodeType[] = [
-  pseudo(
-    "ai-text",
-    "AI Text",
-    "Generate or transform text with an AI model. Use for summarizing, classifying, extracting, rewriting, answering, or drafting.",
-    ["AI", "Text"],
-    "sparkles",
-    LLAMA_3_3_70B_FP8_FAST.model,
-    LLAMA_3_3_70B_FP8_FAST.meta,
-    [
-      {
-        name: "prompt",
-        type: "string",
-        description:
-          "The full instruction, including any text to operate on. Build it with a template node when it mixes static wording and upstream values.",
-        required: true,
-      },
-      {
-        name: "max_tokens",
-        type: "number",
-        description: "Maximum length of the generated text, in tokens",
-        hidden: true,
-        value: 512,
-      },
-    ],
-    [{ name: "response", type: "string", description: "The generated text" }]
-  ),
+  /**
+   * `ai-text` stood here and was removed, not merely delisted.
+   *
+   * Delisting from `CORE_NODE_TYPES` was not enough: `pipeline.ts` ranks every
+   * pseudo type alongside the registry, so a stand-in whose description begins
+   * "Use for summarizing, classifying, extracting" wins the very requests it
+   * was meant to stop serving. A node the generator must not choose has to be
+   * absent from the pool, not merely unpinned.
+   *
+   * It was a stand-in for Workers AI text generation, which the agent node now
+   * covers — see the reasoning in `core-nodes.ts`, and the cost it accepts.
+   * Image and transcription keep theirs, having no Anthropic equivalent.
+   */
   pseudo(
     "ai-image",
     "AI Image",

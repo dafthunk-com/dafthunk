@@ -410,3 +410,51 @@ describe("inputs where one of several will do", () => {
     expect(errors.some((e) => e.code === "MISSING_ONE_OF_INPUTS")).toBe(true);
   });
 });
+
+/**
+ * The generator holds a stricter bar than the shared validator.
+ *
+ * `validateWorkflow` accepts an empty graph on purpose — it gates the create
+ * and update endpoints, where a blank canvas is a legitimate save. A generator
+ * that returns nothing has simply failed, and until this check existed the
+ * pipeline saved that nothing, ran it and called it a success.
+ */
+describe("empty generated workflow", () => {
+  const empty = {
+    id: "w",
+    name: "w",
+    handle: "w",
+    type: "manual",
+    trigger: "manual",
+    nodes: [],
+    edges: [],
+  } as unknown as Workflow;
+
+  it("is fatal, so the pipeline never saves it", () => {
+    const errors = enrichValidation(empty, []);
+
+    expect(errors).toHaveLength(1);
+    expect(errors[0].code).toBe("EMPTY_WORKFLOW");
+    expect(errors[0].severity).toBe("fatal");
+  });
+
+  it("carries an instruction the repair round can act on", () => {
+    const [error] = enrichValidation(empty, []);
+
+    expect(error.fix).toMatch(/at least one node/i);
+  });
+
+  it("reports nothing else, which would only be noise", () => {
+    // Every other rule iterates nodes or edges and is vacuously satisfied here.
+    const errors = enrichValidation(empty, [], [], {
+      destination: {
+        id: "send-email",
+        kind: "email",
+        label: "email it",
+        nodeTypes: ["send-email"],
+      },
+    });
+
+    expect(errors.map((e) => e.code)).toEqual(["EMPTY_WORKFLOW"]);
+  });
+});

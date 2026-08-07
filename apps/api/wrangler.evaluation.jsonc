@@ -63,6 +63,13 @@
         "name": "EMAIL_AGENT_RUNNER",
         "class_name": "EmailAgentRunner"
       },
+      // Agent nodes run their tool loop in here. Without it a generated agent
+      // fails on its first step, and the one shape this suite exists to compare
+      // against a pipeline could never be measured.
+      {
+        "name": "AGENT_RUNNER",
+        "class_name": "AgentRunner"
+      },
       {
         "name": "WORKFLOW_GENERATOR_AGENT",
         "class_name": "WorkflowGeneratorAgent"
@@ -81,6 +88,10 @@
     {
       "tag": "v3",
       "new_sqlite_classes": ["WorkflowGeneratorAgent"]
+    },
+    {
+      "tag": "v4",
+      "new_sqlite_classes": ["AgentRunner"]
     }
   ],
   "analytics_engine_datasets": [
