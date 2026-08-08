@@ -24,14 +24,16 @@ import ClipboardPaste from "lucide-react/icons/clipboard-paste";
 import Clock from "lucide-react/icons/clock";
 import Copy from "lucide-react/icons/copy";
 import Layers2 from "lucide-react/icons/layers-2";
+import MapIcon from "lucide-react/icons/map";
 import Maximize from "lucide-react/icons/maximize";
 import Network from "lucide-react/icons/network";
 import Play from "lucide-react/icons/play";
 import Scissors from "lucide-react/icons/scissors";
 import Square from "lucide-react/icons/square";
 import Trash2 from "lucide-react/icons/trash-2";
+import WorkflowIcon from "lucide-react/icons/workflow";
 import X from "lucide-react/icons/x";
-import React from "react";
+import React, { useMemo } from "react";
 
 import {
   ActionBarButton,
@@ -43,6 +45,7 @@ import { cn, getModifierKey, getModifierSymbol } from "@/utils/utils";
 
 import { WorkflowConnectionLine, WorkflowEdge } from "./workflow-edge";
 import { WorkflowNode } from "./workflow-node";
+import { WorkflowOverviewNode } from "./workflow-overview-node";
 import type {
   ConnectionValidationState,
   WorkflowEdgeType,
@@ -52,6 +55,7 @@ import type {
 
 const nodeTypes = {
   workflowNode: WorkflowNode,
+  workflowOverviewNode: WorkflowOverviewNode,
 };
 
 const edgeTypes = {
@@ -177,6 +181,13 @@ export interface WorkflowCanvasProps {
   showBackground?: boolean;
   /** Padding for React Flow's `fitView`. Defaults to 0.25. */
   fitViewPadding?: number;
+  /**
+   * Render every node as a schematic pill instead of the detailed card.
+   * A viewing mode, not an editing one: dragging, connecting, and deleting
+   * are off while it is active, whatever the builder mode says.
+   */
+  overview?: boolean;
+  onToggleOverview?: () => void;
 }
 
 interface ActionButtonProps {
@@ -374,6 +385,29 @@ function DuplicateButton({
       }
     >
       <Layers2 className="size-4!" />
+    </ActionBarButton>
+  );
+}
+
+function OverviewToggleButton({
+  overview,
+  onClick,
+}: {
+  overview: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <ActionBarButton
+      onClick={() => onClick()}
+      className={actionBarButtonOutlineClassName}
+      tooltipSide="right"
+      tooltip={overview ? "Show the Wiring" : "Overview"}
+    >
+      {overview ? (
+        <WorkflowIcon className="size-4!" />
+      ) : (
+        <MapIcon className="size-4!" />
+      )}
     </ActionBarButton>
   );
 }
@@ -581,16 +615,34 @@ export function WorkflowCanvas({
   hasClipboardData = false,
   showBackground = true,
   fitViewPadding = 0.25,
+  overview = false,
+  onToggleOverview,
 }: WorkflowCanvasProps) {
   // Get selected elements for button states
   const hasSelectedElements =
     selectedNodes.length > 0 || selectedEdges.length > 0;
   const hasSelectedNodes = selectedNodes.length > 0;
 
+  // The overview is the same graph through a different renderer: swap the
+  // node type at render time so the stored nodes (positions, data, selection)
+  // stay untouched and toggling back is free.
+  const displayNodes = useMemo(
+    () =>
+      overview
+        ? nodes.map((node) => ({
+            ...node,
+            type: "workflowOverviewNode",
+          }))
+        : nodes,
+    [nodes, overview]
+  );
+
+  const editable = !disabled && !overview;
+
   return (
     <TooltipProvider>
       <ReactFlow
-        nodes={nodes}
+        nodes={displayNodes}
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
@@ -618,10 +670,13 @@ export function WorkflowCanvas({
           showBackground && "bg-neutral-100/50",
           disabled && "cursor-default"
         )}
-        nodesDraggable={!disabled && showControls}
-        nodesConnectable={!disabled && showControls}
+        nodesDraggable={editable && showControls}
+        nodesConnectable={editable && showControls}
         elementsSelectable={showControls}
-        selectNodesOnDrag={!disabled && showControls}
+        selectNodesOnDrag={editable && showControls}
+        // In overview the graph is not editable, but the state hooks behind
+        // onNodesChange still are — so Backspace must be cut off here.
+        deleteKeyCode={editable ? undefined : null}
         multiSelectionKeyCode={showControls ? "Shift" : undefined}
         panOnDrag={showControls}
         zoomOnScroll={showControls}
@@ -737,16 +792,27 @@ export function WorkflowCanvas({
               )}
             </ActionBarGroup>
 
-            {/* Workflow-related buttons group - hidden in read-only mode */}
-            {!disabled && (onApplyLayout || onFitToScreen) && (
+            {/* Workflow-related buttons group. The layout and fit buttons are
+                hidden in read-only mode; the overview toggle stays — it is a
+                way of looking, not a way of editing. */}
+            {((!disabled && (onApplyLayout || onFitToScreen)) ||
+              onToggleOverview) && (
               <ActionBarGroup vertical>
-                {onApplyLayout && (
+                {!disabled && onApplyLayout && (
                   <ApplyLayoutButton
                     onClick={() => onApplyLayout()}
                     disabled={disabled || nodes.length === 0}
                   />
                 )}
-                {onFitToScreen && <FitToScreenButton onClick={onFitToScreen} />}
+                {!disabled && onFitToScreen && (
+                  <FitToScreenButton onClick={onFitToScreen} />
+                )}
+                {onToggleOverview && (
+                  <OverviewToggleButton
+                    overview={overview}
+                    onClick={onToggleOverview}
+                  />
+                )}
               </ActionBarGroup>
             )}
           </div>

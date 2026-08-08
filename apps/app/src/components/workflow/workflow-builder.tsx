@@ -71,6 +71,15 @@ import type {
  */
 type WorkflowBuilderMode = "edit" | "readonly" | "preview";
 
+/**
+ * Which rendering of the graph is showing:
+ * - "detail"   — The full cards: ports, widgets, fields. Where editing happens.
+ * - "overview" — Schematic pills: icon, name, verdict. The picture the brief
+ *                page draws while generating, so a freshly built workflow can
+ *                open as the thing the user just watched.
+ */
+type WorkflowBuilderView = "detail" | "overview";
+
 export interface WorkflowBuilderProps {
   workflowId: string;
   workflowTrigger?: WorkflowTrigger;
@@ -88,6 +97,7 @@ export interface WorkflowBuilderProps {
   ) => void | (() => void | Promise<void>);
   initialWorkflowExecution?: WorkflowExecution;
   mode?: WorkflowBuilderMode;
+  initialView?: WorkflowBuilderView;
   disabledFeedback?: boolean;
   createObjectUrl: (objectReference: ObjectReference) => string;
   expandedOutputs?: boolean;
@@ -124,6 +134,7 @@ export function WorkflowBuilder({
   executeWorkflow,
   initialWorkflowExecution,
   mode = "edit",
+  initialView = "detail",
   disabledFeedback = false,
   createObjectUrl,
   expandedOutputs = false,
@@ -142,6 +153,12 @@ export function WorkflowBuilder({
   const readOnly = mode !== "edit";
   const interactive = mode !== "preview";
   const sidebarEnabled = showSidebar ?? interactive;
+
+  // Overview is a way of looking, not a mode of its own: it renders the graph
+  // as schematic pills and suspends graph surgery while it is up, whatever the
+  // builder mode. Editing only ever happens in the detail view.
+  const [overview, setOverview] = useState(initialView === "overview");
+  const editing = !readOnly && !overview;
 
   // Graph state & operations
   const {
@@ -213,7 +230,7 @@ export function WorkflowBuilder({
       : undefined;
 
   useKeyboardShortcuts({
-    disabled: readOnly,
+    disabled: readOnly || overview,
     selectedNodes,
     selectedEdges,
     hasClipboardData,
@@ -233,9 +250,38 @@ export function WorkflowBuilder({
     });
   }, [reactFlowInstance, fitViewPadding]);
 
+  // Switching views swaps every node's renderer, so the camera has to wait
+  // two frames — one for React to commit the swap, one for React Flow to
+  // re-measure the new renderers — before fitView can frame them honestly.
+  const setView = useCallback(
+    (next: boolean) => {
+      setOverview(next);
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => {
+          reactFlowInstance?.fitView({
+            padding: fitViewPadding,
+            duration: 300,
+            maxZoom: 2,
+          });
+        })
+      );
+    },
+    [reactFlowInstance, fitViewPadding]
+  );
+
+  const handleToggleOverview = useCallback(() => {
+    setView(!overview);
+  }, [setView, overview]);
+
   const handleNodeDoubleClick = useCallback(() => {
+    // In overview a double-click means "show me the wiring" — the graph
+    // expands to detail. In detail it opens the inspector, as ever.
+    if (overview) {
+      setView(false);
+      return;
+    }
     sidebar.setIsSidebarVisible(true);
-  }, [sidebar]);
+  }, [overview, setView, sidebar]);
 
   // Check if workflow already contains a trigger node
   const hasTriggerNode = useMemo(() => {
@@ -415,7 +461,7 @@ export function WorkflowBuilder({
                 onNodeDragStart={onNodeDragStart}
                 onNodeDragStop={onNodeDragStop}
                 onInit={setReactFlowInstance}
-                onAddNode={readOnly ? undefined : handleAddNode}
+                onAddNode={editing ? handleAddNode : undefined}
                 onAction={handleActionButtonClick}
                 workflowStatus={execution.workflowStatus}
                 workflowErrorMessage={execution.workflowErrorMessage}
@@ -430,17 +476,21 @@ export function WorkflowBuilder({
                 onFitToScreen={handleFitToScreen}
                 selectedNodes={selectedNodes}
                 selectedEdges={selectedEdges}
-                onDeleteSelected={readOnly ? undefined : deleteSelected}
-                onDuplicateSelected={readOnly ? undefined : duplicateSelected}
-                onApplyLayout={readOnly ? undefined : applyLayout}
-                onCopySelected={readOnly ? undefined : copySelected}
-                onCutSelected={readOnly ? undefined : cutSelected}
-                onPasteFromClipboard={readOnly ? undefined : pasteFromClipboard}
+                onDeleteSelected={editing ? deleteSelected : undefined}
+                onDuplicateSelected={editing ? duplicateSelected : undefined}
+                onApplyLayout={editing ? applyLayout : undefined}
+                onCopySelected={editing ? copySelected : undefined}
+                onCutSelected={editing ? cutSelected : undefined}
+                onPasteFromClipboard={editing ? pasteFromClipboard : undefined}
                 hasClipboardData={hasClipboardData}
                 showControls={interactive}
                 runSlot={examplePicker}
                 showBackground={showBackground}
                 fitViewPadding={fitViewPadding}
+                overview={overview}
+                onToggleOverview={
+                  interactive ? handleToggleOverview : undefined
+                }
               />
             </WorkflowErrorBoundary>
           </div>
@@ -489,7 +539,7 @@ export function WorkflowBuilder({
           )}
 
           <WorkflowNodeSelector
-            open={readOnly ? false : isNodeSelectorOpen}
+            open={editing ? isNodeSelectorOpen : false}
             onSelect={handleNodeSelect}
             onClose={() => setIsNodeSelectorOpen(false)}
             templates={nodeTypes}

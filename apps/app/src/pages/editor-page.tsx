@@ -4,18 +4,22 @@ import type {
   WorkflowWithMetadata,
 } from "@dafthunk/types";
 import { ReactFlowProvider } from "@xyflow/react";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router";
 import { toast } from "sonner";
 
 import { useAuth } from "@/components/auth-context";
 import { InsetLoading } from "@/components/inset-loading";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import { WorkflowError } from "@/components/workflow/workflow-error";
-import type { WorkflowExecution } from "@/components/workflow/workflow-types";
+import type {
+  WorkflowExecution,
+  WorkflowNodeExecution,
+} from "@/components/workflow/workflow-types";
 import { useEditableWorkflow } from "@/hooks/use-editable-workflow";
 import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
+import { useExecution } from "@/services/execution-service";
 import { useObjectService } from "@/services/object-service";
 import { useNodeTypes } from "@/services/type-service";
 import { getWorkflow, setWorkflowEnabled } from "@/services/workflow-service";
@@ -26,6 +30,35 @@ export function EditorPage() {
   const { organization } = useAuth();
   const orgId = organization?.id || "";
   const { getOrgUrl } = useOrgUrl();
+
+  // The brief page's "Open it" arrives here with ?view=overview and the trial
+  // run's execution id: the editor opens on essentially the picture the user
+  // just watched get built, verdict stamps included, and expands to the
+  // wiring on demand.
+  const [searchParams] = useSearchParams();
+  const initialView =
+    searchParams.get("view") === "overview" ? "overview" : "detail";
+  const { execution: handedOffExecution } = useExecution(
+    searchParams.get("executionId")
+  );
+
+  const handedOffBuilderExecution = useMemo<
+    WorkflowExecution | undefined
+  >(() => {
+    if (!handedOffExecution) return undefined;
+    return {
+      id: handedOffExecution.id,
+      status: handedOffExecution.status as WorkflowExecution["status"],
+      nodeExecutions: (handedOffExecution.nodeExecutions || []).map(
+        (nodeExecution): WorkflowNodeExecution => ({
+          nodeId: nodeExecution.nodeId,
+          status: nodeExecution.status as WorkflowNodeExecution["status"],
+          outputs: nodeExecution.outputs || {},
+          error: nodeExecution.error,
+        })
+      ),
+    };
+  }, [handedOffExecution]);
 
   const [httpWorkflowMetadata, setHttpWorkflowMetadata] =
     useState<WorkflowWithMetadata | null>(null);
@@ -218,7 +251,10 @@ export function EditorPage() {
             onNodesChange={handleNodesChange}
             onEdgesChange={handleEdgesChange}
             executeWorkflow={executeWorkflowWrapper}
-            initialWorkflowExecution={latestExecution || undefined}
+            initialWorkflowExecution={
+              latestExecution || handedOffBuilderExecution
+            }
+            initialView={initialView}
             createObjectUrl={createObjectUrl}
             workflowName={
               httpWorkflowMetadata?.name || workflowMetadata?.name || ""

@@ -903,7 +903,17 @@ export function BriefPage() {
               variant="secondary"
               onClick={() => void markWorkflowKept().catch(() => {})}
             >
-              <Link to={getOrgUrl(`workflows/${state.workflowId}`)}>
+              {/* Lands in the editor's overview: the same schematic the build
+                  canvas above just drew, with the trial run's verdicts still
+                  stamped on it. The wiring is one gesture away, instead of
+                  being the first thing a non-builder sees. */}
+              <Link
+                to={getOrgUrl(
+                  `workflows/${state.workflowId}?view=overview${
+                    state.executionId ? `&executionId=${state.executionId}` : ""
+                  }`
+                )}
+              >
                 Open it
                 <ArrowRight className="ml-2 size-4" />
               </Link>
