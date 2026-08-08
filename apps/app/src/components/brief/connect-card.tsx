@@ -34,14 +34,14 @@ export function ConnectCard({ destination }: ConnectCardProps) {
   const label = getProviderLabel(provider);
 
   return (
-    <div className="animate-in fade-in-0 slide-in-from-top-1 space-y-3 rounded-lg border bg-card p-4 duration-200">
+    <div className="animate-in fade-in-0 slide-in-from-top-1 space-y-3 rounded-lg border bg-card p-4 duration-200 motion-reduce:animate-none">
       <div className="flex items-start gap-3">
         <Link2 className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
         <div className="space-y-1">
           <p className="text-sm font-medium">This needs your {label} account</p>
           <p className="text-sm text-muted-foreground">
-            Link it once and we'll carry on from here — you'll come straight
-            back to this.
+            Link it once and I'll carry on from here — you'll come straight back
+            to this sentence.
           </p>
         </div>
       </div>

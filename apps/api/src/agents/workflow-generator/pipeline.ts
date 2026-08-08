@@ -15,32 +15,25 @@ import {
   buildInputOverrides,
   buildTriggerParameters,
 } from "../../utils/example-inputs";
-import { pseudoNodeTypes } from "./ai-nodes";
+import { selectCandidates } from "./catalog-selection";
 import type { ModelTier } from "./config";
 import {
   MAX_APPROVAL_ROUNDS,
-  MAX_CANDIDATE_NODE_TYPES,
   MAX_REPAIR_ATTEMPTS,
   MAX_RUN_REPAIR_ATTEMPTS,
-  WITHHELD_RELEVANCE_RATIO,
 } from "./config";
-import { CORE_NODE_TYPES } from "./core-nodes";
 import type {
   DraftExample,
   DraftNode,
   EnrichedValidationError,
   GeneratedWorkflowDraft,
 } from "./draft-types";
-import {
-  filterEligible,
-  withheldProviders,
-  withheldResources,
-} from "./eligibility";
+import { withheldProviders, withheldResources } from "./eligibility";
 import { enrichValidation, formatErrorsForLLM } from "./enrich-validation";
 import { buildGeneratedExamples } from "./examples";
 import { previewExecution } from "./execution-preview";
+import type { DisarmedInput } from "./hydrate";
 import { hydrateGeneratedWorkflow, normalizeTrigger } from "./hydrate";
-import { scoreNodeTypes } from "./node-search";
 import type { OrgResources, OrgResourceType } from "./org-resources";
 import {
   bindableResources,
@@ -52,11 +45,15 @@ import { parseJsonObject } from "./parse-json";
 import {
   buildCritiquePrompt,
   buildDeclinePrompt,
+  buildEarlyPlanPrompt,
   buildRepairPrompt,
   buildRunRepairPrompt,
   buildSystemPrompt,
   buildUserPrompt,
+  EARLY_PLAN_SCHEMA,
+  EARLY_PLAN_SYSTEM,
 } from "./prompts";
+import type { DraftKind, TraceEntry } from "./trace";
 
 /** One LLM round trip, provider-agnostic so tests can stub it. */
 export interface GenerateCall {
@@ -151,6 +148,15 @@ export interface PipelineDependencies {
     system: string,
     messages: Array<{ role: "user" | "assistant"; content: string }>
   ) => void;
+  /**
+   * Emit a fast-tier preview of the plan while synthesis is still writing.
+   *
+   * Off by default so tests and harnesses see exactly the calls they stub.
+   * The DO turns it on: a first-run user stares at the synthesis wait for the
+   * better part of a minute, and the real plan cannot arrive sooner because
+   * the model call is not streamed.
+   */
+  earlyPlan?: boolean;
 }
 
 export interface PipelineResult {
@@ -158,14 +164,44 @@ export interface PipelineResult {
   workflowId?: string;
   executionId?: string;
   workflow?: Workflow;
+  /**
+   * The trigger bindings blanked before the save, matching `workflow`. The
+   * caller stores them so a later `arm` turn can write them back — without
+   * this, "turn it on" would have nothing to restore: hydration deleted the
+   * schedule the user asked for, on purpose, and this is the only copy.
+   */
+  disarmed?: DisarmedInput[];
   /** Totals across every tier, kept because most callers only want the sum. */
   inputTokens: number;
   outputTokens: number;
   /** The same tokens split by tier, which is what prices correctly. */
   usage: TierUsage;
+  /**
+   * What every stage did, in order.
+   *
+   * Present on every outcome including `failed` — a generation that produced
+   * nothing is exactly the one whose stages are worth reading. See `trace.ts`.
+   */
+  trace: TraceEntry[];
 }
 
 class Cancelled extends Error {}
+
+/**
+ * Whether anything blocks the graph from being saved.
+ *
+ * The pipeline's central predicate — it decides whether to repair, whether to
+ * save, and whether a rework may replace what is already stored. Named because
+ * `warning` findings are shown to the user and never gate anything, and an
+ * inlined `.some(...)` at five call sites is five chances to forget that.
+ */
+function hasFatal(errors: EnrichedValidationError[]): boolean {
+  return errors.some((error) => error.severity === "fatal");
+}
+
+function fatalCount(errors: EnrichedValidationError[]): number {
+  return errors.filter((error) => error.severity === "fatal").length;
+}
 
 function toIssues(
   errors: EnrichedValidationError[]
@@ -275,69 +311,6 @@ export function parseDraft(content: string): GeneratedWorkflowDraft {
 }
 
 /**
- * Selects the node types shown to the model: keyword-ranked matches, plus a
- * guaranteed floor of glue and output nodes, plus the curated AI stand-ins.
- */
-export function selectCandidates(
-  query: string,
-  nodeTypes: NodeType[],
-  connectedProviders: ReadonlySet<string>,
-  /**
-   * Node types that realize the promised destination.
-   *
-   * Forced into the catalog rather than left to keyword luck. The prompt tells
-   * the model which type to deliver with, but a type it cannot see the ports of
-   * is a type it has to guess at — and the destination is very often something
-   * the request never mentioned (an unstated "email it to me" is the whole
-   * reason the brief exists), so it scores nothing and would be cut.
-   */
-  required: readonly string[] = [],
-  /** Resource types the org owns that may be bound without review. */
-  bindable: ReadonlySet<string> = new Set()
-) {
-  const withPseudo = [...nodeTypes, ...pseudoNodeTypes()];
-  const { eligible, byType, withheld } = filterEligible(withPseudo, {
-    connectedProviders,
-    bindableResources: bindable,
-  });
-
-  /**
-   * Which unusable nodes the request was actually reaching for.
-   *
-   * "Scored at all" is too loose a test: "post a slack message" shares the
-   * token "post" with every blogging node, which would announce WordPress to
-   * someone who never mentioned it. The question worth answering is whether
-   * the node would have been *offered to the model* had it been usable — so
-   * everything is ranked together and the same cut applied.
-   */
-  const withheldByType = new Map(withheld.map((entry) => [entry.type, entry]));
-  const allRanked = scoreNodeTypes(
-    query,
-    withPseudo.filter((nodeType) => !nodeType.trigger && !nodeType.responder)
-  );
-  const topScore = allRanked[0]?.score ?? 0;
-
-  for (const scored of allRanked) {
-    if (scored.score < topScore * WITHHELD_RELEVANCE_RATIO) break;
-    const entry = withheldByType.get(scored.nodeType.type);
-    if (entry) entry.relevant = true;
-  }
-
-  const ranked = scoreNodeTypes(query, eligible)
-    .slice(0, MAX_CANDIDATE_NODE_TYPES)
-    .map((scored) => scored.nodeType);
-
-  const chosen = new Map(ranked.map((nt) => [nt.type, nt]));
-  for (const type of [...required, ...CORE_NODE_TYPES]) {
-    if (chosen.has(type)) continue;
-    const nodeType = byType.get(type);
-    if (nodeType) chosen.set(type, nodeType);
-  }
-
-  return { candidates: [...chosen.values()], withheld };
-}
-
-/**
  * Generate → validate → repair → save → run.
  *
  * Every dependency that touches the network is injected, so the whole flow runs
@@ -354,11 +327,20 @@ export async function runGenerationPipeline(
     usage[tier].outputTokens += result.outputTokens;
   };
 
+  /**
+   * What each stage did. Rides along with `totals()` so that every exit — the
+   * successful one, the unrepairable one, the cancelled one and the catch —
+   * carries it without any of them having to remember to.
+   */
+  const trace: TraceEntry[] = [];
+  const note = (entry: TraceEntry) => trace.push(entry);
+
   /** Totals, recomputed at every exit so no path can forget to sum. */
   const totals = () => ({
     inputTokens: usage.fast.inputTokens + usage.synthesis.inputTokens,
     outputTokens: usage.fast.outputTokens + usage.synthesis.outputTokens,
     usage,
+    trace,
   });
 
   const checkCancelled = () => {
@@ -375,6 +357,21 @@ export async function runGenerationPipeline(
       destination: deps.destination,
     });
 
+  /**
+   * What is already in the user's workspace.
+   *
+   * Hoisted out of the try so the catch below can still report it. Once a
+   * workflow has been saved it exists whatever happens next, and a late failure
+   * that reported it as absent would leave the user with a workflow they were
+   * told had not been built — orphaned from the session that made it, and
+   * indistinguishable from one they created by accident.
+   */
+  let workflowId: string | undefined;
+  let savedWorkflow: Workflow | undefined;
+  /** The blanked trigger bindings matching `savedWorkflow`, for `arm`. */
+  let savedDisarmed: DisarmedInput[] = [];
+  let execution: WorkflowExecution | undefined;
+
   try {
     // ── Select ────────────────────────────────────────────────────────────
     // Candidate types are needed either way: hydration resolves the model's
@@ -387,11 +384,33 @@ export async function runGenerationPipeline(
       deps.orgResources ? bindableResources(deps.orgResources) : new Set()
     );
 
+    {
+      const offeredTypes = candidates.map((candidate) => candidate.type);
+      const offered = new Set(offeredTypes);
+      const required = deps.destination?.nodeTypes ?? [];
+      // A promised destination whose node never reached the catalog is the one
+      // selection failure that dooms the generation outright: the prompt tells
+      // the model to deliver with a type it cannot see the ports of, and
+      // `DESTINATION_NOT_REALIZED` then spends the whole repair budget on it.
+      const missingRequired = required.filter((type) => !offered.has(type));
+
+      note({
+        stage: "select",
+        ok: missingRequired.length === 0,
+        catalog: deps.nodeTypes.length,
+        offeredTypes,
+        required: [...required],
+        missingRequired,
+        withheldProviders: withheldProviders(withheld),
+        withheldResources: withheldResources(withheld),
+      });
+    }
+
     if (!deps.resume) {
       deps.emit({
         type: "phase",
         phase: "selecting",
-        label: "Choosing node types",
+        label: "Choosing the pieces",
       });
       deps.emit({
         type: "log",
@@ -450,7 +469,11 @@ export async function runGenerationPipeline(
 
     // ── Generate ──────────────────────────────────────────────────────────
     if (!deps.resume) {
-      deps.emit({ type: "phase", phase: "planning", label: "Planning" });
+      deps.emit({
+        type: "phase",
+        phase: "planning",
+        label: "Planning the steps",
+      });
     }
 
     const system = deps.resume
@@ -477,10 +500,49 @@ export async function runGenerationPipeline(
     deps.emit(
       deps.resume
         ? { type: "phase", phase: "repairing", label: "Making that change" }
-        : { type: "phase", phase: "generating", label: "Building graph" }
+        : { type: "phase", phase: "generating", label: "Wiring it up" }
     );
 
+    // A first look at the plan, seconds in. Fired in parallel with synthesis
+    // and best-effort by construction: a failure, an empty answer or a lost
+    // race changes nothing, and the synthesis plan frame — same type, whole
+    // list — overwrites it the moment the real draft returns.
+    let synthesisReturned = false;
+    if (deps.earlyPlan && !deps.resume) {
+      void deps
+        .callLLM({
+          tier: "fast",
+          system: EARLY_PLAN_SYSTEM,
+          messages: [
+            { role: "user", content: buildEarlyPlanPrompt(deps.prompt) },
+          ],
+          schema: EARLY_PLAN_SCHEMA as unknown as Record<string, unknown>,
+        })
+        .then((result) => {
+          record(result, "fast");
+          if (synthesisReturned) return;
+          const parsed = parseJsonObject(result.content);
+          const steps = Array.isArray(parsed.steps)
+            ? parsed.steps.map(String).filter(Boolean).slice(0, 8)
+            : [];
+          if (steps.length === 0) return;
+          deps.emit({
+            type: "plan",
+            plan: {
+              title: "",
+              description: "",
+              trigger: "manual",
+              steps,
+            },
+          });
+        })
+        .catch(() => {
+          // The preview is a courtesy; the build neither waits nor cares.
+        });
+    }
+
     let response = await deps.callLLM({ system, messages });
+    synthesisReturned = true;
     record(response);
 
     let draft = parseDraft(response.content);
@@ -500,8 +562,67 @@ export async function runGenerationPipeline(
     // at most 1 + MAX_REPAIR_ATTEMPTS + MAX_RUN_REPAIR_ATTEMPTS calls.
     let attempt = 0;
     let repairs = 0;
+
+    /** What the model named, before anything checks whether it exists. */
+    const noteDraft = (kind: DraftKind) =>
+      note({
+        stage: "draft",
+        ok: true,
+        attempt,
+        kind,
+        outputTokens: response.outputTokens,
+        types: draft.nodes.map((node) => node.type),
+      });
+
     let hydrated = hydrate(draft);
     let errors = validate(hydrated);
+
+    /**
+     * Records what hydration and validation just made of the current draft.
+     *
+     * Recording only — the two callers do their own assignment, because a
+     * closure that reassigned them would have to be the only thing that ever
+     * did, and the first draft is built before the repair machinery exists.
+     * Shared so the trace cannot end up describing one path and not the other,
+     * which is the failure the trace exists to catch elsewhere.
+     */
+    const noteGraph = () => {
+      // A draft node whose id is absent from the built graph was dropped: its
+      // type does not exist. Read off the graph rather than off the error list,
+      // so it stays true whatever hydration decides to report.
+      const built = new Set(hydrated.workflow.nodes.map((node) => node.id));
+      const droppedTypes = draft.nodes
+        .filter((node) => !built.has(node.id))
+        .map((node) => node.type);
+
+      note({
+        stage: "hydrate",
+        ok: droppedTypes.length === 0,
+        attempt,
+        drafted: draft.nodes.length,
+        types: hydrated.workflow.nodes.map((node) => node.type),
+        droppedTypes,
+        boundResources: hydrated.boundResources.map((bound) => bound.type),
+        rejectedTools: hydrated.errors
+          .filter((error) => error.code === "UNKNOWN_TOOL")
+          .map((error) => error.nodeId ?? "?"),
+      });
+
+      note({
+        stage: "validate",
+        ok: !hasFatal(errors),
+        attempt,
+        fatal: errors
+          .filter((error) => error.severity === "fatal")
+          .map((error) => error.code),
+        warnings: errors
+          .filter((error) => error.severity === "warning")
+          .map((error) => error.code),
+      });
+    };
+
+    noteDraft("initial");
+    noteGraph();
 
     // Said once, on the first graph. A binding the user did not choose has to
     // be visible, or a workflow quietly reads from the wrong database.
@@ -518,9 +639,72 @@ export async function runGenerationPipeline(
     deps.emit({
       type: "phase",
       phase: "validating",
-      label: "Checking the graph",
+      label: "Checking it holds together",
     });
     deps.emit({ type: "validation", attempt, issues: toIssues(errors) });
+
+    /**
+     * One revision round: ask, parse, hydrate, validate, show.
+     *
+     * The single place the conversation advances. Every caller — validation
+     * repair, refusal rework, run repair — needs the same five things to stay
+     * true together (the conversation stays paired, the tokens are booked, all
+     * three of draft/hydrated/errors move at once, and the user sees both
+     * frames). Three hand-written copies of that is three chances for one of
+     * them to drift.
+     *
+     * Returns false when the round produced nothing usable rather than
+     * throwing. A repair that comes back truncated or fenced is a round that
+     * failed, not a generation that failed: the draft already in hand is still
+     * the best thing available, and by the run-repair stage there is a saved,
+     * executed workflow riding on it.
+     */
+    const revise = async (
+      kind: DraftKind,
+      instruction: string
+    ): Promise<boolean> => {
+      attempt++;
+
+      messages.push({ role: "assistant", content: response.content });
+      messages.push({ role: "user", content: instruction });
+
+      response = await deps.callLLM({ system, messages });
+      record(response);
+
+      let revised: GeneratedWorkflowDraft;
+      try {
+        revised = parseDraft(response.content);
+      } catch (error) {
+        const reason = error instanceof Error ? error.message : String(error);
+        // Logged rather than surfaced: the caller decides what an unusable
+        // round means, and it is never the same thing twice — before the save
+        // it exhausts the budget, after it the previous version simply stands.
+        console.warn(
+          `[WorkflowGenerator] discarding an unreadable revision: ${reason}`
+        );
+        note({
+          stage: "draft",
+          ok: false,
+          attempt,
+          kind,
+          reason,
+          outputTokens: response.outputTokens,
+          types: [],
+        });
+        return false;
+      }
+
+      draft = revised;
+      hydrated = hydrate(draft);
+      errors = validate(hydrated);
+
+      noteDraft(kind);
+      noteGraph();
+
+      deps.emit({ type: "graph", workflow: hydrated.workflow, attempt });
+      deps.emit({ type: "validation", attempt, issues: toIssues(errors) });
+      return true;
+    };
 
     /**
      * Repairs until the graph validates or the budget runs out. Called again
@@ -528,41 +712,33 @@ export async function runGenerationPipeline(
      * original: nothing is saved that would not have been saved first time.
      */
     const repairUntilValid = async (): Promise<void> => {
-      while (
-        errors.some((e) => e.severity === "fatal") &&
-        repairs < MAX_REPAIR_ATTEMPTS
-      ) {
+      while (hasFatal(errors) && repairs < MAX_REPAIR_ATTEMPTS) {
         checkCancelled();
-        attempt++;
         repairs++;
 
         deps.emit({
           type: "phase",
           phase: "repairing",
-          label: `Fixing ${errors.filter((e) => e.severity === "fatal").length} problem(s)`,
+          label: `Fixing ${fatalCount(errors)} problem(s)`,
         });
 
-        messages.push({ role: "assistant", content: response.content });
-        messages.push({
-          role: "user",
-          content: buildRepairPrompt(formatErrorsForLLM(errors)),
-        });
-
-        response = await deps.callLLM({ system, messages });
-        record(response);
-
-        draft = parseDraft(response.content);
-        hydrated = hydrate(draft);
-        errors = validate(hydrated);
-
-        deps.emit({ type: "graph", workflow: hydrated.workflow, attempt });
-        deps.emit({ type: "validation", attempt, issues: toIssues(errors) });
+        // An unreadable round leaves `errors` exactly as it was, so the loop
+        // would spend its whole budget re-asking the same question. Stop and
+        // let the caller deal with a graph that still does not validate.
+        if (
+          !(await revise(
+            "repair",
+            buildRepairPrompt(formatErrorsForLLM(errors))
+          ))
+        ) {
+          return;
+        }
       }
     };
 
     await repairUntilValid();
 
-    if (errors.some((e) => e.severity === "fatal")) {
+    if (hasFatal(errors)) {
       // Deliberately not saved. A graph that fails validation would be rejected
       // by the create endpoint anyway, and writing it straight to the store
       // just produces a workflow the editor cannot open.
@@ -579,23 +755,40 @@ export async function runGenerationPipeline(
     checkCancelled();
 
     // ── Save ──────────────────────────────────────────────────────────────
-    deps.emit({ type: "phase", phase: "saving", label: "Saving workflow" });
+    deps.emit({ type: "phase", phase: "saving", label: "Saving it" });
 
     let examples = buildGeneratedExamples(draft, hydrated.workflow);
     // What is actually stored, which stops being `hydrated.workflow` the moment
     // a run-repair produces a correction that fails to validate.
-    let savedWorkflow = hydrated.workflow;
+    savedWorkflow = hydrated.workflow;
+    savedDisarmed = hydrated.disarmed;
     // A critique corrects the workflow the user is looking at. Saving it as a
     // new one would leave them holding both, with no way to tell which is which.
-    const workflowId = await deps.save(
+    // `workflowId` is the hoisted one the catch reports from, so it is optional
+    // by type. `savedId` is the same value proved present, which is what
+    // everything below the save actually needs.
+    const savedId = await deps.save(
       savedWorkflow,
       examples,
       deps.resume?.workflowId
     );
+    workflowId = savedId;
+    note({
+      stage: "save",
+      ok: true,
+      workflowId: savedId,
+      nodes: savedWorkflow.nodes.length,
+      edges: savedWorkflow.edges.length,
+      examples: examples.length,
+    });
     deps.emit({
       type: "saved",
-      workflowId,
+      workflowId: savedId,
       name: hydrated.workflow.name,
+      // A blanked trigger binding means the workflow is a draft that will
+      // never fire on its own — a fact the outcome screen owes the user,
+      // because nothing else on it says so.
+      ...(hydrated.disarmed.length > 0 && { dormant: true }),
     });
 
     checkCancelled();
@@ -604,11 +797,38 @@ export async function runGenerationPipeline(
     // Driven by the default example over the `inputOverrides` channel, which is
     // the same path the Run button takes — so what is tested here is what the
     // user gets when they run it themselves.
+
+    /** Triggers whose trial payload is always invented, sample or not. */
+    const PAYLOAD_TRIGGERS = new Set<string>([
+      "email_message",
+      "http_request",
+      "http_webhook",
+      "form_request",
+      "form_webhook",
+    ]);
+
+    /**
+     * Whether the invented example actually drove this run.
+     *
+     * `sampleName` used to be emitted whenever an example existed — and one
+     * always exists — so a scheduled digest that read the user's *real* inbox
+     * was still captioned "made-up sample data". Apologising for magic that
+     * actually happened is worse than either honest answer.
+     */
+    const exampleDrove = (
+      workflow: Workflow,
+      example: WorkflowExample | undefined
+    ): boolean => {
+      if (!example) return false;
+      if (PAYLOAD_TRIGGERS.has(workflow.trigger)) return true;
+      return Object.keys(buildInputOverrides(example, workflow)).length > 0;
+    };
+
     const testWith = async (
       workflow: Workflow,
       example: WorkflowExample | undefined
     ): Promise<WorkflowExecution> => {
-      deps.emit({ type: "phase", phase: "running", label: "Running it once" });
+      deps.emit({ type: "phase", phase: "running", label: "Trying it once" });
       if (example) {
         deps.emit({
           type: "log",
@@ -619,7 +839,7 @@ export async function runGenerationPipeline(
 
       return deps.run(
         workflow,
-        workflowId,
+        savedId,
         buildTriggerParameters(workflow.trigger, example?.trigger, {
           apiHost: deps.apiHost,
         }),
@@ -672,7 +892,15 @@ export async function runGenerationPipeline(
         const decision = await deps.requestApproval(actions);
         checkCancelled();
 
-        if (decision.approved) break;
+        const asked = {
+          round,
+          actions: actions.map((action) => action.nodeType),
+        };
+
+        if (decision.approved) {
+          note({ stage: "approve", ok: true, ...asked, approved: true });
+          break;
+        }
 
         approvedToRun = false;
 
@@ -680,34 +908,36 @@ export async function runGenerationPipeline(
         // they are reacting to something concrete instead of describing it
         // from memory. So it is spent on a correction rather than logged.
         const reason = decision.reason?.trim();
-        if (!reason) break;
+        if (!reason) {
+          note({ stage: "approve", ok: true, ...asked, approved: false });
+          break;
+        }
 
-        attempt++;
         deps.emit({
           type: "phase",
           phase: "repairing",
           label: "Changing it so it does not do that",
         });
 
-        messages.push({ role: "assistant", content: response.content });
-        messages.push({ role: "user", content: buildDeclinePrompt(reason) });
+        const reworked = await revise("decline", buildDeclinePrompt(reason));
+        if (reworked) await repairUntilValid();
 
-        response = await deps.callLLM({ system, messages });
-        record(response);
-
-        draft = parseDraft(response.content);
-        hydrated = hydrate(draft);
-        errors = validate(hydrated);
-
-        deps.emit({ type: "graph", workflow: hydrated.workflow, attempt });
-        deps.emit({ type: "validation", attempt, issues: toIssues(errors) });
-
-        await repairUntilValid();
+        const usable = reworked && !hasFatal(errors);
+        note({
+          stage: "approve",
+          // A refusal we could not act on is a stage that did not do its job:
+          // they asked for a change and got the graph they declined.
+          ok: usable,
+          ...asked,
+          approved: false,
+          reworked: usable,
+        });
 
         // Only replace what is stored if the correction is actually usable. A
-        // revision that does not validate is worse than the graph they
-        // declined, which at least opens in the editor.
-        if (errors.some((e) => e.severity === "fatal")) {
+        // revision that does not validate — or that came back unreadable — is
+        // worse than the graph they declined, which at least opens in the
+        // editor.
+        if (!usable) {
           deps.emit({
             type: "log",
             level: "warn",
@@ -722,6 +952,7 @@ export async function runGenerationPipeline(
         }
 
         savedWorkflow = hydrated.workflow;
+        savedDisarmed = hydrated.disarmed;
         examples = buildGeneratedExamples(draft, savedWorkflow);
         await deps.save(savedWorkflow, examples, workflowId);
         deps.emit({ type: "graph", workflow: savedWorkflow, attempt });
@@ -752,17 +983,49 @@ export async function runGenerationPipeline(
 
       return {
         outcome: "partial",
-        workflowId,
+        workflowId: savedId,
         workflow: savedWorkflow,
+        disarmed: savedDisarmed,
         ...totals(),
       };
     }
 
-    let execution = await testWith(savedWorkflow, examples[0]);
+    /** What a run did, in the terms a failure is diagnosed in. */
+    const noteRun = (
+      outcome: WorkflowExecution,
+      workflow: Workflow,
+      adopted?: boolean
+    ) => {
+      const typeById = new Map(
+        workflow.nodes.map((node) => [node.id, node.type])
+      );
+      note({
+        stage: "run",
+        ok: outcome.status === "completed",
+        attempt,
+        status: outcome.status,
+        failed: outcome.nodeExecutions
+          .filter((node) => node.status === "error")
+          .map((node) => ({
+            nodeId: node.nodeId,
+            ...(typeById.get(node.nodeId) && {
+              type: typeById.get(node.nodeId),
+            }),
+            ...(node.error && { error: node.error.slice(0, 200) }),
+          })),
+        ...(adopted !== undefined && { adopted }),
+      });
+    };
+
+    const firstSample = examples[0];
+    execution = await testWith(savedWorkflow, firstSample);
+    noteRun(execution, savedWorkflow);
     deps.emit({
       type: "run_result",
       execution: previewExecution(execution),
-      ...(examples[0] && { sampleName: examples[0].name }),
+      ...(firstSample && exampleDrove(savedWorkflow, firstSample)
+        ? { sampleName: firstSample.name }
+        : {}),
     });
 
     // ── Repair a failed run ───────────────────────────────────────────────
@@ -776,7 +1039,6 @@ export async function runGenerationPipeline(
     ) {
       checkCancelled();
       runRepairs++;
-      attempt++;
 
       deps.emit({
         type: "phase",
@@ -784,30 +1046,17 @@ export async function runGenerationPipeline(
         label: "Fixing what failed at run time",
       });
 
-      messages.push({ role: "assistant", content: response.content });
-      messages.push({
-        role: "user",
-        content: buildRunRepairPrompt(
-          formatRunFailures(execution, savedWorkflow)
-        ),
-      });
+      const reworked = await revise(
+        "run-repair",
+        buildRunRepairPrompt(formatRunFailures(execution, savedWorkflow))
+      );
+      if (reworked) await repairUntilValid();
 
-      response = await deps.callLLM({ system, messages });
-      record(response);
-
-      draft = parseDraft(response.content);
-      hydrated = hydrate(draft);
-      errors = validate(hydrated);
-
-      deps.emit({ type: "graph", workflow: hydrated.workflow, attempt });
-      deps.emit({ type: "validation", attempt, issues: toIssues(errors) });
-
-      await repairUntilValid();
-
-      if (errors.some((e) => e.severity === "fatal")) {
+      if (!reworked || hasFatal(errors)) {
         // The correction is worse than what is already saved: it does not even
-        // validate. Keep the saved workflow and its result rather than
-        // replacing something that runs with something that cannot open.
+        // validate, or it could not be read at all. Keep the saved workflow and
+        // its result rather than replacing something that runs with something
+        // that cannot open.
         deps.emit({
           type: "log",
           level: "warn",
@@ -827,9 +1076,12 @@ export async function runGenerationPipeline(
         candidateExamples[0]
       );
 
+      const improved = isRunImprovement(candidateExecution, execution);
+      noteRun(candidateExecution, candidateWorkflow, improved);
+
       // Only adopt a repair that actually moved the run forward. Saving first
       // and comparing after would leave the worse graph on disk.
-      if (!isRunImprovement(candidateExecution, execution)) {
+      if (!improved) {
         deps.emit({
           type: "log",
           level: "warn",
@@ -843,13 +1095,17 @@ export async function runGenerationPipeline(
       }
 
       savedWorkflow = candidateWorkflow;
+      savedDisarmed = hydrated.disarmed;
       examples = candidateExamples;
       execution = candidateExecution;
       await deps.save(savedWorkflow, examples, workflowId);
+      const adoptedSample = examples[0];
       deps.emit({
         type: "run_result",
         execution: previewExecution(execution),
-        ...(examples[0] && { sampleName: examples[0].name }),
+        ...(adoptedSample && exampleDrove(savedWorkflow, adoptedSample)
+          ? { sampleName: adoptedSample.name }
+          : {}),
       });
     }
 
@@ -878,24 +1134,79 @@ export async function runGenerationPipeline(
       workflowId,
       executionId: execution.id,
       workflow: savedWorkflow,
+      disarmed: savedDisarmed,
       ...totals(),
     };
   } catch (error) {
-    if (error instanceof Cancelled) {
+    const cancelled = error instanceof Cancelled;
+
+    if (!cancelled) {
+      console.error("[WorkflowGenerator] pipeline threw:", error);
+    }
+
+    /**
+     * A workflow that exists is reported, whatever went wrong afterwards.
+     *
+     * Everything past the save can still throw — a repair round that cannot
+     * reach the gateway, a second trial run that fails outright, a re-save that
+     * is rejected. Reporting `failed` there would tell the user nothing was
+     * built while a saved, possibly working workflow sat in their workspace
+     * with no link to it from the session that made it. The rule is simple
+     * enough to state and worth stating: once it is saved, no later failure may
+     * report it as absent.
+     *
+     * `partial` rather than `ok` in every case — the run either did not happen
+     * or did not finish being judged, and claiming success for something that
+     * was interrupted is the one thing worse than saying it broke.
+     */
+    if (workflowId) {
+      deps.emit({
+        type: "error",
+        code: cancelled ? "CANCELLED" : "LLM_FAILED",
+        // The raw error goes to the log above, never into this sentence — the
+        // moment something breaks is when the voice has to hold.
+        message: cancelled
+          ? "Stopped — the workflow was saved before it stopped."
+          : "I hit a problem partway through, but the workflow was saved — it's in your workspace.",
+        recoverable: true,
+      });
+      deps.emit({
+        type: "phase",
+        phase: "complete",
+        label: "Saved, finished early",
+      });
+      deps.emit({
+        type: "done",
+        workflowId,
+        ...(execution && { executionId: execution.id }),
+        outcome: "partial",
+      });
+
+      return {
+        outcome: "partial",
+        workflowId,
+        ...(execution && { executionId: execution.id }),
+        ...(savedWorkflow && { workflow: savedWorkflow }),
+        disarmed: savedDisarmed,
+        ...totals(),
+      };
+    }
+
+    if (cancelled) {
       deps.emit({
         type: "error",
         code: "CANCELLED",
-        message: "Generation cancelled.",
+        message: "Stopped. Nothing was saved yet.",
         recoverable: true,
       });
       return { outcome: "failed", ...totals() };
     }
 
-    const message = error instanceof Error ? error.message : String(error);
     deps.emit({
       type: "error",
       code: "LLM_FAILED",
-      message: `Generation failed: ${message}`,
+      message:
+        "Something broke on my end while building that. Your request was fine — try again.",
       recoverable: true,
     });
     return { outcome: "failed", ...totals() };

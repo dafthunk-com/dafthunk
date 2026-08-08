@@ -1,6 +1,7 @@
 import type {
   Brief,
   BriefAnswers,
+  GenerationErrorCode,
   GenerationPhase,
   GenerationPlan,
   GenerationStatus,
@@ -11,7 +12,10 @@ import type {
 } from "@dafthunk/types";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import type { WorkflowGeneratorWebSocket } from "@/services/workflow-generator-service";
+import type {
+  GeneratorConnectionStatus,
+  WorkflowGeneratorWebSocket,
+} from "@/services/workflow-generator-service";
 import { connectWorkflowGeneratorWS } from "@/services/workflow-generator-service";
 
 /**
@@ -26,6 +30,37 @@ import { connectWorkflowGeneratorWS } from "@/services/workflow-generator-servic
 export interface BriefState {
   status: GenerationStatus;
   phase?: GenerationPhase;
+  /**
+   * The server's own words for what it is doing right now — "Fixing 2
+   * problem(s)", "Changing it so it does not do that". Better narration than
+   * any static map, and it was being written and discarded for a while.
+   */
+  phaseLabel?: string;
+  /**
+   * The phases this turn has been through, in the server's own words.
+   *
+   * An accruing checked list converts elapsed time into visible progress —
+   * one mutating line cannot: when two phases share copy, or a long phase
+   * sits still, the single line is indistinguishable from a stall.
+   */
+  phaseTrail: string[];
+  /**
+   * Transport, kept apart from `status` on purpose: a dropped socket is not a
+   * failed generation. The server holds the frame log for an hour and replays
+   * it on reconnect, so while this is "reconnecting" the screen stays exactly
+   * where it is, and "lost" is an invitation to reattach — never a verdict on
+   * the build.
+   */
+  connection: GeneratorConnectionStatus;
+  /** A better explanation than "lost", when there is one (the rate limiter). */
+  connectionDetail?: string;
+  /**
+   * A cancel was asked for and no terminal frame has landed yet. The pipeline
+   * polls its flag between model calls, so this can be true for a while — and
+   * a button that does nothing visible for thirty seconds gets clicked twice
+   * and then distrusted.
+   */
+  cancelling: boolean;
   /** True once the server has described the session, so "expired" is knowable. */
   sessionLoaded: boolean;
   /** The request this session was opened with; present when resuming. */
@@ -43,6 +78,23 @@ export interface BriefState {
   /** The sentence the server is building from, echoed rather than re-derived. */
   sentence?: string;
   workflowId?: string;
+  /**
+   * The saved workflow will not fire on its own: its trigger binding was
+   * blanked at save. This is what the commitment moment exists to say — a
+   * flow that briefs, builds and demos the job, then ends without the job
+   * existing, has converted its whole arc into a draft nobody asked for.
+   */
+  dormant?: boolean;
+  /** The user turned it on, and the server confirmed the restore. */
+  armed?: boolean;
+  /**
+   * The stored run, so the screen can link to it.
+   *
+   * Distinct from `execution`, which is the trimmed preview the frame carried:
+   * that one has had node inputs stripped and long values cut, and the record
+   * behind this id is the whole thing.
+   */
+  executionId?: string;
   workflow?: Workflow;
   execution?: WorkflowExecution;
   /** Name of the invented example the trial run was fed, when there was one. */
@@ -54,7 +106,12 @@ export interface BriefState {
    */
   pendingActions?: OutwardAction[];
   outcome?: "ok" | "partial";
-  error?: { message: string; recoverable: boolean };
+  error?: {
+    message: string;
+    recoverable: boolean;
+    /** Set for server-reported errors; absent for transport failures. */
+    code?: GenerationErrorCode;
+  };
 }
 
 /** One thing worth telling the person about their own workspace. */
@@ -69,7 +126,19 @@ const INITIAL: BriefState = {
   sessionLoaded: false,
   turn: 0,
   notes: [],
+  phaseTrail: [],
+  connection: "connected",
+  cancelling: false,
 };
+
+/** How much of the trail is worth showing; repair loops can run long. */
+const PHASE_TRAIL_LIMIT = 6;
+
+/**
+ * The optimistic label between a click and the server's first frame.
+ * Never joins the trail — it is a claim about our intent, not a step done.
+ */
+const SENDING_LABEL = "Sending…";
 
 /**
  * Reduces the frame stream into render state.
@@ -119,24 +188,53 @@ function reduce(state: BriefState, frame: GeneratorServerMessage): BriefState {
         turn: frame.turn,
         sentence: frame.sentence,
         execution: undefined,
+        // Cleared with the execution it identifies. A critique re-runs the
+        // workflow, and a link left pointing at the previous run would show the
+        // result the user just asked to have changed.
+        executionId: undefined,
         outcome: undefined,
+        // A new turn re-saves through hydration, which disarms again — an
+        // earlier "it's on" would be a stale promise over a workflow the
+        // rebuild just turned back off.
+        dormant: undefined,
+        armed: undefined,
       };
 
-    case "phase":
+    case "phase": {
+      // The line being replaced joins the trail as a step done. "complete" is
+      // an ending rather than a step, a duplicate frame is a stutter, and the
+      // optimistic "Sending…" was never the server doing anything.
+      const finished =
+        frame.label !== state.phaseLabel &&
+        state.phaseLabel &&
+        state.phaseLabel !== SENDING_LABEL
+          ? state.phaseLabel
+          : undefined;
+      const trail =
+        frame.phase === "complete" || !finished
+          ? state.phaseTrail
+          : [...state.phaseTrail, finished];
+
       return {
         ...state,
         phase: frame.phase,
+        phaseLabel: frame.label,
+        phaseTrail: trail.slice(-PHASE_TRAIL_LIMIT),
         status: frame.phase === "complete" ? state.status : "running",
         // Any phase after the question means the question has been answered.
         // Leaving the list up would keep asking about steps already taken.
         ...(frame.phase === "approving" ? {} : { pendingActions: undefined }),
       };
+    }
 
     case "graph":
       return { ...state, workflow: frame.workflow };
 
     case "saved":
-      return { ...state, workflowId: frame.workflowId };
+      return { ...state, workflowId: frame.workflowId, dormant: frame.dormant };
+
+    case "armed":
+      return { ...state, armed: true };
 
     case "approval_required":
       return { ...state, pendingActions: frame.actions, status: "awaiting" };
@@ -152,15 +250,22 @@ function reduce(state: BriefState, frame: GeneratorServerMessage): BriefState {
       return {
         ...state,
         status: "done",
+        cancelling: false,
         outcome: frame.outcome,
         workflowId: frame.workflowId ?? state.workflowId,
+        executionId: frame.executionId ?? state.executionId,
       };
 
     case "error":
       return {
         ...state,
         status: "failed",
-        error: { message: frame.message, recoverable: frame.recoverable },
+        cancelling: false,
+        error: {
+          message: frame.message,
+          recoverable: frame.recoverable,
+          code: frame.code,
+        },
       };
 
     // What it is about to do, in its own words. Worth showing: the build takes
@@ -214,19 +319,16 @@ export function useWorkflowBrief(
 
       socketRef.current = connectWorkflowGeneratorWS(orgId, session, {
         onFrame: (frame) => setState((current) => reduce(current, frame)),
-        onConnectionError: () =>
-          setState((current) =>
-            current.status === "done"
-              ? current
-              : {
-                  ...current,
-                  status: "failed",
-                  error: {
-                    message: "Lost connection.",
-                    recoverable: true,
-                  },
-                }
-          ),
+        // Transport news changes the transport field and nothing else. The
+        // old behaviour — mapping an exhausted retry to a terminal `failed` —
+        // told people a build the server was still running (or had finished)
+        // was gone, over a button that then actually destroyed the session.
+        onConnectionChange: (connection, detail) =>
+          setState((current) => ({
+            ...current,
+            connection,
+            connectionDetail: detail,
+          })),
       });
 
       return socketRef.current;
@@ -259,11 +361,17 @@ export function useWorkflowBrief(
         ...current,
         status: "running",
         phase: "briefing",
+        // Optimism about our intent, not about the server's activity — the
+        // first real phase frame replaces this the moment the server speaks.
+        phaseLabel: SENDING_LABEL,
+        phaseTrail: [],
+        cancelling: false,
         sessionLoaded: true,
         brief: undefined,
         suggestions: undefined,
         sentence: undefined,
         execution: undefined,
+        executionId: undefined,
         outcome: undefined,
         error: undefined,
       }));
@@ -284,7 +392,12 @@ export function useWorkflowBrief(
 
   const resolve = useCallback(
     (answers: BriefAnswers) => {
-      setState((current) => ({ ...current, status: "running" }));
+      setState((current) => ({
+        ...current,
+        status: "running",
+        phaseLabel: SENDING_LABEL,
+        phaseTrail: [],
+      }));
       socketRef.current?.resolve(state.turn, answers);
     },
     [state.turn]
@@ -292,7 +405,12 @@ export function useWorkflowBrief(
 
   const critique = useCallback((note: string) => {
     if (!note.trim()) return;
-    setState((current) => ({ ...current, status: "running" }));
+    setState((current) => ({
+      ...current,
+      status: "running",
+      phaseLabel: SENDING_LABEL,
+      phaseTrail: [],
+    }));
     socketRef.current?.critique(note);
   }, []);
 
@@ -301,23 +419,49 @@ export function useWorkflowBrief(
     setState((current) => ({
       ...current,
       status: "running",
+      phaseLabel: SENDING_LABEL,
       pendingActions: undefined,
     }));
     socketRef.current?.approve();
   }, []);
 
-  /** Refuse, and say why — the reason is what the correction is built from. */
+  /**
+   * Refuse the run. An empty reason is a complete answer — "keep it saved,
+   * unrun" — and the pipeline treats it as exactly that; a non-empty one is
+   * spent on a correction instead.
+   */
   const decline = useCallback((reason: string) => {
-    if (!reason.trim()) return;
     setState((current) => ({
       ...current,
       status: "running",
+      phaseLabel: SENDING_LABEL,
       pendingActions: undefined,
     }));
     socketRef.current?.decline(reason);
   }, []);
 
-  const cancel = useCallback(() => socketRef.current?.cancel(), []);
+  /**
+   * Ask the run to stop. Acknowledged locally at once: the pipeline polls its
+   * cancel flag between model calls, so the real stop can be half a minute
+   * out, and the screen has to say "heard you" in the meantime.
+   */
+  const cancel = useCallback(() => {
+    setState((current) =>
+      current.status === "running" ? { ...current, cancelling: true } : current
+    );
+    socketRef.current?.cancel();
+  }, []);
+
+  /** One click to a fresh retry budget — never a new session. */
+  const reconnect = useCallback(() => {
+    setState((current) => ({ ...current, connection: "reconnecting" }));
+    socketRef.current?.reconnect();
+  }, []);
+
+  /** Turn the saved workflow on. Confirmed by the `armed` frame, not locally. */
+  const arm = useCallback(() => {
+    socketRef.current?.arm();
+  }, []);
 
   const reset = useCallback(() => {
     socketRef.current?.disconnect();
@@ -326,5 +470,16 @@ export function useWorkflowBrief(
     setState(INITIAL);
   }, []);
 
-  return { state, ask, resolve, critique, approve, decline, cancel, reset };
+  return {
+    state,
+    ask,
+    resolve,
+    critique,
+    approve,
+    decline,
+    cancel,
+    reconnect,
+    arm,
+    reset,
+  };
 }

@@ -48,14 +48,14 @@ function BriefSlot({
   return (
     <button
       type="button"
-      // Keyed on the answer by the parent, so the mount animation replays every
-      // time the value changes rather than only on first render.
       onClick={onOpen}
       aria-expanded={isOpen}
+      aria-controls={`brief-blank-${blank.id}`}
+      aria-label={`${blank.question} Currently: ${text}`}
       className={cn(
         "ml-0.5 rounded px-1 transition-colors",
         tightRight ? "mr-0 pr-0" : "mr-0.5",
-        "animate-in fade-in-0 zoom-in-95 duration-200",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         answered
           ? "bg-primary/10 text-foreground"
           : "border-b-2 border-dashed border-primary/60 italic text-muted-foreground",
@@ -63,7 +63,15 @@ function BriefSlot({
         "hover:bg-primary/15"
       )}
     >
-      {text}
+      {/* The animation lives on an inner span keyed by the value, so choosing
+          an answer replays it without remounting the button itself — a remount
+          here is what used to throw keyboard focus back to <body>. */}
+      <span
+        key={text}
+        className="inline-block animate-in fade-in-0 zoom-in-95 duration-200 motion-reduce:animate-none"
+      >
+        {text}
+      </span>
     </button>
   );
 }
@@ -75,6 +83,12 @@ export interface BriefSentenceProps {
   onOpenBlank: (blankId: string | null) => void;
   /** Muted and inert once the sentence is being built from. */
   disabled?: boolean;
+  /**
+   * Marks one slot while the sentence is disabled — the approval gate uses it
+   * to point at the phrase that leaves the platform, so consent stays anchored
+   * to the words that caused the question.
+   */
+  highlightBlankId?: string;
 }
 
 export function BriefSentence({
@@ -83,6 +97,7 @@ export function BriefSentence({
   openBlankId,
   onOpenBlank,
   disabled,
+  highlightBlankId,
 }: BriefSentenceProps) {
   const byId = new Map(brief.blanks.map((blank) => [blank.id, blank]));
 
@@ -90,9 +105,6 @@ export function BriefSentence({
     <p
       className={cn(
         "text-2xl leading-relaxed tracking-tight",
-        // The reflow from a short assumption to a longer chosen label glides
-        // rather than snapping.
-        "transition-all duration-200",
         disabled && "text-muted-foreground"
       )}
     >
@@ -113,7 +125,12 @@ export function BriefSentence({
           return (
             <span
               key={segment.blankId}
-              className={cn("rounded bg-muted px-1", tightRight && "pr-0")}
+              className={cn(
+                "rounded bg-muted px-1",
+                tightRight && "pr-0",
+                segment.blankId === highlightBlankId &&
+                  "bg-amber-500/10 text-foreground ring-1 ring-amber-500/40 dark:bg-amber-400/10 dark:ring-amber-400/40"
+              )}
             >
               {resolveBlank(blank, answers)}
             </span>
@@ -123,10 +140,7 @@ export function BriefSentence({
         return (
           <BriefSlot
             tightRight={tightRight}
-            // The changing key is load-bearing: `animate-in` is a one-shot CSS
-            // animation and will not replay on a re-render unless React
-            // remounts the element.
-            key={`${blank.id}:${answers[blank.id] ?? ""}`}
+            key={blank.id}
             blank={blank}
             answers={answers}
             isOpen={openBlankId === blank.id}

@@ -357,3 +357,36 @@ The connections are fine — do not rewire ports that were not named above. Look
 
 Return the COMPLETE corrected JSON object, not a patch and not only the changed parts. Keep everything that was already correct.`;
 }
+
+/**
+ * Schema for the fast-tier early plan — the steps alone, nothing else.
+ *
+ * The synthesis model writes the real plan, but it cannot be streamed
+ * (`callAgentLLM` is non-streaming across every provider), so it arrives only
+ * when the whole draft returns — after the longest, emptiest stretch of the
+ * first run. A parallel fast-tier call puts intended steps on screen seconds
+ * in; the synthesis plan replaces them the moment it lands.
+ */
+export const EARLY_PLAN_SCHEMA = {
+  type: "object",
+  properties: {
+    steps: {
+      type: "array",
+      items: { type: "string" },
+      description: "3-6 steps, one short plain-language line each.",
+    },
+  },
+  required: ["steps"],
+} as const;
+
+export const EARLY_PLAN_SYSTEM = `You preview the steps of an automation workflow that is being built right now. Answer with JSON only: {"steps": ["...", "..."]}.
+
+Rules:
+- 3 to 6 steps, each one short line in plain language, in execution order.
+- Describe what each step does for the person, not which tool implements it.
+- Never name a service or product the request itself does not name.
+- No numbering, no punctuation at the start of a line.`;
+
+export function buildEarlyPlanPrompt(request: string): string {
+  return `The workflow being built: ${request}`;
+}

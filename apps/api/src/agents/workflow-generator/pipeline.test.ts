@@ -7,6 +7,7 @@ import type {
 } from "@dafthunk/types";
 import { describe, expect, it, vi } from "vitest";
 
+import { selectCandidates } from "./catalog-selection";
 import { withheldProviders, withheldResources } from "./eligibility";
 import { FIXTURE_NODE_TYPES } from "./fixtures";
 import type { GenerateResult, PipelineDependencies } from "./pipeline";
@@ -14,8 +15,8 @@ import {
   formatRunFailures,
   isRunImprovement,
   runGenerationPipeline,
-  selectCandidates,
 } from "./pipeline";
+import { firstFailure } from "./trace";
 
 /** A draft whose only fault is a json -> string edge, the archetypal mistake. */
 const BROKEN_DRAFT = {
@@ -330,6 +331,91 @@ describe("runGenerationPipeline", () => {
     });
   });
 
+  /**
+   * The failure this class of bug produces: a workflow that exists, runs, and
+   * is reported to the user as never having been built.
+   *
+   * Everything after the save can still throw — the gateway is unreachable for
+   * a repair round, the second trial run fails outright, the re-save is
+   * rejected. The workflow is in their workspace either way, and a `failed`
+   * with no id leaves it there with nothing linking back to it.
+   */
+  it("keeps a workflow that was already saved when a later step throws", async () => {
+    // One draft, one failing run. The run-repair round then asks for a second
+    // response the harness does not have, which throws after the save.
+    const { deps, frames, save } = harness([llmResult(FIXED_DRAFT)], {}, [
+      "error",
+    ]);
+
+    const result = await runGenerationPipeline(deps);
+
+    expect(save).toHaveBeenCalledTimes(1);
+    expect(result.outcome).toBe("partial");
+    expect(result.workflowId).toBe("wf-1");
+    // The execution happened and is worth reporting even though the repair
+    // round never completed.
+    expect(result.executionId).toBe("exec-1");
+    expect(result.workflow).toBeDefined();
+
+    // The client has to settle on something, and a `done` carrying the id is
+    // what puts the workflow in front of the user.
+    expect(frames.find((f) => f.type === "done")).toMatchObject({
+      outcome: "partial",
+      workflowId: "wf-1",
+    });
+    expect(frames.find((f) => f.type === "error")).toMatchObject({
+      recoverable: true,
+    });
+  });
+
+  it("discards an unreadable repair rather than failing the generation", async () => {
+    const { deps, frames, callLLM } = harness([
+      llmResult(BROKEN_DRAFT),
+      { content: "Sorry, I got cut off", inputTokens: 5, outputTokens: 5 },
+      llmResult(FIXED_DRAFT),
+    ]);
+
+    const result = await runGenerationPipeline(deps);
+
+    // Stops on the unreadable round instead of spending the rest of the budget
+    // re-asking a question the model has already failed to answer.
+    expect(callLLM).toHaveBeenCalledTimes(2);
+    expect(result.outcome).toBe("failed");
+
+    // Reported as a graph that could not be repaired — which is what happened —
+    // rather than as an internal failure. The closest attempt is still on screen.
+    expect(frames.find((f) => f.type === "error")).toMatchObject({
+      code: "UNREPAIRABLE",
+    });
+    // The tokens the discarded round cost are still booked.
+    expect(result.inputTokens).toBe(105);
+  });
+
+  it("keeps the saved workflow when the run repair comes back unreadable", async () => {
+    const { deps, frames, save, saved } = harness(
+      [
+        llmResult(FIXED_DRAFT),
+        { content: '```json\n{ "nodes": [', inputTokens: 5, outputTokens: 5 },
+      ],
+      {},
+      ["error"]
+    );
+
+    const result = await runGenerationPipeline(deps);
+
+    // Nothing overwrote what already ran, and the workflow is still theirs.
+    expect(save).toHaveBeenCalledTimes(1);
+    expect(result.outcome).toBe("partial");
+    expect(result.workflowId).toBe("wf-1");
+    expect(result.workflow).toBe(saved[0]);
+    expect(
+      frames.some(
+        (f) =>
+          f.type === "log" && f.level === "warn" && f.message.includes("kept")
+      )
+    ).toBe(true);
+  });
+
   it("stops when cancelled", async () => {
     const { deps, frames, save } = harness([llmResult(FIXED_DRAFT)], {
       isCancelled: () => true,
@@ -342,6 +428,125 @@ describe("runGenerationPipeline", () => {
     expect(frames.find((f) => f.type === "error")).toMatchObject({
       code: "CANCELLED",
     });
+  });
+});
+
+/**
+ * The trace is what the evaluation harnesses are built on, and they can only be
+ * run with billed model calls — so its contract is held here, where it is free.
+ */
+describe("the pipeline trace", () => {
+  it("records every stage of a clean generation, in order", async () => {
+    const { deps } = harness([llmResult(DRAFT_WITH_EXAMPLES)]);
+
+    const { trace } = await runGenerationPipeline(deps);
+
+    expect(trace.map((entry) => entry.stage)).toEqual([
+      "select",
+      "draft",
+      "hydrate",
+      "validate",
+      "save",
+      "run",
+    ]);
+    expect(trace.every((entry) => entry.ok)).toBe(true);
+    expect(firstFailure(trace)).toBeUndefined();
+  });
+
+  it("attributes a repaired generation to the validate stage", async () => {
+    const { deps } = harness([llmResult(BROKEN_DRAFT), llmResult(FIXED_DRAFT)]);
+
+    const { trace } = await runGenerationPipeline(deps);
+
+    // The first thing that went wrong is what the harness reports, and it is
+    // the type mismatch rather than anything downstream of it.
+    const failure = firstFailure(trace);
+    expect(failure?.stage).toBe("validate");
+    expect(failure).toMatchObject({ attempt: 0, fatal: ["TYPE_MISMATCH"] });
+
+    // Both rounds are on the record, named by which prompt produced them.
+    const drafts = trace.filter((entry) => entry.stage === "draft");
+    expect(drafts.map((entry) => entry.kind)).toEqual(["initial", "repair"]);
+
+    // And the second validate is clean, which is what makes the pair readable
+    // as "it was broken, then it was fixed".
+    const validations = trace.filter((entry) => entry.stage === "validate");
+    expect(validations.map((entry) => entry.ok)).toEqual([false, true]);
+  });
+
+  it("names the node types the model invented", async () => {
+    const { deps } = harness([
+      llmResult({
+        ...FIXED_DRAFT,
+        nodes: [
+          ...FIXED_DRAFT.nodes,
+          { id: "ghost", type: "summarize-everything" },
+        ],
+      }),
+      llmResult(FIXED_DRAFT),
+    ]);
+
+    const { trace } = await runGenerationPipeline(deps);
+
+    // The silent-discard stage: hydration drops the node and the graph carries
+    // on without it, so nothing downstream can say the request lost a step.
+    const hydrate = trace.find((entry) => entry.stage === "hydrate");
+    expect(hydrate).toMatchObject({
+      ok: false,
+      drafted: 4,
+      droppedTypes: ["summarize-everything"],
+    });
+  });
+
+  it("records an unreadable revision as a failed draft, with the reason", async () => {
+    const { deps } = harness([
+      llmResult(BROKEN_DRAFT),
+      { content: "cut off mid-", inputTokens: 5, outputTokens: 5 },
+    ]);
+
+    const { trace } = await runGenerationPipeline(deps);
+
+    const drafts = trace.filter((entry) => entry.stage === "draft");
+    expect(drafts[1]).toMatchObject({ ok: false, kind: "repair" });
+    expect(drafts[1]).toHaveProperty("reason");
+  });
+
+  it("flags a promised destination that never reached the catalog", async () => {
+    // `share-post-x` needs an account this org has not linked, so eligibility
+    // withholds it — and forcing it in as `required` must not smuggle it past.
+    // The generation is then doomed before the first token: the prompt names a
+    // delivery node whose ports the model cannot see.
+    const { deps } = harness([llmResult(DRAFT_WITH_EXAMPLES)], {
+      destination: {
+        id: "x",
+        kind: "integration" as const,
+        label: "post it to X",
+        nodeTypes: ["share-post-x"],
+      },
+    });
+
+    const { trace } = await runGenerationPipeline(deps);
+
+    const select = trace.find((entry) => entry.stage === "select");
+    expect(select).toMatchObject({
+      ok: false,
+      missingRequired: ["share-post-x"],
+    });
+    // And it is the first failure, so a harness attributes the whole sample to
+    // selection rather than to the delivery check that fires later.
+    expect(firstFailure(trace)?.stage).toBe("select");
+  });
+
+  it("survives a generation that produced nothing", async () => {
+    const { deps } = harness([
+      { content: "I cannot help with that.", inputTokens: 5, outputTokens: 5 },
+    ]);
+
+    const { trace } = await runGenerationPipeline(deps);
+
+    // A generation that produced nothing is exactly the one whose stages are
+    // worth reading, so the trace has to survive the catch.
+    expect(trace.map((entry) => entry.stage)).toEqual(["select"]);
   });
 });
 
@@ -680,5 +885,111 @@ describe("telling the user what was withheld", () => {
     );
 
     expect(withheldResources(withheld)).toContain("queue");
+  });
+});
+
+/**
+ * A scheduled pass-through: the trigger's own timestamp is the only input, so
+ * the generated example has nothing to contribute to the run.
+ */
+const SCHEDULED_PASSTHROUGH_DRAFT = {
+  title: "Tick",
+  description: "Shows the tick time",
+  trigger: "scheduled",
+  steps: ["Show the time"],
+  nodes: [{ id: "sink", type: "output-text" }],
+  edges: [
+    {
+      source: "trigger",
+      sourceOutput: "timestamp",
+      target: "sink",
+      targetInput: "value",
+    },
+  ],
+};
+
+describe("what run_result claims about sample data", () => {
+  it("names the sample when invented input actually drove the run", async () => {
+    const { deps, frames } = harness([llmResult(DRAFT_WITH_EXAMPLES)]);
+    await runGenerationPipeline(deps);
+
+    const result = frames.find((f) => f.type === "run_result");
+    expect(result).toBeDefined();
+    expect(result?.type === "run_result" && result.sampleName).toBe(
+      "Small object"
+    );
+  });
+
+  it("stays silent when the example contributed nothing", async () => {
+    // The old behaviour captioned every run "made-up sample data" because an
+    // example always exists — including runs that read only real sources.
+    // Apologising for magic that actually happened is the one thing worse
+    // than either honest answer.
+    const { deps, frames } = harness([llmResult(SCHEDULED_PASSTHROUGH_DRAFT)]);
+    const outcome = await runGenerationPipeline(deps);
+
+    expect(outcome.outcome).toBe("ok");
+    const result = frames.find((f) => f.type === "run_result");
+    expect(result).toBeDefined();
+    expect(
+      result?.type === "run_result" ? result.sampleName : "present"
+    ).toBeUndefined();
+  });
+});
+
+describe("dormant workflows and their disarmed bindings", () => {
+  it("flags the save as dormant and returns what was blanked", async () => {
+    // The registry ships the schedule input with a default; the fixture
+    // does not, so mirror the real shape here.
+    const scheduled = FIXTURE_NODE_TYPES.find(
+      (nt) => nt.type === "receive-scheduled-trigger"
+    )!;
+    const armedScheduled: typeof scheduled = {
+      ...scheduled,
+      inputs: [
+        {
+          name: "scheduleExpression",
+          type: "string",
+          value: "0 0 * * *",
+        } as (typeof scheduled.inputs)[number],
+      ],
+    };
+    const nodeTypes = FIXTURE_NODE_TYPES.map((nodeType) =>
+      nodeType.type === "receive-scheduled-trigger" ? armedScheduled : nodeType
+    );
+
+    const { deps, frames, saved } = harness([
+      llmResult(SCHEDULED_PASSTHROUGH_DRAFT),
+    ]);
+    const outcome = await runGenerationPipeline({ ...deps, nodeTypes });
+
+    // The stored graph is dormant, the frame says so, and the result carries
+    // the only copy of what "turn it on" must write back.
+    const savedFrame = frames.find((f) => f.type === "saved");
+    expect(savedFrame?.type === "saved" && savedFrame.dormant).toBe(true);
+    expect(outcome.disarmed).toEqual([
+      {
+        nodeId: "trigger",
+        inputName: "scheduleExpression",
+        value: "0 0 * * *",
+      },
+    ]);
+
+    const trigger = saved[0].nodes.find((n) => n.id === "trigger");
+    expect(
+      trigger?.inputs.find((i) => i.name === "scheduleExpression")?.value
+    ).toBeUndefined();
+  });
+
+  it("leaves a manual workflow undormant", async () => {
+    const { deps, frames } = harness([
+      llmResult(BROKEN_DRAFT),
+      llmResult(FIXED_DRAFT),
+    ]);
+    const outcome = await runGenerationPipeline(deps);
+
+    const savedFrame = frames.find((f) => f.type === "saved");
+    expect(savedFrame?.type === "saved" && savedFrame.dormant).toBeFalsy();
+    expect(outcome.disarmed).toEqual([]);
   });
 });

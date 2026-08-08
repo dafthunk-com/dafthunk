@@ -13,13 +13,17 @@ import { Textarea } from "@/components/ui/textarea";
  * so a workflow ending in "post it" posts, to a real account, using text this
  * system invented. That is not something to report afterwards.
  *
- * Declining takes a reason because the reason is worth more than the decline:
- * someone looking at "Post to X" and typing "not publicly" has just said the
- * thing they could not have thought to say when they wrote the request.
+ * Refusal is one tap and takes no reason: the person reading this has just
+ * been told their workflow is about to act in the world, and an escape hatch
+ * behind a required essay is not an escape hatch. The reason stays worth
+ * asking for — someone looking at "Post to X" and typing "not publicly" has
+ * just said the thing they could not have thought to say when they wrote the
+ * request — so it is invited, as its own path, never demanded.
  */
 export interface ApprovalCardProps {
   actions: OutwardAction[];
   onApprove: () => void;
+  /** Empty reason means "keep it saved, unrun" — the pipeline handles both. */
   onDecline: (reason: string) => void;
 }
 
@@ -28,7 +32,7 @@ export function ApprovalCard({
   onApprove,
   onDecline,
 }: ApprovalCardProps) {
-  const [declining, setDeclining] = useState(false);
+  const [changing, setChanging] = useState(false);
   const [reason, setReason] = useState("");
 
   return (
@@ -37,7 +41,7 @@ export function ApprovalCard({
         <AlertTriangle className="mt-1 size-5 shrink-0 text-amber-600 dark:text-amber-500" />
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold tracking-tight">
-            This would {actions.length === 1 ? "do" : "do"} something for real
+            This would do something for real
           </h1>
           <p className="text-sm text-muted-foreground">
             To show you it works I have to run it once — and these steps act
@@ -78,12 +82,12 @@ export function ApprovalCard({
         ))}
       </ul>
 
-      {declining ? (
+      {changing ? (
         <form
           className="space-y-2"
           onSubmit={(event) => {
             event.preventDefault();
-            onDecline(reason);
+            if (reason.trim()) onDecline(reason);
           }}
         >
           <label className="text-sm text-muted-foreground" htmlFor="decline">
@@ -95,30 +99,48 @@ export function ApprovalCard({
             rows={2}
             value={reason}
             onChange={(event) => setReason(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault();
+                if (reason.trim()) onDecline(reason);
+              }
+              if (event.key === "Escape") setChanging(false);
+            }}
             placeholder="Don't post it publicly — just show me the result"
           />
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <Button type="submit" disabled={!reason.trim()}>
               Change it
             </Button>
             <Button
               type="button"
               variant="ghost"
-              onClick={() => setDeclining(false)}
+              onClick={() => setChanging(false)}
             >
               Back
             </Button>
           </div>
         </form>
       ) : (
-        <div className="flex items-center gap-3">
-          {/* "Don't" leads. The safe choice is the one that should be easiest
-              to take, and the person reading this has just been told their
-              workflow is about to act in the world. */}
-          <Button onClick={() => setDeclining(true)}>Don't run it</Button>
-          <Button variant="secondary" onClick={onApprove}>
-            Run it once
-          </Button>
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center gap-3">
+            {/* The safe exit leads, and it is one tap: refusing must never
+                cost more than agreeing. An empty reason reaches the pipeline
+                as a plain refusal — saved, unrun. */}
+            <Button onClick={() => onDecline("")}>
+              Don't run it — keep it saved
+            </Button>
+            <Button variant="secondary" onClick={onApprove}>
+              Run it once
+            </Button>
+          </div>
+          <button
+            type="button"
+            className="text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground"
+            onClick={() => setChanging(true)}
+          >
+            Want it changed first? Tell me what's wrong
+          </button>
         </div>
       )}
     </div>

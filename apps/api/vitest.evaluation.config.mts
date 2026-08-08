@@ -46,7 +46,17 @@ export default defineConfig({
        * is the last hop that still has the host environment in scope.
        */
       miniflare: {
-        bindings: { EVAL_RUNS: process.env.EVAL_RUNS ?? "1" },
+        bindings: {
+          EVAL_RUNS: process.env.EVAL_RUNS ?? "1",
+          /**
+           * `provider:model`, swapping the synthesis tier for one run.
+           *
+           * Empty rather than absent so the binding always exists — a missing
+           * one throws inside workerd on read, and the failure would look like
+           * a broken suite rather than an unset option.
+           */
+          EVAL_MODEL: process.env.EVAL_MODEL ?? "",
+        },
       },
     }),
   ],

@@ -103,15 +103,34 @@ const TRIGGER_ARMING_INPUT_NAMES: ReadonlySet<string> = new Set([
   "scheduleExpression",
 ]);
 
-function disarm(node: Node): Node {
+/** One trigger binding blanked at save time, kept so `arm` can restore it. */
+export interface DisarmedInput {
+  nodeId: string;
+  inputName: string;
+  value: unknown;
+}
+
+function disarm(node: Node, collected: DisarmedInput[]): Node {
   return {
     ...node,
-    inputs: node.inputs.map((input: Parameter) =>
-      TRIGGER_ARMING_TYPES.has(input.type) ||
-      TRIGGER_ARMING_INPUT_NAMES.has(input.name)
-        ? ({ ...input, value: undefined } as Parameter)
-        : input
-    ),
+    inputs: node.inputs.map((input: Parameter) => {
+      const arming =
+        TRIGGER_ARMING_TYPES.has(input.type) ||
+        TRIGGER_ARMING_INPUT_NAMES.has(input.name);
+      if (!arming) return input;
+
+      // Only a value that was actually there is worth remembering — the
+      // restore path writes these back verbatim, and re-arming an input that
+      // never had a value would invent one.
+      if (input.value !== undefined) {
+        collected.push({
+          nodeId: node.id,
+          inputName: input.name,
+          value: input.value,
+        });
+      }
+      return { ...input, value: undefined } as Parameter;
+    }),
   };
 }
 
@@ -217,6 +236,12 @@ export interface HydrateResult {
   errors: EnrichedValidationError[];
   /** Empty unless `orgResources` was supplied and something needed binding. */
   boundResources: BoundResource[];
+  /**
+   * The trigger bindings blanked before save, in restore order. Non-empty
+   * means the saved workflow is dormant: it will not fire on its own until
+   * these are written back — which is what the `arm` turn does.
+   */
+  disarmed: DisarmedInput[];
 }
 
 /**
@@ -272,16 +297,18 @@ export function hydrateGeneratedWorkflow(
         },
       ],
       boundResources: [],
+      disarmed: [],
     };
   }
 
   // Server-owned trigger/responder nodes. The model is told these already
   // exist, so anything it emitted with the same ids or a trigger type is
   // dropped rather than merged.
+  const disarmed: DisarmedInput[] = [];
   const injected = buildTriggerNodes(trigger, nodeTypes, {
     idFor: (_nodeType: NodeType, index: number) =>
       index === 0 ? TRIGGER_NODE_ID : RESPONDER_NODE_ID,
-  }).map(disarm);
+  }).map((node: Node) => disarm(node, disarmed));
 
   const injectedIds = new Set(injected.map((n: Node) => n.id));
   const triggerTypeIds = new Set(
@@ -431,5 +458,6 @@ export function hydrateGeneratedWorkflow(
     },
     errors,
     boundResources,
+    disarmed,
   };
 }

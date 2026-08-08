@@ -36,6 +36,16 @@ export default defineConfig({
     cloudflareTest({
       wrangler: { configPath: "./wrangler.test.jsonc" },
       main: "./src/test-entry.ts",
+      /**
+       * `provider:model`, swapping the synthesis tier for one run, so comparing
+       * two models is two commands rather than two source edits. Empty rather
+       * than absent so the binding always exists — a missing one throws inside
+       * workerd on read, which would look like a broken suite rather than an
+       * unset option.
+       */
+      miniflare: {
+        bindings: { EVAL_MODEL: process.env.EVAL_MODEL ?? "" },
+      },
     }),
   ],
   test: {

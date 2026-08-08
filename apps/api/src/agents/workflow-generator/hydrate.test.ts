@@ -166,6 +166,52 @@ describe("hydrateGeneratedWorkflow", () => {
     ).toBeUndefined();
   });
 
+  it("keeps what it disarmed, so `arm` has something to restore", () => {
+    // The real registry ships `scheduleExpression` with a default value; the
+    // fixture does not, so mirror that here. Without the collection, "turn it
+    // on" would have nothing to write back — hydration deleted the schedule
+    // on purpose, and this is the only copy.
+    const armedScheduled = {
+      ...RECEIVE_SCHEDULED,
+      inputs: [
+        { name: "scheduleExpression", type: "string", value: "0 0 * * *" },
+      ],
+    } as typeof RECEIVE_SCHEDULED;
+    const nodeTypes = FIXTURE_NODE_TYPES.map((nodeType) =>
+      nodeType.type === RECEIVE_SCHEDULED.type ? armedScheduled : nodeType
+    );
+
+    const { workflow, disarmed } = hydrateGeneratedWorkflow(
+      draft({ trigger: "scheduled" }),
+      nodeTypes,
+      nodeTypes
+    );
+
+    expect(disarmed).toEqual([
+      {
+        nodeId: TRIGGER_NODE_ID,
+        inputName: "scheduleExpression",
+        value: "0 0 * * *",
+      },
+    ]);
+
+    // And the graph itself really is dormant — the value lives only in the
+    // collection, never in what gets saved.
+    const trigger = workflow.nodes.find((n) => n.id === TRIGGER_NODE_ID);
+    expect(
+      trigger?.inputs.find((i) => i.name === "scheduleExpression")?.value
+    ).toBeUndefined();
+  });
+
+  it("collects nothing when no arming value was present", () => {
+    const { disarmed } = hydrateGeneratedWorkflow(
+      draft({ trigger: "scheduled" }),
+      FIXTURE_NODE_TYPES,
+      FIXTURE_NODE_TYPES
+    );
+    expect(disarmed).toEqual([]);
+  });
+
   it("lays nodes out in topological layers", () => {
     const { workflow } = hydrateGeneratedWorkflow(
       draft({

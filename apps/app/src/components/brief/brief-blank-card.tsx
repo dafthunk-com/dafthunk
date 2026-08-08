@@ -39,7 +39,10 @@ export function BriefBlankCard({
   };
 
   return (
-    <div className="animate-in fade-in-0 slide-in-from-top-1 space-y-3 rounded-lg border bg-card p-4 duration-200">
+    <div
+      id={`brief-blank-${blank.id}`}
+      className="animate-in fade-in-0 slide-in-from-top-1 space-y-3 rounded-lg border bg-card p-4 duration-200 motion-reduce:animate-none"
+    >
       <div className="space-y-1">
         <p className="text-sm font-medium">{blank.question}</p>
         {blank.why && (
@@ -62,6 +65,7 @@ export function BriefBlankCard({
                 }}
                 className={cn(
                   "rounded-full border px-3 py-1.5 text-sm transition-colors",
+                  "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
                   selected
                     ? "border-primary bg-primary/10 text-primary"
                     : "hover:bg-muted"

@@ -120,11 +120,19 @@ export type GeneratorClientMessage =
   /** Go ahead and run it, outward steps and all. */
   | { type: "approve" }
   /**
-   * Do not run it. The reason is not just bookkeeping: it is the most precise
-   * statement of intent the user will ever give us, because they are reacting
-   * to something concrete rather than describing it from memory.
+   * Do not run it. An empty reason is a complete answer — saved, unrun. A
+   * non-empty one is the most precise statement of intent the user will ever
+   * give us, because they are reacting to something concrete rather than
+   * describing it from memory, and it is spent on a correction.
    */
   | { type: "decline"; reason: string }
+  /**
+   * Turn the finished workflow on. Generated workflows are saved dormant —
+   * their trigger bindings are blanked so nothing starts consuming the org's
+   * real traffic unreviewed — and this restores them, which is the moment the
+   * demo becomes the job. Only meaningful from `done` with a stored workflow.
+   */
+  | { type: "arm" }
   | { type: "cancel" };
 
 export type GeneratorServerMessage =
@@ -183,7 +191,16 @@ export type GeneratorServerMessage =
       attempt: number;
       issues: GenerationValidationIssue[];
     }
-  | { type: "saved"; workflowId: string; name: string }
+  /**
+   * `dormant` is set when a trigger binding was blanked at save time — the
+   * workflow exists but will not fire on its own until an `arm` restores it.
+   * The outcome screen owes the user that fact: every screen upstream teaches
+   * them to trust delegation, and ending on a draft nobody said was a draft
+   * delegates the actual job back to them, unstated.
+   */
+  | { type: "saved"; workflowId: string; name: string; dormant?: boolean }
+  /** The dormant trigger was restored; the workflow now runs on its own. */
+  | { type: "armed"; workflowId: string }
   /**
    * The run is paused because running would act outside Dafthunk. The session
    * sits here until an `approve` or `decline` arrives — nothing is sent, posted

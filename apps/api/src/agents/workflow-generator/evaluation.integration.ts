@@ -3,17 +3,20 @@ import type { NodeType, Workflow, WorkflowExecution } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
 import type { Bindings } from "../../context";
-import { callAgentLLM } from "../../durable-objects/agent-llm";
 import { CloudflareNodeRegistry } from "../../runtime/cloudflare-node-registry";
 import { WorkflowExecutor } from "../../services/workflow-executor";
-import { GENERATOR_MAX_TOKENS, GENERATOR_MODELS } from "./config";
 import type { EvaluationCase } from "./evaluation-cases";
 import { EVALUATION_CASES } from "./evaluation-cases";
+import {
+  createModelRouter,
+  parseModelOverride,
+  resolveTier,
+} from "./model-router";
 import type { OutputProblem } from "./output-checks";
 import { checkDelivered, deliveredText } from "./output-checks";
-import type { GenerateCall } from "./pipeline";
 import { runGenerationPipeline } from "./pipeline";
-import { DRAFT_SCHEMA } from "./prompts";
+import type { TraceEntry } from "./trace";
+import { firstFailure, summarize } from "./trace";
 
 /**
  * Does a generated workflow do the job? — the question the benchmark cannot ask.
@@ -33,6 +36,15 @@ import { DRAFT_SCHEMA } from "./prompts";
  * `EVAL_RUNS` sets samples per case (default 1). Generation is stochastic, so a
  * single sample says very little — raise it when comparing two models, and
  * expect the cost to rise with it.
+ *
+ * `EVAL_MODEL` swaps the synthesis tier for one run, as `provider:model`, so a
+ * comparison is two commands rather than two edits to `config.ts`:
+ *
+ *   EVAL_RUNS=3 EVAL_MODEL=anthropic:claude-opus-5 pnpm --filter '@dafthunk/api' eval:generate
+ *
+ * Both are printed before the first call. An `EVAL_MODEL` that fails to parse
+ * is ignored rather than fatal, and the printed line is the only thing that
+ * distinguishes that from a sweep that ran.
  */
 
 const bindings = env as unknown as Bindings;
@@ -42,18 +54,38 @@ const CATALOG: NodeType[] = new CloudflareNodeRegistry(
   false
 ).getNodeTypes();
 
-/** Delivered as a binding, since `process.env` does not cross into workerd. */
+/** Delivered as bindings, since `process.env` does not cross into workerd. */
 interface EvalEnv {
   EVAL_RUNS?: string;
+  /**
+   * `provider:model`, overriding the synthesis tier for this run.
+   *
+   * What makes a model sweep a command rather than a source edit — the two
+   * numbers worth comparing are pass rate and cost, and neither can be had by
+   * changing `config.ts` between runs and remembering which was which.
+   */
+  EVAL_MODEL?: string;
 }
 
 const RUNS = Number((env as unknown as EvalEnv).EVAL_RUNS ?? "1");
 
+const OVERRIDES = parseModelOverride((env as unknown as EvalEnv).EVAL_MODEL);
+const ROUTE = createModelRouter(bindings, OVERRIDES);
+
+/** What actually answered, which is not always what `config.ts` declares. */
+const SYNTHESIS = resolveTier("synthesis", OVERRIDES);
+
 // Announced before the first model call rather than only in the closing
 // summary. `EVAL_RUNS` reaches the pool as a binding, and when that breaks it
 // does not fail — it quietly reads 1, which is indistinguishable from a run
-// that was meant to be single-sample until the bill arrives.
-console.log(`[eval] ${RUNS} sample(s) per case`);
+// that was meant to be single-sample until the bill arrives. The same is true
+// of an `EVAL_MODEL` that failed to parse: it silently measures the configured
+// model while the operator believes they swept a different one.
+console.log(
+  `[eval] ${RUNS} sample(s) per case, synthesis=${SYNTHESIS.provider}:${SYNTHESIS.model}${
+    OVERRIDES ? " (overridden by EVAL_MODEL)" : ""
+  }`
+);
 
 /** Synthetic owner. Credit checks are off and the DB writes are best-effort. */
 const USER_ID = "eval-user";
@@ -88,16 +120,39 @@ interface Sample {
    */
   outcome?: string;
   error?: string;
+  /**
+   * The first stage that did not do its job, or undefined when they all did.
+   *
+   * The number this suite exists to produce. A pass rate says how often the
+   * generator is wrong; this says *where*, and the difference is the whole
+   * distance between "quality dropped" and something anyone can act on.
+   *
+   * Undefined on a failing sample is itself a finding: every stage worked and
+   * the model still wrote the wrong thing, which is a prompt or model problem
+   * rather than a pipeline one.
+   */
+  stage?: string;
+  trace: TraceEntry[];
 }
 
-/** Node types in graph order. Empty when generation never produced a graph. */
-function nodeTypesOf(workflow: Workflow | undefined): string[] {
-  return workflow?.nodes.map((node) => node.type) ?? [];
+/** Node types in graph order, from the trace so a failed generation still reports. */
+function nodeTypesOf(trace: TraceEntry[]): string[] {
+  for (let index = trace.length - 1; index >= 0; index--) {
+    const entry = trace[index];
+    if (entry.stage === "hydrate") return entry.types;
+  }
+  return [];
+}
+
+/** Where a sample went wrong, in one word, for the aggregate table. */
+function stageOf(trace: TraceEntry[]): string | undefined {
+  return firstFailure(trace)?.stage;
 }
 
 async function runSample(testCase: EvaluationCase): Promise<Sample> {
-  let finalWorkflow: Workflow | undefined;
   let execution: WorkflowExecution | undefined;
+  // Kept outside the try so a throw still reports the stages that ran.
+  let trace: TraceEntry[] = [];
 
   try {
     const result = await runGenerationPipeline({
@@ -106,28 +161,13 @@ async function runSample(testCase: EvaluationCase): Promise<Sample> {
       // Nothing linked: the eval must not depend on which accounts happen to be
       // connected to whatever workspace it runs against.
       connectedProviders: new Set<string>(),
-      callLLM: async (call: GenerateCall) => {
-        const tierName = call.tier ?? "synthesis";
-        const tier = GENERATOR_MODELS[tierName];
-        const response = await callAgentLLM(bindings, {
-          provider: tier.provider,
-          model: tier.model,
-          maxTokens: GENERATOR_MAX_TOKENS[tierName],
-          instructions: call.system,
-          messages: call.messages,
-          tools: [],
-          schema:
-            call.schema ?? (DRAFT_SCHEMA as unknown as Record<string, unknown>),
-        });
-        return {
-          content: response.content ?? "",
-          inputTokens: response.inputTokens ?? 0,
-          outputTokens: response.outputTokens ?? 0,
-        };
-      },
-      emit: (frame) => {
-        if (frame.type === "graph") finalWorkflow = frame.workflow;
-      },
+      // The Durable Object's own dispatch, so what is measured is what ships.
+      callLLM: ROUTE,
+      // Frames are the browser's channel and this suite no longer reads them.
+      // It used to scrape `graph` to recover the workflow, which is how a
+      // measurement harness ended up depending on a UI contract — and why it
+      // could only ever see the two endpoints rather than the stages between.
+      emit: () => {},
       save: async () => "eval-workflow",
       // The real executor, because the whole point is what the nodes produce.
       // Approval is deliberately not wired: with no provider connected there is
@@ -156,6 +196,9 @@ async function runSample(testCase: EvaluationCase): Promise<Sample> {
       },
     });
 
+    trace = result.trace;
+    const finalWorkflow: Workflow | undefined = result.workflow;
+
     if (!finalWorkflow || result.outcome === "failed") {
       return {
         caseId: testCase.id,
@@ -164,8 +207,10 @@ async function runSample(testCase: EvaluationCase): Promise<Sample> {
         clean: false,
         problems: [],
         delivered: [],
-        nodeTypes: nodeTypesOf(finalWorkflow),
+        nodeTypes: nodeTypesOf(trace),
         outcome: result.outcome,
+        stage: stageOf(trace),
+        trace,
         error: "generation failed",
       };
     }
@@ -178,8 +223,10 @@ async function runSample(testCase: EvaluationCase): Promise<Sample> {
         clean: false,
         problems: [],
         delivered: [],
-        nodeTypes: nodeTypesOf(finalWorkflow),
+        nodeTypes: nodeTypesOf(trace),
         outcome: result.outcome,
+        stage: stageOf(trace),
+        trace,
         error: "never ran",
       };
     }
@@ -211,18 +258,22 @@ async function runSample(testCase: EvaluationCase): Promise<Sample> {
       clean: problems.length === 0,
       problems,
       delivered,
-      nodeTypes: nodeTypesOf(finalWorkflow),
+      nodeTypes: nodeTypesOf(trace),
       outcome: result.outcome,
+      stage: stageOf(trace),
+      trace,
     };
   } catch (error) {
     return {
       caseId: testCase.id,
-      built: Boolean(finalWorkflow),
+      built: false,
       ran: false,
       clean: false,
       problems: [],
       delivered: [],
-      nodeTypes: nodeTypesOf(finalWorkflow),
+      nodeTypes: nodeTypesOf(trace),
+      stage: stageOf(trace),
+      trace,
       error: error instanceof Error ? error.message : String(error),
     };
   }
@@ -263,7 +314,8 @@ function report(sample: Sample): void {
   console.log(
     `\n[eval] ${status} ${sample.caseId} ` +
       `(built=${sample.built} ran=${sample.ran} ` +
-      `outcome=${sample.outcome ?? "?"} nodes=${sample.nodeTypes.length})`
+      `outcome=${sample.outcome ?? "?"} nodes=${sample.nodeTypes.length}` +
+      `${sample.stage ? ` broke-at=${sample.stage}` : ""})`
   );
   if (sample.nodeTypes.length) {
     console.log(`  types: ${sample.nodeTypes.join(", ")}`);
@@ -272,6 +324,19 @@ function report(sample: Sample): void {
   for (const problem of sample.problems) {
     console.log(`  ${problem.code}: ${problem.message}`);
   }
+
+  // Every stage, for a sample that went wrong. This is the artifact: there is
+  // no filesystem in the pool, so a failure that cannot be diagnosed from the
+  // log cannot be diagnosed at all — and "it delivered the wrong thing" with
+  // no stages under it is what sent two rounds of diagnosis into the wrong
+  // half of the pipeline.
+  if (!sample.clean) {
+    console.log("  --- stages ---");
+    for (const entry of sample.trace) {
+      console.log(`  ${entry.ok ? " " : "!"} ${summarize(entry)}`);
+    }
+  }
+
   for (const text of sample.delivered) {
     console.log(`  --- delivered (${text.length} chars) ---\n${excerpt(text)}`);
   }
@@ -312,14 +377,35 @@ describe("workflow generator evaluation", () => {
       }
     }
 
+    /**
+     * Where the failures are, which is the question a pass rate cannot answer.
+     *
+     * `content` is the bucket that matters most: every stage did its job and
+     * the delivery was still wrong. That is a prompt or a model problem, and it
+     * is the only bucket that is *not* fixed by changing the pipeline — telling
+     * it apart from the others is the whole point of the trace.
+     */
+    const byStage = new Map<string, number>();
+    for (const sample of samples) {
+      if (sample.clean) continue;
+      const stage = sample.stage ?? "content";
+      byStage.set(stage, (byStage.get(stage) ?? 0) + 1);
+    }
+
     const report = [
-      `model=${GENERATOR_MODELS.synthesis.model} runs=${RUNS}`,
+      // The model that actually answered, not the one configured — a sweep
+      // whose report names the wrong model is worse than no report.
+      `model=${SYNTHESIS.provider}:${SYNTHESIS.model} runs=${RUNS}`,
       `  ${built}/${total} built a valid graph`,
       `  ${ran}/${total} ran to completion`,
       `  ${clean}/${total} delivered something usable`,
       // The gap between the second and third numbers is the whole reason this
       // suite exists: everything in it passes the benchmark.
       `  ${ran - clean}/${total} ran cleanly but delivered something wrong`,
+      "  failures by stage:",
+      ...[...byStage]
+        .sort((a, b) => b[1] - a[1])
+        .map(([stage, count]) => `    ${stage}: ${count}`),
       ...[...byCode]
         .sort((a, b) => b[1] - a[1])
         .map(([code, count]) => `  ${code}: ${count}`),
@@ -327,7 +413,7 @@ describe("workflow generator evaluation", () => {
         .filter((sample) => !sample.clean)
         .map(
           (sample) =>
-            `  ${sample.caseId}: ${
+            `  ${sample.caseId} [${sample.stage ?? "content"}]: ${
               sample.error ??
               sample.problems.map((problem) => problem.code).join(", ")
             }\n    ${(sample.delivered[0] ?? "").slice(0, 400).replace(/\n/g, "\n    ")}`

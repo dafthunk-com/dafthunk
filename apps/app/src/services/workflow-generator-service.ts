@@ -7,6 +7,16 @@ import type {
 import { getApiBaseUrl } from "@/config/api";
 import { refreshAccessToken } from "@/services/utils";
 
+/**
+ * Transport state, reported separately from anything the server says.
+ *
+ * "reconnecting" means retries are still pending and the screen should stay
+ * exactly where it is; "lost" means the retry budget is spent. Neither says
+ * anything about the *session* — the server keeps a frame log for an hour and
+ * replays it on the next connect, so a lost transport is never a lost build.
+ */
+export type GeneratorConnectionStatus = "connected" | "reconnecting" | "lost";
+
 export interface WorkflowGeneratorWSOptions {
   /**
    * Every server frame, in order. A single callback rather than one per frame
@@ -14,7 +24,16 @@ export interface WorkflowGeneratorWSOptions {
    * would be a worse surface for the same thing.
    */
   onFrame?: (frame: GeneratorServerMessage) => void;
-  onConnectionError?: (event: Event) => void;
+  /**
+   * Transport changes only. `detail` is set when the failure has a better
+   * explanation than "lost" — today that is the rate limiter, whose 429 body
+   * the browser hides from the WebSocket upgrade, so it is recovered with an
+   * HTTP probe and would otherwise never reach a human.
+   */
+  onConnectionChange?: (
+    status: GeneratorConnectionStatus,
+    detail?: string
+  ) => void;
 }
 
 /**
@@ -39,6 +58,9 @@ export class WorkflowGeneratorWebSocket {
   private maxReconnectAttempts = 5;
   private reconnectDelay = 1000;
   private shouldReconnect = true;
+  /** The scheduled retry, so waking events can fire it early. */
+  private retryTimer: ReturnType<typeof setTimeout> | null = null;
+  private listenersAttached = false;
   /** Set once `start` has been sent for this session; never sent twice. */
   private hasStarted = false;
   /**
@@ -70,6 +92,7 @@ export class WorkflowGeneratorWebSocket {
 
   connect(): void {
     if (this.isConnectedOrConnecting()) return;
+    this.attachWakeListeners();
 
     const wsBaseUrl = getApiBaseUrl().replace(/^http/, "ws");
     const url = `${wsBaseUrl}/${this.orgId}/generate/${this.sessionId}`;
@@ -81,6 +104,7 @@ export class WorkflowGeneratorWebSocket {
         this.reconnectAttempts = 0;
         this.reconnectDelay = 1000;
         this.everOpened = true;
+        this.options.onConnectionChange?.("connected");
         // A message submitted before the socket opened is flushed here.
         if (this.pending) {
           const message = this.pending;
@@ -119,15 +143,17 @@ export class WorkflowGeneratorWebSocket {
           // Out of retries, or closed on purpose. Only now is the connection
           // actually lost, and only an unclean close is worth reporting.
           if (this.shouldReconnect && !event.wasClean) {
-            this.options.onConnectionError?.(new Event("error"));
+            void this.reportLost();
           }
           return;
         }
 
         this.reconnectAttempts++;
         const attempt = this.reconnectAttempts;
+        this.options.onConnectionChange?.("reconnecting");
 
-        setTimeout(() => {
+        this.retryTimer = setTimeout(() => {
+          this.retryTimer = null;
           // The access token lives five minutes, and this socket authenticates
           // by cookie at the upgrade. Anyone who spent longer than that
           // composing their request gets a 401 on the very first connect —
@@ -151,9 +177,84 @@ export class WorkflowGeneratorWebSocket {
       };
     } catch (error) {
       console.error("[GeneratorWS] Failed to create WebSocket:", error);
-      this.options.onConnectionError?.(
-        new Event("error", { cancelable: false })
-      );
+      void this.reportLost();
+    }
+  }
+
+  /**
+   * A fresh retry budget, on the user's say-so.
+   *
+   * The session is addressable for an hour after it ends, so "lost" is only
+   * ever a statement about the transport — this makes trying again cost one
+   * click instead of a page reload.
+   */
+  reconnect(): void {
+    this.clearRetryTimer();
+    this.shouldReconnect = true;
+    this.reconnectAttempts = 0;
+    this.reconnectDelay = 1000;
+    this.connect();
+  }
+
+  /**
+   * Explains an exhausted connection, if the API can.
+   *
+   * The one failure with a better story than "lost" is the rate limiter: it
+   * refuses the upgrade with a 429 whose body says how long to wait, and the
+   * browser never surfaces an upgrade body. A plain HTTP probe of the same
+   * route recovers it. Only worth doing when no handshake ever succeeded —
+   * after one, the socket was healthy and the failure is genuinely transport.
+   */
+  private async reportLost(): Promise<void> {
+    let detail: string | undefined;
+
+    if (!this.everOpened) {
+      try {
+        const response = await fetch(
+          `${getApiBaseUrl()}/${this.orgId}/generate/${this.sessionId}`,
+          { credentials: "include" }
+        );
+        if (response.status === 429) {
+          const body = (await response.json()) as { error?: string };
+          detail = body.error;
+        }
+      } catch {
+        // The probe is best-effort; "lost" is already true.
+      }
+    }
+
+    this.options.onConnectionChange?.("lost", detail);
+  }
+
+  /** Retry now rather than at the end of the backoff. */
+  private wakeAndRetry = (): void => {
+    if (document.visibilityState === "hidden") return;
+    if (!this.retryTimer) return;
+    this.clearRetryTimer();
+    this.connect();
+  };
+
+  private attachWakeListeners(): void {
+    if (this.listenersAttached) return;
+    this.listenersAttached = true;
+    // A laptop lid or a dropped network fires these long before any backoff
+    // expires, and a person staring at "Reconnecting…" after reopening their
+    // laptop should not be waiting out a 16-second timer.
+    window.addEventListener("online", this.wakeAndRetry);
+    document.addEventListener("visibilitychange", this.wakeAndRetry);
+  }
+
+  private detachWakeListeners(): void {
+    if (!this.listenersAttached) return;
+    this.listenersAttached = false;
+    window.removeEventListener("online", this.wakeAndRetry);
+    document.removeEventListener("visibilitychange", this.wakeAndRetry);
+  }
+
+  private clearRetryTimer(): void {
+    if (this.retryTimer) {
+      clearTimeout(this.retryTimer);
+      this.retryTimer = null;
     }
   }
 
@@ -209,9 +310,14 @@ export class WorkflowGeneratorWebSocket {
     this.send({ type: "approve" });
   }
 
-  /** Refuse the run, and say why so it can be corrected instead. */
+  /** Refuse the run. An empty reason means "keep it saved, unrun". */
   decline(reason: string): void {
     this.send({ type: "decline", reason });
+  }
+
+  /** Turn the finished workflow on — restore its blanked trigger bindings. */
+  arm(): void {
+    this.send({ type: "arm" });
   }
 
   cancel(): void {
@@ -223,6 +329,8 @@ export class WorkflowGeneratorWebSocket {
 
   disconnect(): void {
     this.shouldReconnect = false;
+    this.clearRetryTimer();
+    this.detachWakeListeners();
     if (this.ws) {
       this.ws.close(WorkflowGeneratorWebSocket.NORMAL_CLOSURE);
       this.ws = null;

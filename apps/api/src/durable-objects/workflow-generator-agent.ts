@@ -47,13 +47,14 @@ import { eq } from "drizzle-orm";
 import type { Connection, ConnectionContext } from "partyserver";
 import { generateBrief } from "../agents/workflow-generator/brief";
 import {
-  GENERATOR_MAX_TOKENS,
   GENERATOR_MODELS,
   RUN_RETENTION_MS,
   RUN_STALL_TIMEOUT_MS,
 } from "../agents/workflow-generator/config";
 import { achievableDestinations } from "../agents/workflow-generator/destinations";
 import { filterEligible } from "../agents/workflow-generator/eligibility";
+import type { DisarmedInput } from "../agents/workflow-generator/hydrate";
+import { createModelRouter } from "../agents/workflow-generator/model-router";
 import type { OrgResources } from "../agents/workflow-generator/org-resources";
 import { loadOrgResources } from "../agents/workflow-generator/org-resources";
 import type {
@@ -61,7 +62,6 @@ import type {
   TierUsage,
 } from "../agents/workflow-generator/pipeline";
 import { runGenerationPipeline } from "../agents/workflow-generator/pipeline";
-import { DRAFT_SCHEMA } from "../agents/workflow-generator/prompts";
 import type { Bindings } from "../context";
 import {
   createDatabase,
@@ -78,7 +78,6 @@ import { WorkflowExecutor } from "../services/workflow-executor";
 import { ExampleStore } from "../stores/example-store";
 import { WorkflowStore } from "../stores/workflow-store";
 import { isCreditExhausted } from "../utils/credits";
-import { callAgentLLM } from "./agent-llm";
 
 // ── Agent SDK type shim ──────────────────────────────────────────────────
 // The agents bundled d.ts doesn't resolve some inherited Agent/Server methods
@@ -181,7 +180,12 @@ export class WorkflowGeneratorAgent extends Agent<
     // Added after `gen_runs` shipped. There is no migration to write — sessions
     // are reclaimed an hour after they end — but a Durable Object that was
     // mid-flight across a deploy still holds the original table.
-    for (const column of [`turn INTEGER NOT NULL DEFAULT 0`, `brief TEXT`]) {
+    for (const column of [
+      `turn INTEGER NOT NULL DEFAULT 0`,
+      `brief TEXT`,
+      // The trigger bindings hydration blanked, so `arm` can restore them.
+      `disarmed TEXT`,
+    ]) {
       try {
         this.storageSql.exec(`ALTER TABLE gen_runs ADD COLUMN ${column}`);
       } catch {
@@ -196,7 +200,7 @@ export class WorkflowGeneratorAgent extends Agent<
     this.ensureSchema();
     const rows = this.storageSql
       .exec(
-        `SELECT status, prompt, cancelled, updated_at, turn, brief, workflow_id FROM gen_runs WHERE session_id = ?`,
+        `SELECT status, prompt, cancelled, updated_at, turn, brief, workflow_id, disarmed FROM gen_runs WHERE session_id = ?`,
         sessionId
       )
       .toArray() as Array<{
@@ -207,6 +211,7 @@ export class WorkflowGeneratorAgent extends Agent<
       turn: number;
       brief: string | null;
       workflow_id: string | null;
+      disarmed: string | null;
     }>;
     return rows[0];
   }
@@ -616,6 +621,29 @@ export class WorkflowGeneratorAgent extends Agent<
         );
         return;
       }
+      case "arm": {
+        // No turn is claimed: arming spends no model call and moves no
+        // conversation forward. It is only legal on a finished session with a
+        // stored workflow and something actually disarmed — anything else is
+        // a duplicate click or a stale client, and ignoring is right because
+        // the restore is idempotent anyway.
+        const stored = this.currentRun(sessionId);
+        if (stored?.status !== "done" || !stored.workflow_id) return;
+        if (!stored.disarmed) return;
+
+        let disarmed: DisarmedInput[];
+        try {
+          disarmed = JSON.parse(stored.disarmed) as DisarmedInput[];
+        } catch {
+          return;
+        }
+        if (disarmed.length === 0) return;
+
+        this.durableCtx.waitUntil(
+          this.armWorkflow(stored.workflow_id, disarmed)
+        );
+        return;
+      }
       case "cancel": {
         this.ensureSchema();
         this.storageSql.exec(
@@ -670,12 +698,11 @@ export class WorkflowGeneratorAgent extends Agent<
         getIntegrations(db, organizationId),
       ]);
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
       console.error("[WorkflowGenerator] pre-flight failed:", error);
       this.fail(sessionId, {
         type: "error",
         code: "INTERNAL",
-        message: `Generation failed: ${message}`,
+        message: "Something broke on my end before it could start. Try again.",
         recoverable: true,
       });
       return undefined;
@@ -815,12 +842,18 @@ export class WorkflowGeneratorAgent extends Agent<
       });
 
       // Our end broke. Say so, and keep it recoverable — the request was fine
-      // and retyping it is not what needs to happen.
+      // and retyping it is not what needs to happen. The diagnostic goes to
+      // the log: the moment something breaks is exactly when the voice has to
+      // hold, and "(segments=string(1200), keys=0,1,2)" is not a sentence.
       if (outcome.kind === "failed") {
+        console.error(
+          `[WorkflowGenerator] brief failed: ${outcome.message} (session=${sessionId})`
+        );
         this.fail(sessionId, {
           type: "error",
           code: "INTERNAL",
-          message: `Something went wrong on our side reading that back (${outcome.message}). Your request was fine — try again.`,
+          message:
+            "Something went wrong on my end reading that back. Your request was fine — try again.",
           recoverable: true,
         });
         return;
@@ -840,12 +873,12 @@ export class WorkflowGeneratorAgent extends Agent<
       this.emit({ type: "brief", turn, brief: outcome.brief });
       this.storeBrief(sessionId, outcome.brief);
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
       console.error("[WorkflowGenerator] brief crashed:", error);
       this.fail(sessionId, {
         type: "error",
         code: "INTERNAL",
-        message: `Could not read that back: ${message}`,
+        message:
+          "Something went wrong on my end reading that back. Your request was fine — try again.",
         recoverable: true,
       });
     }
@@ -944,6 +977,7 @@ export class WorkflowGeneratorAgent extends Agent<
         prompt,
         destination,
         resume: input.resume,
+        earlyPlan: true,
         onConversation: (system, messages) =>
           this.storeConversation(sessionId, turn, system, messages),
         nodeTypes: context.nodeTypes,
@@ -1006,10 +1040,13 @@ export class WorkflowGeneratorAgent extends Agent<
       );
 
       this.storageSql.exec(
-        `UPDATE gen_runs SET status = ?, workflow_id = ?, execution_id = ?, updated_at = ? WHERE session_id = ?`,
+        `UPDATE gen_runs SET status = ?, workflow_id = ?, execution_id = ?, disarmed = ?, updated_at = ? WHERE session_id = ?`,
         result.outcome === "failed" ? "failed" : "done",
         result.workflowId ?? null,
         result.executionId ?? null,
+        result.disarmed && result.disarmed.length > 0
+          ? JSON.stringify(result.disarmed)
+          : null,
         Date.now(),
         sessionId
       );
@@ -1023,12 +1060,12 @@ export class WorkflowGeneratorAgent extends Agent<
 
       await this.scheduleCleanup();
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
       console.error("[WorkflowGenerator] pipeline crashed:", error);
       this.fail(sessionId, {
         type: "error",
         code: "INTERNAL",
-        message: `Generation failed: ${message}`,
+        message:
+          "Something broke on my end while building that. Your request was fine — try again.",
         recoverable: true,
       });
     }
@@ -1079,25 +1116,90 @@ export class WorkflowGeneratorAgent extends Agent<
     await this.durableCtx.storage.deleteAll();
   }
 
+  /**
+   * The shipping dispatch path, shared with both harnesses.
+   *
+   * Never overridden here: a model sweep is an experiment, and a deployment
+   * serving one is a deployment nobody chose.
+   */
   private async callModel(call: GenerateCall) {
-    const tierName = call.tier ?? "synthesis";
-    const tier = GENERATOR_MODELS[tierName];
-    const response = await callAgentLLM(this.env, {
-      provider: tier.provider,
-      model: tier.model,
-      maxTokens: GENERATOR_MAX_TOKENS[tierName],
-      instructions: call.system,
-      messages: call.messages,
-      tools: [],
-      schema:
-        call.schema ?? (DRAFT_SCHEMA as unknown as Record<string, unknown>),
-    });
+    return createModelRouter(this.env)(call);
+  }
 
-    return {
-      content: response.content ?? "",
-      inputTokens: response.inputTokens ?? 0,
-      outputTokens: response.outputTokens ?? 0,
-    };
+  /**
+   * Restores the trigger bindings hydration blanked, making the workflow live.
+   *
+   * The values go back exactly as they were captured, through the same save
+   * path every other write takes — `syncTriggers` then registers the trigger
+   * with `active: true`, which is the arming. Idempotent: restoring an input
+   * that already holds the value writes the same workflow again.
+   */
+  private async armWorkflow(
+    workflowId: string,
+    disarmed: DisarmedInput[]
+  ): Promise<void> {
+    const organizationId = this.state?.organizationId;
+    if (!organizationId) return;
+
+    try {
+      const store = new WorkflowStore(this.env);
+      const stored = await store.getWithData(workflowId, organizationId);
+      if (!stored) {
+        this.emit({
+          type: "log",
+          level: "warn",
+          message:
+            "I couldn't find the workflow to turn it on — it may have been deleted.",
+          important: true,
+        });
+        return;
+      }
+
+      const byNode = new Map<string, DisarmedInput[]>();
+      for (const entry of disarmed) {
+        const list = byNode.get(entry.nodeId) ?? [];
+        list.push(entry);
+        byNode.set(entry.nodeId, list);
+      }
+
+      const nodes = stored.data.nodes.map((node) => {
+        const restores = byNode.get(node.id);
+        if (!restores) return node;
+        return {
+          ...node,
+          inputs: node.inputs.map((input) => {
+            const restore = restores.find(
+              (entry) => entry.inputName === input.name
+            );
+            return restore ? { ...input, value: restore.value } : input;
+          }),
+        };
+      });
+
+      await store.save({
+        id: workflowId,
+        name: stored.name,
+        description: stored.data.description,
+        trigger: stored.data.trigger,
+        runtime: stored.data.runtime ?? "workflow",
+        organizationId,
+        nodes,
+        edges: stored.data.edges,
+        apiHost: this.state?.apiHost,
+        createdAt: stored.createdAt,
+      });
+
+      this.emit({ type: "armed", workflowId });
+    } catch (error) {
+      console.error("[WorkflowGenerator] arm failed:", error);
+      this.emit({
+        type: "log",
+        level: "warn",
+        message:
+          "I couldn't turn it on from here. Open the workflow and enable it there.",
+        important: true,
+      });
+    }
   }
 
   /**
