@@ -20,6 +20,7 @@ import { useAuth } from "@/components/auth-context";
 import { ApprovalCard } from "@/components/brief/approval-card";
 import { BriefBlankCard } from "@/components/brief/brief-blank-card";
 import { BriefSentence } from "@/components/brief/brief-sentence";
+import { BuildCanvas } from "@/components/brief/build-canvas";
 import { ConnectCard } from "@/components/brief/connect-card";
 import { OutcomeView } from "@/components/brief/outcome-view";
 import { Button } from "@/components/ui/button";
@@ -435,6 +436,11 @@ export function BriefPage() {
           onApprove={approve}
           onDecline={decline}
         />
+        {/* The exact graph the decision is about. The card says what would
+            leave the platform; this shows where in the flow that happens. */}
+        {state.workflow && state.workflow.nodes.length > 0 && (
+          <BuildCanvas workflow={state.workflow} />
+        )}
         <BriefNotes notes={state.notes} getOrgUrl={getOrgUrl} />
       </Shell>
     );
@@ -540,6 +546,23 @@ export function BriefPage() {
           </p>
         )}
 
+        {/* Its own name for what it is making, the moment it has one. The
+            step list arrives as clauses; a title is the earliest thing a
+            person can check against what they meant — and until now it was
+            generated and never rendered. */}
+        {state.plan && (
+          <div className="space-y-1 animate-in fade-in-0 duration-300 motion-reduce:animate-none">
+            <h2 className="text-lg font-medium tracking-tight">
+              {state.plan.title}
+            </h2>
+            {state.plan.description && (
+              <p className="line-clamp-2 text-sm text-muted-foreground">
+                {state.plan.description}
+              </p>
+            )}
+          </div>
+        )}
+
         {pendingNote && (
           <p className="border-l-2 pl-3 text-sm text-muted-foreground">
             Changing: {pendingNote}
@@ -576,16 +599,24 @@ export function BriefPage() {
           signature={`${state.phase}:${state.phaseLabel}:${state.phaseTrail.length}`}
         />
 
-        {/* The build runs the better part of a minute. Its own account of what
-            it is making is the only thing that lets someone tell a good attempt
-            from a wrong one before it finishes. */}
-        {state.plan && state.plan.steps.length > 0 && (
+        {/* The build, watchable. Until the first graph frame lands, the
+            plan's own steps hold the space; from then on the graph replaces
+            them. Watching nodes appear, get rewired by a repair, and pulse
+            while the trial runs is the difference between a progress log and
+            seeing the thing get made — and the frames were already arriving,
+            reduced to a name list at the end. */}
+        {state.workflow && state.workflow.nodes.length > 0 ? (
+          <BuildCanvas
+            workflow={state.workflow}
+            running={state.phase === "running"}
+          />
+        ) : state.plan && state.plan.steps.length > 0 ? (
           <ol className="list-decimal space-y-1 pl-5 text-sm text-muted-foreground">
             {state.plan.steps.map((step) => (
               <li key={step}>{step}</li>
             ))}
           </ol>
-        )}
+        ) : null}
 
         <BriefNotes notes={state.notes} getOrgUrl={getOrgUrl} />
 
@@ -718,8 +749,21 @@ export function BriefPage() {
         )}
       </div>
 
+      {/* What ran, stamped with how each step fared — the finish of the scene
+          the running screen played. The verdicts cascade down the rows before
+          the results below arrive, so the outcome reads as the run completing
+          rather than as a page swap. */}
+      {state.workflow && state.workflow.nodes.length > 0 && (
+        <div className="space-y-2 animate-in fade-in-0 slide-in-from-bottom-2 duration-300 [animation-delay:120ms] [animation-fill-mode:backwards] motion-reduce:animate-none">
+          <p className="text-xs text-muted-foreground">
+            "{state.workflow.name}" · {state.workflow.nodes.length} steps
+          </p>
+          <BuildCanvas workflow={state.workflow} execution={state.execution} />
+        </div>
+      )}
+
       {state.workflow && state.execution && (
-        <div className="animate-in fade-in-0 slide-in-from-bottom-2 duration-300 [animation-delay:120ms] [animation-fill-mode:backwards] motion-reduce:animate-none">
+        <div className="animate-in fade-in-0 slide-in-from-bottom-2 duration-300 [animation-delay:240ms] [animation-fill-mode:backwards] motion-reduce:animate-none">
           <OutcomeView workflow={state.workflow} execution={state.execution} />
         </div>
       )}
@@ -730,7 +774,7 @@ export function BriefPage() {
           the whole arc into a demo. One line of state and one derived button
           convert the demo into the job. */}
       {showCommitment && (
-        <div className="space-y-3 rounded-lg border p-4 animate-in fade-in-0 slide-in-from-bottom-2 duration-300 [animation-delay:240ms] [animation-fill-mode:backwards] motion-reduce:animate-none">
+        <div className="space-y-3 rounded-lg border p-4 animate-in fade-in-0 slide-in-from-bottom-2 duration-300 [animation-delay:360ms] [animation-fill-mode:backwards] motion-reduce:animate-none">
           <p className="text-sm">
             It isn't running on its own yet — this run only happened because you
             asked.
@@ -759,23 +803,6 @@ export function BriefPage() {
       )}
 
       <BriefNotes notes={state.notes} getOrgUrl={getOrgUrl} />
-
-      {/* What it actually built. "Open it" was otherwise a blind commit: the
-          result above says what came out, and nothing said what made it. Names
-          only — the node *types* are how it was done, which is the editor's
-          business rather than this screen's. */}
-      {state.workflow && state.workflow.nodes.length > 0 && (
-        <details className="border-t pt-4 text-sm">
-          <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
-            {state.workflow.nodes.length} steps
-          </summary>
-          <ol className="mt-2 list-decimal space-y-1 pl-5 text-muted-foreground">
-            {state.workflow.nodes.map((node) => (
-              <li key={node.id}>{node.name}</li>
-            ))}
-          </ol>
-        </details>
-      )}
 
       {assumptions.length > 0 && (
         <div className="space-y-1 border-t pt-4">
