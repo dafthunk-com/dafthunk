@@ -48,30 +48,6 @@
   --animate-accordion-up: accordion-up 0.2s ease-out;
   --animate-blink-1: blink-1 2.7s ease-out infinite;
   --animate-blink-2: blink-2 2.7s ease-out infinite;
-  --animate-edge-draw: edge-draw 0.5s ease-out backwards;
-  --animate-node-live: node-live 2.4s ease-in-out infinite;
-
-  /* Draws an edge from source to target; pairs with pathLength={1} and
-     stroke-dasharray: 1 so one keyframe fits every path length. */
-  @keyframes edge-draw {
-    from {
-      stroke-dashoffset: 1;
-    }
-    to {
-      stroke-dashoffset: 0;
-    }
-  }
-  /* A ring that breathes once per cycle; staggered by row it reads as the
-     run washing down the graph. */
-  @keyframes node-live {
-    0%,
-    100% {
-      opacity: 0;
-    }
-    50% {
-      opacity: 1;
-    }
-  }
 
   @keyframes accordion-down {
     from {

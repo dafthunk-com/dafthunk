@@ -20,16 +20,22 @@ import { useAuth } from "@/components/auth-context";
 import { ApprovalCard } from "@/components/brief/approval-card";
 import { BriefBlankCard } from "@/components/brief/brief-blank-card";
 import { BriefSentence } from "@/components/brief/brief-sentence";
-import { BuildCanvas } from "@/components/brief/build-canvas";
 import { ConnectCard } from "@/components/brief/connect-card";
 import { OutcomeView } from "@/components/brief/outcome-view";
+import {
+  ActionBarButton,
+  ActionBarGroup,
+  actionBarButtonOutlineClassName,
+} from "@/components/ui/action-bar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
+import { WorkflowSchematicView } from "@/components/workflow/workflow-schematic-view";
 import { useOrgUrl } from "@/hooks/use-org-url";
 import type { BriefNote } from "@/hooks/use-workflow-brief";
 import { useWorkflowBrief } from "@/hooks/use-workflow-brief";
 import { markOutcomeSeen, markWorkflowKept } from "@/services/profile-service";
+import { useNodeTypes } from "@/services/type-service";
 import { cn } from "@/utils/utils";
 import { failedSteps } from "@/utils/workflow-outcome";
 
@@ -164,6 +170,10 @@ export function BriefPage() {
     reset,
   } = useWorkflowBrief(orgId, { sessionId, onSessionStarted });
 
+  // Only for the schematic's trigger/responder accent — SWR-cached, so this
+  // is the same fetch the editor makes when "Open it" is followed.
+  const { nodeTypes } = useNodeTypes({ revalidateOnFocus: false });
+
   const [request, setRequest] = useState("");
   const [answers, setAnswers] = useState<BriefAnswers>({});
   const [openBlankId, setOpenBlankId] = useState<string | null>(null);
@@ -262,7 +272,20 @@ export function BriefPage() {
   // wrong button here is one that abandons the session.
   if (state.connection === "lost" && isMidFlight(state.status)) {
     return (
-      <Shell>
+      <Shell
+        // Whatever was built stays on the stage while the socket is down —
+        // blanking the picture would say "lost" when nothing is.
+        canvas={
+          state.workflow &&
+          state.workflow.nodes.length > 0 && (
+            <WorkflowSchematicView
+              workflow={state.workflow}
+              nodeTypes={nodeTypes}
+              className="h-full"
+            />
+          )
+        }
+      >
         <h1 className="text-2xl font-semibold tracking-tight">
           Connection lost
         </h1>
@@ -416,7 +439,21 @@ export function BriefPage() {
     )?.id;
 
     return (
-      <Shell banner={banner}>
+      <Shell
+        banner={banner}
+        // The exact graph the decision is about. The card says what would
+        // leave the platform; this shows where in the flow that happens.
+        canvas={
+          state.workflow &&
+          state.workflow.nodes.length > 0 && (
+            <WorkflowSchematicView
+              workflow={state.workflow}
+              nodeTypes={nodeTypes}
+              className="h-full"
+            />
+          )
+        }
+      >
         {sentenceAgrees && state.brief ? (
           <BriefSentence
             brief={state.brief}
@@ -436,11 +473,6 @@ export function BriefPage() {
           onApprove={approve}
           onDecline={decline}
         />
-        {/* The exact graph the decision is about. The card says what would
-            leave the platform; this shows where in the flow that happens. */}
-        {state.workflow && state.workflow.nodes.length > 0 && (
-          <BuildCanvas workflow={state.workflow} />
-        )}
         <BriefNotes notes={state.notes} getOrgUrl={getOrgUrl} />
       </Shell>
     );
@@ -523,7 +555,37 @@ export function BriefPage() {
   // ── Running ─────────────────────────────────────────────────────────────
   if (isRunning) {
     return (
-      <Shell banner={banner}>
+      <Shell
+        banner={banner}
+        // The build, watchable, at the size it deserves. Until the first
+        // graph frame lands, the plan's own steps hold the stage as a sketch
+        // — the picture's textual predecessor, standing where the picture
+        // will — then the graph replaces them in place.
+        canvas={
+          state.workflow && state.workflow.nodes.length > 0 ? (
+            <WorkflowSchematicView
+              workflow={state.workflow}
+              running={state.phase === "running"}
+              nodeTypes={nodeTypes}
+              className="h-full"
+            />
+          ) : state.plan && state.plan.steps.length > 0 ? (
+            <EmptyCanvas>
+              <ol className="w-72 max-w-full space-y-2">
+                {state.plan.steps.map((step, index) => (
+                  <li
+                    key={step}
+                    className="rounded-md border bg-card/60 px-2.5 py-2 text-xs text-muted-foreground shadow-xs animate-in fade-in-0 duration-500 [animation-fill-mode:backwards] motion-reduce:animate-none"
+                    style={{ animationDelay: `${index * 120}ms` }}
+                  >
+                    {step}
+                  </li>
+                ))}
+              </ol>
+            </EmptyCanvas>
+          ) : undefined
+        }
+      >
         {/* The same sentence element as the brief screen, muted — the flow's
             spine persists instead of being replaced by an unrelated <p> that
             happens to contain similar words. Only when it agrees with what
@@ -599,25 +661,6 @@ export function BriefPage() {
           signature={`${state.phase}:${state.phaseLabel}:${state.phaseTrail.length}`}
         />
 
-        {/* The build, watchable. Until the first graph frame lands, the
-            plan's own steps hold the space; from then on the graph replaces
-            them. Watching nodes appear, get rewired by a repair, and pulse
-            while the trial runs is the difference between a progress log and
-            seeing the thing get made — and the frames were already arriving,
-            reduced to a name list at the end. */}
-        {state.workflow && state.workflow.nodes.length > 0 ? (
-          <BuildCanvas
-            workflow={state.workflow}
-            running={state.phase === "running"}
-          />
-        ) : state.plan && state.plan.steps.length > 0 ? (
-          <ol className="list-decimal space-y-1 pl-5 text-sm text-muted-foreground">
-            {state.plan.steps.map((step) => (
-              <li key={step}>{step}</li>
-            ))}
-          </ol>
-        ) : null}
-
         <BriefNotes notes={state.notes} getOrgUrl={getOrgUrl} />
 
         {/* Acknowledged the moment it is clicked. The pipeline only reads its
@@ -650,7 +693,21 @@ export function BriefPage() {
   // ── Failed outright ─────────────────────────────────────────────────────
   if (state.status === "failed" && !state.execution) {
     return (
-      <Shell banner={banner}>
+      <Shell
+        banner={banner}
+        // What got built before it failed is context for "that did not
+        // work", not something to hide.
+        canvas={
+          state.workflow &&
+          state.workflow.nodes.length > 0 && (
+            <WorkflowSchematicView
+              workflow={state.workflow}
+              nodeTypes={nodeTypes}
+              className="h-full"
+            />
+          )
+        }
+      >
         <p className="text-lg">
           {state.error?.message ?? "That did not work."}
         </p>
@@ -688,7 +745,70 @@ export function BriefPage() {
   const commitLeads = showCommitment && !state.sampleName;
 
   return (
-    <Shell banner={banner}>
+    <Shell
+      banner={banner}
+      // What ran, stamped with how each step fared — the finish of the scene
+      // the running screen played, still on the canvas where it played.
+      canvas={
+        state.workflow &&
+        state.workflow.nodes.length > 0 && (
+          <div className="relative h-full animate-in fade-in-0 duration-300 [animation-delay:120ms] [animation-fill-mode:backwards] motion-reduce:animate-none">
+            {/* Floats over the canvas the way the editor's own chrome does,
+                so the pane is one surface rather than a strip and a canvas. */}
+            <p className="absolute left-4 top-4 z-10 text-xs text-muted-foreground">
+              "{state.workflow.name}" · {state.workflow.nodes.length} steps
+            </p>
+            {/* Actions on the artifact live on the artifact, in the corner
+                the editor keeps its own controls — following them lands on
+                the same canvas with more buttons, not on a different page.
+                The rail keeps the conversation: fixing, committing,
+                starting over. */}
+            {(state.workflowId || state.executionId) && (
+              <div className="absolute right-4 top-4 z-10">
+                <ActionBarGroup>
+                  {state.workflowId && (
+                    <ActionBarButton
+                      onClick={() => {
+                        void markWorkflowKept().catch(() => {});
+                        navigate(
+                          getOrgUrl(
+                            `workflows/${state.workflowId}?view=overview${
+                              state.executionId
+                                ? `&executionId=${state.executionId}`
+                                : ""
+                            }`
+                          )
+                        );
+                      }}
+                      className={actionBarButtonOutlineClassName}
+                    >
+                      Open it
+                      <ArrowRight className="size-4" />
+                    </ActionBarButton>
+                  )}
+                  {state.executionId && (
+                    <ActionBarButton
+                      onClick={() =>
+                        navigate(getOrgUrl(`executions/${state.executionId}`))
+                      }
+                      className={actionBarButtonOutlineClassName}
+                    >
+                      See the full run
+                    </ActionBarButton>
+                  )}
+                </ActionBarGroup>
+              </div>
+            )}
+            <WorkflowSchematicView
+              workflow={state.workflow}
+              execution={state.execution}
+              nodeTypes={nodeTypes}
+              className="h-full"
+            />
+          </div>
+        )
+      }
+    >
       {state.sentence && (
         <p className="text-sm text-muted-foreground">{state.sentence}</p>
       )}
@@ -748,19 +868,6 @@ export function BriefPage() {
           </div>
         )}
       </div>
-
-      {/* What ran, stamped with how each step fared — the finish of the scene
-          the running screen played. The verdicts cascade down the rows before
-          the results below arrive, so the outcome reads as the run completing
-          rather than as a page swap. */}
-      {state.workflow && state.workflow.nodes.length > 0 && (
-        <div className="space-y-2 animate-in fade-in-0 slide-in-from-bottom-2 duration-300 [animation-delay:120ms] [animation-fill-mode:backwards] motion-reduce:animate-none">
-          <p className="text-xs text-muted-foreground">
-            "{state.workflow.name}" · {state.workflow.nodes.length} steps
-          </p>
-          <BuildCanvas workflow={state.workflow} execution={state.execution} />
-        </div>
-      )}
 
       {state.workflow && state.execution && (
         <div className="animate-in fade-in-0 slide-in-from-bottom-2 duration-300 [animation-delay:240ms] [animation-fill-mode:backwards] motion-reduce:animate-none">
@@ -897,39 +1004,6 @@ export function BriefPage() {
           >
             Fix it
           </Button>
-          {state.workflowId && (
-            <Button
-              asChild
-              variant="secondary"
-              onClick={() => void markWorkflowKept().catch(() => {})}
-            >
-              {/* Lands in the editor's overview: the same schematic the build
-                  canvas above just drew, with the trial run's verdicts still
-                  stamped on it. The wiring is one gesture away, instead of
-                  being the first thing a non-builder sees. */}
-              <Link
-                to={getOrgUrl(
-                  `workflows/${state.workflowId}?view=overview${
-                    state.executionId ? `&executionId=${state.executionId}` : ""
-                  }`
-                )}
-              >
-                Open it
-                <ArrowRight className="ml-2 size-4" />
-              </Link>
-            </Button>
-          )}
-          {/* The escalation path when the summary above is not enough. This
-              screen deliberately shows only what was delivered; the run record
-              has every step's inputs and outputs, which is where a result that
-              looks wrong gets explained. */}
-          {state.executionId && (
-            <Button asChild variant="ghost">
-              <Link to={getOrgUrl(`executions/${state.executionId}`)}>
-                See the full run
-              </Link>
-            </Button>
-          )}
           <Button variant="ghost" onClick={startOver} type="button">
             Start over
           </Button>
@@ -987,10 +1061,22 @@ function BriefNotes({
 }
 
 /**
- * One column, centred, nothing else on screen.
+ * One stage, from the first keystroke to the finished run.
  *
- * No sidebar and no breadcrumbs: this runs before the user has any reason to
- * care that workflows, executions and datasets are separate things.
+ * The screen is always the same two things on desktop: the conversation in a
+ * reading-width rail on the left — request, readback, narration, verdict,
+ * next moves — and the workbench on the right, wearing the editor's surface
+ * from the start. Screens are states of this stage, not layouts of their
+ * own: the canvas sits empty while the request is written, sketches the plan
+ * while pieces are chosen, then fills with the graph — nothing ever jumps.
+ * The rail scrolls internally; the page does not scroll at all.
+ *
+ * On small screens the stage is a luxury the viewport can't pay for: the
+ * rail is the page, and the canvas pane appears below it only once there is
+ * something on it.
+ *
+ * No sidebar and no breadcrumbs — this runs before the user has any reason
+ * to care that workflows, executions and datasets are separate things.
  *
  * `banner` carries transport news above whatever screen is showing — it must
  * ride along rather than replace, because a dropped socket is not a change in
@@ -998,15 +1084,55 @@ function BriefNotes({
  */
 function Shell({
   banner,
+  canvas,
   children,
 }: {
   banner?: React.ReactNode;
+  /** What is on the workbench; the empty editor surface when omitted. */
+  canvas?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
-    <div className={cn("mx-auto w-full max-w-2xl space-y-6 px-6 py-16")}>
-      {banner}
-      {children}
+    <div className="flex flex-col lg:h-full lg:flex-row lg:overflow-hidden">
+      <div className="w-full lg:h-full lg:w-[30rem] lg:shrink-0 lg:overflow-y-auto">
+        <div className="space-y-6 px-6 py-16 lg:py-12">
+          {banner}
+          {children}
+        </div>
+      </div>
+      <div
+        className={cn(
+          canvas ? "block h-72 w-full border-t" : "hidden",
+          "lg:block lg:h-full lg:min-w-0 lg:flex-1 lg:border-l lg:border-t-0"
+        )}
+      >
+        {canvas || <EmptyCanvas />}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * The workbench with nothing on it yet — the editor's surface, so the place
+ * where the workflow will appear exists before the workflow does, and
+ * filling it is a change of contents rather than a change of scenery.
+ *
+ * CSS dots rather than a React Flow instance: an engine is a lot to run for
+ * a background, and at 1px and 3% opacity the two are indistinguishable.
+ */
+function EmptyCanvas({ children }: { children?: React.ReactNode }) {
+  return (
+    <div
+      className={cn(
+        "flex h-full items-center justify-center p-6 bg-neutral-100/50",
+        "[background-image:radial-gradient(hsl(var(--foreground)/0.04)_1px,transparent_1px)] [background-size:12px_12px]"
+      )}
+    >
+      {children ?? (
+        <p className="text-sm text-muted-foreground/60">
+          Your workflow takes shape here
+        </p>
+      )}
     </div>
   );
 }
