@@ -310,7 +310,8 @@ function SidebarToggle({ onClick, isSidebarVisible }: SidebarToggleProps) {
   );
 }
 
-function FitToScreenButton({
+/** Exported for the generator's embedded schematic view, like the toggle. */
+export function FitToScreenButton({
   onClick,
 }: {
   onClick: (e: React.MouseEvent) => void;
@@ -389,7 +390,11 @@ function DuplicateButton({
   );
 }
 
-function OverviewToggleButton({
+/**
+ * Exported for the generator's embedded schematic view, so the same two
+ * icons mean the same two views everywhere a workflow is drawn.
+ */
+export function OverviewToggleButton({
   overview,
   onClick,
 }: {

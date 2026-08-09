@@ -13,6 +13,7 @@ import {
 import ArrowRight from "lucide-react/icons/arrow-right";
 import Check from "lucide-react/icons/check";
 import Loader2 from "lucide-react/icons/loader-2";
+import Logs from "lucide-react/icons/logs";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 
@@ -30,6 +31,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { WorkflowSchematicView } from "@/components/workflow/workflow-schematic-view";
 import { useOrgUrl } from "@/hooks/use-org-url";
 import type { BriefNote } from "@/hooks/use-workflow-brief";
@@ -247,6 +249,19 @@ export function BriefPage() {
     navigate(getOrgUrl("start"), { replace: true });
   };
 
+  // The graph as it currently stands, for every screen that shows the stage
+  // plain — no run pulse, no outcome overlays. One definition, so the
+  // approval gate, a lost connection, and a failure can never disagree about
+  // what "the picture" is.
+  const graphCanvas =
+    state.workflow && state.workflow.nodes.length > 0 ? (
+      <WorkflowSchematicView
+        workflow={state.workflow}
+        nodeTypes={nodeTypes}
+        className="h-full"
+      />
+    ) : undefined;
+
   const submitRequest = (prompt: string) => {
     lastPromptRef.current = prompt;
     setAnswers({});
@@ -275,16 +290,7 @@ export function BriefPage() {
       <Shell
         // Whatever was built stays on the stage while the socket is down —
         // blanking the picture would say "lost" when nothing is.
-        canvas={
-          state.workflow &&
-          state.workflow.nodes.length > 0 && (
-            <WorkflowSchematicView
-              workflow={state.workflow}
-              nodeTypes={nodeTypes}
-              className="h-full"
-            />
-          )
-        }
+        canvas={graphCanvas}
       >
         <h1 className="text-2xl font-semibold tracking-tight">
           Connection lost
@@ -443,16 +449,7 @@ export function BriefPage() {
         banner={banner}
         // The exact graph the decision is about. The card says what would
         // leave the platform; this shows where in the flow that happens.
-        canvas={
-          state.workflow &&
-          state.workflow.nodes.length > 0 && (
-            <WorkflowSchematicView
-              workflow={state.workflow}
-              nodeTypes={nodeTypes}
-              className="h-full"
-            />
-          )
-        }
+        canvas={graphCanvas}
       >
         {sentenceAgrees && state.brief ? (
           <BriefSentence
@@ -574,7 +571,7 @@ export function BriefPage() {
               <ol className="w-72 max-w-full space-y-2">
                 {state.plan.steps.map((step, index) => (
                   <li
-                    key={step}
+                    key={`${step}-${index}`}
                     className="rounded-md border bg-card/60 px-2.5 py-2 text-xs text-muted-foreground shadow-xs animate-in fade-in-0 duration-500 [animation-fill-mode:backwards] motion-reduce:animate-none"
                     style={{ animationDelay: `${index * 120}ms` }}
                   >
@@ -697,16 +694,7 @@ export function BriefPage() {
         banner={banner}
         // What got built before it failed is context for "that did not
         // work", not something to hide.
-        canvas={
-          state.workflow &&
-          state.workflow.nodes.length > 0 && (
-            <WorkflowSchematicView
-              workflow={state.workflow}
-              nodeTypes={nodeTypes}
-              className="h-full"
-            />
-          )
-        }
+        canvas={graphCanvas}
       >
         <p className="text-lg">
           {state.error?.message ?? "That did not work."}
@@ -753,51 +741,59 @@ export function BriefPage() {
         state.workflow &&
         state.workflow.nodes.length > 0 && (
           <div className="relative h-full animate-in fade-in-0 duration-300 [animation-delay:120ms] [animation-fill-mode:backwards] motion-reduce:animate-none">
-            {/* Floats over the canvas the way the editor's own chrome does,
-                so the pane is one surface rather than a strip and a canvas. */}
-            <p className="absolute left-4 top-4 z-10 text-xs text-muted-foreground">
+            {/* Bottom-left: where the editor keeps its status bar, and this
+                is status — what the thing is, how many steps it has. */}
+            <p className="absolute bottom-4 left-4 z-10 text-xs text-muted-foreground">
               "{state.workflow.name}" · {state.workflow.nodes.length} steps
             </p>
-            {/* Actions on the artifact live on the artifact, in the corner
-                the editor keeps its own controls — following them lands on
-                the same canvas with more buttons, not on a different page.
-                The rail keeps the conversation: fixing, committing,
-                starting over. */}
+            {/* Actions on the artifact live on the artifact, icon-for-icon
+                the editor's own chrome, in the corner the editor keeps its
+                controls — following them lands on the same canvas with more
+                buttons, not on a different page. The rail keeps the
+                conversation: fixing, committing, starting over. */}
             {(state.workflowId || state.executionId) && (
-              <div className="absolute right-4 top-4 z-10">
-                <ActionBarGroup>
-                  {state.workflowId && (
-                    <ActionBarButton
-                      onClick={() => {
-                        void markWorkflowKept().catch(() => {});
-                        navigate(
-                          getOrgUrl(
-                            `workflows/${state.workflowId}?view=overview${
-                              state.executionId
-                                ? `&executionId=${state.executionId}`
-                                : ""
-                            }`
-                          )
-                        );
-                      }}
-                      className={actionBarButtonOutlineClassName}
-                    >
-                      Open it
-                      <ArrowRight className="size-4" />
-                    </ActionBarButton>
-                  )}
-                  {state.executionId && (
-                    <ActionBarButton
-                      onClick={() =>
-                        navigate(getOrgUrl(`executions/${state.executionId}`))
-                      }
-                      className={actionBarButtonOutlineClassName}
-                    >
-                      See the full run
-                    </ActionBarButton>
-                  )}
-                </ActionBarGroup>
-              </div>
+              <TooltipProvider>
+                <div className="absolute right-4 top-4 z-10">
+                  <ActionBarGroup>
+                    {state.workflowId && (
+                      <ActionBarButton
+                        onClick={() => {
+                          void markWorkflowKept().catch(() => {});
+                          navigate(
+                            getOrgUrl(
+                              `workflows/${state.workflowId}?view=overview${
+                                state.executionId
+                                  ? `&executionId=${state.executionId}`
+                                  : ""
+                              }`
+                            )
+                          );
+                        }}
+                        className={cn(
+                          actionBarButtonOutlineClassName,
+                          "text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+                        )}
+                        tooltipSide="bottom"
+                        tooltip="Open it in the editor"
+                      >
+                        <ArrowRight className="size-4!" />
+                      </ActionBarButton>
+                    )}
+                    {state.executionId && (
+                      <ActionBarButton
+                        onClick={() =>
+                          navigate(getOrgUrl(`executions/${state.executionId}`))
+                        }
+                        className={actionBarButtonOutlineClassName}
+                        tooltipSide="bottom"
+                        tooltip="See the full run"
+                      >
+                        <Logs className="size-4!" />
+                      </ActionBarButton>
+                    )}
+                  </ActionBarGroup>
+                </div>
+              </TooltipProvider>
             )}
             <WorkflowSchematicView
               workflow={state.workflow}
@@ -903,10 +899,25 @@ export function BriefPage() {
       )}
 
       {state.armed && (
-        <p className="flex items-center gap-1.5 text-sm font-medium">
-          <Check className="size-4 shrink-0" />
-          It's on — it will run on its own from now on.
-        </p>
+        <div className="space-y-1">
+          <p className="flex items-center gap-1.5 text-sm font-medium">
+            <Check className="size-4 shrink-0" />
+            It's on — it will run on its own from now on.
+          </p>
+          {/* The arc must not end on a confirmation with nowhere to go: the
+              session expires in an hour, and this line is where the user
+              learns their workflow now has a permanent home. */}
+          <p className="text-sm text-muted-foreground">
+            It lives under{" "}
+            <Link
+              className="underline underline-offset-2 hover:text-foreground"
+              to={getOrgUrl("workflows")}
+            >
+              Workflows
+            </Link>{" "}
+            from here on.
+          </p>
+        </div>
       )}
 
       <BriefNotes notes={state.notes} getOrgUrl={getOrgUrl} />
@@ -1129,9 +1140,20 @@ function EmptyCanvas({ children }: { children?: React.ReactNode }) {
       )}
     >
       {children ?? (
-        <p className="text-sm text-muted-foreground/60">
-          Your workflow takes shape here
-        </p>
+        <div className="flex flex-col items-center gap-5">
+          {/* A foreshadowing, not a diagram: the shape of what will appear,
+              in dashes — so the empty pane reads as awaiting, not missing. */}
+          <div aria-hidden="true" className="flex items-center opacity-60">
+            <div className="h-9 w-24 rounded-md border border-dashed border-muted-foreground/40" />
+            <div className="w-6 border-t border-dashed border-muted-foreground/40" />
+            <div className="h-9 w-24 rounded-md border border-dashed border-muted-foreground/40" />
+            <div className="w-6 border-t border-dashed border-muted-foreground/40" />
+            <div className="h-9 w-24 rounded-md border border-dashed border-muted-foreground/40" />
+          </div>
+          <p className="text-sm text-muted-foreground/60">
+            Your workflow takes shape here
+          </p>
+        </div>
       )}
     </div>
   );
